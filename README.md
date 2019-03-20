@@ -50,7 +50,7 @@ $ clj-kondo --lint /tmp/foo.clj
 Lint multiple files, e.g. with `find`:
 
 ``` shellsession
-$ find src -type f \( -name "*.clj" -o -name "*.cljc" -o -name "*.cljs" \) -exec clj-kondo --lint {} \;
+$ find src -type f -name "*.clj*"  -exec clj-kondo --lint {} \;
 
 src/clj/clojure/test.clj:496:6: warning: obsolete let
 src/clj/clojure/pprint/cl_format.clj:1156:15: warning: obsolete let
