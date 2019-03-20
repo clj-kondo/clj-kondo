@@ -88,9 +88,10 @@ To run multiple checkers, like [joker](https://github.com/candid82/joker)
 
 ## Credits
 
-This project is inspired by [joker](https://github.com/candid82/joker) and uses
+This project is inspired by [joker](https://github.com/candid82/joker). It uses
 [clj.native-image](https://github.com/taylorwood/clj.native-image) for compiling
-the project.
+the project. The parsing of Clojure code relies on
+[rewrite-clj](https://github.com/xsc/rewrite-clj).
 
 ## License
 
