@@ -9,8 +9,8 @@ A minimal and opinionated linter for code that sparks joy.
 You use [inline
 defs](https://blog.michielborkent.nl/2017/05/25/inline-def-debugging/) for
 debugging but you would like to get rid of them before making your code
-public. Also, unnessary `do` and `let` nestings do not spark joy. Let clj-kondo
-help you tidy your code.
+public. Also, unnessary `do` and `let` nestings don't really add any value to
+your life. Let clj-kondo help you tidy your code.
 
 ## Status
 
