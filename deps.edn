@@ -1,0 +1,13 @@
+{:deps {rewrite-clj {:mvn/version "0.6.1"}}
+ :aliases {:native-image
+           {:main-opts ["-m clj.native-image clj-kondo.core"
+                        "-H:Name=clj-kondo"
+                        "-H:+ReportExceptionStackTraces"]
+            :extra-deps
+            {clj.native-image
+             {:git/url "https://github.com/taylorwood/clj.native-image.git"
+              :sha "498baa963e914fd817dbf33ea251729efd0c8f95"}}}}
+ :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
+ ;; NOTE: build with clojure -A:native-image --verbose
+ ;; see: https://github.com/taylorwood/clj.native-image
+ }
