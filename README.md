@@ -107,24 +107,22 @@ You can integrate with Emacs [`flycheck`](https://www.flycheck.org/en/latest/) a
 
 ``` shellsession
 (flycheck-define-checker clj-kondo
-  ""
+  "See `https://github.com/borkdude/clj-kondo'."
   :command ("clj-kondo" "--lint" "-")
   :standard-input t
   :error-patterns
   ((error line-start "<stdin>:" line ":" column ": " (0+ not-newline) (or "error: " "Exception: ") (message) line-end)
    (warning line-start "<stdin>:" line ":" column ": " (0+ not-newline) "warning: " (message) line-end))
   :modes (clojure-mode clojurec-mode clojurescript-mode)
-  :predicate (lambda () (not (string= "edn" (file-name-extension (buffer-file-name))))))
+  :predicate (lambda () (not (string= "edn" (file-name-extension (buffer-file-name)))))
+  ;; Uncomment next line when you also use the joker linter. Recommended!
+  ;; :next-checkers ((warning . clojure-joker) (warning . clojurescript-joker))
+  )
 
 (add-to-list 'flycheck-checkers 'clj-kondo)
 ```
 
-To run multiple checkers, like [joker](https://github.com/candid82/joker)
-(recommended!), you can add the option:
-
-``` emacs-lisp
-  :next-checkers ((warning . clojure-joker))
-```
+This code was adapted from [flycheck-joker](https://github.com/candid82/flycheck-joker).
 
 ## Credits
 
