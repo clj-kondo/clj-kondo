@@ -107,7 +107,7 @@ $ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -A:clj-kondo
 
 You can integrate with Emacs [`flycheck`](https://www.flycheck.org/en/latest/) as follows:
 
-``` shellsession
+``` emacs-lisp
 (flycheck-define-checker clj-kondo
   "See `https://github.com/borkdude/clj-kondo'."
   :command ("clj-kondo" "--lint" "-")
