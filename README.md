@@ -14,8 +14,10 @@ your life. Let clj-kondo help you tidy your code.
 
 ## Status
 
-This is a hobby project. Let me know if you find this
-useful. I might add more features later.
+This is a hobby project. Let me know if you find this useful. More features
+might be added later. For new features I would like to focus on things that
+[joker](https://github.com/candid82/joker) does't support yet, so I recommend
+enabling that one as well.
 
 ## Installation
 
