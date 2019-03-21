@@ -46,13 +46,16 @@
 
 (defn obsolete-do* [{:keys [:children] :as rw-expr}
                     parent-do?]
-  (let [current-do? (call? rw-expr 'do)]
+  (let [implicit-do? (call? rw-expr 'fn 'defn 'defn-
+                            'let 'loop 'binding 'with-open
+                            'doseq)
+        current-do? (call? rw-expr 'do)]
     (cond (and current-do? (or parent-do?
                                (and (not= :unquote-splicing
                                           (:tag (second children)))
                                     (<= (count children) 2))))
           [rw-expr]
-          :else (mapcat #(obsolete-do* % current-do?) children))))
+          :else (mapcat #(obsolete-do* % (or implicit-do? current-do?)) children))))
 
 (defn obsolete-do [parsed-expressions]
   (map #(node->line % :warning :obsolete-do "obsolete do")
@@ -75,10 +78,15 @@
         ods (obsolete-do parsed-expressions)]
     (concat ids nls ods)))
 
+(defn process-file [f]
+  (if (= "-" f)
+    (map #(assoc % :file "<stdin>") (process-input (slurp *in*)))
+    (map #(assoc % :file f) (process-input (slurp f)))))
+
 ;;;; printing
 
-(defn print-findings [file findings]
-  (doseq [{:keys [:type :message :level :row :col]} findings]
+(defn print-findings [findings]
+  (doseq [{:keys [:file :type :message :level :row :col]} findings]
     (println (str file ":" row ":" col ": " (name level) ": " message))))
 
 (defn print-help []
@@ -87,21 +95,19 @@
 
 ;;;; main
 
-(defn -main [& [option file]]
-  (when-let [[to-read filename]
+(defn -main [option & files]
+  (when-let [files
              (case option
-               "--lint" (if (= "-" file)
-                          [*in* "<stdin>"]
-                          [file file])
+               "--lint" files
                "--help" (print-help)
                (print-help))]
-    (let [input (slurp to-read)
-          findings (process-input input)]
-      (print-findings filename findings))))
+    (let [findings (mapcat process-file files)]
+      (print-findings findings))))
 
 ;;;; scratch
 
 (comment
+  ;; TODO: turn some of these into tests
   (spit "/tmp/id.clj" "(defn foo []\n  (def x 1))")
   (-main "/tmp/id.clj")
   (-main)
@@ -116,4 +122,8 @@
   (with-in-str "(let [i 10] #_1 (let [j 11]))" (-main "--lint" "-"))
   (obsolete-do (p/parse-string-all "(do 1 (do 1 2))"))
   (with-in-str "(do 1)" (-main "--lint" "-"))
+  (process-input "(fn [] (do 1 2))")
+  (process-input "(let [] 1 2 (do 1 2 3))")
+  (process-input "(defn foo [] (do 1 2 3))")
+  (process-input "(defn foo [] (fn [] 1 2 3))")
   )
