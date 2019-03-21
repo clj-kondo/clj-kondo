@@ -50,15 +50,31 @@ $ clj-kondo --lint /tmp/foo.clj
 Lint multiple files, e.g. with `find`:
 
 ``` shellsession
-$ find src -type f -name "*.clj*"  -exec clj-kondo --lint {} \;
+$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj-kondo --lint
+/Users/Borkdude/git/clojure/src/clj/clojure/test.clj:496:6: warning: obsolete let
+/Users/Borkdude/git/clojure/src/clj/clojure/pprint/cl_format.clj:1156:15: warning: obsolete let
+/Users/Borkdude/git/clojure/src/clj/clojure/pprint/cl_format.clj:1373:4: warning: obsolete do
+/Users/Borkdude/git/clojure/src/clj/clojure/stacktrace.clj:32:5: warning: obsolete let
+/Users/Borkdude/git/clojure/src/clj/clojure/test/tap.clj:86:5: warning: obsolete do
+/Users/Borkdude/git/clojure/src/clj/clojure/repl.clj:33:17: warning: obsolete do
+/Users/Borkdude/git/clojure/src/clj/clojure/core_print.clj:233:7: warning: obsolete do
+/Users/Borkdude/git/clojure/src/clj/clojure/core.clj:7706:5: warning: obsolete do
+```
 
-src/clj/clojure/test.clj:496:6: warning: obsolete let
-src/clj/clojure/pprint/cl_format.clj:1156:15: warning: obsolete let
-src/clj/clojure/pprint/cl_format.clj:1373:4: warning: obsolete do
-src/clj/clojure/stacktrace.clj:32:5: warning: obsolete let
-src/clj/clojure/test/tap.clj:86:5: warning: obsolete do
-src/clj/clojure/repl.clj:33:17: warning: obsolete do
-src/clj/clojure/core.clj:7706:5: warning: obsolete do
+## Running without GraalVM
+
+For the less GraalVM inclined, it's also possible to run this linter with a normal JVM:
+
+``` shellsession
+$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -Sdeps '{:deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "5cd4da7bfe3f11ba7ec5e0f36af1e659b28a1ce2"}}}' -m clj-kondo.core --lint
+/Users/Borkdude/git/clojure/src/clj/clojure/test.clj:496:6: warning: obsolete let
+/Users/Borkdude/git/clojure/src/clj/clojure/pprint/cl_format.clj:1156:15: warning: obsolete let
+/Users/Borkdude/git/clojure/src/clj/clojure/pprint/cl_format.clj:1373:4: warning: obsolete do
+/Users/Borkdude/git/clojure/src/clj/clojure/stacktrace.clj:32:5: warning: obsolete let
+/Users/Borkdude/git/clojure/src/clj/clojure/test/tap.clj:86:5: warning: obsolete do
+/Users/Borkdude/git/clojure/src/clj/clojure/repl.clj:33:17: warning: obsolete do
+/Users/Borkdude/git/clojure/src/clj/clojure/core_print.clj:233:7: warning: obsolete do
+/Users/Borkdude/git/clojure/src/clj/clojure/core.clj:7706:5: warning: obsolete do
 ```
 
 ## Editor integration
