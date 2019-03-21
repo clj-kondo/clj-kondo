@@ -12,10 +12,19 @@ debugging but you would like to get rid of them before making your code
 public. Also, unnessary `do` and `let` nestings don't really add any value to
 your life. Let clj-kondo help you tidy your code.
 
+## Features
+
+* obsolete do warnings
+* obsolete let warnings
+* basic arity errors
+* private function call errors
+
 ## Status
 
-This is a hobby project. Let me know if you find this useful. More features
-might be added later. For new features I would like to focus on things that
+Work in progress. None of the code is meant to be exposed as a public API,
+except the command line interface.
+
+For new features I'd like to focus on things that
 [joker](https://github.com/candid82/joker) does't support yet, so I recommend
 enabling that one as well.
 
@@ -49,24 +58,41 @@ $ clj-kondo --lint /tmp/foo.clj
 /tmp/foo.clj:1:8: warning: inline def
 ```
 
-Lint multiple files, e.g. with `find`:
+Lint a directory:
 
 ``` shellsession
-$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj-kondo --lint
-/Users/Borkdude/git/clojure/src/clj/clojure/test.clj:496:6: warning: obsolete let
-/Users/Borkdude/git/clojure/src/clj/clojure/pprint/cl_format.clj:1156:15: warning: obsolete let
-/Users/Borkdude/git/clojure/src/clj/clojure/pprint/cl_format.clj:1373:4: warning: obsolete do
-/Users/Borkdude/git/clojure/src/clj/clojure/stacktrace.clj:32:5: warning: obsolete let
-/Users/Borkdude/git/clojure/src/clj/clojure/test/tap.clj:86:5: warning: obsolete do
-/Users/Borkdude/git/clojure/src/clj/clojure/repl.clj:33:17: warning: obsolete do
-/Users/Borkdude/git/clojure/src/clj/clojure/core_print.clj:233:7: warning: obsolete do
-/Users/Borkdude/git/clojure/src/clj/clojure/core.clj:7706:5: warning: obsolete do
+$ clj-kondo --lint src
+src/clj_kondo/test.cljs:7:1: warning: obsolete do
+src/clj_kondo/vars.clj:291:3: error: Wrong number of args (1) passed to clj-kondo.vars/analyze-arities
+...
+```
+
+Lint a project:
+
+``` shellsession
+$ clj-kondo --lint $(clj -Spath)
+```
+
+It is recommended to save the analysis results to a cache. This gives a better
+experience when using `clj-kondo` in an editor. To do this, make a `.clj-kondo`
+directory in the root of your project and use the `--cache` option:
+
+    clj-kondo --cache --lint $(clj -Spath)
+
+Next time you will lint a single namespace (e.g. using [editor
+integration](#editor-integration)), the cache can be leveraged to detect more
+errors:
+
+``` shellsession
+$ echo '(select-keys)' | clj-kondo  --lang cljs --cache --lint -
+<stdin>:1:1: error: Wrong number of args (0) passed to cljs.core/select-keys
 ```
 
 ### Running without GraalVM
 
-Running with GraalVM is recommended for better startup time. For the less GraalVM
-inclined, it's also possible to run this linter with a normal JVM:
+Running with GraalVM is recommended for better startup time. For the less
+GraalVM inclined, it's also possible to run this linter with a normal JVM. This
+can also be useful in CI environments.
 
 #### leiningen
 
@@ -108,20 +134,32 @@ $ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -A:clj-kondo
 You can integrate with Emacs [`flycheck`](https://www.flycheck.org/en/latest/) as follows:
 
 ``` emacs-lisp
-(flycheck-define-checker clj-kondo
-  "See `https://github.com/borkdude/clj-kondo'."
-  :command ("clj-kondo" "--lint" "-")
+(flycheck-define-checker clj-kondo-clj
+  "See https://github.com/borkdude/clj-kondo"
+  :command ("clj-kondo" "--cache" "--lang" "clj" "--lint" "-")
   :standard-input t
   :error-patterns
   ((error line-start "<stdin>:" line ":" column ": " (0+ not-newline) (or "error: " "Exception: ") (message) line-end)
    (warning line-start "<stdin>:" line ":" column ": " (0+ not-newline) "warning: " (message) line-end))
-  :modes (clojure-mode clojurec-mode clojurescript-mode)
+  :modes (clojure-mode clojurec-mode)
   :predicate (lambda () (not (string= "edn" (file-name-extension (buffer-file-name)))))
-  ;; Uncomment next line when you also use the joker linter. Recommended!
-  ;; :next-checkers ((warning . clojure-joker) (warning . clojurescript-joker))
-  )
+  ;; use this when you also use the joker linter, recommended!
+  :next-checkers ((error . clojure-joker) (warning . clojure-joker)))
 
-(add-to-list 'flycheck-checkers 'clj-kondo)
+(flycheck-define-checker clj-kondo-cljs
+  "See https://github.com/borkdude/clj-kondo"
+  :command ("clj-kondo" "--cache" "--lang" "cljs" "--lint" "-")
+  :standard-input t
+  :error-patterns
+  ((error line-start "<stdin>:" line ":" column ": " (0+ not-newline) (or "error: " "Exception: ") (message) line-end)
+   (warning line-start "<stdin>:" line ":" column ": " (0+ not-newline) "warning: " (message) line-end))
+  :modes (clojurescript-mode)
+  :predicate (lambda () (not (string= "edn" (file-name-extension (buffer-file-name)))))
+  ;; use this when you also use the joker linter, recommended!
+  :next-checkers ((error . clojurescript-joker) (warning . clojurescript-joker)))
+
+(add-to-list 'flycheck-checkers 'clj-kondo-clj)
+(add-to-list 'flycheck-checkers 'clj-kondo-cljs)
 ```
 
 This code was adapted from [flycheck-joker](https://github.com/candid82/flycheck-joker).
