@@ -63,7 +63,7 @@ $ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj-kondo --lint
 
 ### Running without GraalVM
 
-Running with GraalVM is recommened for better startup time. For the less GraalVM
+Running with GraalVM is recommended for better startup time. For the less GraalVM
 inclined, it's also possible to run this linter with a normal JVM:
 
 #### leiningen
