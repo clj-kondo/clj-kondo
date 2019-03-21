@@ -61,20 +61,44 @@ $ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj-kondo --lint
 /Users/Borkdude/git/clojure/src/clj/clojure/core.clj:7706:5: warning: obsolete do
 ```
 
-## Running without GraalVM
+### Running without GraalVM
 
-For the less GraalVM inclined, it's also possible to run this linter with a normal JVM:
+Running with GraalVM is recommened for better startup time. For the less GraalVM
+inclined, it's also possible to run this linter with a normal JVM:
+
+#### leiningen
+
+You can add `clj-kondo` to `~/.lein/profiles.clj` to make it available as a `lein` command:
+
+``` clojure
+{:user {:dependencies [[clj-kondo "0.0.1-SNAPSHOT"]]
+        :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main" "--lint"]}
+```
 
 ``` shellsession
-$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -Sdeps '{:deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "5cd4da7bfe3f11ba7ec5e0f36af1e659b28a1ce2"}}}' -m clj-kondo.core --lint
-/Users/Borkdude/git/clojure/src/clj/clojure/test.clj:496:6: warning: obsolete let
-/Users/Borkdude/git/clojure/src/clj/clojure/pprint/cl_format.clj:1156:15: warning: obsolete let
-/Users/Borkdude/git/clojure/src/clj/clojure/pprint/cl_format.clj:1373:4: warning: obsolete do
-/Users/Borkdude/git/clojure/src/clj/clojure/stacktrace.clj:32:5: warning: obsolete let
-/Users/Borkdude/git/clojure/src/clj/clojure/test/tap.clj:86:5: warning: obsolete do
-/Users/Borkdude/git/clojure/src/clj/clojure/repl.clj:33:17: warning: obsolete do
-/Users/Borkdude/git/clojure/src/clj/clojure/core_print.clj:233:7: warning: obsolete do
-/Users/Borkdude/git/clojure/src/clj/clojure/core.clj:7706:5: warning: obsolete do
+$ find ~/git/clojure/src -type f -name "*.clj*" | xargs lein clj-kondo
+...
+```
+
+#### tools.deps.alpha
+
+Run `clj-kondo` as an ad-hoc command line dependency:
+
+``` shellsession
+$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -Sdeps '{:deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "5cd4da7bfe3f11ba7ec5e0f36af1e659b28a1ce2"}}}' -m clj-kondo.main --lint
+```
+
+Or add it as an alias to `~/.clojure/deps.edn`:
+
+``` clojure
+{:aliases
+ {:clj-kondo
+  {:extra-deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "5cd4da7bfe3f11ba7ec5e0f36af1e659b28a1ce2"}}
+   :main-opts ["-m" "clj-kondo.main" "--lint"]}}}
+```
+
+``` shellsession
+$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -A:clj-kondo
 ```
 
 ## Editor integration

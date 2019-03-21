@@ -1,6 +1,6 @@
 {:deps {rewrite-clj {:mvn/version "0.6.1"}}
  :aliases {:native-image
-           {:main-opts ["-m clj.native-image clj-kondo.core"
+           {:main-opts ["-m clj.native-image clj-kondo.main"
                         "-H:Name=clj-kondo"
                         "-H:+ReportExceptionStackTraces"]
             :extra-deps

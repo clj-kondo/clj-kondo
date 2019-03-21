@@ -1,12 +1,33 @@
 (ns clj-kondo.core
   (:gen-class)
-  (:require [rewrite-clj.parser :as p]
-            [clj-kondo.utils :as utils
-             :refer [uneval?
-                     remove-whitespace
-                     call?
-                     node->line]]
-            [clojure.string :as str]))
+  (:require
+   [clojure.string :as str]
+   [clojure.walk :refer [prewalk]]
+   [rewrite-clj.node.protocols :as node]
+   [rewrite-clj.node.whitespace :refer [whitespace?]]
+   [rewrite-clj.parser :as p]))
+
+(defn uneval? [node]
+  (= :uneval (node/tag node)))
+
+(defn remove-whitespace [rw-expr]
+  (clojure.walk/prewalk
+   #(if (seq? %)
+      (remove (fn [n]
+                (or (whitespace? n)
+                    (uneval? n))) %) %) rw-expr))
+
+(defmacro call? [rw-expr & syms]
+  `(and (= :list (:tag ~rw-expr))
+        (~(set syms) (:value (first (:children ~rw-expr))))))
+
+(defn node->line [node level type message]
+  (let [m (meta node)]
+    {:type type
+     :message message
+     :level level
+     :row (:row m)
+     :col (:col m)}))
 
 ;;;; inline def
 
@@ -83,45 +104,15 @@
     (map #(assoc % :file "<stdin>") (process-input (slurp *in*)))
     (map #(assoc % :file f) (process-input (slurp f)))))
 
-;;;; printing
-
-(defn print-findings [findings]
-  (doseq [{:keys [:file :type :message :level :row :col]} findings]
-    (println (str file ":" row ":" col ": " (name level) ": " message))))
-
-(defn print-help []
-  (println "Usage: --lint <file>. Use - for reading from stdin.")
-  nil)
-
-;;;; main
-
-(defn -main [option & files]
-  (when-let [files
-             (case option
-               "--lint" files
-               "--help" (print-help)
-               (print-help))]
-    (let [findings (mapcat process-file files)]
-      (print-findings findings))))
+;;;; scratch
 
 ;;;; scratch
 
 (comment
   ;; TODO: turn some of these into tests
-  (spit "/tmp/id.clj" "(defn foo []\n  (def x 1))")
-  (-main "/tmp/id.clj")
-  (-main)
-  (with-in-str "(defn foo []\n  (def x 1))" (-main "--lint" "-"))
-  (with-in-str "(defn foo []\n  `(def x 1))" (-main "--lint" "-"))
-  (with-in-str "(defn foo []\n  '(def x 1))" (-main "--lint" "-"))
   (inline-defs (p/parse-string-all "(defn foo []\n  (def x 1))"))
-  (defn foo []\n  (def x 1))
-  (nested-lets (p/parse-string-all "(let [i 10])"))
-  (with-in-str "(let [i 10] (let [j 11]))" (-main "--lint" "-"))
-  (with-in-str "(let [i 10] 1 (let [j 11]))" (-main "--lint" "-"))
-  (with-in-str "(let [i 10] #_1 (let [j 11]))" (-main "--lint" "-"))
+  (obsolete-let (p/parse-string-all "(let [i 10])"))
   (obsolete-do (p/parse-string-all "(do 1 (do 1 2))"))
-  (with-in-str "(do 1)" (-main "--lint" "-"))
   (process-input "(fn [] (do 1 2))")
   (process-input "(let [] 1 2 (do 1 2 3))")
   (process-input "(defn foo [] (do 1 2 3))")
