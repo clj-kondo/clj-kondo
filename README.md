@@ -22,7 +22,7 @@ your life. Let clj-kondo help you tidy your code.
 
 ## Status
 
-Work in progress. None of the code is meant to be exposed as a public API,
+Work in progress, but already useful. None of the code is meant to be exposed as a public API,
 except the command line interface.
 
 For new features I'd like to focus on things that
@@ -30,6 +30,8 @@ For new features I'd like to focus on things that
 enabling that one as well.
 
 ## Installation
+
+(For running without GraalVM, look [here](#running-without-graalvm)).
 
 Download [GraalVM](https://github.com/oracle/graal/releases) and set the
 `GRAALVM_HOME` variable. E.g.:
@@ -91,9 +93,7 @@ $ echo '(select-keys)' | clj-kondo  --lang cljs --cache --lint -
 
 ### Running without GraalVM
 
-Running with GraalVM is recommended for better startup time. For the less
-GraalVM inclined, it's also possible to run this linter with a normal JVM. This
-can also be useful in CI environments.
+Running with GraalVM is recommended for better startup time, but you can run this linter with a normal JVM as well.
 
 #### leiningen
 
@@ -105,8 +105,7 @@ You can add `clj-kondo` to `~/.lein/profiles.clj` to make it available as a `lei
 ```
 
 ``` shellsession
-$ find ~/git/clojure/src -type f -name "*.clj*" | xargs lein clj-kondo
-...
+$ lein clj-kondo src 
 ```
 
 #### tools.deps.alpha
@@ -114,7 +113,7 @@ $ find ~/git/clojure/src -type f -name "*.clj*" | xargs lein clj-kondo
 Run `clj-kondo` as an ad-hoc command line dependency:
 
 ``` shellsession
-$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -Sdeps '{:deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "<master/latest-sha>"}}}' -m clj-kondo.main --lint
+$ clj -Sdeps '{:deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "<master/latest-sha>"}}}' -m clj-kondo.main --lint src
 ```
 
 where `<master/latest-sha>` is the SHA of the latest commit on the master
@@ -130,7 +129,7 @@ Or add it as an alias to `~/.clojure/deps.edn`:
 ```
 
 ``` shellsession
-$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -A:clj-kondo
+$ clj -A:clj-kondo src
 ```
 
 ## Editor integration
