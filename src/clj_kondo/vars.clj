@@ -147,7 +147,7 @@
                          private? (assoc :private? private?)
                          var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))]
                  (map #(parse-arities % (reduce set/union bindings (map :arg-names arities))) (rest children))))
-       (call? rw-expr '->> 'cond-> 'some-> '. '.. 'deftype
+       (call? rw-expr '->> 'cond-> 'cond->> 'some-> 'some->> '. '.. 'deftype
               'proxy 'extend-protocol 'doto 'reify)
        []
        (let? rw-expr)
