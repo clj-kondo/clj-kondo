@@ -254,15 +254,20 @@
                                     :clj clj-defns
                                     :cljs cljs-defns)
                              called-fn (or (get-in dict [fn-ns fn-name])
-                                           (case language
-                                             :clj
-                                             (get clojure-core-defns
-                                                  (symbol "clojure.core"
-                                                          (name fn-name)))
-                                             :cljs
-                                             (get cljs-core-defns
-                                                  (symbol "cljs.core"
-                                                          (name fn-name)))))
+                                           (when (= (:caller-ns call)
+                                                    fn-ns)
+                                             ;; we resolved the call as
+                                             ;; ns-local, but it might be a
+                                             ;; clojure.core call
+                                             (case language
+                                               :clj
+                                               (get clojure-core-defns
+                                                    (symbol "clojure.core"
+                                                            (name fn-name)))
+                                               :cljs
+                                               (get cljs-core-defns
+                                                    (symbol "cljs.core"
+                                                            (name fn-name))))))
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)]
                        :when called-fn
