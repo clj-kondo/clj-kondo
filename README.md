@@ -14,6 +14,7 @@ your life. Let clj-kondo help you tidy your code.
 
 ## Features
 
+* inline def warnings
 * obsolete do warnings
 * obsolete let warnings
 * basic arity errors
