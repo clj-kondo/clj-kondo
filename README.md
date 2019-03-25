@@ -70,10 +70,12 @@ src/clj_kondo/vars.clj:291:3: error: Wrong number of args (1) passed to clj-kond
 ...
 ```
 
-Lint a project:
+Lint a project classpath:
 
 ``` shellsession
 $ clj-kondo --lint $(clj -Spath)
+$ clj-kondo --lint $(lein classpath)
+$ clj-kondo --lint $(boot with-cp -w -f -)
 ```
 
 It is recommended to save the analysis results to a cache. This gives a better
