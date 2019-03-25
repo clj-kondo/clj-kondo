@@ -1,6 +1,6 @@
 # clj-kondo
 
-A minimal and opinionated linter for code that sparks joy.
+A minimal and opinionated linter for Clojure code that sparks joy.
 
 <img src="demo.png">
 
@@ -9,7 +9,7 @@ A minimal and opinionated linter for code that sparks joy.
 You use [inline
 defs](https://blog.michielborkent.nl/2017/05/25/inline-def-debugging/) for
 debugging but you would like to get rid of them before making your code
-public. Also, unnessary `do` and `let` nestings don't really add any value to
+public. Also, unnecessary `do` and `let` nestings don't really add any value to
 your life. Let clj-kondo help you tidy your code.
 
 ## Features
@@ -113,15 +113,18 @@ $ find ~/git/clojure/src -type f -name "*.clj*" | xargs lein clj-kondo
 Run `clj-kondo` as an ad-hoc command line dependency:
 
 ``` shellsession
-$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -Sdeps '{:deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "5cd4da7bfe3f11ba7ec5e0f36af1e659b28a1ce2"}}}' -m clj-kondo.main --lint
+$ find ~/git/clojure/src -type f -name "*.clj*" | xargs clj -Sdeps '{:deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "<master/latest-sha>"}}}' -m clj-kondo.main --lint
 ```
+
+where `<master/latest-sha>` is the SHA of the latest commit on the master
+branch.
 
 Or add it as an alias to `~/.clojure/deps.edn`:
 
 ``` clojure
 {:aliases
  {:clj-kondo
-  {:extra-deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "5cd4da7bfe3f11ba7ec5e0f36af1e659b28a1ce2"}}
+  {:extra-deps {clj-kondo {:git/url "https://github.com/borkdude/clj-kondo" :sha "<master/latest-sha>"}}
    :main-opts ["-m" "clj-kondo.main" "--lint"]}}}
 ```
 
