@@ -106,11 +106,18 @@ Use - as filename for reading from stdin."))
                       :row 0
                       :message (str "Can't read " filename ", file does not exist.")}]}]))
     (catch Exception e
-      [{:findings [{:level :error
-                    :filename filename
-                    :col 0
-                    :row 0
-                    :message (str "Can't read " filename ", " (.getMessage e))}]}])))
+      (let [filename (if (= "-" filename)
+                       (or (and (.exists (io/file filename))
+                                filename)
+                           "<stdin>")
+                       filename)]
+        [{:findings [{:level :error
+                      :filename filename
+                      :col 0
+                      :row 0
+                      :message (str "Can't read "
+                                    filename ", "
+                                    (.getMessage e))}]}]))))
 
 ;;;; find cache/config dir
 
