@@ -97,7 +97,11 @@
         input (-> input
                   (str/replace "##Inf" "::Inf")
                   (str/replace "##-Inf" "::-Inf")
-                  (str/replace "##NaN" "::NaN"))
+                  (str/replace "##NaN" "::NaN")
+                  ;; workaround for https://github.com/borkdude/clj-kondo/issues/11
+                  (str/replace #_"#:a{#::a {:a b}}"
+                               #"#(::?)(.*?)\{" (fn [[_ colons name]]
+                                                  (str colons name "{"))))
         parsed-expressions
         (p/parse-string-all input)
         parsed-expressions (remove-noise parsed-expressions)
@@ -134,4 +138,5 @@
   ;; TODO: distribute binaries
   (process-input)
   (process-input "(clojure.core/reduce 1)" "" :clj)
+  (process-input "#::i {:b nil #::i {:c nil}}" "" :clj)
   )
