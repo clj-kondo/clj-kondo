@@ -10,7 +10,15 @@
             :extra-deps
             {clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
-              :sha "498baa963e914fd817dbf33ea251729efd0c8f95"}}}}
+              :sha "498baa963e914fd817dbf33ea251729efd0c8f95"}}}
+           :test
+           {:extra-deps
+            {test-runner
+             {:git/url "https://github.com/cognitect-labs/test-runner"
+              :sha "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}
+             clj-commons/conch {:mvn/version "0.9.2"}}
+            :extra-paths ["test"]
+            :main-opts ["-m" "cognitect.test-runner"]}}
  :jvm-opts [;; "-Dclojure.compiler.direct-linking=true"
             "-Dclojure.spec.skip-macros=true"]
  ;; NOTE: build with clojure -A:native-image --verbose

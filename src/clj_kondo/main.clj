@@ -1,7 +1,7 @@
 (ns clj-kondo.main
   (:gen-class)
-  (:require [clj-kondo.core :refer [process-input]]
-            [clj-kondo.vars :refer [arity-findings]]
+  (:require [clj-kondo.impl.linters :refer [process-input]]
+            [clj-kondo.impl.vars :refer [arity-findings]]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str
@@ -9,39 +9,46 @@
                      ends-with?]])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
-(def version "2019.03.23-SNAPSHOT")
+(def ^:private version "2019.03.23-SNAPSHOT")
 (set! *warn-on-reflection* true)
 
 ;;;; printing
 
-(defn print-findings [findings]
+(defn- print-findings [findings]
   (doseq [{:keys [:filename :type :message :level :row :col]} findings
           :when level]
     (println (str filename ":" row ":" col ": " (name level) ": " message))))
 
-(defn print-version []
+(defn- print-version []
   (println (str "clj-kondo v" version)))
 
-(defn print-help []
+(defn- print-help []
   (print-version)
   (println (str "
 Usage: [ --help ] [ --version ] [ --cache [ <dir> ] ] [ --lang (clj|cljs) ] [ --lint <files> ]
 
---files: a file can either be a normal file, directory or classpath. In the case of a directory or classpath, only .clj, .cljs and .cljc will be processed.
---lang: if lang cannot be derived from the file extension this option will be used.
---cache: if dir exists it is used to write and read data from, to enrich analysis over multiple runs. If no value is provided, the nearest .clj-kondo parent directory is used.
+Options:
 
-Use - as filename for reading from stdin."))
+  --files: a file can either be a normal file, directory or classpath. In the
+    case of a directory or classpath, only .clj, .cljs and .cljc will be
+    processed. Use - as filename for reading from stdin.
+
+  --lang: if lang cannot be derived from the file extension this option will be
+    used.
+
+  --cache: if dir exists it is used to write and read data from, to enrich
+    analysis over multiple runs. If no value is provided, the nearest .clj-kondo
+    parent directory is used."))
   nil)
 
-(defn source-file? [filename]
+(defn- source-file? [filename]
   (or (ends-with? filename ".clj")
       (ends-with? filename ".cljc")
       (ends-with? filename ".cljs")))
 
 ;;;; jar processing
 
-(defn sources-from-jar
+(defn- sources-from-jar
   [^String jar-path]
   (let [jar (JarFile. jar-path)
         entries (enumeration-seq (.entries jar))
@@ -54,7 +61,7 @@ Use - as filename for reading from stdin."))
 
 ;;;; dir processing
 
-(defn sources-from-dir
+(defn- sources-from-dir
   [dir]
   (let [files (file-seq dir)]
     (keep (fn [^java.io.File file]
@@ -65,7 +72,7 @@ Use - as filename for reading from stdin."))
 
 ;;;; file processing
 
-(defn lang-from-file [file default-language]
+(defn- lang-from-file [file default-language]
   (cond (ends-with? file ".clj")
         :clj
         (ends-with? file ".cljc")
@@ -74,10 +81,10 @@ Use - as filename for reading from stdin."))
         :cljs
         :else default-language))
 
-(defn classpath? [f]
+(defn- classpath? [f]
   (str/includes? f ":"))
 
-(defn process-file [filename default-language]
+(defn- process-file [filename default-language]
   (try
     (let [file (io/file filename)]
       (cond
@@ -121,7 +128,7 @@ Use - as filename for reading from stdin."))
 
 ;;;; find cache/config dir
 
-(defn config-dir
+(defn- config-dir
   ([] (config-dir (io/file (System/getProperty "user.dir"))))
   ([cwd]
    (loop [dir (io/file cwd)]
@@ -135,8 +142,8 @@ Use - as filename for reading from stdin."))
 
 ;;;; cache
 
-(def cache-format "v1")
-(def cache-dir
+(def ^:private cache-format "v1")
+(def ^:private cache-dir
   (str ".cache/" cache-format))
 
 ;;;; main
@@ -216,7 +223,5 @@ Use - as filename for reading from stdin."))
   (process-input "(defn foo [] (fn [] 1 2 3))")
 
   (with-in-str "(ns foo) (defn foo [x]) (foo)" (-main "--lint" "-"))
-  fs
   (arity-findings (:arities (process-input "(ns foo) (defn foo [x])(ns bar (:require [foo :refer [foo]]))(foo)" "-")))
-  fs
   )

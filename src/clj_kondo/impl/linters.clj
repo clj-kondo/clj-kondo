@@ -1,8 +1,8 @@
-(ns clj-kondo.core
-  (:gen-class)
+(ns clj-kondo.impl.linters
+  {:no-doc true}
   (:require
-   [clj-kondo.utils :refer [call? node->line remove-noise]]
-   [clj-kondo.vars :refer [analyze-arities]]
+   [clj-kondo.impl.utils :refer [call? node->line remove-noise]]
+   [clj-kondo.impl.vars :refer [analyze-arities]]
    [clojure.string :as str]
    [clojure.walk :refer [prewalk]]
    [rewrite-clj.node.protocols :as node]
@@ -14,7 +14,7 @@
 ;;;; inline def
 
 (defn inline-def* [rw-expr in-def?]
-  (let [current-def? (call? rw-expr 'def 'defn)
+  (let [current-def? (call? rw-expr 'def 'defn 'defn- 'deftest 'defmacro)
         new-in-def? (and (not (contains? '#{:syntax-quote :quote}
                                          (:tag rw-expr)))
                          (or in-def? current-def?))]
@@ -118,25 +118,7 @@
 ;;;; scratch
 
 (comment
-  ;; TODO: turn some of these into tests
-  (inline-defs (p/parse-string-all "(defn foo []\n  (def x 1))"))
-  (obsolete-let "" (p/parse-string-all "(let [i 10])"))
-  (obsolete-do "" (p/parse-string-all "(do 1 (do 1 2))"))
-  (process-input "(fn [] (do 1 2))" "<stdin>" :clj)
-  (process-input "(let [] 1 2 (do 1 2 3))" "<stdin>" :clj)
-  (process-input "(defn foo [] (do 1 2 3))" "<stdin>" :clj)
-  (process-input "(defn foo [] (fn [] 1 2 3))" "<stdin>" :clj)
-  ;; (process-input "(ns my-ns (:require [b :refer [bar]])) (defn foo [x]) \n (foo 1) (bar 1)")
-  (arity-findings (:arities (process-input "(ns foo) (defn foo [x])
-                                   \"...\" (ns bar (:require [foo :refer [foo]]))
-                                   (foo)" "<stdin>" :clj)))
-
-  ;; TODO: include public vars from clojure.core and cljs.core and resolve them as such
-  ;; TODO: cache per language
   ;; TODO: fix/optimize cache format
   ;; TODO: clean up code
   ;; TODO: distribute binaries
-  (process-input)
-  (process-input "(clojure.core/reduce 1)" "" :clj)
-  (process-input "#::i {:b nil #::i {:c nil}}" "" :clj)
   )

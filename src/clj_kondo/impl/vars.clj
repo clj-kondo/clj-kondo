@@ -1,9 +1,10 @@
 ;; NOTE: this namespace is a bit messy. The code should be cleaned up before release.
 
-(ns clj-kondo.vars
+(ns clj-kondo.impl.vars
+  {:no-doc true}
   (:require
    [clojure.set :as set]
-   [clj-kondo.utils :refer [call? node->line]]
+   [clj-kondo.impl.utils :refer [call? node->line]]
    [rewrite-clj.node.protocols :as node]))
 
 ;;;; function arity
@@ -215,29 +216,31 @@
          qualified {:calls []
                     :defns {}}]
     (if-let [p (first parsed)]
-      (if (= :ns (:type p))
-        (recur (rest parsed)
-               p
-               qualified)
-        (recur (rest parsed)
-               ns
-               (case (:type p)
-                 :defn
-                 (let [qname (qualify-name ns (:name p))]
-                   (assoc-in qualified [:defns (:name ns) qname]
-                             (assoc p
-                                    :name qname
-                                    :ns (:name ns)
-                                    :filename filename
-                                    :lang language)))
-                 :call
-                 (let [qname (qualify-name ns (:name p))]
-                   (update qualified :calls
-                           conj (assoc p
-                                       :name qname
-                                       :caller-ns (:name ns)
-                                       :filename filename
-                                       :lang language))))))
+      (do
+        ;; (println (:type p))
+        (if (= :ns (:type p))
+          (recur (rest parsed)
+                 p
+                 qualified)
+          (recur (rest parsed)
+                 ns
+                 (case (:type p)
+                   :defn
+                   (let [qname (qualify-name ns (:name p))]
+                     (assoc-in qualified [:defns (:name ns) qname]
+                               (assoc p
+                                      :name qname
+                                      :ns (:name ns)
+                                      :filename filename
+                                      :lang language)))
+                   :call
+                   (let [qname (qualify-name ns (:name p))]
+                     (update qualified :calls
+                             conj (assoc p
+                                         :name qname
+                                         :caller-ns (:name ns)
+                                         :filename filename
+                                         :lang language)))))))
       qualified)))
 
 (defn arity-findings
@@ -292,18 +295,7 @@
                    e)]
     findings))
 
+;;;; Scratch
+
 (comment
-  (analyze-arities (parse-string-all "(ns my-ns (:require [b :refer [bar]])) (defn foo [x]) \n (foo 1) (bar 1)"))
-  (arity-findings (process-input "(ns foo) (defn foo [x]) (ns bar (:require [foo :refer [foo]])) (foo)" "" :clj))
-  (analyze-arities "(defn foo ([x] (foo x 1)) ([x y]))")
-  (process-input "(defn foo [])" "" :clj)
-  (process-input "(ns bar (:require [foo :refer [foo]]))" "" :clj)
-  (:tag (first (:children (parse-string-all ";; foo"))))
-  (analyze-arities (parse-string-all "(defn foo [x]) (let [foo (fn [])] (foo))"))
-
-  [(p/parse-string "(-> x inc inc)")
-   (p/parse-string "(inc (inc x))")]
-
-  (set 1 2 3)
-
   )

@@ -169,6 +169,10 @@ You can integrate with Emacs [`flycheck`](https://www.flycheck.org/en/latest/) a
 
 This code was adapted from [flycheck-joker](https://github.com/candid82/flycheck-joker).
 
+## Tests
+
+    clj -A:test
+
 ## Credits
 
 This project is inspired by [joker](https://github.com/candid82/joker). It uses

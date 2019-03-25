@@ -1,8 +1,8 @@
-(ns clj-kondo.utils
+(ns clj-kondo.impl.utils
+  {:no-doc true}
   (:require
    [clojure.walk :refer [prewalk]]
    [rewrite-clj.node.protocols :as node]
-   [rewrite-clj.node.seq :refer [list-node]]
    [rewrite-clj.node.whitespace :refer [whitespace?]]
    [rewrite-clj.parser :as p]))
 
