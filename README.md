@@ -1,4 +1,7 @@
 # clj-kondo
+[![CircleCI](https://circleci.com/gh/borkdude/clj-kondo/tree/master.svg?style=svg)](https://circleci.com/gh/borkdude/clj-kondo/tree/master)
+[![Clojars Project](https://img.shields.io/clojars/v/clj-kondo.svg)](https://clojars.org/clj-kondo)
+[![cljdoc badge](https://cljdoc.org/badge/clj-kondo/clj-kondo)](https://cljdoc.org/d/clj-kondo/clj-kondo/CURRENT)
 
 A minimal and opinionated linter for Clojure code that sparks joy.
 
@@ -107,7 +110,7 @@ You can add `clj-kondo` to `~/.lein/profiles.clj` to make it available as a `lei
 ```
 
 ``` shellsession
-$ lein clj-kondo src 
+$ lein clj-kondo src
 ```
 
 #### tools.deps.alpha

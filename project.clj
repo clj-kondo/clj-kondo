@@ -1,4 +1,4 @@
-(defproject clj-kondo "0.0.1-SNAPSHOT"
+(defproject clj-kondo #=(clojure.string/trim #=(slurp "VERSION"))
   :description "Tidy your code with clj-kondo."
   :url "https://github.com/borkdude/clj-kondo"
   :scm {:name "git"
