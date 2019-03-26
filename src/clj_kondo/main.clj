@@ -9,7 +9,7 @@
                      ends-with?]])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
-(def ^:private version "2019.03.23-SNAPSHOT")
+(def ^:private version (slurp "VERSION"))
 (set! *warn-on-reflection* true)
 
 ;;;; printing
