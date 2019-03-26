@@ -1,0 +1,52 @@
+# Clojure CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-clojure/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version you desire here
+      - image: circleci/clojure:lein-2.8.1
+      # Specify service dependencies here if necessary
+      # CircleCI maintains a library of pre-built images
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+      # - image: circleci/postgres:9.4
+    working_directory: ~/repo
+    environment:
+      LEIN_ROOT: "true"
+      # Customize the JVM maximum heap limit
+      JVM_OPTS: -Xmx3200m
+      GRAALVM_HOME: ~/repo/graalvm-ce-1.0.0-rc14/Contents/Home
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "deps.edn" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run:
+          name: Install Clojure
+          command: |
+            wget -nc https://download.clojure.org/install/linux-install-1.10.0.442.sh
+            chmod +x linux-install-1.10.0.442.sh
+            sudo ./linux-install-1.10.0.442.sh
+      - run:
+          name: Download GraalVM
+          command: |
+            pwd
+            wget -nc https://github.com/oracle/graal/releases/download/vm-1.0.0-rc14/graalvm-ce-1.0.0-rc14-linux-amd64.tar.gz
+            tar -xzf graalvm-ce-1.0.0-rc14-linux-amd64.tar.gz
+            pwd
+            ls
+      - run:
+          name: Build binary
+          command: |
+            clojure -A:native-image --verbose
+      - run: clojure -A:test
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "deps.edn" }} 
+      - run: .circleci/maybe-deploy.sh
