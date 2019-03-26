@@ -26,7 +26,7 @@ Work in progress, but already useful. None of the code is meant to be exposed as
 except the command line interface.
 
 For new features I'd like to focus on things that
-[joker](https://github.com/candid82/joker) does't support yet, so I recommend
+[joker](https://github.com/candid82/joker) doesn't support yet, so I recommend
 enabling that one as well.
 
 ## Installation
@@ -89,7 +89,7 @@ integration](#editor-integration)), the cache can be leveraged to detect more
 errors:
 
 ``` shellsession
-$ echo '(select-keys)' | clj-kondo  --lang cljs --cache --lint -
+$ echo '(select-keys)' | clj-kondo --lang cljs --cache --lint -
 <stdin>:1:1: error: Wrong number of args (0) passed to cljs.core/select-keys
 ```
 
