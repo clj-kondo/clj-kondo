@@ -25,7 +25,7 @@ your life. Let clj-kondo help you tidy your code.
 
 ## Status
 
-Work in progress, but already useful. None of the code is meant to be exposed as a public API,
+WIP, hacky, alpha, but already useful. None of the code is meant to be exposed as a public API,
 except the command line interface.
 
 For new features I'd like to focus on things that
