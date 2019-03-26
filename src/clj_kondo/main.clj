@@ -9,7 +9,7 @@
                      ends-with?]])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
-(def ^:private version (slurp "VERSION"))
+(def ^:private version (str/trim (slurp (io/resource "CLJ_KONDO_VERSION"))))
 (set! *warn-on-reflection* true)
 
 ;;;; printing
