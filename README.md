@@ -41,12 +41,12 @@ Pre-built binaries are available for
 
 For running without GraalVM, look [here](#running-without-graalvm).
 
-Download [GraalVM](https://github.com/oracle/graal/releases) and set the
+To build a binary from source, download [GraalVM](https://github.com/oracle/graal/releases) and set the
 `GRAALVM_HOME` variable. E.g.:
 
     export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-1.0.0-rc14/Contents/Home
 
-Clone this repo, cd `clj-kondo` and build the native binary:
+Then clone this repo, cd `clj-kondo` and build the native binary:
 
     clojure -A:native-image
 
