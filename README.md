@@ -35,9 +35,11 @@ enabling that one as well.
 ## Installation
 
 Pre-built binaries are available for
- [linux](https://github.com/borkdude/clj-kondo/releases/download/2019.03.27-alpha/clj-kondo-linux-amd64)
+ [linux](https://github.com/borkdude/clj-kondo/releases/download/2019.03.27-alpha/clj-kondo-2019.03.27-alpha-linux-amd64.tar.gz
+)
  and
- [MacOS](https://github.com/borkdude/clj-kondo/releases/download/2019.03.27-alpha/clj-kondo-darwin-amd64)
+ [MacOS](https://github.com/borkdude/clj-kondo/releases/download/2019.03.27-alpha/clj-kondo-2019.03.27-alpha-darwin-amd64.tar.gz
+)
 
 For running without GraalVM, look [here](#running-without-graalvm).
 
