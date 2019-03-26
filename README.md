@@ -34,7 +34,12 @@ enabling that one as well.
 
 ## Installation
 
-(For running without GraalVM, look [here](#running-without-graalvm)).
+Pre-built binaries are available for
+ [linux](https://www.michielborkent.nl/clj-kondo/releases/2019.03.27-alpha-linux-amd64/clj-kondo)
+ and
+ [MacOS](https://www.michielborkent.nl/clj-kondo/releases/2019.03.27-alpha-darwin-amd64/clj-kondo).
+
+For running without GraalVM, look [here](#running-without-graalvm).
 
 Download [GraalVM](https://github.com/oracle/graal/releases) and set the
 `GRAALVM_HOME` variable. E.g.:
