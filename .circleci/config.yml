@@ -46,7 +46,7 @@ jobs:
           name: Build binary
           command: |
             clojure -A:native-image --verbose
-            VERSION=$(cat VERSION)
+            VERSION=$(cat src/CLJ_KONDO_VERSION)
             mkdir -p "releases/$VERSION-linux-amd64"
             cp clj-kondo "releases/$VERSION-linux-amd64"
       - run:
