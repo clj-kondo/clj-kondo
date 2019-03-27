@@ -2,30 +2,66 @@
 #
 # Check https://circleci.com/docs/2.0/language-clojure/ for more details
 #
-version: 2
+version: 2.1
 jobs:
-  build:
+  testjvm:
     docker:
       # specify the version you desire here
       - image: circleci/clojure:lein-2.8.1
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      # Customize the JVM maximum heap limit
-      GRAALVM_HOME: graalvm-ce-1.0.0-rc14
-      # For mac builds:
-      # GRAALVM_HOME: graalvm-ce-1.0.0-rc14/Contents/Home
     steps:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "deps.edn" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "deps.edn" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: Install Clojure
+          command: |
+            wget -nc https://download.clojure.org/install/linux-install-1.10.0.442.sh
+            chmod +x linux-install-1.10.0.442.sh
+            sudo ./linux-install-1.10.0.442.sh
+      - run:
+          name: Run JVM tests
+          command: |
+            clojure -A:test
+      - run:
+          name: Run as local root dependency
+          command: |
+            mkdir -p /tmp/proj
+            cd /tmp/proj
+            rm -rf *
+            clojure -Sdeps '{:deps {clj-kondo {:local/root "/home/circleci/repo"}}}' \
+              -m clj-kondo.main --lint /home/circleci/repo
+      - run:
+          name: Run as git dependency
+          command: |
+            mkdir -p /tmp/proj
+            cd /tmp/proj
+            rm -rf *
+            clojure -Sdeps "{:deps {clj-kondo {:git/url \"https://github.com/borkdude/clj-kondo\" :sha \"$CIRCLE_SHA1\"}}}" \
+              -m clj-kondo.main --lint /home/circleci/repo
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "deps.edn" }}
+  buildlinux:
+    docker:
+      - image: circleci/clojure:lein-2.8.1
+    working_directory: ~/repo
+    environment:
+      LEIN_ROOT: "true"
+      GRAALVM_HOME: /home/circleci/graalvm-ce-1.0.0-rc14
+      CLJK_NATIVE_ENV: linux
+      CLJK_TEST_ENV: native
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - buildlinux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - run:
           name: Install Clojure
           command: |
@@ -40,24 +76,115 @@ jobs:
       - run:
           name: Download GraalVM
           command: |
+            cd ~
             wget -nc https://github.com/oracle/graal/releases/download/vm-1.0.0-rc14/graalvm-ce-1.0.0-rc14-linux-amd64.tar.gz
             tar -xzf graalvm-ce-1.0.0-rc14-linux-amd64.tar.gz
       - run:
           name: Build binary
           command: |
+            cd ~/repo
             clojure -A:native-image --verbose
-            VERSION=$(cat src/CLJ_KONDO_VERSION)
-            mkdir -p "releases/$VERSION-linux-amd64"
-            cp clj-kondo "releases/$VERSION-linux-amd64"
       - run:
-          name: Test
+          name: Run tests
           command: |
             clojure -A:test
+      - run:
+          name: Performance report
+          command: |
+            .circleci/script/performance
+      - run:
+          name: Release
+          command: |
+            .circleci/script/release
+      - save_cache:
+          paths:
+            - ~/.m2
+            - ~/graalvm-ce-1.0.0-rc14-linux-amd64.tar.gz
+            - ~/graalvm-ce-1.0.0-rc14-linux-amd64
+          key: buildlinux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+      - store_artifacts:
+          path: /tmp/release
+          destination: release
+  buildmac:
+    macos:
+      xcode: "9.0"
+    environment:
+      CLJK_NATIVE_ENV: macos
+      GRAALVM_HOME: /Users/distiller/graalvm-ce-1.0.0-rc14/Contents/Home
+      CLJK_TEST_ENV: native
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - buildmac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+      - run:
+          name: Install Clojure
+          command: |
+            brew install clojure && brew link clojure
+      - run:
+          name: Download GraalVM
+          command: |
+            brew uninstall --force gettext
+            brew install gettext && brew link gettext
+            brew install wget && brew link wget
+            cd ~
+            wget -nc https://github.com/oracle/graal/releases/download/vm-1.0.0-rc14/graalvm-ce-1.0.0-rc14-macos-amd64.tar.gz
+            tar -xzf graalvm-ce-1.0.0-rc14-macos-amd64.tar.gz
+      - run:
+          name: Build binary
+          command: |
+            cd ~/project
+            clojure -A:native-image --verbose
+      - run:
+          name: Run tests
+          command: |
+            clojure -A:test
+      - run:
+          name: Performance report
+          command: |
+            .circleci/script/performance
+      - run:
+          name: Release
+          command: |
+            .circleci/script/release
+      - save_cache:
+          paths:
+            - ~/.m2
+            - ~/graalvm-ce-1.0.0-rc14-macos-amd64.tar.gz
+            - ~/graalvm-ce-1.0.0-rc14-macos-amd64
+            - /usr/local/Homebrew
+            - /usr/local/Cellar
+          key: buildmac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+      - store_artifacts:
+          path: /tmp/release
+          destination: release
+  deploy:
+    docker:
+      - image: circleci/clojure:lein-2.8.1
+    working_directory: ~/repo
+    environment:
+      LEIN_ROOT: "true"
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "deps.edn" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: .circleci/script/deploy
       - save_cache:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
-      - run: .circleci/maybe-deploy.sh
-      - store_artifacts:
-          path: ~/repo/releases
-          destination: releases
+
+workflows:
+  ci:
+    jobs:
+      - testjvm
+      - buildlinux
+      - buildmac
+      - deploy:
+          requires:
+            - testjvm
+            - buildlinux
+            - buildmac

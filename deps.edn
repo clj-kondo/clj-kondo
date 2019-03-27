@@ -19,8 +19,6 @@
              clj-commons/conch {:mvn/version "0.9.2"}}
             :extra-paths ["test"]
             :main-opts ["-m" "cognitect.test-runner"]}}
- :jvm-opts [;; "-Dclojure.compiler.direct-linking=true"
-            "-Dclojure.spec.skip-macros=true"]
  ;; NOTE: build with clojure -A:native-image --verbose
  ;; see: https://github.com/taylorwood/clj.native-image
  }
