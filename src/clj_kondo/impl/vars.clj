@@ -4,7 +4,7 @@
   {:no-doc true}
   (:require
    [clojure.set :as set]
-   [clj-kondo.impl.utils :refer [call? node->line]]
+   [clj-kondo.impl.utils :refer [call? node->line parse-string-all]]
    [rewrite-clj.node.protocols :as node]))
 
 ;;;; function arity
@@ -88,15 +88,10 @@
    :qualify-ns (let [requires (filter require-clause? children)]
                  (into {} (mapcat #(map (comp :as analyze-require-subclause) (:children %)) requires)))})
 
-(comment
-  (analyze-ns-decl (parse-string "(ns (:require [foo :as bar :refer [baz]]))"))
-  (analyze-ns-decl (parse-string "(ns #^{} clojure.math)"))
-  (select-keys)
-  )
-
-(defn function-call? [rw-expr]
-  (and (= :list (:tag rw-expr))
-       (symbol? (:value (first (:children rw-expr))))))
+(defn fn-call? [rw-expr]
+  (let [tag (node/tag rw-expr)]
+    (and (= :list tag)
+         (symbol? (:value (first (:children rw-expr)))))))
 
 (defn strip-meta [{:keys [:children] :as rw-expr}]
   (loop [children children
@@ -162,7 +157,7 @@
              maybe-bindings (->> arg-vec :children (map :value))
              fn-bindings (set (filter symbol? (cons fn-name maybe-bindings)))]
          (mapcat #(parse-arities % (set/union bindings fn-bindings)) (rest children)))
-       (function-call? rw-expr)
+       (fn-call? rw-expr)
        (let [fn-name (:value (first children))
              args (count (rest children))
              binding-call? (contains? bindings fn-name)]

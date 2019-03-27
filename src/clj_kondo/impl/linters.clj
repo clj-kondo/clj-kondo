@@ -1,12 +1,15 @@
 (ns clj-kondo.impl.linters
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [call? node->line remove-noise]]
+   [clj-kondo.impl.utils :refer [call? node->line parse-string
+                                 parse-string-all remove-noise]]
    [clj-kondo.impl.vars :refer [analyze-arities]]
    [clojure.string :as str]
    [clojure.walk :refer [prewalk]]
-   [rewrite-clj.node.protocols :as node]
-   [rewrite-clj.node.seq :refer [list-node]]
+   [rewrite-clj.node.protocols :as node :refer [tag]]
+   [rewrite-clj.node.seq :refer [vector-node list-node]]
+   [rewrite-clj.node.token :refer [token-node]]
+   [rewrite-clj.node.fn :refer [fn-node]]
    [rewrite-clj.parser :as p]))
 
 (set! *warn-on-reflection* true)
@@ -83,11 +86,34 @@
                           (meta child2))] children)))
         child1))))
 
+(defn find-fn-args [children]
+  (mapcat #(cond (and (= :token (tag %))
+                      (re-matches #"%\d?\d?" (:string-value %)))
+                 [%]
+                 (:children %)
+                 (find-fn-args (:children %))
+                 :else [])
+          children))
+
+(defn expand-fn [{:keys [:children] :as expr}]
+  (let [fn-body (list-node children)
+        args (find-fn-args children)
+        arg-list (vector-node args)]
+    (list-node [(token-node 'fn) arg-list fn-body])))
+
 (defn expand-expressions [expr]
   (clojure.walk/prewalk
-   #(if (call? % '->)
-      (expand-> %)
-      %) expr))
+   #(if (:children %)
+      (assoc % :children
+             (map (fn [n]
+                    (cond (call? n '->)
+                      (expand-> n)
+                      (= :fn (node/tag n))
+                      (expand-fn n)
+                      :else n))
+                  (:children %)))
+      %)
+   expr))
 
 ;;;; processing of string input
 
@@ -102,9 +128,7 @@
                   (str/replace #_"#:a{#::a {:a b}}"
                                #"#(::?)(.*?)\{" (fn [[_ colons name]]
                                                   (str colons name "{"))))
-        parsed-expressions
-        (p/parse-string-all input)
-        parsed-expressions (remove-noise parsed-expressions)
+        parsed-expressions (parse-string-all input)
         parsed-expressions (expand-expressions parsed-expressions)
         ids (inline-def filename parsed-expressions)
         nls (obsolete-let filename parsed-expressions)
