@@ -126,6 +126,8 @@
     (empty? (*linter* "(defn foo [x]) (let [foo (fn [])] (foo))"))
     (testing "macroexpansion of ->"
       (is (= 1 (count (*linter* "(defn inc [x] (+ x 1)) (-> x inc (inc 1))")))))
+    (testing "macroexpansion of fn literal"
+      (is (= 1 (count (*linter* "(defn inc [x] (+ x 1)) #(-> % inc (inc 1))")))))
     (empty? (*linter* "(defn inc [x] (+ x 1)) (-> x inc inc)"))))
 
 (def private-call-examples "
