@@ -88,6 +88,7 @@
 
 (defn find-fn-args [children]
   (mapcat #(cond (and (= :token (tag %))
+                      (:string-value %)
                       (re-matches #"%\d?\d?" (:string-value %)))
                  [%]
                  (:children %)
