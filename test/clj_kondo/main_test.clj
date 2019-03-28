@@ -26,7 +26,15 @@
               (clj-kondo "--lint" "-" {:in input}))]
     (parse-output res)))
 
-(def ^:dynamic *linter* lint-jvm!)
+(def lint!
+  (case (System/getenv "CLJK_TEST_ENV")
+    "jvm" lint-jvm!
+    "native" lint-native!
+    lint-jvm!))
+
+(if (= lint! lint-jvm!)
+  (println "==== Testing JVM version")
+  (println "==== Testing native version"))
 
 (def inline-def-examples "
 (defn foo []
@@ -43,13 +51,13 @@
 ")
 
 (deftest inline-def-test
-  (let [linted (*linter* inline-def-examples)]
+  (let [linted (lint! inline-def-examples)]
     (is (= 5 (count linted)))
     (is (every? #(str/includes? % "inline def")
                 linted)))
-  (is (empty? (*linter* "(defmacro foo [] `(def x 1))")))
-  (is (empty? (*linter* "(defn foo [] '(def x 3))")))
-  (is (not-empty (*linter* "(defmacro foo [] `(def x# (def x# 1)))"))))
+  (is (empty? (lint! "(defmacro foo [] `(def x 1))")))
+  (is (empty? (lint! "(defn foo [] '(def x 3))")))
+  (is (not-empty (lint! "(defmacro foo [] `(def x# (def x# 1)))"))))
 
 (def obsolete-let-examples "
 (let [x 1]
@@ -65,12 +73,12 @@
 ")
 
 (deftest obsolete-let-test
-  (let [linted (*linter* obsolete-let-examples)]
+  (let [linted (lint! obsolete-let-examples)]
     (is (= 3 (count linted)))
     (is (every? #(str/includes? % "obsolete let")
                 linted)))
-  (is (empty? (*linter* "(let [x 2] `(let [y# 3]))")))
-  (is (empty? (*linter* "(let [x 2] '(let [y 3]))"))))
+  (is (empty? (lint! "(let [x 2] `(let [y# 3]))")))
+  (is (empty? (lint! "(let [x 2] '(let [y 3]))"))))
 
 (def obsolete-do-examples "
 (do)
@@ -81,12 +89,12 @@
 ")
 
 (deftest obsolete-do-test
-  (let [linted (*linter* obsolete-do-examples)]
+  (let [linted (lint! obsolete-do-examples)]
     (is (= 5 (count linted)))
     (is (every? #(str/includes? % "obsolete do")
                 linted)))
-  (is (empty? (*linter* "(do 1 `(do 1 2 3))")))
-  (is (empty? (*linter* "(do 1 '(do 1 2 3))"))))
+  (is (empty? (lint! "(do 1 `(do 1 2 3))")))
+  (is (empty? (lint! "(do 1 '(do 1 2 3))"))))
 
 (def invalid-arity-examples "
 (ns ns1)
@@ -95,7 +103,7 @@
 (defn public-varargs [x y & zs])
 ;; 1: invalid call in own namespace to fixed arity
 (public-fixed 1)
-;; 2: invalid call in own namespace to  multi-arity 
+;; 2: invalid call in own namespace to  multi-arity
 (public-multi-arity 1) ;; correct
 (public-multi-arity 1 2) ;; correct
 (public-multi-arity 1 2 3) ;; invalid
@@ -118,17 +126,17 @@
 ")
 
 (deftest invalid-arity-test
-  (let [linted (*linter* invalid-arity-examples)]
+  (let [linted (lint! invalid-arity-examples)]
     (is (= 8 (count linted)))
     (is (every? #(str/includes? % "Wrong number of args")
                 linted))
-    (empty? (*linter* "(defn foo [x]) (defn bar [foo] (foo))"))
-    (empty? (*linter* "(defn foo [x]) (let [foo (fn [])] (foo))"))
+    (empty? (lint! "(defn foo [x]) (defn bar [foo] (foo))"))
+    (empty? (lint! "(defn foo [x]) (let [foo (fn [])] (foo))"))
     (testing "macroexpansion of ->"
-      (is (= 1 (count (*linter* "(defn inc [x] (+ x 1)) (-> x inc (inc 1))")))))
+      (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) (-> x inc (inc 1))")))))
     (testing "macroexpansion of fn literal"
-      (is (= 1 (count (*linter* "(defn inc [x] (+ x 1)) #(-> % inc (inc 1))")))))
-    (empty? (*linter* "(defn inc [x] (+ x 1)) (-> x inc inc)"))))
+      (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) #(-> % inc (inc 1))")))))
+    (empty? (lint! "(defn inc [x] (+ x 1)) (-> x inc inc)"))))
 
 (def private-call-examples "
 (ns ns1)
@@ -143,29 +151,16 @@
 ")
 
 (deftest private-call-test
-  (let [linted (*linter* private-call-examples)]
+  (let [linted (lint! private-call-examples)]
     (is (= 1 (count linted)))
     (is (= 10 (:row (first linted))))))
-
-;;;; Test runs
-
-(defn run-tests []
-  (inline-def-test)
-  (obsolete-let-test)
-  (obsolete-do-test)
-  (invalid-arity-test))
-
-(defn test-ns-hook []
-  (println "Running tests with JVM")
-  (binding [*linter* lint-jvm!]
-    (run-tests))
-  (println "Running tests with binary.")
-  (binding [*linter* lint-native!]
-    (run-tests)))
 
 ;;;; Scratch
 
 (comment
-  (test-ns-hook)
+  (inline-def-test)
+  (obsolete-let-test)
+  (obsolete-do-test)
+  (invalid-arity-test)
   (t/run-tests)
   )

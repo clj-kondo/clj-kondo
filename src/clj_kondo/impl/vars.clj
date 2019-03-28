@@ -4,7 +4,7 @@
   {:no-doc true}
   (:require
    [clojure.set :as set]
-   [clj-kondo.impl.utils :refer [call? node->line parse-string-all]]
+   [clj-kondo.impl.utils :refer [some-call node->line parse-string-all]]
    [rewrite-clj.node.protocols :as node]))
 
 ;;;; function arity
@@ -37,17 +37,17 @@
 (comment
   (analyze-arity (parse-string "[x y z]")))
 
-(defn function-def? [rw-expr]
-  (call? rw-expr 'defn 'defn-))
+(defn defn? [rw-expr]
+  (some-call rw-expr defn defn-))
 
 (defn let? [rw-expr]
-  (call? rw-expr 'let))
+  (some-call rw-expr let))
 
 (defn anon-fn? [rw-expr]
-  (call? rw-expr 'fn))
+  (some-call rw-expr fn))
 
 (defn ns-decl? [rw-expr]
-  (call? rw-expr 'ns))
+  (some-call rw-expr ns))
 
 (defn require-clause? [{:keys [:children] :as rw-expr}]
   (= :require (:k (first children))))
@@ -110,7 +110,7 @@
 (defn parse-arities
   ([rw-expr] (parse-arities rw-expr #{}))
   ([{:keys [:children] :as rw-expr} bindings]
-   (let [fdef? (function-def? rw-expr)]
+   (let [fdef? (defn? rw-expr)]
      (cond
        (ns-decl? rw-expr)
        [(analyze-ns-decl rw-expr)]
@@ -143,8 +143,8 @@
                          private? (assoc :private? private?)
                          var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))]
                  (map #(parse-arities % (reduce set/union bindings (map :arg-names arities))) (rest children))))
-       (call? rw-expr '->> 'cond-> 'cond->> 'some-> 'some->> '. '.. 'deftype
-              'proxy 'extend-protocol 'doto 'reify)
+       (some-call rw-expr ->> cond-> cond->> some-> some->> . .. deftype
+              proxy extend-protocol doto reify)
        []
        (let? rw-expr)
        (let [let-bindings (->> children second :children (map :value) (filter symbol?) set)]
