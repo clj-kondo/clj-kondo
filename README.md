@@ -5,7 +5,7 @@
 
 A minimal and opinionated linter for Clojure code that sparks joy.
 
-<img src="demo.png">
+<img src="screenshots/demo.png">
 
 ## Rationale
 
@@ -22,6 +22,9 @@ your life. Let clj-kondo help you tidy your code.
 * obsolete let warnings
 * basic arity errors
 * private function call errors
+
+<img src="screenshots/wrong-arity.png">
+
 
 ## Status
 
