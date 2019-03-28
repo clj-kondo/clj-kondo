@@ -124,7 +124,6 @@ jobs:
       - run:
           name: Download GraalVM
           command: |
-            brew uninstall --force gettext
             brew install gettext && brew link gettext
             brew install wget && brew link wget
             cd ~
@@ -154,6 +153,7 @@ jobs:
             - ~/graalvm-ce-1.0.0-rc14-macos-amd64
             - /usr/local/Homebrew
             - /usr/local/Cellar
+            - /usr/local/opt
           key: buildmac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
