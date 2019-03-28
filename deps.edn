@@ -1,4 +1,5 @@
-{:deps {rewrite-clj {:mvn/version "0.6.1"}}
+{:deps {rewrite-clj {:mvn/version "0.6.1"}
+        com.cognitect/transit-clj {:mvn/version "0.8.313"}}
  :aliases {:native-image
            {;; I think the JVM opts are only valid here
             :jvm-opts [;; "-Dclojure.compiler.direct-linking=true"

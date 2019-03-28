@@ -2,8 +2,8 @@
   (:gen-class)
   (:require [clj-kondo.impl.linters :refer [process-input]]
             [clj-kondo.impl.vars :refer [arity-findings]]
-            [clojure.edn :as edn]
             [clojure.java.io :as io]
+            [cognitect.transit :as transit]
             [clojure.string :as str
              :refer [starts-with?
                      ends-with?]])
@@ -174,8 +174,8 @@ Options:
                        (io/file (config-dir) cache-dir))]
             (when-not (.exists cd)
               (io/make-parents (io/file cd "dummy")))
-            [(io/file cd (str "clj.edn"))
-             (io/file cd (str "cljs.edn"))]))
+            [(io/file cd (str "clj.transit.json"))
+             (io/file cd (str "cljs.transit.json"))]))
         files (get opts "--lint")]
     (cond (get opts "--version")
           (print-version)
@@ -187,17 +187,30 @@ Options:
                 clj-defns (apply merge (map :defns (filter #(= :clj (:lang %)) all-findings)))
                 cljs-defns (apply merge (map :defns (filter #(= :cljs (:lang %)) all-findings)))
                 all-calls (mapcat :calls all-findings)
-                cache-clj (when (and clj-cache-file (.exists clj-cache-file))
-                            (edn/read-string (slurp clj-cache-file)))
-                cache-cljs (when (and cljs-cache-file (.exists cljs-cache-file))
-                             (edn/read-string (slurp cljs-cache-file)))
+                clj-calls? (boolean (some #(= :clj (:lang %)) all-calls))
+                cljs-calls? (boolean (some #(= :cljs (:lang %)) all-calls))
+                cache-clj (when (and clj-calls? clj-cache-file (.exists clj-cache-file))
+                            (transit/read (transit/reader
+                                           (io/input-stream clj-cache-file) :json)))
+                cache-cljs
+                (when (and cljs-calls? cljs-cache-file (.exists cljs-cache-file))
+                  (transit/read (transit/reader
+                                 (io/input-stream cljs-cache-file) :json)))
                 all-clj-defns (merge cache-clj clj-defns)
                 all-cljs-defns (merge cache-cljs cljs-defns)
                 arities (arity-findings all-clj-defns all-cljs-defns all-calls)
                 findings (mapcat :findings all-findings)]
             (print-findings (concat findings arities))
-            (when clj-cache-file (spit clj-cache-file all-clj-defns))
-            (when cljs-cache-file (spit cljs-cache-file all-cljs-defns)))))
+            (when clj-cache-file
+              (let [bos (java.io.ByteArrayOutputStream. 1024)
+                    writer (transit/writer (io/output-stream bos) :json)]
+                (transit/write writer all-clj-defns)
+                (io/copy (.toByteArray bos) clj-cache-file)))
+            (when cljs-cache-file
+              (let [bos (java.io.ByteArrayOutputStream. 1024)
+                    writer (transit/writer (io/output-stream bos) :json)]
+                (transit/write writer all-cljs-defns)
+                (io/copy (.toByteArray bos) cljs-cache-file))))))
 
 ;;;; scratch
 
