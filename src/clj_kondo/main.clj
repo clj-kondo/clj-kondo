@@ -201,12 +201,12 @@ Options:
                 arities (arity-findings all-clj-defns all-cljs-defns all-calls)
                 findings (mapcat :findings all-findings)]
             (print-findings (concat findings arities))
-            (when clj-cache-file
+            (when (and clj-calls? clj-cache-file)
               (let [bos (java.io.ByteArrayOutputStream. 1024)
                     writer (transit/writer (io/output-stream bos) :json)]
                 (transit/write writer all-clj-defns)
                 (io/copy (.toByteArray bos) clj-cache-file)))
-            (when cljs-cache-file
+            (when (and cljs-calls? cljs-cache-file)
               (let [bos (java.io.ByteArrayOutputStream. 1024)
                     writer (transit/writer (io/output-stream bos) :json)]
                 (transit/write writer all-cljs-defns)
