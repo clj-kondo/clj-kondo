@@ -82,8 +82,9 @@ jobs:
       - run:
           name: Build binary
           command: |
-            cd ~/repo
-            clojure -A:native-image --verbose
+            # important, -J options go after --verbose
+            clojure -J-Xmx250m -A:native-image --verbose -J-Xmx3g
+          no_output_timeout: 30m
       - run:
           name: Run tests
           command: |
@@ -132,8 +133,9 @@ jobs:
       - run:
           name: Build binary
           command: |
-            cd ~/project
-            clojure -A:native-image --verbose
+            # important, -J options go after --verbose
+            clojure -J-Xmx250m -A:native-image --verbose -J-Xmx3g
+          no_output_timeout: 30m
       - run:
           name: Run tests
           command: |
