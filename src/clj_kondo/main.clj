@@ -1,22 +1,27 @@
 (ns clj-kondo.main
   (:gen-class)
   (:require [clj-kondo.impl.linters :refer [process-input]]
-            [clj-kondo.impl.vars :refer [arity-findings]]
+            [clj-kondo.impl.vars :refer [fn-call-findings]]
             [clojure.java.io :as io]
-            [cognitect.transit :as transit]
+            [clj-kondo.impl.cache :as cache]
             [clojure.string :as str
              :refer [starts-with?
-                     ends-with?]])
+                     ends-with?]]
+            [clojure.set :as set])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
-(def ^:private version (str/trim (slurp (io/resource "CLJK_VERSION"))))
+(def ^:private version (str/trim
+                        (slurp (io/resource "CLJ_KONDO_VERSION"))))
 (set! *warn-on-reflection* true)
 
 ;;;; printing
 
-(defn- print-findings [findings]
-  (doseq [{:keys [:filename :type :message :level :row :col]} findings
-          :when level]
+(defn- print-findings [findings print-debug?]
+  (doseq [{:keys [:filename :type :message
+                  :level :row :col :debug?] :as finding} findings
+          :when (if debug?
+                  print-debug?
+                  true)]
     (println (str filename ":" row ":" col ": " (name level) ": " message))))
 
 (defn- print-version []
@@ -92,17 +97,17 @@ Options:
         (if (.isFile file)
           (if (ends-with? file ".jar")
             ;; process jar file
-            (map #(process-input (:source %) (:filename %)
+            (map #(process-input (:filename %) (:source %)
                                  (lang-from-file (:filename %) default-language))
                  (sources-from-jar filename))
             ;; assume normal source file
-            [(process-input (slurp filename) filename (lang-from-file filename default-language))])
+            [(process-input filename (slurp filename) (lang-from-file filename default-language))])
           ;; assume directory
-          (map #(process-input (:source %) (:filename %)
+          (map #(process-input (:filename %) (:source %)
                                (lang-from-file (:filename %) default-language))
                (sources-from-dir file)))
         (= "-" filename)
-        [(process-input (slurp *in*) "<stdin>" default-language)]
+        [(process-input "<stdin>" (slurp *in*) default-language)]
         (classpath? filename)
         (mapcat #(process-file % default-language)
                 (str/split filename #":"))
@@ -129,7 +134,9 @@ Options:
 ;;;; find cache/config dir
 
 (defn- config-dir
-  ([] (config-dir (io/file (System/getProperty "user.dir"))))
+  ([] (config-dir
+       (io/file
+        (System/getProperty "user.dir"))))
   ([cwd]
    (loop [dir (io/file cwd)]
      (let [cfg-dir (io/file dir ".clj-kondo")]
@@ -146,9 +153,41 @@ Options:
 (def ^:private cache-dir
   (str ".cache/" cache-format))
 
-;;;; main
+;;;; synchronize namespaces with cache
 
-(defn -main [& options]
+(defn- sync-cache [idacs cache-dir]
+  (cache/with-cache cache-dir 6
+    (reduce (fn [idacs lang]
+              (let [analyzed-namespaces
+                    (set (keys (get-in idacs [lang :defns])))
+                    called-namespaces
+                    (conj (set (keys (get-in idacs [lang :calls])))
+                          (case lang
+                            :clj 'clojure.core
+                            :cljs 'cljs.core))
+                    load-from-clj-cache
+                    (set/difference called-namespaces analyzed-namespaces)
+                    defns-from-cache
+                    (when cache-dir
+                      (reduce (fn [acc ns-sym]
+                                (if-let [data (cache/from-cache cache-dir
+                                                                lang ns-sym)]
+                                  (assoc acc ns-sym
+                                         data)
+                                  acc))
+                              {} load-from-clj-cache))]
+                (when cache-dir
+                  (doseq [ns-name analyzed-namespaces]
+                    (let [ns-data (get-in idacs [lang :defns ns-name])]
+                      (cache/to-cache cache-dir lang ns-name ns-data))))
+                (update-in idacs [lang :defns]
+                           merge defns-from-cache)))
+            idacs
+            [:clj :cljs])))
+
+;;;; parse command line options
+
+(defn- parse-opts [options]
   (let [opts (loop [options options
                     opts-map {}
                     current-opt nil]
@@ -166,75 +205,59 @@ Options:
                        "cljs" :cljs
                        :clj)
         cache-opt (get opts "--cache")
-        [^java.io.File clj-cache-file
-         ^java.io.File cljs-cache-file]
-        (when cache-opt
-          (let [cd (or (when-let [cd (first (get opts "--cache"))]
-                         (io/file cd cache-format))
-                       (io/file (config-dir) cache-dir))]
-            (when-not (.exists cd)
-              (io/make-parents (io/file cd "dummy")))
-            [(io/file cd (str "clj.transit.json"))
-             (io/file cd (str "cljs.transit.json"))]))
-        files (get opts "--lint")]
+        cache-dir (when cache-opt
+                    (or (when-let [cd (first (get opts "--cache"))]
+                          (io/file cd cache-format))
+                        (io/file (config-dir) cache-dir)))
+        files (get opts "--lint")
+        debug? (get opts "--debug")]
+    {:opts opts
+     :files files
+     :cache-dir cache-dir
+     :default-lang default-lang
+     :debug? debug?}))
+
+;;;; process all files
+
+(defn- process-files [files default-lang]
+  (mapcat #(process-file % default-lang) files))
+
+;;;; index defns and calls by language and namespace
+
+(defn- index-defns-and-calls [defns-and-calls]
+  (reduce
+   (fn [acc {:keys [:calls :defns :lang]}]
+     (-> acc
+         (update-in [lang :calls] merge calls)
+         (update-in [lang :defns] merge defns)))
+   {:clj {:calls {} :defns {}}
+    :cljs {:calls {} :defns {}}}
+   defns-and-calls))
+
+;;;; main
+
+(defn -main [& options]
+  (let [{:keys [:opts
+                :files
+                :default-lang
+                :cache-dir
+                :debug?]} (parse-opts options)]
     (cond (get opts "--version")
           (print-version)
           (get opts "--help")
           (print-help)
           (empty? files)
           (print-help))
-    :else (let [all-findings (mapcat #(process-file % default-lang) files)
-                clj-defns (apply merge (map :defns (filter #(= :clj (:lang %)) all-findings)))
-                cljs-defns (apply merge (map :defns (filter #(= :cljs (:lang %)) all-findings)))
-                all-calls (mapcat :calls all-findings)
-                clj-calls? (boolean (some #(= :clj (:lang %)) all-calls))
-                cljs-calls? (boolean (some #(= :cljs (:lang %)) all-calls))
-                cache-clj (when (and clj-calls? clj-cache-file (.exists clj-cache-file))
-                            (transit/read (transit/reader
-                                           (io/input-stream clj-cache-file) :json)))
-                cache-cljs
-                (when (and cljs-calls? cljs-cache-file (.exists cljs-cache-file))
-                  (transit/read (transit/reader
-                                 (io/input-stream cljs-cache-file) :json)))
-                all-clj-defns (merge cache-clj clj-defns)
-                all-cljs-defns (merge cache-cljs cljs-defns)
-                arities (arity-findings all-clj-defns all-cljs-defns all-calls)
-                findings (mapcat :findings all-findings)]
-            (print-findings (concat findings arities))
-            (when (and clj-calls? clj-cache-file)
-              (let [bos (java.io.ByteArrayOutputStream. 1024)
-                    writer (transit/writer (io/output-stream bos) :json)]
-                (transit/write writer all-clj-defns)
-                (io/copy (.toByteArray bos) clj-cache-file)))
-            (when (and cljs-calls? cljs-cache-file)
-              (let [bos (java.io.ByteArrayOutputStream. 1024)
-                    writer (transit/writer (io/output-stream bos) :json)]
-                (transit/write writer all-cljs-defns)
-                (io/copy (.toByteArray bos) cljs-cache-file))))))
+    :else (let [all-findings (process-files files default-lang)
+                idacs (index-defns-and-calls all-findings)
+                idacs (if cache-dir (sync-cache idacs cache-dir)
+                          idacs)
+                afs (fn-call-findings idacs)]
+            (print-findings (concat afs (mapcat :findings all-findings))
+                            debug?))))
 
-;;;; scratch
+;;;; Scratch
 
 (comment
-  ;; TODO: turn some of these into tests
-  (spit "/tmp/id.clj" "(defn foo []\n  (def x 1))")
-  (-main "/tmp/id.clj")
-  (-main)
-  (with-in-str "(defn foo []\n  (def x 1))" (-main "--lint" "-"))
-  (with-in-str "(defn foo []\n  `(def x 1))" (-main "--lint" "-"))
-  (with-in-str "(defn foo []\n  '(def x 1))" (-main "--lint" "-"))
-  (inline-defs (p/parse-string-all "(defn foo []\n  (def x 1))"))
-  #_(defn foo []\n  (def x 1))
-  (nested-lets (p/parse-string-all "(let [i 10])"))
-  (with-in-str "(let [i 10] (let [j 11]))" (-main "--lint" "-"))
-  (with-in-str "(let [i 10] 1 (let [j 11]))" (-main "--lint" "-"))
-  (with-in-str "(let [i 10] #_1 (let [j 11]))" (-main "--lint" "-"))
-  (obsolete-do (p/parse-string-all "(do 1 (do 1 2))"))
-  (with-in-str "(do 1)" (-main "--lint" "-"))
-  (process-input "(fn [] (do 1 2))")
-  (process-input "(let [] 1 2 (do 1 2 3))")
-  (process-input "(defn foo [] (do 1 2 3))")
-  (process-input "(defn foo [] (fn [] 1 2 3))")
 
-  (with-in-str "(ns foo) (defn foo [x]) (foo)" (-main "--lint" "-"))
-  (arity-findings (:arities (process-input "(ns foo) (defn foo [x])(ns bar (:require [foo :refer [foo]]))(foo)" "-")))
   )

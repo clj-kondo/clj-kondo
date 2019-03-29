@@ -8,26 +8,30 @@
 (defn parse-output [msg]
   (map (fn [[_ file row col level message]]
          {:file file
-          :row (Integer. row)
-          :col (Integer. col)
+          :row (Integer/parseInt row)
+          :col (Integer/parseInt col)
           :level (keyword level)
           :message message})
        (keep
         #(re-matches #"(.*):(.*):(.*): (.*): (.*)" %)
         (str/split-lines msg))))
 
-(defn lint-jvm! [input]
-  (let [res (with-out-str
-              (with-in-str input (-main "--lint" "-")))]
-    (parse-output res)))
+(defn lint-jvm!
+  ([input] (lint-jvm! input "clj"))
+  ([input lang]
+   (let [res (with-out-str
+               (with-in-str input (-main "--lint" "-" "--lang" lang)))]
+     (parse-output res))))
 
-(defn lint-native! [input]
-  (let [res (let-programs [clj-kondo "./clj-kondo"]
-              (clj-kondo "--lint" "-" {:in input}))]
-    (parse-output res)))
+(defn lint-native!
+  ([input] (lint-native! input "clj"))
+  ([input lang]
+   (let [res (let-programs [clj-kondo "./clj-kondo"]
+               (clj-kondo "--lint" "-" "--lang" lang {:in input}))]
+     (parse-output res))))
 
 (def lint!
-  (case (System/getenv "CLJK_TEST_ENV")
+  (case (System/getenv "CLJ_KONDO_TEST_ENV")
     "jvm" lint-jvm!
     "native" lint-native!
     lint-jvm!))
@@ -100,43 +104,63 @@
 (ns ns1)
 (defn public-fixed [x y z])
 (defn public-multi-arity ([x] (public-multi-arity x false)) ([x y]))
-(defn public-varargs [x y & zs])
+#_5 (defn public-varargs [x y & zs])
 ;; 1: invalid call in own namespace to fixed arity
 (public-fixed 1)
 ;; 2: invalid call in own namespace to  multi-arity
 (public-multi-arity 1) ;; correct
-(public-multi-arity 1 2) ;; correct
+#_10 (public-multi-arity 1 2) ;; correct
 (public-multi-arity 1 2 3) ;; invalid
 ;; 3: invalid call in own namespace to varargs
 (public-varargs 1)
 
-(ns ns2 (:require [ns1 :as x :refer [public-fixed
-                                     public-varargs
-                                     public-multi-arity]]))
+#_15 (ns ns2 (:require [ns1 :as x :refer [public-fixed
+                                          public-varargs
+                                          public-multi-arity]]))
 ;; 4: invalid calls in other namespace to fixed arity
 (public-fixed 1)
-;; 5:
+#_20 ;; 5:
 (x/public-fixed 1)
 ;; 6:
-(ns1/public-fixed 1)
+(ns1/public-fixed 1) ;; this one is not detected
 ;; 7:
-(public-multi-arity 1 2 3)
+#_25 (public-multi-arity 1 2 3)
 ;; 8: invalid call in other namespace to varargs
 (public-varargs 1)
 ")
 
+(def invalid-core-function-call-example "
+(ns clojure.core)
+(defn inc [x])
+(ns cljs.core)
+(defn inc [x])
+
+(ns myns)
+(inc 1 2 3)
+")
+
 (deftest invalid-arity-test
+
   (let [linted (lint! invalid-arity-examples)]
     (is (= 8 (count linted)))
     (is (every? #(str/includes? % "Wrong number of args")
-                linted))
-    (empty? (lint! "(defn foo [x]) (defn bar [foo] (foo))"))
-    (empty? (lint! "(defn foo [x]) (let [foo (fn [])] (foo))"))
-    (testing "macroexpansion of ->"
-      (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) (-> x inc (inc 1))")))))
-    (testing "macroexpansion of fn literal"
-      (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) #(-> % inc (inc 1))")))))
-    (empty? (lint! "(defn inc [x] (+ x 1)) (-> x inc inc)"))))
+                linted)))
+
+  (let [linted (lint! invalid-core-function-call-example)]
+    (is (pos? (count linted)))
+    (is (every? #(str/includes? % "Wrong number of args")
+                linted)))
+
+  (is (empty? (lint! "(defn foo [x]) (defn bar [foo] (foo))")))
+  (is (empty? (lint! "(defn foo [x]) (let [foo (fn [])] (foo))")))
+
+  (testing "macroexpansion of ->"
+    (is (empty? (lint! "(defn inc [x] (+ x 1)) (-> x inc inc)")))
+    (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) (-> x inc (inc 1))")))))
+
+  (testing "macroexpansion of fn literal"
+    (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) #(-> % inc (inc 1))")))))
+  )
 
 (def private-call-examples "
 (ns ns1)

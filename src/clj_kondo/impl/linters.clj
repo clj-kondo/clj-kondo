@@ -66,7 +66,7 @@
 ;;;; processing of string input
 
 (defn process-input
-  [input filename language]
+  [filename input language]
   (let [;; workaround for https://github.com/xsc/rewrite-clj/issues/75
         input (-> input
                   (str/replace "##Inf" "::Inf")
@@ -81,8 +81,8 @@
         ids (inline-def filename parsed-expressions)
         nls (obsolete-let filename parsed-expressions)
         ods (obsolete-do filename parsed-expressions)
-        {:keys [:calls :defns]} (analyze-arities filename language parsed-expressions)]
-    {:findings (concat ids nls ods)
+        {:keys [:calls :defns :findings]} (analyze-arities filename language parsed-expressions)]
+    {:findings (concat ids nls ods findings)
      :calls calls
      :defns defns
      :lang language}))

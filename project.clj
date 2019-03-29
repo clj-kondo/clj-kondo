@@ -1,4 +1,5 @@
-(defproject clj-kondo #=(clojure.string/trim #=(slurp "src/CLJK_VERSION"))
+(defproject clj-kondo #=(clojure.string/trim
+                         #=(slurp "src/CLJ_KONDO_VERSION"))
   :description "Tidy your code with clj-kondo."
   :url "https://github.com/borkdude/clj-kondo"
   :scm {:name "git"
