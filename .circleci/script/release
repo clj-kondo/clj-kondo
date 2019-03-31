@@ -4,13 +4,13 @@ rm -rf /tmp/release
 mkdir -p /tmp/release
 cp clj-kondo /tmp/release
 cp performance.txt /tmp/release
-VERSION=$(cat src/CLJK_VERSION)
+VERSION=$(cat src/CLJ_KONDO_VERSION)
 
 cd /tmp/release
 
 ## release binary as tar.gz archive
 
-tar -zcvf "clj-kondo-$VERSION-$CLJK_NATIVE_ENV-amd64.tar.gz" clj-kondo
+tar -zcvf "clj-kondo-$VERSION-$CLJ_KONDO_PLATFORM-amd64.tar.gz" clj-kondo
 
 ## cleanup
 
