@@ -55,8 +55,8 @@ jobs:
     environment:
       LEIN_ROOT: "true"
       GRAALVM_HOME: /home/circleci/graalvm-ce-1.0.0-rc14
-      CLJK_NATIVE_ENV: linux
-      CLJK_TEST_ENV: native
+      CLJ_KONDO_PLATFORM: linux # used in release script
+      CLJ_KONDO_TEST_ENV: native
     steps:
       - checkout
       - restore_cache:
@@ -110,9 +110,9 @@ jobs:
     macos:
       xcode: "9.0"
     environment:
-      CLJK_NATIVE_ENV: macos
       GRAALVM_HOME: /Users/distiller/graalvm-ce-1.0.0-rc14/Contents/Home
-      CLJK_TEST_ENV: native
+      CLJ_KONDO_PLATFORM: macos # used in release script
+      CLJ_KONDO_TEST_ENV: native
     steps:
       - checkout
       - restore_cache:

@@ -1,15 +1,15 @@
-;; NOTE: this namespace is a bit messy. The code should be cleaned up before release.
-
 (ns clj-kondo.impl.vars
   {:no-doc true}
   (:require
+   [clj-kondo.impl.utils :refer [some-call node->line
+                                 parse-string parse-string-all]]
    [clojure.set :as set]
-   [clj-kondo.impl.utils :refer [some-call node->line parse-string-all]]
    [rewrite-clj.node.protocols :as node]))
 
 ;;;; function arity
 
 (defn arg-name [{:keys [:children] :as rw-expr}]
+  ;; TODO: use strip-meta
   (if-let [n (:value rw-expr)]
     ;; normal argument
     n
@@ -34,11 +34,8 @@
       {:arg-names arg-names
        :fixed-arity arity})))
 
-(comment
-  (analyze-arity (parse-string "[x y z]")))
-
 (defn defn? [rw-expr]
-  (some-call rw-expr defn defn-))
+  (some-call rw-expr defn defn- defmacro))
 
 (defn let? [rw-expr]
   (some-call rw-expr let))
@@ -52,8 +49,8 @@
 (defn require-clause? [{:keys [:children] :as rw-expr}]
   (= :require (:k (first children))))
 
-(defn analyze-require-subclause [{:keys [:children] :as rw-expr}]
-  (if (= :vector (:tag rw-expr))
+(defn analyze-require-subclause [{:keys [:children] :as expr}]
+  (when (= :vector (:tag expr))
     (let [ns-name (:value (first children))]
       (loop [children (rest children)
              as nil
@@ -71,220 +68,262 @@
                  refers))
           {:type :require
            :ns ns-name
-           :as (when as [as ns-name])
+           :as as
            :refers (map (fn [refer]
-                          [refer (symbol (str ns-name) (str refer))])
+                          [refer {:namespace (symbol ns-name)
+                                  :name (symbol (str ns-name) (str refer))}])
                         refers)})))))
 
-(defn analyze-ns-decl [{:keys [:children] :as rw-expr}]
+(defn analyze-ns-decl [{:keys [:children] :as expr}]
   ;; TODO: analyze refer clojure exclude
-  {:type :ns
-   :name (let [name-node (second children)]
-           (if (contains? #{:meta :meta*} (node/tag name-node))
-             (:value (last (:children name-node)))
-             (:value name-node)))
-   :qualify-var (let [requires (filter require-clause? children)]
-                  (into {} (mapcat #(mapcat (comp :refers  analyze-require-subclause) (:children %)) requires)))
-   :qualify-ns (let [requires (filter require-clause? children)]
-                 (into {} (mapcat #(map (comp :as analyze-require-subclause) (:children %)) requires)))})
+  ;; TODO: just apply strip-meta and remove handling of meta here
+  (let [requires (filter require-clause? children)
+        subclauses (mapcat #(map analyze-require-subclause
+                                 (rest (:children %)))
+                           requires)]
+    {:type :ns
+     :name (symbol (let [name-node (second children)]
+                     (if (contains? #{:meta :meta*} (node/tag name-node))
+                       (:value (last (:children name-node)))
+                       (:value name-node))))
+     :qualify-var (into {} (mapcat #(mapcat (comp :refers analyze-require-subclause)
+                                            (:children %)) requires))
+     :qualify-ns (reduce (fn [acc sc]
+                           (cond-> (assoc acc (:ns sc) (:ns sc))
+                             (:as sc)
+                             (assoc (:as sc) (:ns sc))))
+                         {}
+                         subclauses)}))
 
 (defn fn-call? [rw-expr]
   (let [tag (node/tag rw-expr)]
     (and (= :list tag)
          (symbol? (:value (first (:children rw-expr)))))))
 
-(defn strip-meta [{:keys [:children] :as rw-expr}]
-  (loop [children children
+(defn strip-meta* [children]
+  (loop [[child & rest-children] children
          stripped []]
-    (if-let [child (first children)]
+    (if child
       (if (contains? '#{:meta} (node/tag child))
-        (recur (rest children)
-               (into stripped (rest (:children child))))
-        (recur (rest children)
+        (recur rest-children
+               (into stripped (strip-meta* (rest (:children child)))))
+        (recur rest-children
                (conj stripped child)))
-      (assoc rw-expr :children stripped))))
+      stripped)))
 
-(comment
-  (strip-meta (parse-string "[^String x]")))
+(defn strip-meta [expr]
+  (assoc expr
+         :children (strip-meta* (:children expr))))
+
+(declare parse-arities)
+
+(defn parse-defn [expr bindings]
+  (let [children (:children (strip-meta expr))
+        ;; TODO: add metadata parsing for private
+        private? (= 'defn- (some-call expr defn-))
+        children (rest children)
+        fn-name (:value (first (filter #(symbol? (:value %)) children)))
+        arg-decl (first (filter #(= :vector (:tag %)) children))
+        arg-decls (map (fn [x]
+                         ;; skip docstring, etc.
+                         (first
+                          (keep
+                           #(cond (= :vector (:tag %))
+                                  %
+                                  (= :meta (:tag %))
+                                  (last (:children %)))
+                           (:children x))))
+                       (filter #(= :list (:tag %)) (rest children)))
+        arg-decls (if arg-decl [arg-decl]
+                      arg-decls)
+        arities (map analyze-arity arg-decls)
+        fixed-arities (set (keep :fixed-arity arities))
+        var-args-min-arity (:min-arity (first (filter :varargs? arities)))
+        defn
+        (let [{:keys [:row :col]} (meta expr)]
+          (if fn-name
+            (cond-> {:type :defn
+                     :name fn-name
+                     :row row
+                     :col col}
+              (seq fixed-arities) (assoc :fixed-arities fixed-arities)
+              private? (assoc :private? private?)
+              var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))
+            {:type :debug
+             :level :info
+             :message "Could not parse defn form"
+             :debug? true
+             :row row
+             :col col}))]
+    (cons defn
+          (mapcat
+           #(parse-arities %
+                           (reduce set/union bindings
+                                   (map :arg-names arities)))
+           (rest children)))))
 
 (defn parse-arities
-  ([rw-expr] (parse-arities rw-expr #{}))
-  ([{:keys [:children] :as rw-expr} bindings]
-   (let [fdef? (defn? rw-expr)]
-     (cond
-       (ns-decl? rw-expr)
-       [(analyze-ns-decl rw-expr)]
-       fdef?
-       (let [children (:children (strip-meta rw-expr))
-             private? (= fdef? 'defn-)
-             children (rest children)
-             fn-name (:value (first (filter #(symbol? (:value %)) children)))
-             arg-decl (first (filter #(= :vector (:tag %)) children))
-             arg-decls (map (fn [x]
-                              ;; skip docstring, etc.
-                              (first
-                               (keep
-                                #(cond (= :vector (:tag %))
-                                       %
-                                       (= :meta (:tag %))
-                                       (last (:children %)))
-                                (:children x))))
-                            (filter #(= :list (:tag %)) (rest children)))
-             arg-decls (if arg-decl [arg-decl]
-                           arg-decls)
-             arities (map analyze-arity arg-decls)
-             fixed-arities (set (keep :fixed-arity arities))
-             var-args-min-arity (:min-arity (first (filter :varargs? arities)))]
-         (reduce into [(cond-> {:type :defn
-                                :name fn-name
-                                ;; :arities arities
-                                }
-                         (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-                         private? (assoc :private? private?)
-                         var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))]
-                 (map #(parse-arities % (reduce set/union bindings (map :arg-names arities))) (rest children))))
-       (some-call rw-expr ->> cond-> cond->> some-> some->> . .. deftype
-              proxy extend-protocol doto reify)
-       []
-       (let? rw-expr)
-       (let [let-bindings (->> children second :children (map :value) (filter symbol?) set)]
-         (mapcat #(parse-arities % (set/union bindings let-bindings)) (rest children)))
-       (anon-fn? rw-expr)
-       ;; TODO better arity analysis like in normal fn
-       (let [fn-name (-> children second :value)
-             arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
-             ;;_ (println "arg vec" arg-vec)
-             maybe-bindings (->> arg-vec :children (map :value))
-             fn-bindings (set (filter symbol? (cons fn-name maybe-bindings)))]
-         (mapcat #(parse-arities % (set/union bindings fn-bindings)) (rest children)))
-       (fn-call? rw-expr)
-       (let [fn-name (:value (first children))
-             args (count (rest children))
-             binding-call? (contains? bindings fn-name)]
-         (reduce into (if binding-call?
-                        []
-                        [{:type :call
-                          :name fn-name
-                          :arity args
-                          :node rw-expr
-                          ;; TODO: add namespace in which function is called
-                          }])
-                 (map #(parse-arities % bindings) (rest children))))
-       :else (mapcat #(parse-arities % bindings) children)))))
-
-(comment
-  (parse-arities (parse-string "(defn foo \"docstring\" ([stackstrace sms]) ([stacktrace sms opts]))"))
-  (parse-arities (parse-string "(defn str \"docstring\" {:tag String :added 1.0} (^String [stackstrace sms]) ([stacktrace sms opts]))"))
-  (parse-arities (parse-string "(defn class \"docstring\" {:some-map 1} ^Class [^Object x])"))
-
-  (defn class
-    "Returns the Class of x"
-    {:added "1.0"
-     :static true}
-    ^Class [^Object x] (if (nil? x) x (. x (getClass))))
-
-  ;; TODO: (assoc) doesn't give a warning
-  (assoc)
-  (assoc-in {})
-  )
-
+  ;; TODO: refactor and split into multiple functions
+  ([expr] (parse-arities expr #{}))
+  ([{:keys [:children] :as expr} bindings]
+   (cond
+     (ns-decl? expr)
+     [(analyze-ns-decl expr)]
+     (defn? expr)
+     (parse-defn expr bindings)
+     (some-call expr ->> cond-> cond->> some-> some->> . .. deftype
+                proxy extend-protocol doto reify)
+     []
+     (let? expr)
+     (let [let-bindings (->> children second :children (map :value) (filter symbol?) set)]
+       (mapcat #(parse-arities % (set/union bindings let-bindings)) (rest children)))
+     (anon-fn? expr)
+     ;; TODO better arity analysis like in normal fn
+     (let [fn-name (-> children second :value)
+           arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
+           maybe-bindings (->> arg-vec :children (map :value))
+           fn-bindings (set (filter symbol? (cons fn-name maybe-bindings)))]
+       (mapcat #(parse-arities % (set/union bindings fn-bindings)) (rest children)))
+     (fn-call? expr)
+     (let [fn-name (:value (first children))
+           args (count (rest children))
+           binding-call? (contains? bindings fn-name)
+           parse-rest (mapcat #(parse-arities % bindings) (rest children))]
+       (if binding-call?
+         parse-rest
+         (cons
+          (let [{:keys [:row :col]} (meta expr)]
+            {:type :call
+             :name fn-name
+             :arity args
+             :row row
+             :col col})
+          parse-rest)))
+     :else (mapcat #(parse-arities % bindings) children))))
 
 (defn qualify-name [ns nm]
-  ;; when = workaround for bad defn parsing
-  (when nm
-    (if-let [ns* (namespace nm)]
-      (let [ns* (or (get (:qualify-ns ns) (symbol ns*))
-                    ns*)]
-        (symbol (str ns*)
-                (name nm)))
-      (or (get (:qualify-var ns)
-               nm)
-          #_(or (when (contains? public-clj-fns nm)
-                  (symbol "clojure.core"
-                          (str nm))))
-          (symbol (str (or (:name ns) "user"))
-                  (str nm))))))
+  (if-let [ns* (namespace nm)]
+    (when-let [ns* (get (:qualify-ns ns) (symbol ns*))]
+      {:namespace ns*
+       :name (symbol (str ns*)
+                     (name nm))})
+    (or (get (:qualify-var ns)
+             nm)
+        (let [namespace (or (:name ns) 'user)]
+          {:namespace namespace
+           :name (symbol (str namespace) (str nm))}))))
 
-(defn analyze-arities [filename language rw-expr]
-  (loop [parsed (parse-arities rw-expr)
+(def vconj (fnil conj []))
+
+(defn analyze-arities
+  "Collects defns and calls into a map. To optimize cache lookups later
+  on, calls are indexed by the namespace they call to, not the
+  ns where the call occurred."
+  [filename language expr]
+  (loop [[first-parsed & rest-parsed] (parse-arities expr)
          ns {:name 'user}
-         qualified {:calls []
-                    :defns {}}]
-    (if-let [p (first parsed)]
-      (do
-        ;; (println (:type p))
-        (if (= :ns (:type p))
-          (recur (rest parsed)
-                 p
-                 qualified)
-          (recur (rest parsed)
-                 ns
-                 (case (:type p)
-                   :defn
-                   (let [qname (qualify-name ns (:name p))]
-                     (assoc-in qualified [:defns (:name ns) qname]
-                               (assoc p
-                                      :name qname
-                                      :ns (:name ns)
-                                      :filename filename
-                                      :lang language)))
-                   :call
-                   (let [qname (qualify-name ns (:name p))]
-                     (update qualified :calls
-                             conj (assoc p
-                                         :name qname
-                                         :caller-ns (:name ns)
-                                         :filename filename
-                                         :lang language)))))))
-      qualified)))
+         results {:calls {}
+                  :defns {}
+                  :findings []}]
+    (if first-parsed
+      (if (= :ns (:type first-parsed))
+        (recur rest-parsed
+               first-parsed
+               results)
+        (recur rest-parsed
+               ns
+               (if-not (contains? #{:defn :call} (:type first-parsed))
+                 (update-in results
+                            [:findings]
+                            conj
+                            first-parsed)
+                 (let [qname (qualify-name ns (:name first-parsed))
+                       first-parsed (assoc first-parsed
+                                           :qname (:name qname)
+                                           :ns (:name ns)
+                                           :filename filename
+                                           :lang language)]
+                   (case (:type first-parsed)
+                     :defn
+                     (if qname
+                       (assoc-in results [:defns (:name ns) (:name qname)]
+                                 first-parsed)
+                       (update-in results
+                                  [:findings]
+                                  vconj
+                                  first-parsed))
+                     :call
+                     (if qname
+                       (update-in results
+                                  [:calls (:namespace qname)]
+                                  vconj first-parsed)
+                       (update-in results
+                                  [:findings]
+                                  conj
+                                  (assoc first-parsed
+                                         :level :info
+                                         :message (str "Unrecognized call to "
+                                                       (:name first-parsed))
+                                         :type :unqualified-call
+                                         :debug? true))))))))
+      results)))
 
-(defn arity-findings
-  [clj-defns cljs-defns calls]
-  (let [clojure-core-defns (get clj-defns 'clojure.core)
-        cljs-core-defns (get cljs-defns 'cljs.core)
-        findings (for [call calls
-                       :let [fn-name (:name call)
+(defn core-lookup
+  [clojure-core-defns cljs-core-defns lang var-name]
+  (let [core (case lang :clj clojure-core-defns :cljs cljs-core-defns)
+        sym (case lang
+              :clj (symbol "clojure.core"
+                           (name var-name))
+              :cljs (symbol "cljs.core"
+                            (name var-name)))]
+    (get core sym)))
+
+(defn fn-call-findings
+  "Analyzes indexed defns and calls and returns incorrect function
+  calls."
+  [idacs]
+  (let [clojure-core-defns (get-in idacs [:clj :defns 'clojure.core])
+        cljs-core-defns (get-in idacs [:cljs :defns 'cljs.core])
+        findings (for [lang [:clj :cljs]
+                       ns-sym (keys (get-in idacs [lang :calls]))
+                       call (get-in idacs [lang :calls ns-sym])
+                       :let [fn-name (:qname call)
                              fn-ns (symbol (namespace fn-name))
-                             arity (:arity call)
-                             filename (:filename call)
-                             language (:lang call)
-                             dict (case language
-                                    :clj clj-defns
-                                    :cljs cljs-defns)
-                             called-fn (or (get-in dict [fn-ns fn-name])
-                                           (when (= (:caller-ns call)
+                             called-fn (or (get-in idacs [lang :defns fn-ns fn-name])
+                                           (when (= (:ns call)
                                                     fn-ns)
                                              ;; we resolved the call as
                                              ;; ns-local, but it might be a
                                              ;; clojure.core call
-                                             (case language
-                                               :clj
-                                               (get clojure-core-defns
-                                                    (symbol "clojure.core"
-                                                            (name fn-name)))
-                                               :cljs
-                                               (get cljs-core-defns
-                                                    (symbol "cljs.core"
-                                                            (name fn-name))))))
-                             fixed-arities (:fixed-arities called-fn)
-                             var-args-min-arity (:var-args-min-arity called-fn)]
+                                             (core-lookup clojure-core-defns cljs-core-defns
+                                                          lang fn-name)))]
                        :when called-fn
-                       :let [errors
-                             [(when-not (or (contains? fixed-arities arity)
-                                            (and var-args-min-arity (>= arity var-args-min-arity)))
-                                (node->line filename
-                                            (:node call)
-                                            :error
-                                            :invalid-arity
-                                            (format "Wrong number of args (%s) passed to %s"
-                                                    (:arity call)
-                                                    (:name called-fn))))
+                       :let [arity (:arity call)
+                             filename (:filename call)
+                             fixed-arities (:fixed-arities called-fn)
+                             var-args-min-arity (:var-args-min-arity called-fn)
+                             errors
+                             [(when-not
+                                  (or (contains? fixed-arities arity)
+                                      (and var-args-min-arity (>= arity var-args-min-arity)))
+                                {:filename filename
+                                 :row (:row call)
+                                 :col (:col call)
+                                 :level :error
+                                 :type :invalid-arity
+                                 :message (format "Wrong number of args (%s) passed to %s"
+                                                  (str (:arity call) " / " fixed-arities " / " called-fn)
+                                                  (:name called-fn))})
                               (when (and (:private? called-fn)
-                                         (not= (:caller-ns call)
+                                         (not= (:ns call)
                                                fn-ns))
-                                (node->line filename (:node call) :error :private-call
-                                            (format "Call to private function %s"
-                                                    (:name call))))]]
+                                {:filename filename
+                                 :row (:row call)
+                                 :col (:col call)
+                                 :level :error
+                                 :type :private-call
+                                 :message (format "Call to private function %s"
+                                                  (:name call))})]]
                        e errors
                        :when e]
                    e)]
