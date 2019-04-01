@@ -32,10 +32,15 @@
                    children))
 
 (defn expand-fn [{:keys [:children] :as expr}]
-  (let [fn-body (list-node children)
+  (let [{:keys [:row :col] :as m} (meta expr)
+        fn-body (with-meta (list-node children)
+                  {:row row
+                   :col (inc col)})
         args (find-fn-args children)
         arg-list (vector-node args)]
-    (list-node [(token-node 'fn) arg-list fn-body])))
+    (with-meta
+      (list-node [(token-node 'fn) arg-list fn-body])
+      m)))
 
 (defn expand-all [expr]
   (clojure.walk/prewalk

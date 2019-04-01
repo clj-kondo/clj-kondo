@@ -18,8 +18,8 @@
 
 (defn- print-findings [findings print-debug?]
   (doseq [{:keys [:filename :type :message
-                  :level :row :col :debug?] :as finding} findings
-          :when (if debug?
+                  :level :row :col] :as finding} findings
+          :when (if (= :debug type)
                   print-debug?
                   true)]
     (println (str filename ":" row ":" col ": " (name level) ": " message))))
@@ -147,12 +147,6 @@ Options:
          (when-let [parent (.getParentFile dir)]
            (recur parent)))))))
 
-;;;; cache
-
-(def ^:private cache-format "v1")
-(def ^:private cache-dir
-  (str ".cache/" cache-format))
-
 ;;;; synchronize namespaces with cache
 
 (defn- sync-cache [idacs cache-dir]
@@ -207,8 +201,8 @@ Options:
         cache-opt (get opts "--cache")
         cache-dir (when cache-opt
                     (or (when-let [cd (first (get opts "--cache"))]
-                          (io/file cd cache-format))
-                        (io/file (config-dir) cache-dir)))
+                          (io/file cd version))
+                        (io/file (config-dir) ".cache" version)))
         files (get opts "--lint")
         debug? (get opts "--debug")]
     {:opts opts

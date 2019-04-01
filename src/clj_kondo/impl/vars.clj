@@ -8,9 +8,9 @@
 
 ;;;; function arity
 
-(defn arg-name [{:keys [:children] :as rw-expr}]
+(defn arg-name [{:keys [:children] :as expr}]
   ;; TODO: use strip-meta
-  (if-let [n (:value rw-expr)]
+  (if-let [n (:value expr)]
     ;; normal argument
     n
     ;; this is an argument with metadata
@@ -34,19 +34,7 @@
       {:arg-names arg-names
        :fixed-arity arity})))
 
-(defn defn? [rw-expr]
-  (some-call rw-expr defn defn- defmacro))
-
-(defn let? [rw-expr]
-  (some-call rw-expr let))
-
-(defn anon-fn? [rw-expr]
-  (some-call rw-expr fn))
-
-(defn ns-decl? [rw-expr]
-  (some-call rw-expr ns))
-
-(defn require-clause? [{:keys [:children] :as rw-expr}]
+(defn require-clause? [{:keys [:children] :as expr}]
   (= :require (:k (first children))))
 
 (defn analyze-require-subclause [{:keys [:children] :as expr}]
@@ -95,10 +83,10 @@
                          {}
                          subclauses)}))
 
-(defn fn-call? [rw-expr]
-  (let [tag (node/tag rw-expr)]
+(defn fn-call? [expr]
+  (let [tag (node/tag expr)]
     (and (= :list tag)
-         (symbol? (:value (first (:children rw-expr)))))))
+         (symbol? (:value (first (:children expr)))))))
 
 (defn strip-meta* [children]
   (loop [[child & rest-children] children
@@ -152,7 +140,6 @@
             {:type :debug
              :level :info
              :message "Could not parse defn form"
-             :debug? true
              :row row
              :col col}))]
     (cons defn
@@ -167,17 +154,17 @@
   ([expr] (parse-arities expr #{}))
   ([{:keys [:children] :as expr} bindings]
    (cond
-     (ns-decl? expr)
+     (some-call expr ns)
      [(analyze-ns-decl expr)]
-     (defn? expr)
+     (some-call expr defn defn- defmacro)
      (parse-defn expr bindings)
      (some-call expr ->> cond-> cond->> some-> some->> . .. deftype
                 proxy extend-protocol doto reify)
      []
-     (let? expr)
+     (some-call expr let)
      (let [let-bindings (->> children second :children (map :value) (filter symbol?) set)]
        (mapcat #(parse-arities % (set/union bindings let-bindings)) (rest children)))
-     (anon-fn? expr)
+     (some-call expr fn)
      ;; TODO better arity analysis like in normal fn
      (let [fn-name (-> children second :value)
            arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
@@ -193,6 +180,7 @@
          parse-rest
          (cons
           (let [{:keys [:row :col]} (meta expr)]
+            (when-not col (println expr row col))
             {:type :call
              :name fn-name
              :arity args
@@ -232,11 +220,13 @@
                results)
         (recur rest-parsed
                ns
-               (if-not (contains? #{:defn :call} (:type first-parsed))
+               (case (:type first-parsed)
+                 :debug
                  (update-in results
                             [:findings]
                             conj
-                            first-parsed)
+                            (assoc first-parsed
+                                   :filename filename))
                  (let [qname (qualify-name ns (:name first-parsed))
                        first-parsed (assoc first-parsed
                                            :qname (:name qname)
@@ -264,8 +254,7 @@
                                          :level :info
                                          :message (str "Unrecognized call to "
                                                        (:name first-parsed))
-                                         :type :unqualified-call
-                                         :debug? true))))))))
+                                         :type :debug))))))))
       results)))
 
 (defn core-lookup
@@ -298,6 +287,13 @@
                                              (core-lookup clojure-core-defns cljs-core-defns
                                                           lang fn-name)))]
                        :when called-fn
+                       :let [valid-order? (if (= (:ns call)
+                                                 fn-ns)
+                                            (or (> (:row call) (:row called-fn))
+                                                (and (= (:row call) (:row called-fn))
+                                                     (> (:col call) (:col called-fn))))
+                                            true)]
+                       :when valid-order?
                        :let [arity (:arity call)
                              filename (:filename call)
                              fixed-arities (:fixed-arities called-fn)
@@ -312,7 +308,7 @@
                                  :level :error
                                  :type :invalid-arity
                                  :message (format "Wrong number of args (%s) passed to %s"
-                                                  (str (:arity call) " / " fixed-arities " / " called-fn)
+                                                  (:arity call)
                                                   (:name called-fn))})
                               (when (and (:private? called-fn)
                                          (not= (:ns call)
