@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
-rm performance.txt
+err=0
+trap '(( err |= $? ))' ERR
+trap 'exit $err' SIGINT SIGTERM
+
+rm -rf performance.txt
 echo -e "==== Build initial cache" | tee -a performance.txt
-cp="$(clojure -Spath)"
+cp="$(clojure -R:cljs -Spath)"
 (time ./clj-kondo --lint "$cp" --cache) 2>&1 | tee -a performance.txt
 
 echo -e "\n==== Lint a single file (emulate in-editor usage)" | tee -a performance.txt
@@ -11,3 +15,5 @@ echo -e "\n==== Lint a single file (emulate in-editor usage)" | tee -a performan
 count=$(find . -name "*.clj*" -type f | wc -l | tr -d ' ')
 echo -e "\n==== Launch clj-kondo for each file in project ($count)" | tee -a performance.txt
 (time find src -name "*.clj*" -type f -exec ./clj-kondo --lint {} --cache \; ) 2>&1 | tee -a performance.txt
+
+exit "$err"

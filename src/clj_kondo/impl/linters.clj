@@ -66,7 +66,7 @@
 ;;;; processing of string input
 
 (defn process-input
-  [filename input language]
+  [filename input lang config]
   (let [;; workaround for https://github.com/xsc/rewrite-clj/issues/75
         input (-> input
                   (str/replace "##Inf" "::Inf")
@@ -76,21 +76,15 @@
                   (str/replace #_"#:a{#::a {:a b}}"
                                #"#(::?)(.*?)\{" (fn [[_ colons name]]
                                                   (str colons name "{"))))
-        parsed-expressions (parse-string-all input)
+        parsed-expressions (parse-string-all input config)
         parsed-expressions (expand-all parsed-expressions)
         ids (inline-def filename parsed-expressions)
         nls (obsolete-let filename parsed-expressions)
-        ods (obsolete-do filename parsed-expressions)
-        {:keys [:calls :defns :findings]} (analyze-arities filename language parsed-expressions)]
-    {:findings (concat ids nls ods findings)
-     :calls calls
-     :defns defns
-     :lang language}))
+        ods (obsolete-do filename parsed-expressions)]
+    (cons {:findings (concat ids nls ods)}
+          (analyze-arities filename lang parsed-expressions (:debug? config)))))
 
 ;;;; scratch
 
 (comment
-  ;; TODO: fix/optimize cache format
-  ;; TODO: clean up code
-  ;; TODO: distribute binaries
   )

@@ -29,21 +29,13 @@ jobs:
           command: |
             clojure -A:test
       - run:
-          name: Run as local root dependency
+          name: Run as tools.deps dependency
           command: |
-            mkdir -p /tmp/proj
-            cd /tmp/proj
-            rm -rf *
-            clojure -Sdeps '{:deps {clj-kondo {:local/root "/home/circleci/repo"}}}' \
-              -m clj-kondo.main --lint /home/circleci/repo
+            .circleci/script/tools.deps
       - run:
-          name: Run as git dependency
+          name: Run as lein command
           command: |
-            mkdir -p /tmp/proj
-            cd /tmp/proj
-            rm -rf *
-            clojure -Sdeps "{:deps {clj-kondo {:git/url \"https://github.com/borkdude/clj-kondo\" :sha \"$CIRCLE_SHA1\"}}}" \
-              -m clj-kondo.main --lint /home/circleci/repo
+            .circleci/script/lein
       - save_cache:
           paths:
             - ~/.m2

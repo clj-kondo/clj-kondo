@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+err=0
+trap '(( err |= $? ))' ERR
+trap 'exit $err' SIGINT SIGTERM
+
+# Run as local root dependency
+rm -rf /tmp/proj
+mkdir -p /tmp/proj
+cd /tmp/proj
+clojure -Sdeps '{:deps {clj-kondo {:local/root "/home/circleci/repo"}}}' \
+        -m clj-kondo.main --lint /home/circleci/repo/src /home/circleci/repo/test
+
+# Run as git dependency
+rm -rf /tmp/proj
+mkdir -p /tmp/proj
+cd /tmp/proj
+clojure -Sdeps "{:deps {clj-kondo {:git/url \"https://github.com/borkdude/clj-kondo\" :sha \"$CIRCLE_SHA1\"}}}" \
+        -m clj-kondo.main --lint /home/circleci/repo/src /home/circleci/repo/test
+
+exit "$err"
