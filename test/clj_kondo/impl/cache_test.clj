@@ -9,6 +9,8 @@
 
 (programs rm mkdir echo)
 
+(def cache-version @#'main/version)
+
 (deftest cache-test
   (doseq [lang [:clj :cljs]]
     (let [tmp-dir (System/getProperty "java.io.tmpdir")
@@ -24,7 +26,8 @@
       (-main "--lint" test-source-dir "--cache" test-cache-dir)
       (testing
           "var foo is found in cache of namespace foo"
-          (is (some? (get (cache/from-cache (io/file test-cache-dir "v1") lang 'foo)
+        (is (some? (get (cache/from-cache (io/file test-cache-dir cache-version)
+                                          lang 'foo)
                           'foo/foo))))
       (testing "linting only bar and using the cache option"
         (let [bar-file (.getPath (io/file test-source-dir (str "bar."
@@ -38,7 +41,6 @@
   (let [tmp-dir (System/getProperty "java.io.tmpdir")
         test-cache-dir-file (io/file tmp-dir "test-cache-dir")
         test-cache-dir-path (.getPath test-cache-dir-file)]
-    #_(.mkdirs (io/file test-cache-dir-file "v1"))
     (testing "with-cache returns value"
       (is (= 6 (cache/with-cache test-cache-dir-path 0
                  (+ 1 2 3)))))

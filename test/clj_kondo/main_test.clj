@@ -139,6 +139,16 @@
 (inc 1 2 3)
 ")
 
+(def order-example "
+;; call to def special form with docstring
+(def x \"the number one\" 1)
+(defmacro def [k spec-form])
+;; valid call to macro
+(def ::foo int?)
+;; invalid call to macro
+(def ::foo int? string?)
+")
+
 (deftest invalid-arity-test
 
   (let [linted (lint! invalid-arity-examples)]
@@ -160,7 +170,11 @@
 
   (testing "macroexpansion of fn literal"
     (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) #(-> % inc (inc 1))")))))
-  )
+
+  (testing "only invalid calls after (re-)definition are caught"
+    (let [linted (lint! order-example)]
+      (is (= 1 (count linted)))
+      (is (= 8 (:row (first (lint! order-example))))))))
 
 (def private-call-examples "
 (ns ns1)

@@ -20,11 +20,11 @@
   (clojure.lang.ChunkBuffer. capacity))"))))))
 
 (deftest parse-defn-test
-  (is
-   (= (vars/parse-defn (parse-string "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
-  (clojure.lang.ChunkBuffer. capacity))") [])
-      '[{:type :defn, :name chunk-buffer, :fixed-arities #{1}}
-        {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}])))
+  (is (every? true?
+              (map submap?
+                   '[{:type :defn, :name chunk-buffer, :fixed-arities #{1}}
+                     {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}](vars/parse-defn (parse-string "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
+  (clojure.lang.ChunkBuffer. capacity))") [])))))
 
 (deftest analyze-ns-test
   (is
