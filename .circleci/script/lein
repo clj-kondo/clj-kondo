@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+err=0
+trap '(( err |= $? ))' ERR
+trap 'exit $err' SIGINT SIGTERM
+
+lein clj-kondo --lint "$(lein classpath)"
+
+exit "$err"

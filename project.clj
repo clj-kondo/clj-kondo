@@ -7,7 +7,9 @@
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [rewrite-clj "0.6.1"]]
+                 [rewrite-clj "0.6.1"]
+                 [com.cognitect/transit-clj "0.8.313"]]
+  :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main"]}
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
                                     :username :env/clojars_user
                                     :password :env/clojars_pass

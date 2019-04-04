@@ -23,7 +23,10 @@
            {:extra-deps
             {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.3.1"}}
             :extra-paths ["test"]
-            :main-opts ["-m" "clj-kondo.profile"]}}
+            :main-opts ["-m" "clj-kondo.profile"]}
+           :cljs
+           {:extra-deps
+            {org.clojure/clojurescript {:mvn/version "1.10.520"}}}}
  ;; NOTE: build with clojure -A:native-image --verbose
  ;; see: https://github.com/taylorwood/clj.native-image
  }

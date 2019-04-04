@@ -5,37 +5,80 @@
    [clojure.java.io :as io]
    [clojure.test :as t :refer [deftest is testing]]
    [me.raynes.conch :refer [programs with-programs let-programs] :as sh]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clj-kondo.test-utils :refer [lint!]]))
 
 (programs rm mkdir echo)
 
 (def cache-version @#'main/version)
 
 (deftest cache-test
-  (doseq [lang [:clj :cljs]]
+  (testing "arity checks work in all languages"
+    (doseq [lang [:clj :cljs :cljc]]
+      (let [tmp-dir (System/getProperty "java.io.tmpdir")
+            test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
+            test-source-dir (io/file tmp-dir "test-source-dir")]
+        (rm "-rf" test-cache-dir)
+        (mkdir "-p" test-cache-dir)
+        (rm "-rf" test-source-dir)
+        (mkdir "-p" test-source-dir)
+        (io/copy "(ns foo) (defn foo [x])"
+                 (io/file test-source-dir (str "foo."
+                                               (name lang))))
+        (lint! test-source-dir "--cache" test-cache-dir)
+        (testing
+            "var foo is found in cache of namespace foo"
+          (let [foo-cache (cache/from-cache-1
+                           (io/file test-cache-dir cache-version)
+                           lang 'foo)]
+            (is (some? (case lang (:clj :cljs)
+                             (get foo-cache 'foo/foo)
+                             :cljc (get-in foo-cache [:cljc 'foo/foo]))))))
+        (testing "linting only bar and using the cache option"
+          (let [bar-file (io/file test-source-dir (str "bar."
+                                                       (name lang)))]
+            (io/copy "(ns bar (:require [foo :refer [foo]])) (foo 1 2 3)"
+                     (io/file bar-file))
+            (let [output (lint! bar-file "--cache" test-cache-dir)]
+              (is (str/includes? (:message (first output))
+                                 "Wrong number of args (3) passed to foo/foo")))))
+        (testing "arity of foo has changed"
+          (io/copy "(ns foo) (defn foo [x y])"
+                   (io/file test-source-dir (str "foo."
+                                                 (name lang))))
+          (lint! test-source-dir "--cache" test-cache-dir)
+          (let [bar-file (io/file test-source-dir (str "bar."
+                                                       (name lang)))]
+            (io/copy "(ns bar (:require [foo :refer [foo]])) (foo 1)"
+                     (io/file bar-file))
+            (let [output (lint! bar-file "--cache" test-cache-dir)]
+              (is (str/includes? (:message (first output))
+                                 "Wrong number of args (1) passed to foo/foo")))
+            (io/copy "(ns bar (:require [foo :refer [foo]])) (foo 1 2)"
+                     (io/file bar-file))
+            (let [output (lint! bar-file "--cache" test-cache-dir)]
+              (is (empty? output))))))))
+  (testing "arity checks work in clj -> cljc and cljs -> cljc"
     (let [tmp-dir (System/getProperty "java.io.tmpdir")
           test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
-          test-source-dir (.getPath (io/file tmp-dir "test-source-dir"))]
-      (rm "-rf" test-cache-dir)
-      (mkdir "-p" test-cache-dir)
-      (rm "-rf" test-source-dir)
-      (mkdir "-p" test-source-dir)
-      (io/copy "(ns foo) (defn foo [x])"
-               (io/file test-source-dir (str "foo."
-                                             (name lang))))
-      (-main "--lint" test-source-dir "--cache" test-cache-dir)
-      (testing
-          "var foo is found in cache of namespace foo"
-        (is (some? (get (cache/from-cache (io/file test-cache-dir cache-version)
-                                          lang 'foo)
-                          'foo/foo))))
-      (testing "linting only bar and using the cache option"
-        (let [bar-file (.getPath (io/file test-source-dir (str "bar."
-                                                               (name lang))))]
+          test-source-dir (io/file tmp-dir "test-source-dir")
+          foo (io/file test-source-dir "foo.cljc")]
+      (doseq [lang [:clj :cljs]]
+        (let [bar (io/file test-source-dir (str "bar."
+                                                (name lang)))]
+          (rm "-rf" test-cache-dir)
+          (mkdir "-p" test-cache-dir)
+          (rm "-rf" test-source-dir)
+          (mkdir "-p" test-source-dir)
+          (io/copy "(ns foo) (defn foo [x])"
+                   foo)
           (io/copy "(ns bar (:require [foo :refer [foo]])) (foo 1 2 3)"
-                   (io/file bar-file))
-          (let [output (with-out-str (-main "--lint" bar-file "--cache" test-cache-dir))]
-            (str/includes? output "Wrong number of args (3) passed to foo/foo")))))))
+                   bar)
+          ;; populate cljc cache
+          (lint! foo "--cache" test-cache-dir)
+          (let [output (lint! bar "--cache" test-cache-dir)]
+            (is (str/includes? (:message (first output))
+                               "Wrong number of args (3) passed to foo/foo"))))))))
 
 (deftest lock-test
   (let [tmp-dir (System/getProperty "java.io.tmpdir")

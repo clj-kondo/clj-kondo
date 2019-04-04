@@ -1,13 +1,13 @@
 (ns clj-kondo.main
   (:gen-class)
-  (:require [clj-kondo.impl.linters :refer [process-input]]
+  (:require [clj-kondo.impl.cache :as cache]
+            [clj-kondo.impl.linters :refer [process-input]]
             [clj-kondo.impl.vars :refer [fn-call-findings]]
             [clojure.java.io :as io]
-            [clj-kondo.impl.cache :as cache]
+            [clojure.edn :as edn]
             [clojure.string :as str
              :refer [starts-with?
-                     ends-with?]]
-            [clojure.set :as set])
+                     ends-with?]])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
 (def ^:private version (str/trim
@@ -18,7 +18,8 @@
 
 (defn- print-findings [findings print-debug?]
   (doseq [{:keys [:filename :type :message
-                  :level :row :col] :as finding} findings
+                  :level :row :col] :as finding}
+          (sort-by (juxt :filename :row :col) findings)
           :when (if (= :debug type)
                   print-debug?
                   true)]
@@ -29,6 +30,7 @@
 
 (defn- print-help []
   (print-version)
+  ;; TODO: document config format when stable enough
   (println (str "
 Usage: [ --help ] [ --version ] [ --cache [ <dir> ] ] [ --lang (clj|cljs) ] [ --lint <files> ]
 
@@ -43,7 +45,7 @@ Options:
 
   --cache: if dir exists it is used to write and read data from, to enrich
     analysis over multiple runs. If no value is provided, the nearest .clj-kondo
-    parent directory is used."))
+    parent directory is detected and a cache directory will be created in it."))
   nil)
 
 (defn- source-file? [filename]
@@ -81,7 +83,7 @@ Options:
   (cond (ends-with? file ".clj")
         :clj
         (ends-with? file ".cljc")
-        :clj
+        :cljc
         (ends-with? file ".cljs")
         :cljs
         :else default-language))
@@ -89,7 +91,7 @@ Options:
 (defn- classpath? [f]
   (str/includes? f ":"))
 
-(defn- process-file [filename default-language]
+(defn- process-file [filename default-language config]
   (try
     (let [file (io/file filename)]
       (cond
@@ -97,26 +99,30 @@ Options:
         (if (.isFile file)
           (if (ends-with? file ".jar")
             ;; process jar file
-            (map #(process-input (:filename %) (:source %)
-                                 (lang-from-file (:filename %) default-language))
-                 (sources-from-jar filename))
+            (mapcat #(process-input (:filename %) (:source %)
+                                    (lang-from-file (:filename %) default-language)
+                                    config)
+                    (sources-from-jar filename))
             ;; assume normal source file
-            [(process-input filename (slurp filename) (lang-from-file filename default-language))])
+            (process-input filename (slurp filename)
+                           (lang-from-file filename default-language)
+                           config))
           ;; assume directory
-          (map #(process-input (:filename %) (:source %)
-                               (lang-from-file (:filename %) default-language))
-               (sources-from-dir file)))
+          (mapcat #(process-input (:filename %) (:source %)
+                                  (lang-from-file (:filename %) default-language)
+                                  config)
+                  (sources-from-dir file)))
         (= "-" filename)
-        [(process-input "<stdin>" (slurp *in*) default-language)]
+        (process-input "<stdin>" (slurp *in*) default-language config)
         (classpath? filename)
-        (mapcat #(process-file % default-language)
+        (mapcat #(process-file % default-language config)
                 (str/split filename #":"))
         :else
-        [{:findings [{:level :error
+        [{:findings [{:level :warning
                       :filename filename
                       :col 0
                       :row 0
-                      :message (str "Can't read " filename ", file does not exist.")}]}]))
+                      :message "File does not exist"}]}]))
     (catch Exception e
       (let [filename (if (= "-" filename)
                        (or (and (.exists (io/file filename))
@@ -147,38 +153,6 @@ Options:
          (when-let [parent (.getParentFile dir)]
            (recur parent)))))))
 
-;;;; synchronize namespaces with cache
-
-(defn- sync-cache [idacs cache-dir]
-  (cache/with-cache cache-dir 6
-    (reduce (fn [idacs lang]
-              (let [analyzed-namespaces
-                    (set (keys (get-in idacs [lang :defns])))
-                    called-namespaces
-                    (conj (set (keys (get-in idacs [lang :calls])))
-                          (case lang
-                            :clj 'clojure.core
-                            :cljs 'cljs.core))
-                    load-from-clj-cache
-                    (set/difference called-namespaces analyzed-namespaces)
-                    defns-from-cache
-                    (when cache-dir
-                      (reduce (fn [acc ns-sym]
-                                (if-let [data (cache/from-cache cache-dir
-                                                                lang ns-sym)]
-                                  (assoc acc ns-sym
-                                         data)
-                                  acc))
-                              {} load-from-clj-cache))]
-                (when cache-dir
-                  (doseq [ns-name analyzed-namespaces]
-                    (let [ns-data (get-in idacs [lang :defns ns-name])]
-                      (cache/to-cache cache-dir lang ns-name ns-data))))
-                (update-in idacs [lang :defns]
-                           merge defns-from-cache)))
-            idacs
-            [:clj :cljs])))
-
 ;;;; parse command line options
 
 (defn- parse-opts [options]
@@ -197,24 +171,38 @@ Options:
         default-lang (case (first (get opts "--lang"))
                        "clj" :clj
                        "cljs" :cljs
+                       "cljc" :cljc
                        :clj)
         cache-opt (get opts "--cache")
+        cfg-dir (config-dir)
         cache-dir (when cache-opt
                     (or (when-let [cd (first (get opts "--cache"))]
                           (io/file cd version))
-                        (io/file (config-dir) ".cache" version)))
+                        (io/file cfg-dir ".cache" version)))
         files (get opts "--lint")
-        debug? (get opts "--debug")]
+        config-file (or (first (get opts "--config"))
+                        (when cfg-dir
+                          (let [f (io/file cfg-dir "config.edn")]
+                            (when (.exists f)
+                              f))))
+        config (when config-file (edn/read-string (slurp config-file)))
+        debug? (boolean
+                (or (get opts "--debug")
+                    (get config :debug?)))
+        ignore-comments? (boolean
+                          (or (get opts "--ignore-comments")
+                              (get config :ignore-comments?)))]
     {:opts opts
      :files files
      :cache-dir cache-dir
      :default-lang default-lang
+     :ignore-comments? ignore-comments?
      :debug? debug?}))
 
 ;;;; process all files
 
-(defn- process-files [files default-lang]
-  (mapcat #(process-file % default-lang) files))
+(defn- process-files [files default-lang config]
+  (mapcat #(process-file % default-lang config) files))
 
 ;;;; index defns and calls by language and namespace
 
@@ -222,11 +210,22 @@ Options:
   (reduce
    (fn [acc {:keys [:calls :defns :lang]}]
      (-> acc
-         (update-in [lang :calls] merge calls)
+         (update-in [lang :calls] (fn [prev-calls]
+                                    (merge-with into prev-calls calls)))
          (update-in [lang :defns] merge defns)))
    {:clj {:calls {} :defns {}}
-    :cljs {:calls {} :defns {}}}
+    :cljs {:calls {} :defns {}}
+    :cljc {:calls {} :defns {}}}
    defns-and-calls))
+
+;;;; overrides
+
+(defn- overrides [idacs]
+  (-> idacs
+      (cond-> (get-in idacs '[:cljs :defns cljs.core cljs.core/array])
+        (assoc-in '[:cljs :defns cljs.core cljs.core/array :var-args-min-arity] 0)
+        (get-in idacs '[:cljs :defns cljs.core cljs.core/apply])
+        (assoc-in '[:cljs :defns cljs.core cljs.core/apply :var-args-min-arity] 2))))
 
 ;;;; main
 
@@ -235,17 +234,20 @@ Options:
                 :files
                 :default-lang
                 :cache-dir
-                :debug?]} (parse-opts options)]
+                :debug?
+                :ignore-comments?]} (parse-opts options)]
     (cond (get opts "--version")
           (print-version)
           (get opts "--help")
           (print-help)
           (empty? files)
           (print-help))
-    :else (let [all-findings (process-files files default-lang)
+    :else (let [all-findings (process-files files default-lang {:debug? debug?
+                                                                :ignore-comments? ignore-comments?})
                 idacs (index-defns-and-calls all-findings)
-                idacs (if cache-dir (sync-cache idacs cache-dir)
+                idacs (if cache-dir (cache/sync-cache idacs cache-dir)
                           idacs)
+                idacs (overrides idacs)
                 afs (fn-call-findings idacs)]
             (print-findings (concat afs (mapcat :findings all-findings))
                             debug?))))
@@ -253,5 +255,5 @@ Options:
 ;;;; Scratch
 
 (comment
-
+  (def x (def x 1))
   )
