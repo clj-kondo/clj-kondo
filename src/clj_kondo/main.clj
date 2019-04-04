@@ -255,5 +255,16 @@ Options:
 ;;;; Scratch
 
 (comment
-  (def x (def x 1))
+
+  (defn foo [x]
+    (def x x))
+
+  (let [x 1]
+    (let y 2))
+
+  (do 1 (do 2))
+
+  (select-keys)
+
+
   )
