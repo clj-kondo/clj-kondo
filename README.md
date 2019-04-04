@@ -5,7 +5,7 @@
 
 A minimal and opinionated linter for Clojure code that sparks joy.
 
-<img src="screenshots/demo.png">
+<img src="screenshots/demo.png" width="50%" align="right">
 
 ## Rationale
 
@@ -23,7 +23,7 @@ your life. Let clj-kondo help you tidy your code.
 * arity errors across namespaces
 * private function call errors
 
-<img src="screenshots/wrong-arity.png">
+<img src="screenshots/wrong-arity.png" width="50%" align="right">
 
 This linter is:
 
