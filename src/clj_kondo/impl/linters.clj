@@ -67,22 +67,31 @@
 
 (defn process-input
   [filename input lang config]
-  (let [;; workaround for https://github.com/xsc/rewrite-clj/issues/75
-        input (-> input
-                  (str/replace "##Inf" "::Inf")
-                  (str/replace "##-Inf" "::-Inf")
-                  (str/replace "##NaN" "::NaN")
-                  ;; workaround for https://github.com/borkdude/clj-kondo/issues/11
-                  (str/replace #_"#:a{#::a {:a b}}"
-                               #"#(::?)(.*?)\{" (fn [[_ colons name]]
-                                                  (str colons name "{"))))
-        parsed-expressions (parse-string-all input config)
-        parsed-expressions (expand-all parsed-expressions)
-        ids (inline-def filename parsed-expressions)
-        nls (obsolete-let filename parsed-expressions)
-        ods (obsolete-do filename parsed-expressions)]
-    (cons {:findings (concat ids nls ods)}
-          (analyze-arities filename lang parsed-expressions (:debug? config)))))
+  (try
+    (let [;; workaround for https://github.com/xsc/rewrite-clj/issues/75
+          input (-> input
+                    (str/replace "##Inf" "::Inf")
+                    (str/replace "##-Inf" "::-Inf")
+                    (str/replace "##NaN" "::NaN")
+                    ;; workaround for https://github.com/borkdude/clj-kondo/issues/11
+                    (str/replace #_"#:a{#::a {:a b}}"
+                                 #"#(::?)(.*?)\{" (fn [[_ colons name]]
+                                                    (str colons name "{"))))
+          parsed-expressions (parse-string-all input config)
+          parsed-expressions (expand-all parsed-expressions)
+          ids (inline-def filename parsed-expressions)
+          nls (obsolete-let filename parsed-expressions)
+          ods (obsolete-do filename parsed-expressions)]
+      (cons {:findings (concat ids nls ods)}
+            (analyze-arities filename lang parsed-expressions (:debug? config))))
+    (catch Exception e
+      [{:findings [{:level :error
+                    :filename filename
+                    :col 0
+                    :row 0
+                    :message (str "Can't parse "
+                                  filename ", "
+                                  (.getMessage e))}]}])))
 
 ;;;; scratch
 

@@ -127,6 +127,21 @@
     (is (= 1 (count linted)))
     (is (= 4 (:row (first linted))))))
 
+(deftest read-error-test
+  (let [linted (lint! (io/file "corpus" "read_error"))]
+    (is (= '({:file "corpus/read_error/error.clj",
+              :row 0,
+              :col 0,
+              :level :error,
+              :message
+              "Can't parse corpus/read_error/error.clj, Unexpected EOF. [at line 2, column 1]"}
+             {:file "corpus/read_error/ok.clj",
+              :row 6,
+              :col 1,
+              :level :error,
+              :message "Wrong number of args (1) passed to read-error.ok/foo"})
+           linted))))
+
 ;;;; Scratch
 
 (comment
