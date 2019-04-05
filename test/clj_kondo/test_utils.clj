@@ -25,6 +25,7 @@
                (with-out-str
                  (with-in-str input
                    (apply -main "--lint" "-" args))))]
+     #_(println res)
      (parse-output res))))
 
 (defn lint-native!

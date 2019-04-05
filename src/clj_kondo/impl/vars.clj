@@ -43,7 +43,9 @@
 
 (defn analyze-require-subclause [{:keys [:children] :as expr}]
   (when (= :vector (:tag expr))
-    (let [ns-name (:value (first children))]
+    ;; ns-name can be a string in CLJS projects, that's why we can't just take the :value
+    ;; see #51
+    (let [ns-name (symbol (node/sexpr (first children)))]
       (loop [children (rest children)
              as nil
              refers []]
@@ -62,7 +64,7 @@
            :ns ns-name
            :as as
            :refers (map (fn [refer]
-                          [refer {:namespace (symbol ns-name)
+                          [refer {:namespace ns-name
                                   :name (symbol (str ns-name) (str refer))}])
                         refers)})))))
 

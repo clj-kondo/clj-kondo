@@ -92,50 +92,36 @@ Options:
   (str/includes? f ":"))
 
 (defn- process-file [filename default-language config]
-  (try
-    (let [file (io/file filename)]
-      (cond
-        (.exists file)
-        (if (.isFile file)
-          (if (ends-with? file ".jar")
-            ;; process jar file
-            (mapcat #(process-input (:filename %) (:source %)
-                                    (lang-from-file (:filename %) default-language)
-                                    config)
-                    (sources-from-jar filename))
-            ;; assume normal source file
-            (process-input filename (slurp filename)
-                           (lang-from-file filename default-language)
-                           config))
-          ;; assume directory
+  (let [file (io/file filename)]
+    (cond
+      (.exists file)
+      (if (.isFile file)
+        (if (ends-with? file ".jar")
+          ;; process jar file
           (mapcat #(process-input (:filename %) (:source %)
                                   (lang-from-file (:filename %) default-language)
                                   config)
-                  (sources-from-dir file)))
-        (= "-" filename)
-        (process-input "<stdin>" (slurp *in*) default-language config)
-        (classpath? filename)
-        (mapcat #(process-file % default-language config)
-                (str/split filename #":"))
-        :else
-        [{:findings [{:level :warning
-                      :filename filename
-                      :col 0
-                      :row 0
-                      :message "File does not exist"}]}]))
-    (catch Exception e
-      (let [filename (if (= "-" filename)
-                       (or (and (.exists (io/file filename))
-                                filename)
-                           "<stdin>")
-                       filename)]
-        [{:findings [{:level :error
-                      :filename filename
-                      :col 0
-                      :row 0
-                      :message (str "Can't read "
-                                    filename ", "
-                                    (.getMessage e))}]}]))))
+                  (sources-from-jar filename))
+          ;; assume normal source file
+          (process-input filename (slurp filename)
+                         (lang-from-file filename default-language)
+                         config))
+        ;; assume directory
+        (mapcat #(process-input (:filename %) (:source %)
+                                (lang-from-file (:filename %) default-language)
+                                config)
+                (sources-from-dir file)))
+      (= "-" filename)
+      (process-input "<stdin>" (slurp *in*) default-language config)
+      (classpath? filename)
+      (mapcat #(process-file % default-language config)
+              (str/split filename #":"))
+      :else
+      [{:findings [{:level :warning
+                    :filename filename
+                    :col 0
+                    :row 0
+                    :message "File does not exist"}]}])))
 
 ;;;; find cache/config dir
 
