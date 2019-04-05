@@ -1,6 +1,6 @@
 (ns clj-kondo.test-utils
   (:require
-   [clj-kondo.main :as main :refer [-main]]
+   [clj-kondo.main :as main :refer [main]]
    [clojure.string :as str :refer [trim]]
    [me.raynes.conch :refer [programs with-programs let-programs] :as sh]
    [clojure.java.io :as io]))
@@ -21,10 +21,10 @@
   ([input & args]
    (let [res (if (instance? java.io.File input)
                (with-out-str
-                 (apply -main "--lint" (.getPath input) args))
+                 (apply main "--lint" (.getPath input) args))
                (with-out-str
                  (with-in-str input
-                   (apply -main "--lint" "-" args))))]
+                   (apply main "--lint" "-" args))))]
      #_(println res)
      (parse-output res))))
 
@@ -32,11 +32,12 @@
   ([input] (lint-native! input "--lang" "clj"))
   ([input & args]
    (let [res (let-programs [clj-kondo "./clj-kondo"]
-               (if (instance? java.io.File input)
-                 (apply clj-kondo "--lint" (.getPath input) args)
-                 (apply clj-kondo  "--lint" "-" (conj (vec args)
-                                                      ;; the opts go last
-                                                      {:in input}))))]
+               (binding [sh/*throw* false]
+                 (if (instance? java.io.File input)
+                   (apply clj-kondo "--lint" (.getPath input) args)
+                   (apply clj-kondo  "--lint" "-" (conj (vec args)
+                                                        ;; the opts go last
+                                                        {:in input})))))]
      (parse-output res))))
 
 (def lint!
