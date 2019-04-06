@@ -2,7 +2,7 @@
 
 (defn foo []
   (def x 1))
-
+   
 (defn- foo []
   (def x 1))
 

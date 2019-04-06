@@ -1,10 +1,10 @@
 (ns clj-kondo.main-test
   (:require
+   [clj-kondo.main :refer [main]]
    [clj-kondo.test-utils :refer [lint!]]
-   [clojure.set :as set]
+   [clojure.java.io :as io]
    [clojure.string :as str :refer [trim]]
-   [clojure.test :as t :refer [deftest is testing]]
-   [clojure.java.io :as io]))
+   [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj"))
@@ -128,19 +128,29 @@
     (is (= 4 (:row (first linted))))))
 
 (deftest read-error-test
-  (let [linted (lint! (io/file "corpus" "read_error"))]
-    (is (= '({:file "corpus/read_error/error.clj",
-              :row 0,
-              :col 0,
-              :level :error,
-              :message
-              "Can't parse corpus/read_error/error.clj, Unexpected EOF. [at line 2, column 1]"}
-             {:file "corpus/read_error/ok.clj",
-              :row 6,
-              :col 1,
-              :level :error,
-              :message "Wrong number of args (1) passed to read-error.ok/foo"})
-           linted))))
+  (testing "when an error happens in one file, the other file is still linted"
+    (let [linted (lint! (io/file "corpus" "read_error"))]
+      (is (= '({:file "corpus/read_error/error.clj",
+                :row 0,
+                :col 0,
+                :level :error,
+                :message
+                "Can't parse corpus/read_error/error.clj, Unexpected EOF. [at line 2, column 1]"}
+               {:file "corpus/read_error/ok.clj",
+                :row 6,
+                :col 1,
+                :level :error,
+                :message "Wrong number of args (1) passed to read-error.ok/foo"})
+             linted)))))
+
+(deftest exit-code-test
+  (with-out-str
+    (testing "the exit code is 0 when no errors are detected"
+      (is (zero? (with-in-str "(defn foo []) (foo)" (main "--lint" "-")))))
+    (testing "the exit code is 2 when warning are detected"
+      (is (= 2 (with-in-str "(do (do 1))" (main "--lint" "-")))))
+    (testing "the exit code is 1 when errors are detected"
+      (is (= 3 (with-in-str "(defn foo []) (foo 1)" (main "--lint" "-")))))))
 
 ;;;; Scratch
 
@@ -149,5 +159,6 @@
   (obsolete-let-test)
   (obsolete-do-test)
   (invalid-arity-test)
+  (exit-code-test)
   (t/run-tests)
   )

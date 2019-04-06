@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# err=0
+# function _trap_error() {
+#     local exit_code="$1"
+#     if [ "$exit_code" -eq 2 ]; then
+#         err |= "$exit_code"
+#     fi
+# }
+
+# trap '_trap_error $?' ERR
+# trap 'exit $err' SIGINT SIGTERM
+
+clojure -A:test
+
+# sexit "$err"

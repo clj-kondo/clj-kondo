@@ -1,13 +1,15 @@
 (ns clj-kondo.main
   (:gen-class)
-  (:require [clj-kondo.impl.cache :as cache]
-            [clj-kondo.impl.linters :refer [process-input]]
-            [clj-kondo.impl.vars :refer [fn-call-findings]]
-            [clojure.java.io :as io]
-            [clojure.edn :as edn]
-            [clojure.string :as str
-             :refer [starts-with?
-                     ends-with?]])
+  (:require
+   [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.linters :refer [process-input]]
+   [clj-kondo.impl.vars :refer [fn-call-findings]]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
+   [clojure.stacktrace :refer [print-stack-trace]]
+   [clojure.string :as str
+    :refer [starts-with?
+            ends-with?]])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
 (def ^:private version (str/trim
@@ -213,44 +215,64 @@ Options:
         (get-in idacs '[:cljs :defns cljs.core cljs.core/apply])
         (assoc-in '[:cljs :defns cljs.core cljs.core/apply :var-args-min-arity] 2))))
 
+;;;; summary
+
+(defn summarize [findings]
+  (reduce (fn [acc fd]
+            (update acc (:level fd) inc))
+          {:error 0 :warning 0}
+          findings))
+
 ;;;; main
 
-(defn -main [& options]
-  (let [{:keys [:opts
+(defn main
+  [& options]
+  (let [start-time (System/currentTimeMillis)
+        {:keys [:opts
                 :files
                 :default-lang
                 :cache-dir
                 :debug?
                 :ignore-comments?]} (parse-opts options)]
-    (cond (get opts "--version")
-          (print-version)
-          (get opts "--help")
-          (print-help)
-          (empty? files)
-          (print-help))
-    :else (let [all-findings (process-files files default-lang {:debug? debug?
-                                                                :ignore-comments? ignore-comments?})
-                idacs (index-defns-and-calls all-findings)
-                idacs (if cache-dir (cache/sync-cache idacs cache-dir)
-                          idacs)
-                idacs (overrides idacs)
-                afs (fn-call-findings idacs)]
-            (print-findings (concat afs (mapcat :findings all-findings))
-                            debug?))))
+    (or (cond (get opts "--version")
+              (print-version)
+              (get opts "--help")
+              (print-help)
+              (empty? files)
+              (print-help)
+              (not-empty files)
+              (let [processed (process-files files default-lang
+                                             {:debug? debug?
+                                              :ignore-comments? ignore-comments?})
+                    idacs (index-defns-and-calls processed)
+                    idacs (if cache-dir (cache/sync-cache idacs cache-dir)
+                              idacs)
+                    idacs (overrides idacs)
+                    fcf (fn-call-findings idacs)
+                    all-findings (concat fcf (mapcat :findings processed))
+                    {:keys [:error :warning]} (summarize all-findings)]
+                (print-findings all-findings
+                                debug?)
+                (printf "linting took %sms, "
+                        (- (System/currentTimeMillis) start-time))
+                (println (format "errors: %s, warnings: %s" error warning))
+                (cond (pos? error) 3
+                      (pos? warning) 2
+                      :else 0)))
+        0)))
+
+(defn -main [& options]
+  (let [exit-code
+        (try (apply main options)
+             (catch Throwable e
+               (print-stack-trace e)
+               ;; unexpected error
+               124))]
+    (flush)
+    (System/exit exit-code)))
 
 ;;;; Scratch
 
 (comment
-
-  (defn foo [x]
-    (def x x))
-
-  (let [x 1]
-    (let y 2))
-
-  (do 1 (do 2))
-
-  (select-keys)
-
-
+  (def x (def x 1))
   )

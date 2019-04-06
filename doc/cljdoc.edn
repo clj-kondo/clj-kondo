@@ -1,0 +1,5 @@
+{:cljdoc.doc/tree
+ [["Readme" {:file "README.md"}]
+  ["Editor integration" {:file "doc/editor-integration.md"}]
+  ["Running on the JVM" {:file "doc/jvm.md"}]
+  ["Building from source" {:file "doc/build.md"}]]}

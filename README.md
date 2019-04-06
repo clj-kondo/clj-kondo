@@ -56,57 +56,7 @@ Install [Linuxbrew](http://linuxbrew.sh/). Then run:
 Pre-built binaries are available for linux and MacOS on the
 [releases](https://github.com/borkdude/clj-kondo/releases) page.
 
-### Running with the JVM
-
-Using the binary is recommended for better startup time, but you can run this
-linter with as a regular Clojure program on the JVM as well.
-
-#### leiningen
-
-You can add clj-kondo to `~/.lein/profiles.clj` to make it available as a `lein` command:
-
-``` clojure
-{:user {:dependencies [[clj-kondo "RELEASE"]]
-        :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main"]}
-```
-
-``` shellsession
-$ lein clj-kondo --lint src
-```
-
-#### tools.deps.alpha
-
-Run clj-kondo as an ad-hoc command line dependency:
-
-``` shellsession
-$ clj -Sdeps '{:deps {clj-kondo {:mvn/version "RELEASE"}}}' -m clj-kondo.main --lint src
-```
-
-Or add it as an alias to `~/.clojure/deps.edn`:
-
-``` clojure
-{:aliases
- {:clj-kondo
-  {:extra-deps {clj-kondo {:mvn/version "RELEASE"}}
-   :main-opts ["-m" "clj-kondo.main"]}}}
-```
-
-``` shellsession
-$ clj -A:clj-kondo --lint src
-```
-
-### Building from source
-
-To build a binary from source, download [GraalVM](https://github.com/oracle/graal/releases) and set the
-`GRAALVM_HOME` variable. E.g.:
-
-    export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-1.0.0-rc14/Contents/Home
-
-Then clone this repo, `cd clj-kondo` and build the native binary:
-
-    clojure -A:native-image
-
-Place the binary somewhere on your path.
+### [Running on the JVM](doc/jvm.md)
 
 ## Usage
 
@@ -141,7 +91,7 @@ Lint a project classpath:
 $ clj-kondo --lint $(lein classpath)
 ```
 
-### Project setup
+## Project setup
 
 To detect lint errors across namespaces in your project, a cache is needed. To
 create one, make a `.clj-kondo` directory in the root of your project. A cache
@@ -164,7 +114,7 @@ So for `lein` the entire command would be:
     $ clj-kondo --lint $(lein classpath) --cache
 
 Now you are ready to lint single files using [editor
-integration](#editor-integration). A simulation of what happens when you edit a
+integration](doc/editor-integration.md). A simulation of what happens when you edit a
 file in your editor:
 
 ``` shellsession
@@ -177,14 +127,21 @@ it detects that the number of arguments you passed to `select-keys` is
 invalid. Each time you edit a file, the cache is incrementally updated, so
 clj-kondo is informed about new functions you just wrote.
 
-## Editor integration
+## [Editor integration](doc/editor-integration.md)
 
-For integrating with Emacs, see
-[flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo).
+## Exit codes
+
+- `0`: no errors or warnings were found
+- `2`: more than one warning was found
+- `3`: more than one error was found
+
+All other error codes indicate an unexpected error.
 
 ## Tests
 
-    clj -A:test
+    script/test
+
+## [Building from source](doc/build.md)
 
 ## Credits
 
