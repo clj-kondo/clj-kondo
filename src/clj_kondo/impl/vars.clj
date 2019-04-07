@@ -115,7 +115,7 @@
   (loop [[child & rest-children] children
          stripped []]
     (if child
-      (if (contains? '#{:meta} (node/tag child))
+      (if (contains? '#{:meta :meta*} (node/tag child))
         (recur rest-children
                (into stripped (strip-meta* (rest (:children child)))))
         (recur rest-children
@@ -133,6 +133,7 @@
         ;; TODO: add metadata parsing for private
         private? (= 'defn- (some-call expr defn-))
         children (rest children)
+        children (strip-meta* children)
         fn-name (:value (first (filter #(symbol? (:value %)) children)))
         arg-decl (first (filter #(= :vector (:tag %)) children))
         arg-decls (map (fn [x]
@@ -388,7 +389,7 @@
                                  (get-in idacs [:cljc :defns fn-ns (:lang call) fn-name])
                                  (when (and
                                         (not (:clojure-excluded? call))
-                                        (= (:ns call)
+                                        (= caller-ns
                                            fn-ns))
                                    (core-lookup clojure-core-defns cljs-core-defns
                                                 lang fn-name)))
@@ -402,7 +403,7 @@
                              ;; call and the lang of the function def context in
                              ;; the case of in-ns, the bets are off. we may
                              ;; support in-ns in a next version.
-                             valid-order? (if (and (= (:ns call)
+                             valid-order? (if (and (= caller-ns
                                                       fn-ns)
                                                    (= (:base-lang call)
                                                       (:base-lang called-fn)))
@@ -428,7 +429,7 @@
                                                   (str (:arity call) #_#_" " called-fn)
                                                   (:qname called-fn))})
                               (when (and (:private? called-fn)
-                                         (not= (:ns call)
+                                         (not= caller-ns
                                                fn-ns))
                                 {:filename filename
                                  :row (:row call)

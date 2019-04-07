@@ -24,8 +24,19 @@
   (is (every? true?
               (map submap?
                    '[{:type :defn, :name chunk-buffer, :fixed-arities #{1}}
-                     {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}](vars/parse-defn :clj #{} (parse-string "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
-  (clojure.lang.ChunkBuffer. capacity))"))))))
+                     {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
+                   (vars/parse-defn :clj #{}
+                                    (parse-string
+                                     "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
+  (clojure.lang.ChunkBuffer. capacity))")))))
+  (is (= '({:type :defn,
+            :name get-bytes,
+            :row 1,
+            :col 1,
+            :lang :clj,
+            :fixed-arities #{1}})
+         (vars/parse-defn :clj #{}
+                          (parse-string "(defn get-bytes #^bytes [part] part)")))))
 
 (deftest analyze-ns-test
   (is
