@@ -1,4 +1,5 @@
 (ns clj-kondo.main
+  {:no-doc true}
   (:gen-class)
   (:require
    [clj-kondo.impl.cache :as cache]
@@ -217,7 +218,7 @@ Options:
 
 ;;;; summary
 
-(defn summarize [findings]
+(defn- summarize [findings]
   (reduce (fn [acc fd]
             (update acc (:level fd) inc))
           {:error 0 :warning 0}
@@ -274,5 +275,5 @@ Options:
 ;;;; Scratch
 
 (comment
-  (def x (def x 1))
+
   )

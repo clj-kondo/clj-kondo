@@ -137,6 +137,13 @@ clj-kondo is informed about new functions you just wrote.
 
 All other error codes indicate an unexpected error.
 
+## Limitations
+
+This tool uses static analysis on your source code. Therefore it cannot detect
+all of the issues that a runtime linter can. This tool is written in Clojure and
+compiles to native code using GraalVM. Any library that is problematic with
+GraalVM can therefore not be used in this project.
+
 ## Tests
 
     script/test
