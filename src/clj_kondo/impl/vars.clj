@@ -372,8 +372,7 @@
     (get core sym)))
 
 (defn fn-call-findings
-  "Analyzes indexed defns and calls and returns incorrect function
-  calls."
+  "Analyzes indexed defns and calls and returns findings."
   [idacs]
   (let [clojure-core-defns (get-in idacs [:clj :defns 'clojure.core])
         cljs-core-defns (get-in idacs [:cljs :defns 'cljs.core])
