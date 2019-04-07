@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.macroexpand
+  {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [some-call filter-children]]
    [clojure.walk :refer [prewalk]]

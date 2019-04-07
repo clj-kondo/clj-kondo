@@ -67,5 +67,5 @@ flycheck_*.el
 
 # End of https://www.gitignore.io/api/emacs,clojure
 clj-kondo
-.clj-kondo/.cache
+**/.clj-kondo/.cache
 performance.txt
