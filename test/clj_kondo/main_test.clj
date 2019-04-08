@@ -143,6 +143,17 @@
                 :message "Wrong number of args (1) passed to read-error.ok/foo"})
              linted)))))
 
+(deftest nested-namespaced-maps-workaround-test
+  (testing "when an error happens in one file, the other file is still linted"
+    (let [linted (lint! (io/file "corpus" "nested_namespaced_maps_workaround.clj"))]
+      (is (= '({:file "corpus/nested_namespaced_maps_workaround.clj",
+                :row 8,
+                :col 1,
+                :level :error,
+                :message
+                "Wrong number of args (2) passed to nested-namespaced-maps-workaround/test-fn"})
+             linted)))))
+
 (deftest exit-code-test
   (with-out-str
     (testing "the exit code is 0 when no errors are detected"

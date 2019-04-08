@@ -76,7 +76,7 @@
                     ;; workaround for https://github.com/borkdude/clj-kondo/issues/11
                     (str/replace #_"#:a{#::a {:a b}}"
                                  #"#(::?)(.*?)\{" (fn [[_ colons name]]
-                                                    (str colons name "{"))))
+                                                    (str "#_" colons name "{"))))
           parsed-expressions (parse-string-all input config)
           parsed-expressions (expand-all parsed-expressions)
           ids (inline-def filename parsed-expressions)
