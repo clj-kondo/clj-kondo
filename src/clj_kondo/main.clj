@@ -7,7 +7,6 @@
    [clj-kondo.impl.vars :refer [fn-call-findings]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
-   [clojure.stacktrace :refer [print-stack-trace]]
    [clojure.string :as str
     :refer [starts-with?
             ends-with?]])
@@ -26,7 +25,11 @@
           :when (if (= :debug type)
                   print-debug?
                   true)]
-    (println (str filename ":" row ":" col ": " (name level) ": " message))))
+    (try
+      (println (str filename ":" row ":" col ": " (name level) ": " message))
+      (catch Throwable e
+        (println "Could not print finding:" (str finding ".")
+                 "Please report an issue.")))))
 
 (defn- print-version []
   (println (str "clj-kondo v" version)))
@@ -219,10 +222,13 @@ Options:
 ;;;; summary
 
 (defn- summarize [findings]
-  (reduce (fn [acc fd]
-            (update acc (:level fd) inc))
-          {:error 0 :warning 0}
-          findings))
+  (try
+    (reduce (fn [acc fd]
+              (update acc (:level fd) inc))
+            {:error 0 :warning 0 :info 0}
+            findings)
+    (catch Throwable e
+      (println "Could not summarize findings. Please report an issue.")  nil)))
 
 ;;;; main
 
@@ -266,7 +272,10 @@ Options:
   (let [exit-code
         (try (apply main options)
              (catch Throwable e
-               (print-stack-trace e)
+               ;; can't use clojure.stacktrace here, due to
+               ;; https://dev.clojure.org/jira/browse/CLJ-2502
+               (println "Unexpected error. Please report an issue.")
+               (.printStackTrace e)
                ;; unexpected error
                124))]
     (flush)
