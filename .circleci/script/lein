@@ -3,8 +3,8 @@
 err=0
 function _trap_error() {
     local exit_code="$1"
-    if [ "$exit_code" -ne 2 ] || [ "$exit_code" -ne 3 ]; then
-        err |= "$exit_code"
+    if [ "$exit_code" -ne 2 ] && [ "$exit_code" -ne 3 ]; then
+        (( err |= "$exit_code" ))
     fi
 }
 
