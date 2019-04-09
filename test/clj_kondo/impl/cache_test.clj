@@ -1,18 +1,33 @@
 (ns clj-kondo.impl.cache-test
   (:require
    [clj-kondo.impl.cache :as cache]
-   [clj-kondo.main :as main :refer [-main]]
+   [clj-kondo.main :as main :refer [main]]
    [clojure.java.io :as io]
    [clojure.test :as t :refer [deftest is testing]]
    [me.raynes.conch :refer [programs with-programs let-programs] :as sh]
    [clojure.string :as str]
    [clj-kondo.test-utils :refer [lint!]]))
 
-(programs rm mkdir echo)
+(programs rm mkdir echo mv)
 
 (def cache-version @#'main/version)
 
 (deftest cache-test
+  (testing "empty cache option warning (this test assumes you have no .clj-kondo
+  directory at a higher level than the current working directory)"
+    (let [tmp-dir (System/getProperty "java.io.tmpdir")
+          test-source-dir (io/file tmp-dir "test-source-dir")]
+      (rm "-rf" test-source-dir)
+      (mkdir "-p" test-source-dir)
+      (when (.exists (io/file ".clj-kondo"))
+        (mv ".clj-kondo" ".clj-kondo.bak"))
+      (io/copy "(ns foo) (defn foo [x])"
+               (io/file test-source-dir (str "foo.clj")))
+      (is (str/includes?
+           (with-out-str (main "--lint" test-source-dir "--cache"))
+           "no .clj-kondo directory found"))
+      (when (.exists (io/file ".clj-kondo.bak"))
+        (mv ".clj-kondo.bak" ".clj-kondo"))))
   (testing "arity checks work in all languages"
     (doseq [lang [:clj :cljs :cljc]]
       (let [tmp-dir (System/getProperty "java.io.tmpdir")
