@@ -26,9 +26,9 @@
   (map #(node->line filename % :warning :inline-def "inline def")
        (inline-def* parsed-expressions false)))
 
-;;;; obsolete let
+;;;; redundant let
 
-(defn obsolete-let* [{:keys [:children] :as expr}
+(defn redundant-let* [{:keys [:children] :as expr}
                      parent-let?]
   (let [current-let? (some-call expr let)]
     (cond (and current-let? parent-let?)
@@ -36,17 +36,17 @@
           current-let?
           (let [;; skip let keywords and bindings
                 children (nnext children)]
-            (concat (obsolete-let* (first children) current-let?)
-                    (mapcat #(obsolete-let* % false) (rest children))))
-          :else (mapcat #(obsolete-let* % false) children))))
+            (concat (redundant-let* (first children) current-let?)
+                    (mapcat #(redundant-let* % false) (rest children))))
+          :else (mapcat #(redundant-let* % false) children))))
 
-(defn obsolete-let [filename parsed-expressions]
-  (map #(node->line filename % :warning :nested-let "obsolete let")
-       (obsolete-let* parsed-expressions false)))
+(defn redundant-let [filename parsed-expressions]
+  (map #(node->line filename % :warning :nested-let "redundant let")
+       (redundant-let* parsed-expressions false)))
 
-;;;; obsolete do
+;;;; redundant do
 
-(defn obsolete-do* [{:keys [:children] :as expr}
+(defn redundant-do* [{:keys [:children] :as expr}
                     parent-do?]
   (let [implicit-do? (some-call expr fn defn defn-
                             let loop binding with-open
@@ -57,11 +57,11 @@
                                           (tag (second children)))
                                     (<= (count children) 2))))
           [expr]
-          :else (mapcat #(obsolete-do* % (or implicit-do? current-do?)) children))))
+          :else (mapcat #(redundant-do* % (or implicit-do? current-do?)) children))))
 
-(defn obsolete-do [filename parsed-expressions]
-  (map #(node->line filename % :warning :obsolete-do "obsolete do")
-       (obsolete-do* parsed-expressions false)))
+(defn redundant-do [filename parsed-expressions]
+  (map #(node->line filename % :warning :redundant-do "redundant do")
+       (redundant-do* parsed-expressions false)))
 
 ;;;; processing of string input
 
@@ -80,8 +80,8 @@
           parsed-expressions (parse-string-all input config)
           parsed-expressions (expand-all parsed-expressions)
           ids (inline-def filename parsed-expressions)
-          nls (obsolete-let filename parsed-expressions)
-          ods (obsolete-do filename parsed-expressions)]
+          nls (redundant-let filename parsed-expressions)
+          ods (redundant-do filename parsed-expressions)]
       (cons {:findings (concat ids nls ods)}
             (analyze-arities filename lang parsed-expressions (:debug? config))))
     (catch Exception e

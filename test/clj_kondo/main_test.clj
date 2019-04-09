@@ -21,29 +21,29 @@
   (is (empty? (lint! "(defn foo [] '(def x 3))")))
   (is (not-empty (lint! "(defmacro foo [] `(def x# (def x# 1)))"))))
 
-(deftest obsolete-let-test
-  (let [linted (lint! (io/file "corpus" "obsolete_let.clj"))
+(deftest redundant-let-test
+  (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
         row-col-files (set (map #(select-keys % [:row :col :file])
                                 linted))]
-    (is (= #{{:row 4, :col 3, :file "corpus/obsolete_let.clj"}
-             {:row 8, :col 3, :file "corpus/obsolete_let.clj"}
-             {:row 12, :col 3, :file "corpus/obsolete_let.clj"}}
+    (is (= #{{:row 4, :col 3, :file "corpus/redundant_let.clj"}
+             {:row 8, :col 3, :file "corpus/redundant_let.clj"}
+             {:row 12, :col 3, :file "corpus/redundant_let.clj"}}
            row-col-files))
-    (is (= #{"obsolete let"} (set (map :message linted)))))
+    (is (= #{"redundant let"} (set (map :message linted)))))
   (is (empty? (lint! "(let [x 2] `(let [y# 3]))")))
   (is (empty? (lint! "(let [x 2] '(let [y 3]))"))))
 
-(deftest obsolete-do-test
-  (let [linted (lint! (io/file "corpus" "obsolete_do.clj"))
+(deftest redundant-do-test
+  (let [linted (lint! (io/file "corpus" "redundant_do.clj"))
         row-col-files (set (map #(select-keys % [:row :col :file])
                                 linted))]
-    (is (= #{{:row 7, :col 13, :file "corpus/obsolete_do.clj"}
-             {:row 4, :col 7, :file "corpus/obsolete_do.clj"}
-             {:row 3, :col 1, :file "corpus/obsolete_do.clj"}
-             {:row 6, :col 8, :file "corpus/obsolete_do.clj"}
-             {:row 5, :col 14, :file "corpus/obsolete_do.clj"}}
+    (is (= #{{:row 7, :col 13, :file "corpus/redundant_do.clj"}
+             {:row 4, :col 7, :file "corpus/redundant_do.clj"}
+             {:row 3, :col 1, :file "corpus/redundant_do.clj"}
+             {:row 6, :col 8, :file "corpus/redundant_do.clj"}
+             {:row 5, :col 14, :file "corpus/redundant_do.clj"}}
            row-col-files))
-    (is (= #{"obsolete do"} (set (map :message linted)))))
+    (is (= #{"redundant do"} (set (map :message linted)))))
   (is (empty? (lint! "(do 1 `(do 1 2 3))")))
   (is (empty? (lint! "(do 1 '(do 1 2 3))"))))
 
@@ -167,8 +167,8 @@
 
 (comment
   (inline-def-test)
-  (obsolete-let-test)
-  (obsolete-do-test)
+  (redundant-let-test)
+  (redundant-do-test)
   (invalid-arity-test)
   (exit-code-test)
   (t/run-tests)
