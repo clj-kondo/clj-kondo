@@ -1,4 +1,4 @@
-(ns obsolete-do)
+(ns redundant-do)
 
 (do)
 (do 1 (do 2))

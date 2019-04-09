@@ -18,8 +18,7 @@ your life. Let clj-kondo help you tidy your code.
 ## Features
 
 * inline def warnings
-* obsolete do warnings
-* obsolete let warnings
+* redundant do and let warnings
 * arity errors across namespaces
 * private function call errors
 
@@ -81,7 +80,7 @@ Lint a directory:
 
 ``` shellsession
 $ clj-kondo --lint src
-src/clj_kondo/test.cljs:7:1: warning: obsolete do
+src/clj_kondo/test.cljs:7:1: warning: redundant do
 src/clj_kondo/vars.clj:291:3: error: Wrong number of args (1) passed to clj-kondo.vars/analyze-arities
 ```
 
