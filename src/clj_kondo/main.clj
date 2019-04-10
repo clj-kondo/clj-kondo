@@ -22,14 +22,11 @@
   (doseq [{:keys [:filename :type :message
                   :level :row :col] :as finding}
           (sort-by (juxt :filename :row :col) findings)
+          :when level
           :when (if (= :debug type)
                   print-debug?
                   true)]
-    (try
-      (println (str filename ":" row ":" col ": " (name level) ": " message))
-      (catch Throwable e
-        (println "Could not print finding:" (str finding ".")
-                 "Please report an issue.")))))
+    (println (str filename ":" row ":" col ": " (name level) ": " message))))
 
 (defn- print-version []
   (println (str "clj-kondo v" version)))
@@ -98,36 +95,43 @@ Options:
   (str/includes? f ":"))
 
 (defn- process-file [filename default-language config]
-  (let [file (io/file filename)]
-    (cond
-      (.exists file)
-      (if (.isFile file)
-        (if (ends-with? file ".jar")
-          ;; process jar file
+  (try
+    (let [file (io/file filename)]
+      (cond
+        (.exists file)
+        (if (.isFile file)
+          (if (ends-with? file ".jar")
+            ;; process jar file
+            (mapcat #(process-input (:filename %) (:source %)
+                                    (lang-from-file (:filename %) default-language)
+                                    config)
+                    (sources-from-jar filename))
+            ;; assume normal source file
+            (process-input filename (slurp filename)
+                           (lang-from-file filename default-language)
+                           config))
+          ;; assume directory
           (mapcat #(process-input (:filename %) (:source %)
                                   (lang-from-file (:filename %) default-language)
                                   config)
-                  (sources-from-jar filename))
-          ;; assume normal source file
-          (process-input filename (slurp filename)
-                         (lang-from-file filename default-language)
-                         config))
-        ;; assume directory
-        (mapcat #(process-input (:filename %) (:source %)
-                                (lang-from-file (:filename %) default-language)
-                                config)
-                (sources-from-dir file)))
-      (= "-" filename)
-      (process-input "<stdin>" (slurp *in*) default-language config)
-      (classpath? filename)
-      (mapcat #(process-file % default-language config)
-              (str/split filename #":"))
-      :else
+                  (sources-from-dir file)))
+        (= "-" filename)
+        (process-input "<stdin>" (slurp *in*) default-language config)
+        (classpath? filename)
+        (mapcat #(process-file % default-language config)
+                (str/split filename #":"))
+        :else
+        [{:findings [{:level :warning
+                      :filename filename
+                      :col 0
+                      :row 0
+                      :message "File does not exist"}]}]))
+    (catch Throwable e
       [{:findings [{:level :warning
                     :filename filename
                     :col 0
                     :row 0
-                    :message "File does not exist"}]}])))
+                    :message "Could not process file"}]}])))
 
 ;;;; find cache/config dir
 
@@ -225,14 +229,13 @@ Options:
 
 ;;;; summary
 
+(def zinc (fnil inc 0))
+
 (defn- summarize [findings]
-  (try
-    (reduce (fn [acc fd]
-              (update acc (:level fd) inc))
-            {:error 0 :warning 0 :info 0}
-            findings)
-    (catch Throwable e
-      (println "Could not summarize findings. Please report an issue.")  nil)))
+  (reduce (fn [acc {:keys [:level]}]
+            (update acc level zinc))
+          {:error 0 :warning 0 :info 0}
+          findings))
 
 ;;;; main
 
