@@ -147,6 +147,8 @@ Options:
 
 ;;;; parse command line options
 
+(def empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
+
 (defn- parse-opts [options]
   (let [opts (loop [options options
                     opts-map {}
@@ -168,9 +170,11 @@ Options:
         cache-opt (get opts "--cache")
         cfg-dir (config-dir)
         cache-dir (when cache-opt
-                    (or (when-let [cd (first (get opts "--cache"))]
-                          (io/file cd version))
-                        (io/file cfg-dir ".cache" version)))
+                    (if-let [cd (first cache-opt)]
+                      (io/file cd version)
+                      (if cfg-dir (io/file cfg-dir ".cache" version)
+                          (do (println empty-cache-opt-warning)
+                              nil))))
         files (get opts "--lint")
         config-file (or (first (get opts "--config"))
                         (when cfg-dir
