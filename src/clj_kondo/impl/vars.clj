@@ -213,7 +213,7 @@
      (some-call expr let)
      (let [let-bindings (->> children second :children (map :value) (filter symbol?) set)]
        (mapcat #(parse-arities lang (set/union bindings let-bindings) %) (rest children)))
-     (some-call expr fn)
+     (some-call expr fn fn*)
      ;; TODO better arity analysis like in normal fn
      (let [fn-name (-> children second :value)
            arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
