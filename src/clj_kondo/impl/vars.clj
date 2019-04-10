@@ -244,10 +244,6 @@
          expr))
      :else (mapcat #(parse-arities lang bindings %) children))))
 
-(comment
-  (parse-string "`(foo)")
-  )
-
 (defn qualify-name [ns nm]
   (if-let [ns* (namespace nm)]
     (when-let [ns* (get (:qualify-ns ns) (symbol ns*))]
@@ -286,18 +282,19 @@
                 ns
                 (case (:type first-parsed)
                   :debug
-                  (update-in results
-                             [:findings]
-                             conj
-                             (assoc first-parsed
-                                    :filename filename))
+                  (if debug?
+                    (update-in results
+                               [:findings]
+                               conj
+                               (assoc first-parsed
+                                      :filename filename))
+                    results)
                   (let [qname (qualify-name ns (:name first-parsed))
                         first-parsed (cond->
                                          (assoc first-parsed
                                                 :qname (:name qname)
                                                 :ns (:name ns)
-                                                :filename filename
-                                                )
+                                                :filename filename)
                                        (not= lang (:lang first-parsed))
                                        (assoc :base-lang lang))]
                     (case (:type first-parsed)
