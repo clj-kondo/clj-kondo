@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.cache
   {:no-doc true}
-  (:require [clojure.java.io :as io]
+  (:require [clj-kondo.impl.cache.clojure.core :as cache-clojure-core]
+            [clojure.java.io :as io]
             [clojure.set :as set]
             [cognitect.transit :as transit])
   (:import [java.io RandomAccessFile]
@@ -91,6 +92,16 @@
                                  (merge cljc-defns-from-cache idacs))))))
             idacs
             [:clj :cljs :cljc])))
+
+(def built-in-cache
+  {'clojure.core cache-clojure-core/cache})
+
+(defn with-built-ins
+  "Enriches idacs with built-in var information."
+  [idacs]
+  (-> idacs
+      (cond-> (not (get-in idacs '[:clj :defns clojure.core]))
+        (assoc-in '[:clj :defns clojure.core] (get built-in-cache 'clojure.core)))))
 
 ;;;; Scratch
 

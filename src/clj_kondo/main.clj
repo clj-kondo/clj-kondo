@@ -220,7 +220,9 @@ Options:
 
 ;;;; overrides
 
-(defn- overrides [idacs]
+(defn- overrides
+  "Overrides var information if the vars exist."
+  [idacs]
   (-> idacs
       (cond-> (get-in idacs '[:cljs :defns cljs.core cljs.core/array])
         (assoc-in '[:cljs :defns cljs.core cljs.core/array :var-args-min-arity] 0)
@@ -261,6 +263,7 @@ Options:
                     idacs (index-defns-and-calls processed)
                     idacs (if cache-dir (cache/sync-cache idacs cache-dir)
                               idacs)
+                    idacs (cache/with-built-ins idacs)
                     idacs (overrides idacs)
                     fcf (fn-call-findings idacs)
                     all-findings (concat fcf (mapcat :findings processed))

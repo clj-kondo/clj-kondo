@@ -165,6 +165,27 @@
     (testing "the exit code is 1 when errors are detected"
       (is (= 3 (with-in-str "(defn foo []) (foo 1)" (main "--lint" "-")))))))
 
+(deftest cond-without-else-test
+  (is (= '({:file "corpus/cond_without_else.clj",
+            :row 7,
+            :col 1,
+            :level :warning,
+            :message "cond without :else"}
+           {:file "corpus/cond_without_else.clj",
+            :row 14,
+            :col 1,
+            :level :warning,
+            :message "cond without :else"})
+         (lint! (io/file "corpus" "cond_without_else.clj")))))
+
+(deftest clojure-core-built-in-test
+  (is (= {:file "<stdin>",
+          :row 1,
+          :col 1,
+          :level :error,
+          :message "Wrong number of args (1) passed to clojure.core/select-keys"}
+         (first (lint! "(select-keys 1)" "--lang" "clj")))))
+
 ;;;; Scratch
 
 (comment

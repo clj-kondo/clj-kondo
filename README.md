@@ -17,17 +17,22 @@ your life. Let clj-kondo help you tidy your code.
 
 ## Features
 
-* inline def warnings
-* redundant do and let warnings
+clj-kondo detects:
+
+* inline `def`s
+* redundant `do`s and `let`s
 * arity errors across namespaces
-* private function call errors
+* private function calls
+* `cond`s without `:else`s [style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond)
 
 <img src="screenshots/wrong-arity.png" width="50%" align="right">
 
 This linter is:
 
-* compatible with .clj, .cljs and .cljc files
+* compatible with `.clj`, `.cljs` and `.cljc` files
 * build tool and editor agnostic
+* a static code analyzer
+* compiled to native code using GraalVM
 
 ## Status
 
@@ -135,13 +140,6 @@ clj-kondo is informed about new functions you just wrote.
 - `3`: more than one error was found
 
 All other error codes indicate an unexpected error.
-
-## Limitations
-
-This tool uses static analysis on your source code. Therefore it cannot detect
-all of the issues that a runtime linter can. This tool is written in Clojure and
-compiles to native code using GraalVM. Any library that is problematic with
-GraalVM can therefore not be used in this project.
 
 ## Tests
 

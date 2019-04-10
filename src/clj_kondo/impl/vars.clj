@@ -95,12 +95,6 @@
                                   sym (:children v)]
                               (:value sym)))}))
 
-(comment
-
-  ;; TODO: turn this into test
-  (analyze-ns-decl (parse-string "(ns foo (:refer-clojure :exclude [get nth]) (:refer-clojure :exclude [time assoc]))"))
-  )
-
 (defn analyze-in-ns [{:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)]
     {:type :in-ns
@@ -234,7 +228,8 @@
              :arity args
              :row row
              :col col
-             :lang lang})
+             :lang lang
+             :expr expr})
           parse-rest)))
      (reader-conditional-expr? expr)
      (let [{:keys [:clj :cljs]} (parse-reader-conditional expr)]
@@ -351,10 +346,22 @@
                           results)))))))
        [results]))))
 
+(defn lint-cond [filename expr]
+  (let [last-condition
+        (->> expr :children rest
+             (take-nth 2) last :k)]
+    (when (not= :else last-condition)
+      [(node->line filename expr :warning :cond-without-else "cond without :else")])))
+
+(defn var-specific-findings [filename call called-fn]
+  ;; (println "qname" (:qname called-fn))
+  ;; (println "call" call)
+  (case (:qname called-fn)
+    'clojure.core/cond (lint-cond filename (:expr call))
+    []))
+
 (defn core-lookup
   [clojure-core-defns cljs-core-defns lang var-name]
-  #_(println (keys clojure-core-defns))
-  #_(println (keys cljs-core-defns))
   (let [core (case lang
                :clj clojure-core-defns
                :cljs cljs-core-defns
@@ -413,27 +420,29 @@
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
                              errors
-                             [(when-not
-                                  (or (contains? fixed-arities arity)
-                                      (and var-args-min-arity (>= arity var-args-min-arity)))
-                                {:filename filename
-                                 :row (:row call)
-                                 :col (:col call)
-                                 :level :error
-                                 :type :invalid-arity
-                                 :message (format "Wrong number of args (%s) passed to %s"
-                                                  (str (:arity call) #_#_" " called-fn)
-                                                  (:qname called-fn))})
-                              (when (and (:private? called-fn)
-                                         (not= caller-ns
-                                               fn-ns))
-                                {:filename filename
-                                 :row (:row call)
-                                 :col (:col call)
-                                 :level :error
-                                 :type :private-call
-                                 :message (format "Call to private function %s"
-                                                  (:name call))})]]
+                             (into
+                              [(when-not
+                                   (or (contains? fixed-arities arity)
+                                       (and var-args-min-arity (>= arity var-args-min-arity)))
+                                 {:filename filename
+                                  :row (:row call)
+                                  :col (:col call)
+                                  :level :error
+                                  :type :invalid-arity
+                                  :message (format "Wrong number of args (%s) passed to %s"
+                                                   (str (:arity call) #_#_" " called-fn)
+                                                   (:qname called-fn))})
+                               (when (and (:private? called-fn)
+                                          (not= caller-ns
+                                                fn-ns))
+                                 {:filename filename
+                                  :row (:row call)
+                                  :col (:col call)
+                                  :level :error
+                                  :type :private-call
+                                  :message (format "Call to private function %s"
+                                                   (:name call))})]
+                              (var-specific-findings filename call called-fn))]
                        e errors
                        :when e]
                    e)]
