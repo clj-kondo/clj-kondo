@@ -45,7 +45,9 @@
            row-col-files))
     (is (= #{"redundant do"} (set (map :message linted)))))
   (is (empty? (lint! "(do 1 `(do 1 2 3))")))
-  (is (empty? (lint! "(do 1 '(do 1 2 3))"))))
+  (is (empty? (lint! "(do 1 '(do 1 2 3))")))
+  (is (not-empty (lint! "(fn [] (do :foo :bar))")))
+  (is (empty? (lint! "#(do :foo :bar)"))))
 
 (deftest invalid-arity-test
   (let [linted (lint! (io/file "corpus" "invalid_arity"))
