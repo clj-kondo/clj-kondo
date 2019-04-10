@@ -19,11 +19,11 @@ your life. Let clj-kondo help you tidy your code.
 
 clj-kondo detects:
 
-* inline `def`s
-* redundant `do`s and `let`s
+* inline `def` expressions
+* redundant `do` and `let` wrappings
 * arity errors across namespaces
 * private function calls
-* `cond`s without `:else`s [style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond)
+* `cond` expressions without `:else` catch-alls (see [style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond))
 
 <img src="screenshots/wrong-arity.png" width="50%" align="right">
 
