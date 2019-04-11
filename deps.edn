@@ -1,4 +1,4 @@
-{:paths ["src" "resources"]
+{:paths ["src" "resources" "classes"]
  :deps {rewrite-clj {:mvn/version "0.6.1"}
         com.cognitect/transit-clj {:mvn/version "0.8.313"}}
  :aliases {:native-image
