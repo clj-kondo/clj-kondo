@@ -5,6 +5,16 @@
    [me.raynes.conch :refer [programs with-programs let-programs] :as sh]
    [clojure.java.io :as io]))
 
+(defn submap?
+  "Is m1 a subset of m2? Taken from
+  https://github.com/clojure/spec-alpha2, clojure.test-clojure.spec"
+  [m1 m2]
+  (if (and (map? m1) (map? m2))
+    (every? (fn [[k v]] (and (contains? m2 k)
+                             (submap? v (get m2 k))))
+            m1)
+    (= m1 m2)))
+
 (defn parse-output [msg]
   (map (fn [[_ file row col level message]]
          {:file file
@@ -25,7 +35,7 @@
                (with-out-str
                  (with-in-str input
                    (apply main "--lint" "-" args))))]
-     #_(println res)
+     ;;(println res)
      (parse-output res))))
 
 (defn lint-native!

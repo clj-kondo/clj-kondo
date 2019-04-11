@@ -50,16 +50,18 @@
              as nil
              refers []]
         (if-let [child (first children)]
-          (cond (= :refer (:k child))
-                (recur
-                 (nnext children)
-                 as
-                 (into refers (map :value (:children (fnext children)))))
-                (= :as (:k child))
-                (recur
-                 (nnext children)
-                 (:value (fnext children))
-                 refers))
+          (case (:k child)
+            :refer
+            (recur
+             (nnext children)
+             as
+             (into refers (map :value (:children (fnext children)))))
+            :as
+            (recur
+             (nnext children)
+             (:value (fnext children))
+             refers)
+            nil)
           {:type :require
            :ns ns-name
            :as as
@@ -134,10 +136,10 @@
                          ;; skip docstring, etc.
                          (first
                           (keep
-                           #(cond (= :vector (:tag %))
-                                  %
-                                  (= :meta (:tag %))
-                                  (last (:children %)))
+                           #(case (:tag %)
+                              :vector %
+                              :meta (last (:children %))
+                              nil)
                            (:children x))))
                        (filter #(= :list (:tag %)) (rest children)))
         arg-decls (if arg-decl [arg-decl]
@@ -241,8 +243,12 @@
 
 (defn qualify-name [ns nm]
   (if-let [ns* (namespace nm)]
-    (when-let [ns* (get (:qualify-ns ns) (symbol ns*))]
+    (if-let [ns* (get (:qualify-ns ns) (symbol ns*))]
       {:namespace ns*
+       :name (symbol (str ns*)
+                     (name nm))}
+      ;; TODO: should we support qualified calls without a require?
+      #_{:namespace ns*
        :name (symbol (str ns*)
                      (name nm))})
     (or (get (:qualify-var ns)
@@ -256,7 +262,7 @@
 (def vconj (fnil conj []))
 
 (defn analyze-arities
-  "Collects defns and calls into a map. To optimize cache lookups later
+  "Collects defs and calls into a map. To optimize cache lookups later
   on, calls are indexed by the namespace they call to, not the
   ns where the call occurred."
   ([filename lang expr] (analyze-arities filename lang expr false))
@@ -264,7 +270,7 @@
    (loop [[first-parsed & rest-parsed] (parse-arities lang expr)
           ns {:name 'user}
           results {:calls {}
-                   :defns {}
+                   :defs {}
                    :findings []
                    :lang lang}]
      (if first-parsed
@@ -295,8 +301,8 @@
                     (case (:type first-parsed)
                       :defn
                       (let [path (case lang
-                                   :cljc [:defns (:name ns) (:lang first-parsed) (:name qname)]
-                                   [:defns (:name ns) (:name qname)])
+                                   :cljc [:defs (:name ns) (:lang first-parsed) (:name qname)]
+                                   [:defs (:name ns) (:name qname)])
                             results
                             (if qname
                               (assoc-in results path
@@ -343,43 +349,50 @@
                                             :message (str "Unrecognized call to "
                                                           (:name first-parsed))
                                             :type :debug))
-                          results)))))))
+                          results))
+                      results)))))
        [results]))))
 
 (defn lint-cond [filename expr]
   (let [last-condition
-        (->> expr :children rest
-             (take-nth 2) last :k)]
+        (->> expr :children
+             (take-last 2) first :k)]
     (when (not= :else last-condition)
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
+(defn lint-case [filename expr]
+  (when (not (odd? (count (:children expr))))
+    [(node->line filename expr :warning :case-without-default "case without default")]))
+
 (defn var-specific-findings [filename call called-fn]
-  ;; (println "qname" (:qname called-fn))
-  ;; (println "call" call)
   (case (:qname called-fn)
-    'clojure.core/cond (lint-cond filename (:expr call))
+    clojure.core/cond (lint-cond filename (:expr call))
+    clojure.core/case (lint-case filename (:expr call))
+    clojure.test/is nil #_(println "is!!!")
     []))
 
 (defn core-lookup
-  [clojure-core-defns cljs-core-defns lang var-name]
+  [clojure-core-defs cljs-core-defs lang var-name]
   (let [core (case lang
-               :clj clojure-core-defns
-               :cljs cljs-core-defns
-               :cljc clojure-core-defns)
+               :clj clojure-core-defs
+               :cljs cljs-core-defs
+               :cljc clojure-core-defs
+               nil)
         sym (case lang
               :clj (symbol "clojure.core"
                            (name var-name))
               :cljs (symbol "cljs.core"
                             (name var-name))
               :cljc (symbol "clojure.core"
-                            (name var-name)))]
+                            (name var-name))
+              nil)]
     (get core sym)))
 
 (defn fn-call-findings
-  "Analyzes indexed defns and calls and returns findings."
+  "Analyzes indexed defs and calls and returns findings."
   [idacs]
-  (let [clojure-core-defns (get-in idacs [:clj :defns 'clojure.core])
-        cljs-core-defns (get-in idacs [:cljs :defns 'cljs.core])
+  (let [clojure-core-defs (get-in idacs [:clj :defs 'clojure.core])
+        cljs-core-defs (get-in idacs [:cljs :defs 'cljs.core])
         findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
@@ -387,14 +400,14 @@
                              caller-ns (:ns call)
                              fn-ns (symbol (namespace fn-name))
                              called-fn
-                             (or (get-in idacs [lang :defns fn-ns fn-name])
-                                 (get-in idacs [:cljc :defns fn-ns :cljc fn-name])
-                                 (get-in idacs [:cljc :defns fn-ns (:lang call) fn-name])
+                             (or (get-in idacs [lang :defs fn-ns fn-name])
+                                 (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
+                                 (get-in idacs [:cljc :defs fn-ns (:lang call) fn-name])
                                  (when (and
                                         (not (:clojure-excluded? call))
                                         (= caller-ns
                                            fn-ns))
-                                   (core-lookup clojure-core-defns cljs-core-defns
+                                   (core-lookup clojure-core-defs cljs-core-defs
                                                 lang fn-name)))
                              ;; update fn-ns in case it's resolved as a clojure core function
                              fn-ns (:ns called-fn)]
