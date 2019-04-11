@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.cache
   {:no-doc true}
-  (:require [clj-kondo.impl.cache.clojure.core :as cache-clojure-core]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [clojure.set :as set]
             [cognitect.transit :as transit])
   (:import [java.io RandomAccessFile]
@@ -12,11 +11,18 @@
 (defn cache-file ^java.io.File [cache-dir lang ns-sym]
   (io/file cache-dir (name lang) (str ns-sym ".transit.json")))
 
+(defn built-in-cache-resource [lang ns-sym]
+  (io/resource (str "clj_kondo/impl/cache/built_in/"
+                    (name lang) "/" (str ns-sym ".transit.json"))))
+
 (defn from-cache-1 [cache-dir lang ns-sym]
-  (let [file (cache-file cache-dir lang ns-sym)]
-    (when (.exists file)
-      (transit/read (transit/reader
-                     (io/input-stream file) :json)))))
+  (when-let [resource (or (when cache-dir
+                            (let [f (cache-file cache-dir lang ns-sym)]
+                              (when (.exists f) f)))
+                          ;; TODO: more efficient filter on existing ones?
+                          (built-in-cache-resource lang ns-sym))]
+    (transit/read (transit/reader
+                   (io/input-stream resource) :json))))
 
 (defn to-cache
   "Writes ns-data to cache-dir. Always use with `with-cache`."
@@ -63,9 +69,8 @@
               acc))
           {} namespaces))
 
-(defn sync-cache [idacs cache-dir]
-  (with-cache cache-dir 6
-    (reduce (fn [idacs lang]
+(defn sync-cache* [idacs cache-dir]
+  (reduce (fn [idacs lang]
               (let [analyzed-namespaces
                     (set (keys (get-in idacs [lang :defns])))
                     called-namespaces
@@ -80,9 +85,10 @@
                     (from-cache cache-dir lang load-from-cache)
                     cljc-defns-from-cache
                     (from-cache cache-dir :cljc load-from-cache)]
-                (doseq [ns-name analyzed-namespaces]
-                  (let [ns-data (get-in idacs [lang :defns ns-name])]
-                    (to-cache cache-dir lang ns-name ns-data)))
+                (when cache-dir
+                  (doseq [ns-name analyzed-namespaces]
+                    (let [ns-data (get-in idacs [lang :defns ns-name])]
+                      (to-cache cache-dir lang ns-name ns-data))))
                 (-> idacs
                     (update-in [lang :defns]
                                (fn [idacs]
@@ -90,24 +96,19 @@
                     (update-in [:cljc :defns]
                                (fn [idacs]
                                  (merge cljc-defns-from-cache idacs))))))
-            idacs
-            [:clj :cljs :cljc])))
+          idacs
+          ;; TODO: maybe we can optimize by only reading the files for the
+          ;; languages actually used
+          [:clj :cljs :cljc]))
 
-(def built-in-cache
-  {'clojure.core cache-clojure-core/cache})
-
-(defn with-built-ins
-  "Enriches idacs with built-in var information."
-  [idacs]
-  (-> idacs
-      (cond-> (not (get-in idacs '[:clj :defns clojure.core]))
-        (assoc-in '[:clj :defns clojure.core] (get built-in-cache 'clojure.core)))))
+(defn sync-cache [idacs cache-dir]
+  (if cache-dir
+    (with-cache cache-dir 6
+      (sync-cache* idacs cache-dir))
+    (sync-cache* idacs cache-dir)))
 
 ;;;; Scratch
 
 (comment
-  (from-cache-1 (io/file ".clj-kondo" ".cache" "2019.03.29-alpha3-SNAPSHOT")
-                :cljc 'corpus.cljc.test-cljc)
-  (from-cache-1 (io/file ".clj-kondo" ".cache" "2019.03.29-alpha3-SNAPSHOT")
-                :clj 'clojure.main)
+
   )

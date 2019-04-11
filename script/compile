@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+mkdir -p target/classes
+
+if [ -z "$GRAALVM_HOME" ]; then
+    echo "Please set GRAALVM_HOME"
+    exit 1
+fi
+
+clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.10.0"}}}' -Spath
+
+# javac java-src/clj_kondo/LockFix.java \
+#       -cp ~/.m2/repository/org/clojure/clojure/1.10.0/clojure-1.10.0.jar \
+#       -d target/classes
+
+ # important, -J options go after --verbose
+CLJ_KONDO_GRAALVM=true clojure -J-Xmx250m -A:native-image

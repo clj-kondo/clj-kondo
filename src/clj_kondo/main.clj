@@ -261,9 +261,7 @@ Options:
                                              {:debug? debug?
                                               :ignore-comments? ignore-comments?})
                     idacs (index-defns-and-calls processed)
-                    idacs (if cache-dir (cache/sync-cache idacs cache-dir)
-                              idacs)
-                    idacs (cache/with-built-ins idacs)
+                    idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
                     fcf (fn-call-findings idacs)
                     all-findings (concat fcf (mapcat :findings processed))

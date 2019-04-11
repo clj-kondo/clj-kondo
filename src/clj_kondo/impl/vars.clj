@@ -241,8 +241,12 @@
 
 (defn qualify-name [ns nm]
   (if-let [ns* (namespace nm)]
-    (when-let [ns* (get (:qualify-ns ns) (symbol ns*))]
+    (if-let [ns* (get (:qualify-ns ns) (symbol ns*))]
       {:namespace ns*
+       :name (symbol (str ns*)
+                     (name nm))}
+      ;; TODO: should we support qualified calls without a require?
+      #_{:namespace ns*
        :name (symbol (str ns*)
                      (name nm))})
     (or (get (:qualify-var ns)
@@ -349,15 +353,14 @@
 (defn lint-cond [filename expr]
   (let [last-condition
         (->> expr :children rest
-             (take-nth 2) last :k)]
+             butlast :k)]
     (when (not= :else last-condition)
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
 (defn var-specific-findings [filename call called-fn]
-  ;; (println "qname" (:qname called-fn))
-  ;; (println "call" call)
   (case (:qname called-fn)
-    'clojure.core/cond (lint-cond filename (:expr call))
+    clojure.core/cond (lint-cond filename (:expr call))
+    clojure.test/is (do #_(println "is!!!") [])
     []))
 
 (defn core-lookup
