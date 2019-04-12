@@ -2,6 +2,8 @@
 [![CircleCI](https://circleci.com/gh/borkdude/clj-kondo/tree/master.svg?style=svg)](https://circleci.com/gh/borkdude/clj-kondo/tree/master)
 [![Clojars Project](https://img.shields.io/clojars/v/clj-kondo.svg)](https://clojars.org/clj-kondo)
 [![cljdoc badge](https://cljdoc.org/badge/clj-kondo/clj-kondo)](https://cljdoc.org/d/clj-kondo/clj-kondo/CURRENT)
+[![project chat](https://img.shields.io/badge/slack-join_chat-brightgreen.svg)](https://clojurians.slack.com/messages/CHY97NXE2)
+[![project chat](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://clojurians.zulipchat.com/#narrow/stream/195549-clj-kondo)
 
 A minimal and opinionated linter for Clojure code that sparks joy.
 
@@ -92,7 +94,7 @@ src/clj_kondo/vars.clj:291:3: error: Wrong number of args (1) passed to clj-kond
 Lint a project classpath:
 
 ``` shellsession
-$ clj-kondo --lint $(lein classpath)
+$ clj-kondo --lint "$(lein classpath)"
 ```
 
 ## Project setup
@@ -105,7 +107,7 @@ classpath to teach `clj-kondo` about all the libraries you are using, including
 Clojure and/or ClojureScript itself:
 
 ``` shellsession
-$ clj-kondo --lint <classpath> --cache
+$ clj-kondo --lint "<classpath>" --cache
 ```
 
 Build tool specific ways to get a classpath:
@@ -115,7 +117,7 @@ Build tool specific ways to get a classpath:
 
 So for `lein` the entire command would be:
 
-    $ clj-kondo --lint $(lein classpath) --cache
+    $ clj-kondo --lint "$(lein classpath)" --cache
 
 Now you are ready to lint single files using [editor
 integration](doc/editor-integration.md). A simulation of what happens when you edit a
