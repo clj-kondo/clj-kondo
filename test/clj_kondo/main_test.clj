@@ -178,14 +178,6 @@
             :message "cond without :else"})
          (lint! (io/file "corpus" "cond_without_else.clj")))))
 
-(deftest case-without-default-test
-  (is (= '({:file "corpus/case_without_default.clj",
-            :row 6,
-            :col 1,
-            :level :warning,
-            :message "case without default"})
-         (lint! (io/file "corpus" "case_without_default.clj")))))
-
 (deftest built-in-test
   (is (= {:file "<stdin>",
           :row 1,

@@ -360,14 +360,9 @@
     (when (not= :else last-condition)
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
-(defn lint-case [filename expr]
-  (when (not (odd? (count (:children expr))))
-    [(node->line filename expr :warning :case-without-default "case without default")]))
-
 (defn var-specific-findings [filename call called-fn]
   (case (:qname called-fn)
     clojure.core/cond (lint-cond filename (:expr call))
-    clojure.core/case (lint-case filename (:expr call))
     clojure.test/is nil #_(println "is!!!")
     []))
 
