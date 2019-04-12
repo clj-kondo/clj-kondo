@@ -7,6 +7,6 @@ To build a binary from source, download [GraalVM](https://github.com/oracle/graa
 
 Then clone this repo, `cd clj-kondo` and build the native binary:
 
-    clojure -A:native-image
+    script/compile
 
 Place the binary somewhere on your path.

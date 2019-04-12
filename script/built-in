@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+rm -rf /tmp/built-in
+mkdir -p /tmp/built-in
+version=$(cat src/CLJ_KONDO_VERSION)
+echo "$version"
+
+# clojure -A:clj-kondo --lint "$(clojure -R:cljs -Spath)" --cache /tmp/built-in
+
+cp "/tmp/built-in/$version/clj/clojure.core.transit.json" resources/clj_kondo/impl/cache/built_in/clj
+cp "/tmp/built-in/$version/clj/clojure.test.transit.json" resources/clj_kondo/impl/cache/built_in/clj
+cp "/tmp/built-in/$version/cljs/cljs.core.transit.json" resources/clj_kondo/impl/cache/built_in/cljs
+cp "/tmp/built-in/$version/cljs/cljs.test.transit.json" resources/clj_kondo/impl/cache/built_in/cljs
+cp "/tmp/built-in/$version/cljc/cljs.test.transit.json" resources/clj_kondo/impl/cache/built_in/cljc
