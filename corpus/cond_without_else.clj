@@ -14,3 +14,8 @@
 (cond
   (neg? n) "negative"
   (pos? n) "positive")
+
+;; this one should not be caught:
+(cond
+  (odd? n) 1
+  :else 2)

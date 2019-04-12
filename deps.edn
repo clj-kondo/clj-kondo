@@ -1,4 +1,4 @@
-{:paths ["src" "resources" "classes"]
+{:paths ["src" "resources"]
  :deps {rewrite-clj {:mvn/version "0.6.1"}
         com.cognitect/transit-clj {:mvn/version "0.8.313"}}
  :aliases {:native-image
@@ -29,6 +29,9 @@
             {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.3.1"}}
             :extra-paths ["test"]
             :main-opts ["-m" "clj-kondo.profile"]}
+           :javadoc
+           {:extra-paths ["classes"]
+            :main-opts ["-m" "clj-kondo.Doclet"]}
            :cljs
            {:extra-deps
             {org.clojure/clojurescript {:mvn/version "1.10.520"}}}}

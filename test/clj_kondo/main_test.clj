@@ -1,7 +1,7 @@
 (ns clj-kondo.main-test
   (:require
    [clj-kondo.main :refer [main]]
-   [clj-kondo.test-utils :refer [lint!]]
+   [clj-kondo.test-utils :refer [submap? lint!]]
    [clojure.java.io :as io]
    [clojure.string :as str :refer [trim]]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -178,13 +178,27 @@
             :message "cond without :else"})
          (lint! (io/file "corpus" "cond_without_else.clj")))))
 
-(deftest clojure-core-built-in-test
+(deftest built-in-test
   (is (= {:file "<stdin>",
           :row 1,
           :col 1,
           :level :error,
           :message "Wrong number of args (1) passed to clojure.core/select-keys"}
-         (first (lint! "(select-keys 1)" "--lang" "clj")))))
+         (first (lint! "(select-keys 1)" "--lang" "clj"))))
+  (is (= {:file "<stdin>",
+          :row 1,
+          :col 1,
+          :level :error,
+          :message "Wrong number of args (1) passed to cljs.core/select-keys"}
+         (first (lint! "(select-keys 1)" "--lang" "cljs"))))
+  (is (submap? {:file "<stdin>" :level :error,
+          :message "Wrong number of args (3) passed to clojure.test/successful?"}
+         (first (lint! "(ns my-cljs (:require [clojure.test :refer [successful?]]))
+  (successful? 1 2 3)" "--lang" "clj"))))
+  (is (submap? {:file "<stdin>" :level :error,
+          :message "Wrong number of args (3) passed to cljs.test/successful?"}
+         (first (lint! "(ns my-cljs (:require [cljs.test :refer [successful?]]))
+  (successful? 1 2 3)" "--lang" "cljs")))))
 
 ;;;; Scratch
 

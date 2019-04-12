@@ -204,19 +204,19 @@ Options:
 (defn- process-files [files default-lang config]
   (mapcat #(process-file % default-lang config) files))
 
-;;;; index defns and calls by language and namespace
+;;;; index defs and calls by language and namespace
 
-(defn- index-defns-and-calls [defns-and-calls]
+(defn- index-defs-and-calls [defs-and-calls]
   (reduce
-   (fn [acc {:keys [:calls :defns :lang]}]
+   (fn [acc {:keys [:calls :defs :lang] :as m}]
      (-> acc
          (update-in [lang :calls] (fn [prev-calls]
                                     (merge-with into prev-calls calls)))
-         (update-in [lang :defns] merge defns)))
-   {:clj {:calls {} :defns {}}
-    :cljs {:calls {} :defns {}}
-    :cljc {:calls {} :defns {}}}
-   defns-and-calls))
+         (update-in [lang :defs] merge defs)))
+   {:clj {:calls {} :defs {}}
+    :cljs {:calls {} :defs {}}
+    :cljc {:calls {} :defs {}}}
+   defs-and-calls))
 
 ;;;; overrides
 
@@ -224,10 +224,10 @@ Options:
   "Overrides var information if the vars exist."
   [idacs]
   (-> idacs
-      (cond-> (get-in idacs '[:cljs :defns cljs.core cljs.core/array])
-        (assoc-in '[:cljs :defns cljs.core cljs.core/array :var-args-min-arity] 0)
-        (get-in idacs '[:cljs :defns cljs.core cljs.core/apply])
-        (assoc-in '[:cljs :defns cljs.core cljs.core/apply :var-args-min-arity] 2))))
+      (cond-> (get-in idacs '[:cljs :defs cljs.core cljs.core/array])
+        (assoc-in '[:cljs :defs cljs.core cljs.core/array :var-args-min-arity] 0)
+        (get-in idacs '[:cljs :defs cljs.core cljs.core/apply])
+        (assoc-in '[:cljs :defs cljs.core cljs.core/apply :var-args-min-arity] 2))))
 
 ;;;; summary
 
@@ -256,11 +256,11 @@ Options:
               (print-help)
               (empty? files)
               (print-help)
-              (not-empty files)
+              :else
               (let [processed (process-files files default-lang
                                              {:debug? debug?
                                               :ignore-comments? ignore-comments?})
-                    idacs (index-defns-and-calls processed)
+                    idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
                     fcf (fn-call-findings idacs)

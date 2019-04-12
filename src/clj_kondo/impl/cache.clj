@@ -71,34 +71,37 @@
 
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
-              (let [analyzed-namespaces
-                    (set (keys (get-in idacs [lang :defns])))
-                    called-namespaces
-                    (conj (set (keys (get-in idacs [lang :calls])))
+            (let [analyzed-namespaces
+                  (set (keys (get-in idacs [lang :defs])))
+                  called-namespaces
+                  (set (keys (get-in idacs [lang :calls])))
+                  called-namespaces
+                  (if (not-empty called-namespaces)
+                    (conj called-namespaces
                           (case lang
                             :clj 'clojure.core
                             :cljs 'cljs.core
-                            :cljc 'clojure.core))
-                    load-from-cache
-                    (set/difference called-namespaces analyzed-namespaces)
-                    defns-from-cache
-                    (from-cache cache-dir lang load-from-cache)
-                    cljc-defns-from-cache
-                    (from-cache cache-dir :cljc load-from-cache)]
-                (when cache-dir
-                  (doseq [ns-name analyzed-namespaces]
-                    (let [ns-data (get-in idacs [lang :defns ns-name])]
-                      (to-cache cache-dir lang ns-name ns-data))))
-                (-> idacs
-                    (update-in [lang :defns]
-                               (fn [idacs]
-                                 (merge defns-from-cache idacs)))
-                    (update-in [:cljc :defns]
-                               (fn [idacs]
-                                 (merge cljc-defns-from-cache idacs))))))
+                            :cljc 'clojure.core
+                            nil))
+                    called-namespaces)
+                  load-from-cache
+                  (set/difference called-namespaces analyzed-namespaces)
+                  defs-from-cache
+                  (from-cache cache-dir lang load-from-cache)
+                  cljc-defs-from-cache
+                  (from-cache cache-dir :cljc load-from-cache)]
+              (when cache-dir
+                (doseq [ns-name analyzed-namespaces]
+                  (let [ns-data (get-in idacs [lang :defs ns-name])]
+                    (to-cache cache-dir lang ns-name ns-data))))
+              (-> idacs
+                  (update-in [lang :defs]
+                             (fn [idacs]
+                               (merge defs-from-cache idacs)))
+                  (update-in [:cljc :defs]
+                             (fn [idacs]
+                               (merge cljc-defs-from-cache idacs))))))
           idacs
-          ;; TODO: maybe we can optimize by only reading the files for the
-          ;; languages actually used
           [:clj :cljs :cljc]))
 
 (defn sync-cache [idacs cache-dir]

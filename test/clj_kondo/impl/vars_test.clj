@@ -1,19 +1,10 @@
 (ns clj-kondo.impl.vars-test
   (:require [clj-kondo.impl.vars :as vars]
             [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
+            [clj-kondo.test-utils :refer [submap?]]
             [clojure.test :as t :refer [deftest is testing]]
             [rewrite-clj.parser :as p]
             [rewrite-clj.node.protocols :as node]))
-
-(defn submap?
-  "Is m1 a subset of m2? Taken from
-  https://github.com/clojure/spec-alpha2, clojure.test-clojure.spec"
-  [m1 m2]
-  (if (and (map? m1) (map? m2))
-    (every? (fn [[k v]] (and (contains? m2 k)
-                             (submap? v (get m2 k))))
-            m1)
-    (= m1 m2)))
 
 (deftest strip-meta-test
   (is (= "(defnchunk-buffer[capacity](clojure.lang.ChunkBuffer.capacity))"
@@ -107,7 +98,7 @@
                          :ns bar,
                          :filename "<stdin>",
                          :lang :clj}}
-                 (get-in analyzed '[:defns bar]))))
+                 (get-in analyzed '[:defs bar]))))
   (let [analyzed (first (vars/analyze-arities "<stdin>" :clj
                                               (parse-string-all "
 #_1 (ns clj-kondo.impl.utils
@@ -146,7 +137,7 @@
                                       :ns clj-kondo.main,
                                       :filename "<stdin>",
                                       :lang :clj}}
-                   (get-in analyzed '[:defns clj-kondo.main])))))
+                   (get-in analyzed '[:defs clj-kondo.main])))))
   (testing "calling functions from file without ns form"
     (let [analyzed (first (vars/analyze-arities "<stdin>" :clj
                                                 (parse-string-all "
@@ -158,7 +149,7 @@
       (is (submap? '#:user{foo {:type :defn, :name foo,
                                 :qname user/foo, :fixed-arities #{1},
                                 :ns user, :filename "<stdin>", :lang :clj}}
-                   (get-in analyzed '[:defns user]))))))
+                   (get-in analyzed '[:defs user]))))))
 
 (deftest analyze-arities-cljc-test
   (vars/analyze-arities "<stdin>" :clj
