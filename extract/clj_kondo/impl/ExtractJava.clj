@@ -14,7 +14,11 @@
 (defn -start [^com.sun.javadoc.RootDoc root]
   (reset! extracted
           (vec (for [^com.sun.javadoc.ClassDoc c (.classes root)
-                     :when (contains? #{"Thread" "System" "Integer" "String"} (.name c))
+                     :when (contains?
+                            #{"Boolean" "Byte" "CharSequence" "Character"
+                              "Double" "Integer" "Long" "String"
+                              "System" "Thread"
+                              "BigInteger" "BigDecimal"} (.name c))
                      ^com.sun.javadoc.MethodDoc m (.methods c)
                      :when (.isStatic m)]
                  {:class (.qualifiedName c)
@@ -32,7 +36,7 @@
           (into-array ["-doclet" "clj_kondo.impl.ExtractJava"
                        "-public"
                        "--source-path" "/Users/Borkdude/git/jdk/src/java.base/share/classes"
-                       "java.lang"
+                       "java.lang" "java.math"
                        #_#_"--source-path" "/tmp/"
                        #_"my.pack"])))
   (let [extracted-java
