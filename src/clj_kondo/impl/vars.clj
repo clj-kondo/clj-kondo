@@ -71,13 +71,15 @@
                         refers)})))))
 
 (def default-java-imports
-  (reduce (fn [acc sym]
-            (let [fq (symbol (str "java.lang." sym))]
+  (reduce (fn [acc [prefix sym]]
+            (let [fq (symbol (str prefix sym))]
               (-> acc
                   (assoc fq fq)
                   (assoc sym fq))))
           {}
-          '[Thread Integer System String]))
+          (into (mapv vector (repeat "java.lang.") '[Boolean Byte CharSequence Character Double
+                                                     Integer Long Math String System Thread])
+                (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
 
 (defn analyze-ns-decl [lang {:keys [:children] :as expr}]
   ;; TODO: just apply strip-meta and remove handling of meta here

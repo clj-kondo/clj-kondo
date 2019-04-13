@@ -215,6 +215,14 @@
           :level :error,
           :message "Wrong number of args (3) passed to java.lang.Thread/sleep"}
          (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "clj"))))
+  (is (= {:file "<stdin>", :row 1, :col 1,
+          :level :error,
+          :message "Wrong number of args (3) passed to java.lang.Math/pow"}
+         (first (lint! "(Math/pow 1 2 3)" "--lang" "clj"))))
+  (is (= {:file "<stdin>", :row 1, :col 1,
+          :level :error,
+          :message "Wrong number of args (3) passed to java.math.BigInteger/valueOf"}
+         (first (lint! "(BigInteger/valueOf 1 2 3)" "--lang" "clj"))))
   (is (empty?
        (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "cljs"))))
   (comment
