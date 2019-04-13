@@ -33,7 +33,7 @@
   (is
    (submap?
     '{:type :ns, :name foo,
-      :qualify-var {quux {:namespace bar, :name bar/quux}}
+      :qualify-var {quux {:namespace bar, :qname bar/quux :name quux}}
       :qualify-ns {bar bar
                    baz bar}
       :clojure-excluded #{get assoc time}}
@@ -54,18 +54,18 @@
   (let [ns (vars/analyze-ns-decl
             :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:namespace bar, :name bar/quux}
+    (is (= '{:namespace bar, :qname bar/quux :name quux}
            (vars/qualify-name ns 'quux))))
   (let [ns (vars/analyze-ns-decl
             :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:namespace bar, :name bar/quux}
+    (is (= '{:namespace bar, :qname bar/quux :name quux}
            (vars/qualify-name ns 'quux))))
   (let [ns (vars/analyze-ns-decl
             :clj
             (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
-    (is (= '{:namespace rewrite-clj.parser, :name rewrite-clj.parser/parse-string}
+    (is (= '{:namespace rewrite-clj.parser, :qname rewrite-clj.parser/parse-string :name parse-string}
            (vars/qualify-name ns 'p/parse-string))))
   (testing "referring to unknown namespace alias"
     (let [ns (vars/analyze-ns-decl
@@ -97,13 +97,12 @@
                    :ns foo,
                    :lang :clj}
                  (get-in analyzed '[:calls bar 0])))
-    (is (submap? '#:bar{quux
-                        {:type :defn,
-                         :name quux,
-                         :qname bar/quux,
-                         :fixed-arities #{3},
-                         :ns bar
-                         :lang :clj}}
+    (is (submap? '{quux
+                   {:type :defn,
+                    :name quux,
+                    :fixed-arities #{3},
+                    :ns bar
+                    :lang :clj}}
                  (get-in analyzed '[:defs bar]))))
   (let [analyzed (first (vars/analyze-arities "<stdin>" :clj
                                               (parse-string-all "
@@ -113,7 +112,7 @@
 #_4 (p/parse-string \"(+ 1 2 3)\")
 ")))]
     (is (submap? '{:type :call,
-                   :name p/parse-string,
+                   :name parse-string ;;p/parse-string,
                    :qname rewrite-clj.parser/parse-string,
                    :arity 1, :row 5, :col 5,
                    :ns clj-kondo.impl.utils,
@@ -134,13 +133,12 @@
                      :ns clj-kondo.main,
                      :lang :clj}
                    (get-in analyzed '[:calls clj-kondo.main 0])))
-      (is (submap? '#:clj-kondo.main{foo
-                                     {:type :defn,
-                                      :name foo,
-                                      :qname clj-kondo.main/foo,
-                                      :fixed-arities #{1},
-                                      :ns clj-kondo.main,
-                                      :lang :clj}}
+      (is (submap? '{foo
+                     {:type :defn,
+                      :name foo,
+                      :fixed-arities #{1},
+                      :ns clj-kondo.main,
+                      :lang :clj}}
                    (get-in analyzed '[:defs clj-kondo.main])))))
   (testing "calling functions from file without ns form"
     (let [analyzed (first (vars/analyze-arities "<stdin>" :clj
@@ -150,9 +148,9 @@
       (is (submap? '{:type :call, :name foo, :qname user/foo,
                      :arity 1, :row 2, :col 16, :ns user, :lang :clj}
                    (get-in analyzed '[:calls user 0])))
-      (is (submap? '#:user{foo {:type :defn, :name foo,
-                                :qname user/foo, :fixed-arities #{1},
-                                :ns user, :lang :clj}}
+      (is (submap? '{foo {:type :defn, :name foo,
+                          :fixed-arities #{1},
+                          :ns user, :lang :clj}}
                    (get-in analyzed '[:defs user]))))))
 
 (deftest analyze-arities-cljc-test

@@ -41,13 +41,13 @@
                        #_"my.pack"])))
   (let [extracted-java
         (reduce (fn [acc entry]
-                  (let [ns (:class entry)
-                        def (:method entry)
-                        qdef (symbol ns def)]
-                    (update acc (symbol ns)
+                  (let [ns (symbol (:class entry))
+                        name (symbol (:method entry))]
+                    (update acc ns
                             #(-> %
-                                 (assoc-in [qdef :qname] qdef)
-                                 (update-in [qdef :fixed-arities] sconj (:arity entry))))))
+                                 (assoc-in [name :ns] ns)
+                                 (assoc-in [name :name] name)
+                                 (update-in [name :fixed-arities] sconj (:arity entry))))))
                 {}
                 @extracted)]
       (println "Writing out built-in cache...")

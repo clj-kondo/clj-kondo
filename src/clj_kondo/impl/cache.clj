@@ -127,4 +127,6 @@
 
 (comment
   (from-cache-1 nil :clj 'clojure.datafy)
+  (time (get (from-cache-1 nil :clj 'clojure.core) '+))
+  (time (get (from-cache-1 nil :clj 'java.lang.Thread) 'sleep))
   )
