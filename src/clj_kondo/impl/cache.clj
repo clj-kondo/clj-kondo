@@ -126,5 +126,5 @@
 ;;;; Scratch
 
 (comment
-
+  (from-cache-1 nil :clj 'clojure.datafy)
   )

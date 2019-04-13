@@ -95,7 +95,6 @@
                    :row 4,
                    :col 1,
                    :ns foo,
-                   :filename "<stdin>",
                    :lang :clj}
                  (get-in analyzed '[:calls bar 0])))
     (is (submap? '#:bar{quux
@@ -103,8 +102,7 @@
                          :name quux,
                          :qname bar/quux,
                          :fixed-arities #{3},
-                         :ns bar,
-                         :filename "<stdin>",
+                         :ns bar
                          :lang :clj}}
                  (get-in analyzed '[:defs bar]))))
   (let [analyzed (first (vars/analyze-arities "<stdin>" :clj
@@ -119,7 +117,7 @@
                    :qname rewrite-clj.parser/parse-string,
                    :arity 1, :row 5, :col 5,
                    :ns clj-kondo.impl.utils,
-                   :filename "<stdin>", :lang :clj}
+                   :lang :clj}
                  (get-in analyzed '[:calls rewrite-clj.parser 0]))))
   (testing "calling functions from own ns"
     (let [analyzed (first (vars/analyze-arities "<stdin>" :clj
@@ -134,7 +132,6 @@
                      :row 3,
                      :col 20,
                      :ns clj-kondo.main,
-                     :filename "<stdin>",
                      :lang :clj}
                    (get-in analyzed '[:calls clj-kondo.main 0])))
       (is (submap? '#:clj-kondo.main{foo
@@ -143,7 +140,6 @@
                                       :qname clj-kondo.main/foo,
                                       :fixed-arities #{1},
                                       :ns clj-kondo.main,
-                                      :filename "<stdin>",
                                       :lang :clj}}
                    (get-in analyzed '[:defs clj-kondo.main])))))
   (testing "calling functions from file without ns form"
@@ -152,11 +148,11 @@
 (defn foo [x]) (foo 1)
 ")))]
       (is (submap? '{:type :call, :name foo, :qname user/foo,
-                     :arity 1, :row 2, :col 16, :ns user, :filename "<stdin>", :lang :clj}
+                     :arity 1, :row 2, :col 16, :ns user, :lang :clj}
                    (get-in analyzed '[:calls user 0])))
       (is (submap? '#:user{foo {:type :defn, :name foo,
                                 :qname user/foo, :fixed-arities #{1},
-                                :ns user, :filename "<stdin>", :lang :clj}}
+                                :ns user, :lang :clj}}
                    (get-in analyzed '[:defs user]))))))
 
 (deftest analyze-arities-cljc-test

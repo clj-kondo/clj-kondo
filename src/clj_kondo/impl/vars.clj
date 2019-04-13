@@ -315,8 +315,7 @@
                         first-parsed (cond->
                                          (assoc first-parsed
                                                 :qname (:name qname)
-                                                :ns (:name ns)
-                                                :filename filename)
+                                                :ns (:name ns))
                                        (not= lang (:lang first-parsed))
                                        (assoc :base-lang lang))]
                     (case (:type first-parsed)
@@ -350,7 +349,8 @@
                       :call
                       (if qname
                         (let [path [:calls (:namespace qname)]
-                              call (cond-> first-parsed
+                              call (cond-> (assoc first-parsed
+                                                  :filename filename)
                                      (:clojure-excluded? qname)
                                      (assoc :clojure-excluded? true))
                               results (update-in results path vconj call)]
