@@ -1,13 +1,17 @@
 (ns clj-kondo.Doclet
   (:gen-class
    :methods [#^{:static true} [start [com.sun.javadoc.RootDoc] boolean]])
-  (:import [javax.tools ToolProvider DocumentationTool]))
+  (:import [javax.tools ToolProvider DocumentationTool])
+  (:require
+   [clojure.java.io :as io]))
 
-(defn write-class [docmap]
+(set! *warn-on-reflection* true)
+
+#_(defn write-class [docmap]
   (def d docmap))
 
 (declare extract-docs)
-(def doc-keys 
+#_(def doc-keys 
   {
    "name" #(.name %)
    "annotations" #(map extract-docs (.annotations %))
@@ -28,7 +32,7 @@
    "element" #(extract-docs (.element %))
   })
 
-(defn extract-docs [doc-obj]
+#_(defn extract-docs [doc-obj]
   (println "class" (type doc-obj))
   (def do doc-obj)
   (reduce-kv
@@ -43,19 +47,30 @@
   #_(doall (pmap write-class (map extract-docs (.classes root))))
   true)
 
-(defn -start [root]
-  (start root))
+(defn -start [^com.sun.javadoc.RootDoc root]
+  (doseq [^com.sun.javadoc.ClassDoc c (.classes root)
+          ^com.sun.javadoc.MethodDoc m (.methods c)]
+    (try (println (.name m))
+         (println "varargs:" (.isVarArgs m))
+         (println "arity:" (count (.parameters m)))
+         (println "return type:" (.returnType m))
+         (catch Throwable e
+           (println "something went wrong with" m))))
+  true)
 
 ;; requires JDK 11 now: JAVA_HOME=~/Downloads/jdk-11.0.2.jdk/Contents/Home
-(defn main []
+(defn -main []
+  (println (System/getProperty "java.home"))
   (let [dt (ToolProvider/getSystemDocumentationTool)]
     (.run dt nil nil nil
           (into-array [;; "--help"
                        ;; "--add-modules" "java.base"
                        "-doclet" "clj_kondo.Doclet"
                        "-public"
-                       "--source-path" "/Users/Borkdude/git/jdk/src/java.base/share/classes"
-                       "java.lang"]))))
+                       ;; "--source-path" "/Users/Borkdude/git/jdk/src/java.base/share/classes"
+                       "--source-path" "/tmp/"
+                       "my.pack"
+                       ]))))
 
 (comment
   (count (.classes r))
