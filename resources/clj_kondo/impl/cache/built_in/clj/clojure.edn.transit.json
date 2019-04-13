@@ -1,0 +1,1 @@
+["^ ","~$clojure.edn/read",["^ ","~:fixed-arities",["~#set",[0,1,2]],"~:ns","~$clojure.edn","~:name","~$read","~:type","~:defn","~:qname","^0","~:lang","~:clj","~:filename","clojure/edn.clj","~:col",1,"~:row",14],"~$clojure.edn/read-string",["^ ","^1",["^2",[1,2]],"^3","^4","^5","~$read-string","^7","^8","^9","^?","^:","^;","^<","clojure/edn.clj","^=",1,"^>",37]]
