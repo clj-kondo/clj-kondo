@@ -200,11 +200,19 @@
   (is (submap? {:file "<stdin>" :level :error,
                 :message "Wrong number of args (3) passed to clojure.test/successful?"}
                (first (lint! "(ns my-cljs (:require [clojure.test :refer [successful?]]))
-  (successful? 1 2 3)" "--lang" "clj"))))
+    (successful? 1 2 3)" "--lang" "clj"))))
   (is (submap? {:file "<stdin>" :level :error,
                 :message "Wrong number of args (3) passed to cljs.test/successful?"}
                (first (lint! "(ns my-cljs (:require [cljs.test :refer [successful?]]))
-  (successful? 1 2 3)" "--lang" "cljs")))))
+    (successful? 1 2 3)" "--lang" "cljs"))))
+  (is (submap? {:file "<stdin>", :row 2, :col 5, :level :error,
+                :message "Wrong number of args (0) passed to clojure.set/difference"}
+               (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
+    (difference)" "--lang" "clj"))))
+  (is (submap? {:file "<stdin>", :row 2, :col 5, :level :error,
+                :message "Wrong number of args (0) passed to clojure.set/difference"}
+               (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
+    (difference)" "--lang" "cljs")))))
 
 (deftest built-in-java-test
   (is (= {:file "<stdin>", :row 1, :col 1,
