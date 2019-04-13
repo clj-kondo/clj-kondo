@@ -253,20 +253,15 @@
 
 (defn qualify-name [ns nm]
   (if-let [ns* (namespace nm)]
-    (do
-      (if-let [ns* (or (get (:qualify-ns ns) (symbol ns*))
-                       (get (:java-imports ns) (symbol ns*)))]
-        (do
-          {:namespace ns*
-           :name (symbol (str ns*)
-                         (name nm))})
-        ;; TODO: should we support qualified calls without a require?
-
-        (do (println "NS" ns*)
-          (when (str/starts-with? (str ns*) "java.lang")
-            {:namespace ns*
-             :name (symbol (str ns*)
-                           (name nm))}))))
+    (if-let [ns* (get (:qualify-ns ns) (symbol ns*))]
+      {:namespace ns*
+       :name (symbol (str ns*)
+                     (name nm))}
+      (when-let [ns* (get (:java-imports ns) (symbol ns*))]
+        {:java-interop? true
+         :namespace ns*
+         :name (symbol (str ns*)
+                       (name nm))}))
     (or (get (:qualify-var ns)
              nm)
         (let [namespace (or (:name ns) 'user)]
@@ -422,8 +417,7 @@
                              ;; update fn-ns in case it's resolved as a clojure core function
                              fn-ns (:ns called-fn)]
                        :when called-fn
-                       :let [;; _ (println "call" call "called-fn" called-fn)
-                             ;; a macro in a CLJC file with the same namespace
+                       :let [;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
                              ;; call and the lang of the function def context in

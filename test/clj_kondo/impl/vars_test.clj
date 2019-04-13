@@ -31,14 +31,15 @@
 
 (deftest analyze-ns-test
   (is
-   (= (vars/analyze-ns-decl
-       (parse-string "(ns foo (:require [bar :as baz :refer [quux]])
-                              (:refer-clojure :exclude [get assoc time]))"))
-      '{:type :ns, :name foo,
-        :qualify-var {quux {:namespace bar, :name bar/quux}}
-        :qualify-ns {bar bar
-                     baz bar}
-        :clojure-excluded #{get assoc time}}))
+   (submap?
+    '{:type :ns, :name foo,
+      :qualify-var {quux {:namespace bar, :name bar/quux}}
+      :qualify-ns {bar bar
+                   baz bar}
+      :clojure-excluded #{get assoc time}}
+    (vars/analyze-ns-decl
+     (parse-string "(ns foo (:require [bar :as baz :refer [quux]])
+                              (:refer-clojure :exclude [get assoc time]))"))))
   (testing "string namespaces should be allowed in require"
     (is (submap?
          '{:type :ns, :name foo
