@@ -14,16 +14,21 @@
             m1)
     (= m1 m2)))
 
-(defn parse-output [msg]
-  (map (fn [[_ file row col level message]]
-         {:file file
-          :row (Integer/parseInt row)
-          :col (Integer/parseInt col)
-          :level (keyword level)
-          :message message})
-       (keep
-        #(re-matches #"(.*):(.*):(.*): (.*): (.*)" %)
-        (str/split-lines msg))))
+(defn parse-output
+  "Parses linting output and prints everything that doesn't match the
+  expected format (for debugging)."
+  [msg]
+  (keep
+   (fn [line]
+     (if-let [[_ file row col level message] (re-matches #"(.*):(.*):(.*): (.*): (.*)" line)]
+       {:file file
+        :row (Integer/parseInt row)
+        :col (Integer/parseInt col)
+        :level (keyword level)
+        :message message}
+       (when-not (str/starts-with? line "linting took")
+         (println line))))
+   (str/split-lines msg)))
 
 (defn lint-jvm!
   ([input] (lint-jvm! input "--lang" "clj"))
@@ -34,7 +39,6 @@
                (with-out-str
                  (with-in-str input
                    (apply main "--lint" "-" args))))]
-     ;;(println res)
      (parse-output res))))
 
 (defn lint-native!
