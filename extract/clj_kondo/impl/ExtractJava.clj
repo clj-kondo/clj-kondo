@@ -16,7 +16,7 @@
           (vec (for [^com.sun.javadoc.ClassDoc c (.classes root)
                      :when (contains?
                             #{"Boolean" "Byte" "CharSequence" "Character"
-                              "Double" "Integer" "Long" "String"
+                              "Double" "Integer" "Long" "Math" "String"
                               "System" "Thread"
                               "BigInteger" "BigDecimal"} (.name c))
                      ^com.sun.javadoc.MethodDoc m (.methods c)
