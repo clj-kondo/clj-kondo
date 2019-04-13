@@ -218,7 +218,9 @@
   (is (empty?
        (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "cljs"))))
   (comment
-    ;; FIXME: fix after CLJC refactor (#67)
+    ;; FIXME: fix after CLJC refactor (#67) The issue here is when you have a
+    ;; CLJ call inside a CLJC namespace the CLJ namespace isn't loaded from the
+    ;; cache
     (is (= {:file "<stdin>", :row 1, :col 1,
             :level :error,
             :message "Wrong number of args (3) passed to java.lang.Thread/sleep"}

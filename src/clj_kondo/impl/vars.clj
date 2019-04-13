@@ -79,33 +79,41 @@
           {}
           '[Thread Integer System String]))
 
-(defn analyze-ns-decl [{:keys [:children] :as expr}]
+(defn analyze-ns-decl [lang {:keys [:children] :as expr}]
   ;; TODO: just apply strip-meta and remove handling of meta here
   ;; TODO: we can do all of these steps in one reduce
   (let [requires (filter require-clause? children)
         subclauses (mapcat #(map analyze-require-subclause
                                  (rest (:children %)))
                            requires)]
-    {:type :ns
-     :name (symbol (let [name-node (second children)]
+    (cond->
+        {:type :ns
+         :lang lang
+         :name (or (when-let [name-node (second children)]
+                    (symbol
                      (if (contains? #{:meta :meta*} (node/tag name-node))
                        (:value (last (:children name-node)))
                        (:value name-node))))
-     :qualify-var (into {} (mapcat #(mapcat (comp :refers analyze-require-subclause)
-                                            (:children %)) requires))
-     :qualify-ns (reduce (fn [acc sc]
-                           (cond-> (assoc acc (:ns sc) (:ns sc))
-                             (:as sc)
-                             (assoc (:as sc) (:ns sc))))
-                         {}
-                         subclauses)
-     :clojure-excluded (set (for [c children
-                                  :when (refer-clojure-clause? c)
-                                  [k v] (partition 2 (rest (:children c)))
-                                  :when (= :exclude (:k k))
-                                  sym (:children v)]
-                              (:value sym)))
-     :java-imports default-java-imports}))
+                   'user)
+         :qualify-var (into {} (mapcat #(mapcat (comp :refers analyze-require-subclause)
+                                                (:children %)) requires))
+         :qualify-ns (reduce (fn [acc sc]
+                               (cond-> (assoc acc (:ns sc) (:ns sc))
+                                 (:as sc)
+                                 (assoc (:as sc) (:ns sc))))
+                             {}
+                             subclauses)
+         :clojure-excluded (set (for [c children
+                                      :when (refer-clojure-clause? c)
+                                      [k v] (partition 2 (rest (:children c)))
+                                      :when (= :exclude (:k k))
+                                      sym (:children v)]
+                                  (:value sym)))}
+      (contains? #{:clj :cljc} lang)
+      (assoc :java-imports default-java-imports))))
+
+(comment
+  (analyze-ns-decl :cljs nil))
 
 (defn analyze-in-ns [{:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)]
@@ -199,7 +207,7 @@
   ([lang bindings {:keys [:children] :as expr}]
    (cond
      (some-call expr ns)
-     [(analyze-ns-decl expr)]
+     [(analyze-ns-decl lang expr)]
      ;; TODO: in-ns is not supported yet
      ;; One thing to note: if in-ns is used in a function body, the rest of the namespace is now analyzed in that namespace, which is incorrect.
      ;; (some-call expr in-ns)
@@ -264,7 +272,7 @@
                        (name nm))}))
     (or (get (:qualify-var ns)
              nm)
-        (let [namespace (or (:name ns) 'user)]
+        (let [namespace (:name ns)]
           {:namespace namespace
            :name (symbol (str namespace) (str nm))
            :clojure-excluded? (contains? (:clojure-excluded ns)
@@ -279,8 +287,7 @@
   ([filename lang expr] (analyze-arities filename lang expr false))
   ([filename lang expr debug?]
    (loop [[first-parsed & rest-parsed] (parse-arities lang expr)
-          ns {:name 'user
-              :java-imports default-java-imports}
+          ns (analyze-ns-decl lang nil)
           results {:calls {}
                    :defs {}
                    :findings []

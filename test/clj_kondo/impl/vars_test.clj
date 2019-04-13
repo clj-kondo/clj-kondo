@@ -38,6 +38,7 @@
                    baz bar}
       :clojure-excluded #{get assoc time}}
     (vars/analyze-ns-decl
+     :clj
      (parse-string "(ns foo (:require [bar :as baz :refer [quux]])
                               (:refer-clojure :exclude [get assoc time]))"))))
   (testing "string namespaces should be allowed in require"
@@ -46,29 +47,35 @@
            :qualify-ns {bar bar
                         baz bar}}
          (vars/analyze-ns-decl
+          :clj
           (parse-string "(ns foo (:require [\"bar\" :as baz]))"))))))
 
 (deftest qualify-name-test
   (let [ns (vars/analyze-ns-decl
+            :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
     (is (= '{:namespace bar, :name bar/quux}
            (vars/qualify-name ns 'quux))))
   (let [ns (vars/analyze-ns-decl
+            :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
     (is (= '{:namespace bar, :name bar/quux}
            (vars/qualify-name ns 'quux))))
   (let [ns (vars/analyze-ns-decl
+            :clj
             (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
     (is (= '{:namespace rewrite-clj.parser, :name rewrite-clj.parser/parse-string}
            (vars/qualify-name ns 'p/parse-string))))
   (testing "referring to unknown namespace alias"
     (let [ns (vars/analyze-ns-decl
+              :clj
               (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
 "))]
       (nil? (vars/qualify-name ns 'p/parse-string))))
   (testing "referring with full namespace"
     (let [ns (vars/analyze-ns-decl
+              :clj
               (parse-string "(ns clj-kondo.impl.utils (:require [clojure.core]))
 (clojure.core/inc 1)
 "))]
@@ -167,5 +174,6 @@
 (comment
   (t/run-tests)
   (vars/analyze-ns-decl
+   :clj
    (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))
   )
