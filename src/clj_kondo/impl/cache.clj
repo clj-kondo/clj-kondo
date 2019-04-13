@@ -69,21 +69,27 @@
               acc))
           {} namespaces))
 
+(defn clojure-core* [cache-dir]
+  {:clj {:defs {'clojure.core (from-cache-1 cache-dir :clj 'clojure.core)}}})
+
+;; for CLJC we also load clojure.core, so we memoize it
+(def clojure-core (memoize clojure-core*))
+
+(defn cljs-core [cache-dir]
+  {:cljs {:defs {'cljs.core (from-cache-1 cache-dir :cljs 'cljs.core)}}})
+
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
             (let [analyzed-namespaces
                   (set (keys (get-in idacs [lang :defs])))
                   called-namespaces
                   (set (keys (get-in idacs [lang :calls])))
-                  called-namespaces
-                  (if (not-empty called-namespaces)
-                    (conj called-namespaces
-                          (case lang
-                            :clj 'clojure.core
-                            :cljs 'cljs.core
-                            :cljc 'clojure.core
-                            nil))
-                    called-namespaces)
+                  core-from-cache
+                  (when (not-empty called-namespaces)
+                    (case lang
+                      :clj (clojure-core cache-dir)
+                      :cljs (cljs-core cache-dir)
+                      :cljc (clojure-core cache-dir)))
                   load-from-cache
                   (set/difference called-namespaces analyzed-namespaces)
                   defs-from-cache
@@ -100,7 +106,15 @@
                                (merge defs-from-cache idacs)))
                   (update-in [:cljc :defs]
                              (fn [idacs]
-                               (merge cljc-defs-from-cache idacs))))))
+                               (merge cljc-defs-from-cache idacs)))
+                  (update-in [:clj :defs]
+                             (fn [idacs]
+                               (merge (-> core-from-cache :clj :defs)
+                                      idacs)))
+                  (update-in [:cljs :defs]
+                             (fn [idacs]
+                               (merge (-> core-from-cache :cljs :defs)
+                                      idacs))))))
           idacs
           [:clj :cljs :cljc]))
 

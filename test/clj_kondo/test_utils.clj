@@ -2,8 +2,7 @@
   (:require
    [clj-kondo.main :as main :refer [main]]
    [clojure.string :as str :refer [trim]]
-   [me.raynes.conch :refer [programs with-programs let-programs] :as sh]
-   [clojure.java.io :as io]))
+   [me.raynes.conch :refer [programs with-programs let-programs] :as sh]))
 
 (defn submap?
   "Is m1 a subset of m2? Taken from

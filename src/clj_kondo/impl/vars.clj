@@ -70,9 +70,18 @@
                                   :name (symbol (str ns-name) (str refer))}])
                         refers)})))))
 
+(def default-java-imports
+  (reduce (fn [acc sym]
+            (let [fq (symbol (str "java.lang." sym))]
+              (-> acc
+                  (assoc fq fq)
+                  (assoc sym fq))))
+          {}
+          '[Thread Integer System String]))
+
 (defn analyze-ns-decl [{:keys [:children] :as expr}]
-  ;; TODO: analyze refer clojure exclude
   ;; TODO: just apply strip-meta and remove handling of meta here
+  ;; TODO: we can do all of these steps in one reduce
   (let [requires (filter require-clause? children)
         subclauses (mapcat #(map analyze-require-subclause
                                  (rest (:children %)))
@@ -95,7 +104,8 @@
                                   [k v] (partition 2 (rest (:children c)))
                                   :when (= :exclude (:k k))
                                   sym (:children v)]
-                              (:value sym)))}))
+                              (:value sym)))
+     :java-imports default-java-imports}))
 
 (defn analyze-in-ns [{:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)]
@@ -243,14 +253,20 @@
 
 (defn qualify-name [ns nm]
   (if-let [ns* (namespace nm)]
-    (if-let [ns* (get (:qualify-ns ns) (symbol ns*))]
-      {:namespace ns*
-       :name (symbol (str ns*)
-                     (name nm))}
-      ;; TODO: should we support qualified calls without a require?
-      #_{:namespace ns*
-       :name (symbol (str ns*)
-                     (name nm))})
+    (do
+      (if-let [ns* (or (get (:qualify-ns ns) (symbol ns*))
+                       (get (:java-imports ns) (symbol ns*)))]
+        (do
+          {:namespace ns*
+           :name (symbol (str ns*)
+                         (name nm))})
+        ;; TODO: should we support qualified calls without a require?
+
+        (do (println "NS" ns*)
+          (when (str/starts-with? (str ns*) "java.lang")
+            {:namespace ns*
+             :name (symbol (str ns*)
+                           (name nm))}))))
     (or (get (:qualify-var ns)
              nm)
         (let [namespace (or (:name ns) 'user)]
@@ -268,7 +284,8 @@
   ([filename lang expr] (analyze-arities filename lang expr false))
   ([filename lang expr debug?]
    (loop [[first-parsed & rest-parsed] (parse-arities lang expr)
-          ns {:name 'user}
+          ns {:name 'user
+              :java-imports default-java-imports}
           results {:calls {}
                    :defs {}
                    :findings []
@@ -371,16 +388,14 @@
   (let [core (case lang
                :clj clojure-core-defs
                :cljs cljs-core-defs
-               :cljc clojure-core-defs
-               nil)
+               :cljc clojure-core-defs)
         sym (case lang
               :clj (symbol "clojure.core"
                            (name var-name))
               :cljs (symbol "cljs.core"
                             (name var-name))
               :cljc (symbol "clojure.core"
-                            (name var-name))
-              nil)]
+                            (name var-name)))]
     (get core sym)))
 
 (defn fn-call-findings

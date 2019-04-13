@@ -29,11 +29,11 @@
             {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.3.1"}}
             :extra-paths ["test"]
             :main-opts ["-m" "clj-kondo.profile"]}
-           :javadoc
-           {:extra-paths ["javadoc" "classes"]
+           :extract
+           {:extra-paths ["extract" "classes"]
             :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}}
             #_#_:main-opts [;;"-e" "(compile,'clj-kondo.Doclet)"
-                        "-m" "clj-kondo.Doclet"]}
+                            "-m" "clj-kondo.impl.ExtractJava"]}
            :cljs
            {:extra-deps
             {org.clojure/clojurescript {:mvn/version "1.10.520"}}}}

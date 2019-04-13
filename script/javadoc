@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-rm -rf classes
-mkdir -p classes
-clojure -C:javadoc -e "(compile 'clj-kondo.Doclet)"
-clojure -A:javadoc -m clj-kondo.Doclet
