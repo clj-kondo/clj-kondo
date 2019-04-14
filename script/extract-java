@@ -18,6 +18,6 @@ else
 fi
 
 clojure -C:extract -e "(compile 'clj-kondo.impl.ExtractJava)"
-clojure -A:extract -m clj-kondo.impl.ExtractJava "-public" \
-        "--source-path" "/tmp/jdk/src/java.base/share/classes" \
+clojure -A:extract -m clj-kondo.impl.ExtractJava "resources/clj_kondo/impl/cache/built_in/clj" \
+        "-public" "--source-path" "/tmp/jdk/src/java.base/share/classes" \
         "java.lang" "java.math"

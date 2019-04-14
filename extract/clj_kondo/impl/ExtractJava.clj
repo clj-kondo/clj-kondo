@@ -28,8 +28,7 @@
 
 (def sconj (fnil conj #{}))
 
-(defn -main [& extra-args]
-  (println "JAVA_HOME:" (System/getProperty "java.home"))
+(defn -main [out & extra-args]
   (println "Extracting Java...")
   (let [dt (ToolProvider/getSystemDocumentationTool)]
     (.run dt nil nil nil
@@ -45,9 +44,9 @@
                                  (update-in [name :fixed-arities] sconj (:arity entry))))))
                 {}
                 @extracted)]
-      (println "Writing out built-in cache...")
-      (doseq [[ns v] extracted-java]
-        (let [file (io/file (str "resources/clj_kondo/impl/cache/built_in/clj/" ns ".transit.json"))]
+    (println "Writing cache files to" out)
+    (doseq [[ns v] extracted-java]
+        (let [file (io/file (str out "/" ns ".transit.json"))]
           (io/make-parents file)
           (let [bos (java.io.ByteArrayOutputStream. 1024)
                 writer (transit/writer (io/output-stream bos) :json)]
