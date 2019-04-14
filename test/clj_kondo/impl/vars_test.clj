@@ -32,7 +32,7 @@
   (is
    (submap?
     '{:type :ns, :name foo,
-      :qualify-var {quux {:namespace bar :name quux}}
+      :qualify-var {quux {:ns bar :name quux}}
       :qualify-ns {bar bar
                    baz bar}
       :clojure-excluded #{get assoc time}}
@@ -49,36 +49,39 @@
           :clj
           (parse-string "(ns foo (:require [\"bar\" :as baz]))"))))))
 
-(deftest qualify-name-test
+(deftest resolve-name-test
   (let [ns (vars/analyze-ns-decl
             :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:namespace bar :name quux}
-           (vars/qualify-name ns 'quux))))
+    (is (= '{:ns bar :name quux}
+           (vars/resolve-name ns 'quux))))
   (let [ns (vars/analyze-ns-decl
             :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:namespace bar :name quux}
-           (vars/qualify-name ns 'quux))))
+    (is (= '{:ns bar :name quux}
+           (vars/resolve-name ns 'quux))))
   (let [ns (vars/analyze-ns-decl
             :clj
             (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
-    (is (= '{:namespace rewrite-clj.parser :name parse-string}
-           (vars/qualify-name ns 'p/parse-string))))
+    (is (= '{:ns rewrite-clj.parser :name parse-string}
+           (vars/resolve-name ns 'p/parse-string))))
   (testing "referring to unknown namespace alias"
     (let [ns (vars/analyze-ns-decl
               :clj
               (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
 "))]
-      (nil? (vars/qualify-name ns 'p/parse-string))))
+      (nil? (vars/resolve-name ns 'p/parse-string))))
   (testing "referring with full namespace"
     (let [ns (vars/analyze-ns-decl
               :clj
               (parse-string "(ns clj-kondo.impl.utils (:require [clojure.core]))
 (clojure.core/inc 1)
 "))]
-      (vars/qualify-name ns 'clojure.core/inc))))
+      ;; TODO: what's the test here?
+      (is (=
+           '{:ns clojure.core :name inc}
+           (vars/resolve-name ns 'clojure.core/inc))))))
 
 (deftest analyze-arities-test
   (let [analyzed (first (vars/analyze-arities "<stdin>" :clj

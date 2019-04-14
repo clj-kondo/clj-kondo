@@ -66,7 +66,7 @@
            :ns ns-name
            :as as
            :refers (map (fn [refer]
-                          [refer {:namespace ns-name
+                          [refer {:ns ns-name
                                   :name refer}])
                         refers)})))))
 
@@ -261,21 +261,21 @@
          expr))
      :else (mapcat #(parse-arities lang bindings %) children))))
 
-(defn qualify-name
+(defn resolve-name
   [ns name-sym]
   (if-let [ns* (namespace name-sym)]
     (let [ns-sym (symbol ns*)]
       (if-let [ns* (get (:qualify-ns ns) ns-sym)]
-        {:namespace ns*
+        {:ns ns*
          :name (symbol (name name-sym))}
         (when-let [ns* (get (:java-imports ns) ns-sym)]
           {:java-interop? true
-           :namespace ns*
+           :ns ns*
            :name (symbol (name name-sym))})))
     (or (get (:qualify-var ns)
              name-sym)
         (let [namespace (:name ns)]
-          {:namespace namespace
+          {:ns namespace
            :name name-sym
            :clojure-excluded? (contains? (:clojure-excluded ns)
                                          name-sym)}))))
@@ -311,20 +311,20 @@
                                (assoc first-parsed
                                       :filename filename))
                     results)
-                  (let [qname (qualify-name ns (:name first-parsed))
+                  (let [resolved (resolve-name ns (:name first-parsed))
                         first-parsed (cond->
                                          (assoc first-parsed
-                                                :name (:name qname)
+                                                :name (:name resolved)
                                                 :ns (:name ns))
                                        (not= lang (:lang first-parsed))
                                        (assoc :base-lang lang))]
                     (case (:type first-parsed)
                       :defn
                       (let [path (case lang
-                                   :cljc [:defs (:name ns) (:lang first-parsed) (:name qname)]
-                                   [:defs (:name ns) (:name qname)])
+                                   :cljc [:defs (:name ns) (:lang first-parsed) (:name resolved)]
+                                   [:defs (:name ns) (:name resolved)])
                             results
-                            (if qname
+                            (if resolved
                               (assoc-in results path
                                         (dissoc first-parsed
                                                 :type))
@@ -338,27 +338,25 @@
                                             :message
                                             (str/join " "
                                                       ["Defn resolved as"
-                                                       (:qname qname) "with arities"
+                                                       (str (:ns resolved) "/" (:name resolved)) "with arities"
                                                        "fixed:"(:fixed-arities first-parsed)
                                                        "varargs:"(:var-args-min-arity first-parsed)])
                                             :type :debug))
                           results))
                       :call
-                      (if qname
-                        (let [path [:calls (:namespace qname)]
+                      (if resolved
+                        (let [path [:calls (:ns resolved)]
                               call (cond-> (assoc first-parsed
                                                   :filename filename
-                                                  :resolved-ns (:namespace qname)
-                                                  ;;:qname (:qname qname)
-                                                  )
-                                     (:clojure-excluded? qname)
+                                                  :resolved-ns (:ns resolved))
+                                     (:clojure-excluded? resolved)
                                      (assoc :clojure-excluded? true))
                               results (update-in results path vconj call)]
                           (if debug? (update-in results [:findings] conj
                                                 (assoc call
                                                        :level :info
                                                        :message (str "Call resolved as "
-                                                                     (:qname qname))
+                                                                     (str (:ns resolved) "/" (:name resolved)))
                                                        :type :debug))
                               results))
                         (if debug?
@@ -403,12 +401,9 @@
         findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [;;fn-qname (:qname call)
-                             ;;_ (println "fn-qname" fn-qname)
-                             fn-name (:name call)
+                       :let [fn-name (:name call)
                              caller-ns (:ns call)
-                             ;; _ (println "name ns" (:name call) (:ns call) "resolved-ns" (:resolved-ns call))
-                             fn-ns (:resolved-ns call) #_(symbol (namespace fn-qname))
+                             fn-ns (:resolved-ns call)
                              called-fn
                              (or (get-in idacs [lang :defs fn-ns fn-name])
                                  (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
@@ -419,11 +414,9 @@
                                            fn-ns))
                                    (core-lookup clojure-core-defs cljs-core-defs
                                                 lang fn-name)))
-                             ;; update fn-ns in case it's resolved as a clojure core function
                              fn-ns (:ns called-fn)]
                        :when called-fn
-                       :let [;; called-fn (assoc called-fn :qname (symbol (str fn-ns) (str (:name called-fn))))
-                             ;; a macro in a CLJC file with the same namespace
+                       :let [;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
                              ;; call and the lang of the function def context in
@@ -453,7 +446,7 @@
                                   :level :error
                                   :type :invalid-arity
                                   :message (format "Wrong number of args (%s) passed to %s"
-                                                   (str (:arity call) #_#_" " called-fn)
+                                                   (str (:arity call))
                                                    (str (:ns called-fn) "/" (:name called-fn)))})
                                (when (and (:private? called-fn)
                                           (not= caller-ns
