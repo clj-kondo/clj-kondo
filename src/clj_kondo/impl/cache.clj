@@ -22,7 +22,6 @@
                      (when (.exists f)
                        {:source :disk
                         :resource f})))
-                 ;; TODO: more efficient filter on existing ones?
                  {:source :built-in
                   :resource (built-in-cache-resource lang ns-sym)})]
     (when resource

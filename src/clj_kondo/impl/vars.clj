@@ -264,28 +264,28 @@
      :else (mapcat #(parse-arities lang bindings %) children))))
 
 (defn qualify-name
-  ;; TODO: we can probabl avoid unnessary symbol conversions here
-  [ns nm]
-  (if-let [ns* (namespace nm)]
-    (if-let [ns* (get (:qualify-ns ns) (symbol ns*))]
-      {:namespace ns*
-       :name (symbol (name nm))
-       :qname (symbol (str ns*)
-                      (name nm))}
-      (when-let [ns* (get (:java-imports ns) (symbol ns*))]
-        {:java-interop? true
-         :namespace ns*
-         :name (symbol (name nm))
+  [ns name-sym]
+  (if-let [ns* (namespace name-sym)]
+    (let [ns-sym (symbol ns*)]
+      (if-let [ns* (get (:qualify-ns ns) ns-sym)]
+        {:namespace ns*
+         :name (symbol (name name-sym))
          :qname (symbol (str ns*)
-                       (name nm))}))
+                        (name name-sym))}
+        (when-let [ns* (get (:java-imports ns) ns-sym)]
+          {:java-interop? true
+           :namespace ns*
+           :name (symbol (name name-sym))
+           :qname (symbol (str ns*)
+                          (name name-sym))})))
     (or (get (:qualify-var ns)
-             nm)
+             name-sym)
         (let [namespace (:name ns)]
           {:namespace namespace
-           :name (symbol nm)
-           :qname (symbol (str namespace) (str nm))
+           :name name-sym
+           :qname (symbol (str namespace) (str name-sym))
            :clojure-excluded? (contains? (:clojure-excluded ns)
-                                         nm)}))))
+                                         name-sym)}))))
 
 (def vconj (fnil conj []))
 
