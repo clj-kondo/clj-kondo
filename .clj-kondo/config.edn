@@ -5,7 +5,8 @@
            :inline-def {:level :warning}
            :redundant-do {:level :warning}
            :redundant-let {:level :warning}
-           :cond-without-else {:level :off}
-           }
+           :cond-without-else {:level :off}}
+ :include nil #_["src" "clojure"]
+ :exclude ["clojure" "tools/reader" "^cljs/core" "\\.cljc$"]
  ;; undocumented, only for dev
  :debug false}

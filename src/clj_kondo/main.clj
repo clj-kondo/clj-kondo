@@ -28,6 +28,16 @@
             :when (and level (not= :off level))
             :when (if (= :debug type)
                     print-debug?
+                    true)
+            :when (if-let [includes (not-empty (:include config))]
+                    (some (fn [pattern]
+                            (re-find (re-pattern pattern) filename))
+                          includes)
+                    true)
+            :when (if-let [excludes (not-empty (:exclude config))]
+                    (not-any? (fn [pattern]
+                                (re-find (re-pattern pattern) filename))
+                              excludes)
                     true)]
       (println (str filename ":" row ":" col ": " (name level) ": " message)))))
 
