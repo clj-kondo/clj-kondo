@@ -1,23 +1,48 @@
 #!/usr/bin/env bash
 
-JAVA_VERSION=$(java -version 2>&1 | sed -n ';s/.* version "\(.*\)\.\(.*\)\..*"/\1\2/p;' | cut -f 1 -d " ")
+JAVA_VERSION=$(java -version 2>&1 | sed -n ';s/.* version "\(.*\)\(.*\).*"/\1\2/p;' | cut -f 1 -d " ")
 
-if [ -z "$JAVA_HOME" ] || [ "$JAVA_VERSION" -lt 110 ]; then
-    echo "Set JAVA_HOME to JDK 11 or later."
+if [ -z "$JAVA_HOME" ] || [ "$JAVA_VERSION" -lt 12 ]; then
+    echo "Set JAVA_HOME to JDK 12 or later."
     exit 1
 fi
 
 rm -rf classes
 mkdir -p classes
-mkdir -p /tmp/jdk
+rm -rf /tmp/transit
+mkdir -p /tmp/transit
 
-if [ ! -d "/tmp/jdk" ]; then
-    git clone https://github.com/openjdk/jdk.git /tmp/jdk || true
+( if [ ! -d /tmp/jdk ]; then
+    mkdir -p /tmp/jdk
+    cd /tmp
+    git clone https://github.com/openjdk/jdk.git
+    cd /tmp/jdk
+    bash configure
 else
-    git -C /tmp/jdk pull
+    cd /tmp/jdk
+    git pull
 fi
 
+cd /tmp/jdk
+make java.base-gensrc )
+
 clojure -C:extract -e "(compile 'clj-kondo.impl.ExtractJava)"
-clojure -A:extract -m clj-kondo.impl.ExtractJava "resources/clj_kondo/impl/cache/built_in/clj" \
-        "-public" "--source-path" "/tmp/jdk/src/java.base/share/classes" \
+read -r -d '' source_path <<EOF
+/tmp/jdk/src/java.base/share/classes:/tmp/jdk/src/java.base/unix/classes\
+:/tmp/jdk/src/java.base/macosx/classes\
+:/tmp/jdk/build/macosx-x86_64-server-release/support/gensrc/java.base
+EOF
+
+clojure -A:extract -m clj-kondo.impl.ExtractJava "/tmp/transit" \
+        "-public" "--source-path" "$source_path" \
         "java.lang" "java.math"
+
+for class in "Boolean" "Byte" "CharSequence" "Character" \
+             "Double" "Integer" "Long" "Math" "String" \
+             "System" "Thread"; do \
+    cp "/tmp/transit/java.lang.$class.transit.json" "resources/clj_kondo/impl/cache/built_in/clj"
+done
+
+for class in "BigInteger" "BigDecimal"; do \
+    cp "/tmp/transit/java.math.$class.transit.json" "resources/clj_kondo/impl/cache/built_in/clj"
+done
