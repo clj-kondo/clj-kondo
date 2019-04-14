@@ -32,7 +32,7 @@
   (is
    (submap?
     '{:type :ns, :name foo,
-      :qualify-var {quux {:namespace bar, :qname bar/quux :name quux}}
+      :qualify-var {quux {:namespace bar :name quux}}
       :qualify-ns {bar bar
                    baz bar}
       :clojure-excluded #{get assoc time}}
@@ -53,18 +53,18 @@
   (let [ns (vars/analyze-ns-decl
             :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:namespace bar, :qname bar/quux :name quux}
+    (is (= '{:namespace bar :name quux}
            (vars/qualify-name ns 'quux))))
   (let [ns (vars/analyze-ns-decl
             :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:namespace bar, :qname bar/quux :name quux}
+    (is (= '{:namespace bar :name quux}
            (vars/qualify-name ns 'quux))))
   (let [ns (vars/analyze-ns-decl
             :clj
             (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
-    (is (= '{:namespace rewrite-clj.parser, :qname rewrite-clj.parser/parse-string :name parse-string}
+    (is (= '{:namespace rewrite-clj.parser :name parse-string}
            (vars/qualify-name ns 'p/parse-string))))
   (testing "referring to unknown namespace alias"
     (let [ns (vars/analyze-ns-decl
@@ -89,7 +89,6 @@
 ")))]
     (is (submap? '{:type :call,
                    :name quux,
-                   :qname bar/quux,
                    :arity 1,
                    :row 4,
                    :col 1,
@@ -111,7 +110,6 @@
 ")))]
     (is (submap? '{:type :call,
                    :name parse-string ;;p/parse-string,
-                   :qname rewrite-clj.parser/parse-string,
                    :arity 1, :row 5, :col 5,
                    :ns clj-kondo.impl.utils,
                    :lang :clj}
@@ -124,7 +122,6 @@
 ")))]
       (is (submap? '{:type :call,
                      :name foo,
-                     :qname clj-kondo.main/foo,
                      :arity 1,
                      :row 3,
                      :col 20,
@@ -142,7 +139,7 @@
                                                 (parse-string-all "
 (defn foo [x]) (foo 1)
 ")))]
-      (is (submap? '{:type :call, :name foo, :qname user/foo,
+      (is (submap? '{:type :call, :name foo,
                      :arity 1, :row 2, :col 16, :ns user, :lang :clj}
                    (get-in analyzed '[:calls user 0])))
       (is (submap? '{foo {:name foo,

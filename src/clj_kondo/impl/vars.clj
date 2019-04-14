@@ -66,10 +66,8 @@
            :ns ns-name
            :as as
            :refers (map (fn [refer]
-                          ;; (println "REFER" refer)
                           [refer {:namespace ns-name
-                                  :name refer
-                                  :qname (symbol (str ns-name) (str refer))}])
+                                  :name refer}])
                         refers)})))))
 
 (def default-java-imports
@@ -269,21 +267,16 @@
     (let [ns-sym (symbol ns*)]
       (if-let [ns* (get (:qualify-ns ns) ns-sym)]
         {:namespace ns*
-         :name (symbol (name name-sym))
-         :qname (symbol (str ns*)
-                        (name name-sym))}
+         :name (symbol (name name-sym))}
         (when-let [ns* (get (:java-imports ns) ns-sym)]
           {:java-interop? true
            :namespace ns*
-           :name (symbol (name name-sym))
-           :qname (symbol (str ns*)
-                          (name name-sym))})))
+           :name (symbol (name name-sym))})))
     (or (get (:qualify-var ns)
              name-sym)
         (let [namespace (:name ns)]
           {:namespace namespace
            :name name-sym
-           :qname (symbol (str namespace) (str name-sym))
            :clojure-excluded? (contains? (:clojure-excluded ns)
                                          name-sym)}))))
 
@@ -355,7 +348,9 @@
                         (let [path [:calls (:namespace qname)]
                               call (cond-> (assoc first-parsed
                                                   :filename filename
-                                                  :qname (:qname qname))
+                                                  :resolved-ns (:namespace qname)
+                                                  ;;:qname (:qname qname)
+                                                  )
                                      (:clojure-excluded? qname)
                                      (assoc :clojure-excluded? true))
                               results (update-in results path vconj call)]
@@ -387,9 +382,9 @@
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
 (defn var-specific-findings [filename call called-fn]
-  (case (:qname called-fn)
-    clojure.core/cond (lint-cond filename (:expr call))
-    clojure.test/is nil #_(println "is!!!")
+  (case [(:ns called-fn) (:name called-fn)]
+    [clojure.core cond] (lint-cond filename (:expr call))
+    [clojure.core deftest] nil #_(println "is!!!")
     []))
 
 (defn core-lookup
@@ -408,10 +403,12 @@
         findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [fn-qname (:qname call)
+                       :let [;;fn-qname (:qname call)
+                             ;;_ (println "fn-qname" fn-qname)
                              fn-name (:name call)
                              caller-ns (:ns call)
-                             fn-ns (symbol (namespace fn-qname))
+                             ;; _ (println "name ns" (:name call) (:ns call) "resolved-ns" (:resolved-ns call))
+                             fn-ns (:resolved-ns call) #_(symbol (namespace fn-qname))
                              called-fn
                              (or (get-in idacs [lang :defs fn-ns fn-name])
                                  (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
@@ -425,7 +422,7 @@
                              ;; update fn-ns in case it's resolved as a clojure core function
                              fn-ns (:ns called-fn)]
                        :when called-fn
-                       :let [called-fn (assoc called-fn :qname (symbol (str fn-ns) (str (:name called-fn))))
+                       :let [;; called-fn (assoc called-fn :qname (symbol (str fn-ns) (str (:name called-fn))))
                              ;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
@@ -457,7 +454,7 @@
                                   :type :invalid-arity
                                   :message (format "Wrong number of args (%s) passed to %s"
                                                    (str (:arity call) #_#_" " called-fn)
-                                                   (:qname called-fn))})
+                                                   (str (:ns called-fn) "/" (:name called-fn)))})
                                (when (and (:private? called-fn)
                                           (not= caller-ns
                                                 fn-ns))
