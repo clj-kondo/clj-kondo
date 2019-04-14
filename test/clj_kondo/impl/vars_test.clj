@@ -14,20 +14,19 @@
 (deftest parse-defn-test
   (is (every? true?
               (map submap?
-                   '[{:type :defn, :name chunk-buffer, :fixed-arities #{1}}
+                   '[{:name chunk-buffer, :fixed-arities #{1}}
                      {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
                    (vars/parse-defn :clj #{}
                                     (parse-string
                                      "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
   (clojure.lang.ChunkBuffer. capacity))")))))
-  (is (= '({:type :defn,
-            :name get-bytes,
-            :row 1,
-            :col 1,
-            :lang :clj,
-            :fixed-arities #{1}})
-         (vars/parse-defn :clj #{}
-                          (parse-string "(defn get-bytes #^bytes [part] part)")))))
+  (is (submap? '{:name get-bytes,
+                 :row 1,
+                 :col 1,
+                 :lang :clj,
+                 :fixed-arities #{1}}
+               (first (vars/parse-defn :clj #{}
+                                       (parse-string "(defn get-bytes #^bytes [part] part)"))))))
 
 (deftest analyze-ns-test
   (is
@@ -98,8 +97,7 @@
                    :lang :clj}
                  (get-in analyzed '[:calls bar 0])))
     (is (submap? '{quux
-                   {:type :defn,
-                    :name quux,
+                   {:name quux,
                     :fixed-arities #{3},
                     :ns bar
                     :lang :clj}}
@@ -134,8 +132,7 @@
                      :lang :clj}
                    (get-in analyzed '[:calls clj-kondo.main 0])))
       (is (submap? '{foo
-                     {:type :defn,
-                      :name foo,
+                     {:name foo,
                       :fixed-arities #{1},
                       :ns clj-kondo.main,
                       :lang :clj}}
@@ -148,7 +145,7 @@
       (is (submap? '{:type :call, :name foo, :qname user/foo,
                      :arity 1, :row 2, :col 16, :ns user, :lang :clj}
                    (get-in analyzed '[:calls user 0])))
-      (is (submap? '{foo {:type :defn, :name foo,
+      (is (submap? '{foo {:name foo,
                           :fixed-arities #{1},
                           :ns user, :lang :clj}}
                    (get-in analyzed '[:defs user]))))))
