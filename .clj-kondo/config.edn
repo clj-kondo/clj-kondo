@@ -1,2 +1,11 @@
-{:ignore-comments? false
- :debug? false}
+{:lint-comments true ;; defaults to true
+ ;; all linters are enabled by default, but can be turned off by setting :level to :off
+ :linters {:incorrect-arity {:level :error}
+           :private-call {:level :error}
+           :inline-def {:level :warning}
+           :redundant-do {:level :warning}
+           :redundant-let {:level :warning}
+           :cond-without-else {:level :off}
+           }
+ ;; undocumented, only for dev
+ :debug false}

@@ -18,15 +18,18 @@
 
 ;;;; printing
 
-(defn- print-findings [findings print-debug?]
-  (doseq [{:keys [:filename :type :message
-                  :level :row :col] :as finding}
-          (sort-by (juxt :filename :row :col) findings)
-          :when level
-          :when (if (= :debug type)
-                  print-debug?
-                  true)]
-    (println (str filename ":" row ":" col ": " (name level) ": " message))))
+(defn- print-findings [findings config]
+  (let [print-debug? (:debug config)]
+    (doseq [{:keys [:filename :type :message
+                    :level :row :col] :as finding}
+            (sort-by (juxt :filename :row :col) findings)
+            :let [level (or (when type (-> config :linters type :level))
+                            level)]
+            :when (and level (not= :off level))
+            :when (if (= :debug type)
+                    print-debug?
+                    true)]
+      (println (str filename ":" row ":" col ": " (name level) ": " message)))))
 
 (defn- print-version []
   (println (str "clj-kondo v" version)))
@@ -193,19 +196,12 @@ Options:
                           (let [f (io/file cfg-dir "config.edn")]
                             (when (.exists f)
                               f))))
-        config (when config-file (edn/read-string (slurp config-file)))
-        debug? (boolean
-                (or (get opts "--debug")
-                    (get config :debug?)))
-        ignore-comments? (boolean
-                          (or (get opts "--ignore-comments")
-                              (get config :ignore-comments?)))]
+        config (when config-file (edn/read-string (slurp config-file)))]
     {:opts opts
      :files files
      :cache-dir cache-dir
      :default-lang default-lang
-     :ignore-comments? ignore-comments?
-     :debug? debug?}))
+     :config config}))
 
 ;;;; process all files
 
@@ -256,8 +252,7 @@ Options:
                 :files
                 :default-lang
                 :cache-dir
-                :debug?
-                :ignore-comments?]} (parse-opts options)]
+                :config]} (parse-opts options)]
     (or (cond (get opts "--version")
               (print-version)
               (get opts "--help")
@@ -266,8 +261,8 @@ Options:
               (print-help)
               :else
               (let [processed (process-files files default-lang
-                                             {:debug? debug?
-                                              :ignore-comments? ignore-comments?})
+                                             {:debug? (:debug config)
+                                              :ignore-comments? (:lint-comments config)})
                     idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
@@ -275,7 +270,7 @@ Options:
                     all-findings (concat fcf (mapcat :findings processed))
                     {:keys [:error :warning]} (summarize all-findings)]
                 (print-findings all-findings
-                                debug?)
+                                config)
                 (printf "linting took %sms, "
                         (- (System/currentTimeMillis) start-time))
                 (println (format "errors: %s, warnings: %s" error warning))
