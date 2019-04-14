@@ -17,6 +17,7 @@ else
     git -C /tmp/jdk pull
 fi
 
-
 clojure -C:extract -e "(compile 'clj-kondo.impl.ExtractJava)"
-clojure -A:extract -m clj-kondo.impl.ExtractJava
+clojure -A:extract -m clj-kondo.impl.ExtractJava "-public" \
+        "--source-path" "/tmp/jdk/src/java.base/share/classes" \
+        "java.lang" "java.math"

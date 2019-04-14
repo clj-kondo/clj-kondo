@@ -28,17 +28,12 @@
 
 (def sconj (fnil conj #{}))
 
-(defn -main []
+(defn -main [& extra-args]
   (println "JAVA_HOME:" (System/getProperty "java.home"))
   (println "Extracting Java...")
   (let [dt (ToolProvider/getSystemDocumentationTool)]
     (.run dt nil nil nil
-          (into-array ["-doclet" "clj_kondo.impl.ExtractJava"
-                       "-public"
-                       "--source-path" "/Users/Borkdude/git/jdk/src/java.base/share/classes"
-                       "java.lang" "java.math"
-                       #_#_"--source-path" "/tmp/"
-                       #_"my.pack"])))
+          (into-array (into ["-doclet" "clj_kondo.impl.ExtractJava"] extra-args))))
   (let [extracted-java
         (reduce (fn [acc entry]
                   (let [ns (symbol (:class entry))
