@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+JAVA_VERSION=$(java -version 2>&1 | sed -n ';s/.* version "\(.*\)\.\(.*\)\..*"/\1\2/p;' | cut -f 1 -d " ")
+
+if [ -z "$JAVA_HOME" ] || [ "$JAVA_VERSION" -lt 110 ]; then
+    echo "Set JAVA_HOME to JDK 11 or later."
+    exit 1
+fi
+
 rm -rf classes
 mkdir -p classes
 mkdir -p /tmp/jdk
@@ -10,10 +17,6 @@ else
     git -C /tmp/jdk pull
 fi
 
-# this script requires JAVA_HOME to be set to JDK 11 or later
-if [ -z "$JAVA_HOME" ]; then
-    export JAVA_HOME=~/Downloads/jdk-11.0.2.jdk/Contents/Home
-fi
 
 clojure -C:extract -e "(compile 'clj-kondo.impl.ExtractJava)"
 clojure -A:extract -m clj-kondo.impl.ExtractJava
