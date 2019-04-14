@@ -8,21 +8,37 @@
 
 (set! *warn-on-reflection* true)
 
-(defn cache-file ^java.io.File [cache-dir lang ns-sym]
-  (io/file cache-dir (name lang) (str ns-sym ".transit.json")))
-
 (defn built-in-cache-resource [lang ns-sym]
   (io/resource (str "clj_kondo/impl/cache/built_in/"
                     (name lang) "/" (str ns-sym ".transit.json"))))
 
+(defn cache-file ^java.io.File [cache-dir lang ns-sym]
+  (io/file cache-dir (name lang) (str ns-sym ".transit.json")))
+
 (defn from-cache-1 [cache-dir lang ns-sym]
-  (when-let [resource (or (when cache-dir
-                            (let [f (cache-file cache-dir lang ns-sym)]
-                              (when (.exists f) f)))
-                          ;; TODO: more efficient filter on existing ones?
-                          (built-in-cache-resource lang ns-sym))]
-    (transit/read (transit/reader
-                   (io/input-stream resource) :json))))
+  (when-let [{:keys [:resource :source]}
+             (or (when cache-dir
+                   (let [f (cache-file cache-dir lang ns-sym)]
+                     (when (.exists f)
+                       {:source :disk
+                        :resource f})))
+                 {:source :built-in
+                  :resource (built-in-cache-resource lang ns-sym)})]
+    (when resource
+      (assoc
+       (transit/read (transit/reader
+                      (io/input-stream resource) :json))
+       :source source))))
+
+(defn from-cache [cache-dir lang namespaces]
+  (reduce (fn [acc ns-sym]
+            (if-let [data (from-cache-1 cache-dir
+                                        lang ns-sym)]
+              (update acc ns-sym
+                      (fn [ns]
+                        (merge data ns)))
+              acc))
+          {} namespaces))
 
 (defn to-cache
   "Writes ns-data to cache-dir. Always use with `with-cache`."
@@ -59,15 +75,11 @@
                      (str "clj-kondo cache is locked by other process")))
              (recur (inc retry#))))))))
 
-(defn from-cache [cache-dir lang namespaces]
-  (reduce (fn [acc ns-sym]
-            (if-let [data (from-cache-1 cache-dir
-                                        lang ns-sym)]
-              (update acc ns-sym
-                      (fn [ns]
-                        (merge data ns)))
-              acc))
-          {} namespaces))
+(defn clojure-core [cache-dir]
+  (from-cache-1 cache-dir :clj 'clojure.core))
+
+(defn cljs-core [cache-dir]
+  (from-cache-1 cache-dir :cljs 'cljs.core))
 
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
@@ -75,32 +87,41 @@
                   (set (keys (get-in idacs [lang :defs])))
                   called-namespaces
                   (set (keys (get-in idacs [lang :calls])))
-                  called-namespaces
-                  (if (not-empty called-namespaces)
-                    (conj called-namespaces
-                          (case lang
-                            :clj 'clojure.core
-                            :cljs 'cljs.core
-                            :cljc 'clojure.core
-                            nil))
-                    called-namespaces)
                   load-from-cache
-                  (set/difference called-namespaces analyzed-namespaces)
+                  (set/difference called-namespaces analyzed-namespaces
+                                  ;; clojure core is loaded later
+                                  '#{clojure.core cljs.core})
                   defs-from-cache
                   (from-cache cache-dir lang load-from-cache)
                   cljc-defs-from-cache
                   (from-cache cache-dir :cljc load-from-cache)]
               (when cache-dir
-                (doseq [ns-name analyzed-namespaces]
-                  (let [ns-data (get-in idacs [lang :defs ns-name])]
-                    (to-cache cache-dir lang ns-name ns-data))))
-              (-> idacs
-                  (update-in [lang :defs]
-                             (fn [idacs]
-                               (merge defs-from-cache idacs)))
-                  (update-in [:cljc :defs]
-                             (fn [idacs]
-                               (merge cljc-defs-from-cache idacs))))))
+                (doseq [ns-name analyzed-namespaces
+                        :let [{:keys [:source] :as ns-data}
+                              (get-in idacs [lang :defs ns-name])]
+                        :when (not (contains? #{:disk :built-in} source))]
+                  (to-cache cache-dir lang ns-name ns-data)))
+              (let [idacs (-> idacs
+                             (update-in [lang :defs]
+                                        (fn [idacs]
+                                          (merge defs-from-cache idacs)))
+                             (update-in [:cljc :defs]
+                                        (fn [idacs]
+                                          (merge cljc-defs-from-cache idacs))))]
+                ;; load clojure.core and/or cljs.core only once
+                (case lang
+                  (:clj :cljc)
+                  (if (and (seq called-namespaces)
+                           (not (get-in idacs [:clj :defs 'clojure.core])))
+                    (assoc-in idacs [:clj :defs 'clojure.core]
+                              (clojure-core cache-dir))
+                    idacs)
+                  :cljs
+                  (if (and (seq called-namespaces)
+                           (not (get-in idacs [:cljs :defs 'cljs.core])))
+                    (assoc-in idacs [:cljs :defs 'cljs.core]
+                              (cljs-core cache-dir))
+                    idacs)))))
           idacs
           [:clj :cljs :cljc]))
 
@@ -113,5 +134,7 @@
 ;;;; Scratch
 
 (comment
-
+  (from-cache-1 nil :clj 'clojure.datafy)
+  (time (get (from-cache-1 nil :clj 'clojure.core) '+))
+  (time (get (from-cache-1 nil :clj 'java.lang.Thread) 'sleep))
   )

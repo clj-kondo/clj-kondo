@@ -66,36 +66,56 @@
            :ns ns-name
            :as as
            :refers (map (fn [refer]
-                          [refer {:namespace ns-name
-                                  :name (symbol (str ns-name) (str refer))}])
+                          [refer {:ns ns-name
+                                  :name refer}])
                         refers)})))))
 
-(defn analyze-ns-decl [{:keys [:children] :as expr}]
-  ;; TODO: analyze refer clojure exclude
+(def default-java-imports
+  (reduce (fn [acc [prefix sym]]
+            (let [fq (symbol (str prefix sym))]
+              (-> acc
+                  (assoc fq fq)
+                  (assoc sym fq))))
+          {}
+          (into (mapv vector (repeat "java.lang.") '[Boolean Byte CharSequence Character Double
+                                                     Integer Long Math String System Thread])
+                (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
+
+(defn analyze-ns-decl [lang {:keys [:children] :as expr}]
   ;; TODO: just apply strip-meta and remove handling of meta here
+  ;; TODO: we can do all of these steps in one reduce
   (let [requires (filter require-clause? children)
         subclauses (mapcat #(map analyze-require-subclause
                                  (rest (:children %)))
                            requires)]
-    {:type :ns
-     :name (symbol (let [name-node (second children)]
+    (cond->
+        {:type :ns
+         :lang lang
+         :name (or (when-let [name-node (second children)]
+                    (symbol
                      (if (contains? #{:meta :meta*} (node/tag name-node))
                        (:value (last (:children name-node)))
                        (:value name-node))))
-     :qualify-var (into {} (mapcat #(mapcat (comp :refers analyze-require-subclause)
-                                            (:children %)) requires))
-     :qualify-ns (reduce (fn [acc sc]
-                           (cond-> (assoc acc (:ns sc) (:ns sc))
-                             (:as sc)
-                             (assoc (:as sc) (:ns sc))))
-                         {}
-                         subclauses)
-     :clojure-excluded (set (for [c children
-                                  :when (refer-clojure-clause? c)
-                                  [k v] (partition 2 (rest (:children c)))
-                                  :when (= :exclude (:k k))
-                                  sym (:children v)]
-                              (:value sym)))}))
+                   'user)
+         :qualify-var (into {} (mapcat #(mapcat (comp :refers analyze-require-subclause)
+                                                (:children %)) requires))
+         :qualify-ns (reduce (fn [acc sc]
+                               (cond-> (assoc acc (:ns sc) (:ns sc))
+                                 (:as sc)
+                                 (assoc (:as sc) (:ns sc))))
+                             {}
+                             subclauses)
+         :clojure-excluded (set (for [c children
+                                      :when (refer-clojure-clause? c)
+                                      [k v] (partition 2 (rest (:children c)))
+                                      :when (= :exclude (:k k))
+                                      sym (:children v)]
+                                  (:value sym)))}
+      (contains? #{:clj :cljc} lang)
+      (assoc :java-imports default-java-imports))))
+
+(comment
+  (analyze-ns-decl :cljs nil))
 
 (defn analyze-in-ns [{:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)]
@@ -189,7 +209,7 @@
   ([lang bindings {:keys [:children] :as expr}]
    (cond
      (some-call expr ns)
-     [(analyze-ns-decl expr)]
+     [(analyze-ns-decl lang expr)]
      ;; TODO: in-ns is not supported yet
      ;; One thing to note: if in-ns is used in a function body, the rest of the namespace is now analyzed in that namespace, which is incorrect.
      ;; (some-call expr in-ns)
@@ -241,23 +261,24 @@
          expr))
      :else (mapcat #(parse-arities lang bindings %) children))))
 
-(defn qualify-name [ns nm]
-  (if-let [ns* (namespace nm)]
-    (if-let [ns* (get (:qualify-ns ns) (symbol ns*))]
-      {:namespace ns*
-       :name (symbol (str ns*)
-                     (name nm))}
-      ;; TODO: should we support qualified calls without a require?
-      #_{:namespace ns*
-       :name (symbol (str ns*)
-                     (name nm))})
+(defn resolve-name
+  [ns name-sym]
+  (if-let [ns* (namespace name-sym)]
+    (let [ns-sym (symbol ns*)]
+      (if-let [ns* (get (:qualify-ns ns) ns-sym)]
+        {:ns ns*
+         :name (symbol (name name-sym))}
+        (when-let [ns* (get (:java-imports ns) ns-sym)]
+          {:java-interop? true
+           :ns ns*
+           :name (symbol (name name-sym))})))
     (or (get (:qualify-var ns)
-             nm)
-        (let [namespace (or (:name ns) 'user)]
-          {:namespace namespace
-           :name (symbol (str namespace) (str nm))
+             name-sym)
+        (let [namespace (:name ns)]
+          {:ns namespace
+           :name name-sym
            :clojure-excluded? (contains? (:clojure-excluded ns)
-                                         nm)}))))
+                                         name-sym)}))))
 
 (def vconj (fnil conj []))
 
@@ -268,7 +289,7 @@
   ([filename lang expr] (analyze-arities filename lang expr false))
   ([filename lang expr debug?]
    (loop [[first-parsed & rest-parsed] (parse-arities lang expr)
-          ns {:name 'user}
+          ns (analyze-ns-decl lang nil)
           results {:calls {}
                    :defs {}
                    :findings []
@@ -290,28 +311,24 @@
                                (assoc first-parsed
                                       :filename filename))
                     results)
-                  (let [qname (qualify-name ns (:name first-parsed))
+                  (let [resolved (resolve-name ns (:name first-parsed))
                         first-parsed (cond->
                                          (assoc first-parsed
-                                                :qname (:name qname)
-                                                :ns (:name ns)
-                                                :filename filename)
+                                                :name (:name resolved)
+                                                :ns (:name ns))
                                        (not= lang (:lang first-parsed))
                                        (assoc :base-lang lang))]
                     (case (:type first-parsed)
                       :defn
                       (let [path (case lang
-                                   :cljc [:defs (:name ns) (:lang first-parsed) (:name qname)]
-                                   [:defs (:name ns) (:name qname)])
+                                   :cljc [:defs (:name ns) (:lang first-parsed) (:name resolved)]
+                                   [:defs (:name ns) (:name resolved)])
                             results
-                            (if qname
+                            (if resolved
                               (assoc-in results path
-                                        first-parsed)
-                              ;; what's this for?
-                              (update-in results
-                                         [:findings]
-                                         vconj
-                                         first-parsed))]
+                                        (dissoc first-parsed
+                                                :type))
+                              results)]
                         (if debug?
                           (update-in results
                                      [:findings]
@@ -321,23 +338,25 @@
                                             :message
                                             (str/join " "
                                                       ["Defn resolved as"
-                                                       (:name qname) "with arities"
+                                                       (str (:ns resolved) "/" (:name resolved)) "with arities"
                                                        "fixed:"(:fixed-arities first-parsed)
                                                        "varargs:"(:var-args-min-arity first-parsed)])
                                             :type :debug))
                           results))
                       :call
-                      (if qname
-                        (let [path [:calls (:namespace qname)]
-                              call (cond-> first-parsed
-                                     (:clojure-excluded? qname)
+                      (if resolved
+                        (let [path [:calls (:ns resolved)]
+                              call (cond-> (assoc first-parsed
+                                                  :filename filename
+                                                  :resolved-ns (:ns resolved))
+                                     (:clojure-excluded? resolved)
                                      (assoc :clojure-excluded? true))
                               results (update-in results path vconj call)]
                           (if debug? (update-in results [:findings] conj
                                                 (assoc call
                                                        :level :info
                                                        :message (str "Call resolved as "
-                                                                     (:name qname))
+                                                                     (str (:ns resolved) "/" (:name resolved)))
                                                        :type :debug))
                               results))
                         (if debug?
@@ -361,9 +380,9 @@
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
 (defn var-specific-findings [filename call called-fn]
-  (case (:qname called-fn)
-    clojure.core/cond (lint-cond filename (:expr call))
-    clojure.test/is nil #_(println "is!!!")
+  (case [(:ns called-fn) (:name called-fn)]
+    [clojure.core cond] (lint-cond filename (:expr call))
+    [clojure.core deftest] nil #_(println "is!!!")
     []))
 
 (defn core-lookup
@@ -371,17 +390,8 @@
   (let [core (case lang
                :clj clojure-core-defs
                :cljs cljs-core-defs
-               :cljc clojure-core-defs
-               nil)
-        sym (case lang
-              :clj (symbol "clojure.core"
-                           (name var-name))
-              :cljs (symbol "cljs.core"
-                            (name var-name))
-              :cljc (symbol "clojure.core"
-                            (name var-name))
-              nil)]
-    (get core sym)))
+               :cljc clojure-core-defs)]
+    (get core var-name)))
 
 (defn fn-call-findings
   "Analyzes indexed defs and calls and returns findings."
@@ -391,9 +401,9 @@
         findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [fn-name (:qname call)
+                       :let [fn-name (:name call)
                              caller-ns (:ns call)
-                             fn-ns (symbol (namespace fn-name))
+                             fn-ns (:resolved-ns call)
                              called-fn
                              (or (get-in idacs [lang :defs fn-ns fn-name])
                                  (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
@@ -404,11 +414,9 @@
                                            fn-ns))
                                    (core-lookup clojure-core-defs cljs-core-defs
                                                 lang fn-name)))
-                             ;; update fn-ns in case it's resolved as a clojure core function
                              fn-ns (:ns called-fn)]
                        :when called-fn
-                       :let [;; _ (println "call" call "called-fn" called-fn)
-                             ;; a macro in a CLJC file with the same namespace
+                       :let [;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
                              ;; call and the lang of the function def context in
@@ -438,8 +446,8 @@
                                   :level :error
                                   :type :invalid-arity
                                   :message (format "Wrong number of args (%s) passed to %s"
-                                                   (str (:arity call) #_#_" " called-fn)
-                                                   (:qname called-fn))})
+                                                   (str (:arity call))
+                                                   (str (:ns called-fn) "/" (:name called-fn)))})
                                (when (and (:private? called-fn)
                                           (not= caller-ns
                                                 fn-ns))

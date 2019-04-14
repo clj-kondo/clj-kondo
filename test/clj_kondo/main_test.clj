@@ -191,14 +191,56 @@
           :level :error,
           :message "Wrong number of args (1) passed to cljs.core/select-keys"}
          (first (lint! "(select-keys 1)" "--lang" "cljs"))))
+  (is (= {:file "<stdin>",
+          :row 1,
+          :col 1,
+          :level :error,
+          :message "Wrong number of args (1) passed to clojure.core/select-keys"}
+         (first (lint! "(select-keys 1)" "--lang" "cljc"))))
   (is (submap? {:file "<stdin>" :level :error,
-          :message "Wrong number of args (3) passed to clojure.test/successful?"}
-         (first (lint! "(ns my-cljs (:require [clojure.test :refer [successful?]]))
-  (successful? 1 2 3)" "--lang" "clj"))))
+                :message "Wrong number of args (3) passed to clojure.test/successful?"}
+               (first (lint! "(ns my-cljs (:require [clojure.test :refer [successful?]]))
+    (successful? 1 2 3)" "--lang" "clj"))))
   (is (submap? {:file "<stdin>" :level :error,
-          :message "Wrong number of args (3) passed to cljs.test/successful?"}
-         (first (lint! "(ns my-cljs (:require [cljs.test :refer [successful?]]))
-  (successful? 1 2 3)" "--lang" "cljs")))))
+                :message "Wrong number of args (3) passed to cljs.test/successful?"}
+               (first (lint! "(ns my-cljs (:require [cljs.test :refer [successful?]]))
+    (successful? 1 2 3)" "--lang" "cljs"))))
+  (is (submap? {:file "<stdin>", :row 2, :col 5, :level :error,
+                :message "Wrong number of args (0) passed to clojure.set/difference"}
+               (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
+    (difference)" "--lang" "clj"))))
+  (is (submap? {:file "<stdin>", :row 2, :col 5, :level :error,
+                :message "Wrong number of args (0) passed to clojure.set/difference"}
+               (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
+    (difference)" "--lang" "cljs")))))
+
+(deftest built-in-java-test
+  (is (= {:file "<stdin>", :row 1, :col 1,
+          :level :error,
+          :message "Wrong number of args (3) passed to java.lang.Thread/sleep"}
+         (first (lint! "(Thread/sleep 1 2 3)" "--lang" "clj"))))
+  (is (= {:file "<stdin>", :row 1, :col 1,
+          :level :error,
+          :message "Wrong number of args (3) passed to java.lang.Thread/sleep"}
+         (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "clj"))))
+  (is (= {:file "<stdin>", :row 1, :col 1,
+          :level :error,
+          :message "Wrong number of args (3) passed to java.lang.Math/pow"}
+         (first (lint! "(Math/pow 1 2 3)" "--lang" "clj"))))
+  (is (= {:file "<stdin>", :row 1, :col 1,
+          :level :error,
+          :message "Wrong number of args (3) passed to java.math.BigInteger/valueOf"}
+         (first (lint! "(BigInteger/valueOf 1 2 3)" "--lang" "clj"))))
+  (is (empty?
+       (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "cljs"))))
+  (comment
+    ;; FIXME: fix after CLJC refactor (#67) The issue here is when you have a
+    ;; CLJ call inside a CLJC namespace the CLJ namespace isn't loaded from the
+    ;; cache
+    (is (= {:file "<stdin>", :row 1, :col 1,
+            :level :error,
+            :message "Wrong number of args (3) passed to java.lang.Thread/sleep"}
+           (first (lint! "#?(:clj (java.lang.Thread/sleep 1 2 3))" "--lang" "cljc"))))))
 
 ;;;; Scratch
 

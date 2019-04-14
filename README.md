@@ -23,7 +23,7 @@ clj-kondo detects:
 
 * inline `def` expressions
 * redundant `do` and `let` wrappings
-* arity errors across namespaces
+* arity errors across namespaces and static Java method calls
 * private function calls
 * `cond` expressions without `:else` catch-alls (see [style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond))
 

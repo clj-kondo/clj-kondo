@@ -47,8 +47,8 @@
                            (io/file test-cache-dir cache-version)
                            lang 'foo)]
             (is (some? (case lang (:clj :cljs)
-                             (get foo-cache 'foo/foo)
-                             :cljc (get-in foo-cache [:cljc 'foo/foo]))))))
+                             (get foo-cache 'foo)
+                             :cljc (get-in foo-cache [:cljc 'foo]))))))
         (testing "linting only bar and using the cache option"
           (let [bar-file (io/file test-source-dir (str "bar."
                                                        (name lang)))]

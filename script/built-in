@@ -5,10 +5,14 @@ mkdir -p /tmp/built-in
 version=$(cat src/CLJ_KONDO_VERSION)
 echo "$version"
 
-# clojure -A:clj-kondo --lint "$(clojure -R:cljs -Spath)" --cache /tmp/built-in
+clojure -A:clj-kondo --lint "$(clojure -R:cljs -Spath)" --cache /tmp/built-in
 
-cp "/tmp/built-in/$version/clj/clojure.core.transit.json" resources/clj_kondo/impl/cache/built_in/clj
-cp "/tmp/built-in/$version/clj/clojure.test.transit.json" resources/clj_kondo/impl/cache/built_in/clj
-cp "/tmp/built-in/$version/cljs/cljs.core.transit.json" resources/clj_kondo/impl/cache/built_in/cljs
-cp "/tmp/built-in/$version/cljs/cljs.test.transit.json" resources/clj_kondo/impl/cache/built_in/cljs
-cp "/tmp/built-in/$version/cljc/cljs.test.transit.json" resources/clj_kondo/impl/cache/built_in/cljc
+base_path="/tmp/built-in/$version"
+
+rm "$base_path"/clj/clojure.tools.reader.*.transit.json
+rm "$base_path"/cljs/cljs.tools.reader.*transit.json
+
+cp "$base_path"/clj/clojure.*.transit.json resources/clj_kondo/impl/cache/built_in/clj
+cp "$base_path"/cljs/cljs.*.transit.json resources/clj_kondo/impl/cache/built_in/cljs
+cp "$base_path"/cljs/clojure.*.transit.json resources/clj_kondo/impl/cache/built_in/cljs
+cp "$base_path"/cljc/cljs.*.transit.json resources/clj_kondo/impl/cache/built_in/cljc
