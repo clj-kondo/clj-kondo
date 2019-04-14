@@ -75,10 +75,18 @@ Options:
   [dir]
   (let [files (file-seq dir)]
     (keep (fn [^java.io.File file]
-            (let [nm (.getPath file)]
-              (when (source-file? nm)
+            (let [nm (.getPath file)
+                  can-read? (.canRead file)
+                  source? (source-file? nm)]
+              (cond
+                (and can-read? source?)
                 {:filename nm
-                 :source (slurp file)}))) files)))
+                 :source (slurp file)}
+                (and (not can-read?) source?)
+                (do (println (str nm ":0:0:") "warning: can't read, check file permissions")
+                    nil)
+                :else nil)))
+          files)))
 
 ;;;; file processing
 

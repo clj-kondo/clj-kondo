@@ -333,12 +333,9 @@
                             results
                             (if qname
                               (assoc-in results path
-                                        first-parsed)
-                              ;; what's this for?
-                              (update-in results
-                                         [:findings]
-                                         vconj
-                                         first-parsed))]
+                                        (dissoc first-parsed
+                                                :type))
+                              results)]
                         (if debug?
                           (update-in results
                                      [:findings]
