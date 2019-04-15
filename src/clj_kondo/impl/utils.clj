@@ -34,7 +34,7 @@
                         (or (whitespace? n)
                             (uneval? n)
                             (comment? n)
-                            (when (:ignore-comments? config)
+                            (when (-> config :analysis :comments :disabled)
                               (some-call n comment core/comment)))) children))
        %) expr)))
 

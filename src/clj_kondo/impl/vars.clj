@@ -335,6 +335,7 @@
                                      vconj
                                      (assoc first-parsed
                                             :level :info
+                                            :filename filename
                                             :message
                                             (str/join " "
                                                       ["Defn resolved as"

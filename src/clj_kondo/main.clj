@@ -18,15 +18,25 @@
 
 ;;;; printing
 
-(defn- print-findings [findings print-debug?]
-  (doseq [{:keys [:filename :type :message
-                  :level :row :col] :as finding}
-          (sort-by (juxt :filename :row :col) findings)
-          :when level
-          :when (if (= :debug type)
-                  print-debug?
-                  true)]
-    (println (str filename ":" row ":" col ": " (name level) ": " message))))
+(defn- format-output [config]
+  (if-let [^String pattern (-> config :output :pattern)]
+    (fn [filename row col level message]
+      (-> pattern
+          (str/replace "{{filename}}" filename)
+          (str/replace "{{row}}" (str row))
+          (str/replace "{{col}}" (str col))
+          (str/replace "{{level}}" (name level))
+          (str/replace "{{LEVEL}}" (str/upper-case (name level)))
+          (str/replace "{{message}}" message)))
+    (fn [filename row col level message]
+      (str filename ":" row ":" col ": " (name level) ": " message))))
+
+(defn- print-findings [findings config]
+  (let [format-fn (format-output config)]
+    (doseq [{:keys [:filename :message
+                    :level :row :col] :as finding}
+            (sort-by (juxt :filename :row :col) findings)]
+      (println (format-fn filename row col level message)))))
 
 (defn- print-version []
   (println (str "clj-kondo v" version)))
@@ -103,6 +113,8 @@ Options:
   (str/includes? f ":"))
 
 (defn- process-file [filename default-language config]
+  (when (-> config :output :progress)
+    (print ".") (flush))
   (try
     (let [file (io/file filename)]
       (cond
@@ -159,7 +171,7 @@ Options:
 
 ;;;; parse command line options
 
-(def empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
+(def ^:private empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
 
 (defn- parse-opts [options]
   (let [opts (loop [options options
@@ -188,24 +200,22 @@ Options:
                           (do (println empty-cache-opt-warning)
                               nil))))
         files (get opts "--lint")
-        config-file (or (first (get opts "--config"))
-                        (when cfg-dir
-                          (let [f (io/file cfg-dir "config.edn")]
-                            (when (.exists f)
-                              f))))
-        config (when config-file (edn/read-string (slurp config-file)))
-        debug? (boolean
-                (or (get opts "--debug")
-                    (get config :debug?)))
-        ignore-comments? (boolean
-                          (or (get opts "--ignore-comments")
-                              (get config :ignore-comments?)))]
+        raw-config (first (get opts "--config"))
+        config-edn? (when raw-config
+                      (str/starts-with? raw-config "{"))
+        config (if config-edn? (edn/read-string raw-config)
+                   (when-let [config-file
+                              (or (first (get opts "--config"))
+                                  (when cfg-dir
+                                    (let [f (io/file cfg-dir "config.edn")]
+                                      (when (.exists f)
+                                        f))))]
+                     (edn/read-string (slurp config-file))))]
     {:opts opts
      :files files
      :cache-dir cache-dir
      :default-lang default-lang
-     :ignore-comments? ignore-comments?
-     :debug? debug?}))
+     :config config}))
 
 ;;;; process all files
 
@@ -239,13 +249,36 @@ Options:
 
 ;;;; summary
 
-(def zinc (fnil inc 0))
+(def ^:private zinc (fnil inc 0))
 
 (defn- summarize [findings]
   (reduce (fn [acc {:keys [:level]}]
             (update acc level zinc))
           {:error 0 :warning 0 :info 0}
           findings))
+
+;;;; filter/remove output
+
+(defn- filter-findings [findings config]
+  (let [print-debug? (:debug config)
+        filter-output (not-empty (-> config :output :filter))
+        remove-output (not-empty (-> config :output :remove))]
+    (for [{:keys [:filename :level :type] :as f} findings
+          :let [level (or (when type (-> config :linters type :level))
+                          level)]
+          :when (and level (not= :off level))
+          :when (if (= :debug type)
+                  print-debug?
+                  true)
+          :when (if filter-output
+                  (some (fn [pattern]
+                          (re-find (re-pattern pattern) filename))
+                        filter-output)
+                  true)
+          :when (not-any? (fn [pattern]
+                            (re-find (re-pattern pattern) filename))
+                          remove-output)]
+      (assoc f :level level))))
 
 ;;;; main
 
@@ -256,8 +289,7 @@ Options:
                 :files
                 :default-lang
                 :cache-dir
-                :debug?
-                :ignore-comments?]} (parse-opts options)]
+                :config]} (parse-opts options)]
     (or (cond (get opts "--version")
               (print-version)
               (get opts "--help")
@@ -265,17 +297,20 @@ Options:
               (empty? files)
               (print-help)
               :else
-              (let [processed (process-files files default-lang
-                                             {:debug? debug?
-                                              :ignore-comments? ignore-comments?})
+              (let [processed
+                    (process-files files default-lang
+                                   config)
+                    _ (when (-> config :output :progress)
+                        (println))
                     idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
                     fcf (fn-call-findings idacs)
                     all-findings (concat fcf (mapcat :findings processed))
+                    all-findings (filter-findings all-findings config)
                     {:keys [:error :warning]} (summarize all-findings)]
                 (print-findings all-findings
-                                debug?)
+                                config)
                 (printf "linting took %sms, "
                         (- (System/currentTimeMillis) start-time))
                 (println (format "errors: %s, warnings: %s" error warning))
