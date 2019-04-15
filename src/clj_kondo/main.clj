@@ -18,12 +18,25 @@
 
 ;;;; printing
 
+(defn- format-output [config]
+  (if-let [^String pattern (-> config :output :pattern)]
+    (fn [filename row col level message]
+      (-> pattern
+          (str/replace "{{filename}}" filename)
+          (str/replace "{{row}}" (str row))
+          (str/replace "{{col}}" (str col))
+          (str/replace "{{level}}" (name level))
+          (str/replace "{{LEVEL}}" (str/upper-case (name level)))
+          (str/replace "{{message}}" message)))
+    (fn [filename row col level message]
+      (str filename ":" row ":" col ": " (name level) ": " message))))
+
 (defn- print-findings [findings config]
-  ;; TODO: reformat
-  (doseq [{:keys [:filename :message
-                  :level :row :col] :as finding}
-          (sort-by (juxt :filename :row :col) findings)]
-    (println (str filename ":" row ":" col ": " (name level) ": " message))))
+  (let [format-fn (format-output config)]
+    (doseq [{:keys [:filename :message
+                    :level :row :col] :as finding}
+            (sort-by (juxt :filename :row :col) findings)]
+      (println (format-fn filename row col level message)))))
 
 (defn- print-version []
   (println (str "clj-kondo v" version)))
@@ -156,7 +169,7 @@ Options:
 
 ;;;; parse command line options
 
-(def empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
+(def ^:private empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
 
 (defn- parse-opts [options]
   (let [opts (loop [options options
@@ -196,7 +209,6 @@ Options:
                                       (when (.exists f)
                                         f))))]
                      (edn/read-string (slurp config-file))))]
-    (prn "config" config)
     {:opts opts
      :files files
      :cache-dir cache-dir
@@ -235,7 +247,7 @@ Options:
 
 ;;;; summary
 
-(def zinc (fnil inc 0))
+(def ^:private zinc (fnil inc 0))
 
 (defn- summarize [findings]
   (reduce (fn [acc {:keys [:level]}]
