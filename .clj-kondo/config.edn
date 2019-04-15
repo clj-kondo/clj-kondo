@@ -1,12 +1,16 @@
-{:lint-comments true ;; defaults to true
- ;; all linters are enabled by default, but can be turned off by setting :level to :off
+{;; experiments in comment forms are analyzed by default, so you'll see arity errors, etc.
+ :analysis {:comments {:disabled false}}
+ ;; all linters are enabled by default, but can be turned off by setting :level to :off.
  :linters {:incorrect-arity {:level :error}
            :private-call {:level :error}
            :inline-def {:level :warning}
            :redundant-do {:level :warning}
            :redundant-let {:level :warning}
-           :cond-without-else {:level :off}}
- :include nil #_["src" "clojure"]
- :exclude ["clojure" "tools/reader" "^cljs/core" "\\.cljc$"]
- ;; undocumented, only for dev
+           :cond-without-else {:level :warning}}
+ ;; output can be filtered and removed by regex on filename. empty options leave
+ ;; the output untouched.
+ :output {:filter ["src" "clojure"]
+          :remove ["tools/reader" "^cljs/core" "\\.cljc$"]
+          :pattern "{{file}}:{{row}}:{{col}}: {{level}}: {{message}}"}
+ ;; output extra debug information
  :debug false}

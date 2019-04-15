@@ -19,27 +19,11 @@
 ;;;; printing
 
 (defn- print-findings [findings config]
-  (let [print-debug? (:debug config)]
-    (doseq [{:keys [:filename :type :message
-                    :level :row :col] :as finding}
-            (sort-by (juxt :filename :row :col) findings)
-            :let [level (or (when type (-> config :linters type :level))
-                            level)]
-            :when (and level (not= :off level))
-            :when (if (= :debug type)
-                    print-debug?
-                    true)
-            :when (if-let [includes (not-empty (:include config))]
-                    (some (fn [pattern]
-                            (re-find (re-pattern pattern) filename))
-                          includes)
-                    true)
-            :when (if-let [excludes (not-empty (:exclude config))]
-                    (not-any? (fn [pattern]
-                                (re-find (re-pattern pattern) filename))
-                              excludes)
-                    true)]
-      (println (str filename ":" row ":" col ": " (name level) ": " message)))))
+  ;; TODO: reformat
+  (doseq [{:keys [:filename :message
+                  :level :row :col] :as finding}
+          (sort-by (juxt :filename :row :col) findings)]
+    (println (str filename ":" row ":" col ": " (name level) ": " message))))
 
 (defn- print-version []
   (println (str "clj-kondo v" version)))
@@ -201,12 +185,18 @@ Options:
                           (do (println empty-cache-opt-warning)
                               nil))))
         files (get opts "--lint")
-        config-file (or (first (get opts "--config"))
-                        (when cfg-dir
-                          (let [f (io/file cfg-dir "config.edn")]
-                            (when (.exists f)
-                              f))))
-        config (when config-file (edn/read-string (slurp config-file)))]
+        raw-config (first (get opts "--config"))
+        config-edn? (when raw-config
+                      (str/starts-with? raw-config "{"))
+        config (if config-edn? (edn/read-string raw-config)
+                   (when-let [config-file
+                              (or (first (get opts "--config"))
+                                  (when cfg-dir
+                                    (let [f (io/file cfg-dir "config.edn")]
+                                      (when (.exists f)
+                                        f))))]
+                     (edn/read-string (slurp config-file))))]
+    (prn "config" config)
     {:opts opts
      :files files
      :cache-dir cache-dir
@@ -253,6 +243,29 @@ Options:
           {:error 0 :warning 0 :info 0}
           findings))
 
+;;;; filter/remove output
+
+(defn- filter-findings [findings config]
+  (let [print-debug? (:debug config)
+        filter-output (not-empty (-> config :output :filter))
+        remove-output (not-empty (-> config :output :remove))]
+    (for [{:keys [:filename :level :type] :as f} findings
+          :let [level (or (when type (-> config :linters type :level))
+                          level)]
+          :when (and level (not= :off level))
+          :when (if (= :debug type)
+                  print-debug?
+                  true)
+          :when (if filter-output
+                  (some (fn [pattern]
+                          (re-find (re-pattern pattern) filename))
+                        filter-output)
+                  true)
+          :when (not-any? (fn [pattern]
+                            (re-find (re-pattern pattern) filename))
+                          remove-output)]
+      (assoc f :level level))))
+
 ;;;; main
 
 (defn main
@@ -270,14 +283,16 @@ Options:
               (empty? files)
               (print-help)
               :else
-              (let [processed (process-files files default-lang
-                                             {:debug? (:debug config)
-                                              :ignore-comments? (:lint-comments config)})
+              (let [processed
+                    (process-files files default-lang
+                                   {:debug? (:debug config)
+                                    :ignore-comments? (->  config :analysis :comments :disabled)})
                     idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
                     fcf (fn-call-findings idacs)
                     all-findings (concat fcf (mapcat :findings processed))
+                    all-findings (filter-findings all-findings config)
                     {:keys [:error :warning]} (summarize all-findings)]
                 (print-findings all-findings
                                 config)
