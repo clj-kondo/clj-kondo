@@ -113,8 +113,6 @@ Options:
   (str/includes? f ":"))
 
 (defn- process-file [filename default-language config]
-  (when (-> config :output :progress)
-    (print ".") (flush))
   (try
     (let [file (io/file filename)]
       (cond
@@ -239,13 +237,9 @@ Options:
 ;;;; overrides
 
 (defn- overrides
-  "Overrides var information if the vars exist."
+  "Overrides var information."
   [idacs]
-  (-> idacs
-      (cond-> (get-in idacs '[:cljs :defs cljs.core cljs.core/array])
-        (assoc-in '[:cljs :defs cljs.core cljs.core/array :var-args-min-arity] 0)
-        (get-in idacs '[:cljs :defs cljs.core cljs.core/apply])
-        (assoc-in '[:cljs :defs cljs.core cljs.core/apply :var-args-min-arity] 2))))
+  (assoc-in idacs '[:cljs :defs cljs.core array :var-args-min-arity] 0))
 
 ;;;; summary
 
@@ -300,8 +294,6 @@ Options:
               (let [processed
                     (process-files files default-lang
                                    config)
-                    _ (when (-> config :output :progress)
-                        (println))
                     idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
@@ -309,6 +301,8 @@ Options:
                     all-findings (concat fcf (mapcat :findings processed))
                     all-findings (filter-findings all-findings config)
                     {:keys [:error :warning]} (summarize all-findings)]
+                (when (-> config :output :progress)
+                  (println))
                 (print-findings all-findings
                                 config)
                 (printf "linting took %sms, "

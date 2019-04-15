@@ -55,8 +55,8 @@
 
 (def lint!
   (case (System/getenv "CLJ_KONDO_TEST_ENV")
-    "jvm" lint-jvm!
-    "native" lint-native!
+    "jvm" #'lint-jvm!
+    "native" #'lint-native!
     lint-jvm!))
 
 (if (= lint! lint-jvm!)

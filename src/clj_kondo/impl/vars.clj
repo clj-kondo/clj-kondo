@@ -111,11 +111,10 @@
                                       :when (= :exclude (:k k))
                                       sym (:children v)]
                                   (:value sym)))}
+      (= :clj lang) (assoc-in [:qualify-ns 'clojure.core] 'clojure.core)
+      (= :cljs lang) (assoc-in [:qualify-ns 'cljs.core] 'cljs.core)
       (contains? #{:clj :cljc} lang)
       (assoc :java-imports default-java-imports))))
-
-(comment
-  (analyze-ns-decl :cljs nil))
 
 (defn analyze-in-ns [{:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)]
