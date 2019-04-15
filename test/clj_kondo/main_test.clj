@@ -242,6 +242,23 @@
             :message "Wrong number of args (3) passed to java.lang.Thread/sleep"}
            (first (lint! "#?(:clj (java.lang.Thread/sleep 1 2 3))" "--lang" "cljc"))))))
 
+(deftest resolve-core-ns-test
+  (is (submap? '{:file "<stdin>",
+                 :row 1,
+                 :col 1,
+                 :level :error,
+                 :message "Wrong number of args (0) passed to clojure.core/vec"}
+               (first (lint! "(clojure.core/vec)" "--lang" "clj"))))
+  (is (submap? '{:file "<stdin>",
+                :row 1,
+                 :col 1,
+                 :level :error,
+                 :message "Wrong number of args (0) passed to cljs.core/vec"}
+               (first (lint! "(cljs.core/vec)" "--lang" "cljs")))))
+
+(deftest override-test
+  (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
+
 ;;;; Scratch
 
 (comment

@@ -92,7 +92,10 @@
                     :row 0
                     :message (str "Can't parse "
                                   filename ", "
-                                  (.getMessage e))}]}])))
+                                  (.getMessage e))}]}])
+    (finally
+      (when (-> config :output :progress)
+        (print ".") (flush)))))
 
 ;;;; scratch
 
