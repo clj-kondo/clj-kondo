@@ -10,7 +10,8 @@
            }
  ;; output can be filtered and removed by regex on filename. empty options leave
  ;; the output untouched.
- :output {;; :filter ["^src" "^test"]
+ :output {;; :progress false
+          ;; :filter ["^src" "^test"]
           ;; :remove ["^cljs/core"]
           ;; :pattern "{{file}}:{{row}}:{{col}}: {{level}}: {{message}}"
           }

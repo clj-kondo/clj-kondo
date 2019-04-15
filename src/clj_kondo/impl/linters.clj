@@ -84,7 +84,7 @@
           ods (redundant-do filename parsed-expressions)]
       (cons {:findings (concat ids nls ods)
              :lang lang}
-            (analyze-arities filename lang parsed-expressions (:debug? config))))
+            (analyze-arities filename lang parsed-expressions (:debug config))))
     (catch Exception e
       [{:findings [{:level :error
                     :filename filename

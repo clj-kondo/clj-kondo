@@ -113,6 +113,8 @@ Options:
   (str/includes? f ":"))
 
 (defn- process-file [filename default-language config]
+  (when (-> config :output :progress)
+    (print ".") (flush))
   (try
     (let [file (io/file filename)]
       (cond
@@ -297,8 +299,9 @@ Options:
               :else
               (let [processed
                     (process-files files default-lang
-                                   {:debug? (:debug config)
-                                    :ignore-comments? (->  config :analysis :comments :disabled)})
+                                   config)
+                    _ (when (-> config :output :progress)
+                        (println))
                     idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
