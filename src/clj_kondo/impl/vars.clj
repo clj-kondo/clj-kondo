@@ -328,7 +328,8 @@
                                          (assoc first-parsed
                                                 :name (:name resolved)
                                                 :ns (:name ns))
-                                       (not= lang (:lang first-parsed))
+                                       ;; if defined in CLJC file, we add that as the base-lang
+                                       (= :cljc lang)
                                        (assoc :base-lang lang))]
                     (case (:type first-parsed)
                       :defn
@@ -412,15 +413,23 @@
               (get-in cljs-core-cljc-defs [:cljs var-name]))
     :cljc (get clojure-core-defs var-name)))
 
-(defn resolve-call [idacs file-lang call-lang fn-ns fn-name]
-  ;; (println file-lang call-lang fn-name)
-  ;; TODO: think this through more per language!
-  (or (get-in idacs [file-lang :defs fn-ns fn-name])
-      (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
-      (case file-lang
-        :cljc (get-in idacs [:clj :defs fn-ns fn-name])
-        nil)
-      (get-in idacs [:cljc :defs fn-ns call-lang fn-name])))
+(defn resolve-call [idacs call-lang fn-ns fn-name]
+  ;; call lang clj. [foo.core] can come from another .clj or .cljc file
+  ;; call lang cljs. [foo.core] can come from another .cljs, .clj (macros) or .cljc file
+  ;; call lang cljc. [foo.core]. we should split this call into a clj and cljs one (see #67). for now, we'll only look into .clj.
+  (case call-lang
+    :clj (or (get-in idacs [:clj :defs fn-ns fn-name])
+             (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
+             (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+    :cljs (or (get-in idacs [:cljs :defs fn-ns fn-name])
+              (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
+              (get-in idacs [:cljc :defs fn-ns :cljs fn-name]))
+    :cljc (or
+           ;; there might be both a .clj and .cljs version of the file with the same name
+           (get-in idacs [:clj :defs fn-ns fn-name])
+           (get-in idacs [:cljs :defs fn-ns fn-name])
+           ;; or there is once .cljc file with this name and the function is defined for both languages
+           (get-in idacs [:cljc :defs fn-ns :cljc fn-name]))))
 
 (defn fn-call-findings
   "Analyzes indexed defs and calls and returns findings."
@@ -433,12 +442,15 @@
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
-                             (or (resolve-call idacs lang (:lang call) fn-ns fn-name)
+                             (or (resolve-call idacs (:lang call) fn-ns fn-name)
                                  (when (and
                                         (not (:clojure-excluded? call))
+                                        ;; we resolved this call against the
+                                        ;; same namespace, because it was
+                                        ;; unqualified
                                         (= caller-ns
                                            fn-ns))
-                                   (resolve-call idacs lang (:lang call)
+                                   (resolve-call idacs (:lang call)
                                                  (case lang
                                                    :clj 'clojure.core
                                                    :cljs 'cljs.core
