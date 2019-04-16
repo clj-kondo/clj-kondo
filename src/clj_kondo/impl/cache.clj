@@ -81,6 +81,15 @@
 (defn cljs-core [cache-dir]
   (from-cache-1 cache-dir :cljs 'cljs.core))
 
+(defn cljs-core-cljc [cache-dir]
+  (from-cache-1 cache-dir :cljc 'cljs.core))
+
+(defn assoc-when-missing [idacs path data]
+  (if-not (get-in idacs path)
+    (assoc-in idacs path
+              data)
+    idacs))
+
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
             (let [analyzed-namespaces
@@ -111,16 +120,18 @@
                 ;; load clojure.core and/or cljs.core only once
                 (case lang
                   (:clj :cljc)
-                  (if (and (seq called-namespaces)
-                           (not (get-in idacs [:clj :defs 'clojure.core])))
-                    (assoc-in idacs [:clj :defs 'clojure.core]
-                              (clojure-core cache-dir))
+                  (if (seq called-namespaces)
+                    (assoc-when-missing idacs
+                                        [:clj :defs 'clojure.core]
+                                        (clojure-core cache-dir))
                     idacs)
                   :cljs
-                  (if (and (seq called-namespaces)
-                           (not (get-in idacs [:cljs :defs 'cljs.core])))
-                    (assoc-in idacs [:cljs :defs 'cljs.core]
-                              (cljs-core cache-dir))
+                  (if (seq called-namespaces)
+                    (-> idacs
+                        (assoc-when-missing [:cljs :defs 'cljs.core]
+                                            (cljs-core cache-dir))
+                        (assoc-when-missing [:cljc :defs 'cljs.core]
+                                            (cljs-core-cljc cache-dir)))
                     idacs)))))
           idacs
           [:clj :cljs :cljc]))
@@ -135,7 +146,7 @@
 
 (comment
   (from-cache-1 nil :clj 'clojure.datafy)
-  (get (from-cache-1 nil :cljs 'cljs.core) 'apply)
+  (keys (from-cache-1 nil :cljc 'cljs.core))
   (time (get (from-cache-1 nil :clj 'clojure.core) '+))
   (time (get (from-cache-1 nil :clj 'java.lang.Thread) 'sleep))
   )

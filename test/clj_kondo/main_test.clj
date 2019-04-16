@@ -166,17 +166,16 @@
       (is (= 3 (with-in-str "(defn foo []) (foo 1)" (main "--lint" "-")))))))
 
 (deftest cond-without-else-test
-  (is (= '({:file "corpus/cond_without_else.clj",
-            :row 7,
-            :col 1,
-            :level :warning,
-            :message "cond without :else"}
-           {:file "corpus/cond_without_else.clj",
-            :row 14,
-            :col 1,
-            :level :warning,
-            :message "cond without :else"})
-         (lint! (io/file "corpus" "cond_without_else.clj")))))
+  (doseq [lang [:clj :cljs :cljc]]
+    (is (map submap? '({:row 7,
+                        :col 1,
+                        :level :warning,
+                        :message "cond without :else"}
+                       {:row 14,
+                        :col 1,
+                        :level :warning,
+                        :message "cond without :else"})
+             (lint! (io/file "corpus" (str "cond_without_else." (name lang))))))))
 
 (deftest built-in-test
   (is (= {:file "<stdin>",

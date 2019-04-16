@@ -229,7 +229,7 @@
      ;; TODO: better resolving for these macro calls
      ;; core/->> was hard-coded here because of
      ;; https://github.com/clojure/clojurescript/blob/73272a2da45a4c69d090800fa7732abe3fd05c70/src/main/clojure/cljs/core.cljc#L551
-     (some-call expr defn defn- core/defn core/defn- defmacro)
+     (some-call expr defn defn- core/defn core/defn- defmacro core/defmacro)
      (parse-defn lang bindings expr)
      ;; TODO: better resolving for these macro calls
      ;; core/->> was hard-coded here because of
@@ -392,44 +392,62 @@
     (when (not= :else last-condition)
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
+(defn lint-deftest [filename expr]
+  )
+
 (defn var-specific-findings [filename call called-fn]
   (case [(:ns called-fn) (:name called-fn)]
     [clojure.core cond] (lint-cond filename (:expr call))
-    [clojure.core deftest] nil #_(println "is!!!")
+    [cljs.core cond] (lint-cond filename (:expr call))
+    [clojure.core deftest] (lint-deftest filename (:expr call))
     []))
 
 (defn core-lookup
-  [clojure-core-defs cljs-core-defs lang var-name]
-  (let [core (case lang
-               :clj clojure-core-defs
-               :cljs cljs-core-defs
-               :cljc clojure-core-defs)]
-    (get core var-name)))
+  [clojure-core-defs cljs-core-defs cljs-core-cljc-defs
+   lang var-name]
+  (case lang
+    :clj (get clojure-core-defs var-name)
+    :cljs (or (get cljs-core-defs var-name)
+              (get-in cljs-core-cljc-defs [:cljc var-name])
+              (get-in cljs-core-cljc-defs [:cljs var-name]))
+    :cljc (get clojure-core-defs var-name)))
+
+(defn resolve-call [idacs file-lang call-lang fn-ns fn-name]
+  ;; (println file-lang call-lang fn-name)
+  ;; TODO: think this through more per language!
+  (or (get-in idacs [file-lang :defs fn-ns fn-name])
+      (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
+      (case file-lang
+        :cljc (get-in idacs [:clj :defs fn-ns fn-name])
+        nil)
+      (get-in idacs [:cljc :defs fn-ns call-lang fn-name])))
 
 (defn fn-call-findings
   "Analyzes indexed defs and calls and returns findings."
   [idacs]
-  (let [clojure-core-defs (get-in idacs [:clj :defs 'clojure.core])
-        cljs-core-defs (get-in idacs [:cljs :defs 'cljs.core])
-        findings (for [lang [:clj :cljs :cljc]
+  (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [fn-name (:name call)
+                       :let [;; _ (prn call)
+                             fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
-                             (or (get-in idacs [lang :defs fn-ns fn-name])
-                                 (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
-                                 (get-in idacs [:cljc :defs fn-ns (:lang call) fn-name])
+                             (or (resolve-call idacs lang (:lang call) fn-ns fn-name)
                                  (when (and
                                         (not (:clojure-excluded? call))
                                         (= caller-ns
                                            fn-ns))
-                                   (core-lookup clojure-core-defs cljs-core-defs
-                                                lang fn-name)))
+                                   (resolve-call idacs lang (:lang call)
+                                                 (case lang
+                                                   :clj 'clojure.core
+                                                   :cljs 'cljs.core
+                                                   :cljc 'clojure.core)
+                                                 fn-name)))
                              fn-ns (:ns called-fn)]
                        :when called-fn
-                       :let [;; a macro in a CLJC file with the same namespace
+                       :let [;; _ (prn called-fn)
+                             ;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
                              ;; call and the lang of the function def context in
