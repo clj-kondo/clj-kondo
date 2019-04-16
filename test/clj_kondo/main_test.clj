@@ -259,6 +259,18 @@
 (deftest override-test
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
+(deftest override-test
+  (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
+
+(deftest cljs-clojure-ns-alias-test
+  (is (submap? '{:file "<stdin>",
+                :row 2,
+                :col 1,
+                :level :error,
+                :message "Wrong number of args (3) passed to cljs.test/do-report"}
+               (first (lint! "(ns foo (:require [clojure.test :as t]))
+(t/do-report 1 2 3)" "--lang" "cljs")))))
+
 ;;;; Scratch
 
 (comment

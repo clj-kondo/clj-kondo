@@ -41,11 +41,18 @@
 (defn refer-clojure-clause? [{:keys [:children] :as expr}]
   (= :refer-clojure (:k (first children))))
 
-(defn analyze-require-subclause [{:keys [:children] :as expr}]
+(defn analyze-require-subclause [lang {:keys [:children] :as expr}]
   (when (= :vector (:tag expr))
     ;; ns-name can be a string in CLJS projects, that's why we can't just take the :value
     ;; see #51
-    (let [ns-name (symbol (node/sexpr (first children)))]
+    (let [ns-name (symbol (node/sexpr (first children)))
+          ;; CLJS clojure namespace aliasing
+          ns-name (if (= :cljs lang)
+                    (case ns-name
+                      clojure.test 'cljs.test
+                      clojure.pprint 'cljs.pprint
+                      ns-name)
+                    ns-name)]
       (loop [children (rest children)
              as nil
              refers []]
@@ -85,7 +92,7 @@
   ;; TODO: just apply strip-meta and remove handling of meta here
   ;; TODO: we can do all of these steps in one reduce
   (let [requires (filter require-clause? children)
-        subclauses (mapcat #(map analyze-require-subclause
+        subclauses (mapcat #(map (fn [expr] (analyze-require-subclause lang expr))
                                  (rest (:children %)))
                            requires)]
     (cond->
@@ -97,8 +104,12 @@
                        (:value (last (:children name-node)))
                        (:value name-node))))
                    'user)
-         :qualify-var (into {} (mapcat #(mapcat (comp :refers analyze-require-subclause)
-                                                (:children %)) requires))
+         :qualify-var (into {}
+                            (mapcat #(mapcat
+                                      (comp :refers
+                                            (fn [expr]
+                                              (analyze-require-subclause lang expr)))
+                                      (:children %)) requires))
          :qualify-ns (reduce (fn [acc sc]
                                (cond-> (assoc acc (:ns sc) (:ns sc))
                                  (:as sc)
@@ -111,8 +122,10 @@
                                       :when (= :exclude (:k k))
                                       sym (:children v)]
                                   (:value sym)))}
-      (= :clj lang) (assoc-in [:qualify-ns 'clojure.core] 'clojure.core)
-      (= :cljs lang) (assoc-in [:qualify-ns 'cljs.core] 'cljs.core)
+      (= :clj lang) (update :qualify-ns
+                            #(assoc % 'clojure.core 'clojure.core))
+      (= :cljs lang) (update :qualify-ns
+                             #(assoc % 'cljs.core 'cljs.core))
       (contains? #{:clj :cljc} lang)
       (assoc :java-imports default-java-imports))))
 
