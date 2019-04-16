@@ -177,6 +177,14 @@
                         :message "cond without :else"})
              (lint! (io/file "corpus" (str "cond_without_else." (name lang))))))))
 
+(deftest cljs-core-macro-test
+  (is (submap? '{:file "<stdin>",
+                 :row 1,
+                 :col 1,
+                 :level :error,
+                 :message "Wrong number of args (4) passed to cljs.core/for"}
+               (first (lint! "(for [x []] 1 2 3)" "--lang" "cljs")))))
+
 (deftest built-in-test
   (is (= {:file "<stdin>",
           :row 1,
