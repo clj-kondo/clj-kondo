@@ -269,7 +269,7 @@
 (deftest override-test
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
-(deftest cljs-clojure-ns-alias-test
+(deftest cljs-clojure-ns-alias-test []
   (is (submap? '{:file "<stdin>",
                 :row 2,
                 :col 1,

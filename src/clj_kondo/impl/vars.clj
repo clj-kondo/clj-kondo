@@ -394,24 +394,28 @@
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
 (defn lint-deftest [filename expr]
+  ;; TODO: also lint empty vector after name, since this does nothing.
+  (let [calls (nnext (:children expr))]
+    (for [c calls
+          :let [fn-name (some-> c :children first :string-value)]
+          :when (and fn-name
+                     (or (= "=" fn-name) (str/ends-with? fn-name "?")))]
+      (node->line filename c :warning :missing-test-assertion "missing test assertion"))))
+
+(comment
+  (lint-deftest "x"
+   (parse-string "(deftest foo
+  (odd? 1)
+  (is (odd? 1)))"))
   )
 
 (defn var-specific-findings [filename call called-fn]
   (case [(:ns called-fn) (:name called-fn)]
     [clojure.core cond] (lint-cond filename (:expr call))
     [cljs.core cond] (lint-cond filename (:expr call))
-    [clojure.core deftest] (lint-deftest filename (:expr call))
+    [clojure.test deftest] (lint-deftest filename (:expr call))
+    [cljs.test deftest] (lint-deftest filename (:expr call))
     []))
-
-(defn core-lookup
-  [clojure-core-defs cljs-core-defs cljs-core-cljc-defs
-   lang var-name]
-  (case lang
-    :clj (get clojure-core-defs var-name)
-    :cljs (or (get cljs-core-defs var-name)
-              (get-in cljs-core-cljc-defs [:cljc var-name])
-              (get-in cljs-core-cljc-defs [:cljs var-name]))
-    :cljc (get clojure-core-defs var-name)))
 
 (defn resolve-call [idacs call-lang fn-ns fn-name]
   ;; call lang clj. [foo.core] can come from another .clj or .cljc file
@@ -428,7 +432,7 @@
            ;; there might be both a .clj and .cljs version of the file with the same name
            (get-in idacs [:clj :defs fn-ns fn-name])
            (get-in idacs [:cljs :defs fn-ns fn-name])
-           ;; or there is once .cljc file with this name and the function is defined for both languages
+           ;; or there is one .cljc file with this name and the function is defined for both languages
            (get-in idacs [:cljc :defs fn-ns :cljc fn-name]))))
 
 (defn fn-call-findings
@@ -437,8 +441,7 @@
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [;; _ (prn call)
-                             fn-name (:name call)
+                       :let [fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
