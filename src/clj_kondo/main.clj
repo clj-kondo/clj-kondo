@@ -297,7 +297,7 @@ Options:
                     idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
-                    fcf (fn-call-findings idacs)
+                    fcf (fn-call-findings idacs config)
                     all-findings (concat fcf (mapcat :findings processed))
                     all-findings (filter-findings all-findings config)
                     {:keys [:error :warning]} (summarize all-findings)]

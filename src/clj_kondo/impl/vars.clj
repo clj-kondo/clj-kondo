@@ -197,11 +197,13 @@
              :col col
              :lang lang}))]
     (cons defn
-          (mapcat
-           #(parse-arities lang (reduce set/union bindings
-                                        (map :arg-names arities))
-                           %)
-           (rest children)))))
+          (map (fn [m]
+                 (assoc m :parent fn-name))
+               (mapcat
+                #(parse-arities lang (reduce set/union bindings
+                                             (map :arg-names arities))
+                                %)
+                (rest children))))))
 
 (defn reader-conditional-expr? [expr]
   (and (= :reader-macro (node/tag expr))
@@ -393,12 +395,14 @@
     (when (not= :else last-condition)
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
-(defn lint-deftest [filename expr]
+(defn lint-deftest [config filename expr]
   ;; TODO: also lint empty vector after name, since this does nothing.
   (let [calls (nnext (:children expr))]
     (for [c calls
           :let [fn-name (some-> c :children first :string-value)]
           :when (and fn-name
+                     (not (when-let [excluded (-> config :missing-test-assertion :exclude)]
+                            (contains? excluded (symbol fn-name))))
                      (or (= "=" fn-name) (str/ends-with? fn-name "?")))]
       (node->line filename c :warning :missing-test-assertion "missing test assertion"))))
 
@@ -409,15 +413,16 @@
   (is (odd? 1)))"))
   )
 
-(defn var-specific-findings [filename call called-fn]
+(defn var-specific-findings [config filename call called-fn]
   (case [(:ns called-fn) (:name called-fn)]
     [clojure.core cond] (lint-cond filename (:expr call))
     [cljs.core cond] (lint-cond filename (:expr call))
-    [clojure.test deftest] (lint-deftest filename (:expr call))
-    [cljs.test deftest] (lint-deftest filename (:expr call))
+    [clojure.test deftest] (lint-deftest config filename (:expr call))
+    [cljs.test deftest] (lint-deftest config filename (:expr call))
     []))
 
 (defn resolve-call [idacs call-lang fn-ns fn-name]
+  ;; TODO: for cljs -> clj/cljc calls we can probably store whether a function is a macro or not and use that
   ;; call lang clj. [foo.core] can come from another .clj or .cljc file
   ;; call lang cljs. [foo.core] can come from another .cljs, .clj (macros) or .cljc file
   ;; call lang cljc. [foo.core]. we should split this call into a clj and cljs one (see #67). for now, we'll only look into .clj.
@@ -437,11 +442,12 @@
 
 (defn fn-call-findings
   "Analyzes indexed defs and calls and returns findings."
-  [idacs]
+  [idacs config]
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [fn-name (:name call)
+                       :let [;; _ (prn call)
+                             fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
@@ -485,7 +491,11 @@
                              (into
                               [(when-not
                                    (or (contains? fixed-arities arity)
-                                       (and var-args-min-arity (>= arity var-args-min-arity)))
+                                       (and var-args-min-arity (>= arity var-args-min-arity))
+                                       (when-let [excluded (-> config :invalid-arity :exclude)]
+                                         (contains? excluded
+                                          (symbol (str fn-ns)
+                                                  (str fn-name)))))
                                  {:filename filename
                                   :row (:row call)
                                   :col (:col call)
@@ -504,7 +514,7 @@
                                   :type :private-call
                                   :message (format "Call to private function %s"
                                                    (:name call))})]
-                              (var-specific-findings filename call called-fn))]
+                              (var-specific-findings config filename call called-fn))]
                        e errors
                        :when e]
                    e)]
