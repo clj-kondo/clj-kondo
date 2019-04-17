@@ -122,7 +122,7 @@
               :col 1,
               :level :error,
               :message "Wrong number of args (4) passed to clojure.core/get"})
-          linted))))
+           linted))))
 
 (deftest private-call-test
   (let [linted (lint! (io/file "corpus" "private"))]
@@ -257,7 +257,7 @@
                  :message "Wrong number of args (0) passed to clojure.core/vec"}
                (first (lint! "(clojure.core/vec)" "--lang" "clj"))))
   (is (submap? '{:file "<stdin>",
-                :row 1,
+                 :row 1,
                  :col 1,
                  :level :error,
                  :message "Wrong number of args (0) passed to cljs.core/vec"}
@@ -271,12 +271,27 @@
 
 (deftest cljs-clojure-ns-alias-test []
   (is (submap? '{:file "<stdin>",
-                :row 2,
-                :col 1,
-                :level :error,
-                :message "Wrong number of args (3) passed to cljs.test/do-report"}
+                 :row 2,
+                 :col 1,
+                 :level :error,
+                 :message "Wrong number of args (3) passed to cljs.test/do-report"}
                (first (lint! "(ns foo (:require [clojure.test :as t]))
 (t/do-report 1 2 3)" "--lang" "cljs")))))
+
+(deftest prefix-libspec-test []
+  (is (every? identity
+              (map submap?
+                   '({:file "corpus/prefixed_libspec.clj",
+                      :row 14,
+                      :col 1,
+                      :level :error,
+                      :message "Wrong number of args (0) passed to foo.bar.baz/b"}
+                     {:file "corpus/prefixed_libspec.clj",
+                      :row 15,
+                      :col 1,
+                      :level :error,
+                      :message "Wrong number of args (0) passed to foo.baz/c"})
+                   (lint! (io/file "corpus" "prefixed_libspec.clj"))))))
 
 ;;;; Scratch
 

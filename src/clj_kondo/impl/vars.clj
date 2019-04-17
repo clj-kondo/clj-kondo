@@ -3,6 +3,7 @@
   (:require
    [clj-kondo.impl.utils :refer [some-call node->line
                                  parse-string parse-string-all]]
+   [clj-kondo.impl.namespace :refer [analyze-ns-decl]]
    [clojure.set :as set]
    [rewrite-clj.node.protocols :as node]
    [clojure.string :as str]))
@@ -34,100 +35,6 @@
                (conj arg-names (arg-name arg))))
       {:arg-names arg-names
        :fixed-arity arity})))
-
-(defn require-clause? [{:keys [:children] :as expr}]
-  (= :require (:k (first children))))
-
-(defn refer-clojure-clause? [{:keys [:children] :as expr}]
-  (= :refer-clojure (:k (first children))))
-
-(defn analyze-require-subclause [lang {:keys [:children] :as expr}]
-  (when (= :vector (:tag expr))
-    ;; ns-name can be a string in CLJS projects, that's why we can't just take the :value
-    ;; see #51
-    (let [ns-name (symbol (node/sexpr (first children)))
-          ;; CLJS clojure namespace aliasing
-          ns-name (if (= :cljs lang)
-                    (case ns-name
-                      clojure.test 'cljs.test
-                      clojure.pprint 'cljs.pprint
-                      ns-name)
-                    ns-name)]
-      (loop [children (rest children)
-             as nil
-             refers []]
-        (if-let [child (first children)]
-          (case (:k child)
-            :refer
-            (recur
-             (nnext children)
-             as
-             (into refers (map :value (:children (fnext children)))))
-            :as
-            (recur
-             (nnext children)
-             (:value (fnext children))
-             refers)
-            nil)
-          {:type :require
-           :ns ns-name
-           :as as
-           :refers (map (fn [refer]
-                          [refer {:ns ns-name
-                                  :name refer}])
-                        refers)})))))
-
-(def default-java-imports
-  (reduce (fn [acc [prefix sym]]
-            (let [fq (symbol (str prefix sym))]
-              (-> acc
-                  (assoc fq fq)
-                  (assoc sym fq))))
-          {}
-          (into (mapv vector (repeat "java.lang.") '[Boolean Byte CharSequence Character Double
-                                                     Integer Long Math String System Thread])
-                (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
-
-(defn analyze-ns-decl [lang {:keys [:children] :as expr}]
-  ;; TODO: just apply strip-meta and remove handling of meta here
-  ;; TODO: we can do all of these steps in one reduce
-  (let [requires (filter require-clause? children)
-        subclauses (mapcat #(map (fn [expr] (analyze-require-subclause lang expr))
-                                 (rest (:children %)))
-                           requires)]
-    (cond->
-        {:type :ns
-         :lang lang
-         :name (or (when-let [name-node (second children)]
-                    (symbol
-                     (if (contains? #{:meta :meta*} (node/tag name-node))
-                       (:value (last (:children name-node)))
-                       (:value name-node))))
-                   'user)
-         :qualify-var (into {}
-                            (mapcat #(mapcat
-                                      (comp :refers
-                                            (fn [expr]
-                                              (analyze-require-subclause lang expr)))
-                                      (:children %)) requires))
-         :qualify-ns (reduce (fn [acc sc]
-                               (cond-> (assoc acc (:ns sc) (:ns sc))
-                                 (:as sc)
-                                 (assoc (:as sc) (:ns sc))))
-                             {}
-                             subclauses)
-         :clojure-excluded (set (for [c children
-                                      :when (refer-clojure-clause? c)
-                                      [k v] (partition 2 (rest (:children c)))
-                                      :when (= :exclude (:k k))
-                                      sym (:children v)]
-                                  (:value sym)))}
-      (= :clj lang) (update :qualify-ns
-                            #(assoc % 'clojure.core 'clojure.core))
-      (= :cljs lang) (update :qualify-ns
-                             #(assoc % 'cljs.core 'cljs.core))
-      (contains? #{:clj :cljc} lang)
-      (assoc :java-imports default-java-imports))))
 
 (defn analyze-in-ns [{:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)]
@@ -303,7 +210,7 @@
   ([filename lang expr] (analyze-arities filename lang expr false))
   ([filename lang expr debug?]
    (loop [[first-parsed & rest-parsed] (parse-arities lang expr)
-          ns (analyze-ns-decl lang nil)
+          ns (analyze-ns-decl lang (parse-string "(ns user)"))
           results {:calls {}
                    :defs {}
                    :findings []
@@ -396,7 +303,6 @@
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
 (defn lint-deftest [config filename expr]
-  ;; TODO: also lint empty vector after name, since this does nothing.
   (let [calls (nnext (:children expr))]
     (for [c calls
           :let [fn-name (some-> c :children first :string-value)]
@@ -405,13 +311,6 @@
                             (contains? excluded (symbol fn-name))))
                      (or (= "=" fn-name) (str/ends-with? fn-name "?")))]
       (node->line filename c :warning :missing-test-assertion "missing test assertion"))))
-
-(comment
-  (lint-deftest "x"
-   (parse-string "(deftest foo
-  (odd? 1)
-  (is (odd? 1)))"))
-  )
 
 (defn var-specific-findings [config filename call called-fn]
   (case [(:ns called-fn) (:name called-fn)]

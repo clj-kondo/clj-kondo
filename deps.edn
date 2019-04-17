@@ -1,6 +1,5 @@
 {:paths ["src" "resources"]
  :deps {rewrite-clj {:mvn/version "0.6.1"}
-        org.clojure/tools.namespace {:mvn/version "0.3.0-alpha4"}
         com.cognitect/transit-clj {:mvn/version "0.8.313"}}
  :aliases {:native-image
            {:jvm-opts [#_"-Dclojure.compiler.direct-linking=true"]
