@@ -56,7 +56,7 @@
                      (io/file bar-file))
             (let [output (lint! bar-file "--cache" test-cache-dir)]
               (is (str/includes? (:message (first output))
-                                 "Wrong number of args (3) passed to foo/foo")))))
+                                 "wrong number of args (3) passed to foo/foo")))))
         (testing "arity of foo has changed"
           (io/copy "(ns foo) (defn foo [x y])"
                    (io/file test-source-dir (str "foo."
@@ -68,7 +68,7 @@
                      (io/file bar-file))
             (let [output (lint! bar-file "--cache" test-cache-dir)]
               (is (str/includes? (:message (first output))
-                                 "Wrong number of args (1) passed to foo/foo")))
+                                 "wrong number of args (1) passed to foo/foo")))
             (io/copy "(ns bar (:require [foo :refer [foo]])) (foo 1 2)"
                      (io/file bar-file))
             (let [output (lint! bar-file "--cache" test-cache-dir)]
@@ -93,7 +93,7 @@
           (lint! foo "--cache" test-cache-dir)
           (let [output (lint! bar "--cache" test-cache-dir)]
             (is (str/includes? (:message (first output))
-                               "Wrong number of args (3) passed to foo/foo"))))))))
+                               "wrong number of args (3) passed to foo/foo"))))))))
 
 (deftest lock-test
   (let [tmp-dir (System/getProperty "java.io.tmpdir")

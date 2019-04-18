@@ -3,6 +3,7 @@
   (:require
    [clj-kondo.impl.utils :refer [some-call node->line
                                  parse-string parse-string-all]]
+   [clj-kondo.impl.namespace :refer [analyze-ns-decl]]
    [clojure.set :as set]
    [rewrite-clj.node.protocols :as node]
    [clojure.string :as str]))
@@ -34,87 +35,6 @@
                (conj arg-names (arg-name arg))))
       {:arg-names arg-names
        :fixed-arity arity})))
-
-(defn require-clause? [{:keys [:children] :as expr}]
-  (= :require (:k (first children))))
-
-(defn refer-clojure-clause? [{:keys [:children] :as expr}]
-  (= :refer-clojure (:k (first children))))
-
-(defn analyze-require-subclause [{:keys [:children] :as expr}]
-  (when (= :vector (:tag expr))
-    ;; ns-name can be a string in CLJS projects, that's why we can't just take the :value
-    ;; see #51
-    (let [ns-name (symbol (node/sexpr (first children)))]
-      (loop [children (rest children)
-             as nil
-             refers []]
-        (if-let [child (first children)]
-          (case (:k child)
-            :refer
-            (recur
-             (nnext children)
-             as
-             (into refers (map :value (:children (fnext children)))))
-            :as
-            (recur
-             (nnext children)
-             (:value (fnext children))
-             refers)
-            nil)
-          {:type :require
-           :ns ns-name
-           :as as
-           :refers (map (fn [refer]
-                          [refer {:ns ns-name
-                                  :name refer}])
-                        refers)})))))
-
-(def default-java-imports
-  (reduce (fn [acc [prefix sym]]
-            (let [fq (symbol (str prefix sym))]
-              (-> acc
-                  (assoc fq fq)
-                  (assoc sym fq))))
-          {}
-          (into (mapv vector (repeat "java.lang.") '[Boolean Byte CharSequence Character Double
-                                                     Integer Long Math String System Thread])
-                (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
-
-(defn analyze-ns-decl [lang {:keys [:children] :as expr}]
-  ;; TODO: just apply strip-meta and remove handling of meta here
-  ;; TODO: we can do all of these steps in one reduce
-  (let [requires (filter require-clause? children)
-        subclauses (mapcat #(map analyze-require-subclause
-                                 (rest (:children %)))
-                           requires)]
-    (cond->
-        {:type :ns
-         :lang lang
-         :name (or (when-let [name-node (second children)]
-                    (symbol
-                     (if (contains? #{:meta :meta*} (node/tag name-node))
-                       (:value (last (:children name-node)))
-                       (:value name-node))))
-                   'user)
-         :qualify-var (into {} (mapcat #(mapcat (comp :refers analyze-require-subclause)
-                                                (:children %)) requires))
-         :qualify-ns (reduce (fn [acc sc]
-                               (cond-> (assoc acc (:ns sc) (:ns sc))
-                                 (:as sc)
-                                 (assoc (:as sc) (:ns sc))))
-                             {}
-                             subclauses)
-         :clojure-excluded (set (for [c children
-                                      :when (refer-clojure-clause? c)
-                                      [k v] (partition 2 (rest (:children c)))
-                                      :when (= :exclude (:k k))
-                                      sym (:children v)]
-                                  (:value sym)))}
-      (= :clj lang) (assoc-in [:qualify-ns 'clojure.core] 'clojure.core)
-      (= :cljs lang) (assoc-in [:qualify-ns 'cljs.core] 'cljs.core)
-      (contains? #{:clj :cljc} lang)
-      (assoc :java-imports default-java-imports))))
 
 (defn analyze-in-ns [{:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)]
@@ -216,7 +136,7 @@
      ;; TODO: better resolving for these macro calls
      ;; core/->> was hard-coded here because of
      ;; https://github.com/clojure/clojurescript/blob/73272a2da45a4c69d090800fa7732abe3fd05c70/src/main/clojure/cljs/core.cljc#L551
-     (some-call expr defn defn- core/defn core/defn- defmacro)
+     (some-call expr defn defn- core/defn core/defn- defmacro core/defmacro)
      (parse-defn lang bindings expr)
      ;; TODO: better resolving for these macro calls
      ;; core/->> was hard-coded here because of
@@ -288,7 +208,7 @@
   ([filename lang expr] (analyze-arities filename lang expr false))
   ([filename lang expr debug?]
    (loop [[first-parsed & rest-parsed] (parse-arities lang expr)
-          ns (analyze-ns-decl lang nil)
+          ns (analyze-ns-decl lang (parse-string "(ns user)"))
           results {:calls {}
                    :defs {}
                    :findings []
@@ -315,7 +235,8 @@
                                          (assoc first-parsed
                                                 :name (:name resolved)
                                                 :ns (:name ns))
-                                       (not= lang (:lang first-parsed))
+                                       ;; if defined in CLJC file, we add that as the base-lang
+                                       (= :cljc lang)
                                        (assoc :base-lang lang))]
                     (case (:type first-parsed)
                       :defn
@@ -348,7 +269,8 @@
                         (let [path [:calls (:ns resolved)]
                               call (cond-> (assoc first-parsed
                                                   :filename filename
-                                                  :resolved-ns (:ns resolved))
+                                                  :resolved-ns (:ns resolved)
+                                                  :ns-lookup ns)
                                      (:clojure-excluded? resolved)
                                      (assoc :clojure-excluded? true))
                               results (update-in results path vconj call)]
@@ -379,44 +301,74 @@
     (when (not= :else last-condition)
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
-(defn var-specific-findings [filename call called-fn]
+(defn lint-deftest [config filename expr]
+  (let [calls (nnext (:children expr))]
+    (for [c calls
+          :let [fn-name (some-> c :children first :string-value)]
+          :when (and fn-name
+                     (not (when-let [excluded (-> config :missing-test-assertion :exclude)]
+                            (contains? excluded (symbol fn-name))))
+                     (or (= "=" fn-name) (str/ends-with? fn-name "?")))]
+      (node->line filename c :warning :missing-test-assertion "missing test assertion"))))
+
+(defn var-specific-findings [config filename call called-fn]
   (case [(:ns called-fn) (:name called-fn)]
     [clojure.core cond] (lint-cond filename (:expr call))
-    [clojure.core deftest] nil #_(println "is!!!")
+    [cljs.core cond] (lint-cond filename (:expr call))
+    #_#_[clojure.test deftest] (lint-deftest config filename (:expr call))
+    #_#_[cljs.test deftest] (lint-deftest config filename (:expr call))
     []))
 
-(defn core-lookup
-  [clojure-core-defs cljs-core-defs lang var-name]
-  (let [core (case lang
-               :clj clojure-core-defs
-               :cljs cljs-core-defs
-               :cljc clojure-core-defs)]
-    (get core var-name)))
+(defn resolve-call [idacs call-lang fn-ns fn-name]
+  ;; TODO: for cljs -> clj/cljc calls we can probably store whether a function is a macro or not and use that
+  ;; call lang clj. [foo.core] can come from another .clj or .cljc file
+  ;; call lang cljs. [foo.core] can come from another .cljs, .clj (macros) or .cljc file
+  ;; call lang cljc. [foo.core]. we should split this call into a clj and cljs one (see #67). for now, we'll only look into .clj.
+  (case call-lang
+    :clj (or (get-in idacs [:clj :defs fn-ns fn-name])
+             (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
+             (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+    :cljs (or (get-in idacs [:cljs :defs fn-ns fn-name])
+              (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
+              (get-in idacs [:cljc :defs fn-ns :cljs fn-name]))
+    :cljc (or
+           ;; there might be both a .clj and .cljs version of the file with the same name
+           (get-in idacs [:clj :defs fn-ns fn-name])
+           (get-in idacs [:cljs :defs fn-ns fn-name])
+           ;; or there is one .cljc file with this name and the function is defined for both languages
+           (get-in idacs [:cljc :defs fn-ns :cljc fn-name]))))
 
 (defn fn-call-findings
   "Analyzes indexed defs and calls and returns findings."
-  [idacs]
-  (let [clojure-core-defs (get-in idacs [:clj :defs 'clojure.core])
-        cljs-core-defs (get-in idacs [:cljs :defs 'cljs.core])
-        findings (for [lang [:clj :cljs :cljc]
+  [idacs config]
+  (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [fn-name (:name call)
+                       :let [;; _ (prn "call" (-> call :ns* :refer-alls))
+                             fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
-                             (or (get-in idacs [lang :defs fn-ns fn-name])
-                                 (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
-                                 (get-in idacs [:cljc :defs fn-ns (:lang call) fn-name])
-                                 (when (and
-                                        (not (:clojure-excluded? call))
-                                        (= caller-ns
-                                           fn-ns))
-                                   (core-lookup clojure-core-defs cljs-core-defs
-                                                lang fn-name)))
+                             (or (resolve-call idacs (:lang call) fn-ns fn-name)
+                                 ;; we resolved this call against the
+                                 ;; same namespace, because it was
+                                 ;; unqualified
+                                 (when (= caller-ns fn-ns)
+                                   (some #(resolve-call idacs (:lang call) % fn-name)
+                                         (into (vec
+                                                (keep (fn [[ns excluded]]
+                                                        (when-not (contains? excluded fn-name)
+                                                          ns))
+                                                      (-> call :ns-lookup :refer-alls)))
+                                               (when (not (:clojure-excluded? call))
+                                                 [(case lang
+                                                    :clj 'clojure.core
+                                                    :cljs 'cljs.core
+                                                    :cljc 'clojure.core)])))))
                              fn-ns (:ns called-fn)]
                        :when called-fn
-                       :let [;; a macro in a CLJC file with the same namespace
+                       :let [;; _ (prn called-fn)
+                             ;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
                              ;; call and the lang of the function def context in
@@ -439,13 +391,17 @@
                              (into
                               [(when-not
                                    (or (contains? fixed-arities arity)
-                                       (and var-args-min-arity (>= arity var-args-min-arity)))
+                                       (and var-args-min-arity (>= arity var-args-min-arity))
+                                       (when-let [excluded (-> config :invalid-arity :exclude)]
+                                         (contains? excluded
+                                                    (symbol (str fn-ns)
+                                                            (str fn-name)))))
                                  {:filename filename
                                   :row (:row call)
                                   :col (:col call)
                                   :level :error
                                   :type :invalid-arity
-                                  :message (format "Wrong number of args (%s) passed to %s"
+                                  :message (format "wrong number of args (%s) passed to %s"
                                                    (str (:arity call))
                                                    (str (:ns called-fn) "/" (:name called-fn)))})
                                (when (and (:private? called-fn)
@@ -456,9 +412,9 @@
                                   :col (:col call)
                                   :level :error
                                   :type :private-call
-                                  :message (format "Call to private function %s"
+                                  :message (format "call to private function %s"
                                                    (:name call))})]
-                              (var-specific-findings filename call called-fn))]
+                              (var-specific-findings config filename call called-fn))]
                        e errors
                        :when e]
                    e)]
