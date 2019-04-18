@@ -28,41 +28,6 @@
                (first (vars/parse-defn :clj #{}
                                        (parse-string "(defn get-bytes #^bytes [part] part)"))))))
 
-(deftest analyze-ns-test
-  (is
-   (submap?
-    '{:type :ns, :name foo,
-      :qualify-var {quux {:ns bar :name quux}}
-      :qualify-ns {bar bar
-                   baz bar}
-      :clojure-excluded #{get assoc time}}
-    (analyze-ns-decl
-     :clj
-     (parse-string "(ns foo (:require [bar :as baz :refer [quux]])
-                              (:refer-clojure :exclude [get assoc time]))"))))
-  (testing "string namespaces should be allowed in require"
-    (is (submap?
-         '{:type :ns, :name foo
-           :qualify-ns {bar bar
-                        baz bar}}
-         (analyze-ns-decl
-          :clj
-          (parse-string "(ns foo (:require [\"bar\" :as baz]))")))))
-  (testing ":require with simple symbol"
-    (is (submap?
-         '{:type :ns, :name foo
-           :qualify-ns {bar bar}}
-         (analyze-ns-decl
-          :clj
-          (parse-string "(ns foo (:require bar))")))))
-  (testing ":require with :refer :all doesn't crash"
-    (is (submap?
-         '{:type :ns, :name foo
-           :qualify-ns {bar bar}}
-         (analyze-ns-decl
-          :clj
-          (parse-string "(ns foo (:require [bar :refer :all]))"))))))
-
 (deftest resolve-name-test
   (let [ns (analyze-ns-decl
             :clj

@@ -1,7 +1,8 @@
 (ns clj-kondo.impl.namespace
   (:require
-   [clj-kondo.impl.utils :refer [parse-string]]
-   [rewrite-clj.node.protocols :as node]))
+   [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
+   [rewrite-clj.node.protocols :as node]
+   [clojure.java.io :as io]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 
@@ -42,7 +43,7 @@
                         {:reason ::unparsable-ns-form
                          :form form}))))
 
-(defn analyze-require-subclause* [lang libspec]
+(defn analyze-libspec [lang libspec]
   (if (symbol? libspec)
     [{:type :require
       :ns libspec}]
@@ -56,30 +57,51 @@
                       ns-name)
                     ns-name)]
       (loop [children options
-             as nil
-             refers []]
+             {:keys [:as :refers :excluded
+                     :refered-all :renamed] :as m}
+             {:as nil
+              :refers []
+              :excluded #{}
+              :refered-all false
+              :renamed {}}]
         (if-let [child (first children)]
-          (case child
-            :refer
-            (recur
-             (nnext children)
-             as
-             (into refers (let [referred (fnext children)]
-                            ;; referred could be :all
-                            (when (sequential? referred)
-                              referred))))
-            :as
-            (recur
-             (nnext children)
-             (fnext children)
-             refers))
+          (let [opt (fnext children)]
+            (case child
+              (:refer :refer-macros)
+              (recur
+               (nnext children)
+               (cond (sequential? opt)
+                     (update m :refers into opt)
+                     (= :all opt)
+                     (assoc m :refered-all true)
+                     :else m))
+              :as (recur
+                   (nnext children)
+                   (assoc m :as opt))
+              :exclude
+              (recur
+               (nnext children)
+               (update m :excluded into (set opt)))
+              :rename
+              (recur
+               (nnext children)
+               (update m :renamed merge opt))
+              (recur (nnext children)
+                     m)))
           [{:type :require
             :ns ns-name
             :as as
-            :refers (map (fn [refer]
-                           [refer {:ns ns-name
-                                   :name refer}])
-                         refers)}])))))
+            :excluded excluded
+            :refers (concat (map (fn [refer]
+                                   [refer {:ns ns-name
+                                           :name refer}])
+                                 refers)
+                            (map (fn [[original-name new-name]]
+                                   [new-name {:ns ns-name
+                                              :name original-name}])
+                                 renamed))
+            :refered-all refered-all
+            :renamed renamed}])))))
 
 (def default-java-imports
   (reduce (fn [acc [prefix sym]]
@@ -93,13 +115,14 @@
                 (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
 
 (defn analyze-ns-decl [lang expr]
+  ;; TODO: handle rename
   (let [sexpr (node/sexpr expr)
         subclauses
         (for [?require-clause (nnext sexpr)
               :when (= :require (first ?require-clause))
               libspec (rest ?require-clause)
               normalized-libspec (normalize-libspec nil libspec)
-              analyzed (analyze-require-subclause* lang normalized-libspec)]
+              analyzed (analyze-libspec lang normalized-libspec)]
           analyzed)]
     (cond->
         {:type :ns
@@ -118,7 +141,13 @@
                                       [k v] (partition 2 (rest ?refer-clojure))
                                       :when (= :exclude k)
                                       sym v]
-                                  sym))}
+                                  sym))
+         :refer-alls (reduce (fn [acc clause]
+                               (if (:refered-all clause)
+                                 (assoc acc (:ns clause) (:excluded clause))
+                                 acc))
+                             {}
+                             subclauses)}
       (= :clj lang) (update :qualify-ns
                             #(assoc % 'clojure.core 'clojure.core))
       (= :cljs lang) (update :qualify-ns
@@ -130,4 +159,5 @@
 
 (comment
   (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj")))
+  (analyze-libspec :clj (node/sexpr (parse-string "[foo.core :refer :all :exclude [foo] :rename {old-name new-name}]")))
   )

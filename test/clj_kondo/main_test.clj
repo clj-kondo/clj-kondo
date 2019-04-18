@@ -65,7 +65,7 @@
              {:row 11, :col 1, :file "corpus/invalid_arity/defs.clj"}
              {:row 9, :col 1, :file "corpus/invalid_arity/order.clj"})
            row-col-files))
-    (is (every? #(str/includes? % "Wrong number of args")
+    (is (every? #(str/includes? % "wrong number of args")
                 (map :message linted))))
   (let [invalid-core-function-call-example "
 (ns clojure.core)
@@ -78,7 +78,7 @@
 "
         linted (lint! invalid-core-function-call-example)]
     (is (pos? (count linted)))
-    (is (every? #(str/includes? % "Wrong number of args")
+    (is (every? #(str/includes? % "wrong number of args")
                 linted)))
   (is (empty? (lint! "(defn foo [x]) (defn bar [foo] (foo))")))
   (is (empty? (lint! "(defn foo [x]) (let [foo (fn [])] (foo))")))
@@ -121,7 +121,7 @@
               :row 12,
               :col 1,
               :level :error,
-              :message "Wrong number of args (4) passed to clojure.core/get"})
+              :message "wrong number of args (4) passed to clojure.core/get"})
            linted))))
 
 (deftest private-call-test
@@ -142,7 +142,7 @@
                 :row 6,
                 :col 1,
                 :level :error,
-                :message "Wrong number of args (1) passed to read-error.ok/foo"})
+                :message "wrong number of args (1) passed to read-error.ok/foo"})
              linted)))))
 
 (deftest nested-namespaced-maps-workaround-test
@@ -153,7 +153,7 @@
                 :col 1,
                 :level :error,
                 :message
-                "Wrong number of args (2) passed to nested-namespaced-maps-workaround/test-fn"})
+                "wrong number of args (2) passed to nested-namespaced-maps-workaround/test-fn"})
              linted)))))
 
 (deftest exit-code-test
@@ -182,7 +182,7 @@
                  :row 1,
                  :col 1,
                  :level :error,
-                 :message "Wrong number of args (4) passed to cljs.core/for"}
+                 :message "wrong number of args (4) passed to cljs.core/for"}
                (first (lint! "(for [x []] 1 2 3)" "--lang" "cljs")))))
 
 (deftest built-in-test
@@ -190,53 +190,53 @@
           :row 1,
           :col 1,
           :level :error,
-          :message "Wrong number of args (1) passed to clojure.core/select-keys"}
+          :message "wrong number of args (1) passed to clojure.core/select-keys"}
          (first (lint! "(select-keys 1)" "--lang" "clj"))))
   (is (= {:file "<stdin>",
           :row 1,
           :col 1,
           :level :error,
-          :message "Wrong number of args (1) passed to cljs.core/select-keys"}
+          :message "wrong number of args (1) passed to cljs.core/select-keys"}
          (first (lint! "(select-keys 1)" "--lang" "cljs"))))
   (is (= {:file "<stdin>",
           :row 1,
           :col 1,
           :level :error,
-          :message "Wrong number of args (1) passed to clojure.core/select-keys"}
+          :message "wrong number of args (1) passed to clojure.core/select-keys"}
          (first (lint! "(select-keys 1)" "--lang" "cljc"))))
   (is (submap? {:file "<stdin>" :level :error,
-                :message "Wrong number of args (3) passed to clojure.test/successful?"}
+                :message "wrong number of args (3) passed to clojure.test/successful?"}
                (first (lint! "(ns my-cljs (:require [clojure.test :refer [successful?]]))
     (successful? 1 2 3)" "--lang" "clj"))))
   (is (submap? {:file "<stdin>" :level :error,
-                :message "Wrong number of args (3) passed to cljs.test/successful?"}
+                :message "wrong number of args (3) passed to cljs.test/successful?"}
                (first (lint! "(ns my-cljs (:require [cljs.test :refer [successful?]]))
     (successful? 1 2 3)" "--lang" "cljs"))))
   (is (submap? {:file "<stdin>", :row 2, :col 5, :level :error,
-                :message "Wrong number of args (0) passed to clojure.set/difference"}
+                :message "wrong number of args (0) passed to clojure.set/difference"}
                (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
     (difference)" "--lang" "clj"))))
   (is (submap? {:file "<stdin>", :row 2, :col 5, :level :error,
-                :message "Wrong number of args (0) passed to clojure.set/difference"}
+                :message "wrong number of args (0) passed to clojure.set/difference"}
                (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
     (difference)" "--lang" "cljs")))))
 
 (deftest built-in-java-test
   (is (= {:file "<stdin>", :row 1, :col 1,
           :level :error,
-          :message "Wrong number of args (3) passed to java.lang.Thread/sleep"}
+          :message "wrong number of args (3) passed to java.lang.Thread/sleep"}
          (first (lint! "(Thread/sleep 1 2 3)" "--lang" "clj"))))
   (is (= {:file "<stdin>", :row 1, :col 1,
           :level :error,
-          :message "Wrong number of args (3) passed to java.lang.Thread/sleep"}
+          :message "wrong number of args (3) passed to java.lang.Thread/sleep"}
          (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "clj"))))
   (is (= {:file "<stdin>", :row 1, :col 1,
           :level :error,
-          :message "Wrong number of args (3) passed to java.lang.Math/pow"}
+          :message "wrong number of args (3) passed to java.lang.Math/pow"}
          (first (lint! "(Math/pow 1 2 3)" "--lang" "clj"))))
   (is (= {:file "<stdin>", :row 1, :col 1,
           :level :error,
-          :message "Wrong number of args (3) passed to java.math.BigInteger/valueOf"}
+          :message "wrong number of args (3) passed to java.math.BigInteger/valueOf"}
          (first (lint! "(BigInteger/valueOf 1 2 3)" "--lang" "clj"))))
   (is (empty?
        (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "cljs"))))
@@ -246,7 +246,7 @@
     ;; cache
     (is (= {:file "<stdin>", :row 1, :col 1,
             :level :error,
-            :message "Wrong number of args (3) passed to java.lang.Thread/sleep"}
+            :message "wrong number of args (3) passed to java.lang.Thread/sleep"}
            (first (lint! "#?(:clj (java.lang.Thread/sleep 1 2 3))" "--lang" "cljc"))))))
 
 (deftest resolve-core-ns-test
@@ -254,13 +254,13 @@
                  :row 1,
                  :col 1,
                  :level :error,
-                 :message "Wrong number of args (0) passed to clojure.core/vec"}
+                 :message "wrong number of args (0) passed to clojure.core/vec"}
                (first (lint! "(clojure.core/vec)" "--lang" "clj"))))
   (is (submap? '{:file "<stdin>",
                  :row 1,
                  :col 1,
                  :level :error,
-                 :message "Wrong number of args (0) passed to cljs.core/vec"}
+                 :message "wrong number of args (0) passed to cljs.core/vec"}
                (first (lint! "(cljs.core/vec)" "--lang" "cljs")))))
 
 (deftest override-test
@@ -274,7 +274,7 @@
                  :row 2,
                  :col 1,
                  :level :error,
-                 :message "Wrong number of args (3) passed to cljs.test/do-report"}
+                 :message "wrong number of args (3) passed to cljs.test/do-report"}
                (first (lint! "(ns foo (:require [clojure.test :as t]))
 (t/do-report 1 2 3)" "--lang" "cljs")))))
 
@@ -285,13 +285,33 @@
                       :row 14,
                       :col 1,
                       :level :error,
-                      :message "Wrong number of args (0) passed to foo.bar.baz/b"}
+                      :message "wrong number of args (0) passed to foo.bar.baz/b"}
                      {:file "corpus/prefixed_libspec.clj",
                       :row 15,
                       :col 1,
                       :level :error,
-                      :message "Wrong number of args (0) passed to foo.baz/c"})
+                      :message "wrong number of args (0) passed to foo.baz/c"})
                    (lint! (io/file "corpus" "prefixed_libspec.clj"))))))
+
+(deftest refer-all-test
+  (testing ":require with :refer :all"
+    (is (let [results
+              (map submap?
+                   '({:file "corpus/refer_all.clj",
+                      :level :error,
+                      :message "wrong number of args (0) passed to funs/foo"}
+                     {:file "corpus/refer_all.clj",
+                      :level :error,
+                      :message "wrong number of args (0) passed to funs/bar"})
+                   (lint! (io/file "corpus" "refer_all.clj")))]
+          (and (= 2 (count results))
+               (every? identity results))))
+    (is (every? identity
+                (map submap?
+                     '({:file "corpus/refer_all.cljs",
+                        :level :error,
+                        :message "wrong number of args (0) passed to macros/foo"})
+                     (lint! (io/file "corpus" "refer_all.cljs")))))))
 
 ;;;; Scratch
 

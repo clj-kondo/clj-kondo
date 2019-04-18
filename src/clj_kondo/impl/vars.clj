@@ -104,13 +104,11 @@
              :col col
              :lang lang}))]
     (cons defn
-          (map (fn [m]
-                 (assoc m :parent fn-name))
-               (mapcat
-                #(parse-arities lang (reduce set/union bindings
-                                             (map :arg-names arities))
-                                %)
-                (rest children))))))
+          (mapcat
+           #(parse-arities lang (reduce set/union bindings
+                                        (map :arg-names arities))
+                           %)
+           (rest children)))))
 
 (defn reader-conditional-expr? [expr]
   (and (= :reader-macro (node/tag expr))
@@ -271,7 +269,8 @@
                         (let [path [:calls (:ns resolved)]
                               call (cond-> (assoc first-parsed
                                                   :filename filename
-                                                  :resolved-ns (:ns resolved))
+                                                  :resolved-ns (:ns resolved)
+                                                  :ns-lookup ns)
                                      (:clojure-excluded? resolved)
                                      (assoc :clojure-excluded? true))
                               results (update-in results path vconj call)]
@@ -316,8 +315,8 @@
   (case [(:ns called-fn) (:name called-fn)]
     [clojure.core cond] (lint-cond filename (:expr call))
     [cljs.core cond] (lint-cond filename (:expr call))
-    [clojure.test deftest] (lint-deftest config filename (:expr call))
-    [cljs.test deftest] (lint-deftest config filename (:expr call))
+    #_#_[clojure.test deftest] (lint-deftest config filename (:expr call))
+    #_#_[cljs.test deftest] (lint-deftest config filename (:expr call))
     []))
 
 (defn resolve-call [idacs call-lang fn-ns fn-name]
@@ -345,25 +344,27 @@
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [;; _ (prn call)
+                       :let [;; _ (prn "call" (-> call :ns* :refer-alls))
                              fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
                              (or (resolve-call idacs (:lang call) fn-ns fn-name)
-                                 (when (and
-                                        (not (:clojure-excluded? call))
-                                        ;; we resolved this call against the
-                                        ;; same namespace, because it was
-                                        ;; unqualified
-                                        (= caller-ns
-                                           fn-ns))
-                                   (resolve-call idacs (:lang call)
-                                                 (case lang
-                                                   :clj 'clojure.core
-                                                   :cljs 'cljs.core
-                                                   :cljc 'clojure.core)
-                                                 fn-name)))
+                                 ;; we resolved this call against the
+                                 ;; same namespace, because it was
+                                 ;; unqualified
+                                 (when (= caller-ns fn-ns)
+                                   (some #(resolve-call idacs (:lang call) % fn-name)
+                                         (into (vec
+                                                (keep (fn [[ns excluded]]
+                                                        (when-not (contains? excluded fn-name)
+                                                          ns))
+                                                      (-> call :ns-lookup :refer-alls)))
+                                               (when (not (:clojure-excluded? call))
+                                                 [(case lang
+                                                    :clj 'clojure.core
+                                                    :cljs 'cljs.core
+                                                    :cljc 'clojure.core)])))))
                              fn-ns (:ns called-fn)]
                        :when called-fn
                        :let [;; _ (prn called-fn)
@@ -393,14 +394,14 @@
                                        (and var-args-min-arity (>= arity var-args-min-arity))
                                        (when-let [excluded (-> config :invalid-arity :exclude)]
                                          (contains? excluded
-                                          (symbol (str fn-ns)
-                                                  (str fn-name)))))
+                                                    (symbol (str fn-ns)
+                                                            (str fn-name)))))
                                  {:filename filename
                                   :row (:row call)
                                   :col (:col call)
                                   :level :error
                                   :type :invalid-arity
-                                  :message (format "Wrong number of args (%s) passed to %s"
+                                  :message (format "wrong number of args (%s) passed to %s"
                                                    (str (:arity call))
                                                    (str (:ns called-fn) "/" (:name called-fn)))})
                                (when (and (:private? called-fn)
@@ -411,7 +412,7 @@
                                   :col (:col call)
                                   :level :error
                                   :type :private-call
-                                  :message (format "Call to private function %s"
+                                  :message (format "call to private function %s"
                                                    (:name call))})]
                               (var-specific-findings config filename call called-fn))]
                        e errors
