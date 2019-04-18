@@ -144,7 +144,7 @@ Options:
                       :col 0
                       :row 0
                       :message "File does not exist"}]}]))
-    (catch Throwable e
+    #_(catch Throwable e
       [{:findings [{:level :warning
                     :filename filename
                     :col 0

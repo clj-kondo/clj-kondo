@@ -18,17 +18,18 @@
   "Parses linting output and prints everything that doesn't match the
   expected format (for debugging)."
   [msg]
-  (keep
-   (fn [line]
-     (if-let [[_ file row col level message] (re-matches #"(.*):(.*):(.*): (.*): (.*)" line)]
-       {:file file
-        :row (Integer/parseInt row)
-        :col (Integer/parseInt col)
-        :level (keyword level)
-        :message message}
-       (when-not (str/starts-with? line "linting took")
-         (println line))))
-   (str/split-lines msg)))
+  (doall
+   (keep
+    (fn [line]
+      (if-let [[_ file row col level message] (re-matches #"(.*):(.*):(.*): (.*): (.*)" line)]
+        {:file file
+         :row (Integer/parseInt row)
+         :col (Integer/parseInt col)
+         :level (keyword level)
+         :message message}
+        (when-not (str/starts-with? line "linting took")
+          (println line))))
+    (str/split-lines msg))))
 
 (defn lint-jvm!
   ([input] (lint-jvm! input "--lang" "clj"))

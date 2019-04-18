@@ -110,11 +110,11 @@
                            %)
            (rest children)))))
 
-(defn reader-conditional-expr? [expr]
+#_(defn reader-conditional-expr? [expr]
   (and (= :reader-macro (node/tag expr))
        (= '? (:value (first (:children expr))))))
 
-(defn parse-reader-conditional [expr]
+#_(defn parse-reader-conditional [expr]
   (let [kvs (-> expr
                 :children second :children)
         kvs (partition 2 kvs)]
@@ -172,8 +172,8 @@
              :lang lang
              :expr expr})
           parse-rest)))
-     (reader-conditional-expr? expr)
-     (let [{:keys [:clj :cljs]} (parse-reader-conditional expr)]
+     #_(reader-conditional-expr? expr)
+     #_(let [{:keys [:clj :cljs]} (parse-reader-conditional expr)]
        (for [[l e] [[:clj clj] [:cljs cljs]]
              :when e
              expr (parse-arities l bindings e)]
@@ -205,10 +205,11 @@
   "Collects defs and calls into a map. To optimize cache lookups later
   on, calls are indexed by the namespace they call to, not the
   ns where the call occurred."
-  ([filename lang expr] (analyze-arities filename lang expr false))
-  ([filename lang expr debug?]
-   (loop [[first-parsed & rest-parsed] (parse-arities lang expr)
-          ns (analyze-ns-decl lang (parse-string "(ns user)"))
+  ([filename lang expr] (analyze-arities filename lang lang expr))
+  ([filename lang expanded-lang expr] (analyze-arities filename lang expanded-lang expr false))
+  ([filename lang expanded-lang expr debug?]
+   (loop [[first-parsed & rest-parsed] (parse-arities expanded-lang expr)
+          ns (analyze-ns-decl expanded-lang (parse-string "(ns user)"))
           results {:calls {}
                    :defs {}
                    :findings []
@@ -243,6 +244,7 @@
                       (let [path (case lang
                                    :cljc [:defs (:name ns) (:lang first-parsed) (:name resolved)]
                                    [:defs (:name ns) (:name resolved)])
+                            _ (spit "/tmp/kondo.log" (str "PATH: " path) :append true)
                             results
                             (if resolved
                               (assoc-in results path
@@ -292,7 +294,7 @@
                                             :type :debug))
                           results))
                       results)))))
-       [results]))))
+       results))))
 
 (defn lint-cond [filename expr]
   (let [last-condition
@@ -326,12 +328,12 @@
   ;; call lang cljc. [foo.core]. we should split this call into a clj and cljs one (see #67). for now, we'll only look into .clj.
   (case call-lang
     :clj (or (get-in idacs [:clj :defs fn-ns fn-name])
-             (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
              (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
     :cljs (or (get-in idacs [:cljs :defs fn-ns fn-name])
-              (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
+              ;; this would be a macro
+              (get-in idacs [:cljc :defs fn-ns :clj fn-name])
               (get-in idacs [:cljc :defs fn-ns :cljs fn-name]))
-    :cljc (or
+    #_#_:cljc (or
            ;; there might be both a .clj and .cljs version of the file with the same name
            (get-in idacs [:clj :defs fn-ns fn-name])
            (get-in idacs [:cljs :defs fn-ns fn-name])
