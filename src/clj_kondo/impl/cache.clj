@@ -97,17 +97,17 @@
                   ;; in the case of cljc we can split the calls into calls
                   ;; from :clj and :cljs but we still don't know which
                   ;; namespaces they are calling TO although, for CLJ we
-                  ;; definitely know it's not going to be CLJS for CLJS we can
-                  ;; remember if we're calling a macro... but for self-hosted,
-                  ;; this may also be a call to a CLJS macro
+                  ;; definitely know it's not going to be CLJS
                   called-namespaces
                   (set (keys (get-in idacs [lang :calls])))
+                  ;; _ (println "CALLED" lang called-namespaces)
+                  ;; _ (println "ANALYZED" lang analyzed-namespaces)
                   load-from-cache
                   (set/difference called-namespaces analyzed-namespaces
                                   ;; clojure core is loaded later
                                   '#{clojure.core cljs.core})
-                  ;; lang is cljc here, but java.lang.Thread/sleep lives in clj...
-                  ;; how do we know which language to load from?
+                  ;; _ (println "LOAD FROM CACHE" lang load-from-cache)
+                  ;; TODO: figure out how to prevent cache load in case of linting corpus/spec
                   defs-from-cache
                   (case lang :cljc
                         (or [:clj (from-cache cache-dir :clj load-from-cache)]

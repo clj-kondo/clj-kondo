@@ -111,7 +111,16 @@
              {:file "corpus/cljc/test_cljc_from_clj.clj", :row 5, :col 1}
              {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
              {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
-           (dedupe row-col-files)))))
+           (dedupe row-col-files))))
+  (let [linted (lint! (io/file "corpus" "spec"))]
+    (is (= 1 (count linted)))
+    (is (submap?
+         {:file "corpus/spec/alpha.cljs",
+          :row 6,
+          :col 1,
+          :level :error,
+          :message "wrong number of args (2) passed to spec.alpha/def"}
+         (first linted)))))
 
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
