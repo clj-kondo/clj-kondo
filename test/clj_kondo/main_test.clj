@@ -98,22 +98,20 @@
              row-col-files)))))
 
 (deftest cljc-test
-  (let [linted (lint! (io/file "corpus" "cljc" "test_cljc.cljc"))
+  (let [linted (lint! (io/file "corpus" "cljc"))
         row-col-files (sort-by (juxt :file :row :col)
                                (map #(select-keys % [:file :row :col])
                                     linted))]
-    row-col-files
-    #_(is (= '({:file "corpus/cljc/test_cljc.cljc", :row 13, :col 9}
+    (dedupe row-col-files)
+    (is (= '({:file "corpus/cljc/datascript.cljc", :row 8, :col 1}
+             {:file "corpus/cljc/test_cljc.cljc", :row 13, :col 9}
              {:file "corpus/cljc/test_cljc.cljc", :row 14, :col 10}
              {:file "corpus/cljc/test_cljc.cljc", :row 21, :col 1}
-
              {:file "corpus/cljc/test_cljc.cljs", :row 5, :col 1}
-
              {:file "corpus/cljc/test_cljc_from_clj.clj", :row 5, :col 1}
-
              {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
              {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
-           row-col-files))))
+           (dedupe row-col-files)))))
 
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
@@ -240,14 +238,13 @@
          (first (lint! "(BigInteger/valueOf 1 2 3)" "--lang" "clj"))))
   (is (empty?
        (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "cljs"))))
-  (comment
-    ;; FIXME: fix after CLJC refactor (#67) The issue here is when you have a
-    ;; CLJ call inside a CLJC namespace the CLJ namespace isn't loaded from the
-    ;; cache
-    (is (= {:file "<stdin>", :row 1, :col 1,
-            :level :error,
-            :message "wrong number of args (3) passed to java.lang.Thread/sleep"}
-           (first (lint! "#?(:clj (java.lang.Thread/sleep 1 2 3))" "--lang" "cljc"))))))
+  ;; FIXME: fix after CLJC refactor (#67) The issue here is when you have a
+  ;; CLJ call inside a CLJC namespace the CLJ namespace isn't loaded from the
+  ;; cache
+  (is (= {:file "<stdin>", :row 1, :col 1,
+          :level :error,
+          :message "wrong number of args (3) passed to java.lang.Thread/sleep"}
+         (first (lint! "#?(:clj (java.lang.Thread/sleep 1 2 3))" "--lang" "cljc")))))
 
 (deftest resolve-core-ns-test
   (is (submap? '{:file "<stdin>",

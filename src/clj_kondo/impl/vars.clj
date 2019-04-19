@@ -329,8 +329,9 @@
     :clj (or (get-in idacs [:clj :defs fn-ns fn-name])
              (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
     :cljs (or (get-in idacs [:cljs :defs fn-ns fn-name])
-              ;; this would be a macro
-              (get-in idacs [:cljc :defs fn-ns :clj fn-name])
+              ;; this would be a macro, but the lookup would only be valid in certain cases...
+              ;; the macro would have to be explicitly (self)-required
+              ;; (get-in idacs [:cljc :defs fn-ns :clj fn-name])
               (get-in idacs [:cljc :defs fn-ns :cljs fn-name]))
     #_#_:cljc (or
            ;; there might be both a .clj and .cljs version of the file with the same name
