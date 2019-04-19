@@ -97,8 +97,6 @@
           ods (redundant-do filename parsed-expressions)
           findings {:findings (concat ids nls ods)
                     :lang lang}
-          ;; _ (println (select-lang parsed-expressions :clj))
-          ;; _ (println (select-lang parsed-expressions :cljs))
           arities (case lang :cljc
                         (let [clj (analyze-arities filename lang
                                                    :clj (select-lang parsed-expressions :clj)

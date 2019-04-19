@@ -119,7 +119,7 @@
   (let [sexpr (node/sexpr expr)
         subclauses
         (for [?require-clause (nnext sexpr)
-              :when (= :require (first ?require-clause))
+              :when (contains? #{:require :require-macros} (first ?require-clause))
               libspec (rest ?require-clause)
               normalized-libspec (normalize-libspec nil libspec)
               analyzed (analyze-libspec lang normalized-libspec)]

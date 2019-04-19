@@ -90,6 +90,7 @@
 #_3  (:require [rewrite-clj.parser :as p]))
 #_4 (p/parse-string \"(+ 1 2 3)\")
 "))]
+    analyzed
     (is (submap? '{:type :call,
                    :name parse-string ;;p/parse-string,
                    :arity 1, :row 5, :col 5,
@@ -130,13 +131,13 @@
                    (get-in analyzed '[:defs user]))))))
 
 #_(deftest analyze-arities-cljc-test
-  (analyze-arities "<stdin>" :clj
-                        (parse-string-all "
+    (analyze-arities "<stdin>" :clj
+                     (parse-string-all "
 #?(:cljs (defn foo []))
 "))
 
-  (analyze-arities "<stdin>" :clj
-                        (parse-string-all "
+    (analyze-arities "<stdin>" :clj
+                     (parse-string-all "
 #?(:cljs (foo 1 2 3) :clj (bar 1 2 3))
 ")))
 ;;

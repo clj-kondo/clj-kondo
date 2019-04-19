@@ -17,6 +17,14 @@
 (defn comment? [node]
   (= :comment (tag node)))
 
+(defn call
+  "Returns symbol of call"
+  [expr]
+  (when (= :list (node/tag expr))
+    (let [?sym (-> expr :children first :value)]
+      (when (symbol? ?sym)
+        ?sym))))
+
 (defmacro some-call
   "Determines if expr is a call to some symbol. Returns symbol if so."
   [expr & syms]
