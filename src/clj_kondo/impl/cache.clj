@@ -94,14 +94,26 @@
   (reduce (fn [idacs lang]
             (let [analyzed-namespaces
                   (set (keys (get-in idacs [lang :defs])))
+                  ;; in the case of cljc we can split the calls into calls
+                  ;; from :clj and :cljs but we still don't know which
+                  ;; namespaces they are calling TO although, for CLJ we
+                  ;; definitely know it's not going to be CLJS for CLJS we can
+                  ;; remember if we're calling a macro... but for self-hosted,
+                  ;; this may also be a call to a CLJS macro
                   called-namespaces
                   (set (keys (get-in idacs [lang :calls])))
                   load-from-cache
                   (set/difference called-namespaces analyzed-namespaces
                                   ;; clojure core is loaded later
                                   '#{clojure.core cljs.core})
+                  ;; lang is cljc here, but java.lang.Thread/sleep lives in clj...
+                  ;; how do we know which language to load from?
                   defs-from-cache
-                  (from-cache cache-dir lang load-from-cache)
+                  (case lang :cljc
+                        (or [:clj (from-cache cache-dir :clj load-from-cache)]
+                            [:cljs (from-cache cache-dir :cljs load-from-cache)])
+                        ;; default
+                        [lang (from-cache cache-dir lang load-from-cache)])
                   cljc-defs-from-cache
                   (from-cache cache-dir :cljc load-from-cache)]
               (when cache-dir
@@ -111,9 +123,9 @@
                         :when (not (contains? #{:disk :built-in} source))]
                   (to-cache cache-dir lang ns-name ns-data)))
               (let [idacs (-> idacs
-                             (update-in [lang :defs]
+                             (update-in [(first defs-from-cache) :defs]
                                         (fn [idacs]
-                                          (merge defs-from-cache idacs)))
+                                          (merge (second defs-from-cache) idacs)))
                              (update-in [:cljc :defs]
                                         (fn [idacs]
                                           (merge cljc-defs-from-cache idacs))))]

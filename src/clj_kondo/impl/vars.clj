@@ -369,8 +369,7 @@
                                                     :cljc 'clojure.core)])))))
                              fn-ns (:ns called-fn)]
                        :when called-fn
-                       :let [;; _ (prn called-fn)
-                             ;; a macro in a CLJC file with the same namespace
+                       :let [;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
                              ;; call and the lang of the function def context in
