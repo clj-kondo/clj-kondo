@@ -29,7 +29,7 @@
 ;;;; redundant let
 
 (defn redundant-let* [{:keys [:children] :as expr}
-                     parent-let?]
+                      parent-let?]
   (let [current-let? (some-call expr let)]
     (cond (and current-let? parent-let?)
           [expr]
@@ -47,10 +47,10 @@
 ;;;; redundant do
 
 (defn redundant-do* [{:keys [:children] :as expr}
-                    parent-do?]
+                     parent-do?]
   (let [implicit-do? (some-call expr fn defn defn-
-                            let loop binding with-open
-                            doseq try)
+                                let loop binding with-open
+                                doseq try)
         current-do? (some-call expr do)]
     (cond (and current-do? (or parent-do?
                                (and (not= :unquote-splicing
@@ -64,21 +64,17 @@
        (redundant-do* parsed-expressions false)))
 
 (defn deep-merge
-  "Recursively merges maps together. If all the maps supplied have nested maps
-  under the same keys, these nested maps are merged. Otherwise the value is
-  overwritten, as in `clojure.core/merge`."
-  {:arglists '([& maps])
-   :added    "1.1.0"}
+  "deep merge that also mashes together sequentials"
   ([])
   ([a] a)
   ([a b]
-   (if (and (map? a) (map? b))
+   (cond (and (map? a) (map? b))
      (merge-with deep-merge a b)
-     b))
+     (and (sequential? a) (sequential? b))
+     (into a b)
+     :else a))
   ([a b & more]
    (apply merge-with deep-merge a b more)))
-
-#_(deep-merge {:a [1 2 3]} {:a [4 5 6]})
 
 ;;;; processing of string input
 
@@ -94,40 +90,31 @@
                     (str/replace #_"#:a{#::a {:a b}}"
                                  #"#(::?)(.*?)\{" (fn [[_ colons name]]
                                                     (str "#_" colons name "{"))))
-          parsed (parse-string-all input config)
-          findings (for [[expanded-lang parsed-expressions]
-                         (if (= :cljc lang)
-                           [[:clj (select-lang parsed :clj)]
-                            [:cljs (select-lang parsed :cljs)]]
-                           [[lang parsed]])
-                         ;; :when parsed-expressions
-                         :let [;; _ (println "EXPANDED LANG" expanded-lang)
-                               parsed-expressions (expand-all parsed-expressions)
-                               ids (inline-def filename parsed-expressions)
-                               nls (redundant-let filename parsed-expressions)
-                               ods (redundant-do filename parsed-expressions)
-                               findings {:findings (concat ids nls ods)
-                                         :lang lang}
-                               arities (analyze-arities filename lang expanded-lang parsed-expressions (:debug config))
-                               ]]
-                     {:findings findings
-                      :arities arities})
-          findings (concat (map :findings findings)
-                           ;; the calls are being merged here, but that's no good
-                           [(reduce deep-merge
-                                    {}
-                                    (map :arities findings))])]
-      ;; the problem here is that the second time the cljc entry gets overwritten [:cljc foo :clj] [:cljc :foo :cljs]
-      findings
-      )
-    #_(catch Exception e
-      [{:findings [{:level :error
-                    :filename filename
-                    :col 0
-                    :row 0
-                    :message (str "Can't parse "
-                                  filename ", "
-                                  (.getMessage e))}]}])
+          parsed-expressions (parse-string-all input config)
+          parsed-expressions (expand-all parsed-expressions)
+          ids (inline-def filename parsed-expressions)
+          nls (redundant-let filename parsed-expressions)
+          ods (redundant-do filename parsed-expressions)
+          findings {:findings (concat ids nls ods)
+                    :lang lang}
+          arities (case lang :cljc
+                        (let [clj (analyze-arities filename lang
+                                                   :clj (select-lang parsed-expressions :clj)
+                                                   (:debug config))
+                              cljs (analyze-arities filename lang
+                                                    :cljs (select-lang parsed-expressions :cljs)
+                                                    (:debug config))]
+                          (deep-merge clj cljs))
+                        (analyze-arities filename lang lang parsed-expressions (:debug config)))]
+      [findings arities])
+    (catch Exception e
+        [{:findings [{:level :error
+                      :filename filename
+                      :col 0
+                      :row 0
+                      :message (str "Can't parse "
+                                    filename ", "
+                                    (.getMessage e))}]}])
     (finally
       (when (-> config :output :progress)
         (print ".") (flush)))))

@@ -244,7 +244,6 @@
                       (let [path (case lang
                                    :cljc [:defs (:name ns) (:lang first-parsed) (:name resolved)]
                                    [:defs (:name ns) (:name resolved)])
-                            _ (spit "/tmp/kondo.log" (str "PATH: " path) :append true)
                             results
                             (if resolved
                               (assoc-in results path
@@ -346,7 +345,7 @@
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [;; _ (prn "call" (-> call :ns* :refer-alls))
+                       :let [;; _ (prn "call" (dissoc call :ns-lookup))
                              fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
