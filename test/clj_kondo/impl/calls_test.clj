@@ -1,14 +1,14 @@
-(ns clj-kondo.impl.vars-test
+(ns clj-kondo.impl.calls-test
   (:require
    [clj-kondo.impl.namespace :refer [analyze-ns-decl]]
-   [clj-kondo.impl.vars :as vars :refer [analyze-arities]]
+   [clj-kondo.impl.calls :as calls :refer [analyze-calls]]
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clj-kondo.test-utils :refer [assert-submap assert-some-submap assert-submaps]]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest strip-meta-test
   (is (= "(defnchunk-buffer[capacity](clojure.lang.ChunkBuffer.capacity))"
-         (str (vars/strip-meta (parse-string "(defn ^:static ^:foo chunk-buffer ^:bar [capacity]
+         (str (calls/strip-meta (parse-string "(defn ^:static ^:foo chunk-buffer ^:bar [capacity]
   (clojure.lang.ChunkBuffer. capacity))"))))))
 
 (deftest parse-defn-test
@@ -16,7 +16,7 @@
    '[{:name chunk-buffer, :fixed-arities #{1}}
      {:type :call :name defn}
      {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
-   (vars/parse-defn :clj #{}
+   (calls/parse-defn :clj #{}
                     (parse-string
                      "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
   (clojure.lang.ChunkBuffer. capacity))")))
@@ -26,7 +26,7 @@
                    :col 1,
                    :lang :clj,
                    :fixed-arities #{1}}
-                 (first (vars/parse-defn :clj #{}
+                 (first (calls/parse-defn :clj #{}
                                          (parse-string "(defn get-bytes #^bytes [part] part)")))))
 
 (deftest resolve-name-test
@@ -34,24 +34,24 @@
             :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
     (is (= '{:ns bar :name quux}
-           (vars/resolve-name ns 'quux))))
+           (calls/resolve-name ns 'quux))))
   (let [ns (analyze-ns-decl
             :clj
             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
     (is (= '{:ns bar :name quux}
-           (vars/resolve-name ns 'quux))))
+           (calls/resolve-name ns 'quux))))
   (let [ns (analyze-ns-decl
             :clj
             (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
     (is (= '{:ns rewrite-clj.parser :name parse-string}
-           (vars/resolve-name ns 'p/parse-string))))
+           (calls/resolve-name ns 'p/parse-string))))
   (testing "referring to unknown namespace alias"
     (let [ns (analyze-ns-decl
               :clj
               (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
 "))]
-      (nil? (vars/resolve-name ns 'p/parse-string))))
+      (nil? (calls/resolve-name ns 'p/parse-string))))
   (testing "referring with full namespace"
     (let [ns (analyze-ns-decl
               :clj
@@ -61,10 +61,10 @@
       ;; TODO: what's the test here?
       (is (=
            '{:ns clojure.core :name inc}
-           (vars/resolve-name ns 'clojure.core/inc))))))
+           (calls/resolve-name ns 'clojure.core/inc))))))
 
-(deftest analyze-arities-test
-  (let [analyzed (analyze-arities "<stdin>" :clj
+(deftest analyze-calls-test
+  (let [analyzed (analyze-calls "<stdin>" :clj
                                   (parse-string-all "
 #_1 (ns bar) (defn quux [a b c])
 #_2 (ns foo (:require [bar :as baz :refer [quux]]))
@@ -84,7 +84,7 @@
                       :ns bar
                       :lang :clj}}
                    (get-in analyzed '[:defs bar])))
-  (let [analyzed (analyze-arities "<stdin>" :clj
+  (let [analyzed (analyze-calls "<stdin>" :clj
                                   (parse-string-all "
 #_1 (ns clj-kondo.impl.utils
 #_2  {:no-doc true}
@@ -99,7 +99,7 @@
                      :lang :clj}
                    (get-in analyzed '[:calls rewrite-clj.parser 0])))
   (testing "calling functions from own ns"
-    (let [analyzed (analyze-arities "<stdin>" :clj
+    (let [analyzed (analyze-calls "<stdin>" :clj
                                     (parse-string-all "
 #_1 (ns clj-kondo.main)
 #_2 (defn foo [x]) (foo 1)
@@ -119,7 +119,7 @@
                         :lang :clj}}
                      (get-in analyzed '[:defs clj-kondo.main]))))
   (testing "calling functions from file without ns form"
-    (let [analyzed (analyze-arities "<stdin>" :clj
+    (let [analyzed (analyze-calls "<stdin>" :clj
                                     (parse-string-all "
 (defn foo [x]) (foo 1)
 "))]
@@ -131,13 +131,13 @@
                             :ns user, :lang :clj}}
                      (get-in analyzed '[:defs user])))))
 
-#_(deftest analyze-arities-cljc-test
-    (analyze-arities "<stdin>" :clj
+#_(deftest analyze-calls-cljc-test
+    (analyze-calls "<stdin>" :clj
                      (parse-string-all "
 #?(:cljs (defn foo []))
 "))
 
-    (analyze-arities "<stdin>" :clj
+    (analyze-calls "<stdin>" :clj
                      (parse-string-all "
 #?(:cljs (foo 1 2 3) :clj (bar 1 2 3))
 ")))

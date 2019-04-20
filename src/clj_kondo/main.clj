@@ -3,8 +3,9 @@
   (:gen-class)
   (:require
    [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.calls :refer [call-findings]]
    [clj-kondo.impl.linters :refer [process-input]]
-   [clj-kondo.impl.vars :refer [fn-call-findings]]
+   [clj-kondo.impl.overrides :refer [overrides]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str
@@ -225,7 +226,6 @@ Options:
 (defn- index-defs-and-calls [defs-and-calls]
   (reduce
    (fn [acc {:keys [:calls :defs :loaded :lang] :as m}]
-     ;; (println "REQUIRED" required)
      (-> acc
          (update-in [lang :calls] (fn [prev-calls]
                                     (merge-with into prev-calls calls)))
@@ -238,23 +238,7 @@ Options:
 
 ;;;; overrides
 
-(defn- overrides
-  "Overrides var information."
-  [idacs]
-  (-> idacs
-      (assoc-in '[:cljs :defs cljs.core array :var-args-min-arity] 0)
-      (assoc-in '[:clj :defs clojure.core def] '{:ns clojure.core
-                                                 :name def
-                                                 :fixed-arities #{2 3}})
-      (assoc-in '[:clj :defs clojure.core defn] '{:ns clojure.core
-                                                  :name defn
-                                                  :var-args-min-arity 2})
-      (assoc-in '[:clj :defs clojure.core defn-] '{:ns clojure.core
-                                                   :name defn-
-                                                  :var-args-min-arity 2})
-      (assoc-in '[:clj :defs clojure.core defmacro] '{:ns clojure.core
-                                                      :name defmacro
-                                                      :var-args-min-arity 2})))
+
 
 ;;;; summary
 
@@ -312,7 +296,7 @@ Options:
                     idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
-                    fcf (fn-call-findings idacs config)
+                    fcf (call-findings idacs config)
                     all-findings (concat fcf (mapcat :findings processed))
                     all-findings (filter-findings all-findings config)
                     {:keys [:error :warning]} (summarize all-findings)]

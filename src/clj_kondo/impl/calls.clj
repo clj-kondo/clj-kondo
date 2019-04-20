@@ -1,4 +1,4 @@
-(ns clj-kondo.impl.vars
+(ns clj-kondo.impl.calls
   {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [some-call call node->line
@@ -72,7 +72,6 @@
         children (rest children)
         children (strip-meta* children)
         fn-name (:value (first (filter #(symbol? (:value %)) children)))
-        ;;_ (println "FN-NAME" fn-name)
         arg-decl (first (filter #(= :vector (:tag %)) children))
         arg-decls (map (fn [x]
                          ;; skip docstring, etc.
@@ -133,14 +132,8 @@
          (nnext exprs)
          (into parsed (parse-arities lang bindings expr)))))))
 
-(comment
-  (parse-case :clj #{} (parse-string-all "(case (+ 1 2 3) (1 2 3) (+ 1 2 3) (+ 2 3 4))"))
-  (parse-case :clj #{} (parse-string "(case (+ 1 2 3) (1 2 3) (+ 1 2 3))"))
-  )
-
 (defn parse-arities
   ;; TODO: refactor and split into multiple functions
-  ;; TODO: handle case, we should not parse the list constants as function calls
   ([lang expr] (parse-arities lang #{} expr))
   ([lang bindings {:keys [:children] :as expr}]
    (let [?full-fn-name (call expr)
@@ -212,12 +205,12 @@
 
 (def vconj (fnil conj []))
 
-(defn analyze-arities
+(defn analyze-calls
   "Collects defs and calls into a map. To optimize cache lookups later
   on, calls are indexed by the namespace they call to, not the
   ns where the call occurred."
-  ([filename lang expr] (analyze-arities filename lang lang expr))
-  ([filename lang expanded-lang expr] (analyze-arities filename lang expanded-lang expr false))
+  ([filename lang expr] (analyze-calls filename lang lang expr))
+  ([filename lang expanded-lang expr] (analyze-calls filename lang expanded-lang expr false))
   ([filename lang expanded-lang expr debug?]
    (loop [[first-parsed & rest-parsed] (parse-arities expanded-lang expr)
           ns (analyze-ns-decl expanded-lang (parse-string "(ns user)"))
@@ -226,8 +219,6 @@
                    :loaded (:loaded ns)
                    :findings []
                    :lang lang}]
-     ;; (println "NS" (:loaded ns))
-     ;; (println "REQUIRED" (:loaded results))
      (if first-parsed
        (case (:type first-parsed)
          (:ns :in-ns)
@@ -294,7 +285,6 @@
                                      (assoc :unqualified? true))
                               results (cond-> (update-in results path vconj call)
                                         (not unqualified?)
-                                        ;; java calls will be done this way
                                         (update :loaded conj (:ns resolved)))]
                           (if debug? (update-in results [:findings] conj
                                                 (assoc call
@@ -351,7 +341,7 @@
                      (or (= "=" fn-name) (str/ends-with? fn-name "?")))]
       (node->line filename c :warning :missing-test-assertion "missing test assertion"))))
 
-(defn var-specific-findings [config filename call called-fn]
+(defn call-specific-findings [config filename call called-fn]
   (case (:ns called-fn)
     (clojure.core cljs.core)
     (case (:name called-fn)
@@ -367,41 +357,37 @@
     []))
 
 (defn resolve-call [idacs call fn-ns fn-name]
-  ;; TODO: for cljs -> clj/cljc calls we can probably store whether a function is a macro or not and use that
-  ;; call lang clj. [foo.core] can come from another .clj or .cljc file
-  ;; call lang cljs. [foo.core] can come from another .cljs, .clj (macros) or .cljc file
-  ;; call lang cljc. [foo.core]. we should split this call into a clj and cljs one (see #67). for now, we'll only look into .clj.
-  #_(prn "FN-ns" fn-ns "FN-name" fn-name)
   (let [call-lang (:lang call)
         base-lang (or (:base-lang call) call-lang) ;; .cljc, .cljs or .clj file
         caller-ns (:ns call)
-        ;; this call was unqualified and inferred as a function in the same namespace
+        ;; this call was unqualified and inferred as a function in the same namespace until now
         unqualified? (:unqualified? call)
         same-ns? (= caller-ns fn-ns)]
-    ;; (prn (dissoc call :ns-lookup))
-    #_(println "IDACS" (keys (get-in idacs [:cljs :defs fn-ns #_fn-name])))
     (case [base-lang call-lang]
-      ;; call from clojure in a clojure file
-      ;; could be a call to another clojure file or a .cljc file
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
       [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+                        ;; when calling a function in the same ns, it must be in
+                        ;; another file, hence qualified via a require
+                        ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
                         (when-not (and same-ns? unqualified?)
-                          (or ;; maybe a macro?
+                          (or
+                           ;; cljs func in another cljc file
                            (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                           ;; maybe a macro?
                            (get-in idacs [:clj :defs fn-ns fn-name])
                            (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
       ;; calling a clojure function from cljc
       [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                        (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
-      ;; calling a CLJS function or CLJ(S) macro from cljc
+      ;; calling function in a CLJS conditional from a CLJC file
       [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
-                        (when true ;; FIXME
-                          (or (get-in idacs [:clj :defs fn-ns fn-name])
-                              (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))))
+                        ;; could be a macro
+                        (get-in idacs [:clj :defs fn-ns fn-name])
+                        (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
-(defn fn-call-findings
+(defn call-findings
   "Analyzes indexed defs and calls and returns findings."
   [idacs config]
   (let [findings (for [lang [:clj :cljs :cljc]
@@ -477,7 +463,7 @@
                                   :type :private-call
                                   :message (format "call to private function %s"
                                                    (:name call))})]
-                              (var-specific-findings config filename call called-fn))]
+                              (call-specific-findings config filename call called-fn))]
                        e errors
                        :when e]
                    e)]

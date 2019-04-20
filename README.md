@@ -88,7 +88,7 @@ Lint a directory:
 ``` shellsession
 $ clj-kondo --lint src
 src/clj_kondo/test.cljs:7:1: warning: redundant do
-src/clj_kondo/vars.clj:291:3: error: Wrong number of args (1) passed to clj-kondo.vars/analyze-arities
+src/clj_kondo/calls.clj:291:3: error: Wrong number of args (1) passed to clj-kondo.calls/analyze-calls
 ```
 
 Lint a project classpath:

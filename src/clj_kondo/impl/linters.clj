@@ -5,7 +5,7 @@
    [clj-kondo.impl.utils :refer [node->line parse-string
                                  parse-string-all some-call
                                  tag select-lang]]
-   [clj-kondo.impl.vars :refer [analyze-arities]]
+   [clj-kondo.impl.calls :refer [analyze-calls]]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -84,14 +84,14 @@
           findings {:findings (concat #_ids nls ods)
                     :lang lang}
           arities (case lang :cljc
-                        (let [clj (analyze-arities filename lang
+                        (let [clj (analyze-calls filename lang
                                                    :clj (select-lang parsed-expressions :clj)
                                                    (:debug config))
-                              cljs (analyze-arities filename lang
+                              cljs (analyze-calls filename lang
                                                     :cljs (select-lang parsed-expressions :cljs)
                                                     (:debug config))]
                           (deep-merge clj cljs))
-                        (analyze-arities filename lang lang parsed-expressions (:debug config)))]
+                        (analyze-calls filename lang lang parsed-expressions (:debug config)))]
       [findings arities])
     (catch Exception e
         [{:findings [{:level :error
