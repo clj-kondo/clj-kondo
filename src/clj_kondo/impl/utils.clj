@@ -36,7 +36,7 @@
   (if-let [v (get m k)]
     (if-let [v* (f v)]
       (assoc m k v*)
-      (dissoc m k))
+      m)
     m))
 
 (defn remove-noise

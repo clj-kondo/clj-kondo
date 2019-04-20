@@ -8,33 +8,24 @@
    [rewrite-clj.node.protocols :as node]
    [clojure.string :as str]))
 
-;;;; function arity
-
-(defn arg-name [{:keys [:children] :as expr}]
-  ;; TODO: use strip-meta
-  (if-let [n (:value expr)]
-    ;; normal argument
-    n
-    ;; this is an argument with metadata
-    (-> children last :value)))
-
-(defn analyze-arity [{:keys [:children] :as arg-decl}]
-  (loop [args children
-         arity 0
-         ;; max-arity nil
-         ;; varargs? false
-         arg-names #{}]
-    (if-let [arg (first args)]
-      (if (= '& (:value arg))
-        {:arg-names arg-names
-         :min-arity arity
-         :varargs? true}
-        (recur (rest args)
-               (inc arity)
-               ;; varargs?
-               (conj arg-names (arg-name arg))))
-      {:arg-names arg-names
-       :fixed-arity arity})))
+(defn extract-bindings [sexpr]
+  (cond (and (symbol? sexpr)
+             (not= '& sexpr)) [sexpr]
+        (vector? sexpr) (mapcat extract-bindings sexpr)
+        (map? sexpr) (mapcat extract-bindings
+                             (for [[k v] sexpr
+                                   :let [bindings
+                                         (cond (keyword? k)
+                                               (case (keyword (name k))
+                                                 (:keys :syms :strs)
+                                                 (map #(-> % name symbol) v)
+                                                 :or (extract-bindings v)
+                                                 :as [v])
+                                               (symbol? k) [k]
+                                               :else nil)]
+                                   b bindings]
+                               b))
+        :else []))
 
 (defn analyze-in-ns [{:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)]
@@ -61,33 +52,51 @@
   (assoc expr
          :children (strip-meta* (:children expr))))
 
+;;;; function arity
+
 (declare parse-arities)
 
+(defn analyze-arity [sexpr]
+  (loop [[arg & rest-args] sexpr
+         arity 0]
+    (if arg
+      (if (= '& arg)
+        {:min-arity arity
+         :varargs? true}
+        (recur rest-args
+               (inc arity)))
+      {:fixed-arity arity})))
+
+(defn parse-fn-body [lang bindings expr]
+  (let [children (:children expr)
+        arg-list (node/sexpr (first children))
+        arg-bindings (extract-bindings arg-list)
+        body (rest children)]
+    (assoc (analyze-arity arg-list)
+           :parsed
+           (mapcat #(parse-arities lang
+                                   (set/union bindings (set arg-bindings)) %)
+                   body))))
+
 (defn parse-defn [lang bindings expr]
-  ;; TODO: switch to sexpr instead of parsing rewrite-clj output
   (let [macro? (= 'defmacro (call expr))
         children (:children (strip-meta expr))
-        ;; TODO: add metadata parsing for private
-        private? (= 'defn- (some-call expr defn-))
-        children (rest children)
+        private? (= 'defn- (call expr))
+        children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
+        ;; TODO: do we need this still?
         children (strip-meta* children)
-        fn-name (:value (first (filter #(symbol? (:value %)) children)))
-        arg-decl (first (filter #(= :vector (:tag %)) children))
-        arg-decls (map (fn [x]
-                         ;; skip docstring, etc.
-                         (first
-                          (keep
-                           #(case (:tag %)
-                              :vector %
-                              :meta (last (:children %))
-                              nil)
-                           (:children x))))
-                       (filter #(= :list (:tag %)) (rest children)))
-        arg-decls (if arg-decl [arg-decl]
-                      arg-decls)
-        arities (map analyze-arity arg-decls)
-        fixed-arities (set (keep :fixed-arity arities))
-        var-args-min-arity (:min-arity (first (filter :varargs? arities)))
+        fn-name (:value (first children))
+        bodies (loop [i 0 [expr & rest-exprs :as exprs] (next children)]
+                 (let [t (when expr (node/tag expr))]
+                   (cond (= :vector t)
+                         [{:children exprs}]
+                         (= :list t)
+                         exprs
+                         (not t) (throw (Exception. "unexpected error when parsing" (node/sexpr expr)))
+                         :else (recur (inc i) rest-exprs))))
+        parsed-bodies (map #(parse-fn-body lang bindings %) bodies)
+        fixed-arities (set (keep :fixed-arity parsed-bodies))
+        var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
         {:keys [:row :col]} (meta expr)
         defn
         (if fn-name
@@ -115,11 +124,7 @@
               :expr expr
               :arity (count children)}]
     (into [defn call]
-          (mapcat
-           #(parse-arities lang (reduce set/union bindings
-                                        (map :arg-names arities))
-                           %)
-           (rest children)))))
+          (mapcat :parsed parsed-bodies))))
 
 (defn parse-case [lang bindings expr]
   (let [exprs (-> expr :children)]
@@ -131,6 +136,24 @@
         (recur
          (nnext exprs)
          (into parsed (parse-arities lang bindings expr)))))))
+
+(defn parse-let [lang bindings expr]
+  (let [children (:children expr)
+        let-bindings (->> children second :children
+                          (take-nth 2)
+                          (map node/sexpr)
+                          (mapcat extract-bindings) set)]
+    (mapcat #(parse-arities lang (set/union bindings let-bindings) %) (rest children))))
+
+(defn parse-fn [lang bindings expr]
+  ;; TODO better arity analysis like in normal fn
+  (let [children (:children expr)
+        arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
+        binding-forms (->> arg-vec :children (map node/sexpr))
+        ?fn-name (let [n (first children)]
+                   (when (symbol? n) n))
+        fn-bindings (set (mapcat extract-bindings (cons ?fn-name binding-forms)))]
+    (mapcat #(parse-arities lang (set/union bindings fn-bindings) %) (rest children))))
 
 (defn parse-arities
   ;; TODO: refactor and split into multiple functions
@@ -154,14 +177,9 @@
               proxy extend-protocol doto reify definterface defrecord defprotocol)
          []
          let
-         (let [let-bindings (->> children second :children (map :value) (filter symbol?) set)]
-           (mapcat #(parse-arities lang (set/union bindings let-bindings) %) (rest children)))
+         (parse-let lang bindings expr)
          (fn fn*)
-         ;; TODO better arity analysis like in normal fn
-         (let [arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
-               maybe-bindings (->> arg-vec :children (map :value))
-               fn-bindings (set (filter symbol? (cons fn-name maybe-bindings)))]
-           (mapcat #(parse-arities lang (set/union bindings fn-bindings) %) (rest children)))
+         (parse-fn lang bindings expr)
          case
          (parse-case lang bindings expr)
          ;; catch-all
@@ -274,7 +292,7 @@
                       :call
                       (if resolved
                         (let [path [:calls (:ns resolved)]
-                              unqualified? (:unqualified? resolved) 
+                              unqualified? (:unqualified? resolved)
                               call (cond-> (assoc first-parsed
                                                   :filename filename
                                                   :resolved-ns (:ns resolved)

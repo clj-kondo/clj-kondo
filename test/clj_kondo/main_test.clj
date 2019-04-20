@@ -82,20 +82,20 @@
                 linted)))
   (is (empty? (lint! "(defn foo [x]) (defn bar [foo] (foo))")))
   (is (empty? (lint! "(defn foo [x]) (let [foo (fn [])] (foo))")))
-
   (testing "macroexpansion of ->"
     (is (empty? (lint! "(defn inc [x] (+ x 1)) (-> x inc inc)")))
     (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) (-> x inc (inc 1))")))))
-
   (testing "macroexpansion of fn literal"
     (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) #(-> % inc (inc 1))")))))
-
   (testing "only invalid calls after definition are caught"
     (let [linted (lint! (io/file "corpus" "invalid_arity" "order.clj"))
           row-col-files (set (map #(select-keys % [:row :col :file])
                                   linted))]
       (is (= #{{:row 9, :col 1, :file "corpus/invalid_arity/order.clj"}}
-             row-col-files)))))
+             row-col-files))))
+  (testing "varargs"
+    (is (some? (seq (lint! "(defn foo [x & xs]) (foo)"))))
+    (is (empty? (lint! "(defn foo [x & xs]) (foo 1 2 3)")))))
 
 (deftest cljc-test
   (let [linted (lint! (io/file "corpus" "cljc"))
@@ -333,6 +333,14 @@
      (lint! (io/file "corpus" "case.clj"))))
   (testing "no false positive when using defn in case list dispatch"
     (is (empty? (lint! "(case x (defn select-keys) 1 2)")))))
+
+(deftest local-bindings-test
+  (is (empty? (lint! "(fn [select-keys] (select-keys))")))
+  (is (empty? (lint! "(fn [[select-keys x y z]] (select-keys))")))
+  (is (empty? (lint! "(fn [{:keys [:select-keys :b]}] (select-keys))")))
+  (is (empty? (lint! "(defn foo [{:keys [select-keys :b]}]
+    (let [x 1] (select-keys)))")))
+  (is (seq (lint! "(defn foo ([select-keys]) ([x y] (select-keys)))"))))
 
 ;;;; Scratch
 
