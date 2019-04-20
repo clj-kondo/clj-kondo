@@ -115,6 +115,22 @@
                            %)
            (rest children)))))
 
+(defn parse-case [lang bindings expr]
+  (let [exprs (-> expr :children)]
+    (loop [[constant expr :as exprs] exprs
+           parsed []]
+      (if-not expr
+        (into parsed (when constant
+                       (parse-arities lang bindings constant)))
+        (recur
+         (nnext exprs)
+         (into parsed (parse-arities lang bindings expr)))))))
+
+(comment
+  (parse-case :clj #{} (parse-string-all "(case (+ 1 2 3) (1 2 3) (+ 1 2 3) (+ 2 3 4))"))
+  (parse-case :clj #{} (parse-string "(case (+ 1 2 3) (1 2 3) (+ 1 2 3))"))
+  )
+
 (defn parse-arities
   ;; TODO: refactor and split into multiple functions
   ;; TODO: handle case, we should not parse the list constants as function calls
@@ -146,6 +162,8 @@
                maybe-bindings (->> arg-vec :children (map :value))
                fn-bindings (set (filter symbol? (cons fn-name maybe-bindings)))]
            (mapcat #(parse-arities lang (set/union bindings fn-bindings) %) (rest children)))
+         case
+         (parse-case lang bindings expr)
          ;; catch-all
          (if (symbol? fn-name)
            (let [args (count (rest children))

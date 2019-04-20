@@ -307,6 +307,31 @@
                        :message "wrong number of args (0) passed to macros/foo"})
                     (lint! (io/file "corpus" "refer_all.cljs")))))
 
+(deftest case-test
+  (testing "case dispatch values should not be linted as function calls"
+    (assert-submaps
+     '({:file "corpus/case.clj",
+        :row 7,
+        :col 3,
+        :level :error,
+        :message "wrong number of args (3) passed to clojure.core/filter"}
+       {:file "corpus/case.clj",
+        :row 9,
+        :col 3,
+        :level :error,
+        :message "wrong number of args (3) passed to clojure.core/filter"}
+       {:file "corpus/case.clj",
+        :row 14,
+        :col 3,
+        :level :error,
+        :message "wrong number of args (3) passed to clojure.core/filter"}
+       {:file "corpus/case.clj",
+        :row 15,
+        :col 3,
+        :level :error,
+        :message "wrong number of args (2) passed to clojure.core/odd?"})
+     (lint! (io/file "corpus" "case.clj")))))
+
 ;;;; Scratch
 
 (comment
