@@ -330,7 +330,9 @@
         :col 3,
         :level :error,
         :message "wrong number of args (2) passed to clojure.core/odd?"})
-     (lint! (io/file "corpus" "case.clj")))))
+     (lint! (io/file "corpus" "case.clj"))))
+  (testing "no false positive when using defn in case list dispatch"
+    (is (empty? (lint! "(case x (defn select-keys) 1 2)")))))
 
 ;;;; Scratch
 
