@@ -1,7 +1,7 @@
-(ns clj-kondo.impl.vars
+(ns clj-kondo.impl.calls
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [some-call node->line
+   [clj-kondo.impl.utils :refer [some-call call node->line
                                  parse-string parse-string-all]]
    [clj-kondo.impl.namespace :refer [analyze-ns-decl]]
    [clojure.set :as set]
@@ -64,7 +64,9 @@
 (declare parse-arities)
 
 (defn parse-defn [lang bindings expr]
-  (let [children (:children (strip-meta expr))
+  ;; TODO: switch to sexpr instead of parsing rewrite-clj output
+  (let [macro? (= 'defmacro (call expr))
+        children (:children (strip-meta expr))
         ;; TODO: add metadata parsing for private
         private? (= 'defn- (some-call expr defn-))
         children (rest children)
@@ -86,99 +88,100 @@
         arities (map analyze-arity arg-decls)
         fixed-arities (set (keep :fixed-arity arities))
         var-args-min-arity (:min-arity (first (filter :varargs? arities)))
+        {:keys [:row :col]} (meta expr)
         defn
-        (let [{:keys [:row :col]} (meta expr)]
-          (if fn-name
-            (cond-> {:type :defn
-                     :name fn-name
-                     :row row
-                     :col col
-                     :lang lang}
-              (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-              private? (assoc :private? private?)
-              var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))
-            {:type :debug
-             :level :info
-             :message "Could not parse defn form"
-             :row row
-             :col col
-             :lang lang}))]
-    (cons defn
+        (if fn-name
+          (cond-> {:type :defn
+                   :name fn-name
+                   :row row
+                   :col col
+                   :lang lang}
+            ;; not yet:
+            ;; macro? (assoc :macro true)
+            (seq fixed-arities) (assoc :fixed-arities fixed-arities)
+            private? (assoc :private? private?)
+            var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))
+          {:type :debug
+           :level :info
+           :message "Could not parse defn form"
+           :row row
+           :col col
+           :lang lang})
+        call {:type :call
+              :name 'defn
+              :row row
+              :col col
+              :lang lang
+              :expr expr
+              :arity (count children)}]
+    (into [defn call]
           (mapcat
            #(parse-arities lang (reduce set/union bindings
                                         (map :arg-names arities))
                            %)
            (rest children)))))
 
-(defn reader-conditional-expr? [expr]
-  (and (= :reader-macro (node/tag expr))
-       (= '? (:value (first (:children expr))))))
-
-(defn parse-reader-conditional [expr]
-  (let [kvs (-> expr
-                :children second :children)
-        kvs (partition 2 kvs)]
-    (into {}
-          (for [[k v] kvs]
-            [(:k k) v]))))
+(defn parse-case [lang bindings expr]
+  (let [exprs (-> expr :children)]
+    (loop [[constant expr :as exprs] exprs
+           parsed []]
+      (if-not expr
+        (into parsed (when constant
+                       (parse-arities lang bindings constant)))
+        (recur
+         (nnext exprs)
+         (into parsed (parse-arities lang bindings expr)))))))
 
 (defn parse-arities
   ;; TODO: refactor and split into multiple functions
   ([lang expr] (parse-arities lang #{} expr))
   ([lang bindings {:keys [:children] :as expr}]
-   (cond
-     (some-call expr ns)
-     [(analyze-ns-decl lang expr)]
-     ;; TODO: in-ns is not supported yet
-     ;; One thing to note: if in-ns is used in a function body, the rest of the namespace is now analyzed in that namespace, which is incorrect.
-     ;; (some-call expr in-ns)
-     ;; [(analyze-in-ns expr)]
-     ;; TODO: better resolving for these macro calls
-     ;; core/->> was hard-coded here because of
-     ;; https://github.com/clojure/clojurescript/blob/73272a2da45a4c69d090800fa7732abe3fd05c70/src/main/clojure/cljs/core.cljc#L551
-     (some-call expr defn defn- core/defn core/defn- defmacro core/defmacro)
-     (parse-defn lang bindings expr)
-     ;; TODO: better resolving for these macro calls
-     ;; core/->> was hard-coded here because of
-     ;; https://github.com/clojure/clojurescript/blob/73272a2da45a4c69d090800fa7732abe3fd05c70/src/main/clojure/cljs/core.cljc#L854
-     (or (some-call expr core/->> ->> cond-> cond->> some-> some->> . .. deftype
-                    proxy extend-protocol doto reify definterface defrecord defprotocol)
-         (contains? '#{:quote :syntax-quote} (node/tag expr)))
-     []
-     (some-call expr let)
-     (let [let-bindings (->> children second :children (map :value) (filter symbol?) set)]
-       (mapcat #(parse-arities lang (set/union bindings let-bindings) %) (rest children)))
-     (some-call expr fn fn*)
-     ;; TODO better arity analysis like in normal fn
-     (let [fn-name (-> children second :value)
-           arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
-           maybe-bindings (->> arg-vec :children (map :value))
-           fn-bindings (set (filter symbol? (cons fn-name maybe-bindings)))]
-       (mapcat #(parse-arities lang (set/union bindings fn-bindings) %) (rest children)))
-     (fn-call? expr)
-     (let [fn-name (:value (first children))
-           args (count (rest children))
-           binding-call? (contains? bindings fn-name)
-           parse-rest (mapcat #(parse-arities lang bindings %) (rest children))]
-       (if binding-call?
-         parse-rest
-         (cons
-          (let [{:keys [:row :col]} (meta expr)]
-            {:type :call
-             :name fn-name
-             :arity args
-             :row row
-             :col col
-             :lang lang
-             :expr expr})
-          parse-rest)))
-     (reader-conditional-expr? expr)
-     (let [{:keys [:clj :cljs]} (parse-reader-conditional expr)]
-       (for [[l e] [[:clj clj] [:cljs cljs]]
-             :when e
-             expr (parse-arities l bindings e)]
-         expr))
-     :else (mapcat #(parse-arities lang bindings %) children))))
+   (let [?full-fn-name (call expr)
+         ;; TODO: better resolving for qualified vars...
+         fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))
+         t (node/tag expr)]
+     (if (contains? '#{:quote :syntax-quote} t)
+       []
+       (case fn-name
+         ns
+         [(analyze-ns-decl lang expr)]
+         ;; TODO: in-ns is not supported yet
+         ;; One thing to note: if in-ns is used in a function body, the rest of the namespace is now analyzed in that namespace, which is incorrect.
+         (defn defn- defmacro)
+         (parse-defn lang bindings expr)
+         ;; TODO: better resolving for these macro calls
+         (->> cond-> cond->> some-> some->> . .. deftype
+              proxy extend-protocol doto reify definterface defrecord defprotocol)
+         []
+         let
+         (let [let-bindings (->> children second :children (map :value) (filter symbol?) set)]
+           (mapcat #(parse-arities lang (set/union bindings let-bindings) %) (rest children)))
+         (fn fn*)
+         ;; TODO better arity analysis like in normal fn
+         (let [arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
+               maybe-bindings (->> arg-vec :children (map :value))
+               fn-bindings (set (filter symbol? (cons fn-name maybe-bindings)))]
+           (mapcat #(parse-arities lang (set/union bindings fn-bindings) %) (rest children)))
+         case
+         (parse-case lang bindings expr)
+         ;; catch-all
+         (if (symbol? fn-name)
+           (let [args (count (rest children))
+                 binding-call? (contains? bindings fn-name)
+                 parse-rest (mapcat #(parse-arities lang bindings %) (rest children))]
+             (if binding-call?
+               parse-rest
+               (cons
+                (let [{:keys [:row :col]} (meta expr)]
+                  {:type :call
+                   :name ?full-fn-name
+                   :arity args
+                   :row row
+                   :col col
+                   :lang lang
+                   :expr expr})
+                parse-rest)))
+           (mapcat #(parse-arities lang bindings %) children)))))))
 
 (defn resolve-name
   [ns name-sym]
@@ -196,21 +199,24 @@
         (let [namespace (:name ns)]
           {:ns namespace
            :name name-sym
+           :unqualified? true
            :clojure-excluded? (contains? (:clojure-excluded ns)
                                          name-sym)}))))
 
 (def vconj (fnil conj []))
 
-(defn analyze-arities
+(defn analyze-calls
   "Collects defs and calls into a map. To optimize cache lookups later
   on, calls are indexed by the namespace they call to, not the
   ns where the call occurred."
-  ([filename lang expr] (analyze-arities filename lang expr false))
-  ([filename lang expr debug?]
-   (loop [[first-parsed & rest-parsed] (parse-arities lang expr)
-          ns (analyze-ns-decl lang (parse-string "(ns user)"))
+  ([filename lang expr] (analyze-calls filename lang lang expr))
+  ([filename lang expanded-lang expr] (analyze-calls filename lang expanded-lang expr false))
+  ([filename lang expanded-lang expr debug?]
+   (loop [[first-parsed & rest-parsed] (parse-arities expanded-lang expr)
+          ns (analyze-ns-decl expanded-lang (parse-string "(ns user)"))
           results {:calls {}
                    :defs {}
+                   :loaded (:loaded ns)
                    :findings []
                    :lang lang}]
      (if first-parsed
@@ -218,7 +224,8 @@
          (:ns :in-ns)
          (recur rest-parsed
                 first-parsed
-                results)
+                (update results
+                        :loaded into (:loaded first-parsed)))
          (recur rest-parsed
                 ns
                 (case (:type first-parsed)
@@ -267,13 +274,18 @@
                       :call
                       (if resolved
                         (let [path [:calls (:ns resolved)]
+                              unqualified? (:unqualified? resolved) 
                               call (cond-> (assoc first-parsed
                                                   :filename filename
                                                   :resolved-ns (:ns resolved)
                                                   :ns-lookup ns)
                                      (:clojure-excluded? resolved)
-                                     (assoc :clojure-excluded? true))
-                              results (update-in results path vconj call)]
+                                     (assoc :clojure-excluded? true)
+                                     unqualified?
+                                     (assoc :unqualified? true))
+                              results (cond-> (update-in results path vconj call)
+                                        (not unqualified?)
+                                        (update :loaded conj (:ns resolved)))]
                           (if debug? (update-in results [:findings] conj
                                                 (assoc call
                                                        :level :info
@@ -292,7 +304,25 @@
                                             :type :debug))
                           results))
                       results)))))
-       [results]))))
+       results))))
+
+(defn lint-def* [filename expr in-def?]
+  (let [fn-name (call expr)
+        simple-fn-name (when fn-name (symbol (name fn-name)))]
+    ;; TODO: it would be nicer if we could have the qualified calls of this expression somehow
+    ;; so we wouldn't have to deal with these primitive expressions anymore
+    (when-not (= 'case simple-fn-name)
+      (let [current-def? (contains? '#{expr def defn defn- deftest defmacro} fn-name)
+            new-in-def? (and (not (contains? '#{:syntax-quote :quote}
+                                             (node/tag expr)))
+                             (or in-def? current-def?))]
+        (if (and in-def? current-def?)
+          [(node->line filename expr :warning :inline-def "inline def")]
+          (when (:children expr)
+            (mapcat #(lint-def* filename % new-in-def?) (:children expr))))))))
+
+(defn lint-def [filename expr]
+  (mapcat #(lint-def* filename % true) (:children expr)))
 
 (defn lint-cond [filename expr]
   (let [last-condition
@@ -311,50 +341,68 @@
                      (or (= "=" fn-name) (str/ends-with? fn-name "?")))]
       (node->line filename c :warning :missing-test-assertion "missing test assertion"))))
 
-(defn var-specific-findings [config filename call called-fn]
-  (case [(:ns called-fn) (:name called-fn)]
-    [clojure.core cond] (lint-cond filename (:expr call))
-    [cljs.core cond] (lint-cond filename (:expr call))
+(defn call-specific-findings [config filename call called-fn]
+  (case (:ns called-fn)
+    (clojure.core cljs.core)
+    (case (:name called-fn)
+      (cond) (lint-cond filename (:expr call))
+      (def defn defn- defmacro) (lint-def filename (:expr call))
+      [])
+    (clojure.test cljs.test)
+    (case (:name called-fn)
+      (deftest) (lint-def filename (:expr call))
+      [])
     #_#_[clojure.test deftest] (lint-deftest config filename (:expr call))
     #_#_[cljs.test deftest] (lint-deftest config filename (:expr call))
     []))
 
-(defn resolve-call [idacs call-lang fn-ns fn-name]
-  ;; TODO: for cljs -> clj/cljc calls we can probably store whether a function is a macro or not and use that
-  ;; call lang clj. [foo.core] can come from another .clj or .cljc file
-  ;; call lang cljs. [foo.core] can come from another .cljs, .clj (macros) or .cljc file
-  ;; call lang cljc. [foo.core]. we should split this call into a clj and cljs one (see #67). for now, we'll only look into .clj.
-  (case call-lang
-    :clj (or (get-in idacs [:clj :defs fn-ns fn-name])
-             (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
-             (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
-    :cljs (or (get-in idacs [:cljs :defs fn-ns fn-name])
-              (get-in idacs [:cljc :defs fn-ns :cljc fn-name])
-              (get-in idacs [:cljc :defs fn-ns :cljs fn-name]))
-    :cljc (or
-           ;; there might be both a .clj and .cljs version of the file with the same name
-           (get-in idacs [:clj :defs fn-ns fn-name])
-           (get-in idacs [:cljs :defs fn-ns fn-name])
-           ;; or there is one .cljc file with this name and the function is defined for both languages
-           (get-in idacs [:cljc :defs fn-ns :cljc fn-name]))))
+(defn resolve-call [idacs call fn-ns fn-name]
+  (let [call-lang (:lang call)
+        base-lang (or (:base-lang call) call-lang) ;; .cljc, .cljs or .clj file
+        caller-ns (:ns call)
+        ;; this call was unqualified and inferred as a function in the same namespace until now
+        unqualified? (:unqualified? call)
+        same-ns? (= caller-ns fn-ns)]
+    (case [base-lang call-lang]
+      [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
+                      (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+                        ;; when calling a function in the same ns, it must be in
+                        ;; another file, hence qualified via a require
+                        ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
+                        (when-not (and same-ns? unqualified?)
+                          (or
+                           ;; cljs func in another cljc file
+                           (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                           ;; maybe a macro?
+                           (get-in idacs [:clj :defs fn-ns fn-name])
+                           (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
+      ;; calling a clojure function from cljc
+      [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
+                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      ;; calling function in a CLJS conditional from a CLJC file
+      [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+                        (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                        ;; could be a macro
+                        (get-in idacs [:clj :defs fn-ns fn-name])
+                        (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
-(defn fn-call-findings
+(defn call-findings
   "Analyzes indexed defs and calls and returns findings."
   [idacs config]
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [;; _ (prn "call" (-> call :ns* :refer-alls))
-                             fn-name (:name call)
+                       :let [fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
-                             (or (resolve-call idacs (:lang call) fn-ns fn-name)
+                             (or (resolve-call idacs call fn-ns fn-name)
                                  ;; we resolved this call against the
                                  ;; same namespace, because it was
                                  ;; unqualified
                                  (when (= caller-ns fn-ns)
-                                   (some #(resolve-call idacs (:lang call) % fn-name)
+                                   (some #(resolve-call idacs call % fn-name)
                                          (into (vec
                                                 (keep (fn [[ns excluded]]
                                                         (when-not (contains? excluded fn-name)
@@ -367,8 +415,7 @@
                                                     :cljc 'clojure.core)])))))
                              fn-ns (:ns called-fn)]
                        :when called-fn
-                       :let [;; _ (prn called-fn)
-                             ;; a macro in a CLJC file with the same namespace
+                       :let [;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
                              ;; call and the lang of the function def context in
@@ -377,7 +424,9 @@
                              valid-order? (if (and (= caller-ns
                                                       fn-ns)
                                                    (= (:base-lang call)
-                                                      (:base-lang called-fn)))
+                                                      (:base-lang called-fn))
+                                                   ;; some built-ins may not have a row and col number
+                                                   (:row called-fn))
                                             (or (> (:row call) (:row called-fn))
                                                 (and (= (:row call) (:row called-fn))
                                                      (> (:col call) (:col called-fn))))
@@ -414,7 +463,7 @@
                                   :type :private-call
                                   :message (format "call to private function %s"
                                                    (:name call))})]
-                              (var-specific-findings config filename call called-fn))]
+                              (call-specific-findings config filename call called-fn))]
                        e errors
                        :when e]
                    e)]

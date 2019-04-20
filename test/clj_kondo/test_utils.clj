@@ -2,6 +2,7 @@
   (:require
    [clj-kondo.main :as main :refer [main]]
    [clojure.string :as str :refer [trim]]
+   [clojure.test :refer [is]]
    [me.raynes.conch :refer [programs with-programs let-programs] :as sh]))
 
 (defn submap?
@@ -14,21 +15,34 @@
             m1)
     (= m1 m2)))
 
+(defmacro assert-submap [m r]
+  `(is (submap? ~m ~r)))
+
+(defmacro assert-some-submap [m r]
+  `(is (some #(submap? ~m %) ~r)))
+
+(defmacro assert-submaps [maps result]
+  `(do
+     (is (count ~maps) (count ~result))
+     (doseq [[m# r#] (map vector ~maps ~result)]
+       (assert-submap m# r#))))
+
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the
   expected format (for debugging)."
   [msg]
-  (keep
-   (fn [line]
-     (if-let [[_ file row col level message] (re-matches #"(.*):(.*):(.*): (.*): (.*)" line)]
-       {:file file
-        :row (Integer/parseInt row)
-        :col (Integer/parseInt col)
-        :level (keyword level)
-        :message message}
-       (when-not (str/starts-with? line "linting took")
-         (println line))))
-   (str/split-lines msg)))
+  (doall
+   (keep
+    (fn [line]
+      (if-let [[_ file row col level message] (re-matches #"(.*):(.*):(.*): (.*): (.*)" line)]
+        {:file file
+         :row (Integer/parseInt row)
+         :col (Integer/parseInt col)
+         :level (keyword level)
+         :message message}
+        (when-not (str/starts-with? line "linting took")
+          (println line))))
+    (str/split-lines msg))))
 
 (defn lint-jvm!
   ([input] (lint-jvm! input "--lang" "clj"))

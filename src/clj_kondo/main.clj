@@ -3,8 +3,9 @@
   (:gen-class)
   (:require
    [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.calls :refer [call-findings]]
    [clj-kondo.impl.linters :refer [process-input]]
-   [clj-kondo.impl.vars :refer [fn-call-findings]]
+   [clj-kondo.impl.overrides :refer [overrides]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str
@@ -35,7 +36,7 @@
   (let [format-fn (format-output config)]
     (doseq [{:keys [:filename :message
                     :level :row :col] :as finding}
-            (sort-by (juxt :filename :row :col) findings)]
+            (dedupe (sort-by (juxt :filename :row :col) findings))]
       (println (format-fn filename row col level message)))))
 
 (defn- print-version []
@@ -143,13 +144,13 @@ Options:
                       :filename filename
                       :col 0
                       :row 0
-                      :message "File does not exist"}]}]))
+                      :message "file does not exist"}]}]))
     (catch Throwable e
       [{:findings [{:level :warning
                     :filename filename
                     :col 0
                     :row 0
-                    :message "Could not process file"}]}])))
+                    :message "could not process file"}]}])))
 
 ;;;; find cache/config dir
 
@@ -224,22 +225,20 @@ Options:
 
 (defn- index-defs-and-calls [defs-and-calls]
   (reduce
-   (fn [acc {:keys [:calls :defs :lang] :as m}]
+   (fn [acc {:keys [:calls :defs :loaded :lang] :as m}]
      (-> acc
          (update-in [lang :calls] (fn [prev-calls]
                                     (merge-with into prev-calls calls)))
-         (update-in [lang :defs] merge defs)))
-   {:clj {:calls {} :defs {}}
-    :cljs {:calls {} :defs {}}
-    :cljc {:calls {} :defs {}}}
+         (update-in [lang :defs] merge defs)
+         (update-in [lang :loaded] into loaded)))
+   {:clj {:calls {} :defs {} :loaded #{}}
+    :cljs {:calls {} :defs {} :loaded #{}}
+    :cljc {:calls {} :defs {} :loaded #{}}}
    defs-and-calls))
 
 ;;;; overrides
 
-(defn- overrides
-  "Overrides var information."
-  [idacs]
-  (assoc-in idacs '[:cljs :defs cljs.core array :var-args-min-arity] 0))
+
 
 ;;;; summary
 
@@ -297,7 +296,7 @@ Options:
                     idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
-                    fcf (fn-call-findings idacs config)
+                    fcf (call-findings idacs config)
                     all-findings (concat fcf (mapcat :findings processed))
                     all-findings (filter-findings all-findings config)
                     {:keys [:error :warning]} (summarize all-findings)]

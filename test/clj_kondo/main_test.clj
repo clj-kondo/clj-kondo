@@ -1,7 +1,7 @@
 (ns clj-kondo.main-test
   (:require
    [clj-kondo.main :refer [main]]
-   [clj-kondo.test-utils :refer [submap? lint!]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap]]
    [clojure.java.io :as io]
    [clojure.string :as str :refer [trim]]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -10,11 +10,11 @@
   (let [linted (lint! (io/file "corpus" "inline_def.clj"))
         row-col-files (set (map #(select-keys % [:row :col :file])
                                 linted))]
-    (is (= #{{:row 9, :col 10, :file "corpus/inline_def.clj"}
-             {:row 11, :col 14, :file "corpus/inline_def.clj"}
-             {:row 7, :col 3, :file "corpus/inline_def.clj"}
-             {:row 13, :col 18, :file "corpus/inline_def.clj"}
-             {:row 4, :col 3, :file "corpus/inline_def.clj"}}
+    (is (= #{{:row 5, :col 3, :file "corpus/inline_def.clj"}
+             {:row 8, :col 3, :file "corpus/inline_def.clj"}
+             {:row 10, :col 10, :file "corpus/inline_def.clj"}
+             {:row 12, :col 16, :file "corpus/inline_def.clj"}
+             {:row 14, :col 18, :file "corpus/inline_def.clj"}}
            row-col-files))
     (is (= #{"inline def"} (set (map :message linted)))))
   (is (empty? (lint! "(defmacro foo [] `(def x 1))")))
@@ -102,18 +102,23 @@
         row-col-files (sort-by (juxt :file :row :col)
                                (map #(select-keys % [:file :row :col])
                                     linted))]
-    row-col-files
-    (is (= '({:file "corpus/cljc/test_cljc.cljc", :row 13, :col 9}
+    (is (= '({:file "corpus/cljc/datascript.cljc", :row 8, :col 1}
+             {:file "corpus/cljc/test_cljc.cljc", :row 13, :col 9}
              {:file "corpus/cljc/test_cljc.cljc", :row 14, :col 10}
              {:file "corpus/cljc/test_cljc.cljc", :row 21, :col 1}
-
              {:file "corpus/cljc/test_cljc.cljs", :row 5, :col 1}
-
              {:file "corpus/cljc/test_cljc_from_clj.clj", :row 5, :col 1}
-
              {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
              {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
-           row-col-files))))
+           row-col-files)))
+  (let [linted (lint! (io/file "corpus" "spec"))]
+    (is (= 1 (count linted)))
+    (assert-submap {:file "corpus/spec/alpha.cljs",
+                    :row 6,
+                    :col 1,
+                    :level :error,
+                    :message "wrong number of args (2) passed to spec.alpha/def"}
+                   (first linted))))
 
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
@@ -137,7 +142,7 @@
                 :col 0,
                 :level :error,
                 :message
-                "Can't parse corpus/read_error/error.clj, Unexpected EOF. [at line 2, column 1]"}
+                "can't parse corpus/read_error/error.clj, Unexpected EOF. [at line 2, column 1]"}
                {:file "corpus/read_error/ok.clj",
                 :row 6,
                 :col 1,
@@ -167,23 +172,23 @@
 
 (deftest cond-without-else-test
   (doseq [lang [:clj :cljs :cljc]]
-    (is (map submap? '({:row 7,
-                        :col 1,
-                        :level :warning,
-                        :message "cond without :else"}
-                       {:row 14,
-                        :col 1,
-                        :level :warning,
-                        :message "cond without :else"})
-             (lint! (io/file "corpus" (str "cond_without_else." (name lang))))))))
+    (assert-submaps '({:row 7,
+                       :col 1,
+                       :level :warning,
+                       :message "cond without :else"}
+                      {:row 14,
+                       :col 1,
+                       :level :warning,
+                       :message "cond without :else"})
+                    (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))))
 
 (deftest cljs-core-macro-test
-  (is (submap? '{:file "<stdin>",
-                 :row 1,
-                 :col 1,
-                 :level :error,
-                 :message "wrong number of args (4) passed to cljs.core/for"}
-               (first (lint! "(for [x []] 1 2 3)" "--lang" "cljs")))))
+  (assert-submap '{:file "<stdin>",
+                   :row 1,
+                   :col 1,
+                   :level :error,
+                   :message "wrong number of args (4) passed to cljs.core/for"}
+                 (first (lint! "(for [x []] 1 2 3)" "--lang" "cljs"))))
 
 (deftest built-in-test
   (is (= {:file "<stdin>",
@@ -204,22 +209,22 @@
           :level :error,
           :message "wrong number of args (1) passed to clojure.core/select-keys"}
          (first (lint! "(select-keys 1)" "--lang" "cljc"))))
-  (is (submap? {:file "<stdin>" :level :error,
-                :message "wrong number of args (3) passed to clojure.test/successful?"}
-               (first (lint! "(ns my-cljs (:require [clojure.test :refer [successful?]]))
-    (successful? 1 2 3)" "--lang" "clj"))))
-  (is (submap? {:file "<stdin>" :level :error,
-                :message "wrong number of args (3) passed to cljs.test/successful?"}
-               (first (lint! "(ns my-cljs (:require [cljs.test :refer [successful?]]))
-    (successful? 1 2 3)" "--lang" "cljs"))))
-  (is (submap? {:file "<stdin>", :row 2, :col 5, :level :error,
-                :message "wrong number of args (0) passed to clojure.set/difference"}
-               (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
-    (difference)" "--lang" "clj"))))
-  (is (submap? {:file "<stdin>", :row 2, :col 5, :level :error,
-                :message "wrong number of args (0) passed to clojure.set/difference"}
-               (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
-    (difference)" "--lang" "cljs")))))
+  (assert-submap {:file "<stdin>" :level :error,
+                  :message "wrong number of args (3) passed to clojure.test/successful?"}
+                 (first (lint! "(ns my-cljs (:require [clojure.test :refer [successful?]]))
+    (successful? 1 2 3)" "--lang" "clj")))
+  (assert-submap {:file "<stdin>" :level :error,
+                  :message "wrong number of args (3) passed to cljs.test/successful?"}
+                 (first (lint! "(ns my-cljs (:require [cljs.test :refer [successful?]]))
+    (successful? 1 2 3)" "--lang" "cljs")))
+  (assert-submap {:file "<stdin>", :row 2, :col 5, :level :error,
+                  :message "wrong number of args (0) passed to clojure.set/difference"}
+                 (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
+    (difference)" "--lang" "clj")))
+  (assert-submap {:file "<stdin>", :row 2, :col 5, :level :error,
+                  :message "wrong number of args (0) passed to clojure.set/difference"}
+                 (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
+    (difference)" "--lang" "cljs"))))
 
 (deftest built-in-java-test
   (is (= {:file "<stdin>", :row 1, :col 1,
@@ -240,28 +245,24 @@
          (first (lint! "(BigInteger/valueOf 1 2 3)" "--lang" "clj"))))
   (is (empty?
        (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "cljs"))))
-  (comment
-    ;; FIXME: fix after CLJC refactor (#67) The issue here is when you have a
-    ;; CLJ call inside a CLJC namespace the CLJ namespace isn't loaded from the
-    ;; cache
-    (is (= {:file "<stdin>", :row 1, :col 1,
-            :level :error,
-            :message "wrong number of args (3) passed to java.lang.Thread/sleep"}
-           (first (lint! "#?(:clj (java.lang.Thread/sleep 1 2 3))" "--lang" "cljc"))))))
+  (is (= {:file "<stdin>", :row 1, :col 9,
+          :level :error,
+          :message "wrong number of args (3) passed to java.lang.Thread/sleep"}
+         (first (lint! "#?(:clj (java.lang.Thread/sleep 1 2 3))" "--lang" "cljc")))))
 
 (deftest resolve-core-ns-test
-  (is (submap? '{:file "<stdin>",
-                 :row 1,
-                 :col 1,
-                 :level :error,
-                 :message "wrong number of args (0) passed to clojure.core/vec"}
-               (first (lint! "(clojure.core/vec)" "--lang" "clj"))))
-  (is (submap? '{:file "<stdin>",
-                 :row 1,
-                 :col 1,
-                 :level :error,
-                 :message "wrong number of args (0) passed to cljs.core/vec"}
-               (first (lint! "(cljs.core/vec)" "--lang" "cljs")))))
+  (assert-submap '{:file "<stdin>",
+                   :row 1,
+                   :col 1,
+                   :level :error,
+                   :message "wrong number of args (0) passed to clojure.core/vec"}
+                 (first (lint! "(clojure.core/vec)" "--lang" "clj")))
+  (assert-submap '{:file "<stdin>",
+                   :row 1,
+                   :col 1,
+                   :level :error,
+                   :message "wrong number of args (0) passed to cljs.core/vec"}
+                 (first (lint! "(cljs.core/vec)" "--lang" "cljs"))))
 
 (deftest override-test
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
@@ -270,48 +271,68 @@
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
 (deftest cljs-clojure-ns-alias-test []
-  (is (submap? '{:file "<stdin>",
-                 :row 2,
-                 :col 1,
-                 :level :error,
-                 :message "wrong number of args (3) passed to cljs.test/do-report"}
-               (first (lint! "(ns foo (:require [clojure.test :as t]))
-(t/do-report 1 2 3)" "--lang" "cljs")))))
+  (assert-submap '{:file "<stdin>",
+                   :row 2,
+                   :col 1,
+                   :level :error,
+                   :message "wrong number of args (3) passed to cljs.test/do-report"}
+                 (first (lint! "(ns foo (:require [clojure.test :as t]))
+(t/do-report 1 2 3)" "--lang" "cljs"))))
 
 (deftest prefix-libspec-test []
-  (is (every? identity
-              (map submap?
-                   '({:file "corpus/prefixed_libspec.clj",
-                      :row 14,
-                      :col 1,
-                      :level :error,
-                      :message "wrong number of args (0) passed to foo.bar.baz/b"}
-                     {:file "corpus/prefixed_libspec.clj",
-                      :row 15,
-                      :col 1,
-                      :level :error,
-                      :message "wrong number of args (0) passed to foo.baz/c"})
-                   (lint! (io/file "corpus" "prefixed_libspec.clj"))))))
+  (assert-submaps
+   '({:file "corpus/prefixed_libspec.clj",
+      :row 14,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to foo.bar.baz/b"}
+     {:file "corpus/prefixed_libspec.clj",
+      :row 15,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to foo.baz/c"})
+   (lint! (io/file "corpus" "prefixed_libspec.clj"))))
 
-(deftest refer-all-test
-  (testing ":require with :refer :all"
-    (is (let [results
-              (map submap?
-                   '({:file "corpus/refer_all.clj",
-                      :level :error,
-                      :message "wrong number of args (0) passed to funs/foo"}
-                     {:file "corpus/refer_all.clj",
-                      :level :error,
-                      :message "wrong number of args (0) passed to funs/bar"})
-                   (lint! (io/file "corpus" "refer_all.clj")))]
-          (and (= 2 (count results))
-               (every? identity results))))
-    (is (every? identity
-                (map submap?
-                     '({:file "corpus/refer_all.cljs",
-                        :level :error,
-                        :message "wrong number of args (0) passed to macros/foo"})
-                     (lint! (io/file "corpus" "refer_all.cljs")))))))
+(deftest refer-all-rename-test
+  (testing ":require with :refer :all and :rename"
+    (assert-submaps '({:file "corpus/refer_all.clj",
+                       :level :error,
+                       :message "wrong number of args (0) passed to funs/foo"}
+                      {:file "corpus/refer_all.clj",
+                       :level :error,
+                       :message "wrong number of args (0) passed to funs/bar"})
+                    (lint! (io/file "corpus" "refer_all.clj")))
+    (assert-submaps '({:file "corpus/refer_all.cljs",
+                       :level :error,
+                       :message "wrong number of args (0) passed to macros/foo"})
+                    (lint! (io/file "corpus" "refer_all.cljs")))))
+
+(deftest case-test
+  (testing "case dispatch values should not be linted as function calls"
+    (assert-submaps
+     '({:file "corpus/case.clj",
+        :row 7,
+        :col 3,
+        :level :error,
+        :message "wrong number of args (3) passed to clojure.core/filter"}
+       {:file "corpus/case.clj",
+        :row 9,
+        :col 3,
+        :level :error,
+        :message "wrong number of args (3) passed to clojure.core/filter"}
+       {:file "corpus/case.clj",
+        :row 14,
+        :col 3,
+        :level :error,
+        :message "wrong number of args (3) passed to clojure.core/filter"}
+       {:file "corpus/case.clj",
+        :row 15,
+        :col 3,
+        :level :error,
+        :message "wrong number of args (2) passed to clojure.core/odd?"})
+     (lint! (io/file "corpus" "case.clj"))))
+  (testing "no false positive when using defn in case list dispatch"
+    (is (empty? (lint! "(case x (defn select-keys) 1 2)")))))
 
 ;;;; Scratch
 

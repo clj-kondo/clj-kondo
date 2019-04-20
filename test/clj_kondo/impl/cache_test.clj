@@ -46,9 +46,13 @@
           (let [foo-cache (cache/from-cache-1
                            (io/file test-cache-dir cache-version)
                            lang 'foo)]
-            (is (some? (case lang (:clj :cljs)
-                             (get foo-cache 'foo)
-                             :cljc (get-in foo-cache [:cljc 'foo]))))))
+            (case lang
+              (:clj :cljs)
+              (is (some? (get foo-cache 'foo)))
+              :cljc
+              (do
+                (is (some? (get-in foo-cache [:clj 'foo])))
+                (is (some? (get-in foo-cache [:cljs 'foo])))))))
         (testing "linting only bar and using the cache option"
           (let [bar-file (io/file test-source-dir (str "bar."
                                                        (name lang)))]
@@ -93,7 +97,26 @@
           (lint! foo "--cache" test-cache-dir)
           (let [output (lint! bar "--cache" test-cache-dir)]
             (is (str/includes? (:message (first output))
-                               "wrong number of args (3) passed to foo/foo"))))))))
+                               "wrong number of args (3) passed to foo/foo")))))))
+  (testing ":refer :all ns is loaded from cache"
+    (let [tmp-dir (System/getProperty "java.io.tmpdir")
+          test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
+          test-source-dir (io/file tmp-dir "test-source-dir")
+          foo (io/file test-source-dir "foo.clj")
+          bar (io/file test-source-dir (str "bar.clj"))]
+      (rm "-rf" test-cache-dir)
+      (mkdir "-p" test-cache-dir)
+      (rm "-rf" test-source-dir)
+      (mkdir "-p" test-source-dir)
+      (io/copy "(ns foo) (defn foo [x])"
+               foo)
+      (io/copy "(ns bar (:require [foo :refer :all])) (foo 1 2 3)"
+               bar)
+      ;; populate cache
+      (lint! foo "--cache" test-cache-dir)
+      (let [output (lint! bar "--cache" test-cache-dir)]
+        (is (str/includes? (:message (first output))
+                           "wrong number of args (3) passed to foo/foo"))))))
 
 (deftest lock-test
   (let [tmp-dir (System/getProperty "java.io.tmpdir")

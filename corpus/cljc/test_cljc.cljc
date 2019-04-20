@@ -1,8 +1,8 @@
 (ns corpus.cljc.test-cljc)
 
-#?(:clj (defn foo [x y]
+#?(:clj (defmacro foo [x y]
           x)
-   :cljs (defn foo [x]
+   :cljs (defmacro foo [x] ;; self-hosted macro? :-)
            x))
 
 ;; valid calls on lines 9 and 10:
