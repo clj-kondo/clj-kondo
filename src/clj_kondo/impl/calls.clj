@@ -472,4 +472,5 @@
 ;;;; Scratch
 
 (comment
+  (count (:children (parse-string "(def ^:dynamic ^:private mismatch?)")))
   )

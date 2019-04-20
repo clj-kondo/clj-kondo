@@ -8,7 +8,7 @@
       (assoc-in '[:cljs :defs cljs.core array :var-args-min-arity] 0)
       (assoc-in '[:clj :defs clojure.core def] '{:ns clojure.core
                                                  :name def
-                                                 :fixed-arities #{2 3}})
+                                                 :fixed-arities #{1 2 3}})
       (assoc-in '[:clj :defs clojure.core defn] '{:ns clojure.core
                                                   :name defn
                                                   :var-args-min-arity 2})
