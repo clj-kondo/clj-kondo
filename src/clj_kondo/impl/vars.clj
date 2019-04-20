@@ -89,26 +89,33 @@
         arities (map analyze-arity arg-decls)
         fixed-arities (set (keep :fixed-arity arities))
         var-args-min-arity (:min-arity (first (filter :varargs? arities)))
+        {:keys [:row :col]} (meta expr)
         defn
-        (let [{:keys [:row :col]} (meta expr)]
-          (if fn-name
-            (cond-> {:type :defn
-                     :name fn-name
-                     :row row
-                     :col col
-                     :lang lang}
-              ;; not yet:
-              ;; macro? (assoc :macro true)
-              (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-              private? (assoc :private? private?)
-              var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))
-            {:type :debug
-             :level :info
-             :message "Could not parse defn form"
-             :row row
-             :col col
-             :lang lang}))]
-    (cons defn
+        (if fn-name
+          (cond-> {:type :defn
+                   :name fn-name
+                   :row row
+                   :col col
+                   :lang lang}
+            ;; not yet:
+            ;; macro? (assoc :macro true)
+            (seq fixed-arities) (assoc :fixed-arities fixed-arities)
+            private? (assoc :private? private?)
+            var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))
+          {:type :debug
+           :level :info
+           :message "Could not parse defn form"
+           :row row
+           :col col
+           :lang lang})
+        call {:type :call
+              :name 'defn
+              :row row
+              :col col
+              :lang lang
+              :expr expr
+              :arity (count children)}]
+    (into [defn call]
           (mapcat
            #(parse-arities lang (reduce set/union bindings
                                         (map :arg-names arities))
@@ -309,6 +316,24 @@
                       results)))))
        results))))
 
+(defn lint-def* [filename expr in-def?]
+  (let [fn-name (call expr)
+        simple-fn-name (when fn-name (symbol (name fn-name)))]
+    ;; TODO: it would be nicer if we could have the qualified calls of this expression somehow
+    ;; so we wouldn't have to deal with these primitive expressions anymore
+    (when-not (= 'case simple-fn-name)
+      (let [current-def? (contains? '#{expr def defn defn- deftest defmacro} fn-name)
+            new-in-def? (and (not (contains? '#{:syntax-quote :quote}
+                                             (node/tag expr)))
+                             (or in-def? current-def?))]
+        (if (and in-def? current-def?)
+          [(node->line filename expr :warning :inline-def "inline def")]
+          (when (:children expr)
+            (mapcat #(lint-def* filename % new-in-def?) (:children expr))))))))
+
+(defn lint-def [filename expr]
+  (mapcat #(lint-def* filename % true) (:children expr)))
+
 (defn lint-cond [filename expr]
   (let [last-condition
         (->> expr :children
@@ -327,9 +352,16 @@
       (node->line filename c :warning :missing-test-assertion "missing test assertion"))))
 
 (defn var-specific-findings [config filename call called-fn]
-  (case [(:ns called-fn) (:name called-fn)]
-    [clojure.core cond] (lint-cond filename (:expr call))
-    [cljs.core cond] (lint-cond filename (:expr call))
+  (case (:ns called-fn)
+    (clojure.core cljs.core)
+    (case (:name called-fn)
+      (cond) (lint-cond filename (:expr call))
+      (def defn defn- defmacro) (lint-def filename (:expr call))
+      [])
+    (clojure.test cljs.test)
+    (case (:name called-fn)
+      (deftest) (lint-def filename (:expr call))
+      [])
     #_#_[clojure.test deftest] (lint-deftest config filename (:expr call))
     #_#_[cljs.test deftest] (lint-deftest config filename (:expr call))
     []))
@@ -375,8 +407,7 @@
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [;; _ (prn "call" (dissoc call :ns-lookup))
-                             fn-name (:name call)
+                       :let [fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
@@ -398,9 +429,7 @@
                                                     :cljc 'clojure.core)])))))
                              fn-ns (:ns called-fn)]
                        :when called-fn
-                       :let [;; _ (prn "CALL" (dissoc call :ns-lookup :expr))
-                             ;; _ (prn "CALLED FN" called-fn)
-                             ;; a macro in a CLJC file with the same namespace
+                       :let [;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
                              ;; call and the lang of the function def context in
@@ -409,7 +438,9 @@
                              valid-order? (if (and (= caller-ns
                                                       fn-ns)
                                                    (= (:base-lang call)
-                                                      (:base-lang called-fn)))
+                                                      (:base-lang called-fn))
+                                                   ;; some built-ins may not have a row and col number
+                                                   (:row called-fn))
                                             (or (> (:row call) (:row called-fn))
                                                 (and (= (:row call) (:row called-fn))
                                                      (> (:col call) (:col called-fn))))

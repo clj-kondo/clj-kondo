@@ -3,7 +3,7 @@
    [clj-kondo.impl.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.vars :as vars :refer [analyze-arities]]
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
-   [clj-kondo.test-utils :refer [assert-submap assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submap assert-some-submap assert-submaps]]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest strip-meta-test
@@ -14,12 +14,14 @@
 (deftest parse-defn-test
   (assert-submaps
    '[{:name chunk-buffer, :fixed-arities #{1}}
+     {:type :call :name defn}
      {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
    (vars/parse-defn :clj #{}
                     (parse-string
                      "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
   (clojure.lang.ChunkBuffer. capacity))")))
-  (assert-submap '{:name get-bytes,
+  (assert-submap '{:type :defn
+                   :name get-bytes,
                    :row 1,
                    :col 1,
                    :lang :clj,
@@ -68,14 +70,14 @@
 #_2 (ns foo (:require [bar :as baz :refer [quux]]))
 (quux 1)
 "))]
-    (assert-submap '{:type :call,
-                     :name quux,
-                     :arity 1,
-                     :row 4,
-                     :col 1,
-                     :ns foo,
-                     :lang :clj}
-                   (get-in analyzed '[:calls bar 0]))
+    (assert-some-submap '{:type :call,
+                          :name quux,
+                          :arity 1,
+                          :row 4,
+                          :col 1,
+                          :ns foo,
+                          :lang :clj}
+                        (get-in analyzed '[:calls bar]))
     (assert-submap '{quux
                      {:name quux,
                       :fixed-arities #{3},
@@ -102,14 +104,14 @@
 #_1 (ns clj-kondo.main)
 #_2 (defn foo [x]) (foo 1)
 "))]
-      (assert-submap '{:type :call,
-                       :name foo,
-                       :arity 1,
-                       :row 3,
-                       :col 20,
-                       :ns clj-kondo.main,
-                       :lang :clj}
-                     (get-in analyzed '[:calls clj-kondo.main 0]))
+      (assert-some-submap '{:type :call,
+                            :name foo,
+                            :arity 1,
+                            :row 3,
+                            :col 20,
+                            :ns clj-kondo.main,
+                            :lang :clj}
+                          (get-in analyzed '[:calls clj-kondo.main]))
       (assert-submap '{foo
                        {:name foo,
                         :fixed-arities #{1},
@@ -121,9 +123,9 @@
                                     (parse-string-all "
 (defn foo [x]) (foo 1)
 "))]
-      (assert-submap '{:type :call, :name foo,
-                       :arity 1, :row 2, :col 16, :ns user, :lang :clj}
-                     (get-in analyzed '[:calls user 0]))
+      (assert-some-submap '{:type :call, :name foo,
+                            :arity 1, :row 2, :col 16, :ns user, :lang :clj}
+                          (get-in analyzed '[:calls user]))
       (assert-submap '{foo {:name foo,
                             :fixed-arities #{1},
                             :ns user, :lang :clj}}

@@ -1,8 +1,8 @@
 (ns clj-kondo.impl.cache
   {:no-doc true}
-  (:require [clojure.java.io :as io]
-            [clojure.set :as set]
-            [cognitect.transit :as transit])
+  (:require
+   [clojure.java.io :as io]
+   [cognitect.transit :as transit])
   (:import [java.io RandomAccessFile]
            [java.nio.channels FileChannel]))
 
@@ -75,23 +75,7 @@
                      (str "clj-kondo cache is locked by other process")))
              (recur (inc retry#))))))))
 
-(defn clojure-core [cache-dir]
-  (from-cache-1 cache-dir :clj 'clojure.core))
-
-(defn cljs-core [cache-dir]
-  (from-cache-1 cache-dir :cljs 'cljs.core))
-
-(defn cljs-core-cljc [cache-dir]
-  (from-cache-1 cache-dir :cljc 'cljs.core))
-
-(defn assoc-when-missing [idacs path data]
-  (if-not (get-in idacs path)
-    (assoc-in idacs path
-              data)
-    idacs))
-
 (defn load-when-missing [idacs path cache-dir lang ns-sym]
-  ;; (println "loading" path)
   (if-not (get-in idacs path)
     (if-let [data (from-cache-1 cache-dir lang ns-sym)]
       (assoc-in idacs path data)
@@ -101,51 +85,22 @@
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
             (let [required-namespaces (get-in idacs [lang :loaded])
-                  ;; _ (prn "REQ'ED" lang required-namespaces)
                   analyzed-namespaces
-                  (set (keys (get-in idacs [lang :defs])))
-                  ;; TODO: we should not only load via calls, but also via requires
-                  ;; e.g. :refer :all doesn't come the cache now...
-                  ]
+                  (set (keys (get-in idacs [lang :defs])))]
               (when cache-dir
                 (doseq [ns-name analyzed-namespaces
                         :let [{:keys [:source] :as ns-data}
                               (get-in idacs [lang :defs ns-name])]
                         :when (not (contains? #{:disk :built-in} source))]
                   (to-cache cache-dir lang ns-name ns-data)))
-              (->
-               (reduce (fn [idacs lang]
-                         (reduce #(load-when-missing %1 [lang :defs %2] cache-dir lang %2)
-                                 idacs
-                                 required-namespaces))
-                       idacs
-                       (case lang
-                         (:cljs :cljc) [:clj :cljs :cljc]
-                         :clj [:clj :cljc]))
-               )
-              #_(let [idacs (-> idacs
-                             (update-in [(first defs-from-cache) :defs]
-                                        (fn [idacs]
-                                          (merge (second defs-from-cache) idacs)))
-                             (update-in [:cljc :defs]
-                                        (fn [idacs]
-                                          (merge cljc-defs-from-cache idacs))))]
-                ;; load clojure.core and/or cljs.core only once
-                (case lang
-                  (:clj :cljc)
-                  (if (seq called-namespaces)
-                    (assoc-when-missing idacs
-                                        [:clj :defs 'clojure.core]
-                                        (clojure-core cache-dir))
-                    idacs)
-                  :cljs
-                  (if (seq called-namespaces)
-                    (-> idacs
-                        (assoc-when-missing [:cljs :defs 'cljs.core]
-                                            (cljs-core cache-dir))
-                        (assoc-when-missing [:cljc :defs 'cljs.core]
-                                            (cljs-core-cljc cache-dir)))
-                    idacs)))))
+              (reduce (fn [idacs lang]
+                        (reduce #(load-when-missing %1 [lang :defs %2] cache-dir lang %2)
+                                idacs
+                                required-namespaces))
+                      idacs
+                      (case lang
+                        (:cljs :cljc) [:clj :cljs :cljc]
+                        :clj [:clj :cljc]))))
           idacs
           [:clj :cljs :cljc]))
 

@@ -18,6 +18,9 @@
 (defmacro assert-submap [m r]
   `(is (submap? ~m ~r)))
 
+(defmacro assert-some-submap [m r]
+  `(is (some #(submap? ~m %) ~r)))
+
 (defmacro assert-submaps [maps result]
   `(do
      (is (count ~maps) (count ~result))

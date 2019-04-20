@@ -32,6 +32,32 @@
     `(and (= :list (tag ~expr))
           ((quote ~syms) (:value (first (:children ~expr)))))))
 
+(defn update* [m k f]
+  (if-let [v (get m k)]
+    (if-let [v* (f v)]
+      (assoc m k v*)
+      (dissoc m k))
+    m))
+
+(defn remove-noise
+  ([expr] (remove-noise expr nil))
+  ([expr config]
+   (clojure.walk/postwalk
+    #(update* %
+              :children
+              (fn [children]
+                (seq (keep
+                      (fn [node]
+                        (when-not
+                            (or (whitespace? node)
+                                (uneval? node)
+                                (comment? node)
+                                (when (-> config :skip-comments)
+                                  (some-call node comment core/comment)))
+                          node))
+                      children))))
+    expr)))
+
 (defn process-reader-conditional [node lang]
   ;; TODO: support :default
   (let [tokens (-> node :children last :children)]
@@ -40,62 +66,26 @@
         v
         (when (seq ts) (recur ts))))))
 
-(comment
-  n
-  (process-reader-conditional n :clj))
-
-(defn remove-noise
-  ([expr] (remove-noise expr nil))
-  ([expr config]
-   (clojure.walk/postwalk
-    #(if-let [children (:children %)]
-       (let [new-children
-             (seq (keep (fn [node]
-                          (when-not
-                              (or (whitespace? node)
-                                  (uneval? node)
-                                  (comment? node)
-                                  (when (-> config :skip-comments)
-                                    (some-call node comment core/comment)))
-                            node))
-                        children))]
-         (if new-children
-           (assoc % :children
-                  new-children)
-           (dissoc % :children)))
-       %) expr)))
-
 (defn select-lang
   ([expr lang]
    (clojure.walk/postwalk
-    #(if-let [children (:children %)]
-       (let [new-children
-             (seq (reduce (fn [acc node]
-                            (if (= :reader-macro
-                                   (and node (node/tag node)))
-                              (if-let [processed (process-reader-conditional node lang)]
-                                (if (= "?@" (-> node :children first :string-value))
-                                  (into acc (:children  processed))
-                                  (conj acc processed))
-                                acc)
-                              (conj acc node)))
-                          []
-                          children))]
-         (if new-children
-           (assoc % :children
-                  new-children)
-           (dissoc % :children)))
-       %) expr)))
-
-(comment
-  (select-lang (remove-noise (p/parse-string-all "[#?(:clj [1 2 3] )]"))
-               :clj)
-  (select-lang (remove-noise (p/parse-string-all "[#?@(:clj [1 2 3] )]"))
-               :clj)
-
-
-  (parse-string "#?(:clj [1 2 3])")
-  )
+    #(update* %
+              :children
+              (fn [children]
+                (seq
+                 (reduce
+                  (fn [acc node]
+                    (if (= :reader-macro
+                           (and node (node/tag node)))
+                      (if-let [processed (process-reader-conditional node lang)]
+                        (if (= "?@" (-> node :children first :string-value))
+                          (into acc (:children  processed))
+                          (conj acc processed))
+                        acc)
+                      (conj acc node)))
+                  []
+                  children))))
+    expr)))
 
 (defn node->line [filename node level type message]
   (let [m (meta node)]

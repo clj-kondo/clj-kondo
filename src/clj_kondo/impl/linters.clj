@@ -10,23 +10,8 @@
 
 (set! *warn-on-reflection* true)
 
-;;;; inline def
-
-(defn inline-def* [expr in-def?]
-  (let [current-def? (some-call expr def defn defn- deftest defmacro)
-        new-in-def? (and (not (contains? '#{:syntax-quote :quote}
-                                         (tag expr)))
-                         (or in-def? current-def?))]
-    (if (and in-def? current-def?)
-      [expr]
-      (when (:children expr)
-        (mapcat #(inline-def* % new-in-def?) (:children expr))))))
-
-(defn inline-def [filename parsed-expressions]
-  (map #(node->line filename % :warning :inline-def "inline def")
-       (inline-def* parsed-expressions false)))
-
 ;;;; redundant let
+;; TODO: move to call specific linters
 
 (defn redundant-let* [{:keys [:children] :as expr}
                       parent-let?]
@@ -45,6 +30,7 @@
        (redundant-let* parsed-expressions false)))
 
 ;;;; redundant do
+;; TODO: move to call specific linters
 
 (defn redundant-do* [{:keys [:children] :as expr}
                      parent-do?]
@@ -92,10 +78,10 @@
                                                     (str "#_" colons name "{"))))
           parsed-expressions (parse-string-all input config)
           parsed-expressions (expand-all parsed-expressions)
-          ids (inline-def filename parsed-expressions)
+          ;; ids (inline-def filename parsed-expressions)
           nls (redundant-let filename parsed-expressions)
           ods (redundant-do filename parsed-expressions)
-          findings {:findings (concat ids nls ods)
+          findings {:findings (concat #_ids nls ods)
                     :lang lang}
           arities (case lang :cljc
                         (let [clj (analyze-arities filename lang
@@ -112,7 +98,7 @@
                       :filename filename
                       :col 0
                       :row 0
-                      :message (str "Can't parse "
+                      :message (str "can't parse "
                                     filename ", "
                                     (.getMessage e))}]}])
     (finally

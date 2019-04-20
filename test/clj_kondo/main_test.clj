@@ -10,11 +10,11 @@
   (let [linted (lint! (io/file "corpus" "inline_def.clj"))
         row-col-files (set (map #(select-keys % [:row :col :file])
                                 linted))]
-    (is (= #{{:row 9, :col 10, :file "corpus/inline_def.clj"}
-             {:row 11, :col 14, :file "corpus/inline_def.clj"}
-             {:row 7, :col 3, :file "corpus/inline_def.clj"}
-             {:row 13, :col 18, :file "corpus/inline_def.clj"}
-             {:row 4, :col 3, :file "corpus/inline_def.clj"}}
+    (is (= #{{:row 5, :col 3, :file "corpus/inline_def.clj"}
+             {:row 8, :col 3, :file "corpus/inline_def.clj"}
+             {:row 10, :col 10, :file "corpus/inline_def.clj"}
+             {:row 12, :col 16, :file "corpus/inline_def.clj"}
+             {:row 14, :col 18, :file "corpus/inline_def.clj"}}
            row-col-files))
     (is (= #{"inline def"} (set (map :message linted)))))
   (is (empty? (lint! "(defmacro foo [] `(def x 1))")))
@@ -142,7 +142,7 @@
                 :col 0,
                 :level :error,
                 :message
-                "Can't parse corpus/read_error/error.clj, Unexpected EOF. [at line 2, column 1]"}
+                "can't parse corpus/read_error/error.clj, Unexpected EOF. [at line 2, column 1]"}
                {:file "corpus/read_error/ok.clj",
                 :row 6,
                 :col 1,
