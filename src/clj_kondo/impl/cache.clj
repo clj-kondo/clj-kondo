@@ -90,39 +90,40 @@
               data)
     idacs))
 
+(defn load-when-missing [idacs path cache-dir lang ns-sym]
+  ;; (println "loading" path)
+  (if-not (get-in idacs path)
+    (if-let [data (from-cache-1 cache-dir lang ns-sym)]
+      (assoc-in idacs path data)
+      idacs)
+    idacs))
+
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
-            (let [analyzed-namespaces
+            (let [required-namespaces (get-in idacs [lang :loaded])
+                  ;; _ (prn "REQ'ED" lang required-namespaces)
+                  analyzed-namespaces
                   (set (keys (get-in idacs [lang :defs])))
-                  ;; in the case of cljc we can split the calls into calls
-                  ;; from :clj and :cljs but we still don't know which
-                  ;; namespaces they are calling TO although, for CLJ we
-                  ;; definitely know it's not going to be CLJS
-                  called-namespaces
-                  (set (keys (get-in idacs [lang :calls])))
-                  ;; _ (println "CALLED" lang called-namespaces)
-                  ;; _ (println "ANALYZED" lang analyzed-namespaces)
-                  load-from-cache
-                  (set/difference called-namespaces analyzed-namespaces
-                                  ;; clojure core is loaded later
-                                  '#{clojure.core cljs.core})
-                  ;; _ (println "LOAD FROM CACHE" lang load-from-cache)
-                  ;; TODO: figure out how to prevent cache load in case of linting corpus/spec
-                  defs-from-cache
-                  (case lang :cljc
-                        (or [:clj (from-cache cache-dir :clj load-from-cache)]
-                            [:cljs (from-cache cache-dir :cljs load-from-cache)])
-                        ;; default
-                        [lang (from-cache cache-dir lang load-from-cache)])
-                  cljc-defs-from-cache
-                  (from-cache cache-dir :cljc load-from-cache)]
+                  ;; TODO: we should not only load via calls, but also via requires
+                  ;; e.g. :refer :all doesn't come the cache now...
+                  ]
               (when cache-dir
                 (doseq [ns-name analyzed-namespaces
                         :let [{:keys [:source] :as ns-data}
                               (get-in idacs [lang :defs ns-name])]
                         :when (not (contains? #{:disk :built-in} source))]
                   (to-cache cache-dir lang ns-name ns-data)))
-              (let [idacs (-> idacs
+              (->
+               (reduce (fn [idacs lang]
+                         (reduce #(load-when-missing %1 [lang :defs %2] cache-dir lang %2)
+                                 idacs
+                                 required-namespaces))
+                       idacs
+                       (case lang
+                         (:cljs :cljc) [:clj :cljs :cljc]
+                         :clj [:clj :cljc]))
+               )
+              #_(let [idacs (-> idacs
                              (update-in [(first defs-from-cache) :defs]
                                         (fn [idacs]
                                           (merge (second defs-from-cache) idacs)))

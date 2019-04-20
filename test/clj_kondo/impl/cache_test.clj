@@ -13,7 +13,7 @@
 (def cache-version @#'main/version)
 
 (deftest cache-test
-  #_(testing "empty cache option warning (this test assumes you have no .clj-kondo
+  (testing "empty cache option warning (this test assumes you have no .clj-kondo
   directory at a higher level than the current working directory)"
     (let [tmp-dir (System/getProperty "java.io.tmpdir")
           test-source-dir (io/file tmp-dir "test-source-dir")]
@@ -28,7 +28,7 @@
            "no .clj-kondo directory found"))
       (when (.exists (io/file ".clj-kondo.bak"))
         (mv ".clj-kondo.bak" ".clj-kondo"))))
-  #_(testing "arity checks work in all languages"
+  (testing "arity checks work in all languages"
     (doseq [lang [:clj :cljs :cljc]]
       (let [tmp-dir (System/getProperty "java.io.tmpdir")
             test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
@@ -50,10 +50,9 @@
               (:clj :cljs)
               (is (some? (get foo-cache 'foo)))
               :cljc
-              (is (some? (do
-                           (prn "foo-cache" foo-cache)
-                           (and #_(get-in foo-cache [:clj 'foo])
-                                (get-in foo-cache [:cljs 'foo]))))))))
+              (do
+                (is (some? (get-in foo-cache [:clj 'foo])))
+                (is (some? (get-in foo-cache [:cljs 'foo])))))))
         (testing "linting only bar and using the cache option"
           (let [bar-file (io/file test-source-dir (str "bar."
                                                        (name lang)))]
@@ -83,7 +82,7 @@
           test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
           test-source-dir (io/file tmp-dir "test-source-dir")
           foo (io/file test-source-dir "foo.cljc")]
-      (doseq [lang [:clj #_:cljs]]
+      (doseq [lang [:clj :cljs]]
         (let [bar (io/file test-source-dir (str "bar."
                                                 (name lang)))]
           (rm "-rf" test-cache-dir)
@@ -98,7 +97,26 @@
           (lint! foo "--cache" test-cache-dir)
           (let [output (lint! bar "--cache" test-cache-dir)]
             (is (str/includes? (:message (first output))
-                               "wrong number of args (3) passed to foo/foo"))))))))
+                               "wrong number of args (3) passed to foo/foo")))))))
+  (testing ":refer :all ns is loaded from cache"
+    (let [tmp-dir (System/getProperty "java.io.tmpdir")
+          test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
+          test-source-dir (io/file tmp-dir "test-source-dir")
+          foo (io/file test-source-dir "foo.clj")
+          bar (io/file test-source-dir (str "bar.clj"))]
+      (rm "-rf" test-cache-dir)
+      (mkdir "-p" test-cache-dir)
+      (rm "-rf" test-source-dir)
+      (mkdir "-p" test-source-dir)
+      (io/copy "(ns foo) (defn foo [x])"
+               foo)
+      (io/copy "(ns bar (:require [foo :refer :all])) (foo 1 2 3)"
+               bar)
+      ;; populate cache
+      (lint! foo "--cache" test-cache-dir)
+      (let [output (lint! bar "--cache" test-cache-dir)]
+        (is (str/includes? (:message (first output))
+                           "wrong number of args (3) passed to foo/foo"))))))
 
 (deftest lock-test
   (let [tmp-dir (System/getProperty "java.io.tmpdir")

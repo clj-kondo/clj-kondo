@@ -100,8 +100,7 @@
                                    [new-name {:ns ns-name
                                               :name original-name}])
                                  renamed))
-            :refered-all refered-all
-            :renamed renamed}])))))
+            :refered-all refered-all}])))))
 
 (def default-java-imports
   (reduce (fn [acc [prefix sym]]
@@ -123,7 +122,13 @@
               libspec (rest ?require-clause)
               normalized-libspec (normalize-libspec nil libspec)
               analyzed (analyze-libspec lang normalized-libspec)]
-          analyzed)]
+          analyzed)
+        refer-alls (reduce (fn [acc clause]
+                             (if (:refered-all clause)
+                               (assoc acc (:ns clause) (:excluded clause))
+                               acc))
+                           {}
+                           subclauses)]
     (cond->
         {:type :ns
          :lang lang
@@ -142,12 +147,12 @@
                                       :when (= :exclude k)
                                       sym v]
                                   sym))
-         :refer-alls (reduce (fn [acc clause]
-                               (if (:refered-all clause)
-                                 (assoc acc (:ns clause) (:excluded clause))
-                                 acc))
-                             {}
-                             subclauses)}
+         :refer-alls refer-alls
+         :loaded (into
+                    (case lang
+                      :clj '#{clojure.core}
+                      :cljs '#{cljs.core})
+                    (keys refer-alls))}
       (= :clj lang) (update :qualify-ns
                             #(assoc % 'clojure.core 'clojure.core))
       (= :cljs lang) (update :qualify-ns
@@ -158,6 +163,9 @@
 ;;;; Scratch
 
 (comment
-  (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj")))
+  (keys (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
+  (:loaded (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
+  (:java-imports (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
   (analyze-libspec :clj (node/sexpr (parse-string "[foo.core :refer :all :exclude [foo] :rename {old-name new-name}]")))
+  
   )

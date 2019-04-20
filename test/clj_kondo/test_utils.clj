@@ -2,6 +2,7 @@
   (:require
    [clj-kondo.main :as main :refer [main]]
    [clojure.string :as str :refer [trim]]
+   [clojure.test :refer [is]]
    [me.raynes.conch :refer [programs with-programs let-programs] :as sh]))
 
 (defn submap?
@@ -13,6 +14,15 @@
                              (submap? v (get m2 k))))
             m1)
     (= m1 m2)))
+
+(defmacro assert-submap [m r]
+  `(is (submap? ~m ~r)))
+
+(defmacro assert-submaps [maps result]
+  `(do
+     (is (count ~maps) (count ~result))
+     (doseq [[m# r#] (map vector ~maps ~result)]
+       (assert-submap m# r#))))
 
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the

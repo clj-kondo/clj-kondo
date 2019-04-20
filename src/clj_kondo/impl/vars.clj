@@ -198,14 +198,18 @@
           ns (analyze-ns-decl expanded-lang (parse-string "(ns user)"))
           results {:calls {}
                    :defs {}
+                   :loaded (:loaded ns)
                    :findings []
                    :lang lang}]
+     ;; (println "NS" (:loaded ns))
+     ;; (println "REQUIRED" (:loaded results))
      (if first-parsed
        (case (:type first-parsed)
          (:ns :in-ns)
          (recur rest-parsed
                 first-parsed
-                results)
+                (update results
+                        :loaded into (:loaded first-parsed)))
          (recur rest-parsed
                 ns
                 (case (:type first-parsed)
@@ -254,15 +258,19 @@
                       :call
                       (if resolved
                         (let [path [:calls (:ns resolved)]
+                              unqualified? (:unqualified? resolved) 
                               call (cond-> (assoc first-parsed
                                                   :filename filename
                                                   :resolved-ns (:ns resolved)
                                                   :ns-lookup ns)
                                      (:clojure-excluded? resolved)
                                      (assoc :clojure-excluded? true)
-                                     (:unqualified? resolved)
+                                     unqualified?
                                      (assoc :unqualified? true))
-                              results (update-in results path vconj call)]
+                              results (cond-> (update-in results path vconj call)
+                                        (not unqualified?)
+                                        ;; java calls will be done this way
+                                        (update :loaded conj (:ns resolved)))]
                           (if debug? (update-in results [:findings] conj
                                                 (assoc call
                                                        :level :info

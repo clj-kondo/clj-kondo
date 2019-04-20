@@ -35,7 +35,7 @@
   (let [format-fn (format-output config)]
     (doseq [{:keys [:filename :message
                     :level :row :col] :as finding}
-            (sort-by (juxt :filename :row :col) findings)]
+            (dedupe (sort-by (juxt :filename :row :col) findings))]
       (println (format-fn filename row col level message)))))
 
 (defn- print-version []
@@ -224,14 +224,16 @@ Options:
 
 (defn- index-defs-and-calls [defs-and-calls]
   (reduce
-   (fn [acc {:keys [:calls :defs :lang] :as m}]
+   (fn [acc {:keys [:calls :defs :loaded :lang] :as m}]
+     ;; (println "REQUIRED" required)
      (-> acc
          (update-in [lang :calls] (fn [prev-calls]
                                     (merge-with into prev-calls calls)))
-         (update-in [lang :defs] merge defs)))
-   {:clj {:calls {} :defs {}}
-    :cljs {:calls {} :defs {}}
-    :cljc {:calls {} :defs {}}}
+         (update-in [lang :defs] merge defs)
+         (update-in [lang :loaded] into loaded)))
+   {:clj {:calls {} :defs {} :loaded #{}}
+    :cljs {:calls {} :defs {} :loaded #{}}
+    :cljc {:calls {} :defs {} :loaded #{}}}
    defs-and-calls))
 
 ;;;; overrides
