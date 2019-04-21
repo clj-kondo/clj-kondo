@@ -4,7 +4,8 @@
    [clj-kondo.impl.calls :as calls :refer [analyze-calls]]
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clj-kondo.test-utils :refer [assert-submap assert-some-submap assert-submaps]]
-   [clojure.test :as t :refer [deftest is testing]]))
+   [clojure.test :as t :refer [deftest is are testing]]
+   [rewrite-clj.node.protocols :as node]))
 
 (deftest strip-meta-test
   (is (= "(defnchunk-buffer[capacity](clojure.lang.ChunkBuffer.capacity))"
@@ -131,17 +132,15 @@
                             :ns user, :lang :clj}}
                      (get-in analyzed '[:defs user])))))
 
-#_(deftest analyze-calls-cljc-test
-    (analyze-calls "<stdin>" :clj
-                     (parse-string-all "
-#?(:cljs (defn foo []))
-"))
-
-    (analyze-calls "<stdin>" :clj
-                     (parse-string-all "
-#?(:cljs (foo 1 2 3) :clj (bar 1 2 3))
-")))
-;;
+(deftest extract-bindings-test
+  (are [syms binding-form] (= (set syms) (set (calls/extract-bindings binding-form)))
+    '[x y z] '[x y [z [x]]]
+    '[x y zs xs] '[x y & zs :as xs]
+    '[x foo] '[x {foo :foo :or {foo 1}}]
+    '[x foo] '[x {:keys [foo]}]
+    '[x foo m] '[x {:keys [foo] :as m}]
+    '[x foo] '[x {:person/keys [foo]}]
+    '[x foo] '[x {:keys [::foo]}]))
 
 (comment
   (t/run-tests)
