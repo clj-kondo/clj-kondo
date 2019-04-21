@@ -133,6 +133,8 @@ it detects that the number of arguments you passed to `select-keys` is
 invalid. Each time you edit a file, the cache is incrementally updated, so
 clj-kondo is informed about new functions you just wrote.
 
+## [Configuration](doc/config.md)
+
 ## [Editor integration](doc/editor-integration.md)
 
 ## Exit codes

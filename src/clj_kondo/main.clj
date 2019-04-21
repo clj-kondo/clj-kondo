@@ -254,8 +254,8 @@ Options:
 
 (defn- filter-findings [findings config]
   (let [print-debug? (:debug config)
-        filter-output (not-empty (-> config :output :filter))
-        remove-output (not-empty (-> config :output :remove))]
+        filter-output (not-empty (-> config :output :include-files))
+        remove-output (not-empty (-> config :output :exclude-files))]
     (for [{:keys [:filename :level :type] :as f} findings
           :let [level (or (when type (-> config :linters type :level))
                           level)]
@@ -300,7 +300,7 @@ Options:
                     all-findings (concat fcf (mapcat :findings processed))
                     all-findings (filter-findings all-findings config)
                     {:keys [:error :warning]} (summarize all-findings)]
-                (when (-> config :output :progress)
+                (when (-> config :output :show-progress)
                   (println))
                 (print-findings all-findings
                                 config)
