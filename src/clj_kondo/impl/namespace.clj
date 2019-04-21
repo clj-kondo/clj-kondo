@@ -1,8 +1,9 @@
 (ns clj-kondo.impl.namespace
+  {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
-   [rewrite-clj.node.protocols :as node]
-   [clojure.java.io :as io]))
+   [clojure.java.io :as io]
+   [rewrite-clj.node.protocols :as node]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 
