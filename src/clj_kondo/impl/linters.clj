@@ -26,7 +26,7 @@
           :else (mapcat #(redundant-let* % false) children))))
 
 (defn redundant-let [filename parsed-expressions]
-  (map #(node->line filename % :warning :nested-let "redundant let")
+  (map #(node->line filename % :warning :redundant-let "redundant let")
        (redundant-let* parsed-expressions false)))
 
 ;;;; redundant do
@@ -102,7 +102,7 @@
                                     filename ", "
                                     (.getMessage e))}]}])
     (finally
-      (when (-> config :output :progress)
+      (when (-> config :output :show-progress)
         (print ".") (flush)))))
 
 ;;;; scratch

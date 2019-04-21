@@ -342,6 +342,36 @@
     (let [x 1] (select-keys)))")))
   (is (seq (lint! "(defn foo ([select-keys]) ([x y] (select-keys)))"))))
 
+(deftest config-test
+  (is (empty?
+       (lint! "(select-keys 1 2 3)" "--config" "{:linters {:invalid-arity {:level :off}}}")))
+  (is (empty?
+       (lint! "(clojure.core/is-annotation? 1)" "--config" "{:linters {:private-call {:level :off}}}")))
+  (is (empty?
+       (lint! "(def (def x 1))" "--config" "{:linters {:inline-def {:level :off}}}")))
+  (is (empty?
+       (lint! "(do (do 1 2 3))" "--config" "{:linters {:redundant-do {:level :off}}}")))
+  (is (empty?
+       (lint! "(let [x 1] (let [y 2]))" "--config" "{:linters {:redundant-let {:level :off}}}")))
+  (is (empty?
+       (lint! "(cond 1 2)" "--config" "{:linters {:cond-without-else {:level :off}}}")))
+  (is (str/starts-with?
+       (with-out-str
+         (lint! (io/file "corpus") "--config" "{:output {:show-progress true}}"))
+       "...."))
+  (is (not (some #(str/includes? % "datascript")
+                 (map :file (lint! (io/file "corpus")
+                                   "--config" "{:output {:exclude-files [\"datascript\"]}}")))))
+  (is (not (some #(str/includes? % "datascript")
+                 (map :file (lint! (io/file "corpus")
+                                   "--config" "{:output {:include-files [\"inline_def\"]}}")))))
+  (is (str/starts-with?
+       (with-out-str
+         (with-in-str "(do 1)"
+           (main "--lint" "-" "--config" "{:output {:pattern \"{{LEVEL}}_{{filename}}\"}}")))
+       "WARNING_<stdin>")))
+
+
 ;;;; Scratch
 
 (comment
