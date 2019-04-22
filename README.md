@@ -26,6 +26,10 @@ clj-kondo detects:
 * arity errors across namespaces and static Java method calls
 * private function calls
 * `cond` expressions without `:else` catch-alls (see [style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond))
+* duplicate map keys and set elements
+* missing map keys
+
+before your REPL knows it.
 
 <img src="screenshots/wrong-arity.png" width="50%" align="right">
 

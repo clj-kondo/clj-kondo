@@ -2,9 +2,9 @@
   {:no-doc true}
   (:gen-class)
   (:require
+   [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.cache :as cache]
-   [clj-kondo.impl.calls :refer [call-findings]]
-   [clj-kondo.impl.linters :refer [process-input]]
+   [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
@@ -121,21 +121,21 @@ Options:
         (if (.isFile file)
           (if (ends-with? file ".jar")
             ;; process jar file
-            (mapcat #(process-input (:filename %) (:source %)
-                                    (lang-from-file (:filename %) default-language)
-                                    config)
+            (mapcat #(ana/analyze-input (:filename %) (:source %)
+                                        (lang-from-file (:filename %) default-language)
+                                        config)
                     (sources-from-jar filename))
             ;; assume normal source file
-            (process-input filename (slurp filename)
+            (ana/analyze-input filename (slurp filename)
                            (lang-from-file filename default-language)
                            config))
           ;; assume directory
-          (mapcat #(process-input (:filename %) (:source %)
-                                  (lang-from-file (:filename %) default-language)
+          (mapcat #(ana/analyze-input (:filename %) (:source %)
+                                      (lang-from-file (:filename %) default-language)
                                   config)
                   (sources-from-dir file)))
         (= "-" filename)
-        (process-input "<stdin>" (slurp *in*) default-language config)
+        (ana/analyze-input "<stdin>" (slurp *in*) default-language config)
         (classpath? filename)
         (mapcat #(process-file % default-language config)
                 (str/split filename #":"))
@@ -151,6 +151,9 @@ Options:
                     :col 0
                     :row 0
                     :message "could not process file"}]}])))
+
+(defn- process-files [files default-lang config]
+  (mapcat #(process-file % default-lang config) files))
 
 ;;;; find cache/config dir
 
@@ -216,11 +219,6 @@ Options:
      :default-lang default-lang
      :config config}))
 
-;;;; process all files
-
-(defn- process-files [files default-lang config]
-  (mapcat #(process-file % default-lang config) files))
-
 ;;;; index defs and calls by language and namespace
 
 (defn- index-defs-and-calls [defs-and-calls]
@@ -235,10 +233,6 @@ Options:
     :cljs {:calls {} :defs {} :loaded #{}}
     :cljc {:calls {} :defs {} :loaded #{}}}
    defs-and-calls))
-
-;;;; overrides
-
-
 
 ;;;; summary
 
@@ -296,8 +290,8 @@ Options:
                     idacs (index-defs-and-calls processed)
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
-                    fcf (call-findings idacs config)
-                    all-findings (concat fcf (mapcat :findings processed))
+                    linted-calls (l/lint-calls idacs config)
+                    all-findings (concat linted-calls (mapcat :findings processed))
                     all-findings (filter-findings all-findings config)
                     {:keys [:error :warning]} (summarize all-findings)]
                 (when (-> config :output :show-progress)

@@ -371,6 +371,38 @@
            (main "--lint" "-" "--config" "{:output {:pattern \"{{LEVEL}}_{{filename}}\"}}")))
        "WARNING_<stdin>")))
 
+(deftest map-duplicate-keys
+  (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}
+           {:file "<stdin>",
+            :row 1,
+            :col 10,
+            :level :error,
+            :message "wrong number of args (1) passed to clojure.core/select-keys"}
+           {:file "<stdin>", :row 1, :col 35, :level :error, :message "duplicate key :a"})
+         (lint! "{:a 1 :a (select-keys 1) :c {:a 1 :a 2}}")))
+  (is (= '({:file "<stdin>", :row 1, :col 6, :level :error, :message "duplicate key 1"}
+           {:file "<stdin>",
+            :row 1,
+            :col 18,
+            :level :error,
+            :message "duplicate key \"foo\""})
+         (lint! "{1 1 1 1 \"foo\" 1 \"foo\" 2}"))))
+
+(deftest map-missing-key
+  (is (= '({:file "<stdin>",
+            :row 1,
+            :col 7,
+            :level :error,
+            :message "missing value for key :b"})
+         (lint! "{:a 1 :b}"))))
+
+(deftest set-duplicate-key
+  (is (= '({:file "<stdin>",
+            :row 1,
+            :col 7,
+            :level :error,
+            :message "duplicate set element 1"})
+         (lint! "#{1 2 1}"))))
 
 ;;;; Scratch
 
