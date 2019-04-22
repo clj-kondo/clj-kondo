@@ -13,6 +13,8 @@
             ends-with?]])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
+(def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))
+
 (def ^:private version (str/trim
                         (slurp (io/resource "CLJ_KONDO_VERSION"))))
 (set! *warn-on-reflection* true)
@@ -123,19 +125,19 @@ Options:
             ;; process jar file
             (mapcat #(ana/analyze-input (:filename %) (:source %)
                                         (lang-from-file (:filename %) default-language)
-                                        config)
+                                        config dev?)
                     (sources-from-jar filename))
             ;; assume normal source file
             (ana/analyze-input filename (slurp filename)
-                           (lang-from-file filename default-language)
-                           config))
+                               (lang-from-file filename default-language)
+                               config dev?))
           ;; assume directory
           (mapcat #(ana/analyze-input (:filename %) (:source %)
                                       (lang-from-file (:filename %) default-language)
-                                  config)
+                                      config dev?)
                   (sources-from-dir file)))
         (= "-" filename)
-        (ana/analyze-input "<stdin>" (slurp *in*) default-language config)
+        (ana/analyze-input "<stdin>" (slurp *in*) default-language config dev?)
         (classpath? filename)
         (mapcat #(process-file % default-language config)
                 (str/split filename #":"))
@@ -146,11 +148,12 @@ Options:
                       :row 0
                       :message "file does not exist"}]}]))
     (catch Throwable e
-      [{:findings [{:level :warning
-                    :filename filename
-                    :col 0
-                    :row 0
-                    :message "could not process file"}]}])))
+      (if dev? (throw e)
+          [{:findings [{:level :warning
+                        :filename filename
+                        :col 0
+                        :row 0
+                        :message "could not process file"}]}]))))
 
 (defn- process-files [files default-lang config]
   (mapcat #(process-file % default-lang config) files))
@@ -310,12 +313,14 @@ Options:
   (let [exit-code
         (try (apply main options)
              (catch Throwable e
-               ;; can't use clojure.stacktrace here, due to
-               ;; https://dev.clojure.org/jira/browse/CLJ-2502
-               (println "Unexpected error. Please report an issue.")
-               (.printStackTrace e)
-               ;; unexpected error
-               124))]
+               (if dev? (throw e)
+                   (do
+                     ;; can't use clojure.stacktrace here, due to
+                     ;; https://dev.clojure.org/jira/browse/CLJ-2502
+                     (println "Unexpected error. Please report an issue.")
+                     (.printStackTrace e)
+                     ;; unexpected error
+                     124))))]
     (flush)
     (System/exit exit-code)))
 

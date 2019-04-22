@@ -47,12 +47,14 @@
 (defn lint-jvm!
   ([input] (lint-jvm! input "--lang" "clj"))
   ([input & args]
-   (let [res (if (instance? java.io.File input)
-               (with-out-str
-                 (apply main "--lint" (.getPath input) args))
-               (with-out-str
-                 (with-in-str input
-                   (apply main "--lint" "-" args))))]
+   (let [res (with-out-str
+               (try
+                 (if (instance? java.io.File input)
+                   (apply main "--lint" (.getPath input) args)
+                   (with-in-str input
+                     (apply main "--lint" "-" args)))
+                 (catch Throwable e
+                   (.printStackTrace e))))]
      (parse-output res))))
 
 (defn lint-native!
