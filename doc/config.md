@@ -1,5 +1,8 @@
 # Configuration
 
+NOTE: parts of the config may change as clj-kondo sees more usage. Please let me
+know which parts you are using and find useful.
+
 clj-kondo can be configured in three ways:
 
 - by placing a `config.edn` file in the `.clj-kondo` directory (see [project setup](../README.md#project-setup))
