@@ -2,14 +2,12 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [some-call filter-children]]
-   [clojure.walk :refer [prewalk]]
    [rewrite-clj.node.protocols :as node :refer [tag]]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
    [rewrite-clj.node.token :refer [token-node]]))
 
-;;;; macro expand
-
 (defn expand-> [{:keys [:children] :as expr}]
+  ;; TODO: rewrite to zipper
   (let [children (rest children)]
     (loop [[child1 child2 & children :as all-children] children]
       (if child2
@@ -33,6 +31,7 @@
                    children))
 
 (defn expand-fn [{:keys [:children] :as expr}]
+  ;; TODO: rewrite to zipper
   (let [{:keys [:row :col] :as m} (meta expr)
         fn-body (with-meta (list-node children)
                   {:row row
@@ -42,20 +41,6 @@
     (with-meta
       (list-node [(token-node 'fn*) arg-list fn-body])
       m)))
-
-(defn expand-all [expr]
-  (clojure.walk/prewalk
-   #(if (:children %)
-      (assoc % :children
-             (map (fn [n]
-                    (cond (some-call n ->)
-                          (expand-> n)
-                          (= :fn (node/tag n))
-                          (expand-fn n)
-                          :else n))
-                  (:children %)))
-      %)
-   expr))
 
 ;;;; Scratch
 

@@ -7,10 +7,12 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.utils :refer [some-call call node->line
                                  parse-string parse-string-all
-                                 tag select-lang]]
+                                 tag select-lang lift-meta]]
+   [clj-kondo.impl.macroexpand :as macroexpand]
    [clojure.set :as set]
    [clojure.string :as str]
-   [rewrite-clj.node.protocols :as node]))
+   [rewrite-clj.node.protocols :as node]
+   [clj-kondo.impl.schema :as schema]))
 
 (defn extract-bindings [sexpr]
   (cond (and (symbol? sexpr)
@@ -42,26 +44,12 @@
     (and (= :list tag)
          (symbol? (:value (first (:children expr)))))))
 
-(defn strip-meta* [children]
-  (loop [[child & rest-children] children
-         stripped []]
-    (if child
-      (if (contains? '#{:meta :meta*} (node/tag child))
-        (recur rest-children
-               (into stripped (strip-meta* (rest (:children child)))))
-        (recur rest-children
-               (conj stripped child)))
-      stripped)))
-
-(defn strip-meta [expr]
-  (assoc expr
-         :children (strip-meta* (:children expr))))
-
 ;;;; function arity
 
 (declare analyze-expression**)
 
 (defn analyze-arity [sexpr]
+  ;;(println "ARITY" sexpr)
   (loop [[arg & rest-args] sexpr
          arity 0]
     (if arg
@@ -85,11 +73,15 @@
            (analyze-children lang ns (set/union bindings (set arg-bindings)) body))))
 
 (defn analyze-defn [lang ns bindings expr]
-  (let [macro? (= 'defmacro (call expr))
-        children (:children (strip-meta expr))
-        private? (= 'defn- (call expr))
+  (let [children (:children expr)
         children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
-        fn-name (:value (first children))
+        name-node (first children)
+        fn-name (:value name-node)
+        var-meta (meta name-node)
+        macro? (or (= 'defmacro (call expr))
+                   (:macro var-meta))
+        private? (or (= 'defn- (call expr))
+                     (:private var-meta))
         bodies (loop [i 0 [expr & rest-exprs :as exprs] (next children)]
                  (let [t (when expr (node/tag expr))]
                    (cond (= :vector t)
@@ -171,18 +163,20 @@
        (:quote :syntax-quote) []
        :map (concat (l/lint-map-keys expr) (analyze-children lang ns bindings children))
        :set (concat (l/lint-set expr) (analyze-children lang ns bindings children))
+       :fn (recur lang ns bindings (macroexpand/expand-fn expr))
        (let [?full-fn-name (call expr)
              {resolved-namespace :ns
               resolved-name :name
               :keys [:unqualified? :clojure-excluded?] :as res}
              (when ?full-fn-name (resolve-name ns ?full-fn-name))
-             resolved-fn-name (when (and (not clojure-excluded?)
-                                         (or unqualified?
-                                             (= 'clojure.core resolved-namespace)
-                                             (when (= :cljs lang)
-                                               (= 'cljs.core resolved-namespace))))
-                                resolved-name)]
-         (case resolved-fn-name
+             resolved-clojure-var-name
+             (when (and (not clojure-excluded?)
+                        (or unqualified?
+                            (= 'clojure.core resolved-namespace)
+                            (when (= :cljs lang)
+                              (= 'cljs.core resolved-namespace))))
+               resolved-name)]
+         (case resolved-clojure-var-name
            ns
            (let [ns (analyze-ns-decl lang expr)]
              [ns])
@@ -190,10 +184,13 @@
            [(analyze-alias ns expr)]
            ;; TODO: in-ns is not supported yet
            (defn defn- defmacro)
-           (analyze-defn lang ns bindings expr)
+           (analyze-defn lang ns bindings (lift-meta expr))
            comment
            (if (-> @config/config :skip-comments) []
                (analyze-children lang ns bindings children))
+
+           ->
+           (recur lang ns bindings (macroexpand/expand-> expr))
            (->> cond-> cond->> some-> some->> . .. deftype
                 proxy extend-protocol doto reify definterface defrecord defprotocol)
            []
@@ -204,23 +201,27 @@
            case
            (analyze-case lang ns bindings expr)
            ;; catch-all
-           (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
-             (if (symbol? fn-name)
-               (let [args (count (rest children))
-                     binding-call? (contains? bindings fn-name)
-                     analyze-rest (analyze-children lang ns bindings (rest children))]
-                 (if binding-call?
-                   analyze-rest
-                   (let [call (let [{:keys [:row :col]} (meta expr)]
-                                {:type :call
-                                 :name ?full-fn-name
-                                 :arity args
-                                 :row row
-                                 :col col
-                                 :lang lang
-                                 :expr expr})]
-                     (cons call analyze-rest))))
-               (analyze-children lang ns bindings children)))))))))
+           (case [resolved-namespace resolved-name]
+             [schema.core defn]
+             (analyze-defn lang ns bindings (schema/expand-schema-defn (lift-meta expr)))
+             ;; catch-all
+             (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
+               (if (symbol? fn-name)
+                 (let [args (count (rest children))
+                       binding-call? (contains? bindings fn-name)
+                       analyze-rest (analyze-children lang ns bindings (rest children))]
+                   (if binding-call?
+                     analyze-rest
+                     (let [call (let [{:keys [:row :col]} (meta expr)]
+                                  {:type :call
+                                   :name ?full-fn-name
+                                   :arity args
+                                   :row row
+                                   :col col
+                                   :lang lang
+                                   :expr expr})]
+                       (cons call analyze-rest))))
+                 (analyze-children lang ns bindings children))))))))))
 
 (def vconj (fnil conj []))
 

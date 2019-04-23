@@ -96,8 +96,6 @@
   (testing "varargs"
     (is (some? (seq (lint! "(defn foo [x & xs]) (foo)"))))
     (is (empty? (lint! "(defn foo [x & xs]) (foo 1 2 3)"))))
-  (testing "Schema defn doesn't trigger"
-    (is (empty? (lint! "(s/defn verify-signature :- Bool [message :- Str base64-encoded-signature :- Str]) (verify-signature 1 2)"))))
   (testing "defn arity error"
     (assert-submaps
      '({:file "<stdin>",
@@ -111,6 +109,9 @@
         :level :error,
         :message "wrong number of args (0) passed to clojure.core/defn"})
      (lint! "(defn) (defmacro)"))))
+
+(deftest invalid-arity-schema-test
+  (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
 
 (deftest cljc-test
   (let [linted (lint! (io/file "corpus" "cljc"))
@@ -146,8 +147,17 @@
 
 (deftest private-call-test
   (let [linted (lint! (io/file "corpus" "private"))]
-    (is (= 1 (count linted)))
-    (is (= 4 (:row (first linted))))))
+    (assert-submaps '({:file "corpus/private/private_calls.clj",
+                       :row 4,
+                       :col 1,
+                       :level :error,
+                       :message "call to private function private"}
+                      {:file "corpus/private/private_calls.clj",
+                       :row 5,
+                       :col 1,
+                       :level :error,
+                       :message "call to private function private-by-meta"})
+                    linted)))
 
 (deftest read-error-test
   (testing "when an error happens in one file, the other file is still linted"
@@ -436,9 +446,29 @@
             :message "duplicate set element 1"})
          (lint! "#{1 2 1}"))))
 
+(deftest schema-defn-test
+  (assert-submaps
+   [{:file "corpus/schema/calls.clj",
+     :row 4,
+     :col 1,
+     :level :error,
+     :message "wrong number of args (0) passed to schema.defs/verify-signature"}
+    {:file "corpus/schema/calls.clj",
+     :row 4,
+     :col 1,
+     :level :error,
+     :message "call to private function verify-signature"}
+    {:file "corpus/schema/defs.clj",
+     :row 10,
+     :col 1,
+     :level :error,
+     :message "wrong number of args (2) passed to schema.defs/verify-signature"}]
+   (lint! (io/file "corpus" "schema"))))
+
 ;;;; Scratch
 
 (comment
+  (schema-defn-test)
   (inline-def-test)
   (redundant-let-test)
   (redundant-do-test)
