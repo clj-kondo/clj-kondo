@@ -4,4 +4,5 @@
 
 (defn -main [& options]
   (prof/profile
-   (apply main/-main options)))
+   (apply main/main options))
+  (shutdown-agents))
