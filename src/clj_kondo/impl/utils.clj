@@ -12,6 +12,8 @@
     (node/tag maybe-expr)))
 
 (defn uneval? [node]
+  (when (= :uneval (tag node))
+    (def x node))
   (= :uneval (tag node)))
 
 (defn comment? [node]
@@ -46,17 +48,30 @@
     #(update* %
               :children
               (fn [children]
-                (seq (keep
-                      (fn [node]
-                        (when-not
-                            (or (whitespace? node)
-                                (uneval? node)
-                                (comment? node)
-                                (when (-> config :skip-comments)
-                                  (some-call node comment core/comment)))
-                          node))
-                      children))))
+                (keep
+                 (fn [node]
+                   (when-not
+                       (or (whitespace? node)
+                           (uneval? node)
+                           (comment? node)
+                           #_(when (-> config :skip-comments)
+                               (some-call node comment core/comment)))
+                     node))
+                 children)))
     expr)))
+
+(comment
+  (remove-noise (parse-string-all "(+ 1 2 #_3) #_(foo 1)"))
+  x
+
+
+  (comment
+    (parse-string-all "#_#_real-renderer reagent.impl.component/do-render")
+    (p/parse-string "#_#_1 2")
+    (node/length (parse-string-all "#_#_1 2"))
+    x
+    )
+  )
 
 (defn process-reader-conditional [node lang]
   ;; TODO: support :default

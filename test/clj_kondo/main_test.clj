@@ -97,7 +97,20 @@
     (is (some? (seq (lint! "(defn foo [x & xs]) (foo)"))))
     (is (empty? (lint! "(defn foo [x & xs]) (foo 1 2 3)"))))
   (testing "Schema defn doesn't trigger"
-    (is (empty? (lint! "(s/defn verify-signature :- Bool [message :- Str base64-encoded-signature :- Str]) (verify-signature 1 2)")))))
+    (is (empty? (lint! "(s/defn verify-signature :- Bool [message :- Str base64-encoded-signature :- Str]) (verify-signature 1 2)"))))
+  (testing "defn arity error"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message "wrong number of args (0) passed to clojure.core/defn"}
+       {:file "<stdin>",
+        :row 1,
+        :col 8,
+        :level :error,
+        :message "wrong number of args (0) passed to clojure.core/defn"})
+     (lint! "(defn) (defmacro)"))))
 
 (deftest cljc-test
   (let [linted (lint! (io/file "corpus" "cljc"))
@@ -309,6 +322,15 @@
                        :message "wrong number of args (0) passed to macros/foo"})
                     (lint! (io/file "corpus" "refer_all.cljs")))))
 
+(deftest alias-test
+  (assert-submap
+   '{:file "<stdin>",
+     :row 1,
+     :col 35,
+     :level :error,
+     :message "wrong number of args (0) passed to clojure.core/select-keys"}
+   (first (lint! "(ns foo) (alias 'c 'clojure.core) (c/select-keys)"))))
+
 (deftest case-test
   (testing "case dispatch values should not be linted as function calls"
     (assert-submaps
@@ -371,7 +393,15 @@
        (with-out-str
          (with-in-str "(do 1)"
            (main "--lint" "-" "--config" "{:output {:pattern \"{{LEVEL}}_{{filename}}\"}}")))
-       "WARNING_<stdin>")))
+       "WARNING_<stdin>"))
+  (is (empty? (lint! "(comment (select-keys))" "--config" "{:skip-comments true}")))
+  (assert-submap
+   '({:file "<stdin>",
+      :row 1,
+      :col 16,
+      :level :error,
+      :message "wrong number of args (2) passed to user/foo"})
+   (lint! "(defn foo [x]) (foo (comment 1 2 3) 2)" "--config" "{:skip-comments true}")))
 
 (deftest map-duplicate-keys
   (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}

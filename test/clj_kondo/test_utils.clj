@@ -23,7 +23,7 @@
 
 (defmacro assert-submaps [maps result]
   `(do
-     (is (count ~maps) (count ~result))
+     (is (= (count ~maps) (count ~result)))
      (doseq [[m# r#] (map vector ~maps ~result)]
        (assert-submap m# r#))))
 

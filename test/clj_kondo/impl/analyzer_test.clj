@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.analyzer-test
   (:require
    [clj-kondo.impl.analyzer :as ana :refer [analyze-expressions]]
-   [clj-kondo.impl.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clj-kondo.test-utils :refer [assert-submap assert-some-submap assert-submaps]]
    [clojure.test :as t :refer [deftest is are testing]]))
@@ -28,40 +27,6 @@
                    :fixed-arities #{1}}
                  (first (ana/analyze-defn :clj nil #{}
                                           (parse-string "(defn get-bytes #^bytes [part] part)")))))
-
-(deftest resolve-name-test
-  (let [ns (analyze-ns-decl
-            :clj
-            (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:ns bar :name quux}
-           (ana/resolve-name ns 'quux))))
-  (let [ns (analyze-ns-decl
-            :clj
-            (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:ns bar :name quux}
-           (ana/resolve-name ns 'quux))))
-  (let [ns (analyze-ns-decl
-            :clj
-            (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
-"))]
-    (is (= '{:ns rewrite-clj.parser :name parse-string}
-           (ana/resolve-name ns 'p/parse-string))))
-  (testing "referring to unknown namespace alias"
-    (let [ns (analyze-ns-decl
-              :clj
-              (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
-"))]
-      (nil? (ana/resolve-name ns 'p/parse-string))))
-  (testing "referring with full namespace"
-    (let [ns (analyze-ns-decl
-              :clj
-              (parse-string "(ns clj-kondo.impl.utils (:require [clojure.core]))
-(clojure.core/inc 1)
-"))]
-      ;; TODO: what's the test here?
-      (is (=
-           '{:ns clojure.core :name inc}
-           (ana/resolve-name ns 'clojure.core/inc))))))
 
 (deftest analyze-expressions-test
   (let [analyzed (analyze-expressions "<stdin>" :clj

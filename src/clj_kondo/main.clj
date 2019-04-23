@@ -7,6 +7,7 @@
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clojure.edn :as edn]
+   [clj-kondo.impl.config :as config]
    [clojure.java.io :as io]
    [clojure.string :as str
     :refer [starts-with?
@@ -280,6 +281,7 @@ Options:
                 :default-lang
                 :cache-dir
                 :config]} (parse-opts options)]
+    (reset! config/config config)
     (or (cond (get opts "--version")
               (print-version)
               (get opts "--help")
