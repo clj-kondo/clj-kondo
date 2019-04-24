@@ -240,15 +240,13 @@
     (if first-parsed
       (case (:type first-parsed)
         (:ns :in-ns)
-        (do
-          ;; (println "NS" (:name first-parsed))
-          (recur
-           first-parsed
-           rest-parsed
-           (-> results
-               (assoc :ns first-parsed)
-               (update
-                :loaded into (:loaded first-parsed)))))
+        (recur
+         first-parsed
+         rest-parsed
+         (-> results
+             (assoc :ns first-parsed)
+             (update
+              :loaded into (:loaded first-parsed))))
         (:duplicate-map-key :missing-map-value :duplicate-set-key)
         (recur
          ns
