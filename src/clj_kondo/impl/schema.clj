@@ -4,6 +4,9 @@
    [rewrite-clj.zip :as z]
    [rewrite-clj.custom-zipper.utils :as zu]))
 
+(defn rightmost? [zloc]
+  (nil? (z/right zloc)))
+
 (defn remove-schemas-from-seq [zloc recurse?]
   (if-let [inside-seq (z/down zloc)]
     (loop [zloc inside-seq]
@@ -14,28 +17,26 @@
             zloc (if (and recurse? (z/vector? zloc))
                    (remove-schemas-from-seq zloc recurse?)
                    zloc)
-            right (z/right zloc)]
-        (if (z/end? right) (z/up zloc)
-            (recur right))))
+            last? (rightmost? zloc)]
+        (if last? (z/up zloc)
+            (recur (z/right zloc)))))
     zloc))
 
 (defn expand-schema-defn
   "Strips away schema type annotations so the expression can then be linted as a normal function"
   [expr]
-  (try
-    (z/root
-     (loop [z (z/down (remove-schemas-from-seq (z/edn* expr) false))]
+  (z/root
+   (loop [z (z/down (remove-schemas-from-seq (z/edn* expr) false))]
+     (let [last? (rightmost? z)]
+       ;; (println ">" (z/node z))
        (cond (z/vector? z)
              (remove-schemas-from-seq z true)
              (z/list? z)
-             (let [stripped (-> z z/down (remove-schemas-from-seq true) z/up)
-                   new-z (z/right stripped)]
-               (if (z/end? new-z) stripped
-                   (recur new-z)))
-             :else (recur (z/right z)))))
-    (catch Throwable e
-      (println "could not parse" expr)
-      (throw e))))
+             (let [stripped (-> z z/down (remove-schemas-from-seq true) z/up)]
+               (if last? stripped
+                   (recur (z/right z))))
+             :else (if last? z
+                       (recur (z/right z))))))))
 
 ;;;; Scratch
 

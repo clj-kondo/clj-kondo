@@ -110,15 +110,8 @@
            :message "Could not parse defn form"
            :row row
            :col col
-           :lang lang})
-        call {:type :call
-              :name 'defn
-              :row row
-              :col col
-              :lang lang
-              :expr expr
-              :arity (count children)}]
-    (list* defn call (mapcat :parsed parsed-bodies))))
+           :lang lang})]
+    (cons defn (mapcat :parsed parsed-bodies))))
 
 (defn analyze-case [lang ns bindings expr]
   (let [exprs (-> expr :children)]
@@ -158,7 +151,9 @@
 (defn analyze-expression**
   ([lang ns expr] (analyze-expression** lang ns #{} expr))
   ([lang ns bindings {:keys [:children] :as expr}]
-   (let [t (node/tag expr)]
+   (let [t (node/tag expr)
+         {:keys [:row :col]} (meta expr)
+         arg-count (count (rest children))]
      (case t
        (:quote :syntax-quote) []
        :map (concat (l/lint-map-keys expr) (analyze-children lang ns bindings children))
@@ -184,7 +179,14 @@
            [(analyze-alias ns expr)]
            ;; TODO: in-ns is not supported yet
            (defn defn- defmacro)
-           (analyze-defn lang ns bindings (lift-meta expr))
+           (cons {:type :call
+                  :name 'defn
+                  :row row
+                  :col col
+                  :lang lang
+                  :expr expr
+                  :arity arg-count}
+                 (analyze-defn lang ns bindings (lift-meta expr)))
            comment
            (if (-> @config/config :skip-comments) []
                (analyze-children lang ns bindings children))
@@ -203,23 +205,28 @@
            ;; catch-all
            (case [resolved-namespace resolved-name]
              [schema.core defn]
-             (analyze-defn lang ns bindings (schema/expand-schema-defn (lift-meta expr)))
+             (cons {:type :call
+                    :name 'schema.core/defn
+                    :row row
+                    :col col
+                    :lang lang
+                    :expr expr
+                    :arity arg-count}
+                   (analyze-defn lang ns bindings (schema/expand-schema-defn (lift-meta expr))))
              ;; catch-all
              (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
                (if (symbol? fn-name)
-                 (let [args (count (rest children))
-                       binding-call? (contains? bindings fn-name)
+                 (let [binding-call? (contains? bindings fn-name)
                        analyze-rest (analyze-children lang ns bindings (rest children))]
                    (if binding-call?
                      analyze-rest
-                     (let [call (let [{:keys [:row :col]} (meta expr)]
-                                  {:type :call
-                                   :name ?full-fn-name
-                                   :arity args
-                                   :row row
-                                   :col col
-                                   :lang lang
-                                   :expr expr})]
+                     (let [call {:type :call
+                                 :name ?full-fn-name
+                                 :arity arg-count
+                                 :row row
+                                 :col col
+                                 :lang lang
+                                 :expr expr}]
                        (cons call analyze-rest))))
                  (analyze-children lang ns bindings children))))))))))
 

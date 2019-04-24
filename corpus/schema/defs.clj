@@ -8,3 +8,6 @@
 
 (verify-signature 1 [2] {:a 3}) ;;correct
 (verify-signature 1 2) ;; incorrect
+
+(s/defn) ;; doesn't crash the app
+

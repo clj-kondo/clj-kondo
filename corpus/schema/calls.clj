@@ -2,4 +2,3 @@
   (:require [schema.defs :as d]))
 
 (d/verify-signature)
-
