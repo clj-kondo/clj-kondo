@@ -11,3 +11,4 @@
 (new-name) ;; caught
 (baz) ;; unrecognized call
 
+(bar) ;; not recognized

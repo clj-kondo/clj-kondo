@@ -86,7 +86,8 @@
               :rename
               (recur
                (nnext children)
-               (update m :renamed merge opt))
+               (-> m (update :renamed merge opt)
+                   (update :excluded into (set (keys opt)))))
               (recur (nnext children)
                      m)))
           [{:type :require
@@ -160,6 +161,26 @@
                              #(assoc % 'cljs.core 'cljs.core))
       (contains? #{:clj :cljc} lang)
       (assoc :java-imports default-java-imports))))
+
+(defn resolve-name
+  [ns name-sym]
+  (if-let [ns* (namespace name-sym)]
+    (let [ns-sym (symbol ns*)]
+      (if-let [ns* (get (:qualify-ns ns) ns-sym)]
+        {:ns ns*
+         :name (symbol (name name-sym))}
+        (when-let [ns* (get (:java-imports ns) ns-sym)]
+          {:java-interop? true
+           :ns ns*
+           :name (symbol (name name-sym))})))
+    (or (get (:qualify-var ns)
+             name-sym)
+        (let [namespace (:name ns)]
+          {:ns namespace
+           :name name-sym
+           :unqualified? true
+           :clojure-excluded? (contains? (:clojure-excluded ns)
+                                         name-sym)}))))
 
 ;;;; Scratch
 

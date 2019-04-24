@@ -1,1 +1,1 @@
-["^ ","~$apply-template",["^ ","~:name","^0","~:row",30,"~:col",1,"~:lang","~:clj","~:fixed-arities",["~#set",[3]],"~:ns","~$clojure.template"],"~$do-template",["^ ","^1","^:","^2",45,"^3",1,"^4","^5","~:var-args-min-arity",2,"^8","^9"]]
+["^ ","~$apply-template",["^ ","~:name","^0","~:row",30,"~:col",1,"~:lang","~:clj","~:fixed-arities",["~#set",[3]],"~:ns","~$clojure.template"],"~$do-template",["^ ","^1","^:","^2",45,"^3",1,"^4","^5","~:macro",true,"~:var-args-min-arity",2,"^8","^9"]]

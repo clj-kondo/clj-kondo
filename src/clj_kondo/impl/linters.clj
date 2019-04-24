@@ -189,7 +189,8 @@
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [fn-name (:name call)
+                       :let [;; _ (println "CALL" call)
+                             fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
@@ -248,7 +249,8 @@
                                   :type :invalid-arity
                                   :message (format "wrong number of args (%s) passed to %s"
                                                    (str (:arity call))
-                                                   (str (:ns called-fn) "/" (:name called-fn)))})
+                                                   (str (:ns called-fn) "/" (:name called-fn))
+                                                   #_(str (:fixed-arities called-fn)))})
                                (when (and (:private? called-fn)
                                           (not= caller-ns
                                                 fn-ns))
