@@ -16,7 +16,8 @@
      '{:static true :foo true}
      (meta (-> parsed :children second))))
   (is (:private (meta (lift-meta (parse-string "^:private [x]")))))
-  (is (:private (meta (lift-meta (parse-string "#^ :private [x]"))))))
+  (is (:private (meta (lift-meta (parse-string "#^ :private [x]")))))
+  (is (= "[B" (:tag (meta (lift-meta (parse-string "^\"[B\" body")))))))
 
 (deftest analyze-defn-test
   (assert-submaps

@@ -122,8 +122,8 @@
   (let [children (:children meta-node)
         meta-val (node/sexpr (first children))
         meta-map (cond (keyword? meta-val) {meta-val true}
-                       (symbol? meta-val) {:tag meta-val}
-                       :else meta-val)
+                       (map? meta-val) meta-val
+                       :else {:tag meta-val})
         meta-child (second children)
         meta-child (with-meta meta-child (merge
                                           (meta meta-node)

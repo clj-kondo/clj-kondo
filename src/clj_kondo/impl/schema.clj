@@ -1,10 +1,8 @@
 (ns clj-kondo.impl.schema
+  {:no-doc true}
   (:require
    [rewrite-clj.zip :as z]
-   [rewrite-clj.custom-zipper.core :as z*]
-   [rewrite-clj.custom-zipper.utils :as zu]
-   [rewrite-clj.zip.move :as m]
-   [clj-kondo.impl.utils :refer [lift-meta parse-string]]))
+   [rewrite-clj.custom-zipper.utils :as zu]))
 
 (defn remove-schemas-from-seq [zloc recurse?]
   (if-let [inside-seq (z/down zloc)]
@@ -42,6 +40,7 @@
 ;;;; Scratch
 
 (comment
+  (require '[clj-kondo.impl.utils :refer [lift-meta parse-string]])
   (expand-schema-defn (parse-string "(s/defn foo :- (s/maybe s/Int) [a :- Int])"))
   (expand-schema-defn (parse-string "(s/defn foo [[foo :- Baz]])"))
   (expand-schema-defn (parse-string "(s/defn foo [{:keys [a]} :- {:a s/Int}])"))
