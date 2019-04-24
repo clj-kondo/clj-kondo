@@ -446,6 +446,16 @@
             :message "duplicate set element 1"})
          (lint! "#{1 2 1}"))))
 
+(deftest macroexpand+cljc-test
+  (is (empty? (lint! "(-> 1 #?(:clj inc :cljs inc))" "--lang" "cljc")))
+  (assert-submap
+   {:file "<stdin>",
+    :row 1,
+    :col 15,
+    :level :error,
+    :message "wrong number of args (1) passed to java.lang.Math/pow"}
+   (first (lint! "(-> 1 #?(:clj (Math/pow)))" "--lang" "cljc"))))
+
 (deftest schema-defn-test
   (assert-submaps
    [{:file "corpus/schema/calls.clj",
