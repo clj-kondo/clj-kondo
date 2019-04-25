@@ -29,10 +29,10 @@
               (if (= :list (node/tag form))
                 (with-meta
                   (list-node
-                   (conj
-                    (vec (cons (first (:children form))
-                               (next (:children form))))
-                    x))
+                   (concat
+                    (cons (first (:children form))
+                          (next (:children form)))
+                    (list x)))
                   (meta form))
                 (with-meta (list-node (list form x))
                   (meta form)))]
