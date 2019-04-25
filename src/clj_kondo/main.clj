@@ -49,11 +49,11 @@
   (print-version)
   ;; TODO: document config format when stable enough
   (println (str "
-Usage: [ --help ] [ --version ] [ --cache [ <dir> ] ] [ --lang (clj|cljs) ] [ --lint <files> ]
+Usage: [ --help ] [ --version ] [ --lint <files> ] [ --lang (clj|cljs) ] [ --cache [ <dir> ] ] [ --config <config> ]
 
 Options:
 
-  --files: a file can either be a normal file, directory or classpath. In the
+  --lint: a file can either be a normal file, directory or classpath. In the
     case of a directory or classpath, only .clj, .cljs and .cljc will be
     processed. Use - as filename for reading from stdin.
 
@@ -62,7 +62,11 @@ Options:
 
   --cache: if dir exists it is used to write and read data from, to enrich
     analysis over multiple runs. If no value is provided, the nearest .clj-kondo
-    parent directory is detected and a cache directory will be created in it."))
+    parent directory is detected and a cache directory will be created in it.
+
+  --config: config may be a file or an EDN expression. See
+    https://github.com/borkdude/clj-kondo/blob/config/doc/config.md.
+"))
   nil)
 
 (defn- source-file? [filename]
