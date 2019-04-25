@@ -446,15 +446,47 @@
             :message "duplicate set element 1"})
          (lint! "#{1 2 1}"))))
 
-(deftest macroexpand+cljc-test
-  (is (empty? (lint! "(-> 1 #?(:clj inc :cljs inc))" "--lang" "cljc")))
+(deftest macroexpand-test
   (assert-submap
    {:file "<stdin>",
     :row 1,
-    :col 15,
+    :col 13,
     :level :error,
-    :message "wrong number of args (1) passed to java.lang.Math/pow"}
-   (first (lint! "(-> 1 #?(:clj (Math/pow)))" "--lang" "cljc"))))
+    :message "wrong number of args (1) passed to clojure.core/select-keys"}
+   (first (lint! "(-> (1 2 3) select-keys)")))
+  (assert-submap
+   {:file "<stdin>",
+    :row 1,
+    :col 13,
+    :level :error,
+    :message "wrong number of args (1) passed to clojure.core/select-keys"}
+   (first (lint! "(-> (1 2 3) (select-keys))")))
+  (assert-submap
+   {:file "<stdin>",
+    :row 1,
+    :col 14,
+    :level :error,
+    :message "wrong number of args (1) passed to clojure.core/select-keys"}
+   (first (lint! "(->> (1 2 3) select-keys)")))
+  (assert-submap
+   {:file "<stdin>",
+    :row 1,
+    :col 14,
+    :level :error,
+    :message "wrong number of args (1) passed to clojure.core/select-keys"}
+   (first (lint! "(->> (1 2 3) (select-keys))")))
+  (testing "cats"
+    (is (seq (lint! "(ns foo (:require [cats.core :as m])) (m/->= (right {}) (select-keys))")))
+    (is (seq (lint! "(ns foo (:require [cats.core :as m])) (m/->>= (right {}) (select-keys))"))))
+  (testing "with CLJC"
+    (is (empty? (lint! "(-> 1 #?(:clj inc :cljs inc))" "--lang" "cljc")))
+    (assert-submap
+     {:file "<stdin>",
+      :row 1,
+      :col 15,
+      :level :error,
+      :message "wrong number of args (1) passed to java.lang.Math/pow"}
+     (first (lint! "(-> 1 #?(:clj (Math/pow)))" "--lang" "cljc")))))
 
 (deftest schema-defn-test
   (assert-submaps

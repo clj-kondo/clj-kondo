@@ -193,8 +193,10 @@
 
            ->
            (recur lang ns bindings (macroexpand/expand-> expr))
-           (->> cond-> cond->> some-> some->> . .. deftype
-                proxy extend-protocol doto reify definterface defrecord defprotocol)
+           ->>
+           (recur lang ns bindings (macroexpand/expand->> expr))
+           (cond-> cond->> some-> some->> . .. deftype
+                   proxy extend-protocol doto reify definterface defrecord defprotocol)
            []
            let
            (analyze-let lang ns bindings expr)
@@ -213,6 +215,10 @@
                     :expr expr
                     :arity arg-count}
                    (analyze-defn lang ns bindings (schema/expand-schema-defn (lift-meta expr))))
+             [cats.core ->=]
+             (recur lang ns bindings (macroexpand/expand-> expr))
+             [cats.core ->>=]
+             (recur lang ns bindings (macroexpand/expand->> expr))
              ;; catch-all
              (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
                (if (symbol? fn-name)

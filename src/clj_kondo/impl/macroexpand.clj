@@ -1,28 +1,43 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [some-call filter-children]]
+   [clj-kondo.impl.utils :refer [some-call filter-children parse-string]]
    [rewrite-clj.node.protocols :as node :refer [tag]]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
    [rewrite-clj.node.token :refer [token-node]]))
 
 (defn expand-> [{:keys [:children] :as expr}]
-  ;; TODO: rewrite to zipper
-  (let [children (rest children)]
-    (loop [[child1 child2 & children :as all-children] children]
-      (if child2
-        (if (= :list (node/tag child2))
-          (recur
-           (let [res (into
-                      [(with-meta
-                         (list-node (reduce into
-                                            [[(first (:children child2))]
-                                             [child1] (rest (:children child2))]))
-                         (meta child2))] children)]
-             res))
-          (recur (into [(with-meta (list-node [child2 child1])
-                          (meta child2))] children)))
-        child1))))
+  (let [[c & cforms] (rest children)]
+    (loop [x c, forms cforms]
+      (if forms
+        (let [form (first forms)
+              threaded (if (= :list (node/tag form))
+                         (with-meta (list-node (list* (first (:children form))
+                                                      x
+                                                      (next (:children form)))) (meta form))
+                         (with-meta (list-node (list form x))
+                           (meta form)))]
+          (recur threaded (next forms)))
+        x))))
+
+(defn expand->> [{:keys [:children] :as expr}]
+  (let [[c & cforms] (rest children)]
+    (loop [x c, forms cforms]
+      (if forms
+        (let [form (first forms)
+              threaded
+              (if (= :list (node/tag form))
+                (with-meta
+                  (list-node
+                   (conj
+                    (vec (cons (first (:children form))
+                               (next (:children form))))
+                    x))
+                  (meta form))
+                (with-meta (list-node (list form x))
+                  (meta form)))]
+          (recur threaded (next forms)))
+        x))))
 
 (defn find-fn-args [children]
   (filter-children #(and (= :token (tag %))
@@ -31,7 +46,6 @@
                    children))
 
 (defn expand-fn [{:keys [:children] :as expr}]
-  ;; TODO: rewrite to zipper
   (let [{:keys [:row :col] :as m} (meta expr)
         fn-body (with-meta (list-node children)
                   {:row row
