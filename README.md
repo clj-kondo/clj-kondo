@@ -70,8 +70,8 @@ You can download and extract the latest binary with this one-liner:
 
 ``` shellsession
 curl -s "https://api.github.com/repos/borkdude/clj-kondo/releases" \
-  | grep browser | grep <platform>-amd64.tar.gz | head -n 1 | cut -d '"' -f4 \
-  | xargs curl -sL | tar -xz
+| grep browser | grep <platform>-amd64.tar.gz | head -n 1 | cut -d '"' -f4 \
+| xargs curl -sL | tar -xz
 ```
 
 Replace `<platform>` with either `linux` or `macos`.
