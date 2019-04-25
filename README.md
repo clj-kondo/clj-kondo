@@ -66,6 +66,16 @@ Install [Linuxbrew](http://linuxbrew.sh/). Then run:
 Pre-built binaries are available for linux and MacOS on the
 [releases](https://github.com/borkdude/clj-kondo/releases) page.
 
+You can download and extract the latest binary with this one-liner:
+
+``` shellsession
+curl -s "https://api.github.com/repos/borkdude/clj-kondo/releases" \
+  | grep browser | grep <platform>-amd64.tar.gz | head -n 1 | cut -d '"' -f4 \
+  | xargs curl -sL | tar -xz
+```
+
+Replace `<platform>` with either `linux` or `macos`.
+
 ### [Running on the JVM](doc/jvm.md)
 
 ## Usage
