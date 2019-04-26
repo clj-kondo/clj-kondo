@@ -124,13 +124,44 @@
          (nnext exprs)
          (into parsed (analyze-expression** lang ns bindings expr)))))))
 
+(defn expr-bindings [binding-vector]
+  (->> binding-vector :children
+       (take-nth 2)
+       (map node/sexpr)
+       (mapcat extract-bindings) set))
+
 (defn analyze-let [lang ns bindings expr]
-  (let [children (:children expr)
-        let-bindings (->> children second :children
-                          (take-nth 2)
-                          (map node/sexpr)
-                          (mapcat extract-bindings) set)]
-    (analyze-children lang ns (set/union bindings let-bindings) (rest children))))
+  (let [bv (-> expr :children second)
+        bs (expr-bindings bv)]
+    (analyze-children lang ns (set/union bindings bs)
+                      (rest (:children expr)))))
+
+(defn lint-only-one-binding [form-name bv]
+  (let [num-children (count (node/sexpr bv))
+        {:keys [:row :col]} (meta bv)]
+    (if (> num-children 2)
+      {:type :invalid-bindings
+       :message (format "%s takes only one binding" form-name)
+       :row row
+       :col col
+       :level :error}
+      {:type ::none})))
+
+(defn analyze-if-let [lang ns bindings expr]
+  (let [bv (-> expr :children second)
+        bs (expr-bindings bv)]
+    (cons (lint-only-one-binding 'if-let bv)
+          (analyze-children lang ns
+                            (set/union bindings bs)
+                            (rest (:children expr))))))
+
+(defn analyze-when-let [lang ns bindings expr]
+  (let [bv (-> expr :children second)
+        bs (expr-bindings bv)]
+    (cons (lint-only-one-binding 'when-let bv)
+          (analyze-children lang ns
+                            (set/union bindings bs)
+                            (rest (:children expr))))))
 
 (defn analyze-fn [lang ns bindings expr]
   ;; TODO better arity analysis like in normal fn
@@ -200,6 +231,10 @@
            []
            let
            (analyze-let lang ns bindings expr)
+           if-let
+           (analyze-if-let lang ns bindings expr)
+           when-let
+           (analyze-when-let lang ns bindings expr)
            (fn fn*)
            (analyze-fn lang ns bindings expr)
            case
@@ -253,13 +288,15 @@
              (assoc :ns first-parsed)
              (update
               :loaded into (:loaded first-parsed))))
-        (:duplicate-map-key :missing-map-value :duplicate-set-key)
+        (:duplicate-map-key :missing-map-value :duplicate-set-key :invalid-bindings)
         (recur
          ns
          rest-parsed
          (update results
                  :findings conj (assoc first-parsed
                                        :filename filename)))
+        ::none (recur ns rest-parsed results)
+        ;; catch-all
         (recur
          ns
          rest-parsed

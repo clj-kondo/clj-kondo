@@ -374,7 +374,27 @@
   (is (empty? (lint! "(fn [{:keys [:select-keys :b]}] (select-keys))")))
   (is (empty? (lint! "(defn foo [{:keys [select-keys :b]}]
     (let [x 1] (select-keys)))")))
-  (is (seq (lint! "(defn foo ([select-keys]) ([x y] (select-keys)))"))))
+  (is (seq (lint! "(defn foo ([select-keys]) ([x y] (select-keys)))")))
+  (is (empty? (lint! "(if-let [select-keys (fn [])] (select-keys))")))
+  (is (empty? (lint! "(when-let [select-keys (fn [])] (select-keys))"))))
+
+(deftest if-let-test
+  (assert-submap {:file "<stdin>",
+                  :row 1,
+                  :col 9,
+                  :level :error,
+                  :message "if-let takes only one binding"}
+                 (first (lint! "(if-let [x 1 y 2])")))
+  (is (empty? (lint! "(if-let [{:keys [:row :col]} {:row 1 :col 2}])"))))
+
+(deftest when-let-test
+  (assert-submap {:file "<stdin>",
+                  :row 1,
+                  :col 11,
+                  :level :error,
+                  :message "when-let takes only one binding"}
+                 (first (lint! "(when-let [x 1 y 2])")))
+  (is (empty? (lint! "(when-let [{:keys [:row :col]} {:row 1 :col 2}])"))))
 
 (deftest config-test
   (is (empty?

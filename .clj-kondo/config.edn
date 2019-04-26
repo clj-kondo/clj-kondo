@@ -12,7 +12,8 @@
            :missing-test-assertion {:level :warning}
            :duplicate-map-key {:level :error}
            :duplicate-set-key {:level :error}
-           :missing-map-value {:level :error}}
+           :missing-map-value {:level :error}
+           :invalid-bindings {:level :error}}
  :output {;; set to truthy to print progress while linting
           :show-progress false
           ;; output can be filtered and removed by regex on filename. empty options leave the output untouched.
