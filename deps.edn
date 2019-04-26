@@ -28,6 +28,7 @@
            {:extra-deps
             {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.3.1"}}
             :extra-paths ["test"]
+            :jvm-opts ["-Djdk.attach.allowAttachSelf"]
             :main-opts ["-m" "clj-kondo.profile"]}
            :extract
            {:extra-paths ["extract" "classes"]
