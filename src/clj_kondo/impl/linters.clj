@@ -5,7 +5,8 @@
                                  tag call]]
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
-   [clj-kondo.impl.utils :refer [parse-string]]))
+   [clj-kondo.impl.utils :refer [parse-string]]
+   [clj-kondo.impl.state :as state]))
 
 (set! *warn-on-reflection* true)
 
@@ -47,60 +48,6 @@
 (defn redundant-do [filename parsed-expressions]
   (map #(node->line filename % :warning :redundant-do "redundant do")
        (redundant-do* parsed-expressions false)))
-
-;;;; map linter
-
-(defn key-value
-  "We only support tokens as key values for now."
-  [node]
-  (case (node/tag node)
-    :token (node/string node)
-    nil))
-
-(defn lint-map-keys [expr]
-  (let [children (:children expr)
-        duplicate-keys (:findings
-                        (reduce
-                         (fn [{:keys [:seen] :as acc} key-expr]
-                           (if-let [k (key-value key-expr)]
-                             (if (contains? seen k)
-                               (update acc :findings conj
-                                       (node->line "_" key-expr :error :duplicate-map-key
-                                                   (str "duplicate key " k)))
-                               (update acc :seen conj k))
-                             acc))
-                         {:seen #{}
-                          :findings []}
-                         (take-nth 2 children)))
-        missing-value (if (odd? (count children))
-                        (let [last-child (last children)]
-                          [(node->line "_" last-child :error :missing-map-value
-                                       (str "missing value for key " (key-value last-child)))])
-                        [])]
-    (into duplicate-keys missing-value)))
-
-;;;; end map linter
-
-;;;; set linter
-
-(defn lint-set [expr]
-  (let [children (:children expr)
-        duplicate-keys (:findings
-                        (reduce
-                         (fn [{:keys [:seen] :as acc} set-element]
-                           (if-let [k (key-value set-element)]
-                             (if (contains? seen k)
-                               (update acc :findings conj
-                                       (node->line "_" set-element :error :duplicate-set-key
-                                                   (str "duplicate set element " k)))
-                               (update acc :seen conj k))
-                             acc))
-                         {:seen #{}
-                          :findings []}
-                         children))]
-    duplicate-keys))
-
-;;;; end set linter
 
 (defn lint-def* [filename expr in-def?]
   (let [fn-name (call expr)

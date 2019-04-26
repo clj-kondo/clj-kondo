@@ -1,13 +1,17 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [some-call filter-children parse-string]]
+   [clj-kondo.impl.utils :refer [some-call filter-children
+                                 parse-string]]
+   [clj-kondo.impl.metadata :refer [lift-meta]]
    [rewrite-clj.node.protocols :as node :refer [tag]]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
    [rewrite-clj.node.token :refer [token-node]]))
 
-(defn expand-> [{:keys [:children] :as expr}]
-  (let [[c & cforms] (rest children)]
+(defn expand-> [filename expr]
+  (let [expr (lift-meta filename expr)
+        children (:children expr)
+        [c & cforms] (rest children)]
     (loop [x c, forms cforms]
       (if forms
         (let [form (first forms)
@@ -20,8 +24,10 @@
           (recur threaded (next forms)))
         x))))
 
-(defn expand->> [{:keys [:children] :as expr}]
-  (let [[c & cforms] (rest children)]
+(defn expand->> [filename expr]
+  (let [expr (lift-meta filename expr)
+        children (:children expr)
+        [c & cforms] (rest children)]
     (loop [x c, forms cforms]
       (if forms
         (let [form (first forms)
@@ -59,4 +65,5 @@
 ;;;; Scratch
 
 (comment
+  (expand-fn (parse-string "#(inc ^long %)"))
   )
