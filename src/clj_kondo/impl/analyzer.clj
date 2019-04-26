@@ -7,8 +7,10 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.utils :refer [some-call call node->line
                                  parse-string parse-string-all
-                                 tag select-lang lift-meta]]
+                                 tag select-lang]]
+   [clj-kondo.impl.metadata :refer [lift-meta]]
    [clj-kondo.impl.macroexpand :as macroexpand]
+   [clj-kondo.impl.linters.keys :as key-linter]
    [clojure.set :as set]
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
@@ -60,19 +62,19 @@
                (inc arity)))
       {:fixed-arity arity})))
 
-(defn analyze-children [lang ns bindings children]
-  (mapcat #(analyze-expression** lang ns bindings %) children))
+(defn analyze-children [filename lang ns bindings children]
+  (mapcat #(analyze-expression** filename lang ns bindings %) children))
 
-(defn analyze-fn-body [lang ns bindings expr]
+(defn analyze-fn-body [filename lang ns bindings expr]
   (let [children (:children expr)
         arg-list (node/sexpr (first children))
         arg-bindings (extract-bindings arg-list)
         body (rest children)]
     (assoc (analyze-arity arg-list)
            :parsed
-           (analyze-children lang ns (set/union bindings (set arg-bindings)) body))))
+           (analyze-children filename lang ns (set/union bindings (set arg-bindings)) body))))
 
-(defn analyze-defn [lang ns bindings expr]
+(defn analyze-defn [filename lang ns bindings expr]
   (let [children (:children expr)
         children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
         name-node (first children)
@@ -90,7 +92,7 @@
                          exprs
                          (not t) []
                          :else (recur (inc i) rest-exprs))))
-        parsed-bodies (map #(analyze-fn-body lang ns bindings %) bodies)
+        parsed-bodies (map #(analyze-fn-body filename lang ns bindings %) bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
         {:keys [:row :col]} (meta expr)
@@ -113,16 +115,16 @@
            :lang lang})]
     (cons defn (mapcat :parsed parsed-bodies))))
 
-(defn analyze-case [lang ns bindings expr]
+(defn analyze-case [filename lang ns bindings expr]
   (let [exprs (-> expr :children)]
     (loop [[constant expr :as exprs] exprs
            parsed []]
       (if-not expr
         (into parsed (when constant
-                       (analyze-expression** lang ns bindings constant)))
+                       (analyze-expression** filename lang ns bindings constant)))
         (recur
          (nnext exprs)
-         (into parsed (analyze-expression** lang ns bindings expr)))))))
+         (into parsed (analyze-expression** filename lang ns bindings expr)))))))
 
 (defn expr-bindings [binding-vector]
   (->> binding-vector :children
@@ -140,12 +142,12 @@
        :col col
        :level :error})))
 
-(defn analyze-let [lang ns bindings expr]
+(defn analyze-let [filename lang ns bindings expr]
   (let [bv (-> expr :children second)
         bs (expr-bindings bv)]
     (cons
      (lint-even-forms-bindings 'let bv (node/sexpr bv))
-     (analyze-children lang ns (set/union bindings bs)
+     (analyze-children filename lang ns (set/union bindings bs)
                        (rest (:children expr))))))
 
 (defn lint-two-forms-binding-vector [form-name expr sexpr]
@@ -158,25 +160,25 @@
        :col col
        :level :error})))
 
-(defn analyze-if-let [lang ns bindings expr]
+(defn analyze-if-let [filename lang ns bindings expr]
   (let [bv (-> expr :children second)
         bs (expr-bindings bv)
         sexpr (node/sexpr bv)]
     (list* (lint-two-forms-binding-vector 'if-let bv sexpr)
-           (analyze-children lang ns
-                            (set/union bindings bs)
-                            (rest (:children expr))))))
+           (analyze-children filename lang ns
+                             (set/union bindings bs)
+                             (rest (:children expr))))))
 
-(defn analyze-when-let [lang ns bindings expr]
+(defn analyze-when-let [filename lang ns bindings expr]
   (let [bv (-> expr :children second)
         bs (expr-bindings bv)
         sexpr (node/sexpr bv)]
     (list* (lint-two-forms-binding-vector 'when-let bv sexpr)
-           (analyze-children lang ns
+           (analyze-children filename lang ns
                              (set/union bindings bs)
                              (rest (:children expr))))))
 
-(defn analyze-fn [lang ns bindings expr]
+(defn analyze-fn [filename lang ns bindings expr]
   ;; TODO better arity analysis like in normal fn
   (let [children (:children expr)
         arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
@@ -184,7 +186,7 @@
         ?fn-name (let [n (first children)]
                    (when (symbol? n) n))
         fn-bindings (set (mapcat extract-bindings (cons ?fn-name binding-forms)))]
-    (analyze-children lang ns (set/union bindings fn-bindings) children)))
+    (analyze-children filename lang ns (set/union bindings fn-bindings) children)))
 
 (defn analyze-alias [ns expr]
   (let [[alias-sym ns-sym]
@@ -193,16 +195,18 @@
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
 (defn analyze-expression**
-  ([lang ns expr] (analyze-expression** lang ns #{} expr))
-  ([lang ns bindings {:keys [:children] :as expr}]
+  ([filename lang ns expr] (analyze-expression** filename lang ns #{} expr))
+  ([filename lang ns bindings {:keys [:children] :as expr}]
    (let [t (node/tag expr)
          {:keys [:row :col]} (meta expr)
          arg-count (count (rest children))]
      (case t
        (:quote :syntax-quote) []
-       :map (concat (l/lint-map-keys expr) (analyze-children lang ns bindings children))
-       :set (concat (l/lint-set expr) (analyze-children lang ns bindings children))
-       :fn (recur lang ns bindings (macroexpand/expand-fn expr))
+       :map (do (key-linter/lint-map-keys filename expr)
+                (analyze-children filename lang ns bindings children))
+       :set (do (key-linter/lint-set filename expr)
+                (analyze-children filename lang ns bindings children))
+       :fn (recur filename lang ns bindings (macroexpand/expand-fn expr))
        (let [?full-fn-name (call expr)
              {resolved-namespace :ns
               resolved-name :name
@@ -230,28 +234,28 @@
                   :lang lang
                   :expr expr
                   :arity arg-count}
-                 (analyze-defn lang ns bindings (lift-meta expr)))
+                 (analyze-defn filename lang ns bindings (lift-meta filename expr)))
            comment
            (if (-> @config/config :skip-comments) []
-               (analyze-children lang ns bindings children))
+               (analyze-children filename lang ns bindings children))
 
            ->
-           (recur lang ns bindings (macroexpand/expand-> expr))
+           (recur filename lang ns bindings (macroexpand/expand-> filename expr))
            ->>
-           (recur lang ns bindings (macroexpand/expand->> expr))
+           (recur filename lang ns bindings (macroexpand/expand->> filename expr))
            (cond-> cond->> some-> some->> . .. deftype
                    proxy extend-protocol doto reify definterface defrecord defprotocol)
            []
            let
-           (analyze-let lang ns bindings expr)
+           (analyze-let filename lang ns bindings expr)
            if-let
-           (analyze-if-let lang ns bindings expr)
+           (analyze-if-let filename lang ns bindings expr)
            when-let
-           (analyze-when-let lang ns bindings expr)
+           (analyze-when-let filename lang ns bindings expr)
            (fn fn*)
-           (analyze-fn lang ns bindings expr)
+           (analyze-fn filename lang ns bindings expr)
            case
-           (analyze-case lang ns bindings expr)
+           (analyze-case filename lang ns bindings expr)
            ;; catch-all
            (case [resolved-namespace resolved-name]
              [schema.core defn]
@@ -262,16 +266,17 @@
                     :lang lang
                     :expr expr
                     :arity arg-count}
-                   (analyze-defn lang ns bindings (schema/expand-schema-defn (lift-meta expr))))
+                   (analyze-defn filename lang ns bindings (schema/expand-schema-defn
+                                                            (lift-meta filename expr))))
              [cats.core ->=]
-             (recur lang ns bindings (macroexpand/expand-> expr))
+             (recur filename lang ns bindings (macroexpand/expand-> filename expr))
              [cats.core ->>=]
-             (recur lang ns bindings (macroexpand/expand->> expr))
+             (recur filename lang ns bindings (macroexpand/expand->> filename expr))
              ;; catch-all
              (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
                (if (symbol? fn-name)
                  (let [binding-call? (contains? bindings fn-name)
-                       analyze-rest (analyze-children lang ns bindings (rest children))]
+                       analyze-rest (analyze-children filename lang ns bindings (rest children))]
                    (if binding-call?
                      analyze-rest
                      (let [call {:type :call
@@ -282,14 +287,14 @@
                                  :lang lang
                                  :expr expr}]
                        (cons call analyze-rest))))
-                 (analyze-children lang ns bindings children))))))))))
+                 (analyze-children filename lang ns bindings children))))))))))
 
 (def vconj (fnil conj []))
 
 (defn analyze-expression*
   [filename lang expanded-lang ns results expression debug?]
   (loop [ns ns
-         [first-parsed & rest-parsed :as all] (analyze-expression** expanded-lang ns expression)
+         [first-parsed & rest-parsed :as all] (analyze-expression** filename expanded-lang ns expression)
          results results]
     (if (seq all)
       (case (:type first-parsed)

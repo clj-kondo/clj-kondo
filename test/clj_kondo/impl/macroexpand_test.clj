@@ -3,7 +3,8 @@
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.utils :refer [parse-string]]
    [clojure.test :as t :refer [deftest is testing]]
-   [rewrite-clj.node.protocols :refer [tag]]))
+   [rewrite-clj.node.protocols :refer [tag]]
+   [rewrite-clj.node.protocols :as node]))
 
 (defn location [node]
   (let [m (meta node)]
@@ -11,14 +12,17 @@
       m)))
 
 (deftest expand->-test
-  (testing
-      "Expanded -> expression preserves location"
-    (is
-     (every? location
-             (filter #(= :list (tag %))
-                     (tree-seq :children :children
-                               (macroexpand/expand->
-                                (parse-string "(-> 1 inc inc)"))))))))
+  (testing "Expanded -> expression preserves location"
+    (is (every? location
+                (filter #(= :list (tag %))
+                        (tree-seq :children :children
+                                  (macroexpand/expand-> "."
+                                   (parse-string "(-> 1 inc inc)")))))))
+  (testing "with metadata"
+    (is (= '(clojure.string/includes? (str "foo") "foo")
+           (node/sexpr
+            (macroexpand/expand-> "."
+             (parse-string "(-> \"foo\" ^String str (clojure.string/includes? \"foo\"))")))))))
 
 (deftest expand-fn-test
   (testing
@@ -30,3 +34,7 @@
                                  (macroexpand/expand-fn
                                   (parse-string "#(valid? %)"))))))))
 
+;;;; Scratch
+
+(comment
+  )

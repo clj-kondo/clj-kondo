@@ -3,7 +3,8 @@
   (:require
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clojure.java.io :as io]
-   [rewrite-clj.node.protocols :as node]))
+   [rewrite-clj.node.protocols :as node]
+   [clojure.set :as set]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 
@@ -58,23 +59,24 @@
                       ns-name)
                     ns-name)]
       (loop [children options
-             {:keys [:as :refers :excluded
-                     :refered-all :renamed] :as m}
+             {:keys [:as :referred :excluded
+                     :referred-all :renamed] :as m}
              {:as nil
-              :refers []
+              :referred #{}
               :excluded #{}
-              :refered-all false
+              :referred-all false
               :renamed {}}]
         (if-let [child (first children)]
           (let [opt (fnext children)]
+            ;; (println "OPT" opt)
             (case child
               (:refer :refer-macros)
               (recur
                (nnext children)
                (cond (sequential? opt)
-                     (update m :refers into opt)
+                     (update m :referred into opt)
                      (= :all opt)
-                     (assoc m :refered-all true)
+                     (assoc m :referred-all true)
                      :else m))
               :as (recur
                    (nnext children)
@@ -87,22 +89,25 @@
               (recur
                (nnext children)
                (-> m (update :renamed merge opt)
-                   (update :excluded into (set (keys opt)))))
+                   ;; for :refer-all we need to know the excluded
+                   (update :excluded into (set (keys opt)))
+                   ;; for :refer it is sufficient to pretend they were never referred
+                   (update :referred set/difference (set (keys opt)))))
               (recur (nnext children)
                      m)))
           [{:type :require
             :ns ns-name
             :as as
             :excluded excluded
-            :refers (concat (map (fn [refer]
+            :referred (concat (map (fn [refer]
                                    [refer {:ns ns-name
                                            :name refer}])
-                                 refers)
+                                 referred)
                             (map (fn [[original-name new-name]]
                                    [new-name {:ns ns-name
                                               :name original-name}])
                                  renamed))
-            :refered-all refered-all}])))))
+            :referred-all referred-all}])))))
 
 (def default-java-imports
   (reduce (fn [acc [prefix sym]]
@@ -126,7 +131,7 @@
               analyzed (analyze-libspec lang normalized-libspec)]
           analyzed)
         refer-alls (reduce (fn [acc clause]
-                             (if (:refered-all clause)
+                             (if (:referred-all clause)
                                (assoc acc (:ns clause) (:excluded clause))
                                acc))
                            {}
@@ -136,7 +141,7 @@
          :lang lang
          :name (or (second sexpr)
                    'user)
-         :qualify-var (into {} (mapcat :refers subclauses))
+         :qualify-var (into {} (mapcat :referred subclauses))
          :qualify-ns (reduce (fn [acc sc]
                                (cond-> (assoc acc (:ns sc) (:ns sc))
                                  (:as sc)
@@ -173,7 +178,8 @@
           {:java-interop? true
            :ns ns*
            :name (symbol (name name-sym))})))
-    (or (get (:qualify-var ns)
+    (or
+     (get (:qualify-var ns)
              name-sym)
         (let [namespace (:name ns)]
           {:ns namespace

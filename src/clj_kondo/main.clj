@@ -8,6 +8,7 @@
    [clj-kondo.impl.overrides :refer [overrides]]
    [clojure.edn :as edn]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.state :as state]
    [clojure.java.io :as io]
    [clojure.string :as str
     :refer [starts-with?
@@ -279,6 +280,7 @@ Options:
 
 (defn main
   [& options]
+  (state/clear-findings!)
   (let [start-time (System/currentTimeMillis)
         {:keys [:opts
                 :files
@@ -300,7 +302,8 @@ Options:
                     idacs (cache/sync-cache idacs cache-dir)
                     idacs (overrides idacs)
                     linted-calls (l/lint-calls idacs config)
-                    all-findings (concat linted-calls (mapcat :findings processed))
+                    all-findings (concat linted-calls (mapcat :findings processed)
+                                         @state/findings)
                     all-findings (filter-findings all-findings config)
                     {:keys [:error :warning]} (summarize all-findings)]
                 (when (-> config :output :show-progress)

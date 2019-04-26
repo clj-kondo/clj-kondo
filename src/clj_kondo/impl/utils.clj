@@ -4,8 +4,7 @@
    [clojure.walk :refer [prewalk]]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.whitespace :refer [whitespace?]]
-   [rewrite-clj.parser :as p]
-   [rewrite-clj.zip :as z]))
+   [rewrite-clj.parser :as p]))
 
 (defn tag [maybe-expr]
   (when maybe-expr
@@ -114,40 +113,6 @@
                (filter-children pred cchildren)
                []))
           children))
-
-(defn meta? [node]
-  (contains? '#{:meta :meta*} (node/tag node)))
-
-(defn lift-meta-content [meta-node]
-  (let [children (:children meta-node)
-        meta-val (node/sexpr (first children))
-        meta-map (cond (keyword? meta-val) {meta-val true}
-                       (map? meta-val) meta-val
-                       :else {:tag meta-val})
-        meta-child (second children)
-        meta-child (with-meta meta-child (merge
-                                          (meta meta-node)
-                                          meta-map
-                                          (meta meta-child)))]
-    (if (meta? meta-child)
-      (recur meta-child)
-      meta-child)))
-
-(defn lift-meta* [zloc]
-  (loop [z zloc]
-    (let [node (z/node z)
-          last? (z/end? z)
-          replaced (if (meta? node)
-                     (z/replace z
-                                (lift-meta-content node))
-                     z)]
-      (if last? replaced
-          (recur (z/next replaced))))))
-
-(defn lift-meta [expr]
-  "Lifts metadata expressions to proper metadata."
-  (let [zloc (z/edn* expr)]
-    (z/root (lift-meta* zloc))))
 
 ;;;; Scratch
 

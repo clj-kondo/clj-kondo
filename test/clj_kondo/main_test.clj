@@ -318,6 +318,18 @@
       :message "wrong number of args (0) passed to foo.baz/c"})
    (lint! (io/file "corpus" "prefixed_libspec.clj"))))
 
+(deftest rename-test
+  (testing "the renamed function isn't available under the referred name"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 2,
+        :col 11,
+        :level :error,
+        :message "wrong number of args (1) passed to clojure.string/includes?"})
+     (lint! "(ns foo (:require [clojure.string :refer [includes?] :rename {includes? i}]))
+          (i \"str\")
+          (includes? \"str\")"))))
+
 (deftest refer-all-rename-test
   (testing ":require with :refer :all and :rename"
     (assert-submaps '({:file "corpus/refer_all.clj",
@@ -531,7 +543,18 @@
       :col 15,
       :level :error,
       :message "wrong number of args (1) passed to java.lang.Math/pow"}
-     (first (lint! "(-> 1 #?(:clj (Math/pow)))" "--lang" "cljc")))))
+     (first (lint! "(-> 1 #?(:clj (Math/pow)))" "--lang" "cljc"))))
+  (testing "with type hints"
+    (assert-submap
+     {:file "<stdin>",
+      :row 1,
+      :col 60,
+      :level :error,
+      :message "wrong number of args (1) passed to clojure.string/includes?"}
+     (first (lint! "(ns foo (:require [clojure.string])) (-> \"foo\" ^String str clojure.string/includes?)")))
+    (assert-submap
+     {:file "<stdin>", :row 1, :col 12, :level :error, :message "duplicate key :a"}
+     (first (lint! "(-> ^{:a 1 :a 2} [1 2 3])")))))
 
 (deftest schema-defn-test
   (assert-submaps
