@@ -130,38 +130,51 @@
        (map node/sexpr)
        (mapcat extract-bindings) set))
 
+(defn lint-even-forms-bindings [form-name expr sexpr]
+  (let [num-children (count sexpr)
+        {:keys [:row :col]} (meta expr)]
+    (when (odd? num-children)
+      {:type :invalid-bindings
+       :message (format "%s binding vector requires even number of forms" form-name)
+       :row row
+       :col col
+       :level :error})))
+
 (defn analyze-let [lang ns bindings expr]
   (let [bv (-> expr :children second)
         bs (expr-bindings bv)]
-    (analyze-children lang ns (set/union bindings bs)
-                      (rest (:children expr)))))
+    (cons
+     (lint-even-forms-bindings 'let bv (node/sexpr bv))
+     (analyze-children lang ns (set/union bindings bs)
+                       (rest (:children expr))))))
 
-(defn lint-only-one-binding [form-name bv]
-  (let [num-children (count (node/sexpr bv))
-        {:keys [:row :col]} (meta bv)]
-    (if (> num-children 2)
+(defn lint-two-forms-binding-vector [form-name expr sexpr]
+  (let [num-children (count sexpr)
+        {:keys [:row :col]} (meta expr)]
+    (when (not= 2 num-children)
       {:type :invalid-bindings
-       :message (format "%s takes only one binding" form-name)
+       :message (format "%s binding vector requires exactly 2 forms" form-name)
        :row row
        :col col
-       :level :error}
-      {:type ::none})))
+       :level :error})))
 
 (defn analyze-if-let [lang ns bindings expr]
   (let [bv (-> expr :children second)
-        bs (expr-bindings bv)]
-    (cons (lint-only-one-binding 'if-let bv)
-          (analyze-children lang ns
+        bs (expr-bindings bv)
+        sexpr (node/sexpr bv)]
+    (list* (lint-two-forms-binding-vector 'if-let bv sexpr)
+           (analyze-children lang ns
                             (set/union bindings bs)
                             (rest (:children expr))))))
 
 (defn analyze-when-let [lang ns bindings expr]
   (let [bv (-> expr :children second)
-        bs (expr-bindings bv)]
-    (cons (lint-only-one-binding 'when-let bv)
-          (analyze-children lang ns
-                            (set/union bindings bs)
-                            (rest (:children expr))))))
+        bs (expr-bindings bv)
+        sexpr (node/sexpr bv)]
+    (list* (lint-two-forms-binding-vector 'when-let bv sexpr)
+           (analyze-children lang ns
+                             (set/union bindings bs)
+                             (rest (:children expr))))))
 
 (defn analyze-fn [lang ns bindings expr]
   ;; TODO better arity analysis like in normal fn
@@ -276,10 +289,11 @@
 (defn analyze-expression*
   [filename lang expanded-lang ns results expression debug?]
   (loop [ns ns
-         [first-parsed & rest-parsed] (analyze-expression** expanded-lang ns expression)
+         [first-parsed & rest-parsed :as all] (analyze-expression** expanded-lang ns expression)
          results results]
-    (if first-parsed
+    (if (seq all)
       (case (:type first-parsed)
+        nil (recur ns rest-parsed results)
         (:ns :in-ns)
         (recur
          first-parsed
@@ -295,7 +309,6 @@
          (update results
                  :findings conj (assoc first-parsed
                                        :filename filename)))
-        ::none (recur ns rest-parsed results)
         ;; catch-all
         (recur
          ns
