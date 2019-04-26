@@ -11,3 +11,12 @@
 
 (s/defn) ;; doesn't crash the app
 
+;; from kekkonen
+(s/defn handler
+  ([meta :- s/Any]
+   (handler (dissoc meta :handle) (:handle meta)))
+  ([meta :- s/Any f :- s/Any]
+   (assert (:name meta) "handler should have :name")
+   (vary-meta f merge {:type :handler} meta)))
+
+(handler {}) ;; this should be OK
