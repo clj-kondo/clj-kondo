@@ -49,11 +49,9 @@
                 (keep
                  (fn [node]
                    (when-not
-                       (or (whitespace? node)
+                       (or #_(whitespace? node)
                            (uneval? node)
-                           (comment? node)
-                           #_(when (-> config :skip-comments)
-                               (some-call node comment core/comment)))
+                           (comment? node))
                      node))
                  children)))
     expr)))
@@ -102,7 +100,8 @@
 (defn parse-string-all
   ([s] (parse-string-all s nil))
   ([s config]
-   (remove-noise (p/parse-string-all s) config)))
+   (let [p (p/parse-string-all s)]
+     (remove-noise p config))))
 
 (defn filter-children
   "Recursively filters children by pred"
