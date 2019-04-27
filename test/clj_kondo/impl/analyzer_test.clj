@@ -24,7 +24,7 @@
   (assert-submaps
    '[{:name chunk-buffer, :fixed-arities #{1}}
      {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
-   (ana/analyze-defn "." :clj nil #{}
+   (ana/analyze-defn {:lang :clj}
                      (lift-meta
                       "."
                       (parse-string
@@ -36,7 +36,7 @@
                    :col 1,
                    :lang :clj,
                    :fixed-arities #{1}}
-                 (first (ana/analyze-defn "." :clj nil #{}
+                 (first (ana/analyze-defn {:lang :clj}
                                           (lift-meta "."
                                                      (parse-string "(defn get-bytes #^bytes [part] part)"))))))
 

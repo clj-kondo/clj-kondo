@@ -575,6 +575,27 @@
      :message "wrong number of args (2) passed to schema.defs/verify-signature"}]
    (lint! (io/file "corpus" "schema"))))
 
+(deftest in-ns-test
+  (assert-submaps
+   '({:file "corpus/in-ns/base_ns.clj",
+      :row 5,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (3) passed to in-ns.base-ns/foo"}
+     {:file "corpus/in-ns/in_ns.clj",
+      :row 5,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (3) passed to in-ns.base-ns/foo"})
+   (lint! (io/file "corpus" "in-ns")))
+  (assert-submap
+   {:file "<stdin>",
+    :row 1,
+    :col 55,
+    :level :error,
+    :message "wrong number of args (3) passed to foo/foo-2"}
+   (first (lint! "(ns foo) (defn foo-1 [] (in-ns 'bar)) (defn foo-2 []) (foo-2 1 2 3)"))))
+
 ;;;; Scratch
 
 (comment
