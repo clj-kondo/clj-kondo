@@ -28,6 +28,7 @@ clj-kondo detects:
 * `cond` expressions without `:else` catch-alls (see [style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond))
 * duplicate map keys and set elements
 * missing map keys
+* invalid number of forms in binding vectors
 
 before your REPL knows it.
 
