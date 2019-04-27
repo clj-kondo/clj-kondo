@@ -4,7 +4,10 @@
    [clojure.walk :refer [prewalk]]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.whitespace :refer [whitespace?]]
-   [rewrite-clj.parser :as p]))
+   [rewrite-clj.parser :as p]
+   [clj-kondo.impl.profiler :as profiler]
+   [rewrite-clj.zip :as z]
+   [rewrite-clj.custom-zipper.core :as cz]))
 
 (defn tag [maybe-expr]
   (when maybe-expr
@@ -32,60 +35,71 @@
     `(and (= :list (tag ~expr))
           ((quote ~syms) (:value (first (:children ~expr)))))))
 
-(defn update* [m k f]
-  (if-let [v (get m k)]
-    (if-let [v* (f v)]
-      (assoc m k v*)
-      m)
-    m))
+(declare remove-noise*)
 
-(defn remove-noise
-  ([expr] (remove-noise expr nil))
-  ([expr config]
-   (clojure.walk/postwalk
-    #(update* %
-              :children
-              (fn [children]
-                (keep
-                 (fn [node]
-                   (when-not
-                       (or (whitespace? node)
-                           (uneval? node)
-                           (comment? node)
-                           #_(when (-> config :skip-comments)
-                               (some-call node comment core/comment)))
-                     node))
-                 children)))
-    expr)))
+(defn remove-noise-children [expr]
+  (if-let [children (:children expr)]
+    (let [new-children (doall (keep remove-noise* children))]
+      (assoc expr :children new-children))
+    expr))
+
+(defn remove-noise* [node]
+  (when-not (or (whitespace? node)
+                (uneval? node)
+                (comment? node))
+    (remove-noise-children node)))
+
+(defn remove-noise [expr]
+  (profiler/profile :remove-noise
+                    (remove-noise* expr)))
+
+;; this zipper version is much slower than the above
+#_(defn remove-noise
+    ([expr] (remove-noise expr nil))
+    ([expr config]
+     (let [zloc (z/edn* expr)]
+       (loop [zloc zloc]
+         (cond (z/end? zloc) (z/root zloc)
+               :else (let [node (z/node zloc)
+                           remove?
+                           (or (whitespace? node)
+                               (uneval? node)
+                               (comment? node))]
+                       (recur (if remove? (z/remove zloc)
+                                  (cz/next zloc)))))))))
 
 (defn process-reader-conditional [node lang]
-  ;; TODO: support :default
-  (let [tokens (-> node :children last :children)]
-    (loop [[k v & ts] tokens]
-      (if (= lang (:k k))
-        v
-        (when (seq ts) (recur ts))))))
+  (if (= :reader-macro (and node (node/tag node)))
+    (let [tokens (-> node :children last :children)]
+      (loop [[k v & ts] tokens]
+        (if (= lang (:k k))
+          v
+          (when (seq ts) (recur ts)))))
+    node))
 
-(defn select-lang
-  ([expr lang]
-   (clojure.walk/postwalk
-    #(update* %
-              :children
-              (fn [children]
-                (seq
-                 (reduce
-                  (fn [acc node]
-                    (if (= :reader-macro
-                           (and node (node/tag node)))
-                      (if-let [processed (process-reader-conditional node lang)]
-                        (if (= "?@" (-> node :children first :string-value))
-                          (into acc (:children  processed))
-                          (conj acc processed))
-                        acc)
-                      (conj acc node)))
-                  []
-                  children))))
-    expr)))
+(declare select-lang*)
+
+(defn select-lang-children [node lang]
+  (if-let [children (:children node)]
+    (assoc node :children
+           (reduce
+            (fn [acc node]
+              (if-let [processed (select-lang* node lang)]
+                (if (= "?@" (-> node :children first :string-value))
+                  (into acc (:children  processed))
+                  (conj acc processed))
+                acc))
+            []
+            children))
+    node))
+
+(defn select-lang* [node lang]
+  (when-let [processed (process-reader-conditional node lang)]
+    (select-lang-children processed lang)))
+
+(defn select-lang [expr lang]
+  (profiler/profile :select-lang
+                    (select-lang* expr lang)))
 
 (defn node->line [filename node level type message]
   (let [m (meta node)]
@@ -102,7 +116,9 @@
 (defn parse-string-all
   ([s] (parse-string-all s nil))
   ([s config]
-   (remove-noise (p/parse-string-all s) config)))
+   (let [p (profiler/profile :rewrite-clj-parse-string-all
+                             (p/parse-string-all s))]
+     (profiler/profile :remove-noise (remove-noise p)))))
 
 (defn filter-children
   "Recursively filters children by pred"

@@ -14,7 +14,8 @@
    [clojure.set :as set]
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
-   [clj-kondo.impl.schema :as schema]))
+   [clj-kondo.impl.schema :as schema]
+   [clj-kondo.impl.profiler :as profiler]))
 
 (defn extract-bindings [sexpr]
   (cond (and (symbol? sexpr)
@@ -404,18 +405,20 @@
   ([filename lang expressions] (analyze-expressions filename lang lang expressions))
   ([filename lang expanded-lang expressions] (analyze-expressions filename lang expanded-lang expressions false))
   ([filename lang expanded-lang expressions debug?]
-   (loop [ns (analyze-ns-decl expanded-lang (parse-string "(ns user)"))
-          [expression & rest-expressions] expressions
-          results {:calls {}
-                   :defs {}
-                   :loaded (:loaded ns)
-                   :findings []
-                   :lang lang}]
-     (if expression
-       (let [[ns results]
-             (analyze-expression* filename lang expanded-lang ns results expression debug?)]
-         (recur ns rest-expressions results))
-       results))))
+   (profiler/profile
+    :analyze-expressions
+    (loop [ns (analyze-ns-decl expanded-lang (parse-string "(ns user)"))
+           [expression & rest-expressions] expressions
+           results {:calls {}
+                    :defs {}
+                    :loaded (:loaded ns)
+                    :findings []
+                    :lang lang}]
+      (if expression
+        (let [[ns results]
+              (analyze-expression* filename lang expanded-lang ns results expression debug?)]
+          (recur ns rest-expressions results))
+        results)))))
 
 ;;;; processing of string input
 
@@ -439,33 +442,34 @@
   linters and returns their findings."
   [filename input lang config dev?]
   (try
-    (let [parsed (p/parse-string input config)
-          nls (l/redundant-let filename parsed)
-          ods (l/redundant-do filename parsed)
-          findings {:findings (concat nls ods)
-                    :lang lang}
-          analyzed-expressions
-          (case lang :cljc
-                (let [clj (analyze-expressions filename lang
-                                               :clj (:children (select-lang parsed :clj))
-                                               (:debug config))
-                      cljs (analyze-expressions filename lang
-                                                :cljs (:children (select-lang parsed :cljs))
-                                                (:debug config))]
-                  (deep-merge clj cljs))
-                (analyze-expressions filename lang lang
-                                     (:children parsed)
-                                     (:debug config)))]
-      [findings analyzed-expressions])
-    (catch Exception e
-      (if dev? (throw e)
-          [{:findings [{:level :error
-                        :filename filename
-                        :col 0
-                        :row 0
-                        :message (str "can't parse "
-                                      filename ", "
-                                      (.getMessage e))}]}]))
-    (finally
-      (when (-> config :output :show-progress)
-        (print ".") (flush)))))
+     (let [parsed (p/parse-string input config)
+           nls (l/redundant-let filename parsed)
+           ods (l/redundant-do filename parsed)
+           findings {:findings (concat nls ods)
+                     :lang lang}
+           analyzed-expressions
+           (case lang :cljc
+                 (let [clj (analyze-expressions filename lang
+                                                :clj (:children (select-lang parsed :clj))
+                                                (:debug config))
+                       cljs (analyze-expressions filename lang
+                                                 :cljs (:children (select-lang parsed :cljs))
+                                                 (:debug config))]
+                   (profiler/profile :deep-merge
+                                     (deep-merge clj cljs)))
+                 (analyze-expressions filename lang lang
+                                      (:children parsed)
+                                      (:debug config)))]
+       [findings analyzed-expressions])
+     (catch Exception e
+       (if dev? (throw e)
+           [{:findings [{:level :error
+                         :filename filename
+                         :col 0
+                         :row 0
+                         :message (str "can't parse "
+                                       filename ", "
+                                       (.getMessage e))}]}]))
+     (finally
+       (when (-> config :output :show-progress)
+         (print ".") (flush)))))

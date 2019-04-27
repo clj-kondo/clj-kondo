@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
    [clojure.java.io :as io]
+   [clj-kondo.impl.profiler :as profiler]
    [cognitect.transit :as transit])
   (:import [java.io RandomAccessFile]
            [java.nio.channels FileChannel]))
@@ -105,10 +106,12 @@
           [:clj :cljs :cljc]))
 
 (defn sync-cache [idacs cache-dir]
-  (if cache-dir
-    (with-cache cache-dir 6
-      (sync-cache* idacs cache-dir))
-    (sync-cache* idacs cache-dir)))
+  (profiler/profile
+   :sync-cache
+   (if cache-dir
+     (with-cache cache-dir 6
+       (sync-cache* idacs cache-dir))
+     (sync-cache* idacs cache-dir))))
 
 ;;;; Scratch
 
