@@ -6,23 +6,26 @@
    [clj-kondo.impl.metadata :refer [lift-meta]]
    [rewrite-clj.node.protocols :as node :refer [tag]]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
-   [rewrite-clj.node.token :refer [token-node]]))
+   [rewrite-clj.node.token :refer [token-node]]
+   [clj-kondo.impl.profiler :as profiler]))
 
 (defn expand-> [filename expr]
-  (let [expr (lift-meta filename expr)
-        children (:children expr)
-        [c & cforms] (rest children)]
-    (loop [x c, forms cforms]
-      (if forms
-        (let [form (first forms)
-              threaded (if (= :list (node/tag form))
-                         (with-meta (list-node (list* (first (:children form))
-                                                      x
-                                                      (next (:children form)))) (meta form))
-                         (with-meta (list-node (list form x))
-                           (meta form)))]
-          (recur threaded (next forms)))
-        x))))
+  (profiler/profile
+   :expand->
+   (let [expr (lift-meta filename expr)
+         children (:children expr)
+         [c & cforms] (rest children)]
+     (loop [x c, forms cforms]
+       (if forms
+         (let [form (first forms)
+               threaded (if (= :list (node/tag form))
+                          (with-meta (list-node (list* (first (:children form))
+                                                       x
+                                                       (next (:children form)))) (meta form))
+                          (with-meta (list-node (list form x))
+                            (meta form)))]
+           (recur threaded (next forms)))
+         x)))))
 
 (defn expand->> [filename expr]
   (let [expr (lift-meta filename expr)

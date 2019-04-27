@@ -10,6 +10,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.state :as state]
    [clojure.java.io :as io]
+   [clj-kondo.impl.profiler :as profiler]
    [clojure.string :as str
     :refer [starts-with?
             ends-with?]])
@@ -280,43 +281,48 @@ Options:
 
 (defn main
   [& options]
-  (state/clear-findings!)
-  (let [start-time (System/currentTimeMillis)
-        {:keys [:opts
-                :files
-                :default-lang
-                :cache-dir
-                :config]} (parse-opts options)]
-    (reset! config/config config)
-    (or (cond (get opts "--version")
-              (print-version)
-              (get opts "--help")
-              (print-help)
-              (empty? files)
-              (print-help)
-              :else
-              (let [processed
-                    (process-files files default-lang
+  (try
+    (profiler/profile
+     :main
+     (state/clear-findings!)
+     (let [start-time (System/currentTimeMillis)
+           {:keys [:opts
+                   :files
+                   :default-lang
+                   :cache-dir
+                   :config]} (parse-opts options)]
+       (reset! config/config config)
+       (or (cond (get opts "--version")
+                 (print-version)
+                 (get opts "--help")
+                 (print-help)
+                 (empty? files)
+                 (print-help)
+                 :else
+                 (let [processed
+                       (process-files files default-lang
+                                      config)
+                       idacs (index-defs-and-calls processed)
+                       idacs (cache/sync-cache idacs cache-dir)
+                       idacs (overrides idacs)
+                       linted-calls (l/lint-calls idacs config)
+                       all-findings (concat linted-calls (mapcat :findings processed)
+                                            @state/findings)
+                       all-findings (filter-findings all-findings config)
+                       {:keys [:error :warning]} (summarize all-findings)]
+                   (when (-> config :output :show-progress)
+                     (println))
+                   (print-findings all-findings
                                    config)
-                    idacs (index-defs-and-calls processed)
-                    idacs (cache/sync-cache idacs cache-dir)
-                    idacs (overrides idacs)
-                    linted-calls (l/lint-calls idacs config)
-                    all-findings (concat linted-calls (mapcat :findings processed)
-                                         @state/findings)
-                    all-findings (filter-findings all-findings config)
-                    {:keys [:error :warning]} (summarize all-findings)]
-                (when (-> config :output :show-progress)
-                  (println))
-                (print-findings all-findings
-                                config)
-                (printf "linting took %sms, "
-                        (- (System/currentTimeMillis) start-time))
-                (println (format "errors: %s, warnings: %s" error warning))
-                (cond (pos? error) 3
-                      (pos? warning) 2
-                      :else 0)))
-        0)))
+                   (printf "linting took %sms, "
+                           (- (System/currentTimeMillis) start-time))
+                   (println (format "errors: %s, warnings: %s" error warning))
+                   (cond (pos? error) 3
+                         (pos? warning) 2
+                         :else 0)))
+           0)))
+    (finally
+      (profiler/print-profile :main))))
 
 (defn -main [& options]
   (let [exit-code

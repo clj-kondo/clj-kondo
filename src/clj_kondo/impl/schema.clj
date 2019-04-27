@@ -1,8 +1,9 @@
 (ns clj-kondo.impl.schema
   {:no-doc true}
   (:require
-   [rewrite-clj.zip :as z]
-   [rewrite-clj.custom-zipper.utils :as zu]))
+   [clj-kondo.impl.profiler :as profiler]
+   [rewrite-clj.custom-zipper.utils :as zu]
+   [rewrite-clj.zip :as z]))
 
 (defn rightmost? [zloc]
   (nil? (z/right zloc)))
@@ -26,20 +27,22 @@
 (defn expand-schema-defn
   "Strips away schema type annotations so the expression can then be linted as a normal function"
   [expr]
-  (z/root
-   (loop [z (z/down (z/edn* expr))]
-     (let [last? (rightmost? z)]
-       (cond
-         (= ':- (z/sexpr z))
-         (recur (-> z zu/remove-and-move-right zu/remove-and-move-left))
-         (z/vector? z)
-         (remove-schemas-from-seq z true)
-         (z/list? z)
-         (let [stripped (-> z z/down (remove-schemas-from-seq true) z/up)]
-           (if last? stripped
-               (recur (z/right stripped))))
-         :else (if last? z
-                   (recur (z/right z))))))))
+  (profiler/profile
+   :expand-schema-defn
+   (z/root
+    (loop [z (z/down (z/edn* expr))]
+      (let [last? (rightmost? z)]
+        (cond
+          (= ':- (z/sexpr z))
+          (recur (-> z zu/remove-and-move-right zu/remove-and-move-left))
+          (z/vector? z)
+          (remove-schemas-from-seq z true)
+          (z/list? z)
+          (let [stripped (-> z z/down (remove-schemas-from-seq true) z/up)]
+            (if last? stripped
+                (recur (z/right stripped))))
+          :else (if last? z
+                    (recur (z/right z)))))))))
 
 ;;;; Scratch
 
