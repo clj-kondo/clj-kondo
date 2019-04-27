@@ -6,6 +6,11 @@
    [rewrite-clj.node.protocols :as node]
    [clojure.set :as set]))
 
+;; we store all seen namespaces here, so we could resolve in the call linter,
+;; instead of too early, because of in-ns. this is not yet implemented.
+
+(defonce namespaces (atom {}))
+
 (def valid-ns-name? (some-fn symbol? string?))
 
 (defn- prefix-spec?
@@ -191,7 +196,7 @@
 ;;;; Scratch
 
 (comment
-  (keys (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
+  (analyze-ns-decl :clj (parse-string (slurp "/tmp/ns.clj")))
   (:loaded (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
   (:java-imports (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
   (analyze-libspec :clj (node/sexpr (parse-string "[foo.core :refer :all :exclude [foo] :rename {old-name new-name}]")))
