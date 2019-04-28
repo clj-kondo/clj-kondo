@@ -1,9 +1,10 @@
-{;; lint contents inside comment sections, set to truthy to treat them as whitespace
- :skip-comments false
+{;; disable linting inside calls to these functions/macros
+ :disable-within [#_clojure.core/comment]
 
  ;; linter level can be tweaked by setting :level to :error, :warn or :info (or any other keyword)
  ;; all linters are enabled by default, but can be turned off by setting :level to :off.
- :linters {:invalid-arity {:level :error}
+ :linters {:invalid-arity {:level :error
+                           :disable-within [user/foo riemann.test/test-stream]}
            :private-call {:level :error}
            :inline-def {:level :warning}
            :redundant-do {:level :warning}
