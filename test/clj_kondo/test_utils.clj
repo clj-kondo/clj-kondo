@@ -47,6 +47,7 @@
 (defn lint-jvm!
   ([input] (lint-jvm! input "--lang" "clj"))
   ([input & args]
+   (require '[clj-kondo.impl.config] :reload)
    (let [res (with-out-str
                (try
                  (if (instance? java.io.File input)

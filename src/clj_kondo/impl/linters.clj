@@ -181,7 +181,7 @@
                              filename (:filename call)
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
-                             _ (println "parents" (:parents call))
+                             ;;_ (println "parents" (:parents call))
                              errors
                              (into
                               [(when-not

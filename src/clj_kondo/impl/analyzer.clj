@@ -15,7 +15,8 @@
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.schema :as schema]
-   [clj-kondo.impl.profiler :as profiler]))
+   [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.var-info :as var-info]))
 
 (defn extract-bindings [sexpr]
   (cond (and (symbol? sexpr)
@@ -64,6 +65,7 @@
       {:fixed-arity arity})))
 
 (defn analyze-children [{:keys [:parents] :as ctx} children]
+  ;; (println "parents" parents)
   (when-not (config/disabled? parents)
     (mapcat #(analyze-expression** ctx %) children)))
 
@@ -216,13 +218,15 @@
              resolved-name :name
              :keys [:unqualified? :clojure-excluded?] :as res}
             (when ?full-fn-name (resolve-name ns ?full-fn-name))
-            resolved-clojure-var-name
-            (when (and (not clojure-excluded?)
-                       (or unqualified?
-                           (= 'clojure.core resolved-namespace)
-                           (when (= :cljs lang)
-                             (= 'cljs.core resolved-namespace))))
-              resolved-name)
+            resolved-namespace
+            ;; TODO: move this logic to resolve-name?
+            (if (and (not clojure-excluded?)
+                     unqualified?
+                     (contains? var-info/core-syms resolved-name))
+              (case lang
+                :clj 'clojure.core
+                :cljs 'cljs.core)
+              resolved-namespace)
             fq-sym (when (and resolved-namespace
                               resolved-name)
                      (symbol (str resolved-namespace)
@@ -230,12 +234,12 @@
             next-ctx (if fq-sym
                        (update ctx :parents
                                vconj
-                               (or (when resolved-clojure-var-name
-                                     (case lang
-                                       :clj ['clojure.core resolved-clojure-var-name]
-                                       :cljs ['cljs.core resolved-clojure-var-name]))
-                                   fq-sym))
-                       ctx)]
+                               [resolved-namespace resolved-name])
+                       ctx)
+            resolved-clojure-var-name (when (contains? '#{clojure.core
+                                                          cljs.core}
+                                                       resolved-namespace)
+                                        resolved-name)]
         (case resolved-clojure-var-name
           ns
           (let [ns (analyze-ns-decl lang expr)]
@@ -295,7 +299,7 @@
                       analyze-rest (analyze-children next-ctx (rest children))]
                   (if binding-call?
                     analyze-rest
-                    (let [_ (println "PARENTS" (:parents ctx) ?full-fn-name)
+                    (let [;; _ (println "PARENTS" (:parents ctx) ?full-fn-name)
                           call {:type :call
                                 :name ?full-fn-name
                                 :arity arg-count

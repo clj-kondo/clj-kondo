@@ -461,7 +461,7 @@
          (with-in-str "(do 1)"
            (main "--lint" "-" "--config" "{:output {:pattern \"{{LEVEL}}_{{filename}}\"}}")))
        "WARNING_<stdin>"))
-  (is (empty? (lint! "(comment (select-keys))" "--config" "{:skip-comments true}")))
+  (is (empty? (lint! "(comment (select-keys))" "--config" "{:disable-within [clojure.core/comment]}")))
   (assert-submap
    '({:file "<stdin>",
       :row 1,
