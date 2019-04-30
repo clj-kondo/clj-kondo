@@ -32,7 +32,8 @@
             :main-opts ["-m" "clj-kondo.profile"]}
            :extract
            {:extra-paths ["extract" "classes"]
-            :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}}}
+            :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}
+                         jonase/eastwood {:mvn/version "0.3.5"}}}
            :cljs
            {:extra-deps
             {org.clojure/clojurescript {:mvn/version "1.10.520"}}}}

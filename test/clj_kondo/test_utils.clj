@@ -21,11 +21,16 @@
 (defmacro assert-some-submap [m r]
   `(is (some #(submap? ~m %) ~r)))
 
-(defmacro assert-submaps [maps result]
-  `(do
-     (is (= (count ~maps) (count ~result)))
-     (doseq [[m# r#] (map vector ~maps ~result)]
-       (assert-submap m# r#))))
+(defmacro assert-submaps
+  "Asserts that maps are submaps of result in corresponding order and
+  that the number of maps corresponds to the number of
+  results. Returns true if all assertions passed (useful for REPL)."
+  [maps result]
+  `(and
+    (is (= (count ~maps) (count ~result)))
+    (every? identity
+            (for [[m# r#] (map vector ~maps ~result)]
+              (assert-submap m# r#)))))
 
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the
@@ -47,6 +52,7 @@
 (defn lint-jvm!
   ([input] (lint-jvm! input "--lang" "clj"))
   ([input & args]
+   (require '[clj-kondo.impl.config] :reload)
    (let [res (with-out-str
                (try
                  (if (instance? java.io.File input)

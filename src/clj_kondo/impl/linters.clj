@@ -6,7 +6,8 @@
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.utils :refer [parse-string]]
-   [clj-kondo.impl.state :as state]))
+   [clj-kondo.impl.state :as state]
+   [clj-kondo.impl.config :as config]))
 
 (set! *warn-on-reflection* true)
 
@@ -180,15 +181,13 @@
                              filename (:filename call)
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
+                             ;;_ (println "parents" (:parents call))
                              errors
                              (into
                               [(when-not
                                    (or (contains? fixed-arities arity)
                                        (and var-args-min-arity (>= arity var-args-min-arity))
-                                       (when-let [excluded (-> config :invalid-arity :exclude)]
-                                         (contains? excluded
-                                                    (symbol (str fn-ns)
-                                                            (str fn-name)))))
+                                       (config/skip? :invalid-arity (:parents call)))
                                  {:filename filename
                                   :row (:row call)
                                   :col (:col call)

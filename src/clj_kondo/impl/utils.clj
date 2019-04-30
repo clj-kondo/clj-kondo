@@ -130,6 +130,8 @@
                []))
           children))
 
+(def vconj (fnil conj []))
+
 ;;;; Scratch
 
 (comment

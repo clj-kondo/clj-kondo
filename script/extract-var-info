@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+rm -rf /tmp/var-info
+mkdir -p /tmp/var-info
+
+clojure -A:extract -m clj-kondo.impl.extract-var-info

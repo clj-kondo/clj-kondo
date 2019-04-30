@@ -291,7 +291,7 @@ Options:
                    :default-lang
                    :cache-dir
                    :config]} (parse-opts options)]
-       (reset! config/config config)
+       (config/set-config! config)
        (or (cond (get opts "--version")
                  (print-version)
                  (get opts "--help")

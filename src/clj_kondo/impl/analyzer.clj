@@ -7,7 +7,7 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.utils :refer [some-call call node->line
                                  parse-string parse-string-all
-                                 tag select-lang]]
+                                 tag select-lang vconj]]
    [clj-kondo.impl.metadata :refer [lift-meta]]
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.linters.keys :as key-linter]
@@ -15,7 +15,8 @@
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.schema :as schema]
-   [clj-kondo.impl.profiler :as profiler]))
+   [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.var-info :as var-info]))
 
 (defn extract-bindings [sexpr]
   (cond (and (symbol? sexpr)
@@ -63,8 +64,9 @@
                (inc arity)))
       {:fixed-arity arity})))
 
-(defn analyze-children [ctx children]
-  (mapcat #(analyze-expression** ctx %) children))
+(defn analyze-children [{:keys [:parents] :as ctx} children]
+  (when-not (config/skip? parents)
+    (mapcat #(analyze-expression** ctx %) children)))
 
 (defn analyze-fn-body [{:keys [bindings] :as ctx} expr]
   (let [children (:children expr)
@@ -198,7 +200,7 @@
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
 (defn analyze-expression**
-  [{:keys [filename lang ns bindings fn-body]
+  [{:keys [filename lang ns bindings fn-body parent]
     :or {bindings #{}} :as ctx} {:keys [:children] :as expr}]
   (let [t (node/tag expr)
         {:keys [:row :col]} (meta expr)
@@ -215,12 +217,28 @@
              resolved-name :name
              :keys [:unqualified? :clojure-excluded?] :as res}
             (when ?full-fn-name (resolve-name ns ?full-fn-name))
+            resolved-namespace
+            ;; TODO: move this logic to resolve-name?
+            (if (and (not clojure-excluded?)
+                     unqualified?
+                     (contains? var-info/core-syms resolved-name))
+              (case lang
+                :clj 'clojure.core
+                :cljs 'cljs.core)
+              resolved-namespace)
+            fq-sym (when (and resolved-namespace
+                              resolved-name)
+                     (symbol (str resolved-namespace)
+                             (str resolved-name)))
+            next-ctx (if fq-sym
+                       (update ctx :parents
+                               vconj
+                               [resolved-namespace resolved-name])
+                       ctx)
             resolved-clojure-var-name
-            (when (and (not clojure-excluded?)
-                       (or unqualified?
-                           (= 'clojure.core resolved-namespace)
-                           (when (= :cljs lang)
-                             (= 'cljs.core resolved-namespace))))
+            (when (contains? '#{clojure.core
+                                cljs.core}
+                             resolved-namespace)
               resolved-name)]
         (case resolved-clojure-var-name
           ns
@@ -239,9 +257,7 @@
                  :arity arg-count}
                 (analyze-defn ctx (lift-meta filename expr)))
           comment
-          (if (-> @config/config :skip-comments) []
-              (analyze-children ctx children))
-
+          (analyze-children next-ctx children)
           ->
           (recur ctx (macroexpand/expand-> filename expr))
           ->>
@@ -280,20 +296,20 @@
             (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
               (if (symbol? fn-name)
                 (let [binding-call? (contains? bindings fn-name)
-                      analyze-rest (analyze-children ctx (rest children))]
+                      analyze-rest (analyze-children next-ctx (rest children))]
                   (if binding-call?
                     analyze-rest
-                    (let [call {:type :call
+                    (let [;; _ (println "PARENTS" (:parents ctx) ?full-fn-name)
+                          call {:type :call
                                 :name ?full-fn-name
                                 :arity arg-count
                                 :row row
                                 :col col
                                 :lang lang
-                                :expr expr}]
+                                :expr expr
+                                :parents (:parents ctx)}]
                       (cons call analyze-rest))))
                 (analyze-children ctx children)))))))))
-
-(def vconj (fnil conj []))
 
 (defn analyze-expression*
   [filename lang expanded-lang ns results expression debug?]
