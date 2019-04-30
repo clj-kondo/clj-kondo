@@ -1,34 +1,48 @@
 (ns clj-kondo.impl.config
-  {:no-doc true})
+  {:no-doc true}
+  (:require [clj-kondo.impl.profiler :as profiler]
+            [clj-kondo.impl.utils :refer [vconj]]))
 
 (defonce config (atom nil))
 
+(defn set-config! [cfg]
+  (let [cfg (cond-> cfg
+              (:skip-comments cfg)
+              (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
+    (reset! config cfg)))
+
 (defn fq-syms->vecs [fq-syms]
-  (set (map (fn [fq-sym]
-              [(symbol (namespace fq-sym)) (symbol (name fq-sym))])
-            fq-syms)))
+  (map (fn [fq-sym]
+         [(symbol (namespace fq-sym)) (symbol (name fq-sym))])
+       fq-syms))
 
-(defn disable-within*
+(defn skip-args*
   ([]
-   (fq-syms->vecs (get @config :disable-within)))
+   (fq-syms->vecs (get @config :skip-args)))
   ([linter]
-   (fq-syms->vecs (get-in @config [:linters linter :disable-within]))))
+   (fq-syms->vecs (get-in @config [:linters linter :skip-args]))))
 
-(def disable-within (memoize disable-within*))
+(def skip-args (memoize skip-args*))
 
-#_(println "DISABLE WITHIN" (disable-within))
-
-(defn disabled?
+(defn skip?
+  "we optimize for the case that disable-within returns an empty sequence"
   ([parents]
-   (some #(contains? (disable-within) %) parents))
+   (profiler/profile
+    :disabled?
+    (when-let [disabled (seq (skip-args))]
+      (some (fn [disabled-sym]
+              (some #(= disabled-sym %) parents))
+            disabled))))
   ([linter parents]
-   (some #(contains? (disable-within linter) %) parents)))
+   (profiler/profile
+    :disabled?
+    (when-let [disabled (seq (skip-args linter))]
+      (some (fn [disabled-sym]
+              (some #(= disabled-sym %) parents))
+            disabled)))))
 
 ;;;; Scratch
 
 (comment
   (reset! config (clojure.edn/read-string (slurp ".clj-kondo/config.edn")))
-  (disable-within)
-  (disable-within :invalid-arity)
-  (disabled? :invalid-arity '[[riemann.test test-stream] [foo bar]])
   )

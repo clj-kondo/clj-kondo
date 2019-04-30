@@ -187,7 +187,7 @@
                               [(when-not
                                    (or (contains? fixed-arities arity)
                                        (and var-args-min-arity (>= arity var-args-min-arity))
-                                       (config/disabled? :invalid-arity (:parents call)))
+                                       (config/skip? :invalid-arity (:parents call)))
                                  {:filename filename
                                   :row (:row call)
                                   :col (:col call)

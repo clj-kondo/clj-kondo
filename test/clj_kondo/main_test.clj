@@ -461,7 +461,7 @@
          (with-in-str "(do 1)"
            (main "--lint" "-" "--config" "{:output {:pattern \"{{LEVEL}}_{{filename}}\"}}")))
        "WARNING_<stdin>"))
-  (is (empty? (lint! "(comment (select-keys))" "--config" "{:disable-within [clojure.core/comment]}")))
+  (is (empty? (lint! "(comment (select-keys))" "--config" "{:skip-args [clojure.core/comment]}")))
   (assert-submap
    '({:file "<stdin>",
       :row 1,
@@ -595,6 +595,33 @@
     :level :error,
     :message "wrong number of args (3) passed to foo/foo-2"}
    (first (lint! "(ns foo) (defn foo-1 [] (in-ns 'bar)) (defn foo-2 []) (foo-2 1 2 3)"))))
+
+(deftest skip-args-test
+  (is
+   (empty?
+    (lint! (io/file "corpus" "skip_args" "comment.cljs") "--config" "{:skip-args [cljs.core/comment]}")))
+  (assert-submaps
+   '({:file "corpus/skip_args/streams_test.clj",
+      :row 4,
+      :col 33,
+      :level :error,
+      :message "duplicate key :a"})
+   (lint! (io/file "corpus" "skip_args" "streams_test.clj") "--config" "{:linters {:invalid-arity {:skip-args [riemann.test/test-stream]}}}"))
+  (assert-submaps
+   '({:file "corpus/skip_args/arity.clj",
+      :row 6,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (4) passed to skip-args.arity/my-macro"})
+   (lint! (io/file "corpus" "skip_args" "arity.clj") "--config" "{:skip-args [skip-args.arity/my-macro]}"))
+  (assert-submaps
+   '({:file "corpus/skip_args/arity.clj",
+      :row 6,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (4) passed to skip-args.arity/my-macro"})
+   (lint! (io/file "corpus" "skip_args" "arity.clj") "--config" "{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}}"))
+  )
 
 ;;;; Scratch
 

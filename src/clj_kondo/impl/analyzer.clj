@@ -65,8 +65,7 @@
       {:fixed-arity arity})))
 
 (defn analyze-children [{:keys [:parents] :as ctx} children]
-  ;; (println "parents" parents)
-  (when-not (config/disabled? parents)
+  (when-not (config/skip? parents)
     (mapcat #(analyze-expression** ctx %) children)))
 
 (defn analyze-fn-body [{:keys [bindings] :as ctx} expr]
@@ -236,10 +235,11 @@
                                vconj
                                [resolved-namespace resolved-name])
                        ctx)
-            resolved-clojure-var-name (when (contains? '#{clojure.core
-                                                          cljs.core}
-                                                       resolved-namespace)
-                                        resolved-name)]
+            resolved-clojure-var-name
+            (when (contains? '#{clojure.core
+                                cljs.core}
+                             resolved-namespace)
+              resolved-name)]
         (case resolved-clojure-var-name
           ns
           (let [ns (analyze-ns-decl lang expr)]
