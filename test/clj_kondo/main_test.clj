@@ -151,12 +151,12 @@
                        :row 4,
                        :col 1,
                        :level :error,
-                       :message "call to private function private"}
+                       :message "call to private function private.private-defs/private"}
                       {:file "corpus/private/private_calls.clj",
                        :row 5,
                        :col 1,
                        :level :error,
-                       :message "call to private function private-by-meta"})
+                       :message "call to private function private.private-defs/private-by-meta"})
                     linted)))
 
 (deftest read-error-test
@@ -567,7 +567,7 @@
      :row 4,
      :col 1,
      :level :error,
-     :message "call to private function verify-signature"}
+     :message "call to private function schema.defs/verify-signature"}
     {:file "corpus/schema/defs.clj",
      :row 10,
      :col 1,

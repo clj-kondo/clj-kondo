@@ -206,7 +206,7 @@
                                   :level :error
                                   :type :private-call
                                   :message (format "call to private function %s"
-                                                   (:name call))})]
+                                                   (str (:ns called-fn) "/" (:name called-fn)))})]
                               (lint-specific-calls config filename call called-fn))]
                        e errors
                        :when e]
