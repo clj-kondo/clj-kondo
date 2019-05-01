@@ -620,8 +620,25 @@
       :col 1,
       :level :error,
       :message "wrong number of args (4) passed to skip-args.arity/my-macro"})
-   (lint! (io/file "corpus" "skip_args" "arity.clj") "--config" "{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}}"))
-  )
+   (lint! (io/file "corpus" "skip_args" "arity.clj") "--config" "{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}}")))
+
+(deftest missing-test-assertion-test
+  (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest (t/is (odd? 1)))")))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 53,
+      :level :warning,
+      :message "missing test assertion"})
+   (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest (odd? 1))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 75,
+      :level :warning,
+      :message "missing test assertion"})
+   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set])) (t/deftest (set/subset? #{1 2} #{1 2 3}))"))
+  (odd? 1))
 
 ;;;; Scratch
 

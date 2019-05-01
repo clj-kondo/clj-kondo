@@ -41,7 +41,8 @@
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)]
     {:type :in-ns
-     :name ns-name}))
+     :name ns-name
+     :lang (:lang ctx)}))
 
 (defn fn-call? [expr]
   (let [tag (node/tag expr)]
@@ -240,6 +241,7 @@
                                 cljs.core}
                              resolved-namespace)
               resolved-name)]
+        ;; (println "PARENT>" expr (:parents next-ctx))
         (case resolved-clojure-var-name
           ns
           (let [ns (analyze-ns-decl lang expr)]
@@ -299,8 +301,7 @@
                       analyze-rest (analyze-children next-ctx (rest children))]
                   (if binding-call?
                     analyze-rest
-                    (let [;; _ (println "PARENTS" (:parents ctx) ?full-fn-name)
-                          call {:type :call
+                    (let [call {:type :call
                                 :name ?full-fn-name
                                 :arity arg-count
                                 :row row

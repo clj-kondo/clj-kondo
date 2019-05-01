@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
+   [clj-kondo.impl.var-info :as var-info]
    [clojure.java.io :as io]
    [rewrite-clj.node.protocols :as node]
    [clojure.set :as set]))
@@ -126,7 +127,6 @@
                 (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
 
 (defn analyze-ns-decl [lang expr]
-  ;; TODO: handle rename
   (let [sexpr (node/sexpr expr)
         subclauses
         (for [?require-clause (nnext sexpr)
@@ -185,13 +185,21 @@
            :name (symbol (name name-sym))})))
     (or
      (get (:qualify-var ns)
-             name-sym)
-        (let [namespace (:name ns)]
-          {:ns namespace
-           :name name-sym
-           :unqualified? true
-           :clojure-excluded? (contains? (:clojure-excluded ns)
-                                         name-sym)}))))
+          name-sym)
+     (let [clojure-excluded? (contains? (:clojure-excluded ns)
+                                        name-sym)
+           namespace (:name ns)
+           core-sym? (when-not clojure-excluded?
+                       (contains? var-info/core-syms name-sym))]
+       (if core-sym?
+         {:ns (case (:lang ns)
+                :clj 'clojure.core
+                :cljs 'cljs.core)
+          :name name-sym}
+         {:ns namespace
+          :name name-sym
+          :unqualified? true
+          :clojure-excluded? clojure-excluded?})))))
 
 ;;;; Scratch
 
