@@ -16,13 +16,18 @@
   (let [var-info (edn/read-string (slurp (io/resource "var-info.edn")))
         predicates (set (keep (fn [[k v]]
                                 (when (:predicate v)
-                                  (symbol (name k))))
+                                  k))
                               var-info))
+        predicates-by-ns (group-by (comp symbol namespace) predicates)
+        predicates-by-ns (zipmap (keys predicates-by-ns)
+                                 (map (fn [vals]
+                                        (set (map (comp symbol name) vals)))
+                                      (vals predicates-by-ns)))
         by-namespace (group-by (comp namespace key)
                                var-info)
         core (get by-namespace "clojure.core")
         core-syms (set (map (comp symbol name key) core))
-        code (format code-template predicates core-syms)]
+        code (format code-template predicates-by-ns core-syms)]
     (spit "src/clj_kondo/impl/var_info.clj" code)))
 
 ;;;; Scratch

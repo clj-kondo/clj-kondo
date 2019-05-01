@@ -3,10 +3,8 @@
   (:require
    [clj-kondo.impl.utils :refer [some-call node->line
                                  tag call]]
-   [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
-   [clj-kondo.impl.utils :refer [parse-string]]
-   [clj-kondo.impl.state :as state]
+   [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]))
 
 (set! *warn-on-reflection* true)
@@ -75,30 +73,35 @@
     (when (not= :else last-condition)
       [(node->line filename expr :warning :cond-without-else "cond without :else")])))
 
-(defn lint-deftest [config filename expr]
-  (let [calls (nnext (:children expr))]
-    (for [c calls
-          :let [fn-name (some-> c :children first :string-value)]
-          :when (and fn-name
-                     (not (when-let [excluded (-> config :missing-test-assertion :exclude)]
-                            (contains? excluded (symbol fn-name))))
-                     (or (= "=" fn-name) (str/ends-with? fn-name "?")))]
-      (node->line filename c :warning :missing-test-assertion "missing test assertion"))))
+(defn lint-missing-test-assertion [filename call called-fn]
+  (when (get-in var-info/predicates [(:ns called-fn) (:name called-fn)])
+    [(node->line filename (:expr call) :warning :missing-test-assertion "missing test assertion")]))
 
 (defn lint-specific-calls [config filename call called-fn]
-  (case (:ns called-fn)
-    (clojure.core cljs.core)
-    (case (:name called-fn)
-      (cond) (lint-cond filename (:expr call))
-      (def defn defn- defmacro) (lint-def filename (:expr call))
-      [])
-    (clojure.test cljs.test)
-    (case (:name called-fn)
-      (deftest) (lint-def filename (:expr call))
-      [])
-    #_#_[clojure.test deftest] (lint-deftest config filename (:expr call))
-    #_#_[cljs.test deftest] (lint-deftest config filename (:expr call))
-    []))
+  ;;(println (:parents call) (dissoc call :ns-lookup))
+  (reduce into
+          []
+          ;; inline def linting
+          [(case (:ns called-fn)
+             (clojure.core cljs.core)
+             (case (:name called-fn)
+               (def defn defn- defmacro) (lint-def filename (:expr call))
+               nil)
+             (clojure.test cljs.test)
+             (case (:name called-fn)
+               (deftest) (lint-def filename (:expr call))
+               nil)
+             nil)
+           ;; cond linting
+           (case [(:ns called-fn) (:name called-fn)]
+             ([clojure.core cond] [cljs.core cond])
+             (lint-cond filename (:expr call))
+             nil)
+           ;; missing test assertion
+           (case (peek (:parents call))
+             ([clojure.test deftest] [cljs.test deftest])
+             (lint-missing-test-assertion filename call called-fn)
+             nil)]))
 
 (defn resolve-call [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)

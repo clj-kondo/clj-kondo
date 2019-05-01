@@ -29,6 +29,7 @@ clj-kondo detects:
 * duplicate map keys and set elements
 * missing map keys
 * invalid number of forms in binding vectors
+* missing assertions in `clojure.test/deftest`
 
 before your REPL knows it.
 
@@ -171,7 +172,8 @@ All other error codes indicate an unexpected error.
 This project is inspired by [joker](https://github.com/candid82/joker). It uses
 [clj.native-image](https://github.com/taylorwood/clj.native-image) for compiling
 the project. The parsing of Clojure code relies on
-[rewrite-clj](https://github.com/xsc/rewrite-clj).
+[rewrite-clj](https://github.com/xsc/rewrite-clj). It uses `var-info.edn` and
+some ideas from [eastwood](https://github.com/jonase/eastwood).
 
 ## License
 
