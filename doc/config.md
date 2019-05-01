@@ -48,6 +48,6 @@ clojure/test.clj:496:6: warning: redundant let
 linting took 3226ms, errors: 0, warnings: 1
 ```
 
-## Be notified of breaking config changes.
+## Be notified of breaking config changes
 
 - borkdude
