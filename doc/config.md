@@ -48,6 +48,31 @@ clojure/test.clj:496:6: warning: redundant let
 linting took 3226ms, errors: 0, warnings: 1
 ```
 
+### Exclude arity linting inside a specific macro call
+
+Some macros rewrite their arguments and therefore can cause false positive arity
+errors. Imagine the following silly macro:
+
+``` clojure
+(ns silly-macros)
+
+(defmacro with-map [m [fn & args]]
+  `(~fn ~m ~@args))
+```
+
+which you can call like:
+
+``` clojure
+(silly-macros/with-map {:a 1 :d 2} (select-keys [:a :b :c])) ;;=> {:a 1}
+```
+
+Normally a call to this macro will give an invalid arity error for `(select-keys
+[:a :b :c])`, but not when you use the following configuration:
+
+``` clojure
+{:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
+```
+
 ## Be notified of breaking config changes
 
 - borkdude
