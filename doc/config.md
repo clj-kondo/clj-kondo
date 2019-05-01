@@ -1,7 +1,7 @@
 # Configuration
 
 NOTE: parts of the config may change as clj-kondo sees more usage. Please let me
-know which parts you are using and find useful.
+know which parts you are using and find useful. To be notified of breaking changes to the config, please add your Github name to the list at the end of this file via a PR.
 
 clj-kondo can be configured in three ways:
 
@@ -47,3 +47,7 @@ $ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure
 clojure/test.clj:496:6: warning: redundant let
 linting took 3226ms, errors: 0, warnings: 1
 ```
+
+## Be notified of breaking config changes.
+
+- borkdude
