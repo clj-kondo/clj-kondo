@@ -1,7 +1,7 @@
 # Configuration
 
 NOTE: parts of the config may change as clj-kondo sees more usage. Please let me
-know which parts you are using and find useful. To be notified of breaking changes to the config, please add your Github name to the list at the end of this file via a PR.
+know which parts you are using and find useful.
 
 clj-kondo can be configured in three ways:
 
@@ -72,7 +72,3 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 ``` clojure
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
-
-## Be notified of breaking config changes
-
-- borkdude
