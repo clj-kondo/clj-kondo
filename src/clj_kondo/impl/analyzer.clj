@@ -54,7 +54,6 @@
 (declare analyze-expression**)
 
 (defn analyze-arity [sexpr]
-  ;;(println "ARITY" sexpr)
   (loop [[arg & rest-args] sexpr
          arity 0]
     (if arg
@@ -69,16 +68,20 @@
   (when-not (config/skip? parents)
     (mapcat #(analyze-expression** ctx %) children)))
 
-(defn analyze-fn-body [{:keys [bindings] :as ctx} expr]
-  (let [children (:children expr)
-        arg-list (node/sexpr (first children))
+(defn analyze-fn-body [{:keys [bindings] :as ctx} body]
+  (let [children (:children body)
+        arg-vec  (first children)
+        body-exprs (rest children)
+        arg-list (node/sexpr arg-vec)
         arg-bindings (extract-bindings arg-list)
-        body (rest children)]
-    (assoc (analyze-arity arg-list)
+        arity (analyze-arity arg-list)
+        parsed (analyze-children (assoc ctx
+                                        :bindings (set/union bindings (set arg-bindings))
+                                        :recur-arity arity
+                                        :fn-body true) body-exprs)]
+    (assoc arity
            :parsed
-           (analyze-children (assoc ctx
-                                    :bindings (set/union bindings (set arg-bindings))
-                                    :fn-body true) body))))
+           parsed)))
 
 (defn analyze-defn [{:keys [filename lang ns bindings] :as ctx} expr]
   (let [children (:children expr)
@@ -91,13 +94,13 @@
         private? (or (= 'defn- (call expr))
                      (:private var-meta))
         bodies (loop [i 0 [expr & rest-exprs :as exprs] (next children)]
-                 (let [t (when expr (node/tag expr))]
-                   (cond (= :vector t)
-                         [{:children exprs}]
-                         (= :list t)
-                         exprs
-                         (not t) []
-                         :else (recur (inc i) rest-exprs))))
+                      (let [t (when expr (node/tag expr))]
+                        (cond (= :vector t)
+                              [{:children exprs}]
+                              (= :list t)
+                              exprs
+                              (not t) []
+                              :else (recur (inc i) rest-exprs))))
         parsed-bodies (map #(analyze-fn-body ctx %) bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
@@ -184,15 +187,22 @@
                                     (set/union bindings bs))
                              (rest (:children expr))))))
 
-(defn analyze-fn [{:keys [bindings] :as ctx} expr]
-  ;; TODO better arity analysis like in normal fn
+(defn analyze-fn [ctx expr]
   (let [children (:children expr)
-        arg-vec (first (filter #(= :vector (node/tag %)) (rest children)))
-        binding-forms (->> arg-vec :children (map node/sexpr))
-        ?fn-name (let [n (first children)]
+        ?fn-name (let [n (node/sexpr (second children))]
                    (when (symbol? n) n))
-        fn-bindings (set (mapcat extract-bindings (cons ?fn-name binding-forms)))]
-    (analyze-children (assoc ctx :bindings (set/union bindings fn-bindings)) children)))
+        bodies (loop [i 0 [expr & rest-exprs :as exprs] (next children)]
+                 (let [t (when expr (node/tag expr))]
+                   (cond (= :vector t)
+                         [{:children exprs}]
+                         (= :list t)
+                         exprs
+                         (not t) []
+                         :else (recur (inc i) rest-exprs))))
+        parsed-bodies (map #(analyze-fn-body (if ?fn-name
+                                               (update ctx :bindings conj ?fn-name)
+                                               ctx) %) bodies)]
+    (mapcat :parsed parsed-bodies)))
 
 (defn analyze-alias [ns expr]
   (let [[alias-sym ns-sym]
@@ -200,9 +210,46 @@
              (rest (:children expr)))]
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
+(defn analyze-loop [{:keys [:bindings] :as ctx} expr]
+  (let [bv (-> expr :children second)
+        arg-count (let [c (count (:children bv))]
+                    (when (even? c)
+                      (/ c 2)))
+        bs (expr-bindings bv)]
+    (cons
+     (lint-even-forms-bindings 'loop bv (node/sexpr bv))
+     (analyze-children (assoc ctx
+                              :bindings (set/union bindings bs)
+                              :recur-arity {:fixed-arity arg-count})
+                       (rest (:children expr))))))
+
+(defn analyze-recur [ctx expr]
+  (let [arg-count (count (rest (:children expr)))
+        recur-arity (-> ctx :recur-arity)
+        expected-arity
+        (or (:fixed-arity recur-arity)
+            ;; var-args must be passed as a seq or nil in recur
+            (when-let [min-arity (:min-arity recur-arity)]
+              (inc min-arity)))]
+    (cond
+      (not expected-arity)
+      [(node->line
+        (:filename ctx)
+        expr
+        :error
+        :invalid-arity "unexpected recur")]
+      (not= expected-arity arg-count)
+      [(node->line
+        (:filename ctx)
+        expr
+        :error
+        :invalid-arity
+        (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count))]
+      :else [])))
+
 (defn analyze-expression**
-  [{:keys [filename lang ns bindings fn-body parent]
-    :or {bindings #{}} :as ctx} {:keys [:children] :as expr}]
+  [{:keys [filename lang ns bindings fn-body parents] :as ctx}
+   {:keys [:children] :as expr}]
   (let [t (node/tag expr)
         {:keys [:row :col]} (meta expr)
         arg-count (count (rest children))]
@@ -215,18 +262,8 @@
       :fn (recur ctx (macroexpand/expand-fn expr))
       (let [?full-fn-name (call expr)
             {resolved-namespace :ns
-             resolved-name :name
-             :keys [:unqualified? :clojure-excluded?] :as res}
+             resolved-name :name}
             (when ?full-fn-name (resolve-name ns ?full-fn-name))
-            resolved-namespace
-            ;; TODO: move this logic to resolve-name?
-            (if (and (not clojure-excluded?)
-                     unqualified?
-                     (contains? var-info/core-syms resolved-name))
-              (case lang
-                :clj 'clojure.core
-                :cljs 'cljs.core)
-              resolved-namespace)
             fq-sym (when (and resolved-namespace
                               resolved-name)
                      (symbol (str resolved-namespace)
@@ -241,7 +278,6 @@
                                 cljs.core}
                              resolved-namespace)
               resolved-name)]
-        ;; (println "PARENT>" expr (:parents next-ctx))
         (case resolved-clojure-var-name
           ns
           (let [ns (analyze-ns-decl lang expr)]
@@ -266,7 +302,7 @@
           (recur ctx (macroexpand/expand->> filename expr))
           (cond-> cond->> some-> some->> . .. deftype
                   proxy extend-protocol doto reify definterface defrecord defprotocol
-                  defcurried)
+                  defcurried letfn)
           []
           let
           (analyze-let ctx expr)
@@ -274,10 +310,14 @@
           (analyze-if-let ctx expr)
           when-let
           (analyze-when-let ctx expr)
-          (fn fn*)
-          (analyze-fn ctx expr)
+          fn
+          (analyze-fn ctx (lift-meta filename expr))
           case
           (analyze-case ctx expr)
+          loop
+          (analyze-loop ctx expr)
+          recur
+          (analyze-recur ctx expr)
           ;; catch-all
           (case [resolved-namespace resolved-name]
             [schema.core defn]
@@ -294,13 +334,16 @@
             (recur ctx (macroexpand/expand-> filename expr))
             [cats.core ->>=]
             (recur ctx (macroexpand/expand->> filename expr))
+            [rewrite-clj.custom-zipper.core defn-switchable]
+            (analyze-defn ctx expr)
+            ([clojure.core.async go-loop] [cljs.core.async go-loop] [cljs.core.async.macros go-loop])
+            (analyze-loop ctx expr)
             ;; catch-all
             (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
               (if (symbol? fn-name)
-                (let [binding-call? (contains? bindings fn-name)
-                      analyze-rest (analyze-children next-ctx (rest children))]
+                (let [binding-call? (contains? bindings fn-name)]
                   (if binding-call?
-                    analyze-rest
+                    (analyze-children next-ctx (rest children))
                     (let [call {:type :call
                                 :name ?full-fn-name
                                 :arity arg-count
@@ -308,15 +351,29 @@
                                 :col col
                                 :lang lang
                                 :expr expr
-                                :parents (:parents ctx)}]
-                      (cons call analyze-rest))))
+                                :parents (:parents ctx)}
+                          next-ctx (cond-> next-ctx
+                                     (contains? '#{[clojure.core.async thread]
+                                                   [clojure.core future]}
+                                                [resolved-namespace resolved-name])
+                                     (assoc-in [:recur-arity :fixed-arity] 0))]
+                      (cons call (analyze-children next-ctx (rest children))))))
                 (analyze-children ctx children)))))))))
+
+;; TODO:
+;; Add test for lift-meta on anon fn
+;; clojure/core/async.clj:508:31: error: recur argument count mismatch (expected 7, got 0)
+
+;; rewrite_clj/custom_zipper/core.clj:134:9: error: unexpected recur
+;; rewrite_clj/custom_zipper/core.clj:152:5: error: unexpected recur
+
 
 (defn analyze-expression*
   [filename lang expanded-lang ns results expression debug?]
   (let [ctx {:filename filename
              :lang expanded-lang
-             :ns ns}]
+             :ns ns
+             :bindings #{}}]
     (loop [ns ns
            [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
            results results]
@@ -334,7 +391,11 @@
                  (assoc :ns first-parsed)
                  (update
                   :loaded into (:loaded first-parsed)))))
-          (:duplicate-map-key :missing-map-value :duplicate-set-key :invalid-bindings)
+          (:duplicate-map-key
+           :missing-map-value
+           :duplicate-set-key
+           :invalid-bindings
+           :invalid-arity)
           (recur
            ns
            rest-parsed

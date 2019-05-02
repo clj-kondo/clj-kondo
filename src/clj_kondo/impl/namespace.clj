@@ -176,7 +176,10 @@
   [ns name-sym]
   (if-let [ns* (namespace name-sym)]
     (let [ns-sym (symbol ns*)]
-      (if-let [ns* (get (:qualify-ns ns) ns-sym)]
+      (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
+                       ;; referring to the namespace we're in
+                       (when (= (:name ns) ns-sym)
+                         ns-sym))]
         {:ns ns*
          :name (symbol (name name-sym))}
         (when-let [ns* (get (:java-imports ns) ns-sym)]
@@ -190,8 +193,9 @@
                                         name-sym)
            namespace (:name ns)
            core-sym? (when-not clojure-excluded?
-                       (contains? var-info/core-syms name-sym))]
-       (if core-sym?
+                       (contains? var-info/core-syms name-sym))
+           special-form? (contains? var-info/special-forms name-sym)]
+       (if (or core-sym? special-form?)
          {:ns (case (:lang ns)
                 :clj 'clojure.core
                 :cljs 'cljs.core)

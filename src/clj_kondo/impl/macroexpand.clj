@@ -62,7 +62,7 @@
         args (find-fn-args children)
         arg-list (vector-node args)]
     (with-meta
-      (list-node [(token-node 'fn*) arg-list fn-body])
+      (list-node [(token-node 'fn) arg-list fn-body])
       m)))
 
 ;;;; Scratch

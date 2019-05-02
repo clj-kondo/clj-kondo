@@ -4,6 +4,6 @@
 (def x "the number one" 1)
 (defmacro def [k spec-form])
 ;; valid call to macro
-(def ::foo int?)
+(corpus.invalid-arity.order/def ::foo int?)
 ;; invalid call to macro
-(def ::foo int? string?)
+(corpus.invalid-arity.order/def ::foo int? string?)
