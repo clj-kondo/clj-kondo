@@ -4,13 +4,16 @@
 (defonce findings (atom []))
 
 (defn reg-finding! [m]
-  (swap! findings conj m))
+  (swap! findings conj m)
+  nil)
 
 (defn reg-findings! [maps]
-  (swap! findings into maps))
+  (swap! findings into maps)
+  nil)
 
 (defn clear-findings! []
-  (reset! findings []))
+  (reset! findings [])
+  nil)
 
 ;;;; Scratch
 

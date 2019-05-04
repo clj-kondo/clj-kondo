@@ -114,11 +114,10 @@
   (remove-noise (p/parse-string s)))
 
 (defn parse-string-all
-  ([s] (parse-string-all s nil))
-  ([s config]
-   (let [p (profiler/profile :rewrite-clj-parse-string-all
-                             (p/parse-string-all s))]
-     (profiler/profile :remove-noise (remove-noise p)))))
+  [s]
+  (let [p (profiler/profile :rewrite-clj-parse-string-all
+                            (p/parse-string-all s))]
+    (profiler/profile :remove-noise (remove-noise p))))
 
 (defn filter-children
   "Recursively filters children by pred"
@@ -131,6 +130,21 @@
           children))
 
 (def vconj (fnil conj []))
+
+(defn deep-merge
+  "deep merge that also mashes together sequentials"
+  ([])
+  ([a] a)
+  ([a b]
+   (cond (and (map? a) (map? b))
+         (merge-with deep-merge a b)
+         (and (sequential? a) (sequential? b))
+         (into a b)
+         (and (set? a) (set? b))
+         (into a b)
+         :else (or b a)))
+  ([a b & more]
+   (apply merge-with deep-merge a b more)))
 
 ;;;; Scratch
 

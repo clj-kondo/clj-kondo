@@ -7,7 +7,7 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.utils :refer [some-call call node->line
                                  parse-string parse-string-all
-                                 tag select-lang vconj]]
+                                 tag select-lang vconj deep-merge]]
    [clj-kondo.impl.metadata :refer [lift-meta]]
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.linters.keys :as key-linter]
@@ -16,7 +16,8 @@
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.var-info :as var-info]))
+   [clj-kondo.impl.var-info :as var-info]
+   [clj-kondo.impl.state :as state]))
 
 (defn extract-bindings [sexpr]
   (cond (and (symbol? sexpr)
@@ -94,13 +95,13 @@
         private? (or (= 'defn- (call expr))
                      (:private var-meta))
         bodies (loop [i 0 [expr & rest-exprs :as exprs] (next children)]
-                      (let [t (when expr (node/tag expr))]
-                        (cond (= :vector t)
-                              [{:children exprs}]
-                              (= :list t)
-                              exprs
-                              (not t) []
-                              :else (recur (inc i) rest-exprs))))
+                 (let [t (when expr (node/tag expr))]
+                   (cond (= :vector t)
+                         [{:children exprs}]
+                         (= :list t)
+                         exprs
+                         (not t) []
+                         :else (recur (inc i) rest-exprs))))
         parsed-bodies (map #(analyze-fn-body ctx %) bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
@@ -233,19 +234,20 @@
               (inc min-arity)))]
     (cond
       (not expected-arity)
-      [(node->line
-        (:filename ctx)
-        expr
-        :error
-        :invalid-arity "unexpected recur")]
+      (state/reg-finding! (node->line
+                           (:filename ctx)
+                           expr
+                           :warning
+                           :unexpected-recur "unexpected recur"))
       (not= expected-arity arg-count)
-      [(node->line
+      (state/reg-finding!
+       (node->line
         (:filename ctx)
         expr
         :error
         :invalid-arity
-        (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count))]
-      :else [])))
+        (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
+      :else nil)))
 
 (defn analyze-expression**
   [{:keys [filename lang ns bindings fn-body parents] :as ctx}
@@ -264,6 +266,8 @@
             {resolved-namespace :ns
              resolved-name :name}
             (when ?full-fn-name (resolve-name ns ?full-fn-name))
+            [resolved-namespace resolved-name]
+            (config/treat-as [resolved-namespace resolved-name])
             fq-sym (when (and resolved-namespace
                               resolved-name)
                      (symbol (str resolved-namespace)
@@ -330,14 +334,14 @@
                    :arity arg-count}
                   (analyze-defn ctx (schema/expand-schema-defn
                                      (lift-meta filename expr))))
-            [cats.core ->=]
-            (recur ctx (macroexpand/expand-> filename expr))
-            [cats.core ->>=]
-            (recur ctx (macroexpand/expand->> filename expr))
-            [rewrite-clj.custom-zipper.core defn-switchable]
-            (analyze-defn ctx expr)
-            ([clojure.core.async go-loop] [cljs.core.async go-loop] [cljs.core.async.macros go-loop])
-            (analyze-loop ctx expr)
+            ;;[cats.core ->=]
+            ;; (recur ctx (macroexpand/expand-> filename expr))
+            ;; [cats.core ->>=]
+            ;; (recur ctx (macroexpand/expand->> filename expr))
+            ;; [rewrite-clj.custom-zipper.core defn-switchable]
+            ;; (analyze-defn ctx expr)
+            ;; ([clojure.core.async go-loop] [cljs.core.async go-loop] [cljs.core.async.macros go-loop])
+            ;; (analyze-loop ctx expr)
             ;; catch-all
             (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
               (if (symbol? fn-name)
@@ -353,8 +357,7 @@
                                 :expr expr
                                 :parents (:parents ctx)}
                           next-ctx (cond-> next-ctx
-                                     (contains? '#{[clojure.core.async thread]
-                                                   [clojure.core future]}
+                                     (contains? '#{[clojure.core.async thread]}
                                                 [resolved-namespace resolved-name])
                                      (assoc-in [:recur-arity :fixed-arity] 0))]
                       (cons call (analyze-children next-ctx (rest children))))))
@@ -509,54 +512,36 @@
 
 ;;;; processing of string input
 
-(defn deep-merge
-  "deep merge that also mashes together sequentials"
-  ([])
-  ([a] a)
-  ([a b]
-   (cond (and (map? a) (map? b))
-         (merge-with deep-merge a b)
-         (and (sequential? a) (sequential? b))
-         (into a b)
-         (and (set? a) (set? b))
-         (into a b)
-         :else a))
-  ([a b & more]
-   (apply merge-with deep-merge a b more)))
-
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [filename input lang config dev?]
+  [filename input lang dev?]
   (try
-     (let [parsed (p/parse-string input config)
-           nls (l/redundant-let filename parsed)
-           ods (l/redundant-do filename parsed)
-           findings {:findings (concat nls ods)
-                     :lang lang}
-           analyzed-expressions
-           (case lang :cljc
-                 (let [clj (analyze-expressions filename lang
-                                                :clj (:children (select-lang parsed :clj))
-                                                (:debug config))
-                       cljs (analyze-expressions filename lang
-                                                 :cljs (:children (select-lang parsed :cljs))
-                                                 (:debug config))]
-                   (profiler/profile :deep-merge
-                                     (deep-merge clj cljs)))
-                 (analyze-expressions filename lang lang
-                                      (:children parsed)
-                                      (:debug config)))]
-       [findings analyzed-expressions])
-     (catch Exception e
-       (if dev? (throw e)
-           [{:findings [{:level :error
-                         :filename filename
-                         :col 0
-                         :row 0
-                         :message (str "can't parse "
-                                       filename ", "
-                                       (.getMessage e))}]}]))
-     (finally
-       (when (-> config :output :show-progress)
-         (print ".") (flush)))))
+    (let [parsed (p/parse-string input)
+          nls (l/redundant-let filename parsed)
+          ods (l/redundant-do filename parsed)
+          findings {:findings (concat nls ods)
+                    :lang lang}
+          analyzed-expressions
+          (case lang :cljc
+                (let [clj (analyze-expressions filename lang
+                                               :clj (:children (select-lang parsed :clj)))
+                      cljs (analyze-expressions filename lang
+                                                :cljs (:children (select-lang parsed :cljs)))]
+                  (profiler/profile :deep-merge
+                                    (deep-merge clj cljs)))
+                (analyze-expressions filename lang lang
+                                     (:children parsed)))]
+      [findings analyzed-expressions])
+    (catch Exception e
+      (if dev? (throw e)
+          [{:findings [{:level :error
+                        :filename filename
+                        :col 0
+                        :row 0
+                        :message (str "can't parse "
+                                      filename ", "
+                                      (.getMessage e))}]}]))
+    (finally
+      (when (-> @config/config :output :show-progress)
+        (print ".") (flush)))))

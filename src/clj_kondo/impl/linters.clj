@@ -77,7 +77,7 @@
   (when (get-in var-info/predicates [(:ns called-fn) (:name called-fn)])
     [(node->line filename (:expr call) :warning :missing-test-assertion "missing test assertion")]))
 
-(defn lint-specific-calls [config filename call called-fn]
+(defn lint-specific-calls [filename call called-fn]
   ;;(println (:parents call) (dissoc call :ns-lookup))
   (reduce into
           []
@@ -136,7 +136,7 @@
 
 (defn lint-calls
   "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters."
-  [idacs config]
+  [idacs]
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
@@ -210,7 +210,7 @@
                                   :type :private-call
                                   :message (format "call to private function %s"
                                                    (str (:ns called-fn) "/" (:name called-fn)))})]
-                              (lint-specific-calls config filename call called-fn))]
+                              (lint-specific-calls filename call called-fn))]
                        e errors
                        :when e]
                    e)]

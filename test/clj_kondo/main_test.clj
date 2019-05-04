@@ -457,6 +457,7 @@
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
                                    "--config" "{:output {:include-files [\"inline_def\"]}}")))))
+  (require '[clj-kondo.impl.config] :reload) ;; reset config
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
@@ -691,8 +692,6 @@
           :message "recur argument count mismatch (expected 1, got 2)"})
        (lint! "(ns foo (:require-macros [cljs.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
   (is (empty? (lint! "#(recur)")))
-  (is (empty? (lint! "(future (recur))")))
-  (is (empty? (lint! "(future (when false (recur)))")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [thread]])) (thread (recur))")))
   (is (empty? (lint! "(ns clojure.core.async) (defmacro thread [& body]) (thread (when true (recur)))"))))
 
