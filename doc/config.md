@@ -9,9 +9,10 @@ clj-kondo can be configured in three ways:
 - by providing a `--config` file argument from the command line
 - by providing a `--config` EDN argument from the command line (see examples below)
 
-The command line argument overrides a `config.edn` file without merging.
+The command line argument overrides a `config.edn`.
 
-Look into the [sample config file](../.clj-kondo/config.edn) for all the options.
+Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
+available options.
 
 ## Examples
 
@@ -71,4 +72,27 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 ``` clojure
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
+```
+
+### Lint a custom macro like a built-in macro
+
+In the following code the `my-defn` macro is defined, but clj-kondo doesn't know how to interpret it:
+
+``` clojure
+(ns foo)
+
+(defmacro my-defn [name args & body]
+  `(defn ~name ~args
+     (do (println "hello!")
+       ~@body)))
+
+(my-defn foo [x])
+```
+
+Hence `(foo 1 2 3)` will not lead to an invalid arity error. However, the syntax
+of `my-defn` is a subset of `clojure.core/defn`, so for detecting arity errors
+we might have just linted it like that. That is what the following configuration accomplishes:
+
+``` clojure
+{:lint-as {foo/my-defn clojure.core/defn}}
 ```

@@ -5,9 +5,10 @@
 ;; extracting information from eastwood with permission from maintainer Andy
 ;; Fingerhut
 
-(def code-template "(ns clj-kondo.impl.var-info
+  (def code-template "(ns clj-kondo.impl.var-info-gen
   \"GENERATED, DO NOT EDIT. EXTRACTED FROM EASTWOOD WITH PERMISSION.\"
   {:no-doc true})
+  (in-ns 'clj-kondo.impl.var-info)
   (def predicates '%s)
   (def core-syms '%s)
   ")
@@ -28,7 +29,7 @@
         core (get by-namespace "clojure.core")
         core-syms (set (map (comp symbol name key) core))
         code (format code-template predicates-by-ns core-syms)]
-    (spit "src/clj_kondo/impl/var_info.clj" code)))
+    (spit "src/clj_kondo/impl/var_info_gen.clj" code)))
 
 ;;;; Scratch
 

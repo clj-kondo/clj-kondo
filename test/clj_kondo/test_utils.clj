@@ -50,7 +50,9 @@
     (str/split-lines msg))))
 
 (defn lint-jvm!
-  ([input] (lint-jvm! input "--lang" "clj"))
+  ([input]
+   (require '[clj-kondo.impl.config] :reload)
+   (lint-jvm! input "--lang" "clj"))
   ([input & args]
    (require '[clj-kondo.impl.config] :reload)
    (let [res (with-out-str

@@ -55,16 +55,17 @@
                                (map #(select-keys % [:row :col :file])
                                     linted))]
     row-col-files
-    (is (= '({:row 7, :col 1, :file "corpus/invalid_arity/calls.clj"}
-             {:row 8, :col 1, :file "corpus/invalid_arity/calls.clj"}
-             {:row 9, :col 1, :file "corpus/invalid_arity/calls.clj"}
-             {:row 10, :col 1, :file "corpus/invalid_arity/calls.clj"}
-             {:row 11, :col 1, :file "corpus/invalid_arity/calls.clj"}
-             {:row 7, :col 1, :file "corpus/invalid_arity/defs.clj"}
-             {:row 10, :col 1, :file "corpus/invalid_arity/defs.clj"}
-             {:row 11, :col 1, :file "corpus/invalid_arity/defs.clj"}
-             {:row 9, :col 1, :file "corpus/invalid_arity/order.clj"})
-           row-col-files))
+    (assert-submaps
+     '({:row 7, :col 1, :file "corpus/invalid_arity/calls.clj"}
+       {:row 8, :col 1, :file "corpus/invalid_arity/calls.clj"}
+       {:row 9, :col 1, :file "corpus/invalid_arity/calls.clj"}
+       {:row 10, :col 1, :file "corpus/invalid_arity/calls.clj"}
+       {:row 11, :col 1, :file "corpus/invalid_arity/calls.clj"}
+       {:row 7, :col 1, :file "corpus/invalid_arity/defs.clj"}
+       {:row 10, :col 1, :file "corpus/invalid_arity/defs.clj"}
+       {:row 11, :col 1, :file "corpus/invalid_arity/defs.clj"}
+       {:row 9, :col 1, :file "corpus/invalid_arity/order.clj"})
+     row-col-files)
     (is (every? #(str/includes? % "wrong number of args")
                 (map :message linted))))
   (let [invalid-core-function-call-example "
@@ -196,7 +197,7 @@
       (is (= 3 (with-in-str "(defn foo []) (foo 1)" (main "--lint" "-")))))))
 
 (deftest cond-without-else-test
-  (doseq [lang [:clj #_#_:cljs :cljc]]
+  (doseq [lang [:clj :cljs :cljc]]
     (assert-submaps '({:row 7,
                        :col 1,
                        :level :warning,
@@ -456,6 +457,7 @@
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
                                    "--config" "{:output {:include-files [\"inline_def\"]}}")))))
+  (require '[clj-kondo.impl.config] :reload) ;; reset config
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
@@ -637,8 +639,72 @@
       :col 75,
       :level :warning,
       :message "missing test assertion"})
-   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set])) (t/deftest (set/subset? #{1 2} #{1 2 3}))"))
-  (odd? 1))
+   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set])) (t/deftest (set/subset? #{1 2} #{1 2 3}))")))
+
+(deftest recur-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 15,
+      :level :error,
+      :message "recur argument count mismatch (expected 1, got 2)"})
+   (lint! "(defn foo [x] (recur x x))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 9,
+      :level :error,
+      :message "recur argument count mismatch (expected 1, got 2)"})
+   (lint! "(fn [x] (recur x x))"))
+  (is (empty? (lint! "(defn foo [x & xs] (recur x [x]))")))
+  (is (empty? (lint! "(defn foo ([]) ([x & xs] (recur x [x])))")))
+  (is (empty? (lint! "(fn ([]) ([x y & xs] (recur x x [x])))")))
+  (is (empty? (lint! "(loop [x 1 y 2] (recur x y))")))
+  (assert-submaps
+   '({:file "<stdin>",
+     :row 1,
+     :col 17,
+     :level :error,
+     :message "recur argument count mismatch (expected 2, got 3)"})
+   (lint! "(loop [x 1 y 2] (recur x y x))"))
+  (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
+  (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
+                        (defn foo [x y] (go-loop [x nil] (recur 1)))")))
+  (is (assert-submaps
+       '({:file "<stdin>",
+          :row 1,
+          :col 74,
+          :level :error,
+          :message "recur argument count mismatch (expected 1, got 2)"})
+       (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
+  (is (assert-submaps
+       '({:file "<stdin>",
+          :row 1,
+          :col 85,
+          :level :error,
+          :message "recur argument count mismatch (expected 1, got 2)"})
+       (lint! "(ns foo (:require-macros [cljs.core.async.macros :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
+  (is (assert-submaps
+       '({:file "<stdin>",
+          :row 1,
+          :col 78,
+          :level :error,
+          :message "recur argument count mismatch (expected 1, got 2)"})
+       (lint! "(ns foo (:require-macros [cljs.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
+  (is (empty? (lint! "#(recur)")))
+  (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [thread]])) (thread (recur))")))
+  (is (empty? (lint! "(ns clojure.core.async) (defmacro thread [& body]) (thread (when true (recur)))")))
+  (is (empty? (lint! "(fn* ^:static cons [x seq] (recur 1 2))"))))
+
+(deftest lint-as-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 93,
+      :level :error,
+      :message "wrong number of args (3) passed to foo/foo"})
+   (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
+          "--config" "{:lint-as {foo/my-defn clojure.core/defn}}")))
 
 ;;;; Scratch
 
