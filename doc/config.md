@@ -9,9 +9,10 @@ clj-kondo can be configured in three ways:
 - by providing a `--config` file argument from the command line
 - by providing a `--config` EDN argument from the command line (see examples below)
 
-The command line argument overrides a `config.edn` file without merging.
+The command line argument overrides a `config.edn`.
 
-Look into the [sample config file](../.clj-kondo/config.edn) for all the options.
+Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
+available options.
 
 ## Examples
 

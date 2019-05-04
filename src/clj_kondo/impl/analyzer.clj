@@ -335,15 +335,6 @@
                    :arity arg-count}
                   (analyze-defn ctx (schema/expand-schema-defn
                                      (lift-meta filename expr))))
-            ;;[cats.core ->=]
-            ;; (recur ctx (macroexpand/expand-> filename expr))
-            ;; [cats.core ->>=]
-            ;; (recur ctx (macroexpand/expand->> filename expr))
-            ;; [rewrite-clj.custom-zipper.core defn-switchable]
-            ;; (analyze-defn ctx expr)
-            ;; ([clojure.core.async go-loop] [cljs.core.async go-loop] [cljs.core.async.macros go-loop])
-            ;; (analyze-loop ctx expr)
-            ;; catch-all
             (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
               (if (symbol? fn-name)
                 (let [binding-call? (contains? bindings fn-name)]
