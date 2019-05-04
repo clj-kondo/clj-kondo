@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+# install script inspired by scripts for clojure and CircleCI CLI tool
+# install latest version of clj-kondo or upgrades existing one
+
+set -euo pipefail
+
+print_help() {
+    echo "Installs latest version of clj-kondo. Installation directory defaults to /usr/local/bin."
+    echo -e
+    echo "Usage:"
+    echo "install [--dir <dir>]"
+    exit 1
+}
+
+default_install_dir="/usr/local/bin"
+install_dir=$default_install_dir
+install_flag=${1:-}
+install_dir_opt=${2:-}
+if [[ "$install_flag" = "--dir" ]]; then
+    if [[ -z "$install_dir_opt" ]]; then
+        print_help
+    else
+        install_dir="$install_dir_opt"
+    fi
+fi
+
+latest_release="$(curl -s https://raw.githubusercontent.com/borkdude/clj-kondo/master/resources/CLJ_KONDO_RELEASED_VERSION)"
+
+case "$(uname -s)" in
+    Linux*)     platform=linux;;
+    Darwin*)    platform=macos;;
+esac
+
+download_url="https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.tar.gz"
+
+echo -e "Downloading $download_url"
+curl -sL "https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.tar.gz" | tar -xz
+
+if [ "$(pwd)" != "$install_dir" ] && [ -f "$install_dir/clj-kondo" ]; then
+    echo "Moving $install_dir/clj-kondo to $install_dir/clj-kondo.old"
+    mv -f "$install_dir/clj-kondo" "$install_dir/clj-kondo.old"
+fi
+echo "Installing clj-kondo to $install_dir"
+if [ "$(pwd)" != "$install_dir" ]; then
+    mv clj-kondo "$install_dir"
+fi
