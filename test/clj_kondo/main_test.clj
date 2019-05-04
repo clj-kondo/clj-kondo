@@ -197,7 +197,7 @@
       (is (= 3 (with-in-str "(defn foo []) (foo 1)" (main "--lint" "-")))))))
 
 (deftest cond-without-else-test
-  (doseq [lang [:clj #_#_:cljs :cljc]]
+  (doseq [lang [:clj :cljs :cljc]]
     (assert-submaps '({:row 7,
                        :col 1,
                        :level :warning,
@@ -693,7 +693,18 @@
        (lint! "(ns foo (:require-macros [cljs.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
   (is (empty? (lint! "#(recur)")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [thread]])) (thread (recur))")))
-  (is (empty? (lint! "(ns clojure.core.async) (defmacro thread [& body]) (thread (when true (recur)))"))))
+  (is (empty? (lint! "(ns clojure.core.async) (defmacro thread [& body]) (thread (when true (recur)))")))
+  (is (empty? (lint! "(fn* ^:static cons [x seq] (recur 1 2))"))))
+
+(deftest lint-as-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 93,
+      :level :error,
+      :message "wrong number of args (3) passed to foo/foo"})
+   (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
+          "--config" "{:lint-as {foo/my-defn clojure.core/defn}}")))
 
 ;;;; Scratch
 

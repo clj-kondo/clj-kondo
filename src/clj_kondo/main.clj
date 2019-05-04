@@ -231,13 +231,18 @@ Options:
 
 ;;;; index defs and calls by language and namespace
 
+(defn- mmerge
+  "Merges maps no deeper than two levels"
+  [a b]
+  (merge-with merge a b))
+
 (defn- index-defs-and-calls [defs-and-calls]
   (reduce
    (fn [acc {:keys [:calls :defs :loaded :lang] :as m}]
      (-> acc
          (update-in [lang :calls] (fn [prev-calls]
                                     (merge-with into prev-calls calls)))
-         (update-in [lang :defs] merge defs)
+         (update-in [lang :defs] mmerge defs)
          (update-in [lang :loaded] into loaded)))
    {:clj {:calls {} :defs {} :loaded #{}}
     :cljs {:calls {} :defs {} :loaded #{}}

@@ -22,12 +22,12 @@
               :duplicate-set-key {:level :error}
               :missing-map-value {:level :error}
               :invalid-bindings {:level :error}}
-    :treat-as {cats.core/->= clojure.core/->
-               cats.core/->>= clojure.core/->>
-               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
-               clojure.core.async/go-loop clojure.core/loop
-               cljs.core.async/go-loop clojure.core/loop
-               cljs.core.async.macros/go-loop clojure.core/loop}
+    :lint-as {cats.core/->= clojure.core/->
+              cats.core/->>= clojure.core/->>
+              rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
+              clojure.core.async/go-loop clojure.core/loop
+              cljs.core.async/go-loop clojure.core/loop
+              cljs.core.async.macros/go-loop clojure.core/loop}
     :output {;; set to truthy to print progress while linting
              :show-progress false
              ;; output can be filtered and removed by regex on filename. empty options leave the output untouched.
@@ -76,16 +76,14 @@
               (some #(= disabled-sym %) parents))
             disabled)))))
 
-(defn treat-as-config* []
-  (let [m (get @config :treat-as)]
+(defn lint-as-config* []
+  (let [m (get @config :lint-as)]
     (zipmap (fq-syms->vecs (keys m))
             (fq-syms->vecs (vals m)))))
 
-(def treat-as-config (memoize treat-as-config*))
+(def lint-as-config (memoize lint-as-config*))
 
-(defn treat-as [v]
-  (or (get (treat-as-config) v)
-      v))
+(defn lint-as [v] (get (lint-as-config) v))
 
 ;;;; Scratch
 

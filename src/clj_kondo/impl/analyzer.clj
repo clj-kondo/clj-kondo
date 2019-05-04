@@ -267,7 +267,8 @@
              resolved-name :name}
             (when ?full-fn-name (resolve-name ns ?full-fn-name))
             [resolved-namespace resolved-name]
-            (config/treat-as [resolved-namespace resolved-name])
+            (or (config/lint-as [resolved-namespace resolved-name])
+                [resolved-namespace resolved-name])
             fq-sym (when (and resolved-namespace
                               resolved-name)
                      (symbol (str resolved-namespace)
@@ -314,7 +315,7 @@
           (analyze-if-let ctx expr)
           when-let
           (analyze-when-let ctx expr)
-          fn
+          (fn fn*)
           (analyze-fn ctx (lift-meta filename expr))
           case
           (analyze-case ctx expr)
@@ -362,14 +363,6 @@
                                      (assoc-in [:recur-arity :fixed-arity] 0))]
                       (cons call (analyze-children next-ctx (rest children))))))
                 (analyze-children ctx children)))))))))
-
-;; TODO:
-;; Add test for lift-meta on anon fn
-;; clojure/core/async.clj:508:31: error: recur argument count mismatch (expected 7, got 0)
-
-;; rewrite_clj/custom_zipper/core.clj:134:9: error: unexpected recur
-;; rewrite_clj/custom_zipper/core.clj:152:5: error: unexpected recur
-
 
 (defn analyze-expression*
   [filename lang expanded-lang ns results expression debug?]

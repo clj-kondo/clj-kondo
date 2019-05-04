@@ -72,3 +72,26 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 ``` clojure
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
+
+### Lint a custom macro like a built-in macro
+
+In the following code the `my-defn` macro is defined, but clj-kondo doesn't know how to interpret it:
+
+``` clojure
+(ns foo)
+
+(defmacro my-defn [name args & body]
+  `(defn ~name ~args
+     (do (println "hello!")
+       ~@body)))
+
+(my-defn foo [x])
+```
+
+Hence `(foo 1 2 3)` will not lead to an invalid arity error. However, the syntax
+of `my-defn` is a subset of `clojure.core/defn`, so for detecting arity errors
+we might have just linted it like that. That is what the following configuration accomplishes:
+
+``` clojure
+{:lint-as {foo/my-defn clojure.core/defn}}
+```
