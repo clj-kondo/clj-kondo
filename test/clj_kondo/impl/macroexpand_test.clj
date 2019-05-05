@@ -32,7 +32,15 @@
                (filter #(= :list (tag %))
                        (tree-seq :children :children
                                  (macroexpand/expand-fn
-                                  (parse-string "#(valid? %)"))))))))
+                                  (parse-string "#(valid? %)")))))))
+  (is (= '(fn [%] (println % %))
+         (node/sexpr
+          (macroexpand/expand-fn
+           (parse-string "#(println % %)")))))
+  (is (= '(fn [% %2] (println % %2))
+         (node/sexpr
+          (macroexpand/expand-fn
+           (parse-string "#(println % %2)"))))))
 
 ;;;; Scratch
 

@@ -49,10 +49,12 @@
         x))))
 
 (defn find-fn-args [children]
-  (filter-children #(and (= :token (tag %))
-                         (:string-value %)
-                         (re-matches #"%\d?\d?" (:string-value %)))
-                   children))
+  (dedupe
+   (sort-by :value
+            (filter-children #(and (= :token (tag %))
+                                   (:string-value %)
+                                   (re-matches #"%\d?\d?" (:string-value %)))
+                             children))))
 
 (defn expand-fn [{:keys [:children] :as expr}]
   (let [{:keys [:row :col] :as m} (meta expr)
