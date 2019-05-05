@@ -400,7 +400,17 @@
       :message "wrong number of args (3) passed to foo"})
    (lint! "(fn foo [x] (foo 1 2 3))"))
   (is (empty? (lint! "(fn foo ([x] (foo 1 2)) ([x y]))")))
-  (lint! "(let [f (fn [])] (f 1 2 3))"))
+  (assert-submaps
+   '({:message "wrong number of args (3) passed to f"})
+   (lint! "(let [f (fn [])] (f 1 2 3))"))
+  (assert-submaps
+   '({:message "wrong number of args (3) passed to f"})
+   (lint! "(let [f #()] (f 1 2 3))"))
+  (assert-submaps
+   '({:message "wrong number of args (0) passed to f"})
+   (lint! "(let [f #(apply println % %&)] (f))"))
+  (is (empty? (lint! "(let [f #(apply println % %&)] (f 1))")))
+  (is (empty? (lint! "(let [f #(apply println % %&)] (f 1 2 3 4 5 6))"))))
 
 (deftest let-test
   (assert-submap
@@ -579,7 +589,12 @@
      (first (lint! "(ns foo (:require [clojure.string])) (-> \"foo\" ^String str clojure.string/includes?)")))
     (assert-submap
      {:file "<stdin>", :row 1, :col 12, :level :error, :message "duplicate key :a"}
-     (first (lint! "(-> ^{:a 1 :a 2} [1 2 3])")))))
+     (first (lint! "(-> ^{:a 1 :a 2} [1 2 3])"))))
+  (testing "macroexpansion of anon fn literal"
+    (assert-submaps
+     '({:message "wrong number of args (1) passed to clojure.core/select-keys"})
+     (lint! "#(select-keys %)"))
+    (lint! "(let [f #(apply println %&)] (f 1 2 3 4))")))
 
 (deftest schema-defn-test
   (assert-submaps

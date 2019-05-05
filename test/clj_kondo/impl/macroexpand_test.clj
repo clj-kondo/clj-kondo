@@ -27,20 +27,32 @@
 (deftest expand-fn-test
   (testing
       "Expanded function literals have a location for the function they call"
+    (let [fn-body (-> (macroexpand/expand-fn
+                       (parse-string "#(valid? %)"))
+                      :children
+                      nnext
+                      first
+                      :children
+                      nnext
+                      first)]
       (is
        (every? location
-               (filter #(= :list (tag %))
+               (filter #(= :list (do (prn ">" %) (tag %)))
                        (tree-seq :children :children
-                                 (macroexpand/expand-fn
-                                  (parse-string "#(valid? %)")))))))
-  (is (= '(fn [%] (println % %))
+                                 fn-body))))))
+  (is (= '(fn [%1] (let [% %1] (println % %)))
          (node/sexpr
           (macroexpand/expand-fn
            (parse-string "#(println % %)")))))
-  (is (= '(fn [% %2] (println % %2))
+  (is (= '(fn [%1 %2] (let [% %1] (println % %2)))
          (node/sexpr
           (macroexpand/expand-fn
-           (parse-string "#(println % %2)"))))))
+           (parse-string "#(println % %2)")))))
+  (is (= '(fn [%1 %2 & %&] (let [% %1] (apply println % %2 %&)))
+         (node/sexpr
+          (macroexpand/expand-fn
+           (parse-string "#(apply println % %2 %&)"))))))
+
 
 ;;;; Scratch
 
