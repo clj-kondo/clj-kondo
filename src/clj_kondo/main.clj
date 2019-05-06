@@ -309,7 +309,7 @@ Options:
                        idacs (index-defs-and-calls processed)
                        idacs (cache/sync-cache idacs cache-dir)
                        idacs (overrides idacs)
-                       linted-calls (l/lint-calls idacs)
+                       linted-calls (doall (l/lint-calls idacs))
                        all-findings (concat linted-calls (mapcat :findings processed)
                                             @state/findings)
                        all-findings (filter-findings all-findings)

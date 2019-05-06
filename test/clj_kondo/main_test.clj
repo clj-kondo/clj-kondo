@@ -17,9 +17,10 @@
              {:row 14, :col 18, :file "corpus/inline_def.clj"}}
            row-col-files))
     (is (= #{"inline def"} (set (map :message linted)))))
-  (is (empty? (lint! "(defmacro foo [] `(def x 1))")))
-  (is (empty? (lint! "(defn foo [] '(def x 3))")))
-  (is (not-empty (lint! "(defmacro foo [] `(def x# (def x# 1)))"))))
+  (doseq [lang [:clj :cljs]]
+    (is (empty? (lint! "(defmacro foo [] `(def x 1))" "--lang" (name lang))))
+    (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang))))
+    (is (not-empty (lint! "(defmacro foo [] `(def x# (def x# 1)))" "--lang" (name lang))))))
 
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
@@ -196,7 +197,7 @@
     (testing "the exit code is 1 when errors are detected"
       (is (= 3 (with-in-str "(defn foo []) (foo 1)" (main "--lint" "-")))))))
 
-(deftest cond-without-else-test
+(deftest cond-test
   (doseq [lang [:clj :cljs :cljc]]
     (assert-submaps '({:row 7,
                        :col 1,
@@ -206,7 +207,14 @@
                        :col 1,
                        :level :warning,
                        :message "cond without :else"})
-                    (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))))
+                    (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message "cond requires an even number of forms"})
+     (lint! "(cond 1 2 3)" "--lang" (name lang)))))
 
 (deftest cljs-core-macro-test
   (assert-submap '{:file "<stdin>",

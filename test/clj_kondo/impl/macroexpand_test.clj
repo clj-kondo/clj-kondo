@@ -37,7 +37,7 @@
                       first)]
       (is
        (every? location
-               (filter #(= :list (do (prn ">" %) (tag %)))
+               (filter #(= :list (tag %))
                        (tree-seq :children :children
                                  fn-body))))))
   (is (= '(fn [%1] (let [% %1] (println % %)))
