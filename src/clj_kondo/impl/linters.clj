@@ -2,10 +2,12 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [some-call node->line
-                                 tag call]]
+                                 tag call parse-string]]
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.var-info :as var-info]
-   [clj-kondo.impl.config :as config]))
+   [clj-kondo.impl.config :as config]
+   [clojure.set :as set]
+   [clj-kondo.impl.state :as state]))
 
 (set! *warn-on-reflection* true)
 
@@ -66,12 +68,73 @@
 (defn lint-def [filename expr]
   (mapcat #(lint-def* filename % true) (:children expr)))
 
+(defn lint-cond-without-else! [filename expr last-condition]
+  (when (not= :else (node/sexpr last-condition))
+    (state/reg-finding!
+     (node->line filename expr :warning :cond-without-else "cond without :else"))))
+
+(defn =? [sexpr]
+  (and (list? sexpr)
+       (= '= (first sexpr))))
+
+#_(defn lint-cond-as-case! [filename expr conditions]
+  (let [[fst-sexpr & rest-sexprs] (map node/sexpr conditions)
+        init (when (=? fst-sexpr)
+               (set (rest fst-sexpr)))]
+    (when init
+      (when-let
+          [case-expr
+           (let [c (first
+                    (reduce
+                     (fn [acc sexpr]
+                       (if (=? sexpr)
+                         (let [new-acc
+                               (set/intersection acc
+                                                 (set (rest sexpr)))]
+                           (if (= 1 (count new-acc))
+                             new-acc
+                             (reduced nil)))
+                         (if (= :else sexpr)
+                           acc
+                           (reduced nil))))
+                     init
+                     rest-sexprs))]
+             c)]
+        (state/reg-finding!
+         (node->line filename expr :warning :cond-as-case
+                     (format "cond can be written as (case %s ...)"
+                             (str (node/sexpr case-expr)))))))))
+
+(defn lint-cond-even-number-of-forms!
+  [filename expr]
+  (when-not (even? (count (rest (:children expr))))
+    (state/reg-finding!
+     (node->line filename expr :error :even-number-of-forms
+                 (format "cond requires an even number of forms")))
+    true))
+
 (defn lint-cond [filename expr]
-  (let [last-condition
+  (let [conditions
         (->> expr :children
-             (take-last 2) first :k)]
-    (when (not= :else last-condition)
-      [(node->line filename expr :warning :cond-without-else "cond without :else")])))
+             next
+             (take-nth 2))]
+    (when-not (lint-cond-even-number-of-forms! filename expr)
+      (when (seq conditions)
+        (lint-cond-without-else! filename expr (last conditions))
+        #_(lint-cond-as-case! filename expr conditions)))))
+
+(comment
+  ;; TODO: write tests for the above cond linters
+  (def ex1 (parse-string "(select-keys m [:a])"))
+  (def ex2 (parse-string "(select-keys m [:a])"))
+  (= ex1 ex2)
+  (= (node/sexpr ex1) (node/sexpr ex2))
+  ;; TODO: the below should not trigger case rule, because (+ 1 2 3) etc. aren't compile time constants
+  #_(cond
+    (= (select-keys m [:a]) (+ 1 2 3)) 11
+    (= (select-keys m [:a]) (/ 1 2 3)) 12
+    :else 13)
+  )
 
 (defn lint-missing-test-assertion [filename call called-fn]
   (when (get-in var-info/predicates [(:ns called-fn) (:name called-fn)])
