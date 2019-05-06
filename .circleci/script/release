@@ -4,7 +4,7 @@ rm -rf /tmp/release
 mkdir -p /tmp/release
 cp clj-kondo /tmp/release
 cp performance.txt /tmp/release
-VERSION=$(cat src/CLJ_KONDO_VERSION)
+VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
 cd /tmp/release
 
