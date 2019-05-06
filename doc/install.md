@@ -11,7 +11,7 @@ To install with brew:
 
 To upgrade:
 
-    brew upgrade borkdude/brew/clj-kondo
+    brew upgrade clj-kondo
 
 ## Installation script
 
