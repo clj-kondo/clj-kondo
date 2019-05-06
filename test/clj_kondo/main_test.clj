@@ -389,7 +389,28 @@
     (let [x 1] (select-keys)))")))
   (is (seq (lint! "(defn foo ([select-keys]) ([x y] (select-keys)))")))
   (is (empty? (lint! "(if-let [select-keys (fn [])] (select-keys))")))
-  (is (empty? (lint! "(when-let [select-keys (fn [])] (select-keys))"))))
+  (is (empty? (lint! "(when-let [select-keys (fn [])] (select-keys))")))
+  (is (empty? (lint! "(fn foo [x] (foo x))")))
+  (is (empty? (lint! "(fn select-keys [x] (select-keys 1))")))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 13,
+      :level :error,
+      :message "wrong number of args (3) passed to foo"})
+   (lint! "(fn foo [x] (foo 1 2 3))"))
+  (is (empty? (lint! "(fn foo ([x] (foo 1 2)) ([x y]))")))
+  (assert-submaps
+   '({:message "wrong number of args (3) passed to f"})
+   (lint! "(let [f (fn [])] (f 1 2 3))"))
+  (assert-submaps
+   '({:message "wrong number of args (3) passed to f"})
+   (lint! "(let [f #()] (f 1 2 3))"))
+  (assert-submaps
+   '({:message "wrong number of args (0) passed to f"})
+   (lint! "(let [f #(apply println % %&)] (f))"))
+  (is (empty? (lint! "(let [f #(apply println % %&)] (f 1))")))
+  (is (empty? (lint! "(let [f #(apply println % %&)] (f 1 2 3 4 5 6))"))))
 
 (deftest let-test
   (assert-submap
@@ -398,7 +419,19 @@
     :col 6,
     :level :error,
     :message "let binding vector requires even number of forms"}
-   (first (lint! "(let [x 1 y])"))))
+   (first (lint! "(let [x 1 y])")))
+  (assert-submaps
+   '({:message "wrong number of args (0) passed to clojure.core/select-keys"})
+   (lint! "(let [x 1 y (select-keys)])"))
+  (is (empty? (lint! "(let [select-keys (fn []) y (select-keys)])")))
+  (assert-submaps
+   '({:message "wrong number of args (1) passed to f"})
+   (lint! "(let [f (fn []) y (f 1)])"))
+  (assert-submaps
+   '({:message "wrong number of args (1) passed to f"})
+   (lint! "(let [f (fn [])] (f 1))"))
+  (is (empty (lint! "(let [f (fn []) f (fn [_]) y (f 1)])")))
+  (is (empty? (lint! "(let [err (fn [& msg])] (err 1 2 3))"))))
 
 (deftest if-let-test
   (assert-submap
@@ -556,7 +589,12 @@
      (first (lint! "(ns foo (:require [clojure.string])) (-> \"foo\" ^String str clojure.string/includes?)")))
     (assert-submap
      {:file "<stdin>", :row 1, :col 12, :level :error, :message "duplicate key :a"}
-     (first (lint! "(-> ^{:a 1 :a 2} [1 2 3])")))))
+     (first (lint! "(-> ^{:a 1 :a 2} [1 2 3])"))))
+  (testing "macroexpansion of anon fn literal"
+    (assert-submaps
+     '({:message "wrong number of args (1) passed to clojure.core/select-keys"})
+     (lint! "#(select-keys %)"))
+    (lint! "(let [f #(apply println %&)] (f 1 2 3 4))")))
 
 (deftest schema-defn-test
   (assert-submaps
@@ -705,6 +743,33 @@
       :message "wrong number of args (3) passed to foo/foo"})
    (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
           "--config" "{:lint-as {foo/my-defn clojure.core/defn}}")))
+
+(deftest letfn-test
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 11,
+                     :level :error,
+                     :message "wrong number of args (0) passed to clojure.core/select-keys"})
+                  (lint! "(letfn [] (select-keys))"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 19,
+                     :level :error,
+                     :message "wrong number of args (0) passed to f1"})
+                  (lint! "(letfn [(f1 [_])] (f1))"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 17,
+                     :level :error,
+                     :message "recur argument count mismatch (expected 1, got 0)"})
+                  (lint! "(letfn [(f1 [_] (recur))])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 17,
+      :level :error,
+      :message "wrong number of args (0) passed to f2"})
+   (lint! "(letfn [(f1 [_] (f2)) (f2 [_])])")))
 
 ;;;; Scratch
 

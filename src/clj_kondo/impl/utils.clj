@@ -119,16 +119,6 @@
                             (p/parse-string-all s))]
     (profiler/profile :remove-noise (remove-noise p))))
 
-(defn filter-children
-  "Recursively filters children by pred"
-  [pred children]
-  (mapcat #(if (pred %)
-             [%]
-             (if-let [cchildren (:children %)]
-               (filter-children pred cchildren)
-               []))
-          children))
-
 (def vconj (fnil conj []))
 
 (defn deep-merge

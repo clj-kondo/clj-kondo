@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [some-call filter-children
+   [clj-kondo.impl.utils :refer [some-call
                                  parse-string]]
    [clj-kondo.impl.metadata :refer [lift-meta]]
    [rewrite-clj.node.protocols :as node :refer [tag]]
@@ -48,25 +48,57 @@
           (recur threaded (next forms)))
         x))))
 
-(defn find-fn-args [children]
-  (filter-children #(and (= :token (tag %))
-                         (:string-value %)
-                         (re-matches #"%\d?\d?" (:string-value %)))
-                   children))
+(defn find-children
+  "Recursively filters children by pred"
+  [pred children]
+  (mapcat #(if (pred %)
+             [(pred %)]
+             (when-let [cchildren (:children %)]
+               (find-children pred cchildren)))
+          children))
+
+(defn fn-args [children]
+  (let [args (find-children
+              #(and (= :token (tag %))
+                    (:string-value %)
+                    (when-let [[_ n] (re-matches #"%((\d?\d?)|&)" (:string-value %))]
+                      (case n
+                        "" 1
+                        "&" 0
+                        (Integer/parseInt n))))
+              children)
+        args (sort args)
+        var-args? (when-let [fst (first args)]
+                    (zero? fst))
+        args (seq (if var-args? (rest args) args))
+        max-n (last args)
+        args (when args (map (fn [i]
+                               (symbol (str "%" i)))
+                             (range 1 (inc max-n))))]
+    (if var-args?
+      (concat args '[& %&])
+      args)))
 
 (defn expand-fn [{:keys [:children] :as expr}]
   (let [{:keys [:row :col] :as m} (meta expr)
         fn-body (with-meta (list-node children)
                   {:row row
                    :col (inc col)})
-        args (find-fn-args children)
+        args (fn-args children)
         arg-list (vector-node args)]
     (with-meta
-      (list-node [(token-node 'fn) arg-list fn-body])
+      (list-node [(token-node 'fn) arg-list
+                  (list-node [(token-node 'let)
+                              (vector-node
+                               [(token-node '%)
+                                (token-node '%1)])
+                              fn-body])])
       m)))
 
 ;;;; Scratch
 
 (comment
+  (expand-fn (parse-string "#()"))
   (expand-fn (parse-string "#(inc ^long %)"))
+  (expand-fn (parse-string "#(println %2 %&)"))
   )
