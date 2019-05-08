@@ -16,7 +16,6 @@
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.state :as state]))
 
 (defn extract-bindings [sexpr]
@@ -174,13 +173,6 @@
        :bindings bindings
        :analyzed analyzed})))
 
-(comment
-  (expr-bindings* {:lang :clj
-                   :ns {:lang :clj}
-                   :bindings #{}} (parse-string "[a 1 b (select-keys 2)]"))
-
-  )
-
 (defn lint-even-forms-bindings! [ctx form-name expr sexpr]
   (let [num-children (count sexpr)
         {:keys [:row :col]} (meta expr)]
@@ -269,7 +261,6 @@
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
 (defn analyze-loop [{:keys [:bindings] :as ctx} expr]
-  ;; TODO: are we properly linting the initial expressions on the rhs?
   (let [bv (-> expr :children second)
         arg-count (let [c (count (:children bv))]
                     (when (even? c)
@@ -304,7 +295,8 @@
         :error
         :invalid-arity
         (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
-      :else nil)))
+      :else nil)
+    (analyze-children ctx (:children expr))))
 
 (defn analyze-letfn [ctx expr]
   (let [fns (-> expr :children second :children)
@@ -326,6 +318,14 @@
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
     (concat (mapcat (comp :parsed) parsed-fns) analyzed-children)))
 
+(defn cons* [x xs]
+  (if x (cons x xs)
+      xs))
+
+(defn symbols [expr]
+  (filter #(symbol? (:value %))
+          (tree-seq :children :children expr)))
+
 (defn analyze-expression**
   [{:keys [filename lang ns bindings fn-body parents] :as ctx}
    {:keys [:children] :as expr}]
@@ -333,20 +333,35 @@
         {:keys [:row :col]} (meta expr)
         arg-count (count (rest children))]
     (case t
-      (:quote :syntax-quote) []
+      :quote nil
+      :syntax-quote (recur ctx {:children (symbols expr)})
       :map (do (key-linter/lint-map-keys filename expr)
                (analyze-children ctx children))
       :set (do (key-linter/lint-set filename expr)
                (analyze-children ctx children))
       :fn (recur ctx (macroexpand/expand-fn expr))
+      :token (when-let [v (:value expr)]
+               (when (symbol? v)
+                 (let [{resolved-namespace :ns
+                        resolved-name :name
+                        unqualified? :unqualified?} (resolve-name ns v)]
+                   (when-not unqualified?
+                     [{:type :use
+                       :ns resolved-namespace
+                       :name resolved-name
+                       :row row
+                       :col col
+                       :lang lang
+                       :expr expr}]))))
       (let [?full-fn-name (call expr)
             unqualified? (and ?full-fn-name (nil? (namespace ?full-fn-name)))
             {resolved-namespace :ns
              resolved-name :name}
             (when ?full-fn-name (resolve-name ns ?full-fn-name))
-            [resolved-namespace resolved-name]
-            (or (config/lint-as [resolved-namespace resolved-name])
-                [resolved-namespace resolved-name])
+            [resolved-as-namespace resolved-as-name lint-as?]
+            (or (when-let [[ns n] (config/lint-as [resolved-namespace resolved-name])]
+                  [ns n true])
+                [resolved-namespace resolved-name false])
             fq-sym (when (and resolved-namespace
                               resolved-name)
                      (symbol (str resolved-namespace)
@@ -356,95 +371,114 @@
                                vconj
                                [resolved-namespace resolved-name])
                        ctx)
-            resolved-clojure-var-name
+            resolved-as-clojure-var-name
             (when (contains? '#{clojure.core
                                 cljs.core}
-                             resolved-namespace)
-              resolved-name)]
-        (case resolved-clojure-var-name
-          ns
-          (let [ns (analyze-ns-decl lang expr)]
-            [ns])
-          in-ns (when-not fn-body [(analyze-in-ns {:lang lang} expr)])
-          alias
-          [(analyze-alias ns expr)]
-          (defn defn- defmacro)
-          (cons {:type :call
-                 :name 'defn
-                 :row row
-                 :col col
-                 :lang lang
-                 :expr expr
-                 :arity arg-count}
-                (analyze-defn ctx (lift-meta filename expr)))
-          comment
-          (analyze-children next-ctx children)
-          ->
-          (recur ctx (macroexpand/expand-> filename expr))
-          ->>
-          (recur ctx (macroexpand/expand->> filename expr))
-          (cond-> cond->> some-> some->> . .. deftype
-                  proxy extend-protocol doto reify definterface defrecord defprotocol
-                  defcurried)
-          []
-          let
-          (analyze-let ctx expr)
-          letfn
-          (analyze-letfn ctx expr)
-          if-let
-          (analyze-if-let ctx expr)
-          when-let
-          (analyze-when-let ctx expr)
-          (fn fn*)
-          (analyze-fn ctx (lift-meta filename expr))
-          case
-          (analyze-case ctx expr)
-          loop
-          (analyze-loop ctx expr)
-          recur
-          (analyze-recur ctx expr)
-          ;; catch-all
-          (case [resolved-namespace resolved-name]
-            [schema.core defn]
-            (cons {:type :call
-                   :name 'schema.core/defn
+                             resolved-as-namespace)
+              resolved-as-name)
+            use (when lint-as?
+                  {:type :use
+                   :ns resolved-namespace
+                   :name resolved-name
                    :row row
                    :col col
                    :lang lang
-                   :expr expr
-                   :arity arg-count}
-                  (analyze-defn ctx (schema/expand-schema-defn
-                                     (lift-meta filename expr))))
-            (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
-              (if (symbol? fn-name)
-                (let [binding-call? (and unqualified? (contains? bindings fn-name))]
-                  (if binding-call?
-                    (do
-                      (when-let [{:keys [:fixed-arities :var-args-min-arity]}
-                                 (get (:arities ctx) fn-name)]
-                        (let [arg-count (count (rest children))]
-                          (when-not (or (contains? fixed-arities arg-count)
-                                        (and var-args-min-arity (>= arg-count var-args-min-arity)))
-                            (state/reg-finding! (node->line filename expr :error
-                                                            :invalid-arity
-                                                            (format "wrong number of args (%s) passed to %s"
-                                                                    arg-count
-                                                                    fn-name))))))
-                      (analyze-children next-ctx (rest children)))
-                    (let [call {:type :call
-                                :name ?full-fn-name
-                                :arity arg-count
-                                :row row
-                                :col col
-                                :lang lang
-                                :expr expr
-                                :parents (:parents ctx)}
-                          next-ctx (cond-> next-ctx
-                                     (contains? '#{[clojure.core.async thread]}
-                                                [resolved-namespace resolved-name])
-                                     (assoc-in [:recur-arity :fixed-arity] 0))]
-                      (cons call (analyze-children next-ctx (rest children))))))
-                (analyze-children ctx children)))))))))
+                   :expr expr})]
+        (cons* use
+               (case resolved-as-clojure-var-name
+                 ns
+                 (let [ns (analyze-ns-decl ctx expr)]
+                   [ns])
+                 in-ns (when-not fn-body [(analyze-in-ns {:lang lang} expr)])
+                 alias
+                 [(analyze-alias ns expr)]
+                 (defn defn- defmacro)
+                 (cons {:type :call
+                        :name resolved-as-clojure-var-name
+                        :row row
+                        :col col
+                        :lang lang
+                        :expr expr
+                        :arity arg-count}
+                       (analyze-defn ctx (lift-meta filename expr)))
+                 comment
+                 (analyze-children next-ctx children)
+                 (-> some->)
+                 (analyze-expression** ctx (macroexpand/expand-> filename expr))
+                 (->> some->>)
+                 (analyze-expression** ctx (macroexpand/expand->> filename expr))
+                 (cond-> cond->> . .. deftype
+                         proxy extend-protocol doto reify definterface defrecord defprotocol
+                         defcurried)
+                 ;; don't lint calls in these expressions, only register them as used vars
+                 (analyze-children (assoc ctx :call-as-use true)
+                                   (:children expr))
+                 let
+                 (analyze-let ctx expr)
+                 letfn
+                 (analyze-letfn ctx expr)
+                 if-let
+                 (analyze-if-let ctx expr)
+                 when-let
+                 (analyze-when-let ctx expr)
+                 (fn fn*)
+                 (analyze-fn ctx (lift-meta filename expr))
+                 case
+                 (analyze-case ctx expr)
+                 loop
+                 (analyze-loop ctx expr)
+                 recur
+                 (analyze-recur ctx expr)
+                 ;; catch-all
+                 (case [resolved-namespace resolved-name]
+                   [schema.core defn]
+                   (cons {:type :call
+                          :name 'schema.core/defn
+                          :row row
+                          :col col
+                          :lang lang
+                          :expr expr
+                          :arity arg-count}
+                         (analyze-defn ctx (schema/expand-schema-defn
+                                            (lift-meta filename expr))))
+                   (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
+                     (if (symbol? fn-name)
+                       (let [binding-call? (and unqualified? (contains? bindings fn-name))]
+                         (if binding-call?
+                           (do
+                             (when-let [{:keys [:fixed-arities :var-args-min-arity]}
+                                        (get (:arities ctx) fn-name)]
+                               (let [arg-count (count (rest children))]
+                                 (when-not (or (contains? fixed-arities arg-count)
+                                               (and var-args-min-arity (>= arg-count var-args-min-arity)))
+                                   (state/reg-finding! (node->line filename expr :error
+                                                                   :invalid-arity
+                                                                   (format "wrong number of args (%s) passed to %s"
+                                                                           arg-count
+                                                                           fn-name))))))
+                             (analyze-children next-ctx (rest children)))
+                           (let [call (if (:call-as-use ctx)
+                                        {:type :use
+                                         :ns resolved-namespace
+                                         :name resolved-name
+                                         :row row
+                                         :col col
+                                         :lang lang
+                                         :expr expr}
+                                        {:type :call
+                                         :name ?full-fn-name
+                                         :arity arg-count
+                                         :row row
+                                         :col col
+                                         :lang lang
+                                         :expr expr
+                                         :parents (:parents ctx)})
+                                 next-ctx (cond-> next-ctx
+                                            (contains? '#{[clojure.core.async thread]}
+                                                       [resolved-namespace resolved-name])
+                                            (assoc-in [:recur-arity :fixed-arity] 0))]
+                             (cons call (analyze-children next-ctx (rest children))))))
+                       (analyze-children ctx children))))))))))
 
 (defn analyze-expression*
   [filename lang expanded-lang ns results expression debug?]
@@ -459,16 +493,27 @@
         (case (:type first-parsed)
           nil (recur ns rest-parsed results)
           (:ns :in-ns)
-          (do
-            ;; store namespace for future use
-            (swap! namespace/namespaces assoc (:name first-parsed) first-parsed)
+          (let [ns (profiler/profile
+                    :ns-swap
+                    (get (swap! namespace/namespaces update (:name first-parsed) deep-merge first-parsed)
+                         (:name first-parsed)))]
             (recur
-             first-parsed
+             ns
              rest-parsed
              (-> results
                  (assoc :ns first-parsed)
-                 (update
-                  :loaded into (:loaded first-parsed)))))
+                 (update :used into (:used first-parsed))
+                 (update :required into (:required first-parsed)))))
+          :use
+          (do
+            (swap! namespace/namespaces update-in [(:name ns)
+                                                   :used]
+                   conj (:ns first-parsed))
+            (recur
+             ns
+             rest-parsed
+             (-> results
+                 (update :used conj (:ns first-parsed)))))
           (:duplicate-map-key
            :missing-map-value
            :duplicate-set-key
@@ -493,7 +538,8 @@
                           (assoc first-parsed
                                  :filename filename))
                results)
-             (let [resolved (resolve-name ns (:name first-parsed))
+             (let [;; TODO: can we do without this resolve since we already resolved in analyze-expression**?
+                   resolved (resolve-name ns (:name first-parsed))
                    first-parsed (cond->
                                     (assoc first-parsed
                                            :name (:name resolved)
@@ -539,9 +585,14 @@
                                 (assoc :clojure-excluded? true)
                                 unqualified?
                                 (assoc :unqualified? true))
-                         results (cond-> (update-in results path vconj call)
-                                   (not unqualified?)
-                                   (update :loaded conj (:ns resolved)))]
+                         results (do
+                                   (when-not unqualified?
+                                     (swap! namespace/namespaces update-in
+                                            [(:name ns) :used]
+                                            conj (:ns resolved)))
+                                   (cond-> (update-in results path vconj call)
+                                     (not unqualified?)
+                                     (update :used conj (:ns resolved))))]
                      (if debug? (update-in results [:findings] conj
                                            (assoc call
                                                   :level :info
@@ -572,11 +623,13 @@
   ([filename lang expanded-lang expressions debug?]
    (profiler/profile
     :analyze-expressions
-    (loop [ns (analyze-ns-decl expanded-lang (parse-string "(ns user)"))
+    (loop [ns (analyze-ns-decl {:filename filename
+                                :lang expanded-lang} (parse-string "(ns user)"))
            [expression & rest-expressions] expressions
            results {:calls {}
                     :defs {}
-                    :loaded (:loaded ns)
+                    :required (:required ns)
+                    :used (:used ns)
                     :findings []
                     :lang lang}]
       (if expression

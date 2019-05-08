@@ -109,7 +109,7 @@
         :row 1,
         :col 8,
         :level :error,
-        :message "wrong number of args (0) passed to clojure.core/defn"})
+        :message "wrong number of args (0) passed to clojure.core/defmacro"})
      (lint! "(defn) (defmacro)"))))
 
 (deftest invalid-arity-schema-test
@@ -778,6 +778,25 @@
       :level :error,
       :message "wrong number of args (0) passed to f2"})
    (lint! "(letfn [(f1 [_] (f2)) (f2 [_])])")))
+
+(deftest unused-namespace-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 20,
+      :level :warning,
+      :message "unused namespace clojure.core.async"})
+   (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))"))
+  (is (empty?
+       (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
+         ,(ns bar)
+         ,(in-ns 'foo)
+         ,(go-loop)")))
+  (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
+    (reduce! set/difference #{} [])")))
+  (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
+    (defmacro foo [] `(set/difference #{} #{}))")))
+  (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))"))))
 
 ;;;; Scratch
 
