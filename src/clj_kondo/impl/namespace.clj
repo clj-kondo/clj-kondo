@@ -162,7 +162,9 @@
     (cond->
         {:type :ns
          :lang lang
-         :name (or (-> children fnext :value)
+         ;; TODO: add test for name parsing with metadata on the name
+         ;; we had to change back to sexpr because of it
+         :name (or (second (node/sexpr expr))
                    'user)
          :required (map :ns clauses)
          :qualify-var (into {} (mapcat :referred clauses))
