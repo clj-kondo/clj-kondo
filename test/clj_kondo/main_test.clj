@@ -809,7 +809,9 @@
     (reduce! set/difference #{} [])")))
   (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
     (defmacro foo [] `(set/difference #{} #{}))")))
-  (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))"))))
+  (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
+  (is (empty? (lint! "(ns foo (:require bar)) ::bar/bar")))
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) ::b/bar"))))
 
 ;;;; Scratch
 

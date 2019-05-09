@@ -318,13 +318,32 @@
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
     (concat (mapcat (comp :parsed) parsed-fns) analyzed-children)))
 
+(defn node->keyword [node]
+  (when-let [k (:k node)]
+    (and (keyword? k) k)))
+
+(defn node->symbol [node]
+  (when-let [s (:value node)]
+    (and (symbol? s) s)))
+
+(defn used-namespaces [ns expr]
+  (keep #(when-let [sym-or-key (or (node->keyword %)
+                                   (node->symbol %))]
+           (when-let [ns-sym (some-> sym-or-key namespace symbol)]
+             (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
+               {:type :use
+                :ns resolved-ns})))
+        (tree-seq :children :children expr)))
+
+(comment
+  (used-namespaces (namespace/analyze-ns-decl {:lang :clj}
+                                              (parse-string "(ns user (:require [foo]))"))
+                   (parse-string "foo/f"))
+  )
+
 (defn cons* [x xs]
   (if x (cons x xs)
       xs))
-
-(defn symbols [expr]
-  (filter #(symbol? (:value %))
-          (tree-seq :children :children expr)))
 
 (defn analyze-expression**
   [{:keys [filename lang ns bindings fn-body parents] :as ctx}
@@ -334,25 +353,13 @@
         arg-count (count (rest children))]
     (case t
       :quote nil
-      :syntax-quote (recur ctx {:children (symbols expr)})
+      :syntax-quote (used-namespaces ns expr)
       :map (do (key-linter/lint-map-keys filename expr)
                (analyze-children ctx children))
       :set (do (key-linter/lint-set filename expr)
                (analyze-children ctx children))
       :fn (recur ctx (macroexpand/expand-fn expr))
-      :token (when-let [v (:value expr)]
-               (when (symbol? v)
-                 (let [{resolved-namespace :ns
-                        resolved-name :name
-                        unqualified? :unqualified?} (resolve-name ns v)]
-                   (when-not unqualified?
-                     [{:type :use
-                       :ns resolved-namespace
-                       :name resolved-name
-                       :row row
-                       :col col
-                       :lang lang
-                       :expr expr}]))))
+      :token (used-namespaces ns expr)
       (let [?full-fn-name (call expr)
             unqualified? (and ?full-fn-name (nil? (namespace ?full-fn-name)))
             {resolved-namespace :ns
