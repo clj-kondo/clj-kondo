@@ -1,9 +1,11 @@
 {:paths ["src" "resources"]
  :deps {rewrite-clj {:mvn/version "0.6.1"}
         com.cognitect/transit-clj {:mvn/version "0.8.313"}}
- :aliases {:native-image
+ :aliases {;; NOTE: build with script/compile
+           :native-image
            {:jvm-opts [#_"-Dclojure.compiler.direct-linking=true"]
-            :main-opts ["-m clj.native-image clj-kondo.main"
+            :main-opts ["-e" "(set!,*assert*,false)"
+                        "-m clj.native-image clj-kondo.main"
                         "-H:Name=clj-kondo"
                         "-H:+ReportExceptionStackTraces"
                         "-J-Dclojure.spec.skip-macros=true"
@@ -13,6 +15,8 @@
                         "--verbose"
                         "-J-Xmx3g"]
             :extra-deps
+            #_{:clj.native-image
+             {:local/root "/Users/Borkdude/git/clj.native-image"}}
             {clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
               :sha "498baa963e914fd817dbf33ea251729efd0c8f95"}}}
@@ -37,7 +41,4 @@
                                             :sha "a6e2771d4c8920582b68ab49522ede33e344bb99"}}}
            :cljs
            {:extra-deps
-            {org.clojure/clojurescript {:mvn/version "1.10.520"}}}}
- ;; NOTE: build with clojure -A:native-image --verbose
- ;; see: https://github.com/taylorwood/clj.native-image
- }
+            {org.clojure/clojurescript {:mvn/version "1.10.520"}}}}}

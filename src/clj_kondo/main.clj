@@ -2,6 +2,7 @@
   {:no-doc true}
   (:gen-class)
   (:require
+   [clj-kondo.impl.rewrite-clj-patch]
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.linters :as l]
@@ -14,8 +15,7 @@
    [clojure.string :as str
     :refer [starts-with?
             ends-with?]]
-   [clj-kondo.impl.namespace :as namespace]
-   [clj-kondo.impl.rewrite-clj-patch])
+   [clj-kondo.impl.namespace :as namespace])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
 (def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))
