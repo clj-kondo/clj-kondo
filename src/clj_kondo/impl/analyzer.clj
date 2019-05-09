@@ -320,25 +320,57 @@
 
 (defn node->keyword [node]
   (when-let [k (:k node)]
-    (and (keyword? k) k)))
+    (and (keyword? k) [:keyword k])))
 
 (defn node->symbol [node]
   (when-let [s (:value node)]
-    (and (symbol? s) s)))
+    (and (symbol? s) [:symbol s])))
 
 (defn used-namespaces [ns expr]
-  (keep #(when-let [sym-or-key (or (node->keyword %)
-                                   (node->symbol %))]
-           (when-let [ns-sym (some-> sym-or-key namespace symbol)]
-             (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
-               {:type :use
-                :ns resolved-ns})))
+  (keep #(when-let [[t v] (or (node->keyword %)
+                              (node->symbol %))]
+           (if-let [?ns (namespace v)]
+             (let [ns-sym (symbol ?ns)]
+               (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
+                 {:type :use
+                  :ns resolved-ns}))
+             (when (= t :symbol)
+               (when-let [resolved-ns (:ns (get (:qualify-var ns) v))]
+                 {:type :use
+                  :ns resolved-ns}))))
         (tree-seq :children :children expr)))
+
+(defn analyze-namespaced-map [ctx expr]
+  (let [m (first (:children expr))
+        ns (:ns ctx)
+        ns-sym (:ns expr)
+        used (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
+               [{:type :use
+                 :ns resolved-ns}])]
+    (concat used (analyze-expression** ctx m))))
 
 (comment
   (used-namespaces (namespace/analyze-ns-decl {:lang :clj}
-                                              (parse-string "(ns user (:require [foo]))"))
-                   (parse-string "foo/f"))
+                                              (parse-string "(ns user (:require [foo :refer [x]]))"))
+                   (parse-string "x"))
+
+  (node/tag (parse-string "#:foo{:a 1}"))
+  ;; TODO: turn this into test?
+  (analyze-namespaced-map
+   {:ns (namespace/analyze-ns-decl {:lang :clj}
+                                   (parse-string "(ns foo (:require [bar :as b]))"))}
+   (parse-string "#:b{:a 1}"))
+
+  (parse-string "#::it {:a 1}")
+  (parse-string "#::it {:a #::it{:a 1}}")
+  (parse-string "#::b{:a #::b{:a 1}}")
+  (parse-string "#::{:a 1}")
+  
+  (parse-string "#::{:a 1}")
+
+  (parse-string ":clojure.string")
+  (parse-string "#:clojure.string{}")
+  (parse-string "#:b{:a 1}")
   )
 
 (defn cons* [x xs]
@@ -354,6 +386,7 @@
     (case t
       :quote nil
       :syntax-quote (used-namespaces ns expr)
+      :namespaced-map (analyze-namespaced-map ctx expr)
       :map (do (key-linter/lint-map-keys filename expr)
                (analyze-children ctx children))
       :set (do (key-linter/lint-set filename expr)

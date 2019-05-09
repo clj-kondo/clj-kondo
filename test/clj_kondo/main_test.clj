@@ -808,10 +808,24 @@
   (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
     (reduce! set/difference #{} [])")))
   (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
+    (reduce! difference #{} [])")))
+  (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
     (defmacro foo [] `(set/difference #{} #{}))")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
   (is (empty? (lint! "(ns foo (:require bar)) ::bar/bar")))
-  (is (empty? (lint! "(ns foo (:require [bar :as b])) ::b/bar"))))
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) ::b/bar")))
+  ;; this is probably not correct:
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) #:b{:a 1}")))
+  ;; TODO fix whitespace error
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) #::b{:a 1}")))
+  (is (empty? (lint! "(ns foo (:require [bar :as b] baz)) #::baz{:a #::bar{:a 1}}")))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 31,
+      :level :warning,
+      :message "unused namespace baz"})
+   (lint! "(ns foo (:require [bar :as b] baz)) #::{:a #::bar{:a 1}}")))
 
 ;;;; Scratch
 

@@ -11,7 +11,7 @@
                   (str/replace "##-Inf" "::-Inf")
                   (str/replace "##NaN" "::NaN")
                   ;; workaround for https://github.com/borkdude/clj-kondo/issues/11
-                  (str/replace #_"#:a{#::a {:a b}}"
+                  #_(str/replace #_"#:a{#::a {:a b}}"
                                #"#(::?)(.*?)\{" (fn [[_ colons name]]
                                                   (str "#_" colons name "{"))))
         parsed (parse-string-all input)]
@@ -20,4 +20,5 @@
 ;;;; Scratch
 
 (comment
+  (parse-string "#::{:a 1}")
   )

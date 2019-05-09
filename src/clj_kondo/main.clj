@@ -14,7 +14,8 @@
    [clojure.string :as str
     :refer [starts-with?
             ends-with?]]
-   [clj-kondo.impl.namespace :as namespace])
+   [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.rewrite-clj-patch])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
 (def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))
