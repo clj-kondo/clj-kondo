@@ -787,11 +787,24 @@
       :level :warning,
       :message "unused namespace clojure.core.async"})
    (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 2,
+      :col 27,
+      :level :warning,
+      :message "unused namespace rewrite-clj.node"}
+     {:file "<stdin>",
+      :row 2,
+      :col 43,
+      :level :warning,
+      :message "unused namespace rewrite-clj.reader"})
+   (lint! "(ns rewrite-clj.parser
+  (:require [rewrite-clj [node :as node] [reader :as reader]]))"))
   (is (empty?
        (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
          ,(ns bar)
          ,(in-ns 'foo)
-         ,(go-loop)")))
+         ,(go-loop [])")))
   (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
     (reduce! set/difference #{} [])")))
   (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
