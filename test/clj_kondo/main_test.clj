@@ -177,16 +177,19 @@
                 :message "wrong number of args (1) passed to read-error.ok/foo"})
              linted)))))
 
-(deftest nested-namespaced-maps-workaround-test
-  (testing "when an error happens in one file, the other file is still linted"
-    (let [linted (lint! (io/file "corpus" "nested_namespaced_maps_workaround.clj"))]
-      (is (= '({:file "corpus/nested_namespaced_maps_workaround.clj",
-                :row 8,
-                :col 1,
-                :level :error,
-                :message
-                "wrong number of args (2) passed to nested-namespaced-maps-workaround/test-fn"})
-             linted)))))
+(deftest nested-namespaced-maps-test
+  (let [linted (lint! (io/file "corpus" "nested_namespaced_maps.clj"))]
+    (is (= '({:file "corpus/nested_namespaced_maps.clj",
+              :row 9,
+              :col 1,
+              :level :error,
+              :message "wrong number of args (2) passed to nested-namespaced-maps/test-fn"}
+             {:file "corpus/nested_namespaced_maps.clj",
+              :row 11,
+              :col 12,
+              :level :error,
+              :message "duplicate key :a"})
+           linted))))
 
 (deftest exit-code-test
   (with-out-str
@@ -826,6 +829,14 @@
       :level :warning,
       :message "unused namespace baz"})
    (lint! "(ns foo (:require [bar :as b] baz)) #::{:a #::bar{:a 1}}")))
+
+(deftest namespace-syntax
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 5,
+                     :level :error,
+                     :message "namespace name expected"})
+                  (lint! "(ns \"hello\")")))
 
 ;;;; Scratch
 

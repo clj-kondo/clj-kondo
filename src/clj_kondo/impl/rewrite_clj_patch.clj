@@ -1,21 +1,10 @@
 (ns clj-kondo.impl.rewrite-clj-patch
   (:require [rewrite-clj.parser.core]))
 
-(in-ns 'rewrite-clj.parser.core)
-(require '[clojure.string :as str])
+;;;; patch dispatch table to customize parsing of namespaced maps
 
-(defn parse-map-ns
-  ;; parse map namespace inside reader tag
-  [reader]
-  (reader/ignore reader)
-  (reader/read-while reader (fn [c]
-                              (= \: c)))
-  (let [s (str/trim (reader/read-until reader
-                                       (fn [c]
-                                         (= \{ c))))]
-    (if (= "" s)
-      :__current-ns__
-      (keyword s))))
+(in-ns 'rewrite-clj.parser.core)
+(require '[clj-kondo.impl.parser.namespaced-map :refer [parse-namespaced-map]])
 
 (defmethod parse-next* :sharp
   [reader]
@@ -30,9 +19,7 @@
     \= (node/eval-node (parse-printables reader :eval 1 true))
     \_ (node/uneval-node (parse-printables reader :uneval 1 true))
     ;; begin patch patch
-    \: (node/namespaced-map-node
-        [(node/keyword-node (parse-map-ns reader))
-         (parse-next reader)])
+    \: (parse-namespaced-map reader parse-next)
     ;; end patch
     \? (do
          ;; we need to examine the next character, so consume one (known \?)
@@ -53,3 +40,4 @@
                         (first (read1))))
                   (read1)))))
     (node/reader-macro-node (parse-printables reader :reader-macro 2))))
+

@@ -11,3 +11,8 @@
   (is (= '#:it{:a 1} (node/sexpr (utils/parse-string "#::it {:a 1}"))))
   (is (= '#:it{:a #:it{:a 1}} (node/sexpr (utils/parse-string "#::it {:a #::it{:a 1}}"))))
   (is (= '#:__current-ns__{:a 1} (node/sexpr (utils/parse-string "#::{:a 1}")))))
+
+;;;; Scratch
+
+(comment
+  )

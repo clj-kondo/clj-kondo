@@ -1,12 +1,13 @@
 (ns clj-kondo.impl.namespace
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
+   [clj-kondo.impl.state :as state]
+   [clj-kondo.impl.utils :refer [node->line parse-string parse-string-all]]
    [clj-kondo.impl.var-info :as var-info]
+   [clojure.set :as set]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
-   [rewrite-clj.node.token :refer [token-node]]
-   [clojure.set :as set]))
+   [rewrite-clj.node.token :refer [token-node]]))
 
 ;; we store all seen namespaces here, so we could resolve in the call linter,
 ;; instead of too early, because of in-ns. this is not yet implemented.
@@ -162,9 +163,16 @@
     (cond->
         {:type :ns
          :lang lang
-         ;; TODO: add test for name parsing with metadata on the name
-         ;; we had to change back to sexpr because of it
-         :name (or (second (node/sexpr expr))
+         :name (or
+                (let [name-expr (second children)]
+                  (when-let [?name (node/sexpr name-expr)]
+                    (if (symbol? ?name) ?name
+                        (state/reg-finding!
+                         (node->line (:filename ctx)
+                                     name-expr
+                                     :error
+                                     :ns-syntax
+                                     "namespace name expected")))))
                    'user)
          :required (map :ns clauses)
          :qualify-var (into {} (mapcat :referred clauses))
