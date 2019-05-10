@@ -341,37 +341,14 @@
         (tree-seq :children :children expr)))
 
 (defn analyze-namespaced-map [ctx expr]
-  (let [m (first (:children expr))
+  (let [children (:children expr)
+        m (second children)
         ns (:ns ctx)
-        ns-sym (:ns expr)
+        ns-sym (-> children first :k symbol)
         used (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
                [{:type :use
                  :ns resolved-ns}])]
     (concat used (analyze-expression** ctx m))))
-
-(comment
-  (used-namespaces (namespace/analyze-ns-decl {:lang :clj}
-                                              (parse-string "(ns user (:require [foo :refer [x]]))"))
-                   (parse-string "x"))
-
-  (node/tag (parse-string "#:foo{:a 1}"))
-  ;; TODO: turn this into test?
-  (analyze-namespaced-map
-   {:ns (namespace/analyze-ns-decl {:lang :clj}
-                                   (parse-string "(ns foo (:require [bar :as b]))"))}
-   (parse-string "#:b{:a 1}"))
-
-  (parse-string "#::it {:a 1}")
-  (parse-string "#::it {:a #::it{:a 1}}")
-  (parse-string "#::b{:a #::b{:a 1}}")
-  (parse-string "#::{:a 1}")
-  
-  (parse-string "#::{:a 1}")
-
-  (parse-string ":clojure.string")
-  (parse-string "#:clojure.string{}")
-  (parse-string "#:b{:a 1}")
-  )
 
 (defn cons* [x xs]
   (if x (cons x xs)

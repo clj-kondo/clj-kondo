@@ -3,7 +3,8 @@
         com.cognitect/transit-clj {:mvn/version "0.8.313"}}
  :aliases {;; NOTE: build with script/compile
            :native-image
-           {:jvm-opts [#_"-Dclojure.compiler.direct-linking=true"]
+           {;; see: https://github.com/taylorwood/clj.native-image/issues/5#issuecomment-491188021
+            :jvm-opts [#_"-Dclojure.compiler.direct-linking=true"]
             :main-opts ["-e" "(set!,*assert*,false)"
                         "-m clj.native-image clj-kondo.main"
                         "-H:Name=clj-kondo"

@@ -16,6 +16,12 @@
     {:lang :clj}
     (parse-string "(ns foo (:require [bar :as baz :refer [quux]])
                               (:refer-clojure :exclude [get assoc time]))")))
+  (testing "namespace name with metadata is properly recognized"
+    (assert-submap
+     '{:type :ns, :name foo}
+     (analyze-ns-decl
+      {:lang :clj}
+      (parse-string "(ns ^{:doc \"hello\"} foo)"))))
   (testing "string namespaces should be allowed in require"
     (assert-submap
      '{:type :ns, :name foo
