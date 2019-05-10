@@ -77,7 +77,7 @@
                    (instance? java.io.File input)
                    (apply clj-kondo "--lint" (.getPath input) args)
                    (vector? input)
-                   (apply main "--lint" (concat (map #(.getPath %) input) args))
+                   (apply clj-kondo "--lint" (concat (map #(.getPath %) input) args))
                    :else
                    (apply clj-kondo  "--lint" "-" (conj (vec args)
                                                         ;; the opts go last

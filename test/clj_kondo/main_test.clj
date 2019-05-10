@@ -218,20 +218,20 @@
         :col 1,
         :level :error,
         :message "cond requires an even number of forms"})
-     (lint! "(cond 1 2 3)" "--lang" (name lang)))
-    (assert-submaps
-     '({:file "corpus/cond_without_else/core.cljc",
-        :row 6,
-        :col 10,
-        :level :warning,
-        :message "cond without :else"}
-       {:file "corpus/cond_without_else/core.cljs",
-        :row 3,
-        :col 1,
-        :level :warning,
-        :message "cond without :else"})
-     (lint! [(io/file "corpus" "cond_without_else" "core.cljc")
-             (io/file "corpus" "cond_without_else" "core.cljs")]))))
+     (lint! "(cond 1 2 3)" "--lang" (name lang))))
+  (assert-submaps
+   '({:file "corpus/cond_without_else/core.cljc",
+      :row 6,
+      :col 10,
+      :level :warning,
+      :message "cond without :else"}
+     {:file "corpus/cond_without_else/core.cljs",
+      :row 3,
+      :col 1,
+      :level :warning,
+      :message "cond without :else"})
+   (lint! [(io/file "corpus" "cond_without_else" "core.cljc")
+           (io/file "corpus" "cond_without_else" "core.cljs")])))
 
 (deftest cljs-core-macro-test
   (assert-submap '{:file "<stdin>",
