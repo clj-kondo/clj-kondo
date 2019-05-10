@@ -423,7 +423,7 @@
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1))")))
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1 2 3 4 5 6))")))
   (is (empty? (lint! "(fn ^:static meta [x] (if (instance? clojure.lang.IMeta x)
-                       (. ^clojure.lang.IMeta x (meta)))))"))))
+                       (. ^clojure.lang.IMeta x (meta))))"))))
 
 (deftest let-test
   (assert-submap

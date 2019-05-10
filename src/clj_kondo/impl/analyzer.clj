@@ -465,7 +465,7 @@
                      (if (symbol? fn-name)
                        (let [binding-call? (and unqualified? (contains? bindings fn-name))]
                          (if binding-call?
-                           (do
+                           (when-not (:call-as-use ctx)
                              (when-let [{:keys [:fixed-arities :var-args-min-arity]}
                                         (get (:arities ctx) fn-name)]
                                (let [arg-count (count (rest children))]
