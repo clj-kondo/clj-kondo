@@ -832,13 +832,21 @@
       :message "unused namespace baz"})
    (lint! "(ns foo (:require [bar :as b] baz)) #::{:a #::bar{:a 1}}")))
 
-(deftest namespace-syntax
+(deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
                      :row 1,
                      :col 5,
                      :level :error,
                      :message "namespace name expected"})
                   (lint! "(ns \"hello\")")))
+
+(deftest call-as-use-test
+  (is (empty?
+       (lint!
+        "(extend-protocol
+           clojure.lang.IChunkedSeq
+           (internal-reduce [s f val]
+            (recur (chunk-next s) f val)))"))))
 
 ;;;; Scratch
 

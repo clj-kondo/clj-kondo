@@ -275,30 +275,31 @@
                       (rest (:children expr)))))
 
 (defn analyze-recur [ctx expr]
-  (let [arg-count (count (rest (:children expr)))
-        recur-arity (-> ctx :recur-arity)
-        expected-arity
-        (or (:fixed-arity recur-arity)
-            ;; var-args must be passed as a seq or nil in recur
-            (when-let [min-arity (:min-arity recur-arity)]
-              (inc min-arity)))]
-    (cond
-      (not expected-arity)
-      (state/reg-finding! (node->line
-                           (:filename ctx)
-                           expr
-                           :warning
-                           :unexpected-recur "unexpected recur"))
-      (not= expected-arity arg-count)
-      (state/reg-finding!
-       (node->line
-        (:filename ctx)
-        expr
-        :error
-        :invalid-arity
-        (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
-      :else nil)
-    (analyze-children ctx (:children expr))))
+  (when-not (:call-as-use ctx)
+    (let [arg-count (count (rest (:children expr)))
+          recur-arity (-> ctx :recur-arity)
+          expected-arity
+          (or (:fixed-arity recur-arity)
+              ;; var-args must be passed as a seq or nil in recur
+              (when-let [min-arity (:min-arity recur-arity)]
+                (inc min-arity)))]
+      (cond
+        (not expected-arity)
+        (state/reg-finding! (node->line
+                             (:filename ctx)
+                             expr
+                             :warning
+                             :unexpected-recur "unexpected recur"))
+        (not= expected-arity arg-count)
+        (state/reg-finding!
+         (node->line
+          (:filename ctx)
+          expr
+          :error
+          :invalid-arity
+          (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
+        :else nil)))
+  (analyze-children ctx (:children expr)))
 
 (defn analyze-letfn [ctx expr]
   (let [fns (-> expr :children second :children)
