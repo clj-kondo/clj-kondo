@@ -57,10 +57,13 @@
    (require '[clj-kondo.impl.config] :reload)
    (let [res (with-out-str
                (try
-                 (if (instance? java.io.File input)
+                 (cond
+                   (instance? java.io.File input)
                    (apply main "--lint" (.getPath input) args)
-                   (with-in-str input
-                     (apply main "--lint" "-" args)))
+                   (vector? input)
+                   (apply main "--lint" (concat (map #(.getPath %) input) args))
+                   :else (with-in-str input
+                           (apply main "--lint" "-" args)))
                  (catch Throwable e
                    (.printStackTrace e))))]
      (parse-output res))))
@@ -70,8 +73,12 @@
   ([input & args]
    (let [res (let-programs [clj-kondo "./clj-kondo"]
                (binding [sh/*throw* false]
-                 (if (instance? java.io.File input)
+                 (cond
+                   (instance? java.io.File input)
                    (apply clj-kondo "--lint" (.getPath input) args)
+                   (vector? input)
+                   (apply main "--lint" (concat (map #(.getPath %) input) args))
+                   :else
                    (apply clj-kondo  "--lint" "-" (conj (vec args)
                                                         ;; the opts go last
                                                         {:in input})))))]

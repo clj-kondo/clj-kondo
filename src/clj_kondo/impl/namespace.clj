@@ -173,7 +173,7 @@
                                      :error
                                      :ns-syntax
                                      "namespace name expected")))))
-                   'user)
+                'user)
          :required (map :ns clauses)
          :qualify-var (into {} (mapcat :referred clauses))
          :qualify-ns (reduce (fn [acc sc]
@@ -190,10 +190,10 @@
                                   sym))
          :refer-alls refer-alls
          :used (into
-                    (case lang
-                      :clj '#{clojure.core}
-                      :cljs '#{cljs.core})
-                    (keys refer-alls))}
+                (case lang
+                  :clj '#{clojure.core}
+                  :cljs '#{cljs.core})
+                (keys refer-alls))}
       (= :clj lang) (update :qualify-ns
                             #(assoc % 'clojure.core 'clojure.core))
       (= :cljs lang) (update :qualify-ns
@@ -240,5 +240,4 @@
   (:used (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
   (:java-imports (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
   (analyze-libspec :clj (node/sexpr (parse-string "[foo.core :refer :all :exclude [foo] :rename {old-name new-name}]")))
-  
   )

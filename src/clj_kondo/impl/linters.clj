@@ -129,7 +129,6 @@
     [(node->line filename (:expr call) :warning :missing-test-assertion "missing test assertion")]))
 
 (defn lint-specific-calls [filename call called-fn]
-  ;;(println (:parents call) (dissoc call :ns-lookup))
   (reduce into
           []
           ;; inline def linting
@@ -165,10 +164,9 @@
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
       [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
-                        ;; when calling a function in the same ns, it must be in
-                        ;; another file, hence qualified via a require
+                        ;; when calling a function in the same ns, it must be in another file
                         ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
-                        (when-not (and same-ns? unqualified?)
+                        (when (or (not (and same-ns? unqualified?)))
                           (or
                            ;; cljs func in another cljc file
                            (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
@@ -267,7 +265,9 @@
 
 (defn lint-unused-namespaces!
   []
-  (doseq [[_ns-name ns] @namespace/namespaces
+  (doseq [[_base-lang m] @namespace/namespaces
+          [_lang nss] m
+          [_ns-name ns] nss
           :let [required (:required ns)
                 used (:used ns)]
           ns-sym

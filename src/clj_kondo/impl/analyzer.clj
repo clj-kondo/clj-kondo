@@ -510,129 +510,132 @@
     (loop [ns ns
            [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
            results results]
-      (if (seq all)
-        (case (:type first-parsed)
-          nil (recur ns rest-parsed results)
-          (:ns :in-ns)
-          (let [ns (profiler/profile
-                    :ns-swap
-                    (get (swap! namespace/namespaces update (:name first-parsed) deep-merge first-parsed)
-                         (:name first-parsed)))]
+      (let [ns-path [lang expanded-lang (:name ns)]]
+        (if (seq all)
+          (case (:type first-parsed)
+            nil (recur ns rest-parsed results)
+            (:ns :in-ns)
+            (let [ns-path [lang expanded-lang (:name first-parsed)]
+                  ns (profiler/profile
+                      :ns-swap
+                      ;; TODO: accomodate these operations under a function
+                      (get-in (swap! namespace/namespaces update-in
+                                  ns-path deep-merge first-parsed)
+                              ns-path))]
+              (recur
+               ns
+               rest-parsed
+               (-> results
+                   (assoc :ns first-parsed)
+                   (update :used into (:used first-parsed))
+                   (update :required into (:required first-parsed)))))
+            :use
+            (do
+              (swap! namespace/namespaces update-in (conj ns-path :used)
+                     conj (:ns first-parsed))
+              (recur
+               ns
+               rest-parsed
+               (-> results
+                   (update :used conj (:ns first-parsed)))))
+            (:duplicate-map-key
+             :missing-map-value
+             :duplicate-set-key
+             :invalid-bindings
+             :invalid-arity)
             (recur
              ns
              rest-parsed
-             (-> results
-                 (assoc :ns first-parsed)
-                 (update :used into (:used first-parsed))
-                 (update :required into (:required first-parsed)))))
-          :use
-          (do
-            (swap! namespace/namespaces update-in [(:name ns)
-                                                   :used]
-                   conj (:ns first-parsed))
+             (update results
+                     :findings conj (assoc first-parsed
+                                           :filename filename)))
+            ;; catch-all
             (recur
              ns
              rest-parsed
-             (-> results
-                 (update :used conj (:ns first-parsed)))))
-          (:duplicate-map-key
-           :missing-map-value
-           :duplicate-set-key
-           :invalid-bindings
-           :invalid-arity)
-          (recur
-           ns
-           rest-parsed
-           (update results
-                   :findings conj (assoc first-parsed
-                                         :filename filename)))
-          ;; catch-all
-          (recur
-           ns
-           rest-parsed
-           (case (:type first-parsed)
-             :debug
-             (if debug?
-               (update-in results
-                          [:findings]
-                          conj
-                          (assoc first-parsed
-                                 :filename filename))
-               results)
-             (let [;; TODO: can we do without this resolve since we already resolved in analyze-expression**?
-                   resolved (resolve-name ns (:name first-parsed))
-                   first-parsed (cond->
-                                    (assoc first-parsed
-                                           :name (:name resolved)
-                                           :ns (:name ns))
-                                  ;; if defined in CLJC file, we add that as the base-lang
-                                  (= :cljc lang)
-                                  (assoc :base-lang lang))]
-               (case (:type first-parsed)
-                 :defn
-                 (let [path (case lang
-                              :cljc [:defs (:name ns) (:lang first-parsed) (:name resolved)]
-                              [:defs (:name ns) (:name resolved)])
-                       results
-                       (if resolved
-                         (assoc-in results path
-                                   (dissoc first-parsed
-                                           :type))
-                         results)]
-                   (if debug?
-                     (update-in results
-                                [:findings]
-                                vconj
-                                (assoc first-parsed
-                                       :level :info
-                                       :filename filename
-                                       :message
-                                       (str/join " "
-                                                 ["Defn resolved as"
-                                                  (str (:ns resolved) "/" (:name resolved)) "with arities"
-                                                  "fixed:"(:fixed-arities first-parsed)
-                                                  "varargs:"(:var-args-min-arity first-parsed)])
-                                       :type :debug))
-                     results))
-                 :call
-                 (if resolved
-                   (let [path [:calls (:ns resolved)]
-                         unqualified? (:unqualified? resolved)
-                         call (cond-> (assoc first-parsed
-                                             :filename filename
-                                             :resolved-ns (:ns resolved)
-                                             :ns-lookup ns)
-                                (:clojure-excluded? resolved)
-                                (assoc :clojure-excluded? true)
-                                unqualified?
-                                (assoc :unqualified? true))
-                         results (do
-                                   (when-not unqualified?
-                                     (swap! namespace/namespaces update-in
-                                            [(:name ns) :used]
-                                            conj (:ns resolved)))
-                                   (cond-> (update-in results path vconj call)
-                                     (not unqualified?)
-                                     (update :used conj (:ns resolved))))]
-                     (if debug? (update-in results [:findings] conj
-                                           (assoc call
-                                                  :level :info
-                                                  :message (str "Call resolved as "
-                                                                (str (:ns resolved) "/" (:name resolved)))
-                                                  :type :debug))
-                         results))
-                   (if debug?
-                     (update-in results
-                                [:findings]
-                                conj
-                                (assoc first-parsed
-                                       :level :info
-                                       :message (str "Unrecognized call to "
-                                                     (:name first-parsed))
-                                       :type :debug))
-                     results))
-                 results)))))
-        [ns results]))))
+             (case (:type first-parsed)
+               :debug
+               (if debug?
+                 (update-in results
+                            [:findings]
+                            conj
+                            (assoc first-parsed
+                                   :filename filename))
+                 results)
+               (let [;; TODO: can we do without this resolve since we already resolved in analyze-expression**?
+                     resolved (resolve-name ns (:name first-parsed))
+                     first-parsed (cond->
+                                      (assoc first-parsed
+                                             :name (:name resolved)
+                                             :ns (:name ns))
+                                    ;; if defined in CLJC file, we add that as the base-lang
+                                    (= :cljc lang)
+                                    (assoc :base-lang lang))]
+                 (case (:type first-parsed)
+                   :defn
+                   (let [path (case lang
+                                :cljc [:defs (:name ns) (:lang first-parsed) (:name resolved)]
+                                [:defs (:name ns) (:name resolved)])
+                         results
+                         (if resolved
+                           (assoc-in results path
+                                     (dissoc first-parsed
+                                             :type))
+                           results)]
+                     (if debug?
+                       (update-in results
+                                  [:findings]
+                                  vconj
+                                  (assoc first-parsed
+                                         :level :info
+                                         :filename filename
+                                         :message
+                                         (str/join " "
+                                                   ["Defn resolved as"
+                                                    (str (:ns resolved) "/" (:name resolved)) "with arities"
+                                                    "fixed:"(:fixed-arities first-parsed)
+                                                    "varargs:"(:var-args-min-arity first-parsed)])
+                                         :type :debug))
+                       results))
+                   :call
+                   (if resolved
+                     (let [path [:calls (:ns resolved)]
+                           unqualified? (:unqualified? resolved)
+                           call (cond-> (assoc first-parsed
+                                               :filename filename
+                                               :resolved-ns (:ns resolved)
+                                               :ns-lookup ns)
+                                  (:clojure-excluded? resolved)
+                                  (assoc :clojure-excluded? true)
+                                  unqualified?
+                                  (assoc :unqualified? true))
+                           results (do
+                                     (when-not unqualified?
+                                       (swap! namespace/namespaces update-in
+                                              (conj ns-path :used)
+                                              conj (:ns resolved)))
+                                     (cond-> (update-in results path vconj call)
+                                       (not unqualified?)
+                                       (update :used conj (:ns resolved))))]
+                       (if debug? (update-in results [:findings] conj
+                                             (assoc call
+                                                    :level :info
+                                                    :message (str "Call resolved as "
+                                                                  (str (:ns resolved) "/" (:name resolved)))
+                                                    :type :debug))
+                           results))
+                     (if debug?
+                       (update-in results
+                                  [:findings]
+                                  conj
+                                  (assoc first-parsed
+                                         :level :info
+                                         :message (str "Unrecognized call to "
+                                                       (:name first-parsed))
+                                         :type :debug))
+                       results))
+                   results)))))
+          [ns results])))))
 
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To

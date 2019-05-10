@@ -202,22 +202,36 @@
 
 (deftest cond-test
   (doseq [lang [:clj :cljs :cljc]]
-    (assert-submaps '({:row 7,
-                       :col 1,
-                       :level :warning,
-                       :message "cond without :else"}
-                      {:row 14,
-                       :col 1,
-                       :level :warning,
-                       :message "cond without :else"})
-                    (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))
+    (assert-submaps
+     '({:row 7,
+        :col 1,
+        :level :warning,
+        :message "cond without :else"}
+       {:row 14,
+        :col 1,
+        :level :warning,
+        :message "cond without :else"})
+     (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
         :col 1,
         :level :error,
         :message "cond requires an even number of forms"})
-     (lint! "(cond 1 2 3)" "--lang" (name lang)))))
+     (lint! "(cond 1 2 3)" "--lang" (name lang)))
+    (assert-submaps
+     '({:file "corpus/cond_without_else/core.cljc",
+        :row 6,
+        :col 10,
+        :level :warning,
+        :message "cond without :else"}
+       {:file "corpus/cond_without_else/core.cljs",
+        :row 3,
+        :col 1,
+        :level :warning,
+        :message "cond without :else"})
+     (lint! [(io/file "corpus" "cond_without_else" "core.cljc")
+             (io/file "corpus" "cond_without_else" "core.cljs")]))))
 
 (deftest cljs-core-macro-test
   (assert-submap '{:file "<stdin>",
