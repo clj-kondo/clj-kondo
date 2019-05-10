@@ -817,11 +817,11 @@
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
   (is (empty? (lint! "(ns foo (:require bar)) ::bar/bar")))
   (is (empty? (lint! "(ns foo (:require [bar :as b])) ::b/bar")))
-  ;; this is probably not correct:
+  ;; TODO: this is probably not correct, since you need to write :b with double colons:
   (is (empty? (lint! "(ns foo (:require [bar :as b])) #:b{:a 1}")))
-  ;; TODO fix whitespace error
   (is (empty? (lint! "(ns foo (:require [bar :as b])) #::b{:a 1}")))
   (is (empty? (lint! "(ns foo (:require [bar :as b] baz)) #::baz{:a #::bar{:a 1}}")))
+  (is (empty? (lint! "(ns foo (:require goog.math.Long)) (instance? goog.math.Long 1)")))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,

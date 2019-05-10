@@ -240,8 +240,10 @@
 
 (defn analyze-fn [ctx expr]
   (let [children (:children expr)
-        ?fn-name (let [n (node/sexpr (second children))]
-                   (when (symbol? n) n))
+        ?fn-name (when-let [?name-expr (second children)]
+                   (let [n (node/sexpr ?name-expr)]
+                     (when (symbol? n)
+                       n)))
         bodies (fn-bodies (next children))
         arity (fn-arity ctx bodies)
         parsed-bodies (map #(analyze-fn-body
@@ -335,7 +337,8 @@
                  {:type :use
                   :ns resolved-ns}))
              (when (= t :symbol)
-               (when-let [resolved-ns (:ns (get (:qualify-var ns) v))]
+               (when-let [resolved-ns (or (:ns (get (:qualify-var ns) v))
+                                          (get (:qualify-ns ns) v))]
                  {:type :use
                   :ns resolved-ns}))))
         (tree-seq :children :children expr)))
