@@ -122,7 +122,7 @@
         {:keys [:row :col]} (meta expr)
         defn
         ;; TODO: parsed bodies isn't needed
-        (if (and fn-name (seq parsed-bodies))
+        (if fn-name
           (do
             (namespace/reg-var! ctx (:name ns) fn-name expr)
             (cond-> {:type :defn
