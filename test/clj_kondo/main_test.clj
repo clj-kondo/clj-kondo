@@ -434,6 +434,13 @@
   (assert-submaps
    '({:message "wrong number of args (0) passed to f"})
    (lint! "(let [f #(apply println % %&)] (f))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 19,
+      :level :error,
+      :message "wrong number of args (1) passed to fn"})
+   (lint! "(let [fn (fn [])] (fn 1))"))
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1))")))
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1 2 3 4 5 6))")))
   (is (empty? (lint! "(fn ^:static meta [x] (if (instance? clojure.lang.IMeta x)
