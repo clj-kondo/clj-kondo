@@ -42,7 +42,7 @@
                                               :cljs 'cljs.core)]
                                 (when (and (not= ns-sym core-ns)
                                            (not (contains? (:clojure-excluded ns) var-sym))
-                                           (contains? var-info/core-syms var-sym))
+                                           (var-info/core-sym? expanded-lang var-sym))
                                   core-ns)))]
                  (state/reg-finding!
                   (node->line (:filename ctx)
@@ -92,10 +92,8 @@
 (defn- normalize-libspec
   "Adapted from clojure.tools.namespace."
   [prefix libspec-expr]
-  ;; (println libspec-expr)
   (let [children (:children libspec-expr)
         form (node/sexpr libspec-expr)]
-    ;;(println "FORM" form)
     (cond (prefix-spec? form)
           (mapcat (fn [f]
                     (normalize-libspec
@@ -278,11 +276,12 @@
      (when (contains? (:vars ns) name-sym)
        {:ns (:name ns)
         :name name-sym})
-     (let [clojure-excluded? (contains? (:clojure-excluded ns)
+     (let [;; _ (println "LANG" (:lang ns))
+           clojure-excluded? (contains? (:clojure-excluded ns)
                                         name-sym)
            namespace (:name ns)
            core-sym? (when-not clojure-excluded?
-                       (contains? var-info/core-syms name-sym))
+                       (var-info/core-sym? (:lang ns) name-sym))
            special-form? (contains? var-info/special-forms name-sym)]
        (if (or core-sym? special-form?)
          {:ns (case (:lang ns)

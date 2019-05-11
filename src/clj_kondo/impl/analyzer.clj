@@ -121,17 +121,19 @@
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
         {:keys [:row :col]} (meta expr)
         defn
+        ;; TODO: parsed bodies isn't needed
         (if (and fn-name (seq parsed-bodies))
-          (do (namespace/reg-var! ctx (:name ns) fn-name expr)
-              (cond-> {:type :defn
-                       :name fn-name
-                       :row row
-                       :col col
-                       :lang lang}
-                macro? (assoc :macro true)
-                (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-                private? (assoc :private? private?)
-                var-args-min-arity (assoc :var-args-min-arity var-args-min-arity)))
+          (do
+            (namespace/reg-var! ctx (:name ns) fn-name expr)
+            (cond-> {:type :defn
+                     :name fn-name
+                     :row row
+                     :col col
+                     :lang lang}
+              macro? (assoc :macro true)
+              (seq fixed-arities) (assoc :fixed-arities fixed-arities)
+              private? (assoc :private? private?)
+              var-args-min-arity (assoc :var-args-min-arity var-args-min-arity)))
           {:type :debug
            :level :info
            :message "Could not parse defn form"
