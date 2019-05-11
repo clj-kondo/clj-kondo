@@ -7,7 +7,8 @@
    [clojure.set :as set]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
-   [rewrite-clj.node.token :refer [token-node]]))
+   [rewrite-clj.node.token :refer [token-node]]
+   [clj-kondo.impl.var-info :as var-info]))
 
 ;; we store all seen namespaces here, so we could resolve in the call linter,
 ;; instead of too early, because of in-ns.
@@ -24,9 +25,31 @@
             path)))
 
 (defn reg-var!
-  [lang expanded-lang ns-sym var-sym]
-  (let [path [lang expanded-lang ns-sym :vars]]
-    (swap! namespaces update-in path conj var-sym)))
+  [ctx ns-sym var-sym expr]
+  (let [lang (:base-lang ctx)
+        expanded-lang (:lang ctx)
+        path [lang expanded-lang ns-sym]]
+    (swap! namespaces update-in path
+           (fn [ns]
+             (let [vars (:vars ns)]
+               (when-let [redefined-ns
+                          (or (when (contains? vars var-sym)
+                                ns-sym)
+                              (when-let [qv (get (:qualify-var ns) var-sym)]
+                                (:ns qv))
+                              (let [core-ns (case expanded-lang
+                                              :clj 'clojure.core
+                                              :cljs 'cljs.core)]
+                                (when (and (not= ns-sym core-ns)
+                                           (not (contains? (:clojure-excluded ns) var-sym))
+                                           (contains? var-info/core-syms var-sym))
+                                  core-ns)))]
+                 (state/reg-finding!
+                  (node->line (:filename ctx)
+                              expr :warning
+                              :redefined-var
+                              (str "redefining " (str redefined-ns "/" var-sym))))))
+             (update ns :vars conj var-sym)))))
 
 (defn reg-usage!
   "Registers usage of required namespaced in ns."

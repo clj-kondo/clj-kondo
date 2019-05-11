@@ -120,7 +120,7 @@
         {:keys [:row :col]} (meta expr)
         defn
         (if (and fn-name (seq parsed-bodies))
-          (do (namespace/reg-var! base-lang lang (:name ns) fn-name)
+          (do (namespace/reg-var! ctx (:name ns) fn-name expr)
               (cond-> {:type :defn
                        :name fn-name
                        :row row
