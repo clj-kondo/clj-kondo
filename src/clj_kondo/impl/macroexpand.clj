@@ -101,4 +101,6 @@
   (expand-fn (parse-string "#()"))
   (expand-fn (parse-string "#(inc ^long %)"))
   (expand-fn (parse-string "#(println %2 %&)"))
+  (expand-> "" (parse-string "(-> 1 inc inc inc)"))
+  (expand->> "" (parse-string "(->> 1 inc inc inc)"))
   )

@@ -1,0 +1,1 @@
+{:linters {:unused-namespace {:exclude [clj-kondo.impl.var-info-gen]}}}

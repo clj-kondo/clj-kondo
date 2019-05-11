@@ -109,7 +109,7 @@
         :row 1,
         :col 8,
         :level :error,
-        :message "wrong number of args (0) passed to clojure.core/defn"})
+        :message "wrong number of args (0) passed to clojure.core/defmacro"})
      (lint! "(defn) (defmacro)"))))
 
 (deftest invalid-arity-schema-test
@@ -177,16 +177,19 @@
                 :message "wrong number of args (1) passed to read-error.ok/foo"})
              linted)))))
 
-(deftest nested-namespaced-maps-workaround-test
-  (testing "when an error happens in one file, the other file is still linted"
-    (let [linted (lint! (io/file "corpus" "nested_namespaced_maps_workaround.clj"))]
-      (is (= '({:file "corpus/nested_namespaced_maps_workaround.clj",
-                :row 8,
-                :col 1,
-                :level :error,
-                :message
-                "wrong number of args (2) passed to nested-namespaced-maps-workaround/test-fn"})
-             linted)))))
+(deftest nested-namespaced-maps-test
+  (let [linted (lint! (io/file "corpus" "nested_namespaced_maps.clj"))]
+    (is (= '({:file "corpus/nested_namespaced_maps.clj",
+              :row 9,
+              :col 1,
+              :level :error,
+              :message "wrong number of args (2) passed to nested-namespaced-maps/test-fn"}
+             {:file "corpus/nested_namespaced_maps.clj",
+              :row 11,
+              :col 12,
+              :level :error,
+              :message "duplicate key :a"})
+           linted))))
 
 (deftest exit-code-test
   (with-out-str
@@ -199,22 +202,36 @@
 
 (deftest cond-test
   (doseq [lang [:clj :cljs :cljc]]
-    (assert-submaps '({:row 7,
-                       :col 1,
-                       :level :warning,
-                       :message "cond without :else"}
-                      {:row 14,
-                       :col 1,
-                       :level :warning,
-                       :message "cond without :else"})
-                    (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))
+    (assert-submaps
+     '({:row 7,
+        :col 1,
+        :level :warning,
+        :message "cond without :else"}
+       {:row 14,
+        :col 1,
+        :level :warning,
+        :message "cond without :else"})
+     (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
         :col 1,
         :level :error,
         :message "cond requires an even number of forms"})
-     (lint! "(cond 1 2 3)" "--lang" (name lang)))))
+     (lint! "(cond 1 2 3)" "--lang" (name lang))))
+  (assert-submaps
+   '({:file "corpus/cond_without_else/core.cljc",
+      :row 6,
+      :col 10,
+      :level :warning,
+      :message "cond without :else"}
+     {:file "corpus/cond_without_else/core.cljs",
+      :row 3,
+      :col 1,
+      :level :warning,
+      :message "cond without :else"})
+   (lint! [(io/file "corpus" "cond_without_else" "core.cljc")
+           (io/file "corpus" "cond_without_else" "core.cljs")])))
 
 (deftest cljs-core-macro-test
   (assert-submap '{:file "<stdin>",
@@ -418,7 +435,9 @@
    '({:message "wrong number of args (0) passed to f"})
    (lint! "(let [f #(apply println % %&)] (f))"))
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1))")))
-  (is (empty? (lint! "(let [f #(apply println % %&)] (f 1 2 3 4 5 6))"))))
+  (is (empty? (lint! "(let [f #(apply println % %&)] (f 1 2 3 4 5 6))")))
+  (is (empty? (lint! "(fn ^:static meta [x] (if (instance? clojure.lang.IMeta x)
+                       (. ^clojure.lang.IMeta x (meta))))"))))
 
 (deftest let-test
   (assert-submap
@@ -778,6 +797,70 @@
       :level :error,
       :message "wrong number of args (0) passed to f2"})
    (lint! "(letfn [(f1 [_] (f2)) (f2 [_])])")))
+
+(deftest unused-namespace-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 20,
+      :level :warning,
+      :message "unused namespace clojure.core.async"})
+   (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 2,
+      :col 27,
+      :level :warning,
+      :message "unused namespace rewrite-clj.node"}
+     {:file "<stdin>",
+      :row 2,
+      :col 43,
+      :level :warning,
+      :message "unused namespace rewrite-clj.reader"})
+   (lint! "(ns rewrite-clj.parser
+  (:require [rewrite-clj [node :as node] [reader :as reader]]))"))
+  (is (empty?
+       (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
+         ,(ns bar)
+         ,(in-ns 'foo)
+         ,(go-loop [])")))
+  (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
+    (reduce! set/difference #{} [])")))
+  (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
+    (reduce! difference #{} [])")))
+  (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
+    (defmacro foo [] `(set/difference #{} #{}))")))
+  (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
+  (is (empty? (lint! "(ns foo (:require bar)) ::bar/bar")))
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) ::b/bar")))
+  ;; TODO: this is probably not correct, since you need to write :b with double colons:
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) #:b{:a 1}")))
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) #::b{:a 1}")))
+  (is (empty? (lint! "(ns foo (:require [bar :as b] baz)) #::baz{:a #::bar{:a 1}}")))
+  (is (empty? (lint! "(ns foo (:require goog.math.Long)) (instance? goog.math.Long 1)")))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 31,
+      :level :warning,
+      :message "unused namespace baz"})
+   (lint! "(ns foo (:require [bar :as b] baz)) #::{:a #::bar{:a 1}}")))
+
+(deftest namespace-syntax-test
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 5,
+                     :level :error,
+                     :message "namespace name expected"})
+                  (lint! "(ns \"hello\")")))
+
+(deftest call-as-use-test
+  (is (empty?
+       (lint!
+        "(extend-protocol
+           clojure.lang.IChunkedSeq
+           (internal-reduce [s f val]
+            (recur (chunk-next s) f val)))"))))
 
 ;;;; Scratch
 

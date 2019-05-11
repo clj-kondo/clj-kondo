@@ -21,7 +21,11 @@
               :duplicate-map-key {:level :error}
               :duplicate-set-key {:level :error}
               :missing-map-value {:level :error}
-              :invalid-bindings {:level :error}}
+              :invalid-bindings {:level :error}
+              :unused-namespace {:level :warning
+                                 ;; don't warn about these namespaces:
+                                 :exclude [#_clj-kondo.impl.var-info-gen]
+                                 }}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -34,7 +38,9 @@
              :include-files [] #_["^src" "^test"]
              :exclude-files [] #_["^cljs/core"]
              ;; the output pattern can be altered using a template. use {{LEVEL}} to print the level in capitals.
-             :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"}})
+             ;; the default template looks like this:
+             ;; :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"
+             }})
 
 (def config (atom default-config))
 
@@ -85,10 +91,15 @@
 
 (defn lint-as [v] (get (lint-as-config) v))
 
+(defn unused-namespace-excluded* []
+  (set (get-in @config [:linters :unused-namespace :exclude])))
+
+(def unused-namespace-excluded (memoize unused-namespace-excluded*))
+
 ;;;; Scratch
 
 (comment
-  (reset! config (clojure.edn/read-string (slurp ".clj-kondo/config.edn")))
-  (treat-as '[cats.core ->=])
-  (treat-as '[core.async foo])
+  (run! merge-config! [default-config (clojure.edn/read-string (slurp ".clj-kondo/config.edn"))])
+  @config
+  (unused-namespace-excluded)
   )

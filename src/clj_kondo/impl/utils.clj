@@ -1,13 +1,10 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
   (:require
-   [clojure.walk :refer [prewalk]]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.whitespace :refer [whitespace?]]
    [rewrite-clj.parser :as p]
-   [clj-kondo.impl.profiler :as profiler]
-   [rewrite-clj.zip :as z]
-   [rewrite-clj.custom-zipper.core :as cz]))
+   [clj-kondo.impl.profiler :as profiler]))
 
 (defn tag [maybe-expr]
   (when maybe-expr

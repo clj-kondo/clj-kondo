@@ -6,8 +6,9 @@
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.state :as state]
    [clojure.set :as set]
-   [clj-kondo.impl.state :as state]))
+   [clj-kondo.impl.namespace :as namespace]))
 
 (set! *warn-on-reflection* true)
 
@@ -78,32 +79,32 @@
        (= '= (first sexpr))))
 
 #_(defn lint-cond-as-case! [filename expr conditions]
-  (let [[fst-sexpr & rest-sexprs] (map node/sexpr conditions)
-        init (when (=? fst-sexpr)
-               (set (rest fst-sexpr)))]
-    (when init
-      (when-let
-          [case-expr
-           (let [c (first
-                    (reduce
-                     (fn [acc sexpr]
-                       (if (=? sexpr)
-                         (let [new-acc
-                               (set/intersection acc
-                                                 (set (rest sexpr)))]
-                           (if (= 1 (count new-acc))
-                             new-acc
-                             (reduced nil)))
-                         (if (= :else sexpr)
-                           acc
-                           (reduced nil))))
-                     init
-                     rest-sexprs))]
-             c)]
-        (state/reg-finding!
-         (node->line filename expr :warning :cond-as-case
-                     (format "cond can be written as (case %s ...)"
-                             (str (node/sexpr case-expr)))))))))
+    (let [[fst-sexpr & rest-sexprs] (map node/sexpr conditions)
+          init (when (=? fst-sexpr)
+                 (set (rest fst-sexpr)))]
+      (when init
+        (when-let
+            [case-expr
+             (let [c (first
+                      (reduce
+                       (fn [acc sexpr]
+                         (if (=? sexpr)
+                           (let [new-acc
+                                 (set/intersection acc
+                                                   (set (rest sexpr)))]
+                             (if (= 1 (count new-acc))
+                               new-acc
+                               (reduced nil)))
+                           (if (= :else sexpr)
+                             acc
+                             (reduced nil))))
+                       init
+                       rest-sexprs))]
+               c)]
+          (state/reg-finding!
+           (node->line filename expr :warning :cond-as-case
+                       (format "cond can be written as (case %s ...)"
+                               (str (node/sexpr case-expr)))))))))
 
 (defn lint-cond-even-number-of-forms!
   [filename expr]
@@ -123,25 +124,11 @@
         (lint-cond-without-else! filename expr (last conditions))
         #_(lint-cond-as-case! filename expr conditions)))))
 
-(comment
-  ;; TODO: write tests for the above cond linters
-  (def ex1 (parse-string "(select-keys m [:a])"))
-  (def ex2 (parse-string "(select-keys m [:a])"))
-  (= ex1 ex2)
-  (= (node/sexpr ex1) (node/sexpr ex2))
-  ;; TODO: the below should not trigger case rule, because (+ 1 2 3) etc. aren't compile time constants
-  #_(cond
-    (= (select-keys m [:a]) (+ 1 2 3)) 11
-    (= (select-keys m [:a]) (/ 1 2 3)) 12
-    :else 13)
-  )
-
 (defn lint-missing-test-assertion [filename call called-fn]
   (when (get-in var-info/predicates [(:ns called-fn) (:name called-fn)])
     [(node->line filename (:expr call) :warning :missing-test-assertion "missing test assertion")]))
 
 (defn lint-specific-calls [filename call called-fn]
-  ;;(println (:parents call) (dissoc call :ns-lookup))
   (reduce into
           []
           ;; inline def linting
@@ -177,10 +164,9 @@
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
       [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
-                        ;; when calling a function in the same ns, it must be in
-                        ;; another file, hence qualified via a require
+                        ;; when calling a function in the same ns, it must be in another file
                         ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
-                        (when-not (and same-ns? unqualified?)
+                        (when (or (not (and same-ns? unqualified?)))
                           (or
                            ;; cljs func in another cljc file
                            (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
@@ -203,8 +189,7 @@
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [;; _ (println "CALL" call)
-                             fn-name (:name call)
+                       :let [fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)
                              called-fn
@@ -247,7 +232,6 @@
                              filename (:filename call)
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
-                             ;;_ (println "parents" (:parents call))
                              errors
                              (into
                               [(when-not
@@ -278,6 +262,24 @@
                        :when e]
                    e)]
     findings))
+
+(defn lint-unused-namespaces!
+  []
+  (doseq [ns (namespace/list-namespaces)
+          :let [required (:required ns)
+                used (:used ns)]
+          ns-sym
+          (set/difference
+           (set required)
+           (set used))
+          :when (not (contains? (config/unused-namespace-excluded) ns-sym))]
+    (let [{:keys [:row :col :filename]} (meta ns-sym)]
+      (state/reg-finding! {:level :warning
+                           :type :unused-namespace
+                           :filename filename
+                           :message (str "unused namespace " ns-sym)
+                           :row row
+                           :col col}))))
 
 ;;;; scratch
 

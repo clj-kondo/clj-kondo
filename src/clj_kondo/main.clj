@@ -2,6 +2,7 @@
   {:no-doc true}
   (:gen-class)
   (:require
+   [clj-kondo.impl.rewrite-clj-patch]
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.linters :as l]
@@ -13,7 +14,8 @@
    [clj-kondo.impl.profiler :as profiler]
    [clojure.string :as str
     :refer [starts-with?
-            ends-with?]])
+            ends-with?]]
+   [clj-kondo.impl.namespace :as namespace])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
 (def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))
@@ -222,7 +224,7 @@ Options:
         config-edn (when cfg-dir
                      (let [f (io/file cfg-dir "config.edn")]
                        (when (.exists f)
-                         f)))]
+                         (edn/read-string (slurp f)))))]
     {:opts opts
      :files files
      :cache-dir cache-dir
@@ -238,15 +240,15 @@ Options:
 
 (defn- index-defs-and-calls [defs-and-calls]
   (reduce
-   (fn [acc {:keys [:calls :defs :loaded :lang] :as m}]
+   (fn [acc {:keys [:calls :defs :used :lang] :as m}]
      (-> acc
          (update-in [lang :calls] (fn [prev-calls]
                                     (merge-with into prev-calls calls)))
          (update-in [lang :defs] mmerge defs)
-         (update-in [lang :loaded] into loaded)))
-   {:clj {:calls {} :defs {} :loaded #{}}
-    :cljs {:calls {} :defs {} :loaded #{}}
-    :cljc {:calls {} :defs {} :loaded #{}}}
+         (update-in [lang :used] into used)))
+   {:clj {:calls {} :defs {} :used #{}}
+    :cljs {:calls {} :defs {} :used #{}}
+    :cljc {:calls {} :defs {} :used #{}}}
    defs-and-calls))
 
 ;;;; summary
@@ -289,7 +291,9 @@ Options:
   (try
     (profiler/profile
      :main
+     ;; TODO: move global state to local context
      (state/clear-findings!)
+     (reset! namespace/namespaces {})
      (let [start-time (System/currentTimeMillis)
            {:keys [:opts
                    :files
@@ -310,6 +314,7 @@ Options:
                        idacs (cache/sync-cache idacs cache-dir)
                        idacs (overrides idacs)
                        linted-calls (doall (l/lint-calls idacs))
+                       _ (l/lint-unused-namespaces!)
                        all-findings (concat linted-calls (mapcat :findings processed)
                                             @state/findings)
                        all-findings (filter-findings all-findings)

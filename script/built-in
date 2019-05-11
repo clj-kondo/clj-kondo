@@ -2,7 +2,7 @@
 
 rm -rf /tmp/built-in
 mkdir -p /tmp/built-in
-version=$(cat src/CLJ_KONDO_VERSION)
+version=$(cat resources/CLJ_KONDO_VERSION)
 echo "$version"
 
 clojure -A:clj-kondo --lint "$(clojure -R:cljs -Spath)" --cache /tmp/built-in
