@@ -265,9 +265,7 @@
 
 (defn lint-unused-namespaces!
   []
-  (doseq [[_base-lang m] @namespace/namespaces
-          [_lang nss] m
-          [_ns-name ns] nss
+  (doseq [ns (namespace/list-namespaces)
           :let [required (:required ns)
                 used (:used ns)]
           ns-sym

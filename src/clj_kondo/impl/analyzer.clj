@@ -515,13 +515,7 @@
           (case (:type first-parsed)
             nil (recur ns rest-parsed results)
             (:ns :in-ns)
-            (let [ns-path [lang expanded-lang (:name first-parsed)]
-                  ns (profiler/profile
-                      :ns-swap
-                      ;; TODO: accomodate these operations under a function
-                      (get-in (swap! namespace/namespaces update-in
-                                  ns-path deep-merge first-parsed)
-                              ns-path))]
+            (let [ns (namespace/reg-namespace! lang expanded-lang first-parsed)]
               (recur
                ns
                rest-parsed
@@ -531,8 +525,7 @@
                    (update :required into (:required first-parsed)))))
             :use
             (do
-              (swap! namespace/namespaces update-in (conj ns-path :used)
-                     conj (:ns first-parsed))
+              (namespace/reg-usage! lang expanded-lang (:name ns) (:ns first-parsed))
               (recur
                ns
                rest-parsed
@@ -611,9 +604,8 @@
                                   (assoc :unqualified? true))
                            results (do
                                      (when-not unqualified?
-                                       (swap! namespace/namespaces update-in
-                                              (conj ns-path :used)
-                                              conj (:ns resolved)))
+                                       (namespace/reg-usage! lang expanded-lang (:name ns)
+                                                             (:ns resolved)))
                                      (cond-> (update-in results path vconj call)
                                        (not unqualified?)
                                        (update :used conj (:ns resolved))))]

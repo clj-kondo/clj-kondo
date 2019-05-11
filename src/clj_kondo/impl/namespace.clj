@@ -2,7 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.state :as state]
-   [clj-kondo.impl.utils :refer [node->line parse-string parse-string-all]]
+   [clj-kondo.impl.utils :refer [node->line parse-string parse-string-all deep-merge]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [rewrite-clj.node.protocols :as node]
@@ -10,9 +10,30 @@
    [rewrite-clj.node.token :refer [token-node]]))
 
 ;; we store all seen namespaces here, so we could resolve in the call linter,
-;; instead of too early, because of in-ns. this is not yet implemented.
+;; instead of too early, because of in-ns.
 
 (defonce namespaces (atom {}))
+
+(defn reg-namespace!
+  "Registers namespace. Deep-merges with already registered namespaces
+  with the same name. Returns updated namespace."
+  [lang expanded-lang ns]
+  (let [path [lang expanded-lang (:name ns)]]
+    (get-in (swap! namespaces update-in
+                   path deep-merge ns)
+            path)))
+
+(defn reg-usage!
+  "Registers usage of required namespaced in ns."
+  [lang expanded-lang ns-sym required-ns-sym]
+  (swap! namespaces update-in [lang expanded-lang ns-sym :used]
+         conj required-ns-sym))
+
+(defn list-namespaces []
+  (for [[_base-lang m] @namespaces
+        [_lang nss] m
+        [_ns-name ns] nss]
+    ns))
 
 (def valid-ns-name? (some-fn symbol? string?))
 
