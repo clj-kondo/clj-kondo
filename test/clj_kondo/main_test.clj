@@ -110,7 +110,9 @@
         :col 8,
         :level :error,
         :message "wrong number of args (0) passed to clojure.core/defmacro"})
-     (lint! "(defn) (defmacro)"))))
+     (lint! "(defn) (defmacro)")))
+  (lint! "(defn inc [x y] (+ x y))
+          (inc 1 1)"))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
@@ -444,7 +446,8 @@
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1))")))
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1 2 3 4 5 6))")))
   (is (empty? (lint! "(fn ^:static meta [x] (if (instance? clojure.lang.IMeta x)
-                       (. ^clojure.lang.IMeta x (meta))))"))))
+                       (. ^clojure.lang.IMeta x (meta))))")))
+  (is (empty? (lint! "(doseq [fn [inc]] (fn 1))"))))
 
 (deftest let-test
   (assert-submap

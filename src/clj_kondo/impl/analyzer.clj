@@ -39,10 +39,12 @@
         :else []))
 
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
-  (let [ns-name (-> children second :children first :value)]
-    {:type :in-ns
-     :name ns-name
-     :lang (:lang ctx)}))
+  (let [ns-name (-> children second :children first :value)
+        ns {:type :in-ns
+            :name ns-name
+            :lang (:lang ctx)}]
+    (namespace/reg-namespace! (:base-lang ctx) (:lang ctx) ns)
+    ns))
 
 (defn fn-call? [expr]
   (let [tag (node/tag expr)]
@@ -101,7 +103,7 @@
             (not t) []
             :else (recur (inc i) rest-exprs)))))
 
-(defn analyze-defn [{:keys [filename lang ns bindings] :as ctx} expr]
+(defn analyze-defn [{:keys [filename base-lang lang ns bindings] :as ctx} expr]
   (let [children (:children expr)
         children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
         name-node (first children)
@@ -118,15 +120,16 @@
         {:keys [:row :col]} (meta expr)
         defn
         (if (and fn-name (seq parsed-bodies))
-          (cond-> {:type :defn
-                   :name fn-name
-                   :row row
-                   :col col
-                   :lang lang}
-            macro? (assoc :macro true)
-            (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-            private? (assoc :private? private?)
-            var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))
+          (do (namespace/reg-var! base-lang lang (:name ns) fn-name)
+              (cond-> {:type :defn
+                       :name fn-name
+                       :row row
+                       :col col
+                       :lang lang}
+                macro? (assoc :macro true)
+                (seq fixed-arities) (assoc :fixed-arities fixed-arities)
+                private? (assoc :private? private?)
+                var-args-min-arity (assoc :var-args-min-arity var-args-min-arity)))
           {:type :debug
            :level :info
            :message "Could not parse defn form"
@@ -255,10 +258,12 @@
     (with-meta (mapcat :parsed parsed-bodies)
       {:arity arity})))
 
-(defn analyze-alias [ns expr]
-  (let [[alias-sym ns-sym]
+(defn analyze-alias [ctx expr]
+  (let [ns (:ns ctx)
+        [alias-sym ns-sym]
         (map #(-> % :children first :value)
              (rest (:children expr)))]
+    (namespace/reg-alias! (:base-lang ctx) (:lang ctx) (:name ns) alias-sym ns-sym)
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
 (defn analyze-loop [{:keys [:bindings] :as ctx} expr]
@@ -374,7 +379,7 @@
       (analyze-children ctx (rest children)))))
 
 (defn analyze-expression**
-  [{:keys [filename lang ns bindings fn-body parents] :as ctx}
+  [{:keys [filename base-lang lang ns bindings fn-body parents] :as ctx}
    {:keys [:children] :as expr}]
   (let [t (node/tag expr)
         {:keys [:row :col]} (meta expr)
@@ -396,7 +401,9 @@
           (analyze-binding-call ctx ?full-fn-name expr)
           (let [{resolved-namespace :ns
                  resolved-name :name}
-                (when ?full-fn-name (resolve-name ns ?full-fn-name))
+                (when ?full-fn-name
+                  (resolve-name
+                   (namespace/get-namespace base-lang lang (:name ns)) ?full-fn-name))
                 [resolved-as-namespace resolved-as-name lint-as?]
                 (or (when-let [[ns n] (config/lint-as [resolved-namespace resolved-name])]
                       [ns n true])
@@ -428,9 +435,9 @@
                      ns
                      (let [ns (analyze-ns-decl ctx expr)]
                        [ns])
-                     in-ns (when-not fn-body [(analyze-in-ns {:lang lang} expr)])
+                     in-ns (when-not fn-body [(analyze-in-ns ctx expr)])
                      alias
-                     [(analyze-alias ns expr)]
+                     [(analyze-alias ctx expr)]
                      (defn defn- defmacro)
                      (cons {:type :call
                             :name resolved-as-clojure-var-name
@@ -508,130 +515,130 @@
 (defn analyze-expression*
   [filename lang expanded-lang ns results expression debug?]
   (let [ctx {:filename filename
+             :base-lang lang
              :lang expanded-lang
              :ns ns
              :bindings #{}}]
     (loop [ns ns
            [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
            results results]
-      (let [ns-path [lang expanded-lang (:name ns)]]
-        (if (seq all)
-          (case (:type first-parsed)
-            nil (recur ns rest-parsed results)
-            (:ns :in-ns)
-            (let [ns (namespace/reg-namespace! lang expanded-lang first-parsed)]
-              (recur
-               ns
-               rest-parsed
-               (-> results
-                   (assoc :ns first-parsed)
-                   (update :used into (:used first-parsed))
-                   (update :required into (:required first-parsed)))))
-            :use
-            (do
-              (namespace/reg-usage! lang expanded-lang (:name ns) (:ns first-parsed))
-              (recur
-               ns
-               rest-parsed
-               (-> results
-                   (update :used conj (:ns first-parsed)))))
-            (:duplicate-map-key
-             :missing-map-value
-             :duplicate-set-key
-             :invalid-bindings
-             :invalid-arity)
+      (if (seq all)
+        (case (:type first-parsed)
+          nil (recur ns rest-parsed results)
+          (:ns :in-ns)
+          (recur
+           first-parsed
+           rest-parsed
+           (-> results
+               (assoc :ns first-parsed)
+               (update :used into (:used first-parsed))
+               (update :required into (:required first-parsed))))
+          :use
+          (do
+            (namespace/reg-usage! lang expanded-lang (:name ns) (:ns first-parsed))
             (recur
              ns
              rest-parsed
-             (update results
-                     :findings conj (assoc first-parsed
-                                           :filename filename)))
-            ;; catch-all
-            (recur
-             ns
-             rest-parsed
-             (case (:type first-parsed)
-               :debug
-               (if debug?
-                 (update-in results
-                            [:findings]
-                            conj
-                            (assoc first-parsed
-                                   :filename filename))
-                 results)
-               (let [;; TODO: can we do without this resolve since we already resolved in analyze-expression**?
-                     resolved (resolve-name ns (:name first-parsed))
-                     first-parsed (cond->
-                                      (assoc first-parsed
-                                             :name (:name resolved)
-                                             :ns (:name ns))
-                                    ;; if defined in CLJC file, we add that as the base-lang
-                                    (= :cljc lang)
-                                    (assoc :base-lang lang))]
-                 (case (:type first-parsed)
-                   :defn
-                   (let [path (case lang
-                                :cljc [:defs (:name ns) (:lang first-parsed) (:name resolved)]
-                                [:defs (:name ns) (:name resolved)])
-                         results
-                         (if resolved
-                           (assoc-in results path
-                                     (dissoc first-parsed
-                                             :type))
-                           results)]
-                     (if debug?
-                       (update-in results
-                                  [:findings]
-                                  vconj
-                                  (assoc first-parsed
-                                         :level :info
-                                         :filename filename
-                                         :message
-                                         (str/join " "
-                                                   ["Defn resolved as"
-                                                    (str (:ns resolved) "/" (:name resolved)) "with arities"
-                                                    "fixed:"(:fixed-arities first-parsed)
-                                                    "varargs:"(:var-args-min-arity first-parsed)])
-                                         :type :debug))
-                       results))
-                   :call
-                   (if resolved
-                     (let [path [:calls (:ns resolved)]
-                           unqualified? (:unqualified? resolved)
-                           call (cond-> (assoc first-parsed
-                                               :filename filename
-                                               :resolved-ns (:ns resolved)
-                                               :ns-lookup ns)
-                                  (:clojure-excluded? resolved)
-                                  (assoc :clojure-excluded? true)
-                                  unqualified?
-                                  (assoc :unqualified? true))
-                           results (do
-                                     (when-not unqualified?
-                                       (namespace/reg-usage! lang expanded-lang (:name ns)
-                                                             (:ns resolved)))
-                                     (cond-> (update-in results path vconj call)
-                                       (not unqualified?)
-                                       (update :used conj (:ns resolved))))]
-                       (if debug? (update-in results [:findings] conj
-                                             (assoc call
-                                                    :level :info
-                                                    :message (str "Call resolved as "
-                                                                  (str (:ns resolved) "/" (:name resolved)))
-                                                    :type :debug))
-                           results))
-                     (if debug?
-                       (update-in results
-                                  [:findings]
-                                  conj
-                                  (assoc first-parsed
-                                         :level :info
-                                         :message (str "Unrecognized call to "
-                                                       (:name first-parsed))
-                                         :type :debug))
-                       results))
-                   results)))))
-          [ns results])))))
+             (-> results
+                 (update :used conj (:ns first-parsed)))))
+          (:duplicate-map-key
+           :missing-map-value
+           :duplicate-set-key
+           :invalid-bindings
+           :invalid-arity)
+          (recur
+           ns
+           rest-parsed
+           (update results
+                   :findings conj (assoc first-parsed
+                                         :filename filename)))
+          ;; catch-all
+          (recur
+           ns
+           rest-parsed
+           (case (:type first-parsed)
+             :debug
+             (if debug?
+               (update-in results
+                          [:findings]
+                          conj
+                          (assoc first-parsed
+                                 :filename filename))
+               results)
+             (let [;; TODO: can we do without this resolve since we already resolved in analyze-expression**?
+                   resolved (resolve-name
+                             (namespace/get-namespace lang expanded-lang (:name ns)) (:name first-parsed))
+                   first-parsed (cond->
+                                    (assoc first-parsed
+                                           :name (:name resolved)
+                                           :ns (:name ns))
+                                  ;; if defined in CLJC file, we add that as the base-lang
+                                  (= :cljc lang)
+                                  (assoc :base-lang lang))]
+               (case (:type first-parsed)
+                 :defn
+                 (let [path (case lang
+                              :cljc [:defs (:name ns) (:lang first-parsed) (:name resolved)]
+                              [:defs (:name ns) (:name resolved)])
+                       results
+                       (if resolved
+                         (assoc-in results path
+                                   (dissoc first-parsed
+                                           :type))
+                         results)]
+                   (if debug?
+                     (update-in results
+                                [:findings]
+                                vconj
+                                (assoc first-parsed
+                                       :level :info
+                                       :filename filename
+                                       :message
+                                       (str/join " "
+                                                 ["Defn resolved as"
+                                                  (str (:ns resolved) "/" (:name resolved)) "with arities"
+                                                  "fixed:"(:fixed-arities first-parsed)
+                                                  "varargs:"(:var-args-min-arity first-parsed)])
+                                       :type :debug))
+                     results))
+                 :call
+                 (if resolved
+                   (let [path [:calls (:ns resolved)]
+                         unqualified? (:unqualified? resolved)
+                         call (cond-> (assoc first-parsed
+                                             :filename filename
+                                             :resolved-ns (:ns resolved)
+                                             :ns-lookup ns)
+                                (:clojure-excluded? resolved)
+                                (assoc :clojure-excluded? true)
+                                unqualified?
+                                (assoc :unqualified? true))
+                         results (do
+                                   (when-not unqualified?
+                                     (namespace/reg-usage! lang expanded-lang (:name ns)
+                                                           (:ns resolved)))
+                                   (cond-> (update-in results path vconj call)
+                                     (not unqualified?)
+                                     (update :used conj (:ns resolved))))]
+                     (if debug? (update-in results [:findings] conj
+                                           (assoc call
+                                                  :level :info
+                                                  :message (str "Call resolved as "
+                                                                (str (:ns resolved) "/" (:name resolved)))
+                                                  :type :debug))
+                         results))
+                   (if debug?
+                     (update-in results
+                                [:findings]
+                                conj
+                                (assoc first-parsed
+                                       :level :info
+                                       :message (str "Unrecognized call to "
+                                                     (:name first-parsed))
+                                       :type :debug))
+                     results))
+                 results)))))
+        [ns results]))))
 
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To
@@ -644,6 +651,7 @@
    (profiler/profile
     :analyze-expressions
     (loop [ns (analyze-ns-decl {:filename filename
+                                :base-lang lang
                                 :lang expanded-lang} (parse-string "(ns user)"))
            [expression & rest-expressions] expressions
            results {:calls {}
