@@ -42,7 +42,9 @@
   (let [ns-name (-> children second :children first :value)
         ns {:type :in-ns
             :name ns-name
-            :lang (:lang ctx)}]
+            :lang (:lang ctx)
+            :vars #{}
+            :used #{}}]
     (namespace/reg-namespace! (:base-lang ctx) (:lang ctx) ns)
     ns))
 
