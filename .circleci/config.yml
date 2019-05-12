@@ -69,8 +69,8 @@ jobs:
           name: Download GraalVM
           command: |
             cd ~
-            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-19.0.0-linux-amd64.tar.gz
-            tar -xzf graalvm-ce-19.0.0-linux-amd64.tar.gz
+            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-linux-amd64-19.0.0.tar.gz
+            tar -xzf graalvm-ce-linux-amd64-19.0.0.tar.gz
       - run:
           name: Build binary
           command: |
@@ -92,8 +92,8 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-19.0.0-linux-amd64.tar.gz
-            - ~/graalvm-ce-19.0.0-linux-amd64
+            - ~/graalvm-ce-linux-amd64-19.0.0.tar.gz
+            - ~/graalvm-ce-19.0.0
           key: buildlinux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
@@ -120,8 +120,8 @@ jobs:
             brew install gettext && brew link gettext
             brew install wget && brew link wget
             cd ~
-            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-19.0.0-macos-amd64.tar.gz
-            tar -xzf graalvm-ce-19.0.0-macos-amd64.tar.gz
+            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-macos-amd64-19.0.0.tar.gz
+            tar -xzf graalvm-ce-macos-amd64-19.0.0.tar.gz
       - run:
           name: Build binary
           command: |
@@ -142,8 +142,8 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-19.0.0-macos-amd64.tar.gz
-            - ~/graalvm-ce-19.0.0-macos-amd64
+            - ~/graalvm-ce-macos-amd64-19.0.0.tar.gz
+            - ~/graalvm-ce-19.0.0
             - /usr/local/Homebrew
             - /usr/local/Cellar
             - /usr/local/opt
