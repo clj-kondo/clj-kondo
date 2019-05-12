@@ -2,19 +2,19 @@
 
 To build a binary from source:
 
-* Download [GraalVM](https://github.com/oracle/graal/releases)
+* Download [GraalVM](https://github.com/oracle/graal/releases) 19 or newer.
 
 * Set the `GRAALVM_HOME` variable. E.g.:
 
-      export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-1.0.0-rc15/Contents/Home
+        export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-19.0.0/Contents/Home
 
 * Clone this repo and `cd clj-kondo`
 
-* Optional. To include a built-in cache for Clojure and ClojureScript:
+* Optional. To update the built-in cache for Clojure and ClojureScript:
 
-      script/built-in
+        script/built-in
 
-* Optional. JDK 12 is needed only in this step. To include static method
+* Optional. JDK 12 is needed only in this step. To update static method
   information from commonly used Java classes:
 
       JAVA_HOME=<path to JDK 12> script/extract-java
@@ -23,6 +23,6 @@ To build a binary from source:
 
 * Finally:
 
-      script/compile
+        script/compile
 
 Place the binary somewhere on your path.
