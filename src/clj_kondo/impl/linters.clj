@@ -155,7 +155,7 @@
 
 (defn resolve-call [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
-        base-lang (or (:base-lang call) call-lang) ;; .cljc, .cljs or .clj file
+        base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
         caller-ns (:ns call)
         ;; this call was unqualified and inferred as a function in the same namespace until now
         unqualified? (:unqualified? call)
@@ -189,7 +189,7 @@
   (let [findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
-                       :let [;; _ (println "CALL" call)
+                       :let [;; _ (println "CALL" (:filename call) call)
                              fn-name (:name call)
                              caller-ns (:ns call)
                              fn-ns (:resolved-ns call)

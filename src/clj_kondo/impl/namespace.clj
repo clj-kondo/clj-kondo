@@ -53,13 +53,13 @@
 
 (defn reg-usage!
   "Registers usage of required namespaced in ns."
-  [lang expanded-lang ns-sym required-ns-sym]
-  (swap! namespaces update-in [lang expanded-lang ns-sym :used]
+  [base-lang lang ns-sym required-ns-sym]
+  (swap! namespaces update-in [base-lang lang ns-sym :used]
          conj required-ns-sym))
 
 (defn reg-alias!
-  [lang expanded-lang ns-sym alias-sym aliased-ns-sym]
-  (swap! namespaces assoc-in [lang expanded-lang ns-sym :qualify-ns alias-sym]
+  [base-lang lang ns-sym alias-sym aliased-ns-sym]
+  (swap! namespaces assoc-in [base-lang lang ns-sym :qualify-ns alias-sym]
          aliased-ns-sym))
 
 (defn list-namespaces []

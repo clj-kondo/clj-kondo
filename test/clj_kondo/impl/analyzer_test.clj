@@ -49,12 +49,12 @@
                                                        (parse-string "(defn get-bytes #^bytes [part] part)")))))))
 
 (deftest analyze-expressions-test
-  (let [analyzed (analyze-expressions "<stdin>" :clj
-                                      (:children (parse-string-all "
+  (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                       :expressions (:children (parse-string-all "
 #_1 (ns bar) (defn quux [a b c])
 #_2 (ns foo (:require [bar :as baz :refer [quux]]))
 (quux 1)
-")))]
+"))})]
     (assert-some-submap '{:type :call,
                           :name quux,
                           :arity 1,
@@ -69,13 +69,14 @@
                       :ns bar
                       :lang :clj}}
                    (get-in analyzed '[:defs bar])))
-  (let [analyzed (analyze-expressions "<stdin>" :clj
-                                      (:children (parse-string-all "
+  (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                       :expressions
+                                       (:children (parse-string-all "
 #_1 (ns clj-kondo.impl.utils
 #_2  {:no-doc true}
 #_3  (:require [rewrite-clj.parser :as p]))
 #_4 (p/parse-string \"(+ 1 2 3)\")
-")))]
+"))})]
     analyzed
     (assert-submap '{:type :call,
                      :name parse-string ;;p/parse-string,
@@ -84,11 +85,11 @@
                      :lang :clj}
                    (get-in analyzed '[:calls rewrite-clj.parser 0])))
   (testing "calling functions from own ns"
-    (let [analyzed (analyze-expressions "<stdin>" :clj
-                                        (:children (parse-string-all "
+    (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                         :expressions (:children (parse-string-all "
 #_1 (ns clj-kondo.main)
 #_2 (defn foo [x]) (foo 1)
-")))]
+"))})]
       (assert-some-submap '{:type :call,
                             :name foo,
                             :arity 1,
@@ -104,10 +105,11 @@
                         :lang :clj}}
                      (get-in analyzed '[:defs clj-kondo.main]))))
   (testing "calling functions from file without ns form"
-    (let [analyzed (analyze-expressions "<stdin>" :clj
-                                        (:children (parse-string-all "
+    (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                         :expressions
+                                         (:children (parse-string-all "
 (defn foo [x]) (foo 1)
-")))]
+"))})]
       (assert-some-submap '{:type :call, :name foo,
                             :arity 1, :row 2, :col 16, :ns user, :lang :clj}
                           (get-in analyzed '[:calls user]))

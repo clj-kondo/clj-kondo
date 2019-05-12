@@ -124,12 +124,13 @@
         ;; TODO: parsed bodies isn't needed
         (if fn-name
           (do
-            (namespace/reg-var! ctx (:name ns) fn-name expr)
             (cond-> {:type :defn
                      :name fn-name
                      :row row
                      :col col
-                     :lang lang}
+                     :base-lang base-lang
+                     :lang lang
+                     :expr expr}
               macro? (assoc :macro true)
               (seq fixed-arities) (assoc :fixed-arities fixed-arities)
               private? (assoc :private? private?)
@@ -432,6 +433,7 @@
                        :name resolved-name
                        :row row
                        :col col
+                       :base-lang base-lang
                        :lang lang
                        :expr expr})]
             (cons* use
@@ -447,6 +449,7 @@
                             :name resolved-as-clojure-var-name
                             :row row
                             :col col
+                            :base-lang base-lang
                             :lang lang
                             :expr expr
                             :arity arg-count}
@@ -486,6 +489,7 @@
                               :name 'schema.core/defn
                               :row row
                               :col col
+                              :base-lang base-lang
                               :lang lang
                               :expr expr
                               :arity arg-count}
@@ -499,6 +503,7 @@
                                          :name resolved-name
                                          :row row
                                          :col col
+                                         :base-lang base-lang
                                          :lang lang
                                          :expr expr}
                                         {:type :call
@@ -506,6 +511,7 @@
                                          :arity arg-count
                                          :row row
                                          :col col
+                                         :base-lang base-lang
                                          :lang lang
                                          :expr expr
                                          :parents (:parents ctx)})
@@ -517,12 +523,13 @@
                            (analyze-children ctx children))))))))))))
 
 (defn analyze-expression*
-  [filename lang expanded-lang ns results expression debug?]
+  [{:keys [:filename :base-lang :lang :results :ns :expression :debug?]}]
   (let [ctx {:filename filename
-             :base-lang lang
-             :lang expanded-lang
+             :base-lang base-lang
+             :lang lang
              :ns ns
              :bindings #{}}]
+    ;; (println "BASE LANG" base-lang lang)
     (loop [ns ns
            [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
            results results]
@@ -539,7 +546,7 @@
                (update :required into (:required first-parsed))))
           :use
           (do
-            (namespace/reg-usage! lang expanded-lang (:name ns) (:ns first-parsed))
+            (namespace/reg-usage! base-lang lang (:name ns) (:ns first-parsed))
             (recur
              ns
              rest-parsed
@@ -571,24 +578,24 @@
                results)
              (let [;; TODO: can we do without this resolve since we already resolved in analyze-expression**?
                    resolved (resolve-name
-                             (namespace/get-namespace lang expanded-lang (:name ns)) (:name first-parsed))
-                   first-parsed (cond->
-                                    (assoc first-parsed
-                                           :name (:name resolved)
-                                           :ns (:name ns))
-                                  ;; if defined in CLJC file, we add that as the base-lang
-                                  (= :cljc lang)
-                                  (assoc :base-lang lang))]
+                             (namespace/get-namespace base-lang lang (:name ns)) (:name first-parsed))
+                   first-parsed (assoc first-parsed
+                                       :name (:name resolved)
+                                       :ns (:name ns))]
                (case (:type first-parsed)
                  :defn
-                 (let [path (case lang
-                              :cljc [:defs (:name ns) (:lang first-parsed) (:name resolved)]
+                 (let [;; _ (println "LANG FP" (name (:lang first-parsed)))
+                       path (if (= :cljc base-lang)
+                              [:defs (:name ns) (:lang first-parsed) (:name resolved)]
                               [:defs (:name ns) (:name resolved)])
                        results
                        (if resolved
-                         (assoc-in results path
-                                   (dissoc first-parsed
-                                           :type))
+                         (do
+                           (namespace/reg-var! ctx (:name ns) (:name resolved) (:expr first-parsed))
+                           (assoc-in results path
+                                     (dissoc first-parsed
+                                             :type
+                                             :expr)))
                          results)]
                    (if debug?
                      (update-in results
@@ -619,7 +626,7 @@
                                 (assoc :unqualified? true))
                          results (do
                                    (when-not unqualified?
-                                     (namespace/reg-usage! lang expanded-lang (:name ns)
+                                     (namespace/reg-usage! base-lang lang (:name ns)
                                                            (:ns resolved)))
                                    (cond-> (update-in results path vconj call)
                                      (not unqualified?)
@@ -649,26 +656,30 @@
   optimize cache lookups later on, calls are indexed by the namespace
   they call to, not the ns where the call occurred. Also collects
   other findings and passes them under the :findings key."
-  ([filename lang expressions] (analyze-expressions filename lang lang expressions))
-  ([filename lang expanded-lang expressions] (analyze-expressions filename lang expanded-lang expressions false))
-  ([filename lang expanded-lang expressions debug?]
-   (profiler/profile
-    :analyze-expressions
-    (loop [ns (analyze-ns-decl {:filename filename
-                                :base-lang lang
-                                :lang expanded-lang} (parse-string "(ns user)"))
-           [expression & rest-expressions] expressions
-           results {:calls {}
-                    :defs {}
-                    :required (:required ns)
-                    :used (:used ns)
-                    :findings []
-                    :lang lang}]
-      (if expression
-        (let [[ns results]
-              (analyze-expression* filename lang expanded-lang ns results expression debug?)]
-          (recur ns rest-expressions results))
-        results)))))
+  [{:keys [:filename :base-lang :lang :expressions :debug?]}]
+  (profiler/profile
+   :analyze-expressions
+   (loop [ns (analyze-ns-decl {:filename filename
+                               :base-lang base-lang
+                               :lang lang} (parse-string "(ns user)"))
+          [expression & rest-expressions] expressions
+          results {:calls {}
+                   :defs {}
+                   :required (:required ns)
+                   :used (:used ns)
+                   :findings []
+                   :lang base-lang}]
+     (if expression
+       (let [[ns results]
+             (analyze-expression* {:filename filename
+                                   :base-lang base-lang
+                                   :lang lang
+                                   :ns ns
+                                   :results results
+                                   :expression expression
+                                   :debug? debug?})]
+         (recur ns rest-expressions results))
+       results))))
 
 ;;;; processing of string input
 
@@ -683,15 +694,23 @@
           findings {:findings (concat nls ods)
                     :lang lang}
           analyzed-expressions
-          (case lang :cljc
-                (let [clj (analyze-expressions filename lang
-                                               :clj (:children (select-lang parsed :clj)))
-                      cljs (analyze-expressions filename lang
-                                                :cljs (:children (select-lang parsed :cljs)))]
-                  (profiler/profile :deep-merge
-                                    (deep-merge clj cljs)))
-                (analyze-expressions filename lang lang
-                                     (:children parsed)))]
+          (if (= :cljc lang)
+            (let [clj (analyze-expressions {:filename filename
+                                            :base-lang :cljc
+                                            :lang :clj
+                                            :expressions (:children (select-lang parsed :clj))})
+                  cljs (analyze-expressions {:filename filename
+                                             :base-lang :cljc
+                                             :lang :cljs
+                                             :expressions (:children (select-lang parsed :cljs))})]
+              (profiler/profile :deep-merge
+                                (deep-merge clj cljs)))
+            (analyze-expressions {:filename filename
+                                  :base-lang lang
+                                  :lang lang
+                                  :expressions
+                                  (:children parsed)}))]
+      #_(prn "ANALUZED" filename analyzed-expressions)
       [findings analyzed-expressions])
     (catch Exception e
       (if dev? (throw e)

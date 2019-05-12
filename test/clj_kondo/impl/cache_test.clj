@@ -41,8 +41,7 @@
                  (io/file test-source-dir (str "foo."
                                                (name lang))))
         (lint! test-source-dir "--cache" test-cache-dir)
-        (testing
-            "var foo is found in cache of namespace foo"
+        (testing (format "var foo is found in cache of namespace foo (%s)" lang)
           (let [foo-cache (cache/from-cache-1
                            (io/file test-cache-dir cache-version)
                            lang 'foo)]

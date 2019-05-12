@@ -311,6 +311,7 @@ Options:
                  (let [processed
                        (process-files files default-lang)
                        idacs (index-defs-and-calls processed)
+                       ;; _ (prn "IDACS" idacs)
                        idacs (cache/sync-cache idacs cache-dir)
                        idacs (overrides idacs)
                        linted-calls (doall (l/lint-calls idacs))
