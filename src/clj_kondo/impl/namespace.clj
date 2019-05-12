@@ -7,7 +7,8 @@
    [clojure.set :as set]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
-   [rewrite-clj.node.token :refer [token-node]]))
+   [rewrite-clj.node.token :refer [token-node]]
+   [clj-kondo.impl.var-info :as var-info]))
 
 ;; we store all seen namespaces here, so we could resolve in the call linter,
 ;; instead of too early, because of in-ns.
@@ -23,17 +24,52 @@
                    path deep-merge ns)
             path)))
 
+(defn reg-var!
+  [ctx ns-sym var-sym expr]
+  (let [lang (:base-lang ctx)
+        expanded-lang (:lang ctx)
+        path [lang expanded-lang ns-sym]]
+    (swap! namespaces update-in path
+           (fn [ns]
+             (let [vars (:vars ns)]
+               (when-let [redefined-ns
+                          (or (when (contains? vars var-sym)
+                                ns-sym)
+                              (when-let [qv (get (:qualify-var ns) var-sym)]
+                                (:ns qv))
+                              (let [core-ns (case expanded-lang
+                                              :clj 'clojure.core
+                                              :cljs 'cljs.core)]
+                                (when (and (not= ns-sym core-ns)
+                                           (not (contains? (:clojure-excluded ns) var-sym))
+                                           (var-info/core-sym? expanded-lang var-sym))
+                                  core-ns)))]
+                 (state/reg-finding!
+                  (node->line (:filename ctx)
+                              expr :warning
+                              :redefined-var
+                              (str "redefining " (str redefined-ns "/" var-sym))))))
+             (update ns :vars conj var-sym)))))
+
 (defn reg-usage!
   "Registers usage of required namespaced in ns."
-  [lang expanded-lang ns-sym required-ns-sym]
-  (swap! namespaces update-in [lang expanded-lang ns-sym :used]
+  [base-lang lang ns-sym required-ns-sym]
+  (swap! namespaces update-in [base-lang lang ns-sym :used]
          conj required-ns-sym))
+
+(defn reg-alias!
+  [base-lang lang ns-sym alias-sym aliased-ns-sym]
+  (swap! namespaces assoc-in [base-lang lang ns-sym :qualify-ns alias-sym]
+         aliased-ns-sym))
 
 (defn list-namespaces []
   (for [[_base-lang m] @namespaces
         [_lang nss] m
         [_ns-name ns] nss]
     ns))
+
+(defn get-namespace [lang expanded-lang ns-sym]
+  (get-in @namespaces [lang expanded-lang ns-sym]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 
@@ -56,10 +92,8 @@
 (defn- normalize-libspec
   "Adapted from clojure.tools.namespace."
   [prefix libspec-expr]
-  ;; (println libspec-expr)
   (let [children (:children libspec-expr)
         form (node/sexpr libspec-expr)]
-    ;;(println "FORM" form)
     (cond (prefix-spec? form)
           (mapcat (fn [f]
                     (normalize-libspec
@@ -162,16 +196,14 @@
                                                      Integer Long Math String System Thread])
                 (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
 
-(defn analyze-ns-decl [{:keys [:lang] :as ctx} expr]
+(defn analyze-ns-decl [{:keys [:base-lang :lang] :as ctx} expr]
   (let [children (:children expr)
         clauses (next children)
         clauses
         (for [?require-clause clauses
-              ;; :let [_ (println ">" (some-> ?require-clause :children first node/sexpr))]
               :when (contains? #{:require :require-macros}
                                (some-> ?require-clause :children first node/sexpr))
               libspec-expr (rest (:children ?require-clause)) ;; TODO: fix meta
-              ;; :let [_ (prn ">" (meta libspec-expr))]
               normalized-libspec-expr (normalize-libspec nil libspec-expr)
               analyzed (analyze-libspec ctx normalized-libspec-expr)]
           analyzed)
@@ -180,45 +212,48 @@
                                (assoc acc (:ns clause) (:excluded clause))
                                acc))
                            {}
-                           clauses)]
-    (cond->
-        {:type :ns
-         :lang lang
-         :name (or
-                (let [name-expr (second children)]
-                  (when-let [?name (node/sexpr name-expr)]
-                    (if (symbol? ?name) ?name
-                        (state/reg-finding!
-                         (node->line (:filename ctx)
-                                     name-expr
-                                     :error
-                                     :ns-syntax
-                                     "namespace name expected")))))
-                'user)
-         :required (map :ns clauses)
-         :qualify-var (into {} (mapcat :referred clauses))
-         :qualify-ns (reduce (fn [acc sc]
-                               (cond-> (assoc acc (:ns sc) (:ns sc))
-                                 (:as sc)
-                                 (assoc (:as sc) (:ns sc))))
-                             {}
-                             clauses)
-         :clojure-excluded (set (for [?refer-clojure (nnext (node/sexpr expr))
-                                      :when (= :refer-clojure (first ?refer-clojure))
-                                      [k v] (partition 2 (rest ?refer-clojure))
-                                      :when (= :exclude k)
-                                      sym v]
-                                  sym))
-         :refer-alls refer-alls
-         :used (into
-                (case lang
-                  :clj '#{clojure.core}
-                  :cljs '#{cljs.core})
-                (keys refer-alls))}
-      (= :clj lang) (update :qualify-ns
-                            #(assoc % 'clojure.core 'clojure.core))
-      (= :cljs lang) (update :qualify-ns
-                             #(assoc % 'cljs.core 'cljs.core)))))
+                           clauses)
+        ns (cond->
+               {:type :ns
+                :lang lang
+                :name (or
+                       (let [name-expr (second children)]
+                         (when-let [?name (node/sexpr name-expr)]
+                           (if (symbol? ?name) ?name
+                               (state/reg-finding!
+                                (node->line (:filename ctx)
+                                            name-expr
+                                            :error
+                                            :ns-syntax
+                                            "namespace name expected")))))
+                       'user)
+                :vars #{}
+                :required (map :ns clauses)
+                :qualify-var (into {} (mapcat :referred clauses))
+                :qualify-ns (reduce (fn [acc sc]
+                                      (cond-> (assoc acc (:ns sc) (:ns sc))
+                                        (:as sc)
+                                        (assoc (:as sc) (:ns sc))))
+                                    {}
+                                    clauses)
+                :clojure-excluded (set (for [?refer-clojure (nnext (node/sexpr expr))
+                                             :when (= :refer-clojure (first ?refer-clojure))
+                                             [k v] (partition 2 (rest ?refer-clojure))
+                                             :when (= :exclude k)
+                                             sym v]
+                                         sym))
+                :refer-alls refer-alls
+                :used (into
+                       (case lang
+                         :clj '#{clojure.core}
+                         :cljs '#{cljs.core})
+                       (keys refer-alls))}
+             (= :clj lang) (update :qualify-ns
+                                   #(assoc % 'clojure.core 'clojure.core))
+             (= :cljs lang) (update :qualify-ns
+                                    #(assoc % 'cljs.core 'cljs.core)))]
+    (reg-namespace! base-lang lang ns)
+    ns))
 
 (defn resolve-name
   [ns name-sym]
@@ -238,11 +273,15 @@
     (or
      (get (:qualify-var ns)
           name-sym)
-     (let [clojure-excluded? (contains? (:clojure-excluded ns)
+     (when (contains? (:vars ns) name-sym)
+       {:ns (:name ns)
+        :name name-sym})
+     (let [;; _ (println "LANG" (:lang ns))
+           clojure-excluded? (contains? (:clojure-excluded ns)
                                         name-sym)
            namespace (:name ns)
            core-sym? (when-not clojure-excluded?
-                       (contains? var-info/core-syms name-sym))
+                       (var-info/core-sym? (:lang ns) name-sym))
            special-form? (contains? var-info/special-forms name-sym)]
        (if (or core-sym? special-form?)
          {:ns (case (:lang ns)

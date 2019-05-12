@@ -1,8 +1,9 @@
 (ns clj-kondo.impl.analyzer-test
   (:require
    [clj-kondo.impl.analyzer :as ana :refer [analyze-expressions]]
-   [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clj-kondo.impl.metadata :refer [lift-meta]]
+   [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clj-kondo.test-utils :refer [assert-submap assert-some-submap assert-submaps]]
    [clojure.test :as t :refer [deftest is are testing]]
    [rewrite-clj.node.protocols :as node]))
@@ -21,32 +22,39 @@
   (is (= "[B" (:tag (meta (lift-meta "." (parse-string "^\"[B\" body")))))))
 
 (deftest analyze-defn-test
-  (assert-submaps
-   '[{:name chunk-buffer, :fixed-arities #{1}}
-     {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
-   (ana/analyze-defn {:lang :clj}
-                     (lift-meta
-                      "."
-                      (parse-string
-                       "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
+  (let [ns (namespace/analyze-ns-decl {:filename "-"
+                                       :base-lang :clj
+                                       :lang :clj} (parse-string "(ns user)"))]
+    (assert-submaps
+     '[{:name chunk-buffer, :fixed-arities #{1}}
+       {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
+     (ana/analyze-defn {:ns ns
+                        :base-lang :clj
+                        :lang :clj}
+                       (lift-meta
+                        "."
+                        (parse-string
+                         "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
   (clojure.lang.ChunkBuffer. capacity))"))))
-  (assert-submap '{:type :defn
-                   :name get-bytes,
-                   :row 1,
-                   :col 1,
-                   :lang :clj,
-                   :fixed-arities #{1}}
-                 (first (ana/analyze-defn {:lang :clj}
-                                          (lift-meta "."
-                                                     (parse-string "(defn get-bytes #^bytes [part] part)"))))))
+    (assert-submap '{:type :defn
+                     :name get-bytes,
+                     :row 1,
+                     :col 1,
+                     :lang :clj,
+                     :fixed-arities #{1}}
+                   (first (ana/analyze-defn {:ns ns
+                                             :base-lang :clj
+                                             :lang :clj}
+                                            (lift-meta "."
+                                                       (parse-string "(defn get-bytes #^bytes [part] part)")))))))
 
 (deftest analyze-expressions-test
-  (let [analyzed (analyze-expressions "<stdin>" :clj
-                                      (:children (parse-string-all "
+  (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                       :expressions (:children (parse-string-all "
 #_1 (ns bar) (defn quux [a b c])
 #_2 (ns foo (:require [bar :as baz :refer [quux]]))
 (quux 1)
-")))]
+"))})]
     (assert-some-submap '{:type :call,
                           :name quux,
                           :arity 1,
@@ -61,13 +69,14 @@
                       :ns bar
                       :lang :clj}}
                    (get-in analyzed '[:defs bar])))
-  (let [analyzed (analyze-expressions "<stdin>" :clj
-                                      (:children (parse-string-all "
+  (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                       :expressions
+                                       (:children (parse-string-all "
 #_1 (ns clj-kondo.impl.utils
 #_2  {:no-doc true}
 #_3  (:require [rewrite-clj.parser :as p]))
 #_4 (p/parse-string \"(+ 1 2 3)\")
-")))]
+"))})]
     analyzed
     (assert-submap '{:type :call,
                      :name parse-string ;;p/parse-string,
@@ -76,11 +85,11 @@
                      :lang :clj}
                    (get-in analyzed '[:calls rewrite-clj.parser 0])))
   (testing "calling functions from own ns"
-    (let [analyzed (analyze-expressions "<stdin>" :clj
-                                        (:children (parse-string-all "
+    (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                         :expressions (:children (parse-string-all "
 #_1 (ns clj-kondo.main)
 #_2 (defn foo [x]) (foo 1)
-")))]
+"))})]
       (assert-some-submap '{:type :call,
                             :name foo,
                             :arity 1,
@@ -96,10 +105,11 @@
                         :lang :clj}}
                      (get-in analyzed '[:defs clj-kondo.main]))))
   (testing "calling functions from file without ns form"
-    (let [analyzed (analyze-expressions "<stdin>" :clj
-                                        (:children (parse-string-all "
+    (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                         :expressions
+                                         (:children (parse-string-all "
 (defn foo [x]) (foo 1)
-")))]
+"))})]
       (assert-some-submap '{:type :call, :name foo,
                             :arity 1, :row 2, :col 16, :ns user, :lang :clj}
                           (get-in analyzed '[:calls user]))

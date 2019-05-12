@@ -7,7 +7,7 @@
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest inline-def-test
-  (let [linted (lint! (io/file "corpus" "inline_def.clj"))
+  (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
         row-col-files (set (map #(select-keys % [:row :col :file])
                                 linted))]
     (is (= #{{:row 5, :col 3, :file "corpus/inline_def.clj"}
@@ -78,17 +78,17 @@
 (ns myns)
 (inc 1 2 3)
 "
-        linted (lint! invalid-core-function-call-example)]
+        linted (lint! invalid-core-function-call-example "--config" "{:linters {:redefined-var {:level :off}}}")]
     (is (pos? (count linted)))
     (is (every? #(str/includes? % "wrong number of args")
                 linted)))
   (is (empty? (lint! "(defn foo [x]) (defn bar [foo] (foo))")))
   (is (empty? (lint! "(defn foo [x]) (let [foo (fn [])] (foo))")))
   (testing "macroexpansion of ->"
-    (is (empty? (lint! "(defn inc [x] (+ x 1)) (-> x inc inc)")))
-    (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) (-> x inc (inc 1))")))))
+    (is (empty? (lint! "(defn xinc [x] (+ x 1)) (-> x xinc xinc)")))
+    (is (= 1 (count (lint! "(defn xinc [x] (+ x 1)) (-> x xinc (xinc 1))")))))
   (testing "macroexpansion of fn literal"
-    (is (= 1 (count (lint! "(defn inc [x] (+ x 1)) #(-> % inc (inc 1))")))))
+    (is (= 1 (count (lint! "(defn xinc [x] (+ x 1)) #(-> % xinc (xinc 1))")))))
   (testing "only invalid calls after definition are caught"
     (let [linted (lint! (io/file "corpus" "invalid_arity" "order.clj"))
           row-col-files (set (map #(select-keys % [:row :col :file])
@@ -108,9 +108,12 @@
        {:file "<stdin>",
         :row 1,
         :col 8,
-        :level :error,
+        :level :error
         :message "wrong number of args (0) passed to clojure.core/defmacro"})
-     (lint! "(defn) (defmacro)"))))
+     (lint! "(defn) (defmacro)")))
+  (testing "redefining clojure var gives no error about incorrect arity of clojure var"
+    (is (empty? (lint! "(defn inc [x y] (+ x y))
+                        (inc 1 1)" "--config" "{:linters {:redefined-var {:level :off}}}")))))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
@@ -444,7 +447,8 @@
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1))")))
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1 2 3 4 5 6))")))
   (is (empty? (lint! "(fn ^:static meta [x] (if (instance? clojure.lang.IMeta x)
-                       (. ^clojure.lang.IMeta x (meta))))"))))
+                       (. ^clojure.lang.IMeta x (meta))))")))
+  (is (empty? (lint! "(doseq [fn [inc]] (fn 1))"))))
 
 (deftest let-test
   (assert-submap
@@ -868,6 +872,42 @@
            clojure.lang.IChunkedSeq
            (internal-reduce [s f val]
             (recur (chunk-next s) f val)))"))))
+
+(deftest redefined-var-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 15,
+      :level :warning,
+      :message "redefining user/foo"})
+   (lint! "(defn foo []) (defn foo [])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "redefining clojure.core/inc"})
+   (lint! "(defn inc [])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "redefining cljs.core/inc"})
+   (lint! "(defn inc [])" "--lang" "cljs"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 20,
+                     :level :warning,
+                     :message "unused namespace bar"}
+                    {:file "<stdin>",
+                     :row 1,
+                     :col 38,
+                     :level :warning,
+                     :message "redefining bar/x"})
+                  (lint! "(ns foo (:require [bar :refer [x]])) (defn x [])"))
+  (is (empty? (lint! "(defn foo [])")))
+  (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])"))))
 
 ;;;; Scratch
 
