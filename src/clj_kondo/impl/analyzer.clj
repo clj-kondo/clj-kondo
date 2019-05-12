@@ -488,8 +488,15 @@
                      (analyze-loop ctx expr)
                      recur
                      (analyze-recur ctx expr)
-                     (for doseq)
-                     nil ;; skip for now
+                     (for doseq) ;; skip linting body for now
+                     [{:type :call
+                       :name resolved-as-clojure-var-name
+                       :row row
+                       :col col
+                       :base-lang base-lang
+                       :lang lang
+                       :expr expr
+                       :arity arg-count}]
                      ;; catch-all
                      (case [resolved-namespace resolved-name]
                        [schema.core defn]
