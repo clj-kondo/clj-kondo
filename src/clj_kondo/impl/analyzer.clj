@@ -488,6 +488,8 @@
                      (analyze-loop ctx expr)
                      recur
                      (analyze-recur ctx expr)
+                     (for doseq)
+                     nil ;; skip for now
                      ;; catch-all
                      (case [resolved-namespace resolved-name]
                        [schema.core defn]

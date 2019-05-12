@@ -915,10 +915,6 @@
       :message "unreachable code"})
    (lint! "(cond :else 1 (odd? 1) 2)")))
 
-#_(deftest doseq-test
-  (is (empty? (lint! "(for [select-keys []] (select-keys 1))")))
-  (is (empty? (lint! "(doseq [select-keys []] (select-keys 1))"))))
-
 (deftest dont-crash-analyzer-test
   (doseq [example ["(let)" "(if-let)" "(when-let)" "(loop)" "(doseq)"]
           :let [prog (str example " (inc)")]]
@@ -929,6 +925,10 @@
                           :message "wrong number of args (0) passed to clojure.core/inc"}
                          finding))
               (lint! prog)))))
+
+(deftest for-doseq-test
+  (is (empty? (lint! "(for [select-keys []] (select-keys 1))")))
+  (is (empty? (lint! "(doseq [select-keys []] (select-keys 1))"))))
 
 ;;;; Scratch
 
