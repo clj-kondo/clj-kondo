@@ -1,7 +1,7 @@
 (ns clj-kondo.main-test
   (:require
    [clj-kondo.main :refer [main]]
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap submap?]]
    [clojure.java.io :as io]
    [clojure.string :as str :refer [trim]]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -735,10 +735,10 @@
   (is (empty? (lint! "(loop [x 1 y 2] (recur x y))")))
   (assert-submaps
    '({:file "<stdin>",
-     :row 1,
-     :col 17,
-     :level :error,
-     :message "recur argument count mismatch (expected 2, got 3)"})
+      :row 1,
+      :col 17,
+      :level :error,
+      :message "recur argument count mismatch (expected 2, got 3)"})
    (lint! "(loop [x 1 y 2] (recur x y x))"))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
@@ -914,6 +914,21 @@
       :level :warning,
       :message "unreachable code"})
    (lint! "(cond :else 1 (odd? 1) 2)")))
+
+#_(deftest doseq-test
+  (is (empty? (lint! "(for [select-keys []] (select-keys 1))")))
+  (is (empty? (lint! "(doseq [select-keys []] (select-keys 1))"))))
+
+(deftest dont-crash-analyzer-test
+  (doseq [example ["(let)" "(if-let)" "(when-let)" "(loop)" "(doseq)"]
+          :let [prog (str example " (inc)")]]
+    (is (some (fn [finding]
+                (submap? {:file "<stdin>",
+                          :row 1,
+                          :level :error,
+                          :message "wrong number of args (0) passed to clojure.core/inc"}
+                         finding))
+              (lint! prog)))))
 
 ;;;; Scratch
 
