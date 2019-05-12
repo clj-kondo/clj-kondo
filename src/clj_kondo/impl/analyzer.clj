@@ -123,18 +123,17 @@
         defn
         ;; TODO: parsed bodies isn't needed
         (if fn-name
-          (do
-            (cond-> {:type :defn
-                     :name fn-name
-                     :row row
-                     :col col
-                     :base-lang base-lang
-                     :lang lang
-                     :expr expr}
-              macro? (assoc :macro true)
-              (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-              private? (assoc :private? private?)
-              var-args-min-arity (assoc :var-args-min-arity var-args-min-arity)))
+          (cond-> {:type :defn
+                   :name fn-name
+                   :row row
+                   :col col
+                   :base-lang base-lang
+                   :lang lang
+                   :expr expr}
+            macro? (assoc :macro true)
+            (seq fixed-arities) (assoc :fixed-arities fixed-arities)
+            private? (assoc :private? private?)
+            var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))
           {:type :debug
            :level :info
            :message "Could not parse defn form"

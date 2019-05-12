@@ -2,7 +2,8 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [some-call node->line
-                                 tag call parse-string]]
+                                 tag call parse-string
+                                 constant?]]
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
@@ -69,10 +70,20 @@
 (defn lint-def [filename expr]
   (mapcat #(lint-def* filename % true) (:children expr)))
 
-(defn lint-cond-without-else! [filename expr last-condition]
-  (when (not= :else (node/sexpr last-condition))
-    (state/reg-finding!
-     (node->line filename expr :warning :cond-without-else "cond without :else"))))
+(defn lint-cond-constants! [filename conditions]
+  (loop [[condition & rest-conditions] conditions]
+    (when condition
+      (let [v (node/sexpr condition)]
+        (when-not (or (nil? v) (false? v))
+          (when (and (constant? condition)
+                     (not (or (nil? v) (false? v))))
+            (when (not= :else v)
+              (state/reg-finding!
+               (node->line filename condition :warning :cond-else "prefer :else")))
+            (when (and (seq rest-conditions))
+              (state/reg-finding!
+               (node->line filename (first rest-conditions) :warning :unreachable-code "unreachable code"))))))
+      (recur rest-conditions))))
 
 (defn =? [sexpr]
   (and (list? sexpr)
@@ -111,7 +122,7 @@
   (when-not (even? (count (rest (:children expr))))
     (state/reg-finding!
      (node->line filename expr :error :even-number-of-forms
-                 (format "cond requires an even number of forms")))
+                 (format "cond requires even number of forms")))
     true))
 
 (defn lint-cond [filename expr]
@@ -121,7 +132,7 @@
              (take-nth 2))]
     (when-not (lint-cond-even-number-of-forms! filename expr)
       (when (seq conditions)
-        (lint-cond-without-else! filename expr (last conditions))
+        (lint-cond-constants! filename conditions)
         #_(lint-cond-as-case! filename expr conditions)))))
 
 (defn lint-missing-test-assertion [filename call called-fn]

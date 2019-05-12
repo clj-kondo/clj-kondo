@@ -205,34 +205,31 @@
 
 (deftest cond-test
   (doseq [lang [:clj :cljs :cljc]]
-    (assert-submaps
-     '({:row 7,
-        :col 1,
-        :level :warning,
-        :message "cond without :else"}
-       {:row 14,
-        :col 1,
-        :level :warning,
-        :message "cond without :else"})
-     (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))
-    (assert-submaps
-     '({:file "<stdin>",
-        :row 1,
-        :col 1,
-        :level :error,
-        :message "cond requires an even number of forms"})
-     (lint! "(cond 1 2 3)" "--lang" (name lang))))
+    (testing (str "lang: " lang)
+      (assert-submaps
+       '({:row 9,
+          :col 3,
+          :level :warning}
+         {:row 16,
+          :col 3,
+          :level :warning})
+       (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))
+      (assert-submaps
+       '({:file "<stdin>",
+          :row 1,
+          :col 1,
+          :level :error,
+          :message "cond requires even number of forms"})
+       (lint! "(cond 1 2 3)" "--lang" (name lang)))))
   (assert-submaps
    '({:file "corpus/cond_without_else/core.cljc",
       :row 6,
-      :col 10,
-      :level :warning,
-      :message "cond without :else"}
+      :col 21,
+      :level :warning}
      {:file "corpus/cond_without_else/core.cljs",
       :row 3,
-      :col 1,
-      :level :warning,
-      :message "cond without :else"})
+      :col 7,
+      :level :warning})
    (lint! [(io/file "corpus" "cond_without_else" "core.cljc")
            (io/file "corpus" "cond_without_else" "core.cljs")])))
 
@@ -517,7 +514,7 @@
   (is (empty?
        (lint! "(let [x 1] (let [y 2]))" "--config" "{:linters {:redundant-let {:level :off}}}")))
   (is (empty?
-       (lint! "(cond 1 2)" "--config" "{:linters {:cond-without-else {:level :off}}}")))
+       (lint! "(cond 1 2)" "--config" "{:linters {:cond-else {:level :off}}}")))
   (is (str/starts-with?
        (with-out-str
          (lint! (io/file "corpus") "--config" "{:output {:show-progress true}}"))
@@ -908,6 +905,15 @@
                   (lint! "(ns foo (:require [bar :refer [x]])) (defn x [])"))
   (is (empty? (lint! "(defn foo [])")))
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])"))))
+
+(deftest unreachable-code-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 15,
+      :level :warning,
+      :message "unreachable code"})
+   (lint! "(cond :else 1 (odd? 1) 2)")))
 
 ;;;; Scratch
 

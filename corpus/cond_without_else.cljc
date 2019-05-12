@@ -6,14 +6,14 @@
 
 (c/cond
   (neg? n) "negative"
-  (pos? n) "positive")
+  :default "positive")
 
 (ns cond-without-else2)
 (def n (rand-int 10))
 
 (cond
   (neg? n) "negative"
-  (pos? n) "positive")
+  :default "positive")
 
 ;; this one should not be caught:
 (cond
