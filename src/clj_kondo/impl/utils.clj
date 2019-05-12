@@ -133,8 +133,40 @@
   ([a b & more]
    (apply merge-with deep-merge a b more)))
 
+#_(defn- constant-val?
+  [x]
+  (c/or (nil? x)
+        (boolean? x)
+        (number? x)
+        (string? x)
+        (ident? x)
+        (char? x)
+        (c/and (coll? x) (empty? x))
+        (c/and (c/or (vector? x) (set? x) (map? x))
+               (every? constant-val? x))))
+
+(defn- constant-val?
+  [v]
+  (or (boolean? v)
+      (string? v)
+      (char? v)
+      (number? v)
+      (keyword? v)
+      (and (list? v) (= 'quote (first v)))
+      (and (or (vector? v) (set? v) (map? v))
+           (every? constant-val? v))))
+
+(defn constant?
+  "returns true of expr represents a compile time constant"
+  [expr]
+  (let [v (node/sexpr expr)]
+    (constant-val? v)))
+
 ;;;; Scratch
 
 (comment
   (meta (lift-meta (parse-string "^:private [x]")))
+  (false? (node/sexpr (parse-string "false")))
+  (false? (node/sexpr (parse-string "nil")))
+  (constant? (parse-string "foo"))
   )

@@ -1,6 +1,5 @@
 (ns clj-kondo.impl.state
-  {:no-doc true}
-  (:require [clojure.string :as str]))
+  {:no-doc true})
 
 (defonce findings (atom []))
 

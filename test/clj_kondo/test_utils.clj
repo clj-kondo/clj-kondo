@@ -39,7 +39,7 @@
   (doall
    (keep
     (fn [line]
-      (if-let [[_ file row col level message] (re-matches #"(.*):(.*):(.*): (.*): (.*)" line)]
+      (if-let [[_ file row col level message] (re-matches #"(.+):(\d+):(\d+): (\w+): (.*)" line)]
         {:file file
          :row (Integer/parseInt row)
          :col (Integer/parseInt col)
