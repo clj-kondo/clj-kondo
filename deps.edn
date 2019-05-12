@@ -12,6 +12,8 @@
                         "-J-Dclojure.spec.skip-macros=true"
                         "-J-Dclojure.compiler.direct-linking=true"
                         "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*/.*transit.json$"
+                        "-H:ReflectionConfigurationFiles=reflection.json"
+                        "--initialize-at-build-time"
                         "-H:Log=registerResource:"
                         "--verbose"
                         "-J-Xmx3g"]
@@ -20,7 +22,7 @@
              {:local/root "/Users/Borkdude/git/clj.native-image"}}
             {clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
-              :sha "498baa963e914fd817dbf33ea251729efd0c8f95"}}}
+              :sha "567176ddb0f7507c8b0969e0a10f60f848afaf7d"}}}
            :test
            {:extra-deps
             {test-runner
