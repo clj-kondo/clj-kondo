@@ -46,7 +46,7 @@ jobs:
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_HOME: /home/circleci/graalvm-ce-1.0.0-rc15
+      GRAALVM_HOME: /home/circleci/graalvm-ce-19.0.0
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_TEST_ENV: native
     steps:
@@ -69,8 +69,8 @@ jobs:
           name: Download GraalVM
           command: |
             cd ~
-            wget -nc https://github.com/oracle/graal/releases/download/vm-1.0.0-rc15/graalvm-ce-1.0.0-rc15-linux-amd64.tar.gz
-            tar -xzf graalvm-ce-1.0.0-rc15-linux-amd64.tar.gz
+            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-19.0.0-linux-amd64.tar.gz
+            tar -xzf graalvm-ce-19.0.0-linux-amd64.tar.gz
       - run:
           name: Build binary
           command: |
@@ -92,8 +92,8 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-1.0.0-rc15-linux-amd64.tar.gz
-            - ~/graalvm-ce-1.0.0-rc15-linux-amd64
+            - ~/graalvm-ce-19.0.0-linux-amd64.tar.gz
+            - ~/graalvm-ce-19.0.0-linux-amd64
           key: buildlinux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
@@ -102,7 +102,7 @@ jobs:
     macos:
       xcode: "9.0"
     environment:
-      GRAALVM_HOME: /Users/distiller/graalvm-ce-1.0.0-rc15/Contents/Home
+      GRAALVM_HOME: /Users/distiller/graalvm-ce-19.0.0/Contents/Home
       CLJ_KONDO_PLATFORM: macos # used in release script
       CLJ_KONDO_TEST_ENV: native
     steps:
@@ -120,8 +120,8 @@ jobs:
             brew install gettext && brew link gettext
             brew install wget && brew link wget
             cd ~
-            wget -nc https://github.com/oracle/graal/releases/download/vm-1.0.0-rc15/graalvm-ce-1.0.0-rc15-macos-amd64.tar.gz
-            tar -xzf graalvm-ce-1.0.0-rc15-macos-amd64.tar.gz
+            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-19.0.0-macos-amd64.tar.gz
+            tar -xzf graalvm-ce-19.0.0-macos-amd64.tar.gz
       - run:
           name: Build binary
           command: |
@@ -142,8 +142,8 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-1.0.0-rc15-macos-amd64.tar.gz
-            - ~/graalvm-ce-1.0.0-rc15-macos-amd64
+            - ~/graalvm-ce-19.0.0-macos-amd64.tar.gz
+            - ~/graalvm-ce-19.0.0-macos-amd64
             - /usr/local/Homebrew
             - /usr/local/Cellar
             - /usr/local/opt
