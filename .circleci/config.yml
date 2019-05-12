@@ -120,8 +120,8 @@ jobs:
             brew install gettext && brew link gettext
             brew install wget && brew link wget
             cd ~
-            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-macos-amd64-19.0.0.tar.gz
-            tar -xzf graalvm-ce-macos-amd64-19.0.0.tar.gz
+            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-darwin-amd64-19.0.0.tar.gz
+            tar -xzf graalvm-ce-darwin-amd64-19.0.0.tar.gz
       - run:
           name: Build binary
           command: |
