@@ -4,9 +4,11 @@
    :methods [#^{:static true} [start [com.sun.javadoc.RootDoc] boolean]])
   (:require
    [clojure.java.io :as io]
+   [clojure.reflect :as cr]
+   [clojure.set :as set]
    [cognitect.transit :as transit])
-  (:import [javax.tools ToolProvider DocumentationTool]
-           [clj_kondo.impl ExtractJava]))
+  (:import [clj_kondo.impl ExtractJava]
+           [javax.tools ToolProvider DocumentationTool]))
 
 (set! *warn-on-reflection* true)
 
@@ -51,7 +53,42 @@
           (transit/write writer v)
           (io/copy (.toByteArray bos) file))))))
 
+(defn extract-class [klass]
+  (let [methods (:members (cr/reflect klass))
+        public-methods (filter #(set/subset? #{:public :static} (:flags %))
+                               methods)
+        selected (map #(select-keys % [:name :parameter-types :declaring-class])
+                      public-methods)]
+    (reduce
+     (fn [acc method]
+       (let [name (:name method)
+             arity (count (:parameter-types method))
+             declaring-class (:declaring-class method)]
+         (-> acc
+             (assoc-in [name :ns] declaring-class)
+             (assoc-in [name :name] name)
+             (update-in [name :fixed-arities] sconj arity))))
+     {}
+     selected)))
+
 ;;;; Scratch
 
 (comment
+  (compile 'clj-kondo.impl.ExtractJava)
+  (def first-string-method (-> (cr/reflect String) :members first))
+  first-string-method
+  (keys first-string-method) ;; (:name :return-type :declaring-class :parameter-types :exception-types :flags)
+  (:name first-string-method)
+  (:parameter-types first-string-method)
+  (:flags first-string-method)
+  (take 100 (map #(select-keys % [:name :parameter-types])
+                 (filter #(contains? (:flags %) :public)
+                         (:members (cr/reflect Thread)))))
+
+  
+
+  (extract-class String)
+  (extract-class Thread)
+  
+  
   )
