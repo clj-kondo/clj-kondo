@@ -29,13 +29,18 @@ clj-kondo detects:
   - of local `let` and `letfn` binding calls
   - of recursive calls (including `recur`)
 * private function calls
-* `cond` expressions without `:else` catch-alls (see [style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond))
+* unused namespaces in `:require`
+* redefined vars
 * duplicate map keys and set elements
 * missing map keys
 * invalid number of forms in binding vectors
 * missing assertions in `clojure.test/deftest`
 
 before your REPL knows it.
+
+It suggests style guide recommendations:
+
+* use `:else` as the catch-all test expression in `cond` (see [style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond))
 
 <img src="screenshots/wrong-arity.png" width="50%" align="right">
 
