@@ -20,8 +20,11 @@
                         "-J-Xmx3g"]
             :extra-deps
             #_{:clj.native-image
-             {:local/root "/Users/Borkdude/git/clj.native-image"}}
+               {:local/root "/Users/Borkdude/git/clj.native-image"}}
             {clj.native-image
+             {:git/url "https://github.com/borkdude/clj.native-image.git"
+              :sha "a85f5f3d0c64b0798c5a210f331cd3e5efb99f52"}}
+            #_{clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
               :sha "567176ddb0f7507c8b0969e0a10f60f848afaf7d"}}}
            :test
