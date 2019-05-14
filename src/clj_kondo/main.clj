@@ -149,7 +149,8 @@ Options:
         (ana/analyze-input "<stdin>" (slurp *in*) default-language dev?)
         (classpath? filename)
         (mapcat #(process-file % default-language)
-                (str/split filename #":"))
+                (str/split filename
+                  (re-pattern (System/getProperty "path.separator"))))
         :else
         [{:findings [{:level :warning
                       :filename filename
