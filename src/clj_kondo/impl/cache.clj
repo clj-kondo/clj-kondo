@@ -10,9 +10,10 @@
 (set! *warn-on-reflection* true)
 
 (defn built-in-cache-resource [lang ns-sym]
-  (prn "LOADER" (.getContextClassLoader (Thread/currentThread)))
   (io/resource (str "clj_kondo/impl/cache/built_in/"
-                    (name lang) "/" (str ns-sym ".transit.json"))))
+                    (name lang) "/" (str ns-sym ".transit.json"))
+               ;; workaround for https://github.com/oracle/graal/issues/1287
+               (.getClassLoader clojure.lang.RT)))
 
 (defn cache-file ^java.io.File [cache-dir lang ns-sym]
   (io/file cache-dir (name lang) (str ns-sym ".transit.json")))
