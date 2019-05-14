@@ -10,6 +10,7 @@
 (set! *warn-on-reflection* true)
 
 (defn built-in-cache-resource [lang ns-sym]
+  (prn "LOADER" (.getContextClassLoader (Thread/currentThread)))
   (io/resource (str "clj_kondo/impl/cache/built_in/"
                     (name lang) "/" (str ns-sym ".transit.json"))))
 

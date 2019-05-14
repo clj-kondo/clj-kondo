@@ -16,7 +16,6 @@
                        :aot :all}}
   :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main"]}
   :native-image {:name     "clj-kondo"
-                 :graal-bin "C:\\Users\\IEUser\\Downloads\\graalvm\\graalvm-ce-19.0.0\\native-image.cmd"
                  :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                  :opts     ["-H:Name=clj-kondo"
                             "-H:+ReportExceptionStackTraces"
@@ -27,9 +26,9 @@
                             "--initialize-at-build-time"
                             "-H:Log=registerResource:"
                             "--verbose"
-                            ;; "--initialize-at-build-time"
+                            "--initialize-at-build-time"
                             "-J-Xmx3g"
-                            ;; "--no-server" ;;avoid spawning build server
+                            "--no-server" ;;avoid spawning build server
                             ]}
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
                                     :username :env/clojars_user
