@@ -17,7 +17,7 @@
                        :compile-path "classes"}}
   :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main"]}
   :native-image {:name     "clj-kondo"
-                 :graal-bin "C:\\Users\\IEUser\\Downloads\\graalvm\\graalvm-ce-19.0.0"
+                 :graal-bin "C:\\Users\\IEUser\\Downloads\\graalvm\\graalvm-ce-19.0.0\\native-image.cmd"
                  :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                  :opts     ["-H:Name=clj-kondo"
                             "-H:+ReportExceptionStackTraces"
