@@ -23,7 +23,7 @@
                {:local/root "/Users/Borkdude/git/clj.native-image"}}
             {clj.native-image
              {:git/url "https://github.com/borkdude/clj.native-image.git"
-              :sha "c4afe92ba65eaa7ab6ed9807bbe2b04b64d66862"}}
+              :sha "cd7761b4ec88c2236b35830fd9cb0ef668699dae"}}
             #_{clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
               :sha "567176ddb0f7507c8b0969e0a10f60f848afaf7d"}}}
