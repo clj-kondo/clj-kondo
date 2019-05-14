@@ -13,8 +13,7 @@
   :profiles {:uberjar {:global-vars {*assert* false}
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                        :main clj-kondo.main
-                       :aot :all
-                       :compile-path "classes"}}
+                       :aot :all}}
   :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main"]}
   :native-image {:name     "clj-kondo"
                  :graal-bin "C:\\Users\\IEUser\\Downloads\\graalvm\\graalvm-ce-19.0.0\\native-image.cmd"
