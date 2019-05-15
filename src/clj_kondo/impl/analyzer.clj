@@ -369,6 +369,24 @@
                  :ns resolved-ns}])]
     (concat used (analyze-expression** ctx m))))
 
+(defn analyze-schema-defn [ctx expr]
+  (let [arg-count (count (rest (:children expr)))
+        {:keys [:base-lang :lang :filename]} ctx
+        {:keys [:row :col]} (meta expr)
+        {:keys [:defn :schemas]} (schema/expand-schema-defn2
+                                  (lift-meta filename expr))]
+    (cons {:type :call
+           :name 'schema.core/defn
+           :row row
+           :col col
+           :base-lang base-lang
+           :lang lang
+           :expr expr
+           :arity arg-count}
+          (concat
+           (used-namespaces (:ns ctx) {:children schemas})
+           (analyze-defn ctx defn)))))
+
 (defn cons* [x xs]
   (if x (cons x xs)
       xs))
@@ -501,16 +519,7 @@
                      ;; catch-all
                      (case [resolved-namespace resolved-name]
                        [schema.core defn]
-                       (cons {:type :call
-                              :name 'schema.core/defn
-                              :row row
-                              :col col
-                              :base-lang base-lang
-                              :lang lang
-                              :expr expr
-                              :arity arg-count}
-                             (analyze-defn ctx (schema/expand-schema-defn
-                                                (lift-meta filename expr))))
+                       (analyze-schema-defn ctx expr)
                        (let [fn-name (when ?full-fn-name (symbol (name ?full-fn-name)))]
                          (if (symbol? fn-name)
                            (let [call (if (:call-as-use ctx)
