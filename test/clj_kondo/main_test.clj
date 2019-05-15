@@ -557,13 +557,25 @@
             :message "duplicate key \"foo\""})
          (lint! "{1 1 1 1 \"foo\" 1 \"foo\" 2}"))))
 
-(deftest map-missing-key
+(deftest map-missing-value
   (is (= '({:file "<stdin>",
             :row 1,
             :col 7,
             :level :error,
             :message "missing value for key :b"})
-         (lint! "{:a 1 :b}"))))
+         (lint! "{:a 1 :b}")))
+  (is (= '({:file "<stdin>",
+            :row 1,
+            :col 14,
+            :level :error,
+            :message "missing value for key :a"})
+         (lint! "(let [x {:a {:a }}] x)")))
+  (is (= '({:file "<stdin>",
+            :row 1,
+            :col 15,
+            :level :error,
+            :message "missing value for key :a"})
+         (lint! "(loop [x {:a {:a }}] x)"))))
 
 (deftest set-duplicate-key
   (is (= '({:file "<stdin>",
@@ -867,6 +879,8 @@
                        (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])"))))
+
+
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
