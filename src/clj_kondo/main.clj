@@ -121,8 +121,10 @@ Options:
         :cljs
         :else default-language))
 
+(def cp-sep (System/getProperty "path.separator"))
+
 (defn- classpath? [f]
-  (str/includes? f ":"))
+  (str/includes? f cp-sep))
 
 (defn- process-file [filename default-language]
   (try
@@ -149,7 +151,8 @@ Options:
         (ana/analyze-input "<stdin>" (slurp *in*) default-language dev?)
         (classpath? filename)
         (mapcat #(process-file % default-language)
-                (str/split filename #":"))
+                (str/split filename
+                  (re-pattern cp-sep)))
         :else
         [{:findings [{:level :warning
                       :filename filename

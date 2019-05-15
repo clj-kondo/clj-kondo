@@ -8,9 +8,9 @@ VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
 cd /tmp/release
 
-## release binary as tar.gz archive
+## release binary as zip archive
 
-tar -zcvf "clj-kondo-$VERSION-$CLJ_KONDO_PLATFORM-amd64.tar.gz" clj-kondo
+zip "clj-kondo-$VERSION-$CLJ_KONDO_PLATFORM-amd64.zip" clj-kondo
 
 ## cleanup
 
