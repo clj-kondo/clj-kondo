@@ -47,9 +47,9 @@ These steps assume a Windows 10 installation with [Git for Windows](https://gitf
 
 The following steps need to be executed from the Windows SDK 7.1 command prompt.
 
-*  set the `%GRAALVM_HOME%` environment variable:
+*  set the `GRAALVM_HOME` environment variable:
 
-         set %GRAALVM_HOME%=C:\Users\IEUSer\Downloads\graalvm-ce-19.0.0
+         set GRAALVM_HOME=C:\Users\IEUSer\Downloads\graalvm-ce-19.0.0
 
 * git clone this repo and `cd clj-kondo`
 
