@@ -55,4 +55,5 @@ The following steps need to be executed from the Windows SDK 7.1 command prompt.
 
 * Run `script\compile.bat`
 
-If the script finished successfully, there will be a `clj-kondo.exe` in the current directory.
+If the script finished successfully, there is now a `clj-kondo.exe` in the
+current directory. Place the binary somewhere on your path.
