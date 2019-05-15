@@ -817,16 +817,23 @@
   (assert-submaps
    '({:file "<stdin>",
       :row 2,
-      :col 27,
+      :col 30,
       :level :warning,
       :message "unused namespace rewrite-clj.node"}
      {:file "<stdin>",
       :row 2,
-      :col 43,
+      :col 46,
       :level :warning,
       :message "unused namespace rewrite-clj.reader"})
    (lint! "(ns rewrite-clj.parser
-  (:require [rewrite-clj [node :as node] [reader :as reader]]))"))
+     (:require [rewrite-clj [node :as node] [reader :as reader]]))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 31,
+      :level :warning,
+      :message "unused namespace baz"})
+   (lint! "(ns foo (:require [bar :as b] baz)) #::{:a #::bar{:a 1}}"))
   (is (empty?
        (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
          ,(ns bar)
@@ -846,13 +853,7 @@
   (is (empty? (lint! "(ns foo (:require [bar :as b])) #::b{:a 1}")))
   (is (empty? (lint! "(ns foo (:require [bar :as b] baz)) #::baz{:a #::bar{:a 1}}")))
   (is (empty? (lint! "(ns foo (:require goog.math.Long)) (instance? goog.math.Long 1)")))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 31,
-      :level :warning,
-      :message "unused namespace baz"})
-   (lint! "(ns foo (:require [bar :as b] baz)) #::{:a #::bar{:a 1}}")))
+  (is (empty? (lint! "(ns foo (:require [schema.core :as s] [bar :as bar])) (s/defn foo :- bar/Schema [])"))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
