@@ -182,9 +182,9 @@
        :bindings bindings
        :analyzed analyzed})))
 
-(defn lint-even-forms-bindings! [ctx form-name expr sexpr]
-  (let [num-children (count sexpr)
-        {:keys [:row :col]} (meta expr)]
+(defn lint-even-forms-bindings! [ctx form-name bv]
+  (let [num-children (count (:children bv))
+        {:keys [:row :col]} (meta bv)]
     (when (odd? num-children)
       (state/reg-finding!
        {:type :invalid-bindings
@@ -195,13 +195,12 @@
         :filename (:filename ctx)}))))
 
 (defn analyze-let [{:keys [bindings] :as ctx} expr]
-  (let [bv (-> expr :children second)
-        sexpr (and bv (node/sexpr bv))]
-    (when (vector? sexpr)
+  (let [bv (-> expr :children second)]
+    (when (and bv (= :vector (node/tag bv)))
       (let [{analyzed-bindings :bindings
              arities :arities
              analyzed :analyzed} (analyze-bindings ctx bv)]
-        (lint-even-forms-bindings! ctx 'let bv (node/sexpr bv))
+        (lint-even-forms-bindings! ctx 'let bv)
         (concat analyzed
                 (analyze-children
                  (-> ctx
@@ -278,14 +277,13 @@
 
 (defn analyze-loop [{:keys [:bindings] :as ctx} expr]
   (let [children (:children expr)
-        bv (-> expr :children second)
-        sexpr (when bv (node/sexpr bv))]
-    (when (vector? sexpr)
+        bv (-> expr :children second)]
+    (when (and bv (= :vector (node/tag bv)))
       (let [arg-count (let [c (count (:children bv))]
                         (when (even? c)
                           (/ c 2)))
             bs (expr-bindings bv)]
-        (lint-even-forms-bindings! ctx 'loop bv sexpr)
+        (lint-even-forms-bindings! ctx 'loop bv)
         (analyze-children (assoc ctx
                                  :bindings (set/union bindings bs)
                                  :recur-arity {:fixed-arity arg-count})
