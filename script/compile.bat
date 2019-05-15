@@ -10,8 +10,12 @@ set /P CLJ_KONDO_VERSION=< resources\CLJ_KONDO_VERSION
 echo Building clj-kondo %CLJ_KONDO_VERSION%
 
 call lein clean
-call lein uberjar
+if %errorlevel% neq 0 exit /b %errorlevel%
 
+call lein uberjar
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+Rem the --no-server option is not supported in GraalVM Windows.
 call %GRAALVM_HOME%\bin\native-image.cmd ^
   -jar target/clj-kondo-%CLJ_KONDO_VERSION%-standalone.jar ^
   -H:Name=clj-kondo ^
@@ -24,7 +28,7 @@ call %GRAALVM_HOME%\bin\native-image.cmd ^
   -H:Log=registerResource: ^
   --verbose ^
   "-J-Xmx3g"
+if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo Creating zip archive
-
 jar -cMf clj-kondo-%CLJ_KONDO_VERSION%-windows-amd64.zip clj-kondo.exe
