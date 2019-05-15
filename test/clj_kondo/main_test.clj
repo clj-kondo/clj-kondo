@@ -853,7 +853,20 @@
   (is (empty? (lint! "(ns foo (:require [bar :as b])) #::b{:a 1}")))
   (is (empty? (lint! "(ns foo (:require [bar :as b] baz)) #::baz{:a #::bar{:a 1}}")))
   (is (empty? (lint! "(ns foo (:require goog.math.Long)) (instance? goog.math.Long 1)")))
-  (is (empty? (lint! "(ns foo (:require [schema.core :as s] [bar :as bar])) (s/defn foo :- bar/Schema [])"))))
+  (is (empty? (lint! "(ns foo (:require [schema.core :as s] [bar :as bar])) (s/defn foo :- bar/Schema [])")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) {str/join true}")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) {true str/join}")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) [str/join]")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
+                       (defn my-id [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
+                       (fn [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
+                       (let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
+                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
+                       (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])"))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",

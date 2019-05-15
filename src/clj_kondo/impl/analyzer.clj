@@ -79,10 +79,11 @@
         arg-bindings (extract-bindings arg-list)
         arity (analyze-arity arg-list)]
     {:arg-bindings arg-bindings
-     :arity arity}))
+     :arity arity
+     :analyzed-arg-vec (analyze-expression** ctx arg-vec)}))
 
 (defn analyze-fn-body [{:keys [bindings] :as ctx} body]
-  (let [{:keys [:arg-bindings :arity]} (analyze-fn-arity ctx body)
+  (let [{:keys [:arg-bindings :arity :analyzed-arg-vec]} (analyze-fn-arity ctx body)
         children (:children body)
         body-exprs (rest children)
         parsed
@@ -93,7 +94,7 @@
                 :fn-body true) body-exprs)]
     (assoc arity
            :parsed
-           parsed)))
+           (concat analyzed-arg-vec  parsed))))
 
 (defn fn-bodies [children]
   (loop [i 0 [expr & rest-exprs :as exprs] children]
@@ -167,15 +168,16 @@
     (if binding
       (let [binding-sexpr (node/sexpr binding)
             sexpr-bindings (extract-bindings binding-sexpr)
-            analyzed-expr (when value (analyze-expression**
-                                       (-> ctx
-                                           (update :bindings into bindings)
-                                           (update :arities merge arities)) value))
-            next-arities (if-let [arity (:arity (meta analyzed-expr))]
+            ctx* (-> ctx
+                     (update :bindings into bindings)
+                     (update :arities merge arities))
+            analyzed-binding (analyze-expression** ctx* binding)
+            analyzed-value (when value (analyze-expression** ctx* value))
+            next-arities (if-let [arity (:arity (meta analyzed-value))]
                            (assoc arities binding-sexpr arity)
                            arities)]
         (recur rest-bindings (into bindings sexpr-bindings)
-               next-arities (into analyzed analyzed-expr)))
+               next-arities (concat analyzed analyzed-binding analyzed-value)))
       {:arities arities
        :bindings bindings
        :analyzed analyzed})))
