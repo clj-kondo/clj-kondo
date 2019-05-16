@@ -824,19 +824,19 @@
       :row 1,
       :col 20,
       :level :warning,
-      :message "unused namespace clojure.core.async"})
+      :message "namespace clojure.core.async is required but never used"})
    (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))"))
   (assert-submaps
    '({:file "<stdin>",
       :row 2,
       :col 30,
       :level :warning,
-      :message "unused namespace rewrite-clj.node"}
+      :message "namespace rewrite-clj.node is required but never used"}
      {:file "<stdin>",
       :row 2,
       :col 46,
       :level :warning,
-      :message "unused namespace rewrite-clj.reader"})
+      :message "namespace rewrite-clj.reader is required but never used"})
    (lint! "(ns rewrite-clj.parser
      (:require [rewrite-clj [node :as node] [reader :as reader]]))"))
   (assert-submaps
@@ -844,7 +844,7 @@
       :row 1,
       :col 31,
       :level :warning,
-      :message "unused namespace baz"})
+      :message "namespace baz is required but never used"})
    (lint! "(ns foo (:require [bar :as b] baz)) #::{:a #::bar{:a 1}}"))
   (is (empty?
        (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
@@ -924,7 +924,7 @@
                      :row 1,
                      :col 20,
                      :level :warning,
-                     :message "unused namespace bar"}
+                     :message "namespace bar is required but never used"}
                     {:file "<stdin>",
                      :row 1,
                      :col 38,

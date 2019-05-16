@@ -289,7 +289,7 @@
       (state/reg-finding! {:level :warning
                            :type :unused-namespace
                            :filename filename
-                           :message (str "unused namespace " ns-sym)
+                           :message (format "namespace %s is required but never used" ns-sym)
                            :row row
                            :col col}))))
 
