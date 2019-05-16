@@ -1,10 +1,14 @@
 @echo off
+
+Rem set GRAALVM_HOME=C:\Users\IEUser\Downloads\graalvm\graalvm-ce-19.0.0
+Rem set PATH=%PATH%;C:\Users\IEUser\bin
+
 if "%GRAALVM_HOME%"=="" ( 
     echo Please set GRAALVM_HOME
     exit /b
 )
-set %JAVA_HOME%=%GRAAL_VM_HOME%\bin
-set %PATH%=%PATH%;%GRAAL_VM_HOME%\bin
+set JAVA_HOME=%GRAALVM_HOME%\bin
+set PATH=%PATH%;%GRAALVM_HOME%\bin
 
 set /P CLJ_KONDO_VERSION=< resources\CLJ_KONDO_VERSION
 echo Building clj-kondo %CLJ_KONDO_VERSION%
