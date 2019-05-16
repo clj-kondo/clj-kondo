@@ -49,10 +49,13 @@
 (defn- print-version []
   (println (str "clj-kondo v" version)))
 
+(comment
+  version)
+
 (defn- print-help []
   (print-version)
   ;; TODO: document config format when stable enough
-  (println (str "
+  (println (format "
 Usage: [ --help ] [ --version ] [ --lint <files> ] [ --lang (clj|cljs) ] [ --cache [ <dir> ] ] [ --config <config> ]
 
 Options:
@@ -69,8 +72,8 @@ Options:
     parent directory is detected and a cache directory will be created in it.
 
   --config: config may be a file or an EDN expression. See
-    https://github.com/borkdude/clj-kondo/blob/config/doc/config.md.
-"))
+    https://cljdoc.org/d/clj-kondo/clj-kondo/%s/doc/configuration.
+" version))
   nil)
 
 (defn- source-file? [filename]
@@ -121,7 +124,7 @@ Options:
         :cljs
         :else default-language))
 
-(def cp-sep (System/getProperty "path.separator"))
+(def ^:private cp-sep (System/getProperty "path.separator"))
 
 (defn- classpath? [f]
   (str/includes? f cp-sep))

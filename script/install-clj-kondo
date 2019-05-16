@@ -32,16 +32,18 @@ case "$(uname -s)" in
     Darwin*)    platform=macos;;
 esac
 
-download_url="https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.tar.gz"
+download_url="https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.zip"
+cd "$install_dir"
 
 echo -e "Downloading $download_url"
-curl -sL "https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.tar.gz" | tar -xz
+curl -o "clj-kondo-$latest_release-$platform-amd64.zip" -sL "https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.zip"
 
-if [ "$(pwd)" != "$install_dir" ] && [ -f "$install_dir/clj-kondo" ]; then
+if [ -f clj-kondo ]; then
     echo "Moving $install_dir/clj-kondo to $install_dir/clj-kondo.old"
-    mv -f "$install_dir/clj-kondo" "$install_dir/clj-kondo.old"
+    mv -f "clj-kondo" "clj-kondo.old"
 fi
-echo "Installing clj-kondo to $install_dir"
-if [ "$(pwd)" != "$install_dir" ]; then
-    mv clj-kondo "$install_dir"
-fi
+
+unzip -qq "clj-kondo-$latest_release-$platform-amd64.zip"
+rm "clj-kondo-$latest_release-$platform-amd64.zip"
+
+echo "Sucessfully installed clj-kondo in $install_dir"

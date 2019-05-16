@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.node.seq
+  {:no-doc true}
   (:require [rewrite-clj.node.protocols :as node]))
 
 (defrecord NamespacedMapNode [children aliased?]

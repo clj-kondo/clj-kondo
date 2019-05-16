@@ -15,7 +15,10 @@ To upgrade:
 
 ## Installation script
 
-The installation script will download the latest version and install it to `/usr/local/bin` by default. You can override this location with the `--dir` option.
+Ths installation script works for linux and MacOS and can be used for quickly
+installing or upgrading to the newest clj-kondo without a package manager,
+e.g. in CI. It will install to `/usr/local/bin` by default, but you can override
+this location with the `--dir` option.
 
 To download and execute the script:
 
@@ -31,5 +34,5 @@ To upgrade, just run the script again.
 
 ## Manual install
 
-Pre-built binaries are available for linux and MacOS on the
+Pre-built binaries are available for linux, MacOS and Windows on the
 [releases](https://github.com/borkdude/clj-kondo/releases) page.
