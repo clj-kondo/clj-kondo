@@ -85,20 +85,28 @@
                   {:row row
                    :col (inc col)})
         args (fn-args children)
-        arg-list (vector-node args)]
+        has-first-arg? (= '%1 (first args))
+        arg-list (vector-node args)
+        let-expr (when has-first-arg?
+                   (list-node
+                    [(token-node 'let)
+                     (vector-node
+                      [(token-node '%)
+                       (token-node '%1)])
+                     ;; we insert a nil here to not trigger the redundant let linter
+                     (token-node nil)
+                     fn-body]))]
     (with-meta
       (list-node [(token-node 'fn) arg-list
-                  (list-node [(token-node 'let)
-                              (vector-node
-                               [(token-node '%)
-                                (token-node '%1)])
-                              fn-body])])
+                  (if has-first-arg?
+                    let-expr fn-body)])
       m)))
 
 ;;;; Scratch
 
 (comment
   (expand-fn (parse-string "#()"))
+  (expand-fn (parse-string "#(println %&)"))
   (expand-fn (parse-string "#(inc ^long %)"))
   (expand-fn (parse-string "#(println %2 %&)"))
   (expand-> "" (parse-string "(-> 1 inc inc inc)"))
