@@ -67,19 +67,19 @@
 
 (defn skip?
   "we optimize for the case that disable-within returns an empty sequence"
-  ([parents]
+  ([callstack]
    (profiler/profile
     :disabled?
     (when-let [disabled (seq (skip-args))]
       (some (fn [disabled-sym]
-              (some #(= disabled-sym %) parents))
+              (some #(= disabled-sym %) callstack))
             disabled))))
-  ([linter parents]
+  ([linter callstack]
    (profiler/profile
     :disabled?
     (when-let [disabled (seq (skip-args linter))]
       (some (fn [disabled-sym]
-              (some #(= disabled-sym %) parents))
+              (some #(= disabled-sym %) callstack))
             disabled)))))
 
 (defn lint-as-config* []

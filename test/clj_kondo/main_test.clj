@@ -31,8 +31,13 @@
              {:row 12, :col 3, :file "corpus/redundant_let.clj"}}
            row-col-files))
     (is (= #{"redundant let"} (set (map :message linted)))))
+  (assert-submaps '({:file "<stdin>", :row 1, :col 12, :level :warning, :message "redundant let"})
+                  (lint! "(let [x 2] (let [y 1]))" "--lang" "cljs"))
   (is (empty? (lint! "(let [x 2] `(let [y# 3]))")))
-  (is (empty? (lint! "(let [x 2] '(let [y 3]))"))))
+  (is (empty? (lint! "(let [x 2] '(let [y 3]))")))
+  (is (empty? (lint! "(let [x 2] (let [y 1]) (let [y 2]))")))
+  (is (empty? (lint! "(let [x 2] (when true (let [y 1])))")))
+  (is (empty? (lint! "(let [z 1] (when true (let [x (let [y 2] y)])))"))))
 
 (deftest redundant-do-test
   (let [linted (lint! (io/file "corpus" "redundant_do.clj"))

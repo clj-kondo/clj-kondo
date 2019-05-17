@@ -13,25 +13,6 @@
 
 (set! *warn-on-reflection* true)
 
-;;;; redundant let
-;; TODO: move to call specific linters
-
-(defn redundant-let* [{:keys [:children] :as expr}
-                      parent-let?]
-  (let [current-let? (some-call expr let)]
-    (cond (and current-let? parent-let?)
-          [expr]
-          current-let?
-          (let [;; skip let keywords and bindings
-                children (nnext children)]
-            (concat (redundant-let* (first children) current-let?)
-                    (mapcat #(redundant-let* % false) (rest children))))
-          :else (mapcat #(redundant-let* % false) children))))
-
-(defn redundant-let [filename parsed-expressions]
-  (map #(node->line filename % :warning :redundant-let "redundant let")
-       (redundant-let* parsed-expressions false)))
-
 ;;;; redundant do
 ;; TODO: move to call specific linters
 
@@ -159,10 +140,12 @@
              (lint-cond filename (:expr call))
              nil)
            ;; missing test assertion
-           (case (peek (:parents call))
-             ([clojure.test deftest] [cljs.test deftest])
-             (lint-missing-test-assertion filename call called-fn)
-             nil)]))
+           (do
+             ;; (println "CALLSTACK" (:callstack call))
+             (case (second (:callstack call))
+               ([clojure.test deftest] [cljs.test deftest])
+               (lint-missing-test-assertion filename call called-fn)
+               nil))]))
 
 (defn resolve-call [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
@@ -249,7 +232,7 @@
                               [(when-not
                                    (or (contains? fixed-arities arity)
                                        (and var-args-min-arity (>= arity var-args-min-arity))
-                                       (config/skip? :invalid-arity (:parents call)))
+                                       (config/skip? :invalid-arity (rest (:callstack call))))
                                  {:filename filename
                                   :row (:row call)
                                   :col (:col call)

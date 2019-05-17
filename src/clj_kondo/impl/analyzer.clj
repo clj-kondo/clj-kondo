@@ -68,8 +68,8 @@
                (inc arity)))
       {:fixed-arity arity})))
 
-(defn analyze-children [{:keys [:parents] :as ctx} children]
-  (when-not (config/skip? parents)
+(defn analyze-children [{:keys [:callstack] :as ctx} children]
+  (when-not (config/skip? callstack)
     (mapcat #(analyze-expression** ctx %) children)))
 
 (defn analyze-fn-arity [ctx body]
@@ -194,19 +194,34 @@
         :level :error
         :filename (:filename ctx)}))))
 
-(defn analyze-let [{:keys [bindings] :as ctx} expr]
-  (let [bv (-> expr :children second)]
+(defn analyze-let [{:keys [:filename :callstack
+                           :maybe-redundant-let?] :as ctx} expr]
+  (let [let-parent? (contains? '#{[clojure.core let]
+                                  [cljs.core let]}
+                               (second callstack))
+        bv (-> expr :children second)]
+    (when (and let-parent? maybe-redundant-let?)
+      (state/reg-finding! (node->line filename expr :warning :redundant-let "redundant let")))
     (when (and bv (= :vector (node/tag bv)))
       (let [{analyzed-bindings :bindings
              arities :arities
-             analyzed :analyzed} (analyze-bindings ctx bv)]
+             analyzed :analyzed}
+            (analyze-bindings
+             (dissoc ctx :maybe-redundant-let?) bv)
+            let-body (nnext (:children expr))
+            single-child? (= 1 (count let-body))]
         (lint-even-forms-bindings! ctx 'let bv)
         (concat analyzed
                 (analyze-children
                  (-> ctx
                      (update :bindings into analyzed-bindings)
-                     (update :arities merge arities))
-                 (nnext (:children expr))))))))
+                     (update :arities merge arities)
+                     (assoc :maybe-redundant-let? single-child?))
+                 let-body))))))
+
+(defn analyze-do [ctx expr]
+  ;; TODO: include redundant-do linter here
+  (analyze-children ctx (next (:children expr))))
 
 (defn lint-two-forms-binding-vector! [ctx form-name expr sexpr]
   (let [num-children (count sexpr)
@@ -408,7 +423,7 @@
       (analyze-children ctx (rest children)))))
 
 (defn analyze-expression**
-  [{:keys [filename base-lang lang ns bindings fn-body parents] :as ctx}
+  [{:keys [filename base-lang lang ns bindings fn-body callstack] :as ctx}
    {:keys [:children] :as expr}]
   (let [t (node/tag expr)
         {:keys [:row :col]} (meta expr)
@@ -441,11 +456,11 @@
                                   resolved-name)
                          (symbol (str resolved-namespace)
                                  (str resolved-name)))
-                next-ctx (if fq-sym
-                           (update ctx :parents
-                                   vconj
-                                   [resolved-namespace resolved-name])
-                           ctx)
+                ctx (if fq-sym
+                      (update ctx :callstack
+                              (fn [cs]
+                                (cons [resolved-namespace resolved-name] cs)))
+                      ctx)
                 resolved-as-clojure-var-name
                 (when (contains? '#{clojure.core
                                     cljs.core}
@@ -479,7 +494,7 @@
                             :arity arg-count}
                            (analyze-defn ctx (lift-meta filename expr)))
                      comment
-                     (analyze-children next-ctx children)
+                     (analyze-children ctx children)
                      (-> some->)
                      (analyze-expression** ctx (macroexpand/expand-> filename expr))
                      (->> some->>)
@@ -498,6 +513,8 @@
                      (analyze-if-let ctx expr)
                      when-let
                      (analyze-when-let ctx expr)
+                     do
+                     (analyze-do ctx expr)
                      (fn fn*)
                      (analyze-fn ctx (lift-meta filename expr))
                      case
@@ -539,8 +556,8 @@
                                          :base-lang base-lang
                                          :lang lang
                                          :expr expr
-                                         :parents (:parents ctx)})
-                                 next-ctx (cond-> next-ctx
+                                         :callstack (:callstack ctx)})
+                                 next-ctx (cond-> ctx
                                             (contains? '#{[clojure.core.async thread]}
                                                        [resolved-namespace resolved-name])
                                             (assoc-in [:recur-arity :fixed-arity] 0))]
@@ -714,9 +731,8 @@
   [filename input lang dev?]
   (try
     (let [parsed (p/parse-string input)
-          nls (l/redundant-let filename parsed)
           ods (l/redundant-do filename parsed)
-          findings {:findings (concat nls ods)
+          findings {:findings ods
                     :lang lang}
           analyzed-expressions
           (if (= :cljc lang)
