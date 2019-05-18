@@ -91,10 +91,16 @@
 
 (defn lint-as [v] (get (lint-as-config) v))
 
-(defn unused-namespace-excluded* []
-  (set (get-in @config [:linters :unused-namespace :exclude])))
-
-(def unused-namespace-excluded (memoize unused-namespace-excluded*))
+(def unused-namespace-excluded
+  (let [delayed-cfg (delay (let [excluded (get-in @config [:linters :unused-namespace :exclude])
+                                 syms (set (filter symbol? excluded))
+                                 regexes (map re-pattern (filter string? excluded))]
+                             {:syms syms :regexes regexes}))]
+    (fn [ns-sym]
+      (let [{:keys [:syms :regexes]} @delayed-cfg]
+        (or (contains? syms ns-sym)
+            (let [ns-str (str ns-sym)]
+              (boolean (some #(re-find % ns-str) regexes))))))))
 
 ;;;; Scratch
 

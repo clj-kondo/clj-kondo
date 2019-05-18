@@ -96,3 +96,26 @@ we might have just linted it like that. That is what the following configuration
 ``` clojure
 {:lint-as {foo/my-defn clojure.core/defn}}
 ```
+
+### Exclude required but unused namespace from being reported
+
+In the following code, the namespaces `foo.specs` and `bar.specs` are only loaded for the side effect of registering specs, so we don't like clj-kondo reporting those namespaces as required but unused.
+
+``` clojure
+(ns foo (:require [foo.specs] [bar.specs]))
+(defn my-fn [x] x)
+```
+
+That can be done using this config:
+
+``` clojure
+{:linters {:unused-namespace {:exclude [foo.specs bar.specs]}}}
+```
+
+A regex is also supported:
+
+``` clojure
+{:linters {:unused-namespace {:exclude [".*\\.specs$"]}}}
+```
+
+This will exclude all namespaces ending with `.specs`.

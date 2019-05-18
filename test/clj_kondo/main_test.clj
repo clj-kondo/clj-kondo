@@ -544,7 +544,15 @@
       :col 16,
       :level :error,
       :message "wrong number of args (2) passed to user/foo"})
-   (lint! "(defn foo [x]) (foo (comment 1 2 3) 2)" "--config" "{:skip-comments true}")))
+   (lint! "(defn foo [x]) (foo (comment 1 2 3) 2)" "--config" "{:skip-comments true}"))
+  (is (empty? (lint! "(ns foo (:require [foo.specs] [bar.specs])) (defn my-fn [x] x)"
+                     "--config" "{:linters {:unused-namespace {:exclude [foo.specs bar.specs]}}}")))
+  (is (empty? (lint! "(ns foo (:require [foo.specs] [bar.specs])) (defn my-fn [x] x)"
+                     "--config" "{:linters {:unused-namespace {:exclude [\".*\\\\.specs$\"]}}}")))
+  (is (empty? (lint! "(ns foo (:require [foo.specs] [bar.spex])) (defn my-fn [x] x)"
+                     "--config" "{:linters {:unused-namespace {:exclude
+                                   [\".*\\\\.specs$\"
+                                    \".*\\\\.spex$\"]}}}"))))
 
 (deftest map-duplicate-keys
   (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}
