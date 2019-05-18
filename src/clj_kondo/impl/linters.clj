@@ -267,7 +267,7 @@
           (set/difference
            (set required)
            (set used))
-          :when (not (contains? (config/unused-namespace-excluded) ns-sym))]
+          :when (not (config/unused-namespace-excluded ns-sym))]
     (let [{:keys [:row :col :filename]} (meta ns-sym)]
       (state/reg-finding! {:level :warning
                            :type :unused-namespace
