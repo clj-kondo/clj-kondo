@@ -1,6 +1,6 @@
 # Installation
 
-## Brew
+## Brew (MacOS and Linux)
 
 On MacOS you can use [brew](https://brew.sh/). On Linux you can use
 [Linuxbrew](http://linuxbrew.sh/).
@@ -13,7 +13,18 @@ To upgrade:
 
     brew upgrade clj-kondo
 
-## Installation script
+## Scoop (Windows)
+
+To install clj-kondo on Windows you can use [scoop](https://scoop.sh):
+
+     scoop bucket add borkdude https://github.com/borkdude/scoop-bucket
+     scoop install clj-kondo
+
+To upgrade:
+
+    scoop update clj-kondo
+
+## Installation script (MacOS and Linux)
 
 Ths installation script works for linux and MacOS and can be used for quickly
 installing or upgrading to the newest clj-kondo without a package manager,
