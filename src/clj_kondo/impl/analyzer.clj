@@ -443,13 +443,15 @@
                                               arg-count
                                               kw-str))))))
 
-(defn analyze-clojure-call [{:keys [:filename :fn-body :base-lang :lang :ns] :as ctx}
-                            {:keys [:arg-count
-                                    :resolved-namespace
-                                    :resolved-name
-                                    :resolved-as-clojure-var-name
-                                    :full-fn-name
-                                    :row :col]} expr]
+(defn analyze-core-call
+  [{:keys [:filename :fn-body :base-lang :lang :ns] :as ctx}
+   {:keys [:arg-count
+           :resolved-namespace
+           :resolved-name
+           :resolved-as-clojure-var-name
+           :full-fn-name
+           :row :col
+           :expr]}]
   (let [children (:children expr)]
     (case resolved-as-clojure-var-name
       ns
@@ -597,15 +599,17 @@
                              :lang lang
                              :expr expr})]
                   (cons* use
-                         (analyze-clojure-call ctx
-                                               {:arg-count arg-count
-                                                :resolved-namespace resolved-namespace
-                                                :resolved-name resolved-name
-                                                :resolved-as-clojure-var-name resolved-as-clojure-var-name
-                                                :full-fn-name full-fn-name
-                                                :row row
-                                                :col col}
-                                               expr)))))
+                         (analyze-core-call ctx
+                                            {:arg-count arg-count
+                                             :resolved-namespace resolved-namespace
+                                             :resolved-name resolved-name
+                                             :resolved-as-clojure-var-name resolved-as-clojure-var-name
+                                             :full-fn-name full-fn-name
+                                             :row row
+                                             :col col
+                                             :expr expr})))))
+            ;; TODO: emit errors when something not callable, e.g. a string or
+            ;; number is in function position
             (analyze-children ctx children))))
       (analyze-children ctx children))))
 
