@@ -5,9 +5,9 @@
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.namespace :as namespace :refer [analyze-ns-decl resolve-name]]
    [clj-kondo.impl.parser :as p]
-   [clj-kondo.impl.utils :refer [some-call call node->line
-                                 parse-string parse-string-all
-                                 tag select-lang vconj deep-merge]]
+   [clj-kondo.impl.utils :refer [some-call symbol-call keyword-call node->line
+                                 parse-string parse-string-all tag select-lang
+                                 vconj deep-merge]]
    [clj-kondo.impl.metadata :refer [lift-meta]]
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.linters.keys :as key-linter]
@@ -112,9 +112,10 @@
         name-node (first children)
         fn-name (:value name-node)
         var-meta (meta name-node)
-        macro? (or (= 'defmacro (call expr))
+        call-sym (symbol-call expr)
+        macro? (or (= 'defmacro call-sym)
                    (:macro var-meta))
-        private? (or (= 'defn- (call expr))
+        private? (or (= 'defn- call-sym)
                      (:private var-meta))
         bodies (fn-bodies (next children))
         parsed-bodies (map #(analyze-fn-body ctx %) bodies)
@@ -122,7 +123,6 @@
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
         {:keys [:row :col]} (meta expr)
         defn
-        ;; TODO: parsed bodies isn't needed
         (if fn-name
           (cond-> {:type :defn
                    :name fn-name
@@ -422,6 +422,24 @@
                                                     fn-name))))))
       (analyze-children ctx (rest children)))))
 
+(defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
+  (let [ns (:ns ctx)
+        ?resolved-ns (if namespaced?
+                       (let [kw-ns (namespace kw)]
+                         (or (get (:qualify-ns ns) (symbol kw-ns))
+                             ;; because we couldn't resolve the namespaced
+                             ;; keyword, we print it as is
+                             (str ":" (namespace kw))))
+                       (namespace kw))
+        kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
+                   (str (name kw)))]
+    (when (or (zero? arg-count)
+              (> arg-count 2))
+      (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
+                                      (format "wrong number of args (%s) passed to keyword :%s"
+                                              arg-count
+                                              kw-str))))))
+
 (defn analyze-expression**
   [{:keys [filename base-lang lang ns bindings fn-body callstack] :as ctx}
    {:keys [:children] :as expr}]
@@ -438,7 +456,7 @@
                (analyze-children ctx children))
       :fn (recur ctx (macroexpand/expand-fn expr))
       :token (used-namespaces ns expr)
-      (let [?full-fn-name (call expr)
+      (let [?full-fn-name (symbol-call expr)
             unqualified? (and ?full-fn-name (nil? (namespace ?full-fn-name)))
             binding-call? (and unqualified? (contains? bindings ?full-fn-name))]
         (if binding-call?
@@ -562,7 +580,10 @@
                                                        [resolved-namespace resolved-name])
                                             (assoc-in [:recur-arity :fixed-arity] 0))]
                              (cons call (analyze-children next-ctx (rest children))))
-                           (analyze-children ctx children))))))))))))
+                           (if-let [{:keys [:k :namespaced?]} (keyword-call expr)]
+                             (do (lint-keyword-call! ctx k namespaced? arg-count expr)
+                                 (analyze-children ctx children))
+                             (analyze-children ctx children)))))))))))))
 
 (defn analyze-expression*
   [{:keys [:filename :base-lang :lang :results :ns :expression :debug?]}]
