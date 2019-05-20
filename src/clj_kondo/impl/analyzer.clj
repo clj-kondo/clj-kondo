@@ -425,11 +425,14 @@
 (defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
   (let [ns (:ns ctx)
         ?resolved-ns (if namespaced?
-                       (let [kw-ns (namespace kw)]
+                       (if-let [kw-ns (namespace kw)]
                          (or (get (:qualify-ns ns) (symbol kw-ns))
                              ;; because we couldn't resolve the namespaced
                              ;; keyword, we print it as is
-                             (str ":" (namespace kw))))
+                             (str ":" (namespace kw)))
+                         ;; if the keyword is namespace, but there is no
+                         ;; namespace, it's the current ns
+                         (:name ns))
                        (namespace kw))
         kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
                    (str (name kw)))]

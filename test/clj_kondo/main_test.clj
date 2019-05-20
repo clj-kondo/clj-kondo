@@ -1000,7 +1000,14 @@
       :col 10
       :level :error,
       :message "wrong number of args (3) passed to keyword ::b/x"})
-   (lint! "(ns foo) (::b/x {:bar/x 1} 1 2)")))
+   (lint! "(ns foo) (::b/x {:bar/x 1} 1 2)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :error,
+      :message "wrong number of args (3) passed to keyword :foo/x"})
+   (lint! "(ns foo) (::x {::x 1} 2 3)")))
 
 ;;;; Scratch
 
