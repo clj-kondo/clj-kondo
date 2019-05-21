@@ -972,6 +972,43 @@
   (is (empty? (lint! "(for [select-keys []] (select-keys 1))")))
   (is (empty? (lint! "(doseq [select-keys []] (select-keys 1))"))))
 
+(deftest keyword-call-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (3) passed to keyword :x"})
+   (lint! "(:x 1 2 3)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :error,
+      :message "wrong number of args (3) passed to keyword :b/x"})
+   (lint! "(ns foo) (:b/x {:bar/x 1} 1 2)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 33,
+      :level :error,
+      :message "wrong number of args (3) passed to keyword :bar/x"})
+   (lint! "(ns foo (:require [bar :as b])) (::b/x {:bar/x 1} 1 2)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 10
+      :level :error,
+      :message "wrong number of args (3) passed to keyword ::b/x"})
+   (lint! "(ns foo) (::b/x {:bar/x 1} 1 2)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :error,
+      :message "wrong number of args (3) passed to keyword :foo/x"})
+   (lint! "(ns foo) (::x {::x 1} 2 3)")))
+
 ;;;; Scratch
 
 (comment

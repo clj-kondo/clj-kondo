@@ -2,7 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [some-call node->line
-                                 tag call parse-string
+                                 tag symbol-call parse-string
                                  constant?]]
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.var-info :as var-info]
@@ -34,7 +34,7 @@
        (redundant-do* parsed-expressions false)))
 
 (defn lint-def* [filename expr in-def?]
-  (let [fn-name (call expr)
+  (let [fn-name (symbol-call expr)
         simple-fn-name (when fn-name (symbol (name fn-name)))]
     ;; TODO: it would be nicer if we could have the qualified calls of this expression somehow
     ;; so we wouldn't have to deal with these primitive expressions anymore
