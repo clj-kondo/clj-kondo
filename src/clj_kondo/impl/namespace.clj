@@ -251,7 +251,8 @@
              (= :clj lang) (update :qualify-ns
                                    #(assoc % 'clojure.core 'clojure.core))
              (= :cljs lang) (update :qualify-ns
-                                    #(assoc % 'cljs.core 'cljs.core)))]
+                                    #(assoc % 'cljs.core 'cljs.core
+                                            'clojure.core 'cljs.core)))]
     (reg-namespace! base-lang lang ns)
     ns))
 
@@ -276,8 +277,7 @@
      (when (contains? (:vars ns) name-sym)
        {:ns (:name ns)
         :name name-sym})
-     (let [;; _ (println "LANG" (:lang ns))
-           clojure-excluded? (contains? (:clojure-excluded ns)
+     (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                         name-sym)
            namespace (:name ns)
            core-sym? (when-not clojure-excluded?

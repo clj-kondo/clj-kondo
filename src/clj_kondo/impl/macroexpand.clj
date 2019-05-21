@@ -89,7 +89,7 @@
         arg-list (vector-node args)
         let-expr (when has-first-arg?
                    (list-node
-                    [(token-node 'let)
+                    [(token-node 'clojure.core/let)
                      (vector-node
                       [(token-node '%)
                        (token-node '%1)])

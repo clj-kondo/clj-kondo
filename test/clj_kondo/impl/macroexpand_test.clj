@@ -3,8 +3,7 @@
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.utils :refer [parse-string]]
    [clojure.test :as t :refer [deftest is testing]]
-   [rewrite-clj.node.protocols :refer [tag]]
-   [rewrite-clj.node.protocols :as node]))
+   [rewrite-clj.node.protocols :as node :refer [tag]]))
 
 (defn location [node]
   (let [m (meta node)]
@@ -40,15 +39,15 @@
                (filter #(= :list (tag %))
                        (tree-seq :children :children
                                  fn-body))))))
-  (is (= '(fn [%1] (let [% %1] nil (println % %)))
+  (is (= '(fn [%1] (clojure.core/let [% %1] nil (println % %)))
          (node/sexpr
           (macroexpand/expand-fn
            (parse-string "#(println % %)")))))
-  (is (= '(fn [%1 %2] (let [% %1] nil (println % %2)))
+  (is (= '(fn [%1 %2] (clojure.core/let [% %1] nil (println % %2)))
          (node/sexpr
           (macroexpand/expand-fn
            (parse-string "#(println % %2)")))))
-  (is (= '(fn [%1 %2 & %&] (let [% %1] nil (apply println % %2 %&)))
+  (is (= '(fn [%1 %2 & %&] (clojure.core/let [% %1] nil (apply println % %2 %&)))
          (node/sexpr
           (macroexpand/expand-fn
            (parse-string "#(apply println % %2 %&)"))))))

@@ -319,7 +319,13 @@
                    :col 1,
                    :level :error,
                    :message "wrong number of args (0) passed to cljs.core/vec"}
-                 (first (lint! "(cljs.core/vec)" "--lang" "cljs"))))
+                 (first (lint! "(cljs.core/vec)" "--lang" "cljs")))
+  (assert-submap '{:file "<stdin>",
+                   :row 1,
+                   :col 1,
+                   :level :error,
+                   :message "wrong number of args (0) passed to cljs.core/vec"}
+                 (first (lint! "(clojure.core/vec)" "--lang" "cljs"))))
 
 (deftest override-test
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
@@ -655,7 +661,15 @@
     (assert-submaps
      '({:message "wrong number of args (1) passed to clojure.core/select-keys"})
      (lint! "#(select-keys %)"))
-    (lint! "(let [f #(apply println %&)] (f 1 2 3 4))")))
+    (is (empty? (lint! "(let [f #(apply println %&)] (f 1 2 3 4))")))
+    (testing "fix for issue #181: the let in the expansion is resolved to clojure.core and not the custom let"
+      (assert-submaps '({:file "<stdin>",
+                         :row 2,
+                         :col 41,
+                         :level :error,
+                         :message "missing value for key :a"})
+                      (lint! "(ns foo (:refer-clojure :exclude [let]))
+        (defmacro let [_]) #(println % {:a})")))))
 
 (deftest schema-defn-test
   (assert-submaps
