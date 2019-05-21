@@ -23,7 +23,9 @@ clojure -Sdeps '{:deps {clj-kondo {:local/root "/home/circleci/repo"}}}' \
 rm -rf /tmp/proj
 mkdir -p /tmp/proj
 cd /tmp/proj
-clojure -Sdeps "{:deps {clj-kondo {:git/url \"https://github.com/borkdude/clj-kondo\" :sha \"$CIRCLE_SHA1\"}}}" \
+
+github_user=${CIRCLE_PR_USERNAME:-borkdude}
+clojure -Sdeps "{:deps {clj-kondo {:git/url \"https://github.com/$github_user/clj-kondo\" :sha \"$CIRCLE_SHA1\"}}}" \
         -m clj-kondo.main --lint /home/circleci/repo/src /home/circleci/repo/test
 
 exit "$err"
