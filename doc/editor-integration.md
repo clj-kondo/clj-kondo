@@ -9,6 +9,26 @@ a `.clj-kondo` directory in the root of your project.
 For integrating with Emacs, see
 [flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo).
 
+## Vim/NeoVim
+
+This section is for Vim 8+ or NeoVim
+
+1. Install [ALE](https://github.com/w0rp/ale) using your favorite plugin
+   manager. This already has in-built support for clj-kondo.
+2. In your `.vimrc`, add:
+   ```viml
+   let g:ale_linters = {'clojure': ['clj-kondo']}
+   ```
+   to only have clj-kondo as the linter.
+   add:
+   ```viml
+   let g:ale_linters = {'clojure': ['clj-kondo', 'joker']}
+   ```
+   to have both, with clj-kondo being preferred.
+3. Reload your `.vimrc` and it should start working.
+
+<img src="../screenshots/vim.png">
+
 ## IntelliJ IDEA
 
 <img src="../screenshots/intellij-let.png" width="50%" align="right">
