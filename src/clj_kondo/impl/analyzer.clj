@@ -443,106 +443,133 @@
                                               arg-count
                                               kw-str))))))
 
-(defn analyze-core-call
+(defn analyze-call
   [{:keys [:filename :fn-body :base-lang :lang :ns] :as ctx}
    {:keys [:arg-count
-           :resolved-namespace
-           :resolved-name
-           :resolved-as-clojure-var-name
            :full-fn-name
            :row :col
            :expr]}]
-  (let [children (:children expr)]
-    (case resolved-as-clojure-var-name
-      ns
-      (let [ns (analyze-ns-decl ctx expr)]
-        [ns])
-      in-ns (when-not fn-body [(analyze-in-ns ctx expr)])
-      alias
-      [(analyze-alias ctx expr)]
-      (defn defn- defmacro)
-      (cons {:type :call
-             :name resolved-as-clojure-var-name
-             :row row
-             :col col
-             :base-lang base-lang
-             :lang lang
-             :expr expr
-             :arity arg-count}
-            (analyze-defn ctx (lift-meta filename expr)))
-      comment
-      (analyze-children ctx children)
-      (-> some->)
-      (analyze-expression** ctx (macroexpand/expand-> filename expr))
-      (->> some->>)
-      (analyze-expression** ctx (macroexpand/expand->> filename expr))
-      (cond-> cond->> . .. deftype
-              proxy extend-protocol doto reify definterface defrecord defprotocol
-              defcurried)
-      ;; don't lint calls in these expressions, only register them as used vars
-      (analyze-children (assoc ctx :call-as-use true)
-                        (:children expr))
-      let
-      (analyze-let ctx expr)
-      letfn
-      (analyze-letfn ctx expr)
-      if-let
-      (analyze-if-let ctx expr)
-      when-let
-      (analyze-when-let ctx expr)
-      do
-      (analyze-do ctx expr)
-      (fn fn*)
-      (analyze-fn ctx (lift-meta filename expr))
-      case
-      (analyze-case ctx expr)
-      loop
-      (analyze-loop ctx expr)
-      recur
-      (analyze-recur ctx expr)
-      (for doseq) ;; skip linting body apart from detecting used namespaces for now
-      (cons {:type :call
-             :name resolved-as-clojure-var-name
-             :row row
-             :col col
-             :base-lang base-lang
-             :lang lang
-             :expr expr
-             :arity arg-count}
-            (used-namespaces ns expr))
-      ;; catch-all
-      (case [resolved-namespace resolved-name]
-        [schema.core defn]
-        (analyze-schema-defn ctx expr)
-        (let [fn-name (symbol (name full-fn-name))]
-          (if (symbol? fn-name)
-            (let [call (if (:call-as-use ctx)
-                         {:type :use
-                          :ns resolved-namespace
-                          :name resolved-name
-                          :row row
-                          :col col
-                          :base-lang base-lang
-                          :lang lang
-                          :expr expr}
-                         {:type :call
-                          :name full-fn-name
-                          :arity arg-count
-                          :row row
-                          :col col
-                          :base-lang base-lang
-                          :lang lang
-                          :expr expr
-                          :callstack (:callstack ctx)})
-                  next-ctx (cond-> ctx
-                             (contains? '#{[clojure.core.async thread]}
-                                        [resolved-namespace resolved-name])
-                             (assoc-in [:recur-arity :fixed-arity] 0))]
-              (cons call (analyze-children next-ctx (rest children))))
-            (analyze-children ctx children)))))))
+  (let [children (:children expr)
+        {resolved-namespace :ns
+         resolved-name :name}
+        (resolve-name
+         (namespace/get-namespace base-lang lang (:name ns)) full-fn-name)
+        [resolved-as-namespace resolved-as-name lint-as?]
+        (or (when-let [[ns n] (config/lint-as [resolved-namespace resolved-name])]
+              [ns n true])
+            [resolved-namespace resolved-name false])
+        fq-sym (when (and resolved-namespace
+                          resolved-name)
+                 (symbol (str resolved-namespace)
+                         (str resolved-name)))
+        ctx (if fq-sym
+              (update ctx :callstack
+                      (fn [cs]
+                        (cons [resolved-namespace resolved-name] cs)))
+              ctx)
+        resolved-as-clojure-var-name
+        (when (contains? '#{clojure.core
+                            cljs.core}
+                         resolved-as-namespace)
+          resolved-as-name)
+        use (when lint-as?
+              {:type :use
+               :ns resolved-namespace
+               :name resolved-name
+               :row row
+               :col col
+               :base-lang base-lang
+               :lang lang
+               :expr expr})]
+    (cons* use
+           (case resolved-as-clojure-var-name
+             ns
+             (let [ns (analyze-ns-decl ctx expr)]
+               [ns])
+             in-ns (when-not fn-body [(analyze-in-ns ctx expr)])
+             alias
+             [(analyze-alias ctx expr)]
+             (defn defn- defmacro)
+             (cons {:type :call
+                    :name resolved-as-clojure-var-name
+                    :row row
+                    :col col
+                    :base-lang base-lang
+                    :lang lang
+                    :expr expr
+                    :arity arg-count}
+                   (analyze-defn ctx (lift-meta filename expr)))
+             comment
+             (analyze-children ctx children)
+             (-> some->)
+             (analyze-expression** ctx (macroexpand/expand-> filename expr))
+             (->> some->>)
+             (analyze-expression** ctx (macroexpand/expand->> filename expr))
+             (cond-> cond->> . .. deftype
+                     proxy extend-protocol doto reify definterface defrecord defprotocol
+                     defcurried)
+             ;; don't lint calls in these expressions, only register them as used vars
+             (analyze-children (assoc ctx :call-as-use true)
+                               (:children expr))
+             let
+             (analyze-let ctx expr)
+             letfn
+             (analyze-letfn ctx expr)
+             if-let
+             (analyze-if-let ctx expr)
+             when-let
+             (analyze-when-let ctx expr)
+             do
+             (analyze-do ctx expr)
+             (fn fn*)
+             (analyze-fn ctx (lift-meta filename expr))
+             case
+             (analyze-case ctx expr)
+             loop
+             (analyze-loop ctx expr)
+             recur
+             (analyze-recur ctx expr)
+             (for doseq) ;; skip linting body apart from detecting used namespaces for now
+             (cons {:type :call
+                    :name resolved-as-clojure-var-name
+                    :row row
+                    :col col
+                    :base-lang base-lang
+                    :lang lang
+                    :expr expr
+                    :arity arg-count}
+                   (used-namespaces ns expr))
+             ;; catch-all
+             (case [resolved-namespace resolved-name]
+               [schema.core defn]
+               (analyze-schema-defn ctx expr)
+               ;; catch-all
+               (let [call (if (:call-as-use ctx)
+                            {:type :use
+                             :ns resolved-namespace
+                             :name resolved-name
+                             :row row
+                             :col col
+                             :base-lang base-lang
+                             :lang lang
+                             :expr expr}
+                            {:type :call
+                             :name full-fn-name
+                             :arity arg-count
+                             :row row
+                             :col col
+                             :base-lang base-lang
+                             :lang lang
+                             :expr expr
+                             :callstack (:callstack ctx)})
+                     next-ctx (cond-> ctx
+                                (contains? '#{[clojure.core.async thread]}
+                                           [resolved-namespace resolved-name])
+                                (assoc-in [:recur-arity :fixed-arity] 0))]
+                 (cons call (analyze-children next-ctx (rest children)))))))))
 
 (defn analyze-expression**
-  [{:keys [filename base-lang lang ns bindings callstack] :as ctx}
+  [{:keys [filename ns bindings] :as ctx}
    {:keys [:children] :as expr}]
   (let [t (node/tag expr)
         {:keys [:row :col]} (meta expr)
@@ -567,47 +594,11 @@
                   binding-call? (and unqualified? (contains? bindings full-fn-name))]
               (if binding-call?
                 (analyze-binding-call ctx full-fn-name expr)
-                (let [{resolved-namespace :ns
-                       resolved-name :name}
-                      (resolve-name
-                       (namespace/get-namespace base-lang lang (:name ns)) full-fn-name)
-                      [resolved-as-namespace resolved-as-name lint-as?]
-                      (or (when-let [[ns n] (config/lint-as [resolved-namespace resolved-name])]
-                            [ns n true])
-                          [resolved-namespace resolved-name false])
-                      fq-sym (when (and resolved-namespace
-                                        resolved-name)
-                               (symbol (str resolved-namespace)
-                                       (str resolved-name)))
-                      ctx (if fq-sym
-                            (update ctx :callstack
-                                    (fn [cs]
-                                      (cons [resolved-namespace resolved-name] cs)))
-                            ctx)
-                      resolved-as-clojure-var-name
-                      (when (contains? '#{clojure.core
-                                          cljs.core}
-                                       resolved-as-namespace)
-                        resolved-as-name)
-                      use (when lint-as?
-                            {:type :use
-                             :ns resolved-namespace
-                             :name resolved-name
-                             :row row
-                             :col col
-                             :base-lang base-lang
-                             :lang lang
-                             :expr expr})]
-                  (cons* use
-                         (analyze-core-call ctx
-                                            {:arg-count arg-count
-                                             :resolved-namespace resolved-namespace
-                                             :resolved-name resolved-name
-                                             :resolved-as-clojure-var-name resolved-as-clojure-var-name
-                                             :full-fn-name full-fn-name
-                                             :row row
-                                             :col col
-                                             :expr expr})))))
+                (analyze-call ctx {:arg-count arg-count
+                                   :full-fn-name full-fn-name
+                                   :row row
+                                   :col col
+                                   :expr expr})))
             ;; TODO: emit errors when something not callable, e.g. a string or
             ;; number is in function position
             (analyze-children ctx children))))
