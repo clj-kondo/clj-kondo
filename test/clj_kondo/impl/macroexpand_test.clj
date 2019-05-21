@@ -3,8 +3,7 @@
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.utils :refer [parse-string]]
    [clojure.test :as t :refer [deftest is testing]]
-   [rewrite-clj.node.protocols :refer [tag]]
-   [rewrite-clj.node.protocols :as node]))
+   [rewrite-clj.node.protocols :as node :refer [tag]]))
 
 (defn location [node]
   (let [m (meta node)]
