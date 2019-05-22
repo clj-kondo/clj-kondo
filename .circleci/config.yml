@@ -118,6 +118,7 @@ jobs:
           name: Download GraalVM
           command: |
             cd ~
+            ls -la  graalvm-ce-19.0.0/Contents/Home
             if ! [ -f graalvm-ce-19.0.0/Contents/Home ]; then
               curl -O -sL https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-darwin-amd64-19.0.0.tar.gz
               tar xzf graalvm-ce-darwin-amd64-19.0.0.tar.gz
