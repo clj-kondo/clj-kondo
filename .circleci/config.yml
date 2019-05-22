@@ -119,7 +119,9 @@ jobs:
           command: |
             cd ~
             ls -la
-            if ! [ -f graalvm-ce-19.0.0/Contents/Home ]; then
+            if ! [ -f "graalvm-ce-19.0.0" ]; then
+              echo "file graalvm-ce-19.0.0 doesn't exist. downloading it"
+              ls -la
               curl -O -sL https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-darwin-amd64-19.0.0.tar.gz
               tar xzf graalvm-ce-darwin-amd64-19.0.0.tar.gz
             fi
