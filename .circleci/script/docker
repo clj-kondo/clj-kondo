@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
+    image_tag=$(cat resources/CLJ_KONDO_VERSION)
+    image_name="borkdude/clj-kondo:$image_tag"
+    docker build -t "$image_name" .
+    echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+    docker push "$image_name"
+fi
+
+exit 0;

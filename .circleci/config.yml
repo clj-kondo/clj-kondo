@@ -169,14 +169,35 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
+  docker:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker image
+          command: .circleci/script/docker
 
 workflows:
+  version: 2
   ci:
     jobs:
       - testjvm
       - buildlinux
       - buildmac
       - deploy:
+          filters:
+            branches:
+              only: master
+          requires:
+            - testjvm
+            - buildlinux
+            - buildmac
+      - docker:
+          # filters:
+          #   branches:
+          #     only: master
           requires:
             - testjvm
             - buildlinux
