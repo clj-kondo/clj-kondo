@@ -113,7 +113,7 @@ jobs:
       - run:
           name: Install Clojure
           command: |
-            script/install-clojure
+            .circleci/script/install-clojure
       - run:
           name: Download GraalVM
           command: |
