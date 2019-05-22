@@ -12,6 +12,7 @@ cp ./*.jar "$clojure_lib_dir/libexec"
 cp deps.edn "$clojure_lib_dir"
 cp example-deps.edn "$clojure_lib_dir"
 
+sed -i -e 's@PREFIX@'"$clojure_lib_dir"'@g' clojure
 mkdir -p "$install_dir/bin"
 cp clojure "$install_dir/bin"
 cp clj "$install_dir/bin"
