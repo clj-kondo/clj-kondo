@@ -305,5 +305,4 @@
   (analyze-ns-decl :clj (parse-string (slurp "/tmp/ns.clj")))
   (:used (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
   (:java-imports (analyze-ns-decl :clj (parse-string (slurp "/tmp/nsform.clj"))))
-  (analyze-libspec :clj (node/sexpr (parse-string "[foo.core :refer :all :exclude [foo] :rename {old-name new-name}]")))
   )
