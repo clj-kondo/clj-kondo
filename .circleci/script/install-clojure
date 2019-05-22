@@ -3,8 +3,8 @@
 install_dir=${1:-/tmp/clojure}
 mkdir -p "$install_dir"
 cd /tmp
-curl -O -L https://download.clojure.org/install/clojure-tools-1.10.0.442.tar.gz
-tar xzfv clojure-tools-1.10.0.442.tar.gz
+curl -O -sL https://download.clojure.org/install/clojure-tools-1.10.0.442.tar.gz
+tar xzf clojure-tools-1.10.0.442.tar.gz
 cd clojure-tools
 clojure_lib_dir="$install_dir/lib/clojure"
 mkdir -p "$clojure_lib_dir/libexec"
@@ -20,4 +20,4 @@ cp clj "$install_dir/bin"
 cd /tmp
 rm -rf clojure-tools-1.10.0.442.tar.gz
 rm -rf clojure-tools
-echo "Installed clojure to $install_dir"
+echo "Installed clojure to $install_dir/bin"
