@@ -17,5 +17,4 @@ cp clj "$install_dir/bin"
 cd /tmp
 rm -rf clojure-tools-1.10.0.442.tar.gz
 rm -rf clojure-tools
-export PATH="$PATH:$install_dir/bin"
 echo "Installed clojure to $install_dir"
