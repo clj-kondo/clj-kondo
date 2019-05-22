@@ -6,9 +6,11 @@ cd /tmp
 curl -O -L https://download.clojure.org/install/clojure-tools-1.10.0.442.tar.gz
 tar xzfv clojure-tools-1.10.0.442.tar.gz
 cd clojure-tools
-lib_dir="$install_dir/lib"
-mkdir -p "$lib_dir/libexec"
-cp ./*.jar "$lib_dir/libexec"
+clojure_lib_dir="$install_dir/lib/clojure"
+mkdir -p "$clojure_lib_dir/libexec"
+cp ./*.jar "$clojure_lib_dir/libexec"
+cp deps.edn "$clojure_lib_dir"
+cp example-deps.edn "$clojure_lib_dir"
 
 mkdir -p "$install_dir/bin"
 cp clojure "$install_dir/bin"
