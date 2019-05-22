@@ -1023,6 +1023,9 @@
       :message "wrong number of args (3) passed to keyword :foo/x"})
    (lint! "(ns foo) (::x {::x 1} 2 3)")))
 
+(deftest cljs-self-require-test
+  (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
+
 ;;;; Scratch
 
 (comment

@@ -4,4 +4,4 @@
 (foo 1) ;; correct
 (foo 1 2) ;; incorrect
 
-(bar 1 2 3) ;; this call should be be recognized, since we didn't refer bar
+(bar 1 2 3) ;; this call should not be recognized, since we didn't refer bar

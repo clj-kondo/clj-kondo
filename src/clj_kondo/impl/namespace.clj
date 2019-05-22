@@ -115,7 +115,7 @@
                           {:reason ::unparsable-ns-form
                            :form form})))))
 
-(defn analyze-libspec [{:keys [:lang :filename]} libspec-expr]
+(defn analyze-libspec [{:keys [:base-lang :lang :filename]} current-ns-name require-kw libspec-expr]
   (let [libspec (node/sexpr libspec-expr)]
     (if (symbol? libspec)
       [{:type :require
@@ -124,7 +124,6 @@
                      :filename filename))}]
       (let [[ns-name & options] libspec
             ns-name (symbol ns-name)
-            ;; CLJS clojure namespace aliasing
             ns-name (if (= :cljs lang)
                       (case ns-name
                         clojure.test 'cljs.test
@@ -133,7 +132,12 @@
                       ns-name)
             ns-name (with-meta ns-name
                       (assoc (meta (first (:children libspec-expr)))
-                             :filename filename))]
+                             :filename filename))
+            self-require? (and
+                           (= :cljc base-lang)
+                           (= :cljs lang)
+                           (= current-ns-name ns-name)
+                           (= :require-macros require-kw))]
         (loop [children options
                {:keys [:as :referred :excluded
                        :referred-all :renamed] :as m}
@@ -149,7 +153,7 @@
                 (:refer :refer-macros)
                 (recur
                  (nnext children)
-                 (cond (sequential? opt)
+                 (cond (and (not self-require?) (sequential? opt))
                        (update m :referred into opt)
                        (= :all opt)
                        (assoc m :referred-all true)
@@ -198,14 +202,26 @@
 
 (defn analyze-ns-decl [{:keys [:base-lang :lang] :as ctx} expr]
   (let [children (:children expr)
+        ns-name (or
+                 (let [name-expr (second children)]
+                   (when-let [?name (node/sexpr name-expr)]
+                     (if (symbol? ?name) ?name
+                         (state/reg-finding!
+                          (node->line (:filename ctx)
+                                      name-expr
+                                      :error
+                                      :ns-syntax
+                                      "namespace name expected")))))
+                 'user)
         clauses (next children)
         clauses
         (for [?require-clause clauses
-              :when (contains? #{:require :require-macros}
-                               (some-> ?require-clause :children first node/sexpr))
+              :let [require-kw (some-> ?require-clause :children first :k
+                                       #{:require :require-macros})]
+              :when require-kw
               libspec-expr (rest (:children ?require-clause)) ;; TODO: fix meta
               normalized-libspec-expr (normalize-libspec nil libspec-expr)
-              analyzed (analyze-libspec ctx normalized-libspec-expr)]
+              analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
           analyzed)
         refer-alls (reduce (fn [acc clause]
                              (if (:referred-all clause)
@@ -216,17 +232,7 @@
         ns (cond->
                {:type :ns
                 :lang lang
-                :name (or
-                       (let [name-expr (second children)]
-                         (when-let [?name (node/sexpr name-expr)]
-                           (if (symbol? ?name) ?name
-                               (state/reg-finding!
-                                (node->line (:filename ctx)
-                                            name-expr
-                                            :error
-                                            :ns-syntax
-                                            "namespace name expected")))))
-                       'user)
+                :name ns-name
                 :vars #{}
                 :required (map :ns clauses)
                 :qualify-var (into {} (mapcat :referred clauses))
@@ -243,11 +249,11 @@
                                              sym v]
                                          sym))
                 :refer-alls refer-alls
-                :used (into
-                       (case lang
-                         :clj '#{clojure.core}
-                         :cljs '#{cljs.core})
-                       (keys refer-alls))}
+                :used (-> (case lang
+                            :clj '#{clojure.core}
+                            :cljs '#{cljs.core})
+                          (into (keys refer-alls))
+                          (conj ns-name))}
              (= :clj lang) (update :qualify-ns
                                    #(assoc % 'clojure.core 'clojure.core))
              (= :cljs lang) (update :qualify-ns
