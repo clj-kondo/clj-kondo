@@ -113,15 +113,17 @@ jobs:
       - run:
           name: Install Clojure
           command: |
-            brew install clojure && brew link clojure
+            .circleci/script/install-clojure /usr/local
       - run:
           name: Download GraalVM
           command: |
-            brew install gettext && brew link gettext
-            brew install wget && brew link wget
             cd ~
-            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-darwin-amd64-19.0.0.tar.gz
-            tar -xzf graalvm-ce-darwin-amd64-19.0.0.tar.gz
+            if ! [ -f graalvm-ce-darwin-amd64-19.0.0.tar.gz ]; then
+              curl -O -sL https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-darwin-amd64-19.0.0.tar.gz
+            fi
+            if ! [ -f graalvm-ce-19.0.0/Contents/Home ]; then
+              tar xzf graalvm-ce-darwin-amd64-19.0.0.tar.gz
+            fi
       - run:
           name: Build binary
           command: |
@@ -144,9 +146,6 @@ jobs:
             - ~/.m2
             - ~/graalvm-ce-macos-amd64-19.0.0.tar.gz
             - ~/graalvm-ce-19.0.0
-            - /usr/local/Homebrew
-            - /usr/local/Cellar
-            - /usr/local/opt
           key: buildmac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
@@ -169,14 +168,36 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
+  docker:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build Docker image
+          command: .circleci/script/docker
 
 workflows:
+  version: 2
   ci:
     jobs:
       - testjvm
       - buildlinux
       - buildmac
       - deploy:
+          filters:
+            branches:
+              only: master
+          requires:
+            - testjvm
+            - buildlinux
+            - buildmac
+      - docker:
+          filters:
+            branches:
+              only: master
           requires:
             - testjvm
             - buildlinux
