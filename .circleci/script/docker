@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
+# [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ];
+if true; then
     image_tag=$(cat resources/CLJ_KONDO_VERSION)
     image_name="borkdude/clj-kondo:$image_tag"
     docker build -t "$image_name" .
