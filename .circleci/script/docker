@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ];
-if true; then
+if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     image_name="borkdude/clj-kondo"
     image_tag=$(cat resources/CLJ_KONDO_VERSION)
     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin

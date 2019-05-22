@@ -195,9 +195,9 @@ workflows:
             - buildlinux
             - buildmac
       - docker:
-          # filters:
-          #   branches:
-          #     only: master
+          filters:
+            branches:
+              only: master
           requires:
             - testjvm
             - buildlinux
