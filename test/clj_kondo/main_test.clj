@@ -457,7 +457,10 @@
   (is (empty? (lint! "(let [f #(apply println % %&)] (f 1 2 3 4 5 6))")))
   (is (empty? (lint! "(fn ^:static meta [x] (if (instance? clojure.lang.IMeta x)
                        (. ^clojure.lang.IMeta x (meta))))")))
-  (is (empty? (lint! "(doseq [fn [inc]] (fn 1))"))))
+  (is (empty? (lint! "(doseq [fn [inc]] (fn 1))")))
+  (is (empty?
+       (lint! "(select-keys (let [x (fn [])] (x 1 2 3)) [])" "--config"
+              "{:linters {:invalid-arity {:skip-args [clojure.core/select-keys]}}}"))))
 
 (deftest let-test
   (assert-submap
@@ -1021,7 +1024,10 @@
       :col 10,
       :level :error,
       :message "wrong number of args (3) passed to keyword :foo/x"})
-   (lint! "(ns foo) (::x {::x 1} 2 3)")))
+   (lint! "(ns foo) (::x {::x 1} 2 3)"))
+  (is (empty?
+       (lint! "(select-keys (:more 1 2 3 4) [])" "--config"
+              "{:linters {:invalid-arity {:skip-args [clojure.core/select-keys]}}}"))))
 
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))

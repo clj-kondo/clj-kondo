@@ -406,42 +406,44 @@
   (if x (cons x xs)
       xs))
 
-(defn analyze-binding-call [ctx fn-name expr]
-  (let [filename (:filename ctx)
-        children (:children expr)]
-    (when-not (:call-as-use ctx)
-      (when-let [{:keys [:fixed-arities :var-args-min-arity]}
-                 (get (:arities ctx) fn-name)]
-        (let [arg-count (count (rest children))]
-          (when-not (or (contains? fixed-arities arg-count)
-                        (and var-args-min-arity (>= arg-count var-args-min-arity)))
-            (state/reg-finding! (node->line filename expr :error
-                                            :invalid-arity
-                                            (format "wrong number of args (%s) passed to %s"
-                                                    arg-count
-                                                    fn-name))))))
-      (analyze-children ctx (rest children)))))
+(defn analyze-binding-call [{:keys [:callstack] :as ctx} fn-name expr]
+  (when-not (config/skip? :invalid-arity callstack)
+    (let [filename (:filename ctx)
+          children (:children expr)]
+      (when-not (:call-as-use ctx)
+        (when-let [{:keys [:fixed-arities :var-args-min-arity]}
+                   (get (:arities ctx) fn-name)]
+          (let [arg-count (count (rest children))]
+            (when-not (or (contains? fixed-arities arg-count)
+                          (and var-args-min-arity (>= arg-count var-args-min-arity)))
+              (state/reg-finding! (node->line filename expr :error
+                                              :invalid-arity
+                                              (format "wrong number of args (%s) passed to %s"
+                                                      arg-count
+                                                      fn-name))))))
+        (analyze-children ctx (rest children))))))
 
-(defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
-  (let [ns (:ns ctx)
-        ?resolved-ns (if namespaced?
-                       (if-let [kw-ns (namespace kw)]
-                         (or (get (:qualify-ns ns) (symbol kw-ns))
-                             ;; because we couldn't resolve the namespaced
-                             ;; keyword, we print it as is
-                             (str ":" (namespace kw)))
-                         ;; if the keyword is namespace, but there is no
-                         ;; namespace, it's the current ns
-                         (:name ns))
-                       (namespace kw))
-        kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
-                   (str (name kw)))]
-    (when (or (zero? arg-count)
-              (> arg-count 2))
-      (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
-                                      (format "wrong number of args (%s) passed to keyword :%s"
-                                              arg-count
-                                              kw-str))))))
+(defn lint-keyword-call! [{:keys [:callstack] :as ctx} kw namespaced? arg-count expr]
+  (when-not (config/skip? :invalid-arity callstack)
+    (let [ns (:ns ctx)
+          ?resolved-ns (if namespaced?
+                         (if-let [kw-ns (namespace kw)]
+                           (or (get (:qualify-ns ns) (symbol kw-ns))
+                               ;; because we couldn't resolve the namespaced
+                               ;; keyword, we print it as is
+                               (str ":" (namespace kw)))
+                           ;; if the keyword is namespace, but there is no
+                           ;; namespace, it's the current ns
+                           (:name ns))
+                         (namespace kw))
+          kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
+                     (str (name kw)))]
+      (when (or (zero? arg-count)
+                (> arg-count 2))
+        (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
+                                        (format "wrong number of args (%s) passed to keyword :%s"
+                                                arg-count
+                                                kw-str)))))))
 
 (defn analyze-call
   [{:keys [:filename :fn-body :base-lang :lang :ns] :as ctx}
