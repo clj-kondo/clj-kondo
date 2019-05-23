@@ -16,7 +16,7 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     docker build -t "$image_name" .
     docker tag "$image_name:$latest_tag" "$image_name:$image_tag"
     # we only update latest when it's not a SNAPSHOT version
-    if true || [ ! $snapshot ]; then
+    if [ ! $snapshot ]; then
         echo "Pushing image $image_name:$latest_tag"
         docker push "$image_name:$latest_tag"
     fi
