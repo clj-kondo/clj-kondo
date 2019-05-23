@@ -11,6 +11,9 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ] \
     docker tag "$image_name:latest" "$image_name:$image_tag"
     docker push "$image_name:latest"
     docker push "$image_name:$image_tag"
+else
+    echo "Not publishing Docker image"
 fi
+
 
 exit 0;
