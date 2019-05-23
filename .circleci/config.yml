@@ -57,7 +57,7 @@ jobs:
       - run:
           name: Install Clojure
           command: |
-            wget -nc https://download.clojure.org/install/linux-install-1.10.0.442.sh
+            wget https://download.clojure.org/install/linux-install-1.10.0.442.sh
             chmod +x linux-install-1.10.0.442.sh
             sudo ./linux-install-1.10.0.442.sh
       - run:
@@ -69,12 +69,13 @@ jobs:
           name: Download GraalVM
           command: |
             cd ~
-            wget -nc https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-linux-amd64-19.0.0.tar.gz
-            tar -xzf graalvm-ce-linux-amd64-19.0.0.tar.gz
+            if ! [ -d graalvm-ce-19.0.0 ]; then
+              curl -O -sL https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-linux-amd64-19.0.0.tar.gz
+              tar xzf graalvm-ce-linux-amd64-19.0.0.tar.gz
+            fi
       - run:
           name: Build binary
           command: |
-            # important, -J options go after --verbose
             script/compile
           no_output_timeout: 30m
       - run:
@@ -92,7 +93,6 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-linux-amd64-19.0.0.tar.gz
             - ~/graalvm-ce-19.0.0
           key: buildlinux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
@@ -119,9 +119,7 @@ jobs:
           command: |
             cd ~
             ls -la
-            if ! [ -d "graalvm-ce-19.0.0" ]; then
-              echo "file graalvm-ce-19.0.0 doesn't exist. downloading it"
-              ls -la
+            if ! [ -d graalvm-ce-19.0.0 ]; then
               curl -O -sL https://github.com/oracle/graal/releases/download/vm-19.0.0/graalvm-ce-darwin-amd64-19.0.0.tar.gz
               tar xzf graalvm-ce-darwin-amd64-19.0.0.tar.gz
             fi

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
+image_tag=$(cat resources/CLJ_KONDO_VERSION)
+
+if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ] && [[ ! $image_tag =~ "SNAPSHOT$" ]]; then
     image_name="borkdude/clj-kondo"
     image_tag=$(cat resources/CLJ_KONDO_VERSION)
     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
@@ -8,6 +10,9 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     docker tag "$image_name:latest" "$image_name:$image_tag"
     docker push "$image_name:latest"
     docker push "$image_name:$image_tag"
+else
+    echo "Not publishing Docker image"
 fi
+
 
 exit 0;
