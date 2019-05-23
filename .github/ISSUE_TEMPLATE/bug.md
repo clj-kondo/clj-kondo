@@ -6,7 +6,7 @@
 
 #### Platform
 
-[ Please specify which platform you are using clj-kondo with. This can be Linux, MacOS, Linux, JVM or Docker. ]
+[ Please specify which platform you are using clj-kondo on. This can be Linux, MacOS, Linux, JVM or Docker. ]
 
 #### Problem
 
