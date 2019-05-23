@@ -13,7 +13,8 @@ assignees: ''
 
 **platform**
 
-[ Please specify which platform you are using clj-kondo on. This can be Linux, MacOS, Linux, JVM or Docker. ]
+[ Please specify which platform you are using clj-kondo on, so you can test a
+new binary when the issue is resolved. ]
 
 **problem**
 
