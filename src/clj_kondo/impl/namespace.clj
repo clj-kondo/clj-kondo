@@ -48,7 +48,9 @@
                   (node->line (:filename ctx)
                               expr :warning
                               :redefined-var
-                              (str "redefining " (str redefined-ns "/" var-sym))))))
+                              (if (= ns-sym redefined-ns)
+                                (str "redefined var #'" redefined-ns "/" var-sym)
+                                (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
              (update ns :vars conj var-sym)))))
 
 (defn reg-usage!
