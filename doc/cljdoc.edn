@@ -1,7 +1,8 @@
 {:cljdoc.doc/tree
  [["Readme" {:file "README.md"}]
   ["Installation" {:file "doc/install.md"}]
-  ["Running on the JVM" {:file "doc/jvm.md"}]
+  ["Running with the JVM" {:file "doc/jvm.md"}]
+  ["Running with Docker" {:file "doc/docker.md"}]
   ["Configuration" {:file "doc/config.md"}]
   ["Editor integration" {:file "doc/editor-integration.md"}]
   ["Building from source" {:file "doc/build.md"}]]}
