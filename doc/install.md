@@ -48,6 +48,6 @@ To upgrade, just run the script again.
 Pre-built binaries are available for linux, MacOS and Windows on the
 [releases](https://github.com/borkdude/clj-kondo/releases) page.
 
-## [Running on the JVM](jvm.md)
+## [Running with the JVM](jvm.md)
 
-## [Running on Docker](docker.md)
+## [Running with Docker](docker.md)

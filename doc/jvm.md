@@ -1,4 +1,4 @@
-# Running on the JVM
+# Running with the JVM
 
 Using the binary is recommended for better startup time, but you can run this
 linter with as a regular Clojure program on the JVM as well.
