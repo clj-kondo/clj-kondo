@@ -38,7 +38,11 @@
   (is (empty? (lint! "(let [x 2] (let [y 1]) (let [y 2]))")))
   (is (empty? (lint! "(let [x 2] (when true (let [y 1])))")))
   (is (empty? (lint! "(let [z 1] (when true (let [x (let [y 2] y)])))")))
-  (is (empty? (lint! "#(let [x 1])"))))
+  (is (empty? (lint! "#(let [x 1])")))
+  (is (empty? (lint! "(let [x 1] [x (let [y (+ x 1)] y)])")))
+  (is (empty? (lint! "(let [x 1] #{(let [y 1] y)})")))
+  (is (empty? (lint! "(let [x 1] #:a{:a (let [y 1] y)})")))
+  (is (empty? (lint! "(let [x 1] {:a (let [y 1] y)})"))))
 
 (deftest redundant-do-test
   (let [linted (lint! (io/file "corpus" "redundant_do.clj"))
