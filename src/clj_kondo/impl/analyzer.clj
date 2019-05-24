@@ -423,28 +423,6 @@
                                                       fn-name))))))
         (analyze-children ctx (rest children))))))
 
-(defn lint-keyword-call! [{:keys [:callstack] :as ctx} kw namespaced? arg-count expr]
-  (when-not (config/skip? :invalid-arity callstack)
-    (let [ns (:ns ctx)
-          ?resolved-ns (if namespaced?
-                         (if-let [kw-ns (namespace kw)]
-                           (or (get (:qualify-ns ns) (symbol kw-ns))
-                               ;; because we couldn't resolve the namespaced
-                               ;; keyword, we print it as is
-                               (str ":" (namespace kw)))
-                           ;; if the keyword is namespace, but there is no
-                           ;; namespace, it's the current ns
-                           (:name ns))
-                         (namespace kw))
-          kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
-                     (str (name kw)))]
-      (when (or (zero? arg-count)
-                (> arg-count 2))
-        (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
-                                        (format "wrong number of args (%s) passed to keyword :%s"
-                                                arg-count
-                                                kw-str)))))))
-
 (defn analyze-call
   [{:keys [:filename :fn-body :base-lang :lang :ns] :as ctx}
    {:keys [:arg-count
@@ -570,6 +548,40 @@
                                 (assoc-in [:recur-arity :fixed-arity] 0))]
                  (cons call (analyze-children next-ctx (rest children)))))))))
 
+(comment
+  (parse-string "{:a 1}")
+  )
+
+(defn lint-keyword-call! [{:keys [:callstack] :as ctx} kw namespaced? arg-count expr]
+  (when-not (config/skip? :invalid-arity callstack)
+    (let [ns (:ns ctx)
+          ?resolved-ns (if namespaced?
+                         (if-let [kw-ns (namespace kw)]
+                           (or (get (:qualify-ns ns) (symbol kw-ns))
+                               ;; because we couldn't resolve the namespaced
+                               ;; keyword, we print it as is
+                               (str ":" (namespace kw)))
+                           ;; if the keyword is namespace, but there is no
+                           ;; namespace, it's the current ns
+                           (:name ns))
+                         (namespace kw))
+          kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
+                     (str (name kw)))]
+      (when (or (zero? arg-count)
+                (> arg-count 2))
+        (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
+                                        (format "wrong number of args (%s) passed to keyword :%s"
+                                                arg-count
+                                                kw-str)))))))
+
+(defn lint-map-call! [{:keys [:callstack] :as ctx} the-map arg-count expr]
+  (when-not (config/skip? :invalid-arity callstack)
+    (when (or (zero? arg-count)
+              (> arg-count 2))
+      (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
+                                      (format "wrong number of args (%s) passed to map"
+                                              arg-count))))))
+
 (defn analyze-expression**
   [{:keys [filename ns bindings] :as ctx}
    {:keys [:children] :as expr}]
@@ -588,22 +600,28 @@
       :token (used-namespaces ns expr)
       :list
       (when-let [function (first children)]
-        (if-let [k (:k function)]
-          (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
-              (analyze-children ctx children))
-          (if-let [full-fn-name (when (symbol? (:value function)) (:value function))]
-            (let [unqualified? (nil? (namespace full-fn-name))
-                  binding-call? (and unqualified? (contains? bindings full-fn-name))]
-              (if binding-call?
-                (analyze-binding-call ctx full-fn-name expr)
-                (analyze-call ctx {:arg-count arg-count
-                                   :full-fn-name full-fn-name
-                                   :row row
-                                   :col col
-                                   :expr expr})))
-            ;; TODO: emit errors when something not callable, e.g. a string or
-            ;; number is in function position
-            (analyze-children ctx children))))
+        (let [t (node/tag function)]
+          (case t
+            :map
+            (do (lint-map-call! ctx function arg-count expr)
+                (analyze-children ctx children))
+            :token
+            (if-let [k (:k function)]
+              (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+                  (analyze-children ctx children))
+              (if-let [full-fn-name (when (symbol? (:value function)) (:value function))]
+                (let [unqualified? (nil? (namespace full-fn-name))
+                      binding-call? (and unqualified? (contains? bindings full-fn-name))]
+                  (if binding-call?
+                    (analyze-binding-call ctx full-fn-name expr)
+                    (analyze-call ctx {:arg-count arg-count
+                                       :full-fn-name full-fn-name
+                                       :row row
+                                       :col col
+                                       :expr expr})))
+                ;; TODO: emit errors when something not callable, e.g. a string or
+                ;; number is in function position
+                (analyze-children ctx children))))))
       (analyze-children ctx children))))
 
 (defn analyze-expression*

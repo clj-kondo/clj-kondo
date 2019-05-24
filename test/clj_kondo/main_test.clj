@@ -1029,6 +1029,24 @@
        (lint! "(select-keys (:more 1 2 3 4) [])" "--config"
               "{:linters {:invalid-arity {:skip-args [clojure.core/select-keys]}}}"))))
 
+(deftest map-call-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to map"})
+   (lint! "({:a 1})"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (3) passed to map"})
+   (lint! "({:a 1} 1 2 3)"))
+  (is (empty? (lint! "(foo ({:a 1} 1 2 3))" "--config"
+                     "{:linters {:invalid-arity {:skip-args [user/foo]}}}"))))
+
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
 
