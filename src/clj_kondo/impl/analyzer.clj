@@ -587,11 +587,16 @@
     (case t
       :quote nil
       :syntax-quote (used-namespaces ns expr)
-      :namespaced-map (analyze-namespaced-map ctx expr)
+      :namespaced-map (analyze-namespaced-map (update ctx
+                                                      :callstack #(cons t %))
+                                              expr)
       :map (do (key-linter/lint-map-keys filename expr)
-               (analyze-children ctx children))
+               (analyze-children (update ctx
+                                         :callstack #(cons t %)) children))
       :set (do (key-linter/lint-set filename expr)
-               (analyze-children ctx children))
+               (analyze-children (update ctx
+                                         :callstack #(cons t %))
+                                 children))
       :fn (recur ctx (macroexpand/expand-fn expr))
       :token (used-namespaces ns expr)
       :list
@@ -621,7 +626,9 @@
             ;; catch-all
             (analyze-children ctx children))))
       ;; catch-all
-      (analyze-children ctx children))))
+      (analyze-children (update ctx
+                                :callstack #(cons t %))
+                        children))))
 
 (defn analyze-expression*
   [{:keys [:filename :base-lang :lang :results :ns :expression :debug?]}]
