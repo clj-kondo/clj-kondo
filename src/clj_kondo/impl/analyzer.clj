@@ -548,10 +548,6 @@
                                 (assoc-in [:recur-arity :fixed-arity] 0))]
                  (cons call (analyze-children next-ctx (rest children)))))))))
 
-(comment
-  (parse-string "{:a 1}")
-  )
-
 (defn lint-keyword-call! [{:keys [:callstack] :as ctx} kw namespaced? arg-count expr]
   (when-not (config/skip? :invalid-arity callstack)
     (let [ns (:ns ctx)
@@ -579,7 +575,7 @@
     (when (or (zero? arg-count)
               (> arg-count 2))
       (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
-                                      (format "wrong number of args (%s) passed to map"
+                                      (format "wrong number of args (%s) passed to a map"
                                               arg-count))))))
 
 (defn analyze-expression**
@@ -621,7 +617,10 @@
                                        :expr expr})))
                 ;; TODO: emit errors when something not callable, e.g. a string or
                 ;; number is in function position
-                (analyze-children ctx children))))))
+                (analyze-children ctx children)))
+            ;; catch-all
+            (analyze-children ctx children))))
+      ;; catch-all
       (analyze-children ctx children))))
 
 (defn analyze-expression*

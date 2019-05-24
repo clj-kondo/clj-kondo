@@ -935,21 +935,21 @@
       :row 1,
       :col 15,
       :level :warning,
-      :message "redefining user/foo"})
+      :message "redefined var #'user/foo"})
    (lint! "(defn foo []) (defn foo [])"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 1,
       :level :warning,
-      :message "redefining clojure.core/inc"})
+      :message "inc already refers to #'clojure.core/inc"})
    (lint! "(defn inc [])"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 1,
       :level :warning,
-      :message "redefining cljs.core/inc"})
+      :message "inc already refers to #'cljs.core/inc"})
    (lint! "(defn inc [])" "--lang" "cljs"))
   (assert-submaps '({:file "<stdin>",
                      :row 1,
@@ -960,7 +960,7 @@
                      :row 1,
                      :col 38,
                      :level :warning,
-                     :message "redefining bar/x"})
+                     :message "x already refers to #'bar/x"})
                   (lint! "(ns foo (:require [bar :refer [x]])) (defn x [])"))
   (is (empty? (lint! "(defn foo [])")))
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])"))))
@@ -1035,14 +1035,14 @@
       :row 1,
       :col 1,
       :level :error,
-      :message "wrong number of args (0) passed to map"})
+      :message "wrong number of args (0) passed to a map"})
    (lint! "({:a 1})"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 1,
       :level :error,
-      :message "wrong number of args (3) passed to map"})
+      :message "wrong number of args (3) passed to a map"})
    (lint! "({:a 1} 1 2 3)"))
   (is (empty? (lint! "(foo ({:a 1} 1 2 3))" "--config"
                      "{:linters {:invalid-arity {:skip-args [user/foo]}}}"))))
