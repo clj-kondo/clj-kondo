@@ -3,20 +3,22 @@
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.linters :as l]
+   [clj-kondo.impl.linters.keys :as key-linter]
+   [clj-kondo.impl.macroexpand :as macroexpand]
+   [clj-kondo.impl.metadata :refer [lift-meta]]
    [clj-kondo.impl.namespace :as namespace :refer [analyze-ns-decl resolve-name]]
    [clj-kondo.impl.parser :as p]
+   [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.schema :as schema]
+   [clj-kondo.impl.state :as state]
    [clj-kondo.impl.utils :refer [some-call symbol-call keyword-call node->line
                                  parse-string parse-string-all tag select-lang
                                  vconj deep-merge]]
-   [clj-kondo.impl.metadata :refer [lift-meta]]
-   [clj-kondo.impl.macroexpand :as macroexpand]
-   [clj-kondo.impl.linters.keys :as key-linter]
    [clojure.set :as set]
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
-   [clj-kondo.impl.schema :as schema]
-   [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.state :as state]))
+   [rewrite-clj.node.token :as token]
+   [rewrite-clj.node.seq :as seq]))
 
 (defn extract-bindings [sexpr]
   (cond (and (symbol? sexpr)
@@ -402,6 +404,28 @@
            (used-namespaces (:ns ctx) {:children schemas})
            (analyze-defn ctx defn)))))
 
+(defn analyze-deftest [ctx _deftest-ns expr]
+  (let [arg-count (count (rest (:children expr)))
+        {:keys [:base-lang :lang]} ctx
+        {:keys [:row :col]} (meta expr)]
+    (cons {:type :call
+           :name (case lang
+                   :clj 'clojure.test/deftest
+                   :cljs 'cljs.test/deftest)
+           :row row
+           :col col
+           :base-lang base-lang
+           :lang lang
+           :expr expr
+           :arity arg-count}
+          (analyze-defn ctx (update expr :children
+                                    (fn [[_ name-expr & body]]
+                                      (list*
+                                       (token/token-node 'clojure.core/defn)
+                                       name-expr
+                                       (seq/vector-node [])
+                                       body)))))))
+
 (defn cons* [x xs]
   (if x (cons x xs)
       xs))
@@ -523,6 +547,8 @@
              (case [resolved-namespace resolved-name]
                [schema.core defn]
                (analyze-schema-defn ctx expr)
+               ([clojure.test deftest] [cljs.test deftest])
+               (analyze-deftest ctx resolved-namespace expr)
                ;; catch-all
                (let [call (if (:call-as-use ctx)
                             {:type :use

@@ -1054,6 +1054,25 @@
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
 
+(deftest refined-test-test
+  (assert-submaps
+   '({:file "corpus/redefined_deftest.clj",
+      :row 4,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.test/deftest"}
+     {:file "corpus/redefined_deftest.clj",
+      :row 7,
+      :col 1,
+      :level :warning,
+      :message "redefined var #'redefined-deftest/foo"}
+     {:file "corpus/redefined_deftest.clj",
+      :row 9,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (1) passed to redefined-deftest/foo"})
+   (lint! (io/file "corpus" "redefined_deftest.clj"))))
+
 ;;;; Scratch
 
 (comment
