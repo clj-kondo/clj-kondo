@@ -60,7 +60,8 @@
                      (not (or (nil? v) (false? v))))
             (when (not= :else v)
               (state/reg-finding!
-               (node->line filename condition :warning :cond-else "prefer :else")))
+               (node->line filename condition :warning :cond-else
+                           "use :else as the catch-all test expression in cond")))
             (when (and (seq rest-conditions))
               (state/reg-finding!
                (node->line filename (first rest-conditions) :warning :unreachable-code "unreachable code"))))))
