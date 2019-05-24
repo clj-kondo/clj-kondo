@@ -418,13 +418,14 @@
            :lang lang
            :expr expr
            :arity arg-count}
-          (analyze-defn ctx (update expr :children
-                                    (fn [[_ name-expr & body]]
-                                      (list*
-                                       (token/token-node 'clojure.core/defn)
-                                       name-expr
-                                       (seq/vector-node [])
-                                       body)))))))
+          (analyze-defn ctx
+                        (update expr :children
+                                (fn [[_ name-expr & body]]
+                                  (list*
+                                   (token/token-node 'clojure.core/defn)
+                                   name-expr
+                                   (seq/vector-node [])
+                                   body)))))))
 
 (defn cons* [x xs]
   (if x (cons x xs)

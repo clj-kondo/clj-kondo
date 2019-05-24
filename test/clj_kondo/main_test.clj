@@ -334,9 +334,6 @@
 (deftest override-test
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
-(deftest override-test
-  (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
-
 (deftest cljs-clojure-ns-alias-test []
   (assert-submap '{:file "<stdin>",
                    :row 2,
@@ -749,17 +746,17 @@
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 53,
+      :col 57,
       :level :warning,
       :message "missing test assertion"})
-   (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest (odd? 1))"))
+   (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest foo (odd? 1))"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 75,
+      :col 79,
       :level :warning,
       :message "missing test assertion"})
-   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set])) (t/deftest (set/subset? #{1 2} #{1 2 3}))")))
+   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set])) (t/deftest foo (set/subset? #{1 2} #{1 2 3}))")))
 
 (deftest recur-test
   (assert-submaps
