@@ -1035,14 +1035,14 @@
       :row 1,
       :col 1,
       :level :error,
-      :message "wrong number of args (0) passed to map"})
+      :message "wrong number of args (0) passed to a map"})
    (lint! "({:a 1})"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 1,
       :level :error,
-      :message "wrong number of args (3) passed to map"})
+      :message "wrong number of args (3) passed to a map"})
    (lint! "({:a 1} 1 2 3)"))
   (is (empty? (lint! "(foo ({:a 1} 1 2 3))" "--config"
                      "{:linters {:invalid-arity {:skip-args [user/foo]}}}"))))
