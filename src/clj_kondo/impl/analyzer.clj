@@ -617,7 +617,10 @@
                                        :expr expr})))
                 ;; TODO: emit errors when something not callable, e.g. a string or
                 ;; number is in function position
-                (analyze-children ctx children))))))
+                (analyze-children ctx children)))
+            ;; catch-all
+            (analyze-children ctx children))))
+      ;; catch-all
       (analyze-children ctx children))))
 
 (defn analyze-expression*

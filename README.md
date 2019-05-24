@@ -62,7 +62,7 @@ enabling that one as well.
 
 ## [Installation](doc/install.md)
 
-## [Running with the JVM](doc/jvm.md)
+## [Running on the JVM](doc/jvm.md)
 
 ## [Running with Docker](doc/docker.md)
 
