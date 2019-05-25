@@ -141,12 +141,10 @@
              (lint-cond filename (:expr call))
              nil)
            ;; missing test assertion
-           (do
-             ;; (println "CALLSTACK" (:callstack call))
-             (case (second (:callstack call))
-               ([clojure.test deftest] [cljs.test deftest])
-               (lint-missing-test-assertion filename call called-fn)
-               nil))]))
+           (case (second (:callstack call))
+             ([clojure.test deftest] [cljs.test deftest])
+             (lint-missing-test-assertion filename call called-fn)
+             nil)]))
 
 (defn resolve-call [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)

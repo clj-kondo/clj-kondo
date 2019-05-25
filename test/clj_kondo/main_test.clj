@@ -334,9 +334,6 @@
 (deftest override-test
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
-(deftest override-test
-  (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
-
 (deftest cljs-clojure-ns-alias-test []
   (assert-submap '{:file "<stdin>",
                    :row 2,
@@ -749,17 +746,17 @@
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 53,
+      :col 57,
       :level :warning,
       :message "missing test assertion"})
-   (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest (odd? 1))"))
+   (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest foo (odd? 1))"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 75,
+      :col 79,
       :level :warning,
       :message "missing test assertion"})
-   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set])) (t/deftest (set/subset? #{1 2} #{1 2 3}))")))
+   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set])) (t/deftest foo (set/subset? #{1 2} #{1 2 3}))")))
 
 (deftest recur-test
   (assert-submaps
@@ -1053,6 +1050,25 @@
 
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
+
+(deftest refined-test-test
+  (assert-submaps
+   '({:file "corpus/redefined_deftest.clj",
+      :row 4,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.test/deftest"}
+     {:file "corpus/redefined_deftest.clj",
+      :row 7,
+      :col 1,
+      :level :warning,
+      :message "redefined var #'redefined-deftest/foo"}
+     {:file "corpus/redefined_deftest.clj",
+      :row 9,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (1) passed to redefined-deftest/foo"})
+   (lint! (io/file "corpus" "redefined_deftest.clj"))))
 
 ;;;; Scratch
 
