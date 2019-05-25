@@ -612,31 +612,31 @@
   (assert-submap
    {:file "<stdin>",
     :row 1,
-    :col 13,
+    :col 8,
     :level :error,
     :message "wrong number of args (1) passed to clojure.core/select-keys"}
-   (first (lint! "(-> (1 2 3) select-keys)")))
+   (first (lint! "(-> {} select-keys)")))
   (assert-submap
    {:file "<stdin>",
     :row 1,
-    :col 13,
+    :col 8,
     :level :error,
     :message "wrong number of args (1) passed to clojure.core/select-keys"}
-   (first (lint! "(-> (1 2 3) (select-keys))")))
+   (first (lint! "(-> {} (select-keys))")))
   (assert-submap
    {:file "<stdin>",
     :row 1,
-    :col 14,
+    :col 9,
     :level :error,
     :message "wrong number of args (1) passed to clojure.core/select-keys"}
-   (first (lint! "(->> (1 2 3) select-keys)")))
+   (first (lint! "(->> {} select-keys)")))
   (assert-submap
    {:file "<stdin>",
     :row 1,
-    :col 14,
+    :col 9,
     :level :error,
     :message "wrong number of args (1) passed to clojure.core/select-keys"}
-   (first (lint! "(->> (1 2 3) (select-keys))")))
+   (first (lint! "(->> {} (select-keys))")))
   (testing "cats"
     (is (seq (lint! "(ns foo (:require [cats.core :as m])) (m/->= (right {}) (select-keys))")))
     (is (seq (lint! "(ns foo (:require [cats.core :as m])) (m/->>= (right {}) (select-keys))"))))
