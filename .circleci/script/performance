@@ -23,7 +23,7 @@ read -r -d '' config <<'EOF'
                  clojure.data.json/codepoint-case]}}}
 EOF
 
-(time clj -A:clj-kondo --lint "$cp" --cache --config "$config") 2>&1 | tee -a performance.txt
+(time ./clj-kondo --lint "$cp" --cache --config "$config") 2>&1 | tee -a performance.txt
 
 echo -e "\n==== Lint a single file (emulate in-editor usage)" | tee -a performance.txt
 (time ./clj-kondo --lint src/clj_kondo/main.clj --cache) 2>&1 | tee -a performance.txt
