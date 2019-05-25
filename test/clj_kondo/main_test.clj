@@ -45,20 +45,19 @@
   (is (empty? (lint! "(let [x 1] {:a (let [y 1] y)})"))))
 
 (deftest redundant-do-test
-  (let [linted (lint! (io/file "corpus" "redundant_do.clj"))
-        row-col-files (set (map #(select-keys % [:row :col :file])
-                                linted))]
-    (is (= #{{:row 7, :col 13, :file "corpus/redundant_do.clj"}
-             {:row 4, :col 7, :file "corpus/redundant_do.clj"}
-             {:row 3, :col 1, :file "corpus/redundant_do.clj"}
-             {:row 6, :col 8, :file "corpus/redundant_do.clj"}
-             {:row 5, :col 14, :file "corpus/redundant_do.clj"}}
-           row-col-files))
-    (is (= #{"redundant do"} (set (map :message linted)))))
+  (assert-submaps
+   '({:row 3, :col 1, :file "corpus/redundant_do.clj" :message "redundant do"}
+     {:row 4, :col 7, :file "corpus/redundant_do.clj" :message "redundant do"}
+     {:row 5, :col 14, :file "corpus/redundant_do.clj" :message "redundant do"}
+     {:row 6, :col 8, :file "corpus/redundant_do.clj" :message "redundant do"}
+     {:row 7, :col 13, :file "corpus/redundant_do.clj" :message "redundant do"})
+   (lint! (io/file "corpus" "redundant_do.clj")))
   (is (empty? (lint! "(do 1 `(do 1 2 3))")))
   (is (empty? (lint! "(do 1 '(do 1 2 3))")))
   (is (not-empty (lint! "(fn [] (do :foo :bar))")))
-  (is (empty? (lint! "#(do :foo :bar)"))))
+  (is (empty? (lint! "#(do :foo :bar)")))
+  (is (empty? (lint! "#(do (prn %1 %2 true) %1)")))
+  (is (empty? (lint! "(let [x (do (println 1) 1)] x)"))))
 
 (deftest invalid-arity-test
   (let [linted (lint! (io/file "corpus" "invalid_arity"))

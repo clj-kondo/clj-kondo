@@ -13,26 +13,6 @@
 
 (set! *warn-on-reflection* true)
 
-;;;; redundant do
-;; TODO: move to call specific linters
-
-(defn redundant-do* [{:keys [:children] :as expr}
-                     parent-do?]
-  (let [implicit-do? (some-call expr fn defn defn-
-                                let loop binding with-open
-                                doseq try)
-        current-do? (some-call expr do)]
-    (cond (and current-do? (or parent-do?
-                               (and (not= :unquote-splicing
-                                          (tag (second children)))
-                                    (<= (count children) 2))))
-          [expr]
-          :else (mapcat #(redundant-do* % (or implicit-do? current-do?)) children))))
-
-(defn redundant-do [filename parsed-expressions]
-  (map #(node->line filename % :warning :redundant-do "redundant do")
-       (redundant-do* parsed-expressions false)))
-
 (defn lint-def* [filename expr in-def?]
   (let [fn-name (symbol-call expr)
         simple-fn-name (when fn-name (symbol (name fn-name)))]

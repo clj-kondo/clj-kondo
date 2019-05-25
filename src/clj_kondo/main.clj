@@ -137,25 +137,25 @@ Options:
         (if (.isFile file)
           (if (ends-with? file ".jar")
             ;; process jar file
-            (mapcat #(ana/analyze-input (:filename %) (:source %)
+            (map #(ana/analyze-input (:filename %) (:source %)
                                         (lang-from-file (:filename %) default-language)
                                         dev?)
                     (sources-from-jar filename))
             ;; assume normal source file
-            (ana/analyze-input filename (slurp filename)
-                               (lang-from-file filename default-language)
-                               dev?))
+            [(ana/analyze-input filename (slurp filename)
+                                (lang-from-file filename default-language)
+                                dev?)])
           ;; assume directory
-          (mapcat #(ana/analyze-input (:filename %) (:source %)
+          (map #(ana/analyze-input (:filename %) (:source %)
                                       (lang-from-file (:filename %) default-language)
                                       dev?)
                   (sources-from-dir file)))
         (= "-" filename)
-        (ana/analyze-input "<stdin>" (slurp *in*) default-language dev?)
+        [(ana/analyze-input "<stdin>" (slurp *in*) default-language dev?)]
         (classpath? filename)
         (mapcat #(process-file % default-language)
                 (str/split filename
-                  (re-pattern cp-sep)))
+                           (re-pattern cp-sep)))
         :else
         [{:findings [{:level :warning
                       :filename filename
