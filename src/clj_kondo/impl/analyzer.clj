@@ -221,8 +221,24 @@
                      (assoc :maybe-redundant-let? single-child?))
                  let-body))))))
 
-(defn analyze-do [ctx expr]
-  ;; TODO: include redundant-do linter here
+(defn analyze-do [{:keys [:filename :callstack] :as ctx} expr]
+  (let [parent-call (second callstack)
+        core? (contains? '#{clojure.core cljs.core}
+                         (first parent-call))
+        redundant? (or
+                    ;; zero or one children
+                    (< (count (rest (:children expr))) 2)
+                    (and core?
+                         (or
+                          ;; explicit do
+                          (= 'do (second parent-call))
+                          ;; implicit do
+                          (contains? '#{expr fn defn defn-
+                                        let loop binding with-open
+                                        doseq try}
+                                     (second parent-call)))))]
+    (when redundant?
+      (state/reg-finding! (node->line filename expr :warning :redundant-do "redundant do"))))
   (analyze-children ctx (next (:children expr))))
 
 (defn lint-two-forms-binding-vector! [ctx form-name expr sexpr]
@@ -610,19 +626,20 @@
    {:keys [:children] :as expr}]
   (let [t (node/tag expr)
         {:keys [:row :col]} (meta expr)
-        arg-count (count (rest children))]
+        arg-count (count (rest children))
+        ]
     (case t
       :quote nil
       :syntax-quote (used-namespaces ns expr)
       :namespaced-map (analyze-namespaced-map (update ctx
-                                                      :callstack #(cons t %))
+                                                      :callstack #(cons [nil t] %))
                                               expr)
       :map (do (key-linter/lint-map-keys filename expr)
                (analyze-children (update ctx
-                                         :callstack #(cons t %)) children))
+                                         :callstack #(cons [nil t] %)) children))
       :set (do (key-linter/lint-set filename expr)
                (analyze-children (update ctx
-                                         :callstack #(cons t %))
+                                         :callstack #(cons [nil t] %))
                                  children))
       :fn (recur ctx (macroexpand/expand-fn expr))
       :token (used-namespaces ns expr)
@@ -654,7 +671,7 @@
             (analyze-children ctx children))))
       ;; catch-all
       (analyze-children (update ctx
-                                :callstack #(cons t %))
+                                :callstack #(cons [nil t] %))
                         children))))
 
 (defn analyze-expression*
@@ -824,9 +841,6 @@
   [filename input lang dev?]
   (try
     (let [parsed (p/parse-string input)
-          ods (l/redundant-do filename parsed)
-          findings {:findings ods
-                    :lang lang}
           analyzed-expressions
           (if (= :cljc lang)
             (let [clj (analyze-expressions {:filename filename
@@ -844,17 +858,16 @@
                                   :lang lang
                                   :expressions
                                   (:children parsed)}))]
-      #_(prn "ANALUZED" filename analyzed-expressions)
-      [findings analyzed-expressions])
+      analyzed-expressions)
     (catch Exception e
       (if dev? (throw e)
-          [{:findings [{:level :error
-                        :filename filename
-                        :col 0
-                        :row 0
-                        :message (str "can't parse "
-                                      filename ", "
-                                      (.getMessage e))}]}]))
+          {:findings [{:level :error
+                       :filename filename
+                       :col 0
+                       :row 0
+                       :message (str "can't parse "
+                                     filename ", "
+                                     (.getMessage e))}]}))
     (finally
       (when (-> @config/config :output :show-progress)
         (print ".") (flush)))))

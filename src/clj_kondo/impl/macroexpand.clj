@@ -97,7 +97,7 @@
                      (token-node nil)
                      fn-body]))]
     (with-meta
-      (list-node [(token-node 'fn) arg-list
+      (list-node [(token-node 'fn*) arg-list
                   (if has-first-arg?
                     let-expr fn-body)])
       m)))
