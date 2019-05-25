@@ -3,4 +3,6 @@
                       rewrite-clj.parser.core
                       clj-kondo.impl.var-info-gen]}
            :not-a-function
-           {:skip-args [cljs.pprint/defdirectives]}}}
+           {:skip-args [clojure.pprint/defdirectives
+                        cljs.pprint/defdirectives
+                        clojure.data.json/codepoint-case]}}}
