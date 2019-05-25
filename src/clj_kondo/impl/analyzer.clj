@@ -2,7 +2,6 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.config :as config]
-   [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.metadata :refer [lift-meta]]
