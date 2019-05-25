@@ -209,7 +209,8 @@
              arities :arities
              analyzed :analyzed}
             (analyze-bindings
-             (dissoc ctx :maybe-redundant-let?) bv)
+             (-> ctx
+                 (update :callstack #(cons [nil :let-bindings] %))) bv)
             let-body (nnext (:children expr))
             single-child? (= 1 (count let-body))]
         (lint-even-forms-bindings! ctx 'let bv)
@@ -622,12 +623,11 @@
                                               arg-count))))))
 
 (defn analyze-expression**
-  [{:keys [filename ns bindings] :as ctx}
+  [{:keys [filename ns bindings callstack] :as ctx}
    {:keys [:children] :as expr}]
   (let [t (node/tag expr)
         {:keys [:row :col]} (meta expr)
-        arg-count (count (rest children))
-        ]
+        arg-count (count (rest children))]
     (case t
       :quote nil
       :syntax-quote (used-namespaces ns expr)
