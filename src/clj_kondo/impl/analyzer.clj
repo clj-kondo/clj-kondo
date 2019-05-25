@@ -664,7 +664,7 @@
                 (analyze-children ctx children))
             :quote
             (let [quoted-child (-> function :children first)]
-              (if (symbol? (:value quoted-child))
+              (if (utils/symbol-token? quoted-child)
                 (do (lint-symbol-call! ctx quoted-child arg-count expr)
                     (analyze-children ctx children))
                 (analyze-children ctx children)))
@@ -672,7 +672,7 @@
             (if-let [k (:k function)]
               (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                   (analyze-children ctx children))
-              (if-let [full-fn-name (when (symbol? (:value function)) (:value function))]
+              (if-let [full-fn-name (when (utils/symbol-token? function) (:value function))]
                 (let [unqualified? (nil? (namespace full-fn-name))
                       binding-call? (and unqualified? (contains? bindings full-fn-name))]
                   (if binding-call?
@@ -682,14 +682,15 @@
                                        :row row
                                        :col col
                                        :expr expr})))
-                ;; TODO: emit errors when something not callable, e.g. a string or
-                ;; number is in function position
                 (cond
                   (utils/boolean-token? function)
                   (do (reg-not-a-function! ctx expr "boolean")
                       (analyze-children ctx (rest children)))
                   (utils/string-token? function)
                   (do (reg-not-a-function! ctx expr "string")
+                      (analyze-children ctx (rest children)))
+                  (utils/char-token? function)
+                  (do (reg-not-a-function! ctx expr "character")
                       (analyze-children ctx (rest children)))
                   (utils/number-token? function)
                   (do (reg-not-a-function! ctx expr "number")

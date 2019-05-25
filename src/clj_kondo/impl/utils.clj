@@ -176,11 +176,17 @@
 (defn boolean-token? [node]
   (boolean? (:value node)))
 
+(defn char-token? [node]
+  (char? (:value node)))
+
 (defn string-token? [node]
   (boolean (:lines node)))
 
 (defn number-token? [node]
   (number? (:value node)))
+
+(defn symbol-token? [node]
+  (symbol? (:value node)))
 
 ;;;; Scratch
 
