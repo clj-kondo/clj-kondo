@@ -4,7 +4,7 @@
 ;;;; patch dispatch table to customize parsing of namespaced maps
 
 (in-ns 'rewrite-clj.parser.core)
-(require '[clj-kondo.impl.parser.namespaced-map :refer [parse-namespaced-map]])
+(require '[clj-kondo.impl.parser.namespaced-map :as nm])
 
 (defmethod parse-next* :sharp
   [reader]
@@ -19,7 +19,7 @@
     \= (node/eval-node (parse-printables reader :eval 1 true))
     \_ (node/uneval-node (parse-printables reader :uneval 1 true))
     ;; begin patch patch
-    \: (parse-namespaced-map reader parse-next)
+    \: (nm/parse-namespaced-map reader parse-next)
     ;; end patch
     \? (do
          ;; we need to examine the next character, so consume one (known \?)

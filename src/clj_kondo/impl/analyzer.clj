@@ -10,14 +10,14 @@
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.state :as state]
-   [clj-kondo.impl.utils :refer [some-call symbol-call keyword-call node->line
-                                 parse-string parse-string-all tag select-lang
-                                 vconj deep-merge]]
+   [clj-kondo.impl.utils :as utils :refer [some-call symbol-call keyword-call node->line
+                                           parse-string parse-string-all tag select-lang
+                                           vconj deep-merge]]
    [clojure.set :as set]
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
-   [rewrite-clj.node.token :as token]
-   [rewrite-clj.node.seq :as seq]))
+   [rewrite-clj.node.seq :as seq]
+   [rewrite-clj.node.token :as token]))
 
 (defn extract-bindings [sexpr]
   (cond (and (symbol? sexpr)
@@ -621,6 +621,19 @@
                                       (format "wrong number of args (%s) passed to a map"
                                               arg-count))))))
 
+(defn lint-symbol-call! [{:keys [:callstack] :as ctx} the-symbol arg-count expr]
+  (when-not (config/skip? :invalid-arity callstack)
+    (when (or (zero? arg-count)
+              (> arg-count 2))
+      (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
+                                      (format "wrong number of args (%s) passed to a symbol"
+                                              arg-count))))))
+
+(defn reg-not-a-function! [{:keys [:filename :callstack]} expr type]
+  (when-not (config/skip? :not-a-function callstack)
+    (state/reg-finding!
+     (node->line filename expr :error :not-a-function (str "a " type " is not a function")))))
+
 (defn analyze-expression**
   [{:keys [filename ns bindings callstack] :as ctx}
    {:keys [:children] :as expr}]
@@ -649,11 +662,17 @@
             :map
             (do (lint-map-call! ctx function arg-count expr)
                 (analyze-children ctx children))
+            :quote
+            (let [quoted-child (-> function :children first)]
+              (if (utils/symbol-token? quoted-child)
+                (do (lint-symbol-call! ctx quoted-child arg-count expr)
+                    (analyze-children ctx children))
+                (analyze-children ctx children)))
             :token
             (if-let [k (:k function)]
               (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                   (analyze-children ctx children))
-              (if-let [full-fn-name (when (symbol? (:value function)) (:value function))]
+              (if-let [full-fn-name (when (utils/symbol-token? function) (:value function))]
                 (let [unqualified? (nil? (namespace full-fn-name))
                       binding-call? (and unqualified? (contains? bindings full-fn-name))]
                   (if binding-call?
@@ -663,10 +682,21 @@
                                        :row row
                                        :col col
                                        :expr expr})))
-                ;; TODO: emit errors when something not callable, e.g. a string or
-                ;; number is in function position
-                (analyze-children ctx children)))
-            ;; catch-all
+                (cond
+                  (utils/boolean-token? function)
+                  (do (reg-not-a-function! ctx expr "boolean")
+                      (analyze-children ctx (rest children)))
+                  (utils/string-token? function)
+                  (do (reg-not-a-function! ctx expr "string")
+                      (analyze-children ctx (rest children)))
+                  (utils/char-token? function)
+                  (do (reg-not-a-function! ctx expr "character")
+                      (analyze-children ctx (rest children)))
+                  (utils/number-token? function)
+                  (do (reg-not-a-function! ctx expr "number")
+                      (analyze-children ctx (rest children)))
+                  :else
+                  (analyze-children ctx children))))
             (analyze-children ctx children))))
       ;; catch-all
       (analyze-children (update ctx

@@ -4,6 +4,7 @@ err=0
 function _trap_error() {
     local exit_code="$1"
     if [ "$exit_code" -ne 2 ] && [ "$exit_code" -ne 3 ]; then
+        echo "EXIT CODE :(  $exit_code"
         (( err |= "$exit_code" ))
     fi
 }
@@ -15,7 +16,15 @@ trap 'exit $err' SIGINT SIGTERM
 rm -rf performance.txt
 echo -e "==== Build initial cache" | tee -a performance.txt
 cp="$(clojure -R:cljs -Spath)"
-(time ./clj-kondo --lint "$cp" --cache) 2>&1 | tee -a performance.txt
+read -r -d '' config <<'EOF' || true
+{:linters
+  {:not-a-function
+    {:skip-args [clojure.pprint/defdirectives
+                 cljs.pprint/defdirectives
+                 clojure.data.json/codepoint-case]}}}
+EOF
+
+(time ./clj-kondo --lint "$cp" --cache --config "$config") 2>&1 | tee -a performance.txt
 
 echo -e "\n==== Lint a single file (emulate in-editor usage)" | tee -a performance.txt
 (time ./clj-kondo --lint src/clj_kondo/main.clj --cache) 2>&1 | tee -a performance.txt
