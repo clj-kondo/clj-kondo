@@ -1047,6 +1047,47 @@
   (is (empty? (lint! "(foo ({:a 1} 1 2 3))" "--config"
                      "{:linters {:invalid-arity {:skip-args [user/foo]}}}"))))
 
+(deftest symbol-call-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to a symbol"})
+   (lint! "('foo)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (3) passed to a symbol"})
+   (lint! "('foo 1 2 3)"))
+  (is (empty? (lint! "(foo ('foo 1 2 3))" "--config"
+                     "{:linters {:invalid-arity {:skip-args [user/foo]}}}"))))
+
+(deftest not-a-function-test
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 1,
+                     :level :error,
+                     :message "a boolean is not a function"})
+                  (lint! "(true 1)"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 1,
+                     :level :error,
+                     :message "a string is not a function"})
+                  (lint! "(\"foo\" 1)"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 1,
+                     :level :error,
+                     :message "a number is not a function"})
+                  (lint! "(1 1)"))
+  (is (empty? (lint! "'(1 1)")))
+  (is (empty? (lint! "(foo (1 1))" "--config"
+                     "{:linters {:not-a-function {:skip-args [user/foo]}}}"))))
+
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
 
