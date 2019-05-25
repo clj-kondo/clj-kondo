@@ -234,7 +234,7 @@
                           ;; explicit do
                           (= 'do (second parent-call))
                           ;; implicit do
-                          (contains? '#{expr fn defn defn-
+                          (contains? '#{fn defn defn-
                                         let loop binding with-open
                                         doseq try}
                                      (second parent-call)))))]
@@ -533,7 +533,7 @@
              ;; don't lint calls in these expressions, only register them as used vars
              (analyze-children (assoc ctx :call-as-use true)
                                (:children expr))
-             let
+             (let let*)
              (analyze-let ctx expr)
              letfn
              (analyze-letfn ctx expr)

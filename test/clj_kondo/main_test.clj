@@ -56,6 +56,7 @@
   (is (empty? (lint! "(do 1 '(do 1 2 3))")))
   (is (not-empty (lint! "(fn [] (do :foo :bar))")))
   (is (empty? (lint! "#(do :foo :bar)")))
+  (is (empty? (lint! "#(do (prn %1 %2 true) %1)")))
   (is (empty? (lint! "(let [x (do (println 1) 1)] x)"))))
 
 (deftest invalid-arity-test

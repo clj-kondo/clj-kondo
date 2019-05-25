@@ -89,12 +89,10 @@
         arg-list (vector-node args)
         let-expr (when has-first-arg?
                    (list-node
-                    [(token-node 'clojure.core/let)
+                    [(token-node 'clojure.core/let*)
                      (vector-node
                       [(token-node '%)
                        (token-node '%1)])
-                     ;; we insert a nil here to not trigger the redundant let linter
-                     (token-node nil)
                      fn-body]))]
     (with-meta
       (list-node [(token-node 'fn*) arg-list
