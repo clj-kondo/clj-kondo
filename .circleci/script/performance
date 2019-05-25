@@ -16,7 +16,7 @@ trap 'exit $err' SIGINT SIGTERM
 rm -rf performance.txt
 echo -e "==== Build initial cache" | tee -a performance.txt
 cp="$(clojure -R:cljs -Spath)"
-read -r -d '' config <<'EOF'
+read -r -d '' config <<'EOF' || true
 {:linters
   {:not-a-function
     {:skip-args [clojure.pprint/defdirectives
