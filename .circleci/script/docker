@@ -5,9 +5,11 @@ image_tag=$(cat resources/CLJ_KONDO_VERSION)
 latest_tag="latest"
 
 if [[ $image_tag =~ SNAPSHOT$ ]]; then
-    snapshot=true
+    echo "This is a snapshot version"
+    snapshot="true"
 else
-    snapshot=false
+    echo "This is a non-snapshot version"
+    snapshot="false"
 fi
 
 if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
@@ -16,7 +18,7 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     docker build -t "$image_name" .
     docker tag "$image_name:$latest_tag" "$image_name:$image_tag"
     # we only update latest when it's not a SNAPSHOT version
-    if [ ! $snapshot ]; then
+    if [ "false" = "$snapshot" ]; then
         echo "Pushing image $image_name:$latest_tag"
         docker push "$image_name:$latest_tag"
     fi
