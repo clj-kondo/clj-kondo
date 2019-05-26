@@ -12,7 +12,7 @@ else
     snapshot="false"
 fi
 
-if [ -z "$CIRCLE_PULL_REQUEST" ] && true; then # [ "$CIRCLE_BRANCH" = "master" ]; then
+if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     echo "Building Docker image $image_name:$image_tag"
     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
     docker build -t "$image_name" .
