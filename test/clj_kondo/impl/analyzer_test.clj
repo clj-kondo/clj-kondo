@@ -137,12 +137,9 @@
     '[x foo m] '[x {:keys [foo] :as m}]
     '[x foo] "[x {:person/keys [foo]}]"
     '[x foo] "[x #:person{:keys [foo]}]"
-    '[x foo] '[x {:keys [::foo]}]))
-
-(comment
-  (keys (ana/extract-bindings2 (parse-string "[x y & zs :as xs]")))
-  (ana/extract-bindings2 (parse-string "[x {:person/keys [foo]}]"))
-  )
+    '[x foo] '[x {:keys [::foo]}]
+    '[str-foo str-bar] "{:strs [str-foo str-bar]}"
+    '[sym-foo sym-bar] "{:syms [sym-foo sym-bar]}"))
 
 (comment
   (t/run-tests)
