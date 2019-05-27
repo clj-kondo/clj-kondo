@@ -128,6 +128,22 @@
     '[x foo] '[x {:person/keys [foo]}]
     '[x foo] '[x {:keys [::foo]}]))
 
+(deftest extract-bindings2-test
+  (are [syms binding-form] (= syms (keys (ana/extract-bindings2 (parse-string (str binding-form)))))
+    '[x y z] '[x y [z [x]]]
+    '[x y zs xs] '[x y & zs :as xs]
+    '[x foo] '[x {foo :foo :or {foo 1}}]
+    '[x foo] '[x {:keys [foo]}]
+    '[x foo m] '[x {:keys [foo] :as m}]
+    '[x foo] "[x {:person/keys [foo]}]"
+    '[x foo] "[x #:person{:keys [foo]}]"
+    '[x foo] '[x {:keys [::foo]}]))
+
+(comment
+  (keys (ana/extract-bindings2 (parse-string "[x y & zs :as xs]")))
+  (ana/extract-bindings2 (parse-string "[x {:person/keys [foo]}]"))
+  )
+
 (comment
   (t/run-tests)
   (analyze-ns-decl

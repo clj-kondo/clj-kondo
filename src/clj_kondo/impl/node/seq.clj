@@ -2,13 +2,16 @@
   {:no-doc true}
   (:require [rewrite-clj.node.protocols :as node]))
 
-(defrecord NamespacedMapNode [children aliased?]
+(set! *warn-on-reflection* true)
+
+(defrecord NamespacedMapNode [ns aliased? children]
   node/Node
   (tag [this]
     :namespaced-map)
   (printable-only? [_] false)
   (sexpr [this]
-    (let [[nspace-k m] (node/sexprs children)
+    (let [nspace-k (:k ns)
+          m (first (node/sexprs children))
           nspace (name nspace-k)]
       (->> (for [[k v] m
                  :let [k' (cond (not (keyword? k)) k
@@ -19,7 +22,7 @@
   (length [_]
     (+ 1 (node/sum-lengths children)))
   (string [this]
-    (str "#" (node/concat-strings children)))
+    (str "#" ns (node/concat-strings children)))
 
   node/InnerNode
   (inner? [_] true)
@@ -33,5 +36,18 @@
   (toString [this]
     (node/string this)))
 
-(defn namespaced-map-node [children aliased?]
-  (->NamespacedMapNode children aliased?))
+(defn namespaced-map-node [map-ns aliased? children]
+  (NamespacedMapNode. map-ns aliased? children))
+
+;;;; Scratch
+
+(comment
+  (require '[clj-kondo.impl.parser :as p])
+  (p/parse-string "#::it {:a #::it {}}")
+  (def node
+    (-> (p/parse-string "#::it{:a 1 :a 2}")
+        :children
+        first))
+  (.ns ^NamespacedMapNode node)
+
+  )

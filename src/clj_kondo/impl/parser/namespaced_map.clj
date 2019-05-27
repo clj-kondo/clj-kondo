@@ -25,6 +25,5 @@
   [reader read-next]
   (let [map-ns (parse-map-ns reader)
         aliased? (:namespaced? map-ns)]
-    (namespaced-map-node
-     [map-ns (read-next reader)]
-     aliased?)))
+    (namespaced-map-node map-ns aliased?
+     [(read-next reader)]))) 

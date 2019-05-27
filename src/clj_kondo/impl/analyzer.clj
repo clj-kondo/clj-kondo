@@ -6,6 +6,7 @@
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.metadata :refer [lift-meta]]
    [clj-kondo.impl.namespace :as namespace :refer [analyze-ns-decl resolve-name]]
+   [clj-kondo.impl.node.seq] ;; load defrecord
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
@@ -17,7 +18,8 @@
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :as seq]
-   [rewrite-clj.node.token :as token]))
+   [rewrite-clj.node.token :as token])
+  (:import [clj_kondo.impl.node.seq NamespacedMapNode]))
 
 (defn extract-bindings [sexpr]
   (cond (and (symbol? sexpr)
@@ -45,26 +47,28 @@
   (let [t (node/tag expr)]
     (case t
       :token
-      (when (and (utils/symbol-token? expr)
-                 (not= '& (:value expr)))
+      (cond
+        ;; keyword
+        (when-let [k (:k expr)]
+          (not= :as k))
+        {(-> expr :k name symbol) (meta expr)}
+        ;; symbol
+        (and (utils/symbol-token? expr)
+             (not= '& (:value expr)))
         {(:value expr) (meta expr)})
       :vector (into {} (map extract-bindings2) (:children expr))
-      (:map :namespaced-map)
+      :namespaced-map (extract-bindings2 (first (:children expr)))
+      :map
       (into {}
-            (for [[k v] (partition 2 (:children expr))
-                  :let [bindings
-                        (cond (:k k)
-                              (case (keyword (name (:k k)))
-                                #_#_(:keys :syms :strs)
-                                ;; TODO
-                                (into {} (map #(-> % name symbol) v))
-                                :keys (extract-bindings2 v)
-                                :or (extract-bindings2 v)
-                                :as (extract-bindings2 v))
-                              (utils/symbol-token? k) (extract-bindings2 k)
-                              :else nil)]
-                  b bindings]
-              b))
+            (for [[k v] (partition 2 (:children expr))]
+              (cond (:k k)
+                    (case (keyword (name (:k k)))
+                      (:keys :syms :strs) (extract-bindings2 v)
+                      :or (extract-bindings2 v)
+                      :as (extract-bindings2 v)
+                      nil)
+                    (utils/symbol-token? k) (extract-bindings2 k)
+                    :else nil)))
       {})))
 
 (comment
@@ -74,6 +78,9 @@
   (extract-bindings2 (parse-string "{:keys [a b]}"))
   ;; TODO
   (extract-bindings2 (parse-string "{:keys [:a :b]}"))
+  (let [{:keys [:a] :or {a 1}} {:a 1}] a)
+  (extract-bindings2 (parse-string "{:keys [] :or {a 1}}"))
+  (extract-bindings2 (parse-string "[{:keys [x y & zs :as xs]}]"))
   )
 
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
@@ -111,11 +118,13 @@
     (mapcat #(analyze-expression** ctx %) children)))
 
 (defn analyze-fn-arity [ctx body]
+  #_(prn "fn arity")
   (let [children (:children body)
         arg-vec  (first children)
         arg-list (node/sexpr arg-vec)
         arg-bindings (extract-bindings arg-list)
         arity (analyze-arity arg-list)]
+    #_(prn ">" arg-vec (extract-bindings2 arg-vec))
     {:arg-bindings arg-bindings
      :arg-bindings2 (extract-bindings2 arg-vec)
      :arity arity
@@ -327,6 +336,8 @@
                      (when (symbol? n)
                        n)))
         bodies (fn-bodies (next children))
+        ;; TODO: we're analyzing the arities twice. once in the below call
+        ;; TODO: ance once in analyze-fn-body. this can be optimized
         arity (fn-arity ctx bodies)
         parsed-bodies (map #(analyze-fn-body
                              (if ?fn-name
@@ -430,11 +441,11 @@
                   :ns resolved-ns}))))
         (tree-seq :children :children expr)))
 
-(defn analyze-namespaced-map [ctx expr]
+(defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)
-        m (second children)
+        m (first children)
         ns (:ns ctx)
-        ns-sym (-> children first :k symbol)
+        ns-sym (-> expr :ns :k symbol)
         used (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
                [{:type :use
                  :ns resolved-ns}])]
@@ -675,7 +686,8 @@
 (defn analyze-expression**
   [{:keys [filename ns bindings callstack] :as ctx}
    {:keys [:children] :as expr}]
-  (let [t (node/tag expr)
+  (let [;; _ (prn "EXPR" expr)
+        t (node/tag expr)
         {:keys [:row :col]} (meta expr)
         arg-count (count (rest children))]
     (case t
