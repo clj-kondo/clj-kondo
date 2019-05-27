@@ -39,6 +39,43 @@
                   b))
         :else []))
 
+;; this will replace extract-bindings
+;; we must not extract the bindings from the sexpr, because we lose location info
+(defn extract-bindings2 [expr]
+  (let [t (node/tag expr)]
+    (case t
+      :token
+      (when (and (utils/symbol-token? expr)
+                 (not= '& (:value expr)))
+        {(:value expr) (meta expr)})
+      :vector (into {} (map extract-bindings2) (:children expr))
+      (:map :namespaced-map)
+      (into {}
+            (for [[k v] (partition 2 (:children expr))
+                  :let [bindings
+                        (cond (:k k)
+                              (case (keyword (name (:k k)))
+                                #_#_(:keys :syms :strs)
+                                ;; TODO
+                                (into {} (map #(-> % name symbol) v))
+                                :keys (extract-bindings2 v)
+                                :or (extract-bindings2 v)
+                                :as (extract-bindings2 v))
+                              (utils/symbol-token? k) (extract-bindings2 k)
+                              :else nil)]
+                  b bindings]
+              b))
+      {})))
+
+(comment
+  (extract-bindings2 (parse-string "a"))
+  (extract-bindings2 (parse-string "[a b]"))
+  (node/tag (parse-string "[a b]"))
+  (extract-bindings2 (parse-string "{:keys [a b]}"))
+  ;; TODO
+  (extract-bindings2 (parse-string "{:keys [:a :b]}"))
+  )
+
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
   (let [ns-name (-> children second :children first :value)
         ns {:type :in-ns
@@ -80,6 +117,7 @@
         arg-bindings (extract-bindings arg-list)
         arity (analyze-arity arg-list)]
     {:arg-bindings arg-bindings
+     :arg-bindings2 (extract-bindings2 arg-vec)
      :arity arity
      :analyzed-arg-vec (analyze-expression** ctx arg-vec)}))
 
@@ -709,7 +747,9 @@
              :base-lang base-lang
              :lang lang
              :ns ns
-             :bindings #{}}]
+             :bindings #{}
+             ;; this will replace :bindings, we need a map for shadowing and to map to the location where locals are used
+             :bindings2 {}}]
     ;; (println "BASE LANG" base-lang lang)
     (loop [ns ns
            [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
