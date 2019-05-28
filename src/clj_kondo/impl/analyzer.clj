@@ -225,18 +225,23 @@
   (let [parent-call (second callstack)
         core? (contains? '#{clojure.core cljs.core}
                          (first parent-call))
-        redundant? (or
-                    ;; zero or one children
-                    (< (count (rest (:children expr))) 2)
-                    (and core?
-                         (or
-                          ;; explicit do
-                          (= 'do (second parent-call))
-                          ;; implicit do
-                          (contains? '#{fn defn defn-
-                                        let loop binding with-open
-                                        doseq try}
-                                     (second parent-call)))))]
+        core-sym (when core?
+                   (second parent-call))
+        redundant?
+        (and (not= 'fn* core-sym)
+             (not= 'let* core-sym)
+             (or
+              ;; zero or one children
+              (< (count (rest (:children expr))) 2)
+              (and core?
+                   (or
+                    ;; explicit do
+                    (= 'do core-sym)
+                    ;; implicit do
+                    (contains? '#{fn defn defn-
+                                  let loop binding with-open
+                                  doseq try}
+                               core-sym)))))]
     (when redundant?
       (state/reg-finding! (node->line filename expr :warning :redundant-do "redundant do"))))
   (analyze-children ctx (next (:children expr))))
