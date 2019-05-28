@@ -1,5 +1,6 @@
 (ns clj-kondo.test-utils
   (:require
+   [clj-kondo.impl.utils :refer [deep-merge]]
    [clj-kondo.main :as main :refer [main]]
    [clojure.string :as str :refer [trim]]
    [clojure.test :refer [is]]
@@ -55,15 +56,23 @@
    (lint-jvm! input "--lang" "clj"))
   ([input & args]
    (require '[clj-kondo.impl.config] :reload)
-   (let [res (with-out-str
+   (let [[config args]
+         (let [m (first args)]
+           (if (map? m)
+             [m (rest args)]
+             [nil args]))
+         base-config '{:linters {:unused-binding {:level :off}}}
+         config (str (deep-merge base-config config))
+         res (with-out-str
                (try
                  (cond
                    (instance? java.io.File input)
-                   (apply main "--lint" (.getPath input) args)
+                   (apply main "--lint" (.getPath input) "--config" config args)
                    (vector? input)
-                   (apply main "--lint" (concat (map #(.getPath %) input) args))
+                   (apply main "--lint" (concat (map #(.getPath %) input)
+                                                ["--config" config] args))
                    :else (with-in-str input
-                           (apply main "--lint" "-" args)))
+                           (apply main "--lint" "-"  "--config" config args)))
                  (catch Throwable e
                    (.printStackTrace e))))]
      (parse-output res))))

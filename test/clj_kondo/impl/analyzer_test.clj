@@ -129,7 +129,7 @@
     '[x foo] '[x {:keys [::foo]}]))
 
 (deftest extract-bindings2-test
-  (are [syms binding-form] (= syms (keys (ana/extract-bindings2 (parse-string (str binding-form)))))
+  (are [syms binding-form] (= syms (keys (ana/extract-bindings2 {} (parse-string (str binding-form)))))
     '[x y z] '[x y [z [x]]]
     '[x y zs xs] '[x y & zs :as xs]
     '[x foo] '[x {foo :foo :or {foo 1}}]
