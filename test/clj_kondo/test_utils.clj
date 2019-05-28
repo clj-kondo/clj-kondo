@@ -80,17 +80,26 @@
 (defn lint-native!
   ([input] (lint-native! input "--lang" "clj"))
   ([input & args]
-   (let [res (let-programs [clj-kondo "./clj-kondo"]
+   (let [[config args]
+         (let [m (first args)]
+           (if (map? m)
+             [m (rest args)]
+             [nil args]))
+         base-config '{:linters {:unused-binding {:level :off}}}
+         config (str (deep-merge base-config config))
+         res (let-programs [clj-kondo "./clj-kondo"]
                (binding [sh/*throw* false]
                  (cond
                    (instance? java.io.File input)
-                   (apply clj-kondo "--lint" (.getPath input) args)
+                   (apply clj-kondo "--lint" (.getPath input) "--config" config args)
                    (vector? input)
-                   (apply clj-kondo "--lint" (concat (map #(.getPath %) input) args))
+                   (apply clj-kondo "--lint" (concat (map #(.getPath %) input)
+                                                     ["--config" config] args))
                    :else
-                   (apply clj-kondo  "--lint" "-" (conj (vec args)
-                                                        ;; the opts go last
-                                                        {:in input})))))]
+                   (apply clj-kondo  "--lint" "-" "--config" config
+                          (conj (vec args)
+                                ;; the opts go last
+                                {:in input})))))]
      (parse-output res))))
 
 (def lint!
