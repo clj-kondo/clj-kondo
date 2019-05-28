@@ -68,7 +68,7 @@
         ;; symbol
         (and (utils/symbol-token? expr)
              (not= '& (:value expr)))
-        (let [s (:value expr)
+        (let [s (symbol (name (:value expr)))
               m (meta expr)
               v (assoc m
                        :name s
@@ -97,6 +97,8 @@
       {})))
 
 (comment
+
+  (let [{:keys [patient/id order/id]} {}] id)
   )
 
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
