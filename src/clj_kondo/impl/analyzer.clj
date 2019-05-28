@@ -130,14 +130,16 @@
      :arity arity
      :analyzed-arg-vec (analyze-expression** ctx arg-vec)}))
 
-(defn analyze-fn-body [{:keys [bindings] :as ctx} body]
-  (let [{:keys [:arg-bindings :arity :analyzed-arg-vec]} (analyze-fn-arity ctx body)
+(defn analyze-fn-body [{:keys [bindings bindings2] :as ctx} body]
+  (let [{:keys [:arg-bindings :args-bindings2
+                :arity :analyzed-arg-vec]} (analyze-fn-arity ctx body)
         children (:children body)
         body-exprs (rest children)
         parsed
         (analyze-children
          (assoc ctx
                 :bindings (set/union bindings (set arg-bindings))
+                :bindings2 (merge bindings2 args-bindings2)
                 :recur-arity arity
                 :fn-body true) body-exprs)]
     (assoc arity
@@ -211,13 +213,17 @@
 (defn analyze-bindings [ctx binding-vector]
   (loop [[binding value & rest-bindings] (-> binding-vector :children)
          bindings (:bindings ctx)
+         bindings2 (:bindings2 ctx)
          arities (:arities ctx)
          analyzed []]
     (if binding
       (let [binding-sexpr (node/sexpr binding)
             sexpr-bindings (extract-bindings binding-sexpr)
+            bindings2-map (extract-bindings2 binding)
             ctx* (-> ctx
                      (update :bindings into bindings)
+                     (update :bindings2 (fn [b]
+                                          (merge b bindings2)))
                      (update :arities merge arities))
             analyzed-binding (analyze-expression** ctx* binding)
             analyzed-value (when value (analyze-expression** ctx* value))
@@ -225,9 +231,11 @@
                            (assoc arities binding-sexpr arity)
                            arities)]
         (recur rest-bindings (into bindings sexpr-bindings)
+               (merge bindings2 bindings2-map)
                next-arities (concat analyzed analyzed-binding analyzed-value)))
       {:arities arities
        :bindings bindings
+       :bindings2 bindings2
        :analyzed analyzed})))
 
 (defn lint-even-forms-bindings! [ctx form-name bv]
@@ -252,6 +260,7 @@
       (state/reg-finding! (node->line filename expr :warning :redundant-let "redundant let")))
     (when (and bv (= :vector (node/tag bv)))
       (let [{analyzed-bindings :bindings
+             analyzed-bindings2 :bindings2
              arities :arities
              analyzed :analyzed}
             (analyze-bindings
@@ -264,6 +273,8 @@
                 (analyze-children
                  (-> ctx
                      (update :bindings into analyzed-bindings)
+                     (update :bindings2 (fn [b]
+                                          (merge b analyzed-bindings2)))
                      (update :arities merge arities)
                      (assoc :maybe-redundant-let? single-child?))
                  let-body))))))
@@ -287,6 +298,10 @@
     (when redundant?
       (state/reg-finding! (node->line filename expr :warning :redundant-do "redundant do"))))
   (analyze-children ctx (next (:children expr))))
+
+(comment
+  (analyze-input "-" "(let [x 1] {})" :clj false)
+  )
 
 (defn lint-two-forms-binding-vector! [ctx form-name expr sexpr]
   (let [num-children (count sexpr)
@@ -684,7 +699,7 @@
      (node->line filename expr :error :not-a-function (str "a " type " is not a function")))))
 
 (defn analyze-expression**
-  [{:keys [filename ns bindings callstack] :as ctx}
+  [{:keys [filename ns bindings bindings2 callstack] :as ctx}
    {:keys [:children] :as expr}]
   (let [;; _ (prn "EXPR" expr)
         t (node/tag expr)
@@ -697,6 +712,7 @@
                                                       :callstack #(cons [nil t] %))
                                               expr)
       :map (do (key-linter/lint-map-keys filename expr)
+               ;; (prn "BDS2" bindings2)
                (analyze-children (update ctx
                                          :callstack #(cons [nil t] %)) children))
       :set (do (key-linter/lint-set filename expr)
