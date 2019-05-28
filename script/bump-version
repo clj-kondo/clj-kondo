@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# I'm using brew coreutils which installs GNU date. If that isn't present, it
+# will use normal date.
+date_cmd=$(command -v gdate)
+if [ -z "$date_cmd" ]; then
+    date_cmd=$(command -v date)
+fi
+
+date_pattern="+%Y.%m.%d"
+today=$(date $date_pattern)
+version="$today-alpha"
+
+if [ "$1" = "release" ]; then
+    echo -e "$version" > resources/CLJ_KONDO_VERSION
+elif [ "$1" = "post-release" ]; then
+    cat resources/CLJ_KONDO_VERSION > resources/CLJ_KONDO_RELEASED_VERSION
+    tomorrow=$($date_cmd $date_pattern --date='next day')
+    snapshot_version="$tomorrow-alpha-SNAPSHOT"
+    echo "$snapshot_version" > resources/CLJ_KONDO_VERSION
+else
+    echo "Usage: script/bump-version ( release | post-release )"
+fi
