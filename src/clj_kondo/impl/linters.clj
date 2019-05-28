@@ -9,7 +9,8 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.state :as state]
    [clojure.set :as set]
-   [clj-kondo.impl.namespace :as namespace]))
+   [clj-kondo.impl.namespace :as namespace]
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -264,13 +265,14 @@
                 ;; _ (prn "USED" used-bindings)
                 diff (set/difference bindings used-bindings)]
           binding diff]
-    (let [{:keys [:row :col :filename]} binding]
-      (state/reg-finding! {:level :warning
-                           :type :unused-binding
-                           :filename filename
-                           :message (format "unused binding")
-                           :row row
-                           :col col}))))
+    (let [{:keys [:row :col :filename :name]} binding]
+      (when-not (str/starts-with? (str name) "_")
+        (state/reg-finding! {:level :warning
+                             :type :unused-binding
+                             :filename filename
+                             :message (str "unused binding " name)
+                             :row row
+                             :col col})))))
 
 ;;;; scratch
 

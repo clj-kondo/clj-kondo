@@ -88,7 +88,8 @@
               (cond (:k k)
                     (case (keyword (name (:k k)))
                       (:keys :syms :strs) (extract-bindings2 ctx v)
-                      :or (extract-bindings2 ctx v)
+                      ;; or doesn't introduce new bindings, it only gives defaults
+                      ;; :or (extract-bindings2 ctx v)
                       :as (extract-bindings2 ctx v)
                       nil)
                     (utils/symbol-token? k) (extract-bindings2 ctx k)

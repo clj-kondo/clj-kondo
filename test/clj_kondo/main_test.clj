@@ -1115,12 +1115,23 @@
 
 (deftest unused-binding-test
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 7, :level :warning, :message "unused binding"})
+   '({:file "<stdin>", :row 1, :col 7, :level :warning, :message "unused binding x"})
    (lint! "(let [x 1])" '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(defn foo [x])"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(defn [x] x)"
-                     '{:linters {:unused-binding {:level :warning}}}))))
+  (is (empty? (lint! "(defn foo [x] x)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defn foo [_x])"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(fn [{:keys [x] :or {x 1}}] x)"))))
 
 ;;;; Scratch
 
