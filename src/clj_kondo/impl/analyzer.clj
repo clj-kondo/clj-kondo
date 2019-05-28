@@ -104,7 +104,9 @@
             :name ns-name
             :lang (:lang ctx)
             :vars #{}
-            :used #{}}]
+            :used #{}
+            :bindings #{}
+            :used-bindings #{}}]
     (namespace/reg-namespace! (:base-lang ctx) (:lang ctx) ns)
     ns))
 
