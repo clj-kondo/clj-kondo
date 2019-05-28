@@ -1118,6 +1118,8 @@
    '({:file "<stdin>", :row 1, :col 7, :level :warning, :message "unused binding"})
    (lint! "(let [x 1])" '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defn [x] x)"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 ;;;; Scratch

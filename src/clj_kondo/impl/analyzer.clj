@@ -141,14 +141,13 @@
         arg-list (node/sexpr arg-vec)
         arg-bindings (extract-bindings arg-list)
         arity (analyze-arity arg-list)]
-    #_(prn ">" arg-vec (extract-bindings2 arg-vec))
     {:arg-bindings arg-bindings
      :arg-bindings2 (extract-bindings2 ctx arg-vec)
      :arity arity
      :analyzed-arg-vec (analyze-expression** ctx arg-vec)}))
 
 (defn analyze-fn-body [{:keys [bindings bindings2] :as ctx} body]
-  (let [{:keys [:arg-bindings :args-bindings2
+  (let [{:keys [:arg-bindings :arg-bindings2
                 :arity :analyzed-arg-vec]} (analyze-fn-arity ctx body)
         children (:children body)
         body-exprs (rest children)
@@ -156,12 +155,12 @@
         (analyze-children
          (assoc ctx
                 :bindings (set/union bindings (set arg-bindings))
-                :bindings2 (merge bindings2 args-bindings2)
+                :bindings2 (merge bindings2 arg-bindings2)
                 :recur-arity arity
                 :fn-body true) body-exprs)]
     (assoc arity
            :parsed
-           (concat analyzed-arg-vec  parsed))))
+           (concat analyzed-arg-vec parsed))))
 
 (defn fn-bodies [children]
   (loop [i 0 [expr & rest-exprs :as exprs] children]
