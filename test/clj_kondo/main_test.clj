@@ -1113,6 +1113,12 @@
       :message "wrong number of args (1) passed to redefined-deftest/foo"})
    (lint! (io/file "corpus" "redefined_deftest.clj"))))
 
+(deftest unused-binding-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 7, :level :warning, :message "unused binding"})
+   (lint! "(let [x 1])"))
+  (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"))))
+
 ;;;; Scratch
 
 (comment

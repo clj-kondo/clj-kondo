@@ -322,6 +322,7 @@ Options:
                        idacs (overrides idacs)
                        linted-calls (doall (l/lint-calls idacs))
                        _ (l/lint-unused-namespaces!)
+                       _ (l/lint-unused-bindings!)
                        all-findings (concat linted-calls (mapcat :findings processed)
                                             @state/findings)
                        all-findings (filter-findings all-findings)

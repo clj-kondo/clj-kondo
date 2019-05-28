@@ -255,6 +255,21 @@
                            :row row
                            :col col}))))
 
+(defn lint-unused-bindings!
+  []
+  (doseq [ns (namespace/list-namespaces)
+          :let [bindings (:bindings ns)
+                used-bindings (:used-bindings ns)
+                diff (set/difference bindings used-bindings)]
+          binding diff]
+    (let [{:keys [:row :col :filename]} binding]
+      (state/reg-finding! {:level :warning
+                           :type :unused-binding
+                           :filename filename
+                           :message (format "unused binding")
+                           :row row
+                           :col col}))))
+
 ;;;; scratch
 
 (comment

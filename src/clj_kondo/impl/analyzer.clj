@@ -41,9 +41,13 @@
                   b))
         :else []))
 
+(comment
+  (into {} [[:a 1]])
+  )
+
 ;; this will replace extract-bindings
 ;; we must not extract the bindings from the sexpr, because we lose location info
-(defn extract-bindings2 [expr]
+(defn extract-bindings2 [ctx expr]
   (let [t (node/tag expr)]
     (case t
       :token
@@ -51,36 +55,47 @@
         ;; keyword
         (when-let [k (:k expr)]
           (not= :as k))
-        {(-> expr :k name symbol) (meta expr)}
+        (let [s (-> expr :k name symbol)
+              m (meta expr)
+              v (assoc m
+                       :name s
+                       :filename (:filename ctx))]
+          (namespace/reg-binding! (:base-lang ctx)
+                                  (:lang ctx)
+                                  (-> ctx :ns :name)
+                                  v)
+          {s v})
         ;; symbol
         (and (utils/symbol-token? expr)
              (not= '& (:value expr)))
-        {(:value expr) (meta expr)})
-      :vector (into {} (map extract-bindings2) (:children expr))
-      :namespaced-map (extract-bindings2 (first (:children expr)))
+        (let [s (:value expr)
+              m (meta expr)
+              v (assoc m
+                       :name s
+                       :filename (:filename ctx))]
+          (namespace/reg-binding! (:base-lang ctx)
+                                  (:lang ctx)
+                                  (-> ctx :ns :name)
+                                  (assoc m
+                                         :name s
+                                         :filename (:filename ctx)))
+          {s v}))
+      :vector (into {} (map #(extract-bindings2 ctx %)) (:children expr))
+      :namespaced-map (extract-bindings2 ctx (first (:children expr)))
       :map
       (into {}
             (for [[k v] (partition 2 (:children expr))]
               (cond (:k k)
                     (case (keyword (name (:k k)))
-                      (:keys :syms :strs) (extract-bindings2 v)
-                      :or (extract-bindings2 v)
-                      :as (extract-bindings2 v)
+                      (:keys :syms :strs) (extract-bindings2 ctx v)
+                      :or (extract-bindings2 ctx v)
+                      :as (extract-bindings2 ctx v)
                       nil)
-                    (utils/symbol-token? k) (extract-bindings2 k)
+                    (utils/symbol-token? k) (extract-bindings2 ctx k)
                     :else nil)))
       {})))
 
 (comment
-  (extract-bindings2 (parse-string "a"))
-  (extract-bindings2 (parse-string "[a b]"))
-  (node/tag (parse-string "[a b]"))
-  (extract-bindings2 (parse-string "{:keys [a b]}"))
-  ;; TODO
-  (extract-bindings2 (parse-string "{:keys [:a :b]}"))
-  (let [{:keys [:a] :or {a 1}} {:a 1}] a)
-  (extract-bindings2 (parse-string "{:keys [] :or {a 1}}"))
-  (extract-bindings2 (parse-string "[{:keys [x y & zs :as xs]}]"))
   )
 
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
@@ -126,7 +141,7 @@
         arity (analyze-arity arg-list)]
     #_(prn ">" arg-vec (extract-bindings2 arg-vec))
     {:arg-bindings arg-bindings
-     :arg-bindings2 (extract-bindings2 arg-vec)
+     :arg-bindings2 (extract-bindings2 ctx arg-vec)
      :arity arity
      :analyzed-arg-vec (analyze-expression** ctx arg-vec)}))
 
@@ -219,7 +234,7 @@
     (if binding
       (let [binding-sexpr (node/sexpr binding)
             sexpr-bindings (extract-bindings binding-sexpr)
-            bindings2-map (extract-bindings2 binding)
+            bindings2-map (extract-bindings2 ctx binding)
             ctx* (-> ctx
                      (update :bindings into bindings)
                      (update :bindings2 (fn [b]
@@ -446,20 +461,25 @@
   (when-let [s (:value node)]
     (and (symbol? s) [:symbol s])))
 
-(defn used-namespaces [ns expr]
-  (keep #(when-let [[t v] (or (node->keyword %)
-                              (node->symbol %))]
-           (if-let [?ns (namespace v)]
-             (let [ns-sym (symbol ?ns)]
-               (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
-                 {:type :use
-                  :ns resolved-ns}))
-             (when (= t :symbol)
-               (when-let [resolved-ns (or (:ns (get (:qualify-var ns) v))
-                                          (get (:qualify-ns ns) v))]
-                 {:type :use
-                  :ns resolved-ns}))))
-        (tree-seq :children :children expr)))
+(defn used-namespaces [ctx expr]
+  (let [ns (:ns ctx)]
+    (keep #(when-let [[t v] (or (node->keyword %)
+                                (node->symbol %))]
+             (if-let [?ns (namespace v)]
+               (let [ns-sym (symbol ?ns)]
+                 (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
+                   {:type :use
+                    :ns resolved-ns}))
+               (when (= t :symbol)
+                 (namespace/reg-used-binding! (:base-lang ctx)
+                                              (:lang ctx)
+                                              (-> ns :name)
+                                              (get (:bindings2 ctx) v))
+                 (when-let [resolved-ns (or (:ns (get (:qualify-var ns) v))
+                                            (get (:qualify-ns ns) v))]
+                   {:type :use
+                    :ns resolved-ns}))))
+          (tree-seq :children :children expr))))
 
 (defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)
@@ -486,7 +506,7 @@
            :expr expr
            :arity arg-count}
           (concat
-           (used-namespaces (:ns ctx) {:children schemas})
+           (used-namespaces ctx {:children schemas})
            (analyze-defn ctx defn)))))
 
 (defn analyze-deftest [ctx _deftest-ns expr]
@@ -517,6 +537,10 @@
       xs))
 
 (defn analyze-binding-call [{:keys [:callstack] :as ctx} fn-name expr]
+  (namespace/reg-used-binding! (:base-lang ctx)
+                               (:lang ctx)
+                               (-> ctx :ns :name)
+                               (get (:bindings2 ctx) fn-name))
   (when-not (config/skip? :invalid-arity callstack)
     (let [filename (:filename ctx)
           children (:children expr)]
@@ -628,7 +652,7 @@
                     :lang lang
                     :expr expr
                     :arity arg-count}
-                   (used-namespaces ns expr))
+                   (used-namespaces ctx expr))
              ;; catch-all
              (case [resolved-namespace resolved-name]
                [schema.core defn]
@@ -712,7 +736,7 @@
         arg-count (count (rest children))]
     (case t
       :quote nil
-      :syntax-quote (used-namespaces ns expr)
+      :syntax-quote (used-namespaces ctx expr)
       :namespaced-map (analyze-namespaced-map (update ctx
                                                       :callstack #(cons [nil t] %))
                                               expr)
@@ -725,7 +749,7 @@
                                          :callstack #(cons [nil t] %))
                                  children))
       :fn (recur ctx (macroexpand/expand-fn expr))
-      :token (used-namespaces ns expr)
+      :token (used-namespaces ctx expr)
       :list
       (when-let [function (first children)]
         (let [t (node/tag function)]
