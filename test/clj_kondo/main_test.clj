@@ -1194,6 +1194,21 @@
       :message "unused binding y"})
    (lint! "(with-open [x ? y ?] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:row 1,
+      :col 13,
+      :level :warning,
+      :message "unused binding x"}
+     {:row 1,
+      :col 24,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.core/inc"}
+     {:row 1,
+      :col 37,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.core/pos?"})
+   (lint! "(for [:let [x 1] :when (inc) :while (pos?)] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"

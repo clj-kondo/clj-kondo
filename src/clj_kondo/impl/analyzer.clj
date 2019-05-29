@@ -198,29 +198,37 @@
        (reduce deep-merge {})))
 
 (defn analyze-let-like-bindings [ctx binding-vector]
-  (loop [[binding value & rest-bindings] (-> binding-vector :children)
-         bindings (:bindings ctx)
-         arities (:arities ctx)
-         analyzed []]
-    (if binding
-      (let [binding-sexpr (node/sexpr binding)
-            new-bindings (extract-bindings ctx binding)
-            analyzed-binding (:analyzed new-bindings)
-            new-bindings (dissoc new-bindings :analyzed)
-            ctx* (-> ctx
-                     (update :bindings (fn [b]
-                                         (merge b bindings)))
-                     (update :arities merge arities))
-            analyzed-value (when value (analyze-expression** ctx* value))
-            next-arities (if-let [arity (:arity (meta analyzed-value))]
-                           (assoc arities binding-sexpr arity)
-                           arities)]
-        (recur rest-bindings
-               (merge bindings new-bindings)
-               next-arities (concat analyzed analyzed-binding analyzed-value)))
-      {:arities arities
-       :bindings bindings
-       :analyzed analyzed})))
+  (let [call (-> ctx :callstack second second)
+        for-like? (contains? '#{for doseq} call)]
+    (loop [[binding value & rest-bindings] (-> binding-vector :children)
+           bindings (:bindings ctx)
+           arities (:arities ctx)
+           analyzed []]
+      (if binding
+        (let [binding-sexpr (node/sexpr binding)
+              for-let? (and for-like?
+                            (= :let binding-sexpr))
+              binding (cond for-let? value
+                            (keyword? binding-sexpr) nil
+                            :else binding)
+              new-bindings (when binding (extract-bindings ctx binding))
+              analyzed-binding (:analyzed new-bindings)
+              new-bindings (dissoc new-bindings :analyzed)
+              ctx* (-> ctx
+                       (update :bindings (fn [b]
+                                           (merge b bindings)))
+                       (update :arities merge arities))
+              analyzed-value (when (and value (not for-let?))
+                               (analyze-expression** ctx* value))
+              next-arities (if-let [arity (:arity (meta analyzed-value))]
+                             (assoc arities binding-sexpr arity)
+                             arities)]
+          (recur rest-bindings
+                 (merge bindings new-bindings)
+                 next-arities (concat analyzed analyzed-binding analyzed-value)))
+        {:arities arities
+         :bindings bindings
+         :analyzed analyzed}))))
 
 (defn lint-even-forms-bindings! [ctx form-name bv]
   (let [num-children (count (:children bv))
@@ -264,6 +272,7 @@
                    analyzed :analyzed}
                   (analyze-let-like-bindings
                    (-> ctx
+                       ;; prevent linting redundant let when using let in bindings
                        (update :callstack #(cons [nil :let-bindings] %))) bv)
                   let-body (nnext (:children expr))
                   single-child? (and let? (= 1 (count let-body)))]
