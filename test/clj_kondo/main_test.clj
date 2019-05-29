@@ -1188,19 +1188,27 @@
    (lint! "(with-open [x ? y ?] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
-   '({:row 1,
-      :col 13,
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
       :level :warning,
       :message "unused binding x"}
-     {:row 1,
-      :col 24,
+     {:file "<stdin>",
+      :row 1,
+      :col 22,
+      :level :warning,
+      :message "unused binding y"}
+     {:file "<stdin>",
+      :row 1,
+      :col 33,
       :level :error,
       :message "wrong number of args (0) passed to clojure.core/inc"}
-     {:row 1,
-      :col 37,
+     {:file "<stdin>",
+      :row 1,
+      :col 46,
       :level :error,
       :message "wrong number of args (0) passed to clojure.core/pos?"})
-   (lint! "(for [:let [x 1] :when (inc) :while (pos?)] 1)"
+   (lint! "(for [x [] :let [x 1 y x] :when (inc) :while (pos?)] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
@@ -1213,6 +1221,8 @@
   (is (empty? (lint! "#(inc %1)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(let [exprs []] (loop [exprs exprs] exprs))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(for [f fns :let [children (:children f)]] children)"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 ;;;; Scratch

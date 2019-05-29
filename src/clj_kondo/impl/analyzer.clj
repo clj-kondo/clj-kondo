@@ -207,25 +207,37 @@
       (if binding
         (let [binding-sexpr (node/sexpr binding)
               for-let? (and for-like?
-                            (= :let binding-sexpr))
-              binding (cond for-let? value
-                            (keyword? binding-sexpr) nil
-                            :else binding)
-              new-bindings (when binding (extract-bindings ctx binding))
-              analyzed-binding (:analyzed new-bindings)
-              new-bindings (dissoc new-bindings :analyzed)
-              ctx* (-> ctx
-                       (update :bindings (fn [b]
-                                           (merge b bindings)))
-                       (update :arities merge arities))
-              analyzed-value (when (and value (not for-let?))
-                               (analyze-expression** ctx* value))
-              next-arities (if-let [arity (:arity (meta analyzed-value))]
-                             (assoc arities binding-sexpr arity)
-                             arities)]
-          (recur rest-bindings
-                 (merge bindings new-bindings)
-                 next-arities (concat analyzed analyzed-binding analyzed-value)))
+                            (= :let binding-sexpr))]
+          (if for-let?
+            (let [{new-bindings :bindings
+                   new-analyzed :analyzed
+                   new-arities :arities}
+                  (analyze-let-like-bindings
+                   (update ctx :bindings
+                           (fn [b]
+                             (merge b bindings))) value)]
+              (recur rest-bindings
+                     (merge bindings new-bindings)
+                     (merge arities new-arities)
+                     (concat analyzed new-analyzed)))
+            (let [binding (cond for-let? value
+                                (keyword? binding-sexpr) nil
+                                :else binding)
+                  new-bindings (when binding (extract-bindings ctx binding))
+                  analyzed-binding (:analyzed new-bindings)
+                  new-bindings (dissoc new-bindings :analyzed)
+                  ctx* (-> ctx
+                           (update :bindings (fn [b]
+                                               (merge b bindings)))
+                           (update :arities merge arities))
+                  analyzed-value (when (and value (not for-let?))
+                                   (analyze-expression** ctx* value))
+                  next-arities (if-let [arity (:arity (meta analyzed-value))]
+                                 (assoc arities binding-sexpr arity)
+                                 arities)]
+              (recur rest-bindings
+                     (merge bindings new-bindings)
+                     next-arities (concat analyzed analyzed-binding analyzed-value)))))
         {:arities arities
          :bindings bindings
          :analyzed analyzed}))))
