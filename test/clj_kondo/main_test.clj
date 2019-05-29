@@ -1185,13 +1185,6 @@
       :message "unused binding x"}
      {:level :warning,
       :message "unused binding y"})
-   (lint! "(binding [x ? y ?] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:level :warning,
-      :message "unused binding x"}
-     {:level :warning,
-      :message "unused binding y"})
    (lint! "(with-open [x ? y ?] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps

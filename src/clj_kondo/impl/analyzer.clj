@@ -616,7 +616,7 @@
              ;; don't lint calls in these expressions, only register them as used vars
              (analyze-children (assoc ctx :call-as-use true)
                                (:children expr))
-             (let let* for doseq binding with-open)
+             (let let* for doseq with-open)
              (analyze-like-let ctx expr)
              letfn
              (analyze-letfn ctx expr)
