@@ -197,7 +197,7 @@
        (map #(extract-bindings ctx %))
        (reduce deep-merge {})))
 
-(defn analyze-bindings [ctx binding-vector]
+(defn analyze-let-like-bindings [ctx binding-vector]
   (loop [[binding value & rest-bindings] (-> binding-vector :children)
          bindings (:bindings ctx)
          arities (:arities ctx)
@@ -209,7 +209,7 @@
             new-bindings (dissoc new-bindings :analyzed)
             ctx* (-> ctx
                      (update :bindings (fn [b]
-                                          (merge b bindings)))
+                                         (merge b bindings)))
                      (update :arities merge arities))
             analyzed-value (when value (analyze-expression** ctx* value))
             next-arities (if-let [arity (:arity (meta analyzed-value))]
@@ -234,33 +234,48 @@
         :level :error
         :filename (:filename ctx)}))))
 
-(defn analyze-let [{:keys [:filename :callstack
-                           :maybe-redundant-let?] :as ctx} expr]
-  (let [let-parent? (contains? '#{[clojure.core let]
+(defn analyze-like-let
+  [{:keys [:filename :callstack
+           :lang :base-lang
+           :maybe-redundant-let?] :as ctx} expr]
+  (let [children (:children expr)
+        call (-> callstack first second)
+        let? (= 'let call)
+        let-parent? (contains? '#{[clojure.core let]
                                   [cljs.core let]}
                                (second callstack))
-        bv (-> expr :children second)]
-    (when (and let-parent? maybe-redundant-let?)
+        bv (-> expr :children second)
+        {:keys [:row :col]} (meta expr)
+        arg-count (count (rest children))]
+    (when (and let? let-parent? maybe-redundant-let?)
       (state/reg-finding! (node->line filename expr :warning :redundant-let "redundant let")))
-    (when (and bv (= :vector (node/tag bv)))
-      (let [{;; analyzed-bindings :bindings
-             analyzed-bindings :bindings
-             arities :arities
-             analyzed :analyzed}
-            (analyze-bindings
-             (-> ctx
-                 (update :callstack #(cons [nil :let-bindings] %))) bv)
-            let-body (nnext (:children expr))
-            single-child? (= 1 (count let-body))]
-        (lint-even-forms-bindings! ctx 'let bv)
-        (concat analyzed
-                (analyze-children
-                 (-> ctx
-                     (update :bindings (fn [b]
-                                          (merge b analyzed-bindings)))
-                     (update :arities merge arities)
-                     (assoc :maybe-redundant-let? single-child?))
-                 let-body))))))
+    (cons {:type :call
+           :name call
+           :row row
+           :col col
+           :base-lang base-lang
+           :lang lang
+           :expr expr
+           :arity arg-count}
+          (when (and bv (= :vector (node/tag bv)))
+            (let [{;; analyzed-bindings :bindings
+                   analyzed-bindings :bindings
+                   arities :arities
+                   analyzed :analyzed}
+                  (analyze-let-like-bindings
+                   (-> ctx
+                       (update :callstack #(cons [nil :let-bindings] %))) bv)
+                  let-body (nnext (:children expr))
+                  single-child? (and let? (= 1 (count let-body)))]
+              (lint-even-forms-bindings! ctx 'let bv)
+              (concat analyzed
+                      (analyze-children
+                       (-> ctx
+                           (update :bindings (fn [b]
+                                               (merge b analyzed-bindings)))
+                           (update :arities merge arities)
+                           (assoc :maybe-redundant-let? single-child?))
+                       let-body)))))))
 
 (defn analyze-do [{:keys [:filename :callstack] :as ctx} expr]
   (let [parent-call (second callstack)
@@ -339,9 +354,9 @@
                              (if ?fn-name
                                (-> ctx
                                    (update :bindings conj [?fn-name
-                                                            (assoc (meta (second children))
-                                                                   :name ?fn-name
-                                                                   :filename (:filename ctx))])
+                                                           (assoc (meta (second children))
+                                                                  :name ?fn-name
+                                                                  :filename (:filename ctx))])
                                    (update :arities assoc ?fn-name
                                            arity))
                                ctx) %) bodies)]
@@ -362,9 +377,8 @@
       (let [arg-count (let [c (count (:children bv))]
                         (when (even? c)
                           (/ c 2)))]
-        (analyze-let (assoc ctx
-                            :maybe-redundant-let? false
-                            :recur-arity {:fixed-arity arg-count}) expr)))))
+        (analyze-like-let (assoc ctx
+                                 :recur-arity {:fixed-arity arg-count}) expr)))))
 
 (defn analyze-recur [ctx expr]
   (when-not (:call-as-use ctx)
@@ -525,6 +539,12 @@
                                                       fn-name))))))
         (analyze-children ctx (rest children))))))
 
+(defn analyze-like-for [{:keys [:base-lang :lang] :as ctx} arg-count clojure-var-name expr]
+  (let [{:keys [:row :col]} (meta expr)]
+    (cons nil
+          (analyze-like-let ctx expr)
+          #_(used-namespaces ctx expr))))
+
 (defn analyze-call
   [{:keys [:filename :fn-body :base-lang :lang :ns] :as ctx}
    {:keys [:arg-count
@@ -594,7 +614,7 @@
              (analyze-children (assoc ctx :call-as-use true)
                                (:children expr))
              (let let*)
-             (analyze-let ctx expr)
+             (analyze-like-let ctx expr)
              letfn
              (analyze-letfn ctx expr)
              (if-let when-let)
@@ -610,15 +630,7 @@
              recur
              (analyze-recur ctx expr)
              (for doseq) ;; skip linting body apart from detecting used namespaces for now
-             (cons {:type :call
-                    :name resolved-as-clojure-var-name
-                    :row row
-                    :col col
-                    :base-lang base-lang
-                    :lang lang
-                    :expr expr
-                    :arity arg-count}
-                   (used-namespaces ctx expr))
+             (analyze-like-for ctx arg-count resolved-as-clojure-var-name expr)
              ;; catch-all
              (case [resolved-namespace resolved-name]
                [schema.core defn]

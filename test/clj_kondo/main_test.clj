@@ -1168,6 +1168,18 @@
       :message "unused binding x"})
    (lint! "(when-let [x 1] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(for [x []] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(doseq [x []] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
