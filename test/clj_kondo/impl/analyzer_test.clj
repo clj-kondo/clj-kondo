@@ -118,7 +118,7 @@
                             :ns user, :lang :clj}}
                      (get-in analyzed '[:defs user])))))
 
-(deftest extract-bindings-test
+#_(deftest extract-bindings-test
   (are [syms binding-form] (= (set syms) (set (ana/extract-bindings binding-form)))
     '[x y z] '[x y [z [x]]]
     '[x y zs xs] '[x y & zs :as xs]

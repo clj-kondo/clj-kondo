@@ -1133,6 +1133,7 @@
       :message "unused binding id"})
    (lint! "(let [{:keys [patient/id order/id]} {}] id)"
           '{:linters {:unused-binding {:level :warning}}}))
+  (lint! "(fn [{:keys [:a] :or {:a 1}}])")
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
