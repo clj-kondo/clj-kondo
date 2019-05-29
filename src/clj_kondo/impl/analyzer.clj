@@ -224,17 +224,11 @@
          (nnext exprs)
          (into parsed (analyze-expression** ctx expr)))))))
 
-#_(defn expr-bindings [binding-vector]
-  (->> binding-vector :children
-       (take-nth 2)
-       (map node/sexpr)
-       (mapcat extract-bindings) set))
-
 (defn expr-bindings2 [ctx binding-vector]
   (->> binding-vector :children
        (take-nth 2)
        (map #(extract-bindings2 ctx %))
-       (reduce into {} )))
+       (reduce into {})))
 
 (defn analyze-bindings [ctx binding-vector]
   (loop [[binding value & rest-bindings] (-> binding-vector :children)
@@ -413,7 +407,7 @@
     (namespace/reg-alias! (:base-lang ctx) (:lang ctx) (:name ns) alias-sym ns-sym)
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
-(defn analyze-loop [ctx expr]
+#_(defn analyze-loop [ctx expr]
   (let [children (:children expr)
         bv (-> expr :children second)]
     (when (and bv (= :vector (node/tag bv)))
@@ -426,6 +420,16 @@
          (-> ctx (update :bindings2 (fn [b] (merge b bs)))
              (assoc :recur-arity {:fixed-arity arg-count}))
          (rest children))))))
+
+(defn analyze-loop [ctx expr]
+  (let [bv (-> expr :children second)]
+    (when (and bv (= :vector (node/tag bv)))
+      (let [arg-count (let [c (count (:children bv))]
+                        (when (even? c)
+                          (/ c 2)))]
+        (analyze-let (assoc ctx
+                            :maybe-redundant-let? false
+                            :recur-arity {:fixed-arity arg-count}) expr)))))
 
 (defn analyze-recur [ctx expr]
   (when-not (:call-as-use ctx)

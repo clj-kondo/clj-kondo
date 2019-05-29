@@ -1150,6 +1150,8 @@
   (is (empty? (lint! "(fn [{:keys [x] :or {x 1}}] x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "#(inc %1)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(let [exprs []] (loop [exprs exprs] exprs))"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 ;;;; Scratch
