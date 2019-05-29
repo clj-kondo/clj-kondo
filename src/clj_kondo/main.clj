@@ -42,7 +42,7 @@
 (defn- print-findings [findings]
   (let [format-fn (format-output)]
     (doseq [{:keys [:filename :message
-                    :level :row :col] :as finding}
+                    :level :row :col] :as _finding}
             (dedupe (sort-by (juxt :filename :row :col) findings))]
       (println (format-fn filename row col level message)))))
 
