@@ -914,8 +914,6 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])"))))
 
-
-
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
                      :row 1,
@@ -1140,6 +1138,35 @@
       :level :warning,
       :message "unused binding a"})
    (lint! "(fn [{:keys [:a] :or {:a 1}}])"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 8,
+      :level :warning,
+      :message "unused binding x"}
+     {:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :warning,
+      :message "unused binding y"})
+   (lint! "(loop [x 1 y 2])"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(if-let [x 1] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(when-let [x 1] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))

@@ -188,6 +188,9 @@
 (defn symbol-token? [node]
   (symbol? (:value node)))
 
+(defn map-node-vals [{:keys [:children]}]
+  (take-nth 2 (rest children)))
+
 ;;;; Scratch
 
 (comment
@@ -195,4 +198,5 @@
   (false? (node/sexpr (parse-string "false")))
   (false? (node/sexpr (parse-string "nil")))
   (constant? (parse-string "foo"))
+  (map-node-vals (parse-string "{:a 1 :b 2}"))
   )

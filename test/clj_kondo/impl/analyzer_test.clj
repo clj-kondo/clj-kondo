@@ -118,21 +118,11 @@
                             :ns user, :lang :clj}}
                      (get-in analyzed '[:defs user])))))
 
-#_(deftest extract-bindings-test
-  (are [syms binding-form] (= (set syms) (set (ana/extract-bindings binding-form)))
-    '[x y z] '[x y [z [x]]]
-    '[x y zs xs] '[x y & zs :as xs]
-    '[x foo] '[x {foo :foo :or {foo 1}}]
-    '[x foo] '[x {:keys [foo]}]
-    '[x foo m] '[x {:keys [foo] :as m}]
-    '[x foo] '[x {:person/keys [foo]}]
-    '[x foo] '[x {:keys [::foo]}]))
-
 (deftest extract-bindings2-test
   (are [syms binding-form] (= syms (keys (ana/extract-bindings2 {} (parse-string (str binding-form)))))
     '[x y z] '[x y [z [x]]]
     '[x y zs xs] '[x y & zs :as xs]
-    '[x foo] '[x {foo :foo :or {foo 1}}]
+    '[x foo :analyzed] '[x {foo :foo :or {foo 1}}]
     '[x foo] '[x {:keys [foo]}]
     '[x foo m] '[x {:keys [foo] :as m}]
     '[x foo] "[x {:person/keys [foo]}]"
