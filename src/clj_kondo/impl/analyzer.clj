@@ -14,7 +14,6 @@
    [clj-kondo.impl.utils :as utils :refer [some-call symbol-call keyword-call node->line
                                            parse-string parse-string-all tag select-lang
                                            vconj deep-merge]]
-   [clojure.set :as set]
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :as seq]
@@ -76,7 +75,7 @@
                     :else nil)))
       {})))
 
-(defn analyze-in-ns [ctx {:keys [:children] :as expr}]
+(defn analyze-in-ns [ctx {:keys [:children] :as _expr}]
   (let [ns-name (-> children second :children first :value)
         ns {:type :in-ns
             :name ns-name
@@ -87,11 +86,6 @@
             :used-bindings #{}}]
     (namespace/reg-namespace! (:base-lang ctx) (:lang ctx) ns)
     ns))
-
-(comment
-  (extract-bindings (parse-string "[{:keys [:a] :or {:a 1}}]"))
-  (extract-bindings2 {} (parse-string "[{:keys [:a] :or {:a 1}}]"))
-  )
 
 (defn fn-call? [expr]
   (let [tag (node/tag expr)]
@@ -146,7 +140,7 @@
             (not t) []
             :else (recur (inc i) rest-exprs)))))
 
-(defn analyze-defn [{:keys [filename base-lang lang ns] :as ctx} expr]
+(defn analyze-defn [{:keys [base-lang lang] :as ctx} expr]
   (let [children (:children expr)
         children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
         name-node (first children)
@@ -323,7 +317,7 @@
             body-exprs (-> expr :children nnext)]
         (lint-two-forms-binding-vector! ctx call bv sexpr)
         (concat (:analyzed bindings)
-                [(analyze-expression** ctx eval-expr)]
+                (analyze-expression** ctx eval-expr)
                 (analyze-children (update ctx :bindings2
                                           (fn [b] (merge b
                                                          (dissoc bindings
@@ -701,7 +695,7 @@
                                                 arg-count
                                                 kw-str)))))))
 
-(defn lint-map-call! [{:keys [:callstack] :as ctx} the-map arg-count expr]
+(defn lint-map-call! [{:keys [:callstack] :as ctx} _the-map arg-count expr]
   (when-not (config/skip? :invalid-arity callstack)
     (when (or (zero? arg-count)
               (> arg-count 2))
@@ -709,7 +703,7 @@
                                       (format "wrong number of args (%s) passed to a map"
                                               arg-count))))))
 
-(defn lint-symbol-call! [{:keys [:callstack] :as ctx} the-symbol arg-count expr]
+(defn lint-symbol-call! [{:keys [:callstack] :as ctx} _the-symbol arg-count expr]
   (when-not (config/skip? :invalid-arity callstack)
     (when (or (zero? arg-count)
               (> arg-count 2))
@@ -723,7 +717,7 @@
      (node->line filename expr :error :not-a-function (str "a " type " is not a function")))))
 
 (defn analyze-expression**
-  [{:keys [filename ns bindings2 callstack] :as ctx}
+  [{:keys [filename bindings2] :as ctx}
    {:keys [:children] :as expr}]
   (let [t (node/tag expr)
         {:keys [:row :col]} (meta expr)

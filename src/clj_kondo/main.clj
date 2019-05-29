@@ -246,7 +246,7 @@ Options:
 
 (defn- index-defs-and-calls [defs-and-calls]
   (reduce
-   (fn [acc {:keys [:calls :defs :used :lang] :as m}]
+   (fn [acc {:keys [:calls :defs :used :lang] :as _m}]
      (-> acc
          (update-in [lang :calls] (fn [prev-calls]
                                     (merge-with into prev-calls calls)))
