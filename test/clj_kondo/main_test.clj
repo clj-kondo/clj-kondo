@@ -1210,6 +1210,20 @@
       :message "wrong number of args (0) passed to clojure.core/pos?"})
    (lint! "(for [x [] :let [x 1 y x] :when (inc) :while (pos?)] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 48,
+      :level :warning,
+      :message "unused binding a"}
+     {:file "<stdin>",
+      :row 1,
+      :col 52,
+      :level :warning,
+      :message "unused binding b"})
+   (lint! "(ns foo (:require [cats.core :as c])) (c/mlet [a 1 b 2])"
+          '{:linters {:unused-binding {:level :warning}}
+            :lint-as {cats.core/mlet clojure.core/let}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
