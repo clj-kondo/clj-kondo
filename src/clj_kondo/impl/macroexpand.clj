@@ -93,6 +93,8 @@
                      (vector-node
                       [(token-node '%)
                        (token-node '%1)])
+                     ;; mark this node as used
+                     (token-node '%)
                      fn-body]))]
     (with-meta
       (list-node [(token-node 'fn*) arg-list

@@ -1133,7 +1133,14 @@
       :message "unused binding id"})
    (lint! "(let [{:keys [patient/id order/id]} {}] id)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (lint! "(fn [{:keys [:a] :or {:a 1}}])")
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 14,
+      :level :warning,
+      :message "unused binding a"})
+   (lint! "(fn [{:keys [:a] :or {:a 1}}])"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
@@ -1142,7 +1149,8 @@
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(fn [{:keys [x] :or {x 1}}] x)"
                      '{:linters {:unused-binding {:level :warning}}})))
-  )
+  (is (empty? (lint! "#(inc %1)"
+                     '{:linters {:unused-binding {:level :warning}}}))))
 
 ;;;; Scratch
 
