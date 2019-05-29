@@ -1223,6 +1223,8 @@
   (is (empty? (lint! "(let [exprs []] (loop [exprs exprs] exprs))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(for [f fns :let [children (:children f)]] children)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(deftype Foo [] (doseq [[key f] []] (f key)))"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 ;;;; Scratch

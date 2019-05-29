@@ -557,8 +557,8 @@
                                               :invalid-arity
                                               (format "wrong number of args (%s) passed to %s"
                                                       arg-count
-                                                      fn-name))))))
-        (analyze-children ctx (rest children))))))
+                                                      fn-name)))))))
+      (analyze-children ctx (rest children)))))
 
 (defn analyze-call
   [{:keys [:filename :fn-body :base-lang :lang :ns] :as ctx}
