@@ -539,12 +539,6 @@
                                                       fn-name))))))
         (analyze-children ctx (rest children))))))
 
-(defn analyze-like-for [{:keys [:base-lang :lang] :as ctx} arg-count clojure-var-name expr]
-  (let [{:keys [:row :col]} (meta expr)]
-    (cons nil
-          (analyze-like-let ctx expr)
-          #_(used-namespaces ctx expr))))
-
 (defn analyze-call
   [{:keys [:filename :fn-body :base-lang :lang :ns] :as ctx}
    {:keys [:arg-count
@@ -613,7 +607,7 @@
              ;; don't lint calls in these expressions, only register them as used vars
              (analyze-children (assoc ctx :call-as-use true)
                                (:children expr))
-             (let let*)
+             (let let* for doseq binding with-open)
              (analyze-like-let ctx expr)
              letfn
              (analyze-letfn ctx expr)
@@ -629,8 +623,6 @@
              (analyze-loop ctx expr)
              recur
              (analyze-recur ctx expr)
-             (for doseq) ;; skip linting body apart from detecting used namespaces for now
-             (analyze-like-for ctx arg-count resolved-as-clojure-var-name expr)
              ;; catch-all
              (case [resolved-namespace resolved-name]
                [schema.core defn]

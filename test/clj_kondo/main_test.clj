@@ -1180,6 +1180,20 @@
       :message "unused binding x"})
    (lint! "(doseq [x []] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:level :warning,
+      :message "unused binding x"}
+     {:level :warning,
+      :message "unused binding y"})
+   (lint! "(binding [x ? y ?] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:level :warning,
+      :message "unused binding x"}
+     {:level :warning,
+      :message "unused binding y"})
+   (lint! "(with-open [x ? y ?] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
