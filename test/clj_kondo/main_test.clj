@@ -1267,7 +1267,21 @@
       :col 12,
       :level :error,
       :message "unsupported binding form a/a"})
-   (lint! "(defn foo [a/a])")))
+   (lint! "(defn foo [a/a])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :error,
+      :message "unsupported binding form 1"})
+   (lint! "(let [1 1])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :error,
+      :message "unsupported binding form (x)"})
+   (lint! "(let [(x) 1])")))
 
 ;;;; Scratch
 

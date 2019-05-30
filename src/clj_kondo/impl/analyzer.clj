@@ -76,7 +76,14 @@
                                            expr
                                            :error
                                            :unsupported-binding-form
-                                           (str "unsupported binding form " (:k expr))))))
+                                           (str "unsupported binding form " (:k expr)))))
+         :else
+         (state/reg-finding!
+          (node->line (:filename ctx)
+                      expr
+                      :error
+                      :unsupported-binding-form
+                      (str "unsupported binding form " (node/sexpr expr)))))
        :vector (into {} (map #(extract-bindings ctx %)) (:children expr))
        :namespaced-map (extract-bindings ctx (first (:children expr)))
        :map
@@ -92,7 +99,12 @@
                        nil)
                      (utils/symbol-token? k) (extract-bindings ctx k)
                      :else nil)))
-       {}))))
+       (state/reg-finding!
+        (node->line (:filename ctx)
+                    expr
+                    :error
+                    :unsupported-binding-form
+                    (str "unsupported binding form " (node/sexpr expr))))))))
 
 (defn analyze-in-ns [ctx {:keys [:children] :as _expr}]
   (let [ns-name (-> children second :children first :value)
