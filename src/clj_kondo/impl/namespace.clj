@@ -72,7 +72,8 @@
 (defn reg-used-binding!
   [base-lang lang ns-sym binding]
   (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
-         conj binding))
+         conj binding)
+  nil)
 
 (defn list-namespaces []
   (for [[_base-lang m] @namespaces

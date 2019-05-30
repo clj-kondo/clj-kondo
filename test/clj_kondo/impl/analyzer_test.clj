@@ -26,7 +26,8 @@
                                        :base-lang :clj
                                        :lang :clj} (parse-string "(ns user)"))]
     (assert-submaps
-     '[{:name chunk-buffer, :fixed-arities #{1}}
+     '[{:type :defn
+        :name chunk-buffer, :fixed-arities #{1}}
        {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
      (ana/analyze-defn {:ns ns
                         :base-lang :clj

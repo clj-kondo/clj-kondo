@@ -480,16 +480,16 @@
              [{:type :use
                :ns resolved-ns}]))
          (when (and (= t :symbol))
-           (when (not syntax-quote?)
-             (when-let [b (get (:bindings ctx) v)]
-               (namespace/reg-used-binding! (:base-lang ctx)
-                                            (:lang ctx)
-                                            (-> ns :name)
-                                            b)))
-           (when-let [resolved-ns (or (:ns (get (:qualify-var ns) v))
-                                      (get (:qualify-ns ns) v))]
-             [{:type :use
-               :ns resolved-ns}])))
+           (if-let [b (when-not syntax-quote?
+                        (get (:bindings ctx) v))]
+             (namespace/reg-used-binding! (:base-lang ctx)
+                                          (:lang ctx)
+                                          (-> ns :name)
+                                          b)
+             (when-let [resolved-ns (or (:ns (get (:qualify-var ns) v))
+                                        (get (:qualify-ns ns) v))]
+               [{:type :use
+                 :ns resolved-ns}]))))
        (mapcat #(used-namespaces ctx syntax-quote? %)
                (:children expr))))))
 
