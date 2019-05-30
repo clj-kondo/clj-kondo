@@ -334,6 +334,17 @@
                  (first (lint! "(clojure.core/vec)" "--lang" "cljs"))))
 
 (deftest override-test
+  (doseq [lang [:clj :cljs]]
+    (testing (str "lang: " (name lang))
+      (assert-submaps
+       '({:file "<stdin>"
+          :row 1, :col 1,
+          :level :error,
+          :message (str "wrong number of args (3) passed to "
+                        (case lang
+                          :clj "clojure"
+                          :cljs "cljs") ".core/quote")})
+       (lint! "(quote 1 2 3)" "--lang" (name lang)))))
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
 (deftest cljs-clojure-ns-alias-test []
@@ -1231,6 +1242,14 @@
       :level :warning,
       :message "unused binding x"})
    (lint! "(defmacro foo [] (let [x 1] `(inc x)))"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(defn foo [x] (quote x))"
           '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
