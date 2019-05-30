@@ -115,7 +115,7 @@ $ clj-kondo --lint "<classpath>" --cache
 Build tool specific ways to get a classpath:
 - `lein classpath`
 - `boot with-cp -w -f`
-- `clj -Spath`
+- `clojure -Spath`
 
 So for `lein` the entire command would be:
 
