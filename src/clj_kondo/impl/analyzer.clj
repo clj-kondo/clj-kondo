@@ -4,7 +4,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.macroexpand :as macroexpand]
-   [clj-kondo.impl.metadata :refer [lift-meta]]
+   [clj-kondo.impl.metadata :as meta :refer [lift-meta]]
    [clj-kondo.impl.namespace :as namespace :refer [analyze-ns-decl resolve-name]]
    [clj-kondo.impl.node.seq] ;; load defrecord
    [clj-kondo.impl.parser :as p]
@@ -29,35 +29,37 @@
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr false))
   ([ctx expr keys-destructuring?]
-   (let [t (node/tag expr)]
+   (let [expr (meta/lift-meta-content (:filename ctx) expr)
+         t (node/tag expr)]
      (case t
        :token
        (cond
          ;; symbol
          (utils/symbol-token? expr)
-         (when (not= '& (:value expr))
-           (let [sym (:value expr)
-                 ns (namespace sym)
-                 valid? (or (not ns)
-                            keys-destructuring?)]
-             (if valid?
-               (let [s (symbol (name sym))
-                     m (meta expr)
-                     v (assoc m
-                              :name s
-                              :filename (:filename ctx))]
-                 (namespace/reg-binding! (:base-lang ctx)
-                                         (:lang ctx)
-                                         (-> ctx :ns :name)
-                                         (assoc m
-                                                :name s
-                                                :filename (:filename ctx)))
-                 {s v})
-               (state/reg-finding! (node->line (:filename ctx)
-                                               expr
-                                               :error
-                                               :unsupported-binding-form
-                                               (str "unsupported binding form " sym))))))
+         (let [expr (meta/lift-meta-content (:filename ctx) expr)
+               sym (:value expr)]
+           (when (not= '& sym)
+             (let [ns (namespace sym)
+                   valid? (or (not ns)
+                              keys-destructuring?)]
+               (if valid?
+                 (let [s (symbol (name sym))
+                       m (meta expr)
+                       v (assoc m
+                                :name s
+                                :filename (:filename ctx))]
+                   (namespace/reg-binding! (:base-lang ctx)
+                                           (:lang ctx)
+                                           (-> ctx :ns :name)
+                                           (assoc m
+                                                  :name s
+                                                  :filename (:filename ctx)))
+                   {s v})
+                 (state/reg-finding! (node->line (:filename ctx)
+                                                 expr
+                                                 :error
+                                                 :unsupported-binding-form
+                                                 (str "unsupported binding form " sym)))))))
          ;; keyword
          (:k expr)
          (let [k (:k expr)]
