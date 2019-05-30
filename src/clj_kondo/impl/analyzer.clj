@@ -34,30 +34,30 @@
        :token
        (cond
          ;; symbol
-         (and (utils/symbol-token? expr)
-              (not= '& (:value expr)))
-         (let [sym (:value expr)
-               ns (namespace sym)
-               valid? (or (not ns)
-                          keys-destructuring?)]
-           (if valid?
-             (let [s (symbol (name sym))
-                   m (meta expr)
-                   v (assoc m
-                            :name s
-                            :filename (:filename ctx))]
-               (namespace/reg-binding! (:base-lang ctx)
-                                       (:lang ctx)
-                                       (-> ctx :ns :name)
-                                       (assoc m
-                                              :name s
-                                              :filename (:filename ctx)))
-               {s v})
-             (state/reg-finding! (node->line (:filename ctx)
-                                             expr
-                                             :error
-                                             :unsupported-binding-form
-                                             (str "unsupported binding form " sym)))))
+         (utils/symbol-token? expr)
+         (when (not= '& (:value expr))
+           (let [sym (:value expr)
+                 ns (namespace sym)
+                 valid? (or (not ns)
+                            keys-destructuring?)]
+             (if valid?
+               (let [s (symbol (name sym))
+                     m (meta expr)
+                     v (assoc m
+                              :name s
+                              :filename (:filename ctx))]
+                 (namespace/reg-binding! (:base-lang ctx)
+                                         (:lang ctx)
+                                         (-> ctx :ns :name)
+                                         (assoc m
+                                                :name s
+                                                :filename (:filename ctx)))
+                 {s v})
+               (state/reg-finding! (node->line (:filename ctx)
+                                               expr
+                                               :error
+                                               :unsupported-binding-form
+                                               (str "unsupported binding form " sym))))))
          ;; keyword
          (when-let [k (:k expr)]
            (not= :as k))
@@ -83,7 +83,7 @@
                       expr
                       :error
                       :unsupported-binding-form
-                      (str "unsupported binding form " (node/sexpr expr)))))
+                      (str "unsupported binding form " expr))))
        :vector (into {} (map #(extract-bindings ctx %)) (:children expr))
        :namespaced-map (extract-bindings ctx (first (:children expr)))
        :map
@@ -104,7 +104,7 @@
                     expr
                     :error
                     :unsupported-binding-form
-                    (str "unsupported binding form " (node/sexpr expr))))))))
+                    (str "unsupported binding form " expr)))))))
 
 (defn analyze-in-ns [ctx {:keys [:children] :as _expr}]
   (let [ns-name (-> children second :children first :value)
