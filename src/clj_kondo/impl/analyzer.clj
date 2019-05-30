@@ -643,6 +643,15 @@
              (analyze-loop ctx expr)
              recur
              (analyze-recur ctx expr)
+             quote [{:type :call
+                     :name full-fn-name
+                     :arity arg-count
+                     :row row
+                     :col col
+                     :base-lang base-lang
+                     :lang lang
+                     :expr expr
+                     :callstack (:callstack ctx)}]
              ;; catch-all
              (case [resolved-namespace resolved-name]
                [schema.core defn]
