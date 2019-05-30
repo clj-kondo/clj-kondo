@@ -27,56 +27,62 @@
     (mapcat #(analyze-expression** ctx %) children)))
 
 (defn extract-bindings
-  ;; TODO: this function is a little bit too accepting in that it sees keywords
-  ;; as bindings in normal function arg-vectors for example
-  [ctx expr]
-  (let [t (node/tag expr)]
-    (case t
-      :token
-      (cond
-        ;; keyword
-        (when-let [k (:k expr)]
-          (not= :as k))
-        (let [s (-> expr :k name symbol)
-              m (meta expr)
-              v (assoc m
-                       :name s
-                       :filename (:filename ctx))]
-          (namespace/reg-binding! (:base-lang ctx)
-                                  (:lang ctx)
-                                  (-> ctx :ns :name)
-                                  v)
-          {s v})
-        ;; symbol
-        (and (utils/symbol-token? expr)
-             (not= '& (:value expr)))
-        (let [s (symbol (name (:value expr)))
-              m (meta expr)
-              v (assoc m
-                       :name s
-                       :filename (:filename ctx))]
-          (namespace/reg-binding! (:base-lang ctx)
-                                  (:lang ctx)
-                                  (-> ctx :ns :name)
-                                  (assoc m
-                                         :name s
-                                         :filename (:filename ctx)))
-          {s v}))
-      :vector (into {} (map #(extract-bindings ctx %)) (:children expr))
-      :namespaced-map (extract-bindings ctx (first (:children expr)))
-      :map
-      (into {}
-            (for [[k v] (partition 2 (:children expr))]
-              (cond (:k k)
-                    (case (keyword (name (:k k)))
-                      (:keys :syms :strs) (extract-bindings ctx v)
-                      ;; or doesn't introduce new bindings, it only gives defaults
-                      :or {:analyzed (analyze-children ctx (utils/map-node-vals v))}
-                      :as (extract-bindings ctx v)
-                      nil)
-                    (utils/symbol-token? k) (extract-bindings ctx k)
-                    :else nil)))
-      {})))
+  ([ctx expr] (extract-bindings ctx expr false))
+  ([ctx expr keys-destructuring?]
+   (let [t (node/tag expr)]
+     (case t
+       :token
+       (cond
+         ;; symbol
+         (and (utils/symbol-token? expr)
+              (not= '& (:value expr)))
+         (let [s (symbol (name (:value expr)))
+               m (meta expr)
+               v (assoc m
+                        :name s
+                        :filename (:filename ctx))]
+           (namespace/reg-binding! (:base-lang ctx)
+                                   (:lang ctx)
+                                   (-> ctx :ns :name)
+                                   (assoc m
+                                          :name s
+                                          :filename (:filename ctx)))
+           {s v})
+         ;; keyword
+         (when-let [k (:k expr)]
+           (not= :as k))
+         (if keys-destructuring?
+           (let [s (-> expr :k name symbol)
+                 m (meta expr)
+                 v (assoc m
+                          :name s
+                          :filename (:filename ctx))]
+             (namespace/reg-binding! (:base-lang ctx)
+                                     (:lang ctx)
+                                     (-> ctx :ns :name)
+                                     v)
+             {s v})
+           (state/reg-finding! (node->line (:filename ctx)
+                                           expr
+                                           :error
+                                           :unsupported-binding-form
+                                           (str "unsupported binding form " (:k expr))))))
+       :vector (into {} (map #(extract-bindings ctx %)) (:children expr))
+       :namespaced-map (extract-bindings ctx (first (:children expr)))
+       :map
+       (into {}
+             (for [[k v] (partition 2 (:children expr))]
+               (cond (:k k)
+                     (case (keyword (name (:k k)))
+                       (:keys :syms :strs) (into {} (map #(extract-bindings ctx % true))
+                                                 (:children v))
+                       ;; or doesn't introduce new bindings, it only gives defaults
+                       :or {:analyzed (analyze-children ctx (utils/map-node-vals v))}
+                       :as (extract-bindings ctx v)
+                       nil)
+                     (utils/symbol-token? k) (extract-bindings ctx k)
+                     :else nil)))
+       {}))))
 
 (defn analyze-in-ns [ctx {:keys [:children] :as _expr}]
   (let [ns-name (-> children second :children first :value)
@@ -112,6 +118,8 @@
   (let [children (:children body)
         arg-vec  (first children)
         arg-list (node/sexpr arg-vec)
+        ;; TODO: extract-bindings also extracts bindings from keywords
+        ;; prevent it here?
         arg-bindings (extract-bindings ctx arg-vec)
         arity (analyze-arity arg-list)]
     {:arg-bindings (dissoc arg-bindings :analyzed)
@@ -278,8 +286,7 @@
            :expr expr
            :arity arg-count}
           (when (and bv (= :vector (node/tag bv)))
-            (let [{;; analyzed-bindings :bindings
-                   analyzed-bindings :bindings
+            (let [{analyzed-bindings :bindings
                    arities :arities
                    analyzed :analyzed}
                   (analyze-let-like-bindings
@@ -547,7 +554,6 @@
       xs))
 
 (defn analyze-binding-call [{:keys [:callstack] :as ctx} fn-name expr]
-  ;; (prn "ANALUZE BINDING CALL")
   (namespace/reg-used-binding! (:base-lang ctx)
                                (:lang ctx)
                                (-> ctx :ns :name)
@@ -764,9 +770,7 @@
                   (analyze-children ctx children))
               (if-let [full-fn-name (when (utils/symbol-token? function) (:value function))]
                 (let [unqualified? (nil? (namespace full-fn-name))
-                      binding-call? (and unqualified? (contains? bindings full-fn-name))
-                      ;; _ (prn "BC" full-fn-name binding-call? bindings)
-                      ]
+                      binding-call? (and unqualified? (contains? bindings full-fn-name))]
                   (if binding-call?
                     (analyze-binding-call ctx full-fn-name expr)
                     (analyze-call ctx {:arg-count arg-count
@@ -801,9 +805,7 @@
              :base-lang base-lang
              :lang lang
              :ns ns
-             ;; this will replace :bindings, we need a map for shadowing and to map to the location where locals are used
              :bindings {}}]
-    ;; (println "BASE LANG" base-lang lang)
     (loop [ns ns
            [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
            results results]

@@ -1253,6 +1253,15 @@
   (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~@[x])))"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
+(deftest unsupported-binding-form-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :error,
+      :message "unsupported binding form :x"})
+   (lint! "(defn foo [:x])")))
+
 ;;;; Scratch
 
 (comment

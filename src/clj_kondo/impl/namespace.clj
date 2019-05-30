@@ -67,7 +67,8 @@
 (defn reg-binding!
   [base-lang lang ns-sym binding]
   (swap! namespaces update-in [base-lang lang ns-sym :bindings]
-         conj binding))
+         conj binding)
+  nil)
 
 (defn reg-used-binding!
   [base-lang lang ns-sym binding]

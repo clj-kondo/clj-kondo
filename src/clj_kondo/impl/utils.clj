@@ -144,18 +144,6 @@
   ([a b & more]
    (apply merge-with deep-merge a b more)))
 
-#_(defn- constant-val?
-  [x]
-  (c/or (nil? x)
-        (boolean? x)
-        (number? x)
-        (string? x)
-        (ident? x)
-        (char? x)
-        (c/and (coll? x) (empty? x))
-        (c/and (c/or (vector? x) (set? x) (map? x))
-               (every? constant-val? x))))
-
 (defn- constant-val?
   [v]
   (or (boolean? v)
@@ -193,11 +181,6 @@
 
 (defmacro one-of [x elements]
   `(case ~x (~@elements) true false))
-
-(comment
-  (one-of 10 [1 2 3])
-  (one-of 'foo [foo bar])
-  )
 
 ;;;; Scratch
 

@@ -42,12 +42,5 @@
 ;;;; Scratch
 
 (comment
-  (require '[clj-kondo.impl.parser :as p])
-  (p/parse-string "#::it {:a #::it {}}")
-  (def node
-    (-> (p/parse-string "#::it{:a 1 :a 2}")
-        :children
-        first))
-  (.ns ^NamespacedMapNode node)
 
   )

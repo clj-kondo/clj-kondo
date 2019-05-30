@@ -260,9 +260,7 @@
   []
   (doseq [ns (namespace/list-namespaces)
           :let [bindings (:bindings ns)
-                ;; _ (prn "BINDINGS" bindings)
                 used-bindings (:used-bindings ns)
-                ;; _ (prn "USED" used-bindings)
                 diff (set/difference bindings used-bindings)]
           binding diff]
     (let [{:keys [:row :col :filename :name]} binding]
