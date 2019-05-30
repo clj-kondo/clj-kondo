@@ -1249,6 +1249,8 @@
   (is (empty? (lint! "(deftype Foo [] (doseq [[key f] []] (f key)))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~x)))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~@[x])))"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 ;;;; Scratch

@@ -191,6 +191,14 @@
 (defn map-node-vals [{:keys [:children]}]
   (take-nth 2 (rest children)))
 
+(defmacro one-of [x elements]
+  `(case ~x (~@elements) true false))
+
+(comment
+  (one-of 10 [1 2 3])
+  (one-of 'foo [foo bar])
+  )
+
 ;;;; Scratch
 
 (comment

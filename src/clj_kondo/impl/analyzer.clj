@@ -13,7 +13,7 @@
    [clj-kondo.impl.state :as state]
    [clj-kondo.impl.utils :as utils :refer [some-call symbol-call keyword-call node->line
                                            parse-string parse-string-all tag select-lang
-                                           vconj deep-merge]]
+                                           vconj deep-merge one-of]]
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :as seq]
@@ -199,7 +199,7 @@
 
 (defn analyze-let-like-bindings [ctx binding-vector]
   (let [call (-> ctx :callstack second second)
-        for-like? (contains? '#{for doseq} call)]
+        for-like? (one-of call [for doseq])]
     (loop [[binding value & rest-bindings] (-> binding-vector :children)
            bindings (:bindings ctx)
            arities (:arities ctx)
@@ -261,9 +261,9 @@
   (let [children (:children expr)
         call (-> callstack first second)
         let? (= 'let call)
-        let-parent? (contains? '#{[clojure.core let]
-                                  [cljs.core let]}
-                               (second callstack))
+        let-parent? (one-of (second callstack)
+                            [[clojure.core let]
+                             [cljs.core let]])
         bv (-> expr :children second)
         {:keys [:row :col]} (meta expr)
         arg-count (count (rest children))]
@@ -300,8 +300,7 @@
 
 (defn analyze-do [{:keys [:filename :callstack] :as ctx} expr]
   (let [parent-call (second callstack)
-        core? (contains? '#{clojure.core cljs.core}
-                         (first parent-call))
+        core? (one-of (first parent-call) [clojure.core cljs.core])
         core-sym (when core?
                    (second parent-call))
         redundant?
@@ -315,10 +314,9 @@
                     ;; explicit do
                     (= 'do core-sym)
                     ;; implicit do
-                    (contains? '#{fn defn defn-
-                                  let loop binding with-open
-                                  doseq try}
-                               core-sym)))))]
+                    (one-of core-sym [fn defn defn-
+                                      let loop binding with-open
+                                      doseq try])))))]
     (when redundant?
       (state/reg-finding! (node->line filename expr :warning :redundant-do "redundant do"))))
   (analyze-children ctx (next (:children expr))))
@@ -469,7 +467,7 @@
   ([ctx syntax-quote? expr]
    (let [ns (:ns ctx)
          tag (node/tag expr)
-         syntax-quote? (when-not (= :unquote tag)
+         syntax-quote? (when-not (one-of tag [:unquote :unquote-splicing])
                          (or syntax-quote?
                              (= :syntax-quote tag)))]
      (if-let [[t v] (or (node->keyword expr)
@@ -595,9 +593,7 @@
                         (cons [resolved-namespace resolved-name] cs)))
               ctx)
         resolved-as-clojure-var-name
-        (when (contains? '#{clojure.core
-                            cljs.core}
-                         resolved-as-namespace)
+        (when (one-of resolved-as-namespace [clojure.core cljs.core])
           resolved-as-name)
         use (when lint-as?
               {:type :use
@@ -680,8 +676,8 @@
                              :expr expr
                              :callstack (:callstack ctx)})
                      next-ctx (cond-> ctx
-                                (contains? '#{[clojure.core.async thread]}
-                                           [resolved-namespace resolved-name])
+                                (= '[clojure.core.async thread]
+                                   [resolved-namespace resolved-name])
                                 (assoc-in [:recur-arity :fixed-arity] 0))]
                  (cons call (analyze-children next-ctx (rest children)))))))))
 

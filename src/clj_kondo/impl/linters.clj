@@ -3,7 +3,7 @@
   (:require
    [clj-kondo.impl.utils :refer [some-call node->line
                                  tag symbol-call parse-string
-                                 constant?]]
+                                 constant? one-of]]
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
@@ -20,9 +20,9 @@
     ;; TODO: it would be nicer if we could have the qualified calls of this expression somehow
     ;; so we wouldn't have to deal with these primitive expressions anymore
     (when-not (= 'case simple-fn-name)
-      (let [current-def? (contains? '#{expr def defn defn- deftest defmacro} fn-name)
-            new-in-def? (and (not (contains? '#{:syntax-quote :quote}
-                                             (node/tag expr)))
+      (let [current-def? (one-of fn-name [expr def defn defn- deftest defmacro])
+            new-in-def? (and (not (one-of (node/tag expr)
+                                          [:syntax-quote :quote]))
                              (or in-def? current-def?))]
         (if (and in-def? current-def?)
           [(node->line filename expr :warning :inline-def "inline def")]
