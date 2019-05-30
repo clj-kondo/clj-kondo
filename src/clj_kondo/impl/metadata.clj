@@ -3,10 +3,11 @@
   (:require
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.utils :as utils]
    [rewrite-clj.node.protocols :as node]))
 
 (defn meta? [node]
-  (contains? '#{:meta :meta*} (node/tag node)))
+  (utils/one-of (node/tag node) [:meta :meta*]))
 
 (defn lift-meta-content [filename meta-node]
   (if (meta? meta-node)
@@ -27,26 +28,6 @@
         (recur filename meta-child)
         meta-child))
     meta-node))
-
-#_(defn lift-meta* [filename zloc]
-    (loop [z zloc]
-      (let [node (z/node z)
-            last? (z/end? z)
-            replaced (if (meta? node)
-                       (z/replace z
-                                  (lift-meta-content filename node))
-                       z)]
-        (if last? replaced
-            (recur (z/next replaced))))))
-
-#_(defn lift-meta [filename expr]
-    "Lifts metadata expressions to proper metadata."
-    (profiler/profile
-     :lift-meta
-     (let [zloc (z/edn* expr)]
-       (z/root (lift-meta* filename zloc)))))
-
-;; the above zipper implementation is much slower
 
 (declare lift-meta*)
 

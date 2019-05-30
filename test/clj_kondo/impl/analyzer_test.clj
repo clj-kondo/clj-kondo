@@ -26,7 +26,8 @@
                                        :base-lang :clj
                                        :lang :clj} (parse-string "(ns user)"))]
     (assert-submaps
-     '[{:name chunk-buffer, :fixed-arities #{1}}
+     '[{:type :defn
+        :name chunk-buffer, :fixed-arities #{1}}
        {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
      (ana/analyze-defn {:ns ns
                         :base-lang :clj
@@ -119,14 +120,17 @@
                      (get-in analyzed '[:defs user])))))
 
 (deftest extract-bindings-test
-  (are [syms binding-form] (= (set syms) (set (ana/extract-bindings binding-form)))
+  (are [syms binding-form] (= syms (keys (ana/extract-bindings {} (parse-string (str binding-form)))))
     '[x y z] '[x y [z [x]]]
     '[x y zs xs] '[x y & zs :as xs]
-    '[x foo] '[x {foo :foo :or {foo 1}}]
+    '[x foo :analyzed] '[x {foo :foo :or {foo 1}}]
     '[x foo] '[x {:keys [foo]}]
     '[x foo m] '[x {:keys [foo] :as m}]
-    '[x foo] '[x {:person/keys [foo]}]
-    '[x foo] '[x {:keys [::foo]}]))
+    '[x foo] "[x {:person/keys [foo]}]"
+    '[x foo] "[x #:person{:keys [foo]}]"
+    '[x foo] '[x {:keys [::foo]}]
+    '[str-foo str-bar] "{:strs [str-foo str-bar]}"
+    '[sym-foo sym-bar] "{:syms [sym-foo sym-bar]}"))
 
 (comment
   (t/run-tests)

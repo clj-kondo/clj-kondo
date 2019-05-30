@@ -42,7 +42,7 @@
 (defn- print-findings [findings]
   (let [format-fn (format-output)]
     (doseq [{:keys [:filename :message
-                    :level :row :col] :as finding}
+                    :level :row :col] :as _finding}
             (dedupe (sort-by (juxt :filename :row :col) findings))]
       (println (format-fn filename row col level message)))))
 
@@ -246,7 +246,7 @@ Options:
 
 (defn- index-defs-and-calls [defs-and-calls]
   (reduce
-   (fn [acc {:keys [:calls :defs :used :lang] :as m}]
+   (fn [acc {:keys [:calls :defs :used :lang] :as _m}]
      (-> acc
          (update-in [lang :calls] (fn [prev-calls]
                                     (merge-with into prev-calls calls)))
@@ -322,6 +322,7 @@ Options:
                        idacs (overrides idacs)
                        linted-calls (doall (l/lint-calls idacs))
                        _ (l/lint-unused-namespaces!)
+                       _ (l/lint-unused-bindings!)
                        all-findings (concat linted-calls (mapcat :findings processed)
                                             @state/findings)
                        all-findings (filter-findings all-findings)

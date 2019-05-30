@@ -90,7 +90,7 @@
 (ns myns)
 (inc 1 2 3)
 "
-        linted (lint! invalid-core-function-call-example "--config" "{:linters {:redefined-var {:level :off}}}")]
+        linted (lint! invalid-core-function-call-example '{:linters {:redefined-var {:level :off}}})]
     (is (pos? (count linted)))
     (is (every? #(str/includes? % "wrong number of args")
                 linted)))
@@ -125,7 +125,7 @@
      (lint! "(defn) (defmacro)")))
   (testing "redefining clojure var gives no error about incorrect arity of clojure var"
     (is (empty? (lint! "(defn inc [x y] (+ x y))
-                        (inc 1 1)" "--config" "{:linters {:redefined-var {:level :off}}}")))))
+                        (inc 1 1)" '{:linters {:redefined-var {:level :off}}})))))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
@@ -522,49 +522,49 @@
 
 (deftest config-test
   (is (empty?
-       (lint! "(select-keys 1 2 3)" "--config" "{:linters {:invalid-arity {:level :off}}}")))
+       (lint! "(select-keys 1 2 3)" '{:linters {:invalid-arity {:level :off}}})))
   (is (empty?
-       (lint! "(clojure.core/is-annotation? 1)" "--config" "{:linters {:private-call {:level :off}}}")))
+       (lint! "(clojure.core/is-annotation? 1)" '{:linters {:private-call {:level :off}}})))
   (is (empty?
-       (lint! "(def (def x 1))" "--config" "{:linters {:inline-def {:level :off}}}")))
+       (lint! "(def (def x 1))" '{:linters {:inline-def {:level :off}}})))
   (is (empty?
-       (lint! "(do (do 1 2 3))" "--config" "{:linters {:redundant-do {:level :off}}}")))
+       (lint! "(do (do 1 2 3))" '{:linters {:redundant-do {:level :off}}})))
   (is (empty?
-       (lint! "(let [x 1] (let [y 2]))" "--config" "{:linters {:redundant-let {:level :off}}}")))
+       (lint! "(let [x 1] (let [y 2]))" '{:linters {:redundant-let {:level :off}}})))
   (is (empty?
-       (lint! "(cond 1 2)" "--config" "{:linters {:cond-else {:level :off}}}")))
+       (lint! "(cond 1 2)" '{:linters {:cond-else {:level :off}}})))
   (is (str/starts-with?
        (with-out-str
-         (lint! (io/file "corpus") "--config" "{:output {:show-progress true}}"))
+         (lint! (io/file "corpus") '{:output {:show-progress true}}))
        "...."))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
-                                   "--config" "{:output {:exclude-files [\"datascript\"]}}")))))
+                                   '{:output {:exclude-files ["datascript"]}})))))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
-                                   "--config" "{:output {:include-files [\"inline_def\"]}}")))))
+                                   '{:output {:include-files ["inline_def"]}})))))
   (require '[clj-kondo.impl.config] :reload) ;; reset config
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
-           (main "--lint" "-" "--config" "{:output {:pattern \"{{LEVEL}}_{{filename}}\"}}")))
+           (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}"}}))))
        "WARNING_<stdin>"))
-  (is (empty? (lint! "(comment (select-keys))" "--config" "{:skip-args [clojure.core/comment]}")))
+  (is (empty? (lint! "(comment (select-keys))" '{:skip-args [clojure.core/comment]})))
   (assert-submap
    '({:file "<stdin>",
       :row 1,
       :col 16,
       :level :error,
       :message "wrong number of args (2) passed to user/foo"})
-   (lint! "(defn foo [x]) (foo (comment 1 2 3) 2)" "--config" "{:skip-comments true}"))
+   (lint! "(defn foo [x]) (foo (comment 1 2 3) 2)" '{:skip-comments true}))
   (is (empty? (lint! "(ns foo (:require [foo.specs] [bar.specs])) (defn my-fn [x] x)"
-                     "--config" "{:linters {:unused-namespace {:exclude [foo.specs bar.specs]}}}")))
+                     '{:linters {:unused-namespace {:exclude [foo.specs bar.specs]}}})))
   (is (empty? (lint! "(ns foo (:require [foo.specs] [bar.specs])) (defn my-fn [x] x)"
-                     "--config" "{:linters {:unused-namespace {:exclude [\".*\\\\.specs$\"]}}}")))
+                     '{:linters {:unused-namespace {:exclude [".*\\.specs$"]}}})))
   (is (empty? (lint! "(ns foo (:require [foo.specs] [bar.spex])) (defn my-fn [x] x)"
-                     "--config" "{:linters {:unused-namespace {:exclude
-                                   [\".*\\\\.specs$\"
-                                    \".*\\\\.spex$\"]}}}"))))
+                     '{:linters {:unused-namespace {:exclude
+                                                    [".*\\.specs$"
+                                                     ".*\\.spex$"]}}}))))
 
 (deftest map-duplicate-keys
   (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}
@@ -720,28 +720,28 @@
 (deftest skip-args-test
   (is
    (empty?
-    (lint! (io/file "corpus" "skip_args" "comment.cljs") "--config" "{:skip-args [cljs.core/comment]}")))
+    (lint! (io/file "corpus" "skip_args" "comment.cljs") '{:skip-args [cljs.core/comment]})))
   (assert-submaps
    '({:file "corpus/skip_args/streams_test.clj",
       :row 4,
       :col 33,
       :level :error,
       :message "duplicate key :a"})
-   (lint! (io/file "corpus" "skip_args" "streams_test.clj") "--config" "{:linters {:invalid-arity {:skip-args [riemann.test/test-stream]}}}"))
+   (lint! (io/file "corpus" "skip_args" "streams_test.clj") '{:linters {:invalid-arity {:skip-args [riemann.test/test-stream]}}}))
   (assert-submaps
    '({:file "corpus/skip_args/arity.clj",
       :row 6,
       :col 1,
       :level :error,
       :message "wrong number of args (4) passed to skip-args.arity/my-macro"})
-   (lint! (io/file "corpus" "skip_args" "arity.clj") "--config" "{:skip-args [skip-args.arity/my-macro]}"))
+   (lint! (io/file "corpus" "skip_args" "arity.clj") '{:skip-args [skip-args.arity/my-macro]}))
   (assert-submaps
    '({:file "corpus/skip_args/arity.clj",
       :row 6,
       :col 1,
       :level :error,
       :message "wrong number of args (4) passed to skip-args.arity/my-macro"})
-   (lint! (io/file "corpus" "skip_args" "arity.clj") "--config" "{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}}")))
+   (lint! (io/file "corpus" "skip_args" "arity.clj") '{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}})))
 
 (deftest missing-test-assertion-test
   (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest (t/is (odd? 1)))")))
@@ -823,7 +823,7 @@
       :level :error,
       :message "wrong number of args (3) passed to foo/foo"})
    (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
-          "--config" "{:lint-as {foo/my-defn clojure.core/defn}}")))
+          '{:lint-as {foo/my-defn clojure.core/defn}})))
 
 (deftest letfn-test
   (assert-submaps '({:file "<stdin>",
@@ -913,8 +913,6 @@
                        (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])"))))
-
-
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
@@ -1112,6 +1110,181 @@
       :level :error,
       :message "wrong number of args (1) passed to redefined-deftest/foo"})
    (lint! (io/file "corpus" "redefined_deftest.clj"))))
+
+(deftest unused-binding-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 7, :level :warning, :message "unused binding x"})
+   (lint! "(let [x 1])" '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(defn foo [x])"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 15,
+      :level :warning,
+      :message "unused binding id"})
+   (lint! "(let [{:keys [patient/id order/id]} {}] id)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 14,
+      :level :warning,
+      :message "unused binding a"})
+   (lint! "(fn [{:keys [:a] :or {:a 1}}])"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 8,
+      :level :warning,
+      :message "unused binding x"}
+     {:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :warning,
+      :message "unused binding y"})
+   (lint! "(loop [x 1 y 2])"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(if-let [x 1] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(when-let [x 1] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(for [x []] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(doseq [x []] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:level :warning,
+      :message "unused binding x"}
+     {:level :warning,
+      :message "unused binding y"})
+   (lint! "(with-open [x ? y ?] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :warning,
+      :message "unused binding x"}
+     {:file "<stdin>",
+      :row 1,
+      :col 22,
+      :level :warning,
+      :message "unused binding y"}
+     {:file "<stdin>",
+      :row 1,
+      :col 33,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.core/inc"}
+     {:file "<stdin>",
+      :row 1,
+      :col 46,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.core/pos?"})
+   (lint! "(for [x [] :let [x 1 y x] :when (inc) :while (pos?)] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 48,
+      :level :warning,
+      :message "unused binding a"}
+     {:file "<stdin>",
+      :row 1,
+      :col 52,
+      :level :warning,
+      :message "unused binding b"})
+   (lint! "(ns foo (:require [cats.core :as c])) (c/mlet [a 1 b 2])"
+          '{:linters {:unused-binding {:level :warning}}
+            :lint-as {cats.core/mlet clojure.core/let}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 24,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(defmacro foo [] (let [x 1] `(inc x)))"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defn foo [x] x)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defn foo [_x])"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(fn [{:keys [x] :or {x 1}}] x)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "#(inc %1)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(let [exprs []] (loop [exprs exprs] exprs))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(for [f fns :let [children (:children f)]] children)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(deftype Foo [] (doseq [[key f] []] (f key)))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~x)))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~@[x])))"
+                     '{:linters {:unused-binding {:level :warning}}}))))
+
+(deftest unsupported-binding-form-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :error,
+      :message "unsupported binding form :x"})
+   (lint! "(defn foo [:x])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :error,
+      :message "unsupported binding form a/a"})
+   (lint! "(defn foo [a/a])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :error,
+      :message "unsupported binding form 1"})
+   (lint! "(let [1 1])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :error,
+      :message "unsupported binding form (x)"})
+   (lint! "(let [(x) 1])"))
+  (is (empty? (lint! "(fn [[x y z] :as x])")))
+  (is (empty? (lint! "(fn [[x y z & xs]])")))
+  (is (empty? (lint! "(let [^String x \"foo\"])"))))
 
 ;;;; Scratch
 

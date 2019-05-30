@@ -86,13 +86,15 @@
                    :col (inc col)})
         args (fn-args children)
         has-first-arg? (= '%1 (first args))
-        arg-list (vector-node args)
+        arg-list (vector-node (map token-node args))
         let-expr (when has-first-arg?
                    (list-node
                     [(token-node 'clojure.core/let*)
                      (vector-node
                       [(token-node '%)
                        (token-node '%1)])
+                     ;; mark this node as used
+                     (token-node '%)
                      fn-body]))]
     (with-meta
       (list-node [(token-node 'fn*) arg-list
@@ -109,4 +111,6 @@
   (expand-fn (parse-string "#(println %2 %&)"))
   (expand-> "" (parse-string "(-> 1 inc inc inc)"))
   (expand->> "" (parse-string "(->> 1 inc inc inc)"))
+  (= (parse-string "%")
+     (token-node '%))
   )

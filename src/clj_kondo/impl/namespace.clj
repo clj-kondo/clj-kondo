@@ -64,6 +64,18 @@
   (swap! namespaces assoc-in [base-lang lang ns-sym :qualify-ns alias-sym]
          aliased-ns-sym))
 
+(defn reg-binding!
+  [base-lang lang ns-sym binding]
+  (swap! namespaces update-in [base-lang lang ns-sym :bindings]
+         conj binding)
+  nil)
+
+(defn reg-used-binding!
+  [base-lang lang ns-sym binding]
+  (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
+         conj binding)
+  nil)
+
 (defn list-namespaces []
   (for [[_base-lang m] @namespaces
         [_lang nss] m
@@ -235,6 +247,8 @@
                {:type :ns
                 :lang lang
                 :name ns-name
+                :bindings #{}
+                :used-bindings #{}
                 :vars #{}
                 :required (map :ns clauses)
                 :qualify-var (into {} (mapcat :referred clauses))
