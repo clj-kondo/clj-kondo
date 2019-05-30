@@ -59,24 +59,25 @@
                                                :unsupported-binding-form
                                                (str "unsupported binding form " sym))))))
          ;; keyword
-         (when-let [k (:k expr)]
-           (not= :as k))
-         (if keys-destructuring?
-           (let [s (-> expr :k name symbol)
-                 m (meta expr)
-                 v (assoc m
-                          :name s
-                          :filename (:filename ctx))]
-             (namespace/reg-binding! (:base-lang ctx)
-                                     (:lang ctx)
-                                     (-> ctx :ns :name)
-                                     v)
-             {s v})
-           (state/reg-finding! (node->line (:filename ctx)
-                                           expr
-                                           :error
-                                           :unsupported-binding-form
-                                           (str "unsupported binding form " (:k expr)))))
+         (:k expr)
+         (let [k (:k expr)]
+           (when (not= :as k)
+             (if keys-destructuring?
+               (let [s (-> expr :k name symbol)
+                     m (meta expr)
+                     v (assoc m
+                              :name s
+                              :filename (:filename ctx))]
+                 (namespace/reg-binding! (:base-lang ctx)
+                                         (:lang ctx)
+                                         (-> ctx :ns :name)
+                                         v)
+                 {s v})
+               (state/reg-finding! (node->line (:filename ctx)
+                                               expr
+                                               :error
+                                               :unsupported-binding-form
+                                               (str "unsupported binding form " (:k expr)))))))
          :else
          (state/reg-finding!
           (node->line (:filename ctx)

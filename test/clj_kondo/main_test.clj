@@ -1281,7 +1281,9 @@
       :col 7,
       :level :error,
       :message "unsupported binding form (x)"})
-   (lint! "(let [(x) 1])")))
+   (lint! "(let [(x) 1])"))
+  (is (empty? (lint! "(fn [[x y z] :as x])")))
+  (is (empty? (lint! "(fn [[x y z & xs]])"))))
 
 ;;;; Scratch
 
