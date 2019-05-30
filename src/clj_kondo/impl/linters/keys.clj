@@ -11,14 +11,15 @@
     :token (node/string node)
     nil))
 
-(defn lint-map-keys [filename expr]
+(defn lint-map-keys [ctx expr]
   (let [children (:children expr)]
     (reduce
      (fn [{:keys [:seen] :as acc} key-expr]
        (if-let [k (key-value key-expr)]
          (if (contains? seen k)
            (do
-             (state/reg-finding! (node->line filename key-expr :error :duplicate-map-key
+             (state/reg-finding! (node->line (:filename ctx)
+                                             key-expr :error :duplicate-map-key
                                              (str "duplicate key " k)))
              (update acc :seen conj k))
            (update acc :seen conj k))
@@ -29,21 +30,21 @@
     (when (odd? (count children))
       (let [last-child (last children)]
         (state/reg-finding!
-         (node->line filename last-child :error :missing-map-value
+         (node->line (:filename ctx) last-child :error :missing-map-value
                      (str "missing value for key " (key-value last-child))))))))
 
 ;;;; end map linter
 
 ;;;; set linter
 
-(defn lint-set [filename expr]
+(defn lint-set [ctx expr]
   (let [children (:children expr)]
     (reduce
      (fn [{:keys [:seen] :as acc} set-element]
        (if-let [k (key-value set-element)]
          (do (when (contains? seen k)
                (state/reg-finding!
-                (node->line filename set-element :error :duplicate-set-key
+                (node->line (:filename ctx) set-element :error :duplicate-set-key
                             (str "duplicate set element " k))))
             (update acc :seen conj k))
          acc))

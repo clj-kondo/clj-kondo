@@ -15,12 +15,12 @@
     (is (every? location
                 (filter #(= :list (tag %))
                         (tree-seq :children :children
-                                  (macroexpand/expand-> "."
+                                  (macroexpand/expand-> {}
                                    (parse-string "(-> 1 inc inc)")))))))
   (testing "with metadata"
     (is (= '(clojure.string/includes? (str "foo") "foo")
            (node/sexpr
-            (macroexpand/expand-> "."
+            (macroexpand/expand-> {}
              (parse-string "(-> \"foo\" ^String str (clojure.string/includes? \"foo\"))")))))))
 
 (deftest expand-fn-test

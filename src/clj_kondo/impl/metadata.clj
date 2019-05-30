@@ -4,19 +4,21 @@
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :as utils]
-   [rewrite-clj.node.protocols :as node]))
+   [rewrite-clj.node.protocols :as node]
+   [clj-kondo.impl.namespace :as namespace]))
 
 (defn meta? [node]
   (utils/one-of (node/tag node) [:meta :meta*]))
 
-(defn lift-meta-content [filename meta-node]
+(defn lift-meta-content [ctx meta-node]
   (if (meta? meta-node)
     (let [children (:children meta-node)
           meta-expr (first children)
+          _ (namespace/used-namespaces ctx meta-expr)
           meta-val (node/sexpr meta-expr)
           meta-map (cond (keyword? meta-val) {meta-val true}
                          (map? meta-val)
-                         (do (key-linter/lint-map-keys filename meta-expr)
+                         (do (key-linter/lint-map-keys ctx meta-expr)
                              meta-val)
                          :else {:tag meta-val})
           meta-child (second children)
@@ -25,25 +27,25 @@
                                             meta-map
                                             (meta meta-child)))]
       (if (meta? meta-child)
-        (recur filename meta-child)
+        (recur ctx meta-child)
         meta-child))
     meta-node))
 
 (declare lift-meta*)
 
-(defn lift-meta-children [filename expr]
+(defn lift-meta-children [ctx expr]
   (if-let [children (:children expr)]
-    (let [new-children (doall (map #(lift-meta* filename %) children))]
+    (let [new-children (doall (map #(lift-meta* ctx %) children))]
       (assoc expr :children new-children))
     expr))
 
-(defn lift-meta* [filename expr]
-  (lift-meta-children filename (lift-meta-content filename expr)))
+(defn lift-meta* [ctx expr]
+  (lift-meta-children ctx (lift-meta-content ctx expr)))
 
-(defn lift-meta [filename expr]
+(defn lift-meta [ctx expr]
   (profiler/profile
    :lift-meta
-   (lift-meta* filename expr)))
+   (lift-meta* ctx expr)))
 
 ;;;; Scratch
 

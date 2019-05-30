@@ -9,10 +9,10 @@
    [rewrite-clj.node.token :refer [token-node]]
    [clj-kondo.impl.profiler :as profiler]))
 
-(defn expand-> [filename expr]
+(defn expand-> [ctx expr]
   (profiler/profile
    :expand->
-   (let [expr (lift-meta filename expr)
+   (let [expr (lift-meta ctx expr)
          children (:children expr)
          [c & cforms] (rest children)]
      (loop [x c, forms cforms]
@@ -27,8 +27,8 @@
            (recur threaded (next forms)))
          x)))))
 
-(defn expand->> [filename expr]
-  (let [expr (lift-meta filename expr)
+(defn expand->> [ctx expr]
+  (let [expr (lift-meta ctx expr)
         children (:children expr)
         [c & cforms] (rest children)]
     (loop [x c, forms cforms]
@@ -109,8 +109,8 @@
   (expand-fn (parse-string "#(println %&)"))
   (expand-fn (parse-string "#(inc ^long %)"))
   (expand-fn (parse-string "#(println %2 %&)"))
-  (expand-> "" (parse-string "(-> 1 inc inc inc)"))
-  (expand->> "" (parse-string "(->> 1 inc inc inc)"))
+  (expand-> {} (parse-string "(-> 1 inc inc inc)"))
+  (expand->> {} (parse-string "(->> 1 inc inc inc)"))
   (= (parse-string "%")
      (token-node '%))
   )
