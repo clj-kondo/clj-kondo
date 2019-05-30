@@ -1260,7 +1260,14 @@
       :col 12,
       :level :error,
       :message "unsupported binding form :x"})
-   (lint! "(defn foo [:x])")))
+   (lint! "(defn foo [:x])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :error,
+      :message "unsupported binding form a/a"})
+   (lint! "(defn foo [a/a])")))
 
 ;;;; Scratch
 

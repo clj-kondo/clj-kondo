@@ -36,18 +36,28 @@
          ;; symbol
          (and (utils/symbol-token? expr)
               (not= '& (:value expr)))
-         (let [s (symbol (name (:value expr)))
-               m (meta expr)
-               v (assoc m
-                        :name s
-                        :filename (:filename ctx))]
-           (namespace/reg-binding! (:base-lang ctx)
-                                   (:lang ctx)
-                                   (-> ctx :ns :name)
-                                   (assoc m
-                                          :name s
-                                          :filename (:filename ctx)))
-           {s v})
+         (let [sym (:value expr)
+               ns (namespace sym)
+               valid? (or (not ns)
+                          keys-destructuring?)]
+           (if valid?
+             (let [s (symbol (name sym))
+                   m (meta expr)
+                   v (assoc m
+                            :name s
+                            :filename (:filename ctx))]
+               (namespace/reg-binding! (:base-lang ctx)
+                                       (:lang ctx)
+                                       (-> ctx :ns :name)
+                                       (assoc m
+                                              :name s
+                                              :filename (:filename ctx)))
+               {s v})
+             (state/reg-finding! (node->line (:filename ctx)
+                                             expr
+                                             :error
+                                             :unsupported-binding-form
+                                             (str "unsupported binding form " sym)))))
          ;; keyword
          (when-let [k (:k expr)]
            (not= :as k))
