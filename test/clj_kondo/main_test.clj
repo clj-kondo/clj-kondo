@@ -337,13 +337,13 @@
   (doseq [lang [:clj :cljs]]
     (testing (str "lang: " (name lang))
       (assert-submaps
-       '({:file "<stdin>"
-          :row 1, :col 1,
-          :level :error,
-          :message (str "wrong number of args (3) passed to "
-                        (case lang
-                          :clj "clojure"
-                          :cljs "cljs") ".core/quote")})
+       [{:file "<stdin>"
+         :row 1, :col 1,
+         :level :error,
+         :message (str "wrong number of args (3) passed to "
+                       (case lang
+                         :clj "clojure"
+                         :cljs "cljs") ".core/quote")}]
        (lint! "(quote 1 2 3)" "--lang" (name lang)))))
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
