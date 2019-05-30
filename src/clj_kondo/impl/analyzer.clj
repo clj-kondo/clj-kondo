@@ -463,25 +463,35 @@
   (when-let [s (:value node)]
     (and (symbol? s) [:symbol s])))
 
-(defn used-namespaces [ctx expr]
-  (let [ns (:ns ctx)]
-    (keep #(when-let [[t v] (or (node->keyword %)
-                                (node->symbol %))]
-             (if-let [?ns (namespace v)]
-               (let [ns-sym (symbol ?ns)]
-                 (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
-                   {:type :use
-                    :ns resolved-ns}))
-               (when (= t :symbol)
-                 (namespace/reg-used-binding! (:base-lang ctx)
-                                              (:lang ctx)
-                                              (-> ns :name)
-                                              (get (:bindings ctx) v))
-                 (when-let [resolved-ns (or (:ns (get (:qualify-var ns) v))
-                                            (get (:qualify-ns ns) v))]
-                   {:type :use
-                    :ns resolved-ns}))))
-          (tree-seq :children :children expr))))
+;; TODO: rename this function, since it now also detects used bindings
+(defn used-namespaces
+  ([ctx expr] (used-namespaces ctx false expr))
+  ([ctx syntax-quote? expr]
+   (let [ns (:ns ctx)
+         tag (node/tag expr)
+         syntax-quote? (when-not (= :unquote tag)
+                         (or syntax-quote?
+                             (= :syntax-quote tag)))]
+     (if-let [[t v] (or (node->keyword expr)
+                        (node->symbol expr))]
+       (if-let [?ns (namespace v)]
+         (let [ns-sym (symbol ?ns)]
+           (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
+             [{:type :use
+               :ns resolved-ns}]))
+         (when (and (= t :symbol))
+           (when (not syntax-quote?)
+             (when-let [b (get (:bindings ctx) v)]
+               (namespace/reg-used-binding! (:base-lang ctx)
+                                            (:lang ctx)
+                                            (-> ns :name)
+                                            b)))
+           (when-let [resolved-ns (or (:ns (get (:qualify-var ns) v))
+                                      (get (:qualify-ns ns) v))]
+             [{:type :use
+               :ns resolved-ns}])))
+       (mapcat #(used-namespaces ctx syntax-quote? %)
+               (:children expr))))))
 
 (defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)
@@ -508,7 +518,7 @@
            :expr expr
            :arity arg-count}
           (concat
-           (used-namespaces ctx {:children schemas})
+           (used-namespaces ctx false {:children schemas})
            (analyze-defn ctx defn)))))
 
 (defn analyze-deftest [ctx _deftest-ns expr]
@@ -726,7 +736,7 @@
         arg-count (count (rest children))]
     (case t
       :quote nil
-      :syntax-quote (used-namespaces ctx expr)
+      :syntax-quote (used-namespaces ctx true expr)
       :namespaced-map (analyze-namespaced-map (update ctx
                                                       :callstack #(cons [nil t] %))
                                               expr)
@@ -738,7 +748,7 @@
                                          :callstack #(cons [nil t] %))
                                  children))
       :fn (recur ctx (macroexpand/expand-fn expr))
-      :token (used-namespaces ctx expr)
+      :token (used-namespaces ctx false expr)
       :list
       (when-let [function (first children)]
         (let [t (node/tag function)]

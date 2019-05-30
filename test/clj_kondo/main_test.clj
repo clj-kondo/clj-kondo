@@ -1224,6 +1224,14 @@
    (lint! "(ns foo (:require [cats.core :as c])) (c/mlet [a 1 b 2])"
           '{:linters {:unused-binding {:level :warning}}
             :lint-as {cats.core/mlet clojure.core/let}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 24,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(defmacro foo [] (let [x 1] `(inc x)))"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
@@ -1239,6 +1247,8 @@
   (is (empty? (lint! "(for [f fns :let [children (:children f)]] children)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(deftype Foo [] (doseq [[key f] []] (f key)))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~x)))"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 ;;;; Scratch
