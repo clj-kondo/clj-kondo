@@ -1,25 +1,16 @@
 (ns clj-kondo.impl.analyzer-test
   (:require
    [clj-kondo.impl.analyzer :as ana :refer [analyze-expressions]]
-   [clj-kondo.impl.metadata :refer [lift-meta]]
+   [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clj-kondo.test-utils :refer [assert-submap assert-some-submap assert-submaps]]
-   [clojure.test :as t :refer [deftest is are testing]]
-   [rewrite-clj.node.protocols :as node]))
+   [clojure.test :as t :refer [deftest is are testing]]))
 
 (deftest lift-meta-test
-  (let [parsed (lift-meta "." (parse-string "(defn ^:static ^:foo chunk-buffer ^:bar [capacity]
-  (clojure.lang.ChunkBuffer. capacity))"))
-        sexpr (node/sexpr parsed)]
-    (is (= '(defn chunk-buffer [capacity] (clojure.lang.ChunkBuffer. capacity))
-           sexpr))
-    (assert-submap
-     '{:static true :foo true}
-     (meta (-> parsed :children second))))
-  (is (:private (meta (lift-meta "." (parse-string "^:private [x]")))))
-  (is (:private (meta (lift-meta "." (parse-string "#^ :private [x]")))))
-  (is (= "[B" (:tag (meta (lift-meta "." (parse-string "^\"[B\" body")))))))
+  (is (:private (meta (meta/lift-meta-content {} (parse-string "^:private [x]")))))
+  (is (:private (meta (meta/lift-meta-content {} (parse-string "#^ :private [x]")))))
+  (is (= "[B" (:tag (meta (meta/lift-meta-content {} (parse-string "^\"[B\" body")))))))
 
 (deftest analyze-defn-test
   (let [ns (namespace/analyze-ns-decl {:filename "-"
@@ -29,14 +20,14 @@
      '[{:type :defn
         :name chunk-buffer, :fixed-arities #{1}}
        {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
-     (ana/analyze-defn {:ns ns
+     (ana/analyze-defn {:ns (namespace/analyze-ns-decl {:filename "-"
+                                                        :base-lang :clj
+                                                        :lang :clj} (parse-string "(ns user)"))
                         :base-lang :clj
                         :lang :clj}
-                       (lift-meta
-                        "."
-                        (parse-string
-                         "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
-  (clojure.lang.ChunkBuffer. capacity))"))))
+                       (parse-string
+                        "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
+  (clojure.lang.ChunkBuffer. capacity))")))
     (assert-submap '{:type :defn
                      :name get-bytes,
                      :row 1,
@@ -46,8 +37,7 @@
                    (first (ana/analyze-defn {:ns ns
                                              :base-lang :clj
                                              :lang :clj}
-                                            (lift-meta "."
-                                                       (parse-string "(defn get-bytes #^bytes [part] part)")))))))
+                                            (parse-string "(defn get-bytes #^bytes [part] part)"))))))
 
 (deftest analyze-expressions-test
   (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj

@@ -2,13 +2,13 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.state :as state]
-   [clj-kondo.impl.utils :refer [node->line parse-string parse-string-all deep-merge]]
+   [clj-kondo.impl.utils :refer [node->line parse-string
+                                 parse-string-all deep-merge one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
-   [rewrite-clj.node.token :refer [token-node]]
-   [clj-kondo.impl.var-info :as var-info]))
+   [rewrite-clj.node.token :refer [token-node]]))
 
 ;; we store all seen namespaces here, so we could resolve in the call linter,
 ;; instead of too early, because of in-ns.
@@ -75,6 +75,47 @@
   (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
          conj binding)
   nil)
+
+(defn node->keyword [node]
+  (when-let [k (:k node)]
+    (and (keyword? k) [:keyword k])))
+
+(defn node->symbol [node]
+  (when-let [s (:value node)]
+    (and (symbol? s) [:symbol s])))
+
+(defn analyze-usages
+  ([ctx expr] (analyze-usages ctx false expr))
+  ([ctx syntax-quote? expr]
+   (let [ns (:ns ctx)
+         tag (node/tag expr)
+         syntax-quote? (when-not (one-of tag [:unquote :unquote-splicing])
+                         (or syntax-quote?
+                             (= :syntax-quote tag)))]
+     (if-let [[t v] (or (node->keyword expr)
+                        (node->symbol expr))]
+       (if-let [?ns (namespace v)]
+         (let [ns-sym (symbol ?ns)]
+           (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
+             (reg-usage! (:base-lang ctx)
+                         (:lang ctx)
+                         (-> ns :name)
+                         resolved-ns)))
+         (when (and (= t :symbol))
+           (if-let [b (when-not syntax-quote?
+                        (get (:bindings ctx) v))]
+             (reg-used-binding! (:base-lang ctx)
+                                (:lang ctx)
+                                (-> ns :name)
+                                b)
+             (when-let [resolved-ns (or (:ns (get (:qualify-var ns) v))
+                                        (get (:qualify-ns ns) v))]
+               (reg-usage! (:base-lang ctx)
+                           (:lang ctx)
+                           (-> ns :name)
+                           resolved-ns)))))
+       (mapcat #(analyze-usages ctx syntax-quote? %)
+               (:children expr))))))
 
 (defn list-namespaces []
   (for [[_base-lang m] @namespaces
