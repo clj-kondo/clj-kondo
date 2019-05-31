@@ -123,8 +123,9 @@
                        (recur (concat rest-kvs [kv]) res))
                      :as (recur rest-kvs (merge res (extract-bindings ctx v)))
                      (recur rest-kvs res))
-                   (utils/symbol-token? k) (recur rest-kvs (merge res (extract-bindings ctx k)))
-                   :else (recur res rest-kvs)))
+                   (utils/symbol-token? k)
+                   (recur rest-kvs (merge res (extract-bindings ctx k)))
+                   :else (recur rest-kvs res)))
            res))
        (state/reg-finding!
         (node->line (:filename ctx)
@@ -277,6 +278,7 @@
                      (merge arities new-arities)
                      (concat analyzed new-analyzed)))
             (let [binding (cond for-let? value
+                                ;; ignore :when and :while in for
                                 (keyword? binding-sexpr) nil
                                 :else binding)
                   new-bindings (when binding (extract-bindings ctx binding))

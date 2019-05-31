@@ -1291,6 +1291,9 @@
   (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~@[x])))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn false-positive-metadata [a b] ^{:key (str a b)} [:other])"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(doseq [{ts :tests {:keys [then]} :then} nodes]
+                        (doseq [test (map :test ts)] test))"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 (deftest unsupported-binding-form-test
