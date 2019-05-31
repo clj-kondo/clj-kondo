@@ -216,6 +216,11 @@
                 :as (recur
                      (nnext children)
                      (assoc m :as opt))
+                ;; shadow-cljs:
+                ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
+                :default
+                (recur (nnext children)
+                       (update m :referred conj opt))
                 :exclude
                 (recur
                  (nnext children)

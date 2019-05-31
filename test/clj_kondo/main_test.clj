@@ -934,7 +934,8 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])"))))
+                       (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])")))
+  (is (empty? (lint! (io/file "corpus" "shadow_cljs" "default.cljs")))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
