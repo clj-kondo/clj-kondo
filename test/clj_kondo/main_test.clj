@@ -1159,7 +1159,7 @@
       :col 14,
       :level :warning,
       :message "unused binding a"})
-   (lint! "(fn [{:keys [:a] :or {:a 1}}])"
+   (lint! "(fn [{:keys [:a] :or {a 1}}])"
           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
@@ -1262,6 +1262,14 @@
       :message "unused binding x"})
    (lint! "(defn foo [x] (quote x))"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 17,
+      :level :warning,
+      :message "unused binding variadic"})
+   (lint! "(let [{^boolean variadic :variadic?} {}] [])"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
@@ -1283,6 +1291,9 @@
   (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~@[x])))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn false-positive-metadata [a b] ^{:key (str a b)} [:other])"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(doseq [{ts :tests {:keys [then]} :then} nodes]
+                        (doseq [test (map :test ts)] test))"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 (deftest unsupported-binding-form-test
@@ -1317,6 +1328,15 @@
   (is (empty? (lint! "(fn [[x y z] :as x])")))
   (is (empty? (lint! "(fn [[x y z & xs]])")))
   (is (empty? (lint! "(let [^String x \"foo\"])"))))
+
+(deftest non-destructured-binding-test
+  (doseq [input ["(let [{:keys [:i] :or {i 2 j 3}} {}] i)"
+                 "(let [{:or {i 2 j 3} :keys [:i]} {}] i)"]]
+    (assert-submaps '({:file "<stdin>",
+                       :row 1
+                       :level :warning,
+                       :message "j is not a destructured binding"})
+                    (lint! input))))
 
 ;;;; Scratch
 
