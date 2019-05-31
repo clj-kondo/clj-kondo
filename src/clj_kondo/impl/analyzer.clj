@@ -105,9 +105,9 @@
        :vector (into {} (map #(extract-bindings ctx %)) (:children expr))
        :namespaced-map (extract-bindings ctx (first (:children expr)))
        :map
-       (loop [[[k v :as kv] & rest-kvs] (partition 2 (:children expr))
+       (loop [[k v & rest-kvs] (:children expr)
               res {}]
-         (if kv
+         (if k
            (let [k (meta/lift-meta-content ctx k)]
              (cond (:k k)
                    (case (keyword (name (:k k)))
@@ -120,7 +120,7 @@
                        (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
                                                               ctx res v)}))
                        ;; analyze or after the rest
-                       (recur (concat rest-kvs [kv]) res))
+                       (recur (concat rest-kvs [k v]) res))
                      :as (recur rest-kvs (merge res (extract-bindings ctx v)))
                      (recur rest-kvs res))
                    (utils/symbol-token? k)
