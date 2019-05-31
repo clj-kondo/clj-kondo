@@ -4,7 +4,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.macroexpand :as macroexpand]
-   [clj-kondo.impl.metadata :as meta :refer [lift-meta]]
+   [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace :refer [analyze-ns-decl resolve-name]]
    [clj-kondo.impl.node.seq] ;; load defrecord
    [clj-kondo.impl.parser :as p]
@@ -143,8 +143,6 @@
   (let [children (:children body)
         arg-vec  (first children)
         arg-list (node/sexpr arg-vec)
-        ;; TODO: extract-bindings also extracts bindings from keywords
-        ;; prevent it here?
         arg-bindings (extract-bindings ctx arg-vec)
         arity (analyze-arity arg-list)]
     {:arg-bindings (dissoc arg-bindings :analyzed)
@@ -166,20 +164,22 @@
            :parsed
            (concat analyzed-arg-vec parsed))))
 
-(defn fn-bodies [children]
-  (loop [i 0 [expr & rest-exprs :as exprs] children]
-    (let [t (when expr (node/tag expr))]
-      (cond (= :vector t)
-            [{:children exprs}]
-            (= :list t)
-            exprs
-            (not t) []
-            :else (recur (inc i) rest-exprs)))))
+(defn fn-bodies [ctx children]
+  (loop [[expr & rest-exprs :as exprs] children]
+    (when expr
+      (let [expr (meta/lift-meta-content ctx expr)
+            t (node/tag expr)]
+        (when t
+          (case t
+            :vector [{:children exprs}]
+            :list exprs
+            (recur rest-exprs)))))))
 
 (defn analyze-defn [{:keys [base-lang lang] :as ctx} expr]
   (let [children (:children expr)
         children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
         name-node (first children)
+        name-node (when name-node (meta/lift-meta-content ctx name-node))
         fn-name (:value name-node)
         var-meta (meta name-node)
         call-sym (symbol-call expr)
@@ -187,7 +187,7 @@
                    (:macro var-meta))
         private? (or (= 'defn- call-sym)
                      (:private var-meta))
-        bodies (fn-bodies (next children))
+        bodies (fn-bodies ctx (next children))
         parsed-bodies (map #(analyze-fn-body ctx %) bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
@@ -398,7 +398,7 @@
                    (let [n (node/sexpr ?name-expr)]
                      (when (symbol? n)
                        n)))
-        bodies (fn-bodies (next children))
+        bodies (fn-bodies ctx (next children))
         ;; we need the arity beforehand because this is valid in each body
         arity (fn-arity ctx bodies)
         parsed-bodies (map #(analyze-fn-body
@@ -472,7 +472,7 @@
         processed-fns (for [f fns
                             :let [children (:children f)
                                   fn-name (:value (first children))
-                                  bodies (fn-bodies (next children))
+                                  bodies (fn-bodies ctx (next children))
                                   arity (fn-arity ctx bodies)]]
                         {:name fn-name
                          :arity arity
@@ -500,7 +500,7 @@
         {:keys [:base-lang :lang :filename]} ctx
         {:keys [:row :col]} (meta expr)
         {:keys [:defn :schemas]} (schema/expand-schema-defn2
-                                  (lift-meta ctx expr))]
+                                  expr #_(lift-meta ctx expr))]
     (cons {:type :call
            :name 'schema.core/defn
            :row row
@@ -562,7 +562,7 @@
       (analyze-children ctx (rest children)))))
 
 (defn analyze-call
-  [{:keys [:filename :fn-body :base-lang :lang :ns] :as ctx}
+  [{:keys [:fn-body :base-lang :lang :ns] :as ctx}
    {:keys [:arg-count
            :full-fn-name
            :row :col
@@ -614,7 +614,7 @@
                     :lang lang
                     :expr expr
                     :arity arg-count}
-                   (analyze-defn ctx (lift-meta ctx expr)))
+                   (analyze-defn ctx expr #_(lift-meta ctx expr)))
              comment
              (analyze-children ctx children)
              (-> some->)
@@ -636,7 +636,7 @@
              do
              (analyze-do ctx expr)
              (fn fn*)
-             (analyze-fn ctx (lift-meta ctx expr))
+             (analyze-fn ctx expr #_(lift-meta ctx expr))
              case
              (analyze-case ctx expr)
              loop

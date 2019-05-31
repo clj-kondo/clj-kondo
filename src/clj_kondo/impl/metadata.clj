@@ -31,18 +31,18 @@
         meta-child))
     meta-node))
 
-(declare lift-meta*)
+#_(declare lift-meta*)
 
-(defn lift-meta-children [ctx expr]
+#_(defn lift-meta-children [ctx expr]
   (if-let [children (:children expr)]
     (let [new-children (doall (map #(lift-meta* ctx %) children))]
       (assoc expr :children new-children))
     expr))
 
-(defn lift-meta* [ctx expr]
+#_(defn lift-meta* [ctx expr]
   (lift-meta-children ctx (lift-meta-content ctx expr)))
 
-(defn lift-meta [ctx expr]
+#_(defn lift-meta [ctx expr]
   (profiler/profile
    :lift-meta
    (lift-meta* ctx expr)))

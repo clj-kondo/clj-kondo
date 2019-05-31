@@ -125,7 +125,18 @@
      (lint! "(defn) (defmacro)")))
   (testing "redefining clojure var gives no error about incorrect arity of clojure var"
     (is (empty? (lint! "(defn inc [x y] (+ x y))
-                        (inc 1 1)" '{:linters {:redefined-var {:level :off}}})))))
+                        (inc 1 1)" '{:linters {:redefined-var {:level :off}}}))))
+  (testing "defn with metadata"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 4,
+        :col 14,
+        :level :error,
+        :message "wrong number of args (2) passed to user/my-chunk-buffer"})
+     (lint! "(defn ^:static ^:foo my-chunk-buffer ^:bar [capacity]
+              (clojure.lang.ChunkBuffer. capacity))
+             (my-chunk-buffer 1)
+             (my-chunk-buffer 1 2)"))))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
