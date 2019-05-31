@@ -497,7 +497,7 @@
 
 (defn analyze-schema-defn [ctx expr]
   (let [arg-count (count (rest (:children expr)))
-        {:keys [:base-lang :lang :filename]} ctx
+        {:keys [:base-lang :lang]} ctx
         {:keys [:row :col]} (meta expr)
         {:keys [:defn :schemas]} (schema/expand-schema-defn2
                                   expr #_(lift-meta ctx expr))]

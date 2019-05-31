@@ -3,16 +3,15 @@
   (:require
    [clj-kondo.impl.utils :refer [some-call
                                  parse-string]]
-   [clj-kondo.impl.metadata :as meta]
    [rewrite-clj.node.protocols :as node :refer [tag]]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
    [rewrite-clj.node.token :refer [token-node]]
    [clj-kondo.impl.profiler :as profiler]))
 
-(defn expand-> [ctx expr]
+(defn expand-> [_ctx expr]
   (profiler/profile
    :expand->
-   (let [expr expr #_(meta/lift-meta-content ctx expr)
+   (let [expr expr
          children (:children expr)
          [c & cforms] (rest children)]
      (loop [x c, forms cforms]
@@ -27,8 +26,8 @@
            (recur threaded (next forms)))
          x)))))
 
-(defn expand->> [ctx expr]
-  (let [expr expr #_(meta/lift-meta-content ctx expr)
+(defn expand->> [_ctx expr]
+  (let [expr expr
         children (:children expr)
         [c & cforms] (rest children)]
     (loop [x c, forms cforms]

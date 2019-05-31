@@ -5,8 +5,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clj-kondo.test-utils :refer [assert-submap assert-some-submap assert-submaps]]
-   [clojure.test :as t :refer [deftest is are testing]]
-   [rewrite-clj.node.protocols :as node]))
+   [clojure.test :as t :refer [deftest is are testing]]))
 
 (deftest lift-meta-test
   (is (:private (meta (meta/lift-meta-content {} (parse-string "^:private [x]")))))
