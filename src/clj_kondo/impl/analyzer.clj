@@ -26,6 +26,19 @@
   (when-not (config/skip? callstack)
     (mapcat #(analyze-expression** ctx %) children)))
 
+(defn analyze-keys-destructuring-defaults [ctx m defaults]
+  (let [defaults (into {}
+                       (for [[k v] (partition 2 (:children defaults))]
+                         [(:value k) (meta k)]))]
+    (doseq [[k v] defaults]
+      (when-not (contains? m k)
+        (state/reg-finding! {:message (str k " is not a destructured binding") :level :warning
+                             :row (:row v)
+                             :col (:col v)
+                             :filename (:filename ctx)
+                             :type :non-destructured-binding}))))
+  (analyze-children ctx (utils/map-node-vals defaults)))
+
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr false))
   ([ctx expr keys-destructuring?]
@@ -90,18 +103,22 @@
        :vector (into {} (map #(extract-bindings ctx %)) (:children expr))
        :namespaced-map (extract-bindings ctx (first (:children expr)))
        :map
-       (into {}
-             (for [[k v] (partition 2 (:children expr))]
-               (cond (:k k)
-                     (case (keyword (name (:k k)))
-                       (:keys :syms :strs) (into {} (map #(extract-bindings ctx % true))
-                                                 (:children v))
-                       ;; or doesn't introduce new bindings, it only gives defaults
-                       :or {:analyzed (analyze-children ctx (utils/map-node-vals v))}
-                       :as (extract-bindings ctx v)
-                       nil)
-                     (utils/symbol-token? k) (extract-bindings ctx k)
-                     :else nil)))
+       (loop [[[k v :as kv] & rest-kvs] (partition 2 (:children expr))
+              res {}]
+         (if kv
+           (cond (:k k)
+                 (case (keyword (name (:k k)))
+                   (:keys :syms :strs) (recur rest-kvs
+                                              (into res (map #(extract-bindings ctx % true))
+                                                    (:children v)))
+                   ;; or doesn't introduce new bindings, it only gives defaults
+                   :or (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
+                                                              ctx res v)}))
+                   :as (recur rest-kvs (merge res (extract-bindings ctx v)))
+                   (recur rest-kvs res))
+                 (utils/symbol-token? k) (recur rest-kvs (merge res (extract-bindings ctx k)))
+                 :else (recur res rest-kvs))
+           res))
        (state/reg-finding!
         (node->line (:filename ctx)
                     expr

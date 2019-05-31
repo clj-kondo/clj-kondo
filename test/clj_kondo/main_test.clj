@@ -1318,6 +1318,14 @@
   (is (empty? (lint! "(fn [[x y z & xs]])")))
   (is (empty? (lint! "(let [^String x \"foo\"])"))))
 
+(deftest non-destructured-binding-test
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 28,
+                     :level :warning,
+                     :message "j is not a destructured binding"})
+                  (lint! "(let [{:keys [:i] :or {i 2 j 3}} {}])")))
+
 ;;;; Scratch
 
 (comment
