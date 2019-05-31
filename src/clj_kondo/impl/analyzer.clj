@@ -28,7 +28,9 @@
 
 (defn analyze-keys-destructuring-defaults [ctx m defaults]
   (let [defaults (into {}
-                       (for [[k v] (partition 2 (:children defaults))]
+                       (for [[k _v] (partition 2 (:children defaults))
+                             :let [sym (:value k)]
+                             :when sym]
                          [(:value k) (meta k)]))]
     (doseq [[k v] defaults]
       (when-not (contains? m k)
@@ -112,8 +114,12 @@
                                               (into res (map #(extract-bindings ctx % true))
                                                     (:children v)))
                    ;; or doesn't introduce new bindings, it only gives defaults
-                   :or (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
-                                                              ctx res v)}))
+                   :or
+                   (if (empty? rest-kvs)
+                     (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
+                                                            ctx res v)}))
+                     ;; analyze or after the rest
+                     (recur (concat rest-kvs [kv]) res))
                    :as (recur rest-kvs (merge res (extract-bindings ctx v)))
                    (recur rest-kvs res))
                  (utils/symbol-token? k) (recur rest-kvs (merge res (extract-bindings ctx k)))

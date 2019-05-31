@@ -1159,7 +1159,7 @@
       :col 14,
       :level :warning,
       :message "unused binding a"})
-   (lint! "(fn [{:keys [:a] :or {:a 1}}])"
+   (lint! "(fn [{:keys [:a] :or {a 1}}])"
           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
@@ -1319,12 +1319,13 @@
   (is (empty? (lint! "(let [^String x \"foo\"])"))))
 
 (deftest non-destructured-binding-test
-  (assert-submaps '({:file "<stdin>",
-                     :row 1,
-                     :col 28,
-                     :level :warning,
-                     :message "j is not a destructured binding"})
-                  (lint! "(let [{:keys [:i] :or {i 2 j 3}} {}])")))
+  (doseq [input ["(let [{:keys [:i] :or {i 2 j 3}} {}] i)"
+                 "(let [{:or {i 2 j 3} :keys [:i]} {}] i)"]]
+    (assert-submaps '({:file "<stdin>",
+                       :row 1
+                       :level :warning,
+                       :message "j is not a destructured binding"})
+                    (lint! input))))
 
 ;;;; Scratch
 
