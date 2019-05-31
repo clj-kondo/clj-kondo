@@ -108,22 +108,23 @@
        (loop [[[k v :as kv] & rest-kvs] (partition 2 (:children expr))
               res {}]
          (if kv
-           (cond (:k k)
-                 (case (keyword (name (:k k)))
-                   (:keys :syms :strs) (recur rest-kvs
-                                              (into res (map #(extract-bindings ctx % true))
-                                                    (:children v)))
-                   ;; or doesn't introduce new bindings, it only gives defaults
-                   :or
-                   (if (empty? rest-kvs)
-                     (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
-                                                            ctx res v)}))
-                     ;; analyze or after the rest
-                     (recur (concat rest-kvs [kv]) res))
-                   :as (recur rest-kvs (merge res (extract-bindings ctx v)))
-                   (recur rest-kvs res))
-                 (utils/symbol-token? k) (recur rest-kvs (merge res (extract-bindings ctx k)))
-                 :else (recur res rest-kvs))
+           (let [k (meta/lift-meta-content ctx k)]
+             (cond (:k k)
+                   (case (keyword (name (:k k)))
+                     (:keys :syms :strs) (recur rest-kvs
+                                                (into res (map #(extract-bindings ctx % true))
+                                                      (:children v)))
+                     ;; or doesn't introduce new bindings, it only gives defaults
+                     :or
+                     (if (empty? rest-kvs)
+                       (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
+                                                              ctx res v)}))
+                       ;; analyze or after the rest
+                       (recur (concat rest-kvs [kv]) res))
+                     :as (recur rest-kvs (merge res (extract-bindings ctx v)))
+                     (recur rest-kvs res))
+                   (utils/symbol-token? k) (recur rest-kvs (merge res (extract-bindings ctx k)))
+                   :else (recur res rest-kvs)))
            res))
        (state/reg-finding!
         (node->line (:filename ctx)
