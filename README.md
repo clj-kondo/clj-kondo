@@ -30,6 +30,7 @@ clj-kondo detects:
   - of recursive calls (including `recur`)
 * private function calls
 * required but unused namespaces
+* unused function arguments and let bindings
 * redefined vars
 * duplicate map keys and set elements
 * missing map keys
