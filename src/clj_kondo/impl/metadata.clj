@@ -2,10 +2,10 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.linters.keys :as key-linter]
+   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :as utils]
-   [rewrite-clj.node.protocols :as node]
-   [clj-kondo.impl.namespace :as namespace]))
+   [rewrite-clj.node.protocols :as node]))
 
 (defn meta? [node]
   (utils/one-of (node/tag node) [:meta :meta*]))
@@ -14,7 +14,7 @@
   (if (meta? meta-node)
     (let [children (:children meta-node)
           meta-expr (first children)
-          _ (namespace/used-namespaces ctx meta-expr)
+          _ (namespace/analyze-usages ctx meta-expr)
           meta-val (node/sexpr meta-expr)
           meta-map (cond (keyword? meta-val) {meta-val true}
                          (map? meta-val)
@@ -31,25 +31,8 @@
         meta-child))
     meta-node))
 
-#_(declare lift-meta*)
-
-#_(defn lift-meta-children [ctx expr]
-  (if-let [children (:children expr)]
-    (let [new-children (doall (map #(lift-meta* ctx %) children))]
-      (assoc expr :children new-children))
-    expr))
-
-#_(defn lift-meta* [ctx expr]
-  (lift-meta-children ctx (lift-meta-content ctx expr)))
-
-#_(defn lift-meta [ctx expr]
-  (profiler/profile
-   :lift-meta
-   (lift-meta* ctx expr)))
-
 ;;;; Scratch
 
 (comment
-  (lift-meta "." (parse-string "^{:a 1} [1 2 3]"))
 
   )

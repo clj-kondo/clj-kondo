@@ -169,11 +169,10 @@
     (when expr
       (let [expr (meta/lift-meta-content ctx expr)
             t (node/tag expr)]
-        (when t
-          (case t
-            :vector [{:children exprs}]
-            :list exprs
-            (recur rest-exprs)))))))
+        (case t
+          :vector [{:children exprs}]
+          :list exprs
+          (recur rest-exprs))))))
 
 (defn analyze-defn [{:keys [base-lang lang] :as ctx} expr]
   (let [children (:children expr)
@@ -499,8 +498,7 @@
   (let [arg-count (count (rest (:children expr)))
         {:keys [:base-lang :lang]} ctx
         {:keys [:row :col]} (meta expr)
-        {:keys [:defn :schemas]} (schema/expand-schema-defn2
-                                  expr #_(lift-meta ctx expr))]
+        {:keys [:defn :schemas]} (schema/expand-schema-defn2 expr)]
     (cons {:type :call
            :name 'schema.core/defn
            :row row
@@ -510,7 +508,7 @@
            :expr expr
            :arity arg-count}
           (concat
-           (namespace/used-namespaces ctx false {:children schemas})
+           (namespace/analyze-usages ctx false {:children schemas})
            (analyze-defn ctx defn)))))
 
 (defn analyze-deftest [ctx _deftest-ns expr]
@@ -614,7 +612,7 @@
                     :lang lang
                     :expr expr
                     :arity arg-count}
-                   (analyze-defn ctx expr #_(lift-meta ctx expr)))
+                   (analyze-defn ctx expr))
              comment
              (analyze-children ctx children)
              (-> some->)
@@ -636,7 +634,7 @@
              do
              (analyze-do ctx expr)
              (fn fn*)
-             (analyze-fn ctx expr #_(lift-meta ctx expr))
+             (analyze-fn ctx expr)
              case
              (analyze-case ctx expr)
              loop
@@ -734,7 +732,7 @@
         arg-count (count (rest children))]
     (case t
       :quote nil
-      :syntax-quote (namespace/used-namespaces ctx true expr)
+      :syntax-quote (namespace/analyze-usages ctx true expr)
       :namespaced-map (analyze-namespaced-map (update ctx
                                                       :callstack #(cons [nil t] %))
                                               expr)
@@ -746,7 +744,7 @@
                                          :callstack #(cons [nil t] %))
                                  children))
       :fn (recur ctx (macroexpand/expand-fn expr))
-      :token (namespace/used-namespaces ctx false expr)
+      :token (namespace/analyze-usages ctx false expr)
       :list
       (when-let [function (first children)]
         (let [t (node/tag function)]
@@ -794,10 +792,6 @@
       (analyze-children (update ctx
                                 :callstack #(cons [nil t] %))
                         children))))
-
-(comment
-  (parse-string "^{:key a} []")
-  )
 
 (defn analyze-expression*
   [{:keys [:filename :base-lang :lang :results :ns :expression :debug?]}]

@@ -84,9 +84,8 @@
   (when-let [s (:value node)]
     (and (symbol? s) [:symbol s])))
 
-;; TODO: rename this function, since it now also detects used bindings
-(defn used-namespaces
-  ([ctx expr] (used-namespaces ctx false expr))
+(defn analyze-usages
+  ([ctx expr] (analyze-usages ctx false expr))
   ([ctx syntax-quote? expr]
    (let [ns (:ns ctx)
          tag (node/tag expr)
@@ -115,7 +114,7 @@
                            (:lang ctx)
                            (-> ns :name)
                            resolved-ns)))))
-       (mapcat #(used-namespaces ctx syntax-quote? %)
+       (mapcat #(analyze-usages ctx syntax-quote? %)
                (:children expr))))))
 
 (defn list-namespaces []
