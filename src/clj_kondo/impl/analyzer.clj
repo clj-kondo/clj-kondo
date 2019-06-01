@@ -34,11 +34,12 @@
                          [(:value k) (meta k)]))]
     (doseq [[k v] defaults]
       (when-not (contains? m k)
-        (state/reg-finding! {:message (str k " is not a destructured binding") :level :warning
-                             :row (:row v)
-                             :col (:col v)
-                             :filename (:filename ctx)
-                             :type :non-destructured-binding}))))
+        (state/reg-finding!
+         {:message (str k " is not bound in this destructuring form") :level :warning
+          :row (:row v)
+          :col (:col v)
+          :filename (:filename ctx)
+          :type :unbound-destructuring-default}))))
   (analyze-children ctx (utils/map-node-vals defaults)))
 
 (defn extract-bindings
