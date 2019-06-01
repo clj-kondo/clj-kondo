@@ -1336,7 +1336,7 @@
     (assert-submaps '({:file "<stdin>",
                        :row 1
                        :level :warning,
-                       :message "j is not a destructured binding"})
+                       :message "j is not bound in this destructuring form"})
                     (lint! input))))
 
 ;;;; Scratch
