@@ -799,17 +799,9 @@
         arg-count (count (rest children))]
     (case t
       :quote nil
-      :syntax-quote (analyze-children
-                     (-> ctx
-                         (assoc :call-as-use true
-                                :in-def? false
-                                :syntax-quote? true)
-                         (update :callstack #(cons [nil t] %)))
-                     (:children expr))
+      :syntax-quote (namespace/analyze-usages ctx expr)
       (:unquote :unquote-splicing)
-      (analyze-children
-       (assoc ctx :syntax-quote? false)
-       (:children expr))
+      nil ;; TODO: this is an error, you can't use this outside syntax-quote!
       :namespaced-map (analyze-namespaced-map (update ctx
                                                       :callstack #(cons [nil t] %))
                                               expr)
@@ -841,7 +833,7 @@
                   (analyze-children ctx children))
               (if-let [full-fn-name (when (utils/symbol-token? function) (:value function))]
                 (let [unqualified? (nil? (namespace full-fn-name))
-                      binding-call? (and unqualified? (not (:syntax-quote? ctx))
+                      binding-call? (and unqualified?
                                          (contains? bindings full-fn-name))]
                   (if binding-call?
                     (analyze-binding-call ctx full-fn-name expr)

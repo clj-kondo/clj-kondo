@@ -85,7 +85,6 @@
          tag (node/tag expr)
          syntax-quote? (when-not (one-of tag [:unquote :unquote-splicing])
                          (or syntax-quote?
-                             (:syntax-quote? ctx)
                              (= :syntax-quote tag)))]
      (if-let [[t v] (or (node->keyword expr)
                         (node->symbol expr))]
