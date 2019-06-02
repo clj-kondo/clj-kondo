@@ -54,10 +54,8 @@
 
 (defn lint-jvm!
   ([input]
-   ;; (require '[clj-kondo.impl.config] :reload)
    (lint-jvm! input "--lang" "clj"))
   ([input & args]
-   ;; (require '[clj-kondo.impl.config] :reload)
    (let [[config args]
          (let [m (first args)]
            (if (map? m)

@@ -44,8 +44,6 @@
              ;; :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"
              }})
 
-#_(def config (atom default-config))
-
 (defn merge-config! [cfg* cfg]
   (let [cfg (cond-> cfg
               (:skip-comments cfg)

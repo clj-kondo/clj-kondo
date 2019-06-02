@@ -565,7 +565,6 @@
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
                                    '{:output {:include-files ["inline_def"]}})))))
-  ;; (require '[clj-kondo.impl.config] :reload) ;; reset config
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
