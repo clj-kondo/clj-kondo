@@ -298,7 +298,7 @@ Options:
     (profiler/profile
      :main
      ;; TODO: move global state to local context
-     (state/clear-findings!)
+     ;; (state/clear-findings!)
      (reset! namespace/namespaces {})
      (let [start-time (System/currentTimeMillis)
            {:keys [:opts
@@ -307,7 +307,9 @@ Options:
                    :cache-dir
                    :configs]} (parse-opts options)
            config (reduce config/merge-config! config/default-config configs)
-           ctx {:config config}]
+           findings (atom [])
+           ctx {:config config
+                :findings findings}]
        (or (cond (get opts "--version")
                  (print-version)
                  (get opts "--help")
@@ -323,9 +325,9 @@ Options:
                        idacs (overrides idacs)
                        linted-calls (doall (l/lint-calls ctx idacs))
                        _ (l/lint-unused-namespaces! ctx)
-                       _ (l/lint-unused-bindings!)
+                       _ (l/lint-unused-bindings! ctx)
                        all-findings (concat linted-calls (mapcat :findings processed)
-                                            @state/findings)
+                                            @findings)
                        all-findings (filter-findings config all-findings)
                        {:keys [:error :warning]} (summarize all-findings)]
                    (when (-> config :output :show-progress)

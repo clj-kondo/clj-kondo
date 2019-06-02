@@ -25,10 +25,8 @@
             path)))
 
 (defn reg-var!
-  [ctx ns-sym var-sym expr]
-  (let [lang (:base-lang ctx)
-        expanded-lang (:lang ctx)
-        path [lang expanded-lang ns-sym]]
+  [{:keys [:base-lang :lang :filename :findings]} ns-sym var-sym expr]
+  (let [path [base-lang lang ns-sym]]
     (swap! namespaces update-in path
            (fn [ns]
              (let [vars (:vars ns)]
@@ -37,15 +35,16 @@
                                 ns-sym)
                               (when-let [qv (get (:qualify-var ns) var-sym)]
                                 (:ns qv))
-                              (let [core-ns (case expanded-lang
+                              (let [core-ns (case lang
                                               :clj 'clojure.core
                                               :cljs 'cljs.core)]
                                 (when (and (not= ns-sym core-ns)
                                            (not (contains? (:clojure-excluded ns) var-sym))
-                                           (var-info/core-sym? expanded-lang var-sym))
+                                           (var-info/core-sym? lang var-sym))
                                   core-ns)))]
                  (state/reg-finding!
-                  (node->line (:filename ctx)
+                  findings
+                  (node->line filename
                               expr :warning
                               :redefined-var
                               (if (= ns-sym redefined-ns)
@@ -260,13 +259,14 @@
                                                      Integer Long Math String System Thread])
                 (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
 
-(defn analyze-ns-decl [{:keys [:base-lang :lang] :as ctx} expr]
+(defn analyze-ns-decl [{:keys [:base-lang :lang :findings] :as ctx} expr]
   (let [children (:children expr)
         ns-name (or
                  (let [name-expr (second children)]
                    (when-let [?name (node/sexpr name-expr)]
                      (if (symbol? ?name) ?name
                          (state/reg-finding!
+                          findings
                           (node->line (:filename ctx)
                                       name-expr
                                       :error

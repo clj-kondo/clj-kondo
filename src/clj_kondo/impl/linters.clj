@@ -14,25 +14,26 @@
 
 (set! *warn-on-reflection* true)
 
-(defn lint-def* [filename expr in-def?]
+(defn lint-def* [{:keys [:findings :filename] :as ctx} expr in-def?]
+  ;; (prn "FN" filename)
   (let [fn-name (symbol-call expr)
         simple-fn-name (when fn-name (symbol (name fn-name)))]
-    ;; TODO: it would be nicer if we could have the qualified calls of this expression somehow
-    ;; so we wouldn't have to deal with these primitive expressions anymore
     (when-not (= 'case simple-fn-name)
       (let [current-def? (one-of fn-name [expr def defn defn- deftest defmacro])
             new-in-def? (and (not (one-of (node/tag expr)
                                           [:syntax-quote :quote]))
                              (or in-def? current-def?))]
         (if (and in-def? current-def?)
-          [(node->line filename expr :warning :inline-def "inline def")]
+          (state/reg-finding! findings
+                              (node->line filename expr :warning :inline-def "inline def"))
           (when (:children expr)
-            (mapcat #(lint-def* filename % new-in-def?) (:children expr))))))))
+            (run! #(lint-def* ctx % new-in-def?) (:children expr))))))))
 
-(defn lint-def [filename expr]
-  (mapcat #(lint-def* filename % true) (:children expr)))
+(defn lint-def [ctx expr]
+  ;; TODO: we can refactor this like we did with redundant do + let
+  (run! #(lint-def* ctx % true) (:children expr)))
 
-(defn lint-cond-constants! [filename conditions]
+(defn lint-cond-constants! [{:keys [:findings :filename]} conditions]
   (loop [[condition & rest-conditions] conditions]
     (when condition
       (let [v (node/sexpr condition)]
@@ -41,10 +42,12 @@
                      (not (or (nil? v) (false? v))))
             (when (not= :else v)
               (state/reg-finding!
+               findings
                (node->line filename condition :warning :cond-else
                            "use :else as the catch-all test expression in cond")))
             (when (and (seq rest-conditions))
               (state/reg-finding!
+               findings
                (node->line filename (first rest-conditions) :warning :unreachable-code "unreachable code"))))))
       (recur rest-conditions))))
 
@@ -81,50 +84,53 @@
                                (str (node/sexpr case-expr)))))))))
 
 (defn lint-cond-even-number-of-forms!
-  [filename expr]
+  [{:keys [:findings :filename]} expr]
   (when-not (even? (count (rest (:children expr))))
     (state/reg-finding!
+     findings
      (node->line filename expr :error :even-number-of-forms
                  (format "cond requires even number of forms")))
     true))
 
-(defn lint-cond [filename expr]
+(defn lint-cond [ctx expr]
   (let [conditions
         (->> expr :children
              next
              (take-nth 2))]
-    (when-not (lint-cond-even-number-of-forms! filename expr)
+    (when-not (lint-cond-even-number-of-forms! ctx expr)
       (when (seq conditions)
-        (lint-cond-constants! filename conditions)
+        (lint-cond-constants! ctx conditions)
         #_(lint-cond-as-case! filename expr conditions)))))
 
-(defn lint-missing-test-assertion [filename call called-fn]
+(defn lint-missing-test-assertion [{:keys [:findings :filename]} call called-fn]
   (when (get-in var-info/predicates [(:ns called-fn) (:name called-fn)])
-    [(node->line filename (:expr call) :warning :missing-test-assertion "missing test assertion")]))
+    (state/reg-finding! findings
+                        (node->line filename (:expr call) :warning
+                                    :missing-test-assertion "missing test assertion"))))
 
-(defn lint-specific-calls [filename call called-fn]
+(defn lint-specific-calls [ctx call called-fn]
   (reduce into
           []
           ;; inline def linting
           [(case (:ns called-fn)
              (clojure.core cljs.core)
              (case (:name called-fn)
-               (def defn defn- defmacro) (lint-def filename (:expr call))
+               (def defn defn- defmacro) (lint-def ctx (:expr call))
                nil)
              (clojure.test cljs.test)
              (case (:name called-fn)
-               (deftest) (lint-def filename (:expr call))
+               (deftest) (lint-def ctx (:expr call))
                nil)
              nil)
            ;; cond linting
            (case [(:ns called-fn) (:name called-fn)]
              ([clojure.core cond] [cljs.core cond])
-             (lint-cond filename (:expr call))
+             (lint-cond ctx (:expr call))
              nil)
            ;; missing test assertion
            (case (second (:callstack call))
              ([clojure.test deftest] [cljs.test deftest])
-             (lint-missing-test-assertion filename call called-fn)
+             (lint-missing-test-assertion ctx call called-fn)
              nil)]))
 
 (defn resolve-call [idacs call fn-ns fn-name]
@@ -161,6 +167,7 @@
   "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters."
   [ctx idacs]
   (let [config (:config ctx)
+        ;; findings* (:findings ctx)
         findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
@@ -233,14 +240,15 @@
                                   :type :private-call
                                   :message (format "call to private function %s"
                                                    (str (:ns called-fn) "/" (:name called-fn)))})]
-                              (lint-specific-calls filename call called-fn))]
+                              (lint-specific-calls
+                               (assoc ctx :filename filename) call called-fn))]
                        e errors
                        :when e]
                    e)]
     findings))
 
 (defn lint-unused-namespaces!
-  [{:keys [:config]}]
+  [{:keys [:config :findings]}]
   (doseq [ns (namespace/list-namespaces)
           :let [required (:required ns)
                 used (:used ns)]
@@ -250,15 +258,17 @@
            (set used))
           :when (not (config/unused-namespace-excluded config ns-sym))]
     (let [{:keys [:row :col :filename]} (meta ns-sym)]
-      (state/reg-finding! {:level :warning
-                           :type :unused-namespace
-                           :filename filename
-                           :message (format "namespace %s is required but never used" ns-sym)
-                           :row row
-                           :col col}))))
+      (state/reg-finding!
+       findings
+       {:level :warning
+        :type :unused-namespace
+        :filename filename
+        :message (format "namespace %s is required but never used" ns-sym)
+        :row row
+        :col col}))))
 
 (defn lint-unused-bindings!
-  [#_{:keys [:config]}]
+  [{:keys [:findings]}]
   (doseq [ns (namespace/list-namespaces)
           :let [bindings (:bindings ns)
                 used-bindings (:used-bindings ns)
@@ -266,12 +276,14 @@
           binding diff]
     (let [{:keys [:row :col :filename :name]} binding]
       (when-not (str/starts-with? (str name) "_")
-        (state/reg-finding! {:level :warning
-                             :type :unused-binding
-                             :filename filename
-                             :message (str "unused binding " name)
-                             :row row
-                             :col col})))))
+        (state/reg-finding!
+         findings
+         {:level :warning
+          :type :unused-binding
+          :filename filename
+          :message (str "unused binding " name)
+          :row row
+          :col col})))))
 
 ;;;; scratch
 

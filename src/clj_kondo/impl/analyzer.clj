@@ -35,6 +35,7 @@
     (doseq [[k v] defaults]
       (when-not (contains? m k)
         (state/reg-finding!
+         (:findings ctx)
          {:message (str k " is not bound in this destructuring form") :level :warning
           :row (:row v)
           :col (:col v)
@@ -46,7 +47,8 @@
   ([ctx expr] (extract-bindings ctx expr false))
   ([ctx expr keys-destructuring?]
    (let [expr (meta/lift-meta-content ctx expr)
-         t (node/tag expr)]
+         t (node/tag expr)
+         findings (:findings ctx)]
      (case t
        :token
        (cond
@@ -71,11 +73,13 @@
                                                   :name s
                                                   :filename (:filename ctx)))
                    {s v})
-                 (state/reg-finding! (node->line (:filename ctx)
-                                                 expr
-                                                 :error
-                                                 :unsupported-binding-form
-                                                 (str "unsupported binding form " sym)))))))
+                 (state/reg-finding!
+                  findings
+                  (node->line (:filename ctx)
+                              expr
+                              :error
+                              :unsupported-binding-form
+                              (str "unsupported binding form " sym)))))))
          ;; keyword
          (:k expr)
          (let [k (:k expr)]
@@ -91,13 +95,16 @@
                                          (-> ctx :ns :name)
                                          v)
                  {s v})
-               (state/reg-finding! (node->line (:filename ctx)
-                                               expr
-                                               :error
-                                               :unsupported-binding-form
-                                               (str "unsupported binding form " (:k expr)))))))
+               (state/reg-finding!
+                findings
+                (node->line (:filename ctx)
+                            expr
+                            :error
+                            :unsupported-binding-form
+                            (str "unsupported binding form " (:k expr)))))))
          :else
          (state/reg-finding!
+          findings
           (node->line (:filename ctx)
                       expr
                       :error
@@ -129,6 +136,7 @@
                    :else (recur rest-kvs res)))
            res))
        (state/reg-finding!
+        findings
         (node->line (:filename ctx)
                     expr
                     :error
@@ -306,6 +314,7 @@
         {:keys [:row :col]} (meta bv)]
     (when (odd? num-children)
       (state/reg-finding!
+       (:findings ctx)
        {:type :invalid-bindings
         :message (format "%s binding vector requires even number of forms" form-name)
         :row row
@@ -327,7 +336,9 @@
         {:keys [:row :col]} (meta expr)
         arg-count (count (rest children))]
     (when (and let? let-parent? maybe-redundant-let?)
-      (state/reg-finding! (node->line filename expr :warning :redundant-let "redundant let")))
+      (state/reg-finding!
+       (:findings ctx)
+       (node->line filename expr :warning :redundant-let "redundant let")))
     (cons {:type :call
            :name call
            :row row
@@ -376,7 +387,9 @@
                                       let loop binding with-open
                                       doseq try])))))]
     (when redundant?
-      (state/reg-finding! (node->line filename expr :warning :redundant-do "redundant do"))))
+      (state/reg-finding!
+       (:findings ctx)
+       (node->line filename expr :warning :redundant-do "redundant do"))))
   (analyze-children ctx (next (:children expr))))
 
 (defn lint-two-forms-binding-vector! [ctx form-name expr sexpr]
@@ -384,6 +397,7 @@
         {:keys [:row :col]} (meta expr)]
     (when (not= 2 num-children)
       (state/reg-finding!
+       (:findings ctx)
        {:type :invalid-bindings
         :message (format "%s binding vector requires exactly 2 forms" form-name)
         :row row
@@ -457,10 +471,10 @@
         (analyze-like-let (assoc ctx
                                  :recur-arity {:fixed-arity arg-count}) expr)))))
 
-(defn analyze-recur [ctx expr]
-  (when-not (:call-as-use ctx)
+(defn analyze-recur [{:keys [:findings :call-as-use
+                             :filename :recur-arity] :as ctx} expr]
+  (when-not call-as-use
     (let [arg-count (count (rest (:children expr)))
-          recur-arity (-> ctx :recur-arity)
           expected-arity
           (or (:fixed-arity recur-arity)
               ;; var-args must be passed as a seq or nil in recur
@@ -468,15 +482,18 @@
                 (inc min-arity)))]
       (cond
         (not expected-arity)
-        (state/reg-finding! (node->line
-                             (:filename ctx)
-                             expr
-                             :warning
-                             :unexpected-recur "unexpected recur"))
+        (state/reg-finding!
+         findings
+         (node->line
+          filename
+          expr
+          :warning
+          :unexpected-recur "unexpected recur"))
         (not= expected-arity arg-count)
         (state/reg-finding!
+         findings
          (node->line
-          (:filename ctx)
+          filename
           expr
           :error
           :invalid-arity
@@ -565,7 +582,7 @@
   (if x (cons x xs)
       xs))
 
-(defn analyze-binding-call [{:keys [:callstack :config] :as ctx} fn-name expr]
+(defn analyze-binding-call [{:keys [:callstack :config :findings] :as ctx} fn-name expr]
   (namespace/reg-used-binding! (:base-lang ctx)
                                (:lang ctx)
                                (-> ctx :ns :name)
@@ -579,11 +596,11 @@
           (let [arg-count (count (rest children))]
             (when-not (or (contains? fixed-arities arg-count)
                           (and var-args-min-arity (>= arg-count var-args-min-arity)))
-              (state/reg-finding! (node->line filename expr :error
-                                              :invalid-arity
-                                              (format "wrong number of args (%s) passed to %s"
-                                                      arg-count
-                                                      fn-name)))))))
+              (state/reg-finding! findings (node->line filename expr :error
+                                                       :invalid-arity
+                                                       (format "wrong number of args (%s) passed to %s"
+                                                               arg-count
+                                                               fn-name)))))))
       (analyze-children ctx (rest children)))))
 
 (defn analyze-call
@@ -708,7 +725,7 @@
                                 (assoc-in [:recur-arity :fixed-arity] 0))]
                  (cons call (analyze-children next-ctx (rest children)))))))))
 
-(defn lint-keyword-call! [{:keys [:callstack :config] :as ctx} kw namespaced? arg-count expr]
+(defn lint-keyword-call! [{:keys [:callstack :config :findings] :as ctx} kw namespaced? arg-count expr]
   (when-not (config/skip? config :invalid-arity callstack)
     (let [ns (:ns ctx)
           ?resolved-ns (if namespaced?
@@ -725,31 +742,38 @@
                      (str (name kw)))]
       (when (or (zero? arg-count)
                 (> arg-count 2))
-        (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
+        (state/reg-finding! findings
+                            (node->line (:filename ctx) expr :error :invalid-arity
                                         (format "wrong number of args (%s) passed to keyword :%s"
                                                 arg-count
                                                 kw-str)))))))
 
-(defn lint-map-call! [{:keys [:callstack :config] :as ctx} _the-map arg-count expr]
+(defn lint-map-call! [{:keys [:callstack :config
+                              :findings] :as ctx} _the-map arg-count expr]
   (when-not (config/skip? config :invalid-arity callstack)
     (when (or (zero? arg-count)
               (> arg-count 2))
-      (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
-                                      (format "wrong number of args (%s) passed to a map"
-                                              arg-count))))))
+      (state/reg-finding!
+       findings
+       (node->line (:filename ctx) expr :error :invalid-arity
+                   (format "wrong number of args (%s) passed to a map"
+                           arg-count))))))
 
-(defn lint-symbol-call! [{:keys [:callstack :config] :as ctx} _the-symbol arg-count expr]
+(defn lint-symbol-call! [{:keys [:callstack :config :findings] :as ctx} _the-symbol arg-count expr]
   (when-not (config/skip? config :invalid-arity callstack)
     (when (or (zero? arg-count)
               (> arg-count 2))
-      (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
-                                      (format "wrong number of args (%s) passed to a symbol"
-                                              arg-count))))))
+      (state/reg-finding!
+       findings
+       (node->line (:filename ctx) expr :error :invalid-arity
+                   (format "wrong number of args (%s) passed to a symbol"
+                           arg-count))))))
 
 (defn reg-not-a-function! [{:keys [:filename :callstack
-                                   :config]} expr type]
+                                   :config :findings]} expr type]
   (when-not (config/skip? config :not-a-function callstack)
     (state/reg-finding!
+     findings
      (node->line filename expr :error :not-a-function (str "a " type " is not a function")))))
 
 (defn analyze-expression**
@@ -822,13 +846,18 @@
                         children))))
 
 (defn analyze-expression*
-  [{:keys [:filename :base-lang :lang :results :ns :expression :debug? :config]}]
+  [{:keys [:filename :base-lang :lang :results :ns
+           :expression :debug? :config :findings]}]
   (let [ctx {:filename filename
              :base-lang base-lang
              :lang lang
              :ns ns
+             ;; TODO: considering that we're introducing bindings here, we could do
+             ;; the analysis of unused bindings already in the last step of the
+             ;; loop, instead of collecting then in the namespace atom
              :bindings {}
-             :config config}]
+             :config config
+             :findings findings}]
     (loop [ns ns
            [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
            results results]
@@ -955,7 +984,7 @@
   optimize cache lookups later on, calls are indexed by the namespace
   they call to, not the ns where the call occurred. Also collects
   other findings and passes them under the :findings key."
-  [{:keys [:filename :base-lang :lang :expressions :debug? :config]}]
+  [{:keys [:filename :base-lang :lang :expressions :debug? :config :findings]}]
   (profiler/profile
    :analyze-expressions
    (loop [ns (analyze-ns-decl {:filename filename
@@ -977,7 +1006,8 @@
                                    :results results
                                    :expression expression
                                    :debug? debug?
-                                   :config config})]
+                                   :config config
+                                   :findings findings})]
          (recur ns rest-expressions results))
        results))))
 
@@ -986,17 +1016,19 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config] :as _ctx} filename input lang dev?]
+  [{:keys [:config :findings] :as _ctx} filename input lang dev?]
   (try
     (let [parsed (p/parse-string input)
           analyzed-expressions
           (if (= :cljc lang)
             (let [clj (analyze-expressions {:filename filename
                                             :config config
+                                            :findings findings
                                             :base-lang :cljc
                                             :lang :clj
                                             :expressions (:children (select-lang parsed :clj))})
                   cljs (analyze-expressions {:filename filename
+                                             :findings findings
                                              :config config
                                              :base-lang :cljc
                                              :lang :cljs
@@ -1005,6 +1037,7 @@
                                 (deep-merge clj cljs)))
             (analyze-expressions {:filename filename
                                   :config config
+                                  :findings findings
                                   :base-lang lang
                                   :lang lang
                                   :expressions
