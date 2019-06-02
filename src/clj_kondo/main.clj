@@ -26,8 +26,8 @@
 
 ;;;; printing
 
-(defn- format-output []
-  (if-let [^String pattern (-> @config/config :output :pattern)]
+(defn- format-output [config]
+  (if-let [^String pattern (-> config :output :pattern)]
     (fn [filename row col level message]
       (-> pattern
           (str/replace "{{filename}}" filename)
@@ -39,8 +39,8 @@
     (fn [filename row col level message]
       (str filename ":" row ":" col ": " (name level) ": " message))))
 
-(defn- print-findings [findings]
-  (let [format-fn (format-output)]
+(defn- print-findings [config findings]
+  (let [format-fn (format-output config)]
     (doseq [{:keys [:filename :message
                     :level :row :col] :as _finding}
             (dedupe (sort-by (juxt :filename :row :col) findings))]
@@ -129,7 +129,7 @@ Options:
 (defn- classpath? [f]
   (str/includes? f cp-sep))
 
-(defn- process-file [filename default-language]
+(defn- process-file [ctx filename default-language]
   (try
     (let [file (io/file filename)]
       (cond
@@ -137,23 +137,23 @@ Options:
         (if (.isFile file)
           (if (ends-with? file ".jar")
             ;; process jar file
-            (map #(ana/analyze-input (:filename %) (:source %)
+            (map #(ana/analyze-input ctx (:filename %) (:source %)
                                         (lang-from-file (:filename %) default-language)
                                         dev?)
                     (sources-from-jar filename))
             ;; assume normal source file
-            [(ana/analyze-input filename (slurp filename)
+            [(ana/analyze-input ctx filename (slurp filename)
                                 (lang-from-file filename default-language)
                                 dev?)])
           ;; assume directory
-          (map #(ana/analyze-input (:filename %) (:source %)
+          (map #(ana/analyze-input ctx (:filename %) (:source %)
                                       (lang-from-file (:filename %) default-language)
                                       dev?)
                   (sources-from-dir file)))
         (= "-" filename)
-        [(ana/analyze-input "<stdin>" (slurp *in*) default-language dev?)]
+        [(ana/analyze-input ctx "<stdin>" (slurp *in*) default-language dev?)]
         (classpath? filename)
-        (mapcat #(process-file % default-language)
+        (mapcat #(process-file ctx % default-language)
                 (str/split filename
                            (re-pattern cp-sep)))
         :else
@@ -170,8 +170,8 @@ Options:
                         :row 0
                         :message "could not process file"}]}]))))
 
-(defn- process-files [files default-lang]
-  (mapcat #(process-file % default-lang) files))
+(defn- process-files [ctx files default-lang]
+  (mapcat #(process-file ctx % default-lang) files))
 
 ;;;; find cache/config dir
 
@@ -269,12 +269,12 @@ Options:
 
 ;;;; filter/remove output
 
-(defn- filter-findings [findings]
-  (let [print-debug? (:debug @config/config)
-        filter-output (not-empty (-> @config/config :output :include-files))
-        remove-output (not-empty (-> @config/config :output :exclude-files))]
+(defn- filter-findings [config findings]
+  (let [print-debug? (:debug config)
+        filter-output (not-empty (-> config :output :include-files))
+        remove-output (not-empty (-> config :output :exclude-files))]
     (for [{:keys [:filename :level :type] :as f} findings
-          :let [level (or (when type (-> @config/config :linters type :level))
+          :let [level (or (when type (-> config :linters type :level))
                           level)]
           :when (and level (not= :off level))
           :when (if (= :debug type)
@@ -305,8 +305,9 @@ Options:
                    :files
                    :default-lang
                    :cache-dir
-                   :configs]} (parse-opts options)]
-       (run! config/merge-config! configs)
+                   :configs]} (parse-opts options)
+           config (reduce config/merge-config! config/default-config configs)
+           ctx {:config config}]
        (or (cond (get opts "--version")
                  (print-version)
                  (get opts "--help")
@@ -315,21 +316,21 @@ Options:
                  (print-help)
                  :else
                  (let [processed
-                       (process-files files default-lang)
+                       (process-files ctx files default-lang)
                        idacs (index-defs-and-calls processed)
                        ;; _ (prn "IDACS" idacs)
                        idacs (cache/sync-cache idacs cache-dir)
                        idacs (overrides idacs)
-                       linted-calls (doall (l/lint-calls idacs))
-                       _ (l/lint-unused-namespaces!)
+                       linted-calls (doall (l/lint-calls ctx idacs))
+                       _ (l/lint-unused-namespaces! ctx)
                        _ (l/lint-unused-bindings!)
                        all-findings (concat linted-calls (mapcat :findings processed)
                                             @state/findings)
-                       all-findings (filter-findings all-findings)
+                       all-findings (filter-findings config all-findings)
                        {:keys [:error :warning]} (summarize all-findings)]
-                   (when (-> @config/config :output :show-progress)
+                   (when (-> config :output :show-progress)
                      (println))
-                   (print-findings all-findings)
+                   (print-findings config all-findings)
                    (printf "linting took %sms, "
                            (- (System/currentTimeMillis) start-time))
                    (println (format "errors: %s, warnings: %s" error warning))

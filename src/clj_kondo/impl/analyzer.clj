@@ -22,8 +22,8 @@
 
 (declare analyze-expression**)
 
-(defn analyze-children [{:keys [:callstack] :as ctx} children]
-  (when-not (config/skip? callstack)
+(defn analyze-children [{:keys [:callstack :config] :as ctx} children]
+  (when-not (config/skip? config callstack)
     (mapcat #(analyze-expression** ctx %) children)))
 
 (defn analyze-keys-destructuring-defaults [ctx m defaults]
@@ -565,12 +565,12 @@
   (if x (cons x xs)
       xs))
 
-(defn analyze-binding-call [{:keys [:callstack] :as ctx} fn-name expr]
+(defn analyze-binding-call [{:keys [:callstack :config] :as ctx} fn-name expr]
   (namespace/reg-used-binding! (:base-lang ctx)
                                (:lang ctx)
                                (-> ctx :ns :name)
                                (get (:bindings ctx) fn-name))
-  (when-not (config/skip? :invalid-arity callstack)
+  (when-not (config/skip? config :invalid-arity callstack)
     (let [filename (:filename ctx)
           children (:children expr)]
       (when-not (:call-as-use ctx)
@@ -587,7 +587,7 @@
       (analyze-children ctx (rest children)))))
 
 (defn analyze-call
-  [{:keys [:fn-body :base-lang :lang :ns] :as ctx}
+  [{:keys [:fn-body :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
            :full-fn-name
            :row :col
@@ -598,7 +598,7 @@
         (resolve-name
          (namespace/get-namespace base-lang lang (:name ns)) full-fn-name)
         [resolved-as-namespace resolved-as-name lint-as?]
-        (or (when-let [[ns n] (config/lint-as [resolved-namespace resolved-name])]
+        (or (when-let [[ns n] (config/lint-as config [resolved-namespace resolved-name])]
               [ns n true])
             [resolved-namespace resolved-name false])
         fq-sym (when (and resolved-namespace
@@ -708,8 +708,8 @@
                                 (assoc-in [:recur-arity :fixed-arity] 0))]
                  (cons call (analyze-children next-ctx (rest children)))))))))
 
-(defn lint-keyword-call! [{:keys [:callstack] :as ctx} kw namespaced? arg-count expr]
-  (when-not (config/skip? :invalid-arity callstack)
+(defn lint-keyword-call! [{:keys [:callstack :config] :as ctx} kw namespaced? arg-count expr]
+  (when-not (config/skip? config :invalid-arity callstack)
     (let [ns (:ns ctx)
           ?resolved-ns (if namespaced?
                          (if-let [kw-ns (namespace kw)]
@@ -730,24 +730,25 @@
                                                 arg-count
                                                 kw-str)))))))
 
-(defn lint-map-call! [{:keys [:callstack] :as ctx} _the-map arg-count expr]
-  (when-not (config/skip? :invalid-arity callstack)
+(defn lint-map-call! [{:keys [:callstack :config] :as ctx} _the-map arg-count expr]
+  (when-not (config/skip? config :invalid-arity callstack)
     (when (or (zero? arg-count)
               (> arg-count 2))
       (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
                                       (format "wrong number of args (%s) passed to a map"
                                               arg-count))))))
 
-(defn lint-symbol-call! [{:keys [:callstack] :as ctx} _the-symbol arg-count expr]
-  (when-not (config/skip? :invalid-arity callstack)
+(defn lint-symbol-call! [{:keys [:callstack :config] :as ctx} _the-symbol arg-count expr]
+  (when-not (config/skip? config :invalid-arity callstack)
     (when (or (zero? arg-count)
               (> arg-count 2))
       (state/reg-finding! (node->line (:filename ctx) expr :error :invalid-arity
                                       (format "wrong number of args (%s) passed to a symbol"
                                               arg-count))))))
 
-(defn reg-not-a-function! [{:keys [:filename :callstack]} expr type]
-  (when-not (config/skip? :not-a-function callstack)
+(defn reg-not-a-function! [{:keys [:filename :callstack
+                                   :config]} expr type]
+  (when-not (config/skip? config :not-a-function callstack)
     (state/reg-finding!
      (node->line filename expr :error :not-a-function (str "a " type " is not a function")))))
 
@@ -821,12 +822,13 @@
                         children))))
 
 (defn analyze-expression*
-  [{:keys [:filename :base-lang :lang :results :ns :expression :debug?]}]
+  [{:keys [:filename :base-lang :lang :results :ns :expression :debug? :config]}]
   (let [ctx {:filename filename
              :base-lang base-lang
              :lang lang
              :ns ns
-             :bindings {}}]
+             :bindings {}
+             :config config}]
     (loop [ns ns
            [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
            results results]
@@ -953,7 +955,7 @@
   optimize cache lookups later on, calls are indexed by the namespace
   they call to, not the ns where the call occurred. Also collects
   other findings and passes them under the :findings key."
-  [{:keys [:filename :base-lang :lang :expressions :debug?]}]
+  [{:keys [:filename :base-lang :lang :expressions :debug? :config]}]
   (profiler/profile
    :analyze-expressions
    (loop [ns (analyze-ns-decl {:filename filename
@@ -974,7 +976,8 @@
                                    :ns ns
                                    :results results
                                    :expression expression
-                                   :debug? debug?})]
+                                   :debug? debug?
+                                   :config config})]
          (recur ns rest-expressions results))
        results))))
 
@@ -983,22 +986,25 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [filename input lang dev?]
+  [{:keys [:config] :as _ctx} filename input lang dev?]
   (try
     (let [parsed (p/parse-string input)
           analyzed-expressions
           (if (= :cljc lang)
             (let [clj (analyze-expressions {:filename filename
+                                            :config config
                                             :base-lang :cljc
                                             :lang :clj
                                             :expressions (:children (select-lang parsed :clj))})
                   cljs (analyze-expressions {:filename filename
+                                             :config config
                                              :base-lang :cljc
                                              :lang :cljs
                                              :expressions (:children (select-lang parsed :cljs))})]
               (profiler/profile :deep-merge
                                 (deep-merge clj cljs)))
             (analyze-expressions {:filename filename
+                                  :config config
                                   :base-lang lang
                                   :lang lang
                                   :expressions
@@ -1014,5 +1020,5 @@
                                      filename ", "
                                      (.getMessage e))}]}))
     (finally
-      (when (-> @config/config :output :show-progress)
+      (when (-> config :output :show-progress)
         (print ".") (flush)))))

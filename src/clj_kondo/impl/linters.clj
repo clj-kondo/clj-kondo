@@ -159,8 +159,9 @@
 
 (defn lint-calls
   "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters."
-  [idacs]
-  (let [findings (for [lang [:clj :cljs :cljc]
+  [ctx idacs]
+  (let [config (:config ctx)
+        findings (for [lang [:clj :cljs :cljc]
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
                        :let [;; _ (println "CALL" (:filename call) call)
@@ -212,7 +213,7 @@
                               [(when-not
                                    (or (contains? fixed-arities arity)
                                        (and var-args-min-arity (>= arity var-args-min-arity))
-                                       (config/skip? :invalid-arity (rest (:callstack call))))
+                                       (config/skip? config :invalid-arity (rest (:callstack call))))
                                  {:filename filename
                                   :row (:row call)
                                   :col (:col call)
@@ -239,7 +240,7 @@
     findings))
 
 (defn lint-unused-namespaces!
-  []
+  [{:keys [:config]}]
   (doseq [ns (namespace/list-namespaces)
           :let [required (:required ns)
                 used (:used ns)]
@@ -247,7 +248,7 @@
           (set/difference
            (set required)
            (set used))
-          :when (not (config/unused-namespace-excluded ns-sym))]
+          :when (not (config/unused-namespace-excluded config ns-sym))]
     (let [{:keys [:row :col :filename]} (meta ns-sym)]
       (state/reg-finding! {:level :warning
                            :type :unused-namespace
@@ -257,7 +258,7 @@
                            :col col}))))
 
 (defn lint-unused-bindings!
-  []
+  [#_{:keys [:config]}]
   (doseq [ns (namespace/list-namespaces)
           :let [bindings (:bindings ns)
                 used-bindings (:used-bindings ns)
