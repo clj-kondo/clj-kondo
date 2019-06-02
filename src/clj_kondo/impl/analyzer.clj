@@ -10,7 +10,7 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
-   [clj-kondo.impl.state :as state]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer [some-call symbol-call keyword-call node->line
                                            parse-string parse-string-all tag select-lang
                                            vconj deep-merge one-of]]
@@ -34,7 +34,7 @@
                          [(:value k) (meta k)]))]
     (doseq [[k v] defaults]
       (when-not (contains? m k)
-        (state/reg-finding!
+        (findings/reg-finding!
          (:findings ctx)
          {:message (str k " is not bound in this destructuring form") :level :warning
           :row (:row v)
@@ -73,7 +73,7 @@
                                                   :name s
                                                   :filename (:filename ctx)))
                    {s v})
-                 (state/reg-finding!
+                 (findings/reg-finding!
                   findings
                   (node->line (:filename ctx)
                               expr
@@ -95,7 +95,7 @@
                                          (-> ctx :ns :name)
                                          v)
                  {s v})
-               (state/reg-finding!
+               (findings/reg-finding!
                 findings
                 (node->line (:filename ctx)
                             expr
@@ -103,7 +103,7 @@
                             :unsupported-binding-form
                             (str "unsupported binding form " (:k expr)))))))
          :else
-         (state/reg-finding!
+         (findings/reg-finding!
           findings
           (node->line (:filename ctx)
                       expr
@@ -135,7 +135,7 @@
                    (recur rest-kvs (merge res (extract-bindings ctx k)))
                    :else (recur rest-kvs res)))
            res))
-       (state/reg-finding!
+       (findings/reg-finding!
         findings
         (node->line (:filename ctx)
                     expr
@@ -313,7 +313,7 @@
   (let [num-children (count (:children bv))
         {:keys [:row :col]} (meta bv)]
     (when (odd? num-children)
-      (state/reg-finding!
+      (findings/reg-finding!
        (:findings ctx)
        {:type :invalid-bindings
         :message (format "%s binding vector requires even number of forms" form-name)
@@ -336,7 +336,7 @@
         {:keys [:row :col]} (meta expr)
         arg-count (count (rest children))]
     (when (and let? let-parent? maybe-redundant-let?)
-      (state/reg-finding!
+      (findings/reg-finding!
        (:findings ctx)
        (node->line filename expr :warning :redundant-let "redundant let")))
     (cons {:type :call
@@ -387,7 +387,7 @@
                                       let loop binding with-open
                                       doseq try])))))]
     (when redundant?
-      (state/reg-finding!
+      (findings/reg-finding!
        (:findings ctx)
        (node->line filename expr :warning :redundant-do "redundant do"))))
   (analyze-children ctx (next (:children expr))))
@@ -396,7 +396,7 @@
   (let [num-children (count sexpr)
         {:keys [:row :col]} (meta expr)]
     (when (not= 2 num-children)
-      (state/reg-finding!
+      (findings/reg-finding!
        (:findings ctx)
        {:type :invalid-bindings
         :message (format "%s binding vector requires exactly 2 forms" form-name)
@@ -482,7 +482,7 @@
                 (inc min-arity)))]
       (cond
         (not expected-arity)
-        (state/reg-finding!
+        (findings/reg-finding!
          findings
          (node->line
           filename
@@ -490,7 +490,7 @@
           :warning
           :unexpected-recur "unexpected recur"))
         (not= expected-arity arg-count)
-        (state/reg-finding!
+        (findings/reg-finding!
          findings
          (node->line
           filename
@@ -596,7 +596,7 @@
           (let [arg-count (count (rest children))]
             (when-not (or (contains? fixed-arities arg-count)
                           (and var-args-min-arity (>= arg-count var-args-min-arity)))
-              (state/reg-finding! findings (node->line filename expr :error
+              (findings/reg-finding! findings (node->line filename expr :error
                                                        :invalid-arity
                                                        (format "wrong number of args (%s) passed to %s"
                                                                arg-count
@@ -742,7 +742,7 @@
                      (str (name kw)))]
       (when (or (zero? arg-count)
                 (> arg-count 2))
-        (state/reg-finding! findings
+        (findings/reg-finding! findings
                             (node->line (:filename ctx) expr :error :invalid-arity
                                         (format "wrong number of args (%s) passed to keyword :%s"
                                                 arg-count
@@ -753,7 +753,7 @@
   (when-not (config/skip? config :invalid-arity callstack)
     (when (or (zero? arg-count)
               (> arg-count 2))
-      (state/reg-finding!
+      (findings/reg-finding!
        findings
        (node->line (:filename ctx) expr :error :invalid-arity
                    (format "wrong number of args (%s) passed to a map"
@@ -763,7 +763,7 @@
   (when-not (config/skip? config :invalid-arity callstack)
     (when (or (zero? arg-count)
               (> arg-count 2))
-      (state/reg-finding!
+      (findings/reg-finding!
        findings
        (node->line (:filename ctx) expr :error :invalid-arity
                    (format "wrong number of args (%s) passed to a symbol"
@@ -772,7 +772,7 @@
 (defn reg-not-a-function! [{:keys [:filename :callstack
                                    :config :findings]} expr type]
   (when-not (config/skip? config :not-a-function callstack)
-    (state/reg-finding!
+    (findings/reg-finding!
      findings
      (node->line filename expr :error :not-a-function (str "a " type " is not a function")))))
 

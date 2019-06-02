@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.namespace
   {:no-doc true}
   (:require
-   [clj-kondo.impl.state :as state]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [node->line parse-string
                                  parse-string-all deep-merge one-of]]
    [clj-kondo.impl.var-info :as var-info]
@@ -42,7 +42,7 @@
                                            (not (contains? (:clojure-excluded ns) var-sym))
                                            (var-info/core-sym? lang var-sym))
                                   core-ns)))]
-                 (state/reg-finding!
+                 (findings/reg-finding!
                   findings
                   (node->line filename
                               expr :warning
@@ -265,7 +265,7 @@
                  (let [name-expr (second children)]
                    (when-let [?name (node/sexpr name-expr)]
                      (if (symbol? ?name) ?name
-                         (state/reg-finding!
+                         (findings/reg-finding!
                           findings
                           (node->line (:filename ctx)
                                       name-expr

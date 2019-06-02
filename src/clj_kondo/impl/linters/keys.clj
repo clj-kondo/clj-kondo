@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.linters.keys
   {:no-doc true}
   (:require [rewrite-clj.node.protocols :as node]
-            [clj-kondo.impl.state :as state]
+            [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.utils :refer [node->line]]))
 
 (defn key-value
@@ -18,7 +18,7 @@
        (if-let [k (key-value key-expr)]
          (if (contains? seen k)
            (do
-             (state/reg-finding!
+             (findings/reg-finding!
               findings
               (node->line filename
                           key-expr :error :duplicate-map-key
@@ -31,7 +31,7 @@
      (take-nth 2 children))
     (when (odd? (count children))
       (let [last-child (last children)]
-        (state/reg-finding!
+        (findings/reg-finding!
          findings
          (node->line filename last-child :error :missing-map-value
                      (str "missing value for key " (key-value last-child))))))))
@@ -46,7 +46,7 @@
      (fn [{:keys [:seen] :as acc} set-element]
        (if-let [k (key-value set-element)]
          (do (when (contains? seen k)
-               (state/reg-finding!
+               (findings/reg-finding!
                 findings
                 (node->line filename set-element :error :duplicate-set-key
                             (str "duplicate set element " k))))

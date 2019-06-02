@@ -7,7 +7,7 @@
    [rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
-   [clj-kondo.impl.state :as state]
+   [clj-kondo.impl.findings :as findings]
    [clojure.set :as set]
    [clj-kondo.impl.namespace :as namespace]
    [clojure.string :as str]))
@@ -15,7 +15,6 @@
 (set! *warn-on-reflection* true)
 
 (defn lint-def* [{:keys [:findings :filename] :as ctx} expr in-def?]
-  ;; (prn "FN" filename)
   (let [fn-name (symbol-call expr)
         simple-fn-name (when fn-name (symbol (name fn-name)))]
     (when-not (= 'case simple-fn-name)
@@ -24,7 +23,7 @@
                                           [:syntax-quote :quote]))
                              (or in-def? current-def?))]
         (if (and in-def? current-def?)
-          (state/reg-finding! findings
+          (findings/reg-finding! findings
                               (node->line filename expr :warning :inline-def "inline def"))
           (when (:children expr)
             (run! #(lint-def* ctx % new-in-def?) (:children expr))))))))
@@ -41,12 +40,12 @@
           (when (and (constant? condition)
                      (not (or (nil? v) (false? v))))
             (when (not= :else v)
-              (state/reg-finding!
+              (findings/reg-finding!
                findings
                (node->line filename condition :warning :cond-else
                            "use :else as the catch-all test expression in cond")))
             (when (and (seq rest-conditions))
-              (state/reg-finding!
+              (findings/reg-finding!
                findings
                (node->line filename (first rest-conditions) :warning :unreachable-code "unreachable code"))))))
       (recur rest-conditions))))
@@ -78,7 +77,7 @@
                        init
                        rest-sexprs))]
                c)]
-          (state/reg-finding!
+          (findings/reg-finding!
            (node->line filename expr :warning :cond-as-case
                        (format "cond can be written as (case %s ...)"
                                (str (node/sexpr case-expr)))))))))
@@ -86,7 +85,7 @@
 (defn lint-cond-even-number-of-forms!
   [{:keys [:findings :filename]} expr]
   (when-not (even? (count (rest (:children expr))))
-    (state/reg-finding!
+    (findings/reg-finding!
      findings
      (node->line filename expr :error :even-number-of-forms
                  (format "cond requires even number of forms")))
@@ -104,7 +103,7 @@
 
 (defn lint-missing-test-assertion [{:keys [:findings :filename]} call called-fn]
   (when (get-in var-info/predicates [(:ns called-fn) (:name called-fn)])
-    (state/reg-finding! findings
+    (findings/reg-finding! findings
                         (node->line filename (:expr call) :warning
                                     :missing-test-assertion "missing test assertion"))))
 
@@ -258,7 +257,7 @@
            (set used))
           :when (not (config/unused-namespace-excluded config ns-sym))]
     (let [{:keys [:row :col :filename]} (meta ns-sym)]
-      (state/reg-finding!
+      (findings/reg-finding!
        findings
        {:level :warning
         :type :unused-namespace
@@ -276,7 +275,7 @@
           binding diff]
     (let [{:keys [:row :col :filename :name]} binding]
       (when-not (str/starts-with? (str name) "_")
-        (state/reg-finding!
+        (findings/reg-finding!
          findings
          {:level :warning
           :type :unused-binding

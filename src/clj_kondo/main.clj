@@ -2,20 +2,19 @@
   {:no-doc true}
   (:gen-class)
   (:require
-   [clj-kondo.impl.rewrite-clj-patch]
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.cache :as cache]
-   [clj-kondo.impl.linters :as l]
-   [clj-kondo.impl.overrides :refer [overrides]]
-   [clojure.edn :as edn]
    [clj-kondo.impl.config :as config]
-   [clj-kondo.impl.state :as state]
-   [clojure.java.io :as io]
+   [clj-kondo.impl.linters :as l]
+   [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.overrides :refer [overrides]]
    [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.rewrite-clj-patch]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
    [clojure.string :as str
     :refer [starts-with?
-            ends-with?]]
-   [clj-kondo.impl.namespace :as namespace])
+            ends-with?]])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
 (def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))

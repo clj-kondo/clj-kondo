@@ -1,7 +1,5 @@
-(ns clj-kondo.impl.state
+(ns clj-kondo.impl.findings
   {:no-doc true})
-
-#_(defonce findings (atom []))
 
 (defn reg-finding! [findings m]
   (swap! findings conj m)
@@ -11,13 +9,7 @@
   (swap! findings into maps)
   nil)
 
-#_(defn clear-findings! []
-  (reset! findings [])
-  nil)
-
 ;;;; Scratch
 
 (comment
-  @findings
-
   )
