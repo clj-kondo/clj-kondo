@@ -6,7 +6,6 @@
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.linters :as l]
-   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.rewrite-clj-patch]
@@ -298,7 +297,7 @@ Options:
      :main
      ;; TODO: move global state to local context
      ;; (state/clear-findings!)
-     (reset! namespace/namespaces {})
+     ;; (reset! namespace/namespaces {})
      (let [start-time (System/currentTimeMillis)
            {:keys [:opts
                    :files
@@ -308,7 +307,8 @@ Options:
            config (reduce config/merge-config! config/default-config configs)
            findings (atom [])
            ctx {:config config
-                :findings findings}]
+                :findings findings
+                :namespaces (atom {})}]
        (or (cond (get opts "--version")
                  (print-version)
                  (get opts "--help")

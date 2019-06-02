@@ -247,8 +247,8 @@
     findings))
 
 (defn lint-unused-namespaces!
-  [{:keys [:config :findings]}]
-  (doseq [ns (namespace/list-namespaces)
+  [{:keys [:config :findings] :as ctx}]
+  (doseq [ns (namespace/list-namespaces ctx)
           :let [required (:required ns)
                 used (:used ns)]
           ns-sym
@@ -267,8 +267,8 @@
         :col col}))))
 
 (defn lint-unused-bindings!
-  [{:keys [:findings]}]
-  (doseq [ns (namespace/list-namespaces)
+  [{:keys [:findings] :as ctx}]
+  (doseq [ns (namespace/list-namespaces ctx)
           :let [bindings (:bindings ns)
                 used-bindings (:used-bindings ns)
                 diff (set/difference bindings used-bindings)]

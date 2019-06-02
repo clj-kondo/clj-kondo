@@ -12,19 +12,21 @@
   (is (:private (meta (meta/lift-meta-content {} (parse-string "#^ :private [x]")))))
   (is (= "[B" (:tag (meta (meta/lift-meta-content {} (parse-string "^\"[B\" body")))))))
 
+(def ctx {:filename "-"
+          :namespaces (atom {})
+          :base-lang :clj
+          :lang :clj})
+
 (deftest analyze-defn-test
-  (let [ns (namespace/analyze-ns-decl {:filename "-"
-                                       :base-lang :clj
-                                       :lang :clj} (parse-string "(ns user)"))]
+  (let [ns (namespace/analyze-ns-decl ctx (parse-string "(ns user)"))]
     (assert-submaps
      '[{:type :defn
         :name chunk-buffer, :fixed-arities #{1}}
        {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
-     (ana/analyze-defn {:ns (namespace/analyze-ns-decl {:filename "-"
-                                                        :base-lang :clj
-                                                        :lang :clj} (parse-string "(ns user)"))
+     (ana/analyze-defn {:ns (namespace/analyze-ns-decl ctx (parse-string "(ns user)"))
                         :base-lang :clj
-                        :lang :clj}
+                        :lang :clj
+                        :namespaces (:namespaces ctx)}
                        (parse-string
                         "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
   (clojure.lang.ChunkBuffer. capacity))")))
@@ -34,13 +36,12 @@
                      :col 1,
                      :lang :clj,
                      :fixed-arities #{1}}
-                   (first (ana/analyze-defn {:ns ns
-                                             :base-lang :clj
-                                             :lang :clj}
+                   (first (ana/analyze-defn ctx
                                             (parse-string "(defn get-bytes #^bytes [part] part)"))))))
 
 (deftest analyze-expressions-test
   (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                       :namespaces (atom {})
                                        :expressions (:children (parse-string-all "
 #_1 (ns bar) (defn quux [a b c])
 #_2 (ns foo (:require [bar :as baz :refer [quux]]))
@@ -61,6 +62,7 @@
                       :lang :clj}}
                    (get-in analyzed '[:defs bar])))
   (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                       :namespaces (atom {})
                                        :expressions
                                        (:children (parse-string-all "
 #_1 (ns clj-kondo.impl.utils
@@ -77,6 +79,7 @@
                    (get-in analyzed '[:calls rewrite-clj.parser 0])))
   (testing "calling functions from own ns"
     (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                         :namespaces (atom {})
                                          :expressions (:children (parse-string-all "
 #_1 (ns clj-kondo.main)
 #_2 (defn foo [x]) (foo 1)
@@ -97,6 +100,7 @@
                      (get-in analyzed '[:defs clj-kondo.main]))))
   (testing "calling functions from file without ns form"
     (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj
+                                         :namespaces (atom {})
                                          :expressions
                                          (:children (parse-string-all "
 (defn foo [x]) (foo 1)
@@ -110,7 +114,8 @@
                      (get-in analyzed '[:defs user])))))
 
 (deftest extract-bindings-test
-  (are [syms binding-form] (= syms (keys (ana/extract-bindings {} (parse-string (str binding-form)))))
+  (are [syms binding-form] (= syms (keys (ana/extract-bindings ctx
+                                                               (parse-string (str binding-form)))))
     '[x y z] '[x y [z [x]]]
     '[x y zs xs] '[x y & zs :as xs]
     '[x foo :analyzed] '[x {foo :foo :or {foo 1}}]

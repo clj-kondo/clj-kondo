@@ -66,8 +66,7 @@
                        v (assoc m
                                 :name s
                                 :filename (:filename ctx))]
-                   (namespace/reg-binding! (:base-lang ctx)
-                                           (:lang ctx)
+                   (namespace/reg-binding! ctx
                                            (-> ctx :ns :name)
                                            (assoc m
                                                   :name s
@@ -90,8 +89,7 @@
                      v (assoc m
                               :name s
                               :filename (:filename ctx))]
-                 (namespace/reg-binding! (:base-lang ctx)
-                                         (:lang ctx)
+                 (namespace/reg-binding! ctx
                                          (-> ctx :ns :name)
                                          v)
                  {s v})
@@ -152,7 +150,7 @@
             :used #{}
             :bindings #{}
             :used-bindings #{}}]
-    (namespace/reg-namespace! (:base-lang ctx) (:lang ctx) ns)
+    (namespace/reg-namespace! ctx ns)
     ns))
 
 (defn fn-call? [expr]
@@ -459,7 +457,7 @@
         [alias-sym ns-sym]
         (map #(-> % :children first :value)
              (rest (:children expr)))]
-    (namespace/reg-alias! (:base-lang ctx) (:lang ctx) (:name ns) alias-sym ns-sym)
+    (namespace/reg-alias! ctx (:name ns) alias-sym ns-sym)
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
 (defn analyze-loop [ctx expr]
@@ -583,8 +581,7 @@
       xs))
 
 (defn analyze-binding-call [{:keys [:callstack :config :findings] :as ctx} fn-name expr]
-  (namespace/reg-used-binding! (:base-lang ctx)
-                               (:lang ctx)
+  (namespace/reg-used-binding! ctx
                                (-> ctx :ns :name)
                                (get (:bindings ctx) fn-name))
   (when-not (config/skip? config :invalid-arity callstack)
@@ -613,7 +610,7 @@
         {resolved-namespace :ns
          resolved-name :name}
         (resolve-name
-         (namespace/get-namespace base-lang lang (:name ns)) full-fn-name)
+         (namespace/get-namespace ctx base-lang lang (:name ns)) full-fn-name)
         [resolved-as-namespace resolved-as-name lint-as?]
         (or (when-let [[ns n] (config/lint-as config [resolved-namespace resolved-name])]
               [ns n true])
@@ -847,7 +844,7 @@
 
 (defn analyze-expression*
   [{:keys [:filename :base-lang :lang :results :ns
-           :expression :debug? :config :findings]}]
+           :expression :debug? :config :findings :namespaces]}]
   (let [ctx {:filename filename
              :base-lang base-lang
              :lang lang
@@ -857,7 +854,8 @@
              ;; loop, instead of collecting then in the namespace atom
              :bindings {}
              :config config
-             :findings findings}]
+             :findings findings
+             :namespaces namespaces}]
     (loop [ns ns
            [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
            results results]
@@ -874,7 +872,7 @@
                (update :required into (:required first-parsed))))
           :use
           (do
-            (namespace/reg-usage! base-lang lang (:name ns) (:ns first-parsed))
+            (namespace/reg-usage! ctx (:name ns) (:ns first-parsed))
             (recur
              ns
              rest-parsed
@@ -906,7 +904,7 @@
                results)
              (let [;; TODO: can we do without this resolve since we already resolved in analyze-expression**?
                    resolved (resolve-name
-                             (namespace/get-namespace base-lang lang (:name ns)) (:name first-parsed))
+                             (namespace/get-namespace ctx base-lang lang (:name ns)) (:name first-parsed))
                    first-parsed (assoc first-parsed
                                        :name (:name resolved)
                                        :ns (:name ns))]
@@ -954,7 +952,7 @@
                                 (assoc :unqualified? true))
                          results (do
                                    (when-not unqualified?
-                                     (namespace/reg-usage! base-lang lang (:name ns)
+                                     (namespace/reg-usage! ctx (:name ns)
                                                            (:ns resolved)))
                                    (cond-> (update-in results path vconj call)
                                      (not unqualified?)
@@ -984,12 +982,13 @@
   optimize cache lookups later on, calls are indexed by the namespace
   they call to, not the ns where the call occurred. Also collects
   other findings and passes them under the :findings key."
-  [{:keys [:filename :base-lang :lang :expressions :debug? :config :findings]}]
+  [{:keys [:filename :base-lang :lang :expressions :debug? :config :findings :namespaces]}]
   (profiler/profile
    :analyze-expressions
    (loop [ns (analyze-ns-decl {:filename filename
                                :base-lang base-lang
-                               :lang lang} (parse-string "(ns user)"))
+                               :lang lang
+                               :namespaces namespaces} (parse-string "(ns user)"))
           [expression & rest-expressions] expressions
           results {:calls {}
                    :defs {}
@@ -1007,7 +1006,8 @@
                                    :expression expression
                                    :debug? debug?
                                    :config config
-                                   :findings findings})]
+                                   :findings findings
+                                   :namespaces namespaces})]
          (recur ns rest-expressions results))
        results))))
 
@@ -1016,7 +1016,7 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config :findings] :as _ctx} filename input lang dev?]
+  [{:keys [:config :findings :namespaces] :as _ctx} filename input lang dev?]
   (try
     (let [parsed (p/parse-string input)
           analyzed-expressions
@@ -1024,11 +1024,13 @@
             (let [clj (analyze-expressions {:filename filename
                                             :config config
                                             :findings findings
+                                            :namespaces namespaces
                                             :base-lang :cljc
                                             :lang :clj
                                             :expressions (:children (select-lang parsed :clj))})
                   cljs (analyze-expressions {:filename filename
                                              :findings findings
+                                             :namespaces namespaces
                                              :config config
                                              :base-lang :cljc
                                              :lang :cljs
@@ -1038,6 +1040,7 @@
             (analyze-expressions {:filename filename
                                   :config config
                                   :findings findings
+                                  :namespaces namespaces
                                   :base-lang lang
                                   :lang lang
                                   :expressions
