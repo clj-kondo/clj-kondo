@@ -2,20 +2,18 @@
   {:no-doc true}
   (:gen-class)
   (:require
-   [clj-kondo.impl.rewrite-clj-patch]
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.config :as config]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
-   [clojure.edn :as edn]
-   [clj-kondo.impl.config :as config]
-   [clj-kondo.impl.state :as state]
-   [clojure.java.io :as io]
    [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.rewrite-clj-patch]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
    [clojure.string :as str
     :refer [starts-with?
-            ends-with?]]
-   [clj-kondo.impl.namespace :as namespace])
+            ends-with?]])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
 (def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))
@@ -26,8 +24,8 @@
 
 ;;;; printing
 
-(defn- format-output []
-  (if-let [^String pattern (-> @config/config :output :pattern)]
+(defn- format-output [config]
+  (if-let [^String pattern (-> config :output :pattern)]
     (fn [filename row col level message]
       (-> pattern
           (str/replace "{{filename}}" filename)
@@ -39,8 +37,8 @@
     (fn [filename row col level message]
       (str filename ":" row ":" col ": " (name level) ": " message))))
 
-(defn- print-findings [findings]
-  (let [format-fn (format-output)]
+(defn- print-findings [config findings]
+  (let [format-fn (format-output config)]
     (doseq [{:keys [:filename :message
                     :level :row :col] :as _finding}
             (dedupe (sort-by (juxt :filename :row :col) findings))]
@@ -129,7 +127,7 @@ Options:
 (defn- classpath? [f]
   (str/includes? f cp-sep))
 
-(defn- process-file [filename default-language]
+(defn- process-file [ctx filename default-language]
   (try
     (let [file (io/file filename)]
       (cond
@@ -137,23 +135,23 @@ Options:
         (if (.isFile file)
           (if (ends-with? file ".jar")
             ;; process jar file
-            (map #(ana/analyze-input (:filename %) (:source %)
+            (map #(ana/analyze-input ctx (:filename %) (:source %)
                                         (lang-from-file (:filename %) default-language)
                                         dev?)
                     (sources-from-jar filename))
             ;; assume normal source file
-            [(ana/analyze-input filename (slurp filename)
+            [(ana/analyze-input ctx filename (slurp filename)
                                 (lang-from-file filename default-language)
                                 dev?)])
           ;; assume directory
-          (map #(ana/analyze-input (:filename %) (:source %)
+          (map #(ana/analyze-input ctx (:filename %) (:source %)
                                       (lang-from-file (:filename %) default-language)
                                       dev?)
                   (sources-from-dir file)))
         (= "-" filename)
-        [(ana/analyze-input "<stdin>" (slurp *in*) default-language dev?)]
+        [(ana/analyze-input ctx "<stdin>" (slurp *in*) default-language dev?)]
         (classpath? filename)
-        (mapcat #(process-file % default-language)
+        (mapcat #(process-file ctx % default-language)
                 (str/split filename
                            (re-pattern cp-sep)))
         :else
@@ -170,8 +168,8 @@ Options:
                         :row 0
                         :message "could not process file"}]}]))))
 
-(defn- process-files [files default-lang]
-  (mapcat #(process-file % default-lang) files))
+(defn- process-files [ctx files default-lang]
+  (mapcat #(process-file ctx % default-lang) files))
 
 ;;;; find cache/config dir
 
@@ -269,12 +267,12 @@ Options:
 
 ;;;; filter/remove output
 
-(defn- filter-findings [findings]
-  (let [print-debug? (:debug @config/config)
-        filter-output (not-empty (-> @config/config :output :include-files))
-        remove-output (not-empty (-> @config/config :output :exclude-files))]
+(defn- filter-findings [config findings]
+  (let [print-debug? (:debug config)
+        filter-output (not-empty (-> config :output :include-files))
+        remove-output (not-empty (-> config :output :exclude-files))]
     (for [{:keys [:filename :level :type] :as f} findings
-          :let [level (or (when type (-> @config/config :linters type :level))
+          :let [level (or (when type (-> config :linters type :level))
                           level)]
           :when (and level (not= :off level))
           :when (if (= :debug type)
@@ -298,15 +296,19 @@ Options:
     (profiler/profile
      :main
      ;; TODO: move global state to local context
-     (state/clear-findings!)
-     (reset! namespace/namespaces {})
+     ;; (state/clear-findings!)
+     ;; (reset! namespace/namespaces {})
      (let [start-time (System/currentTimeMillis)
            {:keys [:opts
                    :files
                    :default-lang
                    :cache-dir
-                   :configs]} (parse-opts options)]
-       (run! config/merge-config! configs)
+                   :configs]} (parse-opts options)
+           config (reduce config/merge-config! config/default-config configs)
+           findings (atom [])
+           ctx {:config config
+                :findings findings
+                :namespaces (atom {})}]
        (or (cond (get opts "--version")
                  (print-version)
                  (get opts "--help")
@@ -315,21 +317,21 @@ Options:
                  (print-help)
                  :else
                  (let [processed
-                       (process-files files default-lang)
+                       (process-files ctx files default-lang)
                        idacs (index-defs-and-calls processed)
                        ;; _ (prn "IDACS" idacs)
                        idacs (cache/sync-cache idacs cache-dir)
                        idacs (overrides idacs)
-                       linted-calls (doall (l/lint-calls idacs))
-                       _ (l/lint-unused-namespaces!)
-                       _ (l/lint-unused-bindings!)
+                       linted-calls (doall (l/lint-calls ctx idacs))
+                       _ (l/lint-unused-namespaces! ctx)
+                       _ (l/lint-unused-bindings! ctx)
                        all-findings (concat linted-calls (mapcat :findings processed)
-                                            @state/findings)
-                       all-findings (filter-findings all-findings)
+                                            @findings)
+                       all-findings (filter-findings config all-findings)
                        {:keys [:error :warning]} (summarize all-findings)]
-                   (when (-> @config/config :output :show-progress)
+                   (when (-> config :output :show-progress)
                      (println))
-                   (print-findings all-findings)
+                   (print-findings config all-findings)
                    (printf "linting took %sms, "
                            (- (System/currentTimeMillis) start-time))
                    (println (format "errors: %s, warnings: %s" error warning))

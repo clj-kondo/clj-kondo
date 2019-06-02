@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.namespace
   {:no-doc true}
   (:require
-   [clj-kondo.impl.state :as state]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [node->line parse-string
                                  parse-string-all deep-merge one-of]]
    [clj-kondo.impl.var-info :as var-info]
@@ -10,25 +10,18 @@
    [rewrite-clj.node.seq :refer [vector-node list-node]]
    [rewrite-clj.node.token :refer [token-node]]))
 
-;; we store all seen namespaces here, so we could resolve in the call linter,
-;; instead of too early, because of in-ns.
-
-(defonce namespaces (atom {}))
-
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
   with the same name. Returns updated namespace."
-  [lang expanded-lang ns]
-  (let [path [lang expanded-lang (:name ns)]]
+  [{:keys [:base-lang :lang :namespaces]} ns]
+  (let [path [base-lang lang (:name ns)]]
     (get-in (swap! namespaces update-in
                    path deep-merge ns)
             path)))
 
 (defn reg-var!
-  [ctx ns-sym var-sym expr]
-  (let [lang (:base-lang ctx)
-        expanded-lang (:lang ctx)
-        path [lang expanded-lang ns-sym]]
+  [{:keys [:base-lang :lang :filename :findings :namespaces]} ns-sym var-sym expr]
+  (let [path [base-lang lang ns-sym]]
     (swap! namespaces update-in path
            (fn [ns]
              (let [vars (:vars ns)]
@@ -37,15 +30,16 @@
                                 ns-sym)
                               (when-let [qv (get (:qualify-var ns) var-sym)]
                                 (:ns qv))
-                              (let [core-ns (case expanded-lang
+                              (let [core-ns (case lang
                                               :clj 'clojure.core
                                               :cljs 'cljs.core)]
                                 (when (and (not= ns-sym core-ns)
                                            (not (contains? (:clojure-excluded ns) var-sym))
-                                           (var-info/core-sym? expanded-lang var-sym))
+                                           (var-info/core-sym? lang var-sym))
                                   core-ns)))]
-                 (state/reg-finding!
-                  (node->line (:filename ctx)
+                 (findings/reg-finding!
+                  findings
+                  (node->line filename
                               expr :warning
                               :redefined-var
                               (if (= ns-sym redefined-ns)
@@ -55,23 +49,23 @@
 
 (defn reg-usage!
   "Registers usage of required namespaced in ns."
-  [base-lang lang ns-sym required-ns-sym]
+  [{:keys [:base-lang :lang :namespaces]} ns-sym required-ns-sym]
   (swap! namespaces update-in [base-lang lang ns-sym :used]
          conj required-ns-sym))
 
 (defn reg-alias!
-  [base-lang lang ns-sym alias-sym aliased-ns-sym]
+  [{:keys [:base-lang :lang :namespaces]} ns-sym alias-sym aliased-ns-sym]
   (swap! namespaces assoc-in [base-lang lang ns-sym :qualify-ns alias-sym]
          aliased-ns-sym))
 
 (defn reg-binding!
-  [base-lang lang ns-sym binding]
+  [{:keys [:base-lang :lang :namespaces]} ns-sym binding]
   (swap! namespaces update-in [base-lang lang ns-sym :bindings]
          conj binding)
   nil)
 
 (defn reg-used-binding!
-  [base-lang lang ns-sym binding]
+  [{:keys [:base-lang :lang :namespaces]} ns-sym binding]
   (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
          conj binding)
   nil)
@@ -97,34 +91,31 @@
        (if-let [?ns (namespace v)]
          (let [ns-sym (symbol ?ns)]
            (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
-             (reg-usage! (:base-lang ctx)
-                         (:lang ctx)
+             (reg-usage! ctx
                          (-> ns :name)
                          resolved-ns)))
          (when (and (= t :symbol))
            (if-let [b (when-not syntax-quote?
                         (get (:bindings ctx) v))]
-             (reg-used-binding! (:base-lang ctx)
-                                (:lang ctx)
+             (reg-used-binding! ctx
                                 (-> ns :name)
                                 b)
              (when-let [resolved-ns (or (:ns (get (:qualify-var ns) v))
                                         (get (:qualify-ns ns) v))]
-               (reg-usage! (:base-lang ctx)
-                           (:lang ctx)
+               (reg-usage! ctx
                            (-> ns :name)
                            resolved-ns)))))
        (mapcat #(analyze-usages ctx syntax-quote? %)
                (:children expr))))))
 
-(defn list-namespaces []
+(defn list-namespaces [{:keys [:namespaces]}]
   (for [[_base-lang m] @namespaces
         [_lang nss] m
         [_ns-name ns] nss]
     ns))
 
-(defn get-namespace [lang expanded-lang ns-sym]
-  (get-in @namespaces [lang expanded-lang ns-sym]))
+(defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
+  (get-in @namespaces [base-lang lang ns-sym]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 
@@ -260,13 +251,14 @@
                                                      Integer Long Math String System Thread])
                 (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
 
-(defn analyze-ns-decl [{:keys [:base-lang :lang] :as ctx} expr]
+(defn analyze-ns-decl [{:keys [:lang :findings] :as ctx} expr]
   (let [children (:children expr)
         ns-name (or
                  (let [name-expr (second children)]
                    (when-let [?name (node/sexpr name-expr)]
                      (if (symbol? ?name) ?name
-                         (state/reg-finding!
+                         (findings/reg-finding!
+                          findings
                           (node->line (:filename ctx)
                                       name-expr
                                       :error
@@ -321,7 +313,7 @@
              (= :cljs lang) (update :qualify-ns
                                     #(assoc % 'cljs.core 'cljs.core
                                             'clojure.core 'cljs.core)))]
-    (reg-namespace! base-lang lang ns)
+    (reg-namespace! ctx ns)
     ns))
 
 (defn resolve-name

@@ -44,15 +44,11 @@
              ;; :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"
              }})
 
-(def config (atom default-config))
-
-(defn merge-config! [cfg]
-  (profiler/profile
-   :merge-config
-   (let [cfg (cond-> cfg
-               (:skip-comments cfg)
-               (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
-     (swap! config deep-merge cfg))))
+(defn merge-config! [cfg* cfg]
+  (let [cfg (cond-> cfg
+              (:skip-comments cfg)
+              (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
+    (deep-merge cfg* cfg)))
 
 (defn fq-syms->vecs [fq-syms]
   (map (fn [fq-sym]
@@ -60,46 +56,48 @@
        fq-syms))
 
 (defn skip-args*
-  ([]
-   (fq-syms->vecs (get @config :skip-args)))
-  ([linter]
-   (fq-syms->vecs (get-in @config [:linters linter :skip-args]))))
+  ([config]
+   (fq-syms->vecs (get config :skip-args)))
+  ([config linter]
+   (fq-syms->vecs (get-in config [:linters linter :skip-args]))))
 
 (def skip-args (memoize skip-args*))
 
 (defn skip?
   "we optimize for the case that disable-within returns an empty sequence"
-  ([callstack]
+  ([config callstack]
    (profiler/profile
     :disabled?
-    (when-let [disabled (seq (skip-args))]
+    (when-let [disabled (seq (skip-args config))]
       (some (fn [disabled-sym]
               (some #(= disabled-sym %) callstack))
             disabled))))
-  ([linter callstack]
+  ([config linter callstack]
    (profiler/profile
     :disabled?
-    (when-let [disabled (seq (skip-args linter))]
+    (when-let [disabled (seq (skip-args config linter))]
       (some (fn [disabled-sym]
               (some #(= disabled-sym %) callstack))
             disabled)))))
 
-(defn lint-as-config* []
-  (let [m (get @config :lint-as)]
+(defn lint-as-config* [config]
+  (let [m (get config :lint-as)]
     (zipmap (fq-syms->vecs (keys m))
             (fq-syms->vecs (vals m)))))
 
 (def lint-as-config (memoize lint-as-config*))
 
-(defn lint-as [v] (get (lint-as-config) v))
+(defn lint-as [config v] (get (lint-as-config config) v))
 
 (def unused-namespace-excluded
-  (let [delayed-cfg (delay (let [excluded (get-in @config [:linters :unused-namespace :exclude])
-                                 syms (set (filter symbol? excluded))
-                                 regexes (map re-pattern (filter string? excluded))]
-                             {:syms syms :regexes regexes}))]
-    (fn [ns-sym]
-      (let [{:keys [:syms :regexes]} @delayed-cfg]
+  (let [delayed-cfg (fn [config]
+                      (let [excluded (get-in config [:linters :unused-namespace :exclude])
+                            syms (set (filter symbol? excluded))
+                            regexes (map re-pattern (filter string? excluded))]
+                        {:syms syms :regexes regexes}))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config ns-sym]
+      (let [{:keys [:syms :regexes]} (delayed-cfg config)]
         (or (contains? syms ns-sym)
             (let [ns-str (str ns-sym)]
               (boolean (some #(re-find % ns-str) regexes))))))))
@@ -107,7 +105,4 @@
 ;;;; Scratch
 
 (comment
-  (run! merge-config! [default-config (clojure.edn/read-string (slurp ".clj-kondo/config.edn"))])
-  @config
-  (unused-namespace-excluded)
   )
