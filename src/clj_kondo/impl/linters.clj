@@ -14,7 +14,7 @@
 
 (set! *warn-on-reflection* true)
 
-(defn lint-def* [{:keys [:findings :filename] :as ctx} expr in-def?]
+#_(defn lint-def* [{:keys [:findings :filename] :as ctx} expr in-def?]
   (let [fn-name (symbol-call expr)
         simple-fn-name (when fn-name (symbol (name fn-name)))]
     (when-not (= 'case simple-fn-name)
@@ -28,9 +28,9 @@
           (when (:children expr)
             (run! #(lint-def* ctx % new-in-def?) (:children expr))))))))
 
-(defn lint-def [ctx expr]
+#_(defn lint-def [ctx expr]
   ;; TODO: we can refactor this like we did with redundant do + let
-  (run! #(lint-def* ctx % true) (:children expr)))
+    (run! #(lint-def* ctx % true) (:children expr)))
 
 (defn lint-cond-constants! [{:keys [:findings :filename]} conditions]
   (loop [[condition & rest-conditions] conditions]
@@ -114,11 +114,11 @@
           [(case (:ns called-fn)
              (clojure.core cljs.core)
              (case (:name called-fn)
-               (def defn defn- defmacro) (lint-def ctx (:expr call))
+               (def defn defn- defmacro) nil #_(lint-def ctx (:expr call))
                nil)
              (clojure.test cljs.test)
              (case (:name called-fn)
-               (deftest) (lint-def ctx (:expr call))
+               (deftest) nil #_(lint-def ctx (:expr call))
                nil)
              nil)
            ;; cond linting
