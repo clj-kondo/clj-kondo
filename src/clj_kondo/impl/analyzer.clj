@@ -671,7 +671,7 @@
       (findings/reg-finding!
        (:findings ctx)
        (node->line (:filename ctx)
-                   expr
+                   (first children)
                    :error
                    :unresolved-symbol
                    (str "unresolved symbol " full-fn-name))))
