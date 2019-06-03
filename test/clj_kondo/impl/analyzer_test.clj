@@ -14,30 +14,28 @@
 
 (def ctx {:filename "-"
           :namespaces (atom {})
+          :findings (atom [])
           :base-lang :clj
           :lang :clj})
 
 (deftest analyze-defn-test
-  (let [ns (namespace/analyze-ns-decl ctx (parse-string "(ns user)"))]
-    (assert-submaps
-     '[{:type :defn
-        :name chunk-buffer, :fixed-arities #{1}}
-       {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
-     (ana/analyze-defn {:ns (namespace/analyze-ns-decl ctx (parse-string "(ns user)"))
-                        :base-lang :clj
-                        :lang :clj
-                        :namespaces (:namespaces ctx)}
-                       (parse-string
-                        "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
+  (assert-submaps
+   '[{:type :defn
+      :name chunk-buffer, :fixed-arities #{1}}
+     {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
+   (ana/analyze-defn (assoc ctx :ns
+                            (namespace/analyze-ns-decl ctx (parse-string "(ns user)")))
+                     (parse-string
+                      "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
   (clojure.lang.ChunkBuffer. capacity))")))
-    (assert-submap '{:type :defn
-                     :name get-bytes,
-                     :row 1,
-                     :col 1,
-                     :lang :clj,
-                     :fixed-arities #{1}}
-                   (first (ana/analyze-defn ctx
-                                            (parse-string "(defn get-bytes #^bytes [part] part)"))))))
+  (assert-submap '{:type :defn
+                   :name get-bytes,
+                   :row 1,
+                   :col 1,
+                   :lang :clj,
+                   :fixed-arities #{1}}
+                 (first (ana/analyze-defn ctx
+                                          (parse-string "(defn get-bytes #^bytes [part] part)")))))
 
 (deftest analyze-expressions-test
   (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj

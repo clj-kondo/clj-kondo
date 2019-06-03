@@ -61,7 +61,8 @@
            (if (map? m)
              [m (rest args)]
              [nil args]))
-         base-config '{:linters {:unused-binding {:level :off}}}
+         base-config '{:linters {:unused-binding {:level :off}
+                                 :unresolved-symbol {:level :off}}}
          config (str (deep-merge base-config config))
          res (with-out-str
                (try
@@ -85,7 +86,8 @@
            (if (map? m)
              [m (rest args)]
              [nil args]))
-         base-config '{:linters {:unused-binding {:level :off}}}
+         base-config '{:linters {:unused-binding {:level :off}
+                                 :unresolved-symbol {:level :off}}}
          config (str (deep-merge base-config config))
          res (let-programs [clj-kondo "./clj-kondo"]
                (binding [sh/*throw* false]

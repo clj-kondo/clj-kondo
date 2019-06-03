@@ -52,43 +52,41 @@
                                        [baz :refer :all :rename {baz-fn renamed-fn}]))")))))
 
 (deftest resolve-name-test
-  (let [ns (analyze-ns-decl
-            {:lang :clj
-             :namespaces (atom {})}
-            (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
+  (let [ctx {:namespaces (atom {})
+             :findings (atom [])
+             :base-lang :clj
+             :lang :clj}
+        _ (analyze-ns-decl
+           ctx
+           (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
     (is (= '{:ns bar :name quux}
-           (resolve-name ns 'quux))))
-  (let [ns (analyze-ns-decl
-            {:lang :clj
-             :namespaces (atom {})}
-            (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:ns bar :name quux}
-           (resolve-name ns 'quux))))
-  (let [ns (analyze-ns-decl
-            {:lang :clj
-             :namespaces (atom {})}
-            (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
+           (resolve-name ctx 'foo 'quux)))
+    (let [_ (analyze-ns-decl
+             ctx
+             (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
+      (is (= '{:ns bar :name quux}
+             (resolve-name ctx 'foo 'quux))))
+    (let [_ (analyze-ns-decl
+             ctx
+             (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
-    (is (= '{:ns rewrite-clj.parser :name parse-string}
-           (resolve-name ns 'p/parse-string))))
-  (testing "referring to unknown namespace alias"
-    (let [ns (analyze-ns-decl
-              {:lang :clj
-               :namespaces (atom {})}
-              (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
+      (is (= '{:ns rewrite-clj.parser :name parse-string}
+             (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string))))
+    (testing "referring to unknown namespace alias"
+      (let [_ (analyze-ns-decl
+               ctx
+               (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
 "))]
-      (nil? (resolve-name ns 'p/parse-string))))
-  (testing "referring with full namespace"
-    (let [ns (analyze-ns-decl
-              {:lang :clj
-               :namespaces (atom {})}
-              (parse-string "(ns clj-kondo.impl.utils (:require [clojure.core]))
+        (nil? (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string))))
+    (testing "referring with full namespace"
+      (let [_ (analyze-ns-decl
+                ctx
+                (parse-string "(ns clj-kondo.impl.utils (:require [clojure.core]))
 (clojure.core/inc 1)
 "))]
-      ;; TODO: what's the test here?
-      (is (=
-           '{:ns clojure.core :name inc}
-           (resolve-name ns 'clojure.core/inc))))))
+        (is (=
+             '{:ns clojure.core :name inc}
+             (resolve-name ctx 'clj-kondo.impl.utils 'clojure.core/inc)))))))
 
 (comment
   (t/run-tests)

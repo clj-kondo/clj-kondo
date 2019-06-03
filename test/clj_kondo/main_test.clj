@@ -484,7 +484,8 @@
   (is (empty? (lint! "(doseq [fn [inc]] (fn 1))")))
   (is (empty?
        (lint! "(select-keys (let [x (fn [])] (x 1 2 3)) [])" "--config"
-              "{:linters {:invalid-arity {:skip-args [clojure.core/select-keys]}}}"))))
+              "{:linters {:invalid-arity {:skip-args [clojure.core/select-keys]}
+                          :unresolved-symbol {:level :off}}}"))))
 
 (deftest let-test
   (assert-submap
@@ -567,9 +568,11 @@
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
-           (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}"}}))))
+           (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}"}
+                                                :linters {:unresolved-symbol {:level :off}}}))))
        "WARNING_<stdin>"))
-  (is (empty? (lint! "(comment (select-keys))" '{:skip-args [clojure.core/comment]})))
+  (is (empty? (lint! "(comment (select-keys))" '{:skip-args [clojure.core/comment]
+                                                 :linters {:unresolved-symbol {:level :off}}})))
   (assert-submap
    '({:file "<stdin>",
       :row 1,
@@ -1067,7 +1070,8 @@
       :message "wrong number of args (3) passed to a map"})
    (lint! "({:a 1} 1 2 3)"))
   (is (empty? (lint! "(foo ({:a 1} 1 2 3))" "--config"
-                     "{:linters {:invalid-arity {:skip-args [user/foo]}}}"))))
+                     "{:linters {:invalid-arity {:skip-args [user/foo]}
+                                 :unresolved-symbol {:level :off}}}"))))
 
 (deftest symbol-call-test
   (assert-submaps
@@ -1085,7 +1089,8 @@
       :message "wrong number of args (3) passed to a symbol"})
    (lint! "('foo 1 2 3)"))
   (is (empty? (lint! "(foo ('foo 1 2 3))" "--config"
-                     "{:linters {:invalid-arity {:skip-args [user/foo]}}}"))))
+                     "{:linters {:invalid-arity {:skip-args [user/foo]}
+                                 :unresolved-symbol {:level :off}}}"))))
 
 (deftest not-a-function-test
   (assert-submaps '({:file "<stdin>",
@@ -1108,7 +1113,8 @@
                   (lint! "(1 1)"))
   (is (empty? (lint! "'(1 1)")))
   (is (empty? (lint! "(foo (1 1))" "--config"
-                     "{:linters {:not-a-function {:skip-args [user/foo]}}}"))))
+                     "{:linters {:not-a-function {:skip-args [user/foo]}
+                                 :unresolved-symbol {:level :off}}}"))))
 
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
