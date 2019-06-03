@@ -1,6 +1,7 @@
 (ns clj-kondo.main
   {:no-doc true}
   (:gen-class)
+  (:refer-clojure :exclude [run!])
   (:require
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.cache :as cache]
@@ -36,13 +37,6 @@
           (str/replace "{{message}}" message)))
     (fn [filename row col level message]
       (str filename ":" row ":" col ": " (name level) ": " message))))
-
-(defn- print-findings [config findings]
-  (let [format-fn (format-output config)]
-    (doseq [{:keys [:filename :message
-                    :level :row :col] :as _finding}
-            (dedupe (sort-by (juxt :filename :row :col) findings))]
-      (println (format-fn filename row col level message)))))
 
 (defn- print-version []
   (println (str "clj-kondo v" version)))
@@ -136,18 +130,18 @@ Options:
           (if (ends-with? file ".jar")
             ;; process jar file
             (map #(ana/analyze-input ctx (:filename %) (:source %)
-                                        (lang-from-file (:filename %) default-language)
-                                        dev?)
-                    (sources-from-jar filename))
+                                     (lang-from-file (:filename %) default-language)
+                                     dev?)
+                 (sources-from-jar filename))
             ;; assume normal source file
             [(ana/analyze-input ctx filename (slurp filename)
                                 (lang-from-file filename default-language)
                                 dev?)])
           ;; assume directory
           (map #(ana/analyze-input ctx (:filename %) (:source %)
-                                      (lang-from-file (:filename %) default-language)
-                                      dev?)
-                  (sources-from-dir file)))
+                                   (lang-from-file (:filename %) default-language)
+                                   dev?)
+               (sources-from-dir file)))
         (= "-" filename)
         [(ana/analyze-input ctx "<stdin>" (slurp *in*) default-language dev?)]
         (classpath? filename)
@@ -189,8 +183,6 @@ Options:
 
 ;;;; parse command line options
 
-(def ^:private empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
-
 (defn- parse-opts [options]
   (let [opts (loop [options options
                     opts-map {}
@@ -209,31 +201,39 @@ Options:
                        "cljs" :cljs
                        "cljc" :cljc
                        :clj)
-        cache-opt (get opts "--cache")
-        cfg-dir (config-dir)
-        cache-dir (when cache-opt
-                    (if-let [cd (first cache-opt)]
-                      (io/file cd version)
-                      (if cfg-dir (io/file cfg-dir ".cache" version)
-                          (do (println empty-cache-opt-warning)
-                              nil))))
-        files (get opts "--lint")
-        raw-config (first (get opts "--config"))
-        config-edn? (when raw-config
-                      (str/starts-with? raw-config "{"))
-        config-opt (and raw-config
-                        (if config-edn?
-                          (edn/read-string raw-config)
-                          (edn/read-string (slurp raw-config))))
-        config-edn (when cfg-dir
-                     (let [f (io/file cfg-dir "config.edn")]
-                       (when (.exists f)
-                         (edn/read-string (slurp f)))))]
-    {:opts opts
-     :files files
-     :cache-dir cache-dir
-     :default-lang default-lang
-     :configs [config-edn config-opt]}))
+        cache-opt (get opts "--cache")]
+    {:files (get opts "--lint")
+     :cache (when cache-opt
+              (or (first cache-opt) true))
+     :lang default-lang
+     :config (first (get opts "--config"))
+     :version (get opts "--version")
+     :help (get opts "--help")}))
+
+;;;; process config
+
+(defn- resolve-config [cfg-dir config]
+  (reduce config/merge-config! config/default-config
+          [(when cfg-dir
+             (let [f (io/file cfg-dir "config.edn")]
+               (when (.exists f)
+                 (edn/read-string (slurp f)))))
+           (when config
+             (if (str/starts-with? config "{")
+               (edn/read-string config)
+               (edn/read-string (slurp config))))]))
+
+;;;; process cache
+
+(def ^:private empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
+
+(defn- resolve-cache-dir [cfg-dir cache-dir]
+  (when cache-dir
+    (if (true? cache-dir)
+      (if cfg-dir (io/file cfg-dir ".cache" version)
+          (do (println empty-cache-opt-warning)
+              nil))
+      (io/file cache-dir version))))
 
 ;;;; index defs and calls by language and namespace
 
@@ -288,6 +288,43 @@ Options:
                           remove-output)]
       (assoc f :level level))))
 
+;;;; API
+
+(defn run!
+  "TODO: docstring"
+  [{:keys [:files
+           :lang
+           :cache
+           :config]}]
+  (let [cfg-dir (config-dir)
+        config (resolve-config cfg-dir config)
+        cache-dir (resolve-cache-dir cfg-dir cache)
+        findings (atom [])
+        ctx {:config config
+             :findings findings
+             :namespaces (atom {})}
+        processed
+        (process-files ctx files lang)
+        idacs (index-defs-and-calls processed)
+        ;; _ (prn "IDACS" idacs)
+        idacs (cache/sync-cache idacs cache-dir)
+        idacs (overrides idacs)
+        linted-calls (doall (l/lint-calls ctx idacs))
+        _ (l/lint-unused-namespaces! ctx)
+        _ (l/lint-unused-bindings! ctx)
+        all-findings (concat linted-calls (mapcat :findings processed)
+                             @findings)
+        all-findings (filter-findings config all-findings)]
+    {:findings all-findings
+     :config config}))
+
+(defn print-findings! [{:keys [:config :findings]}]
+  (let [format-fn (format-output config)]
+    (doseq [{:keys [:filename :message
+                    :level :row :col] :as _finding}
+            (dedupe (sort-by (juxt :filename :row :col) findings))]
+      (println (format-fn filename row col level message)))))
+
 ;;;; main
 
 (defn main
@@ -296,45 +333,26 @@ Options:
     (profiler/profile
      :main
      (let [start-time (System/currentTimeMillis)
-           {:keys [:opts
-                   :files
-                   :default-lang
-                   :cache-dir
-                   :configs]} (parse-opts options)
-           config (reduce config/merge-config! config/default-config configs)
-           findings (atom [])
-           ctx {:config config
-                :findings findings
-                :namespaces (atom {})}]
-       (or (cond (get opts "--version")
+           {:keys [:help :files :version] :as parsed} (parse-opts options)]
+       (or (cond version
                  (print-version)
-                 (get opts "--help")
+                 help
                  (print-help)
                  (empty? files)
                  (print-help)
-                 :else
-                 (let [processed
-                       (process-files ctx files default-lang)
-                       idacs (index-defs-and-calls processed)
-                       ;; _ (prn "IDACS" idacs)
-                       idacs (cache/sync-cache idacs cache-dir)
-                       idacs (overrides idacs)
-                       linted-calls (doall (l/lint-calls ctx idacs))
-                       _ (l/lint-unused-namespaces! ctx)
-                       _ (l/lint-unused-bindings! ctx)
-                       all-findings (concat linted-calls (mapcat :findings processed)
-                                            @findings)
-                       all-findings (filter-findings config all-findings)
-                       {:keys [:error :warning]} (summarize all-findings)]
-                   (when (-> config :output :show-progress)
-                     (println))
-                   (print-findings config all-findings)
-                   (printf "linting took %sms, "
-                           (- (System/currentTimeMillis) start-time))
-                   (println (format "errors: %s, warnings: %s" error warning))
-                   (cond (pos? error) 3
-                         (pos? warning) 2
-                         :else 0)))
+                 :else (let [{findings :findings
+                              config :config
+                              :as results} (run! parsed)
+                             {:keys [:error :warning]} (summarize findings)]
+                         (when (-> config :output :show-progress)
+                           (println))
+                         (print-findings! results)
+                         (printf "linting took %sms, "
+                                 (- (System/currentTimeMillis) start-time))
+                         (println (format "errors: %s, warnings: %s" error warning))
+                         (cond (pos? error) 3
+                               (pos? warning) 2
+                               :else 0)))
            0)))
     (finally
       (profiler/print-profile :main))))
