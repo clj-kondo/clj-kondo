@@ -19,8 +19,7 @@
     (is (= #{"inline def"} (set (map :message linted)))))
   (doseq [lang [:clj :cljs]]
     (is (empty? (lint! "(defmacro foo [] `(def x 1))" "--lang" (name lang))))
-    (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang))))
-    (is (not-empty (lint! "(defmacro foo [] `(def x# (def x# 1)))" "--lang" (name lang))))))
+    (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang))))))
 
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
@@ -1287,6 +1286,9 @@
   (is (empty? (lint! "(deftype Foo [] (doseq [[key f] []] (f key)))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~x)))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(let [[_ _ name] nil]
+                        `(cljs.core/let [~name ~e] ~@cb))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~@[x])))"
                      '{:linters {:unused-binding {:level :warning}}})))

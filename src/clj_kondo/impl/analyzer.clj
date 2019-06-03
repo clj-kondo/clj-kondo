@@ -219,7 +219,10 @@
         private? (or (= 'defn- call-sym)
                      (:private var-meta))
         bodies (fn-bodies ctx (next children))
-        parsed-bodies (map #(analyze-fn-body ctx %) bodies)
+        parsed-bodies (map #(analyze-fn-body
+                             (assoc ctx
+                                    :in-def? true) %)
+                           bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
         {:keys [:row :col]} (meta expr)
@@ -600,6 +603,16 @@
                                                                fn-name)))))))
       (analyze-children ctx (rest children)))))
 
+(defn lint-inline-def! [{:keys [:in-def? :findings :filename]} expr]
+  (when in-def?
+    (findings/reg-finding!
+     findings
+     (node->line filename expr :warning :inline-def "inline def"))))
+
+(defn analyze-def [ctx expr]
+  (analyze-children (assoc ctx :in-def? true)
+                    (next (:children expr))))
+
 (defn analyze-call
   [{:keys [:fn-body :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -644,16 +657,19 @@
              in-ns (when-not fn-body [(analyze-in-ns ctx expr)])
              alias
              [(analyze-alias ctx expr)]
+             def (do (lint-inline-def! ctx expr)
+                     (analyze-def ctx expr))
              (defn defn- defmacro)
-             (cons {:type :call
-                    :name resolved-as-clojure-var-name
-                    :row row
-                    :col col
-                    :base-lang base-lang
-                    :lang lang
-                    :expr expr
-                    :arity arg-count}
-                   (analyze-defn ctx expr))
+             (do (lint-inline-def! ctx expr)
+               (cons {:type :call
+                      :name resolved-as-clojure-var-name
+                      :row row
+                      :col col
+                      :base-lang base-lang
+                      :lang lang
+                      :expr expr
+                      :arity arg-count}
+                     (analyze-defn ctx expr)))
              comment
              (analyze-children ctx children)
              (-> some->)
@@ -696,7 +712,9 @@
                [schema.core defn]
                (analyze-schema-defn ctx expr)
                ([clojure.test deftest] [cljs.test deftest])
-               (analyze-deftest ctx resolved-namespace expr)
+               (do
+                 (lint-inline-def! ctx expr)
+                 (analyze-deftest ctx resolved-namespace expr))
                ;; catch-all
                (let [call (if (:call-as-use ctx)
                             {:type :use
@@ -781,7 +799,9 @@
         arg-count (count (rest children))]
     (case t
       :quote nil
-      :syntax-quote (namespace/analyze-usages ctx true expr)
+      :syntax-quote (namespace/analyze-usages ctx expr)
+      (:unquote :unquote-splicing)
+      nil ;; TODO: this is an error, you can't use this outside syntax-quote!
       :namespaced-map (analyze-namespaced-map (update ctx
                                                       :callstack #(cons [nil t] %))
                                               expr)
@@ -793,7 +813,7 @@
                                          :callstack #(cons [nil t] %))
                                  children))
       :fn (recur ctx (macroexpand/expand-fn expr))
-      :token (namespace/analyze-usages ctx false expr)
+      :token (namespace/analyze-usages ctx expr)
       :list
       (when-let [function (first children)]
         (let [t (node/tag function)]
@@ -813,7 +833,8 @@
                   (analyze-children ctx children))
               (if-let [full-fn-name (when (utils/symbol-token? function) (:value function))]
                 (let [unqualified? (nil? (namespace full-fn-name))
-                      binding-call? (and unqualified? (contains? bindings full-fn-name))]
+                      binding-call? (and unqualified?
+                                         (contains? bindings full-fn-name))]
                   (if binding-call?
                     (analyze-binding-call ctx full-fn-name expr)
                     (analyze-call ctx {:arg-count arg-count
