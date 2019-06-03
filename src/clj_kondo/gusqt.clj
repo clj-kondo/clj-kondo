@@ -12,20 +12,8 @@
 
   GUSQT format is as defined
   [here](https://github.com/simon-brooke/gusqt/blob/master/src/gusqt/wrappers/README.md)"
-;;   (:require
-;;        [clj-kondo.impl.utils :refer [deep-merge]]))
-)
-
-(defn deep-merge
-  "Recursively merges maps. Stolen from
-  https://dnaeon.github.io/recursively-merging-maps-in-clojure/.
-  TODO: there must surely be a well-known library function that does this."
-  [& maps]
-  (letfn [(m [& xs]
-             (if (some #(and (map? %) (not (record? %))) xs)
-               (apply merge-with m xs)
-               (last xs)))]
-    (reduce m maps)))
+  (:require
+       [clj-kondo.impl.utils :refer [deep-merge]]))
 
 (defn as-number
   "If `x` is numeric, x; if x is a string representation of a number, that
