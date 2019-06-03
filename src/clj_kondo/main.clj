@@ -295,9 +295,6 @@ Options:
   (try
     (profiler/profile
      :main
-     ;; TODO: move global state to local context
-     ;; (state/clear-findings!)
-     ;; (reset! namespace/namespaces {})
      (let [start-time (System/currentTimeMillis)
            {:keys [:opts
                    :files
