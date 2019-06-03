@@ -8,7 +8,9 @@
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [rewrite-clj "0.6.1"]
-                 [com.cognitect/transit-clj "0.8.313"]]
+                 [com.cognitect/transit-clj "0.8.313"]
+                 [me.raynes/conch "0.8.0"]
+                 [jonase/eastwood "0.3.5"]]
   :profiles {:uberjar {:global-vars {*assert* false}
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.spec.skip-macros=true"]
