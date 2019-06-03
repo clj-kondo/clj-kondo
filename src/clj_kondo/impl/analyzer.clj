@@ -206,12 +206,13 @@
           :list exprs
           (recur rest-exprs))))))
 
-(defn analyze-defn [{:keys [base-lang lang] :as ctx} expr]
+(defn analyze-defn [{:keys [:base-lang :lang :ns] :as ctx} expr]
   (let [children (:children expr)
         children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
         name-node (first children)
         name-node (when name-node (meta/lift-meta-content ctx name-node))
         fn-name (:value name-node)
+        _ (when fn-name (namespace/reg-var!  ctx (:name ns) fn-name expr))
         var-meta (meta name-node)
         call-sym (symbol-call expr)
         macro? (or (= 'defmacro call-sym)
@@ -662,8 +663,11 @@
                :lang lang
                :expr expr})]
     (when (and unqualified?
-               (not (str/starts-with? (name full-fn-name)
-                                      ".")))
+               (not call-as-use)
+               (not (or (str/starts-with? (name full-fn-name)
+                                          ".")
+                        (str/ends-with? (name full-fn-name)
+                                        "."))))
       (findings/reg-finding!
        (:findings ctx)
        (node->line (:filename ctx)
@@ -953,7 +957,6 @@
                        results
                        (if resolved
                          (do
-                           (namespace/reg-var! ctx (:name ns) (:name resolved) (:expr first-parsed))
                            (assoc-in results path
                                      (dissoc first-parsed
                                              :type
