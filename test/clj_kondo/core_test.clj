@@ -35,6 +35,7 @@
                                                   ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
                                                   "spec.alpha-0.2.176.jar")]}))))))
     (testing "classpath 'file' arg"
+      ;; TODO: use the classpath separator here
       (let [findings (:findings (clj-kondo/run! {:files ["corpus/invalid_arity:corpus/private"]}))
             filenames (->> findings
                            (map :filename)
@@ -43,3 +44,9 @@
                            set)]
         (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
                filenames))))))
+
+;;;; Scratch
+
+(comment
+  (.getPath (io/file "foo" "bar"))
+  )
