@@ -88,7 +88,7 @@ Options:
                               :as results} (clj-kondo/run! parsed)
                              {:keys [:error :warning]} (core-impl/summarize findings)
                              output-cfg (:output config)]
-                         (when (:show-progress output-cfg)
+                         (when (:progress output-cfg)
                            (println))
                          (clj-kondo/print-findings! results)
                          (when (and (= :text (:format output-cfg))

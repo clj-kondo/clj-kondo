@@ -30,7 +30,7 @@ linting took 10ms, errors: 0, warnings: 0
 ### Show progress bar while linting
 
 ``` shellsession
-$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:show-progress true}}'
+$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:progress true}}'
 .................................................................................................................
 cljs/tools/reader.cljs:527:9: warning: redundant do
 (rest of the output omitted)

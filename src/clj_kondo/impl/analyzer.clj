@@ -1078,5 +1078,5 @@
                                      filename ", "
                                      (.getMessage e))}]}))
     (finally
-      (when (-> config :output :show-progress)
+      (when (-> config :output :progress)
         (print ".") (flush)))))

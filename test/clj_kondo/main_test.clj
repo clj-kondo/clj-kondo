@@ -558,7 +558,7 @@
        (lint! "(cond 1 2)" '{:linters {:cond-else {:level :off}}})))
   (is (str/starts-with?
        (with-out-str
-         (lint! (io/file "corpus") '{:output {:show-progress true}}))
+         (lint! (io/file "corpus") '{:output {:progress true}}))
        "...."))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
