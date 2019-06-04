@@ -6,11 +6,12 @@
    [clojure.test :as t :refer [deftest is testing]]
    [me.raynes.conch :refer [programs with-programs let-programs] :as sh]
    [clojure.string :as str]
-   [clj-kondo.test-utils :refer [lint!]]))
+   [clj-kondo.test-utils :refer [lint!]]
+   [clj-kondo.impl.core :as core-impl]))
 
 (programs rm mkdir echo mv)
 
-(def cache-version @#'main/version)
+(def cache-version core-impl/version)
 
 (deftest cache-test
   (testing "empty cache option warning (this test assumes you have no .clj-kondo
