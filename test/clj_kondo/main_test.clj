@@ -1,7 +1,9 @@
 (ns clj-kondo.main-test
   (:require
+   [cheshire.core :as cheshire]
    [clj-kondo.main :refer [main]]
    [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap submap?]]
+   [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str :refer [trim]]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -1339,6 +1341,76 @@
                        :level :warning,
                        :message "j is not bound in this destructuring form"})
                     (lint! input))))
+
+(deftest output-test
+  (is (str/starts-with?
+       (with-in-str ""
+         (with-out-str
+           (main  "--lint" "-" "--config" "{:output {:summary true}}")))
+       "linting took"))
+  (is (not
+       (str/starts-with?
+        (with-in-str ""
+          (with-out-str
+            (main  "--lint" "-" "--config" "{:output {:summary false}}")))
+        "linting took")))
+  (is (= '({:filename "<stdin>",
+            :row 1,
+            :col 1,
+            :level :error,
+            :message "wrong number of args (0) passed to clojure.core/inc"}
+           {:filename "<stdin>",
+            :row 1,
+            :col 6,
+            :level :error,
+            :message "wrong number of args (0) passed to clojure.core/dec"})
+       (let [parse-fn
+             (fn [line]
+               (when-let [[_ file row col level message]
+                          (re-matches #"(.+):(\d+):(\d+): (\w+): (.*)" line)]
+                 {:filename file
+                  :row (Integer/parseInt row)
+                  :col (Integer/parseInt col)
+                  :level (keyword level)
+                  :message message}))
+             text (with-in-str "(inc)(dec)"
+                    (with-out-str
+                      (main  "--lint" "-" "--config" "{:output {:format :text}}")))]
+         (keep parse-fn (str/split-lines text)))))
+  (is (= {:findings
+          [{:type "invalid-arity",
+            :filename "<stdin>",
+            :row 1,
+            :col 1,
+            :level "error",
+            :message "wrong number of args (0) passed to clojure.core/inc"}
+           {:type "invalid-arity",
+            :filename "<stdin>",
+            :row 1,
+            :col 6,
+            :level "error",
+            :message "wrong number of args (0) passed to clojure.core/dec"}]}
+         (let [json (with-in-str "(inc)(dec)"
+                      (with-out-str
+                        (main  "--lint" "-" "--config" "{:output {:format :json}}")))]
+           (cheshire/parse-string json true))))
+  (is (= {:findings
+          [{:type :invalid-arity,
+            :filename "<stdin>",
+            :row 1,
+            :col 1,
+            :level :error,
+            :message "wrong number of args (0) passed to clojure.core/inc"}
+           {:type :invalid-arity,
+            :filename "<stdin>",
+            :row 1,
+            :col 6,
+            :level :error,
+            :message "wrong number of args (0) passed to clojure.core/dec"}]}
+         (let [edn (with-in-str "(inc)(dec)"
+                     (with-out-str
+                       (main  "--lint" "-" "--config" "{:output {:format :edn}}")))]
+           (edn/read-string edn)))))
 
 ;;;; Scratch
 

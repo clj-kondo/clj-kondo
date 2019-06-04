@@ -1,8 +1,9 @@
 (ns clj-kondo.profile
-  (:require [clj-async-profiler.core :as prof]
-            [clj-kondo.main :as main]))
+  (:require [clj-kondo.main :as main]))
 
 (defn -main [& options]
-  (prof/profile
+  ;; prevent loading async profiler when lein test scans test files
+  (require '[clj-async-profiler.core :as prof])
+  ((resolve 'clj-async-profiler.core/profile)
    (apply main/main options))
   (shutdown-agents))

@@ -26,10 +26,14 @@
       (println
        (format "{\"findings\":\n [%s]}"
                (str/join ",\n  "
-                         (map (fn [{:keys [:filename :type :message
-                                           :level :row :col]}]
-                                (format row-format
-                                        (name type) filename row col level message)) findings)))))))
+                         (map
+                          (fn [{:keys [:filename :type :message
+                                       :level :row :col]}]
+                            (format row-format
+                                    (name type) filename row
+                                    col (name level)
+                                    message))
+                          findings)))))))
 
 (defn run!
   "TODO: docstring"
