@@ -62,13 +62,15 @@
 ;;;; Scratch
 
 (comment
-  (def findings
-    (:findings (run! {;; seq of string or file
-                      :files ["corpus" (io/file "test")]
-                      :config {:linters {:invalid-arity {:level :off}}}
-                      ;; :cache takes a string, file or boolean
-                      :cache (io/file "/tmp/clj-kondo-cache")
-                      ;; only relevant when linting stdin
-                      :lang :clj})))
-  (first findings)
+  (require '[clj-kondo.core :as clj-kondo])
+  (def res (clj-kondo/run!
+            {;; seq of string or file
+             :files ["corpus" (io/file "test")]
+             :config {:linters {:invalid-arity {:level :off}}}
+             ;; :cache takes a string, file or boolean
+             :cache (io/file "/tmp/clj-kondo-cache")
+             ;; only relevant when linting stdin
+             :lang :clj}))
+  (first (:findings res))
+  (clj-kondo/print-findings! res)
   )
