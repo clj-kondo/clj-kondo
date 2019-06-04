@@ -1073,6 +1073,7 @@
                        :filename filename
                        :col 0
                        :row 0
+                       :type :parse-error
                        :message (str "can't parse "
                                      filename ", "
                                      (.getMessage e))}]}))

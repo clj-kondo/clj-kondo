@@ -319,11 +319,25 @@ Options:
      :config config}))
 
 (defn print-findings! [{:keys [:config :findings]}]
-  (let [format-fn (format-output config)]
-    (doseq [{:keys [:filename :message
-                    :level :row :col] :as _finding}
-            (dedupe (sort-by (juxt :filename :row :col) findings))]
-      (println (format-fn filename row col level message)))))
+  (case (-> config :output :format)
+    :text
+    (let [format-fn (format-output config)]
+      (doseq [{:keys [:filename :message
+                      :level :row :col] :as _finding}
+              (dedupe (sort-by (juxt :filename :row :col) findings))]
+        (println (format-fn filename row col level message))))
+    ;; avoid loading clojure.pprint or bringing in additional libs for coercing to EDN or JSON
+    :edn
+    (println {:findings (format "\n [%s]" (str/join ",\n  " findings))})
+    :json
+    (let [row-format "{\"type\":\"%s\", \"filename\":\"%s\", \"row\":%s,\"col\":%s, \"level\":\"%s\", \"message\":\"%s\"}"]
+      (println
+       (format "{\"findings\":\n [%s]}"
+               (str/join ",\n  "
+                         (map (fn [{:keys [:filename :type :message
+                                           :level :row :col]}]
+                                (format row-format
+                                 (name type) filename row col level message)) findings)))))))
 
 ;;;; main
 
@@ -343,13 +357,16 @@ Options:
                  :else (let [{findings :findings
                               config :config
                               :as results} (run! parsed)
-                             {:keys [:error :warning]} (summarize findings)]
-                         (when (-> config :output :show-progress)
+                             {:keys [:error :warning]} (summarize findings)
+                             output-cfg (:output config)]
+                         (when (:show-progress output-cfg)
                            (println))
                          (print-findings! results)
-                         (printf "linting took %sms, "
-                                 (- (System/currentTimeMillis) start-time))
-                         (println (format "errors: %s, warnings: %s" error warning))
+                         (when (and (= :text (:format output-cfg))
+                                    (:summary output-cfg))
+                           (printf "linting took %sms, "
+                                   (- (System/currentTimeMillis) start-time))
+                           (println (format "errors: %s, warnings: %s" error warning)))
                          (cond (pos? error) 3
                                (pos? warning) 2
                                :else 0)))

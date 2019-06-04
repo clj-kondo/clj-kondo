@@ -34,7 +34,9 @@
               clojure.core.async/go-loop clojure.core/loop
               cljs.core.async/go-loop clojure.core/loop
               cljs.core.async.macros/go-loop clojure.core/loop}
-    :output {;; set to truthy to print progress while linting
+    :output {:format :text ;; or :edn
+             :summary true ;; prints summary at end, only applicable to output :text
+             ;; set to truthy to print progress while linting
              :show-progress false
              ;; output can be filtered and removed by regex on filename. empty options leave the output untouched.
              :include-files [] #_["^src" "^test"]
