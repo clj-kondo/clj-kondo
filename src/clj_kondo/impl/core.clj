@@ -80,8 +80,8 @@
       (str/ends-with? filename ".cljs")))
 
 (defn sources-from-jar
-  [^String jar-path]
-  (let [jar (JarFile. jar-path)
+  [^java.io.File jar-file]
+  (let [jar (JarFile. jar-file)
         entries (enumeration-seq (.entries jar))
         entries (filter (fn [^JarFile$JarFileEntry x]
                           (let [nm (.getName x)]
@@ -131,12 +131,12 @@
       (cond
         (.exists file)
         (if (.isFile file)
-          (if (str/ends-with? file ".jar")
+          (if (str/ends-with? (.getPath file) ".jar")
             ;; process jar file
             (map #(ana/analyze-input ctx (:filename %) (:source %)
                                      (lang-from-file (:filename %) default-language)
                                      dev?)
-                 (sources-from-jar filename))
+                 (sources-from-jar file))
             ;; assume normal source file
             [(ana/analyze-input ctx filename (slurp filename)
                                 (lang-from-file filename default-language)
