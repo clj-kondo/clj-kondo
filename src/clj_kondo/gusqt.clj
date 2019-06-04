@@ -34,14 +34,16 @@
     deep-merge
     {}
     (map
-      (fn [f]
+      (fn [f n]
         {(:filename f)
          {:lines
           {(as-number (:row f))
            {:clj-kondo
-            {:severity (:level f)
-             :file (:filename f)
-             :line (as-number (:row f))
-             :column (as-number (:col f))
-             :test (:message f)}}}}})
-      findings)))
+            {n
+             {:severity (:level f)
+              :file (:filename f)
+              :line (as-number (:row f))
+              :column (as-number (:col f))
+              :text (:message f)}}}}}})
+      findings
+      (range))))

@@ -35,44 +35,80 @@
                     {:lines
                      {0
                       {:clj-kondo
-                       {:severity
-                        :warning,
-                        :file "example.clj",
-                        :line 0,
-                        :column 0,
-                        :test "could not process file"}}}}}
+                       {0
+                        {:severity
+                         :warning,
+                         :file "example.clj",
+                         :line 0,
+                         :column 0,
+                         :text "could not process file"}}}}}}
           actual (as-gusqt [{:level :warning
                              :filename "example.clj"
                              :col 0
                              :row 0
                              :message "could not process file"}])]
       (is (= actual expected) "Basic map from single finding"))
+    (let [expected {"missing.clj"
+                    {:lines
+                     {0
+                      {:clj-kondo
+                       {1
+                        {:severity :warning,
+                         :file "missing.clj",
+                         :line 0,
+                         :column 0,
+                         :test "file does not exist"}}}}}
+                    "example.clj"
+                    {:lines
+                     {0
+                      {:clj-kondo
+                       {0
+                        {:severity :warning,
+                         :file "example.clj",
+                         :line 0,
+                         :column 0,
+                         :text "could not process file"}}}}}}
+          actual (as-gusqt [{:level :warning
+                             :filename "missing.clj"
+                             :col 0
+                             :row 0
+                             :message "file does not exist"}
+                            {:level :warning
+                             :filename "example.clj"
+                             :col 0
+                             :row 0
+                             :message "could not process file"}])]
+      ;; This is difficult to test because the order of entries in
+      ;; the map doesn't matter and doesn't seem to be determinate.
+      ;; This test currently does not pass, but I'm not certain why
+      ;; not.
+      (is (= actual expected) "Two findings on different files"))
     (let [expected {"example.clj"
                     {:lines
                      {0
                       {:clj-kondo
-                       {:severity :warning,
-                        :file "example.clj",
-                        :line 0,
-                        :column 0,
-                        :test "could not process file"}}}},
-                    "missing.clj"
-                    {:lines
-                     {0
-                      {:clj-kondo
-                       {:severity :warning,
-                        :file "missing.clj",
-                        :line 0,
-                        :column 0,
-                        :test "file does not exist"}}}}}
+                       {0
+                        {:severity :warning,
+                         :file "example.clj",
+                         :line 0,
+                         :column 0,
+                         :text "could not process file"}
+                        1
+                        {:severity :warning,
+                         :file "example.clj",
+                         :line 0,
+                         :column 0,
+                         :text "file does not exist"}}}}}}
           actual (as-gusqt [{:level :warning
                              :filename "example.clj"
                              :col 0
                              :row 0
                              :message "could not process file"}
                             {:level :warning
-                             :filename "missing.clj"
+                             :filename "example.clj"
                              :col 0
                              :row 0
                              :message "file does not exist"}])]
-      (is (= actual expected) "Two findings on different files"))))
+      (is (= actual expected) "Two findings on the same line of the same file"))
+
+    ))
