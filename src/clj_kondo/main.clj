@@ -84,10 +84,10 @@ Options:
                  (print-help)
                  :else (let [{:keys [:summary]
                               :as results} (clj-kondo/run! parsed)
-                             {:keys [:errors :warnings]} summary]
+                             {:keys [:error :warning]} summary]
                          (clj-kondo/print! results)
-                         (cond (pos? errors) 3
-                               (pos? warnings) 2
+                         (cond (pos? error) 3
+                               (pos? warning) 2
                                :else 0)))
            0)))
     (finally

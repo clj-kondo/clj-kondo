@@ -23,26 +23,45 @@
                           :level :row :col] :as _finding}
                   (dedupe (sort-by (juxt :filename :row :col) findings))]
             (println (format-fn filename row col level message)))
-          (when (and (= :text (:format output-cfg))
-                     (:summary output-cfg))
-            (let [{:keys [:errors :warnings :duration]} summary]
+          (when (:summary output-cfg)
+            (let [{:keys [:error :warning :duration]} summary]
               (printf "linting took %sms, " duration)
-              (println (format "errors: %s, warnings: %s" errors warnings))))))
+              (println (format "errors: %s, warnings: %s" error warning))))))
       ;; avoid loading clojure.pprint or bringing in additional libs for coercing to EDN or JSON
       :edn
-      (println {:findings (format "\n [%s]" (str/join ",\n  " findings))})
-      :json
+      (do
+        (print "{")
+        (print (format ":findings\n [%s]"
+                       (str/join ",\n  " findings)))
+        (when (:summary output-cfg)
+          (print (format "\n :summary %s"
+                         summary)))
+        (println "}"))
       (println
-       (format "{\"findings\":\n [%s]}"
-               (str/join ",\n  "
-                         (map
-                          (fn [{:keys [:filename :type :message
-                                       :level :row :col]}]
-                            (format core-impl/json-format
-                                    (name type) filename row
-                                    col (name level)
-                                    message))
-                          findings))))))
+       (cond-> {:findings
+                (str (format "\n [%s]" (str/join ",\n  " findings))
+                     (when (:summary output-cfg) "\n"))}
+         (:summary output-cfg)
+         (assoc :summary summary)))
+      :json
+      (do
+        (print "{")
+        (print (format "\"findings\":\n [%s]"
+                       (str/join ",\n  "
+                                 (map
+                                  (fn [{:keys [:filename :type :message
+                                               :level :row :col]}]
+                                    (format core-impl/json-finding-format
+                                            (name type) filename row
+                                            col (name level)
+                                            message))
+                                  findings))))
+        (when (:summary output-cfg)
+          (let [{:keys [:error :warning :duration]} summary]
+            (print (format core-impl/json-summary-format
+                           error warning duration))))
+        (println "}"))))
+  (flush)
   nil)
 
 (defn run!

@@ -1371,53 +1371,48 @@
             :col 6,
             :level :error,
             :message "wrong number of args (0) passed to clojure.core/dec"})
-       (let [parse-fn
-             (fn [line]
-               (when-let [[_ file row col level message]
-                          (re-matches #"(.+):(\d+):(\d+): (\w+): (.*)" line)]
-                 {:filename file
-                  :row (Integer/parseInt row)
-                  :col (Integer/parseInt col)
-                  :level (keyword level)
-                  :message message}))
-             text (with-in-str "(inc)(dec)"
-                    (with-out-str
-                      (main  "--lint" "-" "--config" "{:output {:format :text}}")))]
-         (keep parse-fn (str/split-lines text)))))
-  (is (= {:findings
-          [{:type "invalid-arity",
-            :filename "<stdin>",
-            :row 1,
-            :col 1,
-            :level "error",
-            :message "wrong number of args (0) passed to clojure.core/inc"}
-           {:type "invalid-arity",
-            :filename "<stdin>",
-            :row 1,
-            :col 6,
-            :level "error",
-            :message "wrong number of args (0) passed to clojure.core/dec"}]}
-         (let [json (with-in-str "(inc)(dec)"
+         (let [parse-fn
+               (fn [line]
+                 (when-let [[_ file row col level message]
+                            (re-matches #"(.+):(\d+):(\d+): (\w+): (.*)" line)]
+                   {:filename file
+                    :row (Integer/parseInt row)
+                    :col (Integer/parseInt col)
+                    :level (keyword level)
+                    :message message}))
+               text (with-in-str "(inc)(dec)"
                       (with-out-str
-                        (main  "--lint" "-" "--config" "{:output {:format :json}}")))]
-           (cheshire/parse-string json true))))
-  (is (= {:findings
-          [{:type :invalid-arity,
-            :filename "<stdin>",
-            :row 1,
-            :col 1,
-            :level :error,
-            :message "wrong number of args (0) passed to clojure.core/inc"}
-           {:type :invalid-arity,
-            :filename "<stdin>",
-            :row 1,
-            :col 6,
-            :level :error,
-            :message "wrong number of args (0) passed to clojure.core/dec"}]}
-         (let [edn (with-in-str "(inc)(dec)"
-                     (with-out-str
-                       (main  "--lint" "-" "--config" "{:output {:format :edn}}")))]
-           (edn/read-string edn)))))
+                        (main  "--lint" "-" "--config" "{:output {:format :text}}")))]
+           (keep parse-fn (str/split-lines text)))))
+  (doseq [[output-format parse-fn]
+          [[:edn edn/read-string]
+           [:json #(cheshire/parse-string % true)]]]
+    (let [output (with-in-str "(inc)(dec)"
+                   (with-out-str
+                     (main  "--lint" "-" "--config"
+                            (format "{:output {:format %s}}"
+                                    output-format))))
+          parsed (parse-fn output)]
+      (assert-submap {:findings
+                      [{:type (case output-format :edn :invalid-arity
+                                    "invalid-arity"),
+                        :filename "<stdin>",
+                        :row 1,
+                        :col 1,
+                        :level (case output-format :edn :error
+                                     "error"),
+                        :message "wrong number of args (0) passed to clojure.core/inc"}
+                       {:type (case output-format :edn :invalid-arity
+                                    "invalid-arity"),
+                        :filename "<stdin>",
+                        :row 1,
+                        :col 6,
+                        :level (case output-format :edn :error
+                                     "error"),
+                        :message "wrong number of args (0) passed to clojure.core/dec"}]}
+                     parsed)
+      (assert-submap '{:error 2}
+                     (:summary parsed)))))
 
 ;;;; Scratch
 

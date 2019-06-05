@@ -191,16 +191,12 @@
 
 ;;;; summary
 
-#_(def zinc (fnil inc 0))
+(def zinc (fnil inc 0))
 
 (defn summarize [findings]
   (reduce (fn [acc {:keys [:level]}]
-            (let [k (case level
-                      :error :errors
-                      :warning :warnings
-                      :info :infos)]
-              (update acc k inc)))
-          {:errors 0 :warnings 0 :infos 0}
+            (update acc level zinc))
+          {:error 0 :warning 0 :info 0 :type :summary}
           findings))
 
 ;;;; filter/remove output
@@ -228,5 +224,8 @@
 
 ;;;; output format
 
-(def json-format
+(def json-finding-format
   "{\"type\":\"%s\", \"filename\":\"%s\", \"row\":%s,\"col\":%s, \"level\":\"%s\", \"message\":\"%s\"}")
+
+(def json-summary-format
+  ",\n \"summary\": {\"error\": %s, \"warning\": %s, \"type\": \"summary\", \"duration\": %s}")

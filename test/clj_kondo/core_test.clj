@@ -49,8 +49,8 @@
   (testing "summary result"
     (let [s (:summary (clj-kondo/run! {:files ["src"]}))]
       (is s)
-      (is (nat-int? (:errors s)))
-      (is (nat-int? (:warnings s)))
+      (is (nat-int? (:error s)))
+      (is (nat-int? (:warning s)))
       (is (nat-int? (:duration s))))))
 
 ;;;; Scratch
