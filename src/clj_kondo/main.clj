@@ -74,29 +74,20 @@ Options:
   (try
     (profiler/profile
      :main
-     (let [start-time (System/currentTimeMillis)
-           {:keys [:help :files :version] :as parsed} (parse-opts options)]
+     (let [{:keys [:help :files :version] :as parsed}
+           (parse-opts options)]
        (or (cond version
                  (print-version)
                  help
                  (print-help)
                  (empty? files)
                  (print-help)
-                 :else (let [{findings :findings
-                              config :config
+                 :else (let [{:keys [:summary]
                               :as results} (clj-kondo/run! parsed)
-                             {:keys [:error :warning]} (core-impl/summarize findings)
-                             output-cfg (:output config)]
-                         (when (:progress output-cfg)
-                           (println))
+                             {:keys [:errors :warnings]} summary]
                          (clj-kondo/print! results)
-                         (when (and (= :text (:format output-cfg))
-                                    (:summary output-cfg))
-                           (printf "linting took %sms, "
-                                   (- (System/currentTimeMillis) start-time))
-                           (println (format "errors: %s, warnings: %s" error warning)))
-                         (cond (pos? error) 3
-                               (pos? warning) 2
+                         (cond (pos? errors) 3
+                               (pos? warnings) 2
                                :else 0)))
            0)))
     (finally

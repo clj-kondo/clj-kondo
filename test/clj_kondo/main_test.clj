@@ -560,6 +560,12 @@
        (with-out-str
          (lint! (io/file "corpus") '{:output {:progress true}}))
        "...."))
+  (doseq [format [:json :edn]]
+    (is (not (str/starts-with?
+              (with-out-str
+                (lint! (io/file "corpus")
+                       {:output {:progress true :format format}}))
+              "...."))))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
                                    '{:output {:exclude-files ["datascript"]}})))))

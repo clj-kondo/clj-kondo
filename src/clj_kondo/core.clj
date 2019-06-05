@@ -12,26 +12,33 @@
 
 (defn print!
   "Prints the result from `run!` to `*out`. Returns `nil`."
-  [{:keys [:config :findings]}]
-  (case (-> config :output :format)
-    :text
-    (let [format-fn (core-impl/format-output config)]
-      (doseq [{:keys [:filename :message
-                      :level :row :col] :as _finding}
-              (dedupe (sort-by (juxt :filename :row :col) findings))]
-        (println (format-fn filename row col level message))))
-    ;; avoid loading clojure.pprint or bringing in additional libs for coercing to EDN or JSON
-    :edn
-    (println {:findings (format "\n [%s]" (str/join ",\n  " findings))})
-    :json
-    (let [row-format "{\"type\":\"%s\", \"filename\":\"%s\", \"row\":%s,\"col\":%s, \"level\":\"%s\", \"message\":\"%s\"}"]
+  [{:keys [:config :findings :summary]}]
+  (let [output-cfg (:output config)]
+    (case (:format output-cfg)
+      :text
+      (do
+        (when (:progress output-cfg) (println))
+        (let [format-fn (core-impl/format-output config)]
+          (doseq [{:keys [:filename :message
+                          :level :row :col] :as _finding}
+                  (dedupe (sort-by (juxt :filename :row :col) findings))]
+            (println (format-fn filename row col level message)))
+          (when (and (= :text (:format output-cfg))
+                     (:summary output-cfg))
+            (let [{:keys [:errors :warnings :duration]} summary]
+              (printf "linting took %sms, " duration)
+              (println (format "errors: %s, warnings: %s" errors warnings))))))
+      ;; avoid loading clojure.pprint or bringing in additional libs for coercing to EDN or JSON
+      :edn
+      (println {:findings (format "\n [%s]" (str/join ",\n  " findings))})
+      :json
       (println
        (format "{\"findings\":\n [%s]}"
                (str/join ",\n  "
                          (map
                           (fn [{:keys [:filename :type :message
                                        :level :row :col]}]
-                            (format row-format
+                            (format core-impl/json-format
                                     (name type) filename row
                                     col (name level)
                                     message))
@@ -57,14 +64,16 @@
   In places where a file-like value is expected, either a path as string or a
   `java.io.File` may be passed, except for a classpath which must always be a string.
 
-  Returns a map with `:findings`, a seqable of finding maps and the
-  `:config` that was used to produce those findings. This map can be
-  passed to `print!` to print to `*out*`."
+  Returns a map with `:findings`, a seqable of finding maps, a
+  `:summary` of the findings and the `:config` that was used to
+  produce those findings. This map can be passed to `print!` to print
+  to `*out*`."
   [{:keys [:files
            :lang
            :cache
            :config]}]
-  (let [cfg-dir (core-impl/config-dir)
+  (let [start-time (System/currentTimeMillis)
+        cfg-dir (core-impl/config-dir)
         config (core-impl/resolve-config cfg-dir config)
         cache-dir (core-impl/resolve-cache-dir cfg-dir cache)
         findings (atom [])
@@ -81,9 +90,13 @@
         _ (l/lint-unused-bindings! ctx)
         all-findings (concat linted-calls (mapcat :findings processed)
                              @findings)
-        all-findings (core-impl/filter-findings config all-findings)]
+        all-findings (core-impl/filter-findings config all-findings)
+        summary (core-impl/summarize all-findings)
+        duration (- (System/currentTimeMillis) start-time)
+        summary (assoc summary :duration duration)]
     {:findings all-findings
-     :config config}))
+     :config config
+     :summary summary}))
 
 ;;;; Scratch
 

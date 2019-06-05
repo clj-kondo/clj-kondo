@@ -49,4 +49,6 @@
 
 (comment
   (.getPath (io/file "foo" "bar"))
+  (-> (clj-kondo/run! {:files ["corpus"] :config {:output {:progress true}}})
+      (clj-kondo/print!))
   )
