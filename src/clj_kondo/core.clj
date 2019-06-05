@@ -41,17 +41,17 @@
 (defn run!
   "Takes a map with:
 
-  - `:files`: Seq of files, directories and/or classpaths to lint.
+  - `:files`: seq of files, directories and/or classpaths to lint.
 
-  - `:lang`: Optional. Defaults to `:clj`. Sets language for linting
+  - `:lang`: optional, defaults to `:clj`. Sets language for linting
   `*in`. Supported values: `:clj`, `:cljs` and `:cljc`.
 
-  - `:cache`: Optional. Defaults to `false`. Supported values: a
+  - `:cache`: optional, defaults to `false`. Supported values: a
   boolean or the directory to use for caching. In case of `true`, the
   cache dir will be resolved using the nearest `.clj-kondo` directory
   in the current and parent directories.
 
-  - `:config`: Optional. Map or string representing the config as EDN,
+  - `:config`: optional. Map or string representing the config as EDN,
   or a config file.
 
   In places where a file-like value is expected, either a path as string or a
