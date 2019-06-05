@@ -11,7 +11,7 @@
 ;;;; Public API
 
 (defn print!
-  "Prints the result from `run!` to `*out`. Returns `nil`."
+  "Prints the result from `run!` to `*out*`. Returns `nil`."
   [{:keys [:config :findings :summary]}]
   (let [output-cfg (:output config)]
     (case (:format output-cfg)
@@ -51,12 +51,12 @@
   - `:files`: seqable of files, directories and/or classpaths to lint.
 
   - `:lang`: optional, defaults to `:clj`. Sets language for linting
-  `*in`. Supported values: `:clj`, `:cljs` and `:cljc`.
+  `*in*`. Supported values: `:clj`, `:cljs` and `:cljc`.
 
-  - `:cache`: optional, defaults to `false`. Supported values: a
-  boolean or the directory to use for caching. In case of `true`, the
-  cache dir will be resolved using the nearest `.clj-kondo` directory
-  in the current and parent directories.
+  - `:cache`: optional, defaults to `false`. May be a boolean or the
+  directory to use for caching. In case of `true`, the cache dir will
+  be resolved using the nearest `.clj-kondo` directory in the current
+  and parent directories.
 
   - `:config`: optional. Map or string representing the config as EDN,
   or a config file.
