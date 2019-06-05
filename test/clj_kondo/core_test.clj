@@ -3,15 +3,16 @@
    [clj-kondo.core :as clj-kondo]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing]]))
+   [clojure.test :as t :refer [deftest is testing]]
+   [clj-kondo.test-utils :refer [file-path]]))
 
 ;; NOTE: most functionality is tested in the main_test.clj namespace.
 
 (deftest run!-test
   (testing "file arguments"
     (testing "file arguments can be strings or files"
-      (let [res (clj-kondo/run! {:files ["corpus/invalid_arity"
-                                         "corpus/private"]})
+      (let [res (clj-kondo/run! {:files [(file-path "corpus" "invalid_arity")
+                                         (file-path "corpus" "private")]})
             findings (:findings res)
             filenames (->> findings
                            (map :filename)
@@ -21,14 +22,14 @@
         (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
                filenames))
         (is (seq findings))
-        (is (= findings (:findings (clj-kondo/run! {:files [(io/file "corpus/invalid_arity")
-                                                            (io/file "corpus/private")]}))))))
+        (is (= findings (:findings (clj-kondo/run! {:files [(file-path "corpus" "invalid_arity")
+                                                            (file-path "corpus" "private")]}))))))
     (testing "jar file as string or file"
       (let [findings (:findings
-                      (clj-kondo/run! {:files [(.getPath
-                                                (io/file (System/getProperty "user.home")
-                                                         ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
-                                                         "spec.alpha-0.2.176.jar"))]}))]
+                      (clj-kondo/run! {:files [(file-path
+                                                (System/getProperty "user.home")
+                                                ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
+                                                "spec.alpha-0.2.176.jar")]}))]
         (is (seq findings))
         (is (= findings
                (:findings

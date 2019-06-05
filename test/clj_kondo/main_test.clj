@@ -2,7 +2,8 @@
   (:require
    [cheshire.core :as cheshire]
    [clj-kondo.main :refer [main]]
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap submap?]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap submap?
+                                 file-path]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str :refer [trim]]
