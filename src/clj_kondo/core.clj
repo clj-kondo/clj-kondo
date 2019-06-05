@@ -5,12 +5,14 @@
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
-   [clojure.string :as str]
-   [clojure.java.io :as io]))
+   [clojure.java.io :as io]
+   [clojure.string :as str]))
 
 ;;;; Public API
 
-(defn print-findings! [{:keys [:config :findings]}]
+(defn print!
+  "Prints the result from `run!` to `*out`. Returns `nil`."
+  [{:keys [:config :findings]}]
   (case (-> config :output :format)
     :text
     (let [format-fn (core-impl/format-output config)]
@@ -33,10 +35,31 @@
                                     (name type) filename row
                                     col (name level)
                                     message))
-                          findings)))))))
+                          findings))))))
+  nil)
 
 (defn run!
-  "TODO: docstring"
+  "Takes a map with:
+
+  - `:files`: Seq of files, directories and/or classpaths to lint.
+
+  - `:lang`: Optional. Defaults to `:clj`. Sets language for linting
+  `*in`. Supported values: `:clj`, `:cljs` and `:cljc`.
+
+  - `:cache`: Optional. Defaults to `false`. Supported values: a
+  boolean or the directory to use for caching. In case of `true`, the
+  cache dir will be resolved using the nearest `.clj-kondo` directory
+  in the current and parent directories.
+
+  - `:config`: Optional. Map or string representing the config as EDN,
+  or a config file.
+
+  In places where a file-like value is expected, either a path as string or a
+  `java.io.File` may be passed, except for a classpath which must always be a string.
+
+  Returns a map with `:findings`, a seq of finding maps and the
+  `:config` that was used to produce those findings. This map can be
+  passed to `print!` to print to `*out*`."
   [{:keys [:files
            :lang
            :cache
@@ -51,7 +74,6 @@
         processed
         (core-impl/process-files ctx files lang)
         idacs (core-impl/index-defs-and-calls processed)
-        ;; _ (prn "IDACS" idacs)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
         linted-calls (doall (l/lint-calls ctx idacs))

@@ -89,7 +89,7 @@ Options:
                              output-cfg (:output config)]
                          (when (:progress output-cfg)
                            (println))
-                         (clj-kondo/print-findings! results)
+                         (clj-kondo/print! results)
                          (when (and (= :text (:format output-cfg))
                                     (:summary output-cfg))
                            (printf "linting took %sms, "
