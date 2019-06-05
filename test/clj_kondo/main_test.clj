@@ -1386,12 +1386,13 @@
            (keep parse-fn (str/split-lines text)))))
   (doseq [[output-format parse-fn]
           [[:edn edn/read-string]
-           [:json #(cheshire/parse-string % true)]]]
+           [:json #(cheshire/parse-string % true)]]
+          summary? [true false]]
     (let [output (with-in-str "(inc)(dec)"
                    (with-out-str
                      (main  "--lint" "-" "--config"
-                            (format "{:output {:format %s}}"
-                                    output-format))))
+                            (format "{:output {:format %s :summary %s}}"
+                                    output-format summary?))))
           parsed (parse-fn output)]
       (assert-submap {:findings
                       [{:type (case output-format :edn :invalid-arity
@@ -1411,8 +1412,10 @@
                                      "error"),
                         :message "wrong number of args (0) passed to clojure.core/dec"}]}
                      parsed)
-      (assert-submap '{:error 2}
-                     (:summary parsed)))))
+      (if summary?
+        (assert-submap '{:error 2}
+                       (:summary parsed))
+        (is (nil? (find parsed :summary)))))))
 
 ;;;; Scratch
 
