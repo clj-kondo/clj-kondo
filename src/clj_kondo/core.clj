@@ -57,7 +57,7 @@
   In places where a file-like value is expected, either a path as string or a
   `java.io.File` may be passed, except for a classpath which must always be a string.
 
-  Returns a map with `:findings`, a seq of finding maps and the
+  Returns a map with `:findings`, a seqable of finding maps and the
   `:config` that was used to produce those findings. This map can be
   passed to `print!` to print to `*out*`."
   [{:keys [:files
