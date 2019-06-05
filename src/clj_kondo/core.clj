@@ -41,7 +41,7 @@
 (defn run!
   "Takes a map with:
 
-  - `:files`: seq of files, directories and/or classpaths to lint.
+  - `:files`: seqable of files, directories and/or classpaths to lint.
 
   - `:lang`: optional, defaults to `:clj`. Sets language for linting
   `*in`. Supported values: `:clj`, `:cljs` and `:cljc`.
