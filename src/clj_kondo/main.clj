@@ -1,7 +1,6 @@
 (ns clj-kondo.main
   {:no-doc true}
   (:gen-class)
-  (:refer-clojure :exclude [run!])
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :as core-impl]
