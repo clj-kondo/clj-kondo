@@ -11,7 +11,8 @@
 ;;;; Public API
 
 (defn print!
-  "Prints the result from `run!` to `*out*`. Returns `nil`."
+  "Prints the result from `run!` to `*out*`. Returns `nil`. Alpha,
+  subject to change."
   [{:keys [:config :findings :summary]}]
   (let [output-cfg (:output config)]
     (case (:format output-cfg)
@@ -86,7 +87,7 @@
   Returns a map with `:findings`, a seqable of finding maps, a
   `:summary` of the findings and the `:config` that was used to
   produce those findings. This map can be passed to `print!` to print
-  to `*out*`."
+  to `*out*`. Alpha, subject to change."
   [{:keys [:files
            :lang
            :cache
