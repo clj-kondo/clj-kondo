@@ -68,7 +68,7 @@
 (defn run!
   "Takes a map with:
 
-  - `:files`: seqable of files, directories and/or classpaths to lint.
+  - `:lint`: a seqable of files, directories and/or classpaths to lint.
 
   - `:lang`: optional, defaults to `:clj`. Sets language for linting
   `*in*`. Supported values: `:clj`, `:cljs` and `:cljc`.
@@ -88,7 +88,7 @@
   `:summary` of the findings and the `:config` that was used to
   produce those findings. This map can be passed to `print!` to print
   to `*out*`. Alpha, subject to change."
-  [{:keys [:files
+  [{:keys [:lint
            :lang
            :cache
            :config]}]
@@ -101,7 +101,7 @@
              :findings findings
              :namespaces (atom {})}
         processed
-        (core-impl/process-files ctx files lang)
+        (core-impl/process-files ctx lint lang)
         idacs (core-impl/index-defs-and-calls processed)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
