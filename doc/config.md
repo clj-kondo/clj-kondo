@@ -21,12 +21,14 @@ available options.
 #### Print results in JSON format
 
 ``` shellsession
-$ clj-kondo --lint src --config '{:output {:format :json}}' | jq .summary
+$ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0]'
 {
-  "error": 0,
-  "warning": 0,
-  "type": "summary",
-  "duration": 755
+  "type": "invalid-arity",
+  "filename": "corpus/nested_namespaced_maps.clj",
+  "row": 9,
+  "col": 1,
+  "level": "error",
+  "message": "wrong number of args (2) passed to nested-namespaced-maps/test-fn"
 }
 ```
 
