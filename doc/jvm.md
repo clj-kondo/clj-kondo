@@ -48,9 +48,9 @@ $ clj
 Clojure 1.10.0
 user=> (require '[clj-kondo.core :as clj-kondo])
 nil
-user=> (-> (clj-kondo/run! {:files ["corpus"]}) :summary)
+user=> (-> (clj-kondo/run! {:lint ["corpus"]}) :summary)
 {:error 41, :warning 43, :info 0, :type :summary, :duration 139}
-user=> (-> (clj-kondo/run! {:files ["corpus"]}) clj-kondo/print!)
+user=> (-> (clj-kondo/run! {:lint ["corpus"]}) clj-kondo/print!)
 corpus/cljc/datascript.cljc:8:1: error: wrong number of args (2) passed to datascript.db/seqable?
 corpus/cljc/test_cljc.cljc:3:26: warning: unused binding y
 ...

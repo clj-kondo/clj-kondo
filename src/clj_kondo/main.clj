@@ -61,7 +61,7 @@ Options:
                        "cljc" :cljc
                        :clj)
         cache-opt (get opts "--cache")]
-    {:files (get opts "--lint")
+    {:lint (get opts "--lint")
      :cache (when cache-opt
               (or (first cache-opt) true))
      :lang default-lang
@@ -74,13 +74,13 @@ Options:
   (try
     (profiler/profile
      :main
-     (let [{:keys [:help :files :version] :as parsed}
+     (let [{:keys [:help :lint :version] :as parsed}
            (parse-opts options)]
        (or (cond version
                  (print-version)
                  help
                  (print-help)
-                 (empty? files)
+                 (empty? lint)
                  (print-help)
                  :else (let [{:keys [:summary]
                               :as results} (clj-kondo/run! parsed)

@@ -11,8 +11,8 @@
 (deftest run!-test
   (testing "file arguments"
     (testing "file arguments can be strings or files"
-      (let [res (clj-kondo/run! {:files [(file-path "corpus" "invalid_arity")
-                                         (file-path "corpus" "private")]})
+      (let [res (clj-kondo/run! {:lint [(file-path "corpus" "invalid_arity")
+                                        (file-path "corpus" "private")]})
             findings (:findings res)
             filenames (->> findings
                            (map :filename)
@@ -22,23 +22,24 @@
         (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
                filenames))
         (is (seq findings))
-        (is (= findings (:findings (clj-kondo/run! {:files [(file-path "corpus" "invalid_arity")
-                                                            (file-path "corpus" "private")]}))))))
+        (is (= findings (:findings (clj-kondo/run! {:lint [(file-path "corpus" "invalid_arity")
+                                                           (file-path "corpus" "private")]}))))))
     (testing "jar file as string or file"
       (let [findings (:findings
-                      (clj-kondo/run! {:files [(file-path
-                                                (System/getProperty "user.home")
-                                                ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
-                                                "spec.alpha-0.2.176.jar")]}))]
+                      (clj-kondo/run! {:lint [(file-path
+                                               (System/getProperty "user.home")
+                                               ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
+                                               "spec.alpha-0.2.176.jar")]}))]
         (is (seq findings))
         (is (= findings
                (:findings
-                (clj-kondo/run! {:files [(io/file (System/getProperty "user.home")
-                                                  ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
-                                                  "spec.alpha-0.2.176.jar")]}))))))
+                (clj-kondo/run! {:lint [(io/file (System/getProperty "user.home")
+                                                 ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
+                                                 "spec.alpha-0.2.176.jar")]}))))))
     (testing "classpath 'file' arg"
       ;; TODO: use the classpath separator here
-      (let [findings (:findings (clj-kondo/run! {:files ["corpus/invalid_arity:corpus/private"]}))
+      (let [findings (:findings (clj-kondo/run!
+                                 {:lint ["corpus/invalid_arity:corpus/private"]}))
             filenames (->> findings
                            (map :filename)
                            (map #(str/split % #"/"))
@@ -47,7 +48,7 @@
         (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
                filenames)))))
   (testing "summary result"
-    (let [s (:summary (clj-kondo/run! {:files ["src"]}))]
+    (let [s (:summary (clj-kondo/run! {:lint ["src"]}))]
       (is s)
       (is (nat-int? (:error s)))
       (is (nat-int? (:warning s)))
@@ -57,6 +58,6 @@
 
 (comment
   (.getPath (io/file "foo" "bar"))
-  (-> (clj-kondo/run! {:files ["corpus"] :config {:output {:progress true}}})
+  (-> (clj-kondo/run! {:lint ["corpus"] :config {:output {:progress true}}})
       (clj-kondo/print!))
   )
