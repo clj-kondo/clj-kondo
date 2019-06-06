@@ -22,8 +22,6 @@ available options.
 
 ``` shellsession
 $ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0]'
-```
-``` json
 {
   "type": "invalid-arity",
   "filename": "corpus/nested_namespaced_maps.clj",
