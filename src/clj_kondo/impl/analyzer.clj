@@ -597,10 +597,10 @@
             (when-not (or (contains? fixed-arities arg-count)
                           (and var-args-min-arity (>= arg-count var-args-min-arity)))
               (findings/reg-finding! findings (node->line filename expr :error
-                                                       :invalid-arity
-                                                       (format "wrong number of args (%s) passed to %s"
-                                                               arg-count
-                                                               fn-name)))))))
+                                                          :invalid-arity
+                                                          (format "wrong number of args (%s) passed to %s"
+                                                                  arg-count
+                                                                  fn-name)))))))
       (analyze-children ctx (rest children)))))
 
 (defn lint-inline-def! [{:keys [:in-def? :findings :filename]} expr]
@@ -661,15 +661,15 @@
                      (analyze-def ctx expr))
              (defn defn- defmacro)
              (do (lint-inline-def! ctx expr)
-               (cons {:type :call
-                      :name resolved-as-clojure-var-name
-                      :row row
-                      :col col
-                      :base-lang base-lang
-                      :lang lang
-                      :expr expr
-                      :arity arg-count}
-                     (analyze-defn ctx expr)))
+                 (cons {:type :call
+                        :name resolved-as-clojure-var-name
+                        :row row
+                        :col col
+                        :base-lang base-lang
+                        :lang lang
+                        :expr expr
+                        :arity arg-count}
+                       (analyze-defn ctx expr)))
              comment
              (analyze-children ctx children)
              (-> some->)
@@ -758,10 +758,10 @@
       (when (or (zero? arg-count)
                 (> arg-count 2))
         (findings/reg-finding! findings
-                            (node->line (:filename ctx) expr :error :invalid-arity
-                                        (format "wrong number of args (%s) passed to keyword :%s"
-                                                arg-count
-                                                kw-str)))))))
+                               (node->line (:filename ctx) expr :error :invalid-arity
+                                           (format "wrong number of args (%s) passed to keyword :%s"
+                                                   arg-count
+                                                   kw-str)))))))
 
 (defn lint-map-call! [{:keys [:callstack :config
                               :findings] :as ctx} _the-map arg-count expr]
@@ -1073,9 +1073,12 @@
                        :filename filename
                        :col 0
                        :row 0
+                       :type :parse-error
                        :message (str "can't parse "
                                      filename ", "
                                      (.getMessage e))}]}))
     (finally
-      (when (-> config :output :show-progress)
-        (print ".") (flush)))))
+      (let [output-cfg (:output config)]
+        (when (and (= :text (:format output-cfg))
+                   (:progress output-cfg))
+          (print ".") (flush))))))

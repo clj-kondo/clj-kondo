@@ -1,0 +1,62 @@
+(ns clj-kondo.core-test
+  (:require
+   [clj-kondo.core :as clj-kondo]
+   [clojure.java.io :as io]
+   [clojure.string :as str]
+   [clojure.test :as t :refer [deftest is testing]]
+   [clj-kondo.test-utils :refer [file-path]]))
+
+;; NOTE: most functionality is tested in the main_test.clj namespace.
+
+(deftest run!-test
+  (testing "file arguments"
+    (testing "file arguments can be strings or files"
+      (let [res (clj-kondo/run! {:files [(file-path "corpus" "invalid_arity")
+                                         (file-path "corpus" "private")]})
+            findings (:findings res)
+            filenames (->> findings
+                           (map :filename)
+                           (map #(str/split % #"/"))
+                           (map #(take 2 %))
+                           set)]
+        (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
+               filenames))
+        (is (seq findings))
+        (is (= findings (:findings (clj-kondo/run! {:files [(file-path "corpus" "invalid_arity")
+                                                            (file-path "corpus" "private")]}))))))
+    (testing "jar file as string or file"
+      (let [findings (:findings
+                      (clj-kondo/run! {:files [(file-path
+                                                (System/getProperty "user.home")
+                                                ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
+                                                "spec.alpha-0.2.176.jar")]}))]
+        (is (seq findings))
+        (is (= findings
+               (:findings
+                (clj-kondo/run! {:files [(io/file (System/getProperty "user.home")
+                                                  ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
+                                                  "spec.alpha-0.2.176.jar")]}))))))
+    (testing "classpath 'file' arg"
+      ;; TODO: use the classpath separator here
+      (let [findings (:findings (clj-kondo/run! {:files ["corpus/invalid_arity:corpus/private"]}))
+            filenames (->> findings
+                           (map :filename)
+                           (map #(str/split % #"/"))
+                           (map #(take 2 %))
+                           set)]
+        (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
+               filenames)))))
+  (testing "summary result"
+    (let [s (:summary (clj-kondo/run! {:files ["src"]}))]
+      (is s)
+      (is (nat-int? (:error s)))
+      (is (nat-int? (:warning s)))
+      (is (nat-int? (:duration s))))))
+
+;;;; Scratch
+
+(comment
+  (.getPath (io/file "foo" "bar"))
+  (-> (clj-kondo/run! {:files ["corpus"] :config {:output {:progress true}}})
+      (clj-kondo/print!))
+  )

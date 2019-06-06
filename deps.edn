@@ -32,7 +32,8 @@
             {test-runner
              {:git/url "https://github.com/cognitect-labs/test-runner"
               :sha "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}
-             clj-commons/conch {:mvn/version "0.9.2"}}
+             clj-commons/conch {:mvn/version "0.9.2"}
+             cheshire {:mvn/version "5.8.1"}}
             :extra-paths ["test"]
             :main-opts ["-m" "cognitect.test-runner"]}
            :profiler

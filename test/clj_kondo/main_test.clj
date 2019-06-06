@@ -1,7 +1,10 @@
 (ns clj-kondo.main-test
   (:require
+   [cheshire.core :as cheshire]
    [clj-kondo.main :refer [main]]
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap submap?]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap submap?
+                                 file-path]]
+   [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str :refer [trim]]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -556,8 +559,14 @@
        (lint! "(cond 1 2)" '{:linters {:cond-else {:level :off}}})))
   (is (str/starts-with?
        (with-out-str
-         (lint! (io/file "corpus") '{:output {:show-progress true}}))
+         (lint! (io/file "corpus") '{:output {:progress true}}))
        "...."))
+  (doseq [format [:json :edn]]
+    (is (not (str/starts-with?
+              (with-out-str
+                (lint! (io/file "corpus")
+                       {:output {:progress true :format format}}))
+              "...."))))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
                                    '{:output {:exclude-files ["datascript"]}})))))
@@ -1339,6 +1348,74 @@
                        :level :warning,
                        :message "j is not bound in this destructuring form"})
                     (lint! input))))
+
+(deftest output-test
+  (is (str/starts-with?
+       (with-in-str ""
+         (with-out-str
+           (main  "--lint" "-" "--config" "{:output {:summary true}}")))
+       "linting took"))
+  (is (not
+       (str/starts-with?
+        (with-in-str ""
+          (with-out-str
+            (main  "--lint" "-" "--config" "{:output {:summary false}}")))
+        "linting took")))
+  (is (= '({:filename "<stdin>",
+            :row 1,
+            :col 1,
+            :level :error,
+            :message "wrong number of args (0) passed to clojure.core/inc"}
+           {:filename "<stdin>",
+            :row 1,
+            :col 6,
+            :level :error,
+            :message "wrong number of args (0) passed to clojure.core/dec"})
+         (let [parse-fn
+               (fn [line]
+                 (when-let [[_ file row col level message]
+                            (re-matches #"(.+):(\d+):(\d+): (\w+): (.*)" line)]
+                   {:filename file
+                    :row (Integer/parseInt row)
+                    :col (Integer/parseInt col)
+                    :level (keyword level)
+                    :message message}))
+               text (with-in-str "(inc)(dec)"
+                      (with-out-str
+                        (main  "--lint" "-" "--config" "{:output {:format :text}}")))]
+           (keep parse-fn (str/split-lines text)))))
+  (doseq [[output-format parse-fn]
+          [[:edn edn/read-string]
+           [:json #(cheshire/parse-string % true)]]
+          summary? [true false]]
+    (let [output (with-in-str "(inc)(dec)"
+                   (with-out-str
+                     (main  "--lint" "-" "--config"
+                            (format "{:output {:format %s :summary %s}}"
+                                    output-format summary?))))
+          parsed (parse-fn output)]
+      (assert-submap {:findings
+                      [{:type (case output-format :edn :invalid-arity
+                                    "invalid-arity"),
+                        :filename "<stdin>",
+                        :row 1,
+                        :col 1,
+                        :level (case output-format :edn :error
+                                     "error"),
+                        :message "wrong number of args (0) passed to clojure.core/inc"}
+                       {:type (case output-format :edn :invalid-arity
+                                    "invalid-arity"),
+                        :filename "<stdin>",
+                        :row 1,
+                        :col 6,
+                        :level (case output-format :edn :error
+                                     "error"),
+                        :message "wrong number of args (0) passed to clojure.core/dec"}]}
+                     parsed)
+      (if summary?
+        (assert-submap '{:error 2}
+                       (:summary parsed))
+        (is (nil? (find parsed :summary)))))))
 
 ;;;; Scratch
 
