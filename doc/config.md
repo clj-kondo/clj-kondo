@@ -20,7 +20,7 @@ available options.
 
 #### Print results in JSON format
 
-``` shellsession
+``` json
 $ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0]'
 {
   "type": "invalid-arity",
