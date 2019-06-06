@@ -2,7 +2,7 @@
 
 Using the binary is recommended for better startup time, but you can run
 clj-kondo as a command line program on the JVM as well. Additionally, there is
-an [API](#API) to use clj-kondo from other Clojure programs.
+an [API](#api) to use clj-kondo from other Clojure programs.
 
 ## leiningen
 
