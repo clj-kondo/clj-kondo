@@ -207,7 +207,9 @@
         filter-output (not-empty (-> config :output :include-files))
         remove-output (not-empty (-> config :output :exclude-files))]
     (for [{:keys [:filename :type] :as f} findings
-          :let [level (when type (-> config :linters type :level))]
+          :let [level (when type (-> config :linters type :level))
+                ;; _ (when-not level (println "warning: " type " has no level!"))
+                ]
           :when (and level (not= :off level))
           :when (if (= :debug type)
                   print-debug?
