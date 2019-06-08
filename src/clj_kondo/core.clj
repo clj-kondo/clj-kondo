@@ -14,8 +14,9 @@
   "Prints the result from `run!` to `*out*`. Returns `nil`. Alpha,
   subject to change."
   [{:keys [:config :findings :summary]}]
-  (let [output-cfg (:output config)]
-    (case (:format output-cfg)
+  (let [output-cfg (:output config)
+        fmt (or (:format output-cfg) :text)]
+    (case fmt
       :text
       (do
         (when (:progress output-cfg) (println))
@@ -37,13 +38,13 @@
         (when (:summary output-cfg)
           (print (format "\n :summary %s"
                          summary)))
-        (println "}"))
-      (println
-       (cond-> {:findings
-                (str (format "\n [%s]" (str/join ",\n  " findings))
-                     (when (:summary output-cfg) "\n"))}
-         (:summary output-cfg)
-         (assoc :summary summary)))
+        (println "}")
+        (println
+         (cond-> {:findings
+                  (str (format "\n [%s]" (str/join ",\n  " findings))
+                       (when (:summary output-cfg) "\n"))}
+           (:summary output-cfg)
+           (assoc :summary summary))))
       :json
       (do
         (print "{")
@@ -131,5 +132,5 @@
              ;; only relevant when linting stdin
              :lang :clj}))
   (first (:findings res))
-  (clj-kondo/print-findings! res)
+  (clj-kondo/print! res)
   )

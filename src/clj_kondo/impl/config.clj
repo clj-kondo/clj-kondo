@@ -50,7 +50,9 @@
   (let [cfg (cond-> cfg
               (:skip-comments cfg)
               (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
-    (deep-merge cfg* cfg)))
+    (if (:replace (meta cfg))
+      cfg
+      (deep-merge cfg* cfg))))
 
 (defn fq-syms->vecs [fq-syms]
   (map (fn [fq-sym]

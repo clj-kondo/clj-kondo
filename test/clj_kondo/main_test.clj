@@ -595,6 +595,12 @@
                                                     [".*\\.specs$"
                                                      ".*\\.spex$"]}}}))))
 
+(deftest replace-config-test
+  (let [res (lint! (io/file "corpus") "--config" "^:replace {:linters {:redundant-let {:level :info}}}")]
+    (is (pos? (count res)))
+    (doseq [f res]
+      (is (= :info (:level f))))))
+
 (deftest map-duplicate-keys
   (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}
            {:file "<stdin>",
