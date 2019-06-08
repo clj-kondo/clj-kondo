@@ -639,8 +639,9 @@
 (defn analyze-try [ctx expr]
   (loop [[fst-child & rst-children] (next (:children expr))
          analyzed []
-         catch-phase false
-         finally-phase false]
+         ;; TODO: lint syntax
+         _catch-phase false
+         _finally-phase false]
     (if fst-child
       (case (symbol-call fst-child)
         catch
@@ -657,6 +658,24 @@
          (into analyzed (analyze-expression** ctx fst-child))
          false false))
       analyzed)))
+
+(defn analyze-defprotocol [{:keys [:base-lang :lang :ns] :as ctx} expr]
+  (let [children (nnext (:children expr))]
+    (for [c children
+          :let [children (:children c)
+                fn-name (-> children first :value)
+                _ (when fn-name (namespace/reg-var! ctx (:name ns) fn-name expr))
+                arity-vecs (rest children)
+                fixed-arities (set (map #(count (:children %)) arity-vecs))
+                {:keys [:row :col]} (meta c)]]
+      {:type :defn
+       :name fn-name
+       :row row
+       :col col
+       :base-lang base-lang
+       :lang lang
+       :fixed-arities fixed-arities
+       :expr c})))
 
 (defn analyze-call
   [{:keys [:fn-body :base-lang :lang :ns :config :call-as-use] :as ctx}
@@ -731,6 +750,7 @@
                             :expr expr
                             :arity arg-count}
                            (analyze-defn ctx expr)))
+                 defprotocol (analyze-defprotocol ctx expr)
                  comment
                  (analyze-children ctx children)
                  (case resolved-as-clojure-var-name
@@ -1006,8 +1026,7 @@
                                        :ns (:name ns))]
                (case (:type first-parsed)
                  :defn
-                 (let [;; _ (println "LANG FP" (name (:lang first-parsed)))
-                       path (if (= :cljc base-lang)
+                 (let [path (if (= :cljc base-lang)
                               [:defs (:name ns) (:lang first-parsed) (:name resolved)]
                               [:defs (:name ns) (:name resolved)])
                        results
@@ -1144,7 +1163,7 @@
     (catch Exception e
       (if dev? (throw e)
           {:findings [(if-let [[_ msg row col] (re-find #"(.*)\[at line (\d+), column (\d+)\]"
-                                                     (.getMessage e))]
+                                                        (.getMessage e))]
                         {:level :error
                          :filename filename
                          :col (Integer/parseInt col)

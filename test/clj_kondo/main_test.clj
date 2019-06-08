@@ -1439,6 +1439,15 @@
                        (:summary parsed))
         (is (nil? (find parsed :summary)))))))
 
+(deftest defprotocol-test
+  (assert-submaps
+   '({:file "corpus/defprotocol.clj",
+      :row 13,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (4) passed to defprotocol/-foo"})
+   (lint! (io/file "corpus" "defprotocol.clj"))))
+
 (deftest unresolved-symbol-test
   (assert-submaps
    '({:file "<stdin>",
