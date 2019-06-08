@@ -803,7 +803,7 @@
                  (analyze-expression** ctx (macroexpand/expand->> ctx expr))
                  (cond-> cond->> . .. deftype
                          proxy extend-protocol doto reify definterface
-                         defcurried)
+                         defcurried extend-type)
                  ;; don't lint calls in these expressions, only register them as used vars
                  (analyze-children (assoc ctx :call-as-use true)
                                    (:children expr))
