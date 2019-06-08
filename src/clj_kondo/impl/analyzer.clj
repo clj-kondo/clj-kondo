@@ -1110,18 +1110,23 @@
       analyzed-expressions)
     (catch Exception e
       (if dev? (throw e)
-          {:findings [(let [[_ msg row col] (re-find #"(.*)\[at line (\d+), column (\d+)\]"
+          {:findings [(if-let [[_ msg row col] (re-find #"(.*)\[at line (\d+), column (\d+)\]"
                                                      (.getMessage e))]
                         {:level :error
                          :filename filename
-                         :col (if col (Integer/parseInt col) 0)
-                         :row (if row (Integer/parseInt row) 0)
+                         :col (Integer/parseInt col)
+                         :row (Integer/parseInt row)
                          :type :syntax
-                         :message (or (str/trim msg)
-                                      (str "can't parse "
-                                           filename ", "
-                                           (.getMessage e)
-                                           (ex-data e)))})]}))
+                         :message (str/trim msg)}
+                        {:level :error
+                         :filename filename
+                         :col 0
+                         :row 0
+                         :type :syntax
+                         :message (str "can't parse "
+                                       filename ", "
+                                       (.getMessage e)
+                                       (ex-data e))})]}))
     (finally
       (let [output-cfg (:output config)]
         (when (and (= :text (:format output-cfg))

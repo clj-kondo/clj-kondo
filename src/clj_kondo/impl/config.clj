@@ -30,7 +30,8 @@
               :unused-binding {:level :warning}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
-                                 :exclude [#_clj-kondo.impl.var-info-gen]}}
+                                 :exclude [#_clj-kondo.impl.var-info-gen]}
+              :unresolved-symbol {:level :error}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn

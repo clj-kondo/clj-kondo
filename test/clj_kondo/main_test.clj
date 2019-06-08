@@ -1430,6 +1430,19 @@
                        (:summary parsed))
         (is (nil? (find parsed :summary)))))))
 
+(deftest unresolved-symbol-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 2,
+      :level :error,
+      :message "unresolved symbol x"})
+   (lint! "(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}"))
+
+  ;; TODO:
+  #_(is (empty? (lint! "(try 1 (catch Exception _ 2) (finally 3))"
+                     "--config" "{:linters {:unresolved-symbol {:level :error}}}"))))
+
 ;;;; Scratch
 
 (comment
