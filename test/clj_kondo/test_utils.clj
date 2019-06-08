@@ -2,9 +2,12 @@
   (:require
    [clj-kondo.impl.utils :refer [deep-merge]]
    [clj-kondo.main :as main :refer [main]]
+   [clojure.java.io :as io]
    [clojure.string :as str :refer [trim]]
    [clojure.test :refer [is]]
    [me.raynes.conch :refer [programs with-programs let-programs] :as sh]))
+
+(set! *warn-on-reflection* true)
 
 (defn submap?
   "Is m1 a subset of m2? Taken from
@@ -68,9 +71,9 @@
                (try
                  (cond
                    (instance? java.io.File input)
-                   (apply main "--lint" (.getPath input) "--config" config args)
+                   (apply main "--lint" (.getPath ^java.io.File input) "--config" config args)
                    (vector? input)
-                   (apply main "--lint" (concat (map #(.getPath %) input)
+                   (apply main "--lint" (concat (map #(.getPath ^java.io.File %) input)
                                                 ["--config" config] args))
                    :else (with-in-str input
                            (apply main "--lint" "-"  "--config" config args)))
@@ -93,9 +96,9 @@
                (binding [sh/*throw* false]
                  (cond
                    (instance? java.io.File input)
-                   (apply clj-kondo "--lint" (.getPath input) "--config" config args)
+                   (apply clj-kondo "--lint" (.getPath ^java.io.File input) "--config" config args)
                    (vector? input)
-                   (apply clj-kondo "--lint" (concat (map #(.getPath %) input)
+                   (apply clj-kondo "--lint" (concat (map #(.getPath ^java.io.File %) input)
                                                      ["--config" config] args))
                    :else
                    (apply clj-kondo  "--lint" "-" "--config" config
@@ -113,6 +116,10 @@
 (if (= lint! lint-jvm!)
   (println "==== Testing JVM version")
   (println "==== Testing native version"))
+
+(defn file-path [& more]
+  "returns a file-path with platform specific file separator"
+  (.getPath ^java.io.File (apply io/file more)))
 
 ;;;; Scratch
 

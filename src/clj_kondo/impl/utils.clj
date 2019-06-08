@@ -140,6 +140,7 @@
          (into a b)
          (and (set? a) (set? b))
          (into a b)
+         (false? b) b
          :else (or b a)))
   ([a b & more]
    (apply merge-with deep-merge a b more)))

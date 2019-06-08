@@ -16,6 +16,46 @@ available options.
 
 ## Examples
 
+### Output
+
+#### Print results in JSON format
+
+``` shellsession
+$ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0]'
+{
+  "type": "invalid-arity",
+  "filename": "corpus/nested_namespaced_maps.clj",
+  "row": 9,
+  "col": 1,
+  "level": "error",
+  "message": "wrong number of args (2) passed to nested-namespaced-maps/test-fn"
+}
+```
+
+Printing in EDN format is also supported.
+
+#### Include and exclude files from the output
+
+``` shellsession
+$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"]}}'
+clojure/test.clj:496:6: warning: redundant let
+clojure/test/tap.clj:86:5: warning: redundant do
+linting took 3289ms, errors: 0, warnings: 2
+
+$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"] :exclude-files ["tap"]}}'
+clojure/test.clj:496:6: warning: redundant let
+linting took 3226ms, errors: 0, warnings: 1
+```
+
+#### Show progress bar while linting
+
+``` shellsession
+$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:progress true}}'
+.................................................................................................................
+cljs/tools/reader.cljs:527:9: warning: redundant do
+(rest of the output omitted)
+```
+
 ### Disable a linter
 
 ``` shellsession
@@ -27,26 +67,16 @@ $ echo '(select-keys [:a])' | clj-kondo --lint - --config '{:linters {:invalid-a
 linting took 10ms, errors: 0, warnings: 0
 ```
 
-### Show progress bar while linting
+### Disable all linters but one
+
+You can accomplish this by using `^:replace` metadata, which will override
+instead of merge with other configurations:
 
 ``` shellsession
-$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:show-progress true}}'
-.................................................................................................................
-cljs/tools/reader.cljs:527:9: warning: redundant do
-(rest of the output omitted)
-```
-
-### Include and exclude files from the output
-
-``` shellsession
-$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"]}}'
-clojure/test.clj:496:6: warning: redundant let
-clojure/test/tap.clj:86:5: warning: redundant do
-linting took 3289ms, errors: 0, warnings: 2
-
-$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"] :exclude-files ["tap"]}}'
-clojure/test.clj:496:6: warning: redundant let
-linting took 3226ms, errors: 0, warnings: 1
+$ clj-kondo --lint corpus --config '^:replace {:linters {:redundant-let {:level :info}}}'
+corpus/redundant_let.clj:4:3: info: redundant let
+corpus/redundant_let.clj:8:3: info: redundant let
+corpus/redundant_let.clj:12:3: info: redundant let
 ```
 
 ### Exclude arity linting inside a specific macro call

@@ -20,6 +20,8 @@
    [rewrite-clj.node.token :as token])
   (:import [clj_kondo.impl.node.seq NamespacedMapNode]))
 
+(set! *warn-on-reflection* true)
+
 (declare analyze-expression**)
 
 (defn analyze-children [{:keys [:callstack :config] :as ctx} children]
@@ -77,7 +79,7 @@
                   (node->line (:filename ctx)
                               expr
                               :error
-                              :unsupported-binding-form
+                              :syntax
                               (str "unsupported binding form " sym)))))))
          ;; keyword
          (:k expr)
@@ -98,7 +100,7 @@
                 (node->line (:filename ctx)
                             expr
                             :error
-                            :unsupported-binding-form
+                            :syntax
                             (str "unsupported binding form " (:k expr)))))))
          :else
          (findings/reg-finding!
@@ -106,7 +108,7 @@
           (node->line (:filename ctx)
                       expr
                       :error
-                      :unsupported-binding-form
+                      :syntax
                       (str "unsupported binding form " expr))))
        :vector (into {} (map #(extract-bindings ctx %)) (:children expr))
        :namespaced-map (extract-bindings ctx (first (:children expr)))
@@ -130,7 +132,8 @@
                      :as (recur rest-kvs (merge res (extract-bindings ctx v)))
                      (recur rest-kvs res))
                    (utils/symbol-token? k)
-                   (recur rest-kvs (merge res (extract-bindings ctx k)))
+                   (recur rest-kvs (merge res (extract-bindings ctx k)
+                                          {:analyzed (analyze-expression** ctx v)}))
                    :else (recur rest-kvs res)))
            res))
        (findings/reg-finding!
@@ -138,7 +141,7 @@
         (node->line (:filename ctx)
                     expr
                     :error
-                    :unsupported-binding-form
+                    :syntax
                     (str "unsupported binding form " expr)))))))
 
 (defn analyze-in-ns [ctx {:keys [:children] :as _expr}]
@@ -317,7 +320,7 @@
     (when (odd? num-children)
       (findings/reg-finding!
        (:findings ctx)
-       {:type :invalid-bindings
+       {:type :syntax
         :message (format "%s binding vector requires even number of forms" form-name)
         :row row
         :col col
@@ -400,7 +403,7 @@
     (when (not= 2 num-children)
       (findings/reg-finding!
        (:findings ctx)
-       {:type :invalid-bindings
+       {:type :syntax
         :message (format "%s binding vector requires exactly 2 forms" form-name)
         :row row
         :col col
@@ -676,7 +679,27 @@
                    :unresolved-symbol
                    (str "unresolved symbol " full-fn-name))))
     (cons* use
-           (if call-as-use
+           (case resolved-as-clojure-var-name
+             ns
+             (let [ns (analyze-ns-decl ctx expr)]
+               [ns])
+             in-ns (when-not fn-body [(analyze-in-ns ctx expr)])
+             alias
+             [(analyze-alias ctx expr)]
+             def (do (lint-inline-def! ctx expr)
+                     (analyze-def ctx expr))
+             (defn defn- defmacro)
+             (do (lint-inline-def! ctx expr)
+                 (cons {:type :call
+                        :name resolved-as-clojure-var-name
+                        :row row
+                        :col col
+                        :base-lang base-lang
+                        :lang lang
+                        :expr expr
+                        :arity arg-count}
+                       (analyze-defn ctx expr)))
+             comment
              (analyze-children ctx children)
              (case resolved-as-clojure-var-name
                ns
@@ -1087,13 +1110,20 @@
       analyzed-expressions)
     (catch Exception e
       (if dev? (throw e)
-          {:findings [{:level :error
-                       :filename filename
-                       :col 0
-                       :row 0
-                       :message (str "can't parse "
-                                     filename ", "
-                                     (.getMessage e))}]}))
+          {:findings [(let [[_ msg row col] (re-find #"(.*)\[at line (\d+), column (\d+)\]"
+                                                     (.getMessage e))]
+                        {:level :error
+                         :filename filename
+                         :col (if col (Integer/parseInt col) 0)
+                         :row (if row (Integer/parseInt row) 0)
+                         :type :syntax
+                         :message (or (str/trim msg)
+                                      (str "can't parse "
+                                           filename ", "
+                                           (.getMessage e)
+                                           (ex-data e)))})]}))
     (finally
-      (when (-> config :output :show-progress)
-        (print ".") (flush)))))
+      (let [output-cfg (:output config)]
+        (when (and (= :text (:format output-cfg))
+                   (:progress output-cfg))
+          (print ".") (flush))))))
