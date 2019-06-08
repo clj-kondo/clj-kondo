@@ -11,7 +11,7 @@
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :as utils :refer [some-call symbol-call keyword-call node->line
+   [clj-kondo.impl.utils :as utils :refer [symbol-call keyword-call node->line
                                            parse-string parse-string-all tag select-lang
                                            vconj deep-merge one-of]]
    [clojure.string :as str]
@@ -628,6 +628,35 @@
   (analyze-children (assoc ctx :in-def? true)
                     (next (:children expr))))
 
+(defn analyze-catch [ctx expr]
+  (let [children (next (:children expr))
+        binding-expr (second children)
+        binding (extract-bindings ctx binding-expr)]
+    (analyze-children (update ctx :bindings (fn [b] (merge b binding)))
+                      (nnext children))))
+
+(defn analyze-try [ctx expr]
+  (loop [[fst-child & rst-children] (next (:children expr))
+         analyzed []
+         catch-phase false
+         finally-phase false]
+    (if fst-child
+      (case (symbol-call fst-child)
+        catch
+        (let [analyzed-catch (analyze-catch ctx fst-child)]
+          (recur rst-children (into analyzed analyzed-catch)
+                 true false))
+        finally
+        (recur
+         rst-children
+         (into analyzed (analyze-children ctx (next (:children fst-child))))
+         false false)
+        (recur
+         rst-children
+         (into analyzed (analyze-expression** ctx fst-child))
+         false false))
+      analyzed)))
+
 (defn analyze-call
   [{:keys [:fn-body :base-lang :lang :ns :config :call-as-use] :as ctx}
    {:keys [:arg-count
@@ -759,6 +788,7 @@
                        :lang lang
                        :expr expr
                        :callstack (:callstack ctx)}]
+               try (analyze-try ctx expr)
                ;; catch-all
                (case [resolved-namespace resolved-name]
                  [schema.core defn]
