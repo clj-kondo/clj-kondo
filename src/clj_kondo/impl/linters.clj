@@ -29,7 +29,8 @@
             (when (and (seq rest-conditions))
               (findings/reg-finding!
                findings
-               (node->line filename (first rest-conditions) :warning :unreachable-code "unreachable code"))))))
+               (node->line filename (first rest-conditions) :warning
+                           :unreachable-code "unreachable code"))))))
       (recur rest-conditions))))
 
 (defn =? [sexpr]
@@ -69,7 +70,7 @@
   (when-not (even? (count (rest (:children expr))))
     (findings/reg-finding!
      findings
-     (node->line filename expr :error :even-number-of-forms
+     (node->line filename expr :error :syntax
                  (format "cond requires even number of forms")))
     true))
 

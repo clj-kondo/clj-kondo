@@ -262,7 +262,7 @@
                           (node->line (:filename ctx)
                                       name-expr
                                       :error
-                                      :ns-syntax
+                                      :syntax
                                       "namespace name expected")))))
                  'user)
         clauses (next children)

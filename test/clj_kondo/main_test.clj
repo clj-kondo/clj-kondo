@@ -193,11 +193,10 @@
   (testing "when an error happens in one file, the other file is still linted"
     (let [linted (lint! (io/file "corpus" "read_error"))]
       (is (= '({:file "corpus/read_error/error.clj",
-                :row 0,
-                :col 0,
+                :row 2,
+                :col 1,
                 :level :error,
-                :message
-                "can't parse corpus/read_error/error.clj, Unexpected EOF. [at line 2, column 1]"}
+                :message "Unexpected EOF."}
                {:file "corpus/read_error/ok.clj",
                 :row 6,
                 :col 1,
@@ -594,6 +593,12 @@
                      '{:linters {:unused-namespace {:exclude
                                                     [".*\\.specs$"
                                                      ".*\\.spex$"]}}}))))
+
+(deftest replace-config-test
+  (let [res (lint! (io/file "corpus") "--config" "^:replace {:linters {:redundant-let {:level :info}}}")]
+    (is (pos? (count res)))
+    (doseq [f res]
+      (is (= :info (:level f))))))
 
 (deftest map-duplicate-keys
   (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}

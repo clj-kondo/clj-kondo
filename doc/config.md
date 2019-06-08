@@ -67,6 +67,18 @@ $ echo '(select-keys [:a])' | clj-kondo --lint - --config '{:linters {:invalid-a
 linting took 10ms, errors: 0, warnings: 0
 ```
 
+### Disable all linters but one
+
+You can accomplish this by using `^:replace` metadata, which will override
+instead of merge with other configurations:
+
+``` shellsession
+$ clj-kondo --lint corpus --config '^:replace {:linters {:redundant-let {:level :info}}}'
+corpus/redundant_let.clj:4:3: info: redundant let
+corpus/redundant_let.clj:8:3: info: redundant let
+corpus/redundant_let.clj:12:3: info: redundant let
+```
+
 ### Exclude arity linting inside a specific macro call
 
 Some macros rewrite their arguments and therefore can cause false positive arity

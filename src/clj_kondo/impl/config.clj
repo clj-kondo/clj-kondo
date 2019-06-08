@@ -18,16 +18,19 @@
               :inline-def {:level :warning}
               :redundant-do {:level :warning}
               :redundant-let {:level :warning}
-              :cond-without-else {:level :warning}
+              :cond-else {:level :warning}
+              :syntax {:level :error}
               :missing-test-assertion {:level :warning}
               :duplicate-map-key {:level :error}
               :duplicate-set-key {:level :error}
               :missing-map-value {:level :error}
-              :invalid-bindings {:level :error}
+              :redefined-var {:level :warning}
+              :unreachable-code {:level :warning}
+              :unbound-destructuring-default {:level :warning}
+              :unused-binding {:level :warning}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
-                                 :exclude [#_clj-kondo.impl.var-info-gen]
-                                 }}
+                                 :exclude [#_clj-kondo.impl.var-info-gen]}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -50,7 +53,9 @@
   (let [cfg (cond-> cfg
               (:skip-comments cfg)
               (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
-    (deep-merge cfg* cfg)))
+    (if (:replace (meta cfg))
+      cfg
+      (deep-merge cfg* cfg))))
 
 (defn fq-syms->vecs [fq-syms]
   (map (fn [fq-sym]

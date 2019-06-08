@@ -40,7 +40,8 @@
                  (edn/read-string (slurp f)))))
            (when config
              (cond (map? config) config
-                   (str/starts-with? config "{")
+                   (or (str/starts-with? config "{")
+                       (str/starts-with? config "^"))
                    (edn/read-string config)
                    :else (edn/read-string (slurp config))))]))
 
@@ -205,9 +206,10 @@
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
         remove-output (not-empty (-> config :output :exclude-files))]
-    (for [{:keys [:filename :level :type] :as f} findings
-          :let [level (or (when type (-> config :linters type :level))
-                          level)]
+    (for [{:keys [:filename :type] :as f} findings
+          :let [level (when type (-> config :linters type :level))
+                ;; _ (when-not level (println "warning: " type " has no level!"))
+                ]
           :when (and level (not= :off level))
           :when (if (= :debug type)
                   print-debug?
