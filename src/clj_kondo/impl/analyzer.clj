@@ -619,7 +619,8 @@
     (doseq [var-name-node var-name-nodes]
       (namespace/reg-var! ctx ns-name
                           (->> var-name-node (meta/lift-meta-content ctx) :value)
-                          expr))))
+                          expr
+                          true))))
 
 (defn analyze-def [ctx expr]
   (namespace/reg-var! ctx (-> ctx :ns :name)

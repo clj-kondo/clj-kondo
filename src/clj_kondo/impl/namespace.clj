@@ -20,32 +20,36 @@
             path)))
 
 (defn reg-var!
-  [{:keys [:base-lang :lang :filename :findings :namespaces]} ns-sym var-sym expr]
-  (let [path [base-lang lang ns-sym]]
-    (swap! namespaces update-in path
-           (fn [ns]
-             (let [vars (:vars ns)]
-               (when-let [redefined-ns
-                          (or (when (contains? vars var-sym)
-                                ns-sym)
-                              (when-let [qv (get (:qualify-var ns) var-sym)]
-                                (:ns qv))
-                              (let [core-ns (case lang
-                                              :clj 'clojure.core
-                                              :cljs 'cljs.core)]
-                                (when (and (not= ns-sym core-ns)
-                                           (not (contains? (:clojure-excluded ns) var-sym))
-                                           (var-info/core-sym? lang var-sym))
-                                  core-ns)))]
-                 (findings/reg-finding!
-                  findings
-                  (node->line filename
-                              expr :warning
-                              :redefined-var
-                              (if (= ns-sym redefined-ns)
-                                (str "redefined var #'" redefined-ns "/" var-sym)
-                                (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
-             (update ns :vars conj var-sym)))))
+  ([ctx ns-sym var-sym expr]
+   (reg-var! ctx ns-sym var-sym expr false))
+  ([{:keys [:base-lang :lang :filename :findings :namespaces]} ns-sym var-sym expr declared?]
+   (let [path [base-lang lang ns-sym]]
+     (swap! namespaces update-in path
+            (fn [ns]
+              (let [vars (:vars ns)]
+                (when-let [redefined-ns
+                           (or (when-let [v (get vars var-sym)]
+                                 (when-not (:declared? (meta v))
+                                   ns-sym))
+                               (when-let [qv (get (:qualify-var ns) var-sym)]
+                                 (:ns qv))
+                               (let [core-ns (case lang
+                                               :clj 'clojure.core
+                                               :cljs 'cljs.core)]
+                                 (when (and (not= ns-sym core-ns)
+                                            (not (contains? (:clojure-excluded ns) var-sym))
+                                            (var-info/core-sym? lang var-sym))
+                                   core-ns)))]
+                  (findings/reg-finding!
+                   findings
+                   (node->line filename
+                               expr :warning
+                               :redefined-var
+                               (if (= ns-sym redefined-ns)
+                                 (str "redefined var #'" redefined-ns "/" var-sym)
+                                 (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
+              (update ns :vars conj (with-meta var-sym
+                                      {:declared? declared?})))))))
 
 (defn reg-usage!
   "Registers usage of required namespaced in ns."
