@@ -1438,7 +1438,7 @@
       :level :error,
       :message "unresolved symbol x"})
    (lint! "(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}"))
-  (is (empty? (lint! "(try 1 (catch Exception _ 2) (finally 3))"
+  (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}"))))
 
 ;;;; Scratch
