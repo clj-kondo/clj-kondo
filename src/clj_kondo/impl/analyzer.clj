@@ -667,7 +667,9 @@
     (for [c children
           :when (= :list (node/tag c)) ;; skip first docstring
           :let [children (:children c)
-                fn-name (-> children first :value)
+                name-node (first children)
+                name-node (meta/lift-meta-content ctx name-node)
+                fn-name (:value name-node)
                 _ (when fn-name (namespace/reg-var! ctx (:name ns) fn-name expr))
                 arity-vecs (rest children)
                 fixed-arities (set (keep #(when (= :vector (node/tag %))

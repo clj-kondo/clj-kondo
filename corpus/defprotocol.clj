@@ -1,8 +1,8 @@
 (ns defprotocol)
 
-(defprotocol Foo
+(defprotocol ^{:added "1.3"} Foo
   "This is my protocol"
-  (-foo [this] [this x] [this x y] "foo docs"))
+  (^{:added "1.3"} -foo [this] [this x] [this x y] "foo docs"))
 
 (extend-protocol Foo
   nil
