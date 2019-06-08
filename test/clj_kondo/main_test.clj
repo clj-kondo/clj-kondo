@@ -1448,6 +1448,26 @@
       :message "wrong number of args (4) passed to defprotocol/-foo"})
    (lint! (io/file "corpus" "defprotocol.clj"))))
 
+(deftest defrecord-test
+  (assert-submaps
+   '({:file "corpus/defrecord.clj",
+      :row 4,
+      :col 21,
+      :level :warning,
+      :message "unused binding b"}
+     {:file "corpus/defrecord.clj",
+      :row 8,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (3) passed to defrecord/->Thing"}
+     {:file "corpus/defrecord.clj",
+      :row 9,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (2) passed to defrecord/map->Thing"})
+   (lint! (io/file "corpus" "defrecord.clj")
+          "--config" "{:linters {:unused-binding {:level :warning}}}")))
+
 (deftest unresolved-symbol-test
   (assert-submaps
    '({:file "<stdin>",

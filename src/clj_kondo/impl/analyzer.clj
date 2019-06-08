@@ -685,6 +685,40 @@
        :fixed-arities fixed-arities
        :expr c})))
 
+(defn analyze-defrecord [{:keys [:base-lang :lang :ns] :as ctx} expr]
+  (let [children (next (:children expr))
+        name-node (first children)
+        record-name (:value name-node)
+        binding-vector (second children)
+        field-count (count (:children binding-vector))
+        bindings (extract-bindings ctx binding-vector)
+        {:keys [:row :col]} (meta expr)]
+    ;; TODO: it seems like we can abstract creating defn types into a function,
+    ;; so we can also call reg-var there
+    (namespace/reg-var! ctx (-> ns :name) (symbol (str "->" record-name)) expr)
+    (namespace/reg-var! ctx (-> ns :name) (symbol (str "map->" record-name)) expr)
+    (concat
+     [{:type :defn
+       :name (symbol (str "->" record-name))
+       :row row
+       :col col
+       :base-lang base-lang
+       :lang lang
+       :fixed-arities #{field-count}
+       :expr expr}
+      {:type :defn
+       :name (symbol (str "map->" record-name))
+       :row row
+       :col col
+       :base-lang base-lang
+       :lang lang
+       :fixed-arities #{1}
+       :expr expr}]
+     (analyze-children (-> ctx
+                           (assoc :call-as-use true)
+                           (update :bindings (fn [b] (merge b bindings))))
+                       (nnext children)))))
+
 (defn analyze-call
   [{:keys [:fn-body :base-lang :lang :ns :config :call-as-use] :as ctx}
    {:keys [:arg-count
@@ -760,6 +794,7 @@
                             :arity arg-count}
                            (analyze-defn ctx expr)))
                  defprotocol (analyze-defprotocol ctx expr)
+                 defrecord (analyze-defrecord ctx expr)
                  comment
                  (analyze-children ctx children)
                  (-> some->)
@@ -767,7 +802,7 @@
                  (->> some->>)
                  (analyze-expression** ctx (macroexpand/expand->> ctx expr))
                  (cond-> cond->> . .. deftype
-                         proxy extend-protocol doto reify definterface defrecord
+                         proxy extend-protocol doto reify definterface
                          defcurried)
                  ;; don't lint calls in these expressions, only register them as used vars
                  (analyze-children (assoc ctx :call-as-use true)
