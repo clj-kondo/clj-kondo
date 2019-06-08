@@ -770,7 +770,7 @@
                    (analyze-like-let ctx expr)
                    letfn
                    (analyze-letfn ctx expr)
-                   (if-let when-let)
+                   (if-let when-let when-some)
                    (analyze-if-let ctx expr)
                    do
                    (analyze-do ctx expr)

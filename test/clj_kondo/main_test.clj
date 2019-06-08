@@ -1214,6 +1214,14 @@
           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
+      :row 1,
+      :col 13,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(when-some [x 1] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
       :level :warning,
       :message "unused binding x"})
    (lint! "(for [x []] 1)"
