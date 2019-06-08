@@ -64,11 +64,11 @@
 
 (comment
   (require '[clj-kondo.impl.utils :refer [parse-string]])
-  (expand-schema-defn (parse-string "(s/defn foo :- (s/maybe s/Int) [a :- Int])"))
   (expand-schema-defn2 (parse-string "(s/defn foo :- (s/maybe s/Int) [a :- Int])"))
-  (expand-schema-defn (parse-string "(s/defn foo [[foo :- Baz]] foo)"))
+  (expand-schema-defn2 (parse-string "(s/defn foo :- (s/maybe s/Int) [a :- Int])"))
   (expand-schema-defn2 (parse-string "(s/defn foo [[foo :- Baz]] foo)"))
-  (expand-schema-defn (parse-string "(s/defn foo [{:keys [a]} :- {:a s/Int}])"))
+  (expand-schema-defn2 (parse-string "(s/defn foo [[foo :- Baz]] foo)"))
+  (expand-schema-defn2 (parse-string "(s/defn foo [{:keys [a]} :- {:a s/Int}])"))
   (expand-schema-defn2 (parse-string "(s/defn foo [{:keys [a]} :- {:a s/Int}])"))
   (expand-schema-defn2 (parse-string "(s/defn foo ([a :- s/Int]) ([b :- s/String]))"))
   (expand-schema-defn2 (parse-string "(s/defn ^:private foo ([a :- s/Int]) ([b :- s/String]))"))
