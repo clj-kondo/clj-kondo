@@ -1,7 +1,8 @@
 (ns defprotocol)
 
 (defprotocol Foo
-  (-foo [this] [this x] [this x y]))
+  "This is my protocol"
+  (-foo [this] [this x] [this x y] "foo docs"))
 
 (extend-protocol Foo
   nil

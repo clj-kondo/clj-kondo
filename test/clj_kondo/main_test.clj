@@ -1442,7 +1442,7 @@
 (deftest defprotocol-test
   (assert-submaps
    '({:file "corpus/defprotocol.clj",
-      :row 13,
+      :row 14,
       :col 1,
       :level :error,
       :message "wrong number of args (4) passed to defprotocol/-foo"})

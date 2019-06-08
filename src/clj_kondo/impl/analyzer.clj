@@ -623,9 +623,11 @@
                           true))))
 
 (defn analyze-def [ctx expr]
-  (namespace/reg-var! ctx (-> ctx :ns :name)
-                      (->> expr :children second (meta/lift-meta-content ctx) :value)
-                      expr)
+  (let [var-name (->> expr :children second (meta/lift-meta-content ctx) :value)]
+    (when var-name
+      (namespace/reg-var! ctx (-> ctx :ns :name)
+                          (->> expr :children second (meta/lift-meta-content ctx) :value)
+                          expr)))
   (analyze-children (assoc ctx :in-def? true)
                     (next (:children expr))))
 
@@ -660,13 +662,17 @@
       analyzed)))
 
 (defn analyze-defprotocol [{:keys [:base-lang :lang :ns] :as ctx} expr]
+  ;; for syntax, see https://clojure.org/reference/protocols#_basics
   (let [children (nnext (:children expr))]
     (for [c children
+          :when (= :list (node/tag c)) ;; skip first docstring
           :let [children (:children c)
                 fn-name (-> children first :value)
                 _ (when fn-name (namespace/reg-var! ctx (:name ns) fn-name expr))
                 arity-vecs (rest children)
-                fixed-arities (set (map #(count (:children %)) arity-vecs))
+                fixed-arities (set (keep #(when (= :vector (node/tag %))
+                                            ;; skip last docstring
+                                            (count (:children %))) arity-vecs))
                 {:keys [:row :col]} (meta c)]]
       {:type :defn
        :name fn-name
@@ -1162,23 +1168,25 @@
       analyzed-expressions)
     (catch Exception e
       (if dev? (throw e)
-          {:findings [(if-let [[_ msg row col] (re-find #"(.*)\[at line (\d+), column (\d+)\]"
-                                                        (.getMessage e))]
-                        {:level :error
-                         :filename filename
-                         :col (Integer/parseInt col)
-                         :row (Integer/parseInt row)
-                         :type :syntax
-                         :message (str/trim msg)}
-                        {:level :error
-                         :filename filename
-                         :col 0
-                         :row 0
-                         :type :syntax
-                         :message (str "can't parse "
-                                       filename ", "
-                                       (.getMessage e)
-                                       (ex-data e))})]}))
+          {:findings [(let [m (.getMessage e)]
+                        (if-let [[_ msg row col]
+                                 (and m
+                                      (re-find #"(.*)\[at line (\d+), column (\d+)\]"
+                                               m))]
+                          {:level :error
+                           :filename filename
+                           :col (Integer/parseInt col)
+                           :row (Integer/parseInt row)
+                           :type :syntax
+                           :message (str/trim msg)}
+                          {:level :error
+                           :filename filename
+                           :col 0
+                           :row 0
+                           :type :syntax
+                           :message (str "can't parse "
+                                         filename ", "
+                                         (or m (str e)))}))]}))
     (finally
       (let [output-cfg (:output config)]
         (when (and (= :text (:format output-cfg))
