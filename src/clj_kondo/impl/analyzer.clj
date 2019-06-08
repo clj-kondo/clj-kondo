@@ -715,8 +715,9 @@
              in-ns (when-not fn-body [(analyze-in-ns ctx expr)])
              alias
              [(analyze-alias ctx expr)]
-             def (do (lint-inline-def! ctx expr)
-                     (analyze-def ctx expr))
+             (def defmulti)
+             (do (lint-inline-def! ctx expr)
+                 (analyze-def ctx expr))
              (defn defn- defmacro)
              (do (lint-inline-def! ctx expr)
                  (cons {:type :call
