@@ -696,6 +696,8 @@
 (defn analyze-defrecord [{:keys [:base-lang :lang :ns] :as ctx} expr]
   (let [children (next (:children expr))
         name-node (first children)
+        name-node (meta/lift-meta-content ctx name-node)
+        metadata (meta name-node)
         record-name (:value name-node)
         binding-vector (second children)
         field-count (count (:children binding-vector))
@@ -703,8 +705,8 @@
         {:keys [:row :col]} (meta expr)]
     ;; TODO: it seems like we can abstract creating defn types into a function,
     ;; so we can also call reg-var there
-    (namespace/reg-var! ctx (-> ns :name) (symbol (str "->" record-name)) expr)
-    (namespace/reg-var! ctx (-> ns :name) (symbol (str "map->" record-name)) expr)
+    (namespace/reg-var! ctx (-> ns :name) (symbol (str "->" record-name)) expr metadata)
+    (namespace/reg-var! ctx (-> ns :name) (symbol (str "map->" record-name)) expr metadata)
     (concat
      [{:type :defn
        :name (symbol (str "->" record-name))
