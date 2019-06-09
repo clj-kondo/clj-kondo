@@ -198,7 +198,7 @@
                                                   (str (:arity call))
                                                   (str (:ns called-fn) "/" (:name called-fn))
                                                   #_(str (:fixed-arities called-fn)))})
-                              (when (and (:private? called-fn)
+                              (when (and (:private called-fn)
                                          (not= caller-ns
                                                fn-ns))
                                 {:filename filename

@@ -2,6 +2,9 @@
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
             [clj-kondo.impl.cache :as cache]
+            [clj-kondo.impl.core :as core-impl]
+            [clj-kondo.impl.namespace :as namespace]
+            [clj-kondo.impl.config :as config]
             [clojure.set :as set]))
 
 ;; extracting information from eastwood with permission from maintainer Andy
@@ -19,6 +22,26 @@
 
   (def cljs-core-syms '%s)
   ")
+
+(defn cljs-core-vars
+  "FIXME: write test for this"
+  []
+  (let [public? #(-> % meta :private not)
+        namespaces (atom {})]
+    (doall
+     (core-impl/process-files
+      {:config config/default-config
+       :findings (atom [])
+       :namespaces namespaces}
+      [(io/file (System/getProperty "user.home")
+                ".m2" "repository" "org" "clojure" "clojurescript"
+                "1.10.520" "clojurescript-1.10.520.jar")]
+      :clj))
+    (def dude
+      (reduce into #{}
+              [(filter public? (get-in @namespaces '[:cljs :cljs cljs.core :vars]))
+               (filter public? (get-in @namespaces '[:cljc :clj cljs.core :vars]))
+               (filter public? (get-in @namespaces '[:cljc :cljs cljs.core :vars]))]))))
 
 (defn -main [& args]
   (let [var-info (edn/read-string (slurp (io/resource "var-info.edn")))
@@ -49,9 +72,11 @@
         cljs-core-syms (into cljs-core-syms-cljs cljs-core-syms-cljc)
         ;; defn is defined with def, so we currently don't recognize it as a function:
         ;; https://github.com/clojure/clojurescript/blob/47386d7c03e6fc36dc4f0145bd62377802ac1c02/src/main/clojure/cljs/core.cljc#L3243
+        ;; now we do
         ;; ns is a special case in the CLJS analyzer:
         ;; https://github.com/clojure/clojurescript/blob/47386d7c03e6fc36dc4f0145bd62377802ac1c02/src/main/clojure/cljs/analyzer.cljc#L3002
-        cljs-core-syms (conj cljs-core-syms 'ns 'defn)
+        cljs-core-syms (conj cljs-core-syms 'defn 'ns)
+        ;; _ (def ccore-syms cljs-core-syms)
         code (format code-template predicates-by-ns
                      clojure-core-syms cljs-core-syms)]
     (spit "src/clj_kondo/impl/var_info_gen.clj" code)))
@@ -65,7 +90,5 @@
           (when-not (:private? v) k))
         (cache/from-cache-1 nil :clj 'clojure.core))
   (-main)
-  (type cc)
-  (contains? cc '-hash)
-  (contains? ccs '-hash)
+  (set/difference ccore-syms dude)
   )

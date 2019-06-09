@@ -21,15 +21,15 @@
 
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
-   (reg-var! ctx ns-sym var-sym expr false))
-  ([{:keys [:base-lang :lang :filename :findings :namespaces]} ns-sym var-sym expr declared?]
+   (reg-var! ctx ns-sym var-sym expr nil))
+  ([{:keys [:base-lang :lang :filename :findings :namespaces]} ns-sym var-sym expr metadata]
    (let [path [base-lang lang ns-sym]]
      (swap! namespaces update-in path
             (fn [ns]
               (let [vars (:vars ns)]
                 (when-let [redefined-ns
                            (or (when-let [v (get vars var-sym)]
-                                 (when-not (:declared? (meta v))
+                                 (when-not (:declared (meta v))
                                    ns-sym))
                                (when-let [qv (get (:qualify-var ns) var-sym)]
                                  (:ns qv))
@@ -49,7 +49,7 @@
                                  (str "redefined var #'" redefined-ns "/" var-sym)
                                  (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
               (update ns :vars conj (with-meta var-sym
-                                      {:declared? declared?})))))))
+                                      metadata)))))))
 
 (defn reg-usage!
   "Registers usage of required namespaced in ns."

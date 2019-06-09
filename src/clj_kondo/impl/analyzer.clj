@@ -215,13 +215,18 @@
         name-node (first children)
         name-node (when name-node (meta/lift-meta-content ctx name-node))
         fn-name (:value name-node)
-        _ (when fn-name (namespace/reg-var!  ctx (:name ns) fn-name expr))
-        var-meta (meta name-node)
         call-sym (symbol-call expr)
+        var-meta (meta name-node)
         macro? (or (= 'defmacro call-sym)
                    (:macro var-meta))
         private? (or (= 'defn- call-sym)
                      (:private var-meta))
+        _ (when fn-name
+            (namespace/reg-var!
+             ctx (:name ns) fn-name expr
+             (cond-> (meta name-node)
+               macro? (assoc :macro true)
+               private? (assoc :private true))))
         bodies (fn-bodies ctx (next children))
         parsed-bodies (map #(analyze-fn-body
                              (assoc ctx
@@ -241,7 +246,7 @@
                    :expr expr}
             macro? (assoc :macro true)
             (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-            private? (assoc :private? private?)
+            private? (assoc :private private?)
             var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))
           {:type :debug
            :level :info
@@ -620,14 +625,17 @@
       (namespace/reg-var! ctx ns-name
                           (->> var-name-node (meta/lift-meta-content ctx) :value)
                           expr
-                          true))))
+                          {:declared true}))))
 
 (defn analyze-def [ctx expr]
-  (let [var-name (->> expr :children second (meta/lift-meta-content ctx) :value)]
+  (let [var-name-node (->> expr :children second (meta/lift-meta-content ctx))
+        metadata (meta var-name-node)
+        var-name (:value var-name-node)]
     (when var-name
       (namespace/reg-var! ctx (-> ctx :ns :name)
-                          (->> expr :children second (meta/lift-meta-content ctx) :value)
-                          expr)))
+                          var-name
+                          expr
+                          metadata)))
   (analyze-children (assoc ctx :in-def? true)
                     (next (:children expr))))
 
