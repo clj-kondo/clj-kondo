@@ -774,7 +774,7 @@
                  alias
                  [(analyze-alias ctx expr)]
                  declare (analyze-declare ctx expr)
-                 (def defmulti)
+                 (def defonce defmulti)
                  (do (lint-inline-def! ctx expr)
                      (analyze-def ctx expr))
                  (defn defn- defmacro)

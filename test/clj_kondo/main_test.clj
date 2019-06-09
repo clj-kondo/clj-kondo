@@ -1487,6 +1487,8 @@
   (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "(defmulti foo (fn [_])) (defmethod foo :dude [_]) (foo 1)"
+                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+  (is (empty? (lint! "(defonce foo (fn [_])) (foo 1)"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}"))))
 
 ;;;; Scratch
