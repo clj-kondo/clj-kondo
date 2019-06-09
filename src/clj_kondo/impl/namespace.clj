@@ -26,28 +26,30 @@
    (let [path [base-lang lang ns-sym]]
      (swap! namespaces update-in path
             (fn [ns]
-              (let [vars (:vars ns)]
-                (when-let [redefined-ns
-                           (or (when-let [v (get vars var-sym)]
-                                 (when-not (:declared (meta v))
-                                   ns-sym))
-                               (when-let [qv (get (:qualify-var ns) var-sym)]
-                                 (:ns qv))
-                               (let [core-ns (case lang
-                                               :clj 'clojure.core
-                                               :cljs 'cljs.core)]
-                                 (when (and (not= ns-sym core-ns)
-                                            (not (contains? (:clojure-excluded ns) var-sym))
-                                            (var-info/core-sym? lang var-sym))
-                                   core-ns)))]
-                  (findings/reg-finding!
-                   findings
-                   (node->line filename
-                               expr :warning
-                               :redefined-var
-                               (if (= ns-sym redefined-ns)
-                                 (str "redefined var #'" redefined-ns "/" var-sym)
-                                 (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
+              ;; declare is idempotent
+              (when-not (:declared metadata)
+                (let [vars (:vars ns)]
+                  (when-let [redefined-ns
+                             (or (when-let [v (get vars var-sym)]
+                                   (when-not (:declared (meta v))
+                                     ns-sym))
+                                 (when-let [qv (get (:qualify-var ns) var-sym)]
+                                   (:ns qv))
+                                 (let [core-ns (case lang
+                                                 :clj 'clojure.core
+                                                 :cljs 'cljs.core)]
+                                   (when (and (not= ns-sym core-ns)
+                                              (not (contains? (:clojure-excluded ns) var-sym))
+                                              (var-info/core-sym? lang var-sym))
+                                     core-ns)))]
+                    (findings/reg-finding!
+                     findings
+                     (node->line filename
+                                 expr :warning
+                                 :redefined-var
+                                 (if (= ns-sym redefined-ns)
+                                   (str "redefined var #'" redefined-ns "/" var-sym)
+                                   (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))))
               (update ns :vars conj (with-meta var-sym
                                       metadata)))))))
 

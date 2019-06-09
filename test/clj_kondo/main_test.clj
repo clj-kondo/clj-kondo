@@ -1005,7 +1005,8 @@
                   (lint! "(ns foo (:require [bar :refer [x]])) (defn x [])"))
   (is (empty? (lint! "(defn foo [])")))
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])")))
-  (is (empty? (lint! "(declare foo) (def foo 1)"))))
+  (is (empty? (lint! "(declare foo) (def foo 1)")))
+  (is (empty? (lint! "(def foo 1) (declare foo)"))))
 
 (deftest unreachable-code-test
   (assert-submaps
