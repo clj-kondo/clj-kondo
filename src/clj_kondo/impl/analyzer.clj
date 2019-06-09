@@ -221,7 +221,6 @@
                    (:macro var-meta))
         private? (or (= "defn-" call)
                      (:private var-meta))
-        _ (when (= 'assert-valid-fdecl fn-name) (prn "PRIVATE?" private?))
         _ (when fn-name
             (namespace/reg-var!
              ctx (:name ns) fn-name expr
