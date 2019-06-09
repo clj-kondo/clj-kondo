@@ -12,7 +12,11 @@
   {:no-doc true})
   (in-ns 'clj-kondo.impl.var-info)
   (def predicates '%s)
+
+
   (def clojure-core-syms '%s)
+
+
   (def cljs-core-syms '%s)
   ")
 
@@ -60,4 +64,8 @@
   (keep (fn [[k v]]
           (when-not (:private? v) k))
         (cache/from-cache-1 nil :clj 'clojure.core))
+  (-main)
+  (type cc)
+  (contains? cc '-hash)
+  (contains? ccs '-hash)
   )
