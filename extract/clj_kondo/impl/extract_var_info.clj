@@ -79,7 +79,8 @@
                                var-info)
         core (get by-namespace "clojure.core")
         clojure-core-syms-eastwood (set (map (comp symbol name key) core))
-        clojure-core-syms (into clojure-core-syms-eastwood (extract-clojure-core-vars))
+        extracted-core-vars (extract-clojure-core-vars)
+        clojure-core-syms (into clojure-core-syms-eastwood extracted-core-vars)
         cljs-core-vars (extract-cljs-core-vars)
         code (format code-template predicates-by-ns
                      clojure-core-syms cljs-core-vars)]
@@ -88,4 +89,6 @@
 ;;;; Scratch
 
 (comment
+  (-main)
+  (contains? e 'assert-valid-fdecl)
   )

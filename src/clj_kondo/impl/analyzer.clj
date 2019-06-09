@@ -215,12 +215,13 @@
         name-node (first children)
         name-node (when name-node (meta/lift-meta-content ctx name-node))
         fn-name (:value name-node)
-        call-sym (symbol-call expr)
+        call (name (symbol-call expr))
         var-meta (meta name-node)
-        macro? (or (= 'defmacro call-sym)
+        macro? (or (= "defmacro" call)
                    (:macro var-meta))
-        private? (or (= 'defn- call-sym)
+        private? (or (= "defn-" call)
                      (:private var-meta))
+        _ (when (= 'assert-valid-fdecl fn-name) (prn "PRIVATE?" private?))
         _ (when fn-name
             (namespace/reg-var!
              ctx (:name ns) fn-name expr
