@@ -52,6 +52,8 @@ This linter is:
 * a static code analyzer
 * compiled to native code using GraalVM
 
+Try clj-kondo at the [interactive playground](https://clj-kondo.michielborkent.nl).
+
 ## Status
 
 Under active development, but already useful. None of the code is meant to be exposed as a
