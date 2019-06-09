@@ -725,11 +725,12 @@
            :full-fn-name
            :row :col
            :expr]}]
-  (let [children (:children expr)
+  (let [ns-name (:name ns)
+        children (:children expr)
         {resolved-namespace :ns
          resolved-name :name
          unqualified? :unqualified?}
-        (resolve-name ctx (:name ns) full-fn-name)
+        (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name lint-as?]
         (or (when-let [[ns n] (config/lint-as config [resolved-namespace resolved-name])]
               [ns n true])
@@ -762,13 +763,7 @@
                                           ".")
                         (str/ends-with? (name full-fn-name)
                                         "."))))
-      (findings/reg-finding!
-       (:findings ctx)
-       (node->line (:filename ctx)
-                   (first children)
-                   :error
-                   :unresolved-symbol
-                   (str "unresolved symbol " full-fn-name))))
+      (namespace/reg-unresolved-symbol! ctx ns-name full-fn-name (meta (first children))))
     (cons* use
            (if call-as-use (analyze-children ctx children)
                (case resolved-as-clojure-var-name

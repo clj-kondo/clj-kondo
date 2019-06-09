@@ -109,6 +109,7 @@
         linted-calls (doall (l/lint-calls ctx idacs))
         _ (l/lint-unused-namespaces! ctx)
         _ (l/lint-unused-bindings! ctx)
+        _ (l/lint-unresolved-symbols! ctx)
         all-findings (concat linted-calls (mapcat :findings processed)
                              @findings)
         all-findings (core-impl/filter-findings config all-findings)

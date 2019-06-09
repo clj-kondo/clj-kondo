@@ -74,6 +74,17 @@
          conj binding)
   nil)
 
+(defn reg-unresolved-symbol!
+  [{:keys [:base-lang :lang :namespaces :filename]} ns-sym symbol loc]
+  (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
+         (fn [old-loc]
+           (if (nil? old-loc)
+             (assoc loc
+                    :filename filename
+                    :name symbol)
+             old-loc)))
+  nil)
+
 (defn node->keyword [node]
   (when-let [k (:k node)]
     (and (keyword? k) [:keyword k])))

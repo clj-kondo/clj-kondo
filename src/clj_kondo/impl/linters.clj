@@ -254,6 +254,19 @@
           :row row
           :col col})))))
 
+(defn lint-unresolved-symbols!
+  [{:keys [:findings] :as ctx}]
+  (doseq [ns (namespace/list-namespaces ctx)
+          [_ {:keys [:row :col :filename :name]}] (:unresolved-symbols ns)]
+    (findings/reg-finding!
+     findings
+     {:level :error
+      :type :unresolved-symbol
+      :filename filename
+      :message (str "unresolved symbol " name)
+      :row row
+      :col col})))
+
 ;;;; scratch
 
 (comment

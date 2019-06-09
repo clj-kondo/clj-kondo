@@ -1476,6 +1476,14 @@
       :level :error,
       :message "unresolved symbol x"})
    (lint! "(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}"))
+  (testing "unresolved symbol is reported only once"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 2,
+        :level :error,
+        :message "unresolved symbol x"})
+     (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "(defmulti foo (fn [_])) (defmethod foo :dude [_]) (foo 1)"
