@@ -5,7 +5,7 @@
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.namespace :as namespace :refer [analyze-ns-decl resolve-name]]
+   [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.node.seq] ;; load defrecord
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
@@ -17,7 +17,8 @@
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :as seq]
-   [rewrite-clj.node.token :as token])
+   [rewrite-clj.node.token :as token]
+   [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]])
   (:import [clj_kondo.impl.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)

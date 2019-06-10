@@ -1,8 +1,8 @@
 (ns clj-kondo.impl.analyzer-test
   (:require
    [clj-kondo.impl.analyzer :as ana :refer [analyze-expressions]]
+   [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clj-kondo.test-utils :refer [assert-submap assert-some-submap assert-submaps]]
    [clojure.test :as t :refer [deftest is are testing]]))
@@ -24,7 +24,7 @@
       :name chunk-buffer, :fixed-arities #{1}}
      {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
    (ana/analyze-defn (assoc ctx :ns
-                            (namespace/analyze-ns-decl ctx (parse-string "(ns user)")))
+                            (analyze-ns-decl ctx (parse-string "(ns user)")))
                      (parse-string
                       "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
   (clojure.lang.ChunkBuffer. capacity))")))
