@@ -1452,11 +1452,6 @@
 (deftest defrecord-test
   (assert-submaps
    '({:file "corpus/defrecord.clj",
-      :row 4,
-      :col 21,
-      :level :warning,
-      :message "unused binding b"}
-     {:file "corpus/defrecord.clj",
       :row 8,
       :col 1,
       :level :error,
@@ -1467,6 +1462,21 @@
       :level :error,
       :message "wrong number of args (2) passed to defrecord/map->Thing"})
    (lint! (io/file "corpus" "defrecord.clj")
+          "--config" "{:linters {:unused-binding {:level :warning}}}")))
+
+(deftest defmulti-test
+  (assert-submaps
+   '({:file "corpus/defmulti.clj",
+      :row 6,
+      :col 12,
+      :level :error,
+      :message "unresolved symbol greetingx"}
+     {:file "corpus/defmulti.clj",
+      :row 6,
+      :col 35,
+      :level :warning,
+      :message "unused binding y"})
+   (lint! (io/file "corpus" "defmulti.clj")
           "--config" "{:linters {:unused-binding {:level :warning}}}")))
 
 (deftest unresolved-symbol-test

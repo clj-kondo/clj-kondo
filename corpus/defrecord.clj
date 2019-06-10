@@ -1,7 +1,7 @@
 (ns defrecord
   (:import [java.net FileNameMap]))
 
-(defrecord Thing [a b]
+(defrecord Thing [a b] ;; b should not be reported as unused
   FileNameMap
   (getContentTypeFor [this fileName] (str a "-" fileName)))
 

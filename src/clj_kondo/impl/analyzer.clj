@@ -46,8 +46,9 @@
   (analyze-children ctx (utils/map-node-vals defaults)))
 
 (defn extract-bindings
-  ([ctx expr] (extract-bindings ctx expr false))
-  ([ctx expr keys-destructuring?]
+  ([ctx expr] (extract-bindings ctx expr {}))
+  ([ctx expr {:keys [:skip-register?
+                     :keys-destructuring?] :as opts}]
    (let [expr (meta/lift-meta-content ctx expr)
          t (node/tag expr)
          findings (:findings ctx)]
@@ -68,11 +69,12 @@
                        v (assoc m
                                 :name s
                                 :filename (:filename ctx))]
-                   (namespace/reg-binding! ctx
-                                           (-> ctx :ns :name)
-                                           (assoc m
-                                                  :name s
-                                                  :filename (:filename ctx)))
+                   (when-not skip-register?
+                     (namespace/reg-binding! ctx
+                                             (-> ctx :ns :name)
+                                             (assoc m
+                                                    :name s
+                                                    :filename (:filename ctx))))
                    {s v})
                  (findings/reg-finding!
                   findings
@@ -91,9 +93,10 @@
                      v (assoc m
                               :name s
                               :filename (:filename ctx))]
-                 (namespace/reg-binding! ctx
-                                         (-> ctx :ns :name)
-                                         v)
+                 (when-not skip-register?
+                   (namespace/reg-binding! ctx
+                                           (-> ctx :ns :name)
+                                           v))
                  {s v})
                (findings/reg-finding!
                 findings
@@ -110,8 +113,8 @@
                       :error
                       :syntax
                       (str "unsupported binding form " expr))))
-       :vector (into {} (map #(extract-bindings ctx %)) (:children expr))
-       :namespaced-map (extract-bindings ctx (first (:children expr)))
+       :vector (into {} (map #(extract-bindings ctx % opts)) (:children expr))
+       :namespaced-map (extract-bindings ctx (first (:children expr)) opts)
        :map
        (loop [[k v & rest-kvs] (:children expr)
               res {}]
@@ -119,9 +122,12 @@
            (let [k (meta/lift-meta-content ctx k)]
              (cond (:k k)
                    (case (keyword (name (:k k)))
-                     (:keys :syms :strs) (recur rest-kvs
-                                                (into res (map #(extract-bindings ctx % true))
-                                                      (:children v)))
+                     (:keys :syms :strs)
+                     (recur rest-kvs
+                            (into res (map #(extract-bindings
+                                             ctx %
+                                             (assoc opts :keys-destructuring? true)))
+                                  (:children v)))
                      ;; or doesn't introduce new bindings, it only gives defaults
                      :or
                      (if (empty? rest-kvs)
@@ -129,10 +135,10 @@
                                                               ctx res v)}))
                        ;; analyze or after the rest
                        (recur (concat rest-kvs [k v]) res))
-                     :as (recur rest-kvs (merge res (extract-bindings ctx v)))
+                     :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
                      (recur rest-kvs res))
                    (utils/symbol-token? k)
-                   (recur rest-kvs (merge res (extract-bindings ctx k)
+                   (recur rest-kvs (merge res (extract-bindings ctx k opts)
                                           {:analyzed (analyze-expression** ctx v)}))
                    :else (recur rest-kvs res)))
            res))
@@ -701,7 +707,7 @@
         record-name (:value name-node)
         binding-vector (second children)
         field-count (count (:children binding-vector))
-        bindings (extract-bindings ctx binding-vector)
+        bindings (extract-bindings ctx binding-vector {:skip-register? true})
         {:keys [:row :col]} (meta expr)]
     ;; TODO: it seems like we can abstract creating defn types into a function,
     ;; so we can also call reg-var there
@@ -728,6 +734,21 @@
                            (assoc :call-as-use true)
                            (update :bindings (fn [b] (merge b bindings))))
                        (nnext children)))))
+
+(defn analyze-defmethod [ctx expr]
+  ;; (defmethod service-charge [::acc/Basic ::acc/Checking] [x] 25)
+  (let [children (next (:children expr))
+        [method-name-node dispatch-val-node binding-vector & body-exprs] children
+        method-name (:value method-name-node)
+        ns-name (-> ctx :ns :name)
+        m (resolve-name ctx ns-name method-name)
+        bindings (extract-bindings ctx binding-vector)]
+    (when (:unqualified? m)
+      (namespace/reg-unresolved-symbol! ctx ns-name method-name (meta method-name-node)))
+    (concat (analyze-expression** ctx dispatch-val-node)
+            (analyze-children (update ctx :bindings (fn [b]
+                                                      (merge b bindings)))
+                              body-exprs))))
 
 (defn analyze-call
   [{:keys [:fn-body :base-lang :lang :ns :config :call-as-use] :as ctx}
@@ -798,6 +819,7 @@
                             :expr expr
                             :arity arg-count}
                            (analyze-defn ctx expr)))
+                 defmethod (analyze-defmethod ctx expr)
                  defprotocol (analyze-defprotocol ctx expr)
                  defrecord (analyze-defrecord ctx expr)
                  comment
