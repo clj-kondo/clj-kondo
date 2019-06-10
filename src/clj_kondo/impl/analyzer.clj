@@ -789,12 +789,14 @@
                :base-lang base-lang
                :lang lang
                :expr expr})]
+    ;; (prn "config" (-> config :linters :unresolved-symbol))
     (when (and unqualified?
                (not call-as-use)
                (not (or (str/starts-with? (name full-fn-name)
                                           ".")
                         (str/ends-with? (name full-fn-name)
-                                        "."))))
+                                        ".")))
+               (not (config/unresolved-symbol-excluded config full-fn-name)))
       (namespace/reg-unresolved-symbol! ctx ns-name full-fn-name (meta (first children))))
     (cons* use
            (if call-as-use (analyze-children ctx children)
@@ -1011,6 +1013,7 @@
 (defn analyze-expression*
   [{:keys [:filename :base-lang :lang :results :ns
            :expression :debug? :config :findings :namespaces]}]
+  ;; (prn "expression" expression)
   (loop [ctx {:filename filename
               :base-lang base-lang
               :lang lang
@@ -1144,7 +1147,7 @@
                                      :type :debug))
                    results))
                results)))))
-      [ns results])))
+      [(assoc ctx :ns ns) results])))
 
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To
@@ -1154,31 +1157,33 @@
   [{:keys [:filename :base-lang :lang :expressions :debug? :config :findings :namespaces]}]
   (profiler/profile
    :analyze-expressions
-   (loop [ns (analyze-ns-decl {:filename filename
-                               :base-lang base-lang
-                               :lang lang
-                               :namespaces namespaces} (parse-string "(ns user)"))
-          [expression & rest-expressions] expressions
-          results {:calls {}
-                   :defs {}
-                   :required (:required ns)
-                   :used (:used ns)
-                   :findings []
-                   :lang base-lang}]
-     (if expression
-       (let [[ns results]
-             (analyze-expression* {:filename filename
+   (let [init-ns (analyze-ns-decl {:filename filename
                                    :base-lang base-lang
                                    :lang lang
-                                   :ns ns
-                                   :results results
-                                   :expression expression
-                                   :debug? debug?
-                                   :config config
-                                   :findings findings
-                                   :namespaces namespaces})]
-         (recur ns rest-expressions results))
-       results))))
+                                   :namespaces namespaces} (parse-string "(ns user)"))
+         init-ctx {:filename filename
+                   :base-lang base-lang
+                   :lang lang
+                   :ns init-ns
+                   :debug? debug?
+                   :config config
+                   :findings findings
+                   :namespaces namespaces}]
+     (loop [ctx init-ctx
+            [expression & rest-expressions] expressions
+            results {:calls {}
+                     :defs {}
+                     :required (:required init-ns)
+                     :used (:used init-ns)
+                     :findings []
+                     :lang base-lang}]
+       (if expression
+         (let [[ctx results]
+               (analyze-expression* (assoc ctx
+                                           :expression expression
+                                           :results results))]
+           (recur ctx rest-expressions results))
+         results)))))
 
 ;;;; processing of string input
 

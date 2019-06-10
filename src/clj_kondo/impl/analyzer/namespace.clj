@@ -138,7 +138,7 @@
         ns-name-expr (second children)
         ns-name (meta/lift-meta-content ctx ns-name-expr)
         metadata (meta ns-name)
-        local-config (:clj-kondo/config metadata)
+        local-config (-> metadata :clj-kondo/config second)
         ns-name (or
                  (let [name-expr (second children)]
                    (when-let [?name (node/sexpr name-expr)]

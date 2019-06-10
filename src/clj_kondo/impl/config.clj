@@ -31,7 +31,8 @@
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
                                  :exclude [#_clj-kondo.impl.var-info-gen]}
-              :unresolved-symbol {:level :error}}
+              :unresolved-symbol {:level :error
+                                  :exclude []}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -109,6 +110,16 @@
         (or (contains? syms ns-sym)
             (let [ns-str (str ns-sym)]
               (boolean (some #(re-find % ns-str) regexes))))))))
+
+(def unresolved-symbol-excluded
+  (let [delayed-cfg (fn [config]
+                      (let [excluded (get-in config [:linters :unresolved-symbol :exclude])
+                            syms (set excluded)]
+                        syms))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config sym]
+      (let [syms (delayed-cfg config)]
+        (contains? syms sym)))))
 
 ;;;; Scratch
 
