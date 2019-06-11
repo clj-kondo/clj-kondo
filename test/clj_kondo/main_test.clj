@@ -1512,7 +1512,10 @@
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "(defmacro foo [] `(let [x# 1]))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
-  (is (empty? (lint! "(let [e (Exception.)] (.. e getCause getMessage))"))))
+  (is (empty? (lint! "(let [e (Exception.)] (.. e getCause getMessage))"
+                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+  (is (empty? (lint! "#inst \"2019\""
+                     "--config" "{:linters {:unresolved-symbol {:level :error}}}"))))
 
 ;;;; Scratch
 

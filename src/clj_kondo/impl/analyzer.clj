@@ -937,6 +937,9 @@
      findings
      (node->line filename expr :error :not-a-function (str "a " type " is not a function")))))
 
+(defn analyze-reader-macro [ctx expr]
+  (analyze-children ctx (rest (:children expr))))
+
 (defn analyze-expression**
   [{:keys [:bindings] :as ctx}
    {:keys [:children] :as expr}]
@@ -946,6 +949,7 @@
     (case t
       :quote nil
       :syntax-quote (analyze-usages2 ctx expr)
+      :reader-macro (analyze-reader-macro ctx expr)
       (:unquote :unquote-splicing)
       nil ;; TODO: this is an error, you can't use this outside syntax-quote!
       :namespaced-map (analyze-namespaced-map (update ctx
