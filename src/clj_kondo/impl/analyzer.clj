@@ -793,12 +793,7 @@
                :expr expr})]
     ;; (prn "config" (-> config :linters :unresolved-symbol))
     (when (and unqualified?
-               (not call-as-use)
-               (not (or (str/starts-with? (name full-fn-name)
-                                          ".")
-                        (str/ends-with? (name full-fn-name)
-                                        ".")))
-               (not (config/unresolved-symbol-excluded config full-fn-name)))
+               (not call-as-use))
       (namespace/reg-unresolved-symbol! ctx ns-name full-fn-name (meta (first children))))
     (cons* use
            (if call-as-use (analyze-children ctx children)

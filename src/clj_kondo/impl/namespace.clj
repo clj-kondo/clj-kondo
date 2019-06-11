@@ -4,7 +4,9 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [node->line parse-string
                                  parse-string-all deep-merge one-of]]
-   [clj-kondo.impl.var-info :as var-info]))
+   [clj-kondo.impl.var-info :as var-info]
+   [clojure.string :as str]
+   [clj-kondo.impl.config :as config]))
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
@@ -73,8 +75,14 @@
   nil)
 
 (defn reg-unresolved-symbol!
-  [{:keys [:base-lang :lang :namespaces :filename :skip-unresolved?]} ns-sym symbol loc]
-  (when-not skip-unresolved?
+  [{:keys [:base-lang :lang :namespaces :filename :skip-unresolved? :config]} ns-sym symbol loc]
+  (when-not (or skip-unresolved?
+                (config/unresolved-symbol-excluded config symbol)
+                (let [symbol-name (name symbol)]
+                  (or (str/starts-with? symbol-name
+                                        ".")
+                      (str/ends-with? symbol-name
+                                      "."))))
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
            (fn [old-loc]
              (if (nil? old-loc)

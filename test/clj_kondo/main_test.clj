@@ -1511,7 +1511,8 @@
   (is (empty? (lint! "(defonce foo (fn [_])) (foo 1)"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "(defmacro foo [] `(let [x# 1]))"
-                     "--config" "{:linters {:unresolved-symbol {:level :error}}}"))))
+                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+  (is (empty? (lint! "(let [e (Exception.)] (.. e getCause getMessage))"))))
 
 ;;;; Scratch
 
