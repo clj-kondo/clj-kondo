@@ -1033,7 +1033,8 @@
         nil (recur ctx ns rest-parsed results)
         (:ns :in-ns)
         (let [local-config (:config first-parsed)
-              new-config (config/merge-config! config local-config)]
+              global-config (:global-config first-parsed)
+              new-config (config/merge-config! global-config local-config)]
           (recur
            (assoc ctx :config new-config)
            first-parsed
@@ -1167,6 +1168,7 @@
                    :ns init-ns
                    :debug? debug?
                    :config config
+                   :global-config config
                    :findings findings
                    :namespaces namespaces}]
      (loop [ctx init-ctx
