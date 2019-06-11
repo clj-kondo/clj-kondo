@@ -18,7 +18,8 @@
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :as seq]
    [rewrite-clj.node.token :as token]
-   [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]])
+   [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
+   [clj-kondo.impl.analyzer.usages :refer [analyze-usages]])
   (:import [clj_kondo.impl.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)
@@ -569,7 +570,7 @@
            :expr expr
            :arity arg-count}
           (concat
-           (namespace/analyze-usages ctx false {:children schemas})
+           (analyze-usages ctx false {:children schemas})
            (analyze-defn ctx defn)))))
 
 (defn analyze-deftest [ctx _deftest-ns expr]
@@ -946,7 +947,7 @@
         arg-count (count (rest children))]
     (case t
       :quote nil
-      :syntax-quote (namespace/analyze-usages ctx expr)
+      :syntax-quote (analyze-usages ctx expr)
       (:unquote :unquote-splicing)
       nil ;; TODO: this is an error, you can't use this outside syntax-quote!
       :namespaced-map (analyze-namespaced-map (update ctx
@@ -960,7 +961,7 @@
                                          :callstack #(cons [nil t] %))
                                  children))
       :fn (recur ctx (macroexpand/expand-fn expr))
-      :token (namespace/analyze-usages ctx expr)
+      :token (analyze-usages ctx expr)
       :list
       (when-let [function (first children)]
         (let [t (node/tag function)]
