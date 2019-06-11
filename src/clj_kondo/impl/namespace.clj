@@ -4,8 +4,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [node->line parse-string
                                  parse-string-all deep-merge one-of]]
-   [clj-kondo.impl.var-info :as var-info]
-   [rewrite-clj.node.protocols :as node]))
+   [clj-kondo.impl.var-info :as var-info]))
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces

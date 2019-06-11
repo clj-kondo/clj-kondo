@@ -47,44 +47,46 @@
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
-  ([ctx expr {:keys [:syntax-quote?] :as opts}]
+  ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
          ns-name (:name ns)
          tag (node/tag expr)
-         syntax-quote? (when-not (one-of tag [:unquote :unquote-splicing])
-                         (or syntax-quote?
-                             (= :syntax-quote tag)))]
-     (if (= :token tag)
-       (if-let [symbol-val (symbol-from-token expr)]
-         (let [simple-symbol? (empty? (namespace symbol-val))]
-           (if-let [b (when (and simple-symbol? (not syntax-quote?))
-                        (get (:bindings ctx) symbol-val))]
-             (namespace/reg-used-binding! ctx
-                                          (-> ns :name)
-                                          b)
-             (if-let [resolved-ns (when simple-symbol?
-                                    (get (:qualify-ns ns) symbol-val))]
-               (namespace/reg-usage! ctx
-                                     (-> ns :name)
-                                     resolved-ns)
-               (let [{resolved-ns :ns
+         quote? (or quote? (= :quote tag))]
+     (when-not quote?
+       (let [syntax-quote? (when-not (or quote? (one-of tag [:unquote :unquote-splicing]))
+                             (or syntax-quote?
+                                 (= :syntax-quote tag)))]
+         (if (= :token tag)
+           (if-let [symbol-val (symbol-from-token expr)]
+             (let [simple-symbol? (empty? (namespace symbol-val))]
+               (if-let [b (when (and simple-symbol? (not syntax-quote?))
+                            (get (:bindings ctx) symbol-val))]
+                 (namespace/reg-used-binding! ctx
+                                              (-> ns :name)
+                                              b)
+                 (if-let [resolved-ns (when simple-symbol?
+                                        (get (:qualify-ns ns) symbol-val))]
+                   (namespace/reg-usage! ctx
+                                         (-> ns :name)
+                                         resolved-ns)
+                   (let [{resolved-ns :ns
+                          _resolved-name :name
+                          unqualified? :unqualified? :as _m} (namespace/resolve-name ctx ns-name symbol-val)]
+                     (when unqualified?
+                       (namespace/reg-unresolved-symbol! ctx ns-name symbol-val (meta expr)))
+                     (when resolved-ns
+                       (namespace/reg-usage! ctx
+                                             (-> ns :name)
+                                             resolved-ns))))))
+             (when-let [keyword-val (:k expr)]
+               (let [symbol-val (symbol keyword-val)
+                     {resolved-ns :ns
                       _resolved-name :name
-                      unqualified? :unqualified? :as _m} (namespace/resolve-name ctx ns-name symbol-val)]
-                 (when unqualified?
-                   (namespace/reg-unresolved-symbol! ctx ns-name symbol-val (meta expr)))
+                      _unqualified? :unqualified? :as _m}
+                     (namespace/resolve-name ctx ns-name symbol-val)]
                  (when resolved-ns
                    (namespace/reg-usage! ctx
                                          (-> ns :name)
-                                         resolved-ns))))))
-         (when-let [keyword-val (:k expr)]
-           (let [symbol-val (symbol keyword-val)
-                 {resolved-ns :ns
-                  _resolved-name :name
-                  _unqualified? :unqualified? :as _m}
-                 (namespace/resolve-name ctx ns-name symbol-val)]
-             (when resolved-ns
-               (namespace/reg-usage! ctx
-                                     (-> ns :name)
-                                     resolved-ns)))))
-       (mapcat #(analyze-usages2 ctx (assoc opts :syntax-quote? syntax-quote?) %)
-               (:children expr))))))
+                                         resolved-ns)))))
+           (mapcat #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
+                   (:children expr))))))))
