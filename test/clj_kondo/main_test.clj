@@ -1502,6 +1502,7 @@
                      :message "unresolved symbol unresolved-fn1"})
                   (lint! (io/file "corpus" "unresolved_symbol.clj")
                          "--config" "{:linters {:unresolved-symbol {:level :error}}}"))
+  ;; TODO:
   (lint! "x")
   (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))

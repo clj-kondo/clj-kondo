@@ -75,7 +75,7 @@
 
 (defn reg-unresolved-symbol!
   [{:keys [:base-lang :lang :namespaces :filename :skip-unresolved?]} ns-sym symbol loc]
-  (when-not (not skip-unresolved?)
+  (when-not skip-unresolved?
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
            (fn [old-loc]
              (if (nil? old-loc)
