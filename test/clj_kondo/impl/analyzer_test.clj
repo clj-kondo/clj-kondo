@@ -8,23 +8,30 @@
    [clojure.test :as t :refer [deftest is are testing]]))
 
 (deftest lift-meta-test
-  (is (:private (meta (meta/lift-meta-content {} (parse-string "^:private [x]")))))
-  (is (:private (meta (meta/lift-meta-content {} (parse-string "#^ :private [x]")))))
-  (is (= "[B" (:tag (meta (meta/lift-meta-content {} (parse-string "^\"[B\" body")))))))
+  (is (:private (meta (meta/lift-meta-content {:lang :clj
+                                               :namespaces (atom {})}
+                                              (parse-string "^:private [x]")))))
+  (is (:private (meta (meta/lift-meta-content {:lang :clj
+                                               :namespaces (atom {})}
+                                              (parse-string "#^ :private [x]")))))
+  (is (= "[B" (:tag (meta (meta/lift-meta-content {:lang :clj
+                                                   :namespaces (atom {})}
+                                                  (parse-string "^\"[B\" body")))))))
 
-(def ctx {:filename "-"
-          :namespaces (atom {})
-          :findings (atom [])
-          :base-lang :clj
-          :lang :clj})
+(def ctx
+  (let [ctx {:filename "-"
+             :namespaces (atom {})
+             :findings (atom [])
+             :base-lang :clj
+             :lang :clj}]
+    (assoc ctx :ns (analyze-ns-decl ctx (parse-string "(ns user)")))))
 
 (deftest analyze-defn-test
   (assert-submaps
    '[{:type :defn
       :name chunk-buffer, :fixed-arities #{1}}
      {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
-   (ana/analyze-defn (assoc ctx :ns
-                            (analyze-ns-decl ctx (parse-string "(ns user)")))
+   (ana/analyze-defn ctx
                      (parse-string
                       "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
   (clojure.lang.ChunkBuffer. capacity))")))

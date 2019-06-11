@@ -5,7 +5,7 @@
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :as utils]
    [rewrite-clj.node.protocols :as node]
-   [clj-kondo.impl.analyzer.usages :refer [analyze-usages]]))
+   [clj-kondo.impl.analyzer.usages :refer [analyze-usages2]]))
 
 (defn meta? [node]
   (utils/one-of (node/tag node) [:meta :meta*]))
@@ -14,7 +14,7 @@
   (if (meta? meta-node)
     (let [children (:children meta-node)
           meta-expr (first children)
-          _ (analyze-usages ctx meta-expr)
+          _ (analyze-usages2 ctx meta-expr)
           meta-val (node/sexpr meta-expr)
           meta-map (cond (keyword? meta-val) {meta-val true}
                          (map? meta-val)

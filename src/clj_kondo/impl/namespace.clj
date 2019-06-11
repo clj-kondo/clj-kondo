@@ -74,14 +74,15 @@
   nil)
 
 (defn reg-unresolved-symbol!
-  [{:keys [:base-lang :lang :namespaces :filename]} ns-sym symbol loc]
-  (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
-         (fn [old-loc]
-           (if (nil? old-loc)
-             (assoc loc
-                    :filename filename
-                    :name symbol)
-             old-loc)))
+  [{:keys [:base-lang :lang :namespaces :filename :skip-unresolved?]} ns-sym symbol loc]
+  (when-not (not skip-unresolved?)
+    (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
+           (fn [old-loc]
+             (if (nil? old-loc)
+               (assoc loc
+                      :filename filename
+                      :name symbol)
+               old-loc))))
   nil)
 
 (defn list-namespaces [{:keys [:namespaces]}]
@@ -106,7 +107,8 @@
 
 (defn resolve-name
   [ctx ns-name name-sym]
-  (let [ns (get-namespace ctx (:base-lang ctx) (:lang ctx) ns-name)]
+  (let [lang (:lang ctx)
+        ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
     (if-let [ns* (namespace name-sym)]
       (let [ns-sym (symbol ns*)]
         (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
@@ -115,7 +117,7 @@
                            ns-sym))]
           {:ns ns*
            :name (symbol (name name-sym))}
-          (when (= :clj (:lang ns))
+          (when (= :clj lang)
             (when-let [ns* (get default-java-imports ns-sym)]
               {:java-interop? true
                :ns ns*
@@ -130,10 +132,10 @@
                                           name-sym)
              namespace (:name ns)
              core-sym? (when-not clojure-excluded?
-                         (var-info/core-sym? (:lang ns) name-sym))
+                         (var-info/core-sym? lang name-sym))
              special-form? (contains? var-info/special-forms name-sym)]
          (if (or core-sym? special-form?)
-           {:ns (case (:lang ns)
+           {:ns (case lang
                   :clj 'clojure.core
                   :cljs 'cljs.core)
             :name name-sym}
