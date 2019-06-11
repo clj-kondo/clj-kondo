@@ -746,6 +746,8 @@
         ns-name (-> ctx :ns :name)
         m (resolve-name ctx ns-name method-name)
         bindings (extract-bindings ctx binding-vector)]
+    (when-let [used-ns (:ns m)]
+      (namespace/reg-usage! ctx ns-name used-ns))
     (when (:unqualified? m)
       (namespace/reg-unresolved-symbol! ctx ns-name method-name (meta method-name-node)))
     (concat (analyze-expression** ctx dispatch-val-node)
