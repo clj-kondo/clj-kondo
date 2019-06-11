@@ -1517,6 +1517,8 @@
   (is (empty? (lint! "`(let [e# (Exception.)] (.. e# getCause getMessage))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "#inst \"2019\""
+                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+  (is (empty? (lint! "(if-some [foo true] foo false)"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}"))))
 
 ;;;; Scratch
