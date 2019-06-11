@@ -1012,7 +1012,7 @@
 
 (defn analyze-expression*
   [{:keys [:filename :base-lang :lang :results :ns
-           :expression :debug? :config :findings :namespaces]}]
+           :expression :debug? :config :global-config :findings :namespaces]}]
   ;; (prn "expression" expression)
   (loop [ctx {:filename filename
               :base-lang base-lang
@@ -1023,6 +1023,7 @@
               ;; loop, instead of collecting then in the namespace atom
               :bindings {}
               :config config
+              :global-config global-config
               :findings findings
               :namespaces namespaces}
          ns ns
@@ -1033,7 +1034,7 @@
         nil (recur ctx ns rest-parsed results)
         (:ns :in-ns)
         (let [local-config (:config first-parsed)
-              global-config (:global-config first-parsed)
+              global-config (:global-config ctx)
               new-config (config/merge-config! global-config local-config)]
           (recur
            (assoc ctx :config new-config)
@@ -1090,11 +1091,10 @@
                             [:defs (:name ns) (:name resolved)])
                      results
                      (if resolved
-                       (do
-                         (assoc-in results path
-                                   (dissoc first-parsed
-                                           :type
-                                           :expr)))
+                       (assoc-in results path
+                                 (dissoc first-parsed
+                                         :type
+                                         :expr))
                        results)]
                  (if debug?
                    (update-in results

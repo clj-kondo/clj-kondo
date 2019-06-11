@@ -53,12 +53,12 @@
 
 (defn merge-config! [cfg* cfg]
   (if (empty? cfg) cfg*
-    (let [cfg (cond-> cfg
-                (:skip-comments cfg)
-                (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
-      (if (:replace (meta cfg))
-        cfg
-        (deep-merge cfg* cfg)))))
+      (let [cfg (cond-> cfg
+                  (:skip-comments cfg)
+                  (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
+        (if (:replace (meta cfg))
+          cfg
+          (deep-merge cfg* cfg)))))
 
 (defn fq-syms->vecs [fq-syms]
   (map (fn [fq-sym]

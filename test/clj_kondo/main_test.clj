@@ -1502,6 +1502,7 @@
                      :message "unresolved symbol unresolved-fn1"})
                   (lint! (io/file "corpus" "unresolved_symbol.clj")
                          "--config" "{:linters {:unresolved-symbol {:level :error}}}"))
+  (lint! "x")
   (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "(defmulti foo (fn [_])) (defmethod foo :dude [_]) (foo 1)"
