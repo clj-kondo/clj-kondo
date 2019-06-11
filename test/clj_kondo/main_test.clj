@@ -1509,6 +1509,8 @@
   (is (empty? (lint! "(defmulti foo (fn [_])) (defmethod foo :dude [_]) (foo 1)"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "(defonce foo (fn [_])) (foo 1)"
+                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+  (is (empty? (lint! "(defmacro foo [] `(let [x# 1]))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}"))))
 
 ;;;; Scratch

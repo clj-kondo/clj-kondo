@@ -5,45 +5,46 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call keyword-call node->line
      parse-string parse-string-all tag select-lang
-     vconj deep-merge one-of symbol-from-token]]))
+     vconj deep-merge one-of symbol-from-token]]
+   [clojure.string :as str]))
 
 #_(defn node->keyword [node]
-  (when-let [k (:k node)]
-    (and (keyword? k) [:keyword k])))
+    (when-let [k (:k node)]
+      (and (keyword? k) [:keyword k])))
 
 #_(defn node->symbol [node]
-  (when-let [s (:value node)]
-    (and (symbol? s) [:symbol s])))
+    (when-let [s (:value node)]
+      (and (symbol? s) [:symbol s])))
 
 #_(defn analyze-usages
-  ([ctx expr] (analyze-usages ctx false expr))
-  ([ctx syntax-quote? expr]
-   (let [ns (:ns ctx)
-         tag (node/tag expr)
-         syntax-quote? (when-not (one-of tag [:unquote :unquote-splicing])
-                         (or syntax-quote?
-                             (= :syntax-quote tag)))]
-     (if-let [[t v] (or (node->keyword expr)
-                        (node->symbol expr))]
-       (if-let [?ns (namespace v)]
-         (let [ns-sym (symbol ?ns)]
-           (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
-             (namespace/reg-usage! ctx
-                                   (-> ns :name)
-                                   resolved-ns)))
-         (when (and (= t :symbol))
-           (if-let [b (when-not syntax-quote?
-                        (get (:bindings ctx) v))]
-             (namespace/reg-used-binding! ctx
-                                          (-> ns :name)
-                                          b)
-             (let [resolved-ns (or (:ns (get (:qualify-var ns) v))
-                                   (get (:qualify-ns ns) v))]
+    ([ctx expr] (analyze-usages ctx false expr))
+    ([ctx syntax-quote? expr]
+     (let [ns (:ns ctx)
+           tag (node/tag expr)
+           syntax-quote? (when-not (one-of tag [:unquote :unquote-splicing])
+                           (or syntax-quote?
+                               (= :syntax-quote tag)))]
+       (if-let [[t v] (or (node->keyword expr)
+                          (node->symbol expr))]
+         (if-let [?ns (namespace v)]
+           (let [ns-sym (symbol ?ns)]
+             (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
                (namespace/reg-usage! ctx
                                      (-> ns :name)
-                                     resolved-ns)))))
-       (mapcat #(analyze-usages ctx syntax-quote? %)
-               (:children expr))))))
+                                     resolved-ns)))
+           (when (and (= t :symbol))
+             (if-let [b (when-not syntax-quote?
+                          (get (:bindings ctx) v))]
+               (namespace/reg-used-binding! ctx
+                                            (-> ns :name)
+                                            b)
+               (let [resolved-ns (or (:ns (get (:qualify-var ns) v))
+                                     (get (:qualify-ns ns) v))]
+                 (namespace/reg-usage! ctx
+                                       (-> ns :name)
+                                       resolved-ns)))))
+         (mapcat #(analyze-usages ctx syntax-quote? %)
+                 (:children expr))))))
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
@@ -53,7 +54,7 @@
          tag (node/tag expr)
          quote? (or quote? (= :quote tag))]
      (when-not quote?
-       (let [syntax-quote? (when-not (or quote? (one-of tag [:unquote :unquote-splicing]))
+       (let [syntax-quote? (when-not (one-of tag [:unquote :unquote-splicing])
                              (or syntax-quote?
                                  (= :syntax-quote tag)))]
          (if (= :token tag)
@@ -69,15 +70,17 @@
                    (namespace/reg-usage! ctx
                                          (-> ns :name)
                                          resolved-ns)
-                   (let [{resolved-ns :ns
-                          _resolved-name :name
-                          unqualified? :unqualified? :as _m} (namespace/resolve-name ctx ns-name symbol-val)]
-                     (when unqualified?
-                       (namespace/reg-unresolved-symbol! ctx ns-name symbol-val (meta expr)))
-                     (when resolved-ns
-                       (namespace/reg-usage! ctx
-                                             (-> ns :name)
-                                             resolved-ns))))))
+                   (when (or (not syntax-quote?)
+                             (not (str/ends-with? (name symbol-val) "#")))
+                     (let [{resolved-ns :ns
+                            _resolved-name :name
+                            unqualified? :unqualified? :as _m} (namespace/resolve-name ctx ns-name symbol-val)]
+                       (when unqualified?
+                         (namespace/reg-unresolved-symbol! ctx ns-name symbol-val (meta expr)))
+                       (when resolved-ns
+                         (namespace/reg-usage! ctx
+                                               (-> ns :name)
+                                               resolved-ns)))))))
              (when-let [keyword-val (:k expr)]
                (let [symbol-val (symbol keyword-val)
                      {resolved-ns :ns
