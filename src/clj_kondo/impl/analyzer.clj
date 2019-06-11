@@ -834,7 +834,9 @@
                          proxy extend-protocol doto reify definterface
                          defcurried extend-type)
                  ;; don't lint calls in these expressions, only register them as used vars
-                 (analyze-children (assoc ctx :call-as-use true)
+                 (analyze-children (assoc ctx
+                                          :call-as-use true
+                                          :skip-unresolved? true)
                                    (:children expr))
                  (let let* for doseq with-open)
                  (analyze-like-let ctx expr)

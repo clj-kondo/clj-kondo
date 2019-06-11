@@ -1467,12 +1467,12 @@
 (deftest defmulti-test
   (assert-submaps
    '({:file "corpus/defmulti.clj",
-      :row 6,
+      :row 7,
       :col 12,
       :level :error,
       :message "unresolved symbol greetingx"}
      {:file "corpus/defmulti.clj",
-      :row 6,
+      :row 7,
       :col 35,
       :level :warning,
       :message "unused binding y"})
@@ -1513,6 +1513,8 @@
   (is (empty? (lint! "(defmacro foo [] `(let [x# 1]))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "(let [e (Exception.)] (.. e getCause getMessage))"
+                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+  (is (empty? (lint! "`(let [e# (Exception.)] (.. e# getCause getMessage))"
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (is (empty? (lint! "#inst \"2019\""
                      "--config" "{:linters {:unresolved-symbol {:level :error}}}"))))
