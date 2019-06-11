@@ -948,7 +948,7 @@
         arg-count (count (rest children))]
     (case t
       :quote nil
-      :syntax-quote (analyze-usages2 ctx expr {:syntax-quote? true})
+      :syntax-quote (analyze-usages2 ctx expr)
       (:unquote :unquote-splicing)
       nil ;; TODO: this is an error, you can't use this outside syntax-quote!
       :namespaced-map (analyze-namespaced-map (update ctx

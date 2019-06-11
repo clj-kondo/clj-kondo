@@ -57,7 +57,7 @@
      (if (= :token tag)
        (if-let [symbol-val (symbol-from-token expr)]
          (let [simple-symbol? (empty? (namespace symbol-val))]
-           (if-let [b (and simple-symbol? (not syntax-quote?)
+           (if-let [b (when (and simple-symbol? (not syntax-quote?))
                         (get (:bindings ctx) symbol-val))]
              (namespace/reg-used-binding! ctx
                                           (-> ns :name)
