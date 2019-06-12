@@ -150,9 +150,46 @@ A regex is also supported:
 
 This will exclude all namespaces ending with `.specs`.
 
-### Exclude unresolved symbol from being reported
+### Exclude an unresolved symbol from being reported
+
+In the following code, 
 
 ``` clojure
-(ns foo (:require [foo.specs] [bar.specs]))
-(defn my-fn [x] x)
+(ns foo
+  (:require [riemann.streams [streams]]))
+
+(def email (mailer {:host "mail.relay"
+                    :from "riemann@example.com"}))
+(streams
+  (where (and (= (:service event) “my-service”)
+              (= (:level event) “ERROR”))
+    ,,,))
 ```
+
+`streams` is a macro that assigns a special meaning to the symbol `where`, so it should not be reported as an unresolved symbol. This is the config for it:
+
+``` clojure
+{:linters
+  {:unresolved-symbol
+    {:level :error
+     :exclude [(riemann.streams/streams [where])]}}}
+```
+
+To exclude a symbol from being reported as unresolved globally in your project, e.g. `foo`, you can use `:exclude [foo]`.
+
+Sometimes vars are introduced by executing macros, e.g. when using [HugSQL](https://github.com/layerware/hugsql)'s `def-db-fns`. You can suppress warnings about these vars by using `declare`. Example:
+
+``` clojure
+(ns hugsql-example
+  (:require [hugsql.core :as hugsql]))
+
+(declare select-things)
+
+;; this will define a var #'select-things:
+(hugsql/def-db-fns "select_things.sql")
+
+(defn get-my-things [conn params]
+  (select-things conn params))
+```
+
+

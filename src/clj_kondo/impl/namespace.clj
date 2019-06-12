@@ -109,9 +109,12 @@
                   (assoc fq fq)
                   (assoc sym fq))))
           {}
-          (into (mapv vector (repeat "java.lang.") '[Boolean Byte CharSequence Character Double
-                                                     Integer Long Math String System Thread])
-                (mapv vector (repeat "java.math.") '[BigDecimal BigInteger]))))
+          (reduce into []
+                  [(map vector (repeat "java.lang.") '[Boolean Byte CharSequence
+                                                       Character Double Integer
+                                                       Long Math Object String
+                                                       System Thread])
+                   (map vector (repeat "java.math.") '[BigDecimal BigInteger])])))
 
 (defn resolve-name
   [ctx ns-name name-sym]
@@ -135,6 +138,10 @@
             name-sym)
        (when (contains? (:vars ns) name-sym)
          {:ns (:name ns)
+          :name name-sym})
+       ;; TODO: restructure looking up java.lang classes for performance
+       (when-let [java-class (get default-java-imports name-sym)]
+         {:ns java-class
           :name name-sym})
        (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                           name-sym)

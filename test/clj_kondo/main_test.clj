@@ -1533,6 +1533,8 @@
                      '{:linters {:unresolved-symbol {:level :error
                                                      :exclude [(foo/foo [x y z])]}}})))
   (is (empty? (lint! "(defprotocol IFoo) IFoo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "Object BigDecimal"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch

@@ -15,6 +15,9 @@
 (defn -start [^com.sun.javadoc.RootDoc root]
   (reset! extracted
           (vec (for [^com.sun.javadoc.ClassDoc c (.classes root)
+                     :let [_
+                           ;; TODO: write this out to var-info or something
+                           (prn ">" (.qualifiedName c))]
                      ^com.sun.javadoc.MethodDoc m (.methods c)
                      :when (.isStatic m)]
                  {:class (.qualifiedName c)
@@ -28,7 +31,7 @@
   (println "Extracting Java...")
   (let [dt (ToolProvider/getSystemDocumentationTool)
         fm (.getStandardFileManager dt nil nil nil)
-        task (.getTask dt nil fm nil ExtractJava extra-args  nil)]
+        task (.getTask dt nil fm nil ExtractJava extra-args nil)]
     (.call task))
   (println "done...")
   (let [extracted-java
