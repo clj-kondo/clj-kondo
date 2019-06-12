@@ -1477,7 +1477,8 @@
       :level :warning,
       :message "unused binding y"})
    (lint! (io/file "corpus" "defmulti.clj")
-          "--config" "{:linters {:unused-binding {:level :warning}}}")))
+          '{:linters {:unused-binding {:level :warning}
+                      :unresolved-symbol {:level :error}}})))
 
 (deftest unresolved-symbol-test
   (assert-submaps
@@ -1495,31 +1496,37 @@
         :level :error,
         :message "unresolved symbol x"})
      (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
-  (assert-submaps '({:file "corpus/unresolved_symbol.clj",
-                     :row 11,
-                     :col 4,
-                     :level :error,
-                     :message "unresolved symbol unresolved-fn1"})
-                  (lint! (io/file "corpus" "unresolved_symbol.clj")
-                         "--config" "{:linters {:unresolved-symbol {:level :error}}}"))
-  ;; TODO:
-  (lint! "x")
+  #_(assert-submaps '({:file "corpus/unresolved_symbol.clj",
+                       :row 11,
+                       :col 4,
+                       :level :error,
+                       :message "unresolved symbol unresolved-fn1"})
+                    (lint! (io/file "corpus" "unresolved_symbol.clj")
+                           '{:linters {:unresolved-symbol {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "unresolved symbol x"})
+   (lint! "x"
+          '{:linters {:unresolved-symbol {:level :error}}}))
   (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
-                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defmulti foo (fn [_])) (defmethod foo :dude [_]) (foo 1)"
-                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defonce foo (fn [_])) (foo 1)"
-                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defmacro foo [] `(let [x# 1]))"
-                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(let [e (Exception.)] (.. e getCause getMessage))"
-                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "`(let [e# (Exception.)] (.. e# getCause getMessage))"
-                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "#inst \"2019\""
-                     "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(if-some [foo true] foo false)"
-                     "--config" "{:linters {:unresolved-symbol {:level :error}}}"))))
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch
 

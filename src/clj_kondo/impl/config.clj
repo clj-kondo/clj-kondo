@@ -31,8 +31,12 @@
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
                                  :exclude [#_clj-kondo.impl.var-info-gen]}
-              :unresolved-symbol {:level :error
-                                  :exclude []}}
+              :unresolved-symbol {:level :off
+                                  :exclude [;; ignore globally
+                                            #_js*
+                                            ;; ignore occurrences of service and event in call to riemann.streams/where
+                                            #_(riemann.streams/where [service event])
+                                            ]}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -113,14 +117,24 @@
               (boolean (some #(re-find % ns-str) regexes))))))))
 
 (def unresolved-symbol-excluded
-  (let [delayed-cfg (fn [config]
-                      (let [excluded (get-in config [:linters :unresolved-symbol :exclude])
-                            syms (set excluded)]
-                        syms))
+  (let [delayed-cfg
+        (fn [config]
+          (let [excluded (get-in config [:linters :unresolved-symbol :exclude])
+                syms (set (filter symbol? excluded))
+                calls (filter list? excluded)]
+            {:excluded syms
+             :excluded-in
+             (reduce (fn [acc [fq-name excluded] calls]
+                       (let [ns-name (symbol (namespace fq-name))
+                             var-name (symbol (name fq-name))]
+                         (assoc acc [ns-name var-name] (set excluded))))
+                     {} calls)}))
         delayed-cfg (memoize delayed-cfg)]
-    (fn [config sym]
-      (let [syms (delayed-cfg config)]
-        (contains? syms sym)))))
+    (fn [ctx sym]
+      (let [config (:config ctx)
+            {:keys [:excluded :excluded-in]} (delayed-cfg config)]
+        (or (contains? excluded sym))))))
+
 
 ;;;; Scratch
 
