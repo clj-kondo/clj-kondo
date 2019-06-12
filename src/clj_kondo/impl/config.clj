@@ -31,7 +31,7 @@
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
                                  :exclude [#_clj-kondo.impl.var-info-gen]}
-              :unresolved-symbol {:level :off
+              :unresolved-symbol {:level :error #_:off
                                   :exclude [;; ignore globally
                                             #_js*
                                             ;; ignore occurrences of service and event in call to riemann.streams/where
