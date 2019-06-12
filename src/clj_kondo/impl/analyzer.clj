@@ -679,14 +679,20 @@
 
 (defn analyze-defprotocol [{:keys [:base-lang :lang :ns] :as ctx} expr]
   ;; for syntax, see https://clojure.org/reference/protocols#_basics
-  (let [children (nnext (:children expr))]
-    (for [c children
+  (let [children (next (:children expr))
+        name-node (first children)
+        protocol-name (:value name-node)
+        ns-name (:name ns)]
+    (when protocol-name
+      (namespace/reg-var! ctx ns-name protocol-name expr))
+    (for [c (next children)
           :when (= :list (node/tag c)) ;; skip first docstring
           :let [children (:children c)
                 name-node (first children)
                 name-node (meta/lift-meta-content ctx name-node)
                 fn-name (:value name-node)
-                _ (when fn-name (namespace/reg-var! ctx (:name ns) fn-name expr))
+                _ (when fn-name
+                    (namespace/reg-var! ctx ns-name fn-name expr))
                 arity-vecs (rest children)
                 fixed-arities (set (keep #(when (= :vector (node/tag %))
                                             ;; skip last docstring

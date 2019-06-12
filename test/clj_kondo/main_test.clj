@@ -1531,7 +1531,9 @@
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns foo) (defn foo [_ _ _]) (foo x y z)"
                      '{:linters {:unresolved-symbol {:level :error
-                                                     :exclude [(foo/foo [x y z])]}}}))))
+                                                     :exclude [(foo/foo [x y z])]}}})))
+  (is (empty? (lint! "(defprotocol IFoo) IFoo"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch
 
