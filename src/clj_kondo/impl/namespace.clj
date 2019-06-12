@@ -75,9 +75,10 @@
   nil)
 
 (defn reg-unresolved-symbol!
-  [{:keys [:base-lang :lang :namespaces :filename :skip-unresolved? :config]} ns-sym symbol loc]
+  [{:keys [:base-lang :lang :namespaces :filename :skip-unresolved?] :as ctx}
+   ns-sym symbol loc]
   (when-not (or skip-unresolved?
-                (config/unresolved-symbol-excluded config symbol)
+                (config/unresolved-symbol-excluded ctx symbol)
                 (let [symbol-name (name symbol)]
                   (or (str/starts-with? symbol-name
                                         ".")

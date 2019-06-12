@@ -1496,13 +1496,13 @@
         :level :error,
         :message "unresolved symbol x"})
      (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
-  #_(assert-submaps '({:file "corpus/unresolved_symbol.clj",
-                       :row 11,
-                       :col 4,
-                       :level :error,
-                       :message "unresolved symbol unresolved-fn1"})
-                    (lint! (io/file "corpus" "unresolved_symbol.clj")
-                           '{:linters {:unresolved-symbol {:level :error}}}))
+  (assert-submaps '({:file "corpus/unresolved_symbol.clj",
+                     :row 11,
+                     :col 4,
+                     :level :error,
+                     :message "unresolved symbol unresolved-fn1"})
+                  (lint! (io/file "corpus" "unresolved_symbol.clj")
+                         '{:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
@@ -1526,7 +1526,10 @@
   (is (empty? (lint! "#inst \"2019\""
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(if-some [foo true] foo false)"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo) (defn foo [_ _ _]) (foo x y z)"
+                     '{:linters {:unresolved-symbol {:level :error
+                                                     :exclude [(foo/foo [x y z])]}}}))))
 
 ;;;; Scratch
 

@@ -124,7 +124,7 @@
                 calls (filter list? excluded)]
             {:excluded syms
              :excluded-in
-             (reduce (fn [acc [fq-name excluded] calls]
+             (reduce (fn [acc [fq-name excluded]]
                        (let [ns-name (symbol (namespace fq-name))
                              var-name (symbol (name fq-name))]
                          (assoc acc [ns-name var-name] (set excluded))))
@@ -132,9 +132,12 @@
         delayed-cfg (memoize delayed-cfg)]
     (fn [ctx sym]
       (let [config (:config ctx)
+            callstack (:callstack ctx)
             {:keys [:excluded :excluded-in]} (delayed-cfg config)]
-        (or (contains? excluded sym))))))
-
+        (or (contains? excluded sym)
+            (some #(when-let [x (get excluded-in %)]
+                     (contains? x sym))
+                  callstack))))))
 
 ;;;; Scratch
 
