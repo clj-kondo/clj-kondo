@@ -950,10 +950,12 @@
         arg-count (count (rest children))]
     (case t
       :quote nil
-      :syntax-quote (analyze-usages2 ctx expr)
+      :syntax-quote (analyze-usages2 (assoc ctx
+                                            :analyze-expression**
+                                            analyze-expression**) expr)
       :reader-macro (analyze-reader-macro ctx expr)
       (:unquote :unquote-splicing)
-      nil ;; TODO: this is an error, you can't use this outside syntax-quote!
+      (analyze-children ctx children)
       :namespaced-map (analyze-namespaced-map (update ctx
                                                       :callstack #(cons [nil t] %))
                                               expr)

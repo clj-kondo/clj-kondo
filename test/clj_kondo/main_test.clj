@@ -1523,6 +1523,8 @@
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "`(let [e# (Exception.)] (.. e# getCause getMessage))"
                      {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "`~@(let [v nil] (resolve v))"
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "#inst \"2019\""
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(if-some [foo true] foo false)"

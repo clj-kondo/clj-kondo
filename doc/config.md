@@ -149,3 +149,10 @@ A regex is also supported:
 ```
 
 This will exclude all namespaces ending with `.specs`.
+
+### Exclude unresolved symbol from being reported
+
+``` clojure
+(ns foo (:require [foo.specs] [bar.specs]))
+(defn my-fn [x] x)
+```
