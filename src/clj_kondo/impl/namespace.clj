@@ -110,22 +110,9 @@
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
 
-(def default-java-imports
-  (reduce (fn [acc [prefix sym]]
-            (let [fq (symbol (str prefix sym))]
-              (-> acc
-                  (assoc fq fq)
-                  (assoc sym fq))))
-          {}
-          (reduce into []
-                  [(map vector (repeat "java.lang.") '[Boolean Byte CharSequence
-                                                       Character Double Integer
-                                                       Long Math Object String
-                                                       System Thread])
-                   (map vector (repeat "java.math.") '[BigDecimal BigInteger])])))
-
 (defn resolve-name
   [ctx ns-name name-sym]
+
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
     (if-let [ns* (namespace name-sym)]
@@ -137,7 +124,8 @@
           {:ns ns*
            :name (symbol (name name-sym))}
           (when (= :clj lang)
-            (when-let [ns* (get default-java-imports ns-sym)]
+            (when-let [ns* (or (get var-info/default-import->qname ns-sym)
+                               (get var-info/default-fq-imports ns-sym))]
               {:java-interop? true
                :ns ns*
                :name (symbol (name name-sym))}))))
@@ -147,10 +135,11 @@
        (when (contains? (:vars ns) name-sym)
          {:ns (:name ns)
           :name name-sym})
-       ;; TODO: restructure looking up default java.lang classes for performance
-       (when-let [java-class (or (get default-java-imports name-sym)
+       (when-let [java-class (or (get var-info/default-import->qname name-sym)
+                                 (get var-info/default-fq-imports name-sym)
                                  (get (:java-imports ns) name-sym))]
          {:ns java-class
+          :java-interop? true
           :name name-sym})
        (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                           name-sym)

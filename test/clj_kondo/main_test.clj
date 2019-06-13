@@ -1552,6 +1552,8 @@
   (is (empty? (lint! "(let [{{:keys [:a]} :stats} {:stats {:a 1}}] a)"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "java.math.BitSieve"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "Class Object Cloneable NoSuchFieldError String"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch

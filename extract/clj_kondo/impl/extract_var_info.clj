@@ -22,6 +22,7 @@
   (def cljs-core-syms '%s)
 
   (def default-import->qname '%s)
+  (def default-fq-imports '%s)
 
   ")
 
@@ -93,7 +94,8 @@
         default-java-imports (extract-default-imports)
         code (format code-template predicates-by-ns
                      clojure-core-syms cljs-core-vars
-                     default-java-imports)]
+                     default-java-imports
+                     (set (vals default-java-imports)))]
     (spit "src/clj_kondo/impl/var_info_gen.clj" code)))
 
 ;;;; Scratch
