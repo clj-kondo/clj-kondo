@@ -1545,6 +1545,8 @@
   (is (empty? (lint! "(ns foo (:import (my.package Foo))) Foo"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns foo (:import my.package.Foo)) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(dotimes [_ 10] (println \"hello\"))"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch

@@ -845,7 +845,7 @@
                                       :call-as-use true
                                       :skip-unresolved? true)
                                children)
-             (let let* for doseq with-open)
+             (let let* for doseq dotimes with-open)
              (analyze-like-let ctx expr)
              letfn
              (analyze-letfn ctx expr)
