@@ -8,6 +8,8 @@
    [clojure.string :as str]
    [clj-kondo.impl.config :as config]))
 
+(set! *warn-on-reflection* true)
+
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
   with the same name. Returns updated namespace."
@@ -74,6 +76,11 @@
          conj binding)
   nil)
 
+(defn java-class? [s]
+  (let [splits (str/split s #"\.")]
+    (and (> (count splits) 2)
+         (Character/isUpperCase ^char (first (last splits))))))
+
 (defn reg-unresolved-symbol!
   [{:keys [:base-lang :lang :namespaces :filename :skip-unresolved?] :as ctx}
    ns-sym symbol loc]
@@ -83,7 +90,8 @@
                   (or (str/starts-with? symbol-name
                                         ".")
                       (str/ends-with? symbol-name
-                                      "."))))
+                                      ".")
+                      (java-class? symbol-name))))
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
            (fn [old-loc]
              (if (nil? old-loc)
@@ -92,6 +100,9 @@
                       :name symbol)
                old-loc))))
   nil)
+
+(comment
+  (count (str/split "foo.bar.baz" #"\." 3)))
 
 (defn list-namespaces [{:keys [:namespaces]}]
   (for [[_base-lang m] @namespaces

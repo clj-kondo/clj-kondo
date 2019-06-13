@@ -1550,6 +1550,8 @@
   (is (empty? (lint! "(dotimes [_ 10] (println \"hello\"))"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(let [{{:keys [:a]} :stats} {:stats {:a 1}}] a)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "java.math.BitSieve"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch
