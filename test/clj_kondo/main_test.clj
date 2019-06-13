@@ -1331,7 +1331,8 @@
   (is (empty? (lint! "(defn false-positive-metadata [a b] ^{:key (str a b)} [:other])"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(doseq [{ts :tests {:keys [then]} :then} nodes]
-                        (doseq [test (map :test ts)] test))"
+                        (doseq [test (map :test ts)] test)
+                        then)"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 (deftest unsupported-binding-form-test
@@ -1547,6 +1548,8 @@
   (is (empty? (lint! "(ns foo (:import my.package.Foo)) Foo"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(dotimes [_ 10] (println \"hello\"))"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(let [{{:keys [:a]} :stats} {:stats {:a 1}}] a)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch

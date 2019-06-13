@@ -139,10 +139,9 @@
                        (recur (concat rest-kvs [k v]) res))
                      :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
                      (recur rest-kvs res))
-                   (utils/symbol-token? k)
+                   :else
                    (recur rest-kvs (merge res (extract-bindings ctx k opts)
-                                          {:analyzed (analyze-expression** ctx v)}))
-                   :else (recur rest-kvs res)))
+                                          {:analyzed (analyze-expression** ctx v)}))))
            res))
        (findings/reg-finding!
         findings
