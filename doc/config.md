@@ -200,3 +200,13 @@ Furthermore, the `:lint-as` option can help treating certain macros like built-i
 :lint-as {me.raynes.conch/programs clojure.core/declare
           me.raynes.conch/let-programs clojure.core/let}
 ```
+
+and helps preventing false positive unresolved symbols in this code:
+
+``` clojure
+(ns foo (:require [me.raynes.conch :refer [programs let-programs]]))
+
+(programs rm mkdir echo mv)
+(let-programs [clj-kondo "./clj-kondo"]
+  ,,,)
+```
