@@ -152,7 +152,7 @@ This will exclude all namespaces ending with `.specs`.
 
 ### Exclude unresolved symbols from being reported
 
-In the following code, 
+In the following code `streams` is a macro that assigns a special meaning to the symbol `where`, so it should not be reported as an unresolved symbol:
 
 ``` clojure
 (ns foo
@@ -166,13 +166,12 @@ In the following code,
     ,,,))
 ```
 
-`streams` is a macro that assigns a special meaning to the symbol `where`, so it should not be reported as an unresolved symbol. This is the config for it:
+This is the config for it:
 
 ``` clojure
 {:linters
   {:unresolved-symbol
-    {:level :error
-     :exclude [(riemann.streams/streams [where])]}}}
+    {:exclude [(riemann.streams/streams [where])]}}}
 ```
 
 To exclude all symbols in calls to `riemann.streams/streams` write `:exclude [(riemann.streams/streams)]`, without the vector.
