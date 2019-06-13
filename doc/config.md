@@ -175,6 +175,8 @@ In the following code,
      :exclude [(riemann.streams/streams [where])]}}}
 ```
 
+To exclude all symbols in calls to `riemann.streams/streams` write `:exclude [(riemann.streams/streams)]`, without the vector.
+
 To exclude a symbol from being reported as unresolved globally in your project, e.g. `foo`, you can use `:exclude [foo]`.
 
 Sometimes vars are introduced by executing macros, e.g. when using [HugSQL](https://github.com/layerware/hugsql)'s `def-db-fns`. You can suppress warnings about these vars by using `declare`. Example:
@@ -192,4 +194,9 @@ Sometimes vars are introduced by executing macros, e.g. when using [HugSQL](http
   (select-things conn params))
 ```
 
+Furthermore, the `:lint-as` option can help treating certain macros like built-in ones. This is in clj-kondo's own config:
 
+``` clojure
+:lint-as {me.raynes.conch/programs clojure.core/declare
+          me.raynes.conch/let-programs clojure.core/let}
+```
