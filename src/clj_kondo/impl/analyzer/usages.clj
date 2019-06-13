@@ -41,7 +41,7 @@
                          (let [{resolved-ns :ns
                                 _resolved-name :name
                                 unqualified? :unqualified? :as _m} (namespace/resolve-name ctx ns-name symbol-val)]
-                           (when unqualified?
+                           (when (and unqualified? (not syntax-quote?))
                              (namespace/reg-unresolved-symbol! ctx ns-name symbol-val (meta expr)))
                            (when resolved-ns
                              (namespace/reg-usage! ctx

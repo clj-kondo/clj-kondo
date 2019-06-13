@@ -134,7 +134,7 @@
                                      renamed))
               :referred-all referred-all}]))))))
 
-(defn analyze-java-import [ctx ns-name libspec-expr]
+(defn analyze-java-import [_ctx _ns-name libspec-expr]
   (case (node/tag libspec-expr)
     (:vector :list) (let [children (:children libspec-expr)
                           java-package-name-node (first children)

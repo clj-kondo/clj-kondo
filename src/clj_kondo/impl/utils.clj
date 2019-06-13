@@ -191,7 +191,6 @@
 ;;;; Scratch
 
 (comment
-  (meta (lift-meta (parse-string "^:private [x]")))
   (false? (node/sexpr (parse-string "false")))
   (false? (node/sexpr (parse-string "nil")))
   (constant? (parse-string "foo"))

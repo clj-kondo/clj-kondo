@@ -31,11 +31,15 @@
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
                                  :exclude [#_clj-kondo.impl.var-info-gen]}
-              :unresolved-symbol {:level :error #_:off
-                                  :exclude [;; ignore globally
+              :unresolved-symbol {:level :info ;; for now
+                                  :exclude [;; ignore globally:
                                             #_js*
-                                            ;; ignore occurrences of service and event in call to riemann.streams/where
+                                            ;; ignore occurrences of service and event in call to riemann.streams/where:
                                             #_(riemann.streams/where [service event])
+                                            ;; ignore all unresolved symbols in one-of:
+                                            #_(clj-kondo.impl.utils/one-of)
+                                            (clojure.test/are)
+                                            (clojure.test/is [thrown-with-msg?])
                                             ]}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
@@ -127,7 +131,9 @@
              (reduce (fn [acc [fq-name excluded]]
                        (let [ns-name (symbol (namespace fq-name))
                              var-name (symbol (name fq-name))]
-                         (assoc acc [ns-name var-name] (set excluded))))
+                         (assoc acc [ns-name var-name] (if excluded
+                                                         (set excluded)
+                                                         identity))))
                      {} calls)}))
         delayed-cfg (memoize delayed-cfg)]
     (fn [ctx sym]
@@ -135,8 +141,8 @@
             callstack (:callstack ctx)
             {:keys [:excluded :excluded-in]} (delayed-cfg config)]
         (or (contains? excluded sym)
-            (some #(when-let [x (get excluded-in %)]
-                     (contains? x sym))
+            (some #(when-let [check-fn (get excluded-in %)]
+                     (check-fn sym))
                   callstack))))))
 
 ;;;; Scratch
