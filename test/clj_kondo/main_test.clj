@@ -1554,6 +1554,8 @@
   (is (empty? (lint! "java.math.BitSieve"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "Class Object Cloneable NoSuchFieldError String"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(let [{:keys [:as]} {:as 1}] as)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch

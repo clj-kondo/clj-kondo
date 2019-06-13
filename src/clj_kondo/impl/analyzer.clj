@@ -88,25 +88,27 @@
          ;; keyword
          (:k expr)
          (let [k (:k expr)]
-           (when (not= :as k)
-             (if keys-destructuring?
-               (let [s (-> expr :k name symbol)
-                     m (meta expr)
-                     v (assoc m
-                              :name s
-                              :filename (:filename ctx))]
-                 (when-not skip-register?
-                   (namespace/reg-binding! ctx
-                                           (-> ctx :ns :name)
-                                           v))
-                 {s v})
+           (if keys-destructuring?
+             (let [s (-> k name symbol)
+                   m (meta expr)
+                   v (assoc m
+                            :name s
+                            :filename (:filename ctx))]
+               (when-not skip-register?
+                 (namespace/reg-binding! ctx
+                                         (-> ctx :ns :name)
+                                         v))
+               {s v})
+             ;; TODO: we probably need to check if :as is supported in this
+             ;; context, e.g. seq-destructuring?
+             (when (not= :as k)
                (findings/reg-finding!
                 findings
                 (node->line (:filename ctx)
                             expr
                             :error
                             :syntax
-                            (str "unsupported binding form " (:k expr)))))))
+                            (str "unsupported binding form " k))))))
          :else
          (findings/reg-finding!
           findings
