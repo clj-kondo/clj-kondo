@@ -1542,6 +1542,8 @@
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns foo (:import [my.package Foo])) Foo"
                      '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo (:import (my.package Foo))) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns foo (:import my.package.Foo)) Foo"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 

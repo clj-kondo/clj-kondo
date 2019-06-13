@@ -136,17 +136,18 @@
 
 (defn analyze-java-import [ctx ns-name libspec-expr]
   (case (node/tag libspec-expr)
-    :vector (let [children (:children libspec-expr)
-                  java-package-name-node (first children)
-                  java-package (:value java-package-name-node)
-                  imported (map :value (rest children))]
-              (into {} (for [i imported]
-                         [i java-package])))
+    (:vector :list) (let [children (:children libspec-expr)
+                          java-package-name-node (first children)
+                          java-package (:value java-package-name-node)
+                          imported (map :value (rest children))]
+                      (into {} (for [i imported]
+                                 [i java-package])))
     :token (let [package+class (:value libspec-expr)
                  splitted (-> package+class name (str/split #"\."))
                  java-package (symbol (str/join "." (butlast splitted)))
                  imported (symbol (last splitted))]
-             {imported java-package})))
+             {imported java-package})
+    nil))
 
 (defn analyze-ns-decl [{:keys [:lang :findings] :as ctx} expr]
   (let [children (:children expr)
