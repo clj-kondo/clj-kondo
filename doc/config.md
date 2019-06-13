@@ -150,7 +150,7 @@ A regex is also supported:
 
 This will exclude all namespaces ending with `.specs`.
 
-### Exclude an unresolved symbol from being reported
+### Exclude unresolved symbols from being reported
 
 In the following code, 
 
