@@ -35,6 +35,10 @@
     (is (= #{"redundant let"} (set (map :message linted)))))
   (assert-submaps '({:file "<stdin>", :row 1, :col 12, :level :warning, :message "redundant let"})
                   (lint! "(let [x 2] (let [y 1]))" "--lang" "cljs"))
+  (testing "linters still work in areas where arity linter is are disabled"
+    (assert-submaps '({:file "<stdin>", :row 1, :col 43, :level :warning, :message "redundant let"})
+                    (lint! "(reify Object (toString [this] (let [y 1] (let [x y] x))))")))
+
   (is (empty? (lint! "(let [x 2] `(let [y# 3]))")))
   (is (empty? (lint! "(let [x 2] '(let [y 3]))")))
   (is (empty? (lint! "(let [x 2] (let [y 1]) (let [y 2]))")))
