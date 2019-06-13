@@ -185,7 +185,8 @@
   (take-nth 2 (rest children)))
 
 (defmacro one-of [x elements]
-  `(case ~x (~@elements) true false))
+  `(let [x# ~x]
+     (case x# (~@elements) x# nil)))
 
 ;;;; Scratch
 

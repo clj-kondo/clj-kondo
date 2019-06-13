@@ -139,8 +139,9 @@
        (when (contains? (:vars ns) name-sym)
          {:ns (:name ns)
           :name name-sym})
-       ;; TODO: restructure looking up java.lang classes for performance
-       (when-let [java-class (get default-java-imports name-sym)]
+       ;; TODO: restructure looking up default java.lang classes for performance
+       (when-let [java-class (or (get default-java-imports name-sym)
+                                 (get (:java-imports ns) name-sym))]
          {:ns java-class
           :name name-sym})
        (let [clojure-excluded? (contains? (:clojure-excluded ns)

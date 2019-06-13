@@ -8,7 +8,8 @@
    [clojure.set :as set]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
    [rewrite-clj.node.token :refer [token-node]]
-   [clj-kondo.impl.namespace :as namespace]))
+   [clj-kondo.impl.namespace :as namespace]
+   [clojure.string :as str]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 
@@ -133,6 +134,20 @@
                                      renamed))
               :referred-all referred-all}]))))))
 
+(defn analyze-java-import [ctx ns-name libspec-expr]
+  (case (node/tag libspec-expr)
+    :vector (let [children (:children libspec-expr)
+                  java-package-name-node (first children)
+                  java-package (:value java-package-name-node)
+                  imported (map :value (rest children))]
+              (into {} (for [i imported]
+                         [i java-package])))
+    :token (let [package+class (:value libspec-expr)
+                 splitted (-> package+class name (str/split #"\."))
+                 java-package (symbol (str/join "." (butlast splitted)))
+                 imported (symbol (last splitted))]
+             {imported java-package})))
+
 (defn analyze-ns-decl [{:keys [:lang :findings] :as ctx} expr]
   (let [children (:children expr)
         ns-name-expr (second children)
@@ -152,10 +167,10 @@
                                       "namespace name expected")))))
                  'user)
         clauses (next children)
-        clauses
+        require-clauses
         (for [?require-clause clauses
               :let [require-kw (some-> ?require-clause :children first :k
-                                       #{:require :require-macros})]
+                                       (one-of [:require :require-macros]))]
               :when require-kw
               libspec-expr (rest (:children ?require-clause)) ;; TODO: fix meta
               normalized-libspec-expr (normalize-libspec nil libspec-expr)
@@ -166,7 +181,15 @@
                                (assoc acc (:ns clause) (:excluded clause))
                                acc))
                            {}
-                           clauses)
+                           require-clauses)
+        java-imports
+        (apply merge
+               (for [?import-clause clauses
+                     :let [import-kw (some-> ?import-clause :children first :k
+                                             (= :import))]
+                     :when import-kw
+                     libspec-expr (rest (:children ?import-clause))]
+                 (analyze-java-import ctx ns-name libspec-expr)))
         ns (cond->
                {:type :ns
                 :lang lang
@@ -174,14 +197,14 @@
                 :bindings #{}
                 :used-bindings #{}
                 :vars #{}
-                :required (map :ns clauses)
-                :qualify-var (into {} (mapcat :referred clauses))
+                :required (map :ns require-clauses)
+                :qualify-var (into {} (mapcat :referred require-clauses))
                 :qualify-ns (reduce (fn [acc sc]
                                       (cond-> (assoc acc (:ns sc) (:ns sc))
                                         (:as sc)
                                         (assoc (:as sc) (:ns sc))))
                                     {}
-                                    clauses)
+                                    require-clauses)
                 :clojure-excluded (set (for [?refer-clojure (nnext (node/sexpr expr))
                                              :when (= :refer-clojure (first ?refer-clojure))
                                              [k v] (partition 2 (rest ?refer-clojure))
@@ -193,7 +216,8 @@
                             :clj '#{clojure.core}
                             :cljs '#{cljs.core})
                           (into (keys refer-alls))
-                          (conj ns-name))}
+                          (conj ns-name))
+                :java-imports java-imports}
              local-config (assoc :config local-config)
              (= :clj lang) (update :qualify-ns
                                    #(assoc % 'clojure.core 'clojure.core))
