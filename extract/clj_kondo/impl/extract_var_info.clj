@@ -8,8 +8,7 @@
    [clojure.java.io :as io]
    [clojure.set :as set]))
 
-;; extracting information from eastwood with permission from maintainer Andy
-;; Fingerhut
+(set! *warn-on-reflection* true)
 
 (def code-template "(ns clj-kondo.impl.var-info-gen
   \"GENERATED, DO NOT EDIT. EXTRACTED FROM EASTWOOD WITH PERMISSION.\"
@@ -20,8 +19,10 @@
 
   (def clojure-core-syms '%s)
 
-
   (def cljs-core-syms '%s)
+
+  (def default-import->qname '%s)
+
   ")
 
 (defn extract-clojure-core-vars
@@ -64,8 +65,15 @@
              (filter public? (get-in @namespaces '[:cljc :clj cljs.core :vars]))
              (filter public? (get-in @namespaces '[:cljc :cljs cljs.core :vars]))])))
 
+(defn extract-default-imports []
+  (into {}
+        (for [[k v] clojure.lang.RT/DEFAULT_IMPORTS]
+          [k (symbol (.getName ^Class v))])))
+
 (defn -main [& _args]
-  (let [var-info (edn/read-string (slurp (io/resource "var-info.edn")))
+  (let [;; extracting information from eastwood's var-info.edn with permission
+        ;; from maintainer Andy Fingerhut
+        var-info (edn/read-string (slurp (io/resource "var-info.edn")))
         predicates (set (keep (fn [[k v]]
                                 (when (:predicate v)
                                   k))
@@ -82,8 +90,10 @@
         extracted-core-vars (extract-clojure-core-vars)
         clojure-core-syms (into clojure-core-syms-eastwood extracted-core-vars)
         cljs-core-vars (extract-cljs-core-vars)
+        default-java-imports (extract-default-imports)
         code (format code-template predicates-by-ns
-                     clojure-core-syms cljs-core-vars)]
+                     clojure-core-syms cljs-core-vars
+                     default-java-imports)]
     (spit "src/clj_kondo/impl/var_info_gen.clj" code)))
 
 ;;;; Scratch

@@ -101,9 +101,6 @@
                old-loc))))
   nil)
 
-(comment
-  (count (str/split "foo.bar.baz" #"\." 3)))
-
 (defn list-namespaces [{:keys [:namespaces]}]
   (for [[_base-lang m] @namespaces
         [_lang nss] m
