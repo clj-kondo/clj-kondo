@@ -142,7 +142,14 @@
      (lint! "(defn ^:static ^:foo my-chunk-buffer ^:bar [capacity]
               (clojure.lang.ChunkBuffer. capacity))
              (my-chunk-buffer 1)
-             (my-chunk-buffer 1 2)"))))
+             (my-chunk-buffer 1 2)")))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.core/areduce"})
+   (lint! "(areduce)")))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
@@ -1566,6 +1573,8 @@
   (is (empty? (lint! "(let [x 1 {:keys [:a] :or {a x}} {:a 1}])"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defmacro foo [] &env &form)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(let [a (into-array [])] (areduce a i ret 0 (+ ret (aget a i))))"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch
