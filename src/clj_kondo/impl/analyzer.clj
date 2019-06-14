@@ -721,6 +721,7 @@
         {:keys [:row :col]} (meta expr)]
     ;; TODO: it seems like we can abstract creating defn types into a function,
     ;; so we can also call reg-var there
+    (namespace/reg-var! ctx (-> ns :name) record-name expr metadata)
     (namespace/reg-var! ctx (-> ns :name) (symbol (str "->" record-name)) expr metadata)
     (namespace/reg-var! ctx (-> ns :name) (symbol (str "map->" record-name)) expr metadata)
     (concat
