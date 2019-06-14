@@ -228,6 +228,11 @@
         var-meta (meta name-node)
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
+        ctx (if macro?
+              (update ctx :bindings (fn [b]
+                                      (merge b '{&env {}
+                                                 &form {}})))
+              ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
         _ (when fn-name

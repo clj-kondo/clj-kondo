@@ -1562,6 +1562,8 @@
   (is (empty? (lint! "(as-> 1 x)"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(let [x 1 {:keys [:a] :or {a x}} {:a 1}])"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(defmacro foo [] &env &form)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch
