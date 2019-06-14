@@ -15,7 +15,8 @@
 (deftest extract-cljs-core-vars-test
   (let [vars (extract-var-info/extract-cljs-core-vars)]
     (is (contains? vars 'clj->js))
-    (is (contains? vars 'transduce))))
+    (is (contains? vars 'transduce))
+    (is (contains? vars '*target*))))
 
 (deftest default-java-imports-test
   (let [java-imports (extract-var-info/extract-default-imports)]

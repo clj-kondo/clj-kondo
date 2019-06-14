@@ -43,7 +43,7 @@
              borkdude/eastwood
              {:git/url "https://github.com/borkdude/eastwood.git"
               :sha "a6e2771d4c8920582b68ab49522ede33e344bb99"}}
-            :extra-paths ["test" "extract" "classes"]
+            :extra-paths ["test" "extract"]
             :main-opts ["-m" "cognitect.test-runner"]}
            :profiler
            {:extra-deps

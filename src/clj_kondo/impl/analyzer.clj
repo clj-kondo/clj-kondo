@@ -838,7 +838,7 @@
              (analyze-expression** ctx (macroexpand/expand-> ctx expr))
              (->> some->>)
              (analyze-expression** ctx (macroexpand/expand->> ctx expr))
-             (cond-> cond->> as-> as->> . .. deftype
+             (cond-> cond->> as-> . .. deftype
                      proxy extend-protocol doto reify definterface
                      defcurried extend-type)
              ;; don't lint calls in these expressions, only register them as used vars

@@ -57,7 +57,7 @@
         namespaces (atom {})
         ;; built-ins from analyzer, e.g.
         ;; https://github.com/clojure/clojurescript/blob/47386d7c03e6fc36dc4f0145bd62377802ac1c02/src/main/clojure/cljs/analyzer.cljc#L3002
-        special '#{ns js*}]
+        special '#{ns js* *target*}]
     (doall
      (core-impl/process-files
       {:config config/default-config
