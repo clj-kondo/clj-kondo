@@ -1,12 +1,10 @@
 (ns clj-kondo.impl.extract-var-info
   (:require
-   [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.namespace :as namespace]
    [clojure.edn :as edn]
-   [clojure.java.io :as io]
-   [clojure.set :as set]))
+   [clojure.java.io :as io]))
 
 (set! *warn-on-reflection* true)
 
@@ -33,7 +31,6 @@
   (edn/read-string (slurp (io/resource "var-info.edn"))))
 
 (defn extract-clojure-core-vars
-  "FIXME: write test for this"
   []
   (let [public? #(-> % meta :private not)
         namespaces (atom {})
@@ -51,7 +48,6 @@
             [(filter public? (get-in @namespaces '[:clj :clj clojure.core :vars]))])))
 
 (defn extract-cljs-core-vars
-  "FIXME: write test for this"
   []
   (let [public? #(-> % meta :private not)
         namespaces (atom {})
