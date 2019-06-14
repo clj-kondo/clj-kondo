@@ -2,8 +2,10 @@
   {:no-doc true}
   (:require [clj-kondo.impl.var-info-gen]))
 
+(declare clojure-core-syms cljs-core-syms)
+
 (def special-forms '#{def if do let quote fn fn* loop recur throw try
-                      monitor-enter monitor-exit set! . ..})
+                      monitor-enter monitor-exit set! . .. new})
 
 (defn core-sym? [lang sym]
   (case lang
@@ -13,11 +15,4 @@
 ;;;; Scratch
 
 (comment
-  (first predicates)
-  (count core-syms)
-  (count cljs-core-syms)
-  (core-sym? :clj 'inc)
-  (core-sym? :cljs 'inc)
-  (core-sym? :clj 'future)
-  (core-sym? :cljs 'future)
   )

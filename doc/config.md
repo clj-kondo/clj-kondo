@@ -149,3 +149,63 @@ A regex is also supported:
 ```
 
 This will exclude all namespaces ending with `.specs`.
+
+### Exclude unresolved symbols from being reported
+
+In the following code `streams` is a macro that assigns a special meaning to the symbol `where`, so it should not be reported as an unresolved symbol:
+
+``` clojure
+(ns foo
+  (:require [riemann.streams [streams]]))
+
+(def email (mailer {:host "mail.relay"
+                    :from "riemann@example.com"}))
+(streams
+  (where (and (= (:service event) “my-service”)
+              (= (:level event) “ERROR”))
+    ,,,))
+```
+
+This is the config for it:
+
+``` clojure
+{:linters
+  {:unresolved-symbol
+    {:exclude [(riemann.streams/streams [where])]}}}
+```
+
+To exclude all symbols in calls to `riemann.streams/streams` write `:exclude [(riemann.streams/streams)]`, without the vector.
+
+To exclude a symbol from being reported as unresolved globally in your project, e.g. `foo`, you can use `:exclude [foo]`.
+
+Sometimes vars are introduced by executing macros, e.g. when using [HugSQL](https://github.com/layerware/hugsql)'s `def-db-fns`. You can suppress warnings about these vars by using `declare`. Example:
+
+``` clojure
+(ns hugsql-example
+  (:require [hugsql.core :as hugsql]))
+
+(declare select-things)
+
+;; this will define a var #'select-things:
+(hugsql/def-db-fns "select_things.sql")
+
+(defn get-my-things [conn params]
+  (select-things conn params))
+```
+
+Furthermore, the `:lint-as` option can help treating certain macros like built-in ones. This is in clj-kondo's own config:
+
+``` clojure
+:lint-as {me.raynes.conch/programs clojure.core/declare
+          me.raynes.conch/let-programs clojure.core/let}
+```
+
+and helps preventing false positive unresolved symbols in this code:
+
+``` clojure
+(ns foo (:require [me.raynes.conch :refer [programs let-programs]]))
+
+(programs rm mkdir echo mv)
+(let-programs [clj-kondo "./clj-kondo"]
+  ,,,)
+```

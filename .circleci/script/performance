@@ -27,7 +27,7 @@ EOF
 (time ./clj-kondo --lint "$cp" --cache --config "$config") 2>&1 | tee -a performance.txt
 
 echo -e "\n==== Lint a single file (emulate in-editor usage)" | tee -a performance.txt
-(time ./clj-kondo --lint src/clj_kondo/main.clj --cache) 2>&1 | tee -a performance.txt
+(time ./clj-kondo --lint src/clj_kondo/impl/core.clj --cache) 2>&1 | tee -a performance.txt
 
 count=$(find . -name "*.clj*" -type f | wc -l | tr -d ' ')
 echo -e "\n==== Launch clj-kondo for each file in project ($count)" | tee -a performance.txt

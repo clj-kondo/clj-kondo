@@ -3,4 +3,9 @@
                       rewrite-clj.parser.core
                       clj-kondo.impl.var-info-gen
                       clj-kondo.impl.node.seq
-                      clj-kondo.impl.profiler]}}}
+                      clj-kondo.impl.profiler]}
+           :unresolved-symbol
+           {:exclude [(clj-kondo.impl.utils/one-of)]}}
+ :lint-as {me.raynes.conch/programs clojure.core/declare
+           me.raynes.conch/let-programs clojure.core/let}
+ :output {:exclude-files ["src/clj_kondo/impl/rewrite_clj_patch.clj"]}}

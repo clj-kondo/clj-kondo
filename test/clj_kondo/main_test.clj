@@ -35,6 +35,10 @@
     (is (= #{"redundant let"} (set (map :message linted)))))
   (assert-submaps '({:file "<stdin>", :row 1, :col 12, :level :warning, :message "redundant let"})
                   (lint! "(let [x 2] (let [y 1]))" "--lang" "cljs"))
+  (testing "linters still work in areas where arity linter is are disabled"
+    (assert-submaps '({:file "<stdin>", :row 1, :col 43, :level :warning, :message "redundant let"})
+                    (lint! "(reify Object (toString [this] (let [y 1] (let [x y] x))))")))
+
   (is (empty? (lint! "(let [x 2] `(let [y# 3]))")))
   (is (empty? (lint! "(let [x 2] '(let [y 3]))")))
   (is (empty? (lint! "(let [x 2] (let [y 1]) (let [y 2]))")))
@@ -138,7 +142,14 @@
      (lint! "(defn ^:static ^:foo my-chunk-buffer ^:bar [capacity]
               (clojure.lang.ChunkBuffer. capacity))
              (my-chunk-buffer 1)
-             (my-chunk-buffer 1 2)"))))
+             (my-chunk-buffer 1 2)")))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.core/areduce"})
+   (lint! "(areduce)")))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
@@ -486,7 +497,8 @@
   (is (empty? (lint! "(doseq [fn [inc]] (fn 1))")))
   (is (empty?
        (lint! "(select-keys (let [x (fn [])] (x 1 2 3)) [])" "--config"
-              "{:linters {:invalid-arity {:skip-args [clojure.core/select-keys]}}}"))))
+              "{:linters {:invalid-arity {:skip-args [clojure.core/select-keys]}
+                          :unresolved-symbol {:level :off}}}"))))
 
 (deftest let-test
   (assert-submap
@@ -575,9 +587,11 @@
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
-           (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}"}}))))
+           (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}"}
+                                                :linters {:unresolved-symbol {:level :off}}}))))
        "WARNING_<stdin>"))
-  (is (empty? (lint! "(comment (select-keys))" '{:skip-args [clojure.core/comment]})))
+  (is (empty? (lint! "(comment (select-keys))" '{:skip-args [clojure.core/comment]
+                                                 :linters {:unresolved-symbol {:level :off}}})))
   (assert-submap
    '({:file "<stdin>",
       :row 1,
@@ -1001,7 +1015,9 @@
                      :message "x already refers to #'bar/x"})
                   (lint! "(ns foo (:require [bar :refer [x]])) (defn x [])"))
   (is (empty? (lint! "(defn foo [])")))
-  (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])"))))
+  (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])")))
+  (is (empty? (lint! "(declare foo) (def foo 1)")))
+  (is (empty? (lint! "(def foo 1) (declare foo)"))))
 
 (deftest unreachable-code-test
   (assert-submaps
@@ -1083,7 +1099,8 @@
       :message "wrong number of args (3) passed to a map"})
    (lint! "({:a 1} 1 2 3)"))
   (is (empty? (lint! "(foo ({:a 1} 1 2 3))" "--config"
-                     "{:linters {:invalid-arity {:skip-args [user/foo]}}}"))))
+                     "{:linters {:invalid-arity {:skip-args [user/foo]}
+                                 :unresolved-symbol {:level :off}}}"))))
 
 (deftest symbol-call-test
   (assert-submaps
@@ -1101,7 +1118,8 @@
       :message "wrong number of args (3) passed to a symbol"})
    (lint! "('foo 1 2 3)"))
   (is (empty? (lint! "(foo ('foo 1 2 3))" "--config"
-                     "{:linters {:invalid-arity {:skip-args [user/foo]}}}"))))
+                     "{:linters {:invalid-arity {:skip-args [user/foo]}
+                                 :unresolved-symbol {:level :off}}}"))))
 
 (deftest not-a-function-test
   (assert-submaps '({:file "<stdin>",
@@ -1124,7 +1142,8 @@
                   (lint! "(1 1)"))
   (is (empty? (lint! "'(1 1)")))
   (is (empty? (lint! "(foo (1 1))" "--config"
-                     "{:linters {:not-a-function {:skip-args [user/foo]}}}"))))
+                     "{:linters {:not-a-function {:skip-args [user/foo]}
+                                 :unresolved-symbol {:level :off}}}"))))
 
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
@@ -1204,6 +1223,14 @@
       :level :warning,
       :message "unused binding x"})
    (lint! "(when-let [x 1] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 13,
+      :level :warning,
+      :message "unused binding x"})
+   (lint! "(when-some [x 1] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
@@ -1311,7 +1338,8 @@
   (is (empty? (lint! "(defn false-positive-metadata [a b] ^{:key (str a b)} [:other])"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(doseq [{ts :tests {:keys [then]} :then} nodes]
-                        (doseq [test (map :test ts)] test))"
+                        (doseq [test (map :test ts)] test)
+                        then)"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 (deftest unsupported-binding-form-test
@@ -1423,6 +1451,141 @@
         (assert-submap '{:error 2}
                        (:summary parsed))
         (is (nil? (find parsed :summary)))))))
+
+(deftest defprotocol-test
+  (assert-submaps
+   '({:file "corpus/defprotocol.clj",
+      :row 14,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (4) passed to defprotocol/-foo"})
+   (lint! (io/file "corpus" "defprotocol.clj"))))
+
+(deftest defrecord-test
+  (assert-submaps
+   '({:file "corpus/defrecord.clj",
+      :row 8,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (3) passed to defrecord/->Thing"}
+     {:file "corpus/defrecord.clj",
+      :row 9,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (2) passed to defrecord/map->Thing"})
+   (lint! (io/file "corpus" "defrecord.clj")
+          "--config" "{:linters {:unused-binding {:level :warning}}}")))
+
+(deftest defmulti-test
+  (assert-submaps
+   '({:file "corpus/defmulti.clj",
+      :row 7,
+      :col 12,
+      :level :error,
+      :message "unresolved symbol greetingx"}
+     {:file "corpus/defmulti.clj",
+      :row 7,
+      :col 35,
+      :level :warning,
+      :message "unused binding y"})
+   (lint! (io/file "corpus" "defmulti.clj")
+          '{:linters {:unused-binding {:level :warning}
+                      :unresolved-symbol {:level :error}}})))
+
+(deftest unresolved-symbol-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 2,
+      :level :error,
+      :message "unresolved symbol x"})
+   (lint! "(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}"))
+  (testing "unresolved symbol is reported only once"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 2,
+        :level :error,
+        :message "unresolved symbol x"})
+     (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+  (assert-submaps '({:file "corpus/unresolved_symbol.clj",
+                     :row 11,
+                     :col 4,
+                     :level :error,
+                     :message "unresolved symbol unresolved-fn1"})
+                  (lint! (io/file "corpus" "unresolved_symbol.clj")
+                         '{:linters {:unresolved-symbol {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "unresolved symbol x"})
+   (lint! "x"
+          '{:linters {:unresolved-symbol {:level :error}}}))
+  (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(defmulti foo (fn [_])) (defmethod foo :dude [_]) (foo 1)"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(defonce foo (fn [_])) (foo 1)"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(defmacro foo [] `(let [x# 1]))"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(let [e (Exception.)] (.. e getCause getMessage))"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "`(let [e# (Exception.)] (.. e# getCause getMessage))"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "`~@(let [v nil] (resolve v))"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "#inst \"2019\""
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(if-some [foo true] foo false)"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo) (defn foo [_ _ _]) (foo x y z)"
+                     '{:linters {:unresolved-symbol {:level :error
+                                                     :exclude [(foo/foo [x y z])]}}})))
+  (is (empty? (lint! "(defprotocol IFoo) IFoo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(defrecord Foo []) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(deftype Foo []) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "Object BigDecimal"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo (:import [my.package Foo])) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo (:import (my.package Foo))) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo (:import my.package.Foo)) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(dotimes [_ 10] (println \"hello\"))"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(let [{{:keys [:a]} :stats} {:stats {:a 1}}] a)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "java.math.BitSieve"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "Class Object Cloneable NoSuchFieldError String"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(let [{:keys [:as]} {:as 1}] as)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(as-> 1 x)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(let [x 1 {:keys [:a] :or {a x}} {:a 1}])"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(defmacro foo [] &env &form)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(let [a (into-array [])] (areduce a i ret 0 (+ ret (aget a i))))"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(this-as x [x x x])"
+                     '{:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(as-> 10 x (inc x) (inc x))"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "((memfn ^String substring start end) \"foo\" 0 1)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(goog-define foo \"default\")"
+                     '{:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 ;;;; Scratch
 

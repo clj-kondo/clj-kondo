@@ -1,43 +1,48 @@
 (ns clj-kondo.impl.analyzer-test
   (:require
    [clj-kondo.impl.analyzer :as ana :refer [analyze-expressions]]
+   [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
    [clj-kondo.test-utils :refer [assert-submap assert-some-submap assert-submaps]]
    [clojure.test :as t :refer [deftest is are testing]]))
 
 (deftest lift-meta-test
-  (is (:private (meta (meta/lift-meta-content {} (parse-string "^:private [x]")))))
-  (is (:private (meta (meta/lift-meta-content {} (parse-string "#^ :private [x]")))))
-  (is (= "[B" (:tag (meta (meta/lift-meta-content {} (parse-string "^\"[B\" body")))))))
+  (is (:private (meta (meta/lift-meta-content {:lang :clj
+                                               :namespaces (atom {})}
+                                              (parse-string "^:private [x]")))))
+  (is (:private (meta (meta/lift-meta-content {:lang :clj
+                                               :namespaces (atom {})}
+                                              (parse-string "#^ :private [x]")))))
+  (is (= "[B" (:tag (meta (meta/lift-meta-content {:lang :clj
+                                                   :namespaces (atom {})}
+                                                  (parse-string "^\"[B\" body")))))))
 
-(def ctx {:filename "-"
-          :namespaces (atom {})
-          :base-lang :clj
-          :lang :clj})
+(def ctx
+  (let [ctx {:filename "-"
+             :namespaces (atom {})
+             :findings (atom [])
+             :base-lang :clj
+             :lang :clj}]
+    (assoc ctx :ns (analyze-ns-decl ctx (parse-string "(ns user)")))))
 
 (deftest analyze-defn-test
-  (let [ns (namespace/analyze-ns-decl ctx (parse-string "(ns user)"))]
-    (assert-submaps
-     '[{:type :defn
-        :name chunk-buffer, :fixed-arities #{1}}
-       {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
-     (ana/analyze-defn {:ns (namespace/analyze-ns-decl ctx (parse-string "(ns user)"))
-                        :base-lang :clj
-                        :lang :clj
-                        :namespaces (:namespaces ctx)}
-                       (parse-string
-                        "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
+  (assert-submaps
+   '[{:type :defn
+      :name chunk-buffer, :fixed-arities #{1}}
+     {:type :call, :name clojure.lang.ChunkBuffer., :arity 1, :row 2, :col 3}]
+   (ana/analyze-defn ctx
+                     (parse-string
+                      "(defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
   (clojure.lang.ChunkBuffer. capacity))")))
-    (assert-submap '{:type :defn
-                     :name get-bytes,
-                     :row 1,
-                     :col 1,
-                     :lang :clj,
-                     :fixed-arities #{1}}
-                   (first (ana/analyze-defn ctx
-                                            (parse-string "(defn get-bytes #^bytes [part] part)"))))))
+  (assert-submap '{:type :defn
+                   :name get-bytes,
+                   :row 1,
+                   :col 1,
+                   :lang :clj,
+                   :fixed-arities #{1}}
+                 (first (ana/analyze-defn ctx
+                                          (parse-string "(defn get-bytes #^bytes [part] part)")))))
 
 (deftest analyze-expressions-test
   (let [analyzed (analyze-expressions {:filename "<stdin>" :base-lang :clj :lang :clj

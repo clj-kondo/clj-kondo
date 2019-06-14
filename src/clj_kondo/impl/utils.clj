@@ -177,16 +177,20 @@
 (defn symbol-token? [node]
   (symbol? (:value node)))
 
+(defn symbol-from-token [node]
+  (when-let [?sym (:value node)]
+    (when (symbol? ?sym) ?sym)))
+
 (defn map-node-vals [{:keys [:children]}]
   (take-nth 2 (rest children)))
 
 (defmacro one-of [x elements]
-  `(case ~x (~@elements) true false))
+  `(let [x# ~x]
+     (case x# (~@elements) x# nil)))
 
 ;;;; Scratch
 
 (comment
-  (meta (lift-meta (parse-string "^:private [x]")))
   (false? (node/sexpr (parse-string "false")))
   (false? (node/sexpr (parse-string "nil")))
   (constant? (parse-string "foo"))

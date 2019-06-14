@@ -198,7 +198,7 @@
                                                   (str (:arity call))
                                                   (str (:ns called-fn) "/" (:name called-fn))
                                                   #_(str (:fixed-arities called-fn)))})
-                              (when (and (:private? called-fn)
+                              (when (and (:private called-fn)
                                          (not= caller-ns
                                                fn-ns))
                                 {:filename filename
@@ -253,6 +253,19 @@
           :message (str "unused binding " name)
           :row row
           :col col})))))
+
+(defn lint-unresolved-symbols!
+  [{:keys [:findings] :as ctx}]
+  (doseq [ns (namespace/list-namespaces ctx)
+          [_ {:keys [:row :col :filename :name]}] (:unresolved-symbols ns)]
+    (findings/reg-finding!
+     findings
+     {:level :error
+      :type :unresolved-symbol
+      :filename filename
+      :message (str "unresolved symbol " name)
+      :row row
+      :col col})))
 
 ;;;; scratch
 

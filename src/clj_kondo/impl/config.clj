@@ -30,7 +30,17 @@
               :unused-binding {:level :warning}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
-                                 :exclude [#_clj-kondo.impl.var-info-gen]}}
+                                 :exclude [#_clj-kondo.impl.var-info-gen]}
+              :unresolved-symbol {:level :info ;; for now
+                                  :exclude [;; ignore globally:
+                                            #_js*
+                                            ;; ignore occurrences of service and event in call to riemann.streams/where:
+                                            #_(riemann.streams/where [service event])
+                                            ;; ignore all unresolved symbols in one-of:
+                                            #_(clj-kondo.impl.utils/one-of)
+                                            (clojure.test/are)
+                                            (clojure.test/is [thrown-with-msg?])
+                                            ]}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -50,12 +60,13 @@
              }})
 
 (defn merge-config! [cfg* cfg]
-  (let [cfg (cond-> cfg
-              (:skip-comments cfg)
-              (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
-    (if (:replace (meta cfg))
-      cfg
-      (deep-merge cfg* cfg))))
+  (if (empty? cfg) cfg*
+      (let [cfg (cond-> cfg
+                  (:skip-comments cfg)
+                  (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
+        (if (:replace (meta cfg))
+          cfg
+          (deep-merge cfg* cfg)))))
 
 (defn fq-syms->vecs [fq-syms]
   (map (fn [fq-sym]
@@ -108,6 +119,31 @@
         (or (contains? syms ns-sym)
             (let [ns-str (str ns-sym)]
               (boolean (some #(re-find % ns-str) regexes))))))))
+
+(def unresolved-symbol-excluded
+  (let [delayed-cfg
+        (fn [config]
+          (let [excluded (get-in config [:linters :unresolved-symbol :exclude])
+                syms (set (filter symbol? excluded))
+                calls (filter list? excluded)]
+            {:excluded syms
+             :excluded-in
+             (reduce (fn [acc [fq-name excluded]]
+                       (let [ns-name (symbol (namespace fq-name))
+                             var-name (symbol (name fq-name))]
+                         (assoc acc [ns-name var-name] (if excluded
+                                                         (set excluded)
+                                                         identity))))
+                     {} calls)}))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [ctx sym]
+      (let [config (:config ctx)
+            callstack (:callstack ctx)
+            {:keys [:excluded :excluded-in]} (delayed-cfg config)]
+        (or (contains? excluded sym)
+            (some #(when-let [check-fn (get excluded-in %)]
+                     (check-fn sym))
+                  callstack))))))
 
 ;;;; Scratch
 

@@ -4,7 +4,8 @@
    :methods [#^{:static true} [start [com.sun.javadoc.RootDoc] boolean]])
   (:require
    [clojure.java.io :as io]
-   [cognitect.transit :as transit])
+   [cognitect.transit :as transit]
+   [clojure.edn :as edn])
   (:import [javax.tools ToolProvider DocumentationTool]
            [clj_kondo.impl ExtractJava]))
 
@@ -14,12 +15,13 @@
 
 (defn -start [^com.sun.javadoc.RootDoc root]
   (reset! extracted
-          (vec (for [^com.sun.javadoc.ClassDoc c (.classes root)
-                     ^com.sun.javadoc.MethodDoc m (.methods c)
-                     :when (.isStatic m)]
-                 {:class (.qualifiedName c)
-                  :method (.name m)
-                  :arity (count (.parameters m))})))
+          (into {} (for [^com.sun.javadoc.ClassDoc c (.classes root)]
+                     [(.qualifiedName c)
+                      (for [^com.sun.javadoc.MethodDoc m (.methods c)
+                            :when (.isStatic m)]
+                        {:class (.qualifiedName c)
+                         :method (.name m)
+                         :arity (count (.parameters m))})])))
   true)
 
 (def sconj (fnil conj #{}))
@@ -28,9 +30,11 @@
   (println "Extracting Java...")
   (let [dt (ToolProvider/getSystemDocumentationTool)
         fm (.getStandardFileManager dt nil nil nil)
-        task (.getTask dt nil fm nil ExtractJava extra-args  nil)]
+        task (.getTask dt nil fm nil ExtractJava extra-args nil)]
     (.call task))
   (println "done...")
+  (println "writing extracted results to java.edn")
+  (spit "resources/clj_kondo/java.edn" @extracted)
   (let [extracted-java
         (reduce (fn [acc entry]
                   (let [ns (symbol (:class entry))
@@ -41,7 +45,7 @@
                                  (assoc-in [name :name] name)
                                  (update-in [name :fixed-arities] sconj (:arity entry))))))
                 {}
-                @extracted)]
+                (apply concat (vals @extracted)))]
     (println "Writing cache files to" out)
     (doseq [[ns v] extracted-java]
       (let [file (io/file (str out "/" ns ".transit.json"))]
@@ -54,4 +58,6 @@
 ;;;; Scratch
 
 (comment
+  (def edn (edn/read-string (slurp "java.edn")))
+  (apply concat (vals edn))
   )
