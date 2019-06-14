@@ -837,15 +837,14 @@
                         (analyze-defn ctx expr)))
              defmethod (analyze-defmethod ctx expr)
              defprotocol (analyze-defprotocol ctx expr)
-             defrecord (analyze-defrecord ctx expr)
+             (defrecord deftype) (analyze-defrecord ctx expr)
              comment
              (analyze-children ctx children)
              (-> some->)
              (analyze-expression** ctx (macroexpand/expand-> ctx expr))
              (->> some->>)
              (analyze-expression** ctx (macroexpand/expand->> ctx expr))
-             (cond-> cond->> as-> . .. deftype
-                     proxy extend-protocol doto reify definterface
+             (cond-> cond->> as-> . .. proxy extend-protocol doto reify definterface
                      defcurried extend-type)
              ;; don't lint calls in these expressions, only register them as used vars
              (analyze-children (assoc ctx

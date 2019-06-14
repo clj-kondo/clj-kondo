@@ -1541,6 +1541,8 @@
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defrecord Foo []) Foo"
                      '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(deftype Foo []) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "Object BigDecimal"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns foo (:import [my.package Foo])) Foo"
