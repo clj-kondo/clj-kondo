@@ -1578,7 +1578,9 @@
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(this-as x [x x x])"
                      '{:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(as-> 10 x (inc x) (inc x))"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch
 

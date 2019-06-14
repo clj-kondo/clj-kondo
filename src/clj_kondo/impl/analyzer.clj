@@ -790,6 +790,15 @@
     (analyze-children (ctx-with-bindings ctx binding)
                       body-exprs)))
 
+(defn analyze-as-> [ctx expr]
+  (let [children (next (:children expr))
+        [as-expr name-expr & forms-exprs] children
+        analyzed-as-expr (analyze-expression** ctx as-expr)
+        binding (extract-bindings ctx name-expr)]
+    (concat analyzed-as-expr
+            (analyze-children (ctx-with-bindings ctx binding)
+                              forms-exprs))))
+
 (defn analyze-call
   [{:keys [:fn-body :base-lang :lang :ns :config :call-as-use] :as ctx}
    {:keys [:arg-count
@@ -865,7 +874,7 @@
              (analyze-expression** ctx (macroexpand/expand-> ctx expr))
              (->> some->>)
              (analyze-expression** ctx (macroexpand/expand->> ctx expr))
-             (cond-> cond->> as-> . .. proxy extend-protocol doto reify definterface
+             (cond-> cond->> . .. proxy extend-protocol doto reify definterface
                      defcurried extend-type)
              ;; don't lint calls in these expressions, only register them as used vars
              (analyze-children (assoc ctx
@@ -899,6 +908,8 @@
                          :expr expr
                          :callstack (:callstack ctx)}])
              try (analyze-try ctx expr)
+             ;; TODO: emit call
+             as-> (analyze-as-> ctx expr)
              ;; TODO: it's getting ridiculous that we have to emit a call object
              ;; every time, we should refactor this
              areduce (cons* (when-not call-as-use
@@ -911,6 +922,7 @@
                                :expr expr
                                :arity arg-count})
                             (analyze-areduce ctx expr))
+             ;; TODO: emit call
              this-as (analyze-this-as ctx expr)
              ;; catch-all
              (case [resolved-namespace resolved-name]
