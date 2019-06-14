@@ -1580,6 +1580,8 @@
                      '{:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "(as-> 10 x (inc x) (inc x))"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "((memfn ^String substring start end) \"foo\" 0 1)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch

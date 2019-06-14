@@ -799,6 +799,10 @@
             (analyze-children (ctx-with-bindings ctx binding)
                               forms-exprs))))
 
+(defn analyze-memfn [ctx expr]
+  (analyze-children (assoc ctx :skip-unresolved? true)
+                    (next (:children expr))))
+
 (defn analyze-call
   [{:keys [:fn-body :base-lang :lang :ns :config :call-as-use] :as ctx}
    {:keys [:arg-count
@@ -924,6 +928,8 @@
                             (analyze-areduce ctx expr))
              ;; TODO: emit call
              this-as (analyze-this-as ctx expr)
+             ;; TODO: emit call
+             memfn (analyze-memfn ctx expr)
              ;; catch-all
              (case [resolved-namespace resolved-name]
                [schema.core defn]
