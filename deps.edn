@@ -25,16 +25,25 @@
              {:git/url "https://github.com/borkdude/clj.native-image.git"
               :sha "cd7761b4ec88c2236b35830fd9cb0ef668699dae"}}
             #_{clj.native-image
-             {:git/url "https://github.com/taylorwood/clj.native-image.git"
-              :sha "567176ddb0f7507c8b0969e0a10f60f848afaf7d"}}}
+               {:git/url "https://github.com/taylorwood/clj.native-image.git"
+                :sha "567176ddb0f7507c8b0969e0a10f60f848afaf7d"}}}
+           :extract
+           {:extra-paths ["extract" "classes"]
+            :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}
+                         borkdude/eastwood
+                         {:git/url "https://github.com/borkdude/eastwood.git"
+                          :sha "a6e2771d4c8920582b68ab49522ede33e344bb99"}}}
            :test
            {:extra-deps
             {test-runner
              {:git/url "https://github.com/cognitect-labs/test-runner"
               :sha "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}
              clj-commons/conch {:mvn/version "0.9.2"}
-             cheshire {:mvn/version "5.8.1"}}
-            :extra-paths ["test"]
+             cheshire {:mvn/version "5.8.1"}
+             borkdude/eastwood
+             {:git/url "https://github.com/borkdude/eastwood.git"
+              :sha "a6e2771d4c8920582b68ab49522ede33e344bb99"}}
+            :extra-paths ["test" "extract" "classes"]
             :main-opts ["-m" "cognitect.test-runner"]}
            :profiler
            {:extra-deps
@@ -42,11 +51,6 @@
             :extra-paths ["test"]
             :jvm-opts ["-Djdk.attach.allowAttachSelf"]
             :main-opts ["-m" "clj-kondo.profile"]}
-           :extract
-           {:extra-paths ["extract" "classes"]
-            :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}
-                         borkdude/eastwood {:git/url "https://github.com/borkdude/eastwood.git"
-                                            :sha "a6e2771d4c8920582b68ab49522ede33e344bb99"}}}
            :cljs
            {:extra-deps
             {org.clojure/clojurescript {:mvn/version "1.10.520"}}}}}

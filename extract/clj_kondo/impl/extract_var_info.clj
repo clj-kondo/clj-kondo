@@ -26,6 +26,12 @@
 
   ")
 
+(defn eastwood-var-info
+  "extracting information from eastwood's var-info.edn with permission
+  from maintainer Andy Fingerhut"
+  []
+  (edn/read-string (slurp (io/resource "var-info.edn"))))
+
 (defn extract-clojure-core-vars
   "FIXME: write test for this"
   []
@@ -72,9 +78,7 @@
           [k (symbol (.getName ^Class v))])))
 
 (defn -main [& _args]
-  (let [;; extracting information from eastwood's var-info.edn with permission
-        ;; from maintainer Andy Fingerhut
-        var-info (edn/read-string (slurp (io/resource "var-info.edn")))
+  (let [var-info (eastwood-var-info)
         predicates (set (keep (fn [[k v]]
                                 (when (:predicate v)
                                   k))
@@ -102,5 +106,4 @@
 
 (comment
   (-main)
-  (contains? e 'assert-valid-fdecl)
   )
