@@ -11,6 +11,7 @@
 # trap '_trap_error $?' ERR
 # trap 'exit $err' SIGINT SIGTERM
 
+clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.10.1"}}}' -Spath > /dev/null
 clojure -A:test
 
 # sexit "$err"
