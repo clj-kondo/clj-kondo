@@ -219,6 +219,10 @@
           :list exprs
           (recur rest-exprs))))))
 
+(defn ctx-with-bindings [ctx bindings]
+  (update ctx :bindings (fn [b]
+                          (into b bindings))))
+
 (defn analyze-defn [{:keys [:base-lang :lang :ns] :as ctx} expr]
   (let [children (:children expr)
         children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
@@ -230,9 +234,8 @@
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         ctx (if macro?
-              (update ctx :bindings (fn [b]
-                                      (merge b '{&env {}
-                                                 &form {}})))
+              (ctx-with-bindings ctx '{&env {}
+                                       &form {}})
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
@@ -304,9 +307,7 @@
                    new-analyzed :analyzed
                    new-arities :arities}
                   (analyze-let-like-bindings
-                   (update ctx :bindings
-                           (fn [b]
-                             (merge b bindings))) value)]
+                   (ctx-with-bindings ctx bindings) value)]
               (recur rest-bindings
                      (merge bindings new-bindings)
                      (merge arities new-arities)
@@ -316,8 +317,7 @@
                                 (keyword? binding-sexpr) nil
                                 :else binding)
                   ctx* (-> ctx
-                           (update :bindings (fn [b]
-                                               (merge b bindings)))
+                           (ctx-with-bindings bindings)
                            (update :arities merge arities))
                   new-bindings (when binding (extract-bindings ctx* binding))
                   analyzed-binding (:analyzed new-bindings)
@@ -387,8 +387,7 @@
               (concat analyzed
                       (analyze-children
                        (-> ctx
-                           (update :bindings (fn [b]
-                                               (merge b analyzed-bindings)))
+                           (ctx-with-bindings analyzed-bindings)
                            (update :arities merge arities)
                            (assoc :maybe-redundant-let? single-child?))
                        let-body)))))))
@@ -443,10 +442,9 @@
         (lint-two-forms-binding-vector! ctx call bv sexpr)
         (concat (:analyzed bindings)
                 (analyze-expression** ctx eval-expr)
-                (analyze-children (update ctx :bindings
-                                          (fn [b] (merge b
-                                                         (dissoc bindings
-                                                                 :analyzed))))
+                (analyze-children (ctx-with-bindings ctx
+                                                     (dissoc bindings
+                                                             :analyzed))
                                   body-exprs))))))
 
 (defn fn-arity [ctx bodies]
@@ -530,14 +528,13 @@
 (defn analyze-letfn [ctx expr]
   (let [fns (-> expr :children second :children)
         name-exprs (map #(-> % :children first) fns)
-        ctx (update ctx :bindings
-                    (fn [b]
-                      (into b (map (fn [name-expr]
-                                     [(:value name-expr)
-                                      (assoc (meta name-expr)
-                                             :name (:value name-expr)
-                                             :filename (:filename ctx))])
-                                   name-exprs))))
+        ctx (ctx-with-bindings ctx
+                               (map (fn [name-expr]
+                                      [(:value name-expr)
+                                       (assoc (meta name-expr)
+                                              :name (:value name-expr)
+                                              :filename (:filename ctx))])
+                                    name-exprs))
         processed-fns (for [f fns
                             :let [children (:children f)
                                   fn-name (:value (first children))
@@ -659,7 +656,7 @@
   (let [children (next (:children expr))
         binding-expr (second children)
         binding (extract-bindings ctx binding-expr)]
-    (analyze-children (update ctx :bindings (fn [b] (merge b binding)))
+    (analyze-children (ctx-with-bindings ctx binding)
                       (nnext children))))
 
 (defn analyze-try [ctx expr]
@@ -714,10 +711,6 @@
        :lang lang
        :fixed-arities fixed-arities
        :expr c})))
-
-(defn ctx-with-bindings [ctx bindings]
-  (update ctx :bindings (fn [b]
-                          (merge b bindings))))
 
 (defn analyze-defrecord [{:keys [:base-lang :lang :ns] :as ctx} expr]
   (let [children (next (:children expr))
