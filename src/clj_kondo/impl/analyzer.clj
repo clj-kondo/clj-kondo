@@ -854,7 +854,7 @@
              alias
              [(analyze-alias ctx expr)]
              declare (analyze-declare ctx expr)
-             (def defonce defmulti)
+             (def defonce defmulti goog-define)
              (do (lint-inline-def! ctx expr)
                  (analyze-def ctx expr))
              (defn defn- defmacro)
