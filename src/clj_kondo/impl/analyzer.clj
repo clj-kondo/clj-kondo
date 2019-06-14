@@ -309,13 +309,13 @@
                                 ;; ignore :when and :while in for
                                 (keyword? binding-sexpr) nil
                                 :else binding)
-                  new-bindings (when binding (extract-bindings ctx binding))
-                  analyzed-binding (:analyzed new-bindings)
-                  new-bindings (dissoc new-bindings :analyzed)
                   ctx* (-> ctx
                            (update :bindings (fn [b]
                                                (merge b bindings)))
                            (update :arities merge arities))
+                  new-bindings (when binding (extract-bindings ctx* binding))
+                  analyzed-binding (:analyzed new-bindings)
+                  new-bindings (dissoc new-bindings :analyzed)
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx* value))
                   next-arities (if-let [arity (:arity (meta analyzed-value))]
