@@ -32,6 +32,7 @@ clj-kondo detects:
 * required but unused namespaces
 * unused function arguments and let bindings
 * redefined vars
+* unresolved symbols
 * duplicate map keys and set elements
 * missing map keys
 * invalid number of forms in binding vectors
