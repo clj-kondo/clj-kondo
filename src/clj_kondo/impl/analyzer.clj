@@ -784,6 +784,12 @@
         analyzed-body (analyze-expression** (ctx-with-bindings ctx bindings) body)]
     (concat analyzed-array-expr analyzed-init-expr analyzed-body)))
 
+(defn analyze-this-as [ctx expr]
+  (let [[binding-expr & body-exprs] (next (:children expr))
+        binding (extract-bindings ctx binding-expr)]
+    (analyze-children (ctx-with-bindings ctx binding)
+                      body-exprs)))
+
 (defn analyze-call
   [{:keys [:fn-body :base-lang :lang :ns :config :call-as-use] :as ctx}
    {:keys [:arg-count
@@ -905,6 +911,7 @@
                                :expr expr
                                :arity arg-count})
                             (analyze-areduce ctx expr))
+             this-as (analyze-this-as ctx expr)
              ;; catch-all
              (case [resolved-namespace resolved-name]
                [schema.core defn]

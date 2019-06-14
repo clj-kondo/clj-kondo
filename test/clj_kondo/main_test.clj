@@ -1575,7 +1575,10 @@
   (is (empty? (lint! "(defmacro foo [] &env &form)"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(let [a (into-array [])] (areduce a i ret 0 (+ ret (aget a i))))"
-                     '{:linters {:unresolved-symbol {:level :error}}}))))
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(this-as x [x x x])"
+                     '{:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 ;;;; Scratch
 
