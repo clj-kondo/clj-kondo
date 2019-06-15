@@ -258,7 +258,7 @@
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
         {:keys [:row :col]} (meta expr)
         defn
-        (if fn-name
+        (when fn-name
           (cond-> {:type :defn
                    :name fn-name
                    :row row
@@ -269,13 +269,7 @@
             macro? (assoc :macro true)
             (seq fixed-arities) (assoc :fixed-arities fixed-arities)
             private? (assoc :private private?)
-            var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))
-          {:type :debug
-           :level :info
-           :message "Could not parse defn form"
-           :row row
-           :col col
-           :lang lang})]
+            var-args-min-arity (assoc :var-args-min-arity var-args-min-arity)))]
     (cons defn (mapcat :parsed parsed-bodies))))
 
 (defn analyze-case [ctx expr]
@@ -1087,7 +1081,7 @@
 
 (defn analyze-expression*
   [{:keys [:filename :base-lang :lang :results :ns
-           :expression :debug? :config :global-config :findings :namespaces]}]
+           :expression :config :global-config :findings :namespaces]}]
   ;; (prn "expression" expression)
   (loop [ctx {:filename filename
               :base-lang base-lang
@@ -1145,16 +1139,7 @@
          ctx
          ns
          rest-parsed
-         (case (:type first-parsed)
-           :debug
-           (if debug?
-             (update-in results
-                        [:findings]
-                        conj
-                        (assoc first-parsed
-                               :filename filename))
-             results)
-           (let [;; TODO: can we do without this resolve since we already resolved in analyze-expression**?
+         (let [;; TODO: can we do without this resolve since we already resolved in analyze-expression**?
                  resolved (resolve-name ctx (:name ns) (:name first-parsed))
                  first-parsed (assoc first-parsed
                                      :name (:name resolved)
@@ -1171,21 +1156,7 @@
                                          :type
                                          :expr))
                        results)]
-                 (if debug?
-                   (update-in results
-                              [:findings]
-                              vconj
-                              (assoc first-parsed
-                                     :level :info
-                                     :filename filename
-                                     :message
-                                     (str/join " "
-                                               ["Defn resolved as"
-                                                (str (:ns resolved) "/" (:name resolved)) "with arities"
-                                                "fixed:"(:fixed-arities first-parsed)
-                                                "varargs:"(:var-args-min-arity first-parsed)])
-                                     :type :debug))
-                   results))
+                 results)
                :call
                (if resolved
                  (let [path [:calls (:ns resolved)]
@@ -1205,24 +1176,9 @@
                                  (cond-> (update-in results path vconj call)
                                    (not unqualified?)
                                    (update :used conj (:ns resolved))))]
-                   (if debug? (update-in results [:findings] conj
-                                         (assoc call
-                                                :level :info
-                                                :message (str "Call resolved as "
-                                                              (str (:ns resolved) "/" (:name resolved)))
-                                                :type :debug))
-                       results))
-                 (if debug?
-                   (update-in results
-                              [:findings]
-                              conj
-                              (assoc first-parsed
-                                     :level :info
-                                     :message (str "Unrecognized call to "
-                                                   (:name first-parsed))
-                                     :type :debug))
-                   results))
-               results)))))
+                   results)
+                 results)
+               results))))
       [(assoc ctx :ns ns) results])))
 
 (defn analyze-expressions
@@ -1230,7 +1186,7 @@
   optimize cache lookups later on, calls are indexed by the namespace
   they call to, not the ns where the call occurred. Also collects
   other findings and passes them under the :findings key."
-  [{:keys [:filename :base-lang :lang :expressions :debug? :config :findings :namespaces]}]
+  [{:keys [:filename :base-lang :lang :expressions :config :findings :namespaces]}]
   (profiler/profile
    :analyze-expressions
    (let [init-ns (analyze-ns-decl {:filename filename
@@ -1241,7 +1197,6 @@
                    :base-lang base-lang
                    :lang lang
                    :ns init-ns
-                   :debug? debug?
                    :config config
                    :global-config config
                    :findings findings

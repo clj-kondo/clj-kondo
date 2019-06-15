@@ -35,18 +35,15 @@
                      (namespace/reg-usage! ctx
                                            (-> ns :name)
                                            resolved-ns)
-                     (let [symbol-name (name symbol-val)]
-                       (when (or (not syntax-quote?)
-                                 (not (str/ends-with? symbol-name "#")))
-                         (let [{resolved-ns :ns
-                                _resolved-name :name
-                                unqualified? :unqualified? :as _m} (namespace/resolve-name ctx ns-name symbol-val)]
-                           (when (and unqualified? (not syntax-quote?))
-                             (namespace/reg-unresolved-symbol! ctx ns-name symbol-val (meta expr)))
-                           (when resolved-ns
-                             (namespace/reg-usage! ctx
-                                                   (-> ns :name)
-                                                   resolved-ns))))))))
+                     (let [{resolved-ns :ns
+                            _resolved-name :name
+                            unqualified? :unqualified? :as _m} (namespace/resolve-name ctx ns-name symbol-val)]
+                       (when (and unqualified? (not syntax-quote?))
+                         (namespace/reg-unresolved-symbol! ctx ns-name symbol-val (meta expr)))
+                       (when resolved-ns
+                         (namespace/reg-usage! ctx
+                                               (-> ns :name)
+                                               resolved-ns))))))
                (when-let [keyword-val (:k expr)]
                  (let [symbol-val (symbol keyword-val)
                        {resolved-ns :ns
@@ -58,7 +55,6 @@
                                            (-> ns :name)
                                            resolved-ns)))))
              :list
-             ;; TODO: handle (.. e getCause getMessage), etc.
              (if-let [call-sym (-> expr :children first :value)]
                (let [call-sym-name (name call-sym)]
                  (when-not (str/starts-with? call-sym-name ".")
