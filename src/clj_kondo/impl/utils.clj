@@ -188,6 +188,9 @@
   `(let [x# ~x]
      (case x# (~@elements) x# nil)))
 
+(defn linter-disabled? [ctx linter]
+  (= :off (get-in ctx [:config :linters linter :level])))
+
 ;;;; Scratch
 
 (comment

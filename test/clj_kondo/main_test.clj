@@ -149,7 +149,14 @@
       :col 1,
       :level :error,
       :message "wrong number of args (0) passed to clojure.core/areduce"})
-   (lint! "(areduce)")))
+   (lint! "(areduce)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to cljs.core/this-as"})
+   (lint! "(this-as)" "--lang" "cljs")))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
@@ -522,21 +529,31 @@
   (is (empty? (lint! "(let [err (fn [& msg])] (err 1 2 3))"))))
 
 (deftest if-let-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (1) passed to clojure.core/if-let"}
+     {:file "<stdin>",
+      :row 1,
+      :col 9,
+      :level :error,
+      :message "if-let binding vector requires exactly 2 forms"})
+   (lint! "(if-let [x 1 y 2])"))
   (assert-submap
-   {:file "<stdin>",
-    :row 1,
-    :col 9,
-    :level :error,
-    :message "if-let binding vector requires exactly 2 forms"}
-   (first (lint! "(if-let [x 1 y 2])")))
-  (assert-submap
-   {:file "<stdin>",
-    :row 1,
-    :col 9,
-    :level :error,
-    :message "if-let binding vector requires exactly 2 forms"}
-   (first (lint! "(if-let [x 1 y])")))
-  (is (empty? (lint! "(if-let [{:keys [:row :col]} {:row 1 :col 2}])"))))
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (1) passed to clojure.core/if-let"}
+     {:file "<stdin>",
+      :row 1,
+      :col 9,
+      :level :error,
+      :message "if-let binding vector requires exactly 2 forms"})
+   (lint! "(if-let [x 1 y])"))
+  (is (empty? (lint! "(if-let [{:keys [:row :col]} {:row 1 :col 2}] row)"))))
 
 (deftest when-let-test
   (assert-submap
@@ -1586,6 +1603,13 @@
   (is (empty? (lint! "(goog-define foo \"default\")"
                      '{:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs"))))
+
+(deftest misc-false-negatives-test
+  (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
+  (is (empty? (lint! "(let [a 1] (cond-> (.getFoo a) x))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))")))
+  (is (empty? (lint! "(ns foo) (defn foo [] (ns bar (:require [clojure.string :as s])))"))))
 
 ;;;; Scratch
 

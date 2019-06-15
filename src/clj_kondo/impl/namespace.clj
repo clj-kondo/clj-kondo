@@ -2,8 +2,8 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [node->line parse-string
-                                 parse-string-all deep-merge one-of]]
+   [clj-kondo.impl.utils :refer [node->line parse-string parse-string-all
+                                 deep-merge one-of linter-disabled?]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str]
    [clj-kondo.impl.config :as config]))
@@ -82,9 +82,9 @@
          (Character/isUpperCase ^char (first (last splits))))))
 
 (defn reg-unresolved-symbol!
-  [{:keys [:base-lang :lang :namespaces :filename :skip-unresolved?] :as ctx}
+  [{:keys [:base-lang :lang :namespaces :filename] :as ctx}
    ns-sym symbol loc]
-  (when-not (or skip-unresolved?
+  (when-not (or (linter-disabled? ctx :unresolved-symbol)
                 (config/unresolved-symbol-excluded ctx symbol)
                 (let [symbol-name (name symbol)]
                   (or (str/starts-with? symbol-name
@@ -112,7 +112,6 @@
 
 (defn resolve-name
   [ctx ns-name name-sym]
-
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
     (if-let [ns* (namespace name-sym)]
