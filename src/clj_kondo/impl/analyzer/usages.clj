@@ -57,7 +57,7 @@
              :list
              (if-let [call-sym (-> expr :children first :value)]
                (let [call-sym-name (name call-sym)]
-                 (when-not (str/starts-with? call-sym-name ".")
+                 (when-not false #_(str/starts-with? call-sym-name ".")
                    (mapcat #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
                            (:children expr))))
                (mapcat #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
