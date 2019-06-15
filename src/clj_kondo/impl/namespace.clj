@@ -112,7 +112,6 @@
 
 (defn resolve-name
   [ctx ns-name name-sym]
-
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
     (if-let [ns* (namespace name-sym)]

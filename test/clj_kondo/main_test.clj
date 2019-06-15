@@ -1599,7 +1599,8 @@
 
 (deftest misc-false-negatives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
-  (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))"))))
+  (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))")))
+  (is (empty? (lint! "(ns foo) (defn foo [] (ns bar (:require [clojure.string :as s])))"))))
 
 ;;;; Scratch
 
