@@ -18,9 +18,8 @@
      (if (one-of tag [:unquote :unquote-splicing])
        ((:analyze-expression** ctx) ctx expr)
        (when-not quote?
-         (let [syntax-quote? (when-not false #_(one-of tag [:unquote :unquote-splicing])
-                               (or syntax-quote?
-                                   (= :syntax-quote tag)))]
+         (let [syntax-quote? (or syntax-quote?
+                                 (= :syntax-quote tag))]
            (case tag
              :token
              (if-let [symbol-val (symbol-from-token expr)]

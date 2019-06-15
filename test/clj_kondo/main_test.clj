@@ -1587,6 +1587,9 @@
                      '{:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs"))))
 
+(deftest misc-false-negatives-test
+  (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))"))))
+
 ;;;; Scratch
 
 (comment

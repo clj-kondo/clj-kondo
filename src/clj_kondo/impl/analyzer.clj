@@ -11,9 +11,10 @@
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :as utils :refer [symbol-call keyword-call node->line
-                                           parse-string parse-string-all tag select-lang
-                                           vconj deep-merge one-of]]
+   [clj-kondo.impl.utils :as utils :refer
+    [symbol-call keyword-call node->line
+     parse-string parse-string-all tag select-lang
+     vconj deep-merge one-of linter-disabled?]]
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :as seq]
@@ -223,6 +224,9 @@
   (update ctx :bindings (fn [b]
                           (into b bindings))))
 
+(defn ctx-with-linter-disabled [ctx linter]
+  (assoc-in ctx [:config :linters linter :level] :off))
+
 (defn analyze-defn [{:keys [:base-lang :lang :ns] :as ctx} expr]
   (let [children (:children expr)
         children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
@@ -350,9 +354,9 @@
 (defn analyze-like-let
   [{:keys [:filename :callstack
            :lang :base-lang
-           :maybe-redundant-let?
-           :call-as-use] :as ctx} expr]
-  (let [children (:children expr)
+           :maybe-redundant-let?] :as ctx} expr]
+  (let [invalid-arity-disabled? (linter-disabled? ctx :invalid-arity)
+        children (:children expr)
         call (-> callstack first second)
         let? (= 'let call)
         let-parent? (one-of (second callstack)
@@ -365,7 +369,7 @@
       (findings/reg-finding!
        (:findings ctx)
        (node->line filename expr :warning :redundant-let "redundant let")))
-    (cons {:type (if call-as-use :use :call)
+    (cons {:type (if invalid-arity-disabled? :use :call)
            :name call
            :row row
            :col col
@@ -495,9 +499,8 @@
         (analyze-like-let (assoc ctx
                                  :recur-arity {:fixed-arity arg-count}) expr)))))
 
-(defn analyze-recur [{:keys [:findings :call-as-use
-                             :filename :recur-arity] :as ctx} expr]
-  (when-not call-as-use
+(defn analyze-recur [{:keys [:findings :filename :recur-arity] :as ctx} expr]
+  (when-not (linter-disabled? ctx :invalid-arity)
     (let [arg-count (count (rest (:children expr)))
           expected-arity
           (or (:fixed-arity recur-arity)
@@ -563,10 +566,10 @@
 
 (defn analyze-schema-defn [ctx expr]
   (let [arg-count (count (rest (:children expr)))
-        {:keys [:base-lang :lang :call-as-use]} ctx
+        {:keys [:base-lang :lang]} ctx
         {:keys [:row :col]} (meta expr)
         {:keys [:defn :schemas]} (schema/expand-schema-defn2 expr)]
-    (cons {:type (if call-as-use :use :call)
+    (cons {:type (if (linter-disabled? ctx :invalid-arity) :use :call)
            :name 'schema.core/defn
            :row row
            :col col
@@ -612,7 +615,7 @@
   (when-not (config/skip? config :invalid-arity callstack)
     (let [filename (:filename ctx)
           children (:children expr)]
-      (when-not (:call-as-use ctx)
+      (when-not (linter-disabled? ctx :invalid-arity)
         (when-let [{:keys [:fixed-arities :var-args-min-arity]}
                    (get (:arities ctx) fn-name)]
           (let [arg-count (count (rest children))]
@@ -745,8 +748,8 @@
        :fixed-arities #{1}
        :expr expr}]
      (analyze-children (-> ctx
-                           (assoc :call-as-use true
-                                  :skip-unresolved? true)
+                           (ctx-with-linter-disabled :invalid-arity)
+                           (ctx-with-linter-disabled :unresolved-symbol)
                            (ctx-with-bindings bindings))
                        (nnext children)))))
 
@@ -793,16 +796,17 @@
                               forms-exprs))))
 
 (defn analyze-memfn [ctx expr]
-  (analyze-children (assoc ctx :skip-unresolved? true)
+  (analyze-children (ctx-with-linter-disabled ctx :unresolved-symbol)
                     (next (:children expr))))
 
 (defn analyze-call
-  [{:keys [:fn-body :base-lang :lang :ns :config :call-as-use] :as ctx}
+  [{:keys [:fn-body :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
            :full-fn-name
            :row :col
            :expr]}]
-  (let [ns-name (:name ns)
+  (let [call-as-use (linter-disabled? ctx :invalid-arity)
+        ns-name (:name ns)
         children (:children expr)
         {resolved-namespace :ns
          resolved-name :name
@@ -834,7 +838,6 @@
                :base-lang base-lang
                :lang lang
                :expr expr})]
-    ;; (prn "config" (-> config :linters :unresolved-symbol))
     (when (and unqualified?
                (not call-as-use))
       (namespace/reg-unresolved-symbol! ctx ns-name full-fn-name (meta (first children))))
@@ -871,13 +874,14 @@
              (analyze-expression** ctx (macroexpand/expand-> ctx expr))
              (->> some->>)
              (analyze-expression** ctx (macroexpand/expand->> ctx expr))
-             (cond-> cond->> . .. proxy extend-protocol doto reify definterface
+             (. .. proxy extend-protocol doto reify definterface
                      defcurried extend-type)
              ;; don't lint calls in these expressions, only register them as used vars
-             (analyze-children (assoc ctx
-                                      :call-as-use true
-                                      :skip-unresolved? true)
+             (analyze-children (-> ctx
+                                   (ctx-with-linter-disabled :invalid-arity)
+                                   (ctx-with-linter-disabled :unresolved-symbol))
                                children)
+             (cond-> cond->>) (analyze-usages2 ctx expr)
              (let let* for doseq dotimes with-open)
              (analyze-like-let ctx expr)
              letfn
