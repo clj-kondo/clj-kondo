@@ -1122,18 +1122,6 @@
            rest-parsed
            (-> results
                (update :used conj (:ns first-parsed)))))
-        (:duplicate-map-key
-         :missing-map-value
-         :duplicate-set-key
-         :invalid-bindings
-         :invalid-arity)
-        (recur
-         ctx
-         ns
-         rest-parsed
-         (update results
-                 :findings conj (assoc first-parsed
-                                       :filename filename)))
         ;; catch-all
         (recur
          ctx
