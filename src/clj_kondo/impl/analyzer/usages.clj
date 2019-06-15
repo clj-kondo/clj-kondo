@@ -5,7 +5,6 @@
     [symbol-call keyword-call node->line
      parse-string parse-string-all tag select-lang
      vconj deep-merge one-of symbol-from-token]]
-   [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]))
 
 (defn analyze-usages2
@@ -54,13 +53,6 @@
                      (namespace/reg-usage! ctx
                                            (-> ns :name)
                                            resolved-ns)))))
-             :list
-             (if-let [call-sym (-> expr :children first :value)]
-               (let [call-sym-name (name call-sym)]
-                 (when-not false #_(str/starts-with? call-sym-name ".")
-                   (mapcat #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
-                           (:children expr))))
-               (mapcat #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
-                       (:children expr)))
+             ;; catch-call
              (mapcat #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
                      (:children expr)))))))))
