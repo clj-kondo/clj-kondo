@@ -16,7 +16,8 @@
          tag (node/tag expr)
          quote? (or quote? (= :quote tag))]
      (if (one-of tag [:unquote :unquote-splicing])
-       ((:analyze-expression** ctx) ctx expr)
+       (when-let [f (:analyze-expression** ctx)]
+         (f ctx expr))
        (when-not quote?
          (let [syntax-quote? (or syntax-quote?
                                  (= :syntax-quote tag))]
