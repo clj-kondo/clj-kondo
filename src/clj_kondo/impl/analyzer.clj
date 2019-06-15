@@ -805,7 +805,9 @@
               :base-lang base-lang
               :lang lang
               :expr expr
-              :callstack (:callstack ctx)}]
+              :callstack (:callstack ctx)
+              :lint-invalid-arity?
+              (not (linter-disabled? ctx :invalid-arity))}]
     (when unqualified?
       (namespace/reg-unresolved-symbol! ctx ns-name full-fn-name
                                         (meta (first children))))
@@ -1079,21 +1081,22 @@
              results)
            :call
            (if (:resolved? first-parsed)
-             (let [path [:calls (:resolved-ns first-parsed)]
-                   unqualified? (:unqualified? first-parsed)
-                   call (assoc first-parsed
-                               :filename filename
-                               ;; TODO: we don't need this ns-lookup, because we
-                               ;; store namespaces in an atom now
-                               :ns-lookup ns)
-                   results (do
-                             (when-not unqualified?
-                               (namespace/reg-usage! ctx (:name ns)
-                                                     (:resolved-ns first-parsed)))
-                             (cond-> (update-in results path vconj call)
-                               (not unqualified?)
-                               (update :used conj (:resolved-ns first-parsed))))]
-               results)
+             (let [unqualified? (:unqualified? first-parsed)
+                   _ (when-not unqualified?
+                       (namespace/reg-usage! ctx (:name ns)
+                                             (:resolved-ns first-parsed)))]
+               (if (:lint-invalid-arity? first-parsed)
+                 (let [path [:calls (:resolved-ns first-parsed)]
+                       call (assoc first-parsed
+                                   :filename filename
+                                   ;; TODO: we don't need this ns-lookup, because we
+                                   ;; store namespaces in an atom now
+                                   :ns-lookup ns)
+                       results (cond-> (update-in results path vconj call)
+                                 (not unqualified?)
+                                 (update :used conj (:resolved-ns first-parsed)))]
+                   results)
+                 results))
              results)
            results)))
       [(assoc ctx :ns ns) results])))

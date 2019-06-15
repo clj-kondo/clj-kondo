@@ -1598,7 +1598,8 @@
                      "--lang" "cljs"))))
 
 (deftest misc-false-negatives-test
-  (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))"))))
+  (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
+  (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))"))))
 
 ;;;; Scratch
 
