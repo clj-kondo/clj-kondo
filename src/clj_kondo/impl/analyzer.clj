@@ -1,7 +1,10 @@
 (ns clj-kondo.impl.analyzer
   {:no-doc true}
   (:require
+   [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
+   [clj-kondo.impl.analyzer.usages :refer [#_analyze-usages analyze-usages2]]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.metadata :as meta]
@@ -10,7 +13,6 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
-   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call keyword-call node->line
      parse-string parse-string-all tag select-lang
@@ -18,9 +20,7 @@
    [clojure.string :as str]
    [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :as seq]
-   [rewrite-clj.node.token :as token]
-   [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
-   [clj-kondo.impl.analyzer.usages :refer [#_analyze-usages analyze-usages2]])
+   [rewrite-clj.node.token :as token])
   (:import [clj_kondo.impl.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)
@@ -881,7 +881,10 @@
                                    (ctx-with-linter-disabled :invalid-arity)
                                    (ctx-with-linter-disabled :unresolved-symbol))
                                children)
-             (cond-> cond->>) (analyze-usages2 ctx expr)
+             (cond-> cond->>) (analyze-usages2
+                               (-> ctx
+                                   (ctx-with-linter-disabled :invalid-arity)
+                                   (ctx-with-linter-disabled :unresolved-symbol)) expr)
              (let let* for doseq dotimes with-open)
              (analyze-like-let ctx expr)
              letfn
