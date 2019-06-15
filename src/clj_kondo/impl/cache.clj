@@ -1,8 +1,9 @@
 (ns clj-kondo.impl.cache
   {:no-doc true}
   (:require
-   [clojure.java.io :as io]
    [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.utils :refer [one-of]]
+   [clojure.java.io :as io]
    [cognitect.transit :as transit])
   (:import [java.io RandomAccessFile]
            [java.nio.channels FileChannel]))
@@ -94,7 +95,7 @@
                 (doseq [ns-name analyzed-namespaces
                         :let [{:keys [:source] :as ns-data}
                               (get-in idacs [lang :defs ns-name])]
-                        :when (not (contains? #{:disk :built-in} source))]
+                        :when (not (one-of source [:disk :built-in]))]
                   (to-cache cache-dir lang ns-name ns-data)))
               (reduce (fn [idacs lang]
                         (reduce #(load-when-missing %1 [lang :defs %2] cache-dir lang %2)
