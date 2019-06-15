@@ -844,12 +844,9 @@
           (analyze-recur ctx expr)
           quote nil
           try (analyze-try ctx expr)
-          ;; TODO: test emit call
           as-> (analyze-as-> ctx expr)
           areduce (analyze-areduce ctx expr)
-          ;; TODO: test emit call
           this-as (analyze-this-as ctx expr)
-          ;; TODO: test emit call
           memfn (analyze-memfn ctx expr)
           ;; catch-all
           (case [resolved-namespace resolved-name]
@@ -1040,68 +1037,69 @@
          ns ns
          [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
          results results]
-    (if (seq all)
-      (case (:type first-parsed)
-        nil (recur ctx ns rest-parsed results)
-        (:ns :in-ns)
-        (let [local-config (:config first-parsed)
-              global-config (:global-config ctx)
-              new-config (config/merge-config! global-config local-config)]
-          (recur
-           (assoc ctx :config new-config)
-           first-parsed
-           rest-parsed
-           (-> results
-               (assoc :ns first-parsed)
-               (update :used into (:used first-parsed))
-               (update :required into (:required first-parsed)))))
-        :use
-        (do
-          (namespace/reg-usage! ctx (:name ns) (:ns first-parsed))
+    (let [ns-name (:name ns)]
+      (if (seq all)
+        (case (:type first-parsed)
+          nil (recur ctx ns rest-parsed results)
+          (:ns :in-ns)
+          (let [local-config (:config first-parsed)
+                global-config (:global-config ctx)
+                new-config (config/merge-config! global-config local-config)]
+            (recur
+             (assoc ctx :config new-config)
+             first-parsed
+             rest-parsed
+             (-> results
+                 (assoc :ns first-parsed)
+                 (update :used into (:used first-parsed))
+                 (update :required into (:required first-parsed)))))
+          :use
+          (do
+            (namespace/reg-usage! ctx ns-name (:ns first-parsed))
+            (recur
+             ctx
+             ns
+             rest-parsed
+             (-> results
+                 (update :used conj (:ns first-parsed)))))
+          ;; catch-all
           (recur
            ctx
            ns
            rest-parsed
-           (-> results
-               (update :used conj (:ns first-parsed)))))
-        ;; catch-all
-        (recur
-         ctx
-         ns
-         rest-parsed
-         (case (:type first-parsed)
-           :defn
-           (let [path (if (= :cljc base-lang)
-                        [:defs (:name ns) (:lang first-parsed) (:name first-parsed #_resolved)]
-                        [:defs (:name ns) (:name first-parsed #_resolved)])
-                 results
-                 (assoc-in results path
-                           (dissoc first-parsed
-                                   :type
-                                   :expr))]
-             results)
-           :call
-           (if (:resolved? first-parsed)
-             (let [unqualified? (:unqualified? first-parsed)
-                   _ (when-not unqualified?
-                       (namespace/reg-usage! ctx
-                                             (:name ns)
-                                             (:resolved-ns first-parsed)))]
-               (if (:lint-invalid-arity? first-parsed)
-                 (let [path [:calls (:resolved-ns first-parsed)]
-                       call (assoc first-parsed
-                                   :filename filename
-                                   ;; TODO: we don't need this ns-lookup, because we
-                                   ;; store namespaces in an atom now
-                                   :ns-lookup ns)
-                       results (cond-> (update-in results path vconj call)
-                                 (not unqualified?)
-                                 (update :used conj (:resolved-ns first-parsed)))]
-                   results)
-                 results))
-             results)
-           results)))
-      [(assoc ctx :ns ns) results])))
+           (case (:type first-parsed)
+             :defn
+             (let [path (if (= :cljc base-lang)
+                          [:defs ns-name (:lang first-parsed) (:name first-parsed)]
+                          [:defs ns-name (:name first-parsed)])
+                   results
+                   (assoc-in results path
+                             (dissoc first-parsed
+                                     :type
+                                     :expr))]
+               results)
+             :call
+             (if (:resolved? first-parsed)
+               (let [unqualified? (:unqualified? first-parsed)
+                     _ (when-not unqualified?
+                         (namespace/reg-usage! ctx
+                                               ns-name
+                                               (:resolved-ns first-parsed)))]
+                 (if (:lint-invalid-arity? first-parsed)
+                   (let [path [:calls (:resolved-ns first-parsed)]
+                         call (assoc first-parsed
+                                     :filename filename
+                                     ;; TODO: we don't need this ns-lookup, because we
+                                     ;; store namespaces in an atom now
+                                     :ns-lookup ns)
+                         results (cond-> (update-in results path vconj call)
+                                   (not unqualified?)
+                                   (update :used conj (:resolved-ns first-parsed)))]
+                     results)
+                   results))
+               results)
+             results)))
+        [(assoc ctx :ns ns) results]))))
 
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To

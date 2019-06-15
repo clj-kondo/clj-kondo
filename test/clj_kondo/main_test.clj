@@ -149,7 +149,14 @@
       :col 1,
       :level :error,
       :message "wrong number of args (0) passed to clojure.core/areduce"})
-   (lint! "(areduce)")))
+   (lint! "(areduce)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to cljs.core/this-as"})
+   (lint! "(this-as)" "--lang" "cljs")))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
