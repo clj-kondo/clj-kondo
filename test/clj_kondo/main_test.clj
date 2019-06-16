@@ -1631,6 +1631,14 @@
   (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))")))
   (is (empty? (lint! "(ns foo) (defn foo [] (ns bar (:require [clojure.string :as s])))"))))
 
+(deftest file-error-test
+  (assert-submaps '({:file "not-existing.clj",
+                     :row 0,
+                     :col 0,
+                     :level :error,
+                     :message "file does not exist"})
+                  (lint! (io/file "not-existing.clj"))))
+
 ;;;; Scratch
 
 (comment
