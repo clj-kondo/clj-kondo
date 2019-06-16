@@ -31,7 +31,9 @@
               :unused-binding {:level :warning}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
-                                 :exclude [#_clj-kondo.impl.var-info-gen]}
+                                 :exclude [#_clj-kondo.impl.var-info-gen]
+                                 ;; :simple-libspec true
+                                 }
               :unresolved-symbol {:level :info ;; for now
                                   :exclude [;; ignore globally:
                                             #_js*

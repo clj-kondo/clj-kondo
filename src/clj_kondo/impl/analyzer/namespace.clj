@@ -32,19 +32,20 @@
 
 (defn- normalize-libspec
   "Adapted from clojure.tools.namespace."
-  [prefix libspec-expr]
-  (let [children (:children libspec-expr)
+  [ctx prefix libspec-expr]
+  (let [libspec-expr (meta/lift-meta-content ctx libspec-expr)
+        children (:children libspec-expr)
         form (node/sexpr libspec-expr)]
     (cond (prefix-spec? form)
           (mapcat (fn [f]
-                    (normalize-libspec
-                     (symbol (str (when prefix (str prefix "."))
-                                  (first form)))
-                     f))
+                    (normalize-libspec ctx
+                                       (symbol (str (when prefix (str prefix "."))
+                                                    (first form)))
+                                       f))
                   (rest children))
           (option-spec? form)
           [(with-meta
-             (vector-node (into (normalize-libspec prefix (first children)) (rest children)))
+             (vector-node (into (normalize-libspec ctx prefix (first children)) (rest children)))
              (meta libspec-expr))]
           (valid-ns-name? form)
           [(with-meta (token-node (symbol (str (when prefix (str prefix ".")) form)))
@@ -168,14 +169,14 @@
                                       :syntax
                                       "namespace name expected")))))
                  'user)
-        clauses (next children)
+        clauses (nnext children)
         require-clauses
         (for [?require-clause clauses
               :let [require-kw (some-> ?require-clause :children first :k
                                        (one-of [:require :require-macros]))]
               :when require-kw
-              libspec-expr (rest (:children ?require-clause)) ;; TODO: fix meta
-              normalized-libspec-expr (normalize-libspec nil libspec-expr)
+              libspec-expr (rest (:children ?require-clause))
+              normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
               analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
           analyzed)
         refer-alls (reduce (fn [acc clause]
@@ -214,11 +215,19 @@
                                              sym v]
                                          sym))
                 :refer-alls refer-alls
+                ;; TODO: rename to :used-namespaces for clarity
                 :used (-> (case lang
                             :clj '#{clojure.core}
                             :cljs '#{cljs.core})
                           (into (keys refer-alls))
-                          (conj ns-name))
+                          (conj ns-name)
+                          (into (when-not
+                                    (-> ctx :config :linters :unused-namespace :simple-libspec)
+                                    (keep (fn [req]
+                                            (when (and (not (:as req))
+                                                       (empty? (:referred req)))
+                                              (:ns req)))
+                                          require-clauses))))
                 :java-imports java-imports}
              local-config (assoc :config local-config)
              (= :clj lang) (update :qualify-ns

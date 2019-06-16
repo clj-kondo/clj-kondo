@@ -942,10 +942,15 @@
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 31,
+      :col 32,
       :level :warning,
       :message "namespace baz is required but never used"})
-   (lint! "(ns foo (:require [bar :as b] baz)) #::{:a #::bar{:a 1}}"))
+   (lint! "(ns foo (:require [bar :as b] [baz :as baz])) #::{:a #::bar{:a 1}}"))
+  (testing "simple libspecs (without as or refer) are not reported"
+    (is (empty? (lint! "(ns foo (:require [foo.specs]))")))
+    (is (empty? (lint! "(ns foo (:require foo.specs))")))
+    (is (seq (lint! "(ns foo (:require [foo.specs]))"
+                    '{:linters {:unused-namespace {:simple-libspec true}}}))))
   (is (empty?
        (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
          ,(ns bar)
