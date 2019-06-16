@@ -5,7 +5,6 @@
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.rewrite-clj-patch]
    [clojure.string :as str
     :refer [starts-with?
             ends-with?]]))

@@ -2,8 +2,9 @@
   "Implementation details of clj-kondo.core"
   {:no-doc true}
   (:require
-   [clj-kondo.impl.config :as config]
    [clj-kondo.impl.analyzer :as ana]
+   [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.rewrite-clj-patch]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str])
