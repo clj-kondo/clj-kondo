@@ -293,10 +293,7 @@
 
 (defn analyze-let-like-bindings [ctx binding-vector]
   (let [call (-> ctx :callstack second second)
-        for-like? (one-of call [for doseq])
-        ctx (if (= 'let* call)
-              (assoc ctx :skip-reg-binding? true)
-              ctx)]
+        for-like? (one-of call [for doseq])]
     (loop [[binding value & rest-bindings] (-> binding-vector :children)
            bindings (:bindings ctx)
            arities (:arities ctx)
@@ -448,10 +445,6 @@
 
 (defn analyze-fn [ctx expr]
   (let [children (:children expr)
-        call (:value (first children))
-        ctx (if (= 'fn* call)
-              (assoc ctx :skip-reg-binding? true)
-              ctx)
         ?fn-name (when-let [?name-expr (second children)]
                    (let [n (node/sexpr ?name-expr)]
                      (when (symbol? n)

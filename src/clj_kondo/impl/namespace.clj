@@ -66,8 +66,9 @@
 
 (defn reg-binding!
   [{:keys [:base-lang :lang :namespaces]} ns-sym binding]
-  (swap! namespaces update-in [base-lang lang ns-sym :bindings]
-         conj binding)
+  (when-not (:clj-kondo/mark-used binding)
+    (swap! namespaces update-in [base-lang lang ns-sym :bindings]
+           conj binding))
   nil)
 
 (defn reg-used-binding!

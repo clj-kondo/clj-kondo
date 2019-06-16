@@ -84,7 +84,8 @@
                   {:row row
                    :col (inc col)})
         arg-list (vector-node
-                  (map token-node
+                  (map #(with-meta (token-node %)
+                          {:clj-kondo/mark-used true})
                        (if var-args?
                          (concat args '[& %&])
                          args)))
@@ -93,7 +94,9 @@
                    (list-node
                     [(token-node 'clojure.core/let*)
                      (vector-node
-                      [(token-node '%)
+                      [(with-meta
+                         (token-node '%)
+                         {:clj-kondo/mark-used true})
                        (token-node '%1)])
                      fn-body]))]
     (with-meta
