@@ -1,15 +1,16 @@
 (ns clj-kondo.impl.analyzer.namespace
+  {:no-doc true}
   (:require
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
+   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [node->line parse-string
                                  parse-string-all deep-merge one-of]]
-   [rewrite-clj.node.protocols :as node]
-   [clj-kondo.impl.findings :as findings]
    [clojure.set :as set]
+   [clojure.string :as str]
+   [rewrite-clj.node.protocols :as node]
    [rewrite-clj.node.seq :refer [vector-node list-node]]
-   [rewrite-clj.node.token :refer [token-node]]
-   [clj-kondo.impl.namespace :as namespace]
-   [clojure.string :as str]))
+   [rewrite-clj.node.token :refer [token-node]]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 

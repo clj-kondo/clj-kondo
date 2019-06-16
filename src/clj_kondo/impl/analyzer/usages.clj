@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.analyzer.usages
+  {:no-doc true}
   (:require
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.utils :as utils :refer
