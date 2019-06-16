@@ -156,6 +156,7 @@
         :else
         [{:findings [{:level :warning
                       :filename filename
+                      :type :file
                       :col 0
                       :row 0
                       :message "file does not exist"}]}]))
@@ -163,6 +164,7 @@
       (if dev? (throw e)
           [{:findings [{:level :warning
                         :filename filename
+                        :type :file
                         :col 0
                         :row 0
                         :message "could not process file"}]}]))))
