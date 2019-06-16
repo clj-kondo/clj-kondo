@@ -52,8 +52,8 @@
 (defn extract-bindings
   ([ctx expr] (when expr
                 (extract-bindings ctx expr {})))
-  ([ctx expr {:keys [:skip-register?
-                     :keys-destructuring?] :as opts}]
+  ([{:keys [:skip-reg-binding?] :as ctx} expr
+    {:keys [:keys-destructuring?] :as opts}]
    (let [expr (meta/lift-meta-content ctx expr)
          t (node/tag expr)
          findings (:findings ctx)]
@@ -74,7 +74,7 @@
                        v (assoc m
                                 :name s
                                 :filename (:filename ctx))]
-                   (when-not skip-register?
+                   (when-not skip-reg-binding?
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
                                              (assoc m
@@ -97,7 +97,7 @@
                    v (assoc m
                             :name s
                             :filename (:filename ctx))]
-               (when-not skip-register?
+               (when-not skip-reg-binding?
                  (namespace/reg-binding! ctx
                                          (-> ctx :ns :name)
                                          v))
@@ -452,16 +452,17 @@
         bodies (fn-bodies ctx (next children))
         ;; we need the arity beforehand because this is valid in each body
         arity (fn-arity ctx bodies)
-        parsed-bodies (map #(analyze-fn-body
-                             (if ?fn-name
-                               (-> ctx
-                                   (update :bindings conj [?fn-name
-                                                           (assoc (meta (second children))
-                                                                  :name ?fn-name
-                                                                  :filename (:filename ctx))])
-                                   (update :arities assoc ?fn-name
-                                           arity))
-                               ctx) %) bodies)]
+        parsed-bodies
+        (map #(analyze-fn-body
+               (if ?fn-name
+                 (-> ctx
+                     (update :bindings conj [?fn-name
+                                             (assoc (meta (second children))
+                                                    :name ?fn-name
+                                                    :filename (:filename ctx))])
+                     (update :arities assoc ?fn-name
+                             arity))
+                 ctx) %) bodies)]
     (with-meta (mapcat :parsed parsed-bodies)
       {:arity arity})))
 
@@ -550,7 +551,7 @@
 (defn analyze-schema-defn [ctx expr]
   (let [{:keys [:defn :schemas]}
         (schema/expand-schema-defn2 ctx
-         expr)]
+                                    expr)]
     (concat
      (analyze-defn ctx defn)
      (analyze-children ctx schemas))))
@@ -691,7 +692,9 @@
         bindings? (not= 'definterface type)
         binding-vector (when bindings? (second children))
         field-count (when bindings? (count (:children binding-vector)))
-        bindings (when bindings? (extract-bindings ctx binding-vector {:skip-register? true}))
+        bindings (when bindings? (extract-bindings (assoc ctx
+                                                          :skip-reg-binding? true)
+                                                   binding-vector))
         {:keys [:row :col]} (meta expr)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
     (concat

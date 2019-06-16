@@ -1330,6 +1330,14 @@
       :message "unused binding variadic"})
    (lint! "(let [{^boolean variadic :variadic?} {}] [])"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 8,
+      :level :warning,
+      :message "unused binding a"})
+   (lint! "#(let [a %])"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
@@ -1608,7 +1616,13 @@
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "Var Namespace LazySeq UUID"
                      '{:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (:findings
+               (edn/read-string
+                (with-out-str
+                  (lint! "#(inc %4)"
+                         '{:linters {:unused-binding {:level :error}}
+                           :output {:format :edn}})))))))
 
 (deftest misc-false-negatives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
