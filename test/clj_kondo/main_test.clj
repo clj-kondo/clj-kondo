@@ -759,7 +759,8 @@
      :col 1,
      :level :error,
      :message "wrong number of args (2) passed to schema.defs/verify-signature"}]
-   (lint! (io/file "corpus" "schema"))))
+   (lint! (io/file "corpus" "schema")
+          '{:linters {:unresolved-symbol {:level :error}}})))
 
 (deftest in-ns-test
   (assert-submaps
@@ -1601,6 +1602,11 @@
   (is (empty? (lint! "((memfn ^String substring start end) \"foo\" 0 1)"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(goog-define foo \"default\")"
+                     '{:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(definterface Foo (foo [])) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "Var Namespace LazySeq UUID"
                      '{:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs"))))
 

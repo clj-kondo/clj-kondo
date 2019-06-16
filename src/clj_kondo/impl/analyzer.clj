@@ -548,10 +548,12 @@
     (concat used (analyze-expression** ctx m))))
 
 (defn analyze-schema-defn [ctx expr]
-  (let [{:keys [:defn :schemas]} (schema/expand-schema-defn2 expr)]
+  (let [{:keys [:defn :schemas]}
+        (schema/expand-schema-defn2 ctx
+         expr)]
     (concat
-     (analyze-usages2 ctx {:children schemas})
-     (analyze-defn ctx defn))))
+     (analyze-defn ctx defn)
+     (analyze-children ctx schemas))))
 
 (defn analyze-deftest [ctx _deftest-ns expr]
   (analyze-defn ctx
@@ -675,41 +677,48 @@
        :fixed-arities fixed-arities
        :expr c})))
 
-(defn analyze-defrecord [{:keys [:base-lang :lang :ns] :as ctx} expr]
+(defn analyze-defrecord
+  "Analyzes defrecord, deftype and definterface."
+  [{:keys [:base-lang :lang :ns] :as ctx} expr]
   (let [ns-name (:name ns)
-        children (next (:children expr))
+        children (:children expr)
+        type (-> children first :value)
+        children (next children)
         name-node (first children)
         name-node (meta/lift-meta-content ctx name-node)
         metadata (meta name-node)
         record-name (:value name-node)
-        binding-vector (second children)
-        field-count (count (:children binding-vector))
-        bindings (extract-bindings ctx binding-vector {:skip-register? true})
+        bindings? (not= 'definterface type)
+        binding-vector (when bindings? (second children))
+        field-count (when bindings? (count (:children binding-vector)))
+        bindings (when bindings? (extract-bindings ctx binding-vector {:skip-register? true}))
         {:keys [:row :col]} (meta expr)]
-    ;; TODO: it seems like we can abstract creating defn types into a function,
-    ;; so we can also call reg-var there
     (namespace/reg-var! ctx ns-name record-name expr metadata)
-    (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr metadata)
-    (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name)) expr metadata)
     (concat
-     [{:type :defn
-       :name (symbol (str "->" record-name))
-       :ns ns-name
-       :row row
-       :col col
-       :base-lang base-lang
-       :lang lang
-       :fixed-arities #{field-count}
-       :expr expr}
-      {:type :defn
-       :name (symbol (str "map->" record-name))
-       :ns ns-name
-       :row row
-       :col col
-       :base-lang base-lang
-       :lang lang
-       :fixed-arities #{1}
-       :expr expr}]
+     (when-not (= 'definterface type)
+       ;; TODO: it seems like we can abstract creating defn types into a function,
+       ;; so we can also call reg-var there
+       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr metadata)
+       [{:type :defn
+         :name (symbol (str "->" record-name))
+         :ns ns-name
+         :row row
+         :col col
+         :base-lang base-lang
+         :lang lang
+         :fixed-arities #{field-count}
+         :expr expr}])
+     (when (= 'defrecord type)
+       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name)) expr metadata)
+       [{:type :defn
+         :name (symbol (str "map->" record-name))
+         :ns ns-name
+         :row row
+         :col col
+         :base-lang base-lang
+         :lang lang
+         :fixed-arities #{1}
+         :expr expr}])
      (analyze-children (-> ctx
                            (ctx-with-linter-disabled :invalid-arity)
                            (ctx-with-linter-disabled :unresolved-symbol)
@@ -808,14 +817,14 @@
               (analyze-defn ctx expr))
           defmethod (analyze-defmethod ctx expr)
           defprotocol (analyze-defprotocol ctx expr)
-          (defrecord deftype) (analyze-defrecord ctx expr)
+          (defrecord deftype definterface) (analyze-defrecord ctx expr)
           comment
           (analyze-children ctx children)
           (-> some->)
           (analyze-expression** ctx (macroexpand/expand-> ctx expr))
           (->> some->>)
           (analyze-expression** ctx (macroexpand/expand->> ctx expr))
-          (. .. proxy extend-protocol doto reify definterface
+          (. .. proxy extend-protocol doto reify
              defcurried extend-type)
           ;; don't lint calls in these expressions, only register them as used vars
           (analyze-children (-> ctx
