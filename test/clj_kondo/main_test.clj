@@ -1605,7 +1605,10 @@
                      '{:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "(definterface Foo (foo [])) Foo"
-                     '{:linters {:unresolved-symbol {:level :error}}}))))
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "Var Namespace LazySeq UUID"
+                     '{:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 (deftest misc-false-negatives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
