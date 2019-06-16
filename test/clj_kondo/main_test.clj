@@ -1330,6 +1330,14 @@
       :message "unused binding variadic"})
    (lint! "(let [{^boolean variadic :variadic?} {}] [])"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 8,
+      :level :warning,
+      :message "unused binding a"})
+   (lint! "#(let [a %])"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
