@@ -55,7 +55,7 @@ Options:
                           current-opt))
                  opts-map))
         default-lang (when-let [lang-opt (first (get opts "--lang"))]
-                       (name lang-opt))
+                       (keyword lang-opt))
         cache-opt (get opts "--cache")]
     {:lint (get opts "--lint")
      :cache (when cache-opt
