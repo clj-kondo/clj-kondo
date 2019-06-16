@@ -27,7 +27,7 @@
      :schemas schemas}))
 
 (defn expand-schema-defn2
-  [expr]
+  [_ctx expr]
   (let [children (:children expr)
         {:keys [:new-children
                 :schemas]}

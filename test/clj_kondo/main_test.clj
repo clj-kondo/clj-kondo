@@ -759,7 +759,8 @@
      :col 1,
      :level :error,
      :message "wrong number of args (2) passed to schema.defs/verify-signature"}]
-   (lint! (io/file "corpus" "schema"))))
+   (lint! (io/file "corpus" "schema")
+          '{:linters {:unresolved-symbol {:level :error}}})))
 
 (deftest in-ns-test
   (assert-submaps

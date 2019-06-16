@@ -548,10 +548,12 @@
     (concat used (analyze-expression** ctx m))))
 
 (defn analyze-schema-defn [ctx expr]
-  (let [{:keys [:defn :schemas]} (schema/expand-schema-defn2 expr)]
+  (let [{:keys [:defn :schemas]}
+        (schema/expand-schema-defn2 ctx
+         expr)]
     (concat
-     (analyze-usages2 ctx {:children schemas})
-     (analyze-defn ctx defn))))
+     (analyze-defn ctx defn)
+     (analyze-children ctx schemas))))
 
 (defn analyze-deftest [ctx _deftest-ns expr]
   (analyze-defn ctx
