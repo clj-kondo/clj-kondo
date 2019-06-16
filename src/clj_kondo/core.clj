@@ -23,7 +23,7 @@
         (let [format-fn (core-impl/format-output config)]
           (doseq [{:keys [:filename :message
                           :level :row :col] :as _finding}
-                  (dedupe (sort-by (juxt :filename :row :col) findings))]
+                  findings]
             (println (format-fn filename row col level message)))
           (when (:summary output-cfg)
             (let [{:keys [:error :warning :duration]} summary]
@@ -108,6 +108,7 @@
         all-findings (concat linted-calls (mapcat :findings processed)
                              @findings)
         all-findings (core-impl/filter-findings config all-findings)
+        all-findings (dedupe (sort-by (juxt :filename :row :col) all-findings))
         summary (core-impl/summarize all-findings)
         duration (- (System/currentTimeMillis) start-time)
         summary (assoc summary :duration duration)]
