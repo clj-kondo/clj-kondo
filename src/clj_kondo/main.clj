@@ -54,11 +54,8 @@ Options:
                           (update opts-map current-opt conj opt)
                           current-opt))
                  opts-map))
-        default-lang (case (first (get opts "--lang"))
-                       "clj" :clj
-                       "cljs" :cljs
-                       "cljc" :cljc
-                       :clj)
+        default-lang (when-let [lang-opt (first (get opts "--lang"))]
+                       (name lang-opt))
         cache-opt (get opts "--cache")]
     {:lint (get opts "--lint")
      :cache (when cache-opt
