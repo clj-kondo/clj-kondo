@@ -36,15 +36,9 @@
         (print (format ":findings\n [%s]"
                        (str/join ",\n  " findings)))
         (when (:summary output-cfg)
-          (print (format "\n :summary %s"
+          (print (format ",\n :summary %s"
                          summary)))
-        (println "}")
-        (println
-         (cond-> {:findings
-                  (str (format "\n [%s]" (str/join ",\n  " findings))
-                       (when (:summary output-cfg) "\n"))}
-           (:summary output-cfg)
-           (assoc :summary summary))))
+        (println "}"))
       :json
       (do
         (print "{")

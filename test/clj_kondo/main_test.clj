@@ -1608,7 +1608,13 @@
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "Var Namespace LazySeq UUID"
                      '{:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (:findings
+               (edn/read-string
+                (with-out-str
+                  (lint! "#(inc %4)"
+                         '{:linters {:unused-binding {:level :error}}
+                           :output {:format :edn}})))))))
 
 (deftest misc-false-negatives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))

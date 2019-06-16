@@ -52,8 +52,8 @@
 (defn extract-bindings
   ([ctx expr] (when expr
                 (extract-bindings ctx expr {})))
-  ([ctx expr {:keys [:skip-register?
-                     :keys-destructuring?] :as opts}]
+  ([{:keys [:skip-reg-binding?] :as ctx} expr
+    {:keys [:keys-destructuring?] :as opts}]
    (let [expr (meta/lift-meta-content ctx expr)
          t (node/tag expr)
          findings (:findings ctx)]
@@ -74,7 +74,7 @@
                        v (assoc m
                                 :name s
                                 :filename (:filename ctx))]
-                   (when-not skip-register?
+                   (when-not skip-reg-binding?
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
                                              (assoc m
@@ -97,7 +97,7 @@
                    v (assoc m
                             :name s
                             :filename (:filename ctx))]
-               (when-not skip-register?
+               (when-not skip-reg-binding?
                  (namespace/reg-binding! ctx
                                          (-> ctx :ns :name)
                                          v))
@@ -293,7 +293,10 @@
 
 (defn analyze-let-like-bindings [ctx binding-vector]
   (let [call (-> ctx :callstack second second)
-        for-like? (one-of call [for doseq])]
+        for-like? (one-of call [for doseq])
+        ctx (if (= 'let* call)
+              (assoc ctx :skip-reg-binding? true)
+              ctx)]
     (loop [[binding value & rest-bindings] (-> binding-vector :children)
            bindings (:bindings ctx)
            arities (:arities ctx)
@@ -445,6 +448,10 @@
 
 (defn analyze-fn [ctx expr]
   (let [children (:children expr)
+        call (:value (first children))
+        ctx (if (= 'fn* call)
+              (assoc ctx :skip-reg-binding? true)
+              ctx)
         ?fn-name (when-let [?name-expr (second children)]
                    (let [n (node/sexpr ?name-expr)]
                      (when (symbol? n)
@@ -452,16 +459,17 @@
         bodies (fn-bodies ctx (next children))
         ;; we need the arity beforehand because this is valid in each body
         arity (fn-arity ctx bodies)
-        parsed-bodies (map #(analyze-fn-body
-                             (if ?fn-name
-                               (-> ctx
-                                   (update :bindings conj [?fn-name
-                                                           (assoc (meta (second children))
-                                                                  :name ?fn-name
-                                                                  :filename (:filename ctx))])
-                                   (update :arities assoc ?fn-name
-                                           arity))
-                               ctx) %) bodies)]
+        parsed-bodies
+        (map #(analyze-fn-body
+               (if ?fn-name
+                 (-> ctx
+                     (update :bindings conj [?fn-name
+                                             (assoc (meta (second children))
+                                                    :name ?fn-name
+                                                    :filename (:filename ctx))])
+                     (update :arities assoc ?fn-name
+                             arity))
+                 ctx) %) bodies)]
     (with-meta (mapcat :parsed parsed-bodies)
       {:arity arity})))
 
@@ -550,7 +558,7 @@
 (defn analyze-schema-defn [ctx expr]
   (let [{:keys [:defn :schemas]}
         (schema/expand-schema-defn2 ctx
-         expr)]
+                                    expr)]
     (concat
      (analyze-defn ctx defn)
      (analyze-children ctx schemas))))
@@ -691,7 +699,9 @@
         bindings? (not= 'definterface type)
         binding-vector (when bindings? (second children))
         field-count (when bindings? (count (:children binding-vector)))
-        bindings (when bindings? (extract-bindings ctx binding-vector {:skip-register? true}))
+        bindings (when bindings? (extract-bindings (assoc ctx
+                                                          :skip-reg-binding? true)
+                                                   binding-vector))
         {:keys [:row :col]} (meta expr)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
     (concat

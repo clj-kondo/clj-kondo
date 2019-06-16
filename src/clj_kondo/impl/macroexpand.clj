@@ -74,26 +74,27 @@
         args (when args (map (fn [i]
                                (symbol (str "%" i)))
                              (range 1 (inc max-n))))]
-    (if var-args?
-      (concat args '[& %&])
-      args)))
+    {:var-args? var-args?
+     :args args}))
 
 (defn expand-fn [{:keys [:children] :as expr}]
   (let [{:keys [:row :col] :as m} (meta expr)
+        {:keys [:args :var-args?]} (fn-args children)
         fn-body (with-meta (list-node children)
                   {:row row
                    :col (inc col)})
-        args (fn-args children)
+        arg-list (vector-node
+                  (map token-node
+                       (if var-args?
+                         (concat args '[& %&])
+                         args)))
         has-first-arg? (= '%1 (first args))
-        arg-list (vector-node (map token-node args))
         let-expr (when has-first-arg?
                    (list-node
                     [(token-node 'clojure.core/let*)
                      (vector-node
                       [(token-node '%)
                        (token-node '%1)])
-                     ;; mark this node as used
-                     (token-node '%)
                      fn-body]))]
     (with-meta
       (list-node [(token-node 'fn*) arg-list
@@ -106,6 +107,7 @@
 (comment
   (expand-fn (parse-string "#()"))
   (expand-fn (parse-string "#(println %&)"))
+  (expand-fn (parse-string "#(inc %4)"))
   (expand-fn (parse-string "#(inc ^long %)"))
   (expand-fn (parse-string "#(println %2 %&)"))
   (expand-> {} (parse-string "(-> 1 inc inc inc)"))
