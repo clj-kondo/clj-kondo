@@ -5,7 +5,6 @@
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.rewrite-clj-patch]
    [clojure.string :as str
     :refer [starts-with?
             ends-with?]]))
@@ -55,11 +54,8 @@ Options:
                           (update opts-map current-opt conj opt)
                           current-opt))
                  opts-map))
-        default-lang (case (first (get opts "--lang"))
-                       "clj" :clj
-                       "cljs" :cljs
-                       "cljc" :cljc
-                       :clj)
+        default-lang (when-let [lang-opt (first (get opts "--lang"))]
+                       (keyword lang-opt))
         cache-opt (get opts "--cache")]
     {:lint (get opts "--lint")
      :cache (when cache-opt
