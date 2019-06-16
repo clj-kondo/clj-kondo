@@ -11,9 +11,9 @@ For integrating with Emacs, see
 
 ## VSCode
 
-In Visual Studio Code, go to Preferences > Extensions. Search for 'clojure lint' and select the 'Clojure Lint' extension by [@macromorain](https://github.com/marcomorain/clojure-lint). Click 'install'. That's it.
+In Visual Studio Code, go to Preferences > Extensions. Search for 'clojure lint' and select the 'Clojure Lint' extension by [@marcomorain](https://github.com/marcomorain/clojure-lint). Click 'install'. That's it.
 
-<img src="../screenshots/vscode.png" width="50%">
+<img src="../screenshots/vscode.png" width="75%">
 
 ## Vim/NeoVim
 
