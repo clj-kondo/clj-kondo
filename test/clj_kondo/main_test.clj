@@ -1602,7 +1602,9 @@
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(goog-define foo \"default\")"
                      '{:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(definterface Foo (foo [])) Foo"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest misc-false-negatives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
