@@ -57,12 +57,7 @@ Try clj-kondo at the [interactive playground](https://clj-kondo.michielborkent.n
 
 ## Status
 
-Under active development, but already useful. None of the code is meant to be exposed as a
-public API, except the command line interface.
-
-For new features I'd like to focus on things that
-[joker](https://github.com/candid82/joker) doesn't support yet, so I recommend
-enabling that one as well.
+Under active development, but already useful.
 
 ## [Installation](doc/install.md)
 
