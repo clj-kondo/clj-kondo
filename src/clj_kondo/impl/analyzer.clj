@@ -962,7 +962,7 @@
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
       (case t
-        :quote nil
+        :quote (analyze-children (assoc ctx :lang :edn) children)
         :syntax-quote (analyze-usages2 (assoc ctx
                                               :analyze-expression**
                                               analyze-expression**) expr)
@@ -980,51 +980,53 @@
                                            :callstack #(cons [nil t] %))
                                    children))
         :fn (recur ctx (macroexpand/expand-fn expr))
-        :token (analyze-usages2 ctx expr)
+        :token (when-not (= :edn (:lang ctx)) (analyze-usages2 ctx expr))
         :list
         (when-let [function (first children)]
-          (let [t (node/tag function)]
-            (case t
-              :map
-              (do (lint-map-call! ctx function arg-count expr)
-                  (analyze-children ctx children))
-              :quote
-              (let [quoted-child (-> function :children first)]
-                (if (utils/symbol-token? quoted-child)
-                  (do (lint-symbol-call! ctx quoted-child arg-count expr)
-                      (analyze-children ctx children))
-                  (analyze-children ctx children)))
-              :token
-              (if-let [k (:k function)]
-                (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+          (if (= :edn (:lang ctx))
+            (analyze-children ctx children)
+            (let [t (node/tag function)]
+              (case t
+                :map
+                (do (lint-map-call! ctx function arg-count expr)
                     (analyze-children ctx children))
-                (if-let [full-fn-name (when (utils/symbol-token? function) (:value function))]
-                  (let [unqualified? (nil? (namespace full-fn-name))
-                        binding-call? (and unqualified?
-                                           (contains? bindings full-fn-name))]
-                    (if binding-call?
-                      (analyze-binding-call ctx full-fn-name expr)
-                      (analyze-call ctx {:arg-count arg-count
-                                         :full-fn-name full-fn-name
-                                         :row row
-                                         :col col
-                                         :expr expr})))
-                  (cond
-                    (utils/boolean-token? function)
-                    (do (reg-not-a-function! ctx expr "boolean")
-                        (analyze-children ctx (rest children)))
-                    (utils/string-token? function)
-                    (do (reg-not-a-function! ctx expr "string")
-                        (analyze-children ctx (rest children)))
-                    (utils/char-token? function)
-                    (do (reg-not-a-function! ctx expr "character")
-                        (analyze-children ctx (rest children)))
-                    (utils/number-token? function)
-                    (do (reg-not-a-function! ctx expr "number")
-                        (analyze-children ctx (rest children)))
-                    :else
-                    (analyze-children ctx children))))
-              (analyze-children ctx children))))
+                :quote
+                (let [quoted-child (-> function :children first)]
+                  (if (utils/symbol-token? quoted-child)
+                    (do (lint-symbol-call! ctx quoted-child arg-count expr)
+                        (analyze-children ctx children))
+                    (analyze-children ctx children)))
+                :token
+                (if-let [k (:k function)]
+                  (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+                      (analyze-children ctx children))
+                  (if-let [full-fn-name (when (utils/symbol-token? function) (:value function))]
+                    (let [unqualified? (nil? (namespace full-fn-name))
+                          binding-call? (and unqualified?
+                                             (contains? bindings full-fn-name))]
+                      (if binding-call?
+                        (analyze-binding-call ctx full-fn-name expr)
+                        (analyze-call ctx {:arg-count arg-count
+                                           :full-fn-name full-fn-name
+                                           :row row
+                                           :col col
+                                           :expr expr})))
+                    (cond
+                      (utils/boolean-token? function)
+                      (do (reg-not-a-function! ctx expr "boolean")
+                          (analyze-children ctx (rest children)))
+                      (utils/string-token? function)
+                      (do (reg-not-a-function! ctx expr "string")
+                          (analyze-children ctx (rest children)))
+                      (utils/char-token? function)
+                      (do (reg-not-a-function! ctx expr "character")
+                          (analyze-children ctx (rest children)))
+                      (utils/number-token? function)
+                      (do (reg-not-a-function! ctx expr "number")
+                          (analyze-children ctx (rest children)))
+                      :else
+                      (analyze-children ctx children))))
+                (analyze-children ctx children)))))
         ;; catch-all
         (analyze-children (update ctx
                                   :callstack #(cons [nil t] %))
@@ -1121,10 +1123,11 @@
   [{:keys [:filename :base-lang :lang :expressions :config :findings :namespaces]}]
   (profiler/profile
    :analyze-expressions
-   (let [init-ns (analyze-ns-decl {:filename filename
-                                   :base-lang base-lang
-                                   :lang lang
-                                   :namespaces namespaces} (parse-string "(ns user)"))
+   (let [init-ns (when-not (= :edn lang)
+                   (analyze-ns-decl {:filename filename
+                                     :base-lang base-lang
+                                     :lang lang
+                                     :namespaces namespaces} (parse-string "(ns user)")))
          init-ctx {:filename filename
                    :base-lang base-lang
                    :lang lang
@@ -1158,7 +1161,8 @@
   (try
     (let [parsed (p/parse-string input)
           analyzed-expressions
-          (if (= :cljc lang)
+          (case lang
+            :cljc
             (let [clj (analyze-expressions {:filename filename
                                             :config config
                                             :findings findings
@@ -1175,6 +1179,7 @@
                                              :expressions (:children (select-lang parsed :cljs))})]
               (profiler/profile :deep-merge
                                 (deep-merge clj cljs)))
+            (:clj :cljs :edn)
             (analyze-expressions {:filename filename
                                   :config config
                                   :findings findings
