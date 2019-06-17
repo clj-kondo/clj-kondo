@@ -9,6 +9,12 @@ a `.clj-kondo` directory in the root of your project.
 For integrating with Emacs, see
 [flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo).
 
+## Visual Studio Code
+
+In Visual Studio Code, go to Preferences > Extensions. Search for 'clojure lint' and select the 'Clojure Lint' extension by [@marcomorain](https://github.com/marcomorain/clojure-lint). Click 'install'. That's it.
+
+<img src="../screenshots/vscode.png" width="75%">
+
 ## Vim/NeoVim
 
 This section is for Vim 8+ or NeoVim
