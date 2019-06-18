@@ -1644,14 +1644,23 @@
                      :message "file does not exist"})
                   (lint! (io/file "not-existing.clj"))))
 
+(deftest edn-test
+  (assert-submaps
+   '({:file "corpus/edn/edn.edn",
+     :row 1,
+     :col 10,
+     :level :error,
+      :message "duplicate key a"})
+   (lint! (io/file "corpus" "edn"))))
+
 ;;;; Scratch
 
-(comment
-  (schema-defn-test)
-  (inline-def-test)
-  (redundant-let-test)
-  (redundant-do-test)
-  (invalid-arity-test)
-  (exit-code-test)
-  (t/run-tests)
-  )
+  (comment
+    (schema-defn-test)
+    (inline-def-test)
+    (redundant-let-test)
+    (redundant-do-test)
+    (invalid-arity-test)
+    (exit-code-test)
+    (t/run-tests)
+    )

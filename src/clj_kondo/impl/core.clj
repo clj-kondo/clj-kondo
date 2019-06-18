@@ -5,6 +5,7 @@
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.rewrite-clj-patch]
+   [clj-kondo.impl.utils :refer [one-of]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str])
@@ -77,9 +78,8 @@
 ;;;; jar processing
 
 (defn source-file? [filename]
-  (or (str/ends-with? filename ".clj")
-      (str/ends-with? filename ".cljc")
-      (str/ends-with? filename ".cljs")))
+  (when-let [[_ ext] (re-find #"\.(\w+)$" filename)]
+    (one-of (keyword ext) [:clj :cljs :cljc :edn])))
 
 (defn sources-from-jar
   [^java.io.File jar-file]
@@ -114,13 +114,9 @@
 ;;;; file processing
 
 (defn lang-from-file [file default-language]
-  (cond (str/ends-with? file ".clj")
-        :clj
-        (str/ends-with? file ".cljc")
-        :cljc
-        (str/ends-with? file ".cljs")
-        :cljs
-        :else default-language))
+  (if-let [[_ ext] (re-find #"\.(\w+)$" file)]
+    (keyword ext)
+    default-language))
 
 (def cp-sep (System/getProperty "path.separator"))
 
