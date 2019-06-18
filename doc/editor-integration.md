@@ -61,3 +61,42 @@ and CLJC (`.cljc`).
 9. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`.
 
 <img src="../screenshots/intellij-fw-config.png" align="right">
+
+## Spacemacs
+
+Ensure that:
+
+1. `syntax-checking` is present in `dotspacemacs-configuration-layers`.
+2. `clj-kondo` is available on PATH.
+
+In the `.spacemacs` file:
+
+1. In `dotspacemacs-additional-packages` add `flycheck-clj-kondo`.
+2. In the `dotspacemacs/user-config` function add the following:
+   ```lisp
+   (use-package clojure-mode
+    :ensure t
+    :config
+    (require 'flycheck-clj-kondo))
+   ```
+
+To install it alongside joker:
+
+1. In `dotspacemacs-additional-packages` add `flycheck-clj-kondo` and `flycheck-joker`.
+2. In the `dotspacemacs/user-config` function add the following:
+   ```lisp
+   (use-package clojure-mode
+    :ensure t
+    :config
+    (require 'flycheck-joker)
+    (require 'flycheck-clj-kondo)
+    (dolist (checker '(clj-kondo-clj clj-kondo-cljs clj-kondo-cljc clj-kondo-edn))
+      (setq flycheck-checkers (cons checker (delq checker flycheck-checkers))))
+    (dolist (checkers '((clj-kondo-clj . clojure-joker)
+                        (clj-kondo-cljs . clojurescript-joker)
+                        (clj-kondo-cljc . clojure-joker)
+                        (clj-kondo-edn . edn-joker)))
+      (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
+   ```
+
+Reload the config to enable clj-kondo.
