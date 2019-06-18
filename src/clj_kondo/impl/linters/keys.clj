@@ -8,33 +8,41 @@
   "We only support tokens as key values for now."
   [node]
   (case (node/tag node)
-    :token (node/string node)
+    :token (node/sexpr node)
     nil))
 
-(defn lint-map-keys [{:keys [:findings :filename]} expr]
-  (let [children (:children expr)]
-    (reduce
-     (fn [{:keys [:seen] :as acc} key-expr]
-       (if-let [k (key-value key-expr)]
-         (if (contains? seen k)
-           (do
-             (findings/reg-finding!
-              findings
-              (node->line filename
-                          key-expr :error :duplicate-map-key
-                          (str "duplicate key " k)))
-             (update acc :seen conj k))
-           (update acc :seen conj k))
-         acc))
-     {:seen #{}
-      :findings []}
-     (take-nth 2 children))
-    (when (odd? (count children))
-      (let [last-child (last children)]
-        (findings/reg-finding!
-         findings
-         (node->line filename last-child :error :missing-map-value
-                     (str "missing value for key " (key-value last-child))))))))
+(defn lint-map-keys
+  ([ctx expr]
+   (lint-map-keys ctx expr nil))
+  ([{:keys [:findings :filename]} expr {:keys [:known-key?] :or {known-key? (constantly true)}}]
+   (let [children (:children expr)]
+     (reduce
+      (fn [{:keys [:seen] :as acc} key-expr]
+        (if-let [k (key-value key-expr)]
+          (do
+            (when (contains? seen k)
+              (findings/reg-finding!
+               findings
+               (node->line filename
+                           key-expr :error :duplicate-map-key
+                           (str "duplicate key " key-expr))))
+            (when-not (known-key? k)
+              (findings/reg-finding!
+               findings
+               (node->line filename
+                           key-expr :error :syntax
+                           (str "unknown option " key-expr))))
+            (update acc :seen conj k))
+          acc))
+      {:seen #{}
+       :findings []}
+      (take-nth 2 children))
+     (when (odd? (count children))
+       (let [last-child (last children)]
+         (findings/reg-finding!
+          findings
+          (node->line filename last-child :error :missing-map-value
+                      (str "missing value for key " last-child))))))))
 
 ;;;; end map linter
 
@@ -50,12 +58,10 @@
                 findings
                 (node->line filename set-element :error :duplicate-set-key
                             (str "duplicate set element " k))))
-            (update acc :seen conj k))
+             (update acc :seen conj k))
          acc))
      {:seen #{}
       :findings []}
      children)))
 
 ;;;; end set linter
-
-
