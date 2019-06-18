@@ -48,7 +48,7 @@ It suggests style guide recommendations:
 
 This linter is:
 
-* compatible with `.clj`, `.cljs` and `.cljc` files
+* compatible with `.clj`, `.cljs`, `.cljc` and `.edn` files
 * build tool and editor agnostic
 * a static code analyzer
 * compiled to native code using GraalVM
