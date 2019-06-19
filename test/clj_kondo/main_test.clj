@@ -1647,20 +1647,45 @@
 (deftest edn-test
   (assert-submaps
    '({:file "corpus/edn/edn.edn",
-     :row 1,
-     :col 10,
-     :level :error,
+      :row 1,
+      :col 10,
+      :level :error,
       :message "duplicate key a"})
    (lint! (io/file "corpus" "edn"))))
 
+(deftest spec-test
+  (assert-submaps
+   '({:file "corpus/spec_syntax.clj",
+      :row 9,
+      :col 9,
+      :level :error,
+      :message "expected symbol"}
+     {:file "corpus/spec_syntax.clj",
+      :row 9,
+      :col 11,
+      :level :error,
+      :message "missing value for key :args"}
+     {:file "corpus/spec_syntax.clj",
+      :row 11,
+      :col 13,
+      :level :error,
+      :message "unknown option :xargs"}
+     {:file "corpus/spec_syntax.clj",
+      :row 20,
+      :col 9,
+      :level :error,
+      :message "unresolved symbol xstr/starts-with?"})
+   (lint! (io/file "corpus" "spec_syntax.clj")
+          '{:linters {:unresolved-symbol {:level :error}}})))
+
 ;;;; Scratch
 
-  (comment
-    (schema-defn-test)
-    (inline-def-test)
-    (redundant-let-test)
-    (redundant-do-test)
-    (invalid-arity-test)
-    (exit-code-test)
-    (t/run-tests)
-    )
+(comment
+  (schema-defn-test)
+  (inline-def-test)
+  (redundant-let-test)
+  (redundant-do-test)
+  (invalid-arity-test)
+  (exit-code-test)
+  (t/run-tests)
+  )

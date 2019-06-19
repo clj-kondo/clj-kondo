@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
+   [clj-kondo.impl.analyzer.spec :as spec]
    [clj-kondo.impl.analyzer.usages :refer [#_analyze-usages analyze-usages2]]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -868,6 +869,10 @@
             (do
               (lint-inline-def! ctx expr)
               (analyze-deftest ctx resolved-namespace expr))
+            ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
+            (spec/analyze-fdef (assoc ctx
+                                      :analyze-children
+                                      analyze-children) expr)
             ;; catch-all
             (let [next-ctx (cond-> ctx
                              (= '[clojure.core.async thread]
