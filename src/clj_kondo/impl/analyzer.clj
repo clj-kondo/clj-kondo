@@ -129,22 +129,24 @@
          (if k
            (let [k (meta/lift-meta-content ctx k)]
              (cond (:k k)
-                   (case (keyword (name (:k k)))
-                     (:keys :syms :strs)
-                     (recur rest-kvs
-                            (into res (map #(extract-bindings
-                                             ctx %
-                                             (assoc opts :keys-destructuring? true)))
-                                  (:children v)))
-                     ;; or doesn't introduce new bindings, it only gives defaults
-                     :or
-                     (if (empty? rest-kvs)
-                       (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
-                                                              ctx res v)}))
-                       ;; analyze or after the rest
-                       (recur (concat rest-kvs [k v]) res))
-                     :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
-                     (recur rest-kvs res))
+                   (do
+                     (analyze-usages2 ctx k)
+                     (case (keyword (name (:k k)))
+                       (:keys :syms :strs)
+                       (recur rest-kvs
+                              (into res (map #(extract-bindings
+                                               ctx %
+                                               (assoc opts :keys-destructuring? true)))
+                                    (:children v)))
+                       ;; or doesn't introduce new bindings, it only gives defaults
+                       :or
+                       (if (empty? rest-kvs)
+                         (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
+                                                                ctx res v)}))
+                         ;; analyze or after the rest
+                         (recur (concat rest-kvs [k v]) res))
+                       :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
+                       (recur rest-kvs res)))
                    :else
                    (recur rest-kvs (merge res (extract-bindings ctx k opts)
                                           {:analyzed (analyze-expression** ctx v)}))))
