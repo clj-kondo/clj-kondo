@@ -1655,17 +1655,17 @@
 
 (deftest spec-test
   (assert-submaps
-   '({:file "corpus/spec.clj",
+   '({:file "corpus/spec_syntax.clj",
       :row 7,
       :col 9,
       :level :error,
       :message "expected symbol"}
-     {:file "corpus/spec.clj",
+     {:file "corpus/spec_syntax.clj",
       :row 7,
       :col 11,
       :level :error,
       :message "missing value for key :args"}
-     {:file "corpus/spec.clj",
+     {:file "corpus/spec_syntax.clj",
       :row 9,
       :col 13,
       :level :error,
