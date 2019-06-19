@@ -1656,21 +1656,27 @@
 (deftest spec-test
   (assert-submaps
    '({:file "corpus/spec_syntax.clj",
-      :row 7,
+      :row 9,
       :col 9,
       :level :error,
       :message "expected symbol"}
      {:file "corpus/spec_syntax.clj",
-      :row 7,
+      :row 9,
       :col 11,
       :level :error,
       :message "missing value for key :args"}
      {:file "corpus/spec_syntax.clj",
-      :row 9,
+      :row 11,
       :col 13,
       :level :error,
-      :message "unknown option :xargs"})
-   (lint! (io/file "corpus" "spec_syntax.clj"))))
+      :message "unknown option :xargs"}
+     {:file "corpus/spec_syntax.clj",
+      :row 20,
+      :col 9,
+      :level :error,
+      :message "unresolved symbol xstr/starts-with?"})
+   (lint! (io/file "corpus" "spec_syntax.clj")
+          '{:linters {:unresolved-symbol {:level :error}}})))
 
 ;;;; Scratch
 

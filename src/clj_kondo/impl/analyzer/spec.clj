@@ -2,19 +2,31 @@
   (:require
    [clj-kondo.impl.utils :as utils]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.linters.keys :as keys]
-   [rewrite-clj.node.protocols :as node]))
+   [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.linters.keys :as keys]))
 
-(defn analyze-fdef [{:keys [:analyze-children] :as ctx} expr]
-  (let [[sym & body] (next (:children expr))]
+(defn analyze-fdef [{:keys [:analyze-children :ns] :as ctx} expr]
+  (let [[sym-expr & body] (next (:children expr))
+        ns-name (-> ns :name)]
     (keys/lint-map-keys ctx {:children body} {:known-key? #{:args :ret :fn}})
-    (when-not (utils/symbol-token? sym)
-      (findings/reg-finding! (:findings ctx)
-                             (utils/node->line (:filename ctx)
-                                               sym
-                                               :error
-                                               :syntax
-                                               "expected symbol")))
+    (let [sym (:value sym-expr)]
+      (if-not (and sym (symbol? sym))
+        (findings/reg-finding! (:findings ctx)
+                               (utils/node->line (:filename ctx)
+                                                 sym-expr
+                                                 :error
+                                                 :syntax
+                                                 "expected symbol"))
+        (if-let [{resolved-ns :ns}
+                 (namespace/resolve-name ctx ns-name
+                                         sym)]
+          (namespace/reg-usage! ctx ns-name resolved-ns)
+          (findings/reg-finding! (:findings ctx)
+                                 (utils/node->line (:filename ctx)
+                                                   sym-expr
+                                                   :error
+                                                   :unresolved-symbol
+                                                   (str "unresolved symbol " sym))))))
     (analyze-children ctx body)))
 
 ;;;; Scratch
