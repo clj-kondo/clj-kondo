@@ -9,28 +9,34 @@ a `.clj-kondo` directory in the root of your project.
 For integrating with Emacs, see
 [flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo).
 
+For Spacemacs, check [here](#spacemacs).
+
 ## Visual Studio Code
 
 In Visual Studio Code, go to Preferences > Extensions. Search for 'clojure lint' and select the 'Clojure Lint' extension by [@marcomorain](https://github.com/marcomorain/clojure-lint). Click 'install'. That's it.
 
 <img src="../screenshots/vscode.png" width="75%">
 
-## Vim/NeoVim
+## Vim / Neovim
 
-This section is for Vim 8+ or NeoVim
+This section is for Vim 8+ or Neovim.
 
 1. Install [ALE](https://github.com/w0rp/ale) using your favorite plugin
    manager. This already has in-built support for clj-kondo.
 2. In your `.vimrc`, add:
-   ```viml
+
+   ``` viml
    let g:ale_linters = {'clojure': ['clj-kondo']}
    ```
+
    to only have clj-kondo as the linter.
-   add:
-   ```viml
+
+   To enable both clj-kondo and joker, add:
+
+   ``` viml
    let g:ale_linters = {'clojure': ['clj-kondo', 'joker']}
    ```
-   to have both, with clj-kondo being preferred.
+
 3. Reload your `.vimrc` and it should start working.
 
 <img src="../screenshots/vim.png">
@@ -60,7 +66,7 @@ and CLJC (`.cljc`).
 8. Enable `Create output file from stdout`
 9. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`.
 
-<img src="../screenshots/intellij-fw-config.png" align="right">
+<img src="../screenshots/intellij-fw-config.png">
 
 ## Spacemacs
 
@@ -73,7 +79,8 @@ In the `.spacemacs` file:
 
 1. In `dotspacemacs-additional-packages` add `flycheck-clj-kondo`.
 2. In the `dotspacemacs/user-config` function add the following:
-   ```lisp
+
+   ``` elisp
    (use-package clojure-mode
     :ensure t
     :config
@@ -84,7 +91,8 @@ To install it alongside joker:
 
 1. In `dotspacemacs-additional-packages` add `flycheck-clj-kondo` and `flycheck-joker`.
 2. In the `dotspacemacs/user-config` function add the following:
-   ```lisp
+
+   ``` elisp
    (use-package clojure-mode
     :ensure t
     :config
