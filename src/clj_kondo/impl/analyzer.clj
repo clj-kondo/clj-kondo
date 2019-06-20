@@ -732,20 +732,19 @@
                        (nnext children)))))
 
 (defn analyze-defmethod [ctx expr]
-  ;; (defmethod service-charge [::acc/Basic ::acc/Checking] [x] 25)
   (let [children (next (:children expr))
-        [method-name-node dispatch-val-node binding-vector & body-exprs] children
+        [method-name-node dispatch-val-node & body-exprs] children
         method-name (:value method-name-node)
         ns-name (-> ctx :ns :name)
         m (resolve-name ctx ns-name method-name)
-        bindings (extract-bindings ctx binding-vector)]
+        bodies (fn-bodies ctx body-exprs)
+        analyzed-bodies (map #(analyze-fn-body ctx %) bodies)]
     (when-let [used-ns (:ns m)]
       (namespace/reg-usage! ctx ns-name used-ns))
     (when (:unqualified? m)
       (namespace/reg-unresolved-symbol! ctx ns-name method-name (meta method-name-node)))
     (concat (analyze-expression** ctx dispatch-val-node)
-            (analyze-children (ctx-with-bindings ctx bindings)
-                              body-exprs))))
+            (mapcat :parsed analyzed-bodies))))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))

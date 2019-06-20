@@ -10,4 +10,4 @@
 (defmethod ig/pre-init-spec :my/key [_] ::args)
 
 (defmulti xyz (fn ([x _] x) ([x _ _] x)))
-(defmethod xyz "z" ([x y] "z") ([x y z] "z"))
+(defmethod xyz "z" ([x y] x) ([_ _ _] (inc)))

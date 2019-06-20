@@ -1519,7 +1519,17 @@
       :row 7,
       :col 35,
       :level :warning,
-      :message "unused binding y"})
+      :message "unused binding y"}
+     {:file "corpus/defmulti.clj",
+      :row 13,
+      :col 24,
+      :level :warning,
+      :message "unused binding y"}
+     {:file "corpus/defmulti.clj",
+      :row 13,
+      :col 39,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.core/inc"})
    (lint! (io/file "corpus" "defmulti.clj")
           '{:linters {:unused-binding {:level :warning}
                       :unresolved-symbol {:level :error}}})))
