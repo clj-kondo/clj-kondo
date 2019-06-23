@@ -946,6 +946,20 @@
       :level :warning,
       :message "namespace baz is required but never used"})
    (lint! "(ns foo (:require [bar :as b] [baz :as baz])) #::{:a #::bar{:a 1}}"))
+  (assert-submap
+   '({:file "<stdin>",
+      :row 1,
+      :col 18,
+      :level :warning,
+      :message "namespace clojure.string is required but never used"})
+   (lint! "(ns f (:require [clojure.string :as s])) :s/foo"))
+  (assert-submap
+   '({:file "<stdin>",
+      :row 1,
+      :col 20,
+      :level :warning,
+      :message "namespace bar is required but never used"})
+   (lint! "(ns foo (:require [bar :as b])) #:b{:a 1}"))
   (testing "simple libspecs (without as or refer) are not reported"
     (is (empty? (lint! "(ns foo (:require [foo.specs]))")))
     (is (empty? (lint! "(ns foo (:require foo.specs))")))
@@ -965,8 +979,6 @@
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
   (is (empty? (lint! "(ns foo (:require bar)) ::bar/bar")))
   (is (empty? (lint! "(ns foo (:require [bar :as b])) ::b/bar")))
-  ;; TODO: this is probably not correct, since you need to write :b with double colons:
-  (is (empty? (lint! "(ns foo (:require [bar :as b])) #:b{:a 1}")))
   (is (empty? (lint! "(ns foo (:require [bar :as b])) #::b{:a 1}")))
   (is (empty? (lint! "(ns foo (:require [bar :as b] baz)) #::baz{:a #::bar{:a 1}}")))
   (is (empty? (lint! "(ns foo (:require goog.math.Long)) (instance? goog.math.Long 1)")))
