@@ -45,15 +45,16 @@
                                                (-> ns :name)
                                                resolved-ns))))))
                (when-let [keyword-val (:k expr)]
-                 (let [symbol-val (symbol keyword-val)
-                       {resolved-ns :ns
-                        _resolved-name :name
-                        _unqualified? :unqualified? :as _m}
-                       (namespace/resolve-name ctx ns-name symbol-val)]
-                   (when resolved-ns
-                     (namespace/reg-usage! ctx
-                                           (-> ns :name)
-                                           resolved-ns)))))
+                 (when (:namespaced? expr)
+                   (let [symbol-val (symbol keyword-val)
+                         {resolved-ns :ns
+                          _resolved-name :name
+                          _unqualified? :unqualified? :as _m}
+                         (namespace/resolve-name ctx ns-name symbol-val)]
+                     (when resolved-ns
+                       (namespace/reg-usage! ctx
+                                             (-> ns :name)
+                                             resolved-ns))))))
              ;; catch-call
              (mapcat #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
                      (:children expr)))))))))

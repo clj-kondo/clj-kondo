@@ -545,10 +545,12 @@
   (let [children (:children expr)
         m (first children)
         ns (:ns ctx)
-        ns-sym (-> expr :ns :k symbol)
-        used (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
-               [{:type :use
-                 :ns resolved-ns}])]
+        ns-keyword (-> expr :ns :k)
+        ns-sym (symbol ns-keyword)
+        used (when (:aliased? expr)
+               (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
+                 [{:type :use
+                   :ns resolved-ns}]))]
     (concat used (analyze-expression** ctx m))))
 
 (defn analyze-schema-defn [ctx expr]
@@ -975,9 +977,10 @@
         :reader-macro (analyze-reader-macro ctx expr)
         (:unquote :unquote-splicing)
         (analyze-children ctx children)
-        :namespaced-map (analyze-namespaced-map (update ctx
-                                                        :callstack #(cons [nil t] %))
-                                                expr)
+        :namespaced-map (analyze-namespaced-map
+                         (update ctx
+                                 :callstack #(cons [nil t] %))
+                         expr)
         :map (do (key-linter/lint-map-keys ctx expr)
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %)) children))
