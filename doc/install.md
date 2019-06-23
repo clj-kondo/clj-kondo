@@ -15,6 +15,8 @@ To upgrade:
 
 ## Scoop (Windows)
 
+Note: clj-kondo on Windows is considered experimental. Until we sort out [this issue](https://github.com/borkdude/clj-kondo/issues/276), the scoop package will not be updated. You can try the latest binary from [Github](https://github.com/borkdude/clj-kondo/releases).
+
 To install clj-kondo on Windows you can use [scoop](https://scoop.sh):
 
      scoop bucket add borkdude https://github.com/borkdude/scoop-bucket
