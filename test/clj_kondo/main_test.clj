@@ -1482,7 +1482,16 @@
       (if summary?
         (assert-submap '{:error 2}
                        (:summary parsed))
-        (is (nil? (find parsed :summary)))))))
+        (is (nil? (find parsed :summary))))))
+  (doseq [[output-format parse-fn]
+          [[:edn edn/read-string]
+           [:json #(cheshire/parse-string % true)]]]
+    (let [output (with-in-str "(inc)(dec)"
+                   (with-out-str
+                     (main  "--lint" "-" "--config"
+                            (format "{:output {:format %s}}" output-format))))
+          parsed (parse-fn output)]
+      (is (map? parsed)))))
 
 (deftest defprotocol-test
   (assert-submaps

@@ -13,6 +13,17 @@
 
 (def cache-version core-impl/version)
 
+(defmacro with-err-str
+  "Evaluates exprs in a context in which *out* is bound to a fresh
+  StringWriter.  Returns the string created by any nested printing
+  calls."
+  {:added "1.0"}
+  [& body]
+  `(let [s# (new java.io.StringWriter)]
+     (binding [*err* s#]
+       ~@body
+       (str s#))))
+
 (deftest cache-test
   (testing "empty cache option warning (this test assumes you have no .clj-kondo
   directory at a higher level than the current working directory)"
@@ -25,7 +36,8 @@
       (io/copy "(ns foo) (defn foo [x])"
                (io/file test-source-dir (str "foo.clj")))
       (is (str/includes?
-           (with-out-str (main "--lint" test-source-dir "--cache"))
+           (with-err-str
+             (with-out-str (main "--lint" test-source-dir "--cache")))
            "no .clj-kondo directory found"))
       (when (.exists (io/file ".clj-kondo.bak"))
         (mv ".clj-kondo.bak" ".clj-kondo"))))

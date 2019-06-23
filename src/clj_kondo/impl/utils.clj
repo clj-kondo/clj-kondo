@@ -6,6 +6,11 @@
    [rewrite-clj.parser :as p]
    [clj-kondo.impl.profiler :as profiler]))
 
+(defn print-err! [& strs]
+  (binding [*out* *err*]
+    (apply println strs))
+  nil)
+
 (defn tag [maybe-expr]
   (when maybe-expr
     (node/tag maybe-expr)))
