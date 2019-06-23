@@ -5,7 +5,7 @@
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.rewrite-clj-patch]
-   [clj-kondo.impl.utils :refer [one-of]]
+   [clj-kondo.impl.utils :refer [one-of print-err!]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str])
@@ -55,8 +55,7 @@
   (when cache-dir
     (if (true? cache-dir)
       (if cfg-dir (io/file cfg-dir ".cache" version)
-          (do (println empty-cache-opt-warning)
-              nil))
+          (print-err! empty-cache-opt-warning))
       (io/file cache-dir version))))
 
 ;;;; find cache/config dir
@@ -106,8 +105,7 @@
                 {:filename nm
                  :source (slurp file)}
                 (and (not can-read?) source?)
-                (do (println (str nm ":0:0:") "warning: can't read, check file permissions")
-                    nil)
+                (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
                 :else nil)))
           files)))
 
