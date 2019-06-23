@@ -1053,7 +1053,8 @@
   (is (empty? (lint! "(defn foo [])")))
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])")))
   (is (empty? (lint! "(declare foo) (def foo 1)")))
-  (is (empty? (lint! "(def foo 1) (declare foo)"))))
+  (is (empty? (lint! "(def foo 1) (declare foo)")))
+  (is (empty? (lint! "(if (odd? 3) (def foo 1) (def foo 2))"))))
 
 (deftest unreachable-code-test
   (assert-submaps

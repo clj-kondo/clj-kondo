@@ -22,12 +22,13 @@
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
-  ([{:keys [:base-lang :lang :filename :findings :namespaces]} ns-sym var-sym expr metadata]
+  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level?]}
+    ns-sym var-sym expr metadata]
    (let [path [base-lang lang ns-sym]]
      (swap! namespaces update-in path
             (fn [ns]
               ;; declare is idempotent
-              (when-not (:declared metadata)
+              (when (and top-level? (not (:declared metadata)))
                 (let [vars (:vars ns)]
                   (when-let [redefined-ns
                              (or (when-let [v (get vars var-sym)]
