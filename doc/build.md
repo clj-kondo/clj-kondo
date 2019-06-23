@@ -8,7 +8,7 @@ To build the `clj-kondo` binary from source:
 
 * Set the `GRAALVM_HOME` variable. E.g.:
 
-        export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-19.0.0/Contents/Home
+        export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-19.0.2/Contents/Home
 
 * git clone this repo and `cd clj-kondo`
 
@@ -49,7 +49,7 @@ The following steps need to be executed from the Windows SDK 7.1 command prompt.
 
 *  set the `GRAALVM_HOME` environment variable:
 
-         set GRAALVM_HOME=C:\Users\IEUSer\Downloads\graalvm-ce-19.0.0
+         set GRAALVM_HOME=C:\Users\IEUSer\Downloads\graalvm-ce-19.0.2
 
 * git clone this repo and `cd clj-kondo`
 
