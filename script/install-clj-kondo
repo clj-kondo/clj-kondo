@@ -34,10 +34,11 @@ case "$(uname -s)" in
 esac
 
 download_url="https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.zip"
+
 cd "$download_dir"
 echo -e "Downloading $download_url"
 curl -o "clj-kondo-$latest_release-$platform-amd64.zip" -sL "https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.zip"
-unzip -qq "clj-kondo-$latest_release-$platform-amd64.zip"
+unzip -qqo "clj-kondo-$latest_release-$platform-amd64.zip"
 rm "clj-kondo-$latest_release-$platform-amd64.zip"
 
 cd "$install_dir"
@@ -45,6 +46,6 @@ if [ -f clj-kondo ]; then
     echo "Moving $install_dir/clj-kondo to $install_dir/clj-kondo.old"
 fi
 
-mv -f "$download_dir/clj-kondo" "clj-kondo"
+mv -f "$download_dir/clj-kondo" "$PWD/clj-kondo"
 
 echo "Successfully installed clj-kondo in $install_dir"
