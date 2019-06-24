@@ -9,6 +9,7 @@
 (set! *warn-on-reflection* true)
 
 (def code-template "(ns clj-kondo.impl.var-info-gen
+  \"GENERATED, DO NOT EDIT.\"
   {:no-doc true})
   (in-ns 'clj-kondo.impl.var-info)
   (def predicates '%s)
