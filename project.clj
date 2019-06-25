@@ -6,6 +6,7 @@
         :url "https://github.com/borkdude/clj-kondo"}
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
+  :source-paths ["src" "parser" "inlined"]
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [rewrite-clj "0.6.1"]
                  [com.cognitect/transit-clj "0.8.313"]]
