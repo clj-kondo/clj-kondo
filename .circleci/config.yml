@@ -115,6 +115,11 @@ jobs:
           command: |
             .circleci/script/install-clojure /usr/local
       - run:
+          name: Install Leiningen
+          command: |
+            .circleci/script/install-leiningen
+
+      - run:
           name: Download GraalVM
           command: |
             cd ~
