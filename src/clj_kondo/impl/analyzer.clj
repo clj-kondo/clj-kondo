@@ -17,11 +17,8 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call keyword-call node->line
      parse-string parse-string-all tag select-lang
-     vconj deep-merge one-of linter-disabled?]]
-   [clojure.string :as str]
-   [rewrite-clj.node.protocols :as node]
-   [rewrite-clj.node.seq :as seq]
-   [rewrite-clj.node.token :as token])
+     vconj deep-merge one-of linter-disabled? tag sexpr]]
+   [clojure.string :as str])
   (:import [clj_kondo.impl.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)
@@ -56,7 +53,7 @@
   ([{:keys [:skip-reg-binding?] :as ctx} expr
     {:keys [:keys-destructuring?] :as opts}]
    (let [expr (meta/lift-meta-content ctx expr)
-         t (node/tag expr)
+         t (tag expr)
          findings (:findings ctx)]
      (case t
        :token
@@ -172,7 +169,7 @@
     ns))
 
 (defn fn-call? [expr]
-  (let [tag (node/tag expr)]
+  (let [tag (tag expr)]
     (and (= :list tag)
          (symbol? (:value (first (:children expr)))))))
 
@@ -192,7 +189,7 @@
 (defn analyze-fn-arity [ctx body]
   (let [children (:children body)
         arg-vec  (first children)
-        arg-list (node/sexpr arg-vec)
+        arg-list (sexpr arg-vec)
         arg-bindings (extract-bindings ctx arg-vec)
         arity (analyze-arity arg-list)]
     {:arg-bindings (dissoc arg-bindings :analyzed)
@@ -217,7 +214,7 @@
   (loop [[expr & rest-exprs :as exprs] children]
     (when expr
       (let [expr (meta/lift-meta-content ctx expr)
-            t (node/tag expr)]
+            t (tag expr)]
         (case t
           :vector [{:children exprs}]
           :list exprs
@@ -302,7 +299,7 @@
            arities (:arities ctx)
            analyzed []]
       (if binding
-        (let [binding-sexpr (node/sexpr binding)
+        (let [binding-sexpr (sexpr binding)
               for-let? (and for-like?
                             (= :let binding-sexpr))]
           (if for-let?
@@ -363,7 +360,7 @@
       (findings/reg-finding!
        (:findings ctx)
        (node->line filename expr :warning :redundant-let "redundant let")))
-    (when (and bv (= :vector (node/tag bv)))
+    (when (and bv (= :vector (tag bv)))
       (let [{analyzed-bindings :bindings
              arities :arities
              analyzed :analyzed}
@@ -424,7 +421,7 @@
   (let [callstack (:callstack ctx)
         call (-> callstack first second)
         bv (-> expr :children second)
-        sexpr (and bv (node/sexpr bv))]
+        sexpr (and bv (sexpr bv))]
     (when (vector? sexpr)
       (let [bindings (expr-bindings ctx bv)
             eval-expr (-> bv :children second)
@@ -449,7 +446,7 @@
 (defn analyze-fn [ctx expr]
   (let [children (:children expr)
         ?fn-name (when-let [?name-expr (second children)]
-                   (let [n (node/sexpr ?name-expr)]
+                   (let [n (sexpr ?name-expr)]
                      (when (symbol? n)
                        n)))
         bodies (fn-bodies ctx (next children))
@@ -479,7 +476,7 @@
 
 (defn analyze-loop [ctx expr]
   (let [bv (-> expr :children second)]
-    (when (and bv (= :vector (node/tag bv)))
+    (when (and bv (= :vector (tag bv)))
       (let [arg-count (let [c (count (:children bv))]
                         (when (even? c)
                           (/ c 2)))]
@@ -566,9 +563,9 @@
                 (update expr :children
                         (fn [[_ name-expr & body]]
                           (list*
-                           (token/token-node 'clojure.core/defn)
+                           (utils/token-node 'clojure.core/defn)
                            name-expr
-                           (seq/vector-node [])
+                           (utils/vector-node [])
                            body)))))
 
 (defn cons* [x xs]
@@ -661,7 +658,7 @@
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr))
     (for [c (next children)
-          :when (= :list (node/tag c)) ;; skip first docstring
+          :when (= :list (tag c)) ;; skip first docstring
           :let [children (:children c)
                 name-node (first children)
                 name-node (meta/lift-meta-content ctx name-node)
@@ -669,7 +666,7 @@
                 _ (when fn-name
                     (namespace/reg-var! ctx ns-name fn-name expr))
                 arity-vecs (rest children)
-                fixed-arities (set (keep #(when (= :vector (node/tag %))
+                fixed-arities (set (keep #(when (= :vector (tag %))
                                             ;; skip last docstring
                                             (count (:children %))) arity-vecs))
                 {:keys [:row :col]} (meta c)]]
@@ -966,7 +963,7 @@
   [{:keys [:bindings] :as ctx}
    {:keys [:children] :as expr}]
   (when expr
-    (let [t (node/tag expr)
+    (let [t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
       (case t
@@ -994,7 +991,7 @@
         (when-let [function (first children)]
           (if (= :edn (:lang ctx))
             (analyze-children ctx children)
-            (let [t (node/tag function)]
+            (let [t (tag function)]
               (case t
                 :map
                 (do (lint-map-call! ctx function arg-count expr)

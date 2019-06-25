@@ -1,11 +1,8 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [some-call
-                                 parse-string]]
-   [rewrite-clj.node.protocols :as node :refer [tag]]
-   [rewrite-clj.node.seq :refer [vector-node list-node]]
-   [rewrite-clj.node.token :refer [token-node]]
+   [clj-kondo.impl.utils :refer [some-call parse-string tag vector-node
+                                 list-node token-node]]
    [clj-kondo.impl.profiler :as profiler]))
 
 (defn expand-> [_ctx expr]
@@ -17,7 +14,7 @@
      (loop [x c, forms cforms]
        (if forms
          (let [form (first forms)
-               threaded (if (= :list (node/tag form))
+               threaded (if (= :list (tag form))
                           (with-meta (list-node (list* (first (:children form))
                                                        x
                                                        (next (:children form)))) (meta form))
@@ -34,7 +31,7 @@
       (if forms
         (let [form (first forms)
               threaded
-              (if (= :list (node/tag form))
+              (if (= :list (tag form))
                 (with-meta
                   (list-node
                    (concat

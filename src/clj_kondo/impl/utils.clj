@@ -1,26 +1,37 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
   (:require
-   [rewrite-clj.node.protocols :as node]
-   [rewrite-clj.node.whitespace :refer [whitespace?]]
-   [rewrite-clj.parser :as p]
-   [clj-kondo.impl.profiler :as profiler]))
+   [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.node.protocols :as node]
+   [clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.node.seq :as seq]
+   [clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.node.token :as token]
+   [clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.node.whitespace :refer [whitespace?]]
+   [clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.parser :as p]))
+
+;;; export rewrite-clj functions
+
+(defn tag [expr]
+  (node/tag expr))
+
+(defn sexpr [expr]
+  (node/sexpr expr))
+
+(def vector-node seq/vector-node)
+(def list-node seq/list-node)
+(def token-node token/token-node)
+
+;;; end export
 
 (defn print-err! [& strs]
   (binding [*out* *err*]
     (apply println strs))
   nil)
 
-(defn tag [maybe-expr]
-  (when maybe-expr
-    (node/tag maybe-expr)))
-
 (defn uneval? [node]
-  (when (= :uneval (tag node)))
-  (= :uneval (tag node)))
+  (= :uneval (node/tag node)))
 
 (defn comment? [node]
-  (= :comment (tag node)))
+  (= :comment (node/tag node)))
 
 (defn symbol-call
   "Returns symbol of call"

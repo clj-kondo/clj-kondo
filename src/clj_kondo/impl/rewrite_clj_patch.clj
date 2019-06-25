@@ -1,9 +1,9 @@
 (ns clj-kondo.impl.rewrite-clj-patch
-  (:require [rewrite-clj.parser.core]))
+  (:require [clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.parser.core]))
 
 ;;;; patch dispatch table to customize parsing of namespaced maps
 
-(in-ns 'rewrite-clj.parser.core)
+(in-ns 'clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.parser.core)
 (require '[clj-kondo.impl.parser.namespaced-map :as nm])
 
 (defmethod parse-next* :sharp
