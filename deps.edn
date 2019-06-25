@@ -17,6 +17,7 @@
                         "-H:Log=registerResource:"
                         "--verbose"
                         "--initialize-at-build-time"
+                        "--no-fallback"
                         "-J-Xmx3g"]
             :extra-deps
             #_{:clj.native-image
