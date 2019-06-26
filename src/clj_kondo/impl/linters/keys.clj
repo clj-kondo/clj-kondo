@@ -1,14 +1,14 @@
 (ns clj-kondo.impl.linters.keys
   {:no-doc true}
-  (:require [rewrite-clj.node.protocols :as node]
-            [clj-kondo.impl.findings :as findings]
-            [clj-kondo.impl.utils :refer [node->line]]))
+  (:require
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.utils :refer [node->line tag sexpr]]))
 
 (defn key-value
   "We only support tokens as key values for now."
   [node]
-  (case (node/tag node)
-    :token (node/sexpr node)
+  (case (tag node)
+    :token (sexpr node)
     nil))
 
 (defn lint-map-keys

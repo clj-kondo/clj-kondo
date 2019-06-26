@@ -5,15 +5,14 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call keyword-call node->line
      parse-string parse-string-all tag select-lang
-     vconj deep-merge one-of symbol-from-token]]
-   [rewrite-clj.node.protocols :as node]))
+     vconj deep-merge one-of symbol-from-token tag]]))
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
          ns-name (:name ns)
-         tag (node/tag expr)
+         tag (tag expr)
          quote? (or quote? (= :quote tag))]
      (if (one-of tag [:unquote :unquote-splicing])
        (when-let [f (:analyze-expression** ctx)]

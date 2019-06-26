@@ -1,5 +1,5 @@
-{:paths ["src" "resources"]
- :deps {rewrite-clj {:mvn/version "0.6.1"}
+{:paths ["src" "parser" "resources" "inlined"]
+ :deps {;; rewrite-clj {:mvn/version "0.6.1"}
         com.cognitect/transit-clj {:mvn/version "0.8.313"}}
  :aliases {;; NOTE: build with script/compile
            :native-image
@@ -17,6 +17,7 @@
                         "-H:Log=registerResource:"
                         "--verbose"
                         "--initialize-at-build-time"
+                        "--no-fallback"
                         "-J-Xmx3g"]
             :extra-deps
             #_{:clj.native-image

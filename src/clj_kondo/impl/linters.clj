@@ -3,8 +3,7 @@
   (:require
    [clj-kondo.impl.utils :refer [some-call node->line
                                  tag symbol-call parse-string
-                                 constant? one-of]]
-   [rewrite-clj.node.protocols :as node]
+                                 constant? one-of tag sexpr]]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -17,7 +16,7 @@
 (defn lint-cond-constants! [{:keys [:findings :filename]} conditions]
   (loop [[condition & rest-conditions] conditions]
     (when condition
-      (let [v (node/sexpr condition)]
+      (let [v (sexpr condition)]
         (when-not (or (nil? v) (false? v))
           (when (and (constant? condition)
                      (not (or (nil? v) (false? v))))

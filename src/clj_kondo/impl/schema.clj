@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.schema
   {:no-doc true}
   (:require
-   [rewrite-clj.node.protocols :as node]))
+   [clj-kondo.impl.utils :as utils]))
 
 (defn remove-schemas-from-children [expr]
   (let [children (:children expr)
@@ -9,10 +9,10 @@
         (loop [[fst-child & rest-children] children
                res {:new-children []
                     :schemas []}]
-          (let [sexpr (when fst-child (node/sexpr fst-child))]
+          (let [sexpr (when fst-child (utils/sexpr fst-child))]
             (cond (not fst-child)
                   res
-                  (= ':- (node/sexpr fst-child))
+                  (= ':- (utils/sexpr fst-child))
                   (recur (next rest-children)
                          (update res :schemas conj (first rest-children)))
                   (vector? sexpr)
@@ -34,7 +34,7 @@
         (loop [[fst-child & rest-children] children
                res {:new-children []
                     :schemas []}]
-          (let [sexpr (when fst-child (node/sexpr fst-child))]
+          (let [sexpr (when fst-child (utils/sexpr fst-child))]
             (cond (not fst-child)
                   res
                   (= ':- sexpr)

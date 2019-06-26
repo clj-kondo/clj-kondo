@@ -5,12 +5,11 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [node->line parse-string
-                                 parse-string-all deep-merge one-of]]
+                                 parse-string-all deep-merge
+                                 one-of tag sexpr vector-node list-node
+                                 token-node]]
    [clojure.set :as set]
-   [clojure.string :as str]
-   [rewrite-clj.node.protocols :as node]
-   [rewrite-clj.node.seq :refer [vector-node list-node]]
-   [rewrite-clj.node.token :refer [token-node]]))
+   [clojure.string :as str]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 
@@ -35,7 +34,7 @@
   [ctx prefix libspec-expr]
   (let [libspec-expr (meta/lift-meta-content ctx libspec-expr)
         children (:children libspec-expr)
-        form (node/sexpr libspec-expr)]
+        form (sexpr libspec-expr)]
     (cond (prefix-spec? form)
           (mapcat (fn [f]
                     (normalize-libspec ctx
@@ -58,7 +57,7 @@
                            :form form})))))
 
 (defn analyze-libspec [{:keys [:base-lang :lang :filename]} current-ns-name require-kw libspec-expr]
-  (let [libspec (node/sexpr libspec-expr)]
+  (let [libspec (sexpr libspec-expr)]
     (if (symbol? libspec)
       [{:type :require
         :ns (with-meta libspec
@@ -137,7 +136,7 @@
               :referred-all referred-all}]))))))
 
 (defn analyze-java-import [_ctx _ns-name libspec-expr]
-  (case (node/tag libspec-expr)
+  (case (tag libspec-expr)
     (:vector :list) (let [children (:children libspec-expr)
                           java-package-name-node (first children)
                           java-package (:value java-package-name-node)
@@ -159,7 +158,7 @@
         local-config (-> metadata :clj-kondo/config second)
         ns-name (or
                  (let [name-expr (second children)]
-                   (when-let [?name (node/sexpr name-expr)]
+                   (when-let [?name (sexpr name-expr)]
                      (if (symbol? ?name) ?name
                          (findings/reg-finding!
                           findings
@@ -208,7 +207,7 @@
                                         (assoc (:as sc) (:ns sc))))
                                     {}
                                     require-clauses)
-                :clojure-excluded (set (for [?refer-clojure (nnext (node/sexpr expr))
+                :clojure-excluded (set (for [?refer-clojure (nnext (sexpr expr))
                                              :when (= :refer-clojure (first ?refer-clojure))
                                              [k v] (partition 2 (rest ?refer-clojure))
                                              :when (= :exclude k)

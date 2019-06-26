@@ -1,10 +1,10 @@
 (ns clj-kondo.core-test
   (:require
    [clj-kondo.core :as clj-kondo]
+   [clj-kondo.test-utils :refer [file-path]]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing]]
-   [clj-kondo.test-utils :refer [file-path]]))
+   [clojure.test :as t :refer [deftest is testing]]))
 
 ;; NOTE: most functionality is tested in the main_test.clj namespace.
 
