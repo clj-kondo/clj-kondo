@@ -1,34 +1,6 @@
 {:paths ["src" "parser" "resources" "inlined"]
- :deps {;; rewrite-clj {:mvn/version "0.6.1"}
-        com.cognitect/transit-clj {:mvn/version "0.8.313"}}
- :aliases {;; NOTE: build with script/compile
-           :native-image
-           {;; see: https://github.com/taylorwood/clj.native-image/issues/5#issuecomment-491188021
-            :jvm-opts ["-Dclojure.compiler.direct-linking=true"
-                       "-Dclojure.spec.skip-macros=true"]
-            :main-opts ["-e" "(set!,*assert*,false)"
-                        "-m clj.native-image clj-kondo.main"
-                        "-H:Name=clj-kondo"
-                        "-H:+ReportExceptionStackTraces"
-                        "-J-Dclojure.spec.skip-macros=true"
-                        "-J-Dclojure.compiler.direct-linking=true"
-                        "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*"
-                        "-H:ReflectionConfigurationFiles=reflection.json"
-                        "-H:Log=registerResource:"
-                        "--verbose"
-                        "--initialize-at-build-time"
-                        "--no-fallback"
-                        "-J-Xmx3g"]
-            :extra-deps
-            #_{:clj.native-image
-               {:local/root "/Users/Borkdude/git/clj.native-image"}}
-            {clj.native-image
-             {:git/url "https://github.com/borkdude/clj.native-image.git"
-              :sha "cd7761b4ec88c2236b35830fd9cb0ef668699dae"}}
-            #_{clj.native-image
-               {:git/url "https://github.com/taylorwood/clj.native-image.git"
-                :sha "567176ddb0f7507c8b0969e0a10f60f848afaf7d"}}}
-           :extract
+ :deps {com.cognitect/transit-clj {:mvn/version "0.8.313"}}
+ :aliases {:extract
            {:extra-paths ["extract" "classes"]
             :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}
                          borkdude/eastwood
