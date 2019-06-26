@@ -10,7 +10,6 @@
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
-   [clj-kondo.impl.node.seq] ;; load defrecord
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
@@ -19,7 +18,7 @@
      parse-string parse-string-all tag select-lang
      vconj deep-merge one-of linter-disabled? tag sexpr]]
    [clojure.string :as str])
-  (:import [clj_kondo.impl.node.seq NamespacedMapNode]))
+  (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)
 

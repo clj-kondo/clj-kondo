@@ -3,6 +3,8 @@
 
 ;; ## Nodes
 
+(set! *warn-on-reflection* true)
+
 (defrecord SeqNode [tag
                     format-string
                     wrap-length
@@ -44,22 +46,15 @@
     (assert (map? (second exs))
             "second form in namespaced map needs to be map.")))
 
-(defrecord NamespacedMapNode [children]
+(defrecord NamespacedMapNode [ns aliased? children]
   node/Node
   (tag [this]
     :namespaced-map)
   (printable-only? [_] false)
   (sexpr [this]
-    (let [[nspace' m] (node/sexprs children)
-          nspace (if (namespace nspace')
-                   (-> (ns-aliases *ns*)
-                       (get (symbol (name nspace')))
-                       (ns-name)
-                       (name))
-                   (name nspace'))]
-      (assert nspace
-              (str "could not resolve namespace alias for namespaced map: "
-                   (namespace nspace')))
+    (let [nspace-k (:k ns)
+          m (first (node/sexprs children))
+          nspace (name nspace-k)]
       (->> (for [[k v] m
                  :let [k' (cond (not (keyword? k)) k
                                 (namespace k)      k
@@ -69,13 +64,12 @@
   (length [_]
     (+ 1 (node/sum-lengths children)))
   (string [this]
-    (str "#" (node/concat-strings children)))
+    (str "#" ns (node/concat-strings children)))
 
   node/InnerNode
   (inner? [_] true)
   (children [_] children)
   (replace-children [this children']
-    (assert-namespaced-map-children children')
     (assoc this :children children'))
   (leader-length [_]
     1)
@@ -109,8 +103,6 @@
   [children]
   (->SeqNode :map "{%s}" 2 #(apply hash-map %) children))
 
-(defn namespaced-map-node
-  "Create a node representing an EDN map namespace."
-  [children]
-  (assert-namespaced-map-children children)
-  (->NamespacedMapNode children))
+(defn namespaced-map-node [map-ns aliased? children]
+  (NamespacedMapNode. map-ns aliased? children))
+

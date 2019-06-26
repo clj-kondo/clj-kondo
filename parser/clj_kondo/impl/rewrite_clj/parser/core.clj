@@ -1,13 +1,15 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.parser.core
-  (:require [clj-kondo.impl.rewrite-clj
-             [node :as node]
-             [reader :as reader]]
-            [clj-kondo.impl.rewrite-clj.parser
-             [keyword :refer [parse-keyword]]
-             [string :refer [parse-string parse-regex]]
-             [token :refer [parse-token]]
-             [whitespace :refer [parse-whitespace]]]
-            [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as r]))
+  (:require
+   [clj-kondo.impl.rewrite-clj.parser.namespaced-map :as nm]
+   [clj-kondo.impl.rewrite-clj
+    [node :as node]
+    [reader :as reader]]
+   [clj-kondo.impl.rewrite-clj.parser
+    [keyword :refer [parse-keyword]]
+    [string :refer [parse-string parse-regex]]
+    [token :refer [parse-token]]
+    [whitespace :refer [parse-whitespace]]]
+   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as r]))
 
 ;; ## Base Parser
 
@@ -48,11 +50,11 @@
   (when ignore?
     (reader/ignore reader))
   (reader/read-n
-    reader
-    node-tag
-    parse-next
-    (complement node/printable-only?)
-    n))
+   reader
+   node-tag
+   parse-next
+   (complement node/printable-only?)
+   n))
 
 ;; ## Parsers Functions
 
@@ -69,9 +71,9 @@
 (defmethod parse-next* :unmatched
   [reader]
   (reader/throw-reader
-    reader
-    "Unmatched delimiter: %s"
-    (reader/peek reader)))
+   reader
+   "Unmatched delimiter: %s"
+   (reader/peek reader)))
 
 (defmethod parse-next* :eof
   [reader]
@@ -120,7 +122,9 @@
     \' (node/var-node (parse-printables reader :var 1 true))
     \= (node/eval-node (parse-printables reader :eval 1 true))
     \_ (node/uneval-node (parse-printables reader :uneval 1 true))
-    \: (node/namespaced-map-node (parse-printables reader :keyword 2))
+    ;; begin patch patch
+    \: (nm/parse-namespaced-map reader parse-next)
+    ;; end patch
     \? (do
          ;; we need to examine the next character, so consume one (known \?)
          (reader/next reader)
@@ -161,9 +165,9 @@
   (let [c (reader/peek reader)]
     (if (= c \@)
       (node/unquote-splicing-node
-        (parse-printables reader :unquote 1 true))
+       (parse-printables reader :unquote 1 true))
       (node/unquote-node
-        (parse-printables reader :unquote 1)))))
+       (parse-printables reader :unquote 1)))))
 
 ;; ### Seqs
 
