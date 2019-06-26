@@ -2,8 +2,8 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.node.seq :refer [namespaced-map-node]]
-   [clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.node :as node]
-   [clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.reader :as reader]
+   [clj-kondo.impl.rewrite-clj.node :as node]
+   [clj-kondo.impl.rewrite-clj.reader :as reader]
    [clojure.string :as str]))
 
 (defn parse-map-ns

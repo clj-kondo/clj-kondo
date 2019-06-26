@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.node.seq
   {:no-doc true}
   (:require
-   [clj-kondo.impl.rewrite-clj.v0v6v1.rewrite-clj.node.protocols :as node]))
+   [clj-kondo.impl.rewrite-clj.node.protocols :as node]))
 
 (set! *warn-on-reflection* true)
 
