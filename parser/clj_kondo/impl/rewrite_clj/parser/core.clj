@@ -86,10 +86,13 @@
   [reader]
   (parse-whitespace reader))
 
-(defmethod parse-next* :comment
-  [reader]
+(defn parse-comment [reader]
   (reader/ignore reader)
   (node/comment-node (reader/read-include-linebreak reader)))
+
+(defmethod parse-next* :comment
+  [reader]
+  (parse-comment reader))
 
 ;; ### Special Values
 
@@ -115,6 +118,7 @@
   (reader/ignore reader)
   (case (reader/peek reader)
     nil (reader/throw-reader reader "Unexpected EOF.")
+    \! (parse-comment reader)
     \{ (node/set-node (parse-delim reader \}))
     \( (node/fn-node (parse-delim reader \)))
     \" (node/regex-node (parse-regex reader))
