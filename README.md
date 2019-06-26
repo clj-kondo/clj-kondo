@@ -165,3 +165,7 @@ some ideas from [eastwood](https://github.com/jonase/eastwood).
 Copyright © 2019 Michiel Borkent
 
 Distributed under the EPL License, same as Clojure. See LICENSE.
+
+The directory `inlined` contains source from [`tools.reader`](https://github.com/clojure/tools.reader) which is licensed under the EPL license.
+
+The directory `parser` contains modified source from [`rewrite-clj`](https://github.com/xsc/rewrite-clj) which is licensed under the MIT license.
