@@ -8,7 +8,6 @@
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src" "parser" "inlined"]
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [rewrite-clj "0.6.1"]
                  [com.cognitect/transit-clj "0.8.313"]]
   :profiles {:test {:dependencies [[clj-commons/conch "0.9.2"]
                                    [cheshire "5.8.1"]]}
