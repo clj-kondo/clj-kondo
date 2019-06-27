@@ -1711,6 +1711,15 @@
    (lint! (io/file "corpus" "spec_syntax.clj")
           '{:linters {:unresolved-symbol {:level :error}}})))
 
+(deftest hashbang-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 2,
+      :col 1,
+      :level :error,
+      :message "wrong number of args (0) passed to clojure.core/inc"})
+   (lint! "#!/usr/bin/env clojure\n(inc)")))
+
 ;;;; Scratch
 
 (comment
