@@ -131,6 +131,18 @@
                         (get-in idacs [:clj :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
+(defn show-arities [fixed-arities var-args-min-arity]
+  (let [fas (vec (sort fixed-arities))
+        max-fixed (peek fas)
+        arities (if var-args-min-arity
+                  (if (= max-fixed var-args-min-arity)
+                    fas (conj fas var-args-min-arity))
+                  fas)]
+    (cond var-args-min-arity
+          (str (str/join ", " arities) " or more")
+          (= 1 (count fas)) (first fas)
+          :else (str (str/join ", " (pop arities)) " or " (peek arities)))))
+
 (defn lint-calls
   "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters."
   [ctx idacs]
@@ -192,10 +204,10 @@
                                  :col (:col call)
                                  :level :error
                                  :type :invalid-arity
-                                 :message (format "wrong number of args (%s) passed to %s"
-                                                  (str (:arity call))
+                                 :message (format "%s is called with %s args but expects %s"
                                                   (str (:ns called-fn) "/" (:name called-fn))
-                                                  #_(str (:fixed-arities called-fn)))})
+                                                  (str (:arity call))
+                                                  (show-arities fixed-arities var-args-min-arity))})
                               (when (and (:private called-fn)
                                          (not= caller-ns
                                                fn-ns))
