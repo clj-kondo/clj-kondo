@@ -226,7 +226,7 @@
 
 (defn finding->json [{:keys [:type :filename :row :col :level :message]}]
   (format json-finding-format
-          (name type) (pr-str filename) row col level (pr-str message)))
+          (name type) (pr-str filename) row col (name level) (pr-str message)))
 
 (def json-summary-format
   ",\n \"summary\": {\"error\": %s, \"warning\": %s, \"type\": \"summary\", \"duration\": %s}")
