@@ -9,14 +9,16 @@
    [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.utils :as ru]
    [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as r]))
 
+(set! *warn-on-reflection* true)
+
 ;; modified version of tools.reader.edn/read-keyword, less strict
 (defn read-keyword
   [reader]
   (let [ch (r/read-char reader)]
     (if-not (ru/whitespace? ch)
-      (let [token (#'edn/read-token reader :keyword ch)
+      (let [^String token (#'edn/read-token reader :keyword ch)
             s (rc/parse-symbol token)]
-        (if (and s (not (zero?(.indexOf token "::"))))
+        (if (and s (not (zero? (.indexOf token "::"))))
           (let [^String ns (s 0)
                 ^String name (s 1)]
             (if (identical? \: (nth token 0))
