@@ -85,7 +85,7 @@
        {:row 11, :col 1, :file "corpus/invalid_arity/defs.clj"}
        {:row 9, :col 1, :file "corpus/invalid_arity/order.clj"})
      row-col-files)
-    (is (every? #(str/includes? % "wrong number of args")
+    (is (every? #(str/includes? % "is called with")
                 (map :message linted))))
   (let [invalid-core-function-call-example "
 (ns clojure.core)
@@ -98,7 +98,7 @@
 "
         linted (lint! invalid-core-function-call-example '{:linters {:redefined-var {:level :off}}})]
     (is (pos? (count linted)))
-    (is (every? #(str/includes? % "wrong number of args")
+    (is (every? #(str/includes? % "is called with")
                 linted)))
   (is (empty? (lint! "(defn foo [x]) (defn bar [foo] (foo))")))
   (is (empty? (lint! "(defn foo [x]) (let [foo (fn [])] (foo))")))
@@ -122,12 +122,12 @@
         :row 1,
         :col 1,
         :level :error,
-        :message "wrong number of args (0) passed to clojure.core/defn"}
+        :message "clojure.core/defn is called with 0 args but expects 2 or more"}
        {:file "<stdin>",
         :row 1,
         :col 8,
-        :level :error
-        :message "wrong number of args (0) passed to clojure.core/defmacro"})
+        :level :error,
+        :message "clojure.core/defmacro is called with 0 args but expects 2 or more"})
      (lint! "(defn) (defmacro)")))
   (testing "redefining clojure var gives no error about incorrect arity of clojure var"
     (is (empty? (lint! "(defn inc [x y] (+ x y))
@@ -138,7 +138,7 @@
         :row 4,
         :col 14,
         :level :error,
-        :message "wrong number of args (2) passed to user/my-chunk-buffer"})
+        :message "user/my-chunk-buffer is called with 2 args but expects 1"})
      (lint! "(defn ^:static ^:foo my-chunk-buffer ^:bar [capacity]
               (clojure.lang.ChunkBuffer. capacity))
              (my-chunk-buffer 1)
@@ -148,14 +148,14 @@
       :row 1,
       :col 1,
       :level :error,
-      :message "wrong number of args (0) passed to clojure.core/areduce"})
+      :message "clojure.core/areduce is called with 0 args but expects 5"})
    (lint! "(areduce)"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 1,
       :level :error,
-      :message "wrong number of args (0) passed to cljs.core/this-as"})
+      :message "cljs.core/this-as is called with 0 args but expects 1 or more"})
    (lint! "(this-as)" "--lang" "cljs")))
 
 (deftest invalid-arity-schema-test
@@ -348,32 +348,32 @@
                    :row 1,
                    :col 1,
                    :level :error,
-                   :message "wrong number of args (0) passed to clojure.core/vec"}
+                   :message "clojure.core/vec is called with 0 args but expects 1"}
                  (first (lint! "(clojure.core/vec)" "--lang" "clj")))
   (assert-submap '{:file "<stdin>",
                    :row 1,
                    :col 1,
                    :level :error,
-                   :message "wrong number of args (0) passed to cljs.core/vec"}
+                   :message "cljs.core/vec is called with 0 args but expects 1"}
                  (first (lint! "(cljs.core/vec)" "--lang" "cljs")))
   (assert-submap '{:file "<stdin>",
                    :row 1,
                    :col 1,
                    :level :error,
-                   :message "wrong number of args (0) passed to cljs.core/vec"}
+                   :message "cljs.core/vec is called with 0 args but expects 1"}
                  (first (lint! "(clojure.core/vec)" "--lang" "cljs"))))
 
 (deftest override-test
   (doseq [lang [:clj :cljs]]
     (testing (str "lang: " (name lang))
       (assert-submaps
-       [{:file "<stdin>"
-         :row 1, :col 1,
+       [{:file "<stdin>",
+         :row 1,
+         :col 1,
          :level :error,
-         :message (str "wrong number of args (3) passed to "
-                       (case lang
+         :message (str (case lang
                          :clj "clojure"
-                         :cljs "cljs") ".core/quote")}]
+                         :cljs "cljs") ".core/quote is called with 3 args but expects 1")}]
        (lint! "(quote 1 2 3)" "--lang" (name lang)))))
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
@@ -382,7 +382,7 @@
                    :row 2,
                    :col 1,
                    :level :error,
-                   :message "wrong number of args (3) passed to cljs.test/do-report"}
+                   :message "cljs.test/do-report is called with 3 args but expects 1"}
                  (first (lint! "(ns foo (:require [clojure.test :as t]))
 (t/do-report 1 2 3)" "--lang" "cljs"))))
 
@@ -407,7 +407,7 @@
         :row 2,
         :col 11,
         :level :error,
-        :message "wrong number of args (1) passed to clojure.string/includes?"})
+        :message "clojure.string/includes? is called with 1 args but expects 2"})
      (lint! "(ns foo (:require [clojure.string :refer [includes?] :rename {includes? i}]))
           (i \"str\")
           (includes? \"str\")"))))
@@ -415,15 +415,21 @@
 (deftest refer-all-rename-test
   (testing ":require with :refer :all and :rename"
     (assert-submaps '({:file "corpus/refer_all.clj",
+                       :row 10,
+                       :col 1,
                        :level :error,
-                       :message "wrong number of args (0) passed to funs/foo"}
+                       :message "funs/foo is called with 0 args but expects 1"}
                       {:file "corpus/refer_all.clj",
+                       :row 11,
+                       :col 1,
                        :level :error,
-                       :message "wrong number of args (0) passed to funs/bar"})
+                       :message "funs/bar is called with 0 args but expects 1"})
                     (lint! (io/file "corpus" "refer_all.clj")))
     (assert-submaps '({:file "corpus/refer_all.cljs",
+                       :row 8,
+                       :col 1,
                        :level :error,
-                       :message "wrong number of args (0) passed to macros/foo"})
+                       :message "macros/foo is called with 0 args but expects 1"})
                     (lint! (io/file "corpus" "refer_all.cljs")))))
 
 (deftest alias-test
@@ -614,7 +620,7 @@
       :row 1,
       :col 16,
       :level :error,
-      :message "wrong number of args (2) passed to user/foo"})
+      :message "user/foo is called with 2 args but expects 1"})
    (lint! "(defn foo [x]) (foo (comment 1 2 3) 2)" '{:skip-comments true}))
   (is (empty? (lint! "(ns foo (:require [foo.specs] [bar.specs])) (defn my-fn [x] x)"
                      '{:linters {:unused-namespace {:exclude [foo.specs bar.specs]}}})))
