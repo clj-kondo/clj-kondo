@@ -190,7 +190,7 @@
               :row 12,
               :col 1,
               :level :error,
-              :message "wrong number of args (4) passed to clojure.core/get"})
+              :message "clojure.core/get is called with 4 args but expects 2"})
            linted))))
 
 (deftest private-call-test
@@ -219,7 +219,7 @@
                 :row 6,
                 :col 1,
                 :level :error,
-                :message "wrong number of args (1) passed to read-error.ok/foo"})
+                :message "read-error.ok/foo is called with 1 arg but expects 0"})
              linted)))))
 
 (deftest nested-namespaced-maps-test
@@ -407,7 +407,7 @@
         :row 2,
         :col 11,
         :level :error,
-        :message "clojure.string/includes? is called with 1 args but expects 2"})
+        :message "clojure.string/includes? is called with 1 arg but expects 2"})
      (lint! "(ns foo (:require [clojure.string :refer [includes?] :rename {includes? i}]))
           (i \"str\")
           (includes? \"str\")"))))
@@ -438,7 +438,7 @@
      :row 1,
      :col 35,
      :level :error,
-     :message "wrong number of args (0) passed to clojure.core/select-keys"}
+     :message "clojure.core/select-keys is called with 0 args but expects 2"}
    (first (lint! "(ns foo) (alias 'c 'clojure.core) (c/select-keys)"))))
 
 (deftest case-test
@@ -643,7 +643,7 @@
             :row 1,
             :col 10,
             :level :error,
-            :message "wrong number of args (1) passed to clojure.core/select-keys"}
+            :message "clojure.core/select-keys is called with 1 arg but expects 2"}
            {:file "<stdin>", :row 1, :col 35, :level :error, :message "duplicate key :a"})
          (lint! "{:a 1 :a (select-keys 1) :c {:a 1 :a 2}}")))
   (is (= '({:file "<stdin>", :row 1, :col 6, :level :error, :message "duplicate key 1"}
@@ -688,28 +688,28 @@
     :row 1,
     :col 8,
     :level :error,
-    :message "wrong number of args (1) passed to clojure.core/select-keys"}
+    :message "clojure.core/select-keys is called with 1 arg but expects 2"}
    (first (lint! "(-> {} select-keys)")))
   (assert-submap
    {:file "<stdin>",
     :row 1,
     :col 8,
     :level :error,
-    :message "wrong number of args (1) passed to clojure.core/select-keys"}
+    :message "clojure.core/select-keys is called with 1 arg but expects 2"}
    (first (lint! "(-> {} (select-keys))")))
   (assert-submap
    {:file "<stdin>",
     :row 1,
     :col 9,
     :level :error,
-    :message "wrong number of args (1) passed to clojure.core/select-keys"}
+    :message "clojure.core/select-keys is called with 1 arg but expects 2"}
    (first (lint! "(->> {} select-keys)")))
   (assert-submap
    {:file "<stdin>",
     :row 1,
     :col 9,
     :level :error,
-    :message "wrong number of args (1) passed to clojure.core/select-keys"}
+    :message "clojure.core/select-keys is called with 1 arg but expects 2"}
    (first (lint! "(->> {} (select-keys))")))
   (testing "cats"
     (is (seq (lint! "(ns foo (:require [cats.core :as m])) (m/->= (right {}) (select-keys))")))
@@ -721,7 +721,7 @@
       :row 1,
       :col 15,
       :level :error,
-      :message "wrong number of args (1) passed to java.lang.Math/pow"}
+      :message "java.lang.Math/pow is called with 1 arg but expects 2"}
      (first (lint! "(-> 1 #?(:clj (Math/pow)))" "--lang" "cljc"))))
   (testing "with type hints"
     (assert-submap
@@ -729,14 +729,18 @@
       :row 1,
       :col 60,
       :level :error,
-      :message "wrong number of args (1) passed to clojure.string/includes?"}
+      :message "clojure.string/includes? is called with 1 arg but expects 2"}
      (first (lint! "(ns foo (:require [clojure.string])) (-> \"foo\" ^String str clojure.string/includes?)")))
     (assert-submap
      {:file "<stdin>", :row 1, :col 12, :level :error, :message "duplicate key :a"}
      (first (lint! "(-> ^{:a 1 :a 2} [1 2 3])"))))
   (testing "macroexpansion of anon fn literal"
     (assert-submaps
-     '({:message "wrong number of args (1) passed to clojure.core/select-keys"})
+     '({:file "<stdin>",
+        :row 1,
+        :col 2,
+        :level :error,
+        :message "clojure.core/select-keys is called with 1 arg but expects 2"})
      (lint! "#(select-keys %)"))
     (is (empty? (lint! "(let [f #(apply println %&)] (f 1 2 3 4))")))
     (testing "fix for issue #181: the let in the expansion is resolved to clojure.core and not the custom let"
@@ -805,14 +809,14 @@
       :row 6,
       :col 1,
       :level :error,
-      :message "wrong number of args (4) passed to skip-args.arity/my-macro"})
+      :message "skip-args.arity/my-macro is called with 4 args but expects 3"})
    (lint! (io/file "corpus" "skip_args" "arity.clj") '{:skip-args [skip-args.arity/my-macro]}))
   (assert-submaps
    '({:file "corpus/skip_args/arity.clj",
       :row 6,
       :col 1,
       :level :error,
-      :message "wrong number of args (4) passed to skip-args.arity/my-macro"})
+      :message "skip-args.arity/my-macro is called with 4 args but expects 3"})
    (lint! (io/file "corpus" "skip_args" "arity.clj") '{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}})))
 
 (deftest missing-test-assertion-test
@@ -1078,7 +1082,7 @@
                 (submap? {:file "<stdin>",
                           :row 1,
                           :level :error,
-                          :message "wrong number of args (0) passed to clojure.core/inc"}
+                          :message "clojure.core/inc is called with 0 args but expects 1"}
                          finding))
               (lint! prog)))))
 
@@ -1309,7 +1313,7 @@
       :row 1,
       :col 33,
       :level :error,
-      :message "wrong number of args (0) passed to clojure.core/inc"}
+      :message "clojure.core/inc is called with 0 args but expects 1"}
      {:file "<stdin>",
       :row 1,
       :col 46,
@@ -1451,12 +1455,12 @@
             :row 1,
             :col 1,
             :level :error,
-            :message "wrong number of args (0) passed to clojure.core/inc"}
+            :message "clojure.core/inc is called with 0 args but expects 1"}
            {:filename "<stdin>",
             :row 1,
             :col 6,
             :level :error,
-            :message "wrong number of args (0) passed to clojure.core/dec"})
+            :message "clojure.core/dec is called with 0 args but expects 1"})
          (let [parse-fn
                (fn [line]
                  (when-let [[_ file row col level message]
@@ -1488,7 +1492,7 @@
                         :col 1,
                         :level (case output-format :edn :error
                                      "error"),
-                        :message "wrong number of args (0) passed to clojure.core/inc"}
+                        :message "clojure.core/inc is called with 0 args but expects 1"}
                        {:type (case output-format :edn :invalid-arity
                                     "invalid-arity"),
                         :filename "<stdin>",
@@ -1496,7 +1500,7 @@
                         :col 6,
                         :level (case output-format :edn :error
                                      "error"),
-                        :message "wrong number of args (0) passed to clojure.core/dec"}]}
+                        :message "clojure.core/dec is called with 0 args but expects 1"}]}
                      parsed)
       (if summary?
         (assert-submap '{:error 2}
@@ -1557,7 +1561,7 @@
       :row 13,
       :col 39,
       :level :error,
-      :message "wrong number of args (0) passed to clojure.core/inc"})
+      :message "clojure.core/inc is called with 0 args but expects 1"})
    (lint! (io/file "corpus" "defmulti.clj")
           '{:linters {:unused-binding {:level :warning}
                       :unresolved-symbol {:level :error}}})))
@@ -1723,7 +1727,7 @@
       :row 2,
       :col 1,
       :level :error,
-      :message "wrong number of args (0) passed to clojure.core/inc"})
+      :message "clojure.core/inc is called with 0 args but expects 1"})
    (lint! "#!/usr/bin/env clojure\n(inc)")))
 
 ;;;; Scratch

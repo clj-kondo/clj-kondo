@@ -204,9 +204,10 @@
                                  :col (:col call)
                                  :level :error
                                  :type :invalid-arity
-                                 :message (format "%s is called with %s args but expects %s"
+                                 :message (format "%s is called with %s %s but expects %s"
                                                   (str (:ns called-fn) "/" (:name called-fn))
                                                   (str (:arity call))
+                                                  (if (= 1 (:arity call)) "arg" "args")
                                                   (show-arities fixed-arities var-args-min-arity))})
                               (when (and (:private called-fn)
                                          (not= caller-ns
