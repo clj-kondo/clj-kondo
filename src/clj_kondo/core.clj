@@ -45,12 +45,8 @@
         (print (format "\"findings\":\n [%s]"
                        (str/join ",\n  "
                                  (map
-                                  (fn [{:keys [:filename :type :message
-                                               :level :row :col]}]
-                                    (format core-impl/json-finding-format
-                                            (name type) filename row
-                                            col (name level)
-                                            message))
+                                  (fn [finding]
+                                    (core-impl/finding->json finding))
                                   findings))))
         (when (:summary output-cfg)
           (let [{:keys [:error :warning :duration]} summary]
