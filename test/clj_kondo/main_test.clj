@@ -1733,6 +1733,15 @@
       :message "wrong number of args (0) passed to clojure.core/inc"})
    (lint! "#!/usr/bin/env clojure\n(inc)")))
 
+(deftest GH-301-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 15,
+      :level :error,
+      :message "duplicate key :&::before"})
+   (lint! "{:&::before 1 :&::before 1}")))
+
 ;;;; Scratch
 
 (comment
