@@ -1504,6 +1504,19 @@
                      (main  "--lint" "-" "--config"
                             (format "{:output {:format %s}}" output-format))))
           parsed (parse-fn output)]
+      (is (map? parsed))))
+  (testing "JSON output escapes special characters"
+    (let [output (with-in-str "{\"foo\" 1 \"foo\" 1}"
+                   (with-out-str
+                     (main  "--lint" "-" "--config"
+                            (format "{:output {:format %s}}" :json))))
+          parsed (cheshire/parse-string output true)]
+      (is (map? parsed)))
+    (let [output (with-in-str "{:a 1}"
+                   (with-out-str
+                     (main  "--lint" "\"foo\".clj" "--config"
+                            (format "{:output {:format %s}}" :json))))
+          parsed (cheshire/parse-string output true)]
       (is (map? parsed)))))
 
 (deftest defprotocol-test
