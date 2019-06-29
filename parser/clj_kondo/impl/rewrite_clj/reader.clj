@@ -128,10 +128,10 @@
 (defn read-with-meta
   "Use the given function to read value, then attach row/col metadata."
   [reader read-fn]
-  (let [start-position (position reader :row :col)]
-    (if-let [entry (read-fn reader)]
-      (let [replaced-meta (meta entry)
-            start-position (or replaced-meta start-position)]
+  (loop [start-position (position reader :row :col)]
+    (when-let [entry (read-fn reader)]
+      (if (identical? reader entry)
+        (recur (position reader :row :col))
         (->> (position reader :end-row :end-col)
              (merge start-position)
              (with-meta entry))))))

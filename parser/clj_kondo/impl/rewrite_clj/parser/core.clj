@@ -85,16 +85,11 @@
 (defmethod parse-next* :whitespace
   [reader]
   (reader/read-while reader reader/whitespace?)
-  (parse-next reader))
+  reader)
 
 (defn parse-comment [reader]
-  (reader/ignore reader)
-  (node/comment-node (reader/read-include-linebreak reader)))
-
-(defmethod parse-next* :comment
-  [reader]
-  (parse-comment reader)
-  (parse-next reader))
+  (reader/read-include-linebreak reader)
+  reader)
 
 ;; ### Special Values
 
@@ -128,7 +123,7 @@
     \' (node/var-node (parse-printables reader :var 1 true))
     \= (node/eval-node (parse-printables reader :eval 1 true))
     \_ (do (parse-printables reader :uneval 1 true)
-           (parse-next reader))
+           reader)
     ;; begin patch patch
     \: (nm/parse-namespaced-map reader parse-next)
     ;; end patch
