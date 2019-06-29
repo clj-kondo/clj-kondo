@@ -7,9 +7,7 @@
    [clj-kondo.impl.rewrite-clj.parser
     [keyword :refer [parse-keyword]]
     [string :refer [parse-string parse-regex]]
-    [token :refer [parse-token]]
-    [whitespace :refer [parse-whitespace]]]
-   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as r]))
+    [token :as token]]))
 
 ;; ## Base Parser
 
@@ -29,8 +27,26 @@
                     \: :keyword}
                    c :token)))
 
-(defmulti ^:private parse-next*
-  (comp #'dispatch reader/peek))
+#_(defmulti ^:private parse-next*
+    (comp #'dispatch reader/peek))
+
+(declare parse-eof parse-whitespace parse-delimiter parse-meta parse-sharp
+         parse-list parse-vector parse-map parse-unmatched parse-unquote
+         parse-quote parse-syntax-quote parse-comment parse-deref parse-token)
+
+(defn parse-next* [reader]
+  (let [c (reader/peek reader)
+        f (cond (nil? c)               parse-eof
+                (reader/whitespace? c) parse-whitespace
+                (= c *delimiter*)      parse-delimiter
+                :else (get {\^ parse-meta      \# parse-sharp
+                            \( parse-list      \[ parse-vector    \{ parse-map
+                            \} parse-unmatched \] parse-unmatched \) parse-unmatched
+                            \~ parse-unquote   \' parse-quote     \` parse-syntax-quote
+                            \; parse-comment   \@ parse-deref     \" parse-string
+                            \: parse-keyword}
+                           c parse-token))]
+    (f reader)))
 
 (defn parse-next
   [reader]
@@ -60,59 +76,83 @@
 
 ;; ### Base
 
-(defmethod parse-next* :token
+(defn parse-token
+  [reader]
+  (token/parse-token reader))
+
+#_(defmethod parse-next* :token
   [reader]
   (parse-token reader))
 
-(defmethod parse-next* :delimiter
-  [reader]
+(defn parse-delimiter [reader]
   (reader/ignore reader))
 
-(defmethod parse-next* :unmatched
+#_(defmethod parse-next* :delimiter
   [reader]
+  (parse-delimiter reader))
+
+(defn parse-unmatched [reader]
   (reader/throw-reader
    reader
    "Unmatched delimiter: %s"
    (reader/peek reader)))
 
-(defmethod parse-next* :eof
+#_(defmethod parse-next* :unmatched
+  [reader]
+  (parse-unmatched reader))
+
+(defn parse-eof
   [reader]
   (when *delimiter*
     (reader/throw-reader reader "Unexpected EOF.")))
 
+#_(defmethod parse-next* :eof
+  [reader]
+  (parse-eof reader))
+
 ;; ### Whitespace
 
-(defmethod parse-next* :whitespace
+(defn parse-whitespace
   [reader]
   (reader/read-while reader reader/whitespace?)
   reader)
 
-(defmethod parse-next* :comment
+#_(defmethod parse-next* :whitespace
+  [reader]
+  (parse-whitespace reader))
+
+(defn parse-comment
   [reader]
   (reader/read-include-linebreak reader)
   reader)
 
+#_(defmethod parse-next* :comment
+  [reader]
+  (parse-comment reader))
+
 ;; ### Special Values
 
-(defmethod parse-next* :keyword
+#_(defmethod parse-next* :keyword
   [reader]
   (parse-keyword reader))
 
-(defmethod parse-next* :string
+#_(defmethod parse-next* :string
   [reader]
   (parse-string reader))
 
 ;; ### Meta
 
-(defmethod parse-next* :meta
-  [reader]
+(defn parse-meta [reader]
   (reader/ignore reader)
   (node/meta-node (parse-printables reader :meta 2)))
 
+#_(defmethod parse-next* :meta
+  [reader]
+  (parse-meta reader))
+
 ;; ### Reader Specialities
 
-(defmethod parse-next* :sharp
-  [reader]
+(defn parse-sharp [reader]
   (reader/ignore reader)
   (case (reader/peek reader)
     nil (reader/throw-reader reader "Unexpected EOF.")
@@ -149,21 +189,37 @@
                   (read1)))))
     (node/reader-macro-node (parse-printables reader :reader-macro 2))))
 
-(defmethod parse-next* :deref
+#_(defmethod parse-next* :sharp
+  [reader]
+  (parse-sharp reader))
+
+(defn parse-deref
   [reader]
   (node/deref-node (parse-printables reader :deref 1 true)))
 
+#_(defmethod parse-next* :deref
+  [reader]
+  (parse-deref reader))
+
 ;; ## Quotes
 
-(defmethod parse-next* :quote
+(defn parse-quote
   [reader]
   (node/quote-node (parse-printables reader :quote 1 true)))
 
-(defmethod parse-next* :syntax-quote
+#_(defmethod parse-next* :quote
+  [reader]
+  (parse-quote reader))
+
+(defn parse-syntax-quote
   [reader]
   (node/syntax-quote-node (parse-printables reader :syntax-quote 1 true)))
 
-(defmethod parse-next* :unquote
+#_(defmethod parse-next* :syntax-quote
+  [reader]
+  (parse-syntax-quote reader))
+
+(defn parse-unquote
   [reader]
   (reader/ignore reader)
   (let [c (reader/peek reader)]
@@ -173,16 +229,30 @@
       (node/unquote-node
        (parse-printables reader :unquote 1)))))
 
+#_(defmethod parse-next* :unquote
+  [reader]
+  (parse-unquote reader))
+
 ;; ### Seqs
 
-(defmethod parse-next* :list
-  [reader]
+(defn parse-list [reader]
   (node/list-node (parse-delim reader \))))
 
-(defmethod parse-next* :vector
+#_(defmethod parse-next* :list
   [reader]
+  (parse-list reader))
+
+(defn parse-vector [reader]
   (node/vector-node (parse-delim reader \])))
 
-(defmethod parse-next* :map
+#_(defmethod parse-next* :vector
+  [reader]
+  (parse-vector reader))
+
+(defn parse-map
   [reader]
   (node/map-node (parse-delim reader \})))
+
+#_(defmethod parse-next* :map
+  [reader]
+  (parse-map reader))
