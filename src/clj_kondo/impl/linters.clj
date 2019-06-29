@@ -143,6 +143,17 @@
           (= 1 (count fas)) (first fas)
           :else (str (str/join ", " (pop arities)) " or " (peek arities)))))
 
+(defn arity-error [ns-name fn-name called-with fixed-arities var-args-min-arity]
+  (format "%s is called with %s %s but expects %s"
+          (if ns-name (str ns-name "/" fn-name) fn-name)
+          (str called-with)
+          (if (= 1 called-with) "arg" "args")
+          (show-arities fixed-arities var-args-min-arity)))
+
+(comment
+  
+  )
+
 (defn lint-calls
   "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters."
   [ctx idacs]
@@ -204,11 +215,7 @@
                                  :col (:col call)
                                  :level :error
                                  :type :invalid-arity
-                                 :message (format "%s is called with %s %s but expects %s"
-                                                  (str (:ns called-fn) "/" (:name called-fn))
-                                                  (str (:arity call))
-                                                  (if (= 1 (:arity call)) "arg" "args")
-                                                  (show-arities fixed-arities var-args-min-arity))})
+                                 :message (arity-error (:ns called-fn) (:name called-fn) (:arity call) fixed-arities var-args-min-arity)})
                               (when (and (:private called-fn)
                                          (not= caller-ns
                                                fn-ns))

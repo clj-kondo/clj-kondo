@@ -12,6 +12,7 @@
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.linters :as linters]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call keyword-call node->line
@@ -572,24 +573,26 @@
       xs))
 
 (defn analyze-binding-call [{:keys [:callstack :config :findings] :as ctx} fn-name expr]
-  (namespace/reg-used-binding! ctx
-                               (-> ctx :ns :name)
-                               (get (:bindings ctx) fn-name))
-  (when-not (config/skip? config :invalid-arity callstack)
-    (let [filename (:filename ctx)
-          children (:children expr)]
-      (when-not (linter-disabled? ctx :invalid-arity)
-        (when-let [{:keys [:fixed-arities :var-args-min-arity]}
-                   (get (:arities ctx) fn-name)]
-          (let [arg-count (count (rest children))]
-            (when-not (or (contains? fixed-arities arg-count)
-                          (and var-args-min-arity (>= arg-count var-args-min-arity)))
-              (findings/reg-finding! findings (node->line filename expr :error
-                                                          :invalid-arity
-                                                          (format "wrong number of args (%s) passed to %s"
-                                                                  arg-count
-                                                                  fn-name)))))))
-      (analyze-children ctx (rest children)))))
+  (let [ns-name (-> ctx :ns :name)]
+    (namespace/reg-used-binding! ctx
+                                 ns-name
+                                 (get (:bindings ctx) fn-name))
+    (when-not (config/skip? config :invalid-arity callstack)
+      (let [filename (:filename ctx)
+            children (:children expr)]
+        (when-not (linter-disabled? ctx :invalid-arity)
+          (when-let [{:keys [:fixed-arities :var-args-min-arity]}
+                     (get (:arities ctx) fn-name)]
+            (let [arg-count (count (rest children))]
+              (when-not (or (contains? fixed-arities arg-count)
+                            (and var-args-min-arity (>= arg-count var-args-min-arity)))
+                (findings/reg-finding! findings (node->line filename expr :error
+                                                            :invalid-arity
+                                                            (linters/arity-error nil #_ns-name fn-name arg-count fixed-arities var-args-min-arity)
+                                                            #_(format "wrong number of args (%s) passed to %s"
+                                                                    arg-count
+                                                                    fn-name)))))))
+        (analyze-children ctx (rest children))))))
 
 (defn lint-inline-def! [{:keys [:in-def? :findings :filename]} expr]
   (when in-def?
@@ -923,9 +926,9 @@
                 (> arg-count 2))
         (findings/reg-finding! findings
                                (node->line (:filename ctx) expr :error :invalid-arity
-                                           (format "wrong number of args (%s) passed to keyword :%s"
-                                                   arg-count
-                                                   kw-str)))))))
+                                           (format "keyword :%s is called with %s args but expects 1 or 2"
+                                                   kw-str
+                                                   arg-count)))))))
 
 (defn lint-map-call! [{:keys [:callstack :config
                               :findings] :as ctx} _the-map arg-count expr]
@@ -935,7 +938,7 @@
       (findings/reg-finding!
        findings
        (node->line (:filename ctx) expr :error :invalid-arity
-                   (format "wrong number of args (%s) passed to a map"
+                   (format "map is called with %s args but expects 1 or 2"
                            arg-count))))))
 
 (defn lint-symbol-call! [{:keys [:callstack :config :findings] :as ctx} _the-symbol arg-count expr]
@@ -945,7 +948,7 @@
       (findings/reg-finding!
        findings
        (node->line (:filename ctx) expr :error :invalid-arity
-                   (format "wrong number of args (%s) passed to a symbol"
+                   (format "symbol is called with %s args but expects 1 or 2"
                            arg-count))))))
 
 (defn reg-not-a-function! [{:keys [:filename :callstack
