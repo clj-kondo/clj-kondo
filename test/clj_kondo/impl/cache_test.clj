@@ -72,7 +72,7 @@
                      (io/file bar-file))
             (let [output (lint! bar-file "--cache" test-cache-dir)]
               (is (str/includes? (:message (first output))
-                                 "wrong number of args (3) passed to foo/foo")))))
+                                 "foo/foo is called with 3 args but expects 1")))))
         (testing "arity of foo has changed"
           (io/copy "(ns foo) (defn foo [x y])"
                    (io/file test-source-dir (str "foo."
@@ -84,7 +84,7 @@
                      (io/file bar-file))
             (let [output (lint! bar-file "--cache" test-cache-dir)]
               (is (str/includes? (:message (first output))
-                                 "wrong number of args (1) passed to foo/foo")))
+                                 "foo/foo is called with 1 arg but expects 2")))
             (io/copy "(ns bar (:require [foo :refer [foo]])) (foo 1 2)"
                      (io/file bar-file))
             (let [output (lint! bar-file "--cache" test-cache-dir)]
@@ -109,7 +109,7 @@
           (lint! foo "--cache" test-cache-dir)
           (let [output (lint! bar "--cache" test-cache-dir)]
             (is (str/includes? (:message (first output))
-                               "wrong number of args (3) passed to foo/foo")))))))
+                               "foo/foo is called with 3 args but expects 1")))))))
   (testing ":refer :all ns is loaded from cache"
     (let [tmp-dir (System/getProperty "java.io.tmpdir")
           test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
@@ -128,7 +128,7 @@
       (lint! foo "--cache" test-cache-dir)
       (let [output (lint! bar "--cache" test-cache-dir)]
         (is (str/includes? (:message (first output))
-                           "wrong number of args (3) passed to foo/foo"))))))
+                           "foo/foo is called with 3 args but expects 1"))))))
 
 (deftest lock-test
   (let [tmp-dir (System/getProperty "java.io.tmpdir")
