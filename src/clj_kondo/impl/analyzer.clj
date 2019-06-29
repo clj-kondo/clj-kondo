@@ -3,7 +3,7 @@
   (:require
    [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.spec :as spec]
-   [clj-kondo.impl.analyzer.usages :refer [#_analyze-usages analyze-usages2]]
+   [clj-kondo.impl.analyzer.usages :refer [analyze-usages2]]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.keys :as key-linter]
@@ -586,12 +586,10 @@
             (let [arg-count (count (rest children))]
               (when-not (or (contains? fixed-arities arg-count)
                             (and var-args-min-arity (>= arg-count var-args-min-arity)))
-                (findings/reg-finding! findings (node->line filename expr :error
-                                                            :invalid-arity
-                                                            (linters/arity-error nil #_ns-name fn-name arg-count fixed-arities var-args-min-arity)
-                                                            #_(format "wrong number of args (%s) passed to %s"
-                                                                    arg-count
-                                                                    fn-name)))))))
+                (findings/reg-finding! findings
+                                       (node->line filename expr :error
+                                                   :invalid-arity
+                                                   (linters/arity-error nil fn-name arg-count fixed-arities var-args-min-arity)))))))
         (analyze-children ctx (rest children))))))
 
 (defn lint-inline-def! [{:keys [:in-def? :findings :filename]} expr]
