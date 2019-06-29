@@ -2,26 +2,20 @@
 
 set -euo pipefail
 
-# err=0
-# function _trap_error() {
-#     local exit_code="$1"
-#     if [ "$exit_code" -eq 2 ]; then
-#         err |= "$exit_code"
-#     fi
-# }
-
-# trap '_trap_error $?' ERR
-# trap 'exit $err' SIGINT SIGTERM
-
+# populate mvn cache for extract tests
 clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.9.0"}}}' -Spath > /dev/null
 clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.10.1"}}}' -Spath > /dev/null
 clojure -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.10.520"}}}' -Spath > /dev/null
 
+if [ "$CLJ_KONDO_TEST_ENV" = "native" ]; then
+    clojure -A:test
+else
+    echo "Testing with Clojure 1.9.0"
+    clojure -A:clojure-1.9.0:test
+    lein with-profiles +clojure-1.9.0 test
 
-echo "Testing with Clojure 1.9.0"
-clojure -A:clojure-1.9.0:test
-
-echo "Testing with Clojure 1.10.1"
-clojure -A:clojure-1.10.1:test
-
+    echo "Testing with Clojure 1.10.1"
+    clojure -A:clojure-1.10.1:test
+    lein with-profiles +clojure-1.10.1 test
+fi
 # sexit "$err"
