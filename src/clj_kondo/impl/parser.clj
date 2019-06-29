@@ -20,5 +20,5 @@
 ;;;; Scratch
 
 (comment
-  (parse-string "#::{:a 1}")
+  (parse-string "(+ 1 2 3) #_1 2 ;; no")
   )
