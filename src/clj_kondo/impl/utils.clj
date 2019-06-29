@@ -5,7 +5,6 @@
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
-   [clj-kondo.impl.rewrite-clj.node.whitespace :refer [whitespace?]]
    [clj-kondo.impl.rewrite-clj.parser :as p]))
 
 ;;; export rewrite-clj functions
@@ -58,24 +57,6 @@
   (let [syms (set syms)]
     `(and (= :list (tag ~expr))
           ((quote ~syms) (:value (first (:children ~expr)))))))
-
-(declare remove-noise*)
-
-(defn remove-noise-children [expr]
-  (if-let [children (:children expr)]
-    (let [new-children (doall (keep remove-noise* children))]
-      (assoc expr :children new-children))
-    expr))
-
-(defn remove-noise* [node]
-  (when-not (or (whitespace? node)
-                (uneval? node)
-                (comment? node))
-    (remove-noise-children node)))
-
-(defn remove-noise [expr]
-  (profiler/profile :remove-noise
-                    (remove-noise* expr)))
 
 ;; this zipper version is much slower than the above
 #_(defn remove-noise
@@ -135,13 +116,11 @@
      :filename filename}))
 
 (defn parse-string [s]
-  (remove-noise (p/parse-string s)))
+  (p/parse-string s))
 
 (defn parse-string-all
   [s]
-  (let [p (profiler/profile :rewrite-clj-parse-string-all
-                            (p/parse-string-all s))]
-    (profiler/profile :remove-noise (remove-noise p))))
+  (p/parse-string-all s))
 
 (def vconj (fnil conj []))
 

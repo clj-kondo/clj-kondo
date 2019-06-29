@@ -2,7 +2,8 @@
   {:no-doc true}
   (:require
    [clojure.string :as str]
-   [clj-kondo.impl.utils :refer [parse-string-all]]))
+   [clj-kondo.impl.utils :refer [parse-string-all]]
+   [clj-kondo.impl.profiler :refer [profile]]))
 
 (defn parse-string [s]
   (let [input (-> s
@@ -14,11 +15,11 @@
                   #_(str/replace #_"#:a{#::a {:a b}}"
                                #"#(::?)(.*?)\{" (fn [[_ colons name]]
                                                   (str "#_" colons name "{"))))
-        parsed (parse-string-all input)]
+        parsed (profile :parse-string-all (parse-string-all input))]
     parsed))
 
 ;;;; Scratch
 
 (comment
-  (parse-string "#::{:a 1}")
+  (parse-string "(+ 1 2 3) #_1 2 ;; no")
   )

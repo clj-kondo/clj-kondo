@@ -84,15 +84,13 @@
 
 (defmethod parse-next* :whitespace
   [reader]
-  (parse-whitespace reader))
-
-(defn parse-comment [reader]
-  (reader/ignore reader)
-  (node/comment-node (reader/read-include-linebreak reader)))
+  (reader/read-while reader reader/whitespace?)
+  reader)
 
 (defmethod parse-next* :comment
   [reader]
-  (parse-comment reader))
+  (reader/read-include-linebreak reader)
+  reader)
 
 ;; ### Special Values
 
@@ -118,14 +116,16 @@
   (reader/ignore reader)
   (case (reader/peek reader)
     nil (reader/throw-reader reader "Unexpected EOF.")
-    \! (parse-comment reader)
+    \! (do (reader/read-include-linebreak reader)
+           reader)
     \{ (node/set-node (parse-delim reader \}))
     \( (node/fn-node (parse-delim reader \)))
     \" (node/regex-node (parse-regex reader))
     \^ (node/raw-meta-node (parse-printables reader :meta 2 true))
     \' (node/var-node (parse-printables reader :var 1 true))
     \= (node/eval-node (parse-printables reader :eval 1 true))
-    \_ (node/uneval-node (parse-printables reader :uneval 1 true))
+    \_ (do (parse-printables reader :uneval 1 true)
+           reader)
     ;; begin patch patch
     \: (nm/parse-namespaced-map reader parse-next)
     ;; end patch
