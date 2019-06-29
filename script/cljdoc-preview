@@ -15,3 +15,4 @@ docker run --rm -v "$PWD:/clj-kondo" \
 
 echo "---- cljdoc preview: starting server on port 8000"
 docker run --rm -p 8000:8000 -v /tmp/cljdoc:/app/data cljdoc/cljdoc
+# go directly to http://localhost:8000/d/clj-kondo/clj-kondo/2019.06.24-alpha-SNAPSHOT, not via the search

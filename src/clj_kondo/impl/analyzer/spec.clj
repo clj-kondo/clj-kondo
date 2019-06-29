@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.analyzer.spec
+  {:no-doc true}
   (:require
    [clj-kondo.impl.utils :as utils]
    [clj-kondo.impl.findings :as findings]

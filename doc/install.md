@@ -13,18 +13,12 @@ To upgrade:
 
     brew upgrade clj-kondo
 
-## Scoop (Windows)
+## Arch Linux
 
-Note: clj-kondo on Windows is considered experimental. Until we sort out [this issue](https://github.com/borkdude/clj-kondo/issues/276), the scoop package will not be updated. You can try the latest binary from [Github](https://github.com/borkdude/clj-kondo/releases).
+`clj-kondo` is [available](https://aur.archlinux.org/packages/clj-kondo-bin/) in the [Arch User Repository](https://aur.archlinux.org). It can be installed using your favorite [AUR](https://aur.archlinux.org) helper such as
+[yay](https://github.com/Jguer/yay), [yaourt](https://github.com/archlinuxfr/yaourt), [apacman](https://github.com/oshazard/apacman) and [pacaur](https://github.com/rmarquis/pacaur). Here is an example using `yay`:
 
-To install clj-kondo on Windows you can use [scoop](https://scoop.sh):
-
-     scoop bucket add borkdude https://github.com/borkdude/scoop-bucket
-     scoop install clj-kondo
-
-To upgrade:
-
-    scoop update clj-kondo
+    yay -S clj-kondo-bin
 
 ## Installation script (MacOS and Linux)
 
@@ -45,12 +39,18 @@ or
 
 To upgrade, just run the script again.
 
-## Arch Linux
+## Scoop (Windows)
 
-`clj-kondo` is [available](https://aur.archlinux.org/packages/clj-kondo-bin/) in the [Arch User Repository](https://aur.archlinux.org). It can be installed using your favourite [AUR](https://aur.archlinux.org) helper such as
-[yay](https://github.com/Jguer/yay), [yaourt](https://github.com/archlinuxfr/yaourt), [apacman](https://github.com/oshazard/apacman) and [pacaur](https://github.com/rmarquis/pacaur). Here is an example using `yay`:
+Note: clj-kondo on Windows is considered experimental. Until we sort out [this issue](https://github.com/borkdude/clj-kondo/issues/276), the scoop package will not be updated. You can try the latest binary from [Github](https://github.com/borkdude/clj-kondo/releases).
 
-    yay -S clj-kondo-bin
+To install clj-kondo on Windows you can use [scoop](https://scoop.sh):
+
+     scoop bucket add borkdude https://github.com/borkdude/scoop-bucket
+     scoop install clj-kondo
+
+To upgrade:
+
+    scoop update clj-kondo
 
 ## Manual install
 

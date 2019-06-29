@@ -7,6 +7,7 @@
 ;;   You must not remove this notice, or any other, from this software.
 
 (ns clj-kondo.impl.toolsreader.v1v2v2.cljs.tools.reader
+  {:no-doc true}
   (:refer-clojure :exclude [read read-line read-string char
                             default-data-readers *default-data-reader-fn*
                             *data-readers* *suppress-read*])
