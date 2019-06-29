@@ -87,7 +87,8 @@
   (reader/read-while reader reader/whitespace?)
   reader)
 
-(defn parse-comment [reader]
+(defmethod parse-next* :comment
+  [reader]
   (reader/read-include-linebreak reader)
   reader)
 
