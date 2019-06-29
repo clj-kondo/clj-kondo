@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-JAVA_VERSION=$(java -version 2>&1 | sed -n ';s/.* version "\(.*\)\(.*\).*"/\1\2/p;' | cut -f 1 -d " ")
+# JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-12.jdk/Contents/Home
 
-if [ -z "$JAVA_HOME" ] || [ "$JAVA_VERSION" -lt 12 ]; then
-    echo "Set JAVA_HOME to JDK 12 or later."
+JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -f 3 -d " ")
+
+if [ -z "$JAVA_HOME" ] || [ "$JAVA_VERSION" != "\"12.0.1\"" ]; then
+    echo "Set JAVA_HOME to Adopt OpenJDK 12.0.1."
     exit 1
 fi
 
@@ -17,6 +19,7 @@ mkdir -p /tmp/transit
     cd /tmp
     git clone https://github.com/openjdk/jdk.git
     cd /tmp/jdk
+    ## note, it's not important that this succeeds, cant't get it to work on Mojave
     bash configure
 else
     cd /tmp/jdk
@@ -26,14 +29,14 @@ fi
 cd /tmp/jdk
 make java.base-gensrc )
 
-clojure -C:extract -e "(compile 'clj-kondo.impl.ExtractJava)"
+clojure -R:clojure-1.10.1 -C:extract -e "(compile 'clj-kondo.impl.ExtractJava)"
 read -r -d '' source_path <<EOF
 /tmp/jdk/src/java.base/share/classes:/tmp/jdk/src/java.base/unix/classes\
 :/tmp/jdk/src/java.base/macosx/classes\
 :/tmp/jdk/build/macosx-x86_64-server-release/support/gensrc/java.base
 EOF
 
-clojure -A:extract -m clj-kondo.impl.ExtractJava "/tmp/transit" \
+clojure -R:clojure-1.10.1 -A:extract -m clj-kondo.impl.ExtractJava "/tmp/transit" \
         "-public" "--source-path" "$source_path" \
         "java.lang" "java.math"
 

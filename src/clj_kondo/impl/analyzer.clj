@@ -15,9 +15,8 @@
    [clj-kondo.impl.linters :as linters]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.utils :as utils :refer
-    [symbol-call keyword-call node->line
-     parse-string parse-string-all tag select-lang
-     vconj deep-merge one-of linter-disabled? tag sexpr]]
+    [symbol-call keyword-call node->line parse-string parse-string-all tag
+     select-lang vconj deep-merge one-of linter-disabled? tag sexpr kw->sym]]
    [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
@@ -543,7 +542,7 @@
         m (first children)
         ns (:ns ctx)
         ns-keyword (-> expr :ns :k)
-        ns-sym (symbol ns-keyword)
+        ns-sym (kw->sym ns-keyword)
         used (when (:aliased? expr)
                (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
                  [{:type :use

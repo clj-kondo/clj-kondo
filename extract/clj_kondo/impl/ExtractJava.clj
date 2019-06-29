@@ -33,8 +33,8 @@
         task (.getTask dt nil fm nil ExtractJava extra-args nil)]
     (.call task))
   (println "done...")
-  (println "writing extracted results to java.edn")
-  (spit "resources/clj_kondo/java.edn" @extracted)
+  (println "writing extracted results to java-info.edn")
+  (spit "resources/clj_kondo/impl/java-info.edn" @extracted)
   (let [extracted-java
         (reduce (fn [acc entry]
                   (let [ns (symbol (:class entry))

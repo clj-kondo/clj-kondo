@@ -14,7 +14,7 @@ fi
 
 CLJ_KONDO_VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
-lein do clean, uberjar
+lein with-profiles +clojure-1.10.1 do clean, uberjar
 $GRAALVM_HOME/bin/native-image \
   -jar target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar \
   -H:Name=clj-kondo \

@@ -207,6 +207,9 @@
 (defn linter-disabled? [ctx linter]
   (= :off (get-in ctx [:config :linters linter :level])))
 
+(defn kw->sym [^clojure.lang.Keyword k]
+  (.sym k))
+
 ;;;; Scratch
 
 (comment

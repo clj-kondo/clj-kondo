@@ -5,7 +5,10 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call keyword-call node->line
      parse-string parse-string-all tag select-lang
-     vconj deep-merge one-of symbol-from-token tag]]))
+     vconj deep-merge one-of symbol-from-token tag
+     kw->sym]]))
+
+(set! *warn-on-reflection* true)
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
@@ -45,7 +48,7 @@
                                                resolved-ns))))))
                (when-let [keyword-val (:k expr)]
                  (when (:namespaced? expr)
-                   (let [symbol-val (symbol keyword-val)
+                   (let [symbol-val (kw->sym keyword-val)
                          {resolved-ns :ns
                           _resolved-name :name
                           _unqualified? :unqualified? :as _m}
