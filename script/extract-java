@@ -26,14 +26,14 @@ fi
 cd /tmp/jdk
 make java.base-gensrc )
 
-clojure -C:extract -e "(compile 'clj-kondo.impl.ExtractJava)"
+clojure -R:clojure-1.10.1 -C:extract -e "(compile 'clj-kondo.impl.ExtractJava)"
 read -r -d '' source_path <<EOF
 /tmp/jdk/src/java.base/share/classes:/tmp/jdk/src/java.base/unix/classes\
 :/tmp/jdk/src/java.base/macosx/classes\
 :/tmp/jdk/build/macosx-x86_64-server-release/support/gensrc/java.base
 EOF
 
-clojure -A:extract -m clj-kondo.impl.ExtractJava "/tmp/transit" \
+clojure -R:clojure-1.10.1 -A:extract -m clj-kondo.impl.ExtractJava "/tmp/transit" \
         "-public" "--source-path" "$source_path" \
         "java.lang" "java.math"
 

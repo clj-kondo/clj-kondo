@@ -8,7 +8,8 @@
                           :sha "a6e2771d4c8920582b68ab49522ede33e344bb99"}}}
            :test
            {:extra-deps
-            {test-runner
+            {org.clojure/clojure {:mvn/version "1.9.0"}
+             test-runner
              {:git/url "https://github.com/cognitect-labs/test-runner"
               :sha "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}
              clj-commons/conch {:mvn/version "0.9.2"}
@@ -18,6 +19,8 @@
               :sha "a6e2771d4c8920582b68ab49522ede33e344bb99"}}
             :extra-paths ["test" "extract"]
             :main-opts ["-m" "cognitect.test-runner"]}
+           :clojure-1.9.0 {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}
+           :clojure-1.10.1 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.1"}}}
            :profiler
            {:extra-deps
             {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.3.1"}}
