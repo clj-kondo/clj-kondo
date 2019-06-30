@@ -12,3 +12,13 @@
 (-foo nil 1)
 (-foo nil 1 2)
 (-foo nil 1 2 3) ;; wrong
+
+;; #314:
+(defprotocol IntoInputStream
+  (into-input-stream ^java.io.InputStream [this]))
+
+(ns useprotocol (:require [defprotocol :as protocols]))
+
+;; #314:
+(fn [x]
+  (some-> x protocols/into-input-stream clojure.core/slurp))

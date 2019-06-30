@@ -106,12 +106,15 @@
 
 (def lconj (fnil conj '()))
 
-(defmethod parse-next* :meta
-  [reader]
+(defn parse-meta [reader]
   (reader/ignore reader)
   (let [meta-node (parse-next reader)
         value-node (parse-next reader)]
     (update value-node :meta lconj meta-node)))
+
+(defmethod parse-next* :meta
+  [reader]
+  (parse-meta reader))
 
 ;; ### Reader Specialities
 
@@ -125,7 +128,7 @@
     \{ (node/set-node (parse-delim reader \}))
     \( (node/fn-node (parse-delim reader \)))
     \" (node/regex-node (parse-regex reader))
-    \^ (node/raw-meta-node (parse-printables reader :meta 2 true))
+    \^ (parse-meta reader) #_(node/raw-meta-node (parse-printables reader :meta 2 true))
     \' (node/var-node (parse-printables reader :var 1 true))
     \= (node/eval-node (parse-printables reader :eval 1 true))
     \_ (do (parse-printables reader :uneval 1 true)
