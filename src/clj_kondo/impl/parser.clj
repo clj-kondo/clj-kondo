@@ -2,7 +2,7 @@
   {:no-doc true}
   (:require
    [clojure.string :as str]
-   [clj-kondo.impl.utils :refer [parse-string-all]]
+   [clj-kondo.impl.utils :as utils :refer [parse-string-all]]
    [clj-kondo.impl.profiler :refer [profile]]))
 
 (defn parse-string [s]
@@ -22,4 +22,7 @@
 
 (comment
   (parse-string "(+ 1 2 3) #_1 2 ;; no")
+  (:meta (utils/parse-string "^{:a 1} [1 2 3]"))
+  (:meta (utils/parse-string "^{:a 1} ^{:b 1} [1 2 3]"))
+  (:meta (utils/parse-string "^{:a 1} ^{:b 1} [1 2 3]"))
   )

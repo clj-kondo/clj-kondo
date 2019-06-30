@@ -51,7 +51,7 @@
                 (extract-bindings ctx expr {})))
   ([{:keys [:skip-reg-binding?] :as ctx} expr
     {:keys [:keys-destructuring?] :as opts}]
-   (let [expr (meta/lift-meta-content ctx expr)
+   (let [expr (meta/lift-meta-content2 ctx expr)
          t (tag expr)
          findings (:findings ctx)]
      (case t
@@ -123,7 +123,7 @@
        (loop [[k v & rest-kvs] (:children expr)
               res {}]
          (if k
-           (let [k (meta/lift-meta-content ctx k)]
+           (let [k (meta/lift-meta-content2 ctx k)]
              (cond (:k k)
                    (do
                      (analyze-usages2 ctx k)
@@ -212,7 +212,7 @@
 (defn fn-bodies [ctx children]
   (loop [[expr & rest-exprs :as exprs] children]
     (when expr
-      (let [expr (meta/lift-meta-content ctx expr)
+      (let [expr (meta/lift-meta-content2 ctx expr)
             t (tag expr)]
         (case t
           :vector [{:children exprs}]
@@ -231,7 +231,7 @@
         children (:children expr)
         children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
         name-node (first children)
-        name-node (when name-node (meta/lift-meta-content ctx name-node))
+        name-node (when name-node (meta/lift-meta-content2 ctx name-node))
         fn-name (:value name-node)
         call (name (symbol-call expr))
         var-meta (meta name-node)
@@ -602,12 +602,12 @@
         var-name-nodes (next (:children expr))]
     (doseq [var-name-node var-name-nodes]
       (namespace/reg-var! ctx ns-name
-                          (->> var-name-node (meta/lift-meta-content ctx) :value)
+                          (->> var-name-node (meta/lift-meta-content2 ctx) :value)
                           expr
                           {:declared true}))))
 
 (defn analyze-def [ctx expr]
-  (let [var-name-node (->> expr :children second (meta/lift-meta-content ctx))
+  (let [var-name-node (->> expr :children second (meta/lift-meta-content2 ctx))
         metadata (meta var-name-node)
         var-name (:value var-name-node)]
     (when var-name
@@ -660,7 +660,7 @@
           :when (= :list (tag c)) ;; skip first docstring
           :let [children (:children c)
                 name-node (first children)
-                name-node (meta/lift-meta-content ctx name-node)
+                name-node (meta/lift-meta-content2 ctx name-node)
                 fn-name (:value name-node)
                 _ (when fn-name
                     (namespace/reg-var! ctx ns-name fn-name expr))
@@ -687,7 +687,7 @@
         type (-> children first :value)
         children (next children)
         name-node (first children)
-        name-node (meta/lift-meta-content ctx name-node)
+        name-node (meta/lift-meta-content2 ctx name-node)
         metadata (meta name-node)
         record-name (:value name-node)
         bindings? (not= 'definterface type)
@@ -962,7 +962,8 @@
   [{:keys [:bindings] :as ctx}
    {:keys [:children] :as expr}]
   (when expr
-    (let [t (tag expr)
+    (let [expr (meta/lift-meta-content2 ctx expr)
+          t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
       (case t

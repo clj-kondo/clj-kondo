@@ -104,10 +104,14 @@
 
 ;; ### Meta
 
+(def lconj (fnil conj '()))
+
 (defmethod parse-next* :meta
   [reader]
   (reader/ignore reader)
-  (node/meta-node (parse-printables reader :meta 2)))
+  (let [meta-node (parse-next reader)
+        value-node (parse-next reader)]
+    (update value-node :meta lconj meta-node)))
 
 ;; ### Reader Specialities
 
