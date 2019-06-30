@@ -959,10 +959,12 @@
   (analyze-children ctx (rest (:children expr))))
 
 (defn analyze-expression**
-  [{:keys [:bindings] :as ctx}
+  [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
   (when expr
-    (let [expr (meta/lift-meta-content2 ctx expr)
+    (let [expr (if (not= :edn lang)
+                 (meta/lift-meta-content2 ctx expr)
+                 expr)
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
