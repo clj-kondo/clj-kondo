@@ -1717,7 +1717,11 @@
                 (with-out-str
                   (lint! "#(inc %4)"
                          '{:linters {:unused-binding {:level :error}}
-                           :output {:format :edn}})))))))
+                           :output {:format :edn}}))))))
+  (is (empty? (lint! "(defn str-to-str [s] {:post [(string? %)]} s)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(fn [s] {:post [(string? %)]} s)"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest misc-false-positives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
