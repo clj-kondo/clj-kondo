@@ -1719,12 +1719,13 @@
                          '{:linters {:unused-binding {:level :error}}
                            :output {:format :edn}})))))))
 
-(deftest misc-false-negatives-test
+(deftest misc-false-positives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
   (is (empty? (lint! "(let [a 1] (cond-> (.getFoo a) x))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))")))
-  (is (empty? (lint! "(ns foo) (defn foo [] (ns bar (:require [clojure.string :as s])))"))))
+  (is (empty? (lint! "(ns foo) (defn foo [] (ns bar (:require [clojure.string :as s])))")))
+  (is (empty? (lint! "(defn foo [x y z] ^{:a x :b y :c z} [1 2 3])"))))
 
 (deftest file-error-test
   (assert-submaps '({:file "not-existing.clj",

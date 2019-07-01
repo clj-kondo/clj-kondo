@@ -41,7 +41,6 @@
 
 (defn lift-meta-content2 [ctx node]
   (if-let [meta-list (:meta node)]
-    ;; TODO: maybe analyze-usages2 already calls lint-map-keys?
     (let [_ (run! #(analyze-usages2 ctx %) meta-list)
           meta-maps (map #(meta-node->map ctx %) meta-list)
           meta-map (apply merge meta-maps)
@@ -55,5 +54,4 @@
 
 (comment
   (meta (lift-meta-content2 {} (clj-kondo.impl.utils/parse-string "^{:a 1 :a 2} []")))
-  m
   )

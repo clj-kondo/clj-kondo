@@ -58,5 +58,6 @@
                                              (-> ns :name)
                                              resolved-ns))))))
              ;; catch-call
-             (mapcat #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
-                     (:children expr)))))))))
+             (doall (mapcat
+                     #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
+                     (:children expr))))))))))
