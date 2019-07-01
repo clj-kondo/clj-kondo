@@ -32,7 +32,7 @@
 (defn- normalize-libspec
   "Adapted from clojure.tools.namespace."
   [ctx prefix libspec-expr]
-  (let [libspec-expr (meta/lift-meta-content ctx libspec-expr)
+  (let [libspec-expr (meta/lift-meta-content2 ctx libspec-expr)
         children (:children libspec-expr)
         form (sexpr libspec-expr)]
     (cond (prefix-spec? form)
@@ -153,7 +153,7 @@
 (defn analyze-ns-decl [{:keys [:lang :findings] :as ctx} expr]
   (let [children (:children expr)
         ns-name-expr (second children)
-        ns-name (meta/lift-meta-content ctx ns-name-expr)
+        ns-name (meta/lift-meta-content2 ctx ns-name-expr)
         metadata (meta ns-name)
         local-config (-> metadata :clj-kondo/config second)
         ns-name (or

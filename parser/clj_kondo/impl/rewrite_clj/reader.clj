@@ -132,9 +132,9 @@
     (when-let [entry (read-fn reader)]
       (if (identical? reader entry)
         (recur (position reader :row :col))
-        (->> (position reader :end-row :end-col)
-             (merge start-position)
-             (with-meta entry))))))
+        (let [end-position (position reader :end-row :end-col)
+              new-meta (merge start-position end-position (meta entry))]
+          (with-meta entry new-meta))))))
 
 (defn read-repeatedly
   "Call the given function on the given reader until it returns

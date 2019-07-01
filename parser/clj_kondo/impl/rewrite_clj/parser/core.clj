@@ -7,9 +7,7 @@
    [clj-kondo.impl.rewrite-clj.parser
     [keyword :refer [parse-keyword]]
     [string :refer [parse-string parse-regex]]
-    [token :refer [parse-token]]
-    [whitespace :refer [parse-whitespace]]]
-   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as r]))
+    [token :refer [parse-token]]]))
 
 ;; ## Base Parser
 
@@ -104,10 +102,17 @@
 
 ;; ### Meta
 
+(def lconj (fnil conj '()))
+
+(defn parse-meta [reader]
+  (reader/ignore reader)
+  (let [meta-node (parse-next reader)
+        value-node (parse-next reader)]
+    (update value-node :meta lconj meta-node)))
+
 (defmethod parse-next* :meta
   [reader]
-  (reader/ignore reader)
-  (node/meta-node (parse-printables reader :meta 2)))
+  (parse-meta reader))
 
 ;; ### Reader Specialities
 
@@ -121,7 +126,7 @@
     \{ (node/set-node (parse-delim reader \}))
     \( (node/fn-node (parse-delim reader \)))
     \" (node/regex-node (parse-regex reader))
-    \^ (node/raw-meta-node (parse-printables reader :meta 2 true))
+    \^ (parse-meta reader)
     \' (node/var-node (parse-printables reader :var 1 true))
     \= (node/eval-node (parse-printables reader :eval 1 true))
     \_ (do (parse-printables reader :uneval 1 true)

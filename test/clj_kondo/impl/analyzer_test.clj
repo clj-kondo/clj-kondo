@@ -8,15 +8,15 @@
    [clojure.test :as t :refer [deftest is are testing]]))
 
 (deftest lift-meta-test
-  (is (:private (meta (meta/lift-meta-content {:lang :clj
+  (is (:private (meta (meta/lift-meta-content2 {:lang :clj
                                                :namespaces (atom {})}
                                               (parse-string "^:private [x]")))))
-  (is (:private (meta (meta/lift-meta-content {:lang :clj
+  (is (:private (meta (meta/lift-meta-content2 {:lang :clj
                                                :namespaces (atom {})}
                                               (parse-string "#^ :private [x]")))))
-  (is (= "[B" (:tag (meta (meta/lift-meta-content {:lang :clj
-                                                   :namespaces (atom {})}
-                                                  (parse-string "^\"[B\" body")))))))
+  (is (= "[B" (:tag (meta (meta/lift-meta-content2 {:lang :clj
+                                                    :namespaces (atom {})}
+                                                   (parse-string "^\"[B\" body")))))))
 
 (def ctx
   (let [ctx {:filename "-"

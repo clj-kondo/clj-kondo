@@ -30,8 +30,28 @@
         meta-child))
     meta-node))
 
+(defn meta-node->map [ctx node]
+  (let [s (utils/sexpr node)]
+    (cond (keyword? s) {s true}
+          (map? s)
+          (do
+            (key-linter/lint-map-keys ctx node)
+            s)
+          :else {:tag s})))
+
+(defn lift-meta-content2 [ctx node]
+  (if-let [meta-list (:meta node)]
+    (let [_ (run! #(analyze-usages2 ctx %) meta-list)
+          meta-maps (map #(meta-node->map ctx %) meta-list)
+          meta-map (apply merge meta-maps)
+          node (-> node
+                   (dissoc :meta)
+                   (with-meta (merge (meta node) meta-map)))]
+      node)
+    node))
+
 ;;;; Scratch
 
 (comment
-
+  (meta (lift-meta-content2 {} (clj-kondo.impl.utils/parse-string "^{:a 1 :a 2} []")))
   )
