@@ -706,7 +706,13 @@
             :col 15,
             :level :error,
             :message "missing value for key :a"})
-         (lint! "(loop [x {:a {:a }}] x)"))))
+         (lint! "(loop [x {:a {:a }}] x)")))
+  (is (= '({:file "<stdin>",
+            :row 1,
+            :col 10,
+            :level :error,
+            :message "missing value for key :post"})
+         (lint! "(fn [x] {:post} x)"))))
 
 (deftest set-duplicate-key
   (is (= '({:file "<stdin>",
@@ -1712,16 +1718,16 @@
   (is (empty? (lint! "Var Namespace LazySeq UUID"
                      '{:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
+  (is (empty? (lint! "(defn str-to-str [s] {:post [(string? %)]} s)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(fn [s] {:post [(string? %)]} s)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (:findings
                (edn/read-string
                 (with-out-str
                   (lint! "#(inc %4)"
                          '{:linters {:unused-binding {:level :error}}
-                           :output {:format :edn}}))))))
-  (is (empty? (lint! "(defn str-to-str [s] {:post [(string? %)]} s)"
-                     '{:linters {:unresolved-symbol {:level :error}}})))
-  (is (empty? (lint! "(fn [s] {:post [(string? %)]} s)"
-                     '{:linters {:unresolved-symbol {:level :error}}}))))
+                           :output {:format :edn}})))))))
 
 (deftest misc-false-positives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
