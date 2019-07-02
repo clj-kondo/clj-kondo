@@ -133,7 +133,7 @@
                                      dev?)
                  (sources-from-jar file))
             ;; assume normal source file
-            [(ana/analyze-input ctx filename (slurp filename)
+            [(ana/analyze-input ctx filename (slurp file)
                                 (lang-from-file filename default-language)
                                 dev?)])
           ;; assume directory
