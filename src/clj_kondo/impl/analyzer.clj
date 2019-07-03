@@ -195,19 +195,42 @@
      :arity arity
      :analyzed-arg-vec (:analyzed arg-bindings)}))
 
-(defn analyze-fn-body [{:keys [bindings] :as ctx} body]
+(defn ctx-with-bindings [ctx bindings]
+  (update ctx :bindings (fn [b]
+                          (into b bindings))))
+
+(defn analyze-pre-post-map [ctx expr]
+  (let [children (:children expr)]
+    (key-linter/lint-map-keys ctx expr)
+    (mapcat (fn [[key-expr value-expr]]
+              (let [analyzed-key (analyze-expression** ctx key-expr)
+                    analyzed-value (if (= :post (:k key-expr))
+                                     (analyze-expression**
+                                      (ctx-with-bindings ctx '{% {}}) value-expr)
+                                     (analyze-expression** ctx value-expr))]
+                (concat analyzed-key analyzed-value)))
+            (partition 2 children))))
+
+(defn analyze-fn-body [ctx body]
   (let [{:keys [:arg-bindings
                 :arity :analyzed-arg-vec]} (analyze-fn-arity ctx body)
+        ctx (ctx-with-bindings ctx arg-bindings)
+        ctx (assoc ctx
+                   :recur-arity arity
+                   :top-level? false)
         children (:children body)
         body-exprs (rest children)
+        pre-post-map (first body-exprs)
+        analyzed-pre-post-map
+        (if (= :map (when pre-post-map (tag pre-post-map)))
+          (analyze-pre-post-map ctx pre-post-map)
+          (analyze-expression** ctx pre-post-map))
+        body-exprs (rest body-exprs)
         parsed
-        (analyze-children
-         (assoc ctx
-                :bindings (merge bindings arg-bindings)
-                :recur-arity arity) body-exprs)]
+        (analyze-children ctx body-exprs)]
     (assoc arity
            :parsed
-           (concat analyzed-arg-vec parsed))))
+           (concat analyzed-pre-post-map analyzed-arg-vec parsed))))
 
 (defn fn-bodies [ctx children]
   (loop [[expr & rest-exprs :as exprs] children]
@@ -218,10 +241,6 @@
           :vector [{:children exprs}]
           :list exprs
           (recur rest-exprs))))))
-
-(defn ctx-with-bindings [ctx bindings]
-  (update ctx :bindings (fn [b]
-                          (into b bindings))))
 
 (defn ctx-with-linter-disabled [ctx linter]
   (assoc-in ctx [:config :linters linter :level] :off))
