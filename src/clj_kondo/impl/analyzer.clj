@@ -215,6 +215,9 @@
   (let [{:keys [:arg-bindings
                 :arity :analyzed-arg-vec]} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
+        ctx (assoc ctx
+                   :recur-arity arity
+                   :top-level? false)
         children (:children body)
         body-exprs (rest children)
         pre-post-map (first body-exprs)
@@ -224,9 +227,7 @@
           (analyze-expression** ctx pre-post-map))
         body-exprs (rest body-exprs)
         parsed
-        (analyze-children
-         (assoc ctx
-                :recur-arity arity) body-exprs)]
+        (analyze-children ctx body-exprs)]
     (assoc arity
            :parsed
            (concat analyzed-pre-post-map analyzed-arg-vec parsed))))

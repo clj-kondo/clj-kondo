@@ -23,7 +23,8 @@
              :namespaces (atom {})
              :findings (atom [])
              :base-lang :clj
-             :lang :clj}]
+             :lang :clj
+             :bindings {}}]
     (assoc ctx :ns (analyze-ns-decl ctx (parse-string "(ns user)")))))
 
 (deftest analyze-defn-test
