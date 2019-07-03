@@ -43,7 +43,8 @@
                                             #_(clj-kondo.impl.utils/one-of)
                                             (clojure.test/are)
                                             (clojure.test/is [thrown-with-msg?])
-                                            ]}}
+                                            ]}
+              :misplaced-docstring {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn

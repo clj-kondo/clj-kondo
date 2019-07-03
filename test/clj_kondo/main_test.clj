@@ -1797,6 +1797,15 @@
       :message "duplicate key :&::before"})
    (lint! "{:&::before 1 :&::before 1}")))
 
+(deftest misplaced-docstring
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 13,
+      :level :warning,
+      :message "misplaced docstring"})
+   (lint! "(defn f [x] \"dude\" x)")))
+
 ;;;; Scratch
 
 (comment

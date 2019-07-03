@@ -220,17 +220,26 @@
                    :top-level? false)
         children (:children body)
         body-exprs (rest children)
-        pre-post-map (first body-exprs)
-        analyzed-pre-post-map
-        (if (= :map (when pre-post-map (tag pre-post-map)))
-          (analyze-pre-post-map ctx pre-post-map)
-          (analyze-expression** ctx pre-post-map))
+        first-child (first body-exprs)
+        analyzed-first-child
+        (let [t (when first-child (tag first-child))]
+          (cond (= :map t)
+                (analyze-pre-post-map ctx first-child)
+                (and (= :token t) (:lines first-child)
+                     (> (count body-exprs) 1))
+                (findings/reg-finding! (:findings ctx)
+                                       (node->line (:filename ctx)
+                                                   first-child
+                                                   :warning
+                                                   :misplaced-docstring
+                                                   "misplaced docstring"))
+                :else (analyze-expression** ctx first-child)))
         body-exprs (rest body-exprs)
         parsed
         (analyze-children ctx body-exprs)]
     (assoc arity
            :parsed
-           (concat analyzed-pre-post-map analyzed-arg-vec parsed))))
+           (concat analyzed-first-child analyzed-arg-vec parsed))))
 
 (defn fn-bodies [ctx children]
   (loop [[expr & rest-exprs :as exprs] children]
