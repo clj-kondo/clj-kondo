@@ -117,8 +117,9 @@
   (println "==== Testing JVM version")
   (println "==== Testing native version"))
 
-(defn file-path [& more]
+(defn file-path
   "returns a file-path with platform specific file separator"
+  [& more]
   (.getPath ^java.io.File (apply io/file more)))
 
 ;;;; Scratch

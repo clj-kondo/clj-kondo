@@ -211,7 +211,7 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
-(defn analyze-fn-body [ctx body]
+(defn analyze-fn-body [{:keys [:docstring?] :as ctx} body]
   (let [{:keys [:arg-bindings
                 :arity :analyzed-arg-vec]} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
@@ -225,7 +225,8 @@
         (let [t (when first-child (tag first-child))]
           (cond (= :map t)
                 (analyze-pre-post-map ctx first-child)
-                (and (= :token t) (:lines first-child)
+                (and (not docstring?)
+                     (= :token t) (:lines first-child)
                      (> (count body-exprs) 1))
                 (findings/reg-finding! (:findings ctx)
                                        (node->line (:filename ctx)
@@ -256,9 +257,8 @@
 
 (defn analyze-defn [{:keys [:base-lang :lang :ns] :as ctx} expr]
   (let [ns-name (:name ns)
-        children (:children expr)
-        children (rest children) ;; "my-fn docstring" {:no-doc true} [x y z] x
-        name-node (first children)
+        ;; "my-fn docstring" {:no-doc true} [x y z] x
+        [name-node & children] (next (:children expr))
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
         fn-name (:value name-node)
         call (name (symbol-call expr))
@@ -277,10 +277,19 @@
              (cond-> (meta name-node)
                macro? (assoc :macro true)
                private? (assoc :private true))))
-        bodies (fn-bodies ctx (next children))
+        docstring? (:lines (first children))
+        bodies (fn-bodies ctx children)
+        _ (when (empty? bodies)
+            (findings/reg-finding! (:findings ctx)
+                                   (node->line (:filename ctx)
+                                               expr
+                                               :warning
+                                               :syntax
+                                               "invalid function body")))
         parsed-bodies (map #(analyze-fn-body
                              (assoc ctx
-                                    :in-def? true) %)
+                                    :in-def? true
+                                    :docstring? docstring?) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
