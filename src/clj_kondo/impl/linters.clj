@@ -202,10 +202,11 @@
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
                              errors
-                             [(when-not
-                                  (or (contains? fixed-arities arity)
-                                      (and var-args-min-arity (>= arity var-args-min-arity))
-                                      (config/skip? config :invalid-arity (rest (:callstack call))))
+                             [(when (and (or (not-empty fixed-arities)
+                                             var-args-min-arity)
+                                         (not (or (contains? fixed-arities arity)
+                                                  (and var-args-min-arity (>= arity var-args-min-arity))
+                                                  (config/skip? config :invalid-arity (rest (:callstack call))))))
                                 {:filename filename
                                  :row (:row call)
                                  :col (:col call)

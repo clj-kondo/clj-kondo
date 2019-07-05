@@ -125,9 +125,19 @@
         :message "clojure.core/defn is called with 0 args but expects 2 or more"}
        {:file "<stdin>",
         :row 1,
+        :col 1,
+        :level :error,
+        :message "invalid function body"}
+       {:file "<stdin>",
+        :row 1,
         :col 8,
         :level :error,
-        :message "clojure.core/defmacro is called with 0 args but expects 2 or more"})
+        :message "clojure.core/defmacro is called with 0 args but expects 2 or more"}
+       {:file "<stdin>",
+        :row 1,
+        :col 8,
+        :level :error,
+        :message "invalid function body"})
      (lint! "(defn) (defmacro)")))
   (testing "redefining clojure var gives no error about incorrect arity of clojure var"
     (is (empty? (lint! "(defn inc [x y] (+ x y))
@@ -794,21 +804,26 @@
 
 (deftest schema-defn-test
   (assert-submaps
-   [{:file "corpus/schema/calls.clj",
-     :row 4,
-     :col 1,
-     :level :error,
-     :message "schema.defs/verify-signature is called with 0 args but expects 3"}
-    {:file "corpus/schema/calls.clj",
-     :row 4,
-     :col 1,
-     :level :error,
-     :message "call to private function schema.defs/verify-signature"}
-    {:file "corpus/schema/defs.clj",
-     :row 10,
-     :col 1,
-     :level :error,
-     :message "schema.defs/verify-signature is called with 2 args but expects 3"}]
+   '({:file "corpus/schema/calls.clj",
+      :row 4,
+      :col 1,
+      :level :error,
+      :message "schema.defs/verify-signature is called with 0 args but expects 3"}
+     {:file "corpus/schema/calls.clj",
+      :row 4,
+      :col 1,
+      :level :error,
+      :message "call to private function schema.defs/verify-signature"}
+     {:file "corpus/schema/defs.clj",
+      :row 10,
+      :col 1,
+      :level :error,
+      :message "schema.defs/verify-signature is called with 2 args but expects 3"}
+     {:file "corpus/schema/defs.clj",
+      :row 12,
+      :col 1,
+      :level :error,
+      :message "invalid function body"})
    (lint! (io/file "corpus" "schema")
           '{:linters {:unresolved-symbol {:level :error}}})))
 
@@ -1796,6 +1811,27 @@
       :level :error,
       :message "duplicate key :&::before"})
    (lint! "{:&::before 1 :&::before 1}")))
+
+(deftest misplaced-docstring-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 13,
+      :level :warning,
+      :message "misplaced docstring"})
+   (lint! "(defn f [x] \"dude\" x)"))
+  (is (empty? (lint! "(defn f [x] \"dude\")")))
+  ;; for now this is empty, but in the next version we might warn about the
+  ;; string "dude" being a discarded value
+  (is (empty? (lint! "(defn f \"dude\" [x] \"dude\" x)"))))
+
+(deftest defn-syntax-test
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 1,
+                     :level :error,
+                     :message "invalid function body"})
+                  (lint! "(defn f \"dude\" x) (f 1)")))
 
 ;;;; Scratch
 
