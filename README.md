@@ -5,7 +5,7 @@
 [![cljdoc badge](https://cljdoc.org/badge/clj-kondo/clj-kondo)](https://cljdoc.org/d/clj-kondo/clj-kondo/CURRENT)
 [![project chat](https://img.shields.io/badge/slack-join_chat-brightgreen.svg)](https://clojurians.slack.com/messages/CHY97NXE2)
 
-A minimal and opinionated linter for Clojure code that sparks joy.
+A linter for Clojure code that sparks joy.
 
 <img src="screenshots/demo.png" width="50%" align="right">
 
@@ -33,6 +33,7 @@ clj-kondo detects:
 * unused function arguments and let bindings
 * redefined vars
 * unresolved symbols
+* misplaced docstrings
 * duplicate map keys and set elements
 * missing map keys
 * invalid number of forms in binding vectors
