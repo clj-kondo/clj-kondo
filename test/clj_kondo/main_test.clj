@@ -1833,6 +1833,15 @@
                      :message "invalid function body"})
                   (lint! "(defn f \"dude\" x) (f 1)")))
 
+(deftest not-empty?-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "use the idiom (seq x) rather than (not (empty? x))"})
+   (lint! "(not (empty? [1]))")))
+
 ;;;; Scratch
 
 (comment
