@@ -1,6 +1,6 @@
 # clj-kondo
 [![CircleCI](https://circleci.com/gh/borkdude/clj-kondo/tree/master.svg?style=shield)](https://circleci.com/gh/borkdude/clj-kondo/tree/master)
-[![Build status](https://ci.appveyor.com/api/projects/status/3jdro7mu17nv3rb3/branch/master?svg=true)](https://ci.appveyor.com/project/borkdude/clj-kondo/branch/master)
+[![Financial Contributors on Open Collective](https://opencollective.com/clj-kondo/all/badge.svg?label=financial+contributors)](https://opencollective.com/clj-kondo) [![Build status](https://ci.appveyor.com/api/projects/status/3jdro7mu17nv3rb3/branch/master?svg=true)](https://ci.appveyor.com/project/borkdude/clj-kondo/branch/master)
 [![Clojars Project](https://img.shields.io/clojars/v/clj-kondo.svg)](https://clojars.org/clj-kondo)
 [![cljdoc badge](https://cljdoc.org/badge/clj-kondo/clj-kondo)](https://cljdoc.org/d/clj-kondo/clj-kondo/CURRENT)
 [![project chat](https://img.shields.io/badge/slack-join_chat-brightgreen.svg)](https://clojurians.slack.com/messages/CHY97NXE2)
@@ -160,6 +160,36 @@ This project is inspired by [joker](https://github.com/candid82/joker). It uses
 the project. The parsing of Clojure code relies on
 [rewrite-clj](https://github.com/xsc/rewrite-clj). It uses `var-info.edn` and
 some ideas from [eastwood](https://github.com/jonase/eastwood).
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/borkdude/clj-kondo/graphs/contributors"><img src="https://opencollective.com/clj-kondo/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/clj-kondo/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/clj-kondo"><img src="https://opencollective.com/clj-kondo/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/clj-kondo/contribute)]
+
+<a href="https://opencollective.com/clj-kondo/organization/0/website"><img src="https://opencollective.com/clj-kondo/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/clj-kondo/organization/1/website"><img src="https://opencollective.com/clj-kondo/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/clj-kondo/organization/2/website"><img src="https://opencollective.com/clj-kondo/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/clj-kondo/organization/3/website"><img src="https://opencollective.com/clj-kondo/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/clj-kondo/organization/4/website"><img src="https://opencollective.com/clj-kondo/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/clj-kondo/organization/5/website"><img src="https://opencollective.com/clj-kondo/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/clj-kondo/organization/6/website"><img src="https://opencollective.com/clj-kondo/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/clj-kondo/organization/7/website"><img src="https://opencollective.com/clj-kondo/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/clj-kondo/organization/8/website"><img src="https://opencollective.com/clj-kondo/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/clj-kondo/organization/9/website"><img src="https://opencollective.com/clj-kondo/organization/9/avatar.svg"></a>
 
 ## License
 
