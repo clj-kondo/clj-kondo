@@ -889,7 +889,8 @@
       :col 79,
       :level :warning,
       :message "missing test assertion"})
-   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set])) (t/deftest foo (set/subset? #{1 2} #{1 2 3}))")))
+   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set]))
+     (t/deftest foo (set/subset? #{1 2} #{1 2 3}))")))
 
 (deftest recur-test
   (assert-submaps
@@ -954,7 +955,11 @@
       :level :error,
       :message "foo/foo is called with 3 args but expects 1"})
    (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
-          '{:lint-as {foo/my-defn clojure.core/defn}})))
+          '{:lint-as {foo/my-defn clojure.core/defn}}))
+  (is (empty?
+       (lint! "(ns foo) (defmacro deftest [name & body] `(defn ~name [] ~@body)) (deftest foo)"
+              '{:linters {:unresolved-symbol {:level :warning}}
+                :lint-as {foo/deftest clojure.test/deftest}}))))
 
 (deftest letfn-test
   (assert-submaps '({:file "<stdin>",
