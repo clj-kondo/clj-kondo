@@ -1,4 +1,4 @@
-<img src="doc/logo.png">
+<img src="logo/logo.png">
 
 [![CircleCI](https://circleci.com/gh/borkdude/clj-kondo/tree/master.svg?style=shield)](https://circleci.com/gh/borkdude/clj-kondo/tree/master)
 [![Build status](https://ci.appveyor.com/api/projects/status/3jdro7mu17nv3rb3/branch/master?svg=true)](https://ci.appveyor.com/project/borkdude/clj-kondo/branch/master)
