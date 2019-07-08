@@ -9,7 +9,7 @@ assignees: ''
 
 **version**
 
-[ Please specify which version of clj-kondo you're using.]
+[ Please specify which version of clj-kondo you're using. You can find this with `clj-kondo --version`.]
 
 **platform**
 
