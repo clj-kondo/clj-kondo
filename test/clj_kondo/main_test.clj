@@ -885,8 +885,8 @@
    (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest foo (odd? 1))"))
   (assert-submaps
    '({:file "<stdin>",
-      :row 1,
-      :col 79,
+      :row 2,
+      :col 21,
       :level :warning,
       :message "missing test assertion"})
    (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set]))
