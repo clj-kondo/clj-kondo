@@ -190,7 +190,9 @@
                      :col 1,
                      :level :error,
                      :message "spec.alpha/def is called with 2 args but expects 3"})
-                  (lint! (io/file "corpus" "spec"))))
+                  (lint! (io/file "corpus" "spec")))
+  (is (empty? (lint! "(defn foo [#?(:default s :clj s)]) (foo 1)"
+                     "--lang" "cljc"))))
 
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
