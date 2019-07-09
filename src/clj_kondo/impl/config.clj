@@ -44,7 +44,8 @@
                                             (clojure.test/are)
                                             (clojure.test/is [thrown-with-msg?])
                                             ]}
-              :misplaced-docstring {:level :warning}}
+              :misplaced-docstring {:level :warning}
+              :not-empty? {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -109,7 +110,8 @@
 
 (def lint-as-config (memoize lint-as-config*))
 
-(defn lint-as [config v] (get (lint-as-config config) v))
+(defn lint-as [config v]
+  (get (lint-as-config config) v))
 
 (def unused-namespace-excluded
   (let [delayed-cfg (fn [config]

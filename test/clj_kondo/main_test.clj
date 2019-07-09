@@ -190,7 +190,9 @@
                      :col 1,
                      :level :error,
                      :message "spec.alpha/def is called with 2 args but expects 3"})
-                  (lint! (io/file "corpus" "spec"))))
+                  (lint! (io/file "corpus" "spec")))
+  (is (empty? (lint! "(defn foo [#?(:default s :clj s)]) (foo 1)"
+                     "--lang" "cljc"))))
 
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
@@ -885,11 +887,12 @@
    (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest foo (odd? 1))"))
   (assert-submaps
    '({:file "<stdin>",
-      :row 1,
-      :col 79,
+      :row 2,
+      :col 21,
       :level :warning,
       :message "missing test assertion"})
-   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set])) (t/deftest foo (set/subset? #{1 2} #{1 2 3}))")))
+   (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set]))
+     (t/deftest foo (set/subset? #{1 2} #{1 2 3}))")))
 
 (deftest recur-test
   (assert-submaps
@@ -954,7 +957,11 @@
       :level :error,
       :message "foo/foo is called with 3 args but expects 1"})
    (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
-          '{:lint-as {foo/my-defn clojure.core/defn}})))
+          '{:lint-as {foo/my-defn clojure.core/defn}}))
+  (is (empty?
+       (lint! "(ns foo) (defmacro deftest [name & body] `(defn ~name [] ~@body)) (deftest foo)"
+              '{:linters {:unresolved-symbol {:level :warning}}
+                :lint-as {foo/deftest clojure.test/deftest}}))))
 
 (deftest letfn-test
   (assert-submaps '({:file "<stdin>",
@@ -1832,6 +1839,15 @@
                      :level :error,
                      :message "invalid function body"})
                   (lint! "(defn f \"dude\" x) (f 1)")))
+
+(deftest not-empty?-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "use the idiom (seq x) rather than (not (empty? x))"})
+   (lint! "(not (empty? [1]))")))
 
 ;;;; Scratch
 

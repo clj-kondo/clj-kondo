@@ -1,4 +1,5 @@
-# clj-kondo
+<img src="logo/logo-300dpi.png" width="400px">
+
 [![CircleCI](https://circleci.com/gh/borkdude/clj-kondo/tree/master.svg?style=shield)](https://circleci.com/gh/borkdude/clj-kondo/tree/master)
 [![Build status](https://ci.appveyor.com/api/projects/status/3jdro7mu17nv3rb3/branch/master?svg=true)](https://ci.appveyor.com/project/borkdude/clj-kondo/branch/master)
 [![Clojars Project](https://img.shields.io/clojars/v/clj-kondo.svg)](https://clojars.org/clj-kondo)
@@ -153,13 +154,14 @@ All other error codes indicate an unexpected error.
 
 ## [Building from source](doc/build.md)
 
-## Credits
+## Thanks to:
 
-This project is inspired by [joker](https://github.com/candid82/joker). It uses
-[clj.native-image](https://github.com/taylorwood/clj.native-image) for compiling
-the project. The parsing of Clojure code relies on
-[rewrite-clj](https://github.com/xsc/rewrite-clj). It uses `var-info.edn` and
-some ideas from [eastwood](https://github.com/jonase/eastwood).
+- [joker](https://github.com/candid82/joker) for inspiration
+- [rewrite-clj](https://github.com/xsc/rewrite-clj) for the Clojure parser code
+- [eastwood](https://github.com/jonase/eastwood) for `var-info.edn` and inspiration
+- [contributors](https://github.com/borkdude/clj-kondo/graphs/contributors) and
+  other users posting issues with bug reports and ideas
+- [Nikita Prokopov](https://github.com/tonsky) for the logo
 
 ## License
 

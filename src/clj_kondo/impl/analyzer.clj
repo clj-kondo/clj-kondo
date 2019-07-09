@@ -811,6 +811,18 @@
   (analyze-children (ctx-with-linter-disabled ctx :unresolved-symbol)
                     (next (:children expr))))
 
+(defn analyze-empty?
+  [ctx expr]
+  (let [cs (:callstack ctx)
+        not-expr (one-of (second cs) [[clojure.core not] [cljs.core not]])]
+    (when not-expr
+      (findings/reg-finding!
+       (:findings ctx)
+       (node->line (:filename ctx) not-expr
+                   :warning :not-empty?
+                   "use the idiom (seq x) rather than (not (empty? x))")))
+    (analyze-children ctx (:children expr))))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -836,7 +848,8 @@
         ctx (if fq-sym
               (update ctx :callstack
                       (fn [cs]
-                        (cons [resolved-namespace resolved-name] cs)))
+                        (cons (with-meta [resolved-namespace resolved-name]
+                                (meta expr)) cs)))
               ctx)
         resolved-as-clojure-var-name
         (when (one-of resolved-as-namespace [clojure.core cljs.core])
@@ -897,8 +910,9 @@
           areduce (analyze-areduce ctx expr)
           this-as (analyze-this-as ctx expr)
           memfn (analyze-memfn ctx expr)
+          empty? (analyze-empty? ctx expr)
           ;; catch-all
-          (case [resolved-namespace resolved-name]
+          (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]
             (analyze-schema-defn ctx expr)
             ([clojure.test deftest] [cljs.test deftest])

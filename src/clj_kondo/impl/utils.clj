@@ -76,10 +76,17 @@
 (defn process-reader-conditional [node lang]
   (if (= :reader-macro (and node (node/tag node)))
     (let [tokens (-> node :children last :children)]
-      (loop [[k v & ts] tokens]
-        (if (= lang (:k k))
-          v
-          (when (seq ts) (recur ts)))))
+      (loop [[k v & ts] tokens
+             default nil]
+        (let [kw (:k k)
+              default (or default
+                          (when (= :default kw)
+                            v))]
+          (if (= lang kw)
+            v
+            (if (seq ts)
+              (recur ts default)
+              default)))))
     node))
 
 (declare select-lang*)
