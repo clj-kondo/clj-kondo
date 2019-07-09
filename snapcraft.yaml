@@ -1,0 +1,27 @@
+# build: snapcraft
+# test: https://snapcraft.io/first-snap/pre-built/macos/test
+# push: snapcraft push clj-kondo_..._.snap
+name: clj-kondo
+version: 2019.07.05-alpha
+summary: A linter for Clojure code that sparks joy.
+description: |
+  A linter for Clojure code that sparks joy.
+confinement: strict
+base: core18
+grade: stable
+
+parts:
+  clj-kondo:
+    plugin: dump
+    source: https://github.com/borkdude/clj-kondo/releases/download/v$SNAPCRAFT_PROJECT_VERSION/clj-kondo-$SNAPCRAFT_PROJECT_VERSION-linux-amd64.zip
+
+plugs:
+  clj-kondo-dir:
+    interface: personal-files
+    read: [$HOME/.clj-kondo]
+    write: [$HOME/.clj-kondo]
+
+apps:
+  clj-kondo:
+    command: clj-kondo
+    plugs: [home, clj-kondo-dir]
