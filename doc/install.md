@@ -23,7 +23,7 @@ To give clj-kondo access to your home directory:
 
     sudo snap connect clj-kondo:home
 
-In snap directories starting with a dot in the root of the home directory are treated specially. To give clj-kondo access to `$HOME/.clj-kondo`:
+With snap, directories starting with a dot in the root of the home directory, e.g. `~/.clj-kondo`, are treated specially. To give clj-kondo access to `~/.clj-kondo`:
 
     sudo snap connect clj-kondo:clj-kondo-dir
 
