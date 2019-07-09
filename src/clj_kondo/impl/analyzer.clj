@@ -912,7 +912,7 @@
           memfn (analyze-memfn ctx expr)
           empty? (analyze-empty? ctx expr)
           ;; catch-all
-          (case [resolved-namespace resolved-name]
+          (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]
             (analyze-schema-defn ctx expr)
             ([clojure.test deftest] [cljs.test deftest])
