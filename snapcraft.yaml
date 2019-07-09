@@ -6,8 +6,9 @@ version: 2019.07.05-alpha
 summary: A linter for Clojure code that sparks joy.
 description: |
   A linter for Clojure code that sparks joy.
-confinement: classic
+confinement: strict
 base: core18
+grade: stable
 
 parts:
   clj-kondo:
@@ -17,3 +18,4 @@ parts:
 apps:
   clj-kondo:
     command: clj-kondo
+    plugs: [home]
