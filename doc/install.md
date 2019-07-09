@@ -13,6 +13,24 @@ To upgrade:
 
     brew upgrade clj-kondo
 
+## Snap (Linux)
+
+To install:
+
+    sudo snap install clj-kondo
+
+To give clj-kondo access to your home directory:
+
+    sudo snap connect clj-kondo:home
+
+In snap directories starting with a dot in the root of the home directory are treated specially. To give clj-kondo access to `$HOME/.clj-kondo`:
+
+    sudo snap connect clj-kondo:clj-kondo-dir
+
+To upgrade:
+
+    sudo snap refresh clj-kondo
+
 ## Arch Linux
 
 `clj-kondo` is [available](https://aur.archlinux.org/packages/clj-kondo-bin/) in the [Arch User Repository](https://aur.archlinux.org). It can be installed using your favorite [AUR](https://aur.archlinux.org) helper such as
