@@ -69,3 +69,4 @@ flycheck_*.el
 clj-kondo
 **/.clj-kondo/.cache
 performance.txt
+clj-kondo*.snap
