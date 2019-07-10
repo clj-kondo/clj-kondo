@@ -20,9 +20,13 @@
      (if (one-of tag [:unquote :unquote-splicing])
        (when-let [f (:analyze-expression** ctx)]
          (f ctx expr))
-       (when-not quote?
-         (let [syntax-quote? (or syntax-quote?
-                                 (= :syntax-quote tag))]
+       (when (or (not quote?)
+                 ;; when we're in syntax-quote, we should still look for
+                 ;; unquotes, since these will be evaluated first
+                 syntax-quote?)
+         (let [syntax-quote?
+               (or syntax-quote?
+                   (= :syntax-quote tag))]
            (case tag
              :token
              (if-let [symbol-val (symbol-from-token expr)]

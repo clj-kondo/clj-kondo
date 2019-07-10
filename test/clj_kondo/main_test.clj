@@ -1429,6 +1429,14 @@
       :message "unused binding a"})
    (lint! "#(let [a %])"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :warning,
+      :message "unused binding a"})
+   (lint! "(let [a 1] `{:a 'a})"
+          '{:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
@@ -1457,6 +1465,10 @@
   (is (empty? (lint! "(doseq [{ts :tests {:keys [then]} :then} nodes]
                         (doseq [test (map :test ts)] test)
                         then)"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(let [a 1] (cond-> (.getFoo a) x))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defmacro foo [] (let [sym 'my-symbol] `(do '~sym)))"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 (deftest unsupported-binding-form-test
@@ -1753,8 +1765,6 @@
 
 (deftest misc-false-positives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
-  (is (empty? (lint! "(let [a 1] (cond-> (.getFoo a) x))"
-                     '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))")))
   (is (empty? (lint! "(ns foo) (defn foo [] (ns bar (:require [clojure.string :as s])))")))
   (is (empty? (lint! "(defn foo [x y z] ^{:a x :b y :c z} [1 2 3])"))))
