@@ -29,7 +29,7 @@
        (or (keyword? (second form))  ; vector like [foo :as f]
            (= 1 (count form)))))  ; bare vector like [foo]
 
-(defn- normalize-libspec
+(defn normalize-libspec
   "Adapted from clojure.tools.namespace."
   [ctx prefix libspec-expr]
   (let [libspec-expr (meta/lift-meta-content2 ctx libspec-expr)
@@ -77,7 +77,7 @@
             self-require? (and
                            (= :cljc base-lang)
                            (= :cljs lang)
-                           (= current-ns-name ns-name)
+                           #_(= current-ns-name ns-name)
                            (= :require-macros require-kw))]
         (loop [children options
                {:keys [:as :referred :excluded
@@ -150,6 +150,16 @@
              {imported java-package})
     nil))
 
+(defn analyze-require-clauses [ctx ns-name clauses]
+  (for [?require-clause clauses
+        :let [require-kw (some-> ?require-clause :children first :k
+                                 (one-of [:require :require-macros]))]
+        :when require-kw
+        libspec-expr (rest (:children ?require-clause))
+        normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
+        analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
+    analyzed))
+
 (defn analyze-ns-decl [{:keys [:lang :findings] :as ctx} expr]
   (let [children (:children expr)
         ns-name-expr (second children)
@@ -170,14 +180,7 @@
                  'user)
         clauses (nnext children)
         require-clauses
-        (for [?require-clause clauses
-              :let [require-kw (some-> ?require-clause :children first :k
-                                       (one-of [:require :require-macros]))]
-              :when require-kw
-              libspec-expr (rest (:children ?require-clause))
-              normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
-              analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
-          analyzed)
+        (analyze-require-clauses ctx ns-name clauses)
         refer-alls (reduce (fn [acc clause]
                              (if (:referred-all clause)
                                (assoc acc (:ns clause) (:excluded clause))

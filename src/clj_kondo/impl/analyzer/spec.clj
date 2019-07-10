@@ -18,19 +18,21 @@
                                                  :error
                                                  :syntax
                                                  "expected symbol"))
-        (if-let [{resolved-ns :ns}
-                 (namespace/resolve-name ctx ns-name
-                                         sym)]
-          (namespace/reg-usage! ctx ns-name resolved-ns)
-          (findings/reg-finding! (:findings ctx)
-                                 (utils/node->line (:filename ctx)
-                                                   sym-expr
-                                                   :error
-                                                   :unresolved-symbol
-                                                   (str "unresolved symbol " sym))))))
+        (let [{resolved-ns :ns}
+              (namespace/resolve-name ctx ns-name
+                                      sym)]
+          (if resolved-ns
+            (namespace/reg-usage! ctx ns-name resolved-ns)
+            (findings/reg-finding! (:findings ctx)
+                                   (utils/node->line (:filename ctx)
+                                                     sym-expr
+                                                     :error
+                                                     :unresolved-symbol
+                                                     (str "unresolved symbol " sym)))))))
     (analyze-children ctx body)))
 
 ;;;; Scratch
+(require '[clj-kondo.impl.parser])
 
 (comment
   (:lines (first (:children (clj-kondo.impl.parser/parse-string "\"foo\"")))))

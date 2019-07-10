@@ -1673,7 +1673,17 @@
                      :row 11,
                      :col 4,
                      :level :error,
-                     :message "unresolved symbol unresolved-fn1"})
+                     :message "unresolved symbol unresolved-fn1"}
+                    {:file "corpus/unresolved_symbol.clj",
+                     :row 14,
+                     :col 1,
+                     :level :error,
+                     :message "unresolved symbol foo/bar"}
+                    {:file "corpus/unresolved_symbol.clj",
+                     :row 15,
+                     :col 1,
+                     :level :error,
+                     :message "unresolved symbol clojure.string/join"})
                   (lint! (io/file "corpus" "unresolved_symbol.clj")
                          '{:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps

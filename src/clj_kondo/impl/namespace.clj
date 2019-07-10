@@ -78,6 +78,21 @@
          conj binding)
   nil)
 
+(defn reg-required-namespaces!
+  [{:keys [:base-lang :lang :namespaces]} ns-sym require-clauses]
+  (swap! namespaces update-in [base-lang lang ns-sym]
+         (fn [ns]
+           (-> ns
+               ;; TODO: DRY with analyze-ns-decl
+               (update :required into (map :ns require-clauses))
+               (update :qualify-ns into (reduce (fn [acc sc]
+                                                  (cond-> (assoc acc (:ns sc) (:ns sc))
+                                                    (:as sc)
+                                                    (assoc (:as sc) (:ns sc))))
+                                                {}
+                                                require-clauses)))))
+  nil)
+
 (defn java-class? [s]
   (let [splits (str/split s #"\.")]
     (and (> (count splits) 2)
@@ -118,18 +133,19 @@
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
     (if-let [ns* (namespace name-sym)]
       (let [ns-sym (symbol ns*)]
-        (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                         ;; referring to the namespace we're in
-                         (when (= (:name ns) ns-sym)
-                           ns-sym))]
-          {:ns ns*
-           :name (symbol (name name-sym))}
-          (when (= :clj lang)
-            (when-let [ns* (or (get var-info/default-import->qname ns-sym)
-                               (get var-info/default-fq-imports ns-sym))]
-              {:java-interop? true
-               :ns ns*
-               :name (symbol (name name-sym))}))))
+        (or (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
+                            ;; referring to the namespace we're in
+                            (when (= (:name ns) ns-sym)
+                              ns-sym))]
+             {:ns ns*
+              :name (symbol (name name-sym))}
+             (when (= :clj lang)
+               (when-let [ns* (or (get var-info/default-import->qname ns-sym)
+                                  (get var-info/default-fq-imports ns-sym))]
+                 {:java-interop? true
+                  :ns ns*
+                  :name (symbol (name name-sym))})))
+            {:unqualified? true}))
       (or
        (get (:qualify-var ns)
             name-sym)
