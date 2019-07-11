@@ -1673,7 +1673,12 @@
                      :row 11,
                      :col 4,
                      :level :error,
-                     :message "unresolved symbol unresolved-fn1"})
+                     :message "unresolved symbol unresolved-fn1"}
+                    {:file "corpus/unresolved_symbol.clj",
+                     :row 18,
+                     :col 1,
+                     :level :error,
+                     :message "clojure.set/join is called with 0 args but expects 2 or 3"})
                   (lint! (io/file "corpus" "unresolved_symbol.clj")
                          '{:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
