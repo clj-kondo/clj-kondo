@@ -133,7 +133,9 @@
               :name (symbol (name name-sym))}
              (when (= :clj lang)
                (when-let [ns* (or (get var-info/default-import->qname ns-sym)
-                                  (get var-info/default-fq-imports ns-sym))]
+                                  (get var-info/default-fq-imports ns-sym)
+                                  ;; TODO: what about JS imports?
+                                  (get (:java-imports ns) ns-sym))]
                  {:java-interop? true
                   :ns ns*
                   :name (symbol (name name-sym))})))
