@@ -222,7 +222,16 @@
                                  :level :error
                                  :type :private-call
                                  :message (format "call to private function %s"
-                                                  (str (:ns called-fn) "/" (:name called-fn)))})]
+                                                  (str (:ns called-fn) "/" (:name called-fn)))})
+                              (when-let [deprecated (:deprecated called-fn)]
+                                {:filename filename
+                                 :row (:row call)
+                                 :col (:col call)
+                                 :level :error
+                                 :type :deprecated-var
+                                 :message (format "#'%s is deprecated since %s"
+                                                  (str (:ns called-fn) "/" (:name called-fn))
+                                                  deprecated)})]
                              _ (lint-specific-calls! (assoc ctx
                                                             :filename filename)
                                                      call called-fn)]

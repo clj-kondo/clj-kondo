@@ -264,8 +264,13 @@
         fn-name (:value name-node)
         call (name (symbol-call expr))
         var-meta (meta name-node)
+        var-meta (merge var-meta
+                        (let [fc (first children)]
+                          (when (= :map (tag fc))
+                            (sexpr fc))))
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
+        deprecated (:deprecated var-meta)
         ctx (if macro?
               (ctx-with-bindings ctx '{&env {}
                                        &form {}})
@@ -306,6 +311,7 @@
                    :lang lang
                    :expr expr}
             macro? (assoc :macro true)
+            deprecated (assoc :deprecated deprecated)
             (seq fixed-arities) (assoc :fixed-arities fixed-arities)
             private? (assoc :private private?)
             var-args-min-arity (assoc :var-args-min-arity var-args-min-arity)))]

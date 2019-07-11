@@ -45,7 +45,8 @@
                                             (clojure.test/is [thrown? thrown-with-msg?])
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
               :misplaced-docstring {:level :warning}
-              :not-empty? {:level :warning}}
+              :not-empty? {:level :warning}
+              :deprecated-var {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
