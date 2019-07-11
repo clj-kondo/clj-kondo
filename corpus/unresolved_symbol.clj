@@ -10,3 +10,10 @@
 (comment
   (unresolved-fn1)
   (unresolved-fn2))
+
+foo/bar ;; <- unresolved
+clojure.string/join ;; <- ignored
+
+(require '[clojure.set :refer [union]])
+(clojure.set/join) ;; <- should be resolved
+union ;; <- also resolved

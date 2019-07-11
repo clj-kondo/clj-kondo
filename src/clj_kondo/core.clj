@@ -115,8 +115,7 @@
 ;;;; Scratch
 
 (comment
-  (require '[clj-kondo.core :as clj-kondo])
-  (def res (clj-kondo/run!
+  (def res (run!
             {;; seq of string or file
              :files ["corpus" (io/file "test")]
              :config {:linters {:invalid-arity {:level :off}}}
@@ -125,5 +124,5 @@
              ;; only relevant when linting stdin
              :lang :clj}))
   (first (:findings res))
-  (clj-kondo/print! res)
+  (print! res)
   )

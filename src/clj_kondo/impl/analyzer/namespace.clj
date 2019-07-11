@@ -29,7 +29,7 @@
        (or (keyword? (second form))  ; vector like [foo :as f]
            (= 1 (count form)))))  ; bare vector like [foo]
 
-(defn- normalize-libspec
+(defn normalize-libspec
   "Adapted from clojure.tools.namespace."
   [ctx prefix libspec-expr]
   (let [libspec-expr (meta/lift-meta-content2 ctx libspec-expr)
@@ -150,6 +150,42 @@
              {imported java-package})
     nil))
 
+(defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
+  (let [analyzed (for [[require-kw libspecs] kw+libspecs
+                       libspec-expr libspecs
+                       normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
+                       analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
+                   analyzed)
+        refer-alls (reduce (fn [acc clause]
+                             (if (:referred-all clause)
+                               (assoc acc (:ns clause) (:excluded clause))
+                               acc))
+                           {}
+                           analyzed)]
+    {:required (map :ns analyzed)
+     :qualify-ns (reduce (fn [acc sc]
+                           (cond-> (assoc acc (:ns sc) (:ns sc))
+                             (:as sc)
+                             (assoc (:as sc) (:ns sc))))
+                         {}
+                         analyzed)
+     :qualify-var (into {} (mapcat :referred analyzed))
+     :refer-alls refer-alls
+     ;; TODO: rename to :used-namespaces for clarity
+     :used
+     (-> (case lang
+           :clj '#{clojure.core}
+           :cljs '#{cljs.core})
+         (into (keys refer-alls))
+         (conj ns-name)
+         (into (when-not
+                   (-> ctx :config :linters :unused-namespace :simple-libspec)
+                 (keep (fn [req]
+                         (when (and (not (:as req))
+                                    (empty? (:referred req)))
+                           (:ns req)))
+                       analyzed))))}))
+
 (defn analyze-ns-decl [{:keys [:lang :findings] :as ctx} expr]
   (let [children (:children expr)
         ns-name-expr (second children)
@@ -169,21 +205,13 @@
                                       "namespace name expected")))))
                  'user)
         clauses (nnext children)
-        require-clauses
-        (for [?require-clause clauses
-              :let [require-kw (some-> ?require-clause :children first :k
-                                       (one-of [:require :require-macros]))]
-              :when require-kw
-              libspec-expr (rest (:children ?require-clause))
-              normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
-              analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
-          analyzed)
-        refer-alls (reduce (fn [acc clause]
-                             (if (:referred-all clause)
-                               (assoc acc (:ns clause) (:excluded clause))
-                               acc))
-                           {}
-                           require-clauses)
+        kw+libspecs (for [?require-clause clauses
+                          :let [require-kw (some-> ?require-clause :children first :k
+                                                   (one-of [:require :require-macros]))]
+                          :when require-kw]
+                      [require-kw (-> ?require-clause :children next)])
+        analyzed-require-clauses
+        (analyze-require-clauses ctx ns-name kw+libspecs)
         java-imports
         (apply merge
                (for [?import-clause clauses
@@ -193,41 +221,20 @@
                      libspec-expr (rest (:children ?import-clause))]
                  (analyze-java-import ctx ns-name libspec-expr)))
         ns (cond->
-               {:type :ns
-                :lang lang
-                :name ns-name
-                :bindings #{}
-                :used-bindings #{}
-                :vars #{}
-                :required (map :ns require-clauses)
-                :qualify-var (into {} (mapcat :referred require-clauses))
-                :qualify-ns (reduce (fn [acc sc]
-                                      (cond-> (assoc acc (:ns sc) (:ns sc))
-                                        (:as sc)
-                                        (assoc (:as sc) (:ns sc))))
-                                    {}
-                                    require-clauses)
-                :clojure-excluded (set (for [?refer-clojure (nnext (sexpr expr))
-                                             :when (= :refer-clojure (first ?refer-clojure))
-                                             [k v] (partition 2 (rest ?refer-clojure))
-                                             :when (= :exclude k)
-                                             sym v]
-                                         sym))
-                :refer-alls refer-alls
-                ;; TODO: rename to :used-namespaces for clarity
-                :used (-> (case lang
-                            :clj '#{clojure.core}
-                            :cljs '#{cljs.core})
-                          (into (keys refer-alls))
-                          (conj ns-name)
-                          (into (when-not
-                                    (-> ctx :config :linters :unused-namespace :simple-libspec)
-                                    (keep (fn [req]
-                                            (when (and (not (:as req))
-                                                       (empty? (:referred req)))
-                                              (:ns req)))
-                                          require-clauses))))
-                :java-imports java-imports}
+               (merge {:type :ns
+                       :lang lang
+                       :name ns-name
+                       :bindings #{}
+                       :used-bindings #{}
+                       :vars #{}
+                       :clojure-excluded (set (for [?refer-clojure (nnext (sexpr expr))
+                                                    :when (= :refer-clojure (first ?refer-clojure))
+                                                    [k v] (partition 2 (rest ?refer-clojure))
+                                                    :when (= :exclude k)
+                                                    sym v]
+                                                sym))
+                       :java-imports java-imports}
+                      analyzed-require-clauses)
              local-config (assoc :config local-config)
              (= :clj lang) (update :qualify-ns
                                    #(assoc % 'clojure.core 'clojure.core))

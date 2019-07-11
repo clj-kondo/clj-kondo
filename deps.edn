@@ -1,6 +1,11 @@
 {:paths ["src" "parser" "resources" "inlined"]
  :deps {com.cognitect/transit-clj {:mvn/version "0.8.313"}}
- :aliases {:extract
+ :aliases {:clj-kondo
+           {:main-opts ["-m" "clj-kondo.main"]
+            :extra-deps
+            {org.clojure/clojure {:mvn/version "1.9.0"}}
+            :jvm-opts ["-Dclojure.main.report=stderr"]}
+           :extract
            {:extra-paths ["extract" "classes"]
             :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}
                          borkdude/eastwood

@@ -1,7 +1,8 @@
 (ns clj-kondo.impl.analyzer
   {:no-doc true}
   (:require
-   [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
+   [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
+    :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.spec :as spec]
    [clj-kondo.impl.analyzer.usages :refer [analyze-usages2]]
    [clj-kondo.impl.config :as config]
@@ -823,6 +824,19 @@
                    "use the idiom (seq x) rather than (not (empty? x))")))
     (analyze-children ctx (:children expr))))
 
+(defn analyze-require
+  "For now we only support the form (require '[...])"
+  [ctx expr]
+  (let [ns-name (-> ctx :ns :name)
+        children (next (:children expr))]
+    (when-let [child (first children)]
+      (when (= :quote (tag child))
+        (when-let [libspec-expr (first (:children child))]
+          (let [analyzed
+                (namespace-analyzer/analyze-require-clauses ctx ns-name [[:require [libspec-expr]]])]
+            (namespace/reg-required-namespaces! ctx ns-name analyzed)))))
+    (analyze-children ctx children)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -911,6 +925,8 @@
           this-as (analyze-this-as ctx expr)
           memfn (analyze-memfn ctx expr)
           empty? (analyze-empty? ctx expr)
+          require (if top-level? (analyze-require ctx expr)
+                      (analyze-children ctx (next (:children expr))))
           ;; catch-all
           (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]

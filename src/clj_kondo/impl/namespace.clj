@@ -78,6 +78,13 @@
          conj binding)
   nil)
 
+(defn reg-required-namespaces!
+  [{:keys [:base-lang :lang :namespaces]} ns-sym analyzed-require-clauses]
+  (swap! namespaces update-in [base-lang lang ns-sym]
+         (fn [ns]
+           (merge-with into ns analyzed-require-clauses)))
+  nil)
+
 (defn java-class? [s]
   (let [splits (str/split s #"\.")]
     (and (> (count splits) 2)
@@ -118,18 +125,19 @@
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
     (if-let [ns* (namespace name-sym)]
       (let [ns-sym (symbol ns*)]
-        (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                         ;; referring to the namespace we're in
-                         (when (= (:name ns) ns-sym)
-                           ns-sym))]
-          {:ns ns*
-           :name (symbol (name name-sym))}
-          (when (= :clj lang)
-            (when-let [ns* (or (get var-info/default-import->qname ns-sym)
-                               (get var-info/default-fq-imports ns-sym))]
-              {:java-interop? true
-               :ns ns*
-               :name (symbol (name name-sym))}))))
+        (or (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
+                            ;; referring to the namespace we're in
+                            (when (= (:name ns) ns-sym)
+                              ns-sym))]
+             {:ns ns*
+              :name (symbol (name name-sym))}
+             (when (= :clj lang)
+               (when-let [ns* (or (get var-info/default-import->qname ns-sym)
+                                  (get var-info/default-fq-imports ns-sym)
+                                  (get (:java-imports ns) ns-sym))]
+                 {:java-interop? true
+                  :ns ns*
+                  :name (symbol (name name-sym))})))))
       (or
        (get (:qualify-var ns)
             name-sym)

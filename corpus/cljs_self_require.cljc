@@ -3,5 +3,3 @@
 
 (defmacro foo [x]
   `(do (println ~x) (println ~x)))
-
-
