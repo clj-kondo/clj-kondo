@@ -265,7 +265,7 @@
         call (name (symbol-call expr))
         var-meta (meta name-node)
         var-meta (merge var-meta
-                        (let [fc (first children)]
+                        (when-let [fc (first children)]
                           (when (= :map (tag fc))
                             (sexpr fc))))
         macro? (or (= "defmacro" call)
