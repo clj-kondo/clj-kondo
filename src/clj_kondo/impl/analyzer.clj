@@ -827,13 +827,15 @@
 (defn analyze-require
   "For now we only support the form (require '[...])"
   [ctx expr]
-  (let [ns-name (-> ctx :ns :name)]
-    (when-let [child (second (:children expr))]
+  (let [ns-name (-> ctx :ns :name)
+        children (next (:children expr))]
+    (when-let [child (first children)]
       (when (= :quote (tag child))
         (when-let [libspec-expr (first (:children child))]
           (let [analyzed
                 (namespace-analyzer/analyze-require-clauses ctx ns-name [[:require [libspec-expr]]])]
-            (namespace/reg-required-namespaces! ctx ns-name analyzed)))))))
+            (namespace/reg-required-namespaces! ctx ns-name analyzed)))))
+    (analyze-children ctx children)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
@@ -923,7 +925,8 @@
           this-as (analyze-this-as ctx expr)
           memfn (analyze-memfn ctx expr)
           empty? (analyze-empty? ctx expr)
-          require (when top-level? (analyze-require ctx expr))
+          require (if top-level? (analyze-require ctx expr)
+                      (analyze-children ctx (next (:children expr))))
           ;; catch-all
           (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]

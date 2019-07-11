@@ -1037,6 +1037,13 @@
     (is (empty? (lint! "(ns foo (:require foo.specs))")))
     (is (seq (lint! "(ns foo (:require [foo.specs]))"
                     '{:linters {:unused-namespace {:simple-libspec true}}}))))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :warning,
+      :message "namespace clojure.set is required but never used"})
+   (lint! "(require '[clojure.set :refer [join]])"))
   (is (empty?
        (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
          ,(ns bar)
@@ -1071,7 +1078,8 @@
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "default.cljs"))))
   (is (empty? (lint! "(ns foo (:require [bar])) (:id bar/x)")))
   (is (empty? (lint! (io/file "corpus" "no_unused_namespace.clj"))))
-  (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{::b/keys [:baz]} nil] baz)"))))
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{::b/keys [:baz]} nil] baz)")))
+  (is (empty? (lint! "(require '[clojure.set :refer [join]]) join"))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
@@ -1469,6 +1477,8 @@
   (is (empty? (lint! "(let [a 1] (cond-> (.getFoo a) x))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defmacro foo [] (let [sym 'my-symbol] `(do '~sym)))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(let [s 'clojure.string] (require s))"
                      '{:linters {:unused-binding {:level :warning}}}))))
 
 (deftest unsupported-binding-form-test
