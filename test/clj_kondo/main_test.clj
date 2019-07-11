@@ -1784,7 +1784,9 @@
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
   (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))")))
   (is (empty? (lint! "(ns foo) (defn foo [] (ns bar (:require [clojure.string :as s])))")))
-  (is (empty? (lint! "(defn foo [x y z] ^{:a x :b y :c z} [1 2 3])"))))
+  (is (empty? (lint! "(defn foo [x y z] ^{:a x :b y :c z} [1 2 3])")))
+  (is (empty? (lint! (io/file "corpus" "deftest.cljc")
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest file-error-test
   (assert-submaps '({:file "not-existing.clj",

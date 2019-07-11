@@ -41,9 +41,9 @@
                                             #_(riemann.streams/where [service event])
                                             ;; ignore all unresolved symbols in one-of:
                                             #_(clj-kondo.impl.utils/one-of)
-                                            (clojure.test/are)
-                                            (clojure.test/is [thrown-with-msg?])
-                                            ]}
+                                            (clojure.test/are) (cljs.test/are)
+                                            (clojure.test/is [thrown? thrown-with-msg?])
+                                            (cljs.test/is [thrown? thrown-with-msg?])]}
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
