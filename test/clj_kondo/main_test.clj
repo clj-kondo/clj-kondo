@@ -1771,7 +1771,9 @@
                 (with-out-str
                   (lint! "#(inc %4)"
                          '{:linters {:unused-binding {:level :error}}
-                           :output {:format :edn}})))))))
+                           :output {:format :edn}}))))))
+  (is (empty? (lint! "(ns foo (:import [java.util.regex Pattern])) Pattern/compile"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest misc-false-positives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))

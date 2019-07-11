@@ -77,7 +77,7 @@
             self-require? (and
                            (= :cljc base-lang)
                            (= :cljs lang)
-                           #_(= current-ns-name ns-name)
+                           (= current-ns-name ns-name)
                            (= :require-macros require-kw))]
         (loop [children options
                {:keys [:as :referred :excluded
