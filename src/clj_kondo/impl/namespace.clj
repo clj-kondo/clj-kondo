@@ -79,18 +79,10 @@
   nil)
 
 (defn reg-required-namespaces!
-  [{:keys [:base-lang :lang :namespaces]} ns-sym require-clauses]
+  [{:keys [:base-lang :lang :namespaces]} ns-sym analyzed-require-clauses]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
-           (-> ns
-               ;; TODO: DRY with analyze-ns-decl
-               (update :required into (map :ns require-clauses))
-               (update :qualify-ns into (reduce (fn [acc sc]
-                                                  (cond-> (assoc acc (:ns sc) (:ns sc))
-                                                    (:as sc)
-                                                    (assoc (:as sc) (:ns sc))))
-                                                {}
-                                                require-clauses)))))
+           (merge-with into ns analyzed-require-clauses)))
   nil)
 
 (defn java-class? [s]

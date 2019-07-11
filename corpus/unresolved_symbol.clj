@@ -14,5 +14,6 @@
 foo/bar ;; <- unresolved
 clojure.string/join ;; <- unresolved
 
-(require '[clojure.set])
-clojure.set/join ;; <- should not be unresolved anymore
+(require '[clojure.set :refer [union]])
+clojure.set/join ;; <- should be resolved
+union ;; <- also resolved

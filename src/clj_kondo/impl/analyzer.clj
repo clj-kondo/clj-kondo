@@ -831,11 +831,9 @@
     (when-let [child (second (:children expr))]
       (when (= :quote (tag child))
         (when-let [libspec-expr (first (:children child))]
-          (let [require-clauses
-                (for [normalized-libspec-expr (namespace-analyzer/normalize-libspec ctx nil libspec-expr)
-                      clause (namespace-analyzer/analyze-libspec ctx ns-name :require normalized-libspec-expr)]
-                  clause)]
-            (namespace/reg-required-namespaces! ctx ns-name require-clauses)))))))
+          (let [analyzed
+                (namespace-analyzer/analyze-require-clauses ctx ns-name [[:require [libspec-expr]]])]
+            (namespace/reg-required-namespaces! ctx ns-name analyzed)))))))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
