@@ -300,9 +300,10 @@
                                                :syntax
                                                "invalid function body")))
         parsed-bodies (map #(analyze-fn-body
-                             (assoc ctx
-                                    :in-def? true
-                                    :docstring? docstring?) %)
+                             (-> ctx
+                                 (assoc :in-def? true
+                                        :docstring? docstring?
+                                        :defined-in fn-name)) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
@@ -963,22 +964,24 @@
                                         (meta (first children))))
     (if (= 'ns resolved-as-clojure-var-name)
       analyzed
-      (let [call {:type :call
-                  :resolved-ns resolved-namespace
-                  :ns ns-name
-                  :name (or resolved-name full-fn-name)
-                  :unqualified? unqualified?
-                  :clojure-excluded? clojure-excluded?
-                  :resolved? (boolean resolved)
-                  :arity arg-count
-                  :row row
-                  :col col
-                  :base-lang base-lang
-                  :lang lang
-                  :expr expr
-                  :callstack (:callstack ctx)
-                  :lint-invalid-arity?
-                  (not (linter-disabled? ctx :invalid-arity))}]
+      (let [defined-in (:defined-in ctx)
+            call (cond-> {:type :call
+                          :resolved-ns resolved-namespace
+                          :ns ns-name
+                          :name (or resolved-name full-fn-name)
+                          :unqualified? unqualified?
+                          :clojure-excluded? clojure-excluded?
+                          :resolved? (boolean resolved)
+                          :arity arg-count
+                          :row row
+                          :col col
+                          :base-lang base-lang
+                          :lang lang
+                          :expr expr
+                          :callstack (:callstack ctx)
+                          :lint-invalid-arity?
+                          (not (linter-disabled? ctx :invalid-arity))}
+                   defined-in (assoc :defined-in defined-in))]
         (if-let [m (meta analyzed)]
           (with-meta (cons call analyzed)
             m)

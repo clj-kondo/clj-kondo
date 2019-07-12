@@ -1907,9 +1907,10 @@
       :level :warning,
       :message "#'foo.foo/deprecated-fn is deprecated"})
    (lint! (io/file "corpus" "deprecated_var.clj")
-          '{:linters {:deprecated-var
-                      {:exclude {foo.foo/deprecated-fn
-                                 [foo.bar "bar\\.*"]}}}})))
+          '{:linters
+            {:deprecated-var
+             {:exclude {foo.foo/deprecated-fn
+                        [foo.bar foo.baz/allowed "foo.baz/ign\\.*" "bar\\.*"]}}}})))
 
 ;;;; Scratch
 

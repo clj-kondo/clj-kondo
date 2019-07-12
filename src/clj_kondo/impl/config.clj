@@ -155,14 +155,20 @@
 (def deprecated-var-excluded
   (let [delayed-cfg (fn [config var-sym]
                       (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])
-                            syms (set (filter symbol? excluded))
+                            namespaces (set (filter simple-symbol? excluded))
+                            vars (set (filter qualified-symbol? excluded))
                             regexes (map re-pattern (filter string? excluded))]
-                        {:syms syms :regexes regexes}))
+                        {:namespaces namespaces :regexes regexes :vars vars}))
         delayed-cfg (memoize delayed-cfg)]
-    (fn [config var-sym ns-sym]
-      (let [{:keys [:syms :regexes]} (delayed-cfg config var-sym)]
-        (or (contains? syms ns-sym)
-            (let [ns-str (str ns-sym)]
+    (fn [config var-sym excluded-ns excluded-in-def]
+      (let [{:keys [:namespaces :vars :regexes]} (delayed-cfg config var-sym)]
+        (or (when excluded-in-def
+              (let [excluded-in-def (symbol (str excluded-ns) (str excluded-in-def))]
+                (or (contains? vars excluded-in-def)
+                    (let [excluded-in-def-str (str excluded-in-def)]
+                      (boolean (some #(re-find % excluded-in-def-str) regexes))))))
+            (contains? namespaces excluded-ns)
+            (let [ns-str (str excluded-ns)]
               (boolean (some #(re-find % ns-str) regexes))))))))
 
 ;;;; Scratch

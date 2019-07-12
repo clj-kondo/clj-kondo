@@ -223,15 +223,13 @@
                                  :type :private-call
                                  :message (format "call to private function %s"
                                                   (str (:ns called-fn) "/" (:name called-fn)))})
-                              #_(prn (symbol (str (:ns called-fn))
-                                           (str (:name called-fn))))
-                              #_(prn caller-ns)
                               (when-let [deprecated (:deprecated called-fn)]
                                 (when-not
-                                    (config/deprecated-var-excluded config
-                                                                    (symbol (str (:ns called-fn))
-                                                                            (str (:name called-fn)))
-                                                                    caller-ns)
+                                    (config/deprecated-var-excluded
+                                     config
+                                     (symbol (str (:ns called-fn))
+                                             (str (:name called-fn)))
+                                     caller-ns (:defined-in call))
                                     {:filename filename
                                      :row (:row call)
                                      :col (:col call)
