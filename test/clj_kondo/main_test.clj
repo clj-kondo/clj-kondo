@@ -1894,6 +1894,13 @@
       :message "#'user/foo is deprecated since 1.0"})
    (lint! "(defn foo {:deprecated \"1.0\"} []) (foo)"))
   (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "#'clojure.core/agent-errors is deprecated since 1.2"})
+   (lint! "(agent-errors 1)"))
+  (assert-submaps
    '({:file "corpus/deprecated_var.clj",
       :row 10,
       :col 1,

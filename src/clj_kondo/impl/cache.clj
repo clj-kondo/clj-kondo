@@ -125,4 +125,6 @@
   (get-in (from-cache-1 nil :clj 'clojure.core) ['defn])
   (time (get (from-cache-1 nil :clj 'clojure.core) '+))
   (time (get (from-cache-1 nil :clj 'java.lang.Thread) 'sleep))
+
+  (get (from-cache-1 nil :clj 'clojure.core) 'agent-errors)
   )

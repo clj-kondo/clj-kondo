@@ -264,10 +264,17 @@
         fn-name (:value name-node)
         call (name (symbol-call expr))
         var-meta (meta name-node)
-        var-meta (merge var-meta
-                        (when-let [fc (first children)]
-                          (when (= :map (tag fc))
-                            (sexpr fc))))
+        meta-node (when-let [fc (first children)]
+                    (let [t (tag fc)]
+                      (if (= :map t) fc
+                          (when (not= :vector t)
+                            (when-let [sc (second children)]
+                              (when (= :map (tag sc))
+                                sc))))))
+        var-meta (if meta-node
+                   (merge var-meta
+                          (sexpr meta-node))
+                   var-meta)
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         deprecated (:deprecated var-meta)
