@@ -152,6 +152,19 @@
                      (check-fn sym))
                   callstack))))))
 
+(def deprecated-var-excluded
+  (let [delayed-cfg (fn [config var-sym]
+                      (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])
+                            syms (set (filter symbol? excluded))
+                            regexes (map re-pattern (filter string? excluded))]
+                        {:syms syms :regexes regexes}))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config var-sym ns-sym]
+      (let [{:keys [:syms :regexes]} (delayed-cfg config var-sym)]
+        (or (contains? syms ns-sym)
+            (let [ns-str (str ns-sym)]
+              (boolean (some #(re-find % ns-str) regexes))))))))
+
 ;;;; Scratch
 
 (comment

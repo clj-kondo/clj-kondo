@@ -1878,6 +1878,32 @@
       :message "use the idiom (seq x) rather than (not (empty? x))"})
    (lint! "(not (empty? [1]))")))
 
+(deftest deprecated-var-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 28,
+      :level :warning,
+      :message "#'user/foo is deprecated"})
+   (lint! "(defn ^:deprecated foo []) (foo)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 35,
+      :level :warning,
+      :message "#'user/foo is deprecated since 1.0"})
+   (lint! "(defn foo {:deprecated \"1.0\"} []) (foo)"))
+  (assert-submaps
+   '({:file "corpus/deprecated_var.clj",
+      :row 10,
+      :col 1,
+      :level :warning,
+      :message "#'foo.foo/deprecated-fn is deprecated"})
+   (lint! (io/file "corpus" "deprecated_var.clj")
+          '{:linters {:deprecated-var
+                      {:exclude {foo.foo/deprecated-fn
+                                 [foo.bar "bar\\.*"]}}}})))
+
 ;;;; Scratch
 
 (comment

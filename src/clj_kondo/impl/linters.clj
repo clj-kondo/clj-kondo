@@ -223,15 +223,26 @@
                                  :type :private-call
                                  :message (format "call to private function %s"
                                                   (str (:ns called-fn) "/" (:name called-fn)))})
+                              #_(prn (symbol (str (:ns called-fn))
+                                           (str (:name called-fn))))
+                              #_(prn caller-ns)
                               (when-let [deprecated (:deprecated called-fn)]
-                                {:filename filename
-                                 :row (:row call)
-                                 :col (:col call)
-                                 :level :error
-                                 :type :deprecated-var
-                                 :message (format "#'%s is deprecated since %s"
-                                                  (str (:ns called-fn) "/" (:name called-fn))
-                                                  deprecated)})]
+                                (when-not
+                                    (config/deprecated-var-excluded config
+                                                                    (symbol (str (:ns called-fn))
+                                                                            (str (:name called-fn)))
+                                                                    caller-ns)
+                                    {:filename filename
+                                     :row (:row call)
+                                     :col (:col call)
+                                     :level :error
+                                     :type :deprecated-var
+                                     :message (str
+                                               (format "#'%s is deprecated"
+                                                       (str (:ns called-fn) "/" (:name called-fn)))
+                                               (if (true? deprecated)
+                                                 nil
+                                                 (str " since " deprecated)))}))]
                              _ (lint-specific-calls! (assoc ctx
                                                             :filename filename)
                                                      call called-fn)]
