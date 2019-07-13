@@ -226,7 +226,7 @@
                        :name ns-name
                        :bindings #{}
                        :used-bindings #{}
-                       :vars #{}
+                       :vars {}
                        :clojure-excluded (set (for [?refer-clojure (nnext (sexpr expr))
                                                     :when (= :refer-clojure (first ?refer-clojure))
                                                     [k v] (partition 2 (rest ?refer-clojure))

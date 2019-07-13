@@ -161,7 +161,7 @@
         ns {:type :in-ns
             :name ns-name
             :lang (:lang ctx)
-            :vars #{}
+            :vars {}
             :used #{}
             :bindings #{}
             :used-bindings #{}}]
@@ -295,7 +295,7 @@
                                                "invalid function body")))
         ;; var is known when making recursive call
         _ (namespace/reg-var! ctx ns-name fn-name expr
-           {:declared true})
+                              (assoc (meta name-node) :declared true))
         parsed-bodies (map #(analyze-fn-body
                              (-> ctx
                                  (assoc :in-def? true
