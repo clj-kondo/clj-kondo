@@ -94,7 +94,7 @@
         lang (or lang :clj)
         processed
         (core-impl/process-files ctx lint lang)
-        idacs (core-impl/index-defs-and-calls processed)
+        idacs (core-impl/index-defs-and-calls ctx processed)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
         linted-calls (doall (l/lint-calls ctx idacs))

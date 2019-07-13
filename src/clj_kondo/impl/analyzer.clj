@@ -284,12 +284,6 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        _ (when fn-name
-            (namespace/reg-var!
-             ctx ns-name fn-name expr
-             (cond-> (meta name-node)
-               macro? (assoc :macro true)
-               private? (assoc :private true))))
         docstring? (:lines (first children))
         bodies (fn-bodies ctx children)
         _ (when (empty? bodies)
@@ -323,6 +317,15 @@
             (seq fixed-arities) (assoc :fixed-arities fixed-arities)
             private? (assoc :private private?)
             var-args-min-arity (assoc :var-args-min-arity var-args-min-arity)))]
+    (when fn-name
+      (namespace/reg-var!
+       ctx ns-name fn-name expr
+       (cond-> (meta name-node)
+         macro? (assoc :macro true)
+         private? (assoc :private true)
+         deprecated (assoc :deprecated deprecated)
+         (seq fixed-arities) (assoc :fixed-arities fixed-arities)
+         var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))))
     (cons defn (mapcat :parsed parsed-bodies))))
 
 (defn analyze-case [ctx expr]
@@ -714,12 +717,15 @@
                 name-node (first children)
                 name-node (meta/lift-meta-content2 ctx name-node)
                 fn-name (:value name-node)
-                _ (when fn-name
-                    (namespace/reg-var! ctx ns-name fn-name expr))
                 arity-vecs (rest children)
                 fixed-arities (set (keep #(when (= :vector (tag %))
                                             ;; skip last docstring
                                             (count (:children %))) arity-vecs))
+                _ (when fn-name
+                    (namespace/reg-var!
+                     ctx ns-name fn-name expr (assoc (meta c)
+                                                     :fixed-arities fixed-arities
+                                                     :expr c)))
                 {:keys [:row :col]} (meta c)]]
       {:type :defn
        :name fn-name
@@ -754,7 +760,10 @@
      (when-not (= 'definterface type)
        ;; TODO: it seems like we can abstract creating defn types into a function,
        ;; so we can also call reg-var there
-       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr metadata)
+       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
+                           (assoc metadata
+                                  :fixed-arities #{field-count}
+                                  :expr expr))
        [{:type :defn
          :name (symbol (str "->" record-name))
          :ns ns-name
@@ -765,7 +774,10 @@
          :fixed-arities #{field-count}
          :expr expr}])
      (when (= 'defrecord type)
-       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name)) expr metadata)
+       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
+                           expr (assoc metadata
+                                       :fixed-arities #{1}
+                                       :expr expr))
        [{:type :defn
          :name (symbol (str "map->" record-name))
          :ns ns-name
