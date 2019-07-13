@@ -231,8 +231,7 @@
                                             :cljs)]
     {:clj {:defs clj}
      :cljs {:defs cljs}
-     :cljc {:defs (doto (mmerge cljc-clj cljc-cljs)
-                    #_prn)}}))
+     :cljc {:defs (mmerge cljc-clj cljc-cljs)}}))
 
 (defn index-defs-and-calls [ctx defs-and-calls]
   (let [indexed-defs (namespaces->indexed-defs ctx)]

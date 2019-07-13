@@ -93,7 +93,8 @@
              :namespaces (atom {})}
         lang (or lang :clj)
         processed
-        (core-impl/process-files ctx lint lang)
+        ;; this is needed to force the namespace atom state
+        (doall (core-impl/process-files ctx lint lang))
         idacs (core-impl/index-defs-and-calls ctx processed)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
