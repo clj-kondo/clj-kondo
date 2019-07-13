@@ -293,6 +293,9 @@
                                                :warning
                                                :syntax
                                                "invalid function body")))
+        ;; var is known when making recursive call
+        _ (namespace/reg-var! ctx ns-name fn-name expr
+           {:declared true})
         parsed-bodies (map #(analyze-fn-body
                              (-> ctx
                                  (assoc :in-def? true
