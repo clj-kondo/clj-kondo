@@ -96,6 +96,7 @@
                         :let [{:keys [:source] :as ns-data}
                               (get-in idacs [lang :defs ns-name])]
                         :when (not (one-of source [:disk :built-in]))]
+                  (spit "/tmp/ns-data.edn" ns-data)
                   (to-cache cache-dir lang ns-name ns-data)))
               (reduce (fn [idacs lang]
                         (reduce #(load-when-missing %1 [lang :defs %2] cache-dir lang %2)
