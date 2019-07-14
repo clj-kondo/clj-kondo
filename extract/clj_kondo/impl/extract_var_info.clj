@@ -45,7 +45,7 @@
                 "1.10.1" "clojure-1.10.1.jar")]
       :clj))
     (reduce into special
-            [(filter public? (get-in @namespaces '[:clj :clj clojure.core :vars]))])))
+            [(filter public? (keys (get-in @namespaces '[:clj :clj clojure.core :vars])))])))
 
 (defn extract-cljs-core-vars
   []
@@ -64,9 +64,9 @@
                 "1.10.520" "clojurescript-1.10.520.jar")]
       :clj))
     (reduce into special
-            [(filter public? (get-in @namespaces '[:cljs :cljs cljs.core :vars]))
-             (filter public? (get-in @namespaces '[:cljc :clj cljs.core :vars]))
-             (filter public? (get-in @namespaces '[:cljc :cljs cljs.core :vars]))])))
+            [(filter public? (keys (get-in @namespaces '[:cljs :cljs cljs.core :vars])))
+             (filter public? (keys (get-in @namespaces '[:cljc :clj cljs.core :vars])))
+             (filter public? (keys (get-in @namespaces '[:cljc :cljs cljs.core :vars])))])))
 
 (defn extract-default-imports []
   (into {}
