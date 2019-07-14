@@ -256,7 +256,7 @@
 (defn ctx-with-linter-disabled [ctx linter]
   (assoc-in ctx [:config :linters linter :level] :off))
 
-(defn analyze-defn [{:keys [:base-lang :lang :ns] :as ctx} expr]
+(defn analyze-defn [{:keys [:ns] :as ctx} expr]
   (let [ns-name (:name ns)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
