@@ -1179,9 +1179,7 @@
                    :namespaces namespaces}]
      (loop [ctx init-ctx
             [expression & rest-expressions] expressions
-            results {:calls {}
-                     :defs {}
-                     :required (:required init-ns)
+            results {:required (:required init-ns)
                      :used (:used init-ns)
                      :findings []
                      :lang base-lang}]

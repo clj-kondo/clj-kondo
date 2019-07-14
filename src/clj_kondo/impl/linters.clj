@@ -150,7 +150,7 @@
           (if (= 1 called-with) "arg" "args")
           (show-arities fixed-arities var-args-min-arity)))
 
-(defn lint-calls
+(defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters."
   [ctx idacs]
   (let [config (:config ctx)

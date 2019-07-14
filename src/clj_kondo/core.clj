@@ -98,7 +98,7 @@
         idacs (core-impl/index-defs-and-calls ctx processed)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
-        linted-calls (doall (l/lint-calls ctx idacs))
+        linted-calls (doall (l/lint-var-usage ctx idacs))
         _ (l/lint-unused-namespaces! ctx)
         _ (l/lint-unused-bindings! ctx)
         _ (l/lint-unresolved-symbols! ctx)

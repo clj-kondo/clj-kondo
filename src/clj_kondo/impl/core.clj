@@ -237,10 +237,8 @@
 (defn index-defs-and-calls [ctx defs-and-calls]
   (let [indexed-defs (namespaces->indexed-defs ctx)]
     (reduce
-     (fn [acc {:keys [:calls #_:defs :used :lang] :as _m}]
+     (fn [acc {:keys [:used :lang] :as _m}]
        (-> acc
-           (update-in [lang :calls] (fn [prev-calls]
-                                      (merge-with into prev-calls calls)))
            #_(update-in [lang :defs] mmerge defs)
            (update-in [lang :used] into used)))
      indexed-defs
