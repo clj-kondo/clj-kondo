@@ -198,9 +198,10 @@
                 (let [vars (:vars v)]
                   [k (persistent!
                       (reduce
-                       (fn [m [k v]]
+                       (fn [m [fn-k v]]
                          (assoc! m v (let [m (meta v)
-                                           m (assoc m :name v
+                                           m (assoc m
+                                                    :name fn-k
                                                     :ns k)]
                                        m)))
                        (transient {})
@@ -213,9 +214,9 @@
                 (let [vars (:vars v)]
                   [k {lang (persistent!
                             (reduce
-                             (fn [m [k v]]
+                             (fn [m [fn-k v]]
                                (assoc! m v (let [m (meta v)
-                                                 m (assoc m :name v
+                                                 m (assoc m :name fn-k
                                                           :ns k)]
                                              m)))
                              (transient {})
