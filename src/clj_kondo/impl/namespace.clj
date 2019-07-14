@@ -33,8 +33,11 @@
                 (let [vars (:vars ns)]
                   (when-let [redefined-ns
                              (or (when-let [v (get vars var-sym)]
-                                   (when-not (:declared (meta v))
-                                     ns-sym))
+                                   (let [meta-v (meta v)]
+                                     (when-not (or
+                                                (:temp meta-v)
+                                                (:declared meta-v))
+                                       ns-sym)))
                                  (when-let [qv (get (:qualify-var ns) var-sym)]
                                    (:ns qv))
                                  (let [core-ns (case lang

@@ -285,7 +285,6 @@
         private? (or (= "defn-" call)
                      (:private var-meta))
         docstring? (:lines (first children))
-        ;; var is known when making recursive call
         bodies (fn-bodies ctx children)
         _ (when (empty? bodies)
             (findings/reg-finding! (:findings ctx)
@@ -294,9 +293,10 @@
                                                :warning
                                                :syntax
                                                "invalid function body")))
-        ctx (if fn-name
-              (ctx-with-bindings ctx {fn-name {}})
-              ctx)
+        ;; var is known when making recursive call
+        _ (when fn-name
+            (namespace/reg-var!
+             ctx ns-name fn-name expr {:temp true}))
         parsed-bodies (map #(analyze-fn-body
                              (-> ctx
                                  (assoc :in-def? true

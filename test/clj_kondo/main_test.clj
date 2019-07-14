@@ -166,7 +166,14 @@
       :col 1,
       :level :error,
       :message "cljs.core/this-as is called with 0 args but expects 1 or more"})
-   (lint! "(this-as)" "--lang" "cljs")))
+   (lint! "(this-as)" "--lang" "cljs"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 24,
+      :level :error,
+      :message "user/deep-merge is called with 0 args but expects 2"})
+   (lint! "(defn deep-merge [x y] (deep-merge))")))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
