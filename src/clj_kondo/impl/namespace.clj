@@ -62,6 +62,15 @@
                       (with-meta var-sym
                         metadata)))))))
 
+(defn reg-var-usage!
+  [{:keys [:base-lang :lang :namespaces]}
+   ns-sym usage]
+  (let [path [base-lang lang ns-sym]]
+    (swap! namespaces update-in path
+           (fn [ns]
+             (update ns :used-vars conj
+                     usage)))))
+
 (defn reg-usage!
   "Registers usage of required namespaced in ns."
   [{:keys [:base-lang :lang :namespaces]} ns-sym required-ns-sym]

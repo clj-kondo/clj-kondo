@@ -155,15 +155,17 @@
   [ctx idacs]
   (let [config (:config ctx)
         ;; findings* (:findings ctx)
-        findings (for [lang [:clj :cljs :cljc]
-                       ns-sym (keys (get-in idacs [lang :calls]))
-                       call (get-in idacs [lang :calls ns-sym])
+        findings (for [ns (namespace/list-namespaces ctx)
+                       :let [;; ns-sym (:name ns)
+                             base-lang (:base-lang ns)
+                             #__ #_(prn "NS" ns-sym base-lang)]
+                       call (:used-vars ns) #_(get-in idacs [base-lang :calls ns-sym])
                        :let [fn-name (:name call)
                              caller-ns-sym (:ns call)
                              call-lang (:lang call)
                              ;; _ (prn "LANGS" lang call-lang)
                              caller-ns (get-in @(:namespaces ctx)
-                                               [lang call-lang caller-ns-sym])
+                                               [base-lang call-lang caller-ns-sym])
                              fn-ns (:resolved-ns call)
                              called-fn
                              (or (resolve-call idacs call fn-ns fn-name)
@@ -178,7 +180,7 @@
                                                           ns))
                                                       (:refer-alls caller-ns)))
                                                (when (not (:clojure-excluded? call))
-                                                 [(case lang
+                                                 [(case base-lang
                                                     :clj 'clojure.core
                                                     :cljs 'cljs.core
                                                     :cljc 'clojure.core)])))))
@@ -206,11 +208,13 @@
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
                              errors
-                             [(when (and (or (not-empty fixed-arities)
-                                             var-args-min-arity)
-                                         (not (or (contains? fixed-arities arity)
-                                                  (and var-args-min-arity (>= arity var-args-min-arity))
-                                                  (config/skip? config :invalid-arity (rest (:callstack call))))))
+                             [(when (and
+                                     (:lint-invalid-arity? call)
+                                     (or (not-empty fixed-arities)
+                                         var-args-min-arity)
+                                     (not (or (contains? fixed-arities arity)
+                                              (and var-args-min-arity (>= arity var-args-min-arity))
+                                              (config/skip? config :invalid-arity (rest (:callstack call))))))
                                 {:filename filename
                                  :row (:row call)
                                  :col (:col call)
@@ -234,17 +238,17 @@
                                      (symbol (str (:ns called-fn))
                                              (str (:name called-fn)))
                                      caller-ns-sym (:defined-in call))
-                                    {:filename filename
-                                     :row (:row call)
-                                     :col (:col call)
-                                     :level :error
-                                     :type :deprecated-var
-                                     :message (str
-                                               (format "#'%s is deprecated"
-                                                       (str (:ns called-fn) "/" (:name called-fn)))
-                                               (if (true? deprecated)
-                                                 nil
-                                                 (str " since " deprecated)))}))]
+                                  {:filename filename
+                                   :row (:row call)
+                                   :col (:col call)
+                                   :level :error
+                                   :type :deprecated-var
+                                   :message (str
+                                             (format "#'%s is deprecated"
+                                                     (str (:ns called-fn) "/" (:name called-fn)))
+                                             (if (true? deprecated)
+                                               nil
+                                               (str " since " deprecated)))}))]
                              _ (lint-specific-calls! (assoc ctx
                                                             :filename filename)
                                                      call called-fn)]

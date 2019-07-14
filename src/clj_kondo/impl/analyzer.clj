@@ -162,6 +162,7 @@
             :name ns-name
             :lang (:lang ctx)
             :vars {}
+            :used-vars []
             :used #{}
             :bindings #{}
             :used-bindings #{}}]
@@ -948,9 +949,11 @@
                           :lang lang
                           :expr expr
                           :callstack (:callstack ctx)
+                          :filename (:filename ctx)
                           :lint-invalid-arity?
                           (not (linter-disabled? ctx :invalid-arity))}
                    defined-in (assoc :defined-in defined-in))]
+        (namespace/reg-var-usage! ctx ns-name call)
         (if-let [m (meta analyzed)]
           (with-meta (cons call analyzed)
             m)
@@ -1151,13 +1154,7 @@
                                                (:resolved-ns first-parsed)))]
                  (if (:lint-invalid-arity? first-parsed)
                    (let [path [:calls (:resolved-ns first-parsed)]
-                         call (assoc first-parsed
-                                     :filename filename
-                                     ;; TODO: we don't need this ns-lookup, because we
-                                     ;; store namespaces in an atom now
-                                     #_#_:ns-lookup ns
-                                     )
-                         results (cond-> (update-in results path vconj call)
+                         results (cond-> (update-in results path vconj first-parsed)
                                    (not unqualified?)
                                    (update :used conj (:resolved-ns first-parsed)))]
                      results)
