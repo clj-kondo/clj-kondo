@@ -159,20 +159,24 @@
                        ns-sym (keys (get-in idacs [lang :calls]))
                        call (get-in idacs [lang :calls ns-sym])
                        :let [fn-name (:name call)
-                             caller-ns (:ns call)
+                             caller-ns-sym (:ns call)
+                             call-lang (:lang call)
+                             ;; _ (prn "LANGS" lang call-lang)
+                             caller-ns (get-in @(:namespaces ctx)
+                                               [lang call-lang caller-ns-sym])
                              fn-ns (:resolved-ns call)
                              called-fn
                              (or (resolve-call idacs call fn-ns fn-name)
                                  ;; we resolved this call against the
                                  ;; same namespace, because it was
                                  ;; unqualified
-                                 (when (= caller-ns fn-ns)
+                                 (when (= caller-ns-sym fn-ns)
                                    (some #(resolve-call idacs call % fn-name)
                                          (into (vec
                                                 (keep (fn [[ns excluded]]
                                                         (when-not (contains? excluded fn-name)
                                                           ns))
-                                                      (-> call :ns-lookup :refer-alls)))
+                                                      (:refer-alls caller-ns)))
                                                (when (not (:clojure-excluded? call))
                                                  [(case lang
                                                     :clj 'clojure.core
@@ -186,7 +190,7 @@
                              ;; call and the lang of the function def context in
                              ;; the case of in-ns, the bets are off. we may
                              ;; support in-ns in a next version.
-                             valid-order? (if (and (= caller-ns
+                             valid-order? (if (and (= caller-ns-sym
                                                       fn-ns)
                                                    (= (:base-lang call)
                                                       (:base-lang called-fn))
@@ -214,7 +218,7 @@
                                  :type :invalid-arity
                                  :message (arity-error (:ns called-fn) (:name called-fn) (:arity call) fixed-arities var-args-min-arity)})
                               (when (and (:private called-fn)
-                                         (not= caller-ns
+                                         (not= caller-ns-sym
                                                fn-ns))
                                 {:filename filename
                                  :row (:row call)
@@ -229,7 +233,7 @@
                                      config
                                      (symbol (str (:ns called-fn))
                                              (str (:name called-fn)))
-                                     caller-ns (:defined-in call))
+                                     caller-ns-sym (:defined-in call))
                                     {:filename filename
                                      :row (:row call)
                                      :col (:col call)

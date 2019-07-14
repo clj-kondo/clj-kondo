@@ -1155,7 +1155,8 @@
                                      :filename filename
                                      ;; TODO: we don't need this ns-lookup, because we
                                      ;; store namespaces in an atom now
-                                     :ns-lookup ns)
+                                     #_#_:ns-lookup ns
+                                     )
                          results (cond-> (update-in results path vconj call)
                                    (not unqualified?)
                                    (update :used conj (:resolved-ns first-parsed)))]
