@@ -294,8 +294,9 @@
                                                :syntax
                                                "invalid function body")))
         ;; var is known when making recursive call
-        #_#__ (namespace/reg-var! ctx ns-name fn-name expr
-                              (assoc (meta name-node) :declared true))
+        ctx (if fn-name
+              (ctx-with-bindings ctx {fn-name nil})
+              ctx)
         parsed-bodies (map #(analyze-fn-body
                              (-> ctx
                                  (assoc :in-def? true

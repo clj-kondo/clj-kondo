@@ -1265,7 +1265,7 @@
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
 
-(deftest refined-test-test
+(deftest redefined-test-test
   (assert-submaps
    '({:file "corpus/redefined_deftest.clj",
       :row 4,

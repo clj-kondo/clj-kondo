@@ -4,7 +4,7 @@
 (deftest)
 
 (deftest foo)
-(deftest foo)
+(deftest foo) ;; <- redefined test warning
 
 (foo 1)
 
