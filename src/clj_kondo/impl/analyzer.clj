@@ -304,23 +304,7 @@
                                         :defined-in fn-name)) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
-        var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
-        {:keys [:row :col]} (meta expr)
-        defn
-        (when fn-name
-          (cond-> {:type :defn
-                   :name fn-name
-                   :ns ns-name
-                   :row row
-                   :col col
-                   :base-lang base-lang
-                   :lang lang
-                   :expr expr}
-            macro? (assoc :macro true)
-            deprecated (assoc :deprecated deprecated)
-            (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-            private? (assoc :private private?)
-            var-args-min-arity (assoc :var-args-min-arity var-args-min-arity)))]
+        var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))]
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -330,7 +314,7 @@
          deprecated (assoc :deprecated deprecated)
          (seq fixed-arities) (assoc :fixed-arities fixed-arities)
          var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))))
-    (cons defn (mapcat :parsed parsed-bodies))))
+    (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
   (let [exprs (-> expr :children)]
@@ -707,7 +691,7 @@
          false false))
       analyzed)))
 
-(defn analyze-defprotocol [{:keys [:base-lang :lang :ns] :as ctx} expr]
+(defn analyze-defprotocol [{:keys [:ns] :as ctx} expr]
   ;; for syntax, see https://clojure.org/reference/protocols#_basics
   (let [children (next (:children expr))
         name-node (first children)
@@ -715,7 +699,7 @@
         ns-name (:name ns)]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr))
-    (for [c (next children)
+    (doseq [c (next children)
           :when (= :list (tag c)) ;; skip first docstring
           :let [children (:children c)
                 name-node (first children)
@@ -724,26 +708,15 @@
                 arity-vecs (rest children)
                 fixed-arities (set (keep #(when (= :vector (tag %))
                                             ;; skip last docstring
-                                            (count (:children %))) arity-vecs))
-                _ (when fn-name
-                    (namespace/reg-var!
-                     ctx ns-name fn-name expr (assoc (meta c)
-                                                     :fixed-arities fixed-arities
-                                                     #_#_:expr c)))
-                {:keys [:row :col]} (meta c)]]
-      {:type :defn
-       :name fn-name
-       :ns ns-name
-       :row row
-       :col col
-       :base-lang base-lang
-       :lang lang
-       :fixed-arities fixed-arities
-       :expr c})))
+                                            (count (:children %))) arity-vecs))]]
+      (when fn-name
+        (namespace/reg-var!
+         ctx ns-name fn-name expr (assoc (meta c)
+                                         :fixed-arities fixed-arities))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
-  [{:keys [:base-lang :lang :ns] :as ctx} expr]
+  [{:keys [:ns] :as ctx} expr]
   (let [ns-name (:name ns)
         children (:children expr)
         type (-> children first :value)
@@ -757,45 +730,25 @@
         field-count (when bindings? (count (:children binding-vector)))
         bindings (when bindings? (extract-bindings (assoc ctx
                                                           :skip-reg-binding? true)
-                                                   binding-vector))
-        {:keys [:row :col]} (meta expr)]
+                                                   binding-vector))]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
-    (concat
-     (when-not (= 'definterface type)
-       ;; TODO: it seems like we can abstract creating defn types into a function,
-       ;; so we can also call reg-var there
-       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
-                           (assoc metadata
-                                  :fixed-arities #{field-count}
-                                  #_#_:expr expr))
-       [{:type :defn
-         :name (symbol (str "->" record-name))
-         :ns ns-name
-         :row row
-         :col col
-         :base-lang base-lang
-         :lang lang
-         :fixed-arities #{field-count}
-         :expr expr}])
-     (when (= 'defrecord type)
-       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
-                           expr (assoc metadata
-                                       :fixed-arities #{1}
-                                       #_#_:expr expr))
-       [{:type :defn
-         :name (symbol (str "map->" record-name))
-         :ns ns-name
-         :row row
-         :col col
-         :base-lang base-lang
-         :lang lang
-         :fixed-arities #{1}
-         :expr expr}])
-     (analyze-children (-> ctx
-                           (ctx-with-linter-disabled :invalid-arity)
-                           (ctx-with-linter-disabled :unresolved-symbol)
-                           (ctx-with-bindings bindings))
-                       (nnext children)))))
+    (when-not (= 'definterface type)
+      ;; TODO: it seems like we can abstract creating defn types into a function,
+      ;; so we can also call reg-var there
+      (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
+                          (assoc metadata
+                                 :fixed-arities #{field-count}
+                                 #_#_:expr expr)))
+    (when (= 'defrecord type)
+      (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
+                          expr (assoc metadata
+                                      :fixed-arities #{1}
+                                      #_#_:expr expr)))
+    (analyze-children (-> ctx
+                          (ctx-with-linter-disabled :invalid-arity)
+                          (ctx-with-linter-disabled :unresolved-symbol)
+                          (ctx-with-bindings bindings))
+                      (nnext children))))
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
@@ -1189,16 +1142,6 @@
            ns
            rest-parsed
            (case (:type first-parsed)
-             :defn
-             (let [path (if (= :cljc base-lang)
-                          [:defs ns-name (:lang first-parsed) (:name first-parsed)]
-                          [:defs ns-name (:name first-parsed)])
-                   results
-                   (assoc-in results path
-                             (dissoc first-parsed
-                                     :type
-                                     :expr))]
-               results)
              :call
              (if (:resolved? first-parsed)
                (let [unqualified? (:unqualified? first-parsed)

@@ -1908,16 +1908,27 @@
       :message "#'clojure.core/agent-errors is deprecated since 1.2"})
    (lint! "(agent-errors 1)"))
   (assert-submaps
-   '({:file "corpus/deprecated_var.clj",
-      :row 10,
-      :col 1,
+   '({:file "<stdin>",
+      :row 1,
+      :col 32,
       :level :warning,
-      :message "#'foo.foo/deprecated-fn is deprecated"})
-   (lint! (io/file "corpus" "deprecated_var.clj")
-          '{:linters
-            {:deprecated-var
-             {:exclude {foo.foo/deprecated-fn
-                        [foo.bar foo.baz/allowed "foo.baz/ign\\.*" "bar\\.*"]}}}})))
+      :message "#'user/foo is deprecated"})
+   (lint! "(def ^:deprecated foo (fn [])) (foo)"))
+  #_(assert-submaps
+   ;; TODO:
+   (lint! "(def ^:deprecated foo (fn [])) foo"))
+  (testing "config"
+    (assert-submaps
+     '({:file "corpus/deprecated_var.clj",
+        :row 10,
+        :col 1,
+        :level :warning,
+        :message "#'foo.foo/deprecated-fn is deprecated"})
+     (lint! (io/file "corpus" "deprecated_var.clj")
+            '{:linters
+              {:deprecated-var
+               {:exclude {foo.foo/deprecated-fn
+                          [foo.bar foo.baz/allowed "foo.baz/ign\\.*" "bar\\.*"]}}}}))))
 
 ;;;; Scratch
 
