@@ -729,7 +729,7 @@
                     (namespace/reg-var!
                      ctx ns-name fn-name expr (assoc (meta c)
                                                      :fixed-arities fixed-arities
-                                                     :expr c)))
+                                                     #_#_:expr c)))
                 {:keys [:row :col]} (meta c)]]
       {:type :defn
        :name fn-name
@@ -767,7 +767,7 @@
        (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
                            (assoc metadata
                                   :fixed-arities #{field-count}
-                                  :expr expr))
+                                  #_#_:expr expr))
        [{:type :defn
          :name (symbol (str "->" record-name))
          :ns ns-name
@@ -781,7 +781,7 @@
        (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                            expr (assoc metadata
                                        :fixed-arities #{1}
-                                       :expr expr))
+                                       #_#_:expr expr))
        [{:type :defn
          :name (symbol (str "map->" record-name))
          :ns ns-name
