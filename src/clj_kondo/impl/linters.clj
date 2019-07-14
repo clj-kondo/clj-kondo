@@ -156,14 +156,11 @@
   (let [config (:config ctx)
         ;; findings* (:findings ctx)
         findings (for [ns (namespace/list-namespaces ctx)
-                       :let [;; ns-sym (:name ns)
-                             base-lang (:base-lang ns)
-                             #__ #_(prn "NS" ns-sym base-lang)]
-                       call (:used-vars ns) #_(get-in idacs [base-lang :calls ns-sym])
+                       :let [base-lang (:base-lang ns)]
+                       call (:used-vars ns)
                        :let [fn-name (:name call)
                              caller-ns-sym (:ns call)
                              call-lang (:lang call)
-                             ;; _ (prn "LANGS" lang call-lang)
                              caller-ns (get-in @(:namespaces ctx)
                                                [base-lang call-lang caller-ns-sym])
                              fn-ns (:resolved-ns call)

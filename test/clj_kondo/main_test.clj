@@ -1914,9 +1914,20 @@
       :level :warning,
       :message "#'user/foo is deprecated"})
    (lint! "(def ^:deprecated foo (fn [])) (foo)"))
-  #_(assert-submaps
-   ;; TODO:
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 32,
+      :level :warning,
+      :message "#'user/foo is deprecated"})
    (lint! "(def ^:deprecated foo (fn [])) foo"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "#'clojure.core/replicate is deprecated since 1.3"})
+   (lint! "replicate"))
   (testing "config"
     (assert-submaps
      '({:file "corpus/deprecated_var.clj",

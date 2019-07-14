@@ -660,7 +660,7 @@
                           expr
                           metadata)))
   (analyze-children (assoc ctx :in-def? true)
-                    (next (:children expr))))
+                    (nnext (:children expr))))
 
 (defn analyze-catch [ctx expr]
   (let [children (next (:children expr))
@@ -832,8 +832,7 @@
         {resolved-namespace :ns
          resolved-name :name
          unqualified? :unqualified?
-         clojure-excluded? :clojure-excluded?
-         :as resolved}
+         clojure-excluded? :clojure-excluded?}
         (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name _lint-as?]
         (or (when-let [[ns n] (config/lint-as config [resolved-namespace resolved-name])]
@@ -941,7 +940,6 @@
                           :name (or resolved-name full-fn-name)
                           :unqualified? unqualified?
                           :clojure-excluded? clojure-excluded?
-                          :resolved? (boolean resolved)
                           :arity arg-count
                           :row row
                           :col col

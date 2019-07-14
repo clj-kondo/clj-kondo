@@ -191,6 +191,7 @@
   [f coll]
   (reduce-map (fn [xf] (fn [m k v] (let [[k v] (f k v)] (xf m k v)))) coll))
 
+;; TODO: refactor
 (defn namespaces->indexed [namespaces]
   (when namespaces
     (as-> namespaces $
@@ -200,6 +201,10 @@
                       (reduce
                        (fn [m [fn-k v]]
                          (assoc! m v (let [m (meta v)
+                                           m (select-keys m [:row :col
+                                                             :macro :private :deprecated
+                                                             :fixed-arities :var-args-min-arity
+                                                             :name :ns])
                                            m (assoc m
                                                     :name fn-k
                                                     :ns k)]
@@ -216,6 +221,10 @@
                             (reduce
                              (fn [m [fn-k v]]
                                (assoc! m v (let [m (meta v)
+                                                 m (select-keys m [:row :col
+                                                                   :macro :private :deprecated
+                                                                   :fixed-arities :var-args-min-arity
+                                                                   :name :ns])
                                                  m (assoc m :name fn-k
                                                           :ns k)]
                                              m)))

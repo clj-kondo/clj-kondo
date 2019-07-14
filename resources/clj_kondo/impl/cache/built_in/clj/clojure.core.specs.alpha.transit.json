@@ -1,1 +1,1 @@
-["^ ","~$even-number-of-forms?",["^ ","~:name","^0","~:ns","~$clojure.core.specs.alpha","~:row",48,"~:col",1,"~:base-lang","~:clj","~:lang","^7","~:fixed-arities",["~#set",[1]]],"~$quotable",["^ ","^9",["^:",[1]],"~:private",true,"^2","^3","^1","^;","^6","^7","^8","^7","~:macro",true,"^5",1,"^4",227]]
+["^ ","~$even-number-of-forms?",["^ ","~:row",48,"~:col",7,"~:fixed-arities",["~#set",[1]],"~:name","^0","~:ns","~$clojure.core.specs.alpha"],"~$quotable",["^ ","^1",227,"^2",21,"~:macro",true,"~:private",true,"^3",["^4",[1]],"^5","^8","^6","^7"]]
