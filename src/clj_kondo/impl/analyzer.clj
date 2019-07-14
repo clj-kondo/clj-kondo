@@ -954,6 +954,10 @@
                           (not (linter-disabled? ctx :invalid-arity))}
                    defined-in (assoc :defined-in defined-in))]
         (namespace/reg-var-usage! ctx ns-name call)
+        (when-not unqualified?
+          (namespace/reg-usage! ctx
+                                ns-name
+                                resolved-namespace))
         (if-let [m (meta analyzed)]
           (with-meta (cons call analyzed)
             m)
@@ -1146,20 +1150,9 @@
            rest-parsed
            (case (:type first-parsed)
              :call
-             (if (:resolved? first-parsed)
-               (let [unqualified? (:unqualified? first-parsed)
-                     _ (when-not unqualified?
-                         (namespace/reg-usage! ctx
-                                               ns-name
-                                               (:resolved-ns first-parsed)))]
-                 (if (:lint-invalid-arity? first-parsed)
-                   (let [path [:calls (:resolved-ns first-parsed)]
-                         results (cond-> (update-in results path vconj first-parsed)
-                                   (not unqualified?)
-                                   (update :used conj (:resolved-ns first-parsed)))]
-                     results)
-                   results))
+             (let [results (update results :used conj (:resolved-ns first-parsed))]
                results)
+             results
              results)))
         [(assoc ctx :ns ns) results]))))
 
