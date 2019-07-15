@@ -211,18 +211,22 @@
            linted))))
 
 (deftest private-call-test
-  (let [linted (lint! (io/file "corpus" "private"))]
-    (assert-submaps '({:file "corpus/private/private_calls.clj",
-                       :row 4,
-                       :col 1,
-                       :level :error,
-                       :message "call to private function private.private-defs/private"}
-                      {:file "corpus/private/private_calls.clj",
-                       :row 5,
-                       :col 1,
-                       :level :error,
-                       :message "call to private function private.private-defs/private-by-meta"})
-                    linted)))
+  (assert-submaps '({:file "corpus/private/private_calls.clj",
+                     :row 4,
+                     :col 1,
+                     :level :error,
+                     :message "#'private.private-defs/private is private"}
+                    {:file "corpus/private/private_calls.clj",
+                     :row 5,
+                     :col 1,
+                     :level :error,
+                     :message "#'private.private-defs/private-by-meta is private"}
+                    {:file "corpus/private/private_calls.clj",
+                     :row 6,
+                     :col 6,
+                     :level :error,
+                     :message "#'private.private-defs/private is private"})
+                  (lint! (io/file "corpus" "private"))))
 
 (deftest read-error-test
   (testing "when an error happens in one file, the other file is still linted"

@@ -220,13 +220,14 @@
                                  :message (arity-error (:ns called-fn) (:name called-fn) (:arity call) fixed-arities var-args-min-arity)})
                               (when (and (:private called-fn)
                                          (not= caller-ns-sym
-                                               fn-ns))
+                                               fn-ns)
+                                         (not (:private-access? call)))
                                 {:filename filename
                                  :row (:row call)
                                  :col (:col call)
                                  :level :error
                                  :type :private-call
-                                 :message (format "call to private function %s"
+                                 :message (format "#'%s is private"
                                                   (str (:ns called-fn) "/" (:name called-fn)))})
                               (when-let [deprecated (:deprecated called-fn)]
                                 (when-not

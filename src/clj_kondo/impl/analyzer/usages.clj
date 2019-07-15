@@ -62,7 +62,8 @@
                                                     :col col
                                                     :base-lang (:base-lang ctx)
                                                     :lang (:lang ctx)
-                                                    :filename (:filename ctx)}))))))
+                                                    :filename (:filename ctx)
+                                                    :private-access? (:private-access? ctx)}))))))
                (when-let [keyword-val (:k expr)]
                  (when (:namespaced? expr)
                    (let [symbol-val (kw->sym keyword-val)

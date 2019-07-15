@@ -1030,6 +1030,8 @@
         :syntax-quote (analyze-usages2 (assoc ctx
                                               :analyze-expression**
                                               analyze-expression**) expr)
+        :var (analyze-children (assoc ctx :private-access? true)
+                               (:children expr))
         :reader-macro (analyze-reader-macro ctx expr)
         (:unquote :unquote-splicing)
         (analyze-children ctx children)
@@ -1252,3 +1254,9 @@
         (when (and (= :text (:format output-cfg))
                    (:progress output-cfg))
           (print ".") (flush))))))
+
+;;;; Scratch
+
+(comment
+  (parse-string "#'foo")
+  )
