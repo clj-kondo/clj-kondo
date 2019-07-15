@@ -173,18 +173,60 @@
   [a b]
   (merge-with merge a b))
 
-(defn index-defs-and-calls [defs-and-calls]
-  (reduce
-   (fn [acc {:keys [:calls :defs :used :lang] :as _m}]
-     (-> acc
-         (update-in [lang :calls] (fn [prev-calls]
-                                    (merge-with into prev-calls calls)))
-         (update-in [lang :defs] mmerge defs)
-         (update-in [lang :used] into used)))
-   {:clj {:calls {} :defs {} :used #{}}
-    :cljs {:calls {} :defs {} :used #{}}
-    :cljc {:calls {} :defs {} :used #{}}}
-   defs-and-calls))
+(defn- reduce-map
+  "From medley"
+  [f coll]
+  (let [coll' (if (record? coll) (into {} coll) coll)]
+    (persistent! (reduce-kv (f assoc!) (transient (empty coll')) coll'))))
+
+(defn map-vals
+    "Maps a function over the values of an associative collection. From medley."
+    [f coll]
+    (reduce-map (fn [xf] (fn [m k v] (xf m k (f v)))) coll))
+
+(defn format-vars [vars]
+  (map-vals (fn [meta]
+              (-> meta
+                  (select-keys [:row :col
+                                :macro :private :deprecated
+                                :fixed-arities :var-args-min-arity
+                                :name :ns])))
+            vars))
+
+(defn namespaces->indexed [namespaces]
+  (when namespaces
+    (map-vals (fn [v]
+                (let [vars (:vars v)]
+                  (format-vars vars )))
+              namespaces)))
+
+(defn namespaces->indexed-cljc [namespaces lang]
+  (when namespaces
+    (map-vals (fn [v]
+                (let [vars (:vars v)]
+                  {lang (format-vars vars )}))
+              namespaces)))
+
+(defn namespaces->indexed-defs [ctx]
+  (let [namespaces @(:namespaces ctx)
+        clj (namespaces->indexed (get-in namespaces [:clj :clj]))
+        cljs (namespaces->indexed (get-in namespaces [:cljs :cljs]))
+        cljc-clj (namespaces->indexed-cljc (get-in namespaces [:cljc :clj])
+                                           :clj)
+        cljc-cljs (namespaces->indexed-cljc (get-in namespaces [:cljc :cljs])
+                                            :cljs)]
+    {:clj {:defs clj}
+     :cljs {:defs cljs}
+     :cljc {:defs (mmerge cljc-clj cljc-cljs)}}))
+
+(defn index-defs-and-calls [ctx defs-and-calls]
+  (let [indexed-defs (namespaces->indexed-defs ctx)]
+    (reduce
+     (fn [acc {:keys [:used :lang] :as _m}]
+       (-> acc
+           (update-in [lang :used] into used)))
+     indexed-defs
+     defs-and-calls)))
 
 ;;;; summary
 

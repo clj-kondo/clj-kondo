@@ -111,24 +111,24 @@
             (is (str/includes? (:message (first output))
                                "foo/foo is called with 3 args but expects 1")))))))
   (testing ":refer :all ns is loaded from cache"
-    (let [tmp-dir (System/getProperty "java.io.tmpdir")
-          test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
-          test-source-dir (io/file tmp-dir "test-source-dir")
-          foo (io/file test-source-dir "foo.clj")
-          bar (io/file test-source-dir (str "bar.clj"))]
-      (rm "-rf" test-cache-dir)
-      (mkdir "-p" test-cache-dir)
-      (rm "-rf" test-source-dir)
-      (mkdir "-p" test-source-dir)
-      (io/copy "(ns foo) (defn foo [x])"
-               foo)
-      (io/copy "(ns bar (:require [foo :refer :all])) (foo 1 2 3)"
-               bar)
-      ;; populate cache
-      (lint! foo "--cache" test-cache-dir)
-      (let [output (lint! bar "--cache" test-cache-dir)]
-        (is (str/includes? (:message (first output))
-                           "foo/foo is called with 3 args but expects 1"))))))
+      (let [tmp-dir (System/getProperty "java.io.tmpdir")
+            test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
+            test-source-dir (io/file tmp-dir "test-source-dir")
+            foo (io/file test-source-dir "foo.clj")
+            bar (io/file test-source-dir (str "bar.clj"))]
+        (rm "-rf" test-cache-dir)
+        (mkdir "-p" test-cache-dir)
+        (rm "-rf" test-source-dir)
+        (mkdir "-p" test-source-dir)
+        (io/copy "(ns foo) (defn foo [x])"
+                 foo)
+        (io/copy "(ns bar (:require [foo :refer :all])) (foo 1 2 3)"
+                 bar)
+        ;; populate cache
+        (lint! foo "--cache" test-cache-dir)
+        (let [output (lint! bar "--cache" test-cache-dir)]
+          (is (str/includes? (:message (first output))
+                             "foo/foo is called with 3 args but expects 1"))))))
 
 (deftest lock-test
   (let [tmp-dir (System/getProperty "java.io.tmpdir")

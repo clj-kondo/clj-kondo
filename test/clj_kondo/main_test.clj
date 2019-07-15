@@ -166,7 +166,14 @@
       :col 1,
       :level :error,
       :message "cljs.core/this-as is called with 0 args but expects 1 or more"})
-   (lint! "(this-as)" "--lang" "cljs")))
+   (lint! "(this-as)" "--lang" "cljs"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 24,
+      :level :error,
+      :message "user/deep-merge is called with 0 args but expects 2"})
+   (lint! "(defn deep-merge [x y] (deep-merge))")))
 
 (deftest invalid-arity-schema-test
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
@@ -204,18 +211,22 @@
            linted))))
 
 (deftest private-call-test
-  (let [linted (lint! (io/file "corpus" "private"))]
-    (assert-submaps '({:file "corpus/private/private_calls.clj",
-                       :row 4,
-                       :col 1,
-                       :level :error,
-                       :message "call to private function private.private-defs/private"}
-                      {:file "corpus/private/private_calls.clj",
-                       :row 5,
-                       :col 1,
-                       :level :error,
-                       :message "call to private function private.private-defs/private-by-meta"})
-                    linted)))
+  (assert-submaps '({:file "corpus/private/private_calls.clj",
+                     :row 4,
+                     :col 1,
+                     :level :error,
+                     :message "#'private.private-defs/private is private"}
+                    {:file "corpus/private/private_calls.clj",
+                     :row 5,
+                     :col 1,
+                     :level :error,
+                     :message "#'private.private-defs/private-by-meta is private"}
+                    {:file "corpus/private/private_calls.clj",
+                     :row 6,
+                     :col 6,
+                     :level :error,
+                     :message "#'private.private-defs/private is private"})
+                  (lint! (io/file "corpus" "private"))))
 
 (deftest read-error-test
   (testing "when an error happens in one file, the other file is still linted"
@@ -815,7 +826,7 @@
       :row 4,
       :col 1,
       :level :error,
-      :message "call to private function schema.defs/verify-signature"}
+      :message "#'schema.defs/verify-signature is private"}
      {:file "corpus/schema/defs.clj",
       :row 10,
       :col 1,
@@ -1265,7 +1276,7 @@
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
 
-(deftest refined-test-test
+(deftest redefined-test-test
   (assert-submaps
    '({:file "corpus/redefined_deftest.clj",
       :row 4,
@@ -1877,6 +1888,62 @@
       :level :warning,
       :message "use the idiom (seq x) rather than (not (empty? x))"})
    (lint! "(not (empty? [1]))")))
+
+(deftest deprecated-var-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 28,
+      :level :warning,
+      :message "#'user/foo is deprecated"})
+   (lint! "(defn ^:deprecated foo []) (foo)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 35,
+      :level :warning,
+      :message "#'user/foo is deprecated since 1.0"})
+   (lint! "(defn foo {:deprecated \"1.0\"} []) (foo)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "#'clojure.core/agent-errors is deprecated since 1.2"})
+   (lint! "(agent-errors 1)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 32,
+      :level :warning,
+      :message "#'user/foo is deprecated"})
+   (lint! "(def ^:deprecated foo (fn [])) (foo)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 32,
+      :level :warning,
+      :message "#'user/foo is deprecated"})
+   (lint! "(def ^:deprecated foo (fn [])) foo"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "#'clojure.core/replicate is deprecated since 1.3"})
+   (lint! "replicate"))
+  (testing "config"
+    (assert-submaps
+     '({:file "corpus/deprecated_var.clj",
+        :row 10,
+        :col 1,
+        :level :warning,
+        :message "#'foo.foo/deprecated-fn is deprecated"})
+     (lint! (io/file "corpus" "deprecated_var.clj")
+            '{:linters
+              {:deprecated-var
+               {:exclude {foo.foo/deprecated-fn
+                          [foo.bar foo.baz/allowed "foo.baz/ign\\.*" "bar\\.*"]}}}}))))
 
 ;;;; Scratch
 

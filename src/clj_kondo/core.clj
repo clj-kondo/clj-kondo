@@ -93,11 +93,12 @@
              :namespaces (atom {})}
         lang (or lang :clj)
         processed
-        (core-impl/process-files ctx lint lang)
-        idacs (core-impl/index-defs-and-calls processed)
+        ;; this is needed to force the namespace atom state
+        (doall (core-impl/process-files ctx lint lang))
+        idacs (core-impl/index-defs-and-calls ctx processed)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
-        linted-calls (doall (l/lint-calls ctx idacs))
+        linted-calls (doall (l/lint-var-usage ctx idacs))
         _ (l/lint-unused-namespaces! ctx)
         _ (l/lint-unused-bindings! ctx)
         _ (l/lint-unresolved-symbols! ctx)

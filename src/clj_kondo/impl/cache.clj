@@ -95,7 +95,8 @@
                 (doseq [ns-name analyzed-namespaces
                         :let [{:keys [:source] :as ns-data}
                               (get-in idacs [lang :defs ns-name])]
-                        :when (not (one-of source [:disk :built-in]))]
+                        :when (and (not (one-of source [:disk :built-in]))
+                                   (seq ns-data))]
                   (to-cache cache-dir lang ns-name ns-data)))
               (reduce (fn [idacs lang]
                         (reduce #(load-when-missing %1 [lang :defs %2] cache-dir lang %2)
@@ -125,4 +126,7 @@
   (get-in (from-cache-1 nil :clj 'clojure.core) ['defn])
   (time (get (from-cache-1 nil :clj 'clojure.core) '+))
   (time (get (from-cache-1 nil :clj 'java.lang.Thread) 'sleep))
+
+  (get (from-cache-1 nil :clj 'clojure.core) 'agent-errors)
+  (from-cache-1 nil :clj 'clojure.core.specs.alpha)
   )

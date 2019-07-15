@@ -186,7 +186,7 @@
                            (:ns req)))
                        analyzed))))}))
 
-(defn analyze-ns-decl [{:keys [:lang :findings] :as ctx} expr]
+(defn analyze-ns-decl [{:keys [:base-lang :lang :findings] :as ctx} expr]
   (let [children (:children expr)
         ns-name-expr (second children)
         ns-name (meta/lift-meta-content2 ctx ns-name-expr)
@@ -222,11 +222,13 @@
                  (analyze-java-import ctx ns-name libspec-expr)))
         ns (cond->
                (merge {:type :ns
+                       :base-lang base-lang
                        :lang lang
                        :name ns-name
                        :bindings #{}
                        :used-bindings #{}
-                       :vars #{}
+                       :used-vars []
+                       :vars {}
                        :clojure-excluded (set (for [?refer-clojure (nnext (sexpr expr))
                                                     :when (= :refer-clojure (first ?refer-clojure))
                                                     [k v] (partition 2 (rest ?refer-clojure))

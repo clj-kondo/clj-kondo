@@ -150,31 +150,34 @@
           (if (= 1 called-with) "arg" "args")
           (show-arities fixed-arities var-args-min-arity)))
 
-(defn lint-calls
+(defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters."
   [ctx idacs]
   (let [config (:config ctx)
         ;; findings* (:findings ctx)
-        findings (for [lang [:clj :cljs :cljc]
-                       ns-sym (keys (get-in idacs [lang :calls]))
-                       call (get-in idacs [lang :calls ns-sym])
+        findings (for [ns (namespace/list-namespaces ctx)
+                       :let [base-lang (:base-lang ns)]
+                       call (:used-vars ns)
                        :let [fn-name (:name call)
-                             caller-ns (:ns call)
+                             caller-ns-sym (:ns call)
+                             call-lang (:lang call)
+                             caller-ns (get-in @(:namespaces ctx)
+                                               [base-lang call-lang caller-ns-sym])
                              fn-ns (:resolved-ns call)
                              called-fn
                              (or (resolve-call idacs call fn-ns fn-name)
                                  ;; we resolved this call against the
                                  ;; same namespace, because it was
                                  ;; unqualified
-                                 (when (= caller-ns fn-ns)
+                                 (when (= caller-ns-sym fn-ns)
                                    (some #(resolve-call idacs call % fn-name)
                                          (into (vec
                                                 (keep (fn [[ns excluded]]
                                                         (when-not (contains? excluded fn-name)
                                                           ns))
-                                                      (-> call :ns-lookup :refer-alls)))
+                                                      (:refer-alls caller-ns)))
                                                (when (not (:clojure-excluded? call))
-                                                 [(case lang
+                                                 [(case base-lang
                                                     :clj 'clojure.core
                                                     :cljs 'cljs.core
                                                     :cljc 'clojure.core)])))))
@@ -186,7 +189,7 @@
                              ;; call and the lang of the function def context in
                              ;; the case of in-ns, the bets are off. we may
                              ;; support in-ns in a next version.
-                             valid-order? (if (and (= caller-ns
+                             valid-order? (if (and (= caller-ns-sym
                                                       fn-ns)
                                                    (= (:base-lang call)
                                                       (:base-lang called-fn))
@@ -202,11 +205,13 @@
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
                              errors
-                             [(when (and (or (not-empty fixed-arities)
-                                             var-args-min-arity)
-                                         (not (or (contains? fixed-arities arity)
-                                                  (and var-args-min-arity (>= arity var-args-min-arity))
-                                                  (config/skip? config :invalid-arity (rest (:callstack call))))))
+                             [(when (and
+                                     (:lint-invalid-arity? call)
+                                     (or (not-empty fixed-arities)
+                                         var-args-min-arity)
+                                     (not (or (contains? fixed-arities arity)
+                                              (and var-args-min-arity (>= arity var-args-min-arity))
+                                              (config/skip? config :invalid-arity (rest (:callstack call))))))
                                 {:filename filename
                                  :row (:row call)
                                  :col (:col call)
@@ -214,15 +219,34 @@
                                  :type :invalid-arity
                                  :message (arity-error (:ns called-fn) (:name called-fn) (:arity call) fixed-arities var-args-min-arity)})
                               (when (and (:private called-fn)
-                                         (not= caller-ns
-                                               fn-ns))
+                                         (not= caller-ns-sym
+                                               fn-ns)
+                                         (not (:private-access? call)))
                                 {:filename filename
                                  :row (:row call)
                                  :col (:col call)
                                  :level :error
                                  :type :private-call
-                                 :message (format "call to private function %s"
-                                                  (str (:ns called-fn) "/" (:name called-fn)))})]
+                                 :message (format "#'%s is private"
+                                                  (str (:ns called-fn) "/" (:name called-fn)))})
+                              (when-let [deprecated (:deprecated called-fn)]
+                                (when-not
+                                    (config/deprecated-var-excluded
+                                     config
+                                     (symbol (str (:ns called-fn))
+                                             (str (:name called-fn)))
+                                     caller-ns-sym (:defined-in call))
+                                  {:filename filename
+                                   :row (:row call)
+                                   :col (:col call)
+                                   :level :error
+                                   :type :deprecated-var
+                                   :message (str
+                                             (format "#'%s is deprecated"
+                                                     (str (:ns called-fn) "/" (:name called-fn)))
+                                             (if (true? deprecated)
+                                               nil
+                                               (str " since " deprecated)))}))]
                              _ (lint-specific-calls! (assoc ctx
                                                             :filename filename)
                                                      call called-fn)]

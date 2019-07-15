@@ -1,1 +1,1 @@
-["^ ","~$default-uuid-reader",["^ ","~:fixed-arities",["~#set",[1]],"~:private",true,"~:ns","~$clojure.uuid","~:name","^0","~:base-lang","~:clj","~:lang","^8","~:col",1,"~:row",11]]
+["^ ","~$default-uuid-reader",["^ ","~:row",11,"~:col",8,"~:private",true,"~:fixed-arities",["~#set",[1]],"~:name","^0","~:ns","~$clojure.uuid"]]

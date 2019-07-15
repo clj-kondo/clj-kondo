@@ -45,7 +45,8 @@
                                             (clojure.test/is [thrown? thrown-with-msg?])
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
               :misplaced-docstring {:level :warning}
-              :not-empty? {:level :warning}}
+              :not-empty? {:level :warning}
+              :deprecated-var {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -150,6 +151,25 @@
             (some #(when-let [check-fn (get excluded-in %)]
                      (check-fn sym))
                   callstack))))))
+
+(def deprecated-var-excluded
+  (let [delayed-cfg (fn [config var-sym]
+                      (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])
+                            namespaces (set (filter simple-symbol? excluded))
+                            vars (set (filter qualified-symbol? excluded))
+                            regexes (map re-pattern (filter string? excluded))]
+                        {:namespaces namespaces :regexes regexes :vars vars}))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config var-sym excluded-ns excluded-in-def]
+      (let [{:keys [:namespaces :vars :regexes]} (delayed-cfg config var-sym)]
+        (or (when excluded-in-def
+              (let [excluded-in-def (symbol (str excluded-ns) (str excluded-in-def))]
+                (or (contains? vars excluded-in-def)
+                    (let [excluded-in-def-str (str excluded-in-def)]
+                      (boolean (some #(re-find % excluded-in-def-str) regexes))))))
+            (contains? namespaces excluded-ns)
+            (let [ns-str (str excluded-ns)]
+              (boolean (some #(re-find % ns-str) regexes))))))))
 
 ;;;; Scratch
 

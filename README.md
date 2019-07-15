@@ -29,7 +29,7 @@ clj-kondo detects:
   - of static Java method calls
   - of local `let` and `letfn` binding calls
   - of recursive calls (including `recur`)
-* private function calls
+* private and deprecated var usage
 * required but unused namespaces
 * unused function arguments and let bindings
 * redefined vars

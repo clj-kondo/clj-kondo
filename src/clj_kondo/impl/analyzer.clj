@@ -161,7 +161,8 @@
         ns {:type :in-ns
             :name ns-name
             :lang (:lang ctx)
-            :vars #{}
+            :vars {}
+            :used-vars []
             :used #{}
             :bindings #{}
             :used-bindings #{}}]
@@ -256,7 +257,7 @@
 (defn ctx-with-linter-disabled [ctx linter]
   (assoc-in ctx [:config :linters linter :level] :off))
 
-(defn analyze-defn [{:keys [:base-lang :lang :ns] :as ctx} expr]
+(defn analyze-defn [{:keys [:ns] :as ctx} expr]
   (let [ns-name (:name ns)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
@@ -264,20 +265,26 @@
         fn-name (:value name-node)
         call (name (symbol-call expr))
         var-meta (meta name-node)
+        meta-node (when-let [fc (first children)]
+                    (let [t (tag fc)]
+                      (if (= :map t) fc
+                          (when (not= :vector t)
+                            (when-let [sc (second children)]
+                              (when (= :map (tag sc))
+                                sc))))))
+        var-meta (if meta-node
+                   (merge var-meta
+                          (sexpr meta-node))
+                   var-meta)
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
+        deprecated (:deprecated var-meta)
         ctx (if macro?
               (ctx-with-bindings ctx '{&env {}
                                        &form {}})
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        _ (when fn-name
-            (namespace/reg-var!
-             ctx ns-name fn-name expr
-             (cond-> (meta name-node)
-               macro? (assoc :macro true)
-               private? (assoc :private true))))
         docstring? (:lines (first children))
         bodies (fn-bodies ctx children)
         _ (when (empty? bodies)
@@ -287,29 +294,28 @@
                                                :warning
                                                :syntax
                                                "invalid function body")))
+        ;; var is known when making recursive call
+        _ (when fn-name
+            (namespace/reg-var!
+             ctx ns-name fn-name expr {:temp true}))
         parsed-bodies (map #(analyze-fn-body
-                             (assoc ctx
-                                    :in-def? true
-                                    :docstring? docstring?) %)
+                             (-> ctx
+                                 (assoc :in-def? true
+                                        :docstring? docstring?
+                                        :defined-in fn-name)) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
-        var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))
-        {:keys [:row :col]} (meta expr)
-        defn
-        (when fn-name
-          (cond-> {:type :defn
-                   :name fn-name
-                   :ns ns-name
-                   :row row
-                   :col col
-                   :base-lang base-lang
-                   :lang lang
-                   :expr expr}
-            macro? (assoc :macro true)
-            (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-            private? (assoc :private private?)
-            var-args-min-arity (assoc :var-args-min-arity var-args-min-arity)))]
-    (cons defn (mapcat :parsed parsed-bodies))))
+        var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))]
+    (when fn-name
+      (namespace/reg-var!
+       ctx ns-name fn-name expr
+       (cond-> (meta name-node)
+         macro? (assoc :macro true)
+         private? (assoc :private true)
+         deprecated (assoc :deprecated deprecated)
+         (seq fixed-arities) (assoc :fixed-arities fixed-arities)
+         var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))))
+    (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
   (let [exprs (-> expr :children)]
@@ -654,7 +660,7 @@
                           expr
                           metadata)))
   (analyze-children (assoc ctx :in-def? true)
-                    (next (:children expr))))
+                    (nnext (:children expr))))
 
 (defn analyze-catch [ctx expr]
   (let [children (next (:children expr))
@@ -686,7 +692,7 @@
          false false))
       analyzed)))
 
-(defn analyze-defprotocol [{:keys [:base-lang :lang :ns] :as ctx} expr]
+(defn analyze-defprotocol [{:keys [:ns] :as ctx} expr]
   ;; for syntax, see https://clojure.org/reference/protocols#_basics
   (let [children (next (:children expr))
         name-node (first children)
@@ -694,32 +700,24 @@
         ns-name (:name ns)]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr))
-    (for [c (next children)
+    (doseq [c (next children)
           :when (= :list (tag c)) ;; skip first docstring
           :let [children (:children c)
                 name-node (first children)
                 name-node (meta/lift-meta-content2 ctx name-node)
                 fn-name (:value name-node)
-                _ (when fn-name
-                    (namespace/reg-var! ctx ns-name fn-name expr))
                 arity-vecs (rest children)
                 fixed-arities (set (keep #(when (= :vector (tag %))
                                             ;; skip last docstring
-                                            (count (:children %))) arity-vecs))
-                {:keys [:row :col]} (meta c)]]
-      {:type :defn
-       :name fn-name
-       :ns ns-name
-       :row row
-       :col col
-       :base-lang base-lang
-       :lang lang
-       :fixed-arities fixed-arities
-       :expr c})))
+                                            (count (:children %))) arity-vecs))]]
+      (when fn-name
+        (namespace/reg-var!
+         ctx ns-name fn-name expr (assoc (meta c)
+                                         :fixed-arities fixed-arities))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
-  [{:keys [:base-lang :lang :ns] :as ctx} expr]
+  [{:keys [:ns] :as ctx} expr]
   (let [ns-name (:name ns)
         children (:children expr)
         type (-> children first :value)
@@ -733,39 +731,25 @@
         field-count (when bindings? (count (:children binding-vector)))
         bindings (when bindings? (extract-bindings (assoc ctx
                                                           :skip-reg-binding? true)
-                                                   binding-vector))
-        {:keys [:row :col]} (meta expr)]
+                                                   binding-vector))]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
-    (concat
-     (when-not (= 'definterface type)
-       ;; TODO: it seems like we can abstract creating defn types into a function,
-       ;; so we can also call reg-var there
-       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr metadata)
-       [{:type :defn
-         :name (symbol (str "->" record-name))
-         :ns ns-name
-         :row row
-         :col col
-         :base-lang base-lang
-         :lang lang
-         :fixed-arities #{field-count}
-         :expr expr}])
-     (when (= 'defrecord type)
-       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name)) expr metadata)
-       [{:type :defn
-         :name (symbol (str "map->" record-name))
-         :ns ns-name
-         :row row
-         :col col
-         :base-lang base-lang
-         :lang lang
-         :fixed-arities #{1}
-         :expr expr}])
-     (analyze-children (-> ctx
-                           (ctx-with-linter-disabled :invalid-arity)
-                           (ctx-with-linter-disabled :unresolved-symbol)
-                           (ctx-with-bindings bindings))
-                       (nnext children)))))
+    (when-not (= 'definterface type)
+      ;; TODO: it seems like we can abstract creating defn types into a function,
+      ;; so we can also call reg-var there
+      (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
+                          (assoc metadata
+                                 :fixed-arities #{field-count}
+                                 #_#_:expr expr)))
+    (when (= 'defrecord type)
+      (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
+                          expr (assoc metadata
+                                      :fixed-arities #{1}
+                                      #_#_:expr expr)))
+    (analyze-children (-> ctx
+                          (ctx-with-linter-disabled :invalid-arity)
+                          (ctx-with-linter-disabled :unresolved-symbol)
+                          (ctx-with-bindings bindings))
+                      (nnext children))))
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
@@ -848,8 +832,7 @@
         {resolved-namespace :ns
          resolved-name :name
          unqualified? :unqualified?
-         clojure-excluded? :clojure-excluded?
-         :as resolved}
+         clojure-excluded? :clojure-excluded?}
         (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name _lint-as?]
         (or (when-let [[ns n] (config/lint-as config [resolved-namespace resolved-name])]
@@ -950,22 +933,29 @@
                                         (meta (first children))))
     (if (= 'ns resolved-as-clojure-var-name)
       analyzed
-      (let [call {:type :call
-                  :resolved-ns resolved-namespace
-                  :ns ns-name
-                  :name (or resolved-name full-fn-name)
-                  :unqualified? unqualified?
-                  :clojure-excluded? clojure-excluded?
-                  :resolved? (boolean resolved)
-                  :arity arg-count
-                  :row row
-                  :col col
-                  :base-lang base-lang
-                  :lang lang
-                  :expr expr
-                  :callstack (:callstack ctx)
-                  :lint-invalid-arity?
-                  (not (linter-disabled? ctx :invalid-arity))}]
+      (let [defined-in (:defined-in ctx)
+            call (cond-> {:type :call
+                          :resolved-ns resolved-namespace
+                          :ns ns-name
+                          :name (or resolved-name full-fn-name)
+                          :unqualified? unqualified?
+                          :clojure-excluded? clojure-excluded?
+                          :arity arg-count
+                          :row row
+                          :col col
+                          :base-lang base-lang
+                          :lang lang
+                          :expr expr
+                          :callstack (:callstack ctx)
+                          :filename (:filename ctx)
+                          :lint-invalid-arity?
+                          (not (linter-disabled? ctx :invalid-arity))}
+                   defined-in (assoc :defined-in defined-in))]
+        (namespace/reg-var-usage! ctx ns-name call)
+        (when-not unqualified?
+          (namespace/reg-usage! ctx
+                                ns-name
+                                resolved-namespace))
         (if-let [m (meta analyzed)]
           (with-meta (cons call analyzed)
             m)
@@ -1040,6 +1030,8 @@
         :syntax-quote (analyze-usages2 (assoc ctx
                                               :analyze-expression**
                                               analyze-expression**) expr)
+        :var (analyze-children (assoc ctx :private-access? true)
+                               (:children expr))
         :reader-macro (analyze-reader-macro ctx expr)
         (:unquote :unquote-splicing)
         (analyze-children ctx children)
@@ -1157,36 +1149,10 @@
            ns
            rest-parsed
            (case (:type first-parsed)
-             :defn
-             (let [path (if (= :cljc base-lang)
-                          [:defs ns-name (:lang first-parsed) (:name first-parsed)]
-                          [:defs ns-name (:name first-parsed)])
-                   results
-                   (assoc-in results path
-                             (dissoc first-parsed
-                                     :type
-                                     :expr))]
-               results)
              :call
-             (if (:resolved? first-parsed)
-               (let [unqualified? (:unqualified? first-parsed)
-                     _ (when-not unqualified?
-                         (namespace/reg-usage! ctx
-                                               ns-name
-                                               (:resolved-ns first-parsed)))]
-                 (if (:lint-invalid-arity? first-parsed)
-                   (let [path [:calls (:resolved-ns first-parsed)]
-                         call (assoc first-parsed
-                                     :filename filename
-                                     ;; TODO: we don't need this ns-lookup, because we
-                                     ;; store namespaces in an atom now
-                                     :ns-lookup ns)
-                         results (cond-> (update-in results path vconj call)
-                                   (not unqualified?)
-                                   (update :used conj (:resolved-ns first-parsed)))]
-                     results)
-                   results))
+             (let [results (update results :used conj (:resolved-ns first-parsed))]
                results)
+             results
              results)))
         [(assoc ctx :ns ns) results]))))
 
@@ -1213,9 +1179,7 @@
                    :namespaces namespaces}]
      (loop [ctx init-ctx
             [expression & rest-expressions] expressions
-            results {:calls {}
-                     :defs {}
-                     :required (:required init-ns)
+            results {:required (:required init-ns)
                      :used (:used init-ns)
                      :findings []
                      :lang base-lang}]
@@ -1290,3 +1254,9 @@
         (when (and (= :text (:format output-cfg))
                    (:progress output-cfg))
           (print ".") (flush))))))
+
+;;;; Scratch
+
+(comment
+  (parse-string "#'foo")
+  )
