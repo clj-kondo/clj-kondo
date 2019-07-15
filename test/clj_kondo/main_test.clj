@@ -1090,7 +1090,8 @@
   (is (empty? (lint! "(ns foo (:require [bar])) (:id bar/x)")))
   (is (empty? (lint! (io/file "corpus" "no_unused_namespace.clj"))))
   (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{::b/keys [:baz]} nil] baz)")))
-  (is (empty? (lint! "(require '[clojure.set :refer [join]]) join"))))
+  (is (empty? (lint! "(require '[clojure.set :refer [join]]) join")))
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{:keys [::b/x]} {}] x)"))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",

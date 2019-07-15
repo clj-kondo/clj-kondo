@@ -10,6 +10,21 @@
 
 (set! *warn-on-reflection* true)
 
+(defn analyze-keyword [ctx expr]
+  (let [ns (:ns ctx)
+        ns-name (:name ns)
+        keyword-val (:k expr)]
+    (when (:namespaced? expr)
+      (let [symbol-val (kw->sym keyword-val)
+            {resolved-ns :ns
+             _resolved-name :name
+             _unqualified? :unqualified? :as _m}
+            (namespace/resolve-name ctx ns-name symbol-val)]
+        (when resolved-ns
+          (namespace/reg-usage! ctx
+                                (-> ns :name)
+                                resolved-ns))))))
+
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
@@ -64,17 +79,8 @@
                                                     :lang (:lang ctx)
                                                     :filename (:filename ctx)
                                                     :private-access? (:private-access? ctx)}))))))
-               (when-let [keyword-val (:k expr)]
-                 (when (:namespaced? expr)
-                   (let [symbol-val (kw->sym keyword-val)
-                         {resolved-ns :ns
-                          _resolved-name :name
-                          _unqualified? :unqualified? :as _m}
-                         (namespace/resolve-name ctx ns-name symbol-val)]
-                     (when resolved-ns
-                       (namespace/reg-usage! ctx
-                                             (-> ns :name)
-                                             resolved-ns))))))
+               (when (:k expr)
+                 (analyze-keyword ctx expr)))
              ;; catch-call
              (doall (mapcat
                      #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))

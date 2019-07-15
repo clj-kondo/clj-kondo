@@ -4,7 +4,7 @@
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.spec :as spec]
-   [clj-kondo.impl.analyzer.usages :refer [analyze-usages2]]
+   [clj-kondo.impl.analyzer.usages :as usages :refer [analyze-usages2]]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.keys :as key-linter]
@@ -89,6 +89,7 @@
          ;; keyword
          (:k expr)
          (let [k (:k expr)]
+           (usages/analyze-keyword ctx expr)
            (if keys-destructuring?
              (let [s (-> k name symbol)
                    m (meta expr)
