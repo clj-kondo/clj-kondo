@@ -179,57 +179,33 @@
   (let [coll' (if (record? coll) (into {} coll) coll)]
     (persistent! (reduce-kv (f assoc!) (transient (empty coll')) coll'))))
 
-#_(defn map-vals
+(defn map-vals
     "Maps a function over the values of an associative collection. From medley."
     [f coll]
     (reduce-map (fn [xf] (fn [m k v] (xf m k (f v)))) coll))
 
-(defn map-kv
-  "Maps a function over the key/value pairs of an associate collection. Expects
-  a function that takes two arguments, the key and value, and returns the new
-  key and value as a collection of two elements. From medley."
-  [f coll]
-  (reduce-map (fn [xf] (fn [m k v] (let [[k v] (f k v)] (xf m k v)))) coll))
+(defn format-vars [vars]
+  (map-vals (fn [meta]
+              (-> meta
+                  (select-keys [:row :col
+                                :macro :private :deprecated
+                                :fixed-arities :var-args-min-arity
+                                :name :ns])))
+            vars))
 
-;; TODO: refactor
 (defn namespaces->indexed [namespaces]
   (when namespaces
-    (as-> namespaces $
-      (map-kv (fn [k v]
+    (map-vals (fn [v]
                 (let [vars (:vars v)]
-                  [k (persistent!
-                      (reduce
-                       (fn [m [fn-k v]]
-                         (assoc! m v (let [m (meta v)
-                                           m (select-keys m [:row :col
-                                                             :macro :private :deprecated
-                                                             :fixed-arities :var-args-min-arity
-                                                             :name :ns])
-                                           m (assoc m
-                                                    :name fn-k
-                                                    :ns k)]
-                                       m)))
-                       (transient {})
-                       vars))])) $))))
+                  (format-vars vars )))
+              namespaces)))
 
 (defn namespaces->indexed-cljc [namespaces lang]
   (when namespaces
-    (as-> namespaces $
-      (map-kv (fn [k v]
+    (map-vals (fn [v]
                 (let [vars (:vars v)]
-                  [k {lang (persistent!
-                            (reduce
-                             (fn [m [fn-k v]]
-                               (assoc! m v (let [m (meta v)
-                                                 m (select-keys m [:row :col
-                                                                   :macro :private :deprecated
-                                                                   :fixed-arities :var-args-min-arity
-                                                                   :name :ns])
-                                                 m (assoc m :name fn-k
-                                                          :ns k)]
-                                             m)))
-                             (transient {})
-                             vars))}])) $))))
+                  {lang (format-vars vars )}))
+              namespaces)))
 
 (defn namespaces->indexed-defs [ctx]
   (let [namespaces @(:namespaces ctx)
@@ -248,12 +224,8 @@
     (reduce
      (fn [acc {:keys [:used :lang] :as _m}]
        (-> acc
-           #_(update-in [lang :defs] mmerge defs)
            (update-in [lang :used] into used)))
      indexed-defs
-     #_{:clj {:calls {} :defs {} :used #{}}
-        :cljs {:calls {} :defs {} :used #{}}
-        :cljc {:calls {} :defs {} :used #{}}}
      defs-and-calls)))
 
 ;;;; summary

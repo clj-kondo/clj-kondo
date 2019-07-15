@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.extract-var-info
+  {:no-doc true}
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.core :as core-impl]
@@ -30,10 +31,13 @@
   []
   (edn/read-string (slurp (io/resource "var-info.edn"))))
 
+(defn public? [[k v]]
+  (when (-> v :private not)
+    k))
+
 (defn extract-clojure-core-vars
   []
-  (let [public? #(-> % meta :private not)
-        namespaces (atom {})
+  (let [namespaces (atom {})
         special '#{}]
     (doall
      (core-impl/process-files
@@ -45,12 +49,11 @@
                 "1.10.1" "clojure-1.10.1.jar")]
       :clj))
     (reduce into special
-            [(filter public? (keys (get-in @namespaces '[:clj :clj clojure.core :vars])))])))
+            [(keep public? (get-in @namespaces '[:clj :clj clojure.core :vars]))])))
 
 (defn extract-cljs-core-vars
   []
-  (let [public? #(-> % meta :private not)
-        namespaces (atom {})
+  (let [namespaces (atom {})
         ;; built-ins from analyzer, e.g.
         ;; https://github.com/clojure/clojurescript/blob/47386d7c03e6fc36dc4f0145bd62377802ac1c02/src/main/clojure/cljs/analyzer.cljc#L3002
         special '#{ns js* *target*}]
@@ -64,9 +67,9 @@
                 "1.10.520" "clojurescript-1.10.520.jar")]
       :clj))
     (reduce into special
-            [(filter public? (keys (get-in @namespaces '[:cljs :cljs cljs.core :vars])))
-             (filter public? (keys (get-in @namespaces '[:cljc :clj cljs.core :vars])))
-             (filter public? (keys (get-in @namespaces '[:cljc :cljs cljs.core :vars])))])))
+            [(keep public? (get-in @namespaces '[:cljs :cljs cljs.core :vars]))
+             (keep public? (get-in @namespaces '[:cljc :clj cljs.core :vars]))
+             (keep public? (get-in @namespaces '[:cljc :cljs cljs.core :vars]))])))
 
 (defn extract-default-imports []
   (into {}

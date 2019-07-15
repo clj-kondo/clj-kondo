@@ -24,20 +24,21 @@
    (reg-var! ctx ns-sym var-sym expr nil))
   ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level?]}
     ns-sym var-sym expr metadata]
-   #_(prn ns-sym var-sym expr metadata)
-   (let [path [base-lang lang ns-sym]]
+   (let [metadata (assoc metadata
+                         :ns ns-sym
+                         :name var-sym)
+         path [base-lang lang ns-sym]]
      (swap! namespaces update-in path
             (fn [ns]
               ;; declare is idempotent
               (when (and top-level? (not (:declared metadata)))
                 (let [vars (:vars ns)]
                   (when-let [redefined-ns
-                             (or (when-let [v (get vars var-sym)]
-                                   (let [meta-v (meta v)]
-                                     (when-not (or
-                                                (:temp meta-v)
-                                                (:declared meta-v))
-                                       ns-sym)))
+                             (or (when-let [meta-v (get vars var-sym)]
+                                   (when-not (or
+                                              (:temp meta-v)
+                                              (:declared meta-v))
+                                     ns-sym))
                                  (when-let [qv (get (:qualify-var ns) var-sym)]
                                    (:ns qv))
                                  (let [core-ns (case lang
@@ -56,11 +57,8 @@
                                    (str "redefined var #'" redefined-ns "/" var-sym)
                                    (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))))
               (update ns :vars assoc
-                      ;; TODO: refactor
-                      (with-meta var-sym
-                        metadata)
-                      (with-meta var-sym
-                        metadata)))))))
+                      var-sym
+                      metadata))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces]}
