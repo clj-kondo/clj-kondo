@@ -826,7 +826,7 @@
       :row 4,
       :col 1,
       :level :error,
-      :message "call to private function schema.defs/verify-signature"}
+      :message "#'schema.defs/verify-signature is private"}
      {:file "corpus/schema/defs.clj",
       :row 10,
       :col 1,
