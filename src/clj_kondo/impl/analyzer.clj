@@ -7,13 +7,13 @@
    [clj-kondo.impl.analyzer.usages :as usages :refer [analyze-usages2]]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.linters :as linters]
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.linters :as linters]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call keyword-call node->line parse-string parse-string-all tag
@@ -159,15 +159,17 @@
 
 (defn analyze-in-ns [ctx {:keys [:children] :as _expr}]
   (let [ns-name (-> children second :children first :value)
-        ns {:type :in-ns
-            :name ns-name
-            :lang (:lang ctx)
-            :vars {}
-            :used-vars []
-            :used #{}
-            :bindings #{}
-            :used-bindings #{}}]
+        ns (when ns-name
+             {:type :in-ns
+              :name ns-name
+              :lang (:lang ctx)
+              :vars {}
+              :used-vars []
+              :used #{}
+              :bindings #{}
+              :used-bindings #{}})]
     (namespace/reg-namespace! ctx ns)
+    (analyze-children ctx (next children))
     ns))
 
 (defn fn-call? [expr]
@@ -702,15 +704,15 @@
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr))
     (doseq [c (next children)
-          :when (= :list (tag c)) ;; skip first docstring
-          :let [children (:children c)
-                name-node (first children)
-                name-node (meta/lift-meta-content2 ctx name-node)
-                fn-name (:value name-node)
-                arity-vecs (rest children)
-                fixed-arities (set (keep #(when (= :vector (tag %))
-                                            ;; skip last docstring
-                                            (count (:children %))) arity-vecs))]]
+            :when (= :list (tag c)) ;; skip first docstring
+            :let [children (:children c)
+                  name-node (first children)
+                  name-node (meta/lift-meta-content2 ctx name-node)
+                  fn-name (:value name-node)
+                  arity-vecs (rest children)
+                  fixed-arities (set (keep #(when (= :vector (tag %))
+                                              ;; skip last docstring
+                                              (count (:children %))) arity-vecs))]]
       (when fn-name
         (namespace/reg-var!
          ctx ns-name fn-name expr (assoc (meta c)
@@ -856,7 +858,8 @@
         (case resolved-as-clojure-var-name
           ns
           (when top-level? [(analyze-ns-decl ctx expr)])
-          in-ns (when top-level? [(analyze-in-ns ctx expr)])
+          in-ns (if top-level? [(analyze-in-ns ctx expr)]
+                    (analyze-children ctx (next children)))
           alias
           [(analyze-alias ctx expr)]
           declare (analyze-declare ctx expr)
