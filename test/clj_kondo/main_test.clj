@@ -904,7 +904,9 @@
     :col 55,
     :level :error,
     :message "foo/foo-2 is called with 3 args but expects 0"}
-   (first (lint! "(ns foo) (defn foo-1 [] (in-ns 'bar)) (defn foo-2 []) (foo-2 1 2 3)"))))
+   (first (lint! "(ns foo) (defn foo-1 [] (in-ns 'bar)) (defn foo-2 []) (foo-2 1 2 3)")))
+  (is (empty? (lint! "(let [ns-name \"user\"] (in-ns ns-name))"
+                     '{:linters {:unused-binding {:level :warning}}}))))
 
 (deftest skip-args-test
   (is
