@@ -228,7 +228,7 @@
                      [k v] (partition 2 (rest ?refer-clojure))
                      :let [r (case k
                                :exclude
-                               {:excluded v}
+                               {:excluded (set v)}
                                :rename
                                {:renamed v
                                 :excluded (set (keys v))})]]
