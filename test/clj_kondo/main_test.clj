@@ -455,7 +455,52 @@
         :message "clojure.string/includes? is called with 1 arg but expects 2"})
      (lint! "(ns foo (:require [clojure.string :refer [includes?] :rename {includes? i}]))
           (i \"str\")
-          (includes? \"str\")"))))
+          (includes? \"str\")")))
+  (assert-submaps
+   '({:file "corpus/rename.cljc",
+      :row 4,
+      :col 9,
+      :level :error,
+      :message
+      "clojure.core/update is called with 0 args but expects 3, 4, 5, 6 or more"}
+     {:file "corpus/rename.cljc",
+      :row 5,
+      :col 10,
+      :level :error,
+      :message
+      "clojure.core/update is called with 0 args but expects 3, 4, 5, 6 or more"}
+     {:file "corpus/rename.cljc",
+      :row 6,
+      :col 9,
+      :level :error,
+      :message "unresolved symbol conj"}
+     {:file "corpus/rename.cljc",
+      :row 7,
+      :col 10,
+      :level :error,
+      :message "unresolved symbol conj"}
+     {:file "corpus/rename.cljc",
+      :row 8,
+      :col 10,
+      :level :error,
+      :message "unresolved symbol join"}
+     {:file "corpus/rename.cljc",
+      :row 9,
+      :col 11,
+      :level :error,
+      :message "unresolved symbol join"}
+     {:file "corpus/rename.cljc",
+      :row 10,
+      :col 9,
+      :level :error,
+      :message "clojure.string/join is called with 0 args but expects 1 or 2"}
+     {:file "corpus/rename.cljc",
+      :row 11,
+      :col 10,
+      :level :error,
+      :message "clojure.string/join is called with 0 args but expects 1 or 2"})
+   (lint! (io/file "corpus" "rename.cljc")
+          '{:linters {:unresolved-symbol {:level :error}}})))
 
 (deftest refer-all-rename-test
   (testing ":require with :refer :all and :rename"

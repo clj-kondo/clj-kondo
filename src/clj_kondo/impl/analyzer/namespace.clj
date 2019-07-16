@@ -206,8 +206,9 @@
                  'user)
         clauses (nnext children)
         kw+libspecs (for [?require-clause clauses
-                          :let [require-kw (some-> ?require-clause :children first :k
-                                                   (one-of [:require :require-macros]))]
+                          :let [require-kw
+                                (some-> ?require-clause :children first :k
+                                        (one-of [:require :require-macros]))]
                           :when require-kw]
                       [require-kw (-> ?require-clause :children next)])
         analyzed-require-clauses
@@ -220,6 +221,24 @@
                      :when import-kw
                      libspec-expr (rest (:children ?import-clause))]
                  (analyze-java-import ctx ns-name libspec-expr)))
+        refer-clojure-clauses
+        (apply merge-with into
+               (for [?refer-clojure (nnext (sexpr expr))
+                     :when (= :refer-clojure (first ?refer-clojure))
+                     [k v] (partition 2 (rest ?refer-clojure))
+                     :let [r (case k
+                               :exclude
+                               {:excluded (set v)}
+                               :rename
+                               {:renamed v
+                                :excluded (set (keys v))})]]
+                 r))
+        refer-clojure {:qualify-var
+                       (into {} (map (fn [[original-name new-name]]
+                                       [new-name {:ns 'clojure.core
+                                                  :name original-name}])
+                                     (:renamed refer-clojure-clauses)))
+                       :clojure-excluded (:excluded refer-clojure-clauses)}
         ns (cond->
                (merge {:type :ns
                        :base-lang base-lang
@@ -229,14 +248,10 @@
                        :used-bindings #{}
                        :used-vars []
                        :vars {}
-                       :clojure-excluded (set (for [?refer-clojure (nnext (sexpr expr))
-                                                    :when (= :refer-clojure (first ?refer-clojure))
-                                                    [k v] (partition 2 (rest ?refer-clojure))
-                                                    :when (= :exclude k)
-                                                    sym v]
-                                                sym))
                        :java-imports java-imports}
-                      analyzed-require-clauses)
+                      (merge-with into
+                                  analyzed-require-clauses
+                                  refer-clojure))
              local-config (assoc :config local-config)
              (= :clj lang) (update :qualify-ns
                                    #(assoc % 'clojure.core 'clojure.core))
