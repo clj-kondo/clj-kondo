@@ -213,23 +213,37 @@ Say you have the following function:
 (ns app.foo)
 (defn foo {:deprecated "1.9.0"} [])
 ```
-and you still want to be able to call it without getting a warning, for example in test code:
+and you still want to be able to call it without getting a warning, for example in function in the same namespace which is also deprecated:
+
+``` clojure
+(defn bar {:deprecated "1.9.0"} []
+  (foo))
+```
+
+or in test code:
 
 ``` clojure
 (ns app.foo-test
   (:require
    [app.foo :refer [foo]]
    [clojure.test :refer [deftest is]]))
+
+(deftest foo-test [] (is (nil? (foo))))
 ```
 
 To achieve this, use this config:
 
 ``` clojure
-{:linters {:deprecated-var {:exclude {app.foo/foo [app.foo-test]}}}}
+{:linters
+ {:deprecated-var
+  {:exclude
+   {app.foo/foo
+    {:defs [app.foo/bar]
+     :namespaces [app.foo-test]}}}}}
 ```
 
-To exclude multiple namespaces, a regex is permitted:
+A regex is also permitted, e.g. to exclude all test namespaces:
 
 ``` clojure
-{:linters {:deprecated-var {:exclude {app.foo/foo [".*-test$"]}}}}
+{:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
 ```
