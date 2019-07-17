@@ -1991,7 +1991,13 @@
             '{:linters
               {:deprecated-var
                {:exclude {foo.foo/deprecated-fn
-                          [foo.bar foo.baz/allowed "foo.baz/ign\\.*" "bar\\.*"]}}}}))))
+                          {:namespaces [foo.bar "bar\\.*"]
+                           :defs [foo.baz/allowed "foo\\.baz/ign\\.*"]}}}}}))))
+
+(comment
+
+  (re-find #"foo\.baz/ign\.*" "foo.baz/ignore")
+  )
 
 ;;;; Scratch
 

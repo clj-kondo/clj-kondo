@@ -46,7 +46,13 @@
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}
-              :deprecated-var {:level :warning}}
+              :deprecated-var {:level :warning
+                               #_:exclude
+                               #_{foo.foo/deprecated-fn
+                                  ;; suppress warnings in the following namespaces
+                                  {:namespaces [foo.bar "bar\\.*"]
+                                   ;; or in these definitions:
+                                   :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -155,21 +161,28 @@
 (def deprecated-var-excluded
   (let [delayed-cfg (fn [config var-sym]
                       (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])
-                            namespaces (set (filter simple-symbol? excluded))
-                            vars (set (filter qualified-symbol? excluded))
-                            regexes (map re-pattern (filter string? excluded))]
-                        {:namespaces namespaces :regexes regexes :vars vars}))
+                            namespaces (:namespaces excluded)
+                            namespace-regexes (map re-pattern (filter string? namespaces))
+                            namespace-syms (set (filter symbol? namespaces))
+                            defs (:defs excluded)
+                            def-regexes (map re-pattern (filter string? defs))
+                            def-syms (set (filter symbol? defs))]
+                        {:namespace-regexes namespace-regexes
+                         :namespace-syms namespace-syms
+                         :def-regexes def-regexes
+                         :def-syms def-syms}))
         delayed-cfg (memoize delayed-cfg)]
     (fn [config var-sym excluded-ns excluded-in-def]
-      (let [{:keys [:namespaces :vars :regexes]} (delayed-cfg config var-sym)]
+      (let [{:keys [:namespace-regexes :namespace-syms
+                    :def-regexes :def-syms]} (delayed-cfg config var-sym)]
         (or (when excluded-in-def
               (let [excluded-in-def (symbol (str excluded-ns) (str excluded-in-def))]
-                (or (contains? vars excluded-in-def)
+                (or (contains? def-syms excluded-in-def)
                     (let [excluded-in-def-str (str excluded-in-def)]
-                      (boolean (some #(re-find % excluded-in-def-str) regexes))))))
-            (contains? namespaces excluded-ns)
+                      (boolean (some #(re-find % excluded-in-def-str) def-regexes))))))
+            (contains? namespace-syms excluded-ns)
             (let [ns-str (str excluded-ns)]
-              (boolean (some #(re-find % ns-str) regexes))))))))
+              (boolean (some #(re-find % ns-str) namespace-regexes))))))))
 
 ;;;; Scratch
 
