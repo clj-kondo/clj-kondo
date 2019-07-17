@@ -2,7 +2,7 @@
 # test: https://snapcraft.io/first-snap/pre-built/macos/test
 # push: snapcraft push clj-kondo_..._.snap
 name: clj-kondo
-version: 2019.07.05-alpha
+version: 2019.07.17-alpha
 summary: A linter for Clojure code that sparks joy.
 description: |
   A linter for Clojure code that sparks joy.
