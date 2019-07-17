@@ -1,9 +1,6 @@
 # Configuration
 
-NOTE: parts of the config may change as clj-kondo sees more usage. Please let me
-know which parts you are using and find useful.
-
-clj-kondo can be configured in three ways:
+Clj-kondo can be configured in three ways:
 
 - by placing a `config.edn` file in the `.clj-kondo` directory (see [project setup](../README.md#project-setup))
 - by providing a `--config` file argument from the command line
@@ -14,13 +11,11 @@ The command line argument overrides a `config.edn`.
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
 
-## Examples
+## Output
 
-### Output
+### Print results in JSON format
 
-#### Print results in JSON format
-
-``` shellsession
+``` json
 $ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0]'
 {
   "type": "invalid-arity",
@@ -34,7 +29,7 @@ $ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0
 
 Printing in EDN format is also supported.
 
-#### Include and exclude files from the output
+### Include and exclude files from the output
 
 ``` shellsession
 $ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"]}}'
@@ -47,7 +42,7 @@ clojure/test.clj:496:6: warning: redundant let
 linting took 3226ms, errors: 0, warnings: 1
 ```
 
-#### Show progress bar while linting
+### Show progress bar while linting
 
 ``` shellsession
 $ clj-kondo --lint "$(clj -Spath)" --config '{:output {:progress true}}'
@@ -56,7 +51,7 @@ cljs/tools/reader.cljs:527:9: warning: redundant do
 (rest of the output omitted)
 ```
 
-### Disable a linter
+## Disable a linter
 
 ``` shellsession
 $ echo '(select-keys [:a])' | clj-kondo --lint -
@@ -67,7 +62,7 @@ $ echo '(select-keys [:a])' | clj-kondo --lint - --config '{:linters {:invalid-a
 linting took 10ms, errors: 0, warnings: 0
 ```
 
-### Disable all linters but one
+## Disable all linters but one
 
 You can accomplish this by using `^:replace` metadata, which will override
 instead of merge with other configurations:
@@ -79,7 +74,7 @@ corpus/redundant_let.clj:8:3: info: redundant let
 corpus/redundant_let.clj:12:3: info: redundant let
 ```
 
-### Exclude arity linting inside a specific macro call
+## Exclude arity linting inside a specific macro call
 
 Some macros rewrite their arguments and therefore can cause false positive arity
 errors. Imagine the following silly macro:
@@ -104,7 +99,7 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
 
-### Lint a custom macro like a built-in macro
+## Lint a custom macro like a built-in macro
 
 In the following code the `my-defn` macro is defined, but clj-kondo doesn't know how to interpret it:
 
@@ -127,7 +122,7 @@ we might have just linted it like that. That is what the following configuration
 {:lint-as {foo/my-defn clojure.core/defn}}
 ```
 
-### Exclude required but unused namespace from being reported
+## Exclude required but unused namespace from being reported
 
 In the following code, the namespaces `foo.specs` and `bar.specs` are only loaded for the side effect of registering specs, so we don't like clj-kondo reporting those namespaces as required but unused.
 
@@ -150,7 +145,7 @@ A regex is also supported:
 
 This will exclude all namespaces ending with `.specs`.
 
-### Exclude unresolved symbols from being reported
+## Exclude unresolved symbols from being reported
 
 In the following code `streams` is a macro that assigns a special meaning to the symbol `where`, so it should not be reported as an unresolved symbol:
 
@@ -208,4 +203,33 @@ and helps preventing false positive unresolved symbols in this code:
 (programs rm mkdir echo mv)
 (let-programs [clj-kondo "./clj-kondo"]
   ,,,)
+```
+
+## Exclude deprecated var usage from being reported
+
+Say you have the following function:
+
+``` clojure
+(ns app.foo)
+(defn foo {:deprecated "1.9.0"} [])
+```
+and you still want to be able to call it without getting a warning, for example in test code:
+
+``` clojure
+(ns app.foo-test
+  (:require
+   [app.foo :refer [foo]]
+   [clojure.test :refer [deftest is]]))
+```
+
+To achieve this, use this config:
+
+``` clojure
+{:linters {:deprecated-var {:exclude {app.foo/foo [app.foo-test]}}}}
+```
+
+To exclude multiple namespaces, a regex is permitted:
+
+``` clojure
+{:linters {:deprecated-var {:exclude {app.foo/foo [".*-test$"]}}}}
 ```
