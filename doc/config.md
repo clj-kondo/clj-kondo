@@ -31,7 +31,7 @@ Printing in EDN format is also supported.
 
 ### Include and exclude files from the output
 
-``` shell
+``` shellsession
 $ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"]}}'
 clojure/test.clj:496:6: warning: redundant let
 clojure/test/tap.clj:86:5: warning: redundant do
@@ -44,7 +44,7 @@ linting took 3226ms, errors: 0, warnings: 1
 
 ### Show progress bar while linting
 
-``` shell
+``` shellsession
 $ clj-kondo --lint "$(clj -Spath)" --config '{:output {:progress true}}'
 .................................................................................................................
 cljs/tools/reader.cljs:527:9: warning: redundant do
@@ -53,7 +53,7 @@ cljs/tools/reader.cljs:527:9: warning: redundant do
 
 ## Disable a linter
 
-``` shell
+``` shellsession
 $ echo '(select-keys [:a])' | clj-kondo --lint -
 <stdin>:1:1: error: wrong number of args (1) passed to clojure.core/select-keys
 linting took 10ms, errors: 1, warnings: 0
@@ -67,7 +67,7 @@ linting took 10ms, errors: 0, warnings: 0
 You can accomplish this by using `^:replace` metadata, which will override
 instead of merge with other configurations:
 
-``` shell
+``` shellsession
 $ clj-kondo --lint corpus --config '^:replace {:linters {:redundant-let {:level :info}}}'
 corpus/redundant_let.clj:4:3: info: redundant let
 corpus/redundant_let.clj:8:3: info: redundant let
