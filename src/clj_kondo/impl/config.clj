@@ -184,17 +184,6 @@
             (let [ns-str (str excluded-ns)]
               (boolean (some #(re-find % ns-str) namespace-regexes))))))))
 
-{:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
-
-
-
-{:linters
- {:deprecated-var
-  {:exclude
-   {app.foo/foo
-    {:defs [app.foo/bar]
-     :namespaces [app.foo-test]}}}}}
-
 ;;;; Scratch
 
 (comment
