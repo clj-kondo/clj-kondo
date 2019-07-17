@@ -214,7 +214,7 @@ Say you have the following function:
 (ns app.foo)
 (defn foo {:deprecated "1.9.0"} [])
 ```
-<<<<<<< HEAD
+
 and you still want to be able to call it without getting a warning, for example in function in the same namespace which is also deprecated:
 
 ``` clojure
@@ -223,26 +223,19 @@ and you still want to be able to call it without getting a warning, for example 
 ```
 
 or in test code:
-=======
-and you still want to be able to call it without getting a warning, for example in test code:
->>>>>>> master
 
 ``` clojure
 (ns app.foo-test
   (:require
    [app.foo :refer [foo]]
    [clojure.test :refer [deftest is]]))
-<<<<<<< HEAD
 
 (deftest foo-test [] (is (nil? (foo))))
-=======
->>>>>>> master
 ```
 
 To achieve this, use this config:
 
 ``` clojure
-<<<<<<< HEAD
 {:linters
  {:deprecated-var
   {:exclude
@@ -263,13 +256,3 @@ These are some example configurations used in real projects. Feel free to create
 
 - [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
 - [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
-=======
-{:linters {:deprecated-var {:exclude {app.foo/foo [app.foo-test]}}}}
-```
-
-To exclude multiple namespaces, a regex is permitted:
-
-``` clojure
-{:linters {:deprecated-var {:exclude {app.foo/foo [".*-test$"]}}}}
-```
->>>>>>> master
