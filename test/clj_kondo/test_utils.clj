@@ -111,9 +111,9 @@
   (case (System/getenv "CLJ_KONDO_TEST_ENV")
     "jvm" #'lint-jvm!
     "native" #'lint-native!
-    lint-jvm!))
+    #'lint-jvm!))
 
-(if (= lint! lint-jvm!)
+(if (= lint! #'lint-jvm!)
   (println "==== Testing JVM version")
   (println "==== Testing native version"))
 
