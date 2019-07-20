@@ -1837,6 +1837,8 @@
                            :output {:format :edn}}))))))
   (is (empty? (lint! "(ns foo (:import [java.util.regex Pattern])) Pattern/compile"
                      '{:linters {:unresolved-symbol {:level :error}}})))
+  ;; although this isn't correct at run-time, preventing a namespace or class
+  ;; symbol from being reported as unresolved is generally better
   (is (empty? (lint! "(ns foo (:require [clojure.core])) clojure.core"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
