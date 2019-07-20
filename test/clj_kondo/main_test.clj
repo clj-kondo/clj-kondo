@@ -1998,13 +1998,12 @@
                            :defs [foo.baz/allowed "foo\\.baz/ign\\.*"]}}}}}))))
 
 (deftest unused-referred-var-test
-  ;; TODO: don't emit this warning when the entire namespace is unused!
   (assert-submaps
    '({:file "corpus/unused_referred_var.clj",
       :row 2,
       :col 50,
       :level :warning,
-      :message "#'clojure.string/ends-with? is referred but unused"})
+      :message "#'clojure.string/ends-with? is referred but never used"})
    (lint! (io/file "corpus" "unused_referred_var.clj")))
   (is (empty? (lint! "(ns foo (:require [bar :refer [bar]]))
         (apply bar 1 2 [3 4])"))))

@@ -285,7 +285,7 @@
          {:level :warning
           :type :unused-referred-var
           :filename filename
-          :message (str "#'" (:ns v) "/" (:name v) " is referred but unused")
+          :message (str "#'" (:ns v) "/" (:name v) " is referred but never used")
           :row row
           :col col})))))
 
