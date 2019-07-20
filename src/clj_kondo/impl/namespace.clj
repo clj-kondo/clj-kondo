@@ -39,7 +39,7 @@
                                               (:temp meta-v)
                                               (:declared meta-v))
                                      ns-sym))
-                                 (when-let [qv (get (:qualify-var ns) var-sym)]
+                                 (when-let [qv (get (:referred-vars ns) var-sym)]
                                    (:ns qv))
                                  (let [core-ns (case lang
                                                  :clj 'clojure.core
@@ -125,6 +125,12 @@
                old-loc))))
   nil)
 
+(defn reg-used-referred-var!
+  [{:keys [:base-lang :lang :namespaces] :as _ctx}
+   ns-sym var]
+  (swap! namespaces update-in [base-lang lang ns-sym :used-referred-vars]
+         conj var))
+
 (defn list-namespaces [{:keys [:namespaces]}]
   (for [[_base-lang m] @namespaces
         [_lang nss] m
@@ -154,8 +160,10 @@
                   :ns ns*
                   :name (symbol (name name-sym))})))))
       (or
-       (get (:qualify-var ns)
-            name-sym)
+       (when-let [[k v] (find (:referred-vars ns)
+                                name-sym)]
+         (reg-used-referred-var! ctx ns-name k)
+         v)
        (when (contains? (:vars ns) name-sym)
          {:ns (:name ns)
           :name name-sym})

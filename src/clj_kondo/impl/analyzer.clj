@@ -165,6 +165,7 @@
               :lang (:lang ctx)
               :vars {}
               :used-vars []
+              :used-referred-vars #{}
               :used #{}
               :bindings #{}
               :used-bindings #{}})]

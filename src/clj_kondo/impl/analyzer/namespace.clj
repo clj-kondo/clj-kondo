@@ -7,7 +7,7 @@
    [clj-kondo.impl.utils :refer [node->line parse-string
                                  parse-string-all deep-merge
                                  one-of tag sexpr vector-node list-node
-                                 token-node]]
+                                 token-node symbol-from-token]]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -57,13 +57,17 @@
                            :form form})))))
 
 (defn analyze-libspec [{:keys [:base-lang :lang :filename]} current-ns-name require-kw libspec-expr]
-  (let [libspec (sexpr libspec-expr)]
-    (if (symbol? libspec)
+  (let [;; libspec (sexpr libspec-expr)
+        ]
+    (if-let [s (symbol-from-token libspec-expr)]
       [{:type :require
-        :ns (with-meta libspec
+        :ns (with-meta s
               (assoc (meta libspec-expr)
                      :filename filename))}]
-      (let [[ns-name & options] libspec
+      (let [[ns-name-expr & option-exprs] (:children libspec-expr)
+            ns-name (:value ns-name-expr)
+            ;; [ns-name & options] libspec
+            ;; in CLJS ns-names can be strings
             ns-name (symbol ns-name)
             ns-name (if (= :cljs lang)
                       (case ns-name
@@ -79,7 +83,7 @@
                            (= :cljs lang)
                            (= current-ns-name ns-name)
                            (= :require-macros require-kw))]
-        (loop [children options
+        (loop [children option-exprs
                {:keys [:as :referred :excluded
                        :referred-all :renamed] :as m}
                {:as nil
@@ -87,15 +91,18 @@
                 :excluded #{}
                 :referred-all false
                 :renamed {}}]
-          (if-let [child (first children)]
-            (let [opt (fnext children)]
-              ;; (println "OPT" opt)
-              (case child
+          (if-let [child-expr (first children)]
+            (let [opt-expr (fnext children)
+                  opt (sexpr opt-expr)
+                  child-k (:k child-expr)]
+              (case child-k
                 (:refer :refer-macros)
                 (recur
                  (nnext children)
                  (cond (and (not self-require?) (sequential? opt))
-                       (update m :referred into opt)
+                       (update m :referred into
+                               (map #(with-meta (sexpr %)
+                                       (meta %))) (:children opt-expr))
                        (= :all opt)
                        (assoc m :referred-all true)
                        :else m))
@@ -169,7 +176,7 @@
                              (assoc (:as sc) (:ns sc))))
                          {}
                          analyzed)
-     :qualify-var (into {} (mapcat :referred analyzed))
+     :referred-vars (into {} (mapcat :referred analyzed))
      :refer-alls refer-alls
      ;; TODO: rename to :used-namespaces for clarity
      :used
@@ -186,7 +193,8 @@
                            (:ns req)))
                        analyzed))))}))
 
-(defn analyze-ns-decl [{:keys [:base-lang :lang :findings] :as ctx} expr]
+(defn analyze-ns-decl
+  [{:keys [:base-lang :lang :findings :filename] :as ctx} expr]
   (let [children (:children expr)
         ns-name-expr (second children)
         ns-name (meta/lift-meta-content2 ctx ns-name-expr)
@@ -233,7 +241,7 @@
                                {:renamed v
                                 :excluded (set (keys v))})]]
                  r))
-        refer-clojure {:qualify-var
+        refer-clojure {:referred-vars
                        (into {} (map (fn [[original-name new-name]]
                                        [new-name {:ns 'clojure.core
                                                   :name original-name}])
@@ -241,11 +249,13 @@
                        :clojure-excluded (:excluded refer-clojure-clauses)}
         ns (cond->
                (merge {:type :ns
+                       :filename filename
                        :base-lang base-lang
                        :lang lang
                        :name ns-name
                        :bindings #{}
                        :used-bindings #{}
+                       :used-referred-vars #{}
                        :used-vars []
                        :vars {}
                        :java-imports java-imports}

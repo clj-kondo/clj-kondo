@@ -306,6 +306,24 @@
       :row row
       :col col})))
 
+(defn lint-unused-referred-vars!
+  [{:keys [:findings] :as ctx}]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [referred-vars (:referred-vars ns)
+                filename (:filename ns)
+                used-referred-vars (set (:used-referred-vars ns))]
+          [k v] referred-vars
+          :let [{:keys [:row :col]} (meta k)]]
+    (when-not (contains? used-referred-vars k)
+      (findings/reg-finding!
+       findings
+       {:level :warning
+        :type :unused-referred-var
+        :filename filename
+        :message (str "#'" (:ns v) "/" (:name v) " is referred but unused")
+        :row row
+        :col col}))))
+
 ;;;; scratch
 
 (comment
