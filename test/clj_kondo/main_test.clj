@@ -1836,6 +1836,8 @@
                          '{:linters {:unused-binding {:level :error}}
                            :output {:format :edn}}))))))
   (is (empty? (lint! "(ns foo (:import [java.util.regex Pattern])) Pattern/compile"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo (:require [clojure.core])) clojure.core"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest misc-false-positives-test
