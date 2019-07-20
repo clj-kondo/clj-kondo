@@ -255,17 +255,17 @@
 
 (defn lint-unused-namespaces!
   [{:keys [:config :findings] :as ctx}]
-  (let [unused (set
-                (for [ns (namespace/list-namespaces ctx)
-                      :let [required (:required ns)
-                            used (:used ns)]
-                      ns-sym
-                      (set/difference
-                       (set required)
-                       (set used))
-                      :when (not (config/unused-namespace-excluded config ns-sym))]
-                  ns-sym))]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [required (:required ns)
+                used (:used ns)
+                unused (set/difference
+                        (set required)
+                        (set used))
+                referred-vars (:referred-vars ns)
+                used-referred-vars (:used-referred-vars ns)
+                filename (:filename ns)]]
     (doseq [ns-sym unused]
+      :when (not (config/unused-namespace-excluded config ns-sym))
       (let [{:keys [:row :col :filename]} (meta ns-sym)]
         (findings/reg-finding!
          findings
@@ -275,11 +275,7 @@
           :message (format "namespace %s is required but never used" ns-sym)
           :row row
           :col col})))
-    (doseq [ns (namespace/list-namespaces ctx)
-            :let [referred-vars (:referred-vars ns)
-                  filename (:filename ns)
-                  used-referred-vars (set (:used-referred-vars ns))]
-            [k v] referred-vars
+    (doseq [[k v] referred-vars
             :let [{:keys [:row :col]} (meta k)]]
       (when-not
           (or (contains? used-referred-vars k)
