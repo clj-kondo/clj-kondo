@@ -102,7 +102,6 @@
         _ (l/lint-unused-namespaces! ctx)
         _ (l/lint-unused-bindings! ctx)
         _ (l/lint-unresolved-symbols! ctx)
-        _ (l/lint-unused-referred-vars! ctx)
         all-findings (concat linted-calls (mapcat :findings processed)
                              @findings)
         all-findings (core-impl/filter-findings config all-findings)

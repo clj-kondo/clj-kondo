@@ -257,23 +257,43 @@
 
 (defn lint-unused-namespaces!
   [{:keys [:config :findings] :as ctx}]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [required (:required ns)
-                used (:used ns)]
-          ns-sym
-          (set/difference
-           (set required)
-           (set used))
-          :when (not (config/unused-namespace-excluded config ns-sym))]
-    (let [{:keys [:row :col :filename]} (meta ns-sym)]
-      (findings/reg-finding!
-       findings
-       {:level :warning
-        :type :unused-namespace
-        :filename filename
-        :message (format "namespace %s is required but never used" ns-sym)
-        :row row
-        :col col}))))
+  (let [unused (set
+                (for [ns (namespace/list-namespaces ctx)
+                      :let [required (:required ns)
+                            used (:used ns)]
+                      ns-sym
+                      (set/difference
+                       (set required)
+                       (set used))
+                      :when (not (config/unused-namespace-excluded config ns-sym))]
+                  ns-sym))]
+    (doseq [ns-sym unused]
+      (let [{:keys [:row :col :filename]} (meta ns-sym)]
+        (findings/reg-finding!
+         findings
+         {:level :warning
+          :type :unused-namespace
+          :filename filename
+          :message (format "namespace %s is required but never used" ns-sym)
+          :row row
+          :col col})))
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [referred-vars (:referred-vars ns)
+                  filename (:filename ns)
+                  used-referred-vars (set (:used-referred-vars ns))]
+            [k v] referred-vars
+            :let [{:keys [:row :col]} (meta k)]]
+      (when-not
+          (or (contains? used-referred-vars k)
+              (contains? unused (:ns v)))
+        (findings/reg-finding!
+         findings
+         {:level :warning
+          :type :unused-referred-var
+          :filename filename
+          :message (str "#'" (:ns v) "/" (:name v) " is referred but unused")
+          :row row
+          :col col})))))
 
 (defn lint-unused-bindings!
   [{:keys [:findings] :as ctx}]
@@ -305,24 +325,6 @@
       :message (str "unresolved symbol " name)
       :row row
       :col col})))
-
-(defn lint-unused-referred-vars!
-  [{:keys [:findings] :as ctx}]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [referred-vars (:referred-vars ns)
-                filename (:filename ns)
-                used-referred-vars (set (:used-referred-vars ns))]
-          [k v] referred-vars
-          :let [{:keys [:row :col]} (meta k)]]
-    (when-not (contains? used-referred-vars k)
-      (findings/reg-finding!
-       findings
-       {:level :warning
-        :type :unused-referred-var
-        :filename filename
-        :message (str "#'" (:ns v) "/" (:name v) " is referred but unused")
-        :row row
-        :col col}))))
 
 ;;;; scratch
 

@@ -1,5 +1,5 @@
 (ns redefined-deftest
-  (:require [clojure.test :refer [deftest is]]))
+  (:require [clojure.test :refer [deftest]]))
 
 (deftest)
 
