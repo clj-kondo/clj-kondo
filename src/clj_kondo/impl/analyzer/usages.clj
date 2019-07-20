@@ -51,13 +51,15 @@
                    (let [{resolved-ns :ns
                           resolved-name :name
                           unqualified? :unqualified? :as _m}
-                         (or
-                          (when simple-symbol?
-                            (get (:qualify-ns ns) symbol-val))
-                          (namespace/resolve-name ctx ns-name symbol-val))
+                         (namespace/resolve-name ctx ns-name symbol-val)
                          m (meta expr)
                          {:keys [:row :col]} m]
-                     (when (and unqualified? (not syntax-quote?))
+                     (when (and unqualified? (not syntax-quote?)
+                                ;; prevent namespace from being reported as
+                                ;; unresolved symbol
+                                (not
+                                 (when simple-symbol?
+                                   (get (:qualify-ns ns) symbol-val))))
                        (namespace/reg-unresolved-symbol! ctx ns-name symbol-val m))
                      (when resolved-ns
                        (namespace/reg-usage! ctx
