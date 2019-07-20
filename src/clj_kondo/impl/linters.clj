@@ -229,11 +229,16 @@
                                                   (str (:ns called-fn) "/" (:name called-fn)))})
                               (when-let [deprecated (:deprecated called-fn)]
                                 (when-not
-                                    (config/deprecated-var-excluded
-                                     config
-                                     (symbol (str (:ns called-fn))
-                                             (str (:name called-fn)))
-                                     caller-ns-sym (:defined-in call))
+                                    (or
+                                     ;; recursive call
+                                     (and
+                                      (= (:ns called-fn) caller-ns-sym)
+                                      (= (:name called-fn) (:defined-in call)))
+                                     (config/deprecated-var-excluded
+                                      config
+                                      (symbol (str (:ns called-fn))
+                                              (str (:name called-fn)))
+                                      caller-ns-sym (:defined-in call)))
                                   {:filename filename
                                    :row (:row call)
                                    :col (:col call)

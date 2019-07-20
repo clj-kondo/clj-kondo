@@ -1995,7 +1995,9 @@
               {:deprecated-var
                {:exclude {foo.foo/deprecated-fn
                           {:namespaces [foo.bar "bar\\.*"]
-                           :defs [foo.baz/allowed "foo\\.baz/ign\\.*"]}}}}}))))
+                           :defs [foo.baz/allowed "foo\\.baz/ign\\.*"]}}}}})))
+  (is (empty? (lint! "(defn ^:deprecated foo [] (foo))")))
+  (is (empty? (lint! "(def ^:deprecated foo (fn [] (foo)))"))))
 
 (deftest unused-referred-var-test
   (assert-submaps
