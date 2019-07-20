@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.utils-test
   (:require [clj-kondo.impl.utils :as utils :refer [constant? parse-string]]
-            [clojure.test :as t :refer [deftest is testing]]))
+            [clojure.test :as t :refer [deftest is]]))
 
 (deftest constant-test
   (is (constant? (parse-string "{:a 1 'x 2}")))

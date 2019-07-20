@@ -2,8 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [node->line parse-string parse-string-all
-                                 deep-merge one-of linter-disabled?]]
+   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled?]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str]
    [clj-kondo.impl.config :as config]))
@@ -39,7 +38,7 @@
                                               (:temp meta-v)
                                               (:declared meta-v))
                                      ns-sym))
-                                 (when-let [qv (get (:qualify-var ns) var-sym)]
+                                 (when-let [qv (get (:referred-vars ns) var-sym)]
                                    (:ns qv))
                                  (let [core-ns (case lang
                                                  :clj 'clojure.core
@@ -125,6 +124,12 @@
                old-loc))))
   nil)
 
+(defn reg-used-referred-var!
+  [{:keys [:base-lang :lang :namespaces] :as _ctx}
+   ns-sym var]
+  (swap! namespaces update-in [base-lang lang ns-sym :used-referred-vars]
+         conj var))
+
 (defn list-namespaces [{:keys [:namespaces]}]
   (for [[_base-lang m] @namespaces
         [_lang nss] m
@@ -141,9 +146,9 @@
     (if-let [ns* (namespace name-sym)]
       (let [ns-sym (symbol ns*)]
         (or (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                            ;; referring to the namespace we're in
-                            (when (= (:name ns) ns-sym)
-                              ns-sym))]
+                             ;; referring to the namespace we're in
+                             (when (= (:name ns) ns-sym)
+                               ns-sym))]
              {:ns ns*
               :name (symbol (name name-sym))}
              (when (= :clj lang)
@@ -154,8 +159,10 @@
                   :ns ns*
                   :name (symbol (name name-sym))})))))
       (or
-       (get (:qualify-var ns)
-            name-sym)
+       (when-let [[k v] (find (:referred-vars ns)
+                                name-sym)]
+         (reg-used-referred-var! ctx ns-name k)
+         v)
        (when (contains? (:vars ns) name-sym)
          {:ns (:name ns)
           :name name-sym})

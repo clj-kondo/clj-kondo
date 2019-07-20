@@ -2,11 +2,10 @@
   (:require
    [cheshire.core :as cheshire]
    [clj-kondo.main :refer [main]]
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap submap?
-                                 file-path]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap submap?]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
-   [clojure.string :as str :refer [trim]]
+   [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest inline-def-test
@@ -1107,11 +1106,11 @@
          ,(ns bar)
          ,(in-ns 'foo)
          ,(go-loop [])")))
-  (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
+  (is (empty? (lint! "(ns foo (:require [clojure.set :as set]))
     (reduce! set/difference #{} [])")))
   (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
     (reduce! difference #{} [])")))
-  (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
+  (is (empty? (lint! "(ns foo (:require [clojure.set :as set]))
     (defmacro foo [] `(set/difference #{} #{}))")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
   (is (empty? (lint! "(ns foo (:require bar)) ::bar/bar")))
@@ -1837,6 +1836,10 @@
                          '{:linters {:unused-binding {:level :error}}
                            :output {:format :edn}}))))))
   (is (empty? (lint! "(ns foo (:import [java.util.regex Pattern])) Pattern/compile"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  ;; although this isn't correct at run-time, preventing a namespace or class
+  ;; symbol from being reported as unresolved is generally better
+  (is (empty? (lint! "(ns foo (:require [clojure.core])) clojure.core"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest misc-false-positives-test
@@ -1994,10 +1997,16 @@
                           {:namespaces [foo.bar "bar\\.*"]
                            :defs [foo.baz/allowed "foo\\.baz/ign\\.*"]}}}}}))))
 
-(comment
-
-  (re-find #"foo\.baz/ign\.*" "foo.baz/ignore")
-  )
+(deftest unused-referred-var-test
+  (assert-submaps
+   '({:file "corpus/unused_referred_var.clj",
+      :row 2,
+      :col 50,
+      :level :warning,
+      :message "#'clojure.string/ends-with? is referred but never used"})
+   (lint! (io/file "corpus" "unused_referred_var.clj")))
+  (is (empty? (lint! "(ns foo (:require [bar :refer [bar]]))
+        (apply bar 1 2 [3 4])"))))
 
 ;;;; Scratch
 

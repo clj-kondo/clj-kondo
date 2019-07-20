@@ -1,9 +1,7 @@
 (ns clj-kondo.impl.linters
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [some-call node->line
-                                 tag symbol-call parse-string
-                                 constant? one-of tag sexpr]]
+   [clj-kondo.impl.utils :refer [node->line constant? sexpr]]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -259,21 +257,37 @@
   [{:keys [:config :findings] :as ctx}]
   (doseq [ns (namespace/list-namespaces ctx)
           :let [required (:required ns)
-                used (:used ns)]
-          ns-sym
-          (set/difference
-           (set required)
-           (set used))
-          :when (not (config/unused-namespace-excluded config ns-sym))]
-    (let [{:keys [:row :col :filename]} (meta ns-sym)]
-      (findings/reg-finding!
-       findings
-       {:level :warning
-        :type :unused-namespace
-        :filename filename
-        :message (format "namespace %s is required but never used" ns-sym)
-        :row row
-        :col col}))))
+                used (:used ns)
+                unused (set/difference
+                        (set required)
+                        (set used))
+                referred-vars (:referred-vars ns)
+                used-referred-vars (:used-referred-vars ns)
+                filename (:filename ns)]]
+    (doseq [ns-sym unused]
+      :when (not (config/unused-namespace-excluded config ns-sym))
+      (let [{:keys [:row :col :filename]} (meta ns-sym)]
+        (findings/reg-finding!
+         findings
+         {:level :warning
+          :type :unused-namespace
+          :filename filename
+          :message (format "namespace %s is required but never used" ns-sym)
+          :row row
+          :col col})))
+    (doseq [[k v] referred-vars
+            :let [{:keys [:row :col]} (meta k)]]
+      (when-not
+          (or (contains? used-referred-vars k)
+              (contains? unused (:ns v)))
+        (findings/reg-finding!
+         findings
+         {:level :warning
+          :type :unused-referred-var
+          :filename filename
+          :message (str "#'" (:ns v) "/" (:name v) " is referred but never used")
+          :row row
+          :col col})))))
 
 (defn lint-unused-bindings!
   [{:keys [:findings] :as ctx}]

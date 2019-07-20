@@ -16,8 +16,8 @@
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.utils :as utils :refer
-    [symbol-call keyword-call node->line parse-string parse-string-all tag
-     select-lang vconj deep-merge one-of linter-disabled? tag sexpr kw->sym]]
+    [symbol-call node->line parse-string tag select-lang deep-merge one-of
+     linter-disabled? tag sexpr kw->sym]]
    [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
@@ -165,6 +165,7 @@
               :lang (:lang ctx)
               :vars {}
               :used-vars []
+              :used-referred-vars #{}
               :used #{}
               :bindings #{}
               :used-bindings #{}})]

@@ -2,14 +2,14 @@
   (:require
    [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.namespace :refer [resolve-name]]
-   [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
+   [clj-kondo.impl.utils :refer [parse-string]]
    [clj-kondo.test-utils :refer [assert-submap]]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest analyze-ns-test
   (assert-submap
    '{:type :ns, :name foo,
-     :qualify-var {quux {:ns bar :name quux}}
+     :referred-vars {quux {:ns bar :name quux}}
      :qualify-ns {bar bar
                   baz bar}
      :clojure-excluded #{get assoc time}}
@@ -46,7 +46,7 @@
     (assert-submap
      '{:type :ns, :name foo
        :refer-alls {bar #{} baz #{baz-fn}}
-       :qualify-var {renamed-fn {:ns baz, :name baz-fn}}}
+       :referred-vars {renamed-fn {:ns baz, :name baz-fn}}}
      (analyze-ns-decl {:lang :clj
                        :namespaces (atom {})}
                       (parse-string "(ns foo (:require [bar :refer :all]

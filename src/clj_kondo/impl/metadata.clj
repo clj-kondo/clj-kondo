@@ -2,7 +2,6 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.linters.keys :as key-linter]
-   [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :as utils]
    [clj-kondo.impl.analyzer.usages :refer [analyze-usages2]]))
 

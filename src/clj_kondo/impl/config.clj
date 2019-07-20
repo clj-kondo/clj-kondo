@@ -52,7 +52,8 @@
                                   ;; suppress warnings in the following namespaces
                                   {:namespaces [foo.bar "bar\\.*"]
                                    ;; or in these definitions:
-                                   :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}}
+                                   :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}
+              :unused-referred-var {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
