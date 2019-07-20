@@ -50,7 +50,11 @@
                                                 b)
                    (let [{resolved-ns :ns
                           resolved-name :name
-                          unqualified? :unqualified? :as _m} (namespace/resolve-name ctx ns-name symbol-val)
+                          unqualified? :unqualified? :as _m}
+                         (or
+                          (when simple-symbol?
+                            (get (:qualify-ns ns) symbol-val))
+                          (namespace/resolve-name ctx ns-name symbol-val))
                          m (meta expr)
                          {:keys [:row :col]} m]
                      (when (and unqualified? (not syntax-quote?))
