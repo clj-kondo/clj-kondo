@@ -1,9 +1,7 @@
 (ns clj-kondo.impl.linters
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [some-call node->line
-                                 tag symbol-call parse-string
-                                 constant? one-of tag sexpr]]
+   [clj-kondo.impl.utils :refer [node->line constant? sexpr]]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]

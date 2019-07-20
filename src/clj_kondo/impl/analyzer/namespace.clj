@@ -4,9 +4,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
-   [clj-kondo.impl.utils :refer [node->line parse-string
-                                 parse-string-all deep-merge
-                                 one-of tag sexpr vector-node list-node
+   [clj-kondo.impl.utils :refer [node->line one-of tag sexpr vector-node
                                  token-node symbol-from-token]]
    [clojure.set :as set]
    [clojure.string :as str]))

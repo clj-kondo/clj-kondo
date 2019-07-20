@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.namespace :refer [resolve-name]]
-   [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
+   [clj-kondo.impl.utils :refer [parse-string]]
    [clj-kondo.test-utils :refer [assert-submap]]
    [clojure.test :as t :refer [deftest is testing]]))
 

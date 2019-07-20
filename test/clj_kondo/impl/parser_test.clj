@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.parser-test
   (:require [clj-kondo.impl.parser :as parser :refer [parse-string]]
             [clj-kondo.impl.utils :as utils]
-            [clojure.test :as t :refer [deftest is testing]]))
+            [clojure.test :as t :refer [deftest is]]))
 
 (deftest omit-unevals-test
   (is (zero? (count (:children (parse-string "#_#_1 2"))))))

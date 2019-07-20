@@ -3,9 +3,9 @@
    [clj-kondo.impl.utils :refer [deep-merge]]
    [clj-kondo.main :as main :refer [main]]
    [clojure.java.io :as io]
-   [clojure.string :as str :refer [trim]]
+   [clojure.string :as str]
    [clojure.test :refer [is]]
-   [me.raynes.conch :refer [programs with-programs let-programs] :as sh]))
+   [me.raynes.conch :refer [let-programs] :as sh]))
 
 (set! *warn-on-reflection* true)
 

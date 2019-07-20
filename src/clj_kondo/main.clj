@@ -6,8 +6,7 @@
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.profiler :as profiler]
    [clojure.string :as str
-    :refer [starts-with?
-            ends-with?]]))
+    :refer [starts-with?]]))
 
 (set! *warn-on-reflection* true)
 

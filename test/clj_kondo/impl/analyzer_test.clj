@@ -1,10 +1,10 @@
 (ns clj-kondo.impl.analyzer-test
   (:require
-   [clj-kondo.impl.analyzer :as ana :refer [analyze-expressions]]
+   [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.utils :refer [parse-string parse-string-all]]
-   [clojure.test :as t :refer [deftest is are testing]]))
+   [clj-kondo.impl.utils :refer [parse-string]]
+   [clojure.test :as t :refer [deftest is are]]))
 
 (deftest lift-meta-test
   (is (:private (meta (meta/lift-meta-content2 {:lang :clj

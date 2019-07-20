@@ -1,13 +1,13 @@
 (ns clj-kondo.impl.cache-test
   (:require
    [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.core :as core-impl]
    [clj-kondo.main :as main :refer [main]]
-   [clojure.java.io :as io]
-   [clojure.test :as t :refer [deftest is testing]]
-   [me.raynes.conch :refer [programs with-programs let-programs] :as sh]
-   [clojure.string :as str]
    [clj-kondo.test-utils :refer [lint!]]
-   [clj-kondo.impl.core :as core-impl]))
+   [clojure.java.io :as io]
+   [clojure.string :as str]
+   [clojure.test :as t :refer [deftest is testing]]
+   [me.raynes.conch :refer [programs] :as sh]))
 
 (programs rm mkdir echo mv)
 

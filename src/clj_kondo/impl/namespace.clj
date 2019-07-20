@@ -2,8 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [node->line parse-string parse-string-all
-                                 deep-merge one-of linter-disabled?]]
+   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled?]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str]
    [clj-kondo.impl.config :as config]))
@@ -147,9 +146,9 @@
     (if-let [ns* (namespace name-sym)]
       (let [ns-sym (symbol ns*)]
         (or (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                            ;; referring to the namespace we're in
-                            (when (= (:name ns) ns-sym)
-                              ns-sym))]
+                             ;; referring to the namespace we're in
+                             (when (= (:name ns) ns-sym)
+                               ns-sym))]
              {:ns ns*
               :name (symbol (name name-sym))}
              (when (= :clj lang)
