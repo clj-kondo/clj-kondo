@@ -304,9 +304,8 @@
              ctx ns-name fn-name expr {:temp true}))
         parsed-bodies (map #(analyze-fn-body
                              (-> ctx
-                                 (assoc :in-def? true
-                                        :docstring? docstring?
-                                        :defined-in fn-name)) %)
+                                 (assoc :docstring? docstring?
+                                        :in-def fn-name)) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))]
@@ -639,8 +638,8 @@
                                                    (linters/arity-error nil fn-name arg-count fixed-arities var-args-min-arity)))))))
         (analyze-children ctx (rest children))))))
 
-(defn lint-inline-def! [{:keys [:in-def? :findings :filename]} expr]
-  (when in-def?
+(defn lint-inline-def! [{:keys [:in-def :findings :filename]} expr]
+  (when in-def
     (findings/reg-finding!
      findings
      (node->line filename expr :warning :inline-def "inline def"))))
@@ -664,8 +663,7 @@
                           expr
                           metadata))
     (analyze-children (assoc ctx
-                             :in-def? true
-                             :defined-in var-name)
+                             :in-def var-name)
                       (nnext (:children expr)))))
 
 (defn analyze-catch [ctx expr]
@@ -940,7 +938,7 @@
                                         (meta (first children))))
     (if (= 'ns resolved-as-clojure-var-name)
       analyzed
-      (let [defined-in (:defined-in ctx)
+      (let [defined-in (:in-def ctx)
             call (cond-> {:type :call
                           :resolved-ns resolved-namespace
                           :ns ns-name
@@ -957,7 +955,7 @@
                           :filename (:filename ctx)
                           :lint-invalid-arity?
                           (not (linter-disabled? ctx :invalid-arity))}
-                   defined-in (assoc :defined-in defined-in))]
+                   defined-in (assoc :in-def defined-in))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unqualified?
           (namespace/reg-usage! ctx

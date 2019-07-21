@@ -233,12 +233,12 @@
                                      ;; recursive call
                                      (and
                                       (= (:ns called-fn) caller-ns-sym)
-                                      (= (:name called-fn) (:defined-in call)))
+                                      (= (:name called-fn) (:in-def call)))
                                      (config/deprecated-var-excluded
                                       config
                                       (symbol (str (:ns called-fn))
                                               (str (:name called-fn)))
-                                      caller-ns-sym (:defined-in call)))
+                                      caller-ns-sym (:in-def call)))
                                   {:filename filename
                                    :row (:row call)
                                    :col (:col call)
