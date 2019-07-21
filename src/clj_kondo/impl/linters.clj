@@ -157,7 +157,6 @@
                        :let [base-lang (:base-lang ns)]
                        call (:used-vars ns)
                        :let [call? (= :call (:type call))
-                             callstack (:callstack call)
                              fn-name (:name call)
                              caller-ns-sym (:ns call)
                              call-lang (:lang call)
@@ -181,7 +180,7 @@
                                                     :clj 'clojure.core
                                                     :cljs 'cljs.core
                                                     :cljc 'clojure.core)])))))
-                             ;; _ (prn fn-name (meta fn-name))
+                             ;; _ (prn call)
                              _ (when (and (not called-fn)
                                           (:unqualified? call) ;; (not fn-ns)
                                           (not (:unresolved-symbol-disabled? call)))

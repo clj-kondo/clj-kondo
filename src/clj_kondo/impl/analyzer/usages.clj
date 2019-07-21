@@ -79,6 +79,10 @@
                                                   :base-lang (:base-lang ctx)
                                                   :lang (:lang ctx)
                                                   :filename (:filename ctx)
+                                                  :unresolved-symbol-disabled?
+                                                  (or syntax-quote?
+                                                      (when simple-symbol?
+                                                        (get (:qualify-ns ns) symbol-val)))
                                                   :private-access? (:private-access? ctx)
                                                   :callstack (:callstack ctx)})))))
                (when (:k expr)
