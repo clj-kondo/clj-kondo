@@ -1,11 +1,12 @@
 (ns clj-kondo.impl.namespace
   {:no-doc true}
   (:require
+   [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled?]]
    [clj-kondo.impl.var-info :as var-info]
-   [clojure.string :as str]
-   [clj-kondo.impl.config :as config]))
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -93,9 +94,10 @@
   nil)
 
 (defn reg-required-namespaces!
-  [{:keys [:base-lang :lang :namespaces]} ns-sym analyzed-require-clauses]
+  [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
+           (lint-duplicate-requires! ctx (:required ns) (:required analyzed-require-clauses))
            (merge-with into ns analyzed-require-clauses)))
   nil)
 
