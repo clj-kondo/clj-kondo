@@ -110,8 +110,8 @@
          (Character/isUpperCase ^char (first (last splits))))))
 
 (defn reg-unresolved-symbol!
-  [{:keys [:base-lang :lang :namespaces :filename] :as ctx}
-   ns-sym symbol loc]
+  [{:keys [:namespaces :filename] :as ctx}
+   ns-sym symbol {:keys [:base-lang :lang] :as loc}]
   ;; suppress fake let* resolve
   (when (:row loc)
     (let [filename (or filename (:filename loc))]

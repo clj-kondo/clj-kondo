@@ -56,13 +56,13 @@
                          (namespace/resolve-name ctx ns-name symbol-val)
                          m (meta expr)
                          {:keys [:row :col]} m]
-                     (when (and unqualified? (not syntax-quote?)
+                     #_(when (and unqualified? (not syntax-quote?)
                                 ;; prevent namespace from being reported as
                                 ;; unresolved symbol
                                 (not
                                  (when simple-symbol?
                                    (get (:qualify-ns ns) symbol-val))))
-                       #_(namespace/reg-unresolved-symbol! ctx ns-name symbol-val m))
+                       (namespace/reg-unresolved-symbol! ctx ns-name symbol-val m))
                      (when resolved-ns
                        (namespace/reg-usage! ctx
                                              ns-name

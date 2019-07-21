@@ -836,7 +836,7 @@
         {resolved-namespace :ns
          resolved-name :name
          unqualified? :unqualified?
-         clojure-excluded? :clojure-excluded?}
+         clojure-excluded? :clojure-excluded? :as _m}
         (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name _lint-as?]
         (or (when-let [[ns n] (config/lint-as config [resolved-namespace resolved-name])]
@@ -1070,7 +1070,7 @@
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                       (analyze-children ctx children))
-                  (if-let [full-fn-name (when (utils/symbol-token? function) (:value function))]
+                  (if-let [full-fn-name (utils/symbol-from-token function)]
                     (let [unqualified? (nil? (namespace full-fn-name))
                           binding-call? (and unqualified?
                                              (contains? bindings full-fn-name))]

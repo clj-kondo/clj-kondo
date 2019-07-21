@@ -156,7 +156,9 @@
         findings (for [ns (namespace/list-namespaces ctx)
                        :let [base-lang (:base-lang ns)]
                        call (:used-vars ns)
-                       :let [fn-name (:name call)
+                       :let [call? (= :call (:type call))
+                             callstack (:callstack call)
+                             fn-name (:name call)
                              caller-ns-sym (:ns call)
                              call-lang (:lang call)
                              caller-ns (get-in @(:namespaces ctx)
@@ -179,10 +181,14 @@
                                                     :clj 'clojure.core
                                                     :cljs 'cljs.core
                                                     :cljc 'clojure.core)])))))
+                             ;; _ (prn fn-name (meta fn-name))
                              _ (when (and (not called-fn)
                                           (:unqualified? call) ;; (not fn-ns)
                                           (not (:unresolved-symbol-disabled? call)))
-                                 (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call))]
+                                 (let [call (if call?
+                                              (merge call (meta fn-name))
+                                              call)]
+                                   (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))]
                        :when called-fn
                        :let [fn-ns (:ns called-fn)
                              ;; a macro in a CLJC file with the same namespace
@@ -208,7 +214,7 @@
                              var-args-min-arity (:var-args-min-arity called-fn)
                              errors
                              [(when (and
-                                     arity
+                                     (= :call (:type call))
                                      (not (:invalid-arity-disabled? call))
                                      (or (not-empty fixed-arities)
                                          var-args-min-arity)
