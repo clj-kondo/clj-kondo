@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [node->line one-of tag sexpr vector-node
@@ -127,6 +128,7 @@
           [{:type :require
             :ns ns-name
             :as as
+            :require-kw require-kw
             :excluded excluded
             :referred (concat (map (fn [refer]
                                      [refer {:ns ns-name
@@ -153,22 +155,6 @@
              {imported java-package})
     nil))
 
-(defn lint-duplicate-requires [ctx namespaces]
-  (reduce (fn [required ns]
-            (if (contains? required ns)
-              (do (findings/reg-finding!
-                   (:findings ctx)
-                   (node->line (:filename ctx)
-                               ns
-                               :warning
-                               :duplicate-require
-                               (str "duplicate require for " ns)))
-                  required)
-              (conj required ns)))
-          #{}
-          namespaces)
-  nil)
-
 (defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
   (let [analyzed (for [[require-kw libspecs] kw+libspecs
                        libspec-expr libspecs
@@ -181,7 +167,7 @@
                                acc))
                            {}
                            analyzed)]
-    (lint-duplicate-requires ctx (map :ns analyzed))
+    (lint-duplicate-requires! ctx (map (juxt :require-kw :ns) analyzed))
     {:required (map :ns analyzed)
      :qualify-ns (reduce (fn [acc sc]
                            (cond-> (assoc acc (:ns sc) (:ns sc))

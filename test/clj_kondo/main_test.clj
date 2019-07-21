@@ -2010,6 +2010,25 @@
   (is (empty? (lint! "(ns foo (:require [bar :refer [bar]]))
         (apply bar 1 2 [3 4])"))))
 
+(deftest duplicate-require-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 43,
+      :level :warning,
+      :message "duplicate require of clojure.string"})
+   (lint! "(ns foo (:require [clojure.string :as s] [clojure.string :as str])) s/join"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 54,
+      :level :warning,
+      :message "duplicate require of clojure.string"})
+   (lint! "(ns foo (:require [clojure.string :as s])) (require 'clojure.string) s/join"))
+  (is (empty? (lint! "(ns foo (:require-macros [cljs.core :as core])
+                              (:require [cljs.core :as core])) core/conj"
+                     "--lang" "cljs"))))
+
 ;;;; Scratch
 
 (comment
