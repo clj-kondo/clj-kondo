@@ -662,9 +662,11 @@
       (namespace/reg-var! ctx (-> ctx :ns :name)
                           var-name
                           expr
-                          metadata)))
-  (analyze-children (assoc ctx :in-def? true)
-                    (nnext (:children expr))))
+                          metadata))
+    (analyze-children (assoc ctx
+                             :in-def? true
+                             :defined-in var-name)
+                      (nnext (:children expr)))))
 
 (defn analyze-catch [ctx expr]
   (let [children (next (:children expr))
