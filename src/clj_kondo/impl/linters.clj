@@ -181,7 +181,7 @@
                                                     :cljc 'clojure.core)])))))
                              _ (when (and (not called-fn)
                                           (:unqualified? call) ;; (not fn-ns)
-                                          (:lint-invalid-arity? call))
+                                          (not (:unresolved-symbol-disabled? call)))
                                  (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call))]
                        :when called-fn
                        :let [fn-ns (:ns called-fn)
@@ -208,7 +208,8 @@
                              var-args-min-arity (:var-args-min-arity called-fn)
                              errors
                              [(when (and
-                                     (:lint-invalid-arity? call)
+                                     arity
+                                     (not (:invalid-arity-disabled? call))
                                      (or (not-empty fixed-arities)
                                          var-args-min-arity)
                                      (not (or (contains? fixed-arities arity)

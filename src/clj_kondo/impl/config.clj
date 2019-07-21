@@ -151,9 +151,8 @@
                                                          identity))))
                      {} calls)}))
         delayed-cfg (memoize delayed-cfg)]
-    (fn [ctx sym]
+    (fn [ctx callstack sym]
       (let [config (:config ctx)
-            callstack (:callstack ctx)
             {:keys [:excluded :excluded-in]} (delayed-cfg config)]
         (or (contains? excluded sym)
             (some #(when-let [check-fn (get excluded-in %)]

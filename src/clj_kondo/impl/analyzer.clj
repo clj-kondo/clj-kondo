@@ -952,9 +952,7 @@
                           :lang lang
                           :expr expr
                           :callstack (:callstack ctx)
-                          :filename (:filename ctx)
-                          :lint-invalid-arity?
-                          (not (linter-disabled? ctx :invalid-arity))}
+                          :filename (:filename ctx)}
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unqualified?

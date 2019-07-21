@@ -79,7 +79,8 @@
                                                   :base-lang (:base-lang ctx)
                                                   :lang (:lang ctx)
                                                   :filename (:filename ctx)
-                                                  :private-access? (:private-access? ctx)})))))
+                                                  :private-access? (:private-access? ctx)
+                                                  :callstack (:callstack ctx)})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              ;; catch-call

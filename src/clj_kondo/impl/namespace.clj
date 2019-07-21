@@ -61,9 +61,12 @@
                       metadata))))))
 
 (defn reg-var-usage!
-  [{:keys [:base-lang :lang :namespaces]}
+  [{:keys [:base-lang :lang :namespaces] :as ctx}
    ns-sym usage]
-  (let [path [base-lang lang ns-sym]]
+  (let [path [base-lang lang ns-sym]
+        usage (assoc usage
+                     :invalid-arity-disabled? (linter-disabled? ctx :invalid-arity)
+                     :unresolved-symbol-disabled? (linter-disabled? ctx :unresolved-symbol))]
     (swap! namespaces update-in path
            (fn [ns]
              (update ns :used-vars conj
@@ -112,8 +115,8 @@
   ;; suppress fake let* resolve
   (when (:row loc)
     (let [filename (or filename (:filename loc))]
-      (when-not (or (linter-disabled? ctx :unresolved-symbol)
-                    (config/unresolved-symbol-excluded ctx symbol)
+      (when-not (or (:unresolved-symbol-disabled? loc)
+                    (config/unresolved-symbol-excluded ctx (:callstack loc) symbol)
                     (let [symbol-name (name symbol)]
                       (or (str/starts-with? symbol-name
                                             ".")
