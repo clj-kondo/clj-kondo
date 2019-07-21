@@ -31,6 +31,8 @@ clj-kondo detects:
   - of recursive calls (including `recur`)
 * private and deprecated var usage
 * required but unused namespaces
+* referred but unused vars
+* duplicate requires
 * unused function arguments and let bindings
 * redefined vars
 * unresolved symbols

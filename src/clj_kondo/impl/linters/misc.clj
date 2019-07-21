@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.linters.misc
+  {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [node->line]]))
