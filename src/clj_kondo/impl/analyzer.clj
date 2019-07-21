@@ -952,6 +952,7 @@
                           :lang lang
                           :expr expr
                           :callstack (:callstack ctx)
+                          :config (:config ctx)
                           :filename (:filename ctx)}
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)

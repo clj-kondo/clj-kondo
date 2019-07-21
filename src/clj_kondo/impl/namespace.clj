@@ -119,7 +119,9 @@
   (when (:row loc)
     (let [filename (or filename (:filename loc))]
       (when-not (or (:unresolved-symbol-disabled? loc)
-                    (config/unresolved-symbol-excluded ctx (:callstack loc) symbol)
+                    (config/unresolved-symbol-excluded
+                     (or (:config loc)
+                         (:config ctx)) (:callstack loc) symbol)
                     (let [symbol-name (name symbol)]
                       (or (str/starts-with? symbol-name
                                             ".")
