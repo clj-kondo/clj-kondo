@@ -176,7 +176,7 @@
                                                           ns))
                                                       (:refer-alls caller-ns)))
                                                (when (not (:clojure-excluded? call))
-                                                 [(case base-lang
+                                                 [(case call-lang #_base-lang
                                                     :clj 'clojure.core
                                                     :cljs 'cljs.core
                                                     :cljc 'clojure.core)])))))
