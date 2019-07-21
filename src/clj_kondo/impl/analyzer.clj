@@ -1071,7 +1071,8 @@
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                       (analyze-children ctx children))
                   (if-let [full-fn-name (utils/symbol-from-token function)]
-                    (let [unqualified? (nil? (namespace full-fn-name))
+                    (let [full-fn-name (with-meta full-fn-name (meta function))
+                          unqualified? (nil? (namespace full-fn-name))
                           binding-call? (and unqualified?
                                              (contains? bindings full-fn-name))]
                       (if binding-call?

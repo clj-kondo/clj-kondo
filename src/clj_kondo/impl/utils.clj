@@ -182,8 +182,7 @@
 (defn symbol-from-token [node]
   (when-let [?sym (:value node)]
     (when (symbol? ?sym)
-      (with-meta ?sym
-        (meta node)))))
+      ?sym)))
 
 (defn map-node-vals [{:keys [:children]}]
   (take-nth 2 (rest children)))
