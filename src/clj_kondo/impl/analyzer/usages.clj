@@ -50,7 +50,9 @@
                                                 b)
                    (let [{resolved-ns :ns
                           resolved-name :name
-                          unqualified? :unqualified? :as _m}
+                          unqualified? :unqualified?
+                          clojure-excluded? :clojure-excluded?
+                          :as _m}
                          (namespace/resolve-name ctx ns-name symbol-val)
                          m (meta expr)
                          {:keys [:row :col]} m]
@@ -60,7 +62,7 @@
                                 (not
                                  (when simple-symbol?
                                    (get (:qualify-ns ns) symbol-val))))
-                       (namespace/reg-unresolved-symbol! ctx ns-name symbol-val m))
+                       #_(namespace/reg-unresolved-symbol! ctx ns-name symbol-val m))
                      (when resolved-ns
                        (namespace/reg-usage! ctx
                                              ns-name
@@ -71,6 +73,7 @@
                                                   :resolved-ns resolved-ns
                                                   :ns ns-name
                                                   :unqualified? unqualified?
+                                                  :clojure-excluded? clojure-excluded?
                                                   :row row
                                                   :col col
                                                   :base-lang (:base-lang ctx)

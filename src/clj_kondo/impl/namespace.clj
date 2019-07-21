@@ -109,21 +109,24 @@
 (defn reg-unresolved-symbol!
   [{:keys [:base-lang :lang :namespaces :filename] :as ctx}
    ns-sym symbol loc]
-  (when-not (or (linter-disabled? ctx :unresolved-symbol)
-                (config/unresolved-symbol-excluded ctx symbol)
-                (let [symbol-name (name symbol)]
-                  (or (str/starts-with? symbol-name
-                                        ".")
-                      (str/ends-with? symbol-name
-                                      ".")
-                      (java-class? symbol-name))))
-    (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
-           (fn [old-loc]
-             (if (nil? old-loc)
-               (assoc loc
-                      :filename filename
-                      :name symbol)
-               old-loc))))
+  ;; suppress fake let* resolve
+  (when (:row loc)
+    (let [filename (or filename (:filename loc))]
+      (when-not (or (linter-disabled? ctx :unresolved-symbol)
+                    (config/unresolved-symbol-excluded ctx symbol)
+                    (let [symbol-name (name symbol)]
+                      (or (str/starts-with? symbol-name
+                                            ".")
+                          (str/ends-with? symbol-name
+                                          ".")
+                          (java-class? symbol-name))))
+        (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
+               (fn [old-loc]
+                 (if (nil? old-loc)
+                   (assoc loc
+                          :filename filename
+                          :name symbol)
+                   old-loc))))))
   nil)
 
 (defn reg-used-referred-var!
@@ -151,18 +154,18 @@
                              ;; referring to the namespace we're in
                              (when (= (:name ns) ns-sym)
                                ns-sym))]
-             {:ns ns*
-              :name (symbol (name name-sym))}
-             (when (= :clj lang)
-               (when-let [ns* (or (get var-info/default-import->qname ns-sym)
-                                  (get var-info/default-fq-imports ns-sym)
-                                  (get (:java-imports ns) ns-sym))]
-                 {:java-interop? true
-                  :ns ns*
-                  :name (symbol (name name-sym))})))))
+              {:ns ns*
+               :name (symbol (name name-sym))}
+              (when (= :clj lang)
+                (when-let [ns* (or (get var-info/default-import->qname ns-sym)
+                                   (get var-info/default-fq-imports ns-sym)
+                                   (get (:java-imports ns) ns-sym))]
+                  {:java-interop? true
+                   :ns ns*
+                   :name (symbol (name name-sym))})))))
       (or
        (when-let [[k v] (find (:referred-vars ns)
-                                name-sym)]
+                              name-sym)]
          (reg-used-referred-var! ctx ns-name k)
          v)
        (when (contains? (:vars ns) name-sym)

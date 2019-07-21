@@ -179,9 +179,13 @@
                                                     :clj 'clojure.core
                                                     :cljs 'cljs.core
                                                     :cljc 'clojure.core)])))))
-                             fn-ns (:ns called-fn)]
+                             _ (when (and (not called-fn)
+                                          (:unqualified? call) ;; (not fn-ns)
+                                          (:lint-invalid-arity? call))
+                                 (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call))]
                        :when called-fn
-                       :let [;; a macro in a CLJC file with the same namespace
+                       :let [fn-ns (:ns called-fn)
+                             ;; a macro in a CLJC file with the same namespace
                              ;; in that case, looking at the row and column is
                              ;; not reliable.  we may look at the lang of the
                              ;; call and the lang of the function def context in
