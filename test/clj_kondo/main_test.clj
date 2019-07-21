@@ -178,19 +178,16 @@
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
 
 (deftest cljc-test
-  (let [linted (lint! (io/file "corpus" "cljc"))
-        row-col-files (sort-by (juxt :file :row :col)
-                               (map #(select-keys % [:file :row :col])
-                                    linted))]
-    (is (= '({:file "corpus/cljc/datascript.cljc", :row 8, :col 1}
-             {:file "corpus/cljc/test_cljc.cljc", :row 13, :col 9}
-             {:file "corpus/cljc/test_cljc.cljc", :row 14, :col 10}
-             {:file "corpus/cljc/test_cljc.cljc", :row 21, :col 1}
-             {:file "corpus/cljc/test_cljc.cljs", :row 5, :col 1}
-             {:file "corpus/cljc/test_cljc_from_clj.clj", :row 5, :col 1}
-             {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
-             {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
-           row-col-files)))
+  (assert-submaps
+   '({:file "corpus/cljc/datascript.cljc", :row 8, :col 1}
+     {:file "corpus/cljc/test_cljc.cljc", :row 13, :col 9}
+     {:file "corpus/cljc/test_cljc.cljc", :row 14, :col 10}
+     {:file "corpus/cljc/test_cljc.cljc", :row 21, :col 1}
+     {:file "corpus/cljc/test_cljc.cljs", :row 5, :col 1}
+     {:file "corpus/cljc/test_cljc_from_clj.clj", :row 5, :col 1}
+     {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
+     {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
+   (lint! (io/file "corpus" "cljc")))
   (assert-submaps '({:file "corpus/spec/alpha.cljs",
                      :row 6,
                      :col 1,

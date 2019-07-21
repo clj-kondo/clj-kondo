@@ -177,17 +177,18 @@
                                                       (:refer-alls caller-ns)))
                                                (when (not (:clojure-excluded? call))
                                                  [(case call-lang #_base-lang
-                                                    :clj 'clojure.core
-                                                    :cljs 'cljs.core
-                                                    :cljc 'clojure.core)])))))
-                             ;; _ (prn call)
+                                                        :clj 'clojure.core
+                                                        :cljs 'cljs.core
+                                                        :cljc 'clojure.core)])))))
                              _ (when (and (not called-fn)
                                           (:unqualified? call) ;; (not fn-ns)
                                           (not (:unresolved-symbol-disabled? call)))
                                  (let [call (if call?
                                               (merge call (meta fn-name))
                                               call)]
-                                   (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))]
+                                   (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))
+
+                             ]
                        :when called-fn
                        :let [fn-ns (:ns called-fn)
                              ;; a macro in a CLJC file with the same namespace
@@ -199,13 +200,19 @@
                              valid-order? (if (and (= caller-ns-sym
                                                       fn-ns)
                                                    (= (:base-lang call)
-                                                      (:base-lang called-fn))
+                                                      base-lang)
                                                    ;; some built-ins may not have a row and col number
                                                    (:row called-fn))
                                             (or (> (:row call) (:row called-fn))
                                                 (and (= (:row call) (:row called-fn))
                                                      (> (:col call) (:col called-fn))))
-                                            true)]
+                                            true)
+                             _ (when-not valid-order?
+                                 ;; TODO: DRY this
+                                 (let [call (if call?
+                                              (merge call (meta fn-name))
+                                              call)]
+                                   (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))]
                        :when valid-order?
                        :let [arity (:arity call)
                              filename (:filename call)
