@@ -84,8 +84,7 @@
                                                       (when simple-symbol?
                                                         (get (:qualify-ns ns) symbol-val)))
                                                   :private-access? (:private-access? ctx)
-                                                  :callstack (:callstack ctx)
-                                                  :var-sym symbol-val})))))
+                                                  :callstack (:callstack ctx)})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              ;; catch-call

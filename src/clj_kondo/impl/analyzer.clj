@@ -935,9 +935,6 @@
                                 [resolved-namespace resolved-name])
                              (assoc-in [:recur-arity :fixed-arity] 0))]
               (analyze-children next-ctx (rest children)))))]
-    #_(when unqualified?
-        (namespace/reg-unresolved-symbol! ctx ns-name full-fn-name
-                                          (meta (first children))))
     (if (= 'ns resolved-as-clojure-var-name)
       analyzed
       (let [in-def (:in-def ctx)
@@ -957,8 +954,7 @@
                           :expr expr
                           :callstack (:callstack ctx)
                           :config (:config ctx)
-                          :filename (:filename ctx)
-                          :var-sym full-fn-name}
+                          :filename (:filename ctx)}
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unqualified?
