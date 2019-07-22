@@ -103,7 +103,6 @@
   (when x
     (assoc x :base-lang base-lang :lang lang)))
 
-;; TODO: idacs/cache should just store in format base-lang/lang
 (defn resolve-call [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
@@ -112,40 +111,27 @@
         unqualified? (:unqualified? call)
         same-ns? (= caller-ns fn-ns)]
     (case [base-lang call-lang]
-      [:clj :clj] (or (with-langs (get-in idacs [:clj :defs fn-ns fn-name])
-                        :clj :clj)
-                      (with-langs (get-in idacs [:cljc :defs fn-ns :clj fn-name])
-                        :cljc :clj))
-      [:cljs :cljs] (or (with-langs (get-in idacs [:cljs :defs fn-ns fn-name])
-                          :cljc :cljc)
+      [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
+                      (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
                         ;; when calling a function in the same ns, it must be in another file
                         ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
-                        (when (or (not (and same-ns? unqualified?)))
+                        (when (not (and same-ns? unqualified?))
                           (or
                            ;; cljs func in another cljc file
-                           (with-langs (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
-                             :cljc :cljs)
+                           (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
                            ;; maybe a macro?
-                           (with-langs (get-in idacs [:clj :defs fn-ns fn-name])
-                             :clj :clj)
-                           (with-langs (get-in idacs [:cljc :defs fn-ns :clj fn-name])
-                             :cljc :clj))))
+                           (get-in idacs [:clj :defs fn-ns fn-name])
+                           (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
       ;; calling a clojure function from cljc
-      [:cljc :clj] (or (with-langs (get-in idacs [:clj :defs fn-ns fn-name])
-                         :clj :clj)
-                       (with-langs (get-in idacs [:cljc :defs fn-ns :clj fn-name])
-                         :cljc :clj))
+      [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
+                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
       ;; calling function in a CLJS conditional from a CLJC file
-      [:cljc :cljs] (or (with-langs (get-in idacs [:cljs :defs fn-ns fn-name])
-                          :cljs :cljs)
-                        (with-langs (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
-                          :cljc :cljs)
+      [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+                        (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
                         ;; could be a macro
-                        (with-langs (get-in idacs [:clj :defs fn-ns fn-name])
-                          :clj :clj)
-                        (with-langs
-                          (get-in idacs [:cljc :defs fn-ns :clj fn-name])
-                          :cljc :clj)))))
+                        (get-in idacs [:clj :defs fn-ns fn-name])
+                        (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
 (defn show-arities [fixed-arities var-args-min-arity]
   (let [fas (vec (sort fixed-arities))
@@ -204,9 +190,7 @@
                                  (let [call (if call?
                                               (merge call (meta fn-name))
                                               call)]
-                                   (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))
-
-                             ]
+                                   (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))]
                        :when called-fn
                        :let [fn-ns (:ns called-fn)
                              ;; in the case of a macro in a CLJC file with the
