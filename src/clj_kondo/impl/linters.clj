@@ -209,11 +209,15 @@
                              ]
                        :when called-fn
                        :let [fn-ns (:ns called-fn)
-                             ;; a macro in a CLJC file with the same namespace
-                             ;; in that case, looking at the row and column is
-                             ;; not reliable.  we may look at the lang of the
-                             ;; call and the lang of the function def context in
-                             ;; the case of in-ns, the bets are off. we may
+                             ;; in the case of a macro in a CLJC file with the
+                             ;; same namespace, looking at the row and column is
+                             ;; not reliable. we may look at the lang of the
+                             ;; call and the lang of the function def context,
+                             ;; but even this isn't enough. we have to know if
+                             ;; the call was made using an explicit
+                             ;; self-require, if so, valid-order? is true
+
+                             ;; in the case of in-ns, the bets are off. we may
                              ;; support in-ns in a next version.
                              valid-order? (if (and (= caller-ns-sym
                                                       fn-ns)
