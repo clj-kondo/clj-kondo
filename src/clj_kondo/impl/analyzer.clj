@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.analyzer
   {:no-doc true}
+  (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
@@ -956,7 +957,8 @@
                           :expr expr
                           :callstack (:callstack ctx)
                           :config (:config ctx)
-                          :filename (:filename ctx)}
+                          :filename (:filename ctx)
+                          :var-sym full-fn-name}
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unqualified?

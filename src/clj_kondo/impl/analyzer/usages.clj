@@ -62,7 +62,7 @@
                                 (not
                                  (when simple-symbol?
                                    (get (:qualify-ns ns) symbol-val))))
-                       (namespace/reg-unresolved-symbol! ctx ns-name symbol-val m))
+                         (namespace/reg-unresolved-symbol! ctx ns-name symbol-val m))
                      (when resolved-ns
                        (namespace/reg-usage! ctx
                                              ns-name
@@ -84,7 +84,8 @@
                                                       (when simple-symbol?
                                                         (get (:qualify-ns ns) symbol-val)))
                                                   :private-access? (:private-access? ctx)
-                                                  :callstack (:callstack ctx)})))))
+                                                  :callstack (:callstack ctx)
+                                                  :var-sym symbol-val})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              ;; catch-call

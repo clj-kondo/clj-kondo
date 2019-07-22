@@ -219,18 +219,16 @@
 
                              ;; in the case of in-ns, the bets are off. we may
                              ;; support in-ns in a next version.
-                             valid-order? (if (and (= caller-ns-sym
-                                                      fn-ns)
-                                                   (= (:base-lang call)
-                                                      (:base-lang called-fn))
-                                                   (= (:lang call)
-                                                      (:lang called-fn))
-                                                   ;; some built-ins may not have a row and col number
-                                                   (:row called-fn))
-                                            (or (> (:row call) (:row called-fn))
-                                                (and (= (:row call) (:row called-fn))
-                                                     (> (:col call) (:col called-fn))))
-                                            true)
+                             ;; TODO: rename :unqualified false to :resolved? true
+                             valid-order? (or (not (:unqualified? call))
+                                              (if (and (= caller-ns-sym
+                                                          fn-ns)
+                                                       ;; some built-ins may not have a row and col number
+                                                       (:row called-fn))
+                                                (or (> (:row call) (:row called-fn))
+                                                    (and (= (:row call) (:row called-fn))
+                                                         (> (:col call) (:col called-fn))))
+                                                true))
                              _ (when-not valid-order?
                                      ;; TODO: DRY this
                                      (let [call (if call?
