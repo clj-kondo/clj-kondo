@@ -1771,6 +1771,18 @@
       :message "unresolved symbol x"})
    (lint! "x"
           '{:linters {:unresolved-symbol {:level :error}}}))
+  (testing "slurp is unresolved in the cljs part of cljc"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message "unresolved symbol slurp"})
+     (lint! "slurp"
+            '{:linters {:unresolved-symbol {:level :error}}}
+            "--lang" "cljc")))
+  (is (empty? (lint! "slurp"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defmulti foo (fn [_])) (defmethod foo :dude [_]) (foo 1)"
