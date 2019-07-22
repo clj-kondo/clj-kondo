@@ -651,7 +651,8 @@
       (namespace/reg-var! ctx ns-name
                           (->> var-name-node (meta/lift-meta-content2 ctx) :value)
                           expr
-                          {:declared true}))))
+                          (merge {:declared true}
+                                 (meta expr))))))
 
 (defn analyze-def [ctx expr]
   (let [var-name-node (->> expr :children second (meta/lift-meta-content2 ctx))

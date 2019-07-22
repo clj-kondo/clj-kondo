@@ -30,14 +30,16 @@
          path [base-lang lang ns-sym]]
      (swap! namespaces update-in path
             (fn [ns]
-              ;; declare is idempotent
-              (when (and top-level? (not (:declared metadata)))
-                (let [vars (:vars ns)]
+              (let [vars (:vars ns)
+                    prev-var (get vars var-sym)
+                    prev-declared? (:declared prev-var)]
+                ;; declare is idempotent
+                (when (and top-level? (not (:declared metadata)))
                   (when-let [redefined-ns
-                             (or (when-let [meta-v (get vars var-sym)]
+                             (or (when-let [meta-v prev-var]
                                    (when-not (or
                                               (:temp meta-v)
-                                              (:declared meta-v))
+                                              prev-declared?)
                                      ns-sym))
                                  (when-let [qv (get (:referred-vars ns) var-sym)]
                                    (:ns qv))
@@ -55,10 +57,10 @@
                                  :redefined-var
                                  (if (= ns-sym redefined-ns)
                                    (str "redefined var #'" redefined-ns "/" var-sym)
-                                   (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))))
-              (update ns :vars assoc
-                      var-sym
-                      metadata))))))
+                                   (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
+                (update ns :vars assoc
+                        var-sym
+                        (merge metadata (select-keys prev-var [:row :col])))))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
