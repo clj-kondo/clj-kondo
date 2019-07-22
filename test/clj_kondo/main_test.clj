@@ -1750,7 +1750,17 @@
                      :row 18,
                      :col 1,
                      :level :error,
-                     :message "clojure.set/join is called with 0 args but expects 2 or 3"})
+                     :message "clojure.set/join is called with 0 args but expects 2 or 3"}
+                    {:file "corpus/unresolved_symbol.clj",
+                     :row 21,
+                     :col 2,
+                     :level :error,
+                     :message "unresolved symbol foo"}
+                    {:file "corpus/unresolved_symbol.clj",
+                     :row 25,
+                     :col 1,
+                     :level :error,
+                     :message "unresolved-symbol2/bar is called with 1 arg but expects 0"})
                   (lint! (io/file "corpus" "unresolved_symbol.clj")
                          '{:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps

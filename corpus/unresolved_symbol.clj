@@ -17,3 +17,11 @@ clojure.string/join ;; <- ignored
 (require '[clojure.set :refer [union]])
 (clojure.set/join) ;; <- should be resolved
 union ;; <- also resolved
+
+(foo 1) ;; using a function before its definition is unresolved
+(defn foo [])
+
+(declare bar)
+(bar 1) ;; but declaring a var and then calling it is not unresolved. moreover,
+        ;; this is the wrong arity, so an error
+(defn bar [])
