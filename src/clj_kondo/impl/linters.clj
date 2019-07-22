@@ -312,16 +312,16 @@
                 used-referred-vars (:used-referred-vars ns)
                 filename (:filename ns)]]
     (doseq [ns-sym unused]
-      :when (not (config/unused-namespace-excluded config ns-sym))
-      (let [{:keys [:row :col :filename]} (meta ns-sym)]
-        (findings/reg-finding!
-         findings
-         {:level :warning
-          :type :unused-namespace
-          :filename filename
-          :message (format "namespace %s is required but never used" ns-sym)
-          :row row
-          :col col})))
+      (when-not (config/unused-namespace-excluded config ns-sym)
+        (let [{:keys [:row :col :filename]} (meta ns-sym)]
+          (findings/reg-finding!
+           findings
+           {:level :warning
+            :type :unused-namespace
+            :filename filename
+            :message (format "namespace %s is required but never used" ns-sym)
+            :row row
+            :col col}))))
     (doseq [[k v] referred-vars
             :let [{:keys [:row :col]} (meta k)]]
       (when-not
