@@ -43,7 +43,7 @@ These steps assume a Windows 10 installation with [Git for Windows](https://gitf
 
   You might first have to:
     - Uninstall any Visual C++ 2010 Redistributables from the control panel. See this [SO answer](https://stackoverflow.com/a/32534158/6264).
-    - Tweak [these](https://stackoverflow.com/questions/32091593/cannot-install-windows-sdk-7-1-on-windows-10/32322920#32322920) registry settings a workaround for a message about an incorrect .NET version.
+    - Tweak [these](https://stackoverflow.com/questions/32091593/cannot-install-windows-sdk-7-1-on-windows-10/32322920#32322920) registry settings as a workaround for a message about an incorrect .NET version.
 
 The following steps need to be executed from the Windows SDK 7.1 command prompt.
 
