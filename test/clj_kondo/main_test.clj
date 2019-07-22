@@ -1051,7 +1051,8 @@
       :col 20,
       :level :warning,
       :message "namespace clojure.core.async is required but never used"})
-   (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))"))
+   (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))"
+          "--config" "^:replace {:linters {:unused-namespace {:level :warning}}}"))
   (assert-submaps
    '({:file "<stdin>",
       :row 2,
@@ -1097,7 +1098,8 @@
       :col 12,
       :level :warning,
       :message "namespace clojure.set is required but never used"})
-   (lint! "(require '[clojure.set :refer [join]])"))
+   (lint! "(require '[clojure.set :refer [join]])"
+          "--config" "^:replace {:linters {:unused-namespace {:level :warning}}}"))
   (is (empty?
        (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
          ,(ns bar)
@@ -1179,6 +1181,11 @@
                      :col 20,
                      :level :warning,
                      :message "namespace bar is required but never used"}
+                    {:file "<stdin>",
+                     :row 1,
+                     :col 32,
+                     :level :warning,
+                     :message "#'bar/x is referred but never used"}
                     {:file "<stdin>",
                      :row 1,
                      :col 38,

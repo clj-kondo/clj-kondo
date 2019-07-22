@@ -323,8 +323,7 @@
     (doseq [[k v] referred-vars
             :let [{:keys [:row :col]} (meta k)]]
       (when-not
-          (or (contains? used-referred-vars k)
-              (contains? unused (:ns v)))
+          (contains? used-referred-vars k)
         (findings/reg-finding!
          findings
          {:level :warning
