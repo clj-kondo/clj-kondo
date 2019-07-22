@@ -99,6 +99,11 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
+(defn with-langs [x base-lang lang]
+  (when x
+    (assoc x :base-lang base-lang :lang lang)))
+
+;; TODO: idacs/cache should just store in format base-lang/lang
 (defn resolve-call [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
@@ -107,27 +112,40 @@
         unqualified? (:unqualified? call)
         same-ns? (= caller-ns fn-ns)]
     (case [base-lang call-lang]
-      [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
-                      (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
-      [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+      [:clj :clj] (or (with-langs (get-in idacs [:clj :defs fn-ns fn-name])
+                        :clj :clj)
+                      (with-langs (get-in idacs [:cljc :defs fn-ns :clj fn-name])
+                        :cljc :clj))
+      [:cljs :cljs] (or (with-langs (get-in idacs [:cljs :defs fn-ns fn-name])
+                          :cljc :cljc)
                         ;; when calling a function in the same ns, it must be in another file
                         ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
                         (when (or (not (and same-ns? unqualified?)))
                           (or
                            ;; cljs func in another cljc file
-                           (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                           (with-langs (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                             :cljc :cljs)
                            ;; maybe a macro?
-                           (get-in idacs [:clj :defs fn-ns fn-name])
-                           (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
+                           (with-langs (get-in idacs [:clj :defs fn-ns fn-name])
+                             :clj :clj)
+                           (with-langs (get-in idacs [:cljc :defs fn-ns :clj fn-name])
+                             :cljc :clj))))
       ;; calling a clojure function from cljc
-      [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
-                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      [:cljc :clj] (or (with-langs (get-in idacs [:clj :defs fn-ns fn-name])
+                         :clj :clj)
+                       (with-langs (get-in idacs [:cljc :defs fn-ns :clj fn-name])
+                         :cljc :clj))
       ;; calling function in a CLJS conditional from a CLJC file
-      [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
-                        (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+      [:cljc :cljs] (or (with-langs (get-in idacs [:cljs :defs fn-ns fn-name])
+                          :cljs :cljs)
+                        (with-langs (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                          :cljc :cljs)
                         ;; could be a macro
-                        (get-in idacs [:clj :defs fn-ns fn-name])
-                        (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
+                        (with-langs (get-in idacs [:clj :defs fn-ns fn-name])
+                          :clj :clj)
+                        (with-langs
+                          (get-in idacs [:cljc :defs fn-ns :clj fn-name])
+                          :cljc :clj)))))
 
 (defn show-arities [fixed-arities var-args-min-arity]
   (let [fas (vec (sort fixed-arities))
@@ -200,7 +218,7 @@
                              valid-order? (if (and (= caller-ns-sym
                                                       fn-ns)
                                                    (= (:base-lang call)
-                                                      base-lang)
+                                                      (:base-lang called-fn))
                                                    ;; some built-ins may not have a row and col number
                                                    (:row called-fn))
                                             (or (> (:row call) (:row called-fn))
@@ -208,11 +226,12 @@
                                                      (> (:col call) (:col called-fn))))
                                             true)
                              _ (when-not valid-order?
-                                 ;; TODO: DRY this
-                                 (let [call (if call?
-                                              (merge call (meta fn-name))
-                                              call)]
-                                   (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))]
+                                     ;; TODO: DRY this
+                                     (let [call (if call?
+                                                  (merge call (meta fn-name))
+                                                  call)]
+                                       #_(prn "CALL" (meta fn-name))
+                                       (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))]
                        :when valid-order?
                        :let [arity (:arity call)
                              filename (:filename call)
