@@ -219,6 +219,8 @@
                                                       fn-ns)
                                                    (= (:base-lang call)
                                                       (:base-lang called-fn))
+                                                   (= (:lang call)
+                                                      (:lang called-fn))
                                                    ;; some built-ins may not have a row and col number
                                                    (:row called-fn))
                                             (or (> (:row call) (:row called-fn))
