@@ -115,28 +115,23 @@
          (Character/isUpperCase ^char (first (last splits))))))
 
 (defn reg-unresolved-symbol!
-  [{:keys [:namespaces :filename] :as ctx}
-   ns-sym symbol {:keys [:base-lang :lang] :as loc}]
-  ;; suppress fake let* resolve
-  (when (:row loc)
-    (let [filename (or filename (:filename loc))]
-      (when-not (or (:unresolved-symbol-disabled? loc)
-                    (config/unresolved-symbol-excluded
-                     (or (:config loc)
-                         (:config ctx)) (:callstack loc) symbol)
-                    (let [symbol-name (name symbol)]
-                      (or (str/starts-with? symbol-name
-                                            ".")
-                          (str/ends-with? symbol-name
-                                          ".")
-                          (java-class? symbol-name))))
-        (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
-               (fn [old-loc]
-                 (if (nil? old-loc)
-                   (assoc loc
-                          :filename filename
-                          :name symbol)
-                   old-loc))))))
+  [{:keys [:namespaces] :as _ctx}
+   ns-sym symbol {:keys [:base-lang :lang :config
+                         :callstack] :as sym-info}]
+  (when-not (or (:unresolved-symbol-disabled? sym-info)
+                (config/unresolved-symbol-excluded config
+                                                   callstack symbol)
+                (let [symbol-name (name symbol)]
+                  (or (str/starts-with? symbol-name
+                                        ".")
+                      (str/ends-with? symbol-name
+                                      ".")
+                      (java-class? symbol-name))))
+    (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
+           (fn [old-sym-info]
+             (if (nil? old-sym-info)
+               sym-info
+               old-sym-info))))
   nil)
 
 (defn reg-used-referred-var!

@@ -56,13 +56,6 @@
                          (namespace/resolve-name ctx ns-name symbol-val)
                          m (meta expr)
                          {:keys [:row :col]} m]
-                     #_(when (and unqualified? (not syntax-quote?)
-                                ;; prevent namespace from being reported as
-                                ;; unresolved symbol
-                                (not
-                                 (when simple-symbol?
-                                   (get (:qualify-ns ns) symbol-val))))
-                         (namespace/reg-unresolved-symbol! ctx ns-name symbol-val m))
                      (when resolved-ns
                        (namespace/reg-usage! ctx
                                              ns-name
@@ -84,7 +77,8 @@
                                                       (when simple-symbol?
                                                         (get (:qualify-ns ns) symbol-val)))
                                                   :private-access? (:private-access? ctx)
-                                                  :callstack (:callstack ctx)})))))
+                                                  :callstack (:callstack ctx)
+                                                  :config (:config ctx)})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              ;; catch-call

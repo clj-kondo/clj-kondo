@@ -203,7 +203,6 @@
 
                              ;; in the case of in-ns, the bets are off. we may
                              ;; support in-ns in a next version.
-                             ;; TODO: rename :unqualified false to :resolved? true
                              valid-order? (or (not (:unqualified? call))
                                               (if (and (= caller-ns-sym
                                                           fn-ns)

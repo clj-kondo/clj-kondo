@@ -760,15 +760,9 @@
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
         [method-name-node dispatch-val-node & body-exprs] children
-        method-name (:value method-name-node)
-        ns-name (-> ctx :ns :name)
-        m (resolve-name ctx ns-name method-name)
+        _ (analyze-usages2 ctx method-name-node)
         bodies (fn-bodies ctx body-exprs)
         analyzed-bodies (map #(analyze-fn-body ctx %) bodies)]
-    (when-let [used-ns (:ns m)]
-      (namespace/reg-usage! ctx ns-name used-ns))
-    (when (:unqualified? m)
-      (namespace/reg-unresolved-symbol! ctx ns-name method-name (meta method-name-node)))
     (concat (analyze-expression** ctx dispatch-val-node)
             (mapcat :parsed analyzed-bodies))))
 
