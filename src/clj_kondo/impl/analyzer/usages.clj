@@ -60,10 +60,6 @@
                        (namespace/reg-usage! ctx
                                              ns-name
                                              resolved-ns))
-                     (when (= 'v symbol-val)
-                       (prn "SYM" ns-name row col symbol-val (or syntax-quote?
-                                                                 (when simple-symbol?
-                                                                   (get (:qualify-ns ns) symbol-val)))))
                      (namespace/reg-var-usage! ctx ns-name
                                                {:type :use
                                                 :name resolved-name
