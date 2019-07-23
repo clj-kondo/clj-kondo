@@ -262,7 +262,7 @@
 (defn ctx-with-linter-disabled [ctx linter]
   (assoc-in ctx [:config :linters linter :level] :off))
 
-(defn analyze-defn [{:keys [:ns] :as ctx} expr]
+(defn analyze-defn [{:keys [:ns :filename] :as ctx} expr]
   (let [ns-name (:name ns)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
@@ -313,7 +313,9 @@
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
-       (cond-> (meta name-node)
+       (cond->
+           (assoc (meta name-node)
+                  :filename filename)
          macro? (assoc :macro true)
          private? (assoc :private true)
          deprecated (assoc :deprecated deprecated)

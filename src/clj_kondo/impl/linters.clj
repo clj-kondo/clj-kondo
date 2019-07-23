@@ -193,7 +193,11 @@
                        :let [fn-ns (:ns called-fn)
                              ;; if the var was not unresolved, we assume the
                              ;; order was correct. if it was unresolved (maybe due to :refer :all), then we look at the row and colum
-                             valid-order? (or (not unresolved?)
+                             valid-order?
+                             (or (not unresolved?)
+                                 unresolved-symbol-disabled?
+                                 (not= (:filename call) (:filename called-fn)))
+                             #_(or (not unresolved?)
                                               unresolved-symbol-disabled?
                                               (if (and (= caller-ns-sym
                                                           fn-ns)
