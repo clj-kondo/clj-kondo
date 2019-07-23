@@ -15,7 +15,7 @@
       (let [symbol-val (kw->sym keyword-val)
             {resolved-ns :ns
              _resolved-name :name
-             _unqualified? :unqualified? :as _m}
+             _unresolved? :unresolved? :as _m}
             (namespace/resolve-name ctx ns-name symbol-val)]
         (when resolved-ns
           (namespace/reg-usage! ctx
@@ -50,7 +50,7 @@
                                                 b)
                    (let [{resolved-ns :ns
                           resolved-name :name
-                          unqualified? :unqualified?
+                          unresolved? :unresolved?
                           clojure-excluded? :clojure-excluded?
                           :as _m}
                          (namespace/resolve-name ctx ns-name symbol-val)
@@ -65,7 +65,7 @@
                                                   :name resolved-name
                                                   :resolved-ns resolved-ns
                                                   :ns ns-name
-                                                  :unqualified? unqualified?
+                                                  :unresolved? unresolved?
                                                   :clojure-excluded? clojure-excluded?
                                                   :row row
                                                   :col col

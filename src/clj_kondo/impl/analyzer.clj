@@ -652,8 +652,8 @@
       (namespace/reg-var! ctx ns-name
                           (->> var-name-node (meta/lift-meta-content2 ctx) :value)
                           expr
-                          (merge {:declared true}
-                                 (meta expr))))))
+                          (assoc (meta expr)
+                                 :declared true)))))
 
 (defn analyze-def [ctx expr]
   (let [var-name-node (->> expr :children second (meta/lift-meta-content2 ctx))
@@ -831,7 +831,7 @@
         children (:children expr)
         {resolved-namespace :ns
          resolved-name :name
-         unqualified? :unqualified?
+         unresolved? :unresolved?
          clojure-excluded? :clojure-excluded? :as _m}
         (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name _lint-as?]
@@ -938,7 +938,7 @@
                           :name (with-meta
                                   (or resolved-name full-fn-name)
                                   (meta full-fn-name))
-                          :unqualified? unqualified?
+                          :unresolved? unresolved?
                           :clojure-excluded? clojure-excluded?
                           :arity arg-count
                           :row row
@@ -951,7 +951,7 @@
                           :filename (:filename ctx)}
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
-        (when-not unqualified?
+        (when-not unresolved?
           (namespace/reg-usage! ctx
                                 ns-name
                                 resolved-namespace))
@@ -1068,8 +1068,8 @@
                       (analyze-children ctx children))
                   (if-let [full-fn-name (utils/symbol-from-token function)]
                     (let [full-fn-name (with-meta full-fn-name (meta function))
-                          unqualified? (nil? (namespace full-fn-name))
-                          binding-call? (and unqualified?
+                          unresolved? (nil? (namespace full-fn-name))
+                          binding-call? (and unresolved?
                                              (contains? bindings full-fn-name))]
                       (if binding-call?
                         (analyze-binding-call ctx full-fn-name expr)

@@ -99,16 +99,12 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
-(defn with-langs [x base-lang lang]
-  (when x
-    (assoc x :base-lang base-lang :lang lang)))
-
 (defn resolve-call [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
         caller-ns (:ns call)
         ;; this call was unqualified and inferred as a function in the same namespace until now
-        unqualified? (:unqualified? call)
+        unresolved? (:unresolved? call)
         same-ns? (= caller-ns fn-ns)]
     (case [base-lang call-lang]
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
@@ -116,7 +112,7 @@
       [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
                         ;; when calling a function in the same ns, it must be in another file
                         ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
-                        (when (not (and same-ns? unqualified?))
+                        (when (not (and same-ns? unresolved?))
                           (or
                            ;; cljs func in another cljc file
                            (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
@@ -161,6 +157,7 @@
                        :let [base-lang (:base-lang ns)]
                        call (:used-vars ns)
                        :let [call? (= :call (:type call))
+                             unresolved? (:unresolved? call)
                              fn-name (:name call)
                              caller-ns-sym (:ns call)
                              call-lang (:lang call)
@@ -184,41 +181,33 @@
                                                         :clj 'clojure.core
                                                         :cljs 'cljs.core
                                                         :cljc 'clojure.core)])))))
+                             unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
                              _ (when (and (not called-fn)
-                                          (:unqualified? call) ;; (not fn-ns)
-                                          (not (:unresolved-symbol-disabled? call)))
-                                 (let [call (if call?
-                                              (merge call (meta fn-name))
-                                              call)]
-                                   (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))]
+                                          unresolved?
+                                          (not unresolved-symbol-disabled?))
+                                 (namespace/reg-unresolved-symbol! ctx fn-ns fn-name
+                                                                   (if call?
+                                                                     (merge call (meta fn-name))
+                                                                     call)))]
                        :when called-fn
                        :let [fn-ns (:ns called-fn)
-                             ;; in the case of a macro in a CLJC file with the
-                             ;; same namespace, looking at the row and column is
-                             ;; not reliable. we may look at the lang of the
-                             ;; call and the lang of the function def context,
-                             ;; but even this isn't enough. we have to know if
-                             ;; the call was made using an explicit
-                             ;; self-require, if so, valid-order? is true
-
-                             ;; in the case of in-ns, the bets are off. we may
-                             ;; support in-ns in a next version.
-                             valid-order? (or (not (:unqualified? call))
+                             ;; if the var was not unresolved, we assume the
+                             ;; order was correct. if it was unresolved (maybe due to :refer :all), then we look at the row and colum
+                             valid-order? (or (not unresolved?)
+                                              unresolved-symbol-disabled?
                                               (if (and (= caller-ns-sym
                                                           fn-ns)
                                                        ;; some built-ins may not have a row and col number
-                                                       (:row called-fn))
-                                                (or (> (:row call) (:row called-fn))
+                                                       #_(:row called-fn))
+                                                false #_(or (> (:row call) (:row called-fn))
                                                     (and (= (:row call) (:row called-fn))
                                                          (> (:col call) (:col called-fn))))
                                                 true))
                              _ (when-not valid-order?
-                                     ;; TODO: DRY this
-                                     (let [call (if call?
-                                                  (merge call (meta fn-name))
-                                                  call)]
-                                       #_(prn "CALL" (meta fn-name))
-                                       (namespace/reg-unresolved-symbol! ctx fn-ns fn-name call)))]
+                                 (namespace/reg-unresolved-symbol! ctx fn-ns fn-name
+                                                                   (if call?
+                                                                     (merge call (meta fn-name))
+                                                                     call)))]
                        :when valid-order?
                        :let [arity (:arity call)
                              filename (:filename call)

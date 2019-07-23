@@ -195,7 +195,7 @@
             :name name-sym}
            {:ns namespace
             :name name-sym
-            :unqualified? true
+            :unresolved? true
             :clojure-excluded? clojure-excluded?}))))))
 
 ;;;; Scratch
