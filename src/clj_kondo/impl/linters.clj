@@ -181,9 +181,27 @@
                                                         :cljs 'cljs.core
                                                         :cljc 'clojure.core)])))))
                              unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
-                             _ (when (and (not called-fn)
-                                          unresolved?
+                             different-file? (not= (:filename call) (:filename called-fn))
+                             row-called-fn (:row called-fn)
+                             row-call (:row call)
+                             _ (when (= 'v fn-name)
+                                 (prn caller-ns-sym fn-name row-called-fn row-call "different-file?" different-file?
+                                      (:filename call) (:filename called-fn) called-fn))
+                             valid? (or (not unresolved?)
+                                        (when called-fn
+                                          (or different-file?
+                                              (not row-called-fn)
+                                              (do
+                                                (when(= 'v fn-name)
+                                                  (prn caller-ns-sym "AAAAR" row-call))
+                                                (or (> row-call row-called-fn)
+                                                     (and (= row-call row-called-fn)
+                                                          (> (:col call) (:col called-fn))))))))
+                             _ (when (= 'v fn-name)
+                                 (prn caller-ns-sym "not unresolved?" (not unresolved?)))
+                             _ (when (and (not valid?)
                                           (not unresolved-symbol-disabled?))
+                                 ;; (prn caller-ns-sym fn-name (:row call) (:col call) valid?)
                                  (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
                                                                    (if call?
                                                                      (merge call (meta fn-name))
@@ -192,10 +210,6 @@
                        :let [fn-ns (:ns called-fn)
                              ;; if the var was not unresolved, we assume the
                              ;; order was correct. if it was unresolved (maybe due to :refer :all), then we look at the row and colum
-                             valid-order?
-                             (or (not unresolved?)
-                                 unresolved-symbol-disabled?
-                                 (not= (:filename call) (:filename called-fn)))
                              #_(or (not unresolved?)
                                               unresolved-symbol-disabled?
                                               (if (and (= caller-ns-sym
@@ -208,12 +222,8 @@
                                                     (and (= (:row call) (:row called-fn))
                                                          (> (:col call) (:col called-fn))))
                                                 true))
-                             _ (when-not valid-order?
-                                 (namespace/reg-unresolved-symbol! ctx fn-ns fn-name
-                                                                   (if call?
-                                                                     (merge call (meta fn-name))
-                                                                     call)))]
-                       :when valid-order?
+                             ]
+                       :when valid?
                        :let [arity (:arity call)
                              filename (:filename call)
                              fixed-arities (:fixed-arities called-fn)

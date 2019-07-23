@@ -59,26 +59,30 @@
                      (when resolved-ns
                        (namespace/reg-usage! ctx
                                              ns-name
-                                             resolved-ns)
-                       (namespace/reg-var-usage! ctx ns-name
-                                                 {:type :use
-                                                  :name resolved-name
-                                                  :resolved-ns resolved-ns
-                                                  :ns ns-name
-                                                  :unresolved? unresolved?
-                                                  :clojure-excluded? clojure-excluded?
-                                                  :row row
-                                                  :col col
-                                                  :base-lang (:base-lang ctx)
-                                                  :lang (:lang ctx)
-                                                  :filename (:filename ctx)
-                                                  :unresolved-symbol-disabled?
-                                                  (or syntax-quote?
-                                                      (when simple-symbol?
-                                                        (get (:qualify-ns ns) symbol-val)))
-                                                  :private-access? (:private-access? ctx)
-                                                  :callstack (:callstack ctx)
-                                                  :config (:config ctx)})))))
+                                             resolved-ns))
+                     (when (= 'v symbol-val)
+                       (prn "SYM" ns-name row col symbol-val (or syntax-quote?
+                                                                 (when simple-symbol?
+                                                                   (get (:qualify-ns ns) symbol-val)))))
+                     (namespace/reg-var-usage! ctx ns-name
+                                               {:type :use
+                                                :name resolved-name
+                                                :resolved-ns resolved-ns
+                                                :ns ns-name
+                                                :unresolved? unresolved?
+                                                :clojure-excluded? clojure-excluded?
+                                                :row row
+                                                :col col
+                                                :base-lang (:base-lang ctx)
+                                                :lang (:lang ctx)
+                                                :filename (:filename ctx)
+                                                :unresolved-symbol-disabled?
+                                                (or syntax-quote?
+                                                    (when simple-symbol?
+                                                      (get (:qualify-ns ns) symbol-val)))
+                                                :private-access? (:private-access? ctx)
+                                                :callstack (:callstack ctx)
+                                                :config (:config ctx)}))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              ;; catch-call
