@@ -60,7 +60,9 @@
                                    (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
                 (update ns :vars assoc
                         var-sym
-                        (merge metadata (select-keys prev-var [:row :col])))))))))
+                        (assoc
+                         (merge metadata (select-keys prev-var [:row :col]))
+                         :filename filename))))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
