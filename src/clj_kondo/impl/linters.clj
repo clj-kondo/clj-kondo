@@ -184,7 +184,7 @@
                              _ (when (and (not called-fn)
                                           unresolved?
                                           (not unresolved-symbol-disabled?))
-                                 (namespace/reg-unresolved-symbol! ctx fn-ns fn-name
+                                 (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
                                                                    (if call?
                                                                      (merge call (meta fn-name))
                                                                      call)))]
