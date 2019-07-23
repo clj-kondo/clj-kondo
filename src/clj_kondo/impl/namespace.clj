@@ -184,7 +184,6 @@
           :name name-sym})
        (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                           name-sym)
-             namespace (:name ns)
              core-sym? (when-not clojure-excluded?
                          (var-info/core-sym? lang name-sym))
              special-form? (contains? var-info/special-forms name-sym)]
@@ -193,10 +192,11 @@
                   :clj 'clojure.core
                   :cljs 'cljs.core)
             :name name-sym}
-           {:ns namespace
+           {:ns :clj-kondo/unknown-namespace
             :name name-sym
             :unresolved? true
-            :clojure-excluded? clojure-excluded?}))))))
+            :clojure-excluded? clojure-excluded?
+            :refer-alls (set (keys (:refer-alls ns)))}))))))
 
 ;;;; Scratch
 

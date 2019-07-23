@@ -834,7 +834,9 @@
         {resolved-namespace :ns
          resolved-name :name
          unresolved? :unresolved?
-         clojure-excluded? :clojure-excluded? :as _m}
+         clojure-excluded? :clojure-excluded?
+         :keys [:refer-alls]
+         :as _m}
         (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name _lint-as?]
         (or (when-let [[ns n] (config/lint-as config [resolved-namespace resolved-name])]
@@ -844,10 +846,13 @@
                           resolved-name)
                  (symbol (str resolved-namespace)
                          (str resolved-name)))
+        unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
+        resolved-namespace* (if unknown-ns?
+                              ns-name resolved-namespace)
         ctx (if fq-sym
               (update ctx :callstack
                       (fn [cs]
-                        (cons (with-meta [resolved-namespace resolved-name]
+                        (cons (with-meta [resolved-namespace* resolved-name]
                                 (meta expr)) cs)))
               ctx)
         resolved-as-clojure-var-name
@@ -917,10 +922,15 @@
           (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]
             (analyze-schema-defn ctx expr)
-            ([clojure.test deftest] [cljs.test deftest])
-            (do
-              (lint-inline-def! ctx expr)
-              (analyze-deftest ctx resolved-namespace expr))
+            ([clojure.test deftest]
+             [cljs.test deftest]
+             [:clj-kondo/unknown-namespace deftest])
+            (if (or (not unknown-ns?)
+                    (contains? refer-alls 'clojure.test)
+                    (contains? refer-alls 'cljs.test))
+              (do (lint-inline-def! ctx expr)
+                  (analyze-deftest ctx resolved-namespace expr))
+              (analyze-children ctx (rest children)))
             ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
             (spec/analyze-fdef (assoc ctx
                                       :analyze-children

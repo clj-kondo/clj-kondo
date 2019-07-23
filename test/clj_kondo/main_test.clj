@@ -1327,7 +1327,7 @@
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
 
-(deftest redefined-test-test
+(deftest clojure-test-test
   (assert-submaps
    '({:file "corpus/redefined_deftest.clj",
       :row 4,
@@ -1344,7 +1344,10 @@
       :col 1,
       :level :error,
       :message "redefined-deftest/foo is called with 1 arg but expects 0"})
-   (lint! (io/file "corpus" "redefined_deftest.clj"))))
+   (lint! (io/file "corpus" "redefined_deftest.clj")))
+  (is (empty?
+       (lint! "(ns foo (:require [clojure.test :refer :all])) (deftest foo (is (empty? #{})))"
+              {:linters {:unresolved-symbol {:level :info}}}))))
 
 (deftest unused-binding-test
   (assert-submaps

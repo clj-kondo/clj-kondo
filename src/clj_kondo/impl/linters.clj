@@ -102,17 +102,16 @@
 (defn resolve-call [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
-        caller-ns (:ns call)
-        ;; this call was unqualified and inferred as a function in the same namespace until now
         unresolved? (:unresolved? call)
-        same-ns? (= caller-ns fn-ns)]
+        unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
+        fn-ns (if unknown-ns? (:ns call) fn-ns)]
     (case [base-lang call-lang]
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
       [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
                         ;; when calling a function in the same ns, it must be in another file
                         ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
-                        (when (not (and same-ns? unresolved?))
+                        (when (not (and unknown-ns? unresolved?))
                           (or
                            ;; cljs func in another cljc file
                            (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
@@ -169,7 +168,7 @@
                                  ;; we resolved this call against the
                                  ;; same namespace, because it was
                                  ;; unqualified
-                                 (when (= caller-ns-sym fn-ns)
+                                 (when (= fn-ns :clj-kondo/unknown-namespace)
                                    (some #(resolve-call idacs call % fn-name)
                                          (into (vec
                                                 (keep (fn [[ns excluded]]
