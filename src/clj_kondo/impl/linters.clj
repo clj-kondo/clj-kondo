@@ -197,6 +197,8 @@
                                               unresolved-symbol-disabled?
                                               (if (and (= caller-ns-sym
                                                           fn-ns)
+                                                       ;; we could be using a function defined with in-ns
+                                                       ;; so we should be looking at the filename (or top-declaring ns)
                                                        ;; some built-ins may not have a row and col number
                                                        #_(:row called-fn))
                                                 false #_(or (> (:row call) (:row called-fn))
