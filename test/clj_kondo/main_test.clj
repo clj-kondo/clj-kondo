@@ -1866,6 +1866,9 @@
   ;; although this isn't correct at run-time, preventing a namespace or class
   ;; symbol from being reported as unresolved is generally better
   (is (empty? (lint! "(ns foo (:require [clojure.core])) clojure.core"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :refer :all]))
+                      join starts-with? ends-with?"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest misc-false-positives-test
