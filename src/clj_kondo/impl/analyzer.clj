@@ -48,12 +48,25 @@
           :type :unbound-destructuring-default}))))
   (analyze-children ctx (utils/map-node-vals defaults)))
 
+(defn ctx-with-linter-disabled [ctx linter]
+  (assoc-in ctx [:config :linters linter :level] :off))
+
+(defn lift-meta-content*
+  "Used within extract-bindings. Disables unresolved symbols while
+  linting metadata."
+  [{:keys [:lang] :as ctx} expr]
+  (meta/lift-meta-content2
+   (if (= :cljs lang)
+     (ctx-with-linter-disabled ctx :unresolved-symbol)
+     ctx)
+   expr))
+
 (defn extract-bindings
   ([ctx expr] (when expr
                 (extract-bindings ctx expr {})))
   ([{:keys [:skip-reg-binding?] :as ctx} expr
     {:keys [:keys-destructuring?] :as opts}]
-   (let [expr (meta/lift-meta-content2 ctx expr)
+   (let [expr (lift-meta-content* ctx expr)
          t (tag expr)
          findings (:findings ctx)]
      (case t
@@ -61,8 +74,7 @@
        (cond
          ;; symbol
          (utils/symbol-token? expr)
-         (let [expr (meta/lift-meta-content ctx expr)
-               sym (:value expr)]
+         (let [sym (:value expr)]
            (when (not= '& sym)
              (let [ns (namespace sym)
                    valid? (or (not ns)
@@ -126,7 +138,7 @@
        (loop [[k v & rest-kvs] (:children expr)
               res {}]
          (if k
-           (let [k (meta/lift-meta-content2 ctx k)]
+           (let [k (lift-meta-content* ctx k)]
              (cond (:k k)
                    (do
                      (analyze-usages2 ctx k)
@@ -258,9 +270,6 @@
           :vector [{:children exprs}]
           :list exprs
           (recur rest-exprs))))))
-
-(defn ctx-with-linter-disabled [ctx linter]
-  (assoc-in ctx [:config :linters linter :level] :off))
 
 (defn analyze-defn [{:keys [:ns] :as ctx} expr]
   (let [ns-name (:name ns)
