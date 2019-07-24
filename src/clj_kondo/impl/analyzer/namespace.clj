@@ -56,7 +56,8 @@
                           {:reason ::unparsable-ns-form
                            :form form})))))
 
-(defn analyze-libspec [{:keys [:base-lang :lang :filename]} current-ns-name require-kw libspec-expr]
+(defn analyze-libspec [{:keys [:base-lang :lang
+                               :filename :findings]} current-ns-name require-kw libspec-expr]
   (if-let [s (symbol-from-token libspec-expr)]
     [{:type :require
       :ns (with-meta s
@@ -102,7 +103,12 @@
                              (map #(with-meta (sexpr %)
                                      (meta %))) (:children opt-expr))
                      (= :all opt)
-                     (assoc m :referred-all true)
+                     (do
+                       (findings/reg-finding! findings
+                                              (node->line filename opt-expr
+                                                          :warning :how-to-ns/refer-all
+                                                          "do not refer :all"))
+                       (assoc m :referred-all true))
                      :else m))
               :as (recur
                    (nnext children)

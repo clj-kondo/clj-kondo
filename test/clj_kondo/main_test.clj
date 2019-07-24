@@ -2086,6 +2086,16 @@
                   (lint! (io/file "corpus" "compojure")
                          {:linters {:unresolved-symbol {:level :error}}})))
 
+(deftest how-to-ns-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 31,
+      :level :warning,
+      :message "do not refer :all"})
+   (lint! "(ns foo (:require [bar :refer :all]))"
+          {:linters {:how-to-ns/refer-all {:level :warning}}})))
+
 ;;;; Scratch
 
 (comment

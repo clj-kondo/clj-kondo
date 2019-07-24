@@ -48,7 +48,8 @@
        :refer-alls {bar #{} baz #{baz-fn}}
        :referred-vars {renamed-fn {:ns baz, :name baz-fn}}}
      (analyze-ns-decl {:lang :clj
-                       :namespaces (atom {})}
+                       :namespaces (atom {})
+                       :findings (atom [])}
                       (parse-string "(ns foo (:require [bar :refer :all]
                                        [baz :refer :all :rename {baz-fn renamed-fn}]))")))))
 
