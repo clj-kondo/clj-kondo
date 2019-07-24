@@ -71,6 +71,7 @@
                                                 :col col
                                                 :base-lang (:base-lang ctx)
                                                 :lang (:lang ctx)
+                                                :top-ns (:top-ns ctx)
                                                 :filename (:filename ctx)
                                                 :unresolved-symbol-disabled?
                                                 (or syntax-quote?

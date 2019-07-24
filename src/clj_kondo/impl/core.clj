@@ -190,8 +190,7 @@
                   (select-keys [:row :col
                                 :macro :private :deprecated
                                 :fixed-arities :var-args-min-arity
-                                :name :ns :filename])
-                  (update :filename encode-filename)))
+                                :name :ns :top-ns])))
             vars))
 
 (defn namespaces->indexed [namespaces]

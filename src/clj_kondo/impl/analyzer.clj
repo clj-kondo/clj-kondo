@@ -262,7 +262,7 @@
 (defn ctx-with-linter-disabled [ctx linter]
   (assoc-in ctx [:config :linters linter :level] :off))
 
-(defn analyze-defn [{:keys [:ns :filename] :as ctx} expr]
+(defn analyze-defn [{:keys [:ns] :as ctx} expr]
   (let [ns-name (:name ns)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
@@ -313,9 +313,7 @@
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
-       (cond->
-           (assoc (meta name-node)
-                  :filename filename)
+       (cond-> (meta name-node)
          macro? (assoc :macro true)
          private? (assoc :private true)
          deprecated (assoc :deprecated deprecated)
@@ -861,7 +859,8 @@
         analyzed
         (case resolved-as-clojure-var-name
           ns
-          (when top-level? [(analyze-ns-decl ctx expr)])
+          (when top-level?
+            [(analyze-ns-decl ctx expr)])
           in-ns (if top-level? [(analyze-in-ns ctx expr)]
                     (analyze-children ctx (next children)))
           alias
@@ -957,10 +956,11 @@
                           :col col
                           :base-lang base-lang
                           :lang lang
+                          :filename (:filename ctx)
                           :expr expr
                           :callstack (:callstack ctx)
                           :config (:config ctx)
-                          :filename (:filename ctx)}
+                          :top-ns (:top-ns ctx)}
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
@@ -1112,7 +1112,7 @@
                           children)))))
 
 (defn analyze-expression*
-  [{:keys [:filename :base-lang :lang :results :ns
+  [{:keys [:filename :base-lang :lang :results :ns :top-ns
            :expression :config :global-config :findings :namespaces]}]
   (loop [ctx {:filename filename
               :base-lang base-lang
@@ -1126,7 +1126,8 @@
               :global-config global-config
               :findings findings
               :namespaces namespaces
-              :top-level? true}
+              :top-level? true
+              :top-ns top-ns}
          ns ns
          [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
          results results]
@@ -1135,17 +1136,22 @@
         (case (:type first-parsed)
           nil (recur ctx ns rest-parsed results)
           (:ns :in-ns)
-          (let [local-config (:config first-parsed)
+          (let [ns-name (:name first-parsed)
+                local-config (:config first-parsed)
                 global-config (:global-config ctx)
                 new-config (config/merge-config! global-config local-config)]
             (recur
-             (assoc ctx :config new-config)
+             (-> ctx
+                 (assoc :config new-config)
+                 (update :top-ns (fn [n]
+                                   (or n ns-name))))
              first-parsed
              rest-parsed
              (-> results
                  (assoc :ns first-parsed)
                  (update :used into (:used first-parsed))
                  (update :required into (:required first-parsed)))))
+          ;; TODO: are we still using this?
           :use
           (do
             (namespace/reg-usage! ctx ns-name (:ns first-parsed))
@@ -1161,6 +1167,7 @@
            ns
            rest-parsed
            (case (:type first-parsed)
+             ;; TODO: are we still using this?
              :call
              (let [results (update results :used conj (:resolved-ns first-parsed))]
                results)
@@ -1188,7 +1195,8 @@
                    :config config
                    :global-config config
                    :findings findings
-                   :namespaces namespaces}]
+                   :namespaces namespaces
+                   :top-ns nil}]
      (loop [ctx init-ctx
             [expression & rest-expressions] expressions
             results {:required (:required init-ns)

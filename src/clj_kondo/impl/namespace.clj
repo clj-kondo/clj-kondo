@@ -22,7 +22,7 @@
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
-  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level?]}
+  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns]}
     ns-sym var-sym expr metadata]
    (let [metadata (assoc metadata
                          :ns ns-sym
@@ -62,7 +62,7 @@
                         var-sym
                         (assoc
                          (merge metadata (select-keys prev-var [:row :col]))
-                         :filename filename))))))))
+                         :top-ns top-ns))))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}

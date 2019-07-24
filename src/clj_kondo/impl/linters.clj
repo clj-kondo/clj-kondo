@@ -181,7 +181,15 @@
                                                         :cljs 'cljs.core
                                                         :cljc 'clojure.core)])))))
                              unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
-                             different-file? (not= (encode-filename (:filename call)) (:filename called-fn))
+                             ;; we can determine if the call was made to another
+                             ;; file by looking at the base-lang (in case of
+                             ;; CLJS macro imports or the top-level namespace
+                             ;; name (in the case of CLJ in-ns)). Looking at the
+                             ;; filename proper isn't reliable since that may be
+                             ;; <stdin> in clj-kondo.
+                             different-file? (or
+                                              (not= (:base-lang call) base-lang)
+                                              (not= (:top-ns call) (:top-ns called-fn)))
                              row-called-fn (:row called-fn)
                              row-call (:row call)
                              valid-call? (or (not unresolved?)
