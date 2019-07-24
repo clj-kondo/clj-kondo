@@ -833,11 +833,14 @@
          resolved-name :name
          unresolved? :unresolved?
          clojure-excluded? :clojure-excluded?
-         :keys [:refer-alls]
+         ;; :keys [:refer-alls]
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name _lint-as?]
-        (or (when-let [[ns n] (config/lint-as config [resolved-namespace resolved-name])]
+        (or (when-let
+                [[ns n]
+                 (config/lint-as config
+                                 [resolved-namespace resolved-name])]
               [ns n true])
             [resolved-namespace resolved-name false])
         fq-sym (when (and resolved-namespace
@@ -923,13 +926,9 @@
             (analyze-schema-defn ctx expr)
             ([clojure.test deftest]
              [cljs.test deftest]
-             [:clj-kondo/unknown-namespace deftest])
-            (if (or (not unknown-ns?)
-                    (contains? refer-alls 'clojure.test)
-                    (contains? refer-alls 'cljs.test))
-              (do (lint-inline-def! ctx expr)
-                  (analyze-deftest ctx resolved-namespace expr))
-              (analyze-children ctx (rest children)))
+             #_[:clj-kondo/unknown-namespace deftest])
+            (do (lint-inline-def! ctx expr)
+                (analyze-deftest ctx resolved-namespace expr))
             ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
             (spec/analyze-fdef (assoc ctx
                                       :analyze-children

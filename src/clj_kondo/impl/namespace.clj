@@ -194,11 +194,14 @@
                   :clj 'clojure.core
                   :cljs 'cljs.core)
             :name name-sym}
-           {:ns :clj-kondo/unknown-namespace
-            :name name-sym
-            :unresolved? true
-            :clojure-excluded? clojure-excluded?
-            :refer-alls (set (keys (:refer-alls ns)))}))))))
+           (let [referred-all-ns (some (fn [[k v]]
+                                         (when-not (contains? v name-sym)
+                                           k))
+                                       (:refer-alls ns))]
+             {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+              :name name-sym
+              :unresolved? true
+              :clojure-excluded? clojure-excluded?})))))))
 
 ;;;; Scratch
 

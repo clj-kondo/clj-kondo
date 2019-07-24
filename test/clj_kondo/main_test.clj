@@ -2061,6 +2061,27 @@
                               (:require [cljs.core :as core])) core/conj"
                      "--lang" "cljs"))))
 
+(deftest refer-all-test
+  (assert-submaps '({:file "corpus/compojure/consumer.clj",
+                     :row 6,
+                     :col 1,
+                     :level :error,
+                     :message
+                     "compojure.compojure/defroutes is called with 0 args but expects 1 or more"}
+                    {:file "corpus/compojure/consumer.clj",
+                     :row 7,
+                     :col 1,
+                     :level :error,
+                     :message
+                     "compojure.compojure/GET is called with 0 args but expects 2 or more"}
+                    {:file "corpus/compojure/consumer.clj",
+                     :row 8,
+                     :col 1,
+                     :level :error,
+                     :message
+                     "compojure.compojure/POST is called with 0 args but expects 2 or more"})
+                  (lint! (io/file "corpus" "compojure"))))
+
 ;;;; Scratch
 
 (comment
