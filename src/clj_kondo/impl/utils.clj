@@ -197,18 +197,6 @@
 (defn kw->sym [^clojure.lang.Keyword k]
   (.sym k))
 
-(def encoder (java.util.Base64/getEncoder))
-(def decoder (java.util.Base64/getDecoder))
-
-(defn encode-filename*
-  [^String filename]
-  (->> filename
-       .getBytes
-       (.encodeToString ^java.util.Base64$Encoder encoder)
-       keyword))
-
-(def encode-filename (memoize encode-filename*))
-
 ;;;; Scratch
 
 (comment

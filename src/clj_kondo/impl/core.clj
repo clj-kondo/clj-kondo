@@ -4,7 +4,7 @@
   (:require
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
-   [clj-kondo.impl.utils :refer [one-of print-err! encode-filename]]
+   [clj-kondo.impl.utils :refer [one-of print-err!]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str])

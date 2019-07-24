@@ -501,12 +501,12 @@
 (deftest refer-all-rename-test
   (testing ":require with :refer :all and :rename"
     (assert-submaps '({:file "corpus/refer_all.clj",
-                       :row 10,
+                       :row 15,
                        :col 1,
                        :level :error,
                        :message "funs/foo is called with 0 args but expects 1"}
                       {:file "corpus/refer_all.clj",
-                       :row 11,
+                       :row 16,
                        :col 1,
                        :level :error,
                        :message "funs/bar is called with 0 args but expects 1"})

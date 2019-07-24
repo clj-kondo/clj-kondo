@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.linters
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [node->line constant? sexpr encode-filename]]
+   [clj-kondo.impl.utils :refer [node->line constant? sexpr]]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -165,10 +165,7 @@
                              fn-ns (:resolved-ns call)
                              called-fn
                              (or (resolve-call idacs call fn-ns fn-name)
-                                 ;; we resolved this call against the
-                                 ;; same namespace, because it was
-                                 ;; unqualified
-                                 (when (= fn-ns :clj-kondo/unknown-namespace)
+                                 (when unresolved?
                                    (some #(resolve-call idacs call % fn-name)
                                          (into (vec
                                                 (keep (fn [[ns excluded]]
