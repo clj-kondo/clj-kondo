@@ -22,7 +22,7 @@
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
-  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level?]}
+  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns]}
     ns-sym var-sym expr metadata]
    (let [metadata (assoc metadata
                          :ns ns-sym
@@ -30,14 +30,16 @@
          path [base-lang lang ns-sym]]
      (swap! namespaces update-in path
             (fn [ns]
-              ;; declare is idempotent
-              (when (and top-level? (not (:declared metadata)))
-                (let [vars (:vars ns)]
+              (let [vars (:vars ns)
+                    prev-var (get vars var-sym)
+                    prev-declared? (:declared prev-var)]
+                ;; declare is idempotent
+                (when (and top-level? (not (:declared metadata)))
                   (when-let [redefined-ns
-                             (or (when-let [meta-v (get vars var-sym)]
+                             (or (when-let [meta-v prev-var]
                                    (when-not (or
                                               (:temp meta-v)
-                                              (:declared meta-v))
+                                              prev-declared?)
                                      ns-sym))
                                  (when-let [qv (get (:referred-vars ns) var-sym)]
                                    (:ns qv))
@@ -55,15 +57,23 @@
                                  :redefined-var
                                  (if (= ns-sym redefined-ns)
                                    (str "redefined var #'" redefined-ns "/" var-sym)
-                                   (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))))
-              (update ns :vars assoc
-                      var-sym
-                      metadata))))))
+                                   (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
+                (update ns :vars assoc
+                        var-sym
+                        (assoc
+                         (merge metadata (select-keys prev-var [:row :col]))
+                         :top-ns top-ns))))))))
 
 (defn reg-var-usage!
-  [{:keys [:base-lang :lang :namespaces]}
+  [{:keys [:base-lang :lang :namespaces] :as ctx}
    ns-sym usage]
-  (let [path [base-lang lang ns-sym]]
+  (let [path [base-lang lang ns-sym]
+        usage (assoc usage
+                     :invalid-arity-disabled? (linter-disabled? ctx :invalid-arity)
+                     :unresolved-symbol-disabled?
+                     ;; TODO: can we do this via the ctx only?
+                     (or (:unresolved-symbol-disabled? usage)
+                         (linter-disabled? ctx :unresolved-symbol)))]
     (swap! namespaces update-in path
            (fn [ns]
              (update ns :used-vars conj
@@ -107,10 +117,12 @@
          (Character/isUpperCase ^char (first (last splits))))))
 
 (defn reg-unresolved-symbol!
-  [{:keys [:base-lang :lang :namespaces :filename] :as ctx}
-   ns-sym symbol loc]
-  (when-not (or (linter-disabled? ctx :unresolved-symbol)
-                (config/unresolved-symbol-excluded ctx symbol)
+  [{:keys [:namespaces] :as _ctx}
+   ns-sym symbol {:keys [:base-lang :lang :config
+                         :callstack] :as sym-info}]
+  (when-not (or (:unresolved-symbol-disabled? sym-info)
+                (config/unresolved-symbol-excluded config
+                                                   callstack symbol)
                 (let [symbol-name (name symbol)]
                   (or (str/starts-with? symbol-name
                                         ".")
@@ -118,12 +130,10 @@
                                       ".")
                       (java-class? symbol-name))))
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
-           (fn [old-loc]
-             (if (nil? old-loc)
-               (assoc loc
-                      :filename filename
-                      :name symbol)
-               old-loc))))
+           (fn [old-sym-info]
+             (if (nil? old-sym-info)
+               sym-info
+               old-sym-info))))
   nil)
 
 (defn reg-used-referred-var!
@@ -151,18 +161,18 @@
                              ;; referring to the namespace we're in
                              (when (= (:name ns) ns-sym)
                                ns-sym))]
-             {:ns ns*
-              :name (symbol (name name-sym))}
-             (when (= :clj lang)
-               (when-let [ns* (or (get var-info/default-import->qname ns-sym)
-                                  (get var-info/default-fq-imports ns-sym)
-                                  (get (:java-imports ns) ns-sym))]
-                 {:java-interop? true
-                  :ns ns*
-                  :name (symbol (name name-sym))})))))
+              {:ns ns*
+               :name (symbol (name name-sym))}
+              (when (= :clj lang)
+                (when-let [ns* (or (get var-info/default-import->qname ns-sym)
+                                   (get var-info/default-fq-imports ns-sym)
+                                   (get (:java-imports ns) ns-sym))]
+                  {:java-interop? true
+                   :ns ns*
+                   :name (symbol (name name-sym))})))))
       (or
        (when-let [[k v] (find (:referred-vars ns)
-                                name-sym)]
+                              name-sym)]
          (reg-used-referred-var! ctx ns-name k)
          v)
        (when (contains? (:vars ns) name-sym)
@@ -176,7 +186,6 @@
           :name name-sym})
        (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                           name-sym)
-             namespace (:name ns)
              core-sym? (when-not clojure-excluded?
                          (var-info/core-sym? lang name-sym))
              special-form? (contains? var-info/special-forms name-sym)]
@@ -185,10 +194,14 @@
                   :clj 'clojure.core
                   :cljs 'cljs.core)
             :name name-sym}
-           {:ns namespace
-            :name name-sym
-            :unqualified? true
-            :clojure-excluded? clojure-excluded?}))))))
+           (let [referred-all-ns (some (fn [[k v]]
+                                         (when-not (contains? v name-sym)
+                                           k))
+                                       (:refer-alls ns))]
+             {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+              :name name-sym
+              :unresolved? true
+              :clojure-excluded? clojure-excluded?})))))))
 
 ;;;; Scratch
 

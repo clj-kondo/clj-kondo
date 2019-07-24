@@ -54,7 +54,8 @@
                                    ;; or in these definitions:
                                    :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}
               :unused-referred-var {:level :warning}
-              :duplicate-require {:level :warning}}
+              :duplicate-require {:level :warning}
+              :how-to-ns/refer-all {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -151,10 +152,8 @@
                                                          identity))))
                      {} calls)}))
         delayed-cfg (memoize delayed-cfg)]
-    (fn [ctx sym]
-      (let [config (:config ctx)
-            callstack (:callstack ctx)
-            {:keys [:excluded :excluded-in]} (delayed-cfg config)]
+    (fn [config callstack sym]
+      (let [{:keys [:excluded :excluded-in]} (delayed-cfg config)]
         (or (contains? excluded sym)
             (some #(when-let [check-fn (get excluded-in %)]
                      (check-fn sym))

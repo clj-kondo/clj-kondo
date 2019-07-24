@@ -55,6 +55,11 @@
           (println line))))
     (str/split-lines msg))))
 
+(def base-config
+  '{:linters {:unused-binding {:level :off}
+              :unresolved-symbol {:level :off}
+              :how-to-ns/refer-all {:level :off}}})
+
 (defn lint-jvm!
   ([input]
    (lint-jvm! input "--lang" "clj"))
@@ -64,8 +69,6 @@
            (if (map? m)
              [m (rest args)]
              [nil args]))
-         base-config '{:linters {:unused-binding {:level :off}
-                                 :unresolved-symbol {:level :off}}}
          config (str (deep-merge base-config config))
          res (with-out-str
                (try
@@ -89,8 +92,6 @@
            (if (map? m)
              [m (rest args)]
              [nil args]))
-         base-config '{:linters {:unused-binding {:level :off}
-                                 :unresolved-symbol {:level :off}}}
          config (str (deep-merge base-config config))
          res (let-programs [clj-kondo "./clj-kondo"]
                (binding [sh/*throw* false]

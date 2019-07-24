@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.analyzer.namespace
   {:no-doc true}
+  (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
@@ -55,7 +56,8 @@
                           {:reason ::unparsable-ns-form
                            :form form})))))
 
-(defn analyze-libspec [{:keys [:base-lang :lang :filename]} current-ns-name require-kw libspec-expr]
+(defn analyze-libspec [{:keys [:base-lang :lang
+                               :filename :findings]} current-ns-name require-kw libspec-expr]
   (if-let [s (symbol-from-token libspec-expr)]
     [{:type :require
       :ns (with-meta s
@@ -101,7 +103,12 @@
                              (map #(with-meta (sexpr %)
                                      (meta %))) (:children opt-expr))
                      (= :all opt)
-                     (assoc m :referred-all true)
+                     (do
+                       (findings/reg-finding! findings
+                                              (node->line filename opt-expr
+                                                          :warning :how-to-ns/refer-all
+                                                          "do not refer :all"))
+                       (assoc m :referred-all true))
                      :else m))
               :as (recur
                    (nnext children)
@@ -194,24 +201,35 @@
 
 (defn analyze-ns-decl
   [{:keys [:base-lang :lang :findings :filename] :as ctx} expr]
-  (let [children (:children expr)
-        ns-name-expr (second children)
-        ns-name (meta/lift-meta-content2 ctx ns-name-expr)
-        metadata (meta ns-name)
-        local-config (-> metadata :clj-kondo/config second)
+  (let [children (next (:children expr))
+        ns-name-expr (first children)
+        ns-name-expr  (meta/lift-meta-content2 ctx ns-name-expr)
+        metadata (meta ns-name-expr)
+        children (next children) ;; first = docstring, attr-map or libspecs
+        meta-node (when-let [fc (first children)]
+                    (let [t (tag fc)]
+                      (if (= :map t)
+                        fc
+                        (when-let [sc (second children)]
+                          (when (= :map (tag sc))
+                            sc)))))
+        ns-meta (if meta-node
+                  (merge metadata
+                         (sexpr meta-node))
+                  metadata)
+        local-config (-> ns-meta :clj-kondo/config second)
         ns-name (or
-                 (let [name-expr (second children)]
-                   (when-let [?name (sexpr name-expr)]
-                     (if (symbol? ?name) ?name
-                         (findings/reg-finding!
-                          findings
-                          (node->line (:filename ctx)
-                                      name-expr
-                                      :error
-                                      :syntax
-                                      "namespace name expected")))))
+                 (when-let [?name (sexpr ns-name-expr)]
+                   (if (symbol? ?name) ?name
+                       (findings/reg-finding!
+                        findings
+                        (node->line (:filename ctx)
+                                    ns-name-expr
+                                    :error
+                                    :syntax
+                                    "namespace name expected"))))
                  'user)
-        clauses (nnext children)
+        clauses children
         kw+libspecs (for [?require-clause clauses
                           :let [require-kw
                                 (some-> ?require-clause :children first :k

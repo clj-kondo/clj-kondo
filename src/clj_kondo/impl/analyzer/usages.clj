@@ -15,7 +15,7 @@
       (let [symbol-val (kw->sym keyword-val)
             {resolved-ns :ns
              _resolved-name :name
-             _unqualified? :unqualified? :as _m}
+             _unresolved? :unresolved? :as _m}
             (namespace/resolve-name ctx ns-name symbol-val)]
         (when resolved-ns
           (namespace/reg-usage! ctx
@@ -50,33 +50,36 @@
                                                 b)
                    (let [{resolved-ns :ns
                           resolved-name :name
-                          unqualified? :unqualified? :as _m}
+                          unresolved? :unresolved?
+                          clojure-excluded? :clojure-excluded?
+                          :as _m}
                          (namespace/resolve-name ctx ns-name symbol-val)
                          m (meta expr)
                          {:keys [:row :col]} m]
-                     (when (and unqualified? (not syntax-quote?)
-                                ;; prevent namespace from being reported as
-                                ;; unresolved symbol
-                                (not
-                                 (when simple-symbol?
-                                   (get (:qualify-ns ns) symbol-val))))
-                       (namespace/reg-unresolved-symbol! ctx ns-name symbol-val m))
                      (when resolved-ns
                        (namespace/reg-usage! ctx
                                              ns-name
-                                             resolved-ns)
-                       (namespace/reg-var-usage! ctx ns-name
-                                                 {:type :use
-                                                  :name resolved-name
-                                                  :resolved-ns resolved-ns
-                                                  :ns ns-name
-                                                  :unqualified? unqualified?
-                                                  :row row
-                                                  :col col
-                                                  :base-lang (:base-lang ctx)
-                                                  :lang (:lang ctx)
-                                                  :filename (:filename ctx)
-                                                  :private-access? (:private-access? ctx)})))))
+                                             resolved-ns))
+                     (namespace/reg-var-usage! ctx ns-name
+                                               {:type :use
+                                                :name resolved-name
+                                                :resolved-ns resolved-ns
+                                                :ns ns-name
+                                                :unresolved? unresolved?
+                                                :clojure-excluded? clojure-excluded?
+                                                :row row
+                                                :col col
+                                                :base-lang (:base-lang ctx)
+                                                :lang (:lang ctx)
+                                                :top-ns (:top-ns ctx)
+                                                :filename (:filename ctx)
+                                                :unresolved-symbol-disabled?
+                                                (or syntax-quote?
+                                                    (when simple-symbol?
+                                                      (get (:qualify-ns ns) symbol-val)))
+                                                :private-access? (:private-access? ctx)
+                                                :callstack (:callstack ctx)
+                                                :config (:config ctx)}))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              ;; catch-call

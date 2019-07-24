@@ -102,17 +102,16 @@
 (defn resolve-call [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
-        caller-ns (:ns call)
-        ;; this call was unqualified and inferred as a function in the same namespace until now
-        unqualified? (:unqualified? call)
-        same-ns? (= caller-ns fn-ns)]
+        unresolved? (:unresolved? call)
+        unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
+        fn-ns (if unknown-ns? (:ns call) fn-ns)]
     (case [base-lang call-lang]
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
       [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
                         ;; when calling a function in the same ns, it must be in another file
                         ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
-                        (when (or (not (and same-ns? unqualified?)))
+                        (when (not (and unknown-ns? unresolved?))
                           (or
                            ;; cljs func in another cljc file
                            (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
@@ -156,7 +155,9 @@
         findings (for [ns (namespace/list-namespaces ctx)
                        :let [base-lang (:base-lang ns)]
                        call (:used-vars ns)
-                       :let [fn-name (:name call)
+                       :let [call? (= :call (:type call))
+                             unresolved? (:unresolved? call)
+                             fn-name (:name call)
                              caller-ns-sym (:ns call)
                              call-lang (:lang call)
                              caller-ns (get-in @(:namespaces ctx)
@@ -164,10 +165,7 @@
                              fn-ns (:resolved-ns call)
                              called-fn
                              (or (resolve-call idacs call fn-ns fn-name)
-                                 ;; we resolved this call against the
-                                 ;; same namespace, because it was
-                                 ;; unqualified
-                                 (when (= caller-ns-sym fn-ns)
+                                 (when unresolved?
                                    (some #(resolve-call idacs call % fn-name)
                                          (into (vec
                                                 (keep (fn [[ns excluded]]
@@ -175,36 +173,45 @@
                                                           ns))
                                                       (:refer-alls caller-ns)))
                                                (when (not (:clojure-excluded? call))
-                                                 [(case base-lang
-                                                    :clj 'clojure.core
-                                                    :cljs 'cljs.core
-                                                    :cljc 'clojure.core)])))))
-                             fn-ns (:ns called-fn)]
-                       :when called-fn
-                       :let [;; a macro in a CLJC file with the same namespace
-                             ;; in that case, looking at the row and column is
-                             ;; not reliable.  we may look at the lang of the
-                             ;; call and the lang of the function def context in
-                             ;; the case of in-ns, the bets are off. we may
-                             ;; support in-ns in a next version.
-                             valid-order? (if (and (= caller-ns-sym
-                                                      fn-ns)
-                                                   (= (:base-lang call)
-                                                      (:base-lang called-fn))
-                                                   ;; some built-ins may not have a row and col number
-                                                   (:row called-fn))
-                                            (or (> (:row call) (:row called-fn))
-                                                (and (= (:row call) (:row called-fn))
-                                                     (> (:col call) (:col called-fn))))
-                                            true)]
-                       :when valid-order?
-                       :let [arity (:arity call)
+                                                 [(case call-lang #_base-lang
+                                                        :clj 'clojure.core
+                                                        :cljs 'cljs.core
+                                                        :cljc 'clojure.core)])))))
+                             unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
+                             ;; we can determine if the call was made to another
+                             ;; file by looking at the base-lang (in case of
+                             ;; CLJS macro imports or the top-level namespace
+                             ;; name (in the case of CLJ in-ns)). Looking at the
+                             ;; filename proper isn't reliable since that may be
+                             ;; <stdin> in clj-kondo.
+                             different-file? (or
+                                              (not= (:base-lang call) base-lang)
+                                              (not= (:top-ns call) (:top-ns called-fn)))
+                             row-called-fn (:row called-fn)
+                             row-call (:row call)
+                             valid-call? (or (not unresolved?)
+                                             (when called-fn
+                                               (or different-file?
+                                                   (not row-called-fn)
+                                                   (or (> row-call row-called-fn)
+                                                       (and (= row-call row-called-fn)
+                                                            (> (:col call) (:col called-fn)))))))
+                             _ (when (and (not valid-call?)
+                                          (not unresolved-symbol-disabled?))
+                                 (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
+                                                                   (if call?
+                                                                     (merge call (meta fn-name))
+                                                                     call)))]
+                       :when valid-call?
+                       :let [fn-ns (:ns called-fn)
+                             arity (:arity call)
                              filename (:filename call)
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
                              errors
                              [(when (and
-                                     (:lint-invalid-arity? call)
+                                     (= :call (:type call))
+                                     (not (:invalid-arity-disabled? call))
                                      (or (not-empty fixed-arities)
                                          var-args-min-arity)
                                      (not (or (contains? fixed-arities arity)
@@ -270,21 +277,20 @@
                 used-referred-vars (:used-referred-vars ns)
                 filename (:filename ns)]]
     (doseq [ns-sym unused]
-      :when (not (config/unused-namespace-excluded config ns-sym))
-      (let [{:keys [:row :col :filename]} (meta ns-sym)]
-        (findings/reg-finding!
-         findings
-         {:level :warning
-          :type :unused-namespace
-          :filename filename
-          :message (format "namespace %s is required but never used" ns-sym)
-          :row row
-          :col col})))
+      (when-not (config/unused-namespace-excluded config ns-sym)
+        (let [{:keys [:row :col :filename]} (meta ns-sym)]
+          (findings/reg-finding!
+           findings
+           {:level :warning
+            :type :unused-namespace
+            :filename filename
+            :message (format "namespace %s is required but never used" ns-sym)
+            :row row
+            :col col}))))
     (doseq [[k v] referred-vars
             :let [{:keys [:row :col]} (meta k)]]
       (when-not
-          (or (contains? used-referred-vars k)
-              (contains? unused (:ns v)))
+          (contains? used-referred-vars k)
         (findings/reg-finding!
          findings
          {:level :warning

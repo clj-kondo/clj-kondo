@@ -178,19 +178,16 @@
   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
 
 (deftest cljc-test
-  (let [linted (lint! (io/file "corpus" "cljc"))
-        row-col-files (sort-by (juxt :file :row :col)
-                               (map #(select-keys % [:file :row :col])
-                                    linted))]
-    (is (= '({:file "corpus/cljc/datascript.cljc", :row 8, :col 1}
-             {:file "corpus/cljc/test_cljc.cljc", :row 13, :col 9}
-             {:file "corpus/cljc/test_cljc.cljc", :row 14, :col 10}
-             {:file "corpus/cljc/test_cljc.cljc", :row 21, :col 1}
-             {:file "corpus/cljc/test_cljc.cljs", :row 5, :col 1}
-             {:file "corpus/cljc/test_cljc_from_clj.clj", :row 5, :col 1}
-             {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
-             {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
-           row-col-files)))
+  (assert-submaps
+   '({:file "corpus/cljc/datascript.cljc", :row 8, :col 1}
+     {:file "corpus/cljc/test_cljc.cljc", :row 13, :col 9}
+     {:file "corpus/cljc/test_cljc.cljc", :row 14, :col 10}
+     {:file "corpus/cljc/test_cljc.cljc", :row 21, :col 1}
+     {:file "corpus/cljc/test_cljc.cljs", :row 5, :col 1}
+     {:file "corpus/cljc/test_cljc_from_clj.clj", :row 5, :col 1}
+     {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
+     {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
+   (lint! (io/file "corpus" "cljc")))
   (assert-submaps '({:file "corpus/spec/alpha.cljs",
                      :row 6,
                      :col 1,
@@ -504,12 +501,12 @@
 (deftest refer-all-rename-test
   (testing ":require with :refer :all and :rename"
     (assert-submaps '({:file "corpus/refer_all.clj",
-                       :row 10,
+                       :row 15,
                        :col 1,
                        :level :error,
                        :message "funs/foo is called with 0 args but expects 1"}
                       {:file "corpus/refer_all.clj",
-                       :row 11,
+                       :row 16,
                        :col 1,
                        :level :error,
                        :message "funs/bar is called with 0 args but expects 1"})
@@ -1054,7 +1051,8 @@
       :col 20,
       :level :warning,
       :message "namespace clojure.core.async is required but never used"})
-   (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))"))
+   (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))"
+          "--config" "^:replace {:linters {:unused-namespace {:level :warning}}}"))
   (assert-submaps
    '({:file "<stdin>",
       :row 2,
@@ -1100,7 +1098,8 @@
       :col 12,
       :level :warning,
       :message "namespace clojure.set is required but never used"})
-   (lint! "(require '[clojure.set :refer [join]])"))
+   (lint! "(require '[clojure.set :refer [join]])"
+          "--config" "^:replace {:linters {:unused-namespace {:level :warning}}}"))
   (is (empty?
        (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
          ,(ns bar)
@@ -1182,6 +1181,11 @@
                      :col 20,
                      :level :warning,
                      :message "namespace bar is required but never used"}
+                    {:file "<stdin>",
+                     :row 1,
+                     :col 32,
+                     :level :warning,
+                     :message "#'bar/x is referred but never used"}
                     {:file "<stdin>",
                      :row 1,
                      :col 38,
@@ -1323,7 +1327,7 @@
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
 
-(deftest redefined-test-test
+(deftest clojure-test-test
   (assert-submaps
    '({:file "corpus/redefined_deftest.clj",
       :row 4,
@@ -1340,7 +1344,10 @@
       :col 1,
       :level :error,
       :message "redefined-deftest/foo is called with 1 arg but expects 0"})
-   (lint! (io/file "corpus" "redefined_deftest.clj"))))
+   (lint! (io/file "corpus" "redefined_deftest.clj")))
+  (is (empty?
+       (lint! "(ns foo (:require [clojure.test :refer :all])) (deftest foo (is (empty? #{})))"
+              {:linters {:unresolved-symbol {:level :info}}}))))
 
 (deftest unused-binding-test
   (assert-submaps
@@ -1746,7 +1753,17 @@
                      :row 18,
                      :col 1,
                      :level :error,
-                     :message "clojure.set/join is called with 0 args but expects 2 or 3"})
+                     :message "clojure.set/join is called with 0 args but expects 2 or 3"}
+                    {:file "corpus/unresolved_symbol.clj",
+                     :row 21,
+                     :col 2,
+                     :level :error,
+                     :message "unresolved symbol foo"}
+                    {:file "corpus/unresolved_symbol.clj",
+                     :row 25,
+                     :col 1,
+                     :level :error,
+                     :message "unresolved-symbol2/bar is called with 1 arg but expects 0"})
                   (lint! (io/file "corpus" "unresolved_symbol.clj")
                          '{:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
@@ -1757,6 +1774,18 @@
       :message "unresolved symbol x"})
    (lint! "x"
           '{:linters {:unresolved-symbol {:level :error}}}))
+  (testing "slurp is unresolved in the cljs part of cljc"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message "unresolved symbol slurp"})
+     (lint! "slurp"
+            '{:linters {:unresolved-symbol {:level :error}}}
+            "--lang" "cljc")))
+  (is (empty? (lint! "slurp"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defmulti foo (fn [_])) (defmethod foo :dude [_]) (foo 1)"
@@ -1840,6 +1869,9 @@
   ;; although this isn't correct at run-time, preventing a namespace or class
   ;; symbol from being reported as unresolved is generally better
   (is (empty? (lint! "(ns foo (:require [clojure.core])) clojure.core"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :refer :all]))
+                      join starts-with? ends-with?"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest misc-false-positives-test
@@ -2028,6 +2060,41 @@
   (is (empty? (lint! "(ns foo (:require-macros [cljs.core :as core])
                               (:require [cljs.core :as core])) core/conj"
                      "--lang" "cljs"))))
+
+(deftest refer-all-test
+  (assert-submaps '({:file "corpus/compojure/consumer.clj",
+                     :row 9,
+                     :col 1,
+                     :level :error,
+                     :message
+                     "compojure.core/defroutes is called with 0 args but expects 1 or more"}
+                    {:file "corpus/compojure/consumer.clj",
+                     :row 10,
+                     :col 1,
+                     :level :error,
+                     :message "compojure.core/GET is called with 0 args but expects 2 or more"}
+                    {:file "corpus/compojure/consumer.clj",
+                     :row 11,
+                     :col 1,
+                     :level :error,
+                     :message "compojure.core/POST is called with 0 args but expects 2 or more"}
+                    {:file "corpus/compojure/consumer.clj",
+                     :row 17,
+                     :col 8,
+                     :level :error,
+                     :message "unresolved symbol x"})
+                  (lint! (io/file "corpus" "compojure")
+                         {:linters {:unresolved-symbol {:level :error}}})))
+
+(deftest how-to-ns-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 31,
+      :level :warning,
+      :message "do not refer :all"})
+   (lint! "(ns foo (:require [bar :refer :all]))"
+          {:linters {:how-to-ns/refer-all {:level :warning}}})))
 
 ;;;; Scratch
 

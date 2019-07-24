@@ -182,7 +182,7 @@
 (defn map-vals
     "Maps a function over the values of an associative collection. From medley."
     [f coll]
-    (reduce-map (fn [xf] (fn [m k v] (xf m k (f v)))) coll))
+  (reduce-map (fn [xf] (fn [m k v] (xf m k (f v)))) coll))
 
 (defn format-vars [vars]
   (map-vals (fn [meta]
@@ -190,7 +190,7 @@
                   (select-keys [:row :col
                                 :macro :private :deprecated
                                 :fixed-arities :var-args-min-arity
-                                :name :ns])))
+                                :name :ns :top-ns])))
             vars))
 
 (defn namespaces->indexed [namespaces]

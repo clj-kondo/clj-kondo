@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.analyzer
   {:no-doc true}
+  (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
@@ -651,7 +652,8 @@
       (namespace/reg-var! ctx ns-name
                           (->> var-name-node (meta/lift-meta-content2 ctx) :value)
                           expr
-                          {:declared true}))))
+                          (assoc (meta expr)
+                                 :declared true)))))
 
 (defn analyze-def [ctx expr]
   (let [var-name-node (->> expr :children second (meta/lift-meta-content2 ctx))
@@ -758,15 +760,9 @@
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
         [method-name-node dispatch-val-node & body-exprs] children
-        method-name (:value method-name-node)
-        ns-name (-> ctx :ns :name)
-        m (resolve-name ctx ns-name method-name)
+        _ (analyze-usages2 ctx method-name-node)
         bodies (fn-bodies ctx body-exprs)
         analyzed-bodies (map #(analyze-fn-body ctx %) bodies)]
-    (when-let [used-ns (:ns m)]
-      (namespace/reg-usage! ctx ns-name used-ns))
-    (when (:unqualified? m)
-      (namespace/reg-unresolved-symbol! ctx ns-name method-name (meta method-name-node)))
     (concat (analyze-expression** ctx dispatch-val-node)
             (mapcat :parsed analyzed-bodies))))
 
@@ -835,21 +831,29 @@
         children (:children expr)
         {resolved-namespace :ns
          resolved-name :name
-         unqualified? :unqualified?
-         clojure-excluded? :clojure-excluded?}
+         unresolved? :unresolved?
+         clojure-excluded? :clojure-excluded?
+         ;; :keys [:refer-alls]
+         :as _m}
         (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name _lint-as?]
-        (or (when-let [[ns n] (config/lint-as config [resolved-namespace resolved-name])]
+        (or (when-let
+                [[ns n]
+                 (config/lint-as config
+                                 [resolved-namespace resolved-name])]
               [ns n true])
             [resolved-namespace resolved-name false])
         fq-sym (when (and resolved-namespace
                           resolved-name)
                  (symbol (str resolved-namespace)
                          (str resolved-name)))
+        unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
+        resolved-namespace* (if unknown-ns?
+                              ns-name resolved-namespace)
         ctx (if fq-sym
               (update ctx :callstack
                       (fn [cs]
-                        (cons (with-meta [resolved-namespace resolved-name]
+                        (cons (with-meta [resolved-namespace* resolved-name]
                                 (meta expr)) cs)))
               ctx)
         resolved-as-clojure-var-name
@@ -858,7 +862,8 @@
         analyzed
         (case resolved-as-clojure-var-name
           ns
-          (when top-level? [(analyze-ns-decl ctx expr)])
+          (when top-level?
+            [(analyze-ns-decl ctx expr)])
           in-ns (if top-level? [(analyze-in-ns ctx expr)]
                     (analyze-children ctx (next children)))
           alias
@@ -919,10 +924,11 @@
           (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]
             (analyze-schema-defn ctx expr)
-            ([clojure.test deftest] [cljs.test deftest])
-            (do
-              (lint-inline-def! ctx expr)
-              (analyze-deftest ctx resolved-namespace expr))
+            ([clojure.test deftest]
+             [cljs.test deftest]
+             #_[:clj-kondo/unknown-namespace deftest])
+            (do (lint-inline-def! ctx expr)
+                (analyze-deftest ctx resolved-namespace expr))
             ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
             (spec/analyze-fdef (assoc ctx
                                       :analyze-children
@@ -933,31 +939,30 @@
                                 [resolved-namespace resolved-name])
                              (assoc-in [:recur-arity :fixed-arity] 0))]
               (analyze-children next-ctx (rest children)))))]
-    (when unqualified?
-      (namespace/reg-unresolved-symbol! ctx ns-name full-fn-name
-                                        (meta (first children))))
     (if (= 'ns resolved-as-clojure-var-name)
       analyzed
-      (let [defined-in (:in-def ctx)
+      (let [in-def (:in-def ctx)
             call (cond-> {:type :call
                           :resolved-ns resolved-namespace
                           :ns ns-name
-                          :name (or resolved-name full-fn-name)
-                          :unqualified? unqualified?
+                          :name (with-meta
+                                  (or resolved-name full-fn-name)
+                                  (meta full-fn-name))
+                          :unresolved? unresolved?
                           :clojure-excluded? clojure-excluded?
                           :arity arg-count
                           :row row
                           :col col
                           :base-lang base-lang
                           :lang lang
+                          :filename (:filename ctx)
                           :expr expr
                           :callstack (:callstack ctx)
-                          :filename (:filename ctx)
-                          :lint-invalid-arity?
-                          (not (linter-disabled? ctx :invalid-arity))}
-                   defined-in (assoc :in-def defined-in))]
+                          :config (:config ctx)
+                          :top-ns (:top-ns ctx)}
+                   in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
-        (when-not unqualified?
+        (when-not unresolved?
           (namespace/reg-usage! ctx
                                 ns-name
                                 resolved-namespace))
@@ -1072,9 +1077,10 @@
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                       (analyze-children ctx children))
-                  (if-let [full-fn-name (when (utils/symbol-token? function) (:value function))]
-                    (let [unqualified? (nil? (namespace full-fn-name))
-                          binding-call? (and unqualified?
+                  (if-let [full-fn-name (utils/symbol-from-token function)]
+                    (let [full-fn-name (with-meta full-fn-name (meta function))
+                          unresolved? (nil? (namespace full-fn-name))
+                          binding-call? (and unresolved?
                                              (contains? bindings full-fn-name))]
                       (if binding-call?
                         (analyze-binding-call ctx full-fn-name expr)
@@ -1105,7 +1111,7 @@
                           children)))))
 
 (defn analyze-expression*
-  [{:keys [:filename :base-lang :lang :results :ns
+  [{:keys [:filename :base-lang :lang :results :ns :top-ns
            :expression :config :global-config :findings :namespaces]}]
   (loop [ctx {:filename filename
               :base-lang base-lang
@@ -1119,7 +1125,8 @@
               :global-config global-config
               :findings findings
               :namespaces namespaces
-              :top-level? true}
+              :top-level? true
+              :top-ns top-ns}
          ns ns
          [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
          results results]
@@ -1128,17 +1135,22 @@
         (case (:type first-parsed)
           nil (recur ctx ns rest-parsed results)
           (:ns :in-ns)
-          (let [local-config (:config first-parsed)
+          (let [ns-name (:name first-parsed)
+                local-config (:config first-parsed)
                 global-config (:global-config ctx)
                 new-config (config/merge-config! global-config local-config)]
             (recur
-             (assoc ctx :config new-config)
+             (-> ctx
+                 (assoc :config new-config)
+                 (update :top-ns (fn [n]
+                                   (or n ns-name))))
              first-parsed
              rest-parsed
              (-> results
                  (assoc :ns first-parsed)
                  (update :used into (:used first-parsed))
                  (update :required into (:required first-parsed)))))
+          ;; TODO: are we still using this?
           :use
           (do
             (namespace/reg-usage! ctx ns-name (:ns first-parsed))
@@ -1154,6 +1166,7 @@
            ns
            rest-parsed
            (case (:type first-parsed)
+             ;; TODO: are we still using this?
              :call
              (let [results (update results :used conj (:resolved-ns first-parsed))]
                results)
@@ -1181,7 +1194,8 @@
                    :config config
                    :global-config config
                    :findings findings
-                   :namespaces namespaces}]
+                   :namespaces namespaces
+                   :top-ns nil}]
      (loop [ctx init-ctx
             [expression & rest-expressions] expressions
             results {:required (:required init-ns)
