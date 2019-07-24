@@ -9,7 +9,7 @@ Clj-kondo can be configured in four ways, by providing:
 
 <img src="../screenshots/compojure-config.png">
 
-The namespace local and command line config override `config.edn`.
+Config takes precedence in the order of namespace, command line, `.clj-kondo/config.edn`.
 
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
