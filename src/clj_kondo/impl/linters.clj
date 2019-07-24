@@ -289,16 +289,18 @@
             :col col}))))
     (doseq [[k v] referred-vars
             :let [{:keys [:row :col]} (meta k)]]
-      (when-not
-          (contains? used-referred-vars k)
-        (findings/reg-finding!
-         findings
-         {:level :warning
-          :type :unused-referred-var
-          :filename filename
-          :message (str "#'" (:ns v) "/" (:name v) " is referred but never used")
-          :row row
-          :col col})))))
+      (let [ns (:ns v)]
+        (when-not
+            (or (contains? used-referred-vars k)
+                (config/unused-referred-var-excluded config ns k))
+          (findings/reg-finding!
+           findings
+           {:level :warning
+            :type :unused-referred-var
+            :filename filename
+            :message (str "#'" (:ns v) "/" (:name v) " is referred but never used")
+            :row row
+            :col col}))))))
 
 (defn lint-unused-bindings!
   [{:keys [:findings] :as ctx}]

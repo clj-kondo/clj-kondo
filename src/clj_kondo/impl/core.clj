@@ -4,7 +4,7 @@
   (:require
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
-   [clj-kondo.impl.utils :refer [one-of print-err!]]
+   [clj-kondo.impl.utils :refer [one-of print-err! map-vals]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str])
@@ -172,17 +172,6 @@
   "Merges maps no deeper than two levels"
   [a b]
   (merge-with merge a b))
-
-(defn- reduce-map
-  "From medley"
-  [f coll]
-  (let [coll' (if (record? coll) (into {} coll) coll)]
-    (persistent! (reduce-kv (f assoc!) (transient (empty coll')) coll'))))
-
-(defn map-vals
-    "Maps a function over the values of an associative collection. From medley."
-    [f coll]
-  (reduce-map (fn [xf] (fn [m k v] (xf m k (f v)))) coll))
 
 (defn format-vars [vars]
   (map-vals (fn [meta]

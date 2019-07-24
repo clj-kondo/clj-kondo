@@ -197,6 +197,19 @@
 (defn kw->sym [^clojure.lang.Keyword k]
   (.sym k))
 
+(defn- reduce-map
+  "From medley"
+  [f coll]
+  (when coll
+    (let [coll' (if (record? coll) (into {} coll) coll)
+          e (empty coll')]
+      (persistent! (reduce-kv (f assoc!) (transient e) coll')))))
+
+(defn map-vals
+  "Maps a function over the values of an associative collection. From medley."
+  [f coll]
+  (reduce-map (fn [xf] (fn [m k v] (xf m k (f v)))) coll))
+
 ;;;; Scratch
 
 (comment
