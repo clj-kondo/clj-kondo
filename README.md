@@ -46,8 +46,9 @@ before your REPL knows it.
 
 It suggests several style guide recommendations, such as:
 
-* use `:else` as the catch-all test expression in `cond` (see [style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond))
-* use `seq` instead of `(not (empty? ,,,))` (see [style guide](https://github.com/bbatsov/clojure-style-guide#nil-punning))
+* rules from Stuart Sierra's [how to ns](https://stuartsierra.com/2016/clojure-how-to-ns.html)
+* use `:else` as the catch-all test expression in `cond` (see [Clojure style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond))
+* use `seq` instead of `(not (empty? ,,,))` (see [Clojure style guide](https://github.com/bbatsov/clojure-style-guide#nil-punning))
 
 <img src="screenshots/wrong-arity.png" width="50%" align="right">
 
