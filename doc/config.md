@@ -1,12 +1,15 @@
 # Configuration
 
-Clj-kondo can be configured in three ways:
+Clj-kondo can be configured in four ways, by providing:
 
-- by placing a `config.edn` file in the `.clj-kondo` directory (see [project setup](../README.md#project-setup))
-- by providing a `--config` file argument from the command line
-- by providing a `--config` EDN argument from the command line (see examples below)
+- a `config.edn` file in the `.clj-kondo` directory (see [project setup](../README.md#project-setup))
+- a `--config` file argument from the command line
+- a `--config` EDN argument from the command line (see examples below)
+- a namespace local configuration as in this screenshot:
 
-The command line argument overrides a `config.edn`.
+<img src="../screenshots/compojure-config.png">
+
+The namespace local and command line config override `config.edn`.
 
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
