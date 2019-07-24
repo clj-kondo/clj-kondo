@@ -2039,6 +2039,14 @@
       :level :warning,
       :message "#'clojure.string/ends-with? is referred but never used"})
    (lint! (io/file "corpus" "unused_referred_var.clj")))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 20,
+      :level :warning,
+      :message "namespace bar is required but never used"})
+   (lint! "(ns foo (:require [bar :refer [bar]]))"
+          '{:linters {:unused-referred-var {:exclude {bar [bar]}}}}))
   (is (empty? (lint! "(ns foo (:require [bar :refer [bar]]))
         (apply bar 1 2 [3 4])"))))
 

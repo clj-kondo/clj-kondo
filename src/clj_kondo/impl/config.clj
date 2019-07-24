@@ -1,7 +1,8 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
-  (:require [clj-kondo.impl.profiler :as profiler]
-            [clj-kondo.impl.utils :refer [vconj deep-merge]]))
+  (:require
+   [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
@@ -53,7 +54,8 @@
                                   {:namespaces [foo.bar "bar\\.*"]
                                    ;; or in these definitions:
                                    :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}
-              :unused-referred-var {:level :warning}
+              :unused-referred-var {:level :warning
+                                    :exclude {taoensso.timbre [debug]}}
               :duplicate-require {:level :warning}
               :how-to-ns/refer-all {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
@@ -135,6 +137,16 @@
         (or (contains? syms ns-sym)
             (let [ns-str (str ns-sym)]
               (boolean (some #(re-find % ns-str) regexes))))))))
+
+(def unused-referred-var-excluded
+  (let [delayed-cfg (fn [config]
+                      (let [excluded (get-in config [:linters :unused-referred-var :exclude])]
+                        (map-vals set excluded)))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config ns-sym var-sym]
+      (let [excluded (delayed-cfg config)]
+        (when-let [vars (get excluded ns-sym )]
+          (contains? vars var-sym))))))
 
 (def unresolved-symbol-excluded
   (let [delayed-cfg

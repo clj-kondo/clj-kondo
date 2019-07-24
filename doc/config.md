@@ -9,7 +9,9 @@ Clj-kondo can be configured in four ways, by providing:
 
 <img src="../screenshots/compojure-config.png">
 
-Config takes precedence in the order of namespace, command line, `.clj-kondo/config.edn`.
+Config takes precedence in the order of namespace, command line,
+`.clj-kondo/config.edn`. Note that not all linters are currently supported in
+namespace local configuration.
 
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
@@ -148,6 +150,16 @@ A regex is also supported:
 ```
 
 This will exclude all namespaces ending with `.specs`.
+
+## Exclude unused referred vars from being reported.
+
+Imagine you want to have `taoensso.timbre/debug` available in all of your
+namespaces. Even when you don't use it, you don't want to get a warning about
+it. That can be done as follows:
+
+``` clojure
+{:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
+```
 
 ## Exclude unresolved symbols from being reported
 
