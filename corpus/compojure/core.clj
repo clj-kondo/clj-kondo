@@ -1,4 +1,4 @@
-(ns compojure.compojure)
+(ns compojure.core)
 
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes. The name may
