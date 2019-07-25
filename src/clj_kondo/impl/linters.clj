@@ -208,9 +208,12 @@
                        :when valid-call?
                        :let [fn-ns (:ns called-fn)
                              fn-name (:name called-fn)
-                             #_#__ (when (contains? refer-alls
+                             _ (when (contains? refer-alls
                                                 fn-ns)
-                                 (namespace/reg-referred-all-var! ctx caller-ns-sym fn-ns fn-name))
+                                 (namespace/reg-referred-all-var! (assoc ctx
+                                                                         :base-lang base-lang
+                                                                         :lang call-lang)
+                                                                  caller-ns-sym fn-ns fn-name))
                              arity (:arity call)
                              filename (:filename call)
                              fixed-arities (:fixed-arities called-fn)
@@ -282,6 +285,7 @@
                         (set used))
                 referred-vars (:referred-vars ns)
                 used-referred-vars (:used-referred-vars ns)
+                refer-alls (:refer-alls ns)
                 filename (:filename ns)]]
     (doseq [ns-sym unused]
       (when-not (config/unused-namespace-excluded config ns-sym)
@@ -296,18 +300,32 @@
             :col col}))))
     (doseq [[k v] referred-vars
             :let [{:keys [:row :col]} (meta k)]]
-      (let [ns (:ns v)]
+      (let [var-ns (:ns v)]
         (when-not
             (or (contains? used-referred-vars k)
-                (config/unused-referred-var-excluded config ns k))
+                (config/unused-referred-var-excluded config var-ns k))
           (findings/reg-finding!
            findings
            {:level :warning
             :type :unused-referred-var
             :filename filename
-            :message (str "#'" (:ns v) "/" (:name v) " is referred but never used")
+            :message (str "#'" var-ns "/" (:name v) " is referred but never used")
             :row row
-            :col col}))))))
+            :col col}))))
+    ;; TODO: move refer :all warning here, including details of which vars were referred
+    ;; (prn "REFER ALLS" (:name ns) refer-alls)
+    ;; (prn (map meta (keys refer-alls)))
+    (doseq [[_referred-all-ns {:keys [:referred :loc]}] refer-alls]
+      (if (empty? referred)
+        (findings/reg-finding! findings
+                               (node->line filename (with-meta [] loc)
+                                           :warning :how-to-ns/refer-all
+                                           (format "do not refer :all")))
+        (findings/reg-finding! findings
+                               (node->line filename (with-meta [] loc)
+                                           :warning :how-to-ns/refer-all
+                                           (format "replace :all with [%s]"
+                                                   (str/join " " referred))))))))
 
 (defn lint-unused-bindings!
   [{:keys [:findings] :as ctx}]
