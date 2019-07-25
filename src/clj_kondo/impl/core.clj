@@ -112,7 +112,9 @@
 
 (defn lang-from-file [file default-language]
   (if-let [[_ ext] (re-find #"\.(\w+)$" file)]
-    (keyword ext)
+    (let [k (keyword ext)]
+      (or (get #{:clj :cljs :cljc :edn} k)
+          default-language))
     default-language))
 
 (def cp-sep (System/getProperty "path.separator"))
