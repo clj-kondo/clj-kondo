@@ -45,7 +45,7 @@
   (testing ":require with :refer :all"
     (assert-submap
      '{:type :ns, :name foo
-       :refer-alls {bar #{} baz #{baz-fn}}
+       :refer-alls {bar {:excluded #{}} baz {:excluded #{baz-fn}}}
        :referred-vars {renamed-fn {:ns baz, :name baz-fn}}}
      (analyze-ns-decl {:lang :clj
                        :namespaces (atom {})

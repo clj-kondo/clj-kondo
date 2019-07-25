@@ -842,7 +842,6 @@
          resolved-name :name
          unresolved? :unresolved?
          clojure-excluded? :clojure-excluded?
-         ;; :keys [:refer-alls]
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name _lint-as?]

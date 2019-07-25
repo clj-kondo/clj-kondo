@@ -170,7 +170,9 @@
                    analyzed)
         refer-alls (reduce (fn [acc clause]
                              (if (:referred-all clause)
-                               (assoc acc (:ns clause) (:excluded clause))
+                               (assoc acc (:ns clause)
+                                      {:excluded (:excluded clause)
+                                       :referred #{}})
                                acc))
                            {}
                            analyzed)]
