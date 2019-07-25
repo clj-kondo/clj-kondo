@@ -2122,6 +2122,14 @@
       :level :warning,
       :message "replace :all with [is]"})
    (lint! "(ns foo (:require [clojure.test :as t :refer :all])) (t/deftest foo (is true))"
+          {:linters {:refer-all {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 52,
+      :level :warning,
+      :message "replace :all with [deftest]"})
+   (lint! "(ns foo (:require [clojure.test :refer [is] :refer :all])) (deftest foo (is true))"
           {:linters {:refer-all {:level :warning}}})))
 
 ;;;; Scratch
