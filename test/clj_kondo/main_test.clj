@@ -2105,16 +2105,24 @@
       :level :warning,
       :message "do not refer :all"})
    (lint! "(ns foo (:require [bar :refer :all]))"
-          {:linters {:how-to-ns/refer-all {:level :warning}}}))
+          {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 40,
       :level :warning,
-      :message "replace :all with [is deftest]"})
+      :message "replace :all with [deftest is]"})
    (lint! "(ns foo (:require [clojure.test :refer :all]))
            (deftest foo (is (empty? [])))"
-          {:linters {:how-to-ns/refer-all {:level :warning}}})))
+          {:linters {:refer-all {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 46,
+      :level :warning,
+      :message "replace :all with [is]"})
+   (lint! "(ns foo (:require [clojure.test :as t :refer :all])) (t/deftest foo (is true))"
+          {:linters {:refer-all {:level :warning}}})))
 
 ;;;; Scratch
 

@@ -208,8 +208,9 @@
                        :when valid-call?
                        :let [fn-ns (:ns called-fn)
                              fn-name (:name called-fn)
-                             _ (when (contains? refer-alls
-                                                fn-ns)
+                             _ (when (and unresolved?
+                                          (contains? refer-alls
+                                                     fn-ns))
                                  (namespace/reg-referred-all-var! (assoc ctx
                                                                          :base-lang base-lang
                                                                          :lang call-lang)
@@ -319,13 +320,13 @@
       (if (empty? referred)
         (findings/reg-finding! findings
                                (node->line filename (with-meta [] loc)
-                                           :warning :how-to-ns/refer-all
+                                           :warning :refer-all
                                            (format "do not refer :all")))
         (findings/reg-finding! findings
                                (node->line filename (with-meta [] loc)
-                                           :warning :how-to-ns/refer-all
+                                           :warning :refer-all
                                            (format "replace :all with [%s]"
-                                                   (str/join " " referred))))))))
+                                                   (str/join " " (sort referred)))))))))
 
 (defn lint-unused-bindings!
   [{:keys [:findings] :as ctx}]
