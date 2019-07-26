@@ -318,15 +318,17 @@
     ;; (prn (map meta (keys refer-alls)))
     (doseq [[_referred-all-ns {:keys [:referred :loc]}] refer-alls]
       (if (empty? referred)
-        (findings/reg-finding! findings
-                               (node->line filename (with-meta [] loc)
-                                           :warning :refer-all
-                                           (format "do not refer :all")))
-        (findings/reg-finding! findings
-                               (node->line filename (with-meta [] loc)
-                                           :warning :refer-all
-                                           (format "replace :all with [%s]"
-                                                   (str/join " " (sort referred)))))))))
+        (findings/reg-finding!
+         findings
+         (node->line filename (with-meta [] loc)
+                     :warning :refer-all
+                     (format "use alias or refer explicitly")))
+        (findings/reg-finding!
+         findings
+         (node->line filename (with-meta [] loc)
+                     :warning :refer-all
+                     (format "use alias or refer explicitly with [%s]"
+                             (str/join " " (sort referred)))))))))
 
 (defn lint-unused-bindings!
   [{:keys [:findings] :as ctx}]

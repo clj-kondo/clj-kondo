@@ -2103,7 +2103,7 @@
       :row 1,
       :col 31,
       :level :warning,
-      :message "do not refer :all"})
+      :message "use alias or refer explicitly"})
    (lint! "(ns foo (:require [bar :refer :all]))"
           {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
@@ -2111,7 +2111,7 @@
       :row 1,
       :col 40,
       :level :warning,
-      :message "replace :all with [deftest is]"})
+      :message "use alias or refer explicitly with [deftest is]"})
    (lint! "(ns foo (:require [clojure.test :refer :all]))
            (deftest foo (is (empty? [])))"
           {:linters {:refer-all {:level :warning}}}))
@@ -2120,7 +2120,7 @@
       :row 1,
       :col 46,
       :level :warning,
-      :message "replace :all with [is]"})
+      :message "use alias or refer explicitly with [is]"})
    (lint! "(ns foo (:require [clojure.test :as t :refer :all])) (t/deftest foo (is true))"
           {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
@@ -2128,7 +2128,7 @@
       :row 1,
       :col 52,
       :level :warning,
-      :message "replace :all with [deftest]"})
+      :message "use alias or refer explicitly with [deftest]"})
    (lint! "(ns foo (:require [clojure.test :refer [is] :refer :all])) (deftest foo (is true))"
           {:linters {:refer-all {:level :warning}}})))
 
