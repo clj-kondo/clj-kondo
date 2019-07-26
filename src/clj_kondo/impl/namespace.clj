@@ -79,10 +79,10 @@
              (update ns :used-vars conj
                      usage)))))
 
-(defn reg-usage!
+(defn reg-used-namespace!
   "Registers usage of required namespaced in ns."
   [{:keys [:base-lang :lang :namespaces]} ns-sym required-ns-sym]
-  (swap! namespaces update-in [base-lang lang ns-sym :used]
+  (swap! namespaces update-in [base-lang lang ns-sym :used-namespaces]
          conj required-ns-sym))
 
 (defn reg-alias!

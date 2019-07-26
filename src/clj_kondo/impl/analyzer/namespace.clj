@@ -182,8 +182,7 @@
                          analyzed)
      :referred-vars (into {} (mapcat :referred analyzed))
      :refer-alls refer-alls
-     ;; TODO: rename to :used-namespaces for clarity
-     :used
+     :used-namespaces
      (-> (case lang
            :clj '#{clojure.core}
            :cljs '#{cljs.core})
@@ -231,7 +230,7 @@
         kw+libspecs (for [?require-clause clauses
                           :let [require-kw
                                 (some-> ?require-clause :children first :k
-                                        (one-of [:require :require-macros]))]
+                                        (one-of [:require :require-macros :use]))]
                           :when require-kw]
                       [require-kw (-> ?require-clause :children next)])
         analyzed-require-clauses

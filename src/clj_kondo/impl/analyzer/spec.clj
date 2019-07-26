@@ -22,7 +22,7 @@
               (namespace/resolve-name ctx ns-name
                                       sym)]
           (if resolved-ns
-            (namespace/reg-usage! ctx ns-name resolved-ns)
+            (namespace/reg-used-namespace! ctx ns-name resolved-ns)
             (findings/reg-finding! (:findings ctx)
                                    (utils/node->line (:filename ctx)
                                                      sym-expr

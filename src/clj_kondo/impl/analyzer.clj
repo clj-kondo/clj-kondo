@@ -971,7 +971,7 @@
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
-          (namespace/reg-usage! ctx
+          (namespace/reg-used-namespace! ctx
                                 ns-name
                                 resolved-namespace))
         (if-let [m (meta analyzed)]
@@ -1156,18 +1156,18 @@
              rest-parsed
              (-> results
                  (assoc :ns first-parsed)
-                 (update :used into (:used first-parsed))
+                 (update :used-namespaces into (:used-namespaces first-parsed))
                  (update :required into (:required first-parsed)))))
           ;; TODO: are we still using this?
           :use
           (do
-            (namespace/reg-usage! ctx ns-name (:ns first-parsed))
+            (namespace/reg-used-namespace! ctx ns-name (:ns first-parsed))
             (recur
              ctx
              ns
              rest-parsed
              (-> results
-                 (update :used conj (:ns first-parsed)))))
+                 (update :used-namespaces conj (:ns first-parsed)))))
           ;; catch-all
           (recur
            ctx
@@ -1176,7 +1176,7 @@
            (case (:type first-parsed)
              ;; TODO: are we still using this?
              :call
-             (let [results (update results :used conj (:resolved-ns first-parsed))]
+             (let [results (update results :used-namespaces conj (:resolved-ns first-parsed))]
                results)
              results
              results)))
@@ -1207,7 +1207,7 @@
      (loop [ctx init-ctx
             [expression & rest-expressions] expressions
             results {:required (:required init-ns)
-                     :used (:used init-ns)
+                     :used-namespaces (:used-namespaces init-ns)
                      :findings []
                      :lang base-lang}]
        (if expression

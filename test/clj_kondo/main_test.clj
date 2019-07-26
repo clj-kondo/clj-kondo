@@ -2097,7 +2097,7 @@
                   (lint! (io/file "corpus" "compojure")
                          {:linters {:unresolved-symbol {:level :error}}})))
 
-(deftest how-to-ns-test
+(deftest refer-all-test
   (assert-submaps
    '({:file "<stdin>",
       :row 1,

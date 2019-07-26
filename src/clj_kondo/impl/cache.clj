@@ -88,7 +88,7 @@
 
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
-            (let [required-namespaces (get-in idacs [lang :used])
+            (let [required-namespaces (get-in idacs [lang :used-namespaces])
                   analyzed-namespaces
                   (set (keys (get-in idacs [lang :defs])))]
               (when cache-dir

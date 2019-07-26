@@ -280,10 +280,10 @@
   [{:keys [:config :findings] :as ctx}]
   (doseq [ns (namespace/list-namespaces ctx)
           :let [required (:required ns)
-                used (:used ns)
+                used-namespaces (:used-namespaces ns)
                 unused (set/difference
                         (set required)
-                        (set used))
+                        (set used-namespaces))
                 referred-vars (:referred-vars ns)
                 used-referred-vars (:used-referred-vars ns)
                 refer-alls (:refer-alls ns)
