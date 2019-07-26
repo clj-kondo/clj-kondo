@@ -2140,22 +2140,32 @@
       :row 9,
       :col 4,
       :level :warning,
+      :message "use :require with alias or :refer [join]"}
+     {:file "corpus/use.clj",
+      :row 14,
+      :col 4,
+      :level :warning,
+      :message "use :require with alias or :refer [join]"}
+     {:file "corpus/use.clj",
+      :row 19,
+      :col 4,
+      :level :warning,
       :message "use :require with alias or :refer"}
      {:file "corpus/use.clj",
-      :row 9,
+      :row 19,
       :col 32,
       :level :warning,
       :message "#'clojure.string/join is referred but never used"}
      {:file "corpus/use.clj",
-      :row 12,
-      :col 34,
+      :row 22,
+      :col 2,
       :level :warning,
-      :message "use alias or :refer [join]"}
+      :message "use require with alias or :refer [join]"}
      {:file "corpus/use.clj",
-      :row 16,
-      :col 36,
+      :row 26,
+      :col 2,
       :level :warning,
-      :message "use alias or :refer"})
+      :message "use require with alias or :refer [join]"})
    (lint! (io/file "corpus" "use.clj")
           {:linters {:refer-all {:level :warning}
                      :use {:level :warning}}})))

@@ -1,20 +1,27 @@
 (ns use)
 
-(ns foo
-  (:use [clojure.string]))
+(ns foo1
+  (:use [clojure.string])) ;; this message contains join
 
 join
 
-(ns bar
+(ns foo1b
+  (:use clojure.string)) ;; this message contains join
+
+join
+
+(ns foo1c
+  (:use clojure.set)) ;; this message also contains join, but from clojure set
+
+join
+
+(ns foo2
   (:use [clojure.string :only [join]]))
 
-(ns baz)
-(require '[clojure.string :refer :all])
+(ns foo4)
+(use 'clojure.set)
 join
 
-(ns quuz
-  (:require [clojure.string :refer :all]))
-
-(ns foo2)
-;; TODO:
-(use 'clojure.set)
+(ns foo6)
+(use '[clojure.string])
+join

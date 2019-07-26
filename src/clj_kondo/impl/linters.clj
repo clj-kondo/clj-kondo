@@ -313,29 +313,22 @@
             :message (str "#'" var-ns "/" (:name v) " is referred but never used")
             :row row
             :col col}))))
-    ;; TODO: move refer :all warning here, including details of which vars were referred
-    ;; (prn "REFER ALLS" (:name ns) refer-alls)
-    ;; (prn (map meta (keys refer-alls)))
     (doseq [[_referred-all-ns {:keys [:referred :node]}] refer-alls]
-      (let [use? (= :use (:k node))]
-        (if (empty? referred)
-          (findings/reg-finding!
-           findings
-           (node->line filename node
-                       :warning :refer-all
-                       (format "use %salias or :refer"
-                               (if use?
-                                 ":require with "
-                                 ""))))
-          (findings/reg-finding!
-           findings
-           (node->line filename node
-                       :warning :refer-all
-                       (format "use %salias or :refer [%s]"
-                               (if use?
-                                 ":require with "
-                                 "")
-                               (str/join " " (sort referred))))))))))
+      (let [{:keys [:k :value]} node
+            use? (or (= :use k)
+                     (= 'use value))
+            finding-type (if use? :use :refer-all)
+            msg (str (format "use %salias or :refer"
+                             (if use?
+                               (str (when k ":") "require with ")
+                               ""))
+                     (when (seq referred)
+                       (format " [%s]"
+                               (str/join " " (sort referred)))))]
+        (findings/reg-finding!
+         findings
+         (node->line filename node
+                     :warning finding-type msg))))))
 
 (defn lint-unused-bindings!
   [{:keys [:findings] :as ctx}]

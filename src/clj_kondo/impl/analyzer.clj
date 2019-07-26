@@ -822,14 +822,15 @@
   [ctx expr]
   (let [ns-name (-> ctx :ns :name)
         children (:children expr)
-        ;; require-node (first children)
+        require-node (first children)
         children (next children)]
     (when-let [child (first children)]
-      (when (= :quote (tag child))
+      (if (= :quote (tag child))
         (when-let [libspec-expr (first (:children child))]
           (let [analyzed
-                (namespace-analyzer/analyze-require-clauses ctx ns-name [[{:k :require} [libspec-expr]]])]
-            (namespace/reg-required-namespaces! ctx ns-name analyzed)))))
+                (namespace-analyzer/analyze-require-clauses ctx ns-name [[require-node [libspec-expr]]])]
+            (namespace/reg-required-namespaces! ctx ns-name analyzed)))
+        (analyze-children ctx children)))
     (analyze-children ctx children)))
 
 (defn analyze-call
@@ -928,8 +929,9 @@
           this-as (analyze-this-as ctx expr)
           memfn (analyze-memfn ctx expr)
           empty? (analyze-empty? ctx expr)
-          require (if top-level? (analyze-require ctx expr)
-                      (analyze-children ctx (next (:children expr))))
+          (use require)
+          (if top-level? (analyze-require ctx expr)
+              (analyze-children ctx (next (:children expr))))
           ;; catch-all
           (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]
