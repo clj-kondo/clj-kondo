@@ -316,16 +316,16 @@
     ;; TODO: move refer :all warning here, including details of which vars were referred
     ;; (prn "REFER ALLS" (:name ns) refer-alls)
     ;; (prn (map meta (keys refer-alls)))
-    (doseq [[_referred-all-ns {:keys [:referred :loc]}] refer-alls]
+    (doseq [[_referred-all-ns {:keys [:referred :node]}] refer-alls]
       (if (empty? referred)
         (findings/reg-finding!
          findings
-         (node->line filename (with-meta [] loc)
+         (node->line filename node
                      :warning :refer-all
                      (format "use alias or refer explicitly")))
         (findings/reg-finding!
          findings
-         (node->line filename (with-meta [] loc)
+         (node->line filename node
                      :warning :refer-all
                      (format "use alias or refer explicitly with [%s]"
                              (str/join " " (sort referred)))))))))

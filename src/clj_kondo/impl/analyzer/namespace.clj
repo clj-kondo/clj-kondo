@@ -81,21 +81,24 @@
                          (= :cljc base-lang)
                          (= :cljs lang)
                          (= current-ns-name ns-name)
-                         (= :require-macros require-kw))]
+                         (= :require-macros require-kw))
+          use? (= :use require-kw)]
       (loop [children option-exprs
              {:keys [:as :referred :excluded
                      :referred-all :renamed] :as m}
              {:as nil
               :referred #{}
               :excluded #{}
-              :referred-all false
+              :referred-all nil
+              :used (when use? libspec-expr)
               :renamed {}}]
+        ;; (prn "children" children)
         (if-let [child-expr (first children)]
           (let [opt-expr (fnext children)
                 opt (sexpr opt-expr)
                 child-k (:k child-expr)]
             (case child-k
-              (:refer :refer-macros)
+              (:refer :refer-macros :only)
               (recur
                (nnext children)
                (cond (and (not self-require?) (sequential? opt))
@@ -103,7 +106,7 @@
                              (map #(with-meta (sexpr %)
                                      (meta %))) (:children opt-expr))
                      (= :all opt)
-                     (assoc m :referred-all (meta opt-expr))
+                     (assoc m :referred-all opt-expr)
                      :else m))
               :as (recur
                    (nnext children)
@@ -167,7 +170,7 @@
                              (if-let [m (:referred-all clause)]
                                (assoc acc (:ns clause)
                                       {:excluded (:excluded clause)
-                                       :loc m
+                                       :node m
                                        :referred #{}})
                                acc))
                            {}

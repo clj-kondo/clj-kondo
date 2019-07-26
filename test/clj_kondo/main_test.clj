@@ -2073,31 +2073,30 @@
                      "--lang" "cljs"))))
 
 (deftest refer-all-test
-  (assert-submaps '({:file "corpus/compojure/consumer.clj",
-                     :row 9,
-                     :col 1,
-                     :level :error,
-                     :message
-                     "compojure.core/defroutes is called with 0 args but expects 1 or more"}
-                    {:file "corpus/compojure/consumer.clj",
-                     :row 10,
-                     :col 1,
-                     :level :error,
-                     :message "compojure.core/GET is called with 0 args but expects 2 or more"}
-                    {:file "corpus/compojure/consumer.clj",
-                     :row 11,
-                     :col 1,
-                     :level :error,
-                     :message "compojure.core/POST is called with 0 args but expects 2 or more"}
-                    {:file "corpus/compojure/consumer.clj",
-                     :row 17,
-                     :col 8,
-                     :level :error,
-                     :message "unresolved symbol x"})
-                  (lint! (io/file "corpus" "compojure")
-                         {:linters {:unresolved-symbol {:level :error}}})))
-
-(deftest refer-all-test
+  (assert-submaps
+   '({:file "corpus/compojure/consumer.clj",
+      :row 9,
+      :col 1,
+      :level :error,
+      :message
+      "compojure.core/defroutes is called with 0 args but expects 1 or more"}
+     {:file "corpus/compojure/consumer.clj",
+      :row 10,
+      :col 1,
+      :level :error,
+      :message "compojure.core/GET is called with 0 args but expects 2 or more"}
+     {:file "corpus/compojure/consumer.clj",
+      :row 11,
+      :col 1,
+      :level :error,
+      :message "compojure.core/POST is called with 0 args but expects 2 or more"}
+     {:file "corpus/compojure/consumer.clj",
+      :row 17,
+      :col 8,
+      :level :error,
+      :message "unresolved symbol x"})
+   (lint! (io/file "corpus" "compojure")
+          {:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
@@ -2131,6 +2130,7 @@
       :message "use alias or refer explicitly with [deftest]"})
    (lint! "(ns foo (:require [clojure.test :refer [is] :refer :all])) (deftest foo (is true))"
           {:linters {:refer-all {:level :warning}}})))
+
 
 ;;;; Scratch
 
