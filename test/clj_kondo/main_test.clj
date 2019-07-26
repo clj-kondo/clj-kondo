@@ -2110,7 +2110,7 @@
       :row 1,
       :col 40,
       :level :warning,
-      :message "use alias or :refer with [deftest is]"})
+      :message "use alias or :refer [deftest is]"})
    (lint! "(ns foo (:require [clojure.test :refer :all]))
            (deftest foo (is (empty? [])))"
           {:linters {:refer-all {:level :warning}}}))
@@ -2119,7 +2119,7 @@
       :row 1,
       :col 46,
       :level :warning,
-      :message "use alias or :refer with [is]"})
+      :message "use alias or :refer [is]"})
    (lint! "(ns foo (:require [clojure.test :as t :refer :all])) (t/deftest foo (is true))"
           {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
@@ -2127,7 +2127,7 @@
       :row 1,
       :col 52,
       :level :warning,
-      :message "use alias or :refer with [deftest]"})
+      :message "use alias or :refer [deftest]"})
    (lint! "(ns foo (:require [clojure.test :refer [is] :refer :all])) (deftest foo (is true))"
           {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
@@ -2135,24 +2135,24 @@
       :row 4,
       :col 4,
       :level :warning,
-      :message "use :require with alias or :refer"}
+      :message "use :require with alias or :refer [join]"}
      {:file "corpus/use.clj",
-      :row 7,
+      :row 9,
       :col 4,
       :level :warning,
       :message "use :require with alias or :refer"}
      {:file "corpus/use.clj",
-      :row 7,
+      :row 9,
       :col 32,
       :level :warning,
       :message "#'clojure.string/join is referred but never used"}
      {:file "corpus/use.clj",
-      :row 10,
+      :row 12,
       :col 34,
       :level :warning,
-      :message "use alias or :refer with [join]"}
+      :message "use alias or :refer [join]"}
      {:file "corpus/use.clj",
-      :row 14,
+      :row 16,
       :col 36,
       :level :warning,
       :message "use alias or :refer"})

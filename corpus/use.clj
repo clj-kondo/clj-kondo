@@ -3,6 +3,8 @@
 (ns foo
   (:use [clojure.string]))
 
+join
+
 (ns bar
   (:use [clojure.string :only [join]]))
 

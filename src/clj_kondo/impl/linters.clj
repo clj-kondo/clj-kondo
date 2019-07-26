@@ -331,7 +331,7 @@
            findings
            (node->line filename node
                        :warning :refer-all
-                       (format "use %salias or :refer with [%s]"
+                       (format "use %salias or :refer [%s]"
                                (if use?
                                  ":require with "
                                  "")
