@@ -821,12 +821,14 @@
   "For now we only support the form (require '[...])"
   [ctx expr]
   (let [ns-name (-> ctx :ns :name)
-        children (next (:children expr))]
+        children (:children expr)
+        ;; require-node (first children)
+        children (next children)]
     (when-let [child (first children)]
       (when (= :quote (tag child))
         (when-let [libspec-expr (first (:children child))]
           (let [analyzed
-                (namespace-analyzer/analyze-require-clauses ctx ns-name [[:require [libspec-expr]]])]
+                (namespace-analyzer/analyze-require-clauses ctx ns-name [[{:k :require} [libspec-expr]]])]
             (namespace/reg-required-namespaces! ctx ns-name analyzed)))))
     (analyze-children ctx children)))
 

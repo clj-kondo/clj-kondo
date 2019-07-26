@@ -2102,7 +2102,7 @@
       :row 1,
       :col 31,
       :level :warning,
-      :message "use alias or refer explicitly"})
+      :message "use alias or :refer"})
    (lint! "(ns foo (:require [bar :refer :all]))"
           {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
@@ -2110,7 +2110,7 @@
       :row 1,
       :col 40,
       :level :warning,
-      :message "use alias or refer explicitly with [deftest is]"})
+      :message "use alias or :refer with [deftest is]"})
    (lint! "(ns foo (:require [clojure.test :refer :all]))
            (deftest foo (is (empty? [])))"
           {:linters {:refer-all {:level :warning}}}))
@@ -2119,7 +2119,7 @@
       :row 1,
       :col 46,
       :level :warning,
-      :message "use alias or refer explicitly with [is]"})
+      :message "use alias or :refer with [is]"})
    (lint! "(ns foo (:require [clojure.test :as t :refer :all])) (t/deftest foo (is true))"
           {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
@@ -2127,9 +2127,38 @@
       :row 1,
       :col 52,
       :level :warning,
-      :message "use alias or refer explicitly with [deftest]"})
+      :message "use alias or :refer with [deftest]"})
    (lint! "(ns foo (:require [clojure.test :refer [is] :refer :all])) (deftest foo (is true))"
-          {:linters {:refer-all {:level :warning}}})))
+          {:linters {:refer-all {:level :warning}}}))
+  (assert-submaps
+   '({:file "corpus/use.clj",
+      :row 4,
+      :col 4,
+      :level :warning,
+      :message "use :require with alias or :refer"}
+     {:file "corpus/use.clj",
+      :row 7,
+      :col 4,
+      :level :warning,
+      :message "use :require with alias or :refer"}
+     {:file "corpus/use.clj",
+      :row 7,
+      :col 32,
+      :level :warning,
+      :message "#'clojure.string/join is referred but never used"}
+     {:file "corpus/use.clj",
+      :row 10,
+      :col 34,
+      :level :warning,
+      :message "use alias or :refer with [join]"}
+     {:file "corpus/use.clj",
+      :row 14,
+      :col 36,
+      :level :warning,
+      :message "use alias or :refer"})
+   (lint! (io/file "corpus" "use.clj")
+          {:linters {:refer-all {:level :warning}
+                     :use {:level :warning}}})))
 
 
 ;;;; Scratch

@@ -57,7 +57,8 @@
               :unused-referred-var {:level :warning
                                     :exclude {#_#_taoensso.timbre [debug]}}
               :duplicate-require {:level :warning}
-              :refer-all {:level :warning}}
+              :refer-all {:level :warning}
+              :use {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn

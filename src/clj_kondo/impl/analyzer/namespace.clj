@@ -57,13 +57,14 @@
                            :form form})))))
 
 (defn analyze-libspec [{:keys [:base-lang :lang
-                               :filename]} current-ns-name require-kw libspec-expr]
+                               :filename]} current-ns-name require-kw-expr libspec-expr]
   (if-let [s (symbol-from-token libspec-expr)]
     [{:type :require
       :ns (with-meta s
             (assoc (meta libspec-expr)
                    :filename filename))}]
-    (let [[ns-name-expr & option-exprs] (:children libspec-expr)
+    (let [require-kw (:k require-kw-expr)
+          [ns-name-expr & option-exprs] (:children libspec-expr)
           ns-name (:value ns-name-expr)
           ;; [ns-name & options] libspec
           ;; in CLJS ns-names can be strings
@@ -89,8 +90,7 @@
              {:as nil
               :referred #{}
               :excluded #{}
-              :referred-all nil
-              :used (when use? libspec-expr)
+              :referred-all (when use? require-kw-expr)
               :renamed {}}]
         ;; (prn "children" children)
         (if-let [child-expr (first children)]
@@ -231,11 +231,11 @@
                  'user)
         clauses children
         kw+libspecs (for [?require-clause clauses
-                          :let [require-kw
-                                (some-> ?require-clause :children first :k
-                                        (one-of [:require :require-macros :use]))]
+                          :let [require-kw-node (-> ?require-clause :children first)
+                                require-kw (:k require-kw-node)
+                                require-kw (one-of require-kw [:require :require-macros :use])]
                           :when require-kw]
-                      [require-kw (-> ?require-clause :children next)])
+                      [require-kw-node (-> ?require-clause :children next)])
         analyzed-require-clauses
         (analyze-require-clauses ctx ns-name kw+libspecs)
         java-imports
