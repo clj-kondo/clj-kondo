@@ -75,8 +75,8 @@
                                                 :filename (:filename ctx)
                                                 :unresolved-symbol-disabled?
                                                 (or syntax-quote?
-                                                    (when simple-symbol?
-                                                      (get (:qualify-ns ns) symbol-val)))
+                                                    ;; e.g.: clojure.core, clojure.string, etc.
+                                                    (= symbol-val (get (:qualify-ns ns) symbol-val)))
                                                 :private-access? (:private-access? ctx)
                                                 :callstack (:callstack ctx)
                                                 :config (:config ctx)}))))
