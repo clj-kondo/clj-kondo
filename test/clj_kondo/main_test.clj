@@ -1788,6 +1788,19 @@
       :message "unresolved symbol pprint"})
    (lint! "(ns foo (:require [clojure.pprint :as pprint])) pprint"
           '{:linters {:unresolved-symbol {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 20,
+      :level :warning,
+      :message "namespace clojure.pprint is required but never used"}
+     {:file "<stdin>",
+      :row 1,
+      :col 50,
+      :level :error,
+      :message "unresolved symbol pprint"})
+   (lint! "(ns foo (:require [clojure.pprint :as pprint])) (pprint)"
+          '{:linters {:unresolved-symbol {:level :error}}}))
   (testing "slurp is unresolved in the cljs part of cljc"
     (assert-submaps
      '({:file "<stdin>",
