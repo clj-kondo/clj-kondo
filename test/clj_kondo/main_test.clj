@@ -2150,7 +2150,12 @@
       :row 19,
       :col 4,
       :level :warning,
-      :message "use :require with alias or :refer"}
+      :message "use :require with alias or :refer with [join]"}
+     {:file "corpus/use.clj",
+      :row 19,
+      :col 10,
+      :level :warning,
+      :message "namespace clojure.string is required but never used"}
      {:file "corpus/use.clj",
       :row 19,
       :col 32,
@@ -2160,9 +2165,24 @@
       :row 22,
       :col 2,
       :level :warning,
+      :message "use require with alias or :refer with [join]"}
+     {:file "corpus/use.clj",
+      :row 22,
+      :col 8,
+      :level :warning,
+      :message "namespace clojure.string is required but never used"}
+     {:file "corpus/use.clj",
+      :row 22,
+      :col 30,
+      :level :warning,
+      :message "#'clojure.string/join is referred but never used"}
+     {:file "corpus/use.clj",
+      :row 25,
+      :col 2,
+      :level :warning,
       :message "use require with alias or :refer [join]"}
      {:file "corpus/use.clj",
-      :row 26,
+      :row 29,
       :col 2,
       :level :warning,
       :message "use require with alias or :refer [join]"})

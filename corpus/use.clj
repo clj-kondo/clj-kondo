@@ -18,6 +18,9 @@ join
 (ns foo2
   (:use [clojure.string :only [join]]))
 
+(ns foo2b)
+(use '[clojure.string :only [join]])
+
 (ns foo4)
 (use 'clojure.set)
 join
@@ -25,3 +28,4 @@ join
 (ns foo6)
 (use '[clojure.string])
 join
+

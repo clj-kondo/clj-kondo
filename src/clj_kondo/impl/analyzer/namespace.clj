@@ -57,7 +57,7 @@
                            :form form})))))
 
 (defn analyze-libspec [{:keys [:base-lang :lang
-                               :filename]} current-ns-name require-kw-expr libspec-expr]
+                               :filename :findings]} current-ns-name require-kw-expr libspec-expr]
   (let [require-kw (or (:k require-kw-expr)
                        (when-let [v (:value require-kw-expr)]
                          (keyword v)))
@@ -106,7 +106,19 @@
                  (nnext children)
                  (cond (and (not self-require?) (sequential? opt))
                        (let [;; undo referred-all when using :only with :use
-                             m (dissoc m :referred-all)]
+                             m (if (and use? (= :only child-k))
+                                 (do (findings/reg-finding!
+                                      findings
+                                      (node->line filename
+                                                  referred-all
+                                                  :warning
+                                                  :use
+                                                  (format "use %srequire with alias or :refer with [%s]"
+                                                          (if (:value require-kw-expr)
+                                                            "" ":")
+                                                          (str/join " " (sort opt)))))
+                                     (dissoc m :referred-all))
+                                 m)]
                          (update m :referred into
                                  (map #(with-meta (sexpr %)
                                          (meta %))) (:children opt-expr)))
