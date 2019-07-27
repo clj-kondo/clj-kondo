@@ -55,9 +55,10 @@
                                    ;; or in these definitions:
                                    :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}
               :unused-referred-var {:level :warning
-                                    :exclude {taoensso.timbre [debug]}}
+                                    :exclude {#_#_taoensso.timbre [debug]}}
               :duplicate-require {:level :warning}
-              :how-to-ns/refer-all {:level :warning}}
+              :refer-all {:level :warning}
+              :use {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn

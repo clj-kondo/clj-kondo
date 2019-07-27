@@ -18,9 +18,9 @@
              _unresolved? :unresolved? :as _m}
             (namespace/resolve-name ctx ns-name symbol-val)]
         (when resolved-ns
-          (namespace/reg-usage! ctx
-                                (-> ns :name)
-                                resolved-ns))))))
+          (namespace/reg-used-namespace! ctx
+                                         (-> ns :name)
+                                         resolved-ns))))))
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
@@ -57,9 +57,9 @@
                          m (meta expr)
                          {:keys [:row :col]} m]
                      (when resolved-ns
-                       (namespace/reg-usage! ctx
-                                             ns-name
-                                             resolved-ns))
+                       (namespace/reg-used-namespace! ctx
+                                                      ns-name
+                                                      resolved-ns))
                      (namespace/reg-var-usage! ctx ns-name
                                                {:type :use
                                                 :name resolved-name

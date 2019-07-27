@@ -821,13 +821,16 @@
   "For now we only support the form (require '[...])"
   [ctx expr]
   (let [ns-name (-> ctx :ns :name)
-        children (next (:children expr))]
+        children (:children expr)
+        require-node (first children)
+        children (next children)]
     (when-let [child (first children)]
-      (when (= :quote (tag child))
+      (if (= :quote (tag child))
         (when-let [libspec-expr (first (:children child))]
           (let [analyzed
-                (namespace-analyzer/analyze-require-clauses ctx ns-name [[:require [libspec-expr]]])]
-            (namespace/reg-required-namespaces! ctx ns-name analyzed)))))
+                (namespace-analyzer/analyze-require-clauses ctx ns-name [[require-node [libspec-expr]]])]
+            (namespace/reg-required-namespaces! ctx ns-name analyzed)))
+        (analyze-children ctx children)))
     (analyze-children ctx children)))
 
 (defn analyze-call
@@ -842,7 +845,6 @@
          resolved-name :name
          unresolved? :unresolved?
          clojure-excluded? :clojure-excluded?
-         ;; :keys [:refer-alls]
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
         [resolved-as-namespace resolved-as-name _lint-as?]
@@ -927,8 +929,9 @@
           this-as (analyze-this-as ctx expr)
           memfn (analyze-memfn ctx expr)
           empty? (analyze-empty? ctx expr)
-          require (if top-level? (analyze-require ctx expr)
-                      (analyze-children ctx (next (:children expr))))
+          (use require)
+          (if top-level? (analyze-require ctx expr)
+              (analyze-children ctx (next (:children expr))))
           ;; catch-all
           (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]
@@ -972,7 +975,7 @@
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
-          (namespace/reg-usage! ctx
+          (namespace/reg-used-namespace! ctx
                                 ns-name
                                 resolved-namespace))
         (if-let [m (meta analyzed)]
@@ -1157,18 +1160,18 @@
              rest-parsed
              (-> results
                  (assoc :ns first-parsed)
-                 (update :used into (:used first-parsed))
+                 (update :used-namespaces into (:used-namespaces first-parsed))
                  (update :required into (:required first-parsed)))))
           ;; TODO: are we still using this?
           :use
           (do
-            (namespace/reg-usage! ctx ns-name (:ns first-parsed))
+            (namespace/reg-used-namespace! ctx ns-name (:ns first-parsed))
             (recur
              ctx
              ns
              rest-parsed
              (-> results
-                 (update :used conj (:ns first-parsed)))))
+                 (update :used-namespaces conj (:ns first-parsed)))))
           ;; catch-all
           (recur
            ctx
@@ -1177,7 +1180,7 @@
            (case (:type first-parsed)
              ;; TODO: are we still using this?
              :call
-             (let [results (update results :used conj (:resolved-ns first-parsed))]
+             (let [results (update results :used-namespaces conj (:resolved-ns first-parsed))]
                results)
              results
              results)))
@@ -1208,7 +1211,7 @@
      (loop [ctx init-ctx
             [expression & rest-expressions] expressions
             results {:required (:required init-ns)
-                     :used (:used init-ns)
+                     :used-namespaces (:used-namespaces init-ns)
                      :findings []
                      :lang base-lang}]
        (if expression

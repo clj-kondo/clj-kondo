@@ -79,10 +79,10 @@
              (update ns :used-vars conj
                      usage)))))
 
-(defn reg-usage!
+(defn reg-used-namespace!
   "Registers usage of required namespaced in ns."
   [{:keys [:base-lang :lang :namespaces]} ns-sym required-ns-sym]
-  (swap! namespaces update-in [base-lang lang ns-sym :used]
+  (swap! namespaces update-in [base-lang lang ns-sym :used-namespaces]
          conj required-ns-sym))
 
 (defn reg-alias!
@@ -142,6 +142,12 @@
   (swap! namespaces update-in [base-lang lang ns-sym :used-referred-vars]
          conj var))
 
+(defn reg-referred-all-var!
+  [{:keys [:base-lang :lang :namespaces] :as _ctx}
+   ns-sym referred-all-ns-sym var-sym]
+  (swap! namespaces update-in [base-lang lang ns-sym :refer-alls referred-all-ns-sym :referred]
+         conj var-sym))
+
 (defn list-namespaces [{:keys [:namespaces]}]
   (for [[_base-lang m] @namespaces
         [_lang nss] m
@@ -194,8 +200,8 @@
                   :clj 'clojure.core
                   :cljs 'cljs.core)
             :name name-sym}
-           (let [referred-all-ns (some (fn [[k v]]
-                                         (when-not (contains? v name-sym)
+           (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
+                                         (when-not (contains? excluded name-sym)
                                            k))
                                        (:refer-alls ns))]
              {:ns (or referred-all-ns :clj-kondo/unknown-namespace)

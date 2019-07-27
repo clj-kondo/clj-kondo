@@ -148,7 +148,9 @@
           (show-arities fixed-arities var-args-min-arity)))
 
 (defn lint-var-usage
-  "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters."
+  "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters.
+  TODO: split this out in a resolver and a linter, so other linters
+  can leverage the resolved results."
   [ctx idacs]
   (let [config (:config ctx)
         ;; findings* (:findings ctx)
@@ -162,21 +164,22 @@
                              call-lang (:lang call)
                              caller-ns (get-in @(:namespaces ctx)
                                                [base-lang call-lang caller-ns-sym])
-                             fn-ns (:resolved-ns call)
+                             resolved-ns (:resolved-ns call)
+                             refer-alls (:refer-alls caller-ns)
                              called-fn
-                             (or (resolve-call idacs call fn-ns fn-name)
+                             (or (resolve-call idacs call resolved-ns fn-name)
                                  (when unresolved?
                                    (some #(resolve-call idacs call % fn-name)
                                          (into (vec
-                                                (keep (fn [[ns excluded]]
+                                                (keep (fn [[ns {:keys [:excluded]}]]
                                                         (when-not (contains? excluded fn-name)
                                                           ns))
-                                                      (:refer-alls caller-ns)))
+                                                      refer-alls))
                                                (when (not (:clojure-excluded? call))
                                                  [(case call-lang #_base-lang
                                                         :clj 'clojure.core
                                                         :cljs 'cljs.core
-                                                        :cljc 'clojure.core)])))))
+                                                        :clj1c 'clojure.core)])))))
                              unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
                              ;; we can determine if the call was made to another
                              ;; file by looking at the base-lang (in case of
@@ -204,6 +207,14 @@
                                                                      call)))]
                        :when valid-call?
                        :let [fn-ns (:ns called-fn)
+                             fn-name (:name called-fn)
+                             _ (when (and unresolved?
+                                          (contains? refer-alls
+                                                     fn-ns))
+                                 (namespace/reg-referred-all-var! (assoc ctx
+                                                                         :base-lang base-lang
+                                                                         :lang call-lang)
+                                                                  caller-ns-sym fn-ns fn-name))
                              arity (:arity call)
                              filename (:filename call)
                              fixed-arities (:fixed-arities called-fn)
@@ -222,7 +233,7 @@
                                  :col (:col call)
                                  :level :error
                                  :type :invalid-arity
-                                 :message (arity-error (:ns called-fn) (:name called-fn) (:arity call) fixed-arities var-args-min-arity)})
+                                 :message (arity-error fn-ns fn-name arity fixed-arities var-args-min-arity)})
                               (when (and (:private called-fn)
                                          (not= caller-ns-sym
                                                fn-ns)
@@ -239,12 +250,12 @@
                                     (or
                                      ;; recursive call
                                      (and
-                                      (= (:ns called-fn) caller-ns-sym)
-                                      (= (:name called-fn) (:in-def call)))
+                                      (= fn-ns caller-ns-sym)
+                                      (= fn-name (:in-def call)))
                                      (config/deprecated-var-excluded
                                       config
-                                      (symbol (str (:ns called-fn))
-                                              (str (:name called-fn)))
+                                      (symbol (str fn-ns)
+                                              (str fn-name))
                                       caller-ns-sym (:in-def call)))
                                   {:filename filename
                                    :row (:row call)
@@ -253,7 +264,7 @@
                                    :type :deprecated-var
                                    :message (str
                                              (format "#'%s is deprecated"
-                                                     (str (:ns called-fn) "/" (:name called-fn)))
+                                                     (str fn-ns "/" fn-name))
                                              (if (true? deprecated)
                                                nil
                                                (str " since " deprecated)))}))]
@@ -269,12 +280,13 @@
   [{:keys [:config :findings] :as ctx}]
   (doseq [ns (namespace/list-namespaces ctx)
           :let [required (:required ns)
-                used (:used ns)
+                used-namespaces (:used-namespaces ns)
                 unused (set/difference
                         (set required)
-                        (set used))
+                        (set used-namespaces))
                 referred-vars (:referred-vars ns)
                 used-referred-vars (:used-referred-vars ns)
+                refer-alls (:refer-alls ns)
                 filename (:filename ns)]]
     (doseq [ns-sym unused]
       (when-not (config/unused-namespace-excluded config ns-sym)
@@ -289,18 +301,34 @@
             :col col}))))
     (doseq [[k v] referred-vars
             :let [{:keys [:row :col]} (meta k)]]
-      (let [ns (:ns v)]
+      (let [var-ns (:ns v)]
         (when-not
             (or (contains? used-referred-vars k)
-                (config/unused-referred-var-excluded config ns k))
+                (config/unused-referred-var-excluded config var-ns k))
           (findings/reg-finding!
            findings
            {:level :warning
             :type :unused-referred-var
             :filename filename
-            :message (str "#'" (:ns v) "/" (:name v) " is referred but never used")
+            :message (str "#'" var-ns "/" (:name v) " is referred but never used")
             :row row
-            :col col}))))))
+            :col col}))))
+    (doseq [[_referred-all-ns {:keys [:referred :node]}] refer-alls]
+      (let [{:keys [:k :value]} node
+            use? (or (= :use k)
+                     (= 'use value))
+            finding-type (if use? :use :refer-all)
+            msg (str (format "use %salias or :refer"
+                             (if use?
+                               (str (when k ":") "require with ")
+                               ""))
+                     (when (seq referred)
+                       (format " [%s]"
+                               (str/join " " (sort referred)))))]
+        (findings/reg-finding!
+         findings
+         (node->line filename node
+                     :warning finding-type msg))))))
 
 (defn lint-unused-bindings!
   [{:keys [:findings] :as ctx}]

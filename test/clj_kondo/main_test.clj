@@ -2073,39 +2073,123 @@
                      "--lang" "cljs"))))
 
 (deftest refer-all-test
-  (assert-submaps '({:file "corpus/compojure/consumer.clj",
-                     :row 9,
-                     :col 1,
-                     :level :error,
-                     :message
-                     "compojure.core/defroutes is called with 0 args but expects 1 or more"}
-                    {:file "corpus/compojure/consumer.clj",
-                     :row 10,
-                     :col 1,
-                     :level :error,
-                     :message "compojure.core/GET is called with 0 args but expects 2 or more"}
-                    {:file "corpus/compojure/consumer.clj",
-                     :row 11,
-                     :col 1,
-                     :level :error,
-                     :message "compojure.core/POST is called with 0 args but expects 2 or more"}
-                    {:file "corpus/compojure/consumer.clj",
-                     :row 17,
-                     :col 8,
-                     :level :error,
-                     :message "unresolved symbol x"})
-                  (lint! (io/file "corpus" "compojure")
-                         {:linters {:unresolved-symbol {:level :error}}})))
-
-(deftest how-to-ns-test
+  (assert-submaps
+   '({:file "corpus/compojure/consumer.clj",
+      :row 9,
+      :col 1,
+      :level :error,
+      :message
+      "compojure.core/defroutes is called with 0 args but expects 1 or more"}
+     {:file "corpus/compojure/consumer.clj",
+      :row 10,
+      :col 1,
+      :level :error,
+      :message "compojure.core/GET is called with 0 args but expects 2 or more"}
+     {:file "corpus/compojure/consumer.clj",
+      :row 11,
+      :col 1,
+      :level :error,
+      :message "compojure.core/POST is called with 0 args but expects 2 or more"}
+     {:file "corpus/compojure/consumer.clj",
+      :row 17,
+      :col 8,
+      :level :error,
+      :message "unresolved symbol x"})
+   (lint! (io/file "corpus" "compojure")
+          {:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 31,
       :level :warning,
-      :message "do not refer :all"})
+      :message "use alias or :refer"})
    (lint! "(ns foo (:require [bar :refer :all]))"
-          {:linters {:how-to-ns/refer-all {:level :warning}}})))
+          {:linters {:refer-all {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 40,
+      :level :warning,
+      :message "use alias or :refer [deftest is]"})
+   (lint! "(ns foo (:require [clojure.test :refer :all]))
+           (deftest foo (is (empty? [])))"
+          {:linters {:refer-all {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 46,
+      :level :warning,
+      :message "use alias or :refer [is]"})
+   (lint! "(ns foo (:require [clojure.test :as t :refer :all])) (t/deftest foo (is true))"
+          {:linters {:refer-all {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 52,
+      :level :warning,
+      :message "use alias or :refer [deftest]"})
+   (lint! "(ns foo (:require [clojure.test :refer [is] :refer :all])) (deftest foo (is true))"
+          {:linters {:refer-all {:level :warning}}}))
+  (assert-submaps
+   '({:file "corpus/use.clj",
+      :row 4,
+      :col 4,
+      :level :warning,
+      :message "use :require with alias or :refer [join]"}
+     {:file "corpus/use.clj",
+      :row 9,
+      :col 4,
+      :level :warning,
+      :message "use :require with alias or :refer [join]"}
+     {:file "corpus/use.clj",
+      :row 14,
+      :col 4,
+      :level :warning,
+      :message "use :require with alias or :refer [join]"}
+     {:file "corpus/use.clj",
+      :row 19,
+      :col 4,
+      :level :warning,
+      :message "use :require with alias or :refer with [join]"}
+     {:file "corpus/use.clj",
+      :row 19,
+      :col 10,
+      :level :warning,
+      :message "namespace clojure.string is required but never used"}
+     {:file "corpus/use.clj",
+      :row 19,
+      :col 32,
+      :level :warning,
+      :message "#'clojure.string/join is referred but never used"}
+     {:file "corpus/use.clj",
+      :row 22,
+      :col 2,
+      :level :warning,
+      :message "use require with alias or :refer with [join]"}
+     {:file "corpus/use.clj",
+      :row 22,
+      :col 8,
+      :level :warning,
+      :message "namespace clojure.string is required but never used"}
+     {:file "corpus/use.clj",
+      :row 22,
+      :col 30,
+      :level :warning,
+      :message "#'clojure.string/join is referred but never used"}
+     {:file "corpus/use.clj",
+      :row 25,
+      :col 2,
+      :level :warning,
+      :message "use require with alias or :refer [join]"}
+     {:file "corpus/use.clj",
+      :row 29,
+      :col 2,
+      :level :warning,
+      :message "use require with alias or :refer [join]"})
+   (lint! (io/file "corpus" "use.clj")
+          {:linters {:refer-all {:level :warning}
+                     :use {:level :warning}}})))
+
 
 ;;;; Scratch
 

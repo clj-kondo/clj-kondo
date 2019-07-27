@@ -57,95 +57,112 @@
                            :form form})))))
 
 (defn analyze-libspec [{:keys [:base-lang :lang
-                               :filename :findings]} current-ns-name require-kw libspec-expr]
-  (if-let [s (symbol-from-token libspec-expr)]
-    [{:type :require
-      :ns (with-meta s
-            (assoc (meta libspec-expr)
-                   :filename filename))}]
-    (let [[ns-name-expr & option-exprs] (:children libspec-expr)
-          ns-name (:value ns-name-expr)
-          ;; [ns-name & options] libspec
-          ;; in CLJS ns-names can be strings
-          ns-name (symbol ns-name)
-          ns-name (if (= :cljs lang)
-                    (case ns-name
-                      clojure.test 'cljs.test
-                      clojure.pprint 'cljs.pprint
+                               :filename :findings]} current-ns-name require-kw-expr libspec-expr]
+  (let [require-sym (:value require-kw-expr)
+        require-kw (or (:k require-kw-expr)
+                       (when require-sym
+                         (keyword require-sym)))
+        use? (= :use require-kw)]
+    (if-let [s (symbol-from-token libspec-expr)]
+      [{:type :require
+        :referred-all (when use? require-kw-expr)
+        :ns (with-meta s
+              (assoc (meta libspec-expr)
+                     :filename filename))}]
+      (let [[ns-name-expr & option-exprs] (:children libspec-expr)
+            ns-name (:value ns-name-expr)
+            ;; [ns-name & options] libspec
+            ;; in CLJS ns-names can be strings
+            ns-name (symbol ns-name)
+            ns-name (if (= :cljs lang)
+                      (case ns-name
+                        clojure.test 'cljs.test
+                        clojure.pprint 'cljs.pprint
+                        ns-name)
                       ns-name)
-                    ns-name)
-          ns-name (with-meta ns-name
-                    (assoc (meta (first (:children libspec-expr)))
-                           :filename filename))
-          self-require? (and
-                         (= :cljc base-lang)
-                         (= :cljs lang)
-                         (= current-ns-name ns-name)
-                         (= :require-macros require-kw))]
-      (loop [children option-exprs
-             {:keys [:as :referred :excluded
-                     :referred-all :renamed] :as m}
-             {:as nil
-              :referred #{}
-              :excluded #{}
-              :referred-all false
-              :renamed {}}]
-        (if-let [child-expr (first children)]
-          (let [opt-expr (fnext children)
-                opt (sexpr opt-expr)
-                child-k (:k child-expr)]
-            (case child-k
-              (:refer :refer-macros)
-              (recur
-               (nnext children)
-               (cond (and (not self-require?) (sequential? opt))
-                     (update m :referred into
-                             (map #(with-meta (sexpr %)
-                                     (meta %))) (:children opt-expr))
-                     (= :all opt)
-                     (do
-                       (findings/reg-finding! findings
-                                              (node->line filename opt-expr
-                                                          :warning :how-to-ns/refer-all
-                                                          "do not refer :all"))
-                       (assoc m :referred-all true))
-                     :else m))
-              :as (recur
-                   (nnext children)
-                   (assoc m :as opt))
-              ;; shadow-cljs:
-              ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
-              :default
-              (recur (nnext children)
-                     (update m :referred conj opt))
-              :exclude
-              (recur
-               (nnext children)
-               (update m :excluded into (set opt)))
-              :rename
-              (recur
-               (nnext children)
-               (-> m (update :renamed merge opt)
-                   ;; for :refer-all we need to know the excluded
-                   (update :excluded into (set (keys opt)))
-                   ;; for :refer it is sufficient to pretend they were never referred
-                   (update :referred set/difference (set (keys opt)))))
-              (recur (nnext children)
-                     m)))
-          [{:type :require
-            :ns ns-name
-            :as as
-            :require-kw require-kw
-            :excluded excluded
-            :referred (concat (map (fn [refer]
-                                     [refer {:ns ns-name
-                                             :name refer}])
-                                   referred)
-                              (map (fn [[original-name new-name]]
-                                     [new-name {:ns ns-name
-                                                :name original-name}])
-                                   renamed))
-            :referred-all referred-all}])))))
+            ns-name (with-meta ns-name
+                      (assoc (meta (first (:children libspec-expr)))
+                             :filename filename))
+            self-require? (and
+                           (= :cljc base-lang)
+                           (= :cljs lang)
+                           (= current-ns-name ns-name)
+                           (= :require-macros require-kw))]
+        (loop [children option-exprs
+               {:keys [:as :referred :excluded
+                       :referred-all :renamed] :as m}
+               {:as nil
+                :referred #{}
+                :excluded #{}
+                :referred-all (when use? require-kw-expr)
+                :renamed {}}]
+          ;; (prn "children" children)
+          (if-let [child-expr (first children)]
+            (let [opt-expr (fnext children)
+                  opt (sexpr opt-expr)
+                  child-k (:k child-expr)]
+              (case child-k
+                (:refer :refer-macros :only)
+                (recur
+                 (nnext children)
+                 (cond (and (not self-require?) (sequential? opt))
+                       (let [;; undo referred-all when using :only with :use
+                             m (if (and use? (= :only child-k))
+                                 (do (findings/reg-finding!
+                                      findings
+                                      (node->line
+                                       filename
+                                       referred-all
+                                       :warning
+                                       :use
+                                       (format "use %srequire with alias or :refer with [%s]"
+                                               (if require-sym
+                                                 "" ":")
+                                               (str/join " " (sort opt)))))
+                                     (dissoc m :referred-all))
+                                 m)]
+                         (update m :referred into
+                                 (map #(with-meta (sexpr %)
+                                         (meta %))) (:children opt-expr)))
+                       (= :all opt)
+                       (assoc m :referred-all opt-expr)
+                       :else m))
+                :as (recur
+                     (nnext children)
+                     (assoc m :as opt))
+                ;; shadow-cljs:
+                ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
+                :default
+                (recur (nnext children)
+                       (update m :referred conj opt))
+                :exclude
+                (recur
+                 (nnext children)
+                 (update m :excluded into (set opt)))
+                :rename
+                (recur
+                 (nnext children)
+                 (-> m (update :renamed merge opt)
+                     ;; for :refer-all we need to know the excluded
+                     (update :excluded into (set (keys opt)))
+                     ;; for :refer it is sufficient to pretend they were never referred
+                     (update :referred set/difference (set (keys opt)))))
+                (recur (nnext children)
+                       m)))
+            [{:type :require
+              :ns ns-name
+              :as as
+              :require-kw require-kw
+              :excluded excluded
+              :referred (concat (map (fn [refer]
+                                       [refer {:ns ns-name
+                                               :name refer}])
+                                     referred)
+                                (map (fn [[original-name new-name]]
+                                       [new-name {:ns ns-name
+                                                  :name original-name}])
+                                     renamed))
+              :referred-all referred-all}]))))))
 
 (defn analyze-java-import [_ctx _ns-name libspec-expr]
   (case (tag libspec-expr)
@@ -169,8 +186,11 @@
                        analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
                    analyzed)
         refer-alls (reduce (fn [acc clause]
-                             (if (:referred-all clause)
-                               (assoc acc (:ns clause) (:excluded clause))
+                             (if-let [m (:referred-all clause)]
+                               (assoc acc (:ns clause)
+                                      {:excluded (:excluded clause)
+                                       :node m
+                                       :referred #{}})
                                acc))
                            {}
                            analyzed)]
@@ -184,8 +204,7 @@
                          analyzed)
      :referred-vars (into {} (mapcat :referred analyzed))
      :refer-alls refer-alls
-     ;; TODO: rename to :used-namespaces for clarity
-     :used
+     :used-namespaces
      (-> (case lang
            :clj '#{clojure.core}
            :cljs '#{cljs.core})
@@ -231,11 +250,11 @@
                  'user)
         clauses children
         kw+libspecs (for [?require-clause clauses
-                          :let [require-kw
-                                (some-> ?require-clause :children first :k
-                                        (one-of [:require :require-macros]))]
+                          :let [require-kw-node (-> ?require-clause :children first)
+                                require-kw (:k require-kw-node)
+                                require-kw (one-of require-kw [:require :require-macros :use])]
                           :when require-kw]
-                      [require-kw (-> ?require-clause :children next)])
+                      [require-kw-node (-> ?require-clause :children next)])
         analyzed-require-clauses
         (analyze-require-clauses ctx ns-name kw+libspecs)
         java-imports

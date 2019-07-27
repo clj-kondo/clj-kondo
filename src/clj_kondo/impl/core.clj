@@ -112,7 +112,9 @@
 
 (defn lang-from-file [file default-language]
   (if-let [[_ ext] (re-find #"\.(\w+)$" file)]
-    (keyword ext)
+    (let [k (keyword ext)]
+      (or (get #{:clj :cljs :cljc :edn} k)
+          default-language))
     default-language))
 
 (def cp-sep (System/getProperty "path.separator"))
@@ -211,9 +213,9 @@
 (defn index-defs-and-calls [ctx defs-and-calls]
   (let [indexed-defs (namespaces->indexed-defs ctx)]
     (reduce
-     (fn [acc {:keys [:used :lang] :as _m}]
+     (fn [acc {:keys [:used-namespaces :lang] :as _m}]
        (-> acc
-           (update-in [lang :used] into used)))
+           (update-in [lang :used-namespaces] into used-namespaces)))
      indexed-defs
      defs-and-calls)))
 

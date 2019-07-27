@@ -58,7 +58,7 @@
 (def base-config
   '{:linters {:unused-binding {:level :off}
               :unresolved-symbol {:level :off}
-              :how-to-ns/refer-all {:level :off}}})
+              :refer-all {:level :off}}})
 
 (defn lint-jvm!
   ([input]
