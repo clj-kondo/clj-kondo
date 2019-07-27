@@ -14,7 +14,7 @@
 (defn print!
   "Prints the result from `run!` to `*out*`. Returns `nil`. Alpha,
   subject to change."
-  [{:keys [:config :findings :summary]}]
+  [{:keys [:config :findings :summary :analysis]}]
   (let [output-cfg (:output config)
         fmt (or (:format output-cfg) :text)]
     (case fmt
@@ -39,12 +39,17 @@
         (when (:summary output-cfg)
           (print (format ",\n :summary %s"
                          summary)))
+        (when (:analysis output-cfg)
+          (print (format ",\n :analysis %s"
+                         analysis)))
         (println "}"))
       :json
       (println (cheshire/generate-string
                 (cond-> {:findings findings}
                   (:summary output-cfg)
-                  (assoc :summary summary))
+                  (assoc :summary summary)
+                  (:analysis output-cfg)
+                  (assoc :analysis analysis))
                 {:pretty true}))))
   (flush)
   nil)
@@ -81,9 +86,12 @@
         config (core-impl/resolve-config cfg-dir config)
         cache-dir (core-impl/resolve-cache-dir cfg-dir cache)
         findings (atom [])
+        analysis (atom {:vars []
+                        :usages []})
         ctx {:config config
              :findings findings
-             :namespaces (atom {})}
+             :namespaces (atom {})
+             :analysis analysis}
         lang (or lang :clj)
         processed
         ;; this is needed to force the namespace atom state
@@ -102,9 +110,12 @@
         summary (core-impl/summarize all-findings)
         duration (- (System/currentTimeMillis) start-time)
         summary (assoc summary :duration duration)]
-    {:findings all-findings
-     :config config
-     :summary summary}))
+    (cond->
+        {:findings all-findings
+         :config config
+         :summary summary}
+      (-> config :output :analysis)
+      (assoc :analysis @analysis))))
 
 ;;;; Scratch
 

@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.namespace
   {:no-doc true}
   (:require
+   [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
@@ -22,12 +23,18 @@
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
-  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns]}
+  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns] :as ctx}
     ns-sym var-sym expr metadata]
    (let [metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym)
-         path [base-lang lang ns-sym]]
+         path [base-lang lang ns-sym]
+         {:keys [row col]} metadata]
+     (when (and (-> ctx :config :output :analysis)
+                row col)
+       (analysis/reg-var! ctx filename row col
+                          ns-sym var-sym (:fixed-arities metadata)
+                          (:var-args-min-arity metadata)))
      (swap! namespaces update-in path
             (fn [ns]
               (let [vars (:vars ns)

@@ -4,6 +4,7 @@
    [clj-kondo.impl.utils :refer [node->line constant? sexpr]]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.findings :as findings]
    [clojure.set :as set]
    [clj-kondo.impl.namespace :as namespace]
@@ -153,6 +154,7 @@
   can leverage the resolved results."
   [ctx idacs]
   (let [config (:config ctx)
+        output-analysis? (-> config :output :analysis)
         ;; findings* (:findings ctx)
         findings (for [ns (namespace/list-namespaces ctx)
                        :let [base-lang (:base-lang ns)]
@@ -216,7 +218,14 @@
                                                                          :lang call-lang)
                                                                   caller-ns-sym fn-ns fn-name))
                              arity (:arity call)
+                             row (:row call)
+                             col (:col call)
                              filename (:filename call)
+                             _ (when output-analysis?
+                                 (analysis/reg-usage! ctx
+                                                      ;; TODO: get this into shape
+                                                      filename row col caller-ns-sym
+                                                      fn-ns fn-name arity))
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
                              errors
@@ -229,8 +238,8 @@
                                               (and var-args-min-arity (>= arity var-args-min-arity))
                                               (config/skip? config :invalid-arity (rest (:callstack call))))))
                                 {:filename filename
-                                 :row (:row call)
-                                 :col (:col call)
+                                 :row row
+                                 :col col
                                  :level :error
                                  :type :invalid-arity
                                  :message (arity-error fn-ns fn-name arity fixed-arities var-args-min-arity)})
@@ -239,8 +248,8 @@
                                                fn-ns)
                                          (not (:private-access? call)))
                                 {:filename filename
-                                 :row (:row call)
-                                 :col (:col call)
+                                 :row row
+                                 :col col
                                  :level :error
                                  :type :private-call
                                  :message (format "#'%s is private"
@@ -258,8 +267,8 @@
                                               (str fn-name))
                                       caller-ns-sym (:in-def call)))
                                   {:filename filename
-                                   :row (:row call)
-                                   :col (:col call)
+                                   :row row
+                                   :col col
                                    :level :error
                                    :type :deprecated-var
                                    :message (str

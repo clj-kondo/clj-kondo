@@ -1124,7 +1124,9 @@
 
 (defn analyze-expression*
   [{:keys [:filename :base-lang :lang :results :ns :top-ns
-           :expression :config :global-config :findings :namespaces]}]
+           :expression :config :global-config :findings :namespaces
+           :analysis]}]
+  ;; TODO: why not pass through the entire context here?
   (loop [ctx {:filename filename
               :base-lang base-lang
               :lang lang
@@ -1136,6 +1138,7 @@
               :config config
               :global-config global-config
               :findings findings
+              :analysis analysis
               :namespaces namespaces
               :top-level? true
               :top-ns top-ns}
@@ -1191,7 +1194,8 @@
   optimize cache lookups later on, calls are indexed by the namespace
   they call to, not the ns where the call occurred. Also collects
   other findings and passes them under the :findings key."
-  [{:keys [:filename :base-lang :lang :expressions :config :findings :namespaces]}]
+  [{:keys [:filename :base-lang :lang :expressions
+           :config :findings :namespaces :analysis]}]
   (profiler/profile
    :analyze-expressions
    (let [init-ns (when-not (= :edn lang)
@@ -1199,6 +1203,7 @@
                                      :base-lang base-lang
                                      :lang lang
                                      :namespaces namespaces} (parse-string "(ns user)")))
+         ;; TODO: why not pass through the entire ctx here?
          init-ctx {:filename filename
                    :base-lang base-lang
                    :lang lang
@@ -1206,6 +1211,7 @@
                    :config config
                    :global-config config
                    :findings findings
+                   :analysis analysis
                    :namespaces namespaces
                    :top-ns nil}]
      (loop [ctx init-ctx
@@ -1227,7 +1233,8 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config :findings :namespaces] :as _ctx} filename input lang dev?]
+  [{:keys [:config :findings :namespaces :analysis] :as _ctx} filename input lang dev?]
+  ;; TODO: why not pass through the entire context here?
   (try
     (let [parsed (p/parse-string input)
           analyzed-expressions
@@ -1236,12 +1243,14 @@
             (let [clj (analyze-expressions {:filename filename
                                             :config config
                                             :findings findings
+                                            :analysis analysis
                                             :namespaces namespaces
                                             :base-lang :cljc
                                             :lang :clj
                                             :expressions (:children (select-lang parsed :clj))})
                   cljs (analyze-expressions {:filename filename
                                              :findings findings
+                                             :analysis analysis
                                              :namespaces namespaces
                                              :config config
                                              :base-lang :cljc
@@ -1253,6 +1262,7 @@
             (analyze-expressions {:filename filename
                                   :config config
                                   :findings findings
+                                  :analysis analysis
                                   :namespaces namespaces
                                   :base-lang lang
                                   :lang lang
