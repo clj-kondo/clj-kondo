@@ -105,9 +105,11 @@
                 (recur
                  (nnext children)
                  (cond (and (not self-require?) (sequential? opt))
-                       (update m :referred into
-                               (map #(with-meta (sexpr %)
-                                       (meta %))) (:children opt-expr))
+                       (let [;; undo referred-all when using :only with :use
+                             m (dissoc m :referred-all)]
+                         (update m :referred into
+                                 (map #(with-meta (sexpr %)
+                                         (meta %))) (:children opt-expr)))
                        (= :all opt)
                        (assoc m :referred-all opt-expr)
                        :else m))
