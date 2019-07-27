@@ -58,9 +58,10 @@
 
 (defn analyze-libspec [{:keys [:base-lang :lang
                                :filename :findings]} current-ns-name require-kw-expr libspec-expr]
-  (let [require-kw (or (:k require-kw-expr)
-                       (when-let [v (:value require-kw-expr)]
-                         (keyword v)))
+  (let [require-sym (:value require-kw-expr)
+        require-kw (or (:k require-kw-expr)
+                       (when require-sym
+                         (keyword require-sym)))
         use? (= :use require-kw)]
     (if-let [s (symbol-from-token libspec-expr)]
       [{:type :require
@@ -109,14 +110,15 @@
                              m (if (and use? (= :only child-k))
                                  (do (findings/reg-finding!
                                       findings
-                                      (node->line filename
-                                                  referred-all
-                                                  :warning
-                                                  :use
-                                                  (format "use %srequire with alias or :refer with [%s]"
-                                                          (if (:value require-kw-expr)
-                                                            "" ":")
-                                                          (str/join " " (sort opt)))))
+                                      (node->line
+                                       filename
+                                       referred-all
+                                       :warning
+                                       :use
+                                       (format "use %srequire with alias or :refer with [%s]"
+                                               (if require-sym
+                                                 "" ":")
+                                               (str/join " " (sort opt)))))
                                      (dissoc m :referred-all))
                                  m)]
                          (update m :referred into
