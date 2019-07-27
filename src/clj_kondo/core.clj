@@ -1,6 +1,7 @@
 (ns clj-kondo.core
   (:refer-clojure :exclude [run!])
   (:require
+   [cheshire.core :as cheshire]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
@@ -29,7 +30,7 @@
             (let [{:keys [:error :warning :duration]} summary]
               (printf "linting took %sms, " duration)
               (println (format "errors: %s, warnings: %s" error warning))))))
-      ;; avoid loading clojure.pprint or bringing in additional libs for coercing to EDN or JSON
+      ;; avoid loading clojure.pprint or bringing in additional libs for coercing to EDN for now
       :edn
       (do
         (print "{")
@@ -40,19 +41,11 @@
                          summary)))
         (println "}"))
       :json
-      (do
-        (print "{")
-        (print (format "\"findings\":\n [%s]"
-                       (str/join ",\n  "
-                                 (map
-                                  (fn [finding]
-                                    (core-impl/finding->json finding))
-                                  findings))))
-        (when (:summary output-cfg)
-          (let [{:keys [:error :warning :duration]} summary]
-            (print (format core-impl/json-summary-format
-                           error warning duration))))
-        (println "}"))))
+      (println (cheshire/generate-string
+                (cond-> {:findings findings}
+                  (:summary output-cfg)
+                  (assoc :summary summary))
+                {:pretty true}))))
   (flush)
   nil)
 
