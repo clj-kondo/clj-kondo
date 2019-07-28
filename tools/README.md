@@ -1,7 +1,7 @@
 # clj-kondo-tools
 
 These are examples of what you can do with the analysis data that clj-kondo
-provides as result of linting your sources.
+provides as a result of linting your sources.
 
 To run the examples on your system you will need the Clojure [CLI
 tool](https://clojure.org/guides/getting_started) version 1.10.1.466 or higher
