@@ -6,8 +6,7 @@
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
-   [clojure.java.io :as io]
-   [clojure.string :as str]))
+   [clojure.java.io :as io]))
 
 ;;;; Public API
 
@@ -30,27 +29,21 @@
             (let [{:keys [:error :warning :duration]} summary]
               (printf "linting took %sms, " duration)
               (println (format "errors: %s, warnings: %s" error warning))))))
-      ;; avoid loading clojure.pprint or bringing in additional libs for coercing to EDN for now
+      ;; avoid loading clojure.pprint or bringing in additional libs for printing to EDN for now
       :edn
-      (do
-        (print "{")
-        (print (format ":findings\n [%s]"
-                       (str/join ",\n  " findings)))
-        (when (:summary output-cfg)
-          (print (format ",\n :summary %s"
-                         summary)))
-        (when (:analysis output-cfg)
-          (print (format ",\n :analysis %s"
-                         analysis)))
-        (println "}"))
+      (let [output (cond-> {:findings findings}
+                     (:summary output-cfg)
+                     (assoc :summary summary)
+                     (:analysis output-cfg)
+                     (assoc :analysis analysis))]
+        (prn output))
       :json
       (println (cheshire/generate-string
                 (cond-> {:findings findings}
                   (:summary output-cfg)
                   (assoc :summary summary)
                   (:analysis output-cfg)
-                  (assoc :analysis analysis))
-                {:pretty true}))))
+                  (assoc :analysis analysis))))))
   (flush)
   nil)
 
@@ -86,8 +79,8 @@
         config (core-impl/resolve-config cfg-dir config)
         cache-dir (core-impl/resolve-cache-dir cfg-dir cache)
         findings (atom [])
-        analysis (atom {:vars []
-                        :usages []})
+        analysis (atom {:var-definitions []
+                        :var-usages []})
         ctx {:config config
              :findings findings
              :namespaces (atom {})
@@ -106,7 +99,7 @@
         all-findings (concat linted-calls (mapcat :findings processed)
                              @findings)
         all-findings (core-impl/filter-findings config all-findings)
-        all-findings (dedupe (sort-by (juxt :filename :row :col) all-findings))
+        all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))
         summary (core-impl/summarize all-findings)
         duration (- (System/currentTimeMillis) start-time)
         summary (assoc summary :duration duration)]

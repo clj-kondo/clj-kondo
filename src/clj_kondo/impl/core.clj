@@ -253,17 +253,6 @@
                           remove-output)]
       (assoc f :level level))))
 
-;;;; output format
-
-(def json-finding-format "{\"type\":\"%s\", \"filename\":%s, \"row\":%s,\"col\":%s, \"level\":\"%s\", \"message\":%s}")
-
-(defn finding->json [{:keys [:type :filename :row :col :level :message]}]
-  (format json-finding-format
-          (name type) (pr-str filename) row col (name level) (pr-str message)))
-
-(def json-summary-format
-  ",\n \"summary\": {\"error\": %s, \"warning\": %s, \"type\": \"summary\", \"duration\": %s}")
-
 ;;;; Scratch
 
 (comment

@@ -4,7 +4,7 @@
 
 (defn reg-usage! [{:keys [analysis] :as _ctx}
                   filename row col from-ns to-ns var-name arity]
-  (swap! analysis update :usages conj
+  (swap! analysis update :var-usages conj
          (cond->
              {:filename filename
               :row row
@@ -16,7 +16,7 @@
 
 (defn reg-var! [{:keys [analysis] :as _ctx}
                 filename row col ns name fixed-arities var-args-min-arity]
-  (swap! analysis update :vars conj
+  (swap! analysis update :var-definitions conj
          (cond->
              {:filename filename
               :row row
