@@ -5,6 +5,7 @@
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
+   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clojure.java.io :as io]))
 
@@ -79,7 +80,9 @@
         config (core-impl/resolve-config cfg-dir config)
         cache-dir (core-impl/resolve-cache-dir cfg-dir cache)
         findings (atom [])
-        analysis (atom {:var-definitions []
+        analysis (atom {:namespace-definitions []
+                        :namespace-usages []
+                        :var-definitions []
                         :var-usages []})
         ctx {:config config
              :findings findings
@@ -96,6 +99,7 @@
         _ (l/lint-unused-namespaces! ctx)
         _ (l/lint-unused-bindings! ctx)
         _ (l/lint-unresolved-symbols! ctx)
+        ;; _ (namespace/reg-analysis-output! ctx)
         all-findings (concat linted-calls (mapcat :findings processed)
                              @findings)
         all-findings (core-impl/filter-findings config all-findings)

@@ -2,6 +2,7 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+   [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.metadata :as meta]
@@ -220,7 +221,8 @@
 
 (defn analyze-ns-decl
   [{:keys [:base-lang :lang :findings :filename] :as ctx} expr]
-  (let [children (next (:children expr))
+  (let [{:keys [row col]} (meta expr)
+        children (next (:children expr))
         ns-name-expr (first children)
         ns-name-expr  (meta/lift-meta-content2 ctx ns-name-expr)
         metadata (meta ns-name-expr)
@@ -294,7 +296,9 @@
                        :used-referred-vars #{}
                        :used-vars []
                        :vars {}
-                       :java-imports java-imports}
+                       :java-imports java-imports
+                       :row row
+                       :col col}
                       (merge-with into
                                   analyzed-require-clauses
                                   refer-clojure))
@@ -304,6 +308,12 @@
              (= :cljs lang) (update :qualify-ns
                                     #(assoc % 'cljs.core 'cljs.core
                                             'clojure.core 'cljs.core)))]
+    (when (-> ctx :config :output :analysis)
+      (analysis/reg-namespace! ctx filename row col
+                               ns-name false)
+      (doseq [req (:required ns)]
+        (let [{:keys [row col]} (meta req)]
+          (analysis/reg-namespace-usage! ctx filename row col ns-name req))))
     (namespace/reg-namespace! ctx ns)
     ns))
 

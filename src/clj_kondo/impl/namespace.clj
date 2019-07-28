@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.namespace
   {:no-doc true}
+  (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
@@ -15,7 +16,8 @@
   "Registers namespace. Deep-merges with already registered namespaces
   with the same name. Returns updated namespace."
   [{:keys [:base-lang :lang :namespaces]} ns]
-  (let [path [base-lang lang (:name ns)]]
+  (let [{ns-name :name} ns
+        path [base-lang lang ns-name]]
     (get-in (swap! namespaces update-in
                    path deep-merge ns)
             path)))
