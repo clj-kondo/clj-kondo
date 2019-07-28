@@ -1,4 +1,0 @@
-{:deps {clj-kondo {;; :local/root ".."
-                   :git/url "https://github.com/borkdude/clj-kondo"
-                   :sha "4f64586103e73b3cd0d7252c8254fd0314bf1e05"}
-        aysylu/loom {:mvn/version "1.0.2"}}}
