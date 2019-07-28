@@ -1,7 +1,5 @@
 # clj-kondo-tools
 
-Tools leveraging [clj-kondo](https://github.com/borkdude/clj-kondo)'s analysis results.
-
 These are examples of what you can do with the analysis data that clj-kondo
 provides while linting your sources.
 
