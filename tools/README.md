@@ -3,7 +3,7 @@
 These are examples of what you can do with the analysis data that clj-kondo
 provides while linting your sources.
 
-To run it on your system you will need the Clojure [CLI
+To run the examples on your system you will need the Clojure [CLI
 tool](https://clojure.org/guides/getting_started) version 1.10.1.466 or higher
 and then use this repo as a git dep:
 
