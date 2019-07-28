@@ -26,6 +26,8 @@ clj-kondo.tools.unused-vars/-main
 
 ## Namespace graph
 
+This example requires GraphViz. Install with e.g. `brew install graphviz`.
+
 ``` shellsession
 $ clj -m clj-kondo.tools.namespace-graph .
 The following vars are unused:
