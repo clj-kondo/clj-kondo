@@ -1,0 +1,2 @@
+{:deps {clj-kondo {:local/root "../.."}
+        aysylu/loom {:mvn/version "1.0.2"}}}
