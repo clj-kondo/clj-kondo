@@ -37,7 +37,7 @@ $ clj -m clj-kondo.tools.namespace-graph src
 ## Find var
 
 ``` shellsession
-$ clj -m clj-kondo.tools.find-var-usages clj-kondo.core/run! src ../src
+$ clj -m clj-kondo.tools.find-var clj-kondo.core/run! src ../src
 clj-kondo.core/run! is defined at ../src/clj_kondo/core.clj:51:7
 clj-kondo.core/run! is used at ../src/clj_kondo/core.clj:120:12
 clj-kondo.core/run! is used at ../src/clj_kondo/main.clj:81:44
