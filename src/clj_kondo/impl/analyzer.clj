@@ -870,7 +870,7 @@
           (def defonce defmulti goog-define)
           (do (lint-inline-def! ctx expr)
               (analyze-def ctx expr))
-          (defn defn- defmacro)
+          (defn defn- defmacro definline)
           (do (lint-inline-def! ctx expr)
               (analyze-defn ctx expr))
           defmethod (analyze-defmethod ctx expr)
