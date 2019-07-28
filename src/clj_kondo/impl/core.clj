@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [one-of print-err! map-vals]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]

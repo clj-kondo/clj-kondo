@@ -18,9 +18,8 @@
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
-     linter-disabled? tag sexpr kw->sym]]
-   [clojure.string :as str])
-  (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
+     linter-disabled? tag sexpr]]
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -594,18 +593,6 @@
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
     (concat (mapcat (comp :parsed) parsed-fns) analyzed-children)))
 
-(defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
-  (let [children (:children expr)
-        m (first children)
-        ns (:ns ctx)
-        ns-keyword (-> expr :ns :k)
-        ns-sym (kw->sym ns-keyword)
-        used (when (:aliased? expr)
-               (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
-                 [{:type :use
-                   :ns resolved-ns}]))]
-    (concat used (analyze-expression** ctx m))))
-
 (defn analyze-schema-defn [ctx expr]
   (let [{:keys [:defn :schemas]}
         (schema/expand-schema-defn2 ctx
@@ -1057,9 +1044,11 @@
         :reader-macro (analyze-reader-macro ctx expr)
         (:unquote :unquote-splicing)
         (analyze-children ctx children)
-        :namespaced-map (analyze-namespaced-map
-                         (update ctx
-                                 :callstack #(cons [nil t] %))
+        :namespaced-map (usages/analyze-namespaced-map
+                         (-> ctx
+                             (assoc :analyze-expression**
+                                    analyze-expression**)
+                             (update :callstack #(cons [nil t] %)))
                          expr)
         :map (do (key-linter/lint-map-keys ctx expr)
                  (analyze-children (update ctx
@@ -1123,6 +1112,7 @@
                           children)))))
 
 (defn analyze-expression*
+  "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
   [ctx results expression]
   (loop [ctx (assoc ctx
                     :bindings {}
@@ -1130,49 +1120,36 @@
          ns (:ns ctx)
          [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
          results results]
-    (let [ns-name (:name ns)]
-      (if (seq all)
-        (case (:type first-parsed)
-          nil (recur ctx ns rest-parsed results)
-          (:ns :in-ns)
-          (let [ns-name (:name first-parsed)
-                local-config (:config first-parsed)
-                global-config (:global-config ctx)
-                new-config (config/merge-config! global-config local-config)]
-            (recur
-             (-> ctx
-                 (assoc :config new-config)
-                 (update :top-ns (fn [n]
-                                   (or n ns-name))))
-             first-parsed
-             rest-parsed
-             (-> results
-                 (assoc :ns first-parsed)
-                 (update :used-namespaces into (:used-namespaces first-parsed))
-                 (update :required into (:required first-parsed)))))
-          :use
-          (do
-            (namespace/reg-used-namespace! ctx ns-name (:ns first-parsed))
-            (recur
-             ctx
-             ns
-             rest-parsed
-             (-> results
-                 (update :used-namespaces conj (:ns first-parsed)))))
-          ;; catch-all
+    (if (seq all)
+      (case (:type first-parsed)
+        nil (recur ctx ns rest-parsed results)
+        (:ns :in-ns)
+        (let [ns-name (:name first-parsed)
+              local-config (:config first-parsed)
+              global-config (:global-config ctx)
+              new-config (config/merge-config! global-config local-config)]
           (recur
-           ctx
-           ns
+           (-> ctx
+               (assoc :config new-config)
+               (update :top-ns (fn [n]
+                                 (or n ns-name))))
+           first-parsed
            rest-parsed
-           (case (:type first-parsed)
-             ;; TODO: are we still using this?
-             :call
-             (do
-               (namespace/reg-used-namespace! ctx ns-name (:resolved-ns first-parsed))
-               (let [results (update results :used-namespaces conj (:resolved-ns first-parsed))]
-                 results))
-             results)))
-        [(assoc ctx :ns ns) results]))))
+           (-> results
+               (assoc :ns first-parsed)
+               (update :used-namespaces into (:used-namespaces first-parsed))
+               (update :required into (:required first-parsed)))))
+        ;; catch-all
+        (recur
+         ctx
+         ns
+         rest-parsed
+         (case (:type first-parsed)
+           :call
+           (let [results (update results :used-namespaces conj (:resolved-ns first-parsed))]
+             results)
+           results)))
+      [(assoc ctx :ns ns) results])))
 
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To
