@@ -40,9 +40,9 @@ clj-kondo.tools.unused-vars/-main
 ``` shellsession
 $ clj -m clj-kondo.tools.find-var-usages clj-kondo.core/run! src ../src
 clj-kondo.core/run! is defined at ../src/clj_kondo/core.clj:51:7
-clj-kondo.core/run! is used at ../src/clj_kondo/main.clj:81:44
-clj-kondo.core/run! is used at src/clj_kondo/tools/namespace_graph.clj:7:29
-clj-kondo.core/run! is used at src/clj_kondo/tools/find_var_usages.clj:8:29
 clj-kondo.core/run! is used at ../src/clj_kondo/core.clj:120:12
+clj-kondo.core/run! is used at ../src/clj_kondo/main.clj:81:44
+clj-kondo.core/run! is used at src/clj_kondo/tools/find_var_usages.clj:8:29
+clj-kondo.core/run! is used at src/clj_kondo/tools/namespace_graph.clj:7:29
 clj-kondo.core/run! is used at src/clj_kondo/tools/unused_vars.clj:9:31
 ```

@@ -18,7 +18,7 @@
                                   (= var-name name))
                          d))
                      var-usages)]
-    (doseq [{:keys [filename row col]} defined]
+    (doseq [{:keys [filename row col]} (sort-by (juxt :filename :row :col) defined)]
       (println (str var " is defined at " filename ":" row ":" col)))
-    (doseq [{:keys [filename row col]} usages]
+    (doseq [{:keys [filename row col]} (sort-by (juxt :filename :row :col) usages)]
       (println (str var " is used at " filename ":" row ":" col)))))
