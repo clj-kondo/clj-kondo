@@ -30,9 +30,6 @@ This example requires GraphViz. Install with e.g. `brew install graphviz`.
 
 ``` shellsession
 $ clj -m clj-kondo.tools.namespace-graph .
-The following vars are unused:
-clj-kondo.tools.namespace-graph/-main
-clj-kondo.tools.unused-vars/-main
 ```
 
 <img src="assets/namespace-graph.png">
