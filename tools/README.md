@@ -6,13 +6,16 @@ These are examples of what you can do with the analysis data that clj-kondo
 provides while linting your sources.
 
 To run it on your system you will need the Clojure [CLI
-tool](https://clojure.org/guides/getting_started) and then use this repo as a
-git dep:
+tool](https://clojure.org/guides/getting_started) version 1.10.1.466 or higher
+and then use this repo as a git dep:
 
-    clj -Sdeps '{:deps {:clj-kondo-tools {:git/url "https://github.com/borkdude/clj-kondo-tools" :sha "<latest-sha>"}}}' \
-    -m <tool> <args>
+``` clojure
+{:deps {clj-kondo/tools {:git/url "https://github.com/borkdude/clj-kondo"
+                         :sha "44d54415b584694ff0e2dbfcbe71fd304b3829dd"
+                         :deps/root "tools"}}}
+```
 
-where `<latest-sha>` is the latest SHA of this repo.
+Replace the `:sha` with the latest SHA of this repo.
 
 ## Unused vars
 
