@@ -206,10 +206,19 @@
                                  (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
                                                                    (if call?
                                                                      (merge call (meta fn-name))
-                                                                     call)))]
+                                                                     call)))
+                             row (:row call)
+                             col (:col call)
+                             filename (:filename call)
+                             fn-ns (:ns called-fn)
+                             resolved-ns (or fn-ns resolved-ns)
+                             arity (:arity call)
+                             _ (when output-analysis?
+                                 (analysis/reg-usage! ctx
+                                                      filename row col caller-ns-sym
+                                                      resolved-ns fn-name arity))]
                        :when valid-call?
-                       :let [fn-ns (:ns called-fn)
-                             fn-name (:name called-fn)
+                       :let [fn-name (:name called-fn)
                              _ (when (and unresolved?
                                           (contains? refer-alls
                                                      fn-ns))
@@ -217,15 +226,6 @@
                                                                          :base-lang base-lang
                                                                          :lang call-lang)
                                                                   caller-ns-sym fn-ns fn-name))
-                             arity (:arity call)
-                             row (:row call)
-                             col (:col call)
-                             filename (:filename call)
-                             _ (when output-analysis?
-                                 (analysis/reg-usage! ctx
-                                                      ;; TODO: get this into shape
-                                                      filename row col caller-ns-sym
-                                                      fn-ns fn-name arity))
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
                              errors
