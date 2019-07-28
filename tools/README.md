@@ -18,7 +18,7 @@ Replace the `:sha` with the latest SHA of this repo.
 ## Unused vars
 
 ``` shellsession
-$ clj -m clj-kondo.tools.unused-vars .
+$ clj -m clj-kondo.tools.unused-vars src
 The following vars are unused:
 clj-kondo.tools.namespace-graph/-main
 clj-kondo.tools.unused-vars/-main
@@ -29,7 +29,7 @@ clj-kondo.tools.unused-vars/-main
 This example requires GraphViz. Install with e.g. `brew install graphviz`.
 
 ``` shellsession
-$ clj -m clj-kondo.tools.namespace-graph .
+$ clj -m clj-kondo.tools.namespace-graph src
 ```
 
 <img src="assets/namespace-graph.png">
