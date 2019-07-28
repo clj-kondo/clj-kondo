@@ -1123,26 +1123,11 @@
                           children)))))
 
 (defn analyze-expression*
-  [{:keys [:filename :base-lang :lang :results :ns :top-ns
-           :expression :config :global-config :findings :namespaces
-           :analysis]}]
-  ;; TODO: why not pass through the entire context here?
-  (loop [ctx {:filename filename
-              :base-lang base-lang
-              :lang lang
-              :ns ns
-              ;; TODO: considering that we're introducing bindings here, we could do
-              ;; the analysis of unused bindings already in the last step of the
-              ;; loop, instead of collecting then in the namespace atom
-              :bindings {}
-              :config config
-              :global-config global-config
-              :findings findings
-              :analysis analysis
-              :namespaces namespaces
-              :top-level? true
-              :top-ns top-ns}
-         ns ns
+  [ctx results expression]
+  (loop [ctx (assoc ctx
+                    :bindings {}
+                    :top-level? true)
+         ns (:ns ctx)
          [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
          results results]
     (let [ns-name (:name ns)]
@@ -1165,7 +1150,6 @@
                  (assoc :ns first-parsed)
                  (update :used-namespaces into (:used-namespaces first-parsed))
                  (update :required into (:required first-parsed)))))
-          ;; TODO: are we still using this?
           :use
           (do
             (namespace/reg-used-namespace! ctx ns-name (:ns first-parsed))
@@ -1183,9 +1167,10 @@
            (case (:type first-parsed)
              ;; TODO: are we still using this?
              :call
-             (let [results (update results :used-namespaces conj (:resolved-ns first-parsed))]
-               results)
-             results
+             (do
+               (namespace/reg-used-namespace! ctx ns-name (:resolved-ns first-parsed))
+               (let [results (update results :used-namespaces conj (:resolved-ns first-parsed))]
+                 results))
              results)))
         [(assoc ctx :ns ns) results]))))
 
@@ -1194,26 +1179,16 @@
   optimize cache lookups later on, calls are indexed by the namespace
   they call to, not the ns where the call occurred. Also collects
   other findings and passes them under the :findings key."
-  [{:keys [:filename :base-lang :lang :expressions
-           :config :findings :namespaces :analysis]}]
+  [{:keys [:base-lang :lang :config] :as ctx}
+   expressions]
   (profiler/profile
    :analyze-expressions
    (let [init-ns (when-not (= :edn lang)
-                   (analyze-ns-decl {:filename filename
-                                     :base-lang base-lang
-                                     :lang lang
-                                     :namespaces namespaces} (parse-string "(ns user)")))
-         ;; TODO: why not pass through the entire ctx here?
-         init-ctx {:filename filename
-                   :base-lang base-lang
-                   :lang lang
-                   :ns init-ns
-                   :config config
-                   :global-config config
-                   :findings findings
-                   :analysis analysis
-                   :namespaces namespaces
-                   :top-ns nil}]
+                   (analyze-ns-decl ctx (parse-string "(ns user)")))
+         init-ctx (assoc ctx
+                         :ns init-ns
+                         :top-ns nil
+                         :global-config config)]
      (loop [ctx init-ctx
             [expression & rest-expressions] expressions
             results {:required (:required init-ns)
@@ -1222,9 +1197,7 @@
                      :lang base-lang}]
        (if expression
          (let [[ctx results]
-               (analyze-expression* (assoc ctx
-                                           :expression expression
-                                           :results results))]
+               (analyze-expression* ctx results expression)]
            (recur ctx rest-expressions results))
          results)))))
 
@@ -1233,41 +1206,21 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config :findings :namespaces :analysis] :as _ctx} filename input lang dev?]
-  ;; TODO: why not pass through the entire context here?
+  [{:keys [:config] :as ctx} filename input lang dev?]
   (try
     (let [parsed (p/parse-string input)
           analyzed-expressions
           (case lang
             :cljc
-            (let [clj (analyze-expressions {:filename filename
-                                            :config config
-                                            :findings findings
-                                            :analysis analysis
-                                            :namespaces namespaces
-                                            :base-lang :cljc
-                                            :lang :clj
-                                            :expressions (:children (select-lang parsed :clj))})
-                  cljs (analyze-expressions {:filename filename
-                                             :findings findings
-                                             :analysis analysis
-                                             :namespaces namespaces
-                                             :config config
-                                             :base-lang :cljc
-                                             :lang :cljs
-                                             :expressions (:children (select-lang parsed :cljs))})]
+            (let [clj (analyze-expressions (assoc ctx :base-lang :cljc :lang :clj :filename filename)
+                                           (:children (select-lang parsed :clj)))
+                  cljs (analyze-expressions (assoc ctx :base-lang :cljc :lang :cljs :filename filename)
+                                            (:children (select-lang parsed :cljs)))]
               (profiler/profile :deep-merge
                                 (deep-merge clj cljs)))
             (:clj :cljs :edn)
-            (analyze-expressions {:filename filename
-                                  :config config
-                                  :findings findings
-                                  :analysis analysis
-                                  :namespaces namespaces
-                                  :base-lang lang
-                                  :lang lang
-                                  :expressions
-                                  (:children parsed)}))]
+            (analyze-expressions (assoc ctx :base-lang lang :lang lang :filename filename)
+                                 (:children parsed)))]
       analyzed-expressions)
     (catch Exception e
       (if dev? (throw e)
