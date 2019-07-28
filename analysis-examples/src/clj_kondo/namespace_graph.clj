@@ -1,10 +1,10 @@
-(ns clj-kondo.loom
+(ns clj-kondo.namespace-graph
   (:require [clj-kondo.core :as clj-kondo]
             [loom.graph :refer [graph]]
             [loom.io :refer [view]]))
 
-(defn -main [& _args]
-  (let [analysis (:analysis (clj-kondo/run! {:lint ["../../src"] ;; clj-kondo itself
+(defn -main [& [lint-path]]
+  (let [analysis (:analysis (clj-kondo/run! {:lint [(or lint-path "../src")] ;; clj-kondo itself
                                              :config {:output {:analysis true}}}))
         {:keys [:namespace-definitions :namespace-usages]} analysis
         nodes (map :name namespace-definitions)
