@@ -15,6 +15,50 @@ and then use this repo as a git dep:
 
 Replace the `:sha` with the latest SHA of this repo.
 
+A look at the data available after linting:
+
+``` clojure
+$ clj -m clj-kondo.tools.pprint src/clj_kondo/tools/pprint.clj
+:namespace-definitions
+|                      :filename | :row | :col |                  :name |
+|--------------------------------+------+------+------------------------|
+| src/clj_kondo/tools/pprint.clj |    1 |    1 |                   user |
+| src/clj_kondo/tools/pprint.clj |    1 |    1 | clj-kondo.tools.pprint |
+
+:namespace-usages
+|                      :filename | :row | :col |                  :from |            :to |
+|--------------------------------+------+------+------------------------+----------------|
+| src/clj_kondo/tools/pprint.clj |    3 |    5 | clj-kondo.tools.pprint | clj-kondo.core |
+| src/clj_kondo/tools/pprint.clj |    4 |    5 | clj-kondo.tools.pprint | clojure.pprint |
+
+:var-definitions
+|                      :filename | :row | :col |                    :ns |                :name | :fixed-arities | :var-args-min-arity | :private | :macro |
+|--------------------------------+------+------+------------------------+----------------------+----------------+---------------------+----------+--------|
+| src/clj_kondo/tools/pprint.clj |    6 |    8 | clj-kondo.tools.pprint |  private-fixed-arity |           #{3} |                     |     true |        |
+| src/clj_kondo/tools/pprint.clj |    8 |   11 | clj-kondo.tools.pprint | macro-var-args-arity |                |                   1 |          |   true |
+| src/clj_kondo/tools/pprint.clj |   10 |    7 | clj-kondo.tools.pprint |                -main |                |                   0 |          |        |
+
+:var-usages
+|                      :filename | :row | :col |                  :from |            :to |       :name | :arity |
+|--------------------------------+------+------+------------------------+----------------+-------------+--------|
+| src/clj_kondo/tools/pprint.clj |    6 |    1 | clj-kondo.tools.pprint |   clojure.core |       defn- |      2 |
+| src/clj_kondo/tools/pprint.clj |    8 |    1 | clj-kondo.tools.pprint |   clojure.core |    defmacro |      2 |
+| src/clj_kondo/tools/pprint.clj |   11 |   29 | clj-kondo.tools.pprint | clj-kondo.core |        run! |      1 |
+| src/clj_kondo/tools/pprint.clj |   16 |    5 | clj-kondo.tools.pprint |   clojure.core |       print |      1 |
+| src/clj_kondo/tools/pprint.clj |   17 |    5 | clj-kondo.tools.pprint | clojure.pprint | print-table |      2 |
+| src/clj_kondo/tools/pprint.clj |   19 |    5 | clj-kondo.tools.pprint |   clojure.core |     println |      0 |
+| src/clj_kondo/tools/pprint.clj |   20 |    5 | clj-kondo.tools.pprint |   clojure.core |       print |      1 |
+| src/clj_kondo/tools/pprint.clj |   11 |    3 | clj-kondo.tools.pprint |   clojure.core |         let |     12 |
+| src/clj_kondo/tools/pprint.clj |   10 |    1 | clj-kondo.tools.pprint |   clojure.core |        defn |      3 |
+| src/clj_kondo/tools/pprint.clj |   21 |    5 | clj-kondo.tools.pprint | clojure.pprint | print-table |      2 |
+| src/clj_kondo/tools/pprint.clj |   23 |    5 | clj-kondo.tools.pprint |   clojure.core |     println |      0 |
+| src/clj_kondo/tools/pprint.clj |   24 |    5 | clj-kondo.tools.pprint |   clojure.core |       print |      1 |
+| src/clj_kondo/tools/pprint.clj |   25 |    5 | clj-kondo.tools.pprint | clojure.pprint | print-table |      2 |
+| src/clj_kondo/tools/pprint.clj |   27 |    5 | clj-kondo.tools.pprint |   clojure.core |     println |      0 |
+| src/clj_kondo/tools/pprint.clj |   28 |    5 | clj-kondo.tools.pprint |   clojure.core |       print |      1 |
+| src/clj_kondo/tools/pprint.clj |   29 |    5 | clj-kondo.tools.pprint | clojure.pprint | print-table |      1 |
+```
+
 ## Unused vars
 
 ``` shellsession
