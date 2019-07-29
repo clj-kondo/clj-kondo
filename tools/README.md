@@ -31,6 +31,38 @@ A [planck](https://planck-repl.org) port of this example is available in the
 script/unused_vars.cljs src
 ```
 
+## Private vars
+
+A variation on the above tool, which looks at private vars and reports unused
+private functions or illegally accessed private functions.
+
+Example code:
+
+``` clojure
+(ns foo)
+
+(defn- foo [])
+(defn- bar []) ;; unused
+
+
+(ns bar (:require [foo :as f]))
+
+(f/foo) ;; illegal call
+```
+
+``` shellsession
+$ clj -m clj-kondo.tools.private-vars /tmp/private.clj
+/tmp/private.clj:4:8 warning: foo/bar is private but never used
+/tmp/private.clj:9:1 warning: foo/foo is private and cannot be accessed from namespace bar
+```
+
+A [planck](https://planck-repl.org) port of this example is available in the
+`script` directory. You can invoke it like this:
+
+``` shellsession
+script/private_vars.cljs /tmp/private.clj
+```
+
 ## Namespace graph
 
 This example requires GraphViz. Install with e.g. `brew install graphviz`.
