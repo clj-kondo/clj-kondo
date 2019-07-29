@@ -34,7 +34,7 @@ script/unused_vars.cljs src
 ## Private vars
 
 A variation on the above tool, which looks at private vars and reports unused
-private functions or illegally accessed private functions.
+private vars or illegally accessed private vars.
 
 Example code:
 
