@@ -44,7 +44,6 @@ Example code:
 (defn- foo [])
 (defn- bar []) ;; unused
 
-
 (ns bar (:require [foo :as f]))
 
 (f/foo) ;; illegal call
@@ -53,7 +52,7 @@ Example code:
 ``` shellsession
 $ clj -m clj-kondo.tools.private-vars /tmp/private.clj
 /tmp/private.clj:4:8 warning: foo/bar is private but never used
-/tmp/private.clj:9:1 warning: foo/foo is private and cannot be accessed from namespace bar
+/tmp/private.clj:8:1 warning: foo/foo is private and cannot be accessed from namespace bar
 ```
 
 A [planck](https://planck-repl.org) port of this example is available in the
