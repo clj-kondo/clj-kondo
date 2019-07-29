@@ -15,6 +15,8 @@ and then use this repo as a git dep:
 
 Replace the `:sha` with the latest SHA of this repo.
 
+## Data
+
 A look at the data available after linting:
 
 ``` clojure
