@@ -16,16 +16,15 @@
            arity (assoc :arity arity))))
 
 (defn reg-var! [{:keys [analysis] :as _ctx}
-                filename row col ns name fixed-arities var-args-min-arity]
-  (swap! analysis update :var-definitions conj
-         (cond->
-             {:filename filename
-              :row row
-              :col col
-              :ns ns
-              :name name}
-           fixed-arities (assoc :fixed-arities fixed-arities)
-           var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))))
+                filename row col ns name attrs]
+  (let [attrs (select-keys attrs [:private :macro :fixed-arities :var-args-min-arity])]
+    (swap! analysis update :var-definitions conj
+           (merge {:filename filename
+                   :row row
+                   :col col
+                   :ns ns
+                   :name name}
+                  attrs))))
 
 (defn reg-namespace! [{:keys [analysis] :as _ctx} filename row col ns-name in-ns]
   (swap! analysis update :namespace-definitions conj

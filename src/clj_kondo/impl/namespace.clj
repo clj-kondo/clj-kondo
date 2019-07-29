@@ -35,8 +35,8 @@
      (when (and (-> ctx :config :output :analysis)
                 row col)
        (analysis/reg-var! ctx filename row col
-                          ns-sym var-sym (:fixed-arities metadata)
-                          (:var-args-min-arity metadata)))
+                          ns-sym var-sym
+                          metadata))
      (swap! namespaces update-in path
             (fn [ns]
               (let [vars (:vars ns)

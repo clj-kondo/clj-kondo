@@ -24,6 +24,13 @@ clj-kondo.tools.namespace-graph/-main
 clj-kondo.tools.unused-vars/-main
 ```
 
+A [planck](https://planck-repl.org) port of this example is available in the
+`script` directory. You can invoke it like this:
+
+``` shellsession
+script/unused_vars.cljs src
+```
+
 ## Namespace graph
 
 This example requires GraphViz. Install with e.g. `brew install graphviz`.
