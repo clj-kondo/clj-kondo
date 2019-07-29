@@ -5,7 +5,6 @@
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
-   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clojure.java.io :as io]))
 
