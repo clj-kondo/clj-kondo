@@ -18,7 +18,7 @@
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
-     linter-disabled? tag sexpr]]
+     linter-disabled? tag sexpr string-from-token assoc-some]]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -298,7 +298,7 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        docstring? (:lines (first children))
+        docstring (string-from-token (first children))
         bodies (fn-bodies ctx children)
         _ (when (empty? bodies)
             (findings/reg-finding! (:findings ctx)
@@ -313,7 +313,7 @@
              ctx ns-name fn-name expr {:temp true}))
         parsed-bodies (map #(analyze-fn-body
                              (-> ctx
-                                 (assoc :docstring? docstring?
+                                 (assoc :docstring? docstring
                                         :in-def fn-name)) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
@@ -321,12 +321,14 @@
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
-       (cond-> (meta name-node)
-         macro? (assoc :macro true)
-         private? (assoc :private true)
-         deprecated (assoc :deprecated deprecated)
-         (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-         var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))))
+       (assoc-some (meta name-node)
+                   :macro macro?
+                   :private private?
+                   :deprecated deprecated
+                   :fixed-arities (not-empty fixed-arities)
+                   :var-args-min-arity var-args-min-arity
+                   :doc docstring
+                   :added (:added var-meta))))
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
@@ -652,14 +654,19 @@
                                  :declared true)))))
 
 (defn analyze-def [ctx expr]
-  (let [var-name-node (->> expr :children second (meta/lift-meta-content2 ctx))
+  ;; (def foo ?docstring ?init)
+  (let [children (next (:children expr))
+        var-name-node (->> children first (meta/lift-meta-content2 ctx))
         metadata (meta var-name-node)
-        var-name (:value var-name-node)]
+        var-name (:value var-name-node)
+        docstring (when (> (count children) 2)
+                    (string-from-token (second children)))]
     (when var-name
       (namespace/reg-var! ctx (-> ctx :ns :name)
                           var-name
                           expr
-                          metadata))
+                          (assoc-some metadata
+                                      :doc docstring)))
     (analyze-children (assoc ctx
                              :in-def var-name)
                       (nnext (:children expr)))))
@@ -1094,7 +1101,7 @@
                       (utils/boolean-token? function)
                       (do (reg-not-a-function! ctx expr "boolean")
                           (analyze-children ctx (rest children)))
-                      (utils/string-token? function)
+                      (utils/string-from-token function)
                       (do (reg-not-a-function! ctx expr "string")
                           (analyze-children ctx (rest children)))
                       (utils/char-token? function)

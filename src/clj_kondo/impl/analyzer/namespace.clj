@@ -8,7 +8,8 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [node->line one-of tag sexpr vector-node
-                                 token-node symbol-from-token]]
+                                 token-node string-from-token symbol-from-token
+                                 assoc-some]]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -227,7 +228,10 @@
         ns-name-expr  (meta/lift-meta-content2 ctx ns-name-expr)
         metadata (meta ns-name-expr)
         children (next children) ;; first = docstring, attr-map or libspecs
-        meta-node (when-let [fc (first children)]
+        fc (first children)
+        docstring (when fc
+                    (string-from-token fc))
+        meta-node (when fc
                     (let [t (tag fc)]
                       (if (= :map t)
                         fc
@@ -310,7 +314,10 @@
                                             'clojure.core 'cljs.core)))]
     (when (-> ctx :config :output :analysis)
       (analysis/reg-namespace! ctx filename row col
-                               ns-name false)
+                               ns-name false (assoc-some {}
+                                                         :deprecated (:deprecated ns-meta)
+                                                         :doc docstring
+                                                         :added (:added ns-meta)))
       (doseq [req (:required ns)]
         (let [{:keys [row col]} (meta req)]
           (analysis/reg-namespace-usage! ctx filename row col ns-name req))))
