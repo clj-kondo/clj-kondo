@@ -25,13 +25,6 @@ A look at the data available after linting this code:
   `(comment ~x ~@xs))
 ```
 
-
-|    :filename | :row | :col | :name |
-|--------------+------+------+-------|
-| /tmp/foo.clj |    1 |    1 |  user |
-| /tmp/foo.clj |    1 |    1 |   foo |
-
-
 ``` clojure
 $ clj -m clj-kondo.tools.pprint /tmp/foo.clj
 :namespace-definitions
