@@ -1,4 +1,4 @@
-# clj-kondo analysis data
+# analysis data
 
 Clj-kondo can provide data that was collected during linting, which enables
 writing tools and linters that are not yet in clj-kondo itself. To get this
