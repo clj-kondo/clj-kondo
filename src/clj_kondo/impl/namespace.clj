@@ -30,13 +30,13 @@
    (let [metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym)
-         path [base-lang lang ns-sym]
-         {:keys [row col]} metadata]
+         path [base-lang lang ns-sym]]
      (when (and (-> ctx :config :output :analysis)
-                row col)
-       (analysis/reg-var! ctx filename row col
-                          ns-sym var-sym
-                          metadata))
+                (not (:temp metadata)))
+       (let [{:keys [:row :col]} (meta expr)]
+         (analysis/reg-var! ctx filename row col
+                            ns-sym var-sym
+                            metadata)))
      (swap! namespaces update-in path
             (fn [ns]
               (let [vars (:vars ns)
