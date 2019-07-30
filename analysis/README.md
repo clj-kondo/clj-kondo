@@ -1,20 +1,5 @@
 # clj-kondo analysis data
 
-These are examples of what you can do with the analysis data that clj-kondo
-provides as a result of linting your sources.
-
-To run the examples on your system you will need the Clojure [CLI
-tool](https://clojure.org/guides/getting_started) version 1.10.1.466 or higher
-and then use this repo as a git dep:
-
-``` clojure
-{:deps {clj-kondo/tools {:git/url "https://github.com/borkdude/clj-kondo"
-                         :sha "44d54415b584694ff0e2dbfcbe71fd304b3829dd"
-                         :deps/root "analysis"}}}
-```
-
-Replace the `:sha` with the latest SHA of this repo.
-
 ## Data
 
 A look at the data available after linting this code:
@@ -58,7 +43,24 @@ $ clj -m clj-kondo.tools.pprint /tmp/foo.clj
 
 NOTE: breaking changes may occur as result of feedback in the next few weeks (2019-07-30).
 
-## Unused vars
+## Examples
+
+These are examples of what you can do with the analysis data that clj-kondo
+provides as a result of linting your sources.
+
+To run the examples on your system you will need the Clojure [CLI
+tool](https://clojure.org/guides/getting_started) version 1.10.1.466 or higher
+and then use this repo as a git dep:
+
+``` clojure
+{:deps {clj-kondo/tools {:git/url "https://github.com/borkdude/clj-kondo"
+                         :sha "44d54415b584694ff0e2dbfcbe71fd304b3829dd"
+                         :deps/root "analysis"}}}
+```
+
+Replace the `:sha` with the latest SHA of this repo.
+
+### Unused vars
 
 ``` shellsession
 $ clj -m clj-kondo.tools.unused-vars src
@@ -74,7 +76,7 @@ A [planck](https://planck-repl.org) port of this example is available in the
 script/unused_vars.cljs src
 ```
 
-## Private vars
+### Private vars
 
 A variation on the above tool, which looks at private vars and reports unused
 private vars or illegally accessed private vars.
@@ -105,7 +107,7 @@ A [planck](https://planck-repl.org) port of this example is available in the
 script/private_vars.cljs /tmp/private.clj
 ```
 
-## Namespace graph
+### Namespace graph
 
 This example requires GraphViz. Install with e.g. `brew install graphviz`.
 
@@ -115,7 +117,7 @@ $ clj -m clj-kondo.tools.namespace-graph src
 
 <img src="assets/namespace-graph.png">
 
-## Find var
+### Find var
 
 ``` shellsession
 $ clj -m clj-kondo.tools.find-var clj-kondo.core/run! src ../src
