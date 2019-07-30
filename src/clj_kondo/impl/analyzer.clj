@@ -1168,7 +1168,9 @@
   (profiler/profile
    :analyze-expressions
    (let [init-ns (when-not (= :edn lang)
-                   (analyze-ns-decl ctx (parse-string "(ns user)")))
+                   (analyze-ns-decl (assoc-in ctx
+                                              [:config :output :analysis] false)
+                                    (parse-string "(ns user)")))
          init-ctx (assoc ctx
                          :ns init-ns
                          :top-ns nil

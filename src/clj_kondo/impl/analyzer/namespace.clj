@@ -317,7 +317,9 @@
                                ns-name false (assoc-some {}
                                                          :deprecated (:deprecated ns-meta)
                                                          :doc docstring
-                                                         :added (:added ns-meta)))
+                                                         :added (:added ns-meta)
+                                                         :no-doc (:no-doc ns-meta)
+                                                         :author (:author ns-meta)))
       (doseq [req (:required ns)]
         (let [{:keys [row col]} (meta req)]
           (analysis/reg-namespace-usage! ctx filename row col ns-name req))))

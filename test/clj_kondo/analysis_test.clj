@@ -48,16 +48,21 @@
 
   (let [{:keys [:namespace-definitions
                 :namespace-usages]}
-        (analyze "(ns ^:deprecated foo \"docstring\" {:added \"1.2\"} (:require [clojure.string]))")]
+        (analyze
+         "(ns ^:deprecated foo \"docstring\"
+            {:added \"1.2\" :no-doc true :author \"Michiel Borkent\"}
+            (:require [clojure.string]))")]
     (assert-submaps
-     '[{:filename "<stdin>", :row 1, :col 1, :name user}
-       {:filename "<stdin>",
+     '[{:filename "<stdin>",
         :row 1,
         :col 1,
         :name foo,
         :deprecated true,
-        :doc "docstring"}]
+        :doc "docstring",
+        :added "1.2",
+        :no-doc true,
+        :author "Michiel Borkent"}]
      namespace-definitions)
     (assert-submaps
-     '[{:filename "<stdin>", :row 1, :col 60, :from foo, :to clojure.string}]
+     '[{:filename "<stdin>", :row 3, :col 24, :from foo, :to clojure.string}]
      namespace-usages)))
