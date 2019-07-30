@@ -56,6 +56,8 @@ $ clj -m clj-kondo.tools.pprint /tmp/foo.clj
 | /tmp/foo.clj |    6 |    1 |   foo | clojure.core | defmacro |      3 |
 ```
 
+NOTE: breaking changes may occur as result of feedback in the next few weeks (2019-07-30).
+
 ## Unused vars
 
 ``` shellsession
