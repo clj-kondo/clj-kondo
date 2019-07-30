@@ -1,5 +1,16 @@
 # clj-kondo analysis data
 
+Clj-kondo can provide data that was collected during linting, which enables
+writing tools and linters that are not yet in clj-kondo itself. To get this
+data, use the following configuration:
+
+``` shellsession
+{:output {:analysis true}}
+```
+
+When using clj-kondo from the command line, the analysis data will be exported
+with `{:output {:format ...}}` set to `:json` or `:edn`.
+
 ## Data
 
 A look at the data available after linting this code:
