@@ -1,4 +1,4 @@
-# clj-kondo-tools
+# clj-kondo analysis data
 
 These are examples of what you can do with the analysis data that clj-kondo
 provides as a result of linting your sources.
@@ -10,7 +10,7 @@ and then use this repo as a git dep:
 ``` clojure
 {:deps {clj-kondo/tools {:git/url "https://github.com/borkdude/clj-kondo"
                          :sha "44d54415b584694ff0e2dbfcbe71fd304b3829dd"
-                         :deps/root "tools"}}}
+                         :deps/root "analysis"}}}
 ```
 
 Replace the `:sha` with the latest SHA of this repo.
