@@ -17,39 +17,86 @@ A look at the data available after linting this code:
 
 ``` clojure
 (ns foo
+  "This is a useful namespace."
+  {:deprecated "1.3"
+   :author "Michiel Borkent"
+   :no-doc true}
   (:require [clojure.set]))
 
-(defn- f [])
+(defn- f [x]
+  (inc x))
 
-(defmacro g [x & xs]
+(defmacro g
+  "No longer used."
+  {:added "1.2"
+   :deprecated "1.3"}
+  [x & xs]
   `(comment ~x ~@xs))
 ```
 
 ``` clojure
-$ clj -m clj-kondo.tools.pprint /tmp/foo.clj
-:namespace-definitions
-|    :filename | :row | :col | :name |
-|--------------+------+------+-------|
-| /tmp/foo.clj |    1 |    1 |  user |
-| /tmp/foo.clj |    1 |    1 |   foo |
-
-:namespace-usages
-|    :filename | :row | :col | :from |         :to |
-|--------------+------+------+-------+-------------|
-| /tmp/foo.clj |    2 |   14 |   foo | clojure.set |
-
-:var-definitions
-|    :filename | :row | :col | :ns | :name | :fixed-arities | :var-args-min-arity | :private | :macro |
-|--------------+------+------+-----+-------+----------------+---------------------+----------+--------|
-| /tmp/foo.clj |    4 |    1 | foo |     f |           #{0} |                     |     true |        |
-| /tmp/foo.clj |    6 |    1 | foo |     g |                |                   1 |          |   true |
-
-:var-usages
-|    :filename | :row | :col | :from |          :to |    :name | :arity |
-|--------------+------+------+-------+--------------+----------+--------|
-| /tmp/foo.clj |    4 |    1 |   foo | clojure.core |    defn- |      2 |
-| /tmp/foo.clj |    7 |    5 |   foo | clojure.core |  comment |        |
-| /tmp/foo.clj |    6 |    1 |   foo | clojure.core | defmacro |      3 |
+$ clj -m clj-kondo.tools.pprint edn /tmp/foo.clj
+{:namespace-definitions
+ [{:filename "/tmp/foo.clj",
+   :row 1,
+   :col 1,
+   :name foo,
+   :deprecated "1.3",
+   :doc "This is a useful namespace.",
+   :no-doc true,
+   :author "Michiel Borkent"}],
+ :namespace-usages
+ [{:filename "/tmp/foo.clj",
+   :row 6,
+   :col 14,
+   :from foo,
+   :to clojure.set}],
+ :var-definitions
+ [{:filename "/tmp/foo.clj",
+   :row 8,
+   :col 1,
+   :ns foo,
+   :name f,
+   :private true,
+   :fixed-arities #{1}}
+  {:added "1.2",
+   :ns foo,
+   :name g,
+   :var-args-min-arity 1,
+   :filename "/tmp/foo.clj",
+   :macro true,
+   :col 1,
+   :deprecated "1.3",
+   :doc "No longer used.",
+   :row 11}],
+ :var-usages
+ [{:filename "/tmp/foo.clj",
+   :row 9,
+   :col 3,
+   :from foo,
+   :to clojure.core,
+   :name inc,
+   :arity 1}
+  {:filename "/tmp/foo.clj",
+   :row 8,
+   :col 1,
+   :from foo,
+   :to clojure.core,
+   :name defn-,
+   :arity 3}
+  {:filename "/tmp/foo.clj",
+   :row 16,
+   :col 5,
+   :from foo,
+   :to clojure.core,
+   :name comment}
+  {:filename "/tmp/foo.clj",
+   :row 11,
+   :col 1,
+   :from foo,
+   :to clojure.core,
+   :name defmacro,
+   :arity 5}]}
 ```
 
 NOTE: breaking changes may occur as result of feedback in the next few weeks (2019-07-30).
