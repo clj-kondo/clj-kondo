@@ -52,6 +52,8 @@ It suggests several style guide recommendations, such as:
 
 <img src="screenshots/wrong-arity.png" width="50%" align="right">
 
+It provides [analysis data](analysis) so you build your own custom linters.
+
 This linter is:
 
 * compatible with `.clj`, `.cljs`, `.cljc` and `.edn` files
