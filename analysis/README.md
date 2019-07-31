@@ -48,8 +48,8 @@ The analysis output consists of a map with:
   - `:arity`: if the usage was a function call, the amount of arguments passed
   - `:lang`: if usage occurred in a `.cljc` file, the language in which the call
     was resolved: `:clj` or `:cljs`
-  - several metadata values of the used var: `:private`, `:macro`,
-    `:fixed-arities`, `:var-args-min-arity`, `:deprecated`.
+  - several attributes of the used var: `:private`, `:macro`, `:fixed-arities`,
+    `:var-args-min-arity`, `:deprecated`.
 
 Example output after linting this code:
 
