@@ -224,6 +224,17 @@
            (assoc-some m k v)
            (partition 2 kvs))))
 
+(defn select-some
+  "Like select-keys, but only selects when value is not nil."
+  ([m ks]
+   (persistent!
+    (reduce (fn [acc k]
+              (if-some [v (get m k)]
+                (assoc! acc k v)
+                acc))
+            (transient {})
+            ks))))
+
 ;;;; Scratch
 
 (comment
@@ -232,4 +243,5 @@
   (constant? (parse-string "foo"))
   (map-node-vals (parse-string "{:a 1 :b 2}"))
   (assoc-some {} :a 1 :b nil :c false)
+  (select-some {:a 1 :b nil :c 2 :d false} [:a :b :d]) ;; => {:a 1, :d false}
   )

@@ -45,7 +45,6 @@
         :doc "docstring",
         :deprecated true}]
      var-definitions))
-
   (let [{:keys [:namespace-definitions
                 :namespace-usages]}
         (analyze
