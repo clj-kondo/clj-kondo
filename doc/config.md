@@ -286,8 +286,8 @@ linting took 8ms, errors: 0, warnings: 4
 ```
 
 ``` clojure
-$ echo '(defn f [{:keys [:a :b :c]} _d])' | \
-  clj-kondo --lint - --config '{:linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}'
+$ echo '(defn f [{:keys [:a :b :c]} _d])' | clj-kondo --lint - --config \
+  '{:linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}'
 linting took 8ms, errors: 0, warnings: 0
 ```
 
