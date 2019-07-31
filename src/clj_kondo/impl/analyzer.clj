@@ -64,10 +64,14 @@
   ([ctx expr] (when expr
                 (extract-bindings ctx expr {})))
   ([{:keys [:skip-reg-binding?] :as ctx} expr
-    {:keys [:keys-destructuring?] :as opts}]
+    {:keys [:keys-destructuring? :fn-args?] :as opts}]
    (let [expr (lift-meta-content* ctx expr)
          t (tag expr)
-         findings (:findings ctx)]
+         findings (:findings ctx)
+         skip-reg-binding? (or skip-reg-binding?
+                               (when (and keys-destructuring? fn-args?)
+                                 (-> ctx :config :linters :unused-binding
+                                     :exclude-destructured-keys-in-fn-args)))]
      (case t
        :token
        (cond
@@ -207,7 +211,7 @@
   (let [children (:children body)
         arg-vec  (first children)
         arg-list (sexpr arg-vec)
-        arg-bindings (extract-bindings ctx arg-vec)
+        arg-bindings (extract-bindings ctx arg-vec {:fn-args? true})
         arity (analyze-arity arg-list)]
     {:arg-bindings (dissoc arg-bindings :analyzed)
      :arity arity

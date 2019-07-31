@@ -29,7 +29,8 @@
               :redefined-var {:level :warning}
               :unreachable-code {:level :warning}
               :unbound-destructuring-default {:level :warning}
-              :unused-binding {:level :warning}
+              :unused-binding {:level :warning
+                               :exclude-destructured-keys-in-fn-args false}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
                                  :exclude [#_clj-kondo.impl.var-info-gen]

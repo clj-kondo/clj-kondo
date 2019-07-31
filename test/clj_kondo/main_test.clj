@@ -1544,7 +1544,12 @@
   (is (empty? (lint! "(defmacro foo [] (let [sym 'my-symbol] `(do '~sym)))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(let [s 'clojure.string] (require s))"
-                     '{:linters {:unused-binding {:level :warning}}}))))
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defn f [{:keys [:a :b :c]}] a)"
+                     '{:linters {:unused-binding
+                                 {:level :warning
+                                  :exclude-destructured-keys-in-fn-args true}
+                                 :unresolved-symbol {:level :error}}}))))
 
 (deftest unsupported-binding-form-test
   (assert-submaps
