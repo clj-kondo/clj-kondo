@@ -220,3 +220,19 @@ clj-kondo.core/run! is used at src/clj_kondo/tools/find_var_usages.clj:8:29
 clj-kondo.core/run! is used at src/clj_kondo/tools/namespace_graph.clj:7:29
 clj-kondo.core/run! is used at src/clj_kondo/tools/unused_vars.clj:9:31
 ```
+
+### Popular vars
+
+``` shellsession
+$ clj -m clj-kondo.tools.popular-vars 10 ../src
+clojure.core/let: 196
+clojure.core/defn: 183
+clojure.core/when: 115
+clojure.core/=: 86
+clojure.core/if: 86
+clojure.core/recur: 79
+clojure.core/assoc: 70
+clojure.core/or: 68
+clojure.core/->: 68
+clojure.core/first: 62
+```
