@@ -1,4 +1,4 @@
-# Analysis data
+# Analysis data and tools
 
 Clj-kondo can provide data that was collected during linting, which enables
 writing tools and linters that are not yet in clj-kondo itself. To get this
@@ -164,6 +164,25 @@ and then use this repo as a git dep:
 ```
 
 Replace the `:sha` with the latest SHA of this repo.
+
+You can create an alias for a tool in your `~/.clojure/deps.edn`:
+
+```
+{
+ :aliases {:namespace-graph
+           {:extra-deps {clj-kondo/tools {:git/url "https://github.com/borkdude/clj-kondo"
+                                          :sha "1ed3b11025b7f3a582e6db099ba10a888fe0fc2c"
+                                          :deps/root "analysis"}}
+            :main-opts ["-m" "clj-kondo.tools.namespace-graph"]}
+ }
+}
+```
+
+and then call it from anywhere in your system with:
+
+```
+~/git/clojure (master) $ clj -A:namespace-graph src
+```
 
 ### Unused vars
 
