@@ -2224,7 +2224,26 @@
           {:linters {:refer-all {:level :warning}
                      :use {:level :warning}}})))
 
-
+(deftest canonical-paths-test
+  (testing "single file"
+    (let [f (io/file
+             (first (map :file (lint! (io/file "corpus" "use.clj")
+                                      {:output {:canonical-paths true}}))))]
+      (is (= (.getPath f) (.getAbsolutePath f)))))
+  (testing "directory"
+    (let [f (io/file
+             (first (map :file (lint! (io/file "corpus" "private")
+                                      {:output {:canonical-paths true}}))))]
+      (is (= (.getPath f) (.getAbsolutePath f)))))
+  (testing "jar file"
+    (let [f (io/file
+             (first (map :file (lint! (io/file (System/getProperty "user.home")
+                                               ".m2" "repository" "org"
+                                               ".." "org" ;; note: not canonical
+                                               "clojure" "spec.alpha" "0.2.176"
+                                               "spec.alpha-0.2.176.jar")
+                                      {:output {:canonical-paths true}}))))]
+      (is (= (.getPath f) (.getAbsolutePath f))))))
 
 ;;;; Scratch
 

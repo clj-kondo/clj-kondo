@@ -78,6 +78,7 @@
              ;; the output pattern can be altered using a template. use {{LEVEL}} to print the level in capitals.
              ;; the default template looks like this:
              ;; :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"
+             :canonical-paths false ;; set to true to see absolute file paths and jar files
              }})
 
 (defn merge-config! [cfg* cfg]

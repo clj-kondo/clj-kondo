@@ -57,6 +57,18 @@ cljs/tools/reader.cljs:527:9: warning: redundant do
 (rest of the output omitted)
 ```
 
+### Output canonical file paths
+
+The config `'{:output {:canonical-paths true}}'` will output canonical file
+paths (absolute file paths without `..`). This also shows the full path of a jar
+file when you lint a classpath.
+
+``` shellsession
+$ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
+/Users/borkdude/dev/clj-kondo/corpus/cljc/datascript.cljc:8:1: error: datascript.db/seqable? is called with 2 args but expects 1
+(rest of the output omitted)
+```
+
 ## Disable a linter
 
 ``` shellsession

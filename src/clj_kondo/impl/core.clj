@@ -80,23 +80,27 @@
     (one-of (keyword ext) [:clj :cljs :cljc :edn])))
 
 (defn sources-from-jar
-  [^java.io.File jar-file]
+  [^java.io.File jar-file canonical?]
   (let [jar (JarFile. jar-file)
         entries (enumeration-seq (.entries jar))
         entries (filter (fn [^JarFile$JarFileEntry x]
                           (let [nm (.getName x)]
                             (source-file? nm))) entries)]
     (map (fn [^JarFile$JarFileEntry entry]
-           {:filename (.getName entry)
+           {:filename (str (when canonical?
+                             (str (.getCanonicalPath jar-file) ":"))
+                           (.getName entry))
             :source (slurp (.getInputStream jar entry))}) entries)))
 
 ;;;; dir processing
 
 (defn sources-from-dir
-  [dir]
+  [dir canonical?]
   (let [files (file-seq dir)]
     (keep (fn [^java.io.File file]
-            (let [nm (.getPath file)
+            (let [nm (if canonical?
+                       (.getCanonicalPath file)
+                       (.getPath file))
                   can-read? (.canRead file)
                   source? (source-file? nm)]
               (cond
@@ -122,7 +126,7 @@
 (defn classpath? [f]
   (str/includes? f cp-sep))
 
-(defn process-file [ctx filename default-language]
+(defn process-file [ctx filename default-language canonical?]
   (try
     (let [file (io/file filename)]
       (cond
@@ -133,25 +137,29 @@
             (map #(ana/analyze-input ctx (:filename %) (:source %)
                                      (lang-from-file (:filename %) default-language)
                                      dev?)
-                 (sources-from-jar file))
+                 (sources-from-jar file canonical?))
             ;; assume normal source file
-            [(ana/analyze-input ctx filename (slurp file)
+            [(ana/analyze-input ctx (if canonical?
+                                      (.getCanonicalPath file)
+                                      filename) (slurp file)
                                 (lang-from-file filename default-language)
                                 dev?)])
           ;; assume directory
           (map #(ana/analyze-input ctx (:filename %) (:source %)
                                    (lang-from-file (:filename %) default-language)
                                    dev?)
-               (sources-from-dir file)))
+               (sources-from-dir file canonical?)))
         (= "-" filename)
         [(ana/analyze-input ctx "<stdin>" (slurp *in*) default-language dev?)]
         (classpath? filename)
-        (mapcat #(process-file ctx % default-language)
+        (mapcat #(process-file ctx % default-language canonical?)
                 (str/split filename
                            (re-pattern cp-sep)))
         :else
         [{:findings [{:level :warning
-                      :filename filename
+                      :filename (if canonical?
+                                  (.getCanonicalPath file)
+                                  filename)
                       :type :file
                       :col 0
                       :row 0
@@ -159,14 +167,17 @@
     (catch Throwable e
       (if dev? (throw e)
           [{:findings [{:level :warning
-                        :filename filename
+                        :filename (if canonical?
+                                    (.getCanonicalPath (io/file filename))
+                                    filename)
                         :type :file
                         :col 0
                         :row 0
                         :message "could not process file"}]}]))))
 
 (defn process-files [ctx files default-lang]
-  (mapcat #(process-file ctx % default-lang) files))
+  (let [canonical? (-> ctx :config :output :canonical-paths)]
+    (mapcat #(process-file ctx % default-lang canonical?) files)))
 
 ;;;; index defs and calls by language and namespace
 
