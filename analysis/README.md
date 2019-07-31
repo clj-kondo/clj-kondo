@@ -283,7 +283,7 @@ clj-kondo.impl.namespace/reg-alias!: missing docstring
 
 ### Circular dependencies
 
-Code:
+Example code:
 
 ```
 (ns a (:require b c))
