@@ -236,3 +236,15 @@ clojure.core/or: 68
 clojure.core/->: 68
 clojure.core/first: 62
 ```
+
+### Missing docstrings
+
+``` shellsession
+$ clj -m clj-kondo.tools.missing-docstrings ../src
+clj-kondo.impl.findings/reg-finding!: missing docstring
+clj-kondo.impl.findings/reg-findings!: missing docstring
+clj-kondo.impl.namespace/reg-var!: missing docstring
+clj-kondo.impl.namespace/reg-var-usage!: missing docstring
+clj-kondo.impl.namespace/reg-alias!: missing docstring
+...
+```
