@@ -148,12 +148,12 @@ $ clj -m clj-kondo.tools.pprint edn /tmp/foo.clj
 
 NOTE: breaking changes may occur as result of feedback in the next few weeks (2019-07-30).
 
-## Examples
+## Example tools
 
 These are examples of what you can do with the analysis data that clj-kondo
 provides as a result of linting your sources.
 
-To run the examples on your system you will need the Clojure [CLI
+To run the tools on your system you will need the Clojure [CLI
 tool](https://clojure.org/guides/getting_started) version 1.10.1.466 or higher
 and then use this repo as a git dep:
 
