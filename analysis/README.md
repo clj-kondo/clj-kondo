@@ -112,27 +112,34 @@ $ clj -m clj-kondo.tools.pprint edn /tmp/foo.clj
    :from foo,
    :to clojure.core,
    :name inc,
+   :fixed-arities #{1},
    :arity 1}
-  {:filename "/tmp/foo.clj",
-   :row 8,
-   :col 1,
+  {:name defn-,
+   :var-args-min-arity 2,
+   :filename "/tmp/foo.clj",
    :from foo,
-   :to clojure.core,
-   :name defn-,
-   :arity 3}
+   :macro true,
+   :col 1,
+   :arity 3,
+   :row 8,
+   :to clojure.core}
   {:filename "/tmp/foo.clj",
    :row 16,
    :col 5,
    :from foo,
    :to clojure.core,
-   :name comment}
-  {:filename "/tmp/foo.clj",
-   :row 11,
-   :col 1,
+   :name comment,
+   :macro true,
+   :var-args-min-arity 0}
+  {:name defmacro,
+   :var-args-min-arity 2,
+   :filename "/tmp/foo.clj",
    :from foo,
-   :to clojure.core,
-   :name defmacro,
-   :arity 5}]}
+   :macro true,
+   :col 1,
+   :arity 5,
+   :row 11,
+   :to clojure.core}]}
 ```
 
 NOTE: breaking changes may occur as result of feedback in the next few weeks (2019-07-30).
