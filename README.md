@@ -154,6 +154,8 @@ clj-kondo is informed about new functions you just wrote.
 
 All other error codes indicate an unexpected error.
 
+## [Analysis data](analysis)
+
 ## Tests
 
     script/test
