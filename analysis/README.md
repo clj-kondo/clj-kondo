@@ -248,3 +248,21 @@ clj-kondo.impl.namespace/reg-var-usage!: missing docstring
 clj-kondo.impl.namespace/reg-alias!: missing docstring
 ...
 ```
+
+### Circular dependencies
+
+Code:
+
+```
+(ns a (:require b c))
+
+(ns b (:require a)) ;; circular dependency
+
+(ns c (:require a)) ;; circular dependency
+```
+
+```
+$ clj -m clj-kondo.tools.circular-dependencies /tmp/circular.clj
+/tmp/circular.clj:3:17: circular dependendy from namespace b to a
+/tmp/circular.clj:5:17: circular dependendy from namespace c to a
+```
