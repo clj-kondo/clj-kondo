@@ -69,24 +69,60 @@
     (assert-submaps
      '[{:filename "<stdin>", :row 3, :col 24, :from foo, :to clojure.string}]
      namespace-usages))
-  (let [{:keys [:var-usages]} (analyze "(inc 1 2 3)" {:lang :cljc})]
+  (let [{:keys [:var-usages :var-definitions]} (analyze "(defn f [] (inc 1 2 3))" {:lang :cljc})]
     (assert-submaps
      '[{:filename "<stdin>",
         :row 1,
         :col 1,
+        :ns user,
+        :name f,
+        :fixed-arities #{0},
+        :lang :clj}
+       {:filename "<stdin>",
+        :row 1,
+        :col 1,
+        :ns user,
+        :name f,
+        :fixed-arities #{0},
+        :lang :cljs}]
+     var-definitions)
+    (assert-submaps
+     '[{:filename "<stdin>",
+        :row 1,
+        :col 12,
         :from user,
         :to clojure.core,
         :name inc,
         :fixed-arities #{1},
         :arity 3,
         :lang :clj}
+       {:name defn,
+        :var-args-min-arity 2,
+        :lang :clj,
+        :filename "<stdin>",
+        :from user,
+        :macro true,
+        :col 1,
+        :arity 3,
+        :row 1,
+        :to clojure.core}
        {:filename "<stdin>",
         :row 1,
-        :col 1,
+        :col 12,
         :from user,
         :to cljs.core,
         :name inc,
         :fixed-arities #{1},
         :arity 3,
-        :lang :cljs}]
+        :lang :cljs}
+       {:name defn,
+        :var-args-min-arity 2,
+        :lang :cljs,
+        :filename "<stdin>",
+        :from user,
+        :macro true,
+        :col 1,
+        :arity 3,
+        :row 1,
+        :to cljs.core}]
      var-usages)))

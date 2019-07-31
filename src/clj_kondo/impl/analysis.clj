@@ -25,17 +25,19 @@
              :arity arity
              :lang lang)))
 
-(defn reg-var! [{:keys [analysis] :as _ctx}
+(defn reg-var! [{:keys [:analysis :base-lang :lang] :as _ctx}
                 filename row col ns name attrs]
   (let [attrs (select-keys attrs [:private :macro :fixed-arities :var-args-min-arity
                                   :doc :added :deprecated])]
     (swap! analysis update :var-definitions conj
-           (merge {:filename filename
-                   :row row
-                   :col col
-                   :ns ns
-                   :name name}
-                  attrs))))
+           (assoc-some
+            (merge {:filename filename
+                    :row row
+                    :col col
+                    :ns ns
+                    :name name}
+                   attrs)
+            :lang (when (= :cljc base-lang) lang)))))
 
 (defn reg-namespace! [{:keys [analysis] :as _ctx} filename row col ns-name in-ns metadata]
   (swap! analysis update :namespace-definitions conj

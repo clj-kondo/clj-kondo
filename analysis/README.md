@@ -37,6 +37,8 @@ The analysis output consists of a map with:
   - `:fixed-arities`: a set of fixed arities
   - `:var-args-min-arity`: the minimal number of arguments of a var-args signature
   - several metadata values: `:private`, `:macro`, `:deprecated`, `:doc`, `:added`
+  - `:lang`: if definition occurred in a `.cljc` file, the language in which the
+    definition was done: `:clj` or `:cljs`
 
 - `:var-usages`, a list of maps with:
   - `:filename`, `:row`, `:col`
