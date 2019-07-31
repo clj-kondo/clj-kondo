@@ -217,7 +217,8 @@
                                  (analysis/reg-usage! ctx
                                                       filename row col caller-ns-sym
                                                       resolved-ns fn-name arity
-                                                      called-fn))]
+                                                      (when (= :cljc base-lang)
+                                                        call-lang) called-fn))]
                        :when valid-call?
                        :let [fn-name (:name called-fn)
                              _ (when (and unresolved?

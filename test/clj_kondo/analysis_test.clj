@@ -4,12 +4,16 @@
    [clj-kondo.test-utils :refer [assert-submaps]]
    [clojure.test :as t :refer [deftest is testing]]))
 
-(defn analyze [input]
-  (:analysis
-   (with-in-str
-     input
-     (clj-kondo/run! {:lint ["-"]
-                      :config {:output {:analysis true}}}))))
+(defn analyze
+  ([input] (analyze input nil))
+  ([input config]
+   (:analysis
+    (with-in-str
+      input
+      (clj-kondo/run! (merge
+                       {:lint ["-"]
+                        :config {:output {:analysis true}}}
+                       config))))))
 
 (deftest analysis-test
   (let [{:keys [:var-definitions
@@ -64,4 +68,25 @@
      namespace-definitions)
     (assert-submaps
      '[{:filename "<stdin>", :row 3, :col 24, :from foo, :to clojure.string}]
-     namespace-usages)))
+     namespace-usages))
+  (let [{:keys [:var-usages]} (analyze "(inc 1 2 3)" {:lang :cljc})]
+    (assert-submaps
+     '[{:filename "<stdin>",
+        :row 1,
+        :col 1,
+        :from user,
+        :to clojure.core,
+        :name inc,
+        :fixed-arities #{1},
+        :arity 3,
+        :lang :clj}
+       {:filename "<stdin>",
+        :row 1,
+        :col 1,
+        :from user,
+        :to cljs.core,
+        :name inc,
+        :fixed-arities #{1},
+        :arity 3,
+        :lang :cljs}]
+     var-usages)))
