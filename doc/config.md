@@ -265,6 +265,32 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 {:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
 ```
 
+## Exclude unused bindings from being reported
+
+To exclude unused bindings from being reported, start their names with
+underscores: `_x`. To exclude warnings about key-destructured function arguments, use:
+
+``` clojure
+{:linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}
+```
+
+Examples:
+
+``` clojure
+$ echo '(defn f [{:keys [:a :b :c]} d])' | clj-kondo --lint -
+<stdin>:1:18: warning: unused binding a
+<stdin>:1:21: warning: unused binding b
+<stdin>:1:24: warning: unused binding c
+<stdin>:1:29: warning: unused binding d
+linting took 8ms, errors: 0, warnings: 4
+```
+
+``` clojure
+$ echo '(defn f [{:keys [:a :b :c]} _d])' | clj-kondo --lint - --config \
+  '{:linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}'
+linting took 8ms, errors: 0, warnings: 0
+```
+
 ## Example configurations
 
 These are some example configurations used in real projects. Feel free to create a PR with yours too.
