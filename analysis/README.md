@@ -13,7 +13,41 @@ with `{:output {:format ...}}` set to `:json` or `:edn`.
 
 ## Data
 
-A look at the data available after linting this code:
+The analysis output consists of a map with:
+
+- `:namespace-definitions`, a list of maps with:
+  - `:filename`, `:row`, `:col`
+  - `:name`: the name of the namespace
+
+  Optional:
+  - several metadata values: `:deprecated`, `:doc`, `:author`, `:added`, `:no-doc` (used by
+    [codox](https://github.com/weavejester/codox)).
+
+ - `:namespace-usages`, a list of maps with:
+   - `:filename`, `:row`, `:col`
+   - `:from`: the namespace which uses
+   - `:to`: the used namespace
+
+- `:var-definitions`, a list of maps with:
+  - `:filename`, `:row`, `:col`
+  - `:ns`: the namespace of the var
+  - `:name`: the name of the var
+
+  Optional:
+  - `:fixed-arities`: a set of fixed arities
+  - `:var-args-min-arity`: the minimal number of arguments of a var-args signature
+  - several metadata values: `:private`, `:macro`, `:deprecated`, `:doc`, `:added`
+
+- `:var-usages`, a list of maps with:
+  - `:filename`, `:row`, `:col`
+  - `:name`: the name of the used var
+  - `:from`: the namespace from which the var was used
+  - `:to`: the namespace of the used var
+
+  Optional:
+  - `:arity`: if the usage was a function call, the amount of arguments passed
+
+Example output after linting this code:
 
 ``` clojure
 (ns foo
