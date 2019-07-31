@@ -46,7 +46,7 @@ The analysis output consists of a map with:
 
   Optional:
   - `:arity`: if the usage was a function call, the amount of arguments passed
-  - several metadata values of the used var: `:private`, `:macro`,
+  - attributes of the used var: `:private`, `:macro`,
     `:fixed-arities`, `:var-args-min-arity`, `:deprecated`.
 
 Example output after linting this code:
