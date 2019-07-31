@@ -13,7 +13,7 @@
                        (if (= :com.stuartsierra.dependency/circular-dependency
                               (:reason ed))
                          (do (println (str filename ":" row ":" col ":")
-                                      "circular dependendy from namespace"
+                                      "circular dependency from namespace"
                                       from "to" to)
                              graph)
                          (throw e))))))
