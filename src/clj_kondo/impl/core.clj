@@ -157,7 +157,9 @@
                            (re-pattern cp-sep)))
         :else
         [{:findings [{:level :warning
-                      :filename filename
+                      :filename (if canonical?
+                                  (.getCanonicalPath file)
+                                  filename)
                       :type :file
                       :col 0
                       :row 0
@@ -165,7 +167,9 @@
     (catch Throwable e
       (if dev? (throw e)
           [{:findings [{:level :warning
-                        :filename filename
+                        :filename (if canonical?
+                                    (.getCanonicalPath (io/file filename))
+                                    filename)
                         :type :file
                         :col 0
                         :row 0
