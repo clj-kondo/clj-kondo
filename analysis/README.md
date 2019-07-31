@@ -159,7 +159,7 @@ and then use this repo as a git dep:
 
 ``` clojure
 {:deps {clj-kondo/tools {:git/url "https://github.com/borkdude/clj-kondo"
-                         :sha "44d54415b584694ff0e2dbfcbe71fd304b3829dd"
+                         :sha "1ed3b11025b7f3a582e6db099ba10a888fe0fc2c"
                          :deps/root "analysis"}}}
 ```
 
