@@ -70,3 +70,4 @@ clj-kondo
 **/.clj-kondo/.cache
 performance.txt
 clj-kondo*.snap
+.planck_cache

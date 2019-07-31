@@ -1,6 +1,8 @@
 (ns clj-kondo.impl.namespace
   {:no-doc true}
+  (:refer-clojure :exclude [ns-name])
   (:require
+   [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
@@ -14,7 +16,8 @@
   "Registers namespace. Deep-merges with already registered namespaces
   with the same name. Returns updated namespace."
   [{:keys [:base-lang :lang :namespaces]} ns]
-  (let [path [base-lang lang (:name ns)]]
+  (let [{ns-name :name} ns
+        path [base-lang lang ns-name]]
     (get-in (swap! namespaces update-in
                    path deep-merge ns)
             path)))
@@ -22,12 +25,18 @@
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
-  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns]}
+  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns] :as ctx}
     ns-sym var-sym expr metadata]
    (let [metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym)
          path [base-lang lang ns-sym]]
+     (when (and (-> ctx :config :output :analysis)
+                (not (:temp metadata)))
+       (let [{:keys [:row :col]} (meta expr)]
+         (analysis/reg-var! ctx filename row col
+                            ns-sym var-sym
+                            metadata)))
      (swap! namespaces update-in path
             (fn [ns]
               (let [vars (:vars ns)

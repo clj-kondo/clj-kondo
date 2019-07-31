@@ -2,12 +2,14 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+   [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [node->line one-of tag sexpr vector-node
-                                 token-node symbol-from-token]]
+                                 token-node string-from-token symbol-from-token
+                                 assoc-some]]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -220,12 +222,16 @@
 
 (defn analyze-ns-decl
   [{:keys [:base-lang :lang :findings :filename] :as ctx} expr]
-  (let [children (next (:children expr))
+  (let [{:keys [row col]} (meta expr)
+        children (next (:children expr))
         ns-name-expr (first children)
         ns-name-expr  (meta/lift-meta-content2 ctx ns-name-expr)
         metadata (meta ns-name-expr)
         children (next children) ;; first = docstring, attr-map or libspecs
-        meta-node (when-let [fc (first children)]
+        fc (first children)
+        docstring (when fc
+                    (string-from-token fc))
+        meta-node (when fc
                     (let [t (tag fc)]
                       (if (= :map t)
                         fc
@@ -294,7 +300,9 @@
                        :used-referred-vars #{}
                        :used-vars []
                        :vars {}
-                       :java-imports java-imports}
+                       :java-imports java-imports
+                       :row row
+                       :col col}
                       (merge-with into
                                   analyzed-require-clauses
                                   refer-clojure))
@@ -304,6 +312,17 @@
              (= :cljs lang) (update :qualify-ns
                                     #(assoc % 'cljs.core 'cljs.core
                                             'clojure.core 'cljs.core)))]
+    (when (-> ctx :config :output :analysis)
+      (analysis/reg-namespace! ctx filename row col
+                               ns-name false (assoc-some {}
+                                                         :deprecated (:deprecated ns-meta)
+                                                         :doc docstring
+                                                         :added (:added ns-meta)
+                                                         :no-doc (:no-doc ns-meta)
+                                                         :author (:author ns-meta)))
+      (doseq [req (:required ns)]
+        (let [{:keys [row col]} (meta req)]
+          (analysis/reg-namespace-usage! ctx filename row col ns-name req))))
     (namespace/reg-namespace! ctx ns)
     ns))
 

@@ -1,19 +1,19 @@
 (ns clj-kondo.core
   (:refer-clojure :exclude [run!])
   (:require
+   [cheshire.core :as cheshire]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
-   [clojure.java.io :as io]
-   [clojure.string :as str]))
+   [clojure.java.io :as io]))
 
 ;;;; Public API
 
 (defn print!
   "Prints the result from `run!` to `*out*`. Returns `nil`. Alpha,
   subject to change."
-  [{:keys [:config :findings :summary]}]
+  [{:keys [:config :findings :summary :analysis]}]
   (let [output-cfg (:output config)
         fmt (or (:format output-cfg) :text)]
     (case fmt
@@ -29,30 +29,21 @@
             (let [{:keys [:error :warning :duration]} summary]
               (printf "linting took %sms, " duration)
               (println (format "errors: %s, warnings: %s" error warning))))))
-      ;; avoid loading clojure.pprint or bringing in additional libs for coercing to EDN or JSON
+      ;; avoid loading clojure.pprint or bringing in additional libs for printing to EDN for now
       :edn
-      (do
-        (print "{")
-        (print (format ":findings\n [%s]"
-                       (str/join ",\n  " findings)))
-        (when (:summary output-cfg)
-          (print (format ",\n :summary %s"
-                         summary)))
-        (println "}"))
+      (let [output (cond-> {:findings findings}
+                     (:summary output-cfg)
+                     (assoc :summary summary)
+                     (:analysis output-cfg)
+                     (assoc :analysis analysis))]
+        (prn output))
       :json
-      (do
-        (print "{")
-        (print (format "\"findings\":\n [%s]"
-                       (str/join ",\n  "
-                                 (map
-                                  (fn [finding]
-                                    (core-impl/finding->json finding))
-                                  findings))))
-        (when (:summary output-cfg)
-          (let [{:keys [:error :warning :duration]} summary]
-            (print (format core-impl/json-summary-format
-                           error warning duration))))
-        (println "}"))))
+      (println (cheshire/generate-string
+                (cond-> {:findings findings}
+                  (:summary output-cfg)
+                  (assoc :summary summary)
+                  (:analysis output-cfg)
+                  (assoc :analysis analysis))))))
   (flush)
   nil)
 
@@ -88,9 +79,14 @@
         config (core-impl/resolve-config cfg-dir config)
         cache-dir (core-impl/resolve-cache-dir cfg-dir cache)
         findings (atom [])
+        analysis (atom {:namespace-definitions []
+                        :namespace-usages []
+                        :var-definitions []
+                        :var-usages []})
         ctx {:config config
              :findings findings
-             :namespaces (atom {})}
+             :namespaces (atom {})
+             :analysis analysis}
         lang (or lang :clj)
         processed
         ;; this is needed to force the namespace atom state
@@ -102,16 +98,20 @@
         _ (l/lint-unused-namespaces! ctx)
         _ (l/lint-unused-bindings! ctx)
         _ (l/lint-unresolved-symbols! ctx)
+        ;; _ (namespace/reg-analysis-output! ctx)
         all-findings (concat linted-calls (mapcat :findings processed)
                              @findings)
         all-findings (core-impl/filter-findings config all-findings)
-        all-findings (dedupe (sort-by (juxt :filename :row :col) all-findings))
+        all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))
         summary (core-impl/summarize all-findings)
         duration (- (System/currentTimeMillis) start-time)
         summary (assoc summary :duration duration)]
-    {:findings all-findings
-     :config config
-     :summary summary}))
+    (cond->
+        {:findings all-findings
+         :config config
+         :summary summary}
+      (-> config :output :analysis)
+      (assoc :analysis @analysis))))
 
 ;;;; Scratch
 

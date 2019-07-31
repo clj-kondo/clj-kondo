@@ -1,9 +1,11 @@
 (ns clj-kondo.impl.analyzer.usages
   {:no-doc true}
+  (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils :refer
-    [tag one-of symbol-from-token tag kw->sym]]))
+    [tag one-of symbol-from-token tag kw->sym]])
+  (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)
 
@@ -21,6 +23,20 @@
           (namespace/reg-used-namespace! ctx
                                          (-> ns :name)
                                          resolved-ns))))))
+
+(defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
+  (let [children (:children expr)
+        m (first children)
+        ns (:ns ctx)
+        ns-keyword (-> expr :ns :k)
+        ns-sym (kw->sym ns-keyword)]
+    (when (:aliased? expr)
+      (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
+        (namespace/reg-used-namespace! ctx
+                                       (-> ns :name)
+                                       resolved-ns)))
+    (when-let [f (:analyze-expression** ctx)]
+      (f ctx m))))
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))

@@ -1821,6 +1821,8 @@
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defmacro foo [] `(let [x# 1]))"
                      {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(definline foo [] `(let [x# 1]) (foo))"
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(let [e (Exception.)] (.. e getCause getMessage))"
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "`(let [e# (Exception.)] (.. e# getCause getMessage))"
@@ -2216,6 +2218,7 @@
    (lint! (io/file "corpus" "use.clj")
           {:linters {:refer-all {:level :warning}
                      :use {:level :warning}}})))
+
 
 
 ;;;; Scratch

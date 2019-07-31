@@ -18,9 +18,8 @@
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
-     linter-disabled? tag sexpr kw->sym]]
-   [clojure.string :as str])
-  (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
+     linter-disabled? tag sexpr string-from-token assoc-some]]
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -299,7 +298,7 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        docstring? (:lines (first children))
+        docstring (string-from-token (first children))
         bodies (fn-bodies ctx children)
         _ (when (empty? bodies)
             (findings/reg-finding! (:findings ctx)
@@ -314,7 +313,7 @@
              ctx ns-name fn-name expr {:temp true}))
         parsed-bodies (map #(analyze-fn-body
                              (-> ctx
-                                 (assoc :docstring? docstring?
+                                 (assoc :docstring? docstring
                                         :in-def fn-name)) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
@@ -322,12 +321,14 @@
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
-       (cond-> (meta name-node)
-         macro? (assoc :macro true)
-         private? (assoc :private true)
-         deprecated (assoc :deprecated deprecated)
-         (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-         var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))))
+       (assoc-some (meta name-node)
+                   :macro macro?
+                   :private private?
+                   :deprecated deprecated
+                   :fixed-arities (not-empty fixed-arities)
+                   :var-args-min-arity var-args-min-arity
+                   :doc docstring
+                   :added (:added var-meta))))
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
@@ -594,18 +595,6 @@
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
     (concat (mapcat (comp :parsed) parsed-fns) analyzed-children)))
 
-(defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
-  (let [children (:children expr)
-        m (first children)
-        ns (:ns ctx)
-        ns-keyword (-> expr :ns :k)
-        ns-sym (kw->sym ns-keyword)
-        used (when (:aliased? expr)
-               (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
-                 [{:type :use
-                   :ns resolved-ns}]))]
-    (concat used (analyze-expression** ctx m))))
-
 (defn analyze-schema-defn [ctx expr]
   (let [{:keys [:defn :schemas]}
         (schema/expand-schema-defn2 ctx
@@ -665,14 +654,19 @@
                                  :declared true)))))
 
 (defn analyze-def [ctx expr]
-  (let [var-name-node (->> expr :children second (meta/lift-meta-content2 ctx))
+  ;; (def foo ?docstring ?init)
+  (let [children (next (:children expr))
+        var-name-node (->> children first (meta/lift-meta-content2 ctx))
         metadata (meta var-name-node)
-        var-name (:value var-name-node)]
+        var-name (:value var-name-node)
+        docstring (when (> (count children) 2)
+                    (string-from-token (second children)))]
     (when var-name
       (namespace/reg-var! ctx (-> ctx :ns :name)
                           var-name
                           expr
-                          metadata))
+                          (assoc-some metadata
+                                      :doc docstring)))
     (analyze-children (assoc ctx
                              :in-def var-name)
                       (nnext (:children expr)))))
@@ -883,7 +877,7 @@
           (def defonce defmulti goog-define)
           (do (lint-inline-def! ctx expr)
               (analyze-def ctx expr))
-          (defn defn- defmacro)
+          (defn defn- defmacro definline)
           (do (lint-inline-def! ctx expr)
               (analyze-defn ctx expr))
           defmethod (analyze-defmethod ctx expr)
@@ -1057,9 +1051,11 @@
         :reader-macro (analyze-reader-macro ctx expr)
         (:unquote :unquote-splicing)
         (analyze-children ctx children)
-        :namespaced-map (analyze-namespaced-map
-                         (update ctx
-                                 :callstack #(cons [nil t] %))
+        :namespaced-map (usages/analyze-namespaced-map
+                         (-> ctx
+                             (assoc :analyze-expression**
+                                    analyze-expression**)
+                             (update :callstack #(cons [nil t] %)))
                          expr)
         :map (do (key-linter/lint-map-keys ctx expr)
                  (analyze-children (update ctx
@@ -1105,7 +1101,7 @@
                       (utils/boolean-token? function)
                       (do (reg-not-a-function! ctx expr "boolean")
                           (analyze-children ctx (rest children)))
-                      (utils/string-token? function)
+                      (utils/string-from-token function)
                       (do (reg-not-a-function! ctx expr "string")
                           (analyze-children ctx (rest children)))
                       (utils/char-token? function)
@@ -1123,91 +1119,62 @@
                           children)))))
 
 (defn analyze-expression*
-  [{:keys [:filename :base-lang :lang :results :ns :top-ns
-           :expression :config :global-config :findings :namespaces]}]
-  (loop [ctx {:filename filename
-              :base-lang base-lang
-              :lang lang
-              :ns ns
-              ;; TODO: considering that we're introducing bindings here, we could do
-              ;; the analysis of unused bindings already in the last step of the
-              ;; loop, instead of collecting then in the namespace atom
-              :bindings {}
-              :config config
-              :global-config global-config
-              :findings findings
-              :namespaces namespaces
-              :top-level? true
-              :top-ns top-ns}
-         ns ns
+  "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
+  [ctx results expression]
+  (loop [ctx (assoc ctx
+                    :bindings {}
+                    :top-level? true)
+         ns (:ns ctx)
          [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
          results results]
-    (let [ns-name (:name ns)]
-      (if (seq all)
-        (case (:type first-parsed)
-          nil (recur ctx ns rest-parsed results)
-          (:ns :in-ns)
-          (let [ns-name (:name first-parsed)
-                local-config (:config first-parsed)
-                global-config (:global-config ctx)
-                new-config (config/merge-config! global-config local-config)]
-            (recur
-             (-> ctx
-                 (assoc :config new-config)
-                 (update :top-ns (fn [n]
-                                   (or n ns-name))))
-             first-parsed
-             rest-parsed
-             (-> results
-                 (assoc :ns first-parsed)
-                 (update :used-namespaces into (:used-namespaces first-parsed))
-                 (update :required into (:required first-parsed)))))
-          ;; TODO: are we still using this?
-          :use
-          (do
-            (namespace/reg-used-namespace! ctx ns-name (:ns first-parsed))
-            (recur
-             ctx
-             ns
-             rest-parsed
-             (-> results
-                 (update :used-namespaces conj (:ns first-parsed)))))
-          ;; catch-all
+    (if (seq all)
+      (case (:type first-parsed)
+        nil (recur ctx ns rest-parsed results)
+        (:ns :in-ns)
+        (let [ns-name (:name first-parsed)
+              local-config (:config first-parsed)
+              global-config (:global-config ctx)
+              new-config (config/merge-config! global-config local-config)]
           (recur
-           ctx
-           ns
+           (-> ctx
+               (assoc :config new-config)
+               (update :top-ns (fn [n]
+                                 (or n ns-name))))
+           first-parsed
            rest-parsed
-           (case (:type first-parsed)
-             ;; TODO: are we still using this?
-             :call
-             (let [results (update results :used-namespaces conj (:resolved-ns first-parsed))]
-               results)
-             results
-             results)))
-        [(assoc ctx :ns ns) results]))))
+           (-> results
+               (assoc :ns first-parsed)
+               (update :used-namespaces into (:used-namespaces first-parsed))
+               (update :required into (:required first-parsed)))))
+        ;; catch-all
+        (recur
+         ctx
+         ns
+         rest-parsed
+         (case (:type first-parsed)
+           :call
+           (let [results (update results :used-namespaces conj (:resolved-ns first-parsed))]
+             results)
+           results)))
+      [(assoc ctx :ns ns) results])))
 
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To
   optimize cache lookups later on, calls are indexed by the namespace
   they call to, not the ns where the call occurred. Also collects
   other findings and passes them under the :findings key."
-  [{:keys [:filename :base-lang :lang :expressions :config :findings :namespaces]}]
+  [{:keys [:base-lang :lang :config] :as ctx}
+   expressions]
   (profiler/profile
    :analyze-expressions
    (let [init-ns (when-not (= :edn lang)
-                   (analyze-ns-decl {:filename filename
-                                     :base-lang base-lang
-                                     :lang lang
-                                     :namespaces namespaces} (parse-string "(ns user)")))
-         init-ctx {:filename filename
-                   :base-lang base-lang
-                   :lang lang
-                   :ns init-ns
-                   :config config
-                   :global-config config
-                   :findings findings
-                   :namespaces namespaces
-                   :top-ns nil}]
+                   (analyze-ns-decl (assoc-in ctx
+                                              [:config :output :analysis] false)
+                                    (parse-string "(ns user)")))
+         init-ctx (assoc ctx
+                         :ns init-ns
+                         :top-ns nil
+                         :global-config config)]
      (loop [ctx init-ctx
             [expression & rest-expressions] expressions
             results {:required (:required init-ns)
@@ -1216,9 +1183,7 @@
                      :lang base-lang}]
        (if expression
          (let [[ctx results]
-               (analyze-expression* (assoc ctx
-                                           :expression expression
-                                           :results results))]
+               (analyze-expression* ctx results expression)]
            (recur ctx rest-expressions results))
          results)))))
 
@@ -1227,37 +1192,21 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config :findings :namespaces] :as _ctx} filename input lang dev?]
+  [{:keys [:config] :as ctx} filename input lang dev?]
   (try
     (let [parsed (p/parse-string input)
           analyzed-expressions
           (case lang
             :cljc
-            (let [clj (analyze-expressions {:filename filename
-                                            :config config
-                                            :findings findings
-                                            :namespaces namespaces
-                                            :base-lang :cljc
-                                            :lang :clj
-                                            :expressions (:children (select-lang parsed :clj))})
-                  cljs (analyze-expressions {:filename filename
-                                             :findings findings
-                                             :namespaces namespaces
-                                             :config config
-                                             :base-lang :cljc
-                                             :lang :cljs
-                                             :expressions (:children (select-lang parsed :cljs))})]
+            (let [clj (analyze-expressions (assoc ctx :base-lang :cljc :lang :clj :filename filename)
+                                           (:children (select-lang parsed :clj)))
+                  cljs (analyze-expressions (assoc ctx :base-lang :cljc :lang :cljs :filename filename)
+                                            (:children (select-lang parsed :cljs)))]
               (profiler/profile :deep-merge
                                 (deep-merge clj cljs)))
             (:clj :cljs :edn)
-            (analyze-expressions {:filename filename
-                                  :config config
-                                  :findings findings
-                                  :namespaces namespaces
-                                  :base-lang lang
-                                  :lang lang
-                                  :expressions
-                                  (:children parsed)}))]
+            (analyze-expressions (assoc ctx :base-lang lang :lang lang :filename filename)
+                                 (:children parsed)))]
       analyzed-expressions)
     (catch Exception e
       (if dev? (throw e)

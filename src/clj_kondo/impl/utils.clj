@@ -5,7 +5,8 @@
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
-   [clj-kondo.impl.rewrite-clj.parser :as p]))
+   [clj-kondo.impl.rewrite-clj.parser :as p]
+   [clojure.string :as str]))
 
 ;;; export rewrite-clj functions
 
@@ -170,8 +171,11 @@
 (defn char-token? [node]
   (char? (:value node)))
 
-(defn string-token? [node]
-  (boolean (:lines node)))
+(defn string-from-token [node]
+  (when-let [lines
+             (or (:lines node)
+                 (:multi-line node))]
+    (str/join "\n" lines)))
 
 (defn number-token? [node]
   (number? (:value node)))
@@ -210,6 +214,27 @@
   [f coll]
   (reduce-map (fn [xf] (fn [m k v] (xf m k (f v)))) coll))
 
+(defn assoc-some
+  "Associates a key with a value in a map, if and only if the value is
+  not nil. From medley."
+  ([m k v]
+   (if (nil? v) m (assoc m k v)))
+  ([m k v & kvs]
+   (reduce (fn [m [k v]] (assoc-some m k v))
+           (assoc-some m k v)
+           (partition 2 kvs))))
+
+(defn select-some
+  "Like select-keys, but only selects when value is not nil."
+  ([m ks]
+   (persistent!
+    (reduce (fn [acc k]
+              (if-some [v (get m k)]
+                (assoc! acc k v)
+                acc))
+            (transient {})
+            ks))))
+
 ;;;; Scratch
 
 (comment
@@ -217,4 +242,6 @@
   (false? (node/sexpr (parse-string "nil")))
   (constant? (parse-string "foo"))
   (map-node-vals (parse-string "{:a 1 :b 2}"))
+  (assoc-some {} :a 1 :b nil :c false)
+  (select-some {:a 1 :b nil :c 2 :d false} [:a :b :d]) ;; => {:a 1, :d false}
   )
