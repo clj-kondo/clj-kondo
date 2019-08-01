@@ -285,7 +285,7 @@ clj-kondo.impl.namespace/reg-alias!: missing docstring
 
 Example code:
 
-```
+``` clojure
 (ns a (:require b c))
 
 (ns b (:require a)) ;; circular dependency
