@@ -100,7 +100,7 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
-(defn resolve-call [idacs call fn-ns fn-name]
+(defn resolve-call* [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
         unresolved? (:unresolved? call)
@@ -128,6 +128,26 @@
                         ;; could be a macro
                         (get-in idacs [:clj :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
+
+(defn resolve-call [idacs call call-lang fn-ns fn-name unresolved? refer-alls]
+  (when-let [called-fn
+             (or (resolve-call* idacs call fn-ns fn-name)
+                 (when unresolved?
+                   (some #(resolve-call* idacs call % fn-name)
+                         (into (vec
+                                (keep (fn [[ns {:keys [:excluded]}]]
+                                        (when-not (contains? excluded fn-name)
+                                          ns))
+                                      refer-alls))
+                               (when (not (:clojure-excluded? call))
+                                 [(case call-lang #_base-lang
+                                        :clj 'clojure.core
+                                        :cljs 'cljs.core
+                                        :clj1c 'clojure.core)])))))]
+    (if-let [imported-ns (:imported-ns called-fn)]
+      (recur idacs call call-lang imported-ns
+             (:imported-var called-fn) unresolved? refer-alls)
+      called-fn)))
 
 (defn show-arities [fixed-arities var-args-min-arity]
   (let [fas (vec (sort fixed-arities))
@@ -168,20 +188,8 @@
                                                [base-lang call-lang caller-ns-sym])
                              resolved-ns (:resolved-ns call)
                              refer-alls (:refer-alls caller-ns)
-                             called-fn
-                             (or (resolve-call idacs call resolved-ns fn-name)
-                                 (when unresolved?
-                                   (some #(resolve-call idacs call % fn-name)
-                                         (into (vec
-                                                (keep (fn [[ns {:keys [:excluded]}]]
-                                                        (when-not (contains? excluded fn-name)
-                                                          ns))
-                                                      refer-alls))
-                                               (when (not (:clojure-excluded? call))
-                                                 [(case call-lang #_base-lang
-                                                        :clj 'clojure.core
-                                                        :cljs 'cljs.core
-                                                        :clj1c 'clojure.core)])))))
+                             called-fn (resolve-call idacs call call-lang
+                                                     resolved-ns fn-name unresolved? refer-alls)
                              unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
                              ;; we can determine if the call was made to another
                              ;; file by looking at the base-lang (in case of

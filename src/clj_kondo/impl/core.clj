@@ -192,7 +192,7 @@
                   (select-keys [:row :col
                                 :macro :private :deprecated
                                 :fixed-arities :var-args-min-arity
-                                :name :ns :top-ns])))
+                                :name :ns :top-ns :imported-ns :imported-var])))
             vars))
 
 (defn namespaces->indexed [namespaces]

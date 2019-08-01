@@ -2245,6 +2245,16 @@
                                       {:output {:canonical-paths true}}))))]
       (is (= (.getPath f) (.getAbsolutePath f))))))
 
+(deftest import-vars-test
+  (assert-submaps
+   '({:file "corpus/import_vars.clj",
+      :row 14,
+      :col 1,
+      :level :error,
+      :message "clojure.walk/prewalk is called with 0 args but expects 2"})
+   (lint! (io/file "corpus" "import_vars.clj")
+          {:linters {:unresolved-symbol {:level :error}}})))
+
 ;;;; Scratch
 
 (comment
