@@ -8,6 +8,7 @@
    [clj-kondo.impl.findings :as findings]
    [clojure.set :as set]
    [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.cache :as cache]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -100,12 +101,16 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
-(defn resolve-call* [idacs call fn-ns fn-name]
+(defn resolve-call* [cache-dir idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
         unresolved? (:unresolved? call)
         unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
-        fn-ns (if unknown-ns? (:ns call) fn-ns)]
+        fn-ns (if unknown-ns? (:ns call) fn-ns)
+        ;; TODO: this currently only works for .clj, not for requiring .cljc or
+        ;; .cljs namespaces we can eventually move away from the sync-cache
+        ;; and :used-namespaces stuff, because this seems better and simpler
+        idacs (cache/load-when-missing idacs [base-lang :defs fn-ns] cache-dir base-lang fn-ns)]
     (case [base-lang call-lang]
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
@@ -129,11 +134,11 @@
                         (get-in idacs [:clj :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
-(defn resolve-call [idacs call call-lang fn-ns fn-name unresolved? refer-alls]
+(defn resolve-call [cache-dir idacs call call-lang fn-ns fn-name unresolved? refer-alls]
   (when-let [called-fn
-             (or (resolve-call* idacs call fn-ns fn-name)
+             (or (resolve-call* cache-dir idacs call fn-ns fn-name)
                  (when unresolved?
-                   (some #(resolve-call* idacs call % fn-name)
+                   (some #(resolve-call* cache-dir idacs call % fn-name)
                          (into (vec
                                 (keep (fn [[ns {:keys [:excluded]}]]
                                         (when-not (contains? excluded fn-name)
@@ -145,7 +150,7 @@
                                         :cljs 'cljs.core
                                         :clj1c 'clojure.core)])))))]
     (if-let [imported-ns (:imported-ns called-fn)]
-      (recur idacs call call-lang imported-ns
+      (recur cache-dir idacs call call-lang imported-ns
              (:imported-var called-fn) unresolved? refer-alls)
       called-fn)))
 
@@ -173,7 +178,7 @@
   TODO: split this out in a resolver and a linter, so other linters
   can leverage the resolved results."
   [ctx idacs]
-  (let [config (:config ctx)
+  (let [{:keys [:config :cache-dir]} ctx
         output-analysis? (-> config :output :analysis)
         ;; findings* (:findings ctx)
         findings (for [ns (namespace/list-namespaces ctx)
@@ -188,7 +193,8 @@
                                                [base-lang call-lang caller-ns-sym])
                              resolved-ns (:resolved-ns call)
                              refer-alls (:refer-alls caller-ns)
-                             called-fn (resolve-call idacs call call-lang
+                             called-fn (resolve-call cache-dir
+                                                     idacs call call-lang
                                                      resolved-ns fn-name unresolved? refer-alls)
                              unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
                              ;; we can determine if the call was made to another
