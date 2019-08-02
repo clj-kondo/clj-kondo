@@ -107,9 +107,9 @@
         unresolved? (:unresolved? call)
         unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
         fn-ns (if unknown-ns? (:ns call) fn-ns)
-        ;; TODO: this currently only works for .clj, not for requiring .cljc or
-        ;; .cljs namespaces we can eventually move away from the sync-cache
-        ;; and :used-namespaces stuff, because this seems better and simpler
+        ;; this load-when-missing is only here because of import-vars it would
+        ;; be preferable if we didn't need it, since the namespace will be
+        ;; loaded every time we resolve a function from the proxy namespace
         idacs (cache/load-when-missing idacs [base-lang :defs fn-ns] cache-dir base-lang fn-ns)]
     (case [base-lang call-lang]
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
