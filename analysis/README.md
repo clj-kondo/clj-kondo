@@ -169,11 +169,11 @@ You can create an alias for a tool in your `~/.clojure/deps.edn`:
 
 ```
 {
- :aliases {:namespace-graph
+ :aliases {:unused-vars
            {:extra-deps {clj-kondo/tools {:git/url "https://github.com/borkdude/clj-kondo"
                                           :sha "1ed3b11025b7f3a582e6db099ba10a888fe0fc2c"
                                           :deps/root "analysis"}}
-            :main-opts ["-m" "clj-kondo.tools.namespace-graph"]}
+            :main-opts ["-m" "clj-kondo.tools.unused-vars"]}
  }
 }
 ```
@@ -181,7 +181,7 @@ You can create an alias for a tool in your `~/.clojure/deps.edn`:
 and then call it from anywhere in your system with:
 
 ```
-~/git/clojure (master) $ clj -A:namespace-graph src
+$ clj -A:unused-vars src
 ```
 
 ### Unused vars
