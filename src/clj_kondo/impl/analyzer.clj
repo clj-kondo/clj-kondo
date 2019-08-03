@@ -465,8 +465,8 @@
        (node->line filename expr :warning :redundant-do "redundant do"))))
   (analyze-children ctx (next (:children expr))))
 
-(defn lint-two-forms-binding-vector! [ctx form-name expr sexpr]
-  (let [num-children (count sexpr)
+(defn lint-two-forms-binding-vector! [ctx form-name expr]
+  (let [num-children (count (:children expr))
         {:keys [:row :col]} (meta expr)]
     (when (not= 2 num-children)
       (findings/reg-finding!
@@ -478,16 +478,32 @@
         :filename (:filename ctx)
         :level :error}))))
 
-(defn analyze-if-let [ctx expr]
-  (let [callstack (:callstack ctx)
-        call (-> callstack first second)
-        bv (-> expr :children second)
-        sexpr (and bv (sexpr bv))]
-    (when (vector? sexpr)
+(defn lint-one-or-two-forms-body! [ctx form-name main-expr body-exprs]
+  (let [num-children (count body-exprs)
+        {:keys [:row :col]} (meta main-expr)]
+    (when-not (or (= 1 num-children)
+                  (= 2 num-children))
+      (findings/reg-finding!
+       (:findings ctx)
+       {:type :syntax
+        :message (format "%s body requires one or two forms" form-name)
+        :row row
+        :col col
+        :filename (:filename ctx)
+        :level :error}))))
+
+(defn analyze-conditional-let [ctx call expr]
+  ;; TODO: add check for number of children. I.e. when the first child is
+  ;; `if-let`, then the number of childs in the body should be exactly two.
+  (let [bv (-> expr :children second)
+        vector? (when bv (= :vector (tag bv)))]
+    (when vector?
       (let [bindings (expr-bindings ctx bv)
             eval-expr (-> bv :children second)
             body-exprs (-> expr :children nnext)]
-        (lint-two-forms-binding-vector! ctx call bv sexpr)
+        (lint-two-forms-binding-vector! ctx call bv)
+        (when (one-of call [if-let if-some])
+          (lint-one-or-two-forms-body! ctx call expr body-exprs))
         (concat (:analyzed bindings)
                 (analyze-expression** ctx eval-expr)
                 (analyze-children (ctx-with-bindings ctx
@@ -909,7 +925,7 @@
           letfn
           (analyze-letfn ctx expr)
           (if-let if-some when-let when-some when-first)
-          (analyze-if-let ctx expr)
+          (analyze-conditional-let ctx resolved-as-clojure-var-name expr)
           do
           (analyze-do ctx expr)
           (fn fn*)

@@ -641,6 +641,11 @@
       :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
      {:file "<stdin>",
       :row 1,
+      :col 1,
+      :level :error,
+      :message "if-let body requires one or two forms"}
+     {:file "<stdin>",
+      :row 1,
       :col 9,
       :level :error,
       :message "if-let binding vector requires exactly 2 forms"})
@@ -651,6 +656,11 @@
       :col 1,
       :level :error,
       :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
+     {:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "if-let body requires one or two forms"}
      {:file "<stdin>",
       :row 1,
       :col 9,
@@ -1906,6 +1916,8 @@
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :refer :all]))
                       join starts-with? ends-with?"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(when-first [a [1 2 3]] a)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest misc-false-positives-test
