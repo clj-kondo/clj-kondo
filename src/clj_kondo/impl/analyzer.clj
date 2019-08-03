@@ -478,9 +478,9 @@
         :filename (:filename ctx)
         :level :error}))))
 
-(defn lint-max-two-forms-body! [ctx form-name expr]
-  (let [num-children (count (:children expr))
-        {:keys [:row :col]} (meta expr)]
+(defn lint-one-or-two-forms-body! [ctx form-name main-expr body-exprs]
+  (let [num-children (count body-exprs)
+        {:keys [:row :col]} (meta main-expr)]
     (when-not (or (= 1 num-children)
                   (= 2 num-children))
       (findings/reg-finding!
@@ -502,7 +502,8 @@
             eval-expr (-> bv :children second)
             body-exprs (-> expr :children nnext)]
         (lint-two-forms-binding-vector! ctx call bv)
-        (lint-max-two-forms-body! ctx call body-exprs)
+        (when (one-of call [if-let if-some])
+          (lint-one-or-two-forms-body! ctx call expr body-exprs))
         (concat (:analyzed bindings)
                 (analyze-expression** ctx eval-expr)
                 (analyze-children (ctx-with-bindings ctx
