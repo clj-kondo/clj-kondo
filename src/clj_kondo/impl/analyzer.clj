@@ -908,7 +908,7 @@
           (analyze-like-let ctx expr)
           letfn
           (analyze-letfn ctx expr)
-          (if-let if-some when-let when-some)
+          (if-let if-some when-let when-some when-first)
           (analyze-if-let ctx expr)
           do
           (analyze-do ctx expr)
