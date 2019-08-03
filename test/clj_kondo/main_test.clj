@@ -1906,6 +1906,8 @@
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :refer :all]))
                       join starts-with? ends-with?"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(when-first [a [1 2 3]] a)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest misc-false-positives-test
