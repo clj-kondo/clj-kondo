@@ -2257,6 +2257,35 @@
                                       {:output {:canonical-paths true}}))))]
       (is (= (.getPath f) (.getAbsolutePath f))))))
 
+(deftest core-async-alt-test
+  (assert-submaps
+   '({:file "corpus/core_async/alt.clj",
+      :row 6,
+      :col 9,
+      :level :error,
+      :message "unresolved symbol x1"}
+     {:file "corpus/core_async/alt.clj",
+      :row 6,
+      :col 12,
+      :level :error,
+      :message "unresolved symbol x2"}
+     {:file "corpus/core_async/alt.clj",
+      :row 9,
+      :col 9,
+      :level :error,
+      :message "unresolved symbol x3"}
+     {:file "corpus/core_async/alt.clj",
+      :row 9,
+      :col 12,
+      :level :error,
+      :message "unresolved symbol x4"})
+   (lint! (io/file "corpus" "core_async" "alt.clj")
+          {:linters {:unresolved-symbol {:level :error}}}))
+  (is (empty? (lint!
+               "(ns foo (:require [clojure.core.async :as a]))
+                (a/alt! (a/chan)  ([v ch] [ch v]))"
+               "--lang" "cljs"))))
+
 ;;;; Scratch
 
 (comment
