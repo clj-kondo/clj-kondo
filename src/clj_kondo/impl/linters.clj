@@ -8,7 +8,6 @@
    [clj-kondo.impl.findings :as findings]
    [clojure.set :as set]
    [clj-kondo.impl.namespace :as namespace]
-   [clj-kondo.impl.cache :as cache]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
