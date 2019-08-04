@@ -85,7 +85,7 @@
         entries (enumeration-seq (.entries jar))
         entries (filter (fn [^JarFile$JarFileEntry x]
                           (let [nm (.getName x)]
-                            (source-file? nm))) entries)]
+                            (and (not (.isDirectory x)) (source-file? nm)))) entries)]
     (map (fn [^JarFile$JarFileEntry entry]
            {:filename (str (when canonical?
                              (str (.getCanonicalPath jar-file) ":"))
