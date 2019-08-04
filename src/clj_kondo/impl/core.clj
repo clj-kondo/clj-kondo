@@ -102,7 +102,7 @@
                        (.getCanonicalPath file)
                        (.getPath file))
                   can-read? (.canRead file)
-                  source? (source-file? nm)]
+                  source? (and (.isFile file) (source-file? nm))]
               (cond
                 (and can-read? source?)
                 {:filename nm
