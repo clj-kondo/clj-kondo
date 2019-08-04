@@ -17,6 +17,7 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
+   [clj-kondo.impl.analyzer.potemkin :as potemkin]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some]]
@@ -960,6 +961,8 @@
             (spec/analyze-fdef (assoc ctx
                                       :analyze-children
                                       analyze-children) expr)
+            [potemkin import-vars]
+            (potemkin/analyze-import-vars ctx expr)
             ([clojure.core.async alt!] [clojure.core.async alt!!]
              [cljs.core.async alt!] [cljs.core.async alt!!])
             (core-async/analyze-alt! (assoc ctx
@@ -1173,6 +1176,13 @@
                (assoc :ns first-parsed)
                (update :used-namespaces into (:used-namespaces first-parsed))
                (update :required into (:required first-parsed)))))
+        :import-vars
+        (do
+          (namespace/reg-proxied-namespaces! ctx (:name ns) (:used-namespaces first-parsed))
+          (recur ctx
+                 ns
+                 rest-parsed
+                 (update results :used-namespaces into (:used-namespaces first-parsed))))
         ;; catch-all
         (recur
          ctx
@@ -1180,8 +1190,7 @@
          rest-parsed
          (case (:type first-parsed)
            :call
-           (let [results (update results :used-namespaces conj (:resolved-ns first-parsed))]
-             results)
+           (update results :used-namespaces conj (:resolved-ns first-parsed))
            results)))
       [(assoc ctx :ns ns) results])))
 

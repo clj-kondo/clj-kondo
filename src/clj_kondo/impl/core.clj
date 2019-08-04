@@ -4,7 +4,7 @@
   (:require
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
-   [clj-kondo.impl.utils :refer [one-of print-err! map-vals]]
+   [clj-kondo.impl.utils :refer [one-of print-err! map-vals assoc-some]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str])
@@ -192,21 +192,21 @@
                   (select-keys [:row :col
                                 :macro :private :deprecated
                                 :fixed-arities :var-args-min-arity
-                                :name :ns :top-ns])))
+                                :name :ns :top-ns :imported-ns :imported-var])))
             vars))
 
 (defn namespaces->indexed [namespaces]
   (when namespaces
-    (map-vals (fn [v]
-                (let [vars (:vars v)]
-                  (format-vars vars )))
+    (map-vals (fn [{:keys [:vars :proxied-namespaces]}]
+                (assoc-some (format-vars vars)
+                            :proxied-namespaces proxied-namespaces))
               namespaces)))
 
 (defn namespaces->indexed-cljc [namespaces lang]
   (when namespaces
     (map-vals (fn [v]
                 (let [vars (:vars v)]
-                  {lang (format-vars vars )}))
+                  {lang (format-vars vars)}))
               namespaces)))
 
 (defn namespaces->indexed-defs [ctx]

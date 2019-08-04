@@ -79,12 +79,19 @@
                      (str "clj-kondo cache is locked by other process")))
              (recur (inc retry#))))))))
 
-(defn load-when-missing [idacs path cache-dir lang ns-sym]
-  (if-not (get-in idacs path)
-    (if-let [data (from-cache-1 cache-dir lang ns-sym)]
-      (assoc-in idacs path data)
-      idacs)
-    idacs))
+(defn load-when-missing [idacs cache-dir lang ns-sym]
+  (let [path [lang :defs ns-sym]]
+    (if-not (get-in idacs path)
+      (if-let [data (from-cache-1 cache-dir lang ns-sym)]
+        (let [res (assoc-in idacs path data)]
+          ;; proxied-namespaces are here because of potemkin/import-vars since
+          ;; import-vars only supports clj and not cljs, we're fine with loading
+          ;; these namespace only with the current language (which is :clj)
+          (if-let [proxied (:proxied-namespaces data)]
+            (reduce #(load-when-missing %1 cache-dir lang %2) res proxied)
+            res))
+        idacs)
+      idacs)))
 
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
@@ -99,7 +106,7 @@
                                    (seq ns-data))]
                   (to-cache cache-dir lang ns-name ns-data)))
               (reduce (fn [idacs lang]
-                        (reduce #(load-when-missing %1 [lang :defs %2] cache-dir lang %2)
+                        (reduce #(load-when-missing %1 cache-dir lang %2)
                                 idacs
                                 required-namespaces))
                       idacs

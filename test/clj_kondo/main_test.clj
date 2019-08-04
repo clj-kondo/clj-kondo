@@ -6,7 +6,10 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing]]))
+   [clojure.test :as t :refer [deftest is testing]]
+   [me.raynes.conch :refer [programs] :as sh]))
+
+(programs rm mkdir echo mv)
 
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
@@ -2257,6 +2260,38 @@
                                       {:output {:canonical-paths true}}))))]
       (is (= (.getPath f) (.getAbsolutePath f))))))
 
+(deftest import-vars-test
+  (assert-submaps
+   '({:file "corpus/import_vars.clj",
+     :row 19,
+     :col 1,
+     :level :error,
+     :message "clojure.walk/prewalk is called with 0 args but expects 2"}
+    {:file "corpus/import_vars.clj",
+     :row 20,
+     :col 1,
+     :level :error,
+     :message "app.core/foo is called with 0 args but expects 1"})
+   (lint! (io/file "corpus" "import_vars.clj")
+          {:linters {:unresolved-symbol {:level :error}}}))
+  (testing "import-vars works when using cache"
+    (when (.exists (io/file ".clj-kondo"))
+      (mv ".clj-kondo" ".clj-kondo.bak"))
+    (mkdir ".clj-kondo")
+    (lint! "(ns app.core) (defn foo [])" "--cache")
+    (lint! "(ns app.api (:require [potemkin :refer [import-vars]]))
+            (import-vars [app.core foo])"
+           "--cache")
+    (assert-submaps '({:file "<stdin>",
+                       :row 1,
+                       :col 49,
+                       :level :error,
+                       :message "app.core/foo is called with 1 arg but expects 0"})
+                    (lint! "(ns consumer (:require [app.api :refer [foo]])) (foo 1)" "--cache"))
+    (rm "-rf" ".clj-kondo")
+    (when (.exists (io/file ".clj-kondo.bak"))
+      (mv ".clj-kondo.bak" ".clj-kondo"))))
+
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
     (let [dir (io/file "corpus" "directory.clj")
@@ -2273,6 +2308,7 @@
                          :level :error,
                          :message "clojure.core/inc is called with 0 args but expects 1"})
                       (lint! dir)))))
+
 (deftest core-async-alt-test
   (assert-submaps
    '({:file "corpus/core_async/alt.clj",

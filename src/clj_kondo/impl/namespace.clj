@@ -94,6 +94,11 @@
   (swap! namespaces update-in [base-lang lang ns-sym :used-namespaces]
          conj required-ns-sym))
 
+(defn reg-proxied-namespaces!
+  [{:keys [:base-lang :lang :namespaces]} ns-sym proxied-ns-syms]
+  (swap! namespaces update-in [base-lang lang ns-sym :proxied-namespaces]
+         into proxied-ns-syms))
+
 (defn reg-alias!
   [{:keys [:base-lang :lang :namespaces]} ns-sym alias-sym aliased-ns-sym]
   (swap! namespaces assoc-in [base-lang lang ns-sym :qualify-ns alias-sym]
