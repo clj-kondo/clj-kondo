@@ -71,3 +71,6 @@ clj-kondo
 performance.txt
 clj-kondo*.snap
 .planck_cache
+
+.DS_Store
+!corpus/*jar

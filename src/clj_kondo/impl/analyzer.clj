@@ -2,6 +2,7 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+   [clj-kondo.impl.analyzer.core-async :as core-async]
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.spec :as spec]
@@ -962,6 +963,12 @@
                                       analyze-children) expr)
             [potemkin import-vars]
             (potemkin/analyze-import-vars ctx expr)
+            ([clojure.core.async alt!] [clojure.core.async alt!!]
+             [cljs.core.async alt!] [cljs.core.async alt!!])
+            (core-async/analyze-alt! (assoc ctx
+                                            :analyze-expression** analyze-expression**
+                                            :analyze-fn-body analyze-fn-body)
+                                     expr)
             ;; catch-all
             (let [next-ctx (cond-> ctx
                              (= '[clojure.core.async thread]

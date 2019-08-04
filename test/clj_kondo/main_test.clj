@@ -2292,6 +2292,53 @@
     (when (.exists (io/file ".clj-kondo.bak"))
       (mv ".clj-kondo.bak" ".clj-kondo"))))
 
+(deftest dir-with-source-extension-test
+  (testing "analyses source in dir with source extension"
+    (let [dir (io/file "corpus" "directory.clj")
+          jar (io/file "corpus" "withcljdir.jar")]
+      (assert-submaps '({:file "dirinjar.clj/arity.clj" ,
+                         :row 1,
+                         :col 1,
+                         :level :error,
+                         :message "clojure.core/map is called with 0 args but expects 1, 2, 3, 4 or more"})
+                      (lint! jar))
+      (assert-submaps '({:file "corpus/directory.clj/arity2.clj",
+                         :row 1,
+                         :col 1,
+                         :level :error,
+                         :message "clojure.core/inc is called with 0 args but expects 1"})
+                      (lint! dir)))))
+
+(deftest core-async-alt-test
+  (assert-submaps
+   '({:file "corpus/core_async/alt.clj",
+      :row 7,
+      :col 9,
+      :level :error,
+      :message "unresolved symbol x1"}
+     {:file "corpus/core_async/alt.clj",
+      :row 7,
+      :col 12,
+      :level :error,
+      :message "unresolved symbol x2"}
+     {:file "corpus/core_async/alt.clj",
+      :row 11,
+      :col 24,
+      :level :error,
+      :message "clojure.string/join is called with 3 args but expects 1 or 2"}
+     {:file "corpus/core_async/alt.clj",
+      :row 12,
+      :col 10,
+      :level :error,
+      :message "unresolved symbol x3"}
+     {:file "corpus/core_async/alt.clj",
+      :row 12,
+      :col 13,
+      :level :error,
+      :message "unresolved symbol x4"})
+   (lint! (io/file "corpus" "core_async" "alt.clj")
+          {:linters {:unresolved-symbol {:level :error}}})))
+
 ;;;; Scratch
 
 (comment
