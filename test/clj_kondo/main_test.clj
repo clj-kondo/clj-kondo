@@ -2260,31 +2260,32 @@
 (deftest core-async-alt-test
   (assert-submaps
    '({:file "corpus/core_async/alt.clj",
-      :row 6,
+      :row 7,
       :col 9,
       :level :error,
       :message "unresolved symbol x1"}
      {:file "corpus/core_async/alt.clj",
-      :row 6,
+      :row 7,
       :col 12,
       :level :error,
       :message "unresolved symbol x2"}
      {:file "corpus/core_async/alt.clj",
-      :row 9,
-      :col 9,
+      :row 11,
+      :col 24,
+      :level :error,
+      :message "clojure.string/join is called with 3 args but expects 1 or 2"}
+     {:file "corpus/core_async/alt.clj",
+      :row 12,
+      :col 10,
       :level :error,
       :message "unresolved symbol x3"}
      {:file "corpus/core_async/alt.clj",
-      :row 9,
-      :col 12,
+      :row 12,
+      :col 13,
       :level :error,
       :message "unresolved symbol x4"})
    (lint! (io/file "corpus" "core_async" "alt.clj")
-          {:linters {:unresolved-symbol {:level :error}}}))
-  (is (empty? (lint!
-               "(ns foo (:require [clojure.core.async :as a]))
-                (a/alt! (a/chan)  ([v ch] [ch v]))"
-               "--lang" "cljs"))))
+          {:linters {:unresolved-symbol {:level :error}}})))
 
 ;;;; Scratch
 
