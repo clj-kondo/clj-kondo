@@ -2257,6 +2257,23 @@
                                       {:output {:canonical-paths true}}))))]
       (is (= (.getPath f) (.getAbsolutePath f))))))
 
+(deftest dir-with-source-extension-test
+  (testing "analyses source in dir with source extension"
+    (let [dir (io/file "corpus" "directory.clj")
+          jar (io/file "corpus" "withcljdir.jar")]
+      (assert-submaps '({:file "dirinjar.clj/arity.clj" ,
+                         :row 1,
+                         :col 1,
+                         :level :error,
+                         :message "clojure.core/map is called with 0 args but expects 1, 2, 3, 4 or more"})
+                      (lint! jar))
+      (assert-submaps '({:file "corpus/directory.clj/arity2.clj",
+                         :row 1,
+                         :col 1,
+                         :level :error,
+                         :message "clojure.core/inc is called with 0 args but expects 1"})
+                      (lint! dir)))))
+
 ;;;; Scratch
 
 (comment
