@@ -1149,7 +1149,11 @@
   (is (empty? (lint! (io/file "corpus" "no_unused_namespace.clj"))))
   (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{::b/keys [:baz]} nil] baz)")))
   (is (empty? (lint! "(require '[clojure.set :refer [join]]) join")))
-  (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{:keys [::b/x]} {}] x)"))))
+  (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{:keys [::b/x]} {}] x)")))
+  (is (empty? (lint! "(ns ^{:clj-kondo/config
+                            '{:linters {:unused-namespace {:exclude [bar]}}}}
+                          foo
+                        (:require [bar :as b]))"))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
@@ -2100,7 +2104,11 @@
    (lint! "(ns foo (:require [bar :refer [bar]]))"
           '{:linters {:unused-referred-var {:exclude {bar [bar]}}}}))
   (is (empty? (lint! "(ns foo (:require [bar :refer [bar]]))
-        (apply bar 1 2 [3 4])"))))
+        (apply bar 1 2 [3 4])")))
+  (is (empty? (lint! "(ns ^{:clj-kondo/config
+                            '{:linters {:unused-referred-var {:exclude {foo [bar]}}}}}
+                          foo (:require [foo :refer [bar] :as foo]))
+        (apply foo/x 1 2 [3 4])"))))
 
 (deftest duplicate-require-test
   (assert-submaps
