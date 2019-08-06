@@ -306,7 +306,8 @@
                 referred-vars (:referred-vars ns)
                 used-referred-vars (:used-referred-vars ns)
                 refer-alls (:refer-alls ns)
-                filename (:filename ns)]]
+                filename (:filename ns)
+                config (config/merge-config! config (:config ns))]]
     (doseq [ns-sym unused]
       (when-not (config/unused-namespace-excluded config ns-sym)
         (let [{:keys [:row :col :filename]} (meta ns-sym)]
