@@ -64,6 +64,7 @@
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
               clojure.core.async/go-loop clojure.core/loop
+              clojure.test.check.generators/let clojure.core/let
               cljs.core.async/go-loop clojure.core/loop
               cljs.core.async.macros/go-loop clojure.core/loop}
     :output {:format :text ;; or :edn
