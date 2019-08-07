@@ -81,6 +81,7 @@ In the `.spacemacs` file:
 2. In the `dotspacemacs/user-config` function add the following:
 
    ``` elisp
+   (add-hook 'clojure-mode-hook #'flycheck-mode)
    (use-package clojure-mode
     :ensure t
     :config
