@@ -26,7 +26,7 @@
     {:expr (assoc expr :children new-children)
      :schemas schemas}))
 
-(defn expand-schema-defn2
+(defn expand-schema
   [_ctx expr]
   (let [children (:children expr)
         {:keys [:new-children
@@ -57,10 +57,10 @@
                                (update :new-children conj new-fst-child))))
                   :else (recur rest-children
                                (update res :new-children conj fst-child)))))]
-    {:defn (assoc expr :children new-children)
+    {:expr (assoc expr :children new-children)
      :schemas schemas}))
 
 ;;;; Scratch
 
-(comment 
+(comment
   )
