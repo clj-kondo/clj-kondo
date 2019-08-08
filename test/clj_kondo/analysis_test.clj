@@ -69,28 +69,51 @@
     (assert-submaps
      '[{:filename "<stdin>", :row 3, :col 24, :from foo, :to clojure.string}]
      namespace-usages))
-  (let [{:keys [:var-usages :var-definitions]} (analyze "(defn f [] (inc 1 2 3))" {:lang :cljc})]
+  (let [{:keys [:namespace-definitions
+                :namespace-usages
+                :var-usages
+                :var-definitions]}
+        (analyze "(ns foo (:require [clojure.string]))
+                  (defn f [] (inc 1 2 3))" {:lang :cljc})]
+    (assert-submaps
+     '[{:filename "<stdin>", :row 1, :col 1, :name foo, :lang :clj}
+       {:filename "<stdin>", :row 1, :col 1, :name foo, :lang :cljs}]
+     namespace-definitions)
     (assert-submaps
      '[{:filename "<stdin>",
         :row 1,
-        :col 1,
-        :ns user,
+        :col 20,
+        :from foo,
+        :to clojure.string,
+        :lang :clj}
+       {:filename "<stdin>",
+        :row 1,
+        :col 20,
+        :from foo,
+        :to clojure.string,
+        :lang :cljs}]
+     namespace-usages)
+    (assert-submaps
+     '[{:filename "<stdin>",
+        :row 2,
+        :col 19,
+        :ns foo,
         :name f,
         :fixed-arities #{0},
         :lang :clj}
        {:filename "<stdin>",
-        :row 1,
-        :col 1,
-        :ns user,
+        :row 2,
+        :col 19,
+        :ns foo,
         :name f,
         :fixed-arities #{0},
         :lang :cljs}]
      var-definitions)
     (assert-submaps
      '[{:filename "<stdin>",
-        :row 1,
-        :col 12,
-        :from user,
+        :row 2,
+        :col 30,
+        :from foo,
         :to clojure.core,
         :name inc,
         :fixed-arities #{1},
@@ -100,16 +123,16 @@
         :var-args-min-arity 2,
         :lang :clj,
         :filename "<stdin>",
-        :from user,
+        :from foo,
         :macro true,
-        :col 1,
+        :col 19,
         :arity 3,
-        :row 1,
+        :row 2,
         :to clojure.core}
        {:filename "<stdin>",
-        :row 1,
-        :col 12,
-        :from user,
+        :row 2,
+        :col 30,
+        :from foo,
         :to cljs.core,
         :name inc,
         :fixed-arities #{1},
@@ -119,10 +142,10 @@
         :var-args-min-arity 2,
         :lang :cljs,
         :filename "<stdin>",
-        :from user,
+        :from foo,
         :macro true,
-        :col 1,
+        :col 19,
         :arity 3,
-        :row 1,
+        :row 2,
         :to cljs.core}]
      var-usages)))
