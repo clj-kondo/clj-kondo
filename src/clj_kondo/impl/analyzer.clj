@@ -617,12 +617,16 @@
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
     (concat (mapcat (comp :parsed) parsed-fns) analyzed-children)))
 
-(defn analyze-schema-defn [ctx expr]
-  (let [{:keys [:defn :schemas]}
-        (schema/expand-schema-defn2 ctx
-                                    expr)]
+(declare analyze-defmethod)
+
+(defn analyze-schema [ctx fn-sym expr]
+  (let [{:keys [:expr :schemas]}
+        (schema/expand-schema ctx
+                              expr)]
     (concat
-     (analyze-defn ctx defn)
+     (case fn-sym
+       defn (analyze-defn ctx expr)
+       defmethod (analyze-defmethod ctx expr))
      (analyze-children ctx schemas))))
 
 (defn analyze-deftest [ctx _deftest-ns expr]
@@ -634,10 +638,6 @@
                            name-expr
                            (utils/vector-node [])
                            body)))))
-
-(defn cons* [x xs]
-  (if x (cons x xs)
-      xs))
 
 (defn analyze-binding-call [{:keys [:callstack :config :findings] :as ctx} fn-name expr]
   (let [ns-name (-> ctx :ns :name)]
@@ -951,7 +951,9 @@
           ;; catch-all
           (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]
-            (analyze-schema-defn ctx expr)
+            (analyze-schema ctx 'defn expr)
+            [schema.core defmethod]
+            (analyze-schema ctx 'defmethod expr)
             ([clojure.test deftest]
              [cljs.test deftest]
              #_[:clj-kondo/unknown-namespace deftest])
