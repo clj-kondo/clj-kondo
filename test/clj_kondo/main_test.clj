@@ -869,7 +869,7 @@
                       (lint! "(ns foo (:refer-clojure :exclude [let]))
         (defmacro let [_]) #(println % {:a})")))))
 
-(deftest schema-defn-test
+(deftest schema-test
   (assert-submaps
    '({:file "corpus/schema/calls.clj",
       :row 4,
@@ -892,7 +892,9 @@
       :level :error,
       :message "invalid function body"})
    (lint! (io/file "corpus" "schema")
-          '{:linters {:unresolved-symbol {:level :error}}})))
+          '{:linters {:unresolved-symbol {:level :error}}}))
+  (is (empty? (lint! "(ns foo (:require [schema.core :refer [defschema]])) (defschema foo nil) foo"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest in-ns-test
   (assert-submaps
