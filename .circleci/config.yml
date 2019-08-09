@@ -41,9 +41,9 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
       - run:
-          name: uberjar
+          name: Create uberjar
           command: |
-            mkdir -p /tmp
+            mkdir -p /tmp/release
             lein uberjar
             VERSION=$(cat resources/CLJ_KONDO_VERSION)
             cp target/clj-kondo-$VERSION-standalone.jar /tmp/release
