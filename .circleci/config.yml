@@ -4,7 +4,7 @@
 #
 version: 2.1
 jobs:
-  testjvm:
+  jvm:
     docker:
       # specify the version you desire here
       - image: circleci/clojure:lein-2.8.1
@@ -40,7 +40,18 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
-  buildlinux:
+      - run:
+          name: uberjar
+          command: |
+            mkdir -p /tmp
+            lein uberjar
+            VERSION=$(cat resources/CLJ_KONDO_VERSION)
+            cp target/clj-kondo-$VERSION-standalone.jar /tmp/release
+      - store_artifacts:
+          path: /tmp/release
+          destination: release
+
+  linux:
     docker:
       - image: circleci/clojure:lein-2.8.1
     working_directory: ~/repo
@@ -53,7 +64,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - buildlinux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+            - linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - run:
           name: Install Clojure
           command: |
@@ -94,11 +105,11 @@ jobs:
           paths:
             - ~/.m2
             - ~/graalvm-ce-19.1.1
-          key: buildlinux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+          key: linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
           destination: release
-  buildmac:
+  mac:
     macos:
       xcode: "9.0"
     environment:
@@ -109,7 +120,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - buildmac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+            - mac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - run:
           name: Install Clojure
           command: |
@@ -149,7 +160,7 @@ jobs:
           paths:
             - ~/.m2
             - ~/graalvm-ce-19.1.1
-          key: buildmac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+          key: mac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
           destination: release
@@ -186,22 +197,22 @@ workflows:
   version: 2
   ci:
     jobs:
-      - testjvm
-      - buildlinux
-      - buildmac
+      - jvm
+      - linux
+      - mac
       - deploy:
           filters:
             branches:
               only: master
           requires:
-            - testjvm
-            - buildlinux
-            - buildmac
+            - jvm
+            - linux
+            - mac
       - docker:
           filters:
             branches:
               only: master
           requires:
-            - testjvm
-            - buildlinux
-            - buildmac
+            - jvm
+            - linux
+            - mac
