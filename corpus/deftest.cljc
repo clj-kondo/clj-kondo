@@ -9,6 +9,12 @@
     10 11
     14 15))
 
+(deftest missing-test-assertion-false-positive
+  (are [v expected?] (expected? (contains? #{:bar :baz} v))
+    :foo false?
+    :bar true?
+    :baz true?))
+
 (deftest thown-with-msg-test
   (is (thrown-with-msg?
        ExceptionInfo #"uh oh"

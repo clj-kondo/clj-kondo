@@ -82,7 +82,6 @@
         (lint-cond-constants! ctx conditions)
         #_(lint-cond-as-case! filename expr conditions)))))
 
-;; TODO: refactor like redundant do/let, inline-def, etc. I.e. move to analyzer ns.
 (defn lint-missing-test-assertion [{:keys [:findings :filename]} call called-fn]
   (when (get-in var-info/predicates [(:ns called-fn) (:name called-fn)])
     (findings/reg-finding! findings
@@ -287,9 +286,11 @@
                                              (if (true? deprecated)
                                                nil
                                                (str " since " deprecated)))}))]
-                             _ (lint-specific-calls! (assoc ctx
-                                                            :filename filename)
-                                                     call called-fn)]
+                             _ (when call?
+                                 (lint-specific-calls!
+                                  (assoc ctx
+                                         :filename filename)
+                                  call called-fn))]
                        e errors
                        :when e]
                    e)]
