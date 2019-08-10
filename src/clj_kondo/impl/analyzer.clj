@@ -1244,6 +1244,20 @@
             (analyze-expressions (assoc ctx :base-lang lang :lang lang :filename filename)
                                  (:children parsed)))]
       analyzed-expressions)
+    ;; Some read errors are thrown from clj-kondo.impl.rewrite-clj.reader/throw-reader
+    ;; others are thrown from clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.errors/throw-ex
+    (catch clojure.lang.ExceptionInfo e
+      (if dev? (throw e)
+          {:findings [(let [{:keys [line col]} (.data e)
+                            [_ msg] (re-find #"(?:\[line \d+, col \d+\])?(.*)"
+                                             (.getMessage e))]
+                        ;; Thrown from clojure.tools.reader
+                        {:level :error
+                         :filename filename
+                         :col (or col 0)
+                         :row (or line 0)
+                         :type :syntax
+                         :message (str/trim msg)})]}))
     (catch Exception e
       (if dev? (throw e)
           {:findings [(let [m (.getMessage e)]
@@ -1251,12 +1265,14 @@
                                  (and m
                                       (re-find #"(.*)\[at line (\d+), column (\d+)\]"
                                                m))]
+                          ;; Thrown from rewrite-clj
                           {:level :error
                            :filename filename
                            :col (Integer/parseInt col)
                            :row (Integer/parseInt row)
                            :type :syntax
                            :message (str/trim msg)}
+                          ;; Unhandled error
                           {:level :error
                            :filename filename
                            :col 0
