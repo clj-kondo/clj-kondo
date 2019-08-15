@@ -171,6 +171,11 @@ All other error codes indicate an unexpected error.
   other users posting issues with bug reports and ideas
 - [Nikita Prokopov](https://github.com/tonsky) for the logo
 
+## Support this project
+
+Do you enjoy this project? Consider buying me a [hot
+beverage](https://ko-fi.com/borkdude).
+
 ## License
 
 Copyright © 2019 Michiel Borkent
