@@ -33,4 +33,5 @@ new binary when the issue is resolved. ]
 [ What is the actual behavior of clj-kondo? ]
 
 **enjoying this project?**
+
 [ Consider buying me a [hot beverage](https://ko-fi.com/borkdude). ]
