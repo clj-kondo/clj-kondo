@@ -34,4 +34,4 @@ new binary when the issue is resolved. ]
 
 **enjoying this project?**
 
-[ Consider buying me a [hot beverage](https://ko-fi.com/borkdude). ]
+Consider buying me a hot beverage at https://ko-fi.com/borkdude.
