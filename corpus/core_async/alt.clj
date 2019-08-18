@@ -10,3 +10,10 @@
 ;; namespace clojure.string is loaded from cache, so invalid arity
 (a/alt!! [c t] ([v ch] (str/join "\n" [ch v] 1))
          x3 x4) ;; unresolved symbols
+
+(loop []
+  (a/alt!!
+    (a/timeout 1000)
+    ([v _ch]
+     (println "got" v)
+     (recur)))) ;; no invalid arity for recur

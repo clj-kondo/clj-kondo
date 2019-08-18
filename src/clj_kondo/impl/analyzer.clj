@@ -969,7 +969,7 @@
              [cljs.core.async alt!] [cljs.core.async alt!!])
             (core-async/analyze-alt! (assoc ctx
                                             :analyze-expression** analyze-expression**
-                                            :analyze-fn-body analyze-fn-body)
+                                            :extract-bindings extract-bindings)
                                      expr)
             ;; catch-all
             (let [next-ctx (cond-> ctx
