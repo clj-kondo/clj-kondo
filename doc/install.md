@@ -9,18 +9,13 @@ Pre-built binaries are available for linux and MacOS <!-- and Windows -->on the
 
 Ths installation script works for linux and MacOS and can be used for quickly
 installing or upgrading to the newest clj-kondo without a package manager. It
-will install to `/usr/local/bin` by default, but you can override this location
-with the `--dir <dir>` option.
+will install to `/usr/local/bin` by default.
 
 To download and execute the script:
 
-    curl -sO https://raw.githubusercontent.com/borkdude/clj-kondo/master/script/install-clj-kondo
-    chmod +x install-clj-kondo
-    ./install-clj-kondo
+    bash <(curl -s https://raw.githubusercontent.com/borkdude/clj-kondo/master/script/install-clj-kondo)
 
-or
-
-    ./install-clj-kondo --dir /tmp
+To install to a different directory, append the option `--dir <other-dir>` to the above command.
 
 To upgrade, just run the script again.
 
