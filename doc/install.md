@@ -37,6 +37,7 @@ To upgrade:
 
     brew upgrade clj-kondo
 
+<!-- 
 ## Snap (Linux)
 
 NOTE: using the Snap package, clj-kondo only has access to your home directory.
@@ -52,6 +53,7 @@ To give clj-kondo access to your home directory:
 To upgrade:
 
     sudo snap refresh clj-kondo
+-->
 
 ## Arch (Linux)
 
