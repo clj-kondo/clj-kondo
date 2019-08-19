@@ -18,7 +18,7 @@
 (defn- print-help []
   (print-version)
   (println (format "
-Usage: [ --help ] [ --version ] [ --lint <files> ] [ --lang (clj|cljs) ] [ --cache [ <dir> ] ] [ --config <config> ]
+Usage: [ --help ] [ --version ] [ --lint <files> ] [ --lang (clj|cljs) ] [ --cache [ true | false ] ] [ --cache-dir <dir> ] [ --config <config> ]
 
 Options:
 
@@ -29,9 +29,12 @@ Options:
   --lang: if lang cannot be derived from the file extension this option will be
     used.
 
-  --cache: if dir exists it is used to write and read data from, to enrich
-    analysis over multiple runs. If no value is provided, the nearest .clj-kondo
-    parent directory is detected and a cache directory will be created in it.
+  --cache-dir: when this option is provided, the cache will be resolved to this
+    directory. If --cache is false, this option will be ignored.
+
+  --cache: if false, won't use cache. Otherwise, will try to resolve cache
+  using `--cache-dir`. If `--cache-dir` is not set, cache is resolved using the
+  nearest `.clj-kondo` directory in the current and parent directories.
 
   --config: config may be a file or an EDN expression. See
     https://cljdoc.org/d/clj-kondo/clj-kondo/%s/doc/configuration.
@@ -56,9 +59,17 @@ Options:
         default-lang (when-let [lang-opt (first (get opts "--lang"))]
                        (keyword lang-opt))
         cache-opt (get opts "--cache")]
+    #_(binding [*out* *err*]
+      (prn "cache opt" cache-opt))
     {:lint (get opts "--lint")
-     :cache (when cache-opt
-              (or (first cache-opt) true))
+     :cache (if cache-opt
+              (if-let [f (first cache-opt)]
+                (cond (= "false" f) false
+                      (= "true" f) true
+                      :else f)
+                true)
+              true)
+     :cache-dir (first (get opts "--cache-dir"))
      :lang default-lang
      :config (first (get opts "--config"))
      :version (get opts "--version")

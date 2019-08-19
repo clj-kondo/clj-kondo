@@ -55,10 +55,13 @@
   - `:lang`: optional, defaults to `:clj`. Sets language for linting
   `*in*`. Supported values: `:clj`, `:cljs` and `:cljc`.
 
-  - `:cache`: optional, defaults to `false`. May be a boolean or the
-  directory to use for caching. In case of `true`, the cache dir will
-  be resolved using the nearest `.clj-kondo` directory in the current
-  and parent directories.
+  - `:cache-dir`: when this option is provided, the cache will be
+  resolved to this directory. If `:cache` is `false` this option will
+  be ignored.
+
+  - `:cache`: if `false`, won't use cache. Otherwise, will try to resolve cache
+  using `:cache-dir`. If `:cache-dir` is not set, cache is resolved using the
+  nearest `.clj-kondo` directory in the current and parent directories.
 
   - `:config`: optional. Map or string representing the config as EDN,
   or a config file.
@@ -69,15 +72,18 @@
   Returns a map with `:findings`, a seqable of finding maps, a
   `:summary` of the findings and the `:config` that was used to
   produce those findings. This map can be passed to `print!` to print
-  to `*out*`. Alpha, subject to change."
+  to `*out*`. Alpha, subject to change.
+  "
   [{:keys [:lint
            :lang
            :cache
-           :config]}]
+           :cache-dir
+           :config]
+    :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir (core-impl/config-dir)
         config (core-impl/resolve-config cfg-dir config)
-        cache-dir (core-impl/resolve-cache-dir cfg-dir cache)
+        cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
         findings (atom [])
         analysis (atom {:namespace-definitions []
                         :namespace-usages []

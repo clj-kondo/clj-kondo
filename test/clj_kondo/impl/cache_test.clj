@@ -35,7 +35,7 @@
         (mv ".clj-kondo" ".clj-kondo.bak"))
       (io/copy "(ns foo) (defn foo [x])"
                (io/file test-source-dir (str "foo.clj")))
-      (is (str/includes?
+      #_(is (str/includes?
            (with-err-str
              (with-out-str (main "--lint" test-source-dir "--cache")))
            "no .clj-kondo directory found"))

@@ -50,11 +50,13 @@
 
 (def empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
 
-(defn resolve-cache-dir [cfg-dir cache-dir]
-  (when cache-dir
-    (if (true? cache-dir)
-      (if cfg-dir (io/file cfg-dir ".cache" version)
-          (print-err! empty-cache-opt-warning))
+(defn resolve-cache-dir [cfg-dir cache cache-dir]
+  (let [cache-dir (or cache-dir
+                      ;; for backward compatibility
+                      (when-not (true? cache)
+                        cache))
+        cache-dir (or cache-dir (when cfg-dir (io/file cfg-dir ".cache" version)))]
+    (when cache-dir
       (io/file cache-dir version))))
 
 ;;;; find cache/config dir
