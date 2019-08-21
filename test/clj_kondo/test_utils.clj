@@ -74,12 +74,12 @@
                (try
                  (cond
                    (instance? java.io.File input)
-                   (apply main "--lint" (.getPath ^java.io.File input) "--config" config args)
+                   (apply main "--cache" "false" "--lint" (.getPath ^java.io.File input) "--config" config args)
                    (vector? input)
-                   (apply main "--lint" (concat (map #(.getPath ^java.io.File %) input)
+                   (apply main "--cache" "false" "--lint" (concat (map #(.getPath ^java.io.File %) input)
                                                 ["--config" config] args))
                    :else (with-in-str input
-                           (apply main "--lint" "-"  "--config" config args)))
+                           (apply main "--cache" "false" "--lint" "-"  "--config" config args)))
                  (catch Throwable e
                    (.printStackTrace e))))]
      (parse-output res))))
@@ -97,12 +97,18 @@
                (binding [sh/*throw* false]
                  (cond
                    (instance? java.io.File input)
-                   (apply clj-kondo "--lint" (.getPath ^java.io.File input) "--config" config args)
+                   (apply clj-kondo
+                          "--cache" "false"
+                          "--lint" (.getPath ^java.io.File input) "--config" config args)
                    (vector? input)
-                   (apply clj-kondo "--lint" (concat (map #(.getPath ^java.io.File %) input)
+                   (apply clj-kondo
+                          "--cache" "false"
+                          "--lint" (concat (map #(.getPath ^java.io.File %) input)
                                                      ["--config" config] args))
                    :else
-                   (apply clj-kondo  "--lint" "-" "--config" config
+                   (apply clj-kondo
+                          "--cache" "false"
+                          "--lint" "-" "--config" config
                           (conj (vec args)
                                 ;; the opts go last
                                 {:in input})))))]

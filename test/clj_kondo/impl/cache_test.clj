@@ -2,7 +2,6 @@
   (:require
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.core :as core-impl]
-   [clj-kondo.main :as main :refer [main]]
    [clj-kondo.test-utils :refer [lint!]]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -25,22 +24,6 @@
        (str s#))))
 
 (deftest cache-test
-  (testing "empty cache option warning (this test assumes you have no .clj-kondo
-  directory at a higher level than the current working directory)"
-    (let [tmp-dir (System/getProperty "java.io.tmpdir")
-          test-source-dir (io/file tmp-dir "test-source-dir")]
-      (rm "-rf" test-source-dir)
-      (mkdir "-p" test-source-dir)
-      (when (.exists (io/file ".clj-kondo"))
-        (mv ".clj-kondo" ".clj-kondo.bak"))
-      (io/copy "(ns foo) (defn foo [x])"
-               (io/file test-source-dir (str "foo.clj")))
-      (is (str/includes?
-           (with-err-str
-             (with-out-str (main "--lint" test-source-dir "--cache")))
-           "no .clj-kondo directory found"))
-      (when (.exists (io/file ".clj-kondo.bak"))
-        (mv ".clj-kondo.bak" ".clj-kondo"))))
   (testing "arity checks work in all languages"
     (doseq [lang [:clj :cljs :cljc]]
       (let [tmp-dir (System/getProperty "java.io.tmpdir")
@@ -128,7 +111,26 @@
         (lint! foo "--cache" test-cache-dir)
         (let [output (lint! bar "--cache" test-cache-dir)]
           (is (str/includes? (:message (first output))
-                             "foo/foo is called with 3 args but expects 1"))))))
+                             "foo/foo is called with 3 args but expects 1")))))
+  (testing "--cache-dir option (--cache is deprecated as the option for passing dir)"
+    (let [tmp-dir (System/getProperty "java.io.tmpdir")
+          test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
+          test-source-dir (io/file tmp-dir "test-source-dir")
+          foo (io/file test-source-dir "foo.clj")
+          bar (io/file test-source-dir (str "bar.clj"))]
+      (rm "-rf" test-cache-dir)
+      (mkdir "-p" test-cache-dir)
+      (rm "-rf" test-source-dir)
+      (mkdir "-p" test-source-dir)
+      (io/copy "(ns foo) (defn foo [x])"
+               foo)
+      (io/copy "(ns bar (:require [foo :refer :all])) (foo 1 2 3)"
+               bar)
+      ;; populate cache
+      (lint! foo "--cache" "true" "--cache-dir" test-cache-dir)
+      (let [output (lint! bar "--cache" "true" "--cache-dir" test-cache-dir)]
+        (is (str/includes? (:message (first output))
+                           "foo/foo is called with 3 args but expects 1"))))))
 
 (deftest lock-test
   (let [tmp-dir (System/getProperty "java.io.tmpdir")
