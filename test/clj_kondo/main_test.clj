@@ -2354,7 +2354,6 @@
 ;;;; Scratch
 
 (comment
-  (schema-defn-test)
   (inline-def-test)
   (redundant-let-test)
   (redundant-do-test)
