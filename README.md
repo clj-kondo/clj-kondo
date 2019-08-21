@@ -108,14 +108,15 @@ $ clj-kondo --lint "$(lein classpath)"
 ## Project setup
 
 To detect lint errors across namespaces in your project, a cache is needed. To
-create one, make a `.clj-kondo` directory in the root of your project. A cache
-will be created inside of it when you run `clj-kondo` with the `--cache` option.
-Before linting inside your editor, it is recommended to lint the entire
-classpath to teach `clj-kondo` about all the libraries you are using, including
-Clojure and/or ClojureScript itself:
+let clj-kondo know where to create one, make a `.clj-kondo` directory in the
+root of your project, meaning on the same level as your `project.clj`,
+`deps.edn` or `build.boot`. A cache will be created inside of it when you run
+`clj-kondo`.  Before linting inside your editor, it is recommended to lint the
+entire classpath to teach `clj-kondo` about all the libraries you are using,
+including Clojure and/or ClojureScript itself:
 
 ``` shellsession
-$ clj-kondo --lint "<classpath>" --cache
+$ clj-kondo --lint "<classpath>"
 ```
 
 Build tool specific ways to get a classpath:
@@ -128,11 +129,11 @@ So for `lein` the entire command would be:
     $ clj-kondo --lint "$(lein classpath)" --cache
 
 Now you are ready to lint single files using [editor
-integration](doc/editor-integration.md). A simulation of what happens when you edit a
-file in your editor:
+integration](doc/editor-integration.md). A simulation of what happens when you
+edit a file in your editor:
 
 ``` shellsession
-$ echo '(select-keys)' | clj-kondo --lang cljs --cache --lint -
+$ echo '(select-keys)' | clj-kondo --lang cljs --lint -
 <stdin>:1:1: error: Wrong number of args (0) passed to cljs.core/select-keys
 ```
 
@@ -140,6 +141,10 @@ Since clj-kondo now knows about your version of ClojureScript via the cache,
 it detects that the number of arguments you passed to `select-keys` is
 invalid. Each time you edit a file, the cache is incrementally updated, so
 clj-kondo is informed about new functions you just wrote.
+
+If you want to use a different directory to read and write the cache, use the
+`--cache-dir` option. To disable the cache even if you have a `.clj-kondo`
+directory, use `--cache false`.
 
 ## [Configuration](doc/config.md)
 
