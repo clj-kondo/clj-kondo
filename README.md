@@ -52,6 +52,9 @@ It suggests several style guide recommendations, such as:
 
 <img src="screenshots/wrong-arity.png" width="50%" align="right">
 
+It has support for syntax of commonly used macros like
+`clojure.core.async/alt!!`, `schema.core/defn` and `potemkin/import-vars`.
+
 It provides [analysis data](analysis) so you build your own custom linters.
 
 This linter is:
@@ -62,10 +65,6 @@ This linter is:
 * compiled to native code using GraalVM
 
 Try clj-kondo at the [interactive playground](https://clj-kondo.michielborkent.nl).
-
-## Status
-
-Under active development, but already useful.
 
 ## [Installation](doc/install.md)
 
