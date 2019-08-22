@@ -7,7 +7,7 @@ Pre-built binaries are available for linux and MacOS <!-- and Windows -->on the
 
 ## Installation script (MacOS and Linux)
 
-Ths installation script works for linux and MacOS and can be used for quickly
+This installation script works for linux and MacOS and can be used for quickly
 installing or upgrading to the newest clj-kondo without a package manager. It
 will install to `/usr/local/bin` by default.
 
