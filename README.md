@@ -126,7 +126,7 @@ Build tool specific ways to get a classpath:
 
 So for `lein` the entire command would be:
 
-    $ clj-kondo --lint "$(lein classpath)" --cache
+    $ clj-kondo --lint "$(lein classpath)"
 
 Now you are ready to lint single files using [editor
 integration](doc/editor-integration.md). A simulation of what happens when you
