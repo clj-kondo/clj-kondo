@@ -77,6 +77,8 @@ Ensure that:
 
 In the `.spacemacs` file:
 
+When using the stable `master` branch:
+
 1. In `dotspacemacs-additional-packages` add `flycheck-clj-kondo`.
 2. In the `dotspacemacs/user-config` function add the following:
 
@@ -106,5 +108,24 @@ To install it alongside joker:
                         (clj-kondo-edn . edn-joker)))
       (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
    ```
+
+If using the `develop` branch, clj-kondo is available as a part of the standard
+clojure layer. This will become the way to install in the next stable
+release of spacemacs.
+
+To enable it:
+
+1. Ensure the clojure layer is in the `dotspacemacs-configuration-layers`.
+2. Add a variable called `clojure-enable-linters` with the value `'clj-kondo`.
+
+It should look like this:
+
+```elisp
+dotspacemacs-configuration-layers
+'(...
+    (clojure :variables
+             clojure-enable-linters 'clj-kondo)
+ )
+```
 
 Reload the config to enable clj-kondo.
