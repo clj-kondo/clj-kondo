@@ -1030,7 +1030,10 @@
   (is (empty?
        (lint! "(ns foo) (defmacro deftest [name & body] `(defn ~name [] ~@body)) (deftest foo)"
               '{:linters {:unresolved-symbol {:level :warning}}
-                :lint-as {foo/deftest clojure.test/deftest}}))))
+                :lint-as {foo/deftest clojure.test/deftest}})))
+  (is (empty?
+       (lint! (io/file "corpus" "lint_as_for.clj")
+              '{:linters {:unresolved-symbol {:level :warning}}}))))
 
 (deftest letfn-test
   (assert-submaps '({:file "<stdin>",
