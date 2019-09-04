@@ -354,9 +354,8 @@
        (map #(extract-bindings ctx %))
        (reduce deep-merge {})))
 
-(defn analyze-let-like-bindings [ctx binding-vector]
-  (let [call (-> ctx :callstack second second)
-        for-like? (one-of call [for doseq])]
+(defn analyze-let-like-bindings [ctx binding-vector call]
+  (let [for-like? (one-of call [for doseq])]
     (loop [[binding value & rest-bindings] (-> binding-vector :children)
            bindings (:bindings ctx)
            arities (:arities ctx)
@@ -370,7 +369,7 @@
                    new-analyzed :analyzed
                    new-arities :arities}
                   (analyze-let-like-bindings
-                   (ctx-with-bindings ctx bindings) value)]
+                   (ctx-with-bindings ctx bindings) value call)]
               (recur rest-bindings
                      (merge bindings new-bindings)
                      (merge arities new-arities)
@@ -412,9 +411,8 @@
 
 (defn analyze-like-let
   [{:keys [:filename :callstack
-           :maybe-redundant-let?] :as ctx} expr]
-  (let [call (-> callstack first second)
-        let? (= 'let call)
+           :maybe-redundant-let?] :as ctx} expr call]
+  (let [let? (= 'let call)
         let-parent? (one-of (second callstack)
                             [[clojure.core let]
                              [cljs.core let]])
@@ -430,7 +428,7 @@
             (analyze-let-like-bindings
              (-> ctx
                  ;; prevent linting redundant let when using let in bindings
-                 (update :callstack #(cons [nil :let-bindings] %))) bv)
+                 (update :callstack #(cons [nil :let-bindings] %))) bv call)
             let-body (nnext (:children expr))
             single-child? (and let? (= 1 (count let-body)))]
         (lint-even-forms-bindings! ctx 'let bv)
@@ -553,14 +551,14 @@
     (namespace/reg-alias! ctx (:name ns) alias-sym ns-sym)
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
-(defn analyze-loop [ctx expr]
+(defn analyze-loop [ctx expr call]
   (let [bv (-> expr :children second)]
     (when (and bv (= :vector (tag bv)))
       (let [arg-count (let [c (count (:children bv))]
                         (when (even? c)
                           (/ c 2)))]
         (analyze-like-let (assoc ctx
-                                 :recur-arity {:fixed-arity arg-count}) expr)))))
+                                 :recur-arity {:fixed-arity arg-count}) expr call)))))
 
 (defn analyze-recur [{:keys [:findings :filename :recur-arity] :as ctx} expr]
   (when-not (linter-disabled? ctx :invalid-arity)
@@ -923,7 +921,7 @@
                                 (ctx-with-linter-disabled :invalid-arity)
                                 (ctx-with-linter-disabled :unresolved-symbol)) expr)
           (let let* for doseq dotimes with-open)
-          (analyze-like-let ctx expr)
+          (analyze-like-let ctx expr resolved-as-clojure-var-name)
           letfn
           (analyze-letfn ctx expr)
           (if-let if-some when-let when-some when-first)
@@ -935,7 +933,7 @@
           case
           (analyze-case ctx expr)
           loop
-          (analyze-loop ctx expr)
+          (analyze-loop ctx expr 'loop)
           recur
           (analyze-recur ctx expr)
           quote nil
@@ -1002,8 +1000,8 @@
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
           (namespace/reg-used-namespace! ctx
-                                ns-name
-                                resolved-namespace))
+                                         ns-name
+                                         resolved-namespace))
         (if-let [m (meta analyzed)]
           (with-meta (cons call analyzed)
             m)
