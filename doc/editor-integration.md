@@ -19,6 +19,8 @@ In Visual Studio Code, go to Preferences > Extensions. Search for 'clojure lint'
 
 ## Vim / Neovim
 
+### ALE
+
 This section is for Vim 8+ or Neovim.
 
 1. Install [ALE](https://github.com/w0rp/ale) using your favorite plugin
@@ -40,6 +42,41 @@ This section is for Vim 8+ or Neovim.
 3. Reload your `.vimrc` and it should start working.
 
 <img src="../screenshots/vim.png">
+
+### Vanilla way
+
+Create this file in `~/.config/nvim/compiler/clj-kondo.vim` or `~/.vim/compiler/clj-kondo.vim`.
+
+``` viml
+if exists("current_compiler")
+  finish
+endif
+let current_compiler="clj-kondo"
+
+if exists(":CompilerSet") != 2
+  command -nargs=* CompilerSet setlocal <args>
+endif
+
+CompilerSet errorformat=%f:%l:%c:\ Parse\ %t%*[^:]:\ %m,%f:%l:%c:\ %t%*[^:]:\ %m
+CompilerSet makeprg=clj-kondo\ --lint\ %
+```
+
+#### Usage
+
+You can populate the quickfix list like so:
+
+```
+:compiler clj-kondo
+:make
+```
+
+See [romainl's vanilla linting](https://gist.github.com/romainl/ce55ce6fdc1659c5fbc0f4224fd6ad29) for how to automatically execute linting and automatically open the quickfix.
+
+If you have [vim-dispatch](https://github.com/tpope/vim-dispatch/) installed, you can use this command to be both async and more convenient:
+
+```
+:Dispatch -compiler=clj-kondo
+```
 
 ## IntelliJ IDEA
 
