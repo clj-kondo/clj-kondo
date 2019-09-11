@@ -75,7 +75,9 @@ Example output after linting this code:
 ```
 
 ``` clojure
-$ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}}' | jet --pretty --query ':analysis'
+$ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}}'
+| jet --pretty --query ':analysis'
+
 {:namespace-definitions [{:filename "/tmp/foo.clj",
                           :row 1,
                           :col 1,
