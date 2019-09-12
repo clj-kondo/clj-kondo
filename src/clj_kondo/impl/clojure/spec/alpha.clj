@@ -277,7 +277,7 @@
 (defn- res [form]
   (cond
    (keyword? form) form
-   (symbol? form) (c/or (-> form resolve ->sym) form)   
+   ;; (symbol? form) (c/or (-> form resolve ->sym) form)   
    (sequential? form) (walk/postwalk #(if (symbol? %) (res %) %) (unfn form))
    :else form))
 
