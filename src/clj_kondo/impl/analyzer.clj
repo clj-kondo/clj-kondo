@@ -21,7 +21,8 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some]]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clj-kondo.impl.types :refer [types]]))
 
 (set! *warn-on-reflection* true)
 
@@ -905,8 +906,11 @@
         ctx (if resolved-as-clojure-var-name
               (assoc ctx :resolved-as-clojure-var-name resolved-as-clojure-var-name)
               ctx)
-        arg-types (atom [])
-        ctx (assoc ctx :arg-types arg-types) ;; TYPING
+        has-type? (get-in types [resolved-namespace resolved-name])
+        arg-types (when has-type? (atom []))
+        ctx (if has-type?
+              (assoc ctx :arg-types arg-types)
+              ctx) ;; TYPING
         analyzed
         (case resolved-as-clojure-var-name
           ns
@@ -1003,7 +1007,6 @@
       analyzed
       (let [in-def (:in-def ctx)
             call (cond-> {:type :call
-                          :arg-types arg-types
                           :resolved-ns resolved-namespace
                           :ns ns-name
                           :name (with-meta
@@ -1021,7 +1024,8 @@
                           :callstack (:callstack ctx)
                           :config (:config ctx)
                           :top-ns (:top-ns ctx)}
-                   in-def (assoc :in-def in-def))]
+                   in-def (assoc :in-def in-def)
+                   has-type? (assoc :arg-types arg-types))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
           (namespace/reg-used-namespace! ctx

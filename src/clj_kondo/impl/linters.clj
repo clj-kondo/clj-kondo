@@ -8,7 +8,8 @@
    [clj-kondo.impl.findings :as findings]
    [clojure.set :as set]
    [clj-kondo.impl.namespace :as namespace]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clj-kondo.impl.types :refer [types]]))
 
 (set! *warn-on-reflection* true)
 
@@ -99,9 +100,19 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
-(defn lint-arg-types! [_ctx call]
-  (let [arg-types @(:arg-types call)]
-    (prn "ARGS" arg-types)))
+(defn lint-arg-types! [{:keys [:findings]} call called-fn]
+  (when-let [arg-types (:arg-types call)]
+    (let [{:keys [:row :col :filename]} call
+          arg-types @arg-types
+          expected-types (get-in types [(:ns called-fn) (:name called-fn)])]
+      (when-not (= arg-types expected-types)
+        (findings/reg-finding! findings
+                               {:level :error
+                                :type :type-mismatch
+                                :filename filename
+                                :message "Type mismatch."
+                                :row row
+                                :col col})))))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
@@ -290,13 +301,15 @@
                                              (if (true? deprecated)
                                                nil
                                                (str " since " deprecated)))}))]
+                             ctx (assoc ctx
+                                        :filename filename)
                              _ (when call?
                                  (lint-specific-calls!
                                   (assoc ctx
                                          :filename filename)
                                   call called-fn)
                                  (lint-arg-types!
-                                  ctx call))]
+                                  ctx call called-fn))]
                        e errors
                        :when e]
                    e)]
