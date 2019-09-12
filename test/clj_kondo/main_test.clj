@@ -2354,6 +2354,25 @@
    (lint! (io/file "corpus" "core_async" "alt.clj")
           {:linters {:unresolved-symbol {:level :error}}})))
 
+(deftest if-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "Too few arguments to if."}
+     {:file "<stdin>",
+      :row 1,
+      :col 6,
+      :level :warning,
+      :message "Missing else branch."}
+     {:file "<stdin>",
+      :row 1,
+      :col 15,
+      :level :error,
+      :message "Too many arguments to if."})
+   (lint! "(if) (if 1 1) (if 1 1 1 1)")))
+
 ;;;; Scratch
 
 (comment
