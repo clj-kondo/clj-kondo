@@ -849,6 +849,22 @@
         (analyze-children ctx children)))
     (analyze-children ctx children)))
 
+(defn analyze-if
+  [ctx expr]
+  (let [children (rest (:children expr))]
+    (when-let [[expr msg linter]
+               (case (count children)
+                 (0 1) [expr "Too few arguments to if." :syntax]
+                 2 [expr "Missing else branch." :if]
+                 3 nil
+                 [expr "Too many arguments to if." :syntax])]
+      (findings/reg-finding!
+       (:findings ctx)
+       (node->line (:filename ctx) expr
+                   :warning linter
+                   msg)))
+    (analyze-children ctx children)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -951,6 +967,7 @@
           (use require)
           (if top-level? (analyze-require ctx expr)
               (analyze-children ctx (next (:children expr))))
+          if (analyze-if ctx expr)
           ;; catch-all
           (case [resolved-as-namespace resolved-as-name]
             [schema.core defn]
