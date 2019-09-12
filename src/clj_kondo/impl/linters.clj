@@ -99,6 +99,10 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
+(defn lint-arg-types! [_ctx call]
+  (let [arg-types @(:arg-types call)]
+    (prn "ARGS" arg-types)))
+
 (defn resolve-call* [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
@@ -290,7 +294,9 @@
                                  (lint-specific-calls!
                                   (assoc ctx
                                          :filename filename)
-                                  call called-fn))]
+                                  call called-fn)
+                                 (lint-arg-types!
+                                  ctx call))]
                        e errors
                        :when e]
                    e)]

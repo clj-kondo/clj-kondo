@@ -905,6 +905,8 @@
         ctx (if resolved-as-clojure-var-name
               (assoc ctx :resolved-as-clojure-var-name resolved-as-clojure-var-name)
               ctx)
+        arg-types (atom [])
+        ctx (assoc ctx :arg-types arg-types) ;; TYPING
         analyzed
         (case resolved-as-clojure-var-name
           ns
@@ -1001,6 +1003,7 @@
       analyzed
       (let [in-def (:in-def ctx)
             call (cond-> {:type :call
+                          :arg-types arg-types
                           :resolved-ns resolved-namespace
                           :ns ns-name
                           :name (with-meta
@@ -1083,6 +1086,10 @@
 (defn analyze-reader-macro [ctx expr]
   (analyze-children ctx (rest (:children expr))))
 
+(defn add-arg-type [ctx t]
+  (when-let [arg-types (:arg-types ctx)]
+    (swap! arg-types conj t)))
+
 (defn analyze-expression**
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
@@ -1093,6 +1100,7 @@
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
+      (add-arg-type ctx t)
       (case t
         :quote (analyze-children (assoc ctx :lang :edn) children)
         :syntax-quote (analyze-usages2 (assoc ctx
