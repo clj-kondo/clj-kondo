@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.types
-  {:no-doc true})
+  {:no-doc true}
+  (:require [clj-kondo.impl.clojure.spec.alpha :as s]))
 
-(def types
-  {'clojure.core {'inc [:number]}})
+(s/def ::number number?)
+(def specs {'clojure.core {'inc {:args (s/cat :x ::number)}}})
 

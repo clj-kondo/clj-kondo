@@ -9,7 +9,8 @@
    [clojure.set :as set]
    [clj-kondo.impl.namespace :as namespace]
    [clojure.string :as str]
-   [clj-kondo.impl.types :refer [types]]))
+   [clj-kondo.impl.types :as types]
+   [clj-kondo.impl.clojure.spec.alpha :as s]))
 
 (set! *warn-on-reflection* true)
 
@@ -104,8 +105,12 @@
   (when-let [arg-types (:arg-types call)]
     (let [{:keys [:row :col :filename]} call
           arg-types @arg-types
-          expected-types (get-in types [(:ns called-fn) (:name called-fn)])]
-      (when-not (= arg-types expected-types)
+          spec (get-in types/specs [(:ns called-fn) (:name called-fn)])
+          args-spec (:args spec)]
+      (when-not (s/valid? args-spec arg-types)
+        (s/explain args-spec arg-types))
+      ;; (s/assert args-spec arg-types)
+      #_(when-not (= arg-types expected-types)
         (findings/reg-finding! findings
                                {:level :error
                                 :type :type-mismatch

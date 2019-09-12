@@ -22,7 +22,8 @@
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some]]
    [clojure.string :as str]
-   [clj-kondo.impl.types :refer [types]]))
+   [clj-kondo.impl.types :as types]
+   #_[clj-kondo.impl.clojure.spec.alpha :as s]))
 
 (set! *warn-on-reflection* true)
 
@@ -906,7 +907,8 @@
         ctx (if resolved-as-clojure-var-name
               (assoc ctx :resolved-as-clojure-var-name resolved-as-clojure-var-name)
               ctx)
-        has-type? (get-in types [resolved-namespace resolved-name])
+        has-type? (get-in types/specs [resolved-namespace resolved-name])
+        ;; _ (prn "HAS TYPE?" has-type?)
         arg-types (when has-type? (atom []))
         ctx (if has-type?
               (assoc ctx :arg-types arg-types)
