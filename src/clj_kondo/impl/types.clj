@@ -43,10 +43,12 @@
 (derive ::int ::number)
 (derive ::double ::number)
 (derive ::transducer ::ifn)
-(derive ::seqable-or-transducer ::transducer)
-(derive ::seqable-or-transducer ::seqable)
-
-(derive ::list ::ifn) ;; for now, we need return types for this
+;; (derive ::seqable-or-transducer ::transducer)
+;; (derive ::seqable-or-transducer ::seqable)
+(derive ::coll ::conjable)
+(derive ::vector ::coll)
+(derive ::map ::coll)
+(derive ::set ::coll)
 
 ;; (derive ::list ::atom) ;; for now, we need return types for this
 
@@ -64,7 +66,9 @@
 (s/def ::int #(is? % ::int))
 (s/def ::atom #(is? % ::atom))
 (s/def ::ifn #(is? % ::ifn))
+(s/def ::transducer #(is? % ::transducer))
 (s/def ::string #(is? % ::string))
+(s/def ::conjable #(is? % ::conjable))
 ;; (s/def ::reducible-coll #(is? % ::reducible-coll))
 ;; (s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
 (s/def ::any any?)
@@ -120,6 +124,12 @@
            :ret ::string}
     ;; 6790
     'reduce {:args (s/cat :f ::ifn :val (s/? ::any) :coll ::seqable)}
+    ;; 6887
+    'into {:args (s/alt :no-arg (s/cat)
+                        :identity (s/cat :to ::conjable)
+                        :seqable (s/cat :to ::conjable :from ::seqable)
+                        :transducer (s/cat :to ::conjable :xf ::transducer :from ::seqable))
+           :ret ::seqable}
     ;; 7313
     'keep {:args (s/alt :transducer (s/cat :f ::ifn)
                         :seqable (s/cat :f ::ifn :coll ::seqable))
@@ -197,13 +207,20 @@
                                 (when offending-tag
                                   (name offending-tag)))
         reason (:reason problem)
-        insufficient? (= "Insufficient input" reason)]
+        insufficient? (= "Insufficient input" reason)
+        extra? (= "Extra input" reason)]
     (cond insufficient?
           (findings/reg-finding! findings {:filename (:filename ctx)
                                            :row (:row (last args))
                                            :col (:col (last args))
                                            :type :type-mismatch
                                            :message "More arguments expected."} )
+          extra?
+          (findings/reg-finding! findings {:filename (:filename ctx)
+                                           :row (:row (last args))
+                                           :col (:col (last args))
+                                           :type :type-mismatch
+                                           :message "Too many arguments."})
           (and via-label offending-tag-label)
           (findings/reg-finding! findings {:filename (:filename ctx)
                                            :row (:row offending-arg)
@@ -212,13 +229,18 @@
                                            :message (str "Expected: " via-label
                                                          ", received: " offending-tag-label ".")}))))
 
+;; (require '[clojure.pprint :refer [pprint]])
+
 (defn lint-arg-types [ctx called-ns called-name args]
   ;; (prn "ARG" args (meta args) called-ns called-name)
   (let [tags (not-empty (map :tag args))]
     (when tags
       (when-let [args-spec (:args (get-in specs [called-ns called-name]))]
         ;; (prn "SPEC" args-spec called-ns called-name)
+        ;; (prn (s/valid? args-spec tags))
+        ;; (pprint (s/conform args-spec tags))
         (when-not (s/valid? args-spec tags)
           (let [d (s/explain-data args-spec tags)]
+            (prn (count (:clj-kondo.impl.clojure.spec.alpha/problems d)))
             (run! #(emit-warning! ctx args %)
                   (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d)))))))))
