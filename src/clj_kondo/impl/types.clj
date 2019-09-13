@@ -53,7 +53,8 @@
                            'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
                                                 :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
                            'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
-                           'inc {:args (s/cat :x ::number)}
+                           'inc {:args (s/cat :x ::number)
+                                 :ret ::number}
                            'subs {:args (s/cat :s ::string
                                                :start ::nat-int
                                                :end (s/? ::nat-int))}}})
@@ -75,12 +76,22 @@
                  :else ::any))
       ::any)))
 
-(defn add-arg-type [ctx expr]
+(defn add-arg-type-from-expr [ctx expr]
   (when-let [arg-types (:arg-types ctx)]
     (let [{:keys [:row :col]} (meta expr)]
       (swap! arg-types conj {:tag (expr->tag ctx expr)
                              :row row
                              :col col}))))
+
+(defn add-arg-type-from-call [ctx call]
+  (when-let [arg-types (:arg-types ctx)]
+    (when-not (:unresolved? call)
+      (let [call-ns (:resolved-ns call)
+            call-name (:name call)]
+        (when-let [spec (get-in specs [call-ns call-name :ret])]
+          (swap! arg-types conj {:tag spec
+                                 :row (:row call)
+                                 :col (:col call)}))))))
 
 (defn emit-warning! [{:keys [:findings] :as ctx} args problem]
   ;; (prn args problem)

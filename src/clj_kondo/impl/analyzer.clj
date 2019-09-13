@@ -911,8 +911,8 @@
         ;; _ (prn "HAS TYPE?" has-type?)
         arg-types (when has-type? (atom []))
         ctx (assoc ctx :arg-types arg-types) ;; we need to add arg-types even if
-                                             ;; it is nil, to overwrite the args
-                                             ;; for a parent call
+        ;; it is nil, to overwrite the args
+        ;; for a parent call
         analyzed
         (case resolved-as-clojure-var-name
           ns
@@ -1027,8 +1027,8 @@
                           :config (:config ctx)
                           :top-ns (:top-ns ctx)
                           :arg-types arg-types ;; we need to add arg-types even
-                                               ;; when it is nil, to overwrite a
-                                               ;; parent call
+                          ;; when it is nil, to overwrite a
+                          ;; parent call
                           }
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
@@ -1105,7 +1105,8 @@
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
-      (types/add-arg-type ctx expr)
+      (when-not (= :list t) ;; list is handled specially because of return types
+        (types/add-arg-type-from-expr ctx expr))
       (case t
         :quote (analyze-children (assoc ctx :lang :edn) children)
         :syntax-quote (analyze-usages2 (assoc ctx
@@ -1139,16 +1140,19 @@
               (case t
                 :map
                 (do (lint-map-call! ctx function arg-count expr)
+                    (types/add-arg-type-from-expr ctx expr)
                     (analyze-children ctx children))
                 :quote
                 (let [quoted-child (-> function :children first)]
                   (if (utils/symbol-token? quoted-child)
                     (do (lint-symbol-call! ctx quoted-child arg-count expr)
                         (analyze-children ctx children))
-                    (analyze-children ctx children)))
+                    (do (types/add-arg-type-from-expr ctx expr)
+                        (analyze-children ctx children))))
                 :token
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+                      (types/add-arg-type-from-expr ctx expr)
                       (analyze-children ctx children))
                   (if-let [full-fn-name (utils/symbol-from-token function)]
                     (let [full-fn-name (with-meta full-fn-name (meta function))
@@ -1156,12 +1160,19 @@
                           binding-call? (and unresolved?
                                              (contains? bindings full-fn-name))]
                       (if binding-call?
-                        (analyze-binding-call ctx full-fn-name expr)
-                        (analyze-call ctx {:arg-count arg-count
-                                           :full-fn-name full-fn-name
-                                           :row row
-                                           :col col
-                                           :expr expr})))
+                        (do
+                          (types/add-arg-type-from-expr ctx expr)
+                          (analyze-binding-call ctx full-fn-name expr))
+                        (let [ret (analyze-call ctx {:arg-count arg-count
+                                                     :full-fn-name full-fn-name
+                                                     :row row
+                                                     :col col
+                                                     :expr expr})
+                              maybe-call (first ret)]
+                          (if (= :call (:type maybe-call))
+                            (types/add-arg-type-from-call ctx maybe-call)
+                            (types/add-arg-type-from-expr ctx expr))
+                          ret)))
                     (cond
                       (utils/boolean-token? function)
                       (do (reg-not-a-function! ctx expr "boolean")
@@ -1176,12 +1187,21 @@
                       (do (reg-not-a-function! ctx expr "number")
                           (analyze-children ctx (rest children)))
                       :else
-                      (analyze-children ctx children))))
-                (analyze-children ctx children)))))
+                      (do
+                        ;; (prn "--")
+                        (types/add-arg-type-from-expr ctx expr)
+                        (analyze-children ctx children)))))
+                ;; catch-call
+                (do
+                  ;; (prn "--")
+                  (types/add-arg-type-from-expr ctx expr)
+                  (analyze-children ctx children))))))
         ;; catch-all
-        (analyze-children (update ctx
-                                  :callstack #(cons [nil t] %))
-                          children)))))
+        (do
+          ;;(prn "--")
+          (analyze-children (update ctx
+                                    :callstack #(cons [nil t] %))
+                            children))))))
 
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
