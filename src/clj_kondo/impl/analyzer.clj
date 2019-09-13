@@ -1092,10 +1092,6 @@
 (defn analyze-reader-macro [ctx expr]
   (analyze-children ctx (rest (:children expr))))
 
-(defn add-arg-type [ctx t]
-  (when-let [arg-types (:arg-types ctx)]
-    (swap! arg-types conj t)))
-
 (defn analyze-expression**
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
@@ -1106,7 +1102,7 @@
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
-      (add-arg-type ctx t)
+      (types/add-arg-type ctx expr)
       (case t
         :quote (analyze-children (assoc ctx :lang :edn) children)
         :syntax-quote (analyze-usages2 (assoc ctx

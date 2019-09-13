@@ -101,23 +101,11 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
-(defn lint-arg-types! [{:keys [:findings]} call called-fn]
+(defn lint-arg-types! [{:keys [:findings] :as ctx} call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [{:keys [:row :col :filename]} call
-          arg-types @arg-types
-          spec (get-in types/specs [(:ns called-fn) (:name called-fn)])
-          args-spec (:args spec)]
-      (when-not (s/valid? args-spec arg-types)
-        (s/explain args-spec arg-types))
-      ;; (s/assert args-spec arg-types)
-      #_(when-not (= arg-types expected-types)
-        (findings/reg-finding! findings
-                               {:level :error
-                                :type :type-mismatch
-                                :filename filename
-                                :message "Type mismatch."
-                                :row row
-                                :col col})))))
+          arg-types @arg-types]
+      (types/lint-arg-types ctx (:ns called-fn) (:name called-fn) arg-types))))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
   (let [call-lang (:lang call)
