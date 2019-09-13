@@ -33,6 +33,7 @@
   ([ctx children]
    (analyze-children ctx children true))
   ([{:keys [:callstack :config] :as ctx} children add-new-arg-types?]
+   ;; (prn callstack add-new-arg-types?)
    (when-not (config/skip? config callstack)
      (let [ctx (assoc ctx
                       :top-level? false
@@ -1014,7 +1015,7 @@
                              (= '[clojure.core.async thread]
                                 [resolved-namespace resolved-name])
                              (assoc-in [:recur-arity :fixed-arity] 0))]
-              (analyze-children next-ctx (rest children)))))]
+              (analyze-children next-ctx (rest children) false))))]
     (if (= 'ns resolved-as-clojure-var-name)
       analyzed
       (let [in-def (:in-def ctx)
