@@ -38,6 +38,7 @@
 (derive ::nat-int ::int)
 (derive ::int ::number)
 (derive ::double ::number)
+(derive ::transducer ::ifn)
 (derive ::seqable-or-transducer ::transducer)
 (derive ::seqable-or-transducer ::seqable)
 
@@ -60,37 +61,66 @@
 (s/def ::atom #(is? % ::atom))
 (s/def ::ifn #(is? % ::ifn))
 (s/def ::string #(is? % ::string))
-(s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
+;; (s/def ::reducible-coll #(is? % ::reducible-coll))
+;; (s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
 (s/def ::any any?)
 
-(def specs {'clojure.core {;; 22
-                           'cons {:args (s/cat :x ::any :seq ::seqable)}
-                           ;; 181
-                           'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
-                                                :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
-                           ;; 922
-                           'inc {:args (s/cat :x ::number)
-                                 :ret ::number}
-                           ;; 2327
-                           'atom {:ret ::atom}
-                           ;; 2345
-                           'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
-                           ;; 2576
-                           'juxt {:args (s/+ ::ifn)
-                                  :ret ::ifn}
-                           ;; 2727
-                           'map {:args (s/alt :transducer (s/cat :f ::ifn)
-                                              :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
-                                 :ret ::seqable-or-transducer
-                                 :fn (fn [args]
-                                       (if (= 1 (count args))
-                                         ::transducer
-                                         ::seqable))}
-                           ;; 4981
-                           'subs {:args (s/cat :s ::string
-                                               :start ::nat-int
-                                               :end (s/? ::nat-int))
-                                  :ret ::string}}})
+(def specs
+  {'clojure.core
+   {;; 22
+    'cons {:args (s/cat :x ::any :seq ::seqable)}
+    ;; 181
+    'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
+                         :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
+    ;; 922
+    'inc {:args (s/cat :x ::number)
+          :ret ::number}
+    ;; 2327
+    'atom {:ret ::atom}
+    ;; 2345
+    'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
+    ;; 2576
+    'juxt {:args (s/+ ::ifn)
+           :ret ::ifn}
+    ;; 2727
+    'map {:args (s/alt :transducer (s/cat :f ::ifn)
+                       :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
+          ;; :ret ::seqable-or-transducer
+          :fn (fn [args]
+                (if (= 1 (count args))
+                  ::transducer
+                  ::seqable))}
+    ;; 2793
+    'filter {:args (s/alt :transducer (s/cat :f ::ifn)
+                          :seqable (s/cat :f ::ifn :coll ::seqable))
+             ;; :ret ::seqable-or-transducer
+             :fn (fn [args]
+                   (if (= 1 (count args))
+                     ::transducer
+                     ::seqable))}
+    ;; 2826
+    'remove {:args (s/alt :transducer (s/cat :f ::ifn)
+                          :seqable (s/cat :f ::ifn :coll ::seqable))
+             ;; :ret ::seqable-or-transducer
+             :fn (fn [args]
+                   (if (= 1 (count args))
+                     ::transducer
+                     ::seqable))}
+    ;; 4981
+    'subs {:args (s/cat :s ::string
+                        :start ::nat-int
+                        :end (s/? ::nat-int))
+           :ret ::string}
+    ;; 6790
+    'reduce {:args (s/cat :f ::ifn :val (s/? ::any) :coll ::seqable)}
+    ;; 7313
+    'keep {:args (s/alt :transducer (s/cat :f ::ifn)
+                        :seqable (s/cat :f ::ifn :coll ::seqable))
+           ;; :ret ::seqable-or-transducer
+           :fn (fn [args]
+                 (if (= 1 (count args))
+                   ::transducer
+                   ::seqable))}}})
 
 (defn number->tag [v]
   (cond (int? v)

@@ -2426,7 +2426,9 @@
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
-               (let [x (atom 1)] (swap! x identity))"
+               (let [x (atom 1)] (swap! x identity))
+               (assoc {} :a `(dude))
+               (reduce #(%1 %2) 1 [1 2 3])"
               {:linters {:type-mismatch {:level :error}}}))))
 
 ;;;; Scratch

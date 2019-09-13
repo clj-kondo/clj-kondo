@@ -1123,7 +1123,8 @@
         :quote (analyze-children (assoc ctx :lang :edn) children)
         :syntax-quote (analyze-usages2 (assoc ctx
                                               :analyze-expression**
-                                              analyze-expression**) expr)
+                                              analyze-expression**
+                                              :arg-types nil) expr)
         :var (analyze-children (assoc ctx :private-access? true)
                                (:children expr))
         :reader-macro (analyze-reader-macro ctx expr)
@@ -1142,7 +1143,8 @@
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
                                    children))
-        :fn (recur ctx (macroexpand/expand-fn expr))
+        :fn (recur (assoc ctx :arg-types nil)
+                   (macroexpand/expand-fn expr))
         :token (when-not (= :edn (:lang ctx)) (analyze-usages2 ctx expr))
         :list
         (when-let [function (first children)]
