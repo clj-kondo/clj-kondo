@@ -17,7 +17,8 @@
    ::associative "associative collection"
    ::atom "atom"
    ::fn "function"
-   ::ifn "function"})
+   ::ifn "function"
+   ::keyword "keyword"})
 
 (derive ::list ::seqable)
 (derive ::vector ::seqable)
@@ -69,6 +70,7 @@
                (cond
                  (nil? v) ::nil
                  (string? v) ::string
+                 (keyword? v) ::keyword
                  (nat-int? v) ::nat-int
                  :else ::any))
       ::any)))
@@ -86,8 +88,11 @@
         in-path (:in problem)
         offending-arg (get-in args in-path)
         offending-tag (:tag offending-arg)
-        via-label (get labels via via)
-        offending-tag-label (get labels offending-tag offending-tag)
+        via-label (or (get labels via)
+                      (when via
+                        (name via)))
+        offending-tag-label (or (get labels offending-tag)
+                                (name offending-tag))
         reason (:reason problem)
         insufficient? (= "Insufficient input" reason)]
     (cond insufficient?
