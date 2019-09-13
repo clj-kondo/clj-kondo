@@ -108,11 +108,13 @@
       (types/lint-arg-types ctx (:ns called-fn) (:name called-fn) arg-types))))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
+  (prn "RES" fn-ns fn-name)
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
         unresolved? (:unresolved? call)
         unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
         fn-ns (if unknown-ns? (:ns call) fn-ns)]
+    (prn "FN NS" fn-ns fn-name (keys (get (:defs (:clj idacs)) 'clojure.core)))
     (case [base-lang call-lang]
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
@@ -245,15 +247,17 @@
                                                                   caller-ns-sym fn-ns fn-name))
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
+                             arity-error?
+                             (and
+                              (= :call (:type call))
+                              (not (:invalid-arity-disabled? call))
+                              (or (not-empty fixed-arities)
+                                  var-args-min-arity)
+                              (not (or (contains? fixed-arities arity)
+                                       (and var-args-min-arity (>= arity var-args-min-arity))
+                                       (config/skip? config :invalid-arity (rest (:callstack call))))))
                              errors
-                             [(when (and
-                                     (= :call (:type call))
-                                     (not (:invalid-arity-disabled? call))
-                                     (or (not-empty fixed-arities)
-                                         var-args-min-arity)
-                                     (not (or (contains? fixed-arities arity)
-                                              (and var-args-min-arity (>= arity var-args-min-arity))
-                                              (config/skip? config :invalid-arity (rest (:callstack call))))))
+                             [(when arity-error?
                                 {:filename filename
                                  :row row
                                  :col col
@@ -301,8 +305,8 @@
                                   (assoc ctx
                                          :filename filename)
                                   call called-fn)
-                                 (lint-arg-types!
-                                  ctx call called-fn))]
+                                 (when-not arity-error?
+                                   (lint-arg-types! ctx call called-fn)))]
                        e errors
                        :when e]
                    e)]

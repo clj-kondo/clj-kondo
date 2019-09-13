@@ -2373,6 +2373,23 @@
       :message "Too many arguments to if."})
    (lint! "(if) (if 1 1) (if 1 1 1 1)")))
 
+(deftest type-mismatch-test
+  (assert-submaps
+   '({:row 1,
+      :col 6,
+      :message "Expected: number, received: string."})
+   (lint! "(inc \"foo\")"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:row 1,
+      :col 7,
+      :message "Expected: string, received: number."})
+   (lint! "(subs (inc 1) 1)"
+          {:linters {:type-mismatch {:level :error}}}))
+  (is (empty?
+       (lint! "(cons [nil] (list 1 2 3))"
+              {:linters {:type-mismatch {:level :error}}}))))
+
 ;;;; Scratch
 
 (comment

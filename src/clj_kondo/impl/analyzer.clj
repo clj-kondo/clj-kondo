@@ -29,10 +29,21 @@
 
 (declare analyze-expression**)
 
-(defn analyze-children [{:keys [:callstack :config] :as ctx} children]
-  (when-not (config/skip? config callstack)
-    (let [ctx (assoc ctx :top-level? false)]
-      (mapcat #(analyze-expression** ctx %) children))))
+(defn analyze-children
+  ([ctx children]
+   (analyze-children ctx children true))
+  ([{:keys [:callstack :config] :as ctx} children add-new-arg-types?]
+   (when-not (config/skip? config callstack)
+     (let [ctx (assoc ctx
+                      :top-level? false
+                      :arg-types (if add-new-arg-types?
+                                   (let [[k v] (first callstack)]
+                                     (if (and (symbol? k)
+                                              (symbol? v))
+                                       (atom [])
+                                       nil))
+                                   (:arg-types ctx)))]
+       (mapcat #(analyze-expression** ctx %) children)))))
 
 (defn analyze-keys-destructuring-defaults [ctx m defaults]
   (let [defaults (into {}
@@ -904,15 +915,14 @@
         resolved-as-clojure-var-name
         (when (one-of resolved-as-namespace [clojure.core cljs.core])
           resolved-as-name)
+        arg-types (if (and resolved-namespace resolved-name)
+                    (atom (with-meta [] {:res resolved-name}))
+                    nil)
+        ctx (assoc ctx :arg-types arg-types)
         ctx (if resolved-as-clojure-var-name
-              (assoc ctx :resolved-as-clojure-var-name resolved-as-clojure-var-name)
+              (assoc ctx
+                     :resolved-as-clojure-var-name resolved-as-clojure-var-name)
               ctx)
-        has-type? (get-in types/specs [resolved-namespace resolved-name])
-        ;; _ (prn "HAS TYPE?" has-type?)
-        arg-types (when has-type? (atom []))
-        ctx (assoc ctx :arg-types arg-types) ;; we need to add arg-types even if
-        ;; it is nil, to overwrite the args
-        ;; for a parent call
         analyzed
         (case resolved-as-clojure-var-name
           ns
@@ -1026,10 +1036,7 @@
                           :callstack (:callstack ctx)
                           :config (:config ctx)
                           :top-ns (:top-ns ctx)
-                          :arg-types arg-types ;; we need to add arg-types even
-                          ;; when it is nil, to overwrite a
-                          ;; parent call
-                          }
+                          :arg-types (:arg-types ctx)}
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
@@ -1170,7 +1177,7 @@
                                                      :expr expr})
                               maybe-call (first ret)]
                           (if (= :call (:type maybe-call))
-                            (types/add-arg-type-from-call ctx maybe-call)
+                            (types/add-arg-type-from-call ctx maybe-call expr)
                             (types/add-arg-type-from-expr ctx expr))
                           ret)))
                     (cond

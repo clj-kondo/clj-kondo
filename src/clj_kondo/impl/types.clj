@@ -46,7 +46,7 @@
 (s/def ::nat-int #(is? % ::nat-int))
 (s/def ::atom #(is? % ::atom))
 (s/def ::ifn #(is? % ::ifn))
-(s/def ::string #{::string})
+(s/def ::string #(is? % ::string))
 (s/def ::any any?)
 
 (def specs {'clojure.core {'cons {:args (s/cat :x ::any :seq ::seqable)}
@@ -59,13 +59,13 @@
                                                :start ::nat-int
                                                :end (s/? ::nat-int))}}})
 
-(defn expr->tag [ctx expr]
+(defn expr->tag [_ctx expr]
   (let [t (tag expr)]
-    ;; (prn t)
+    ;; (prn t expr)
     (case t
       :map ::map
       :vector ::vector
-      :list ::list
+      :list (do #_(prn "EXPR" expr) ::list)
       :fn ::fn
       :token (let [v (sexpr expr)]
                (cond
@@ -77,21 +77,25 @@
       ::any)))
 
 (defn add-arg-type-from-expr [ctx expr]
+  ;; (prn expr (expr->tag ctx expr) (meta expr))
   (when-let [arg-types (:arg-types ctx)]
+    ;; (prn expr)
     (let [{:keys [:row :col]} (meta expr)]
       (swap! arg-types conj {:tag (expr->tag ctx expr)
                              :row row
                              :col col}))))
 
-(defn add-arg-type-from-call [ctx call]
+(defn add-arg-type-from-call [ctx call expr]
   (when-let [arg-types (:arg-types ctx)]
     (when-not (:unresolved? call)
       (let [call-ns (:resolved-ns call)
             call-name (:name call)]
-        (when-let [spec (get-in specs [call-ns call-name :ret])]
+        ;; (prn call-ns call-name)
+        (if-let [spec (get-in specs [call-ns call-name :ret])]
           (swap! arg-types conj {:tag spec
                                  :row (:row call)
-                                 :col (:col call)}))))))
+                                 :col (:col call)})
+          (add-arg-type-from-expr ctx expr))))))
 
 (defn emit-warning! [{:keys [:findings] :as ctx} args problem]
   ;; (prn args problem)
@@ -122,10 +126,12 @@
                                                          ", received: " offending-tag-label ".")}))))
 
 (defn lint-arg-types [ctx called-ns called-name args]
-  (let [spec (get-in specs [called-ns called-name])
-        args-spec (:args spec)
-        tags (map :tag args)]
-    (when-not (s/valid? args-spec tags)
-      (let [d (s/explain-data args-spec tags)]
-        (run! #(emit-warning! ctx args %)
-              (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d)))))))
+  ;; (prn "ARG" args (meta args) called-ns called-name)
+  (let [tags (not-empty (map :tag args))]
+    (when tags
+      (when-let [args-spec (:args (get-in specs [called-ns called-name]))]
+        ;; (prn "SPEC" args-spec called-ns called-name)
+        (when-not (s/valid? args-spec tags)
+          (let [d (s/explain-data args-spec tags)]
+            (run! #(emit-warning! ctx args %)
+                  (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d)))))))))
