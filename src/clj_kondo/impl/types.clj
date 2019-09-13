@@ -66,7 +66,7 @@
     (case t
       :map ::map
       :vector ::vector
-      :list ::list
+      :list ::any ;; a call we know nothing about
       :fn ::fn
       :token (let [v (sexpr expr)]
                (cond

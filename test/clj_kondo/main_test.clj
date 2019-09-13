@@ -2408,7 +2408,7 @@
    (lint! "(let [x 1 y (subs x 1)] (inc y))"
           {:linters {:type-mismatch {:level :error}}}))
   (is (empty?
-       (lint! "(cons [nil] (list 1 2 3))"
+       (lint! "(cons [nil] (list 1 2 3)) (defn foo [] (:foo x))"
               {:linters {:type-mismatch {:level :error}}}))))
 
 ;;;; Scratch
