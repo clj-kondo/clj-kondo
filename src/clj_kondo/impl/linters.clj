@@ -108,13 +108,13 @@
       (types/lint-arg-types ctx (:ns called-fn) (:name called-fn) arg-types))))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
-  (prn "RES" fn-ns fn-name)
+  ;; (prn "RES" fn-ns fn-name)
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
         unresolved? (:unresolved? call)
         unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
         fn-ns (if unknown-ns? (:ns call) fn-ns)]
-    (prn "FN NS" fn-ns fn-name (keys (get (:defs (:clj idacs)) 'clojure.core)))
+    ;; (prn "FN NS" fn-ns fn-name (keys (get (:defs (:clj idacs)) 'clojure.core)))
     (case [base-lang call-lang]
       [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
