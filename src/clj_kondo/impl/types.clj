@@ -92,7 +92,8 @@
                       (when via
                         (name via)))
         offending-tag-label (or (get labels offending-tag)
-                                (name offending-tag))
+                                (when offending-tag
+                                  (name offending-tag)))
         reason (:reason problem)
         insufficient? (= "Insufficient input" reason)]
     (cond insufficient?
