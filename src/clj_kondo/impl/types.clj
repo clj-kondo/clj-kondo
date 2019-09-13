@@ -22,28 +22,29 @@
 (derive ::list ::seqable)
 (derive ::vector ::seqable)
 (derive ::string ::seqable)
-(derive ::any ::seqable)
 
 (derive ::vector ::associative)
 (derive ::map ::associative)
 
 (derive ::nat-int ::number)
-(derive ::any ::number)
-
-(derive ::any ::nil)
 
 (derive ::list ::ifn) ;; for now, we need return types for this
+
 (derive ::list ::atom) ;; for now, we need return types for this
 
 (derive ::fn ::ifn)
 
-(s/def ::nil #(isa? % ::nil))
-(s/def ::seqable #(isa? % ::seqable))
-(s/def ::associative #(isa? % ::associative))
-(s/def ::number #(isa? % ::number))
-(s/def ::nat-int #(isa? % ::nat-int))
-(s/def ::atom #(isa? % ::atom))
-(s/def ::ifn #(isa? % ::ifn))
+(defn is? [x parent]
+  (or (identical? x ::any)
+      (isa? x parent)))
+
+(s/def ::nil #(is? % ::nil))
+(s/def ::seqable #(is? % ::seqable))
+(s/def ::associative #(is? % ::associative))
+(s/def ::number #(is? % ::number))
+(s/def ::nat-int #(is? % ::nat-int))
+(s/def ::atom #(is? % ::atom))
+(s/def ::ifn #(is? % ::ifn))
 (s/def ::string #{::string})
 (s/def ::any any?)
 
