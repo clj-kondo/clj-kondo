@@ -79,6 +79,9 @@
     ;; 922
     'inc {:args (s/cat :x ::number)
           :ret ::number}
+    ;; 947
+    'reverse {:args (s/cat :x ::seqable)
+              :ret ::seqable}
     ;; 2327
     'atom {:ret ::atom}
     ;; 2345
