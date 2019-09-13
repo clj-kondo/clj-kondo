@@ -20,7 +20,8 @@
    ::atom "atom"
    ::fn "function"
    ::ifn "function"
-   ::keyword "keyword"})
+   ::keyword "keyword"
+   ::seqable-or-transducer "seqable or transducer"})
 
 (derive ::list ::seqable)
 (derive ::vector ::seqable)
@@ -37,6 +38,8 @@
 (derive ::nat-int ::int)
 (derive ::int ::number)
 (derive ::double ::number)
+(derive ::seqable-or-transducer ::transducer)
+(derive ::seqable-or-transducer ::seqable)
 
 (derive ::list ::ifn) ;; for now, we need return types for this
 
@@ -57,6 +60,7 @@
 (s/def ::atom #(is? % ::atom))
 (s/def ::ifn #(is? % ::ifn))
 (s/def ::string #(is? % ::string))
+(s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
 (s/def ::any any?)
 
 (def specs {'clojure.core {;; 22
@@ -74,6 +78,14 @@
                            ;; 2576
                            'juxt {:args (s/+ ::ifn)
                                   :ret ::ifn}
+                           ;; 2727
+                           'map {:args (s/alt :transducer (s/cat :f ::ifn)
+                                              :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
+                                 :ret ::seqable-or-transducer
+                                 :fn (fn [args]
+                                       (if (= 1 (count args))
+                                         ::transducer
+                                         ::seqable))}
                            ;; 4981
                            'subs {:args (s/cat :s ::string
                                                :start ::nat-int
@@ -82,11 +94,11 @@
 
 (defn number->tag [v]
   (cond (int? v)
-    (cond (pos-int? v) ::pos-int
-          (nat-int? v) ::nat-int
-          (neg-int? v) ::neg-int)
-    (double? v) ::double
-    :else ::number))
+        (cond (pos-int? v) ::pos-int
+              (nat-int? v) ::nat-int
+              (neg-int? v) ::neg-int)
+        (double? v) ::double
+        :else ::number))
 
 (defn expr->tag [{:keys [:bindings]} expr]
   (let [t (tag expr)]
@@ -122,7 +134,10 @@
     (let [call-ns (:resolved-ns call)
           call-name (:name call)]
       ;; (prn call-ns call-name)
-      (get-in specs [call-ns call-name :ret]))))
+      (when-let [spec (get-in specs [call-ns call-name])]
+        (if-let [fn-spec (:fn spec)]
+          (fn-spec @(:arg-types call))
+          (:ret spec))))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]

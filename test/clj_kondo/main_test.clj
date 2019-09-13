@@ -2415,6 +2415,14 @@
       :message "Expected: atom, received: positive integer."})
    (lint! "(let [x 1] (swap! x identity))"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 32,
+      :level :error,
+      :message "Expected: seqable collection, received: transducer."})
+   (lint! "(let [x (map (fn []))] (cons 1 x))"
+          {:linters {:type-mismatch {:level :error}}}))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
