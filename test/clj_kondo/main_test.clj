@@ -2399,7 +2399,7 @@
       :row 1,
       :col 19,
       :level :error,
-      :message "Expected: string, received: natural integer."}
+      :message "Expected: string, received: positive integer."}
      {:file "<stdin>",
       :row 1,
       :col 30,
@@ -2407,8 +2407,18 @@
       :message "Expected: number, received: string."})
    (lint! "(let [x 1 y (subs x 1)] (inc y))"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 19,
+      :level :error,
+      :message "Expected: atom, received: positive integer."})
+   (lint! "(let [x 1] (swap! x identity))"
+          {:linters {:type-mismatch {:level :error}}}))
   (is (empty?
-       (lint! "(cons [nil] (list 1 2 3)) (defn foo [] (:foo x))"
+       (lint! "(cons [nil] (list 1 2 3))
+               (defn foo [] (:foo x))
+               (let [x (atom 1)] (swap! x identity))"
               {:linters {:type-mismatch {:level :error}}}))))
 
 ;;;; Scratch

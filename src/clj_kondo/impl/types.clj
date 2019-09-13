@@ -11,7 +11,9 @@
    ::string "string"
    ::number "number"
    ::int "integer"
+   ::pos-int "positive integer"
    ::nat-int "natural integer"
+   ::neg-int "negative integer"
    ::seqable "seqable collection"
    ::vector "vector"
    ::associative "associative collection"
@@ -27,11 +29,18 @@
 (derive ::vector ::associative)
 (derive ::map ::associative)
 
+(derive ::pos-int ::number)
+(derive ::pos-int ::int)
+(derive ::neg-int ::number)
+(derive ::neg-int ::int)
 (derive ::nat-int ::number)
+(derive ::nat-int ::int)
+(derive ::int ::number)
+(derive ::double ::number)
 
 (derive ::list ::ifn) ;; for now, we need return types for this
 
-(derive ::list ::atom) ;; for now, we need return types for this
+;; (derive ::list ::atom) ;; for now, we need return types for this
 
 (derive ::fn ::ifn)
 
@@ -44,21 +53,40 @@
 (s/def ::associative #(is? % ::associative))
 (s/def ::number #(is? % ::number))
 (s/def ::nat-int #(is? % ::nat-int))
+(s/def ::int #(is? % ::int))
 (s/def ::atom #(is? % ::atom))
 (s/def ::ifn #(is? % ::ifn))
 (s/def ::string #(is? % ::string))
 (s/def ::any any?)
 
-(def specs {'clojure.core {'cons {:args (s/cat :x ::any :seq ::seqable)}
+(def specs {'clojure.core {;; 22
+                           'cons {:args (s/cat :x ::any :seq ::seqable)}
+                           ;; 181
                            'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
                                                 :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
-                           'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
+                           ;; 922
                            'inc {:args (s/cat :x ::number)
                                  :ret ::number}
+                           ;; 2327
+                           'atom {:ret ::atom}
+                           ;; 2345
+                           'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
+                           ;; 2576
+                           'juxt {:args (s/+ ::ifn)
+                                  :ret ::ifn}
+                           ;; 4981
                            'subs {:args (s/cat :s ::string
                                                :start ::nat-int
                                                :end (s/? ::nat-int))
                                   :ret ::string}}})
+
+(defn number->tag [v]
+  (cond (int? v)
+    (cond (pos-int? v) ::pos-int
+          (nat-int? v) ::nat-int
+          (neg-int? v) ::neg-int)
+    (double? v) ::double
+    :else ::number))
 
 (defn expr->tag [{:keys [:bindings]} expr]
   (let [t (tag expr)]
@@ -76,7 +104,7 @@
                                ::any)
                  (string? v) ::string
                  (keyword? v) ::keyword
-                 (nat-int? v) ::nat-int
+                 (number? v) (number->tag v)
                  :else ::any))
       ::any)))
 
