@@ -4,7 +4,8 @@
    [clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer
-    [tag sexpr]]))
+    [tag sexpr]]
+   [clj-kondo.impl.namespace :as namespace]))
 
 (def labels
   {::nil "nil"
@@ -59,17 +60,20 @@
                                                :start ::nat-int
                                                :end (s/? ::nat-int))}}})
 
-(defn expr->tag [_ctx expr]
+(defn expr->tag [{:keys [:bindings]} expr]
   (let [t (tag expr)]
     ;; (prn t expr)
     (case t
       :map ::map
       :vector ::vector
-      :list (do #_(prn "EXPR" expr) ::list)
+      :list ::list
       :fn ::fn
       :token (let [v (sexpr expr)]
                (cond
                  (nil? v) ::nil
+                 (symbol? v) (if-let [b (get bindings v)]
+                               (or (:tag b) ::any)
+                               ::any)
                  (string? v) ::string
                  (keyword? v) ::keyword
                  (nat-int? v) ::nat-int

@@ -2,9 +2,11 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+   #_[clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.analyzer.core-async :as core-async]
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
+   [clj-kondo.impl.analyzer.potemkin :as potemkin]
    [clj-kondo.impl.analyzer.spec :as spec]
    [clj-kondo.impl.analyzer.usages :as usages :refer [analyze-usages2]]
    [clj-kondo.impl.config :as config]
@@ -17,13 +19,11 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
-   [clj-kondo.impl.analyzer.potemkin :as potemkin]
+   [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some]]
-   [clojure.string :as str]
-   [clj-kondo.impl.types :as types]
-   #_[clj-kondo.impl.clojure.spec.alpha :as s]))
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -80,7 +80,7 @@
   ([ctx expr] (when expr
                 (extract-bindings ctx expr {})))
   ([{:keys [:skip-reg-binding?] :as ctx} expr
-    {:keys [:keys-destructuring? :fn-args?] :as opts}]
+    {:keys [:keys-destructuring? :fn-args? :value] :as opts}]
    (let [expr (lift-meta-content* ctx expr)
          t (tag expr)
          findings (:findings ctx)
@@ -103,13 +103,12 @@
                        m (meta expr)
                        v (assoc m
                                 :name s
-                                :filename (:filename ctx))]
+                                :filename (:filename ctx)
+                                :tag (when value (types/expr->tag ctx value)))]
                    (when-not skip-reg-binding?
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
-                                             (assoc m
-                                                    :name s
-                                                    :filename (:filename ctx))))
+                                             v))
                    {s v})
                  (findings/reg-finding!
                   findings
@@ -396,7 +395,7 @@
                   ctx* (-> ctx
                            (ctx-with-bindings bindings)
                            (update :arities merge arities))
-                  new-bindings (when binding (extract-bindings ctx* binding))
+                  new-bindings (when binding (extract-bindings ctx* binding {:value value}))
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
                   analyzed-value (when (and value (not for-let?))

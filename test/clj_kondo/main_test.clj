@@ -2386,6 +2386,14 @@
       :message "Expected: string, received: number."})
    (lint! "(subs (inc 1) 1)"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 25,
+      :level :error,
+      :message "Expected: number, received: string."})
+   (lint! "(let [x \"foo\" y x] (inc y))"
+          {:linters {:type-mismatch {:level :error}}}))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))"
               {:linters {:type-mismatch {:level :error}}}))))
