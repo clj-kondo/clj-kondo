@@ -49,6 +49,8 @@
 (derive ::vector ::coll)
 (derive ::map ::coll)
 (derive ::set ::coll)
+(derive ::seqable ::coll) ;; this might not be true for strings, but for the
+;; sake of linting, this is good enough
 
 ;; (derive ::list ::atom) ;; for now, we need return types for this
 
@@ -130,6 +132,22 @@
                         :seqable (s/cat :to ::conjable :from ::seqable)
                         :transducer (s/cat :to ::conjable :xf ::transducer :from ::seqable))
            :ret ::seqable}
+    ;; 6903
+    'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
+                        :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
+           ;; :ret ::seqable-or-transducer
+           :fn (fn [args]
+                 (if (= 1 (count args))
+                   ::transducer
+                   ::vector))}
+    ;; 7313
+    'filterv {:args (s/alt :transducer (s/cat :f ::ifn)
+                           :seqable (s/cat :f ::ifn :coll ::seqable))
+              ;; :ret ::seqable-or-transducer
+              :fn (fn [args]
+                    (if (= 1 (count args))
+                      ::transducer
+                      ::vector))}
     ;; 7313
     'keep {:args (s/alt :transducer (s/cat :f ::ifn)
                         :seqable (s/cat :f ::ifn :coll ::seqable))
