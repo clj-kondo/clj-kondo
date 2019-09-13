@@ -7,28 +7,66 @@
     [tag sexpr]]))
 
 (def labels
-  {::string "string"
-   ::number "number"})
+  {::nil "nil"
+   ::string "string"
+   ::number "number"
+   ::int "integer"
+   ::nat-int "natural integer"
+   ::seqable "seqable collection"
+   ::vector "vector"
+   ::associative "associative collection"
+   ::atom "atom"
+   ::fn "function"
+   ::ifn "function"})
+
+(derive ::list ::seqable)
+(derive ::vector ::seqable)
+(derive ::string ::seqable)
+(derive ::any ::seqable)
+
+(derive ::vector ::associative)
+(derive ::map ::associative)
 
 (derive ::nat-int ::number)
 (derive ::any ::number)
 
+(derive ::any ::nil)
+
+(derive ::list ::ifn) ;; for now, we need return types for this
+(derive ::list ::atom) ;; for now, we need return types for this
+
+(derive ::fn ::ifn)
+
+(s/def ::nil #(isa? % ::nil))
+(s/def ::seqable #(isa? % ::seqable))
+(s/def ::associative #(isa? % ::associative))
 (s/def ::number #(isa? % ::number))
 (s/def ::nat-int #(isa? % ::nat-int))
+(s/def ::atom #(isa? % ::atom))
+(s/def ::ifn #(isa? % ::ifn))
 (s/def ::string #{::string})
 (s/def ::any any?)
 
-(def specs {'clojure.core {'inc {:args (s/cat :x ::number)}
+(def specs {'clojure.core {'cons {:args (s/cat :x ::any :seq ::seqable)}
+                           'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
+                                                :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
+                           'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
+                           'inc {:args (s/cat :x ::number)}
                            'subs {:args (s/cat :s ::string
                                                :start ::nat-int
                                                :end (s/? ::nat-int))}}})
 
 (defn expr->tag [ctx expr]
   (let [t (tag expr)]
+    ;; (prn t)
     (case t
       :map ::map
+      :vector ::vector
+      :list ::list
+      :fn ::fn
       :token (let [v (sexpr expr)]
                (cond
+                 (nil? v) ::nil
                  (string? v) ::string
                  (nat-int? v) ::nat-int
                  :else ::any))
@@ -42,17 +80,28 @@
                              :col col}))))
 
 (defn emit-warning! [{:keys [:findings] :as ctx} args problem]
+  ;; (prn args problem)
   (let [via (first (:via problem))
         in-path (:in problem)
         offending-arg (get-in args in-path)
         offending-tag (:tag offending-arg)
-        msg (str "Expected a " (get labels via) " but received a "
-                 (get labels offending-tag) ".")]
-    (findings/reg-finding! findings {:filename (:filename ctx)
-                                     :row (:row offending-arg)
-                                     :col (:col offending-arg)
-                                     :type :type-mismatch
-                                     :message msg} )))
+        via-label (get labels via via)
+        offending-tag-label (get labels offending-tag offending-tag)
+        reason (:reason problem)
+        insufficient? (= "Insufficient input" reason)]
+    (cond insufficient?
+          (findings/reg-finding! findings {:filename (:filename ctx)
+                                           :row (:row (last args))
+                                           :col (:col (last args))
+                                           :type :type-mismatch
+                                           :message "More arguments expected."} )
+          (and via-label offending-tag-label)
+          (findings/reg-finding! findings {:filename (:filename ctx)
+                                           :row (:row offending-arg)
+                                           :col (:col offending-arg)
+                                           :type :type-mismatch
+                                           :message (str "Expected: " via-label
+                                                         ", received: " offending-tag-label ".")}))))
 
 (defn lint-arg-types [ctx called-ns called-name args]
   (let [spec (get-in specs [called-ns called-name])
@@ -61,4 +110,4 @@
     (when-not (s/valid? args-spec tags)
       (let [d (s/explain-data args-spec tags)]
         (run! #(emit-warning! ctx args %)
-              (:clj-kondo.impl.clojure.spec.alpha/problems d))))))
+              (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d)))))))

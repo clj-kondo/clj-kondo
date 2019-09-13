@@ -910,9 +910,9 @@
         has-type? (get-in types/specs [resolved-namespace resolved-name])
         ;; _ (prn "HAS TYPE?" has-type?)
         arg-types (when has-type? (atom []))
-        ctx (if has-type?
-              (assoc ctx :arg-types arg-types)
-              ctx) ;; TYPING
+        ctx (assoc ctx :arg-types arg-types) ;; we need to add arg-types even if
+                                             ;; it is nil, to overwrite the args
+                                             ;; for a parent call
         analyzed
         (case resolved-as-clojure-var-name
           ns
@@ -1025,9 +1025,12 @@
                           :expr expr
                           :callstack (:callstack ctx)
                           :config (:config ctx)
-                          :top-ns (:top-ns ctx)}
-                   in-def (assoc :in-def in-def)
-                   has-type? (assoc :arg-types arg-types))]
+                          :top-ns (:top-ns ctx)
+                          :arg-types arg-types ;; we need to add arg-types even
+                                               ;; when it is nil, to overwrite a
+                                               ;; parent call
+                          }
+                   in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
           (namespace/reg-used-namespace! ctx
