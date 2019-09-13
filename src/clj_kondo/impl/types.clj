@@ -241,6 +241,6 @@
         ;; (pprint (s/conform args-spec tags))
         (when-not (s/valid? args-spec tags)
           (let [d (s/explain-data args-spec tags)]
-            (prn (count (:clj-kondo.impl.clojure.spec.alpha/problems d)))
+            ;; (prn (count (:clj-kondo.impl.clojure.spec.alpha/problems d)))
             (run! #(emit-warning! ctx args %)
                   (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d)))))))))
