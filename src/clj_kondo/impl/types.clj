@@ -134,20 +134,22 @@
         (double? v) ::double
         :else ::number))
 
-(defn expr->tag [{:keys [:bindings]} expr]
-  (let [t (tag expr)]
+(defn expr->tag [{:keys [:bindings :lang]} expr]
+  (let [t (tag expr)
+        edn? (= :edn lang)]
     ;; (prn t expr)
     (case t
       :map ::map
       :vector ::vector
-      :list ::any ;; a call we know nothing about
+      :list (if edn? ::list ::any) ;; a call we know nothing about
       :fn ::fn
       :token (let [v (sexpr expr)]
                (cond
                  (nil? v) ::nil
-                 (symbol? v) (if-let [b (get bindings v)]
-                               (or (:tag b) ::any)
-                               ::any)
+                 (symbol? v) (if edn? ::symbol
+                                 (if-let [b (get bindings v)]
+                                   (or (:tag b) ::any)
+                                   ::any))
                  (string? v) ::string
                  (keyword? v) ::keyword
                  (number? v) (number->tag v)

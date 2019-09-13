@@ -2429,7 +2429,8 @@
                (let [x (atom 1)] (swap! x identity))
                (assoc {} :a `(dude))
                (reduce #(%1 %2) 1 [1 2 3])
-               (map :tag [{:tag 1}])"
+               (map :tag [{:tag 1}])
+               (map 'foo ['{foo 1}])"
               {:linters {:type-mismatch {:level :error}}}))))
 
 ;;;; Scratch

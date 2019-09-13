@@ -1117,10 +1117,12 @@
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
-      (when-not (= :list t) ;; list is handled specially because of return types
+      (when-not (one-of t [:list :quote]) ;; list and quote are handled specially because of return types
         (types/add-arg-type-from-expr ctx expr))
       (case t
-        :quote (analyze-children (assoc ctx :lang :edn) children)
+        :quote (let [ctx (assoc ctx :lang :edn)]
+                 (types/add-arg-type-from-expr ctx (first (:children expr)))
+                 (analyze-children ctx children))
         :syntax-quote (analyze-usages2 (assoc ctx
                                               :analyze-expression**
                                               analyze-expression**
