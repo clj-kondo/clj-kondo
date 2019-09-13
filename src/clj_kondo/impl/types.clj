@@ -28,6 +28,10 @@
 (derive ::string ::seqable)
 
 (derive ::vector ::associative)
+(derive ::vector ::ifn)
+(derive ::keyword ::ifn)
+(derive ::symbol ::ifn)
+(derive ::map ::ifn)
 (derive ::map ::associative)
 
 (derive ::pos-int ::number)
