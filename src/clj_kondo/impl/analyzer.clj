@@ -80,7 +80,7 @@
   ([ctx expr] (when expr
                 (extract-bindings ctx expr {})))
   ([{:keys [:skip-reg-binding?] :as ctx} expr
-    {:keys [:keys-destructuring? :fn-args? :value] :as opts}]
+    {:keys [:keys-destructuring? :fn-args?] :as opts}]
    (let [expr (lift-meta-content* ctx expr)
          t (tag expr)
          findings (:findings ctx)
@@ -104,7 +104,7 @@
                        v (assoc m
                                 :name s
                                 :filename (:filename ctx)
-                                :tag (when value (types/expr->tag ctx value)))]
+                                :tag (:tag opts) #_(when value (types/expr->tag ctx value)))]
                    (when-not skip-reg-binding?
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
@@ -395,11 +395,16 @@
                   ctx* (-> ctx
                            (ctx-with-bindings bindings)
                            (update :arities merge arities))
-                  new-bindings (when binding (extract-bindings ctx* binding {:value value}))
-                  analyzed-binding (:analyzed new-bindings)
-                  new-bindings (dissoc new-bindings :analyzed)
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx* value))
+                  tag (let [maybe-call (first analyzed-value)
+                            maybe-call (when (and maybe-call (= :call (:type maybe-call)))
+                                         maybe-call)]
+                        (cond maybe-call (types/spec-from-call ctx maybe-call value)
+                              value (types/expr->tag ctx* value)))
+                  new-bindings (when binding (extract-bindings ctx* binding {:tag tag}))
+                  analyzed-binding (:analyzed new-bindings)
+                  new-bindings (dissoc new-bindings :analyzed)
                   next-arities (if-let [arity (:arity (meta analyzed-value))]
                                  (assoc arities binding-sexpr arity)
                                  arities)]

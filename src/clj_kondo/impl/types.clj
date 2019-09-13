@@ -4,8 +4,7 @@
    [clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer
-    [tag sexpr]]
-   [clj-kondo.impl.namespace :as namespace]))
+    [tag sexpr]]))
 
 (def labels
   {::nil "nil"
@@ -58,7 +57,8 @@
                                  :ret ::number}
                            'subs {:args (s/cat :s ::string
                                                :start ::nat-int
-                                               :end (s/? ::nat-int))}}})
+                                               :end (s/? ::nat-int))
+                                  :ret ::string}}})
 
 (defn expr->tag [{:keys [:bindings]} expr]
   (let [t (tag expr)]
@@ -89,17 +89,18 @@
                              :row row
                              :col col}))))
 
-(defn add-arg-type-from-call [ctx call expr]
+(defn spec-from-call [_ctx call _expr]
+  (when-not (:unresolved? call)
+    (let [call-ns (:resolved-ns call)
+          call-name (:name call)]
+      ;; (prn call-ns call-name)
+      (get-in specs [call-ns call-name :ret]))))
+
+(defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]
-    (when-not (:unresolved? call)
-      (let [call-ns (:resolved-ns call)
-            call-name (:name call)]
-        ;; (prn call-ns call-name)
-        (if-let [spec (get-in specs [call-ns call-name :ret])]
-          (swap! arg-types conj {:tag spec
-                                 :row (:row call)
-                                 :col (:col call)})
-          (add-arg-type-from-expr ctx expr))))))
+    (swap! arg-types conj {:tag (or (spec-from-call ctx call _expr) ::any)
+                           :row (:row call)
+                           :col (:col call)})))
 
 (defn emit-warning! [{:keys [:findings] :as ctx} args problem]
   ;; (prn args problem)

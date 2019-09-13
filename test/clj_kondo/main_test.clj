@@ -1688,20 +1688,20 @@
     (let [output (with-in-str "(inc)(dec)"
                    (with-out-str
                      (main "--cache" "false" "--lint" "-" "--config"
-                            (format "{:output {:format %s}}" output-format))))
+                           (format "{:output {:format %s}}" output-format))))
           parsed (parse-fn output)]
       (is (map? parsed))))
   (testing "JSON output escapes special characters"
     (let [output (with-in-str "{\"foo\" 1 \"foo\" 1}"
                    (with-out-str
                      (main "--cache" "false"  "--lint" "-" "--config"
-                            (format "{:output {:format %s}}" :json))))
+                           (format "{:output {:format %s}}" :json))))
           parsed (cheshire/parse-string output true)]
       (is (map? parsed)))
     (let [output (with-in-str "{:a 1}"
                    (with-out-str
                      (main "--cache" "false" "--lint" "\"foo\".clj" "--config"
-                            (format "{:output {:format %s}}" :json))))
+                           (format "{:output {:format %s}}" :json))))
           parsed (cheshire/parse-string output true)]
       (is (map? parsed)))))
 
@@ -2278,15 +2278,15 @@
 (deftest import-vars-test
   (assert-submaps
    '({:file "corpus/import_vars.clj",
-     :row 19,
-     :col 1,
-     :level :error,
-     :message "clojure.walk/prewalk is called with 0 args but expects 2"}
-    {:file "corpus/import_vars.clj",
-     :row 20,
-     :col 1,
-     :level :error,
-     :message "app.core/foo is called with 0 args but expects 1"})
+      :row 19,
+      :col 1,
+      :level :error,
+      :message "clojure.walk/prewalk is called with 0 args but expects 2"}
+     {:file "corpus/import_vars.clj",
+      :row 20,
+      :col 1,
+      :level :error,
+      :message "app.core/foo is called with 0 args but expects 1"})
    (lint! (io/file "corpus" "import_vars.clj")
           {:linters {:unresolved-symbol {:level :error}}}))
   (testing "import-vars works when using cache"
@@ -2393,6 +2393,19 @@
       :level :error,
       :message "Expected: number, received: string."})
    (lint! "(let [x \"foo\" y x] (inc y))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 19,
+      :level :error,
+      :message "Expected: string, received: natural integer."}
+     {:file "<stdin>",
+      :row 1,
+      :col 30,
+      :level :error,
+      :message "Expected: number, received: string."})
+   (lint! "(let [x 1 y (subs x 1)] (inc y))"
           {:linters {:type-mismatch {:level :error}}}))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))"
