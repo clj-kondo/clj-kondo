@@ -2433,6 +2433,21 @@
       :message "Expected: set, received: seqable collection."})
    (lint! "(require '[clojure.set :refer [difference]]) (difference (map inc [1 2 3]) #{1 2 3})"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 2,
+      :col 30,
+      :level :error,
+      :message "Expected: char sequence, received: positive integer."}
+     {:file "<stdin>",
+      :row 3,
+      :col 46,
+      :level :error,
+      :message "Expected: char sequence, received: positive integer."})
+   (lint! "(require '[clojure.string :as str])
+           (str/starts-with? 1 \"s\")
+           (str/includes? (str/join [1 2 3]) 1)"
+          {:linters {:type-mismatch {:level :error}}}))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
@@ -2445,7 +2460,10 @@
                (let [i (inc 1)] (subs \"foo\" i))
                (assoc (into {} {}) :a 1)
                (into (map inc [1 2 3]) (remove odd? [1 2 3]))
-               (cons 1 nil)"
+               (cons 1 nil)
+               (require '[clojure.string :as str])
+               (str/starts-with? (str/join [1 2 3]) \"f\")
+               (str/includes? (str/join [1 2 3]) #\"f\")"
               {:linters {:type-mismatch {:level :error}}}))))
 
 

@@ -26,7 +26,9 @@
    ::ifn "function"
    ::keyword "keyword"
    ::seqable-or-transducer "seqable or transducer"
-   ::nilable-set "set"})
+   ::set "set"
+   ::nilable-set "set or nil"
+   ::char-sequence "char sequence"})
 
 (defmacro derive! [children parents]
   (let [children (if (keyword? children) [children] children)
@@ -39,9 +41,11 @@
 (derive! ::any-nilable-set [::nil ::set])
 (derive! ::any-coll [::vector ::list ::map ::set])
 
+(derive ::string ::seqable)
+(derive! [::string ::char ::regex] ::char-sequence)
+
 (derive ::coll ::conjable)
 (derive ::coll ::seqable)
-(derive ::string ::seqable)
 (derive ::nil ::seqable)
 ;; any seqable might be a collection, something you could conj or a string
 (derive! ::any-seqable [::coll ::string ::nil])
@@ -73,6 +77,7 @@
 (s/def ::atom #(is? % ::atom))
 (s/def ::ifn #(is? % ::ifn))
 (s/def ::transducer #(is? % ::transducer))
+(s/def ::char-sequence #(is? % ::char-sequence))
 (s/def ::string #(is? % ::string))
 (s/def ::conjable #(is? % ::conjable))
 (s/def ::set #(is? % ::set))
@@ -173,7 +178,24 @@
      :ret ::any-nilable-set}
     'difference
     {:args (s/+ ::nilable-set)
-     :ret ::any-nilable-set}}})
+     :ret ::any-nilable-set}}
+   'clojure.string
+   {'join
+    {:args (s/cat :separator (s/? ::any)
+                  :coll ::seqable)
+     :ret ::string}
+    'starts-with?
+    {:args (s/cat :cs ::char-sequence
+                  :substr ::string)
+     :ret ::string}
+    'ends-with?
+    {:args (s/cat :cs ::char-sequence
+                  :substr ::string)
+     :ret ::string}
+    'includes?
+    {:args (s/cat :cs ::char-sequence
+                  :s ::char-sequence)
+     :ret ::string}}})
 
 (defn number->tag [v]
   (cond (int? v)
