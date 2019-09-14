@@ -205,10 +205,10 @@
           :java-interop? true
           :name name-sym})
        (when (= :cljs lang)
-         ;; TODO: check if ns was required using string.
          (when-let [ns* (get (:qualify-ns ns) name-sym)]
-           {:ns ns*
-            :name name-sym}))
+           (when (some-> (meta ns*) :raw-name string?)
+             {:ns ns*
+              :name name-sym})))
        (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                           name-sym)
              core-sym? (when-not clojure-excluded?
