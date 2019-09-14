@@ -36,7 +36,7 @@
        (derive c# p#))))
 
 (derive! [::vector ::list ::map ::set] ::coll)
-(derive! [::nil ::set] ::any-nilable-set)
+(derive! ::any-nilable-set [::nil ::set])
 (derive! ::any-coll [::vector ::list ::map ::set])
 
 (derive ::coll ::conjable)
