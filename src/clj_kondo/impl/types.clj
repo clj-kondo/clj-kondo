@@ -40,8 +40,9 @@
 (derive ::coll ::conjable)
 (derive ::coll ::seqable)
 (derive ::string ::seqable)
+(derive ::nil ::seqable)
 ;; any seqable might be a collection, something you could conj or a string
-(derive! ::any-seqable [::coll ::string])
+(derive! ::any-seqable [::coll ::string ::nil])
 
 (derive! [::vector ::map] ::associative)
 (derive! ::any-associative [::vector ::map])
