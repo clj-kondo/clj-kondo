@@ -2425,6 +2425,14 @@
       :message "Expected: seqable collection, received: transducer."})
    (lint! "(let [x (map (fn []))] (cons 1 x))"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 58,
+      :level :error,
+      :message "Expected: set, received: seqable collection."})
+   (lint! "(require '[clojure.set :refer [difference]]) (difference (map inc [1 2 3]) #{1 2 3})"
+          {:linters {:type-mismatch {:level :error}}}))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
@@ -2439,6 +2447,8 @@
                (into (map inc [1 2 3]) (remove odd? [1 2 3]))
                (cons 1 nil)"
               {:linters {:type-mismatch {:level :error}}}))))
+
+
 
 ;;;; Scratch
 

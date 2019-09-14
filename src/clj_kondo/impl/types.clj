@@ -25,7 +25,8 @@
    ::fn "function"
    ::ifn "function"
    ::keyword "keyword"
-   ::seqable-or-transducer "seqable or transducer"})
+   ::seqable-or-transducer "seqable or transducer"
+   ::nilable-set "set"})
 
 (defmacro derive! [children parents]
   (let [children (if (keyword? children) [children] children)
@@ -35,6 +36,7 @@
        (derive c# p#))))
 
 (derive! [::vector ::list ::map ::set] ::coll)
+(derive! [::nil ::set] ::any-nilable-set)
 (derive! ::any-coll [::vector ::list ::map ::set])
 
 (derive ::coll ::conjable)
@@ -73,6 +75,8 @@
 (s/def ::transducer #(is? % ::transducer))
 (s/def ::string #(is? % ::string))
 (s/def ::conjable #(is? % ::conjable))
+(s/def ::set #(is? % ::set))
+(s/def ::nilable-set (s/nilable #(is? % ::set)))
 ;; (s/def ::reducible-coll #(is? % ::reducible-coll))
 ;; (s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
 (s/def ::any any?)
@@ -121,6 +125,8 @@
                    (if (= 1 (count args))
                      ::transducer
                      ::any-seqable))}
+    ;; 4105
+    'set {:ret ::set}
     ;; 4981
     'subs {:args (s/cat :s ::string
                         :start ::nat-int
@@ -157,7 +163,17 @@
            :fn (fn [args]
                  (if (= 1 (count args))
                    ::transducer
-                   ::any-seqable))}}})
+                   ::any-seqable))}}
+   'clojure.set
+   {'union
+    {:args (s/* ::nilable-set)
+     :ret ::any-nilable-set}
+    'intersection
+    {:args (s/+ ::nilable-set)
+     :ret ::any-nilable-set}
+    'difference
+    {:args (s/+ ::nilable-set)
+     :ret ::any-nilable-set}}})
 
 (defn number->tag [v]
   (cond (int? v)
