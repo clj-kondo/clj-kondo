@@ -2463,7 +2463,8 @@
                (cons 1 nil)
                (require '[clojure.string :as str])
                (str/starts-with? (str/join [1 2 3]) \"f\")
-               (str/includes? (str/join [1 2 3]) #\"f\")"
+               (str/includes? (str/join [1 2 3]) #\"f\")
+               (remove #{1 2 3} [1 2 3])"
               {:linters {:type-mismatch {:level :error}}}))))
 
 
