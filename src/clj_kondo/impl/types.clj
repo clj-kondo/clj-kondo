@@ -35,6 +35,7 @@
 (derive ::map ::associative)
 
 (derive ::pos-int ::number)
+(derive ::pos-int ::nat-int)
 (derive ::pos-int ::int)
 (derive ::neg-int ::number)
 (derive ::neg-int ::int)
