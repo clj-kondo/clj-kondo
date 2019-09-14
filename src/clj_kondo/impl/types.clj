@@ -16,6 +16,7 @@
    ::pos-int "positive integer"
    ::nat-int "natural integer"
    ::neg-int "negative integer"
+   ::any-seq "seq"
    ::any-seqable "seqable collection"
    ::seqable "seqable collection"
    ::vector "vector"
@@ -47,7 +48,10 @@
 (derive ::coll ::conjable)
 (derive ::coll ::seqable)
 (derive ::nil ::seqable)
-;; any seqable might be a collection, something you could conj or a string
+
+(derive! [::list ::lazy-seq] ::seq)
+(derive! ::any-seq [::list ::lazy-seq])
+
 (derive! ::any-seqable [::any-coll ::string ::nil])
 
 (derive! [::vector ::map] ::associative)
@@ -99,7 +103,7 @@
           :ret ::any-number}
     ;; 947
     'reverse {:args (s/cat :x ::seqable)
-              :ret ::any-seqable}
+              :ret ::any-seq}
     ;; 2327
     'atom {:ret ::atom}
     ;; 2345
@@ -114,7 +118,7 @@
           :fn (fn [args]
                 (if (= 1 (count args))
                   ::transducer
-                  ::any-seqable))}
+                  ::any-seq))}
     ;; 2793
     'filter {:args (s/alt :transducer (s/cat :f ::ifn)
                           :seqable (s/cat :f ::ifn :coll ::seqable))
@@ -122,7 +126,7 @@
              :fn (fn [args]
                    (if (= 1 (count args))
                      ::transducer
-                     ::any-seqable))}
+                     ::any-seq))}
     ;; 2826
     'remove {:args (s/alt :transducer (s/cat :f ::ifn)
                           :seqable (s/cat :f ::ifn :coll ::seqable))
@@ -130,7 +134,7 @@
              :fn (fn [args]
                    (if (= 1 (count args))
                      ::transducer
-                     ::any-seqable))}
+                     ::any-seq))}
     ;; 4105
     'set {:ret ::set}
     ;; 4981
@@ -145,7 +149,7 @@
                         :identity (s/cat :to ::conjable)
                         :seqable (s/cat :to ::conjable :from ::seqable)
                         :transducer (s/cat :to ::conjable :xf ::transducer :from ::seqable))
-           :ret ::any-seqable}
+           :ret ::any-coll}
     ;; 6903
     'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
                         :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
@@ -169,7 +173,7 @@
            :fn (fn [args]
                  (if (= 1 (count args))
                    ::transducer
-                   ::any-seqable))}})
+                   ::any-seq))}})
 
 (def specs
   {'clojure.core clojure-core
