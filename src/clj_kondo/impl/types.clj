@@ -44,6 +44,7 @@
 
 (derive! [::vector ::map] ::associative)
 (derive! ::any-associative [::vector ::map])
+(derive! ::any-seqable ::any-associative)
 
 (derive! [::vector ::keyword ::symbol ::map ::transducer ::fn] ::ifn)
 (derive! ::any-ifn [::vector ::keyword ::symbol ::map ::transducer ::fn])
