@@ -369,7 +369,10 @@
 
 (defn analyze-let-like-bindings [ctx binding-vector]
   (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
-        for-like? (one-of resolved-as-clojure-var-name [for doseq])]
+        for-like? (one-of resolved-as-clojure-var-name [for doseq])
+        callstack (:callstack ctx)
+        call (-> callstack second second)
+        let? (= 'let call)]
     (loop [[binding value & rest-bindings] (-> binding-vector :children)
            bindings (:bindings ctx)
            arities (:arities ctx)
@@ -397,7 +400,7 @@
                            (update :arities merge arities))
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx* value))
-                  tag (when-not for-like?
+                  tag (when let?
                         (let [maybe-call (first analyzed-value)
                               maybe-call (when (and maybe-call (= :call (:type maybe-call)))
                                            maybe-call)]
