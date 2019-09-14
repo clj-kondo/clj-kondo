@@ -93,6 +93,8 @@
     ;; 181
     'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
                          :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
+    ;; 544
+    'str {:ret ::string}
     ;; 922
     'inc {:args (s/cat :x ::number)
           :ret ::any-number}
