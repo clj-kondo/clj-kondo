@@ -2427,11 +2427,18 @@
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps
    '({:file "<stdin>",
-      :row 1,
-      :col 58,
+      :row 2,
+      :col 28,
       :level :error,
-      :message "Expected: set or nil, received: seq."})
-   (lint! "(require '[clojure.set :refer [difference]]) (difference (map inc [1 2 3]) #{1 2 3})"
+      :message "Expected: set or nil, received: seq."}
+     {:file "<stdin>",
+      :row 3,
+      :col 28,
+      :level :error,
+      :message "Expected: set or nil, received: vector."})
+   (lint! "(require '[clojure.set :as set])
+           (set/difference (map inc [1 2 3]) #{1 2 3})
+           (set/difference (into [] [1 2 3]) #{1 2 3})"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps
    '({:file "<stdin>",
@@ -2479,7 +2486,8 @@
                (require '[clojure.string :as str])
                (str/starts-with? (str/join [1 2 3]) \"f\")
                (str/includes? (str/join [1 2 3]) #\"f\")
-               (remove #{1 2 3} [1 2 3])"
+               (remove #{1 2 3} [1 2 3])
+               (set/difference (into #{} [1 2 3]) #{1 2 3}) ;; OK"
               {:linters {:type-mismatch {:level :error}}}))))
 
 

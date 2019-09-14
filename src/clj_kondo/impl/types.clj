@@ -149,7 +149,11 @@
                         :identity (s/cat :to ::conjable)
                         :seqable (s/cat :to ::conjable :from ::seqable)
                         :transducer (s/cat :to ::conjable :xf ::transducer :from ::seqable))
-           :ret ::any-coll}
+           :fn (fn [args]
+                 (let [t (:tag (first args))]
+                   (if (identical? ::any t)
+                     ::any-coll
+                     t)))}
     ;; 6903
     'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
                         :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
