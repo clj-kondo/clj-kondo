@@ -40,6 +40,7 @@
 (derive ::coll ::conjable)
 (derive ::coll ::seqable)
 (derive ::string ::seqable)
+;; any seqable might be a collection, something you could conj or a string
 (derive! ::any-seqable [::coll ::string])
 
 (derive! [::vector ::map] ::associative)
@@ -102,7 +103,7 @@
           :fn (fn [args]
                 (if (= 1 (count args))
                   ::transducer
-                  ::seqable))}
+                  ::any-seqable))}
     ;; 2793
     'filter {:args (s/alt :transducer (s/cat :f ::ifn)
                           :seqable (s/cat :f ::ifn :coll ::seqable))

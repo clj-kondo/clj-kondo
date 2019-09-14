@@ -2433,7 +2433,8 @@
                (map 'foo ['{foo 1}])
                (for [i [1 2 3]] (inc i))
                (let [i (inc 1)] (subs \"foo\" i))
-               (assoc (into {} {}) :a 1)"
+               (assoc (into {} {}) :a 1)
+               (into (map inc [1 2 3]) (remove odd? [1 2 3]))"
               {:linters {:type-mismatch {:level :error}}}))))
 
 ;;;; Scratch
