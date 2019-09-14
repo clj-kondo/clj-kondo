@@ -34,8 +34,13 @@
              p# ~parents]
        (derive c# p#))))
 
-(derive! [::list ::vector ::string] ::seqable)
-(derive! ::any-seqable [::list ::vector ::string])
+(derive! [::vector ::list ::map ::set] ::coll)
+(derive! ::any-coll [::vector ::list ::map ::set])
+
+(derive ::coll ::conjable)
+(derive ::coll ::seqable)
+(derive ::string ::seqable)
+(derive! ::any-seqable [::coll ::string])
 
 (derive! [::vector ::map] ::associative)
 (derive! ::any-associative [::vector ::map])
@@ -49,10 +54,6 @@
 (derive! [::pos-int ::nat-int ::neg-int] ::int)
 (derive ::pos-int ::nat-int)
 (derive! ::any-int [::pos-int ::neg-int])
-
-(derive! [::vector ::map ::set ::seqable] ::coll)
-(derive! ::any-coll [::vector ::map ::set])
-(derive ::coll ::conjable)
 
 (defn is? [x parent]
   (or (identical? x ::any)
