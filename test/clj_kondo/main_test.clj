@@ -2430,7 +2430,7 @@
       :row 2,
       :col 28,
       :level :error,
-      :message "Expected: set or nil, received: seq."}
+      :message "Expected: set or nil, received: seqable collection."}
      {:file "<stdin>",
       :row 3,
       :col 28,

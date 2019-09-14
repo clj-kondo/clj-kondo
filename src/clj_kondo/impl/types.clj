@@ -16,7 +16,7 @@
    ::pos-int "positive integer"
    ::nat-int "natural integer"
    ::neg-int "negative integer"
-   ::any-seq "seq"
+   ::any-seqable-out "seqable collection"
    ::any-seqable "seqable collection"
    ::seqable "seqable collection"
    ::vector "vector"
@@ -42,17 +42,19 @@
 (derive! ::any-nilable-set [::nil ::set])
 (derive! ::any-coll [::vector ::list ::map ::set])
 
-(derive ::string ::seqable)
 (derive! [::string ::char ::regex] ::char-sequence)
 
 (derive ::coll ::conjable)
-(derive ::coll ::seqable)
-(derive ::nil ::seqable)
+
+(derive! [::nil ::string ::coll] ::seqable)
+(derive! ::any-seqable [::any-coll ::string ::nil])
 
 (derive! [::list ::lazy-seq] ::seq)
 (derive! ::any-seq [::list ::lazy-seq])
 
-(derive! ::any-seqable [::any-coll ::string ::nil])
+;; it seems very unlikely that a sequence function produces a vector, set or
+;; map. in any case, you should probably not rely on it.
+(derive! ::any-seqable-out [::list ::vector ::lazy-seq ::nil])
 
 (derive! [::vector ::map] ::associative)
 (derive! ::any-associative [::vector ::map])
@@ -103,7 +105,7 @@
           :ret ::any-number}
     ;; 947
     'reverse {:args (s/cat :x ::seqable)
-              :ret ::any-seq}
+              :ret ::any-seqable-out}
     ;; 2327
     'atom {:ret ::atom}
     ;; 2345
@@ -118,7 +120,7 @@
           :fn (fn [args]
                 (if (= 1 (count args))
                   ::transducer
-                  ::any-seq))}
+                  ::any-seqable-out))}
     ;; 2793
     'filter {:args (s/alt :transducer (s/cat :f ::ifn)
                           :seqable (s/cat :f ::ifn :coll ::seqable))
@@ -126,7 +128,7 @@
              :fn (fn [args]
                    (if (= 1 (count args))
                      ::transducer
-                     ::any-seq))}
+                     ::any-seqable-out))}
     ;; 2826
     'remove {:args (s/alt :transducer (s/cat :f ::ifn)
                           :seqable (s/cat :f ::ifn :coll ::seqable))
@@ -134,7 +136,7 @@
              :fn (fn [args]
                    (if (= 1 (count args))
                      ::transducer
-                     ::any-seq))}
+                     ::any-seqable-out))}
     ;; 4105
     'set {:ret ::set}
     ;; 4981
@@ -177,7 +179,7 @@
            :fn (fn [args]
                  (if (= 1 (count args))
                    ::transducer
-                   ::any-seq))}})
+                   ::any-seqable-out))}})
 
 (def specs
   {'clojure.core clojure-core
