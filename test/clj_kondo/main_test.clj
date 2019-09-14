@@ -2431,7 +2431,8 @@
                (reduce #(%1 %2) 1 [1 2 3])
                (map :tag [{:tag 1}])
                (map 'foo ['{foo 1}])
-               (for [i [1 2 3]] (inc i))"
+               (for [i [1 2 3]] (inc i))
+               (let [i (inc 1)] (subs \"foo\" i))"
               {:linters {:type-mismatch {:level :error}}}))))
 
 ;;;; Scratch
