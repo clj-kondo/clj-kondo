@@ -1115,7 +1115,8 @@
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
   (when expr
-    (let [expr (if (not= :edn lang)
+    (let [expr (if (or (not= :edn lang)
+                       (:quoted ctx))
                  (meta/lift-meta-content2 ctx expr)
                  expr)
           t (tag expr)
@@ -1124,7 +1125,7 @@
       (when-not (one-of t [:list :quote]) ;; list and quote are handled specially because of return types
         (types/add-arg-type-from-expr ctx expr))
       (case t
-        :quote (let [ctx (assoc ctx :lang :edn)]
+        :quote (let [ctx (assoc ctx :quoted true)]
                  (types/add-arg-type-from-expr ctx (first (:children expr)))
                  (analyze-children ctx children))
         :syntax-quote (analyze-usages2 (assoc ctx
@@ -1151,10 +1152,10 @@
                                    children))
         :fn (recur (assoc ctx :arg-types nil)
                    (macroexpand/expand-fn expr))
-        :token (when-not (= :edn (:lang ctx)) (analyze-usages2 ctx expr))
+        :token (when-not (or (:quoted ctx) (= :edn (:lang ctx))) (analyze-usages2 ctx expr))
         :list
         (when-let [function (first children)]
-          (if (= :edn (:lang ctx))
+          (if (or (:quoted ctx) (= :edn (:lang ctx)))
             (analyze-children ctx children)
             (let [t (tag function)]
               (case t

@@ -1939,7 +1939,9 @@
   (is (empty? (lint! "(defn foo [x y z] ^{:a x :b y :c z} [1 2 3])")))
   (is (empty? (lint! "(fn [^js x] x)"
                      '{:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(= '`+ (read-string \"`+\"))"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest deftest-test
   (is (empty? (lint! (io/file "corpus" "deftest.cljc")
