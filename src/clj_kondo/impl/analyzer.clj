@@ -925,7 +925,7 @@
         (when (one-of resolved-as-namespace [clojure.core cljs.core])
           resolved-as-name)
         arg-types (if (and resolved-namespace resolved-name)
-                    (atom (with-meta [] {:res resolved-name}))
+                    (atom [] #_(with-meta [] {:res resolved-name}))
                     nil)
         ctx (assoc ctx :arg-types arg-types)
         ctx (if resolved-as-clojure-var-name

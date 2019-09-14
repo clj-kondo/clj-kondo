@@ -86,9 +86,8 @@
 ;; (s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
 (s/def ::any any?)
 
-(def specs
-  {'clojure.core
-   {;; 22
+(def clojure-core
+  {;; 22
     'cons {:args (s/cat :x ::any :seq ::seqable)}
     ;; 181
     'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
@@ -170,7 +169,11 @@
            :fn (fn [args]
                  (if (= 1 (count args))
                    ::transducer
-                   ::any-seqable))}}
+                   ::any-seqable))}})
+
+(def specs
+  {'clojure.core clojure-core
+   'cljs.core clojure-core
    'clojure.set
    {'union
     {:args (s/* ::nilable-set)

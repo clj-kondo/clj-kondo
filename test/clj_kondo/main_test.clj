@@ -2448,6 +2448,21 @@
            (str/starts-with? 1 \"s\")
            (str/includes? (str/join [1 2 3]) 1)"
           {:linters {:type-mismatch {:level :error}}}))
+  (testing "CLJS also works"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 6,
+        :level :error,
+        :message "Expected: number, received: string."}
+       {:file "<stdin>",
+        :row 1,
+        :col 57,
+        :level :error,
+        :message "Expected: set or nil, received: positive integer."})
+     (lint! "(inc \"foo\") (require '[clojure.set :as set]) (set/union 1)"
+            {:linters {:type-mismatch {:level :error}}}
+            "--lang" "cljs")))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
