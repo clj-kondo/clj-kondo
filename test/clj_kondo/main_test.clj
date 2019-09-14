@@ -2495,6 +2495,8 @@
                      {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(require '[clojure.string :as str])
                       (let [xs ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(doto (atom []) (swap! identity))"
                      {:linters {:type-mismatch {:level :error}}}))))
 
 

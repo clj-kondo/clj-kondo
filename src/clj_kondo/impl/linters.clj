@@ -9,8 +9,7 @@
    [clojure.set :as set]
    [clj-kondo.impl.namespace :as namespace]
    [clojure.string :as str]
-   [clj-kondo.impl.types :as types]
-   [clj-kondo.impl.clojure.spec.alpha :as s]))
+   [clj-kondo.impl.types :as types]))
 
 (set! *warn-on-reflection* true)
 
@@ -101,10 +100,9 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
-(defn lint-arg-types! [{:keys [:findings] :as ctx} call called-fn]
+(defn lint-arg-types! [ctx call called-fn]
   (when-let [arg-types (:arg-types call)]
-    (let [{:keys [:row :col :filename]} call
-          arg-types @arg-types]
+    (let [arg-types @arg-types]
       (types/lint-arg-types ctx (:ns called-fn) (:name called-fn) arg-types))))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
