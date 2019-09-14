@@ -10,52 +10,49 @@
   {::nil "nil"
    ::string "string"
    ::number "number"
+   ::any-number "number"
    ::int "integer"
+   ::any-integer "integer"
    ::pos-int "positive integer"
    ::nat-int "natural integer"
    ::neg-int "negative integer"
+   ::any-seqable "seqable collection"
    ::seqable "seqable collection"
    ::vector "vector"
    ::associative "associative collection"
+   ::any-associative "associative collection"
    ::atom "atom"
    ::fn "function"
    ::ifn "function"
    ::keyword "keyword"
    ::seqable-or-transducer "seqable or transducer"})
 
-(derive ::list ::seqable)
-(derive ::vector ::seqable)
-(derive ::string ::seqable)
+(defmacro derive! [children parents]
+  (let [children (if (keyword? children) [children] children)
+        parents (if (keyword? parents) [parents] parents)]
+    `(doseq [c# ~children
+             p# ~parents]
+       (derive c# p#))))
 
-(derive ::vector ::associative)
-(derive ::vector ::ifn)
-(derive ::keyword ::ifn)
-(derive ::symbol ::ifn)
-(derive ::map ::ifn)
-(derive ::map ::associative)
+(derive! [::list ::vector ::string] ::seqable)
+(derive! ::any-seqable [::list ::vector ::string])
 
-(derive ::pos-int ::number)
+(derive! [::vector ::map] ::associative)
+(derive! ::any-associative [::vector ::map])
+
+(derive! [::vector ::keyword ::symbol ::map ::transducer ::fn] ::ifn)
+(derive! ::any-ifn [::vector ::keyword ::symbol ::map ::transducer ::fn])
+
+(derive! [::double ::int ::pos-int ::neg-int ::nat-int] ::number)
+(derive! ::any-number [::double ::int ::pos-int ::neg-int ::nat-int])
+
+(derive! [::pos-int ::nat-int ::neg-int] ::int)
 (derive ::pos-int ::nat-int)
-(derive ::pos-int ::int)
-(derive ::neg-int ::number)
-(derive ::neg-int ::int)
-(derive ::nat-int ::number)
-(derive ::nat-int ::int)
-(derive ::int ::number)
-(derive ::double ::number)
-(derive ::transducer ::ifn)
-;; (derive ::seqable-or-transducer ::transducer)
-;; (derive ::seqable-or-transducer ::seqable)
+(derive! ::any-int [::pos-int ::neg-int])
+
+(derive! [::vector ::map ::set ::seqable] ::coll)
+(derive! ::any-coll [::vector ::map ::set])
 (derive ::coll ::conjable)
-(derive ::vector ::coll)
-(derive ::map ::coll)
-(derive ::set ::coll)
-(derive ::seqable ::coll) ;; this might not be true for strings, but for the
-;; sake of linting, this is good enough
-
-;; (derive ::list ::atom) ;; for now, we need return types for this
-
-(derive ::fn ::ifn)
 
 (defn is? [x parent]
   (or (identical? x ::any)
@@ -85,10 +82,10 @@
                          :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
     ;; 922
     'inc {:args (s/cat :x ::number)
-          :ret ::number}
+          :ret ::any-number}
     ;; 947
     'reverse {:args (s/cat :x ::seqable)
-              :ret ::seqable}
+              :ret ::any-seqable}
     ;; 2327
     'atom {:ret ::atom}
     ;; 2345
@@ -111,7 +108,7 @@
              :fn (fn [args]
                    (if (= 1 (count args))
                      ::transducer
-                     ::seqable))}
+                     ::any-seqable))}
     ;; 2826
     'remove {:args (s/alt :transducer (s/cat :f ::ifn)
                           :seqable (s/cat :f ::ifn :coll ::seqable))
@@ -119,7 +116,7 @@
              :fn (fn [args]
                    (if (= 1 (count args))
                      ::transducer
-                     ::seqable))}
+                     ::any-seqable))}
     ;; 4981
     'subs {:args (s/cat :s ::string
                         :start ::nat-int
@@ -132,7 +129,7 @@
                         :identity (s/cat :to ::conjable)
                         :seqable (s/cat :to ::conjable :from ::seqable)
                         :transducer (s/cat :to ::conjable :xf ::transducer :from ::seqable))
-           :ret ::seqable}
+           :ret ::any-seqable}
     ;; 6903
     'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
                         :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
@@ -156,7 +153,7 @@
            :fn (fn [args]
                  (if (= 1 (count args))
                    ::transducer
-                   ::seqable))}}})
+                   ::any-seqable))}}})
 
 (defn number->tag [v]
   (cond (int? v)
@@ -197,6 +194,7 @@
                              :row row
                              :col col}))))
 
+;; TODO: rename return-type
 (defn spec-from-call [_ctx call _expr]
   (when-not (:unresolved? call)
     (let [call-ns (:resolved-ns call)
@@ -205,7 +203,8 @@
       (when-let [spec (get-in specs [call-ns call-name])]
         (if-let [fn-spec (:fn spec)]
           (fn-spec @(:arg-types call))
-          (:ret spec))))))
+          (let [r (:ret spec)]
+            r #_(get return-types r r)))))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]
