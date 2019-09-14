@@ -3,7 +3,6 @@
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.core :as core-impl]
-   [clj-kondo.impl.namespace :as namespace]
    [clojure.edn :as edn]
    [clojure.java.io :as io]))
 

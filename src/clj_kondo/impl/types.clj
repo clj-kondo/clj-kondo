@@ -245,7 +245,6 @@
 (defn add-arg-type-from-expr [ctx expr]
   ;; (prn expr "=>" (expr->tag ctx expr) (meta expr))
   (when-let [arg-types (:arg-types ctx)]
-    ;; (prn expr)
     (let [{:keys [:row :col]} (meta expr)]
       (swap! arg-types conj {:tag (expr->tag ctx expr)
                              :row row
@@ -253,15 +252,15 @@
 
 ;; TODO: rename return-type
 (defn spec-from-call [_ctx call _expr]
-  (when-not (:unresolved? call)
+  (when (and (not (:unresolved? call))
+             (:arg-types call))
     (let [call-ns (:resolved-ns call)
           call-name (:name call)]
       ;; (prn call-ns call-name)
       (when-let [spec (get-in specs [call-ns call-name])]
         (if-let [fn-spec (:fn spec)]
           (fn-spec @(:arg-types call))
-          (let [r (:ret spec)]
-            r #_(get return-types r r)))))))
+          (:ret spec))))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]

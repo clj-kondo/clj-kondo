@@ -806,6 +806,7 @@
     (analyze-children (-> ctx
                           (ctx-with-linter-disabled :invalid-arity)
                           (ctx-with-linter-disabled :unresolved-symbol)
+                          (ctx-with-linter-disabled :type-mismatch)
                           (ctx-with-bindings bindings))
                       (nnext children))))
 
@@ -929,8 +930,9 @@
         resolved-as-clojure-var-name
         (when (one-of resolved-as-namespace [clojure.core cljs.core])
           resolved-as-name)
-        arg-types (if (and resolved-namespace resolved-name)
-                    (atom [] #_(with-meta [] {:res resolved-name}))
+        arg-types (if (and resolved-namespace resolved-name
+                           (not (linter-disabled? ctx :type-mismatch)))
+                    (atom [])
                     nil)
         ctx (assoc ctx :arg-types arg-types)
         ctx (if resolved-as-clojure-var-name
@@ -967,12 +969,14 @@
           ;; don't lint calls in these expressions, only register them as used vars
           (analyze-children (-> ctx
                                 (ctx-with-linter-disabled :invalid-arity)
-                                (ctx-with-linter-disabled :unresolved-symbol))
+                                (ctx-with-linter-disabled :unresolved-symbol)
+                                (ctx-with-linter-disabled :type-mismatch))
                             children)
           (cond-> cond->>) (analyze-usages2
                             (-> ctx
                                 (ctx-with-linter-disabled :invalid-arity)
-                                (ctx-with-linter-disabled :unresolved-symbol)) expr)
+                                (ctx-with-linter-disabled :unresolved-symbol)
+                                (ctx-with-linter-disabled :type-mismatch)) expr)
           (let let* for doseq dotimes with-open)
           (analyze-like-let ctx expr)
           letfn
