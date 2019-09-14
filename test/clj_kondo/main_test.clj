@@ -2430,7 +2430,7 @@
       :row 1,
       :col 58,
       :level :error,
-      :message "Expected: set, received: seqable collection."})
+      :message "Expected: set or nil, received: seqable collection."})
    (lint! "(require '[clojure.set :refer [difference]]) (difference (map inc [1 2 3]) #{1 2 3})"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps
