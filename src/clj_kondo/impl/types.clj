@@ -243,7 +243,7 @@
       ::any)))
 
 (defn add-arg-type-from-expr [ctx expr]
-  ;; (prn expr (expr->tag ctx expr) (meta expr))
+  ;; (prn expr "=>" (expr->tag ctx expr) (meta expr))
   (when-let [arg-types (:arg-types ctx)]
     ;; (prn expr)
     (let [{:keys [:row :col]} (meta expr)]
@@ -315,6 +315,7 @@
         ;; (prn (s/valid? args-spec tags))
         ;; (pprint (s/conform args-spec tags))
         (when-not (s/valid? args-spec tags)
+          ;; (prn "ARGS" args)
           (let [d (s/explain-data args-spec tags)]
             ;; (prn (count (:clj-kondo.impl.clojure.spec.alpha/problems d)))
             (run! #(emit-warning! ctx args %)

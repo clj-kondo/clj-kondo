@@ -398,11 +398,16 @@
                   ctx* (-> ctx
                            (ctx-with-bindings bindings)
                            (update :arities merge arities))
+                  value-id (gensym)
                   analyzed-value (when (and value (not for-let?))
-                                   (analyze-expression** ctx* value))
-                  tag (when let?
-                        (let [maybe-call (first analyzed-value)
-                              maybe-call (when (and maybe-call (= :call (:type maybe-call)))
+                                   (analyze-expression** ctx* (assoc value :id value-id)))
+                  tag (when (and let? binding (= :token (tag binding)))
+                        (let [;; TODO: the problem here is that there might have
+                              ;; been more things in between this and the call
+                              ;; we got back, but this isn't emitted. How can we relate?
+                              maybe-call (first analyzed-value)
+                              maybe-call (when (and maybe-call (= :call (:type maybe-call))
+                                                    (= value-id (:id maybe-call)))
                                            maybe-call)]
                           (cond maybe-call (types/spec-from-call ctx maybe-call value)
                                 value (types/expr->tag ctx* value))))
@@ -1042,6 +1047,7 @@
                           :lang lang
                           :filename (:filename ctx)
                           :expr expr
+                          :id (:id expr)
                           :callstack (:callstack ctx)
                           :config (:config ctx)
                           :top-ns (:top-ns ctx)
@@ -1214,7 +1220,7 @@
                         (analyze-children ctx children)))))
                 ;; catch-call
                 (do
-                  ;; (prn "--")
+                  ;; (prn "--" expr)
                   (types/add-arg-type-from-expr ctx expr)
                   (analyze-children ctx children))))))
         ;; catch-all

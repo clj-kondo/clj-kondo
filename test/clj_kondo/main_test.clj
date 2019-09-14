@@ -2488,8 +2488,14 @@
                (str/starts-with? (str/join [1 2 3]) \"f\")
                (str/includes? (str/join [1 2 3]) #\"f\")
                (remove #{1 2 3} [1 2 3])
-               (set/difference (into #{} [1 2 3]) #{1 2 3}) ;; OK"
-              {:linters {:type-mismatch {:level :error}}}))))
+               (set/difference (into #{} [1 2 3]) #{1 2 3})"
+              {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(require '[clojure.string :as str])
+                      (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(require '[clojure.string :as str])
+                      (let [xs ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
+                     {:linters {:type-mismatch {:level :error}}}))))
 
 
 
