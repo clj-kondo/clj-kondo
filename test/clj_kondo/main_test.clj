@@ -1158,7 +1158,8 @@
   (is (empty? (lint! "(ns ^{:clj-kondo/config
                             '{:linters {:unused-namespace {:exclude [bar]}}}}
                           foo
-                        (:require [bar :as b]))"))))
+                        (:require [bar :as b]))")))
+  (is (empty? (lint! (io/file "corpus" "cljs_ns_as_as_object.cljs")))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
