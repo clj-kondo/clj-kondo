@@ -17,6 +17,14 @@ In Visual Studio Code, go to Preferences > Extensions. Search for 'clojure lint'
 
 <img src="../screenshots/vscode.png" width="75%">
 
+## Atom
+
+Atom requires clj-kondo to be on your `$PATH`. In Atom, there are a few ways to install:
+
+1. `apm install linter-kondo linter linter-ui-default intentions bsusy-signal`
+2. Install from the [Atom package](https://atom.io/packages/linter-kondo) page.
+3. From inside Atom, go to Preferences > Extensions. Search for "linter-kondo" and click "Install" on the extension.
+
 ## Vim / Neovim
 
 ### ALE

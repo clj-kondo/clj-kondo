@@ -204,6 +204,10 @@
          {:ns java-class
           :java-interop? true
           :name name-sym})
+       (if (= :cljs lang)
+         (if-let [ns* (get (:qualify-ns ns) name-sym)]
+           {:ns ns*
+            :name name-sym}))
        (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                           name-sym)
              core-sym? (when-not clojure-excluded?
