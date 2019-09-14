@@ -75,27 +75,27 @@
                      (when resolved-ns
                        (namespace/reg-used-namespace! ctx
                                                       ns-name
-                                                      resolved-ns))
-                     (namespace/reg-var-usage! ctx ns-name
-                                               {:type :use
-                                                :name resolved-name
-                                                :resolved-ns resolved-ns
-                                                :ns ns-name
-                                                :unresolved? unresolved?
-                                                :clojure-excluded? clojure-excluded?
-                                                :row row
-                                                :col col
-                                                :base-lang (:base-lang ctx)
-                                                :lang (:lang ctx)
-                                                :top-ns (:top-ns ctx)
-                                                :filename (:filename ctx)
-                                                :unresolved-symbol-disabled?
-                                                (or syntax-quote?
-                                                    ;; e.g.: clojure.core, clojure.string, etc.
-                                                    (= symbol-val (get (:qualify-ns ns) symbol-val)))
-                                                :private-access? (:private-access? ctx)
-                                                :callstack (:callstack ctx)
-                                                :config (:config ctx)}))))
+                                                      resolved-ns)
+                       (namespace/reg-var-usage! ctx ns-name
+                                                 {:type :use
+                                                  :name resolved-name
+                                                  :resolved-ns resolved-ns
+                                                  :ns ns-name
+                                                  :unresolved? unresolved?
+                                                  :clojure-excluded? clojure-excluded?
+                                                  :row row
+                                                  :col col
+                                                  :base-lang (:base-lang ctx)
+                                                  :lang (:lang ctx)
+                                                  :top-ns (:top-ns ctx)
+                                                  :filename (:filename ctx)
+                                                  :unresolved-symbol-disabled?
+                                                  (or syntax-quote?
+                                                      ;; e.g.: clojure.core, clojure.string, etc.
+                                                      (= symbol-val (get (:qualify-ns ns) symbol-val)))
+                                                  :private-access? (:private-access? ctx)
+                                                  :callstack (:callstack ctx)
+                                                  :config (:config ctx)})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              ;; catch-call

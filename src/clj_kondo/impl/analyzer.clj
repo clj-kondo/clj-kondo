@@ -2,9 +2,11 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+   #_[clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.analyzer.core-async :as core-async]
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
+   [clj-kondo.impl.analyzer.potemkin :as potemkin]
    [clj-kondo.impl.analyzer.spec :as spec]
    [clj-kondo.impl.analyzer.usages :as usages :refer [analyze-usages2]]
    [clj-kondo.impl.config :as config]
@@ -17,7 +19,7 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
-   [clj-kondo.impl.analyzer.potemkin :as potemkin]
+   [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some]]
@@ -27,10 +29,22 @@
 
 (declare analyze-expression**)
 
-(defn analyze-children [{:keys [:callstack :config] :as ctx} children]
-  (when-not (config/skip? config callstack)
-    (let [ctx (assoc ctx :top-level? false)]
-      (mapcat #(analyze-expression** ctx %) children))))
+(defn analyze-children
+  ([ctx children]
+   (analyze-children ctx children true))
+  ([{:keys [:callstack :config] :as ctx} children add-new-arg-types?]
+   ;; (prn callstack add-new-arg-types?)
+   (when-not (config/skip? config callstack)
+     (let [ctx (assoc ctx
+                      :top-level? false
+                      :arg-types (if add-new-arg-types?
+                                   (let [[k v] (first callstack)]
+                                     (if (and (symbol? k)
+                                              (symbol? v))
+                                       (atom [])
+                                       nil))
+                                   (:arg-types ctx)))]
+       (mapcat #(analyze-expression** ctx %) children)))))
 
 (defn analyze-keys-destructuring-defaults [ctx m defaults]
   (let [defaults (into {}
@@ -89,13 +103,12 @@
                        m (meta expr)
                        v (assoc m
                                 :name s
-                                :filename (:filename ctx))]
+                                :filename (:filename ctx)
+                                :tag (:tag opts) #_(when value (types/expr->tag ctx value)))]
                    (when-not skip-reg-binding?
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
-                                             (assoc m
-                                                    :name s
-                                                    :filename (:filename ctx))))
+                                             v))
                    {s v})
                  (findings/reg-finding!
                   findings
@@ -356,7 +369,10 @@
 
 (defn analyze-let-like-bindings [ctx binding-vector]
   (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
-        for-like? (one-of resolved-as-clojure-var-name [for doseq])]
+        for-like? (one-of resolved-as-clojure-var-name [for doseq])
+        callstack (:callstack ctx)
+        call (-> callstack second second)
+        let? (= 'let call)]
     (loop [[binding value & rest-bindings] (-> binding-vector :children)
            bindings (:bindings ctx)
            arities (:arities ctx)
@@ -382,11 +398,22 @@
                   ctx* (-> ctx
                            (ctx-with-bindings bindings)
                            (update :arities merge arities))
-                  new-bindings (when binding (extract-bindings ctx* binding))
+                  value-id (gensym)
+                  analyzed-value (when (and value (not for-let?))
+                                   (analyze-expression** ctx* (assoc value :id value-id)))
+                  tag (when (and let? binding (= :token (tag binding)))
+                        (let [;; TODO: the problem here is that there might have
+                              ;; been more things in between this and the call
+                              ;; we got back, but this isn't emitted. How can we relate?
+                              maybe-call (first analyzed-value)
+                              maybe-call (when (and maybe-call (= :call (:type maybe-call))
+                                                    (= value-id (:id maybe-call)))
+                                           maybe-call)]
+                          (cond maybe-call (types/spec-from-call ctx maybe-call value)
+                                value (types/expr->tag ctx* value))))
+                  new-bindings (when binding (extract-bindings ctx* binding {:tag tag}))
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
-                  analyzed-value (when (and value (not for-let?))
-                                   (analyze-expression** ctx* value))
                   next-arities (if-let [arity (:arity (meta analyzed-value))]
                                  (assoc arities binding-sexpr arity)
                                  arities)]
@@ -902,8 +929,13 @@
         resolved-as-clojure-var-name
         (when (one-of resolved-as-namespace [clojure.core cljs.core])
           resolved-as-name)
+        arg-types (if (and resolved-namespace resolved-name)
+                    (atom [] #_(with-meta [] {:res resolved-name}))
+                    nil)
+        ctx (assoc ctx :arg-types arg-types)
         ctx (if resolved-as-clojure-var-name
-              (assoc ctx :resolved-as-clojure-var-name resolved-as-clojure-var-name)
+              (assoc ctx
+                     :resolved-as-clojure-var-name resolved-as-clojure-var-name)
               ctx)
         analyzed
         (case resolved-as-clojure-var-name
@@ -996,7 +1028,7 @@
                              (= '[clojure.core.async thread]
                                 [resolved-namespace resolved-name])
                              (assoc-in [:recur-arity :fixed-arity] 0))]
-              (analyze-children next-ctx (rest children)))))]
+              (analyze-children next-ctx (rest children) false))))]
     (if (= 'ns resolved-as-clojure-var-name)
       analyzed
       (let [in-def (:in-def ctx)
@@ -1015,9 +1047,11 @@
                           :lang lang
                           :filename (:filename ctx)
                           :expr expr
+                          :id (:id expr)
                           :callstack (:callstack ctx)
                           :config (:config ctx)
-                          :top-ns (:top-ns ctx)}
+                          :top-ns (:top-ns ctx)
+                          :arg-types (:arg-types ctx)}
                    in-def (assoc :in-def in-def))]
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
@@ -1087,17 +1121,23 @@
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
   (when expr
-    (let [expr (if (not= :edn lang)
+    (let [expr (if (or (not= :edn lang)
+                       (:quoted ctx))
                  (meta/lift-meta-content2 ctx expr)
                  expr)
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
+      (when-not (one-of t [:list :quote]) ;; list and quote are handled specially because of return types
+        (types/add-arg-type-from-expr ctx expr))
       (case t
-        :quote (analyze-children (assoc ctx :lang :edn) children)
+        :quote (let [ctx (assoc ctx :quoted true)]
+                 (types/add-arg-type-from-expr ctx (first (:children expr)))
+                 (analyze-children ctx children))
         :syntax-quote (analyze-usages2 (assoc ctx
                                               :analyze-expression**
-                                              analyze-expression**) expr)
+                                              analyze-expression**
+                                              :arg-types nil) expr)
         :var (analyze-children (assoc ctx :private-access? true)
                                (:children expr))
         :reader-macro (analyze-reader-macro ctx expr)
@@ -1116,26 +1156,30 @@
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
                                    children))
-        :fn (recur ctx (macroexpand/expand-fn expr))
-        :token (when-not (= :edn (:lang ctx)) (analyze-usages2 ctx expr))
+        :fn (recur (assoc ctx :arg-types nil)
+                   (macroexpand/expand-fn expr))
+        :token (when-not (or (:quoted ctx) (= :edn (:lang ctx))) (analyze-usages2 ctx expr))
         :list
         (when-let [function (first children)]
-          (if (= :edn (:lang ctx))
+          (if (or (:quoted ctx) (= :edn (:lang ctx)))
             (analyze-children ctx children)
             (let [t (tag function)]
               (case t
                 :map
                 (do (lint-map-call! ctx function arg-count expr)
+                    (types/add-arg-type-from-expr ctx expr)
                     (analyze-children ctx children))
                 :quote
                 (let [quoted-child (-> function :children first)]
                   (if (utils/symbol-token? quoted-child)
                     (do (lint-symbol-call! ctx quoted-child arg-count expr)
                         (analyze-children ctx children))
-                    (analyze-children ctx children)))
+                    (do (types/add-arg-type-from-expr ctx expr)
+                        (analyze-children ctx children))))
                 :token
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+                      (types/add-arg-type-from-expr ctx expr)
                       (analyze-children ctx children))
                   (if-let [full-fn-name (utils/symbol-from-token function)]
                     (let [full-fn-name (with-meta full-fn-name (meta function))
@@ -1143,12 +1187,19 @@
                           binding-call? (and unresolved?
                                              (contains? bindings full-fn-name))]
                       (if binding-call?
-                        (analyze-binding-call ctx full-fn-name expr)
-                        (analyze-call ctx {:arg-count arg-count
-                                           :full-fn-name full-fn-name
-                                           :row row
-                                           :col col
-                                           :expr expr})))
+                        (do
+                          (types/add-arg-type-from-expr ctx expr)
+                          (analyze-binding-call ctx full-fn-name expr))
+                        (let [ret (analyze-call ctx {:arg-count arg-count
+                                                     :full-fn-name full-fn-name
+                                                     :row row
+                                                     :col col
+                                                     :expr expr})
+                              maybe-call (first ret)]
+                          (if (= :call (:type maybe-call))
+                            (types/add-arg-type-from-call ctx maybe-call expr)
+                            (types/add-arg-type-from-expr ctx expr))
+                          ret)))
                     (cond
                       (utils/boolean-token? function)
                       (do (reg-not-a-function! ctx expr "boolean")
@@ -1163,12 +1214,21 @@
                       (do (reg-not-a-function! ctx expr "number")
                           (analyze-children ctx (rest children)))
                       :else
-                      (analyze-children ctx children))))
-                (analyze-children ctx children)))))
+                      (do
+                        ;; (prn "--")
+                        (types/add-arg-type-from-expr ctx expr)
+                        (analyze-children ctx children)))))
+                ;; catch-call
+                (do
+                  ;; (prn "--" expr)
+                  (types/add-arg-type-from-expr ctx expr)
+                  (analyze-children ctx children))))))
         ;; catch-all
-        (analyze-children (update ctx
-                                  :callstack #(cons [nil t] %))
-                          children)))))
+        (do
+          ;;(prn "--")
+          (analyze-children (update ctx
+                                    :callstack #(cons [nil t] %))
+                            children))))))
 
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."

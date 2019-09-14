@@ -26,13 +26,13 @@
                      (when (.exists f)
                        {:source :disk
                         :resource f})))
-                 {:source :built-in
-                  :resource (built-in-cache-resource lang ns-sym)})]
-    (when resource
-      (assoc
-       (transit/read (transit/reader
-                      (io/input-stream resource) :json))
-       :source source))))
+                 (when-let [resource (built-in-cache-resource lang ns-sym)]
+                   {:source :built-in
+                    :resource resource}))]
+    (assoc
+     (transit/read (transit/reader
+                    (io/input-stream resource) :json))
+     :source source)))
 
 (defn from-cache [cache-dir lang namespaces]
   (reduce (fn [acc ns-sym]

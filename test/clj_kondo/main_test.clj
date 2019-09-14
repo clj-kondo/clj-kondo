@@ -1689,20 +1689,20 @@
     (let [output (with-in-str "(inc)(dec)"
                    (with-out-str
                      (main "--cache" "false" "--lint" "-" "--config"
-                            (format "{:output {:format %s}}" output-format))))
+                           (format "{:output {:format %s}}" output-format))))
           parsed (parse-fn output)]
       (is (map? parsed))))
   (testing "JSON output escapes special characters"
     (let [output (with-in-str "{\"foo\" 1 \"foo\" 1}"
                    (with-out-str
                      (main "--cache" "false"  "--lint" "-" "--config"
-                            (format "{:output {:format %s}}" :json))))
+                           (format "{:output {:format %s}}" :json))))
           parsed (cheshire/parse-string output true)]
       (is (map? parsed)))
     (let [output (with-in-str "{:a 1}"
                    (with-out-str
                      (main "--cache" "false" "--lint" "\"foo\".clj" "--config"
-                            (format "{:output {:format %s}}" :json))))
+                           (format "{:output {:format %s}}" :json))))
           parsed (cheshire/parse-string output true)]
       (is (map? parsed)))))
 
@@ -1940,7 +1940,9 @@
   (is (empty? (lint! "(defn foo [x y z] ^{:a x :b y :c z} [1 2 3])")))
   (is (empty? (lint! "(fn [^js x] x)"
                      '{:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(= '`+ (read-string \"`+\"))"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest deftest-test
   (is (empty? (lint! (io/file "corpus" "deftest.cljc")
@@ -2279,15 +2281,15 @@
 (deftest import-vars-test
   (assert-submaps
    '({:file "corpus/import_vars.clj",
-     :row 19,
-     :col 1,
-     :level :error,
-     :message "clojure.walk/prewalk is called with 0 args but expects 2"}
-    {:file "corpus/import_vars.clj",
-     :row 20,
-     :col 1,
-     :level :error,
-     :message "app.core/foo is called with 0 args but expects 1"})
+      :row 19,
+      :col 1,
+      :level :error,
+      :message "clojure.walk/prewalk is called with 0 args but expects 2"}
+     {:file "corpus/import_vars.clj",
+      :row 20,
+      :col 1,
+      :level :error,
+      :message "app.core/foo is called with 0 args but expects 1"})
    (lint! (io/file "corpus" "import_vars.clj")
           {:linters {:unresolved-symbol {:level :error}}}))
   (testing "import-vars works when using cache"
@@ -2373,6 +2375,129 @@
       :level :error,
       :message "Too many arguments to if."})
    (lint! "(if) (if 1 1) (if 1 1 1 1)")))
+
+(deftest type-mismatch-test
+  (assert-submaps
+   '({:row 1,
+      :col 6,
+      :message "Expected: number, received: string."})
+   (lint! "(inc \"foo\")"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:row 1,
+      :col 7,
+      :message "Expected: string, received: number."})
+   (lint! "(subs (inc 1) 1)"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 25,
+      :level :error,
+      :message "Expected: number, received: string."})
+   (lint! "(let [x \"foo\" y x] (inc y))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 19,
+      :level :error,
+      :message "Expected: string, received: positive integer."}
+     {:file "<stdin>",
+      :row 1,
+      :col 30,
+      :level :error,
+      :message "Expected: number, received: string."})
+   (lint! "(let [x 1 y (subs x 1)] (inc y))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 19,
+      :level :error,
+      :message "Expected: atom, received: positive integer."})
+   (lint! "(let [x 1] (swap! x identity))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 32,
+      :level :error,
+      :message "Expected: seqable collection, received: transducer."})
+   (lint! "(let [x (map (fn []))] (cons 1 x))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 2,
+      :col 28,
+      :level :error,
+      :message "Expected: set or nil, received: seqable collection."}
+     {:file "<stdin>",
+      :row 3,
+      :col 28,
+      :level :error,
+      :message "Expected: set or nil, received: vector."})
+   (lint! "(require '[clojure.set :as set])
+           (set/difference (map inc [1 2 3]) #{1 2 3})
+           (set/difference (into [] [1 2 3]) #{1 2 3})"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 2,
+      :col 30,
+      :level :error,
+      :message "Expected: char sequence, received: positive integer."}
+     {:file "<stdin>",
+      :row 3,
+      :col 46,
+      :level :error,
+      :message "Expected: char sequence, received: positive integer."})
+   (lint! "(require '[clojure.string :as str])
+           (str/starts-with? 1 \"s\")
+           (str/includes? (str/join [1 2 3]) 1)"
+          {:linters {:type-mismatch {:level :error}}}))
+  (testing "CLJS also works"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 6,
+        :level :error,
+        :message "Expected: number, received: string."}
+       {:file "<stdin>",
+        :row 1,
+        :col 57,
+        :level :error,
+        :message "Expected: set or nil, received: positive integer."})
+     (lint! "(inc \"foo\") (require '[clojure.set :as set]) (set/union 1)"
+            {:linters {:type-mismatch {:level :error}}}
+            "--lang" "cljs")))
+  (is (empty?
+       (lint! "(cons [nil] (list 1 2 3))
+               (defn foo [] (:foo x))
+               (let [x (atom 1)] (swap! x identity))
+               (assoc {} :a `(dude))
+               (reduce #(%1 %2) 1 [1 2 3])
+               (map :tag [{:tag 1}])
+               (map 'foo ['{foo 1}])
+               (for [i [1 2 3]] (inc i))
+               (let [i (inc 1)] (subs \"foo\" i))
+               (assoc (into {} {}) :a 1)
+               (into (map inc [1 2 3]) (remove odd? [1 2 3]))
+               (cons 1 nil)
+               (require '[clojure.string :as str])
+               (str/starts-with? (str/join [1 2 3]) \"f\")
+               (str/includes? (str/join [1 2 3]) #\"f\")
+               (remove #{1 2 3} [1 2 3])
+               (set/difference (into #{} [1 2 3]) #{1 2 3})"
+              {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(require '[clojure.string :as str])
+                      (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(require '[clojure.string :as str])
+                      (let [xs ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
+                     {:linters {:type-mismatch {:level :error}}}))))
+
+
 
 ;;;; Scratch
 

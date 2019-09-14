@@ -60,7 +60,8 @@
               :duplicate-require {:level :warning}
               :refer-all {:level :warning}
               :use {:level :warning}
-              :if {:level :warning}}
+              :if {:level :warning}
+              :type-mismatch {:level :error}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn

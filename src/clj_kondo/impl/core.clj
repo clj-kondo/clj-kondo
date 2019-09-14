@@ -224,6 +224,7 @@
      :cljc {:defs (mmerge cljc-clj cljc-cljs)}}))
 
 (defn index-defs-and-calls [ctx defs-and-calls]
+  ;; (prn ">" defs-and-calls)
   (let [indexed-defs (namespaces->indexed-defs ctx)]
     (reduce
      (fn [acc {:keys [:used-namespaces :lang] :as _m}]

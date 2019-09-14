@@ -58,7 +58,8 @@
 (def base-config
   '{:linters {:unused-binding {:level :off}
               :unresolved-symbol {:level :off}
-              :refer-all {:level :off}}})
+              :refer-all {:level :off}
+              :type-mismatch {:level :off}}})
 
 (defn lint-jvm!
   ([input]
@@ -69,6 +70,7 @@
            (if (map? m)
              [m (rest args)]
              [nil args]))
+         _ (def c config)
          config (str (deep-merge base-config config))
          res (with-out-str
                (try
