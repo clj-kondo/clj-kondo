@@ -50,7 +50,8 @@
              (meta libspec-expr))]
           (valid-ns-name? form)
           [(with-meta (token-node (symbol (str (when prefix (str prefix ".")) form)))
-             (meta libspec-expr))]
+             (assoc (meta libspec-expr)
+                    :raw-name form))]
           (keyword? form)  ; Some people write (:require ... :reload-all)
           nil
           :else
@@ -58,8 +59,9 @@
                           {:reason ::unparsable-ns-form
                            :form form})))))
 
-(defn analyze-libspec [{:keys [:base-lang :lang
-                               :filename :findings]} current-ns-name require-kw-expr libspec-expr]
+(defn analyze-libspec
+  [{:keys [:base-lang :lang
+           :filename :findings]} current-ns-name require-kw-expr libspec-expr]
   (let [require-sym (:value require-kw-expr)
         require-kw (or (:k require-kw-expr)
                        (when require-sym
@@ -73,9 +75,6 @@
                      :filename filename))}]
       (let [[ns-name-expr & option-exprs] (:children libspec-expr)
             ns-name (:value ns-name-expr)
-            ;; [ns-name & options] libspec
-            ;; in CLJS ns-names can be strings
-            ns-name (symbol ns-name)
             ns-name (if (= :cljs lang)
                       (case ns-name
                         clojure.test 'cljs.test
@@ -84,7 +83,8 @@
                       ns-name)
             ns-name (with-meta ns-name
                       (assoc (meta (first (:children libspec-expr)))
-                             :filename filename))
+                             :filename filename
+                             :raw-name (-> (meta ns-name-expr) :raw-name)))
             self-require? (and
                            (= :cljc base-lang)
                            (= :cljs lang)
