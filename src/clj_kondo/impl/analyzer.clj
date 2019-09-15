@@ -104,7 +104,9 @@
                        v (assoc m
                                 :name s
                                 :filename (:filename ctx)
-                                :tag (:tag opts) #_(when value (types/expr->tag ctx value)))]
+                                :tag (or (when-let [t (:tag m)]
+                                           (types/tag-from-meta t))
+                                         (:tag opts)))]
                    (when-not skip-reg-binding?
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)

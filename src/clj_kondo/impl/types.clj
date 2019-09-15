@@ -268,6 +268,13 @@
                            :row (:row call)
                            :col (:col call)})))
 
+(defn tag-from-meta [meta-tag]
+  (case meta-tag
+    (long Long java.lang.Long) ::int
+    (double Double java.lang.Double) ::double
+    (String java.lang.String) ::string
+        nil))
+
 (defn emit-warning! [{:keys [:findings] :as ctx} args problem]
   ;; (prn args problem)
   (let [via (first (:via problem))

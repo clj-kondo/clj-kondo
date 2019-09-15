@@ -2471,6 +2471,23 @@
      (lint! "(inc \"foo\") (require '[clojure.set :as set]) (set/union 1)"
             {:linters {:type-mismatch {:level :error}}}
             "--lang" "cljs")))
+  (testing "leveraging type hints"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 22,
+        :level :error,
+        :message "Expected: number, received: string."})
+     (lint! "(fn [^String x] (inc x))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 21,
+        :level :error,
+        :message "Expected: string, received: integer."})
+     (lint! "(fn [^long x] (subs x 1 1))"
+            {:linters {:type-mismatch {:level :error}}})))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
