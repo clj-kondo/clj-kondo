@@ -75,6 +75,7 @@
       (isa? x parent)))
 
 (s/def ::nil #(is? % ::nil))
+(s/def ::boolean #(is? % ::boolean))
 (s/def ::seqable #(is? % ::seqable))
 (s/def ::associative #(is? % ::associative))
 (s/def ::number #(is? % ::number))
@@ -85,12 +86,27 @@
 (s/def ::transducer #(is? % ::transducer))
 (s/def ::char-sequence #(is? % ::char-sequence))
 (s/def ::string #(is? % ::string))
+(s/def ::char #(is? % ::char))
 (s/def ::conjable #(is? % ::conjable))
 (s/def ::set #(is? % ::set))
 (s/def ::nilable-set (s/nilable #(is? % ::set)))
 ;; (s/def ::reducible-coll #(is? % ::reducible-coll))
 ;; (s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
 (s/def ::any any?)
+
+(defn tag-from-meta [meta-tag]
+  (case meta-tag
+    void ::nil
+    (boolean Boolean java.lang.Boolean) ::boolean
+    (byte Byte java.lang.Byte) ::byte
+    (Number java.lang.Number) ::number
+    (int long Long java.lang.Long) ::int
+    (double Float Double java.lang.Float java.lang.Double) ::double
+    (CharSequence java.lang.CharSequence) ::char-sequence
+    (String java.lang.String) ::string
+    (char Character java.lang.Character) ::char
+    (Seqable clojure.lang.Seqable) ::seqable
+    (do (prn "did not catch tag:" meta-tag) nil)))
 
 (def clojure-core
   {;; 22
