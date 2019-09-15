@@ -152,7 +152,10 @@
                       :error
                       :syntax
                       (str "unsupported binding form " expr))))
-       :vector (into {} (map #(extract-bindings ctx % opts)) (:children expr))
+       :vector (with-meta (into {} (map #(extract-bindings ctx % opts))
+                                (:children expr))
+                 ;; this is used for checking the return tag of a function body
+                 (meta expr))
        :namespaced-map (extract-bindings ctx (first (:children expr)) opts)
        :map
        (loop [[k v & rest-kvs] (:children expr)
@@ -229,10 +232,15 @@
         arg-vec  (first children)
         arg-list (sexpr arg-vec)
         arg-bindings (extract-bindings ctx arg-vec {:fn-args? true})
-        arity (analyze-arity arg-list)]
-    {:arg-bindings (dissoc arg-bindings :analyzed)
-     :arity arity
-     :analyzed-arg-vec (:analyzed arg-bindings)}))
+        tag (-> arg-bindings meta :tag)
+        tag (when tag
+              (types/tag-from-meta tag))
+        arity (analyze-arity arg-list)
+        ret {:arg-bindings (dissoc arg-bindings :analyzed)
+             :arity arity
+             :analyzed-arg-vec (:analyzed arg-bindings)
+             :tag tag}]
+    ret))
 
 (defn ctx-with-bindings [ctx bindings]
   (update ctx :bindings (fn [b]
@@ -252,7 +260,8 @@
 
 (defn analyze-fn-body [{:keys [:docstring?] :as ctx} body]
   (let [{:keys [:arg-bindings
-                :arity :analyzed-arg-vec]} (analyze-fn-arity ctx body)
+                :arity :analyzed-arg-vec]
+         return-tag :tag} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
         ctx (assoc ctx
                    :recur-arity arity
@@ -279,7 +288,8 @@
         (analyze-children ctx body-exprs)]
     (assoc arity
            :parsed
-           (concat analyzed-first-child analyzed-arg-vec parsed))))
+           (concat analyzed-first-child analyzed-arg-vec parsed)
+           :tag return-tag)))
 
 (defn fn-bodies [ctx children]
   (loop [[expr & rest-exprs :as exprs] children]
@@ -338,6 +348,13 @@
                                         :in-def fn-name)) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
+        fixed-arities2 (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :tag]}]
+                                       (if varargs?
+                                         [:varargs {:tag tag
+                                                    :min-arity min-arity}]
+                                         [fixed-arity {:tag tag}])))
+                             parsed-bodies)
+        _ (prn ">" fixed-arities2)
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))]
     (when fn-name
       (namespace/reg-var!
@@ -347,6 +364,7 @@
                    :private private?
                    :deprecated deprecated
                    :fixed-arities (not-empty fixed-arities)
+                   :fixed-arities2 fixed-arities2
                    :var-args-min-arity var-args-min-arity
                    :doc docstring
                    :added (:added var-meta))))
