@@ -71,6 +71,7 @@
 (derive! ::any-int [::pos-int ::neg-int])
 
 (defn is? [x parent]
+  ;; (when (map? x) (prn "YO" x))
   (or (identical? x ::any)
       (isa? x parent)))
 
@@ -110,92 +111,92 @@
 
 (def clojure-core
   {;; 22
-    'cons {:args (s/cat :x ::any :seq ::seqable)}
-    ;; 181
-    'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
-                         :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
-    ;; 544
-    'str {:ret ::string}
-    ;; 922
-    'inc {:args (s/cat :x ::number)
-          :ret ::any-number}
-    ;; 947
-    'reverse {:args (s/cat :x ::seqable)
-              :ret ::any-seqable-out}
-    ;; 2327
-    'atom {:ret ::atom}
-    ;; 2345
-    'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
-    ;; 2576
-    'juxt {:args (s/+ ::ifn)
-           :ret ::ifn}
-    ;; 2727
-    'map {:args (s/alt :transducer (s/cat :f ::ifn)
+   'cons {:args (s/cat :x ::any :seq ::seqable)}
+   ;; 181
+   'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
+                        :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
+   ;; 544
+   'str {:ret ::string}
+   ;; 922
+   'inc {:args (s/cat :x ::number)
+         :ret ::any-number}
+   ;; 947
+   'reverse {:args (s/cat :x ::seqable)
+             :ret ::any-seqable-out}
+   ;; 2327
+   'atom {:ret ::atom}
+   ;; 2345
+   'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
+   ;; 2576
+   'juxt {:args (s/+ ::ifn)
+          :ret ::ifn}
+   ;; 2727
+   'map {:args (s/alt :transducer (s/cat :f ::ifn)
+                      :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
+         ;; :ret ::seqable-or-transducer
+         :fn (fn [args]
+               (if (= 1 (count args))
+                 ::transducer
+                 ::any-seqable-out))}
+   ;; 2793
+   'filter {:args (s/alt :transducer (s/cat :f ::ifn)
+                         :seqable (s/cat :f ::ifn :coll ::seqable))
+            ;; :ret ::seqable-or-transducer
+            :fn (fn [args]
+                  (if (= 1 (count args))
+                    ::transducer
+                    ::any-seqable-out))}
+   ;; 2826
+   'remove {:args (s/alt :transducer (s/cat :f ::ifn)
+                         :seqable (s/cat :f ::ifn :coll ::seqable))
+            ;; :ret ::seqable-or-transducer
+            :fn (fn [args]
+                  (if (= 1 (count args))
+                    ::transducer
+                    ::any-seqable-out))}
+   ;; 4105
+   'set {:ret ::set}
+   ;; 4981
+   'subs {:args (s/cat :s ::string
+                       :start ::nat-int
+                       :end (s/? ::nat-int))
+          :ret ::string}
+   ;; 6790
+   'reduce {:args (s/cat :f ::ifn :val (s/? ::any) :coll ::seqable)}
+   ;; 6887
+   'into {:args (s/alt :no-arg (s/cat)
+                       :identity (s/cat :to ::conjable)
+                       :seqable (s/cat :to ::conjable :from ::seqable)
+                       :transducer (s/cat :to ::conjable :xf ::transducer :from ::seqable))
+          :fn (fn [args]
+                (let [t (:tag (first args))]
+                  (if (identical? ::any t)
+                    ::any-coll
+                    t)))}
+   ;; 6903
+   'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
                        :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
           ;; :ret ::seqable-or-transducer
           :fn (fn [args]
                 (if (= 1 (count args))
                   ::transducer
-                  ::any-seqable-out))}
-    ;; 2793
-    'filter {:args (s/alt :transducer (s/cat :f ::ifn)
+                  ::vector))}
+   ;; 7313
+   'filterv {:args (s/alt :transducer (s/cat :f ::ifn)
                           :seqable (s/cat :f ::ifn :coll ::seqable))
              ;; :ret ::seqable-or-transducer
              :fn (fn [args]
                    (if (= 1 (count args))
                      ::transducer
-                     ::any-seqable-out))}
-    ;; 2826
-    'remove {:args (s/alt :transducer (s/cat :f ::ifn)
-                          :seqable (s/cat :f ::ifn :coll ::seqable))
-             ;; :ret ::seqable-or-transducer
-             :fn (fn [args]
-                   (if (= 1 (count args))
-                     ::transducer
-                     ::any-seqable-out))}
-    ;; 4105
-    'set {:ret ::set}
-    ;; 4981
-    'subs {:args (s/cat :s ::string
-                        :start ::nat-int
-                        :end (s/? ::nat-int))
-           :ret ::string}
-    ;; 6790
-    'reduce {:args (s/cat :f ::ifn :val (s/? ::any) :coll ::seqable)}
-    ;; 6887
-    'into {:args (s/alt :no-arg (s/cat)
-                        :identity (s/cat :to ::conjable)
-                        :seqable (s/cat :to ::conjable :from ::seqable)
-                        :transducer (s/cat :to ::conjable :xf ::transducer :from ::seqable))
-           :fn (fn [args]
-                 (let [t (:tag (first args))]
-                   (if (identical? ::any t)
-                     ::any-coll
-                     t)))}
-    ;; 6903
-    'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
-                        :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
-           ;; :ret ::seqable-or-transducer
-           :fn (fn [args]
-                 (if (= 1 (count args))
-                   ::transducer
-                   ::vector))}
-    ;; 7313
-    'filterv {:args (s/alt :transducer (s/cat :f ::ifn)
-                           :seqable (s/cat :f ::ifn :coll ::seqable))
-              ;; :ret ::seqable-or-transducer
-              :fn (fn [args]
-                    (if (= 1 (count args))
-                      ::transducer
-                      ::vector))}
-    ;; 7313
-    'keep {:args (s/alt :transducer (s/cat :f ::ifn)
-                        :seqable (s/cat :f ::ifn :coll ::seqable))
-           ;; :ret ::seqable-or-transducer
-           :fn (fn [args]
-                 (if (= 1 (count args))
-                   ::transducer
-                   ::any-seqable-out))}})
+                     ::vector))}
+   ;; 7313
+   'keep {:args (s/alt :transducer (s/cat :f ::ifn)
+                       :seqable (s/cat :f ::ifn :coll ::seqable))
+          ;; :ret ::seqable-or-transducer
+          :fn (fn [args]
+                (if (= 1 (count args))
+                  ::transducer
+                  ::any-seqable-out))}})
 
 (def specs
   {'clojure.core clojure-core
@@ -268,15 +269,20 @@
 
 ;; TODO: rename return-type
 (defn spec-from-call [_ctx call _expr]
-  (when (and (not (:unresolved? call))
-             (:arg-types call))
-    (let [call-ns (:resolved-ns call)
-          call-name (:name call)]
-      ;; (prn call-ns call-name)
-      (when-let [spec (get-in specs [call-ns call-name])]
-        (if-let [fn-spec (:fn spec)]
-          (fn-spec @(:arg-types call))
-          (:ret spec))))))
+  (when (and (not (:unresolved? call)))
+    (when-let [arg-types (:arg-types call)]
+      (let [call-ns (:resolved-ns call)
+            call-name (:name call)]
+        ;; (prn call-ns call-name)
+        (if-let [spec (get-in specs [call-ns call-name])]
+          (if-let [fn-spec (:fn spec)]
+            (fn-spec @arg-types)
+            (:ret spec))
+          call #_{:arity (count @arg-types)
+           :ns call-ns
+           :name call-name
+           :base-lang (:base-lang ctx)
+           :lang (:lang ctx)})))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]
@@ -295,7 +301,8 @@
                         (name via)))
         offending-tag-label (or (get labels offending-tag)
                                 (when offending-tag
-                                  (name offending-tag)))
+                                  (when (keyword? offending-tag)
+                                    (name offending-tag))))
         reason (:reason problem)
         insufficient? (= "Insufficient input" reason)
         extra? (= "Extra input" reason)]
@@ -330,7 +337,6 @@
         ;; (prn (s/valid? args-spec tags))
         ;; (pprint (s/conform args-spec tags))
         (when-not (s/valid? args-spec tags)
-          ;; (prn "ARGS" args)
           (let [d (s/explain-data args-spec tags)]
             ;; (prn (count (:clj-kondo.impl.clojure.spec.alpha/problems d)))
             (run! #(emit-warning! ctx args %)

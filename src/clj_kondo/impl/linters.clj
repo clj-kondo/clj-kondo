@@ -100,11 +100,6 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
-(defn lint-arg-types! [ctx call called-fn]
-  (when-let [arg-types (:arg-types call)]
-    (let [arg-types @arg-types]
-      (types/lint-arg-types ctx called-fn arg-types))))
-
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
   (let [call-lang (:lang call)
@@ -155,6 +150,17 @@
       (recur idacs call call-lang imported-ns
              (:imported-var called-fn) unresolved? refer-alls)
       called-fn)))
+
+(defn resolve-arg-type [idacs arg-type]
+  (if (keyword? arg-type)
+    arg-type
+    arg-type))
+
+(defn lint-arg-types! [ctx idacs call called-fn]
+  (when-let [arg-types (:arg-types call)]
+    (let [arg-types @arg-types
+          arg-types (mapv #(resolve-arg-type idacs %) arg-types)]
+      (types/lint-arg-types ctx called-fn arg-types))))
 
 (defn show-arities [fixed-arities var-args-min-arity]
   (let [fas (vec (sort fixed-arities))
@@ -306,7 +312,9 @@
                                          :filename filename)
                                   call called-fn)
                                  (when-not arity-error?
-                                   (lint-arg-types! ctx call called-fn)))]
+                                   (let [resolver (fn [call fn-ns fn-name]
+                                                    (resolve-call* idacs call fn-ns fn-name))]
+                                     (lint-arg-types! ctx resolver call called-fn))))]
                        e errors
                        :when e]
                    e)]
