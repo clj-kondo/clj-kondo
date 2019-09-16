@@ -32,7 +32,8 @@
    ::nilable-int "integer or nil"
    ::char-sequence "char sequence"
    ::nilable-string "string or nil"
-   ::any-nilable-string "string or nil"})
+   ::any-nilable-string "string or nil" ;; this is a shitty solution...
+   ::any-nilable-int "integer or nil"})
 
 (defmacro derive! [children parents]
   (let [children (if (keyword? children) [children] children)
@@ -65,7 +66,7 @@
            (derive ~any-parent c#)))))
 
 (defn is? [x parent]
-  ;; (prn "YO" x parent)
+  ;; (prn x parent (isa? x parent))
   (or
    (identical? x ::any)
    (isa? x parent)))
@@ -127,8 +128,6 @@
 
 ;; (reg-type! ::int)
 
-
-
 (comment
   (is? ::nil ::nilable-set)
   (is? ::nil ::nilable-int)
@@ -173,31 +172,30 @@
 (reg-type! ::boolean)
 (reg-type! ::double)
 
+;; (s/def ::any-nilable-string* ::any-nilable-string)
+;; (s/def ::any-nilable-int* ::any-nilable-int)
+
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
   ([meta-tag out?]
    (case meta-tag
      void ::nil
      (boolean) ::boolean
-     (Boolean java.lang.Boolean) (if out? ::any-nilable-boolean ::nilable-boolean)
-     (byte) ::byte
-     (Byte java.lang.Byte) (if out? ::any-nilable-byte ::byte)
+     (Boolean java.lang.Boolean) ::any-nilable-boolean
+     (byte Byte java.lang.Byte) ::any-nilable-byte
      (Number java.lang.Number) ::any-nilable-number ;; as this is now way to
                                                     ;; express non-nilable,
                                                     ;; we'll go for the most
                                                     ;; relaxed type
-     (int long) ::int
-     (Long java.lang.Long) (if out? ::any-nilable-int ::nilable-int)
-     (float double) ::double
-     (Float Double java.lang.Float java.lang.Double) (if out? ::any-nilable-double ::nilable-double)
-     (CharSequence java.lang.CharSequence) (if out? ::any-nilable-char-sequence ::nilable-char-sequence)
+     (int long Long java.lang.Long) ::nilable-int ;; or ::any-nilable-int? , see 2451 main-test
+     (float double Float Double java.lang.Float java.lang.Double) ::any-nilable-double
+     (CharSequence java.lang.CharSequence) ::any-nilable-char-sequence
      (String java.lang.String) ::any-nilable-string ;; as this is now way to
                                                     ;; express non-nilable,
                                                     ;; we'll go for the most
                                                     ;; relaxed type
-     (char) ::char
-     (Character java.lang.Character) (if out? ::any-nilable-char ::nilable-char)
-     (Seqable clojure.lang.Seqable) (if out? ::any-seqable ::seqable)
+     (char Character java.lang.Character) ::any-nilable-char
+     (Seqable clojure.lang.Seqable) (if out? ::any-seqable-out ::seqable)
      (do #_(prn "did not catch tag:" meta-tag) nil nil))))
 
 (comment
@@ -416,7 +414,10 @@
                                            :col (:col offending-arg)
                                            :type :type-mismatch
                                            :message (str "Expected: " via-label
-                                                         ", received: " offending-tag-label ".")})
+                                                         ", received: " offending-tag-label
+                                                         (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                                                           (format " (%s)" offending-tag))
+                                                         ".")})
           #_#_:else (prn problem))))
 
 ;; (require '[clojure.pprint :refer [pprint]])
@@ -449,4 +450,6 @@
   (s/valid? (s/cat :f ::ifn) [::transducer]) ;; should be true, but isn't!
   (s/valid? (s/cat :f ::ifn) [::any]) ;; should be true, bit isn't!
   (isa? ::transducer ::ifn) ;; true
+  (isa? ::any-nilable-string ::string)
+  (s/valid? (s/cat :f ::any-nilable-string) [::string])
   )

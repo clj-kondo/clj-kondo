@@ -2485,7 +2485,7 @@
         :row 1,
         :col 21,
         :level :error,
-        :message "Expected: string, received: integer."})
+        :message "Expected: string, received: integer or nil."})
      (lint! "(fn [^long x] (subs x 1 1))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
@@ -2537,6 +2537,9 @@
                      {:linters {:type-mismatch {:level :error}}})))
   (testing "no warning, despite string able to be nil"
     (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    #_(is (empty? (lint! "(defn foo [^Long x] (subs \"foo\" x))
+                          (let [^String x \"foo\"] (subs x 1 1))"
                        {:linters {:type-mismatch {:level :error}}})))))
 
 ;;;; Scratch
