@@ -246,7 +246,7 @@
                              fixed-arities (:fixed-arities called-fn)
                              var-args-min-arity (:var-args-min-arity called-fn)
                              arities (:arities called-fn)
-                             _ (prn ">>" (:name called-fn) arities (keys called-fn))
+                             ;; _ (prn ">>" (:name called-fn) arities (keys called-fn))
                              arity-error?
                              (and
                               (= :call (:type call))

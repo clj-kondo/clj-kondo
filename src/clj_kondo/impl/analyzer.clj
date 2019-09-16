@@ -354,7 +354,7 @@
                                            [:varargs v]
                                            [fixed-arity v]))))
                              parsed-bodies)
-        _ (prn ">" arities)
+        ;; _ (prn ">" arities)
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))]
     (when fn-name
       (namespace/reg-var!

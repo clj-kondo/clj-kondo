@@ -27,7 +27,6 @@
    (reg-var! ctx ns-sym var-sym expr nil))
   ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns] :as ctx}
     ns-sym var-sym expr metadata]
-   (prn "MET" metadata)
    (let [metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym)
