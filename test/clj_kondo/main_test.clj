@@ -2533,7 +2533,7 @@
                      {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(defn foo [^Long x] (foo nil))"
                      {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(defn foo ^Long [] nil) (defn bar [^long x]) (bar (foo))"
+  (is (empty? (lint! "(defn foo ^Long [x] x) (defn bar [^long x]) (bar (foo 1)) (bar (foo nil))"
                      {:linters {:type-mismatch {:level :error}}}))))
 
 
