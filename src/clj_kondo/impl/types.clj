@@ -72,8 +72,9 @@
 
 (defn is? [x parent]
   ;; (when (map? x) (prn "YO" x))
-  (or (identical? x ::any)
-      (isa? x parent)))
+  (or
+   (identical? x ::any)
+   (isa? x parent)))
 
 (s/def ::nil #(is? % ::nil))
 (s/def ::boolean #(is? % ::boolean))
@@ -284,16 +285,16 @@
   (when-let [arg-types (:arg-types ctx)]
     (swap! arg-types conj (if-let [r (spec-from-call ctx call _expr)]
                             (assoc r
-                             :row (:row call)
-                             :col (:col call))
+                                   :row (:row call)
+                                   :col (:col call))
                             {:tag ::any}))))
 
 (defn emit-warning! [{:keys [:findings] :as ctx} args tags problem]
   (let [via (first (:via problem))
         in-path (:in problem)
         pos (first in-path)
-        offending-arg (nth args pos)
-        offending-tag (nth tags pos)
+        offending-arg (when pos (nth args pos))
+        offending-tag (when pos (nth tags pos))
         via-label (or (get labels via)
                       (when via
                         (name via)))
@@ -327,9 +328,24 @@
 
 ;; (require '[clojure.pprint :refer [pprint]])
 
-(defn lint-arg-types [ctx {called-ns :ns called-name :name} args tags]
-  (when-let [args-spec (:args (get-in specs [called-ns called-name]))]
-    (when-not (s/valid? args-spec tags)
-      (let [d (s/explain-data args-spec tags)]
-        (run! #(emit-warning! ctx args tags %)
-              (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d)))))))
+(defn args-spec-from-arities [arities arity]
+  (when-let [called-arity (or (get arities arity)
+                              (when-let [v (:varargs arity)]
+                                (when (>= arity (:min-arity v))
+                                  v)))]
+    (when-let [ats (:arg-tags called-arity)]
+      (let [ats (replace {nil ::any} ats)]
+        ;; (prn (s/cat-impl [:a :b] ats ats))
+        (s/cat-impl [:a :b] ats ats)))))
+
+(defn lint-arg-types [ctx {called-ns :ns called-name :name arities :arities :as called-fn} args tags]
+  (let [ ;; TODO also pass the call, so we don't need the count
+        arity (count args)]
+    (when-let [args-spec (or (:args (get-in specs [called-ns called-name]))
+                             (args-spec-from-arities arities arity))]
+      ;; (prn "AR" args-spec tags)
+      (when-not (s/valid? args-spec tags)
+        (let [d (s/explain-data args-spec tags)]
+          ;; (prn "D" d)
+          (run! #(emit-warning! ctx args tags %)
+                (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d))))))))

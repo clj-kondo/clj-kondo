@@ -101,17 +101,17 @@
                (if valid?
                  (let [s (symbol (name sym))
                        m (meta expr)
+                       t (or (types/tag-from-meta (:tag m))
+                             (:tag opts))
                        v (assoc m
                                 :name s
                                 :filename (:filename ctx)
-                                :tag (or (when-let [t (:tag m)]
-                                           (types/tag-from-meta t))
-                                         (:tag opts)))]
+                                :tag t)]
                    (when-not skip-reg-binding?
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
                                              v))
-                   {s v})
+                   (with-meta {s v} (when t {:tag t})))
                  (findings/reg-finding!
                   findings
                   (node->line (:filename ctx)
@@ -152,10 +152,16 @@
                       :error
                       :syntax
                       (str "unsupported binding form " expr))))
-       :vector (with-meta (into {} (map #(extract-bindings ctx % opts))
-                                (:children expr))
-                 ;; this is used for checking the return tag of a function body
-                 (meta expr))
+       :vector (let [v (map #(extract-bindings ctx % opts) (:children expr))
+                     tags (map :tag (map meta v))
+                     expr-meta (meta expr)
+                     t (:tag expr-meta)
+                     t (when t (types/tag-from-meta t))]
+                 (with-meta (into {} v)
+                   ;; this is used for checking the return tag of a function body
+                   (assoc expr-meta
+                          :tag t
+                          :tags tags)))
        :namespaced-map (extract-bindings ctx (first (:children expr)) opts)
        :map
        (loop [[k v & rest-kvs] (:children expr)
@@ -229,17 +235,20 @@
 
 (defn analyze-fn-arity [ctx body]
   (let [children (:children body)
-        arg-vec  (first children)
-        arg-list (sexpr arg-vec)
+        arg-vec (first children)
         arg-bindings (extract-bindings ctx arg-vec {:fn-args? true})
-        tag (-> arg-bindings meta :tag)
-        tag (when tag
-              (types/tag-from-meta tag))
+        {return-tag :tag
+         arg-tags :tags} (meta arg-bindings)
+        ;; _ (prn "ARG TAGS" arg-tags)
+        arg-list (sexpr arg-vec)
         arity (analyze-arity arg-list)
         ret {:arg-bindings (dissoc arg-bindings :analyzed)
              :arity arity
              :analyzed-arg-vec (:analyzed arg-bindings)
-             :tag tag}]
+             ;; TODO: rename to arg-tags
+             :tags arg-tags
+             ;; TODO: rename to return-tag
+             :tag return-tag}]
     ret))
 
 (defn ctx-with-bindings [ctx bindings]
@@ -261,7 +270,8 @@
 (defn analyze-fn-body [{:keys [:docstring?] :as ctx} body]
   (let [{:keys [:arg-bindings
                 :arity :analyzed-arg-vec]
-         return-tag :tag} (analyze-fn-arity ctx body)
+         return-tag :tag
+         arg-tags :tags} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
         ctx (assoc ctx
                    :recur-arity arity
@@ -289,7 +299,8 @@
     (assoc arity
            :parsed
            (concat analyzed-first-child analyzed-arg-vec parsed)
-           :tag return-tag)))
+           :tag return-tag
+           :tags arg-tags)))
 
 (defn fn-bodies [ctx children]
   (loop [[expr & rest-exprs :as exprs] children]
@@ -348,12 +359,16 @@
                                         :in-def fn-name)) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
-        arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :tag]}]
-                                       (let [v (assoc-some {} :tag tag :min-arity min-arity)]
-                                         (if varargs?
-                                           [:varargs v]
-                                           [fixed-arity v]))))
-                             parsed-bodies)
+        arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :tag :tags]}]
+                                (let [arg-tags (when (some identity tags)
+                                                 tags)
+                                      v (assoc-some {}
+                                                    :tag tag :min-arity min-arity
+                                                    :arg-tags arg-tags)]
+                                  (if varargs?
+                                    [:varargs v]
+                                    [fixed-arity v]))))
+                      parsed-bodies)
         ;; _ (prn ">" arities)
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))]
     (when fn-name
