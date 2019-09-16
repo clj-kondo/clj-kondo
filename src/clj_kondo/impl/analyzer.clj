@@ -348,13 +348,13 @@
                                         :in-def fn-name)) %)
                            bodies)
         fixed-arities (set (keep :fixed-arity parsed-bodies))
-        fixed-arities2 (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :tag]}]
-                                       (if varargs?
-                                         [:varargs {:tag tag
-                                                    :min-arity min-arity}]
-                                         [fixed-arity {:tag tag}])))
+        arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :tag]}]
+                                       (let [v (assoc-some {} :tag tag :min-arity min-arity)]
+                                         (if varargs?
+                                           [:varargs v]
+                                           [fixed-arity v]))))
                              parsed-bodies)
-        ;; _ (prn ">" fixed-arities2)
+        _ (prn ">" arities)
         var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))]
     (when fn-name
       (namespace/reg-var!
@@ -364,7 +364,7 @@
                    :private private?
                    :deprecated deprecated
                    :fixed-arities (not-empty fixed-arities)
-                   :fixed-arities2 fixed-arities2
+                   :arities arities
                    :var-args-min-arity var-args-min-arity
                    :doc docstring
                    :added (:added var-meta))))
