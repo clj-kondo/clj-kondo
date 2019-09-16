@@ -44,33 +44,41 @@
 (def current-ns-name (str (ns-name *ns*)))
 
 (defmacro reg-type! [k]
-  (let [nilable (keyword current-ns-name (str "nilable-" (name k)))
+  (let [any-k (keyword current-ns-name (str "any-" (name k)))
+        nilable (keyword current-ns-name (str "nilable-" (name k)))
         any-nilable (keyword current-ns-name (str "any-nilable-" (name k)))]
     `(do (derive ~k ~nilable)
          (derive ::nil ~nilable)
          (derive ~any-nilable ~k)
-         (derive ~any-nilable ::nil))))
+         (derive ~any-nilable ::nil)
+         (s/def ~k #(is? % ~k))
+         (s/def ~any-k #(is? % ~any-k))
+         (s/def ~nilable #(is? % ~nilable))
+         (s/def ~any-nilable #(is? % ~any-nilable)))))
 
 (defmacro derive2! [children parent]
   (let [children (if (keyword? children) [children] children)
-        nilable-parent (keyword current-ns-name (str "nilable-" (name parent)))
-        any-parent (keyword current-ns-name (str "any-" (name parent)))
-        any-nilable-parent (keyword current-ns-name (str "any-nilable-" (name parent)))]
+        any-parent (keyword current-ns-name (str "any-" (name parent)))]
     `(do (doseq [c# ~children]
            (derive c# ~parent))
-         (derive ::nil ~nilable-parent)
-         (derive ~parent ~nilable-parent)
          (doseq [c# ~children]
-           (derive ~any-parent c#))
-         (derive ~any-nilable-parent ::nil)
-         (derive ~any-nilable-parent ~any-parent))))
+           (derive ~any-parent c#)))))
+
+(defn is? [x parent]
+  ;; (prn "YO" x parent)
+  (or
+   (identical? x ::any)
+   (isa? x parent)))
 
 (comment
   (derive2! [::vector ::list ::map ::set] ::coll)
   (macroexpand '(derive2! [::vector ::list ::map ::set] ::coll))
   (isa? ::vector ::coll)
   (isa? ::any-seqable-out ::nil )
+  (is? ::any ::ifn)
   )
+
+
 
 (derive2! [::vector ::list ::map ::set] ::coll)
 ;; (derive! ::any-coll [::vector ::list ::map ::set])
@@ -81,6 +89,7 @@
 (derive2! [::string ::char ::regex] ::char-sequence)
 
 (derive ::coll ::conjable)
+;; (derive ::any-conjable ::coll)
 
 (reg-type! ::string)
 
@@ -115,44 +124,54 @@
 ;; (derive! [::nil ::boolean] ::nilable-boolean)
 ;; (derive! ::any-nilable-boolean [::nil ::boolean])
 
-(reg-type! ::byte)
-(reg-type! ::char)
-(reg-type! ::boolean)
-(reg-type! ::double)
+
 ;; (reg-type! ::int)
 
-(defn is? [x parent]
-  ;; (when (map? x) (prn "YO" x))
-  (or
-   (identical? x ::any)
-   (isa? x parent)))
+
 
 (comment
   (is? ::nil ::nilable-set)
   (is? ::nil ::nilable-int)
   (is? ::int ::nilable-int)
+  (is? ::transducer ::ifn)
+  (s/valid? (s/cat :f ::ifn) [::transducer])
   )
 
 (s/def ::nil #(is? % ::nil))
 (s/def ::boolean #(is? % ::boolean))
-(s/def ::seqable #(is? % ::seqable))
-(s/def ::associative #(is? % ::associative))
-(s/def ::number #(is? % ::number))
-(s/def ::nat-int #(is? % ::nat-int))
-(s/def ::int #(is? % ::int))
+(s/def ::seqable #(is? % ::seqable)) ;; since nil is part of seqable, we have to define it manually
+;; (reg-type! ::seqable)
+;; (s/def ::associative #(is? % ::associative))
+(reg-type! ::associative)
+;; (s/def ::number #(is? % ::number))
+(reg-type! ::number)
+;; (s/def ::nat-int #(is? % ::nat-int))
+(reg-type! ::int)
+(reg-type! ::nat-int)
+;; (s/def ::int #(is? % ::int))
 (s/def ::atom #(is? % ::atom))
-(s/def ::ifn #(is? % ::ifn))
+;; (s/def ::ifn #(is? % ::ifn))
+(reg-type! ::ifn)
 (s/def ::transducer #(is? % ::transducer))
-(s/def ::char-sequence #(is? % ::char-sequence))
-(s/def ::string #(is? % ::string))
-(s/def ::char #(is? % ::char))
-(s/def ::conjable #(is? % ::conjable))
-(s/def ::set #(is? % ::set))
-(s/def ::nilable-set #(is? % ::nilable-set))
-(s/def ::nilable-int #(is? % ::nilable-int))
+;; (s/def ::char-sequence #(is? % ::char-sequence))
+(reg-type! ::char-sequence)
+;; (s/def ::string #(is? % ::string))
+(reg-type! ::string)
+;; (s/def ::char #(is? % ::char))
+(reg-type! ::char)
+;; (s/def ::conjable #(is? % ::conjable))
+(reg-type! ::conjable)
+;; (s/def ::set #(is? % ::set))
+(reg-type! ::set)
+;; (s/def ::nilable-set #(is? % ::nilable-set))
+;; (s/def ::nilable-int #(is? % ::nilable-int))
 ;; (s/def ::reducible-coll #(is? % ::reducible-coll))
 ;; (s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
 (s/def ::any any?)
+
+(reg-type! ::byte)
+(reg-type! ::boolean)
+(reg-type! ::double)
 
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
@@ -422,3 +441,12 @@
           ;; (prn "D" d)
           (run! #(emit-warning! ctx args tags %)
                 (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d))))))))
+
+;;;; Scratch
+
+(comment
+  (s/valid? (s/cat :f ::ifn) [::ifn])
+  (s/valid? (s/cat :f ::ifn) [::transducer]) ;; should be true, but isn't!
+  (s/valid? (s/cat :f ::ifn) [::any]) ;; should be true, bit isn't!
+  (isa? ::transducer ::ifn) ;; true
+  )
