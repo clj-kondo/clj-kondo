@@ -430,8 +430,8 @@
                                                     (= value-id (:id maybe-call)))
                                            maybe-call)]
                           (cond maybe-call (types/spec-from-call ctx maybe-call value)
-                                value (types/expr->tag ctx* value))))
-                  new-bindings (when binding (extract-bindings ctx* binding {:tag tag}))
+                                value {:tag (types/expr->tag ctx* value)})))
+                  new-bindings (when binding (extract-bindings ctx* binding tag))
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
                   next-arities (if-let [arity (:arity (meta analyzed-value))]

@@ -276,26 +276,24 @@
         ;; (prn call-ns call-name)
         (if-let [spec (get-in specs [call-ns call-name])]
           (if-let [fn-spec (:fn spec)]
-            (fn-spec @arg-types)
-            (:ret spec))
-          call #_{:arity (count @arg-types)
-           :ns call-ns
-           :name call-name
-           :base-lang (:base-lang ctx)
-           :lang (:lang ctx)})))))
+            {:tag (fn-spec @arg-types)}
+            {:tag (:ret spec)})
+          {:call call})))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]
-    (swap! arg-types conj {:tag (or (spec-from-call ctx call _expr) ::any)
-                           :row (:row call)
-                           :col (:col call)})))
+    (swap! arg-types conj (if-let [r (spec-from-call ctx call _expr)]
+                            (assoc r
+                             :row (:row call)
+                             :col (:col call))
+                            {:tag ::any}))))
 
-(defn emit-warning! [{:keys [:findings] :as ctx} args problem]
-  ;; (prn args problem)
+(defn emit-warning! [{:keys [:findings] :as ctx} args tags problem]
   (let [via (first (:via problem))
         in-path (:in problem)
-        offending-arg (get-in args in-path)
-        offending-tag (:tag offending-arg)
+        pos (first in-path)
+        offending-arg (nth args pos)
+        offending-tag (nth tags pos)
         via-label (or (get labels via)
                       (when via
                         (name via)))
@@ -311,7 +309,7 @@
                                            :row (:row (last args))
                                            :col (:col (last args))
                                            :type :type-mismatch
-                                           :message "More arguments expected."} )
+                                           :message "More arguments expected."})
           extra?
           (findings/reg-finding! findings {:filename (:filename ctx)
                                            :row (:row (last args))
@@ -324,20 +322,14 @@
                                            :col (:col offending-arg)
                                            :type :type-mismatch
                                            :message (str "Expected: " via-label
-                                                         ", received: " offending-tag-label ".")}))))
+                                                         ", received: " offending-tag-label ".")})
+          #_#_:else (prn problem))))
 
 ;; (require '[clojure.pprint :refer [pprint]])
 
-(defn lint-arg-types [ctx {called-ns :ns called-name :name} args]
-  ;; (prn "ARG" args (meta args) called-ns called-name)
-  (let [tags (not-empty (map :tag args))]
-    (when tags
-      (when-let [args-spec (:args (get-in specs [called-ns called-name]))]
-        ;; (prn "SPEC" args-spec called-ns called-name)
-        ;; (prn (s/valid? args-spec tags))
-        ;; (pprint (s/conform args-spec tags))
-        (when-not (s/valid? args-spec tags)
-          (let [d (s/explain-data args-spec tags)]
-            ;; (prn (count (:clj-kondo.impl.clojure.spec.alpha/problems d)))
-            (run! #(emit-warning! ctx args %)
-                  (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d)))))))))
+(defn lint-arg-types [ctx {called-ns :ns called-name :name} args tags]
+  (when-let [args-spec (:args (get-in specs [called-ns called-name]))]
+    (when-not (s/valid? args-spec tags)
+      (let [d (s/explain-data args-spec tags)]
+        (run! #(emit-warning! ctx args tags %)
+              (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d)))))))

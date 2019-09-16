@@ -152,15 +152,26 @@
       called-fn)))
 
 (defn resolve-arg-type [idacs arg-type]
-  (if (keyword? arg-type)
-    arg-type
-    arg-type))
+  (or (if-let [t (:tag arg-type)]
+        t
+        (if-let [call (:call arg-type)]
+          (let [arity (:arity call)]
+            (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
+              (let [arities (:arities called-fn)
+                    tag (or (when-let [v (get arities arity)]
+                                (:tag v))
+                              (when-let [v (get arities :varargs)]
+                                (when (>= arity (:min-arity v))
+                                  (:tag v))))]
+                tag)))
+          nil))
+      :clj-kondo.impl.types/any))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
-          arg-types (mapv #(resolve-arg-type idacs %) arg-types)]
-      (types/lint-arg-types ctx called-fn arg-types))))
+          tags (map #(resolve-arg-type idacs %) arg-types)]
+      (types/lint-arg-types ctx called-fn arg-types tags))))
 
 (defn show-arities [fixed-arities var-args-min-arity]
   (let [fas (vec (sort fixed-arities))
@@ -312,9 +323,7 @@
                                          :filename filename)
                                   call called-fn)
                                  (when-not arity-error?
-                                   (let [resolver (fn [call fn-ns fn-name]
-                                                    (resolve-call* idacs call fn-ns fn-name))]
-                                     (lint-arg-types! ctx resolver call called-fn))))]
+                                   (lint-arg-types! ctx idacs call called-fn)))]
                        e errors
                        :when e]
                    e)]
