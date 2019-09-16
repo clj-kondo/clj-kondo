@@ -29,7 +29,10 @@
    ::seqable-or-transducer "seqable or transducer"
    ::set "set"
    ::nilable-set "set or nil"
-   ::char-sequence "char sequence"})
+   ::nilable-int "integer or nil"
+   ::char-sequence "char sequence"
+   ::nilable-string "string or nil"
+   ::any-nilable-string "string or nil"})
 
 (defmacro derive! [children parents]
   (let [children (if (keyword? children) [children] children)
@@ -38,43 +41,92 @@
              p# ~parents]
        (derive c# p#))))
 
-(derive! [::vector ::list ::map ::set] ::coll)
-(derive! ::any-nilable-set [::nil ::set])
-(derive! ::any-coll [::vector ::list ::map ::set])
+(def current-ns-name (str (ns-name *ns*)))
 
-(derive! [::string ::char ::regex] ::char-sequence)
+(defmacro reg-type! [k]
+  (let [nilable (keyword current-ns-name (str "nilable-" (name k)))
+        any-nilable (keyword current-ns-name (str "any-nilable-" (name k)))]
+    `(do (derive ~k ~nilable)
+         (derive ::nil ~nilable)
+         (derive ~any-nilable ~k)
+         (derive ~any-nilable ::nil))))
+
+(defmacro derive2! [children parent]
+  (let [children (if (keyword? children) [children] children)
+        nilable-parent (keyword current-ns-name (str "nilable-" (name parent)))
+        any-parent (keyword current-ns-name (str "any-" (name parent)))
+        any-nilable-parent (keyword current-ns-name (str "any-nilable-" (name parent)))]
+    `(do (doseq [c# ~children]
+           (derive c# ~parent))
+         (derive ::nil ~nilable-parent)
+         (derive ~parent ~nilable-parent)
+         (doseq [c# ~children]
+           (derive ~any-parent c#))
+         (derive ~any-nilable-parent ::nil)
+         (derive ~any-nilable-parent ~any-parent))))
+
+(comment
+  (derive2! [::vector ::list ::map ::set] ::coll)
+  (macroexpand '(derive2! [::vector ::list ::map ::set] ::coll))
+  (isa? ::vector ::coll)
+  (isa? ::any-seqable-out ::nil )
+  )
+
+(derive2! [::vector ::list ::map ::set] ::coll)
+;; (derive! ::any-coll [::vector ::list ::map ::set])
+
+(reg-type! ::set)
+;; (derive! ::any-nilable-set [::nil ::set])
+
+(derive2! [::string ::char ::regex] ::char-sequence)
 
 (derive ::coll ::conjable)
 
-(derive! [::nil ::string ::coll] ::seqable)
-(derive! ::any-seqable [::any-coll ::string ::nil])
+(derive2! [::nil ::string ::coll] ::seqable)
+;; (derive! ::any-seqable [::any-coll ::string ::nil])
 
-(derive! [::list ::lazy-seq] ::seq)
-(derive! ::any-seq [::list ::lazy-seq])
+(derive2! [::list ::lazy-seq] ::seq)
+;; (derive! ::any-seq [::list ::lazy-seq])
 
-;; it seems very unlikely that a sequence function produces a vector, set or
-;; map. in any case, you should probably not rely on it.
-(derive! ::any-seqable-out [::list ::vector ::lazy-seq ::nil])
+;; It seems very unlikely that a sequence function produces a vector, set or
+;; map. in any case, you should probably not rely on it. You should also not
+;; rely on it giving nil or an empty seq, so nil is left out on purpose.
+(derive! ::any-seqable-out [::list ::vector ::lazy-seq])
 
-(derive! [::vector ::map] ::associative)
-(derive! ::any-associative [::vector ::map])
-(derive! ::any-seqable ::any-associative)
+(derive2! [::vector ::map] ::associative)
+;; (derive! ::any-associative [::vector ::map])
+(derive ::any-seqable ::any-associative)
 
-(derive! [::vector ::keyword ::symbol ::map ::set ::transducer ::fn] ::ifn)
-(derive! ::any-ifn [::vector ::keyword ::symbol ::map ::set ::transducer ::fn])
+(derive2! [::vector ::keyword ::symbol ::map ::set ::transducer ::fn] ::ifn)
+;; (derive! ::any-ifn [::vector ::keyword ::symbol ::map ::set ::transducer ::fn])
 
-(derive! [::double ::int ::pos-int ::neg-int ::nat-int] ::number)
-(derive! ::any-number [::double ::int ::pos-int ::neg-int ::nat-int])
+(reg-type! ::int)
+;; (derive! [::nil ::int] ::nilable-int)
+(derive2! [::double ::int ::pos-int ::neg-int ::nat-int] ::number)
+;; (derive! ::any-number [::double ::int ::pos-int ::neg-int ::nat-int])
 
-(derive! [::pos-int ::nat-int ::neg-int] ::int)
+(derive2! [::pos-int ::nat-int ::neg-int] ::int)
 (derive ::pos-int ::nat-int)
-(derive! ::any-int [::pos-int ::neg-int])
+;; (derive! ::any-int [::pos-int ::neg-int])
+
+(reg-type! ::boolean)
+;; (derive! [::nil ::boolean] ::nilable-boolean)
+;; (derive! ::any-nilable-boolean [::nil ::boolean])
+
+(reg-type! ::byte)
+(reg-type! ::char)
 
 (defn is? [x parent]
   ;; (when (map? x) (prn "YO" x))
   (or
    (identical? x ::any)
    (isa? x parent)))
+
+(comment
+  (is? ::nil ::nilable-set)
+  (is? ::nil ::nilable-int)
+  (is? ::int ::nilable-int)
+  )
 
 (s/def ::nil #(is? % ::nil))
 (s/def ::boolean #(is? % ::boolean))
@@ -91,24 +143,32 @@
 (s/def ::char #(is? % ::char))
 (s/def ::conjable #(is? % ::conjable))
 (s/def ::set #(is? % ::set))
-(s/def ::nilable-set (s/nilable #(is? % ::set)))
+(s/def ::nilable-set #(is? % ::nilable-set))
+(s/def ::nilable-int #(is? % ::nilable-int))
 ;; (s/def ::reducible-coll #(is? % ::reducible-coll))
 ;; (s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
 (s/def ::any any?)
 
-(defn tag-from-meta [meta-tag]
-  (case meta-tag
-    void ::nil
-    (boolean Boolean java.lang.Boolean) ::boolean
-    (byte Byte java.lang.Byte) ::byte
-    (Number java.lang.Number) ::number
-    (int long Long java.lang.Long) ::int
-    (double Float Double java.lang.Float java.lang.Double) ::double
-    (CharSequence java.lang.CharSequence) ::char-sequence
-    (String java.lang.String) ::string
-    (char Character java.lang.Character) ::char
-    (Seqable clojure.lang.Seqable) ::seqable
-    (do #_(prn "did not catch tag:" meta-tag) nil nil)))
+(defn tag-from-meta
+  ([meta-tag] (tag-from-meta meta-tag false))
+  ([meta-tag out?]
+   (case meta-tag
+     void ::nil
+     (boolean) ::boolean
+     (Boolean java.lang.Boolean) (if out? ::any-nilable-boolean ::nilable-boolean)
+     (byte) ::byte
+     (Byte java.lang.Byte) (if out? ::any-nilable-byte ::byte)
+     (Number java.lang.Number) (if out? ::any-nilable-number ::number)
+     (int long) ::int
+     (Long java.lang.Long) (if out? ::any-nilable-int ::nilable-int)
+     (float double) ::double
+     (Float Double java.lang.Float java.lang.Double) (if out? ::any-nilable-double ::nilable-double)
+     (CharSequence java.lang.CharSequence) (if out? ::any-nilable-char-sequence ::nilable-char-sequence)
+     (String java.lang.String) (if out? ::any-nilable-string ::nilable-string)
+     (char) ::char
+     (Character java.lang.Character) (if out? ::any-nilable-char ::nilable-char)
+     (Seqable clojure.lang.Seqable) (if out? ::any-seqable ::seqable)
+     (do #_(prn "did not catch tag:" meta-tag) nil nil))))
 
 (def clojure-core
   {;; 22

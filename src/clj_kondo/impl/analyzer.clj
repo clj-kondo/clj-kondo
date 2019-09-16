@@ -156,7 +156,9 @@
                      tags (map :tag (map meta v))
                      expr-meta (meta expr)
                      t (:tag expr-meta)
-                     t (when t (types/tag-from-meta t))]
+                     t (when t (types/tag-from-meta t true ;; true means it's a
+                                                           ;; return type
+                                                    ))]
                  (with-meta (into {} v)
                    ;; this is used for checking the return tag of a function body
                    (assoc expr-meta

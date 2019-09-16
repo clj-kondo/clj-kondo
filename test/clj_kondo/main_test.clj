@@ -2477,7 +2477,7 @@
         :row 1,
         :col 22,
         :level :error,
-        :message "Expected: number, received: string."})
+        :message "Expected: number, received: string or nil."})
      (lint! "(fn [^String x] (inc x))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
@@ -2493,7 +2493,7 @@
         :row 1,
         :col 73,
         :level :error,
-        :message "Expected: number, received: string."})
+        :message "Expected: number, received: string or nil."})
      (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
@@ -2501,7 +2501,7 @@
         :row 1,
         :col 73,
         :level :error,
-        :message "Expected: number, received: string."})
+        :message "Expected: number, received: string or nil."})
      (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo))"
             {:linters {:type-mismatch {:level :error}}})))
   (is (empty?
@@ -2530,6 +2530,10 @@
                       (let [xs ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
                      {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(doto (atom []) (swap! identity))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(defn foo [^Long x] (foo nil))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(defn foo ^Long [] 1) (defn bar [^long x]) (bar (foo))"
                      {:linters {:type-mismatch {:level :error}}}))))
 
 
