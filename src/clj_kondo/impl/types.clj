@@ -336,14 +336,13 @@
     (when-let [ats (:arg-tags called-arity)]
       (let [ats (replace {nil ::any} ats)]
         ;; (prn (s/cat-impl [:a :b] ats ats))
-        (s/cat-impl [:a :b] ats ats)))))
+        (s/cat-impl (repeatedly #(keyword (gensym))) ats ats)))))
 
 (defn lint-arg-types [ctx {called-ns :ns called-name :name arities :arities :as called-fn} args tags]
   (let [ ;; TODO also pass the call, so we don't need the count
         arity (count args)]
     (when-let [args-spec (or (:args (get-in specs [called-ns called-name]))
                              (args-spec-from-arities arities arity))]
-      ;; (prn "AR" args-spec tags)
       (when-not (s/valid? args-spec tags)
         (let [d (s/explain-data args-spec tags)]
           ;; (prn "D" d)
