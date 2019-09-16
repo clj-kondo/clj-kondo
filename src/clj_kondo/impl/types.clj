@@ -321,7 +321,7 @@
 
 ;; (require '[clojure.pprint :refer [pprint]])
 
-(defn lint-arg-types [ctx called-ns called-name args]
+(defn lint-arg-types [ctx {called-ns :ns called-name :name} args]
   ;; (prn "ARG" args (meta args) called-ns called-name)
   (let [tags (not-empty (map :tag args))]
     (when tags

@@ -43,7 +43,9 @@
                             #(-> %
                                  (assoc-in [name :ns] ns)
                                  (assoc-in [name :name] name)
-                                 (update-in [name :fixed-arities] sconj (:arity entry))))))
+                                 (update-in [name :fixed-arities] sconj (:arity entry))
+                                 ;; TODO: add return type
+                                 (assoc-in [name :arities (:arity entry)] {})))))
                 {}
                 (apply concat (vals @extracted)))]
     (println "Writing cache files to" out)

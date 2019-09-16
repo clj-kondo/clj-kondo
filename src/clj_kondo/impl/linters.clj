@@ -103,7 +103,7 @@
 (defn lint-arg-types! [ctx call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types]
-      (types/lint-arg-types ctx (:ns called-fn) (:name called-fn) arg-types))))
+      (types/lint-arg-types ctx called-fn arg-types))))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
