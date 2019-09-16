@@ -82,6 +82,8 @@
 
 (derive ::coll ::conjable)
 
+(reg-type! ::string)
+
 (derive2! [::nil ::string ::coll] ::seqable)
 ;; (derive! ::any-seqable [::any-coll ::string ::nil])
 
@@ -115,6 +117,9 @@
 
 (reg-type! ::byte)
 (reg-type! ::char)
+(reg-type! ::boolean)
+(reg-type! ::double)
+;; (reg-type! ::int)
 
 (defn is? [x parent]
   ;; (when (map? x) (prn "YO" x))
@@ -158,17 +163,26 @@
      (Boolean java.lang.Boolean) (if out? ::any-nilable-boolean ::nilable-boolean)
      (byte) ::byte
      (Byte java.lang.Byte) (if out? ::any-nilable-byte ::byte)
-     (Number java.lang.Number) (if out? ::any-nilable-number ::number)
+     (Number java.lang.Number) ::any-nilable-number ;; as this is now way to
+                                                    ;; express non-nilable,
+                                                    ;; we'll go for the most
+                                                    ;; relaxed type
      (int long) ::int
      (Long java.lang.Long) (if out? ::any-nilable-int ::nilable-int)
      (float double) ::double
      (Float Double java.lang.Float java.lang.Double) (if out? ::any-nilable-double ::nilable-double)
      (CharSequence java.lang.CharSequence) (if out? ::any-nilable-char-sequence ::nilable-char-sequence)
-     (String java.lang.String) (if out? ::any-nilable-string ::nilable-string)
+     (String java.lang.String) ::any-nilable-string ;; as this is now way to
+                                                    ;; express non-nilable,
+                                                    ;; we'll go for the most
+                                                    ;; relaxed type
      (char) ::char
      (Character java.lang.Character) (if out? ::any-nilable-char ::nilable-char)
      (Seqable clojure.lang.Seqable) (if out? ::any-seqable ::seqable)
      (do #_(prn "did not catch tag:" meta-tag) nil nil))))
+
+(comment
+  (isa? ::any-nilable-string ::string))
 
 (def clojure-core
   {;; 22

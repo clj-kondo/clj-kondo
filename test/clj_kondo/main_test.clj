@@ -2534,9 +2534,10 @@
   (is (empty? (lint! "(defn foo [^Long x] (foo nil))"
                      {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(defn foo ^Long [x] x) (defn bar [^long x]) (bar (foo 1)) (bar (foo nil))"
-                     {:linters {:type-mismatch {:level :error}}}))))
-
-
+                     {:linters {:type-mismatch {:level :error}}})))
+  (testing "no warning, despite string able to be nil"
+    (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
+                       {:linters {:type-mismatch {:level :error}}})))))
 
 ;;;; Scratch
 
