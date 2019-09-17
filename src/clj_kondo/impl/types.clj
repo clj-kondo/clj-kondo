@@ -29,259 +29,187 @@
    ::char-sequence "char sequence"
    ::nilable-string "string or nil"})
 
-(defmacro derive! [children parents]
-  (let [children (if (keyword? children) [children] children)
-        parents (if (keyword? parents) [parents] parents)]
-    `(doseq [c# ~children
-             p# ~parents]
-       (derive c# p#))))
-
 (def current-ns-name (str (ns-name *ns*)))
 
-(defmacro reg-type! [k]
-  (let [;; any-k (keyword current-ns-name (str "any-" (name k)))
-        nilable (keyword current-ns-name (str "nilable-" (name k)))
-        ;; any-nilable (keyword current-ns-name (str "any-nilable-" (name k)))
-        ]
+(defmacro reg-spec!
+  "Defines spec for type k and type nilable-k."
+  [k]
+  (let [nilable (keyword current-ns-name (str "nilable-" (name k)))]
     `(do (derive ~k ~nilable)
          (derive ::nil ~nilable)
-         ;; (prn "derive" ~any-nilable ~k)
-         ;; (derive ~any-k ~k)
-         ;; (derive ~any-nilable ~any-k)
-         ;; (derive ~any-nilable ::nil)
          (s/def ~k #(is? % ~k))
-         ;; (s/def ~any-k #(is? % ~any-k))
-         (s/def ~nilable #(is? % ~nilable))
-         ;; (s/def ~any-nilable #(is? % ~any-nilable)
-         )))
+         (s/def ~nilable #(is? % ~nilable)))))
 
-(defmacro derive2! [children parent]
-(let [children (if (keyword? children) [children] children)
-      #_#_any-parent (keyword current-ns-name (str "any-" (name parent)))]
-  `(do (doseq [c# ~children]
-         (derive c# ~parent))
-       #_(doseq [c# ~children]
-           ;; (prn "derive" ~any-parent c#)
-           (derive ~any-parent c#)))))
+(defmacro derive! [children parent]
+  (let [children (if (keyword? children) [children] children)
+        #_#_any-parent (keyword current-ns-name (str "any-" (name parent)))]
+    `(do (doseq [c# ~children]
+           (derive c# ~parent))
+         #_(doseq [c# ~children]
+             ;; (prn "derive" ~any-parent c#)
+             (derive ~any-parent c#)))))
 
 (defn is? [x parent]
-;; (prn x parent (isa? x parent) (isa? parent x))
-(or
- (identical? x ::any)
- (isa? x parent)
- (isa? parent x) ;; parent COULD be an a x, but we can't prove it just by
- ;; looking at the code!
- ))
+  ;; (prn x parent (isa? x parent) (isa? parent x))
+  (or
+   (identical? x ::any)
+   (isa? x parent)
+   (isa? parent x) ;; parent COULD be an a x, but we can't prove it just by
+                   ;; looking at the code!
+   ;; (prn "no match for" x parent)
+   ))
 
-(comment
-
-)
-
-(derive2! [::vector ::list ::map ::set] ::coll)
-;; (derive! ::any-coll [::vector ::list ::map ::set])
-
-(reg-type! ::set)
-;; (derive! ::any-nilable-set [::nil ::set])
-
-(derive2! [::string ::char ::regex] ::char-sequence)
-
-(derive ::coll ::conjable)
-;; (derive ::any-conjable ::coll)
-
-(reg-type! ::string)
-
-(derive2! [::nil ::string ::coll] ::seqable)
-;; (derive! ::any-seqable [::any-coll ::string ::nil])
-
-(derive2! [::list ::lazy-seq] ::seq)
-;; (derive! ::any-seq [::list ::lazy-seq])
-
+(reg-spec! ::coll)
+(derive! [::vector ::list ::map ::set ::lazy-seq] ::coll)
+(reg-spec! ::set)
+(derive! [::string ::char ::regex] ::char-sequence)
+(reg-spec! ::string)
+(derive! [::nil ::string ::coll] ::seqable)
+(derive! [::list ::lazy-seq] ::seq)
 ;; It seems very unlikely that a sequence function produces a vector, set or
 ;; map. in any case, you should probably not rely on it. You should also not
 ;; rely on it giving nil or an empty seq, so nil is left out on purpose.
-(derive! ::seqable-out [::list ::vector ::lazy-seq])
-
-(derive2! [::vector ::map] ::associative)
-;; (derive! ::any-associative [::vector ::map])
-;; (derive ::any-seqable ::any-associative)
-
-(derive2! [::vector ::keyword ::symbol ::map ::set ::transducer ::fn] ::ifn)
-;; (derive! ::any-ifn [::vector ::keyword ::symbol ::map ::set ::transducer ::fn])
-
-(reg-type! ::int)
-;; (derive! [::nil ::int] ::nilable-int)
-(derive2! [::double ::int ::pos-int ::neg-int ::nat-int] ::number)
-;; (derive! ::any-number [::double ::int ::pos-int ::neg-int ::nat-int])
-
-(derive2! [::pos-int ::nat-int ::neg-int] ::int)
+(derive! [::list ::vector ::lazy-seq] ::seqable-out)
+(derive! [::seqable-out] ::seqable) ;; a seqable-out is a seqable
+(derive! [::seqable-out] ::coll) ;; a seqable-out is a valid coll
+(derive! [::vector ::map] ::associative)
+(derive! [::vector ::keyword ::symbol ::map ::set ::transducer ::fn] ::ifn)
+(reg-spec! ::int)
+(derive! [::double ::int ::pos-int ::neg-int ::nat-int] ::number)
+(derive! [::pos-int ::nat-int ::neg-int] ::int)
 (derive ::pos-int ::nat-int)
-;; (derive! ::any-int [::pos-int ::neg-int])
-
-(reg-type! ::boolean)
-;; (derive! [::nil ::boolean] ::nilable-boolean)
-;; (derive! ::any-nilable-boolean [::nil ::boolean])
-
-
-;; (reg-type! ::int)
-
-(comment
-(is? ::nil ::nilable-set)
-(is? ::nil ::nilable-int)
-(is? ::int ::nilable-int)
-(is? ::transducer ::ifn)
-(s/valid? (s/cat :f ::ifn) [::transducer])
-)
-
+(reg-spec! ::boolean)
 (s/def ::nil #(is? % ::nil))
 (s/def ::boolean #(is? % ::boolean))
 (s/def ::seqable #(is? % ::seqable)) ;; since nil is part of seqable, we have to define it manually
-;; (reg-type! ::seqable)
-;; (s/def ::associative #(is? % ::associative))
-(reg-type! ::associative)
-;; (s/def ::number #(is? % ::number))
-(reg-type! ::number)
-;; (s/def ::nat-int #(is? % ::nat-int))
-(reg-type! ::int)
-(reg-type! ::nat-int)
-;; (s/def ::int #(is? % ::int))
+(reg-spec! ::associative)
+(reg-spec! ::number)
+(reg-spec! ::int)
+(reg-spec! ::nat-int)
 (s/def ::atom #(is? % ::atom))
-;; (s/def ::ifn #(is? % ::ifn))
-(reg-type! ::ifn)
+(reg-spec! ::ifn)
 (s/def ::transducer #(is? % ::transducer))
-;; (s/def ::char-sequence #(is? % ::char-sequence))
-(reg-type! ::char-sequence)
-;; (s/def ::string #(is? % ::string))
-(reg-type! ::string)
-;; (s/def ::char #(is? % ::char))
-(reg-type! ::char)
-;; (s/def ::conjable #(is? % ::conjable))
-(reg-type! ::conjable)
-;; (s/def ::set #(is? % ::set))
-(reg-type! ::set)
-;; (s/def ::nilable-set #(is? % ::nilable-set))
-;; (s/def ::nilable-int #(is? % ::nilable-int))
-;; (s/def ::reducible-coll #(is? % ::reducible-coll))
-;; (s/def ::seqable-or-transducer #(is? % ::seqable-or-transducer))
+(reg-spec! ::char-sequence)
+(reg-spec! ::string)
+(reg-spec! ::char)
+(reg-spec! ::conjable)
+(reg-spec! ::set)
 (s/def ::any any?)
-
-(reg-type! ::byte)
-(reg-type! ::boolean)
-(reg-type! ::double)
-
-;; (s/def ::any-nilable-string* ::any-nilable-string)
-;; (s/def ::any-nilable-int* ::any-nilable-int)
+(reg-spec! ::byte)
+(reg-spec! ::boolean)
+(reg-spec! ::double)
 
 (defn tag-from-meta
-([meta-tag] (tag-from-meta meta-tag false))
-([meta-tag out?]
- (case meta-tag
-   void ::nil
-   (boolean) ::boolean
-   (Boolean java.lang.Boolean) ::nilable-boolean
-   (byte Byte java.lang.Byte) ::nilable-byte
-   (Number java.lang.Number) ::nilable-number ;; as this is now way to
-   ;; express non-nilable,
-   ;; we'll go for the most
-   ;; relaxed type
-   (int long Long java.lang.Long) ::nilable-int #_(if out? ::any-nilable-int ::any-nilable-int) ;; or ::any-nilable-int? , see 2451 main-test
-   (float double Float Double java.lang.Float java.lang.Double) ::nilable-double
-   (CharSequence java.lang.CharSequence) ::nilable-char-sequence
-   (String java.lang.String) ::nilable-string ;; as this is now way to
-   ;; express non-nilable,
-   ;; we'll go for the most
-   ;; relaxed type
-   (char Character java.lang.Character) ::nilable-char
-   (Seqable clojure.lang.Seqable) (if out? ::seqable-out ::seqable)
-   (do #_(prn "did not catch tag:" meta-tag) nil nil))))
+  ([meta-tag] (tag-from-meta meta-tag false))
+  ([meta-tag out?]
+   (case meta-tag
+     void ::nil
+     (boolean) ::boolean
+     (Boolean java.lang.Boolean) ::nilable-boolean
+     (byte Byte java.lang.Byte) ::nilable-byte
+     (Number java.lang.Number) ::nilable-number ;; as this is now way to
+     ;; express non-nilable,
+     ;; we'll go for the most
+     ;; relaxed type
+     (int long Long java.lang.Long) ::nilable-int #_(if out? ::any-nilable-int ::any-nilable-int) ;; or ::any-nilable-int? , see 2451 main-test
+     (float double Float Double java.lang.Float java.lang.Double) ::nilable-double
+     (CharSequence java.lang.CharSequence) ::nilable-char-sequence
+     (String java.lang.String) ::nilable-string ;; as this is now way to
+     ;; express non-nilable,
+     ;; we'll go for the most
+     ;; relaxed type
+     (char Character java.lang.Character) ::nilable-char
+     (Seqable clojure.lang.Seqable) (if out? ::seqable-out ::seqable)
+     (do #_(prn "did not catch tag:" meta-tag) nil nil))))
 
 (def clojure-core
-{;; 22
- 'cons {:args (s/cat :x ::any :seq ::seqable)}
- ;; 181
- 'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
-                      :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
- ;; 544
- 'str {:ret ::string}
- ;; 922
- 'inc {:args (s/cat :x ::number)
-       :ret ::number}
- ;; 947
- 'reverse {:args (s/cat :x ::seqable)
-           :ret ::seqable-out}
- ;; 2327
- 'atom {:ret ::atom}
- ;; 2345
- 'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
- ;; 2576
- 'juxt {:args (s/+ ::ifn)
-        :ret ::ifn}
- ;; 2727
- 'map {:args (s/alt :transducer (s/cat :f ::ifn)
-                    :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
-       ;; :ret ::seqable-or-transducer
-       :fn (fn [args]
-             (if (= 1 (count args))
-               ::transducer
-               ::seqable-out))}
- ;; 2793
- 'filter {:args (s/alt :transducer (s/cat :f ::ifn)
+  {;; 22
+   'cons {:args (s/cat :x ::any :seq ::seqable)}
+   ;; 181
+   'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
+                        :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
+   ;; 544
+   'str {:ret ::string}
+   ;; 922
+   'inc {:args (s/cat :x ::number)
+         :ret ::number}
+   ;; 947
+   'reverse {:args (s/cat :x ::seqable)
+             :ret ::seqable-out}
+   ;; 2327
+   'atom {:ret ::atom}
+   ;; 2345
+   'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
+   ;; 2576
+   'juxt {:args (s/+ ::ifn)
+          :ret ::ifn}
+   ;; 2727
+   'map {:args (s/alt :transducer (s/cat :f ::ifn)
+                      :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
+         ;; :ret ::seqable-or-transducer
+         :fn (fn [args]
+               (if (= 1 (count args))
+                 ::transducer
+                 ::seqable-out))}
+   ;; 2793
+   'filter {:args (s/alt :transducer (s/cat :f ::ifn)
+                         :seqable (s/cat :f ::ifn :coll ::seqable))
+            ;; :ret ::seqable-or-transducer
+            :fn (fn [args]
+                  (if (= 1 (count args))
+                    ::transducer
+                    ::seqable-out))}
+   ;; 2826
+   'remove {:args (s/alt :transducer (s/cat :f ::ifn)
+                         :seqable (s/cat :f ::ifn :coll ::seqable))
+            ;; :ret ::seqable-or-transducer
+            :fn (fn [args]
+                  (if (= 1 (count args))
+                    ::transducer
+                    ::seqable-out))}
+   ;; 4105
+   'set {:ret ::set}
+   ;; 4981
+   'subs {:args (s/cat :s ::string
+                       :start ::nat-int
+                       :end (s/? ::nat-int))
+          :ret ::string}
+   ;; 6790
+   'reduce {:args (s/cat :f ::ifn :val (s/? ::any) :coll ::seqable)}
+   ;; 6887
+   'into {:args (s/alt :no-arg (s/cat)
+                       :identity (s/cat :to ::coll)
+                       :seqable (s/cat :to ::coll :from ::seqable)
+                       :transducer (s/cat :to ::coll :xf ::transducer :from ::seqable))
+          :fn (fn [args]
+                (let [t (:tag (first args))]
+                  (if (identical? ::any t)
+                    ::coll
+                    t)))}
+   ;; 6903
+   'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
+                       :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
+          ;; :ret ::seqable-or-transducer
+          :fn (fn [args]
+                (if (= 1 (count args))
+                  ::transducer
+                  ::vector))}
+   ;; 7313
+   'filterv {:args (s/alt :transducer (s/cat :f ::ifn)
+                          :seqable (s/cat :f ::ifn :coll ::seqable))
+             ;; :ret ::seqable-or-transducer
+             :fn (fn [args]
+                   (if (= 1 (count args))
+                     ::transducer
+                     ::vector))}
+   ;; 7313
+   'keep {:args (s/alt :transducer (s/cat :f ::ifn)
                        :seqable (s/cat :f ::ifn :coll ::seqable))
           ;; :ret ::seqable-or-transducer
           :fn (fn [args]
                 (if (= 1 (count args))
                   ::transducer
-                  ::seqable-out))}
- ;; 2826
- 'remove {:args (s/alt :transducer (s/cat :f ::ifn)
-                       :seqable (s/cat :f ::ifn :coll ::seqable))
-          ;; :ret ::seqable-or-transducer
-          :fn (fn [args]
-                (if (= 1 (count args))
-                  ::transducer
-                  ::seqable-out))}
- ;; 4105
- 'set {:ret ::set}
- ;; 4981
- 'subs {:args (s/cat :s ::string
-                     :start ::nat-int
-                     :end (s/? ::nat-int))
-        :ret ::string}
- ;; 6790
- 'reduce {:args (s/cat :f ::ifn :val (s/? ::any) :coll ::seqable)}
- ;; 6887
- 'into {:args (s/alt :no-arg (s/cat)
-                     :identity (s/cat :to ::conjable)
-                     :seqable (s/cat :to ::conjable :from ::seqable)
-                     :transducer (s/cat :to ::conjable :xf ::transducer :from ::seqable))
-        :fn (fn [args]
-              (let [t (:tag (first args))]
-                (if (identical? ::any t)
-                  ::coll
-                  t)))}
- ;; 6903
- 'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
-                     :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
-        ;; :ret ::seqable-or-transducer
-        :fn (fn [args]
-              (if (= 1 (count args))
-                ::transducer
-                ::vector))}
- ;; 7313
- 'filterv {:args (s/alt :transducer (s/cat :f ::ifn)
-                        :seqable (s/cat :f ::ifn :coll ::seqable))
-           ;; :ret ::seqable-or-transducer
-           :fn (fn [args]
-                 (if (= 1 (count args))
-                   ::transducer
-                   ::vector))}
- ;; 7313
- 'keep {:args (s/alt :transducer (s/cat :f ::ifn)
-                     :seqable (s/cat :f ::ifn :coll ::seqable))
-        ;; :ret ::seqable-or-transducer
-        :fn (fn [args]
-              (if (= 1 (count args))
-                ::transducer
-                ::seqable-out))}})
+                  ::seqable-out))}})
 
 (def specs
   {'clojure.core clojure-core
@@ -410,10 +338,7 @@
                                                          ", received: " offending-tag-label
                                                          (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
                                                            (format " (%s)" offending-tag))
-                                                         ".")})
-          #_#_:else (prn problem))))
-
-;; (require '[clojure.pprint :refer [pprint]])
+                                                         ".")}))))
 
 (defn args-spec-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity)
