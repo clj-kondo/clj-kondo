@@ -13,11 +13,14 @@
   "Is m1 a subset of m2? Taken from
   https://github.com/clojure/spec-alpha2, clojure.test-clojure.spec"
   [m1 m2]
-  (if (and (map? m1) (map? m2))
+  (cond
+    (and (map? m1) (map? m2))
     (every? (fn [[k v]] (and (contains? m2 k)
                              (submap? v (get m2 k))))
             m1)
-    (= m1 m2)))
+    (instance? java.util.regex.Pattern m1)
+    (re-find m1 m2)
+    :else (= m1 m2)))
 
 (defmacro assert-submap [m r]
   `(is (submap? ~m ~r)))

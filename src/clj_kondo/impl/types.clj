@@ -4,13 +4,16 @@
    [clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer
-    [tag sexpr]]))
+    [tag sexpr]]
+   [clojure.string :as str]))
 
 (def labels
   {::nil "nil"
    ::string "string"
+   ::nilable-string "string or nil"
    ::number "number"
    ::int "integer"
+   ::nilable-int "integer or nil"
    ::pos-int "positive integer"
    ::nat-int "natural integer"
    ::neg-int "negative integer"
@@ -26,44 +29,112 @@
    ::set "set"
    ::char-sequence "char sequence"})
 
+(def is-a-relations
+  {::string #{::char-sequence ::seqable} ;; string is a char-sequence
+   ::regex #{::char-sequence}
+   ::char #{::char-sequence}
+   ::int #{::number} ;; int is a number
+   ::pos-int #{::int ::nat-int}
+   ::nat-int #{::int}
+   ::neg-int #{::int}
+   ::double #{::number}
+   ::vector #{::seqable ::associative ::coll ::ifn}
+   ::map #{::seqable ::associative ::coll ::ifn}
+   ::nil #{::seqable}
+   ::seqable-out #{::seqable}
+   ::coll #{::seqable}
+   ::set #{::seqable ::ifn}
+   ::fn #{::ifn}
+   ::keyword #{::ifn}
+   ::symbol #{::ifn}})
+
+(def could-be-relations
+  {::char-sequence #{::string ::char ::regex}
+   ::int #{::neg-int ::nat-int ::pos-int}
+   ::number #{::int ::double}
+   ::seqable-out #{::coll}
+   ::seqable #{::coll ::string ::nil}})
+
+(def nilables
+  {::nilable-string ::string
+   ::nilable-char-sequence ::char-sequence
+   ::nilable-number ::number
+   ::nilable-int ::int
+   ::nilable-boolean ::boolean})
+
+(defn sub? [k target]
+  (or (identical? k target)
+      (when-let [targets (get is-a-relations k)]
+        (some #(sub? % target) targets))))
+
+(defn super? [k target]
+  (or (identical? k target)
+      (when-let [targets (get could-be-relations k)]
+        (some #(super? % target) targets))))
+
+(defn match? [k target]
+  ;; (prn k '-> target)
+  (cond (identical? k ::any) true
+        (identical? k ::nil) (or (contains? nilables target)
+                                 (identical? ::seqable target))
+        :else
+        (let [nk (get nilables k)
+              nt (get nilables target)]
+          ;; (prn k '-> nk '| target '-> nt)
+          (case [(some? nk) (some? nt)]
+            [true true]
+            (match? nk nt)
+            [true false]
+            (match? nk target)
+            [false true]
+            (match? k nt)
+            (or (sub? k target)
+                (super? k target))))))
+
 (def current-ns-name (str (ns-name *ns*)))
 
 (defmacro reg-spec!
   "Defines spec for type k and type nilable-k."
   [k]
-  `(s/def ~k #(is? % ~k)))
+  (let [nilable-k (keyword current-ns-name (str "nilable-" (name k)))]
+    `(do (s/def ~k #(is? % ~k))
+         (s/def ~nilable-k #(is? % ~nilable-k)))))
 
-(defmacro derive! [children parent]
-  `(doseq [c# ~children]
-     (derive c# ~parent)))
+#_(defmacro derive! [children parent]
+    `(doseq [c# ~children]
+       (derive c# ~parent)))
+
+#_(defn is? [x parent]
+    ;; (prn x parent (isa? x parent) (isa? parent x))
+    (or
+     (identical? x ::any)
+     (identical? x ::nil)
+     (isa? x parent)
+     ;; parent COULD be an a x, but we can't prove it just by looking at the code!
+     (isa? parent x)))
 
 (defn is? [x parent]
   ;; (prn x parent (isa? x parent) (isa? parent x))
-  (or
-   (identical? x ::any)
-   (identical? x ::nil)
-   (isa? x parent)
-   ;; parent COULD be an a x, but we can't prove it just by looking at the code!
-   (isa? parent x)))
+  (match? x parent))
 
 (reg-spec! ::coll)
-(derive! [::vector ::list ::map ::set ::lazy-seq] ::coll)
+;; (derive! [::vector ::list ::map ::set ::lazy-seq] ::coll)
 (reg-spec! ::set)
-(derive! [::string ::char ::regex] ::char-sequence)
+;; (derive! [::string ::char ::regex] ::char-sequence)
 (reg-spec! ::string)
-(derive! [::nil ::string ::coll] ::seqable)
-(derive! [::list ::lazy-seq] ::seq)
+;; (derive! [::nil ::string ::coll] ::seqable)
+;; (derive! [::list ::lazy-seq] ::seq)
 ;; It seems very unlikely that a sequence function produces a vector, set or
 ;; map. in any case, you should probably not rely on it. You should also not
 ;; rely on it giving nil or an empty seq, so nil is left out on purpose.
-(derive! [::list ::vector ::lazy-seq] ::seqable-out)
-(derive! [::seqable-out] ::seqable) ;; a seqable-out is a seqable
-(derive! [::seqable-out] ::coll) ;; a seqable-out is a valid coll
-(derive! [::vector ::map] ::associative)
-(derive! [::vector ::keyword ::symbol ::map ::set ::transducer ::fn] ::ifn)
-(derive! [::double ::int ::pos-int ::neg-int ::nat-int] ::number)
-(derive! [::pos-int ::nat-int ::neg-int] ::int)
-(derive ::pos-int ::nat-int)
+;; (derive! [::list ::vector ::lazy-seq] ::seqable-out)
+;; (derive! [::seqable-out] ::seqable) ;; a seqable-out is a seqable
+;; (derive! [::seqable-out] ::coll) ;; a seqable-out is a valid coll
+;; (derive! [::vector ::map] ::associative)
+;; (derive! [::vector ::keyword ::symbol ::map ::set ::transducer ::fn] ::ifn)
+;; (derive! [::double ::int ::pos-int ::neg-int ::nat-int] ::number)
+;; (derive! [::pos-int ::nat-int ::neg-int] ::int)
+;; (derive ::pos-int ::nat-int)
 (reg-spec! ::boolean)
 (s/def ::nil #(is? % ::nil))
 (s/def ::boolean #(is? % ::boolean))
@@ -91,20 +162,21 @@
    (case meta-tag
      void ::nil
      (boolean) ::boolean
-     (Boolean java.lang.Boolean) ::boolean
-     (byte Byte java.lang.Byte) ::byte
-     (Number java.lang.Number) ::number ;; as this is now way to
+     (Boolean java.lang.Boolean) ::nilable-boolean
+     (byte) ::byte
+     (Byte java.lang.Byte) ::nilable-byte
+     (Number java.lang.Number) ::nilable-number
+     (int long) ::int
+     (Long java.lang.Long) ::nilable-int #_(if out? ::any-nilable-int ::any-nilable-int) ;; or ::any-nilable-int? , see 2451 main-test
+     (float double) ::double
+     (Float Double java.lang.Float java.lang.Double) ::nilable-double
+     (CharSequence java.lang.CharSequence) ::nilable-char-sequence
+     (String java.lang.String) ::nilable-string ;; as this is now way to
      ;; express non-nilable,
      ;; we'll go for the most
      ;; relaxed type
-     (int long Long java.lang.Long) ::int #_(if out? ::any-nilable-int ::any-nilable-int) ;; or ::any-nilable-int? , see 2451 main-test
-     (float double Float Double java.lang.Float java.lang.Double) ::double
-     (CharSequence java.lang.CharSequence) ::char-sequence
-     (String java.lang.String) ::string ;; as this is now way to
-     ;; express non-nilable,
-     ;; we'll go for the most
-     ;; relaxed type
-     (char Character java.lang.Character) ::char
+     (char) ::char
+     (Character java.lang.Character) ::nilable-char
      (Seqable clojure.lang.Seqable) (if out? ::seqable-out ::seqable)
      (do #_(prn "did not catch tag:" meta-tag) nil nil))))
 
