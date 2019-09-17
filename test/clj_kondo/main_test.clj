@@ -2538,8 +2538,7 @@
   (testing "no warning, despite string able to be nil"
     (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
                        {:linters {:type-mismatch {:level :error}}})))
-    #_(is (empty? (lint! "(defn foo [^Long x] (subs \"foo\" x))
-                          (let [^String x \"foo\"] (subs x 1 1))"
+    (is (empty? (lint! "(defn foo [^Long x] (subs \"foo\" x))"
                        {:linters {:type-mismatch {:level :error}}})))))
 
 ;;;; Scratch
