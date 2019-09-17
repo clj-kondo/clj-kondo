@@ -53,6 +53,7 @@
   ;; (prn x parent (isa? x parent) (isa? parent x))
   (or
    (identical? x ::any)
+   (identical? x ::nil)
    (isa? x parent)
    (isa? parent x) ;; parent COULD be an a x, but we can't prove it just by
                    ;; looking at the code!
@@ -74,7 +75,6 @@
 (derive! [::seqable-out] ::coll) ;; a seqable-out is a valid coll
 (derive! [::vector ::map] ::associative)
 (derive! [::vector ::keyword ::symbol ::map ::set ::transducer ::fn] ::ifn)
-(reg-spec! ::int)
 (derive! [::double ::int ::pos-int ::neg-int ::nat-int] ::number)
 (derive! [::pos-int ::nat-int ::neg-int] ::int)
 (derive ::pos-int ::nat-int)
@@ -99,26 +99,35 @@
 (reg-spec! ::boolean)
 (reg-spec! ::double)
 
+(comment
+  (is? ::number ::nilable-number)
+  (is? ::int ::number) ;; true, of course
+  (parents ::int)
+  (is? ::nilable-int ::nilable-number) ;; should be true
+  (parents ::nilable-int)
+  
+  )
+
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
   ([meta-tag out?]
    (case meta-tag
      void ::nil
      (boolean) ::boolean
-     (Boolean java.lang.Boolean) ::nilable-boolean
-     (byte Byte java.lang.Byte) ::nilable-byte
-     (Number java.lang.Number) ::nilable-number ;; as this is now way to
+     (Boolean java.lang.Boolean) ::boolean
+     (byte Byte java.lang.Byte) ::byte
+     (Number java.lang.Number) ::number ;; as this is now way to
      ;; express non-nilable,
      ;; we'll go for the most
      ;; relaxed type
-     (int long Long java.lang.Long) ::nilable-int #_(if out? ::any-nilable-int ::any-nilable-int) ;; or ::any-nilable-int? , see 2451 main-test
-     (float double Float Double java.lang.Float java.lang.Double) ::nilable-double
-     (CharSequence java.lang.CharSequence) ::nilable-char-sequence
-     (String java.lang.String) ::nilable-string ;; as this is now way to
+     (int long Long java.lang.Long) ::int #_(if out? ::any-nilable-int ::any-nilable-int) ;; or ::any-nilable-int? , see 2451 main-test
+     (float double Float Double java.lang.Float java.lang.Double) ::double
+     (CharSequence java.lang.CharSequence) ::char-sequence
+     (String java.lang.String) ::string ;; as this is now way to
      ;; express non-nilable,
      ;; we'll go for the most
      ;; relaxed type
-     (char Character java.lang.Character) ::nilable-char
+     (char Character java.lang.Character) ::char
      (Seqable clojure.lang.Seqable) (if out? ::seqable-out ::seqable)
      (do #_(prn "did not catch tag:" meta-tag) nil nil))))
 
@@ -216,14 +225,14 @@
    'cljs.core clojure-core
    'clojure.set
    {'union
-    {:args (s/* ::nilable-set)
-     :ret ::nilable-set}
+    {:args (s/* ::set)
+     :ret ::set}
     'intersection
-    {:args (s/+ ::nilable-set)
+    {:args (s/+ ::set)
      :ret ::nilable-set}
     'difference
-    {:args (s/+ ::nilable-set)
-     :ret ::nilable-set}}
+    {:args (s/+ ::set)
+     :ret ::set}}
    'clojure.string
    {'join
     {:args (s/cat :separator (s/? ::any)

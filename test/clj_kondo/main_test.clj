@@ -2431,12 +2431,12 @@
       :row 2,
       :col 28,
       :level :error,
-      :message "Expected: set or nil, received: seqable collection."}
+      :message "Expected: set, received: seqable collection."}
      {:file "<stdin>",
       :row 3,
       :col 28,
       :level :error,
-      :message "Expected: set or nil, received: vector."})
+      :message "Expected: set, received: vector."})
    (lint! "(require '[clojure.set :as set])
            (set/difference (map inc [1 2 3]) #{1 2 3})
            (set/difference (into [] [1 2 3]) #{1 2 3})"
@@ -2467,7 +2467,7 @@
         :row 1,
         :col 57,
         :level :error,
-        :message "Expected: set or nil, received: positive integer."})
+        :message "Expected: set, received: positive integer."})
      (lint! "(inc \"foo\") (require '[clojure.set :as set]) (set/union 1)"
             {:linters {:type-mismatch {:level :error}}}
             "--lang" "cljs")))
@@ -2477,7 +2477,7 @@
         :row 1,
         :col 22,
         :level :error,
-        :message "Expected: number, received: string or nil."})
+        :message "Expected: number, received: string."})
      (lint! "(fn [^String x] (inc x))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
@@ -2485,7 +2485,7 @@
         :row 1,
         :col 21,
         :level :error,
-        :message "Expected: string, received: integer or nil."})
+        :message "Expected: string, received: integer."})
      (lint! "(fn [^long x] (subs x 1 1))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
@@ -2493,7 +2493,7 @@
         :row 1,
         :col 73,
         :level :error,
-        :message "Expected: number, received: string or nil."})
+        :message "Expected: number, received: string."})
      (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
@@ -2501,7 +2501,7 @@
         :row 1,
         :col 73,
         :level :error,
-        :message "Expected: number, received: string or nil."})
+        :message "Expected: number, received: string."})
      (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo))"
             {:linters {:type-mismatch {:level :error}}})))
   (is (empty?
