@@ -24,30 +24,18 @@
    ::keyword "keyword"
    ::seqable-or-transducer "seqable or transducer"
    ::set "set"
-   ::nilable-set "set or nil"
-   ::nilable-int "integer or nil"
-   ::char-sequence "char sequence"
-   ::nilable-string "string or nil"})
+   ::char-sequence "char sequence"})
 
 (def current-ns-name (str (ns-name *ns*)))
 
 (defmacro reg-spec!
   "Defines spec for type k and type nilable-k."
   [k]
-  (let [nilable (keyword current-ns-name (str "nilable-" (name k)))]
-    `(do (derive ~k ~nilable)
-         (derive ::nil ~nilable)
-         (s/def ~k #(is? % ~k))
-         (s/def ~nilable #(is? % ~nilable)))))
+  `(s/def ~k #(is? % ~k)))
 
 (defmacro derive! [children parent]
-  (let [children (if (keyword? children) [children] children)
-        #_#_any-parent (keyword current-ns-name (str "any-" (name parent)))]
-    `(do (doseq [c# ~children]
-           (derive c# ~parent))
-         #_(doseq [c# ~children]
-             ;; (prn "derive" ~any-parent c#)
-             (derive ~any-parent c#)))))
+  `(doseq [c# ~children]
+     (derive c# ~parent)))
 
 (defn is? [x parent]
   ;; (prn x parent (isa? x parent) (isa? parent x))
@@ -55,10 +43,8 @@
    (identical? x ::any)
    (identical? x ::nil)
    (isa? x parent)
-   (isa? parent x) ;; parent COULD be an a x, but we can't prove it just by
-                   ;; looking at the code!
-   ;; (prn "no match for" x parent)
-   ))
+   ;; parent COULD be an a x, but we can't prove it just by looking at the code!
+   (isa? parent x)))
 
 (reg-spec! ::coll)
 (derive! [::vector ::list ::map ::set ::lazy-seq] ::coll)
@@ -98,15 +84,6 @@
 (reg-spec! ::byte)
 (reg-spec! ::boolean)
 (reg-spec! ::double)
-
-(comment
-  (is? ::number ::nilable-number)
-  (is? ::int ::number) ;; true, of course
-  (parents ::int)
-  (is? ::nilable-int ::nilable-number) ;; should be true
-  (parents ::nilable-int)
-  
-  )
 
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
@@ -229,7 +206,7 @@
      :ret ::set}
     'intersection
     {:args (s/+ ::set)
-     :ret ::nilable-set}
+     :ret ::set}
     'difference
     {:args (s/+ ::set)
      :ret ::set}}
