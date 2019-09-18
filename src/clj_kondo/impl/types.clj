@@ -115,27 +115,9 @@
              `(do (s/def ~k #(match? % ~k))
                   (s/def ~nilable-k #(match? % ~nilable-k)))))
        ~@(for [k other-types]
-           (do ;; (prn "k" k)
-              `(do (s/def ~k #(match? % ~k)))))))
+           `(do (s/def ~k #(match? % ~k))))))
 
 (reg-specs!)
-
-#_(defmacro derive! [children parent]
-    `(doseq [c# ~children]
-       (derive c# ~parent)))
-
-#_(defn is? [x parent]
-    ;; (prn x parent (isa? x parent) (isa? parent x))
-    (or
-     (identical? x ::any)
-     (identical? x ::nil)
-     (isa? x parent)
-     ;; parent COULD be an a x, but we can't prove it just by looking at the code!
-     (isa? parent x)))
-
-#_(defn is? [x parent]
-  ;; (prn x parent (isa? x parent) (isa? parent x))
-  (match? x parent))
 
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
@@ -160,6 +142,11 @@
      (Character java.lang.Character) ::nilable-char
      (Seqable clojure.lang.Seqable) (if out? ::seqable-out ::seqable)
      (do #_(prn "did not catch tag:" meta-tag) nil nil))))
+
+(defmacro with-meta-fn [fn-expr]
+  `(with-meta
+     ~fn-expr
+     {:form '~fn-expr}))
 
 (def clojure-core
   {;; 22
@@ -186,10 +173,11 @@
    'map {:args (s/alt :transducer (s/cat :f ::ifn)
                       :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
          ;; :ret ::seqable-or-transducer
-         :fn (fn [args]
-               (if (= 1 (count args))
-                 ::transducer
-                 ::seqable-out))}
+         :fn (with-meta-fn
+               (fn [args]
+                 (if (= 1 (count args))
+                   ::transducer
+                   ::seqable-out)))}
    ;; 2793
    'filter {:args (s/alt :transducer (s/cat :f ::ifn)
                          :seqable (s/cat :f ::ifn :coll ::seqable))
@@ -202,10 +190,11 @@
    'remove {:args (s/alt :transducer (s/cat :f ::ifn)
                          :seqable (s/cat :f ::ifn :coll ::seqable))
             ;; :ret ::seqable-or-transducer
-            :fn (fn [args]
-                  (if (= 1 (count args))
-                    ::transducer
-                    ::seqable-out))}
+            :fn (with-meta-fn
+                  (fn [args]
+                    (if (= 1 (count args))
+                      ::transducer
+                      ::seqable-out)))}
    ;; 4105
    'set {:ret ::set}
    ;; 4981
@@ -220,35 +209,39 @@
                        :identity (s/cat :to ::coll)
                        :seqable (s/cat :to ::coll :from ::seqable)
                        :transducer (s/cat :to ::coll :xf ::transducer :from ::seqable))
-          :fn (fn [args]
-                (let [t (:tag (first args))]
-                  (if (identical? ::any t)
-                    ::coll
-                    t)))}
+          :fn (with-meta-fn
+                (fn [args]
+                  (let [t (:tag (first args))]
+                    (if (identical? ::any t)
+                      ::coll
+                      t))))}
    ;; 6903
    'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
                        :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
           ;; :ret ::seqable-or-transducer
-          :fn (fn [args]
-                (if (= 1 (count args))
-                  ::transducer
-                  ::vector))}
+          :fn (with-meta-fn
+                (fn [args]
+                  (if (= 1 (count args))
+                    ::transducer
+                    ::vector)))}
    ;; 7313
    'filterv {:args (s/alt :transducer (s/cat :f ::ifn)
                           :seqable (s/cat :f ::ifn :coll ::seqable))
              ;; :ret ::seqable-or-transducer
-             :fn (fn [args]
-                   (if (= 1 (count args))
-                     ::transducer
-                     ::vector))}
+             :fn (with-meta-fn
+                   (fn [args]
+                     (if (= 1 (count args))
+                       ::transducer
+                       ::vector)))}
    ;; 7313
    'keep {:args (s/alt :transducer (s/cat :f ::ifn)
                        :seqable (s/cat :f ::ifn :coll ::seqable))
           ;; :ret ::seqable-or-transducer
-          :fn (fn [args]
-                (if (= 1 (count args))
-                  ::transducer
-                  ::seqable-out))}})
+          :fn (with-meta-fn
+                (fn [args]
+                  (if (= 1 (count args))
+                    ::transducer
+                    ::seqable-out)))}})
 
 (def specs
   {'clojure.core clojure-core
