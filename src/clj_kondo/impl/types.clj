@@ -394,7 +394,8 @@
                              (args-spec-from-arities arities arity))]
       ;; (prn "ARGS SPEC" args-spec)
       (if (seq? args-spec)
-        (doseq [[s a t] (map vector args-spec args tags)]
+        (doseq [[s a t] (map vector args-spec args tags)
+                :when s] ;; nil is interpreted as any
           ;; (prn s t)
           (when-not (s/valid? s t)
             (let [d (s/explain-data s t)]
