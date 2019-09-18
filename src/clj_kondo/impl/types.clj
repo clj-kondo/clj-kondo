@@ -20,6 +20,8 @@
    ::seqable "seqable collection"
    ::vector "vector"
    ::associative "associative collection"
+   ::nilable-associative "associative collection or nil"
+   ::map "map"
    ::atom "atom"
    ::fn "function"
    ::ifn "function"
@@ -53,23 +55,27 @@
    ::int #{::neg-int ::nat-int ::pos-int}
    ::number #{::int ::double}
    ::seqable-out #{::coll}
-   ::seqable #{::coll ::string ::nil}})
+   ::seqable #{::coll ::string ::nil}
+   ::associative #{::map ::vector}})
 
 (def nilable->type
   {::nilable-string ::string
    ::nilable-char-sequence ::char-sequence
    ::nilable-number ::number
    ::nilable-int ::int
-   ::nilable-boolean ::boolean})
+   ::nilable-boolean ::boolean
+   ::nilable-associative ::associative})
 
 (def current-ns-name (str (ns-name *ns*)))
 
 (defn sub? [k target]
+  ;; (prn "sub?" k '-> target)
   (or (identical? k target)
       (when-let [targets (get is-a-relations k)]
         (some #(sub? % target) targets))))
 
 (defn super? [k target]
+  ;; (prn "super?" k '-> target)
   (or (identical? k target)
       (when-let [targets (get could-be-relations k)]
         (some #(super? % target) targets))))
@@ -155,6 +161,10 @@
    'cons {:arities {2 {:arg-tags [::any ::seqable]}}}
    ;; 181
    'assoc {;; TODO: how to express this in config?
+           :arities {3 {:arg-tags [::nilable-associative ::any ::any]
+                        :ret-tag ::associative}
+                     :varargs {:arg-tags [::nilable-associative ::any ::any ['(* ::any)]]
+                               :ret-tag ::associative}}
            :args (s/cat :map (s/alt :a ::associative :nil ::nil)
                         :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
    ;; 544
@@ -382,8 +392,9 @@
           (s/cat-impl (repeatedly #(keyword (gensym))) ats ats)))))
 
 (defn emit-non-match! [{:keys [:findings :filename]} s arg t]
-  (let [expected-label (get labels s)
-        offending-tag-label (get labels t)]
+  (let [expected-label (or (get labels s) (name s))
+        offending-tag-label (or (get labels t) (name s))]
+    ;; (prn s arg t)
     (findings/reg-finding! findings {:filename filename
                                      :row (:row arg)
                                      :col (:col arg)
@@ -410,7 +421,7 @@
                 :when s] ;; nil is interpreted as any
           ;; (prn s t)
           (when-not (match? t s)
-            ;; (prn s t)
+            ;; (prn "no match:" t s)
             (emit-non-match! ctx s a t)
             #_(let [d (s/explain-data s t)]
                 ;; (prn called-ns called-name tags)
@@ -427,5 +438,6 @@
 
 (comment
   (match? ::seqable ::vector)
-  (match? ::vector ::seqable)
+  (match? ::map ::associative)
+  (match? ::map ::nilable-associative)
   )
