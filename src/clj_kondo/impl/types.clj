@@ -29,6 +29,7 @@
    ::transducer "transducer"
    ::seqable-or-transducer "seqable or transducer"
    ::set "set"
+   ::nilable-set "set or nil"
    ::char-sequence "char sequence"})
 
 (def is-a-relations
@@ -58,13 +59,15 @@
    ::seqable #{::coll ::string ::nil}
    ::associative #{::map ::vector}})
 
+;; TODO: check that every nilable type occurs as a key in this table!
 (def nilable->type
   {::nilable-string ::string
    ::nilable-char-sequence ::char-sequence
    ::nilable-number ::number
    ::nilable-int ::int
    ::nilable-boolean ::boolean
-   ::nilable-associative ::associative})
+   ::nilable-associative ::associative
+   ::nilable-set ::set})
 
 (def current-ns-name (str (ns-name *ns*)))
 
@@ -251,11 +254,12 @@
    'cljs.core clojure-core
    'clojure.set
    {'union
-    {:args (s/* ::set)
-     :ret ::set}
+    {:arities {:varargs {:min-arity 0
+                         :arg-tags '[(* ::nilable-set)]
+                         :ret-tag ::nilable-set}}}
     'intersection
-    {:args (s/+ ::set)
-     :ret ::set}
+    {:arities {:varargs {:arg-tags '[::nilable-set (* ::nilable-set)]
+                         :ret-tag ::nilable-set}}}
     'difference
     {:args (s/+ ::set)
      :ret ::set}}
@@ -382,16 +386,9 @@
 
 (defn args-spec-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity)
-                              (when-let [v (:varargs arities)]
-                                (when (>= arity (:min-arity v))
-                                  v)))]
+                              (:varargs arities))]
     (when-let [s (:arg-tags called-arity)]
-      (vec s))
-    #_(when-let [ats (:arg-tags called-arity)]
-        (prn "ATS" ats)
-        (let [ats (replace {nil ::any} ats)]
-          ;; (prn (s/cat-impl [:a :b] ats ats))
-          (s/cat-impl (repeatedly #(keyword (gensym))) ats ats)))))
+      (vec s))))
 
 (defn emit-non-match! [{:keys [:findings :filename]} s arg t]
   (let [expected-label (or (get labels s) (name s))

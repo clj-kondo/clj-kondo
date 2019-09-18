@@ -2467,7 +2467,7 @@
         :row 1,
         :col 57,
         :level :error,
-        :message "Expected: set, received: positive integer."})
+        :message "Expected: set or nil, received: positive integer."})
      (lint! "(inc \"foo\") (require '[clojure.set :as set]) (set/union 1)"
             {:linters {:type-mismatch {:level :error}}}
             "--lang" "cljs")))
