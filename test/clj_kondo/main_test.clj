@@ -2431,12 +2431,12 @@
       :row 2,
       :col 28,
       :level :error,
-      :message "Expected: set, received: seqable collection."}
+      :message "Expected: set or nil, received: seqable collection."}
      {:file "<stdin>",
       :row 3,
       :col 28,
       :level :error,
-      :message "Expected: set, received: vector."})
+      :message "Expected: set or nil, received: vector."})
    (lint! "(require '[clojure.set :as set])
            (set/difference (map inc [1 2 3]) #{1 2 3})
            (set/difference (into [] [1 2 3]) #{1 2 3})"

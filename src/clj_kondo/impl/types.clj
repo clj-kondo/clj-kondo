@@ -116,9 +116,9 @@
 (def other-types
   #{::seqable ::seqable-out ::nil})
 
-(s/def ::any any?)
+;; (s/def ::any any?)
 
-(defmacro reg-specs!
+#_(defmacro reg-specs!
   "Defines spec for type k and type nilable-k."
   []
   `(do ~@(for [k nilable-types]
@@ -128,7 +128,7 @@
        ~@(for [k other-types]
            `(do (s/def ~k #(match? % ~k))))))
 
-(reg-specs!)
+;; (reg-specs!)
 
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
@@ -187,14 +187,10 @@
                               :arg-tags '[(* ::ifn)]
                               :ret-tag ::ifn}}}
    ;; 2727
-   'map {:args (s/alt :transducer (s/cat :f ::ifn)
-                      :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
-         ;; :ret ::seqable-or-transducer
-         :fn (with-meta-fn
-               (fn [args]
-                 (if (= 1 (count args))
-                   ::transducer
-                   ::seqable-out)))}
+   'map {:arities {1 {:arg-tags [::ifn]
+                      :ret-tag ::transducer}
+                   :varargs {:arg-tags '[::ifn ::seqable (* ::seqable)]
+                             :ret-tag ::seqable-out}}}
    ;; 2793
    'filter {:arities {1 {:arg-tags [::ifn]
                          :ret-tag ::transducer}
@@ -230,14 +226,10 @@
                       ::coll
                       t))))}
    ;; 6903
-   'mapv {:args (s/alt :transducer (s/cat :f ::ifn)
-                       :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
-          ;; :ret ::seqable-or-transducer
-          :fn (with-meta-fn
-                (fn [args]
-                  (if (= 1 (count args))
-                    ::transducer
-                    ::vector)))}
+   'mapv {:arities {1 {:arg-tags [::ifn]
+                       :ret-tag ::transducer}
+                    :varargs {:arg-tags '[::ifn ::seqable (* ::seqable)]
+                              :ret-tag ::vector}}}
    ;; 7313
    'filterv {:arities {2 {:arg-tags [::ifn ::seqable]
                           :ret-tag ::vector}}}
@@ -259,8 +251,8 @@
     {:arities {:varargs {:arg-tags '[::nilable-set (* ::nilable-set)]
                          :ret-tag ::nilable-set}}}
     'difference
-    {:args (s/+ ::set)
-     :ret ::set}}
+    {:arities {:varargs {:arg-tags '[::nilable-set (* ::nilable-set)]
+                         :ret-tag ::nilable-set}}}}
    'clojure.string
    {'join
     {:arities {1 {:arg-tags [::seqable]
@@ -429,7 +421,7 @@
                [t & rest-tags :as all-tags] tags]
           ;; (prn all-specs all-args)
           (cond (empty? all-args)
-                (cond (or (empty? all-specs) (= '* (first s))) ::done
+                (cond (or (empty? all-specs) (and (list? s) (= '* (first s)))) ::done
                       :else (emit-more-input-expected! ctx (last args)))
                 (and (nil? s) (seq all-specs)) (recur check-ctx rest-args-spec rest-args rest-tags) ;; nil is ::any
                 :else
@@ -461,7 +453,8 @@
                        all-tags)
                       :else
                       (throw (Exception. (str "unexpected spec: " (pr-str s)))))))
-        (when-not (s/valid? args-spec tags)
+        (throw (ex-info "unexpected" {}))
+        #_(when-not (s/valid? args-spec tags)
           (let [d (s/explain-data args-spec tags)]
             ;; (prn called-ns called-name tags)
             ;; (prn "D" d)
