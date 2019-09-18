@@ -106,7 +106,7 @@
     (String java.lang.String) ::string
     (char Character java.lang.Character) ::char
     (Seqable clojure.lang.Seqable) ::seqable
-    (do (prn "did not catch tag:" meta-tag) nil)))
+    (do nil #_(prn "did not catch tag:" meta-tag) nil)))
 
 (def clojure-core
   {;; 22
