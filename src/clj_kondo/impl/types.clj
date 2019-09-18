@@ -445,7 +445,7 @@
                              all-args
                              all-tags)
                 (keyword? s)
-                (cond (empty? args) (emit-more-input-expected! ctx (last args))
+                (cond (empty? all-args) (emit-more-input-expected! ctx (last args))
                       :else
                       (do (when-not (do
                                       ;; (prn "match t s" t s)

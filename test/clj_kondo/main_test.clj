@@ -2520,6 +2520,15 @@
       :message "Expected: number, received: set or nil."})
    (lint! "(require '[clojure.set :as set]) (inc (set/union nil))"
           {:linters {:type-mismatch {:level :error}}}))
+  (testing "Insufficient input"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 15,
+        :level :error,
+        :message "Insuffient input."})
+     (lint! "(assoc {} 1 2 3)"
+            {:linters {:type-mismatch {:level :error}}})))
   (testing "handle multiple errors"
     (assert-submaps
      '({:file "<stdin>",
