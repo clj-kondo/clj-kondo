@@ -4,8 +4,7 @@
    [clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer
-    [tag sexpr]]
-   [clojure.string :as str]))
+    [tag sexpr]]))
 
 (def labels
   {::nil "nil"

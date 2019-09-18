@@ -1261,12 +1261,13 @@
                         (analyze-children ctx children)))))
                 ;; catch-call
                 (do
-                  ;; (prn "--" expr)
+                  ;; (prn "--" expr (types/add-arg-type-from-expr ctx expr))
                   (types/add-arg-type-from-expr ctx expr)
                   (analyze-children ctx children))))))
         ;; catch-all
         (do
-          ;;(prn "--")
+          ;; (prn "--")
+          nil
           (analyze-children (update ctx
                                     :callstack #(cons [nil t] %))
                             children))))))
