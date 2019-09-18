@@ -49,7 +49,8 @@
    ::set #{::seqable ::ifn}
    ::fn #{::ifn}
    ::keyword #{::ifn}
-   ::symbol #{::ifn}})
+   ::symbol #{::ifn}
+   ::associative #{::seqable}})
 
 (def could-be-relations
   {::char-sequence #{::string ::char ::regex}
@@ -57,7 +58,7 @@
    ::number #{::int ::double}
    ::seqable-out #{::coll}
    ::seqable #{::coll ::string ::nil}
-   ::associative #{::map ::vector}})
+   ::associative #{::seqable ::map ::vector}})
 
 ;; TODO: check that every nilable type occurs as a key in this table!
 (def nilable->type
@@ -103,6 +104,10 @@
             (or (sub? k target)
                 (super? k target))))))
 
+(comment
+  (match? ::associative ::seqable)
+  )
+
 (def nilable-types
   #{::char-sequence ::string ::regex ::char
     ::number ::double ::int ::neg-int ::nat-int ::pos-int
@@ -119,14 +124,14 @@
 ;; (s/def ::any any?)
 
 #_(defmacro reg-specs!
-  "Defines spec for type k and type nilable-k."
-  []
-  `(do ~@(for [k nilable-types]
-           (let [nilable-k (keyword current-ns-name (str "nilable-" (name k)))]
-             `(do (s/def ~k #(match? % ~k))
-                  (s/def ~nilable-k #(match? % ~nilable-k)))))
-       ~@(for [k other-types]
-           `(do (s/def ~k #(match? % ~k))))))
+    "Defines spec for type k and type nilable-k."
+    []
+    `(do ~@(for [k nilable-types]
+             (let [nilable-k (keyword current-ns-name (str "nilable-" (name k)))]
+               `(do (s/def ~k #(match? % ~k))
+                    (s/def ~nilable-k #(match? % ~nilable-k)))))
+         ~@(for [k other-types]
+             `(do (s/def ~k #(match? % ~k))))))
 
 ;; (reg-specs!)
 
@@ -170,7 +175,7 @@
                                :ret-tag ::associative}}}
    ;; 544
    'str {:arities {:varargs {:arg-tags '[(* ::any)]
-                              :ret-tag ::string}}}
+                             :ret-tag ::string}}}
    ;; 922
    'inc {:arities {1 {:arg-tags [::number]}}
          :ret ::number}
@@ -420,12 +425,28 @@
                [a & rest-args :as all-args] args
                [t & rest-tags :as all-tags] tags]
           ;; (prn all-specs all-args)
-          (cond (empty? all-args)
-                (cond (or (empty? all-specs) (and (list? s) (= '* (first s)))) ::done
-                      :else (emit-more-input-expected! ctx (last args)))
-                (and (nil? s) (seq all-specs)) (recur check-ctx rest-args-spec rest-args rest-tags) ;; nil is ::any
-                :else
-                (cond (keyword? s)
+          ;; (prn s t)
+          (cond (and (empty? all-args)
+                     (empty? all-specs)) ::done
+                (list? s) (let [op (first s)]
+                            ;; (prn "s" s)
+                            (case op
+                              * (recur
+                                 (assoc check-ctx :remaining (second s))
+                                 nil
+                                 all-args
+                                 all-tags)))
+                (nil? s) (cond (seq all-specs) (recur check-ctx rest-args-spec rest-args rest-tags)
+                               (:remaining check-ctx)
+                               (recur check-ctx [(:remaining check-ctx)] all-args all-tags)) ;; nil is ::any
+                (vector? s) (recur
+                             check-ctx
+                             (concat s rest-args-spec)
+                             all-args
+                             all-tags)
+                (keyword? s)
+                (cond (empty? args) (emit-more-input-expected! ctx (last args))
+                      :else
                       (do (when-not (do
                                       ;; (prn "match t s" t s)
                                       nil
@@ -435,31 +456,16 @@
                                 ;; (prn called-ns called-name tags)
                                 (run! #(emit-warning* ctx % args s a t)
                                       (:clj-kondo.impl.clojure.spec.alpha/problems d))))
-                          (recur check-ctx rest-args-spec rest-args rest-tags))
-                      (list? s)
-                      (let [op (first s)]
-                        ;; (prn "s" s)
-                        (case op
-                          * (recur
-                             check-ctx
-                             (repeat (count all-args) (second s))
-                             all-args
-                             all-tags)))
-                      (vector? s)
-                      (recur
-                       check-ctx
-                       (concat s args-spec)
-                       all-args
-                       all-tags)
-                      :else
-                      (throw (Exception. (str "unexpected spec: " (pr-str s)))))))
+                          (recur check-ctx rest-args-spec rest-args rest-tags)))
+                :else
+                (throw (Exception. (str "unexpected spec: " (pr-str s))))))
         (throw (ex-info "unexpected" {}))
         #_(when-not (s/valid? args-spec tags)
-          (let [d (s/explain-data args-spec tags)]
-            ;; (prn called-ns called-name tags)
-            ;; (prn "D" d)
-            (run! #(emit-warning! ctx % args tags)
-                  (:clj-kondo.impl.clojure.spec.alpha/problems d))))))))
+            (let [d (s/explain-data args-spec tags)]
+              ;; (prn called-ns called-name tags)
+              ;; (prn "D" d)
+              (run! #(emit-warning! ctx % args tags)
+                    (:clj-kondo.impl.clojure.spec.alpha/problems d))))))))
 
 ;;;; Scratch
 
