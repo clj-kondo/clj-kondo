@@ -163,10 +163,9 @@
    'assoc {;; TODO: how to express this in config?
            :arities {3 {:arg-tags [::nilable-associative ::any ::any]
                         :ret-tag ::associative}
-                     :varargs {:arg-tags [::nilable-associative ::any ::any ['(* ::any)]]
-                               :ret-tag ::associative}}
-           :args (s/cat :map (s/alt :a ::associative :nil ::nil)
-                        :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
+                     :varargs {:min-arity 3
+                               :arg-tags '[::nilable-associative ::any ::any (* [::any ::any])]
+                               :ret-tag ::associative}}}
    ;; 544
    'str {:ret ::string}
    ;; 922
@@ -182,6 +181,8 @@
            :args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
    ;; 2576
    'juxt {;; TODO: how to express this in config?
+          :arities {:varargs {:min-arity 0
+                              :arg-tags '[(* ::ifn)]}}
           :args (s/+ ::ifn)
           :ret ::ifn}
    ;; 2727
@@ -381,10 +382,11 @@
 
 (defn args-spec-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity)
-                              (when-let [v (:varargs arity)]
+                              (when-let [v (:varargs arities)]
                                 (when (>= arity (:min-arity v))
                                   v)))]
-    (vec (:arg-tags called-arity))
+    (when-let [s (:arg-tags called-arity)]
+      (vec s))
     #_(when-let [ats (:arg-tags called-arity)]
         (prn "ATS" ats)
         (let [ats (replace {nil ::any} ats)]
@@ -407,6 +409,13 @@
                                                      (format " (%s)" t))
                                                    ".")})))
 
+(defn emit-more-input-expected! [{:keys [:findings :filename]} arg]
+  (findings/reg-finding! findings {:filename filename
+                                   :row (:row arg)
+                                   :col (:col arg)
+                                   :type :type-mismatch
+                                   :message (str "Insuffient input.")}))
+
 (defn lint-arg-types [ctx {called-ns :ns called-name :name arities :arities :as _called-fn} args tags]
   (let [ ;; TODO also pass the call, so we don't need the count
         arity (count args)]
@@ -415,18 +424,46 @@
                                      (args-spec-from-arities a arity))
                                    (:args s)))
                              (args-spec-from-arities arities arity))]
-      ;; (prn "ARGS SPEC" args-spec)
+      ;; (prn "ARGS SPEC" called-ns called-name args-spec)
       (if (vector? args-spec)
-        (doseq [[s a t] (map vector args-spec args tags)
-                :when s] ;; nil is interpreted as any
-          ;; (prn s t)
-          (when-not (match? t s)
-            ;; (prn "no match:" t s)
-            (emit-non-match! ctx s a t)
-            #_(let [d (s/explain-data s t)]
-                ;; (prn called-ns called-name tags)
-                (run! #(emit-warning* ctx % args s a t)
-                      (:clj-kondo.impl.clojure.spec.alpha/problems d)))))
+        (loop [check-ctx {}
+               [s & rest-args-spec :as all-specs] args-spec
+               [a & rest-args :as all-args] args
+               [t & rest-tags :as all-tags] tags]
+          ;; (prn all-specs all-args)
+          (cond (empty? all-args)
+                (cond (empty? all-specs) ::done
+                      :else (emit-more-input-expected! ctx (last args)))
+                (and (nil? s) (seq all-specs)) (recur check-ctx rest-args-spec rest-args rest-tags) ;; nil is ::any
+                :else
+                (cond (keyword? s)
+                      (do (when-not (do
+                                      ;; (prn "match t s" t s)
+                                      nil
+                                      (match? t s))
+                            (emit-non-match! ctx s a t)
+                            #_(let [d (s/explain-data s t)]
+                                ;; (prn called-ns called-name tags)
+                                (run! #(emit-warning* ctx % args s a t)
+                                      (:clj-kondo.impl.clojure.spec.alpha/problems d))))
+                          (recur check-ctx rest-args-spec rest-args rest-tags))
+                      (list? s)
+                      (let [op (first s)]
+                        ;; (prn "s" s)
+                        (case op
+                          * (recur
+                             check-ctx
+                             (repeat (count all-args) (second s))
+                             all-args
+                             all-tags)))
+                      (vector? s)
+                      (recur
+                       check-ctx
+                       (concat s args-spec)
+                       all-args
+                       all-tags)
+                      :else
+                      (throw (Exception. (str "unexpected spec: " (pr-str s)))))))
         (when-not (s/valid? args-spec tags)
           (let [d (s/explain-data args-spec tags)]
             ;; (prn called-ns called-name tags)
