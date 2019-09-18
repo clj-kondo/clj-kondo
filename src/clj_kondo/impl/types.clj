@@ -408,7 +408,7 @@
                                    :row (:row arg)
                                    :col (:col arg)
                                    :type :type-mismatch
-                                   :message (str "Insuffient input.")}))
+                                   :message (str "Insufficient input.")}))
 
 (defn lint-arg-types [ctx {called-ns :ns called-name :name arities :arities :as _called-fn} args tags]
   (let [ ;; TODO also pass the call, so we don't need the count

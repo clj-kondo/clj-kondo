@@ -2526,7 +2526,7 @@
         :row 1,
         :col 15,
         :level :error,
-        :message "Insuffient input."})
+        :message "Insufficient input."})
      (lint! "(assoc {} 1 2 3)"
             {:linters {:type-mismatch {:level :error}}})))
   (testing "handle multiple errors"
