@@ -24,6 +24,7 @@
    ::fn "function"
    ::ifn "function"
    ::keyword "keyword"
+   ::transducer "transducer"
    ::seqable-or-transducer "seqable or transducer"
    ::set "set"
    ::char-sequence "char sequence"})
@@ -76,6 +77,7 @@
 (defn match? [k target]
   ;; (prn k '-> target)
   (cond (identical? k ::any) true
+        (identical? target ::any) true
         (identical? k ::nil) (or (contains? nilable->type target)
                                  (identical? ::seqable target))
         :else
@@ -259,7 +261,7 @@
     {:arities {2 {:arg-tags [::char-sequence ::string]
                   :ret-tag ::boolean}}}
     'includes?
-    {:arities {2 {:arg-tags [::char-sequence ::string]
+    {:arities {2 {:arg-tags [::char-sequence ::char-sequence]
                   :ret-tag ::boolean}}}}})
 
 (defn number->tag [v]
@@ -374,10 +376,25 @@
                                   v)))]
     (vec (:arg-tags called-arity))
     #_(when-let [ats (:arg-tags called-arity)]
-      (prn "ATS" ats)
-      (let [ats (replace {nil ::any} ats)]
-        ;; (prn (s/cat-impl [:a :b] ats ats))
-        (s/cat-impl (repeatedly #(keyword (gensym))) ats ats)))))
+        (prn "ATS" ats)
+        (let [ats (replace {nil ::any} ats)]
+          ;; (prn (s/cat-impl [:a :b] ats ats))
+          (s/cat-impl (repeatedly #(keyword (gensym))) ats ats)))))
+
+(defn emit-non-match! [{:keys [:findings :filename]} s arg t]
+  (let [expected-label (get labels s)
+        offending-tag-label (get labels t)]
+    (findings/reg-finding! findings {:filename filename
+                                     :row (:row arg)
+                                     :col (:col arg)
+                                     :type :type-mismatch
+                                     :message (str "Expected: " expected-label
+                                                   (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                                                     (format " (%s)" s))
+                                                   ", received: " offending-tag-label
+                                                   (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                                                     (format " (%s)" t))
+                                                   ".")})))
 
 (defn lint-arg-types [ctx {called-ns :ns called-name :name arities :arities :as _called-fn} args tags]
   (let [ ;; TODO also pass the call, so we don't need the count
@@ -392,11 +409,13 @@
         (doseq [[s a t] (map vector args-spec args tags)
                 :when s] ;; nil is interpreted as any
           ;; (prn s t)
-          (when-not (s/valid? s t)
-            (let [d (s/explain-data s t)]
-              ;; (prn called-ns called-name tags)
-              (run! #(emit-warning* ctx % args s a t)
-                    (:clj-kondo.impl.clojure.spec.alpha/problems d)))))
+          (when-not (match? t s)
+            ;; (prn s t)
+            (emit-non-match! ctx s a t)
+            #_(let [d (s/explain-data s t)]
+                ;; (prn called-ns called-name tags)
+                (run! #(emit-warning* ctx % args s a t)
+                      (:clj-kondo.impl.clojure.spec.alpha/problems d)))))
         (when-not (s/valid? args-spec tags)
           (let [d (s/explain-data args-spec tags)]
             ;; (prn called-ns called-name tags)
@@ -407,4 +426,6 @@
 ;;;; Scratch
 
 (comment
+  (match? ::seqable ::vector)
+  (match? ::vector ::seqable)
   )
