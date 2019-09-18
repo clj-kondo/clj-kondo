@@ -54,7 +54,7 @@
    ::seqable-out #{::coll}
    ::seqable #{::coll ::string ::nil}})
 
-(def nilables
+(def nilable->type
   {::nilable-string ::string
    ::nilable-char-sequence ::char-sequence
    ::nilable-number ::number
@@ -76,11 +76,11 @@
 (defn match? [k target]
   ;; (prn k '-> target)
   (cond (identical? k ::any) true
-        (identical? k ::nil) (or (contains? nilables target)
+        (identical? k ::nil) (or (contains? nilable->type target)
                                  (identical? ::seqable target))
         :else
-        (let [nk (get nilables k)
-              nt (get nilables target)]
+        (let [nk (get nilable->type k)
+              nt (get nilable->type target)]
           ;; (prn k '-> nk '| target '-> nt)
           (case [(some? nk) (some? nt)]
             [true true]
@@ -92,16 +92,17 @@
             (or (sub? k target)
                 (super? k target))))))
 
-(def all-nilable-types
+(def nilable-types
   #{::char-sequence ::string ::regex ::char
     ::number ::double ::int ::neg-int ::nat-int ::pos-int
     ::coll ::vector ::set ::map ::list
     ::associative
     ::ifn ::fn ::transducer
+    ::boolean
     ::atom
     ::keyword ::symbol})
 
-(def all-other-types
+(def other-types
   #{::seqable ::seqable-out ::nil})
 
 (s/def ::any any?)
@@ -109,11 +110,11 @@
 (defmacro reg-specs!
   "Defines spec for type k and type nilable-k."
   []
-  `(do ~@(for [k all-nilable-types]
+  `(do ~@(for [k nilable-types]
            (let [nilable-k (keyword current-ns-name (str "nilable-" (name k)))]
              `(do (s/def ~k #(match? % ~k))
                   (s/def ~nilable-k #(match? % ~nilable-k)))))
-       ~@(for [k all-other-types]
+       ~@(for [k other-types]
            (do ;; (prn "k" k)
               `(do (s/def ~k #(match? % ~k)))))))
 
