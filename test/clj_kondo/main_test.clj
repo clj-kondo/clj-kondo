@@ -2512,6 +2512,14 @@
       :message "Expected: string, received: nil."})
    (lint! "(subs nil 1 2)"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 39,
+      :level :error,
+      :message "Expected: number, received: set or nil."})
+   (lint! "(require '[clojure.set :as set]) (inc (set/union nil))"
+          {:linters {:type-mismatch {:level :error}}}))
   (testing "handle multiple errors"
     (assert-submaps
      '({:file "<stdin>",

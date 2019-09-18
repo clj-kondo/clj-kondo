@@ -163,14 +163,14 @@
   {;; 22
    'cons {:arities {2 {:arg-tags [::any ::seqable]}}}
    ;; 181
-   'assoc {;; TODO: how to express this in config?
-           :arities {3 {:arg-tags [::nilable-associative ::any ::any]
+   'assoc {:arities {3 {:arg-tags [::nilable-associative ::any ::any]
                         :ret-tag ::associative}
                      :varargs {:min-arity 3
                                :arg-tags '[::nilable-associative ::any ::any (* [::any ::any])]
                                :ret-tag ::associative}}}
    ;; 544
-   'str {:ret ::string}
+   'str {:arities {:varargs {:arg-tags '[(* ::any)]
+                              :ret-tag ::string}}}
    ;; 922
    'inc {:arities {1 {:arg-tags [::number]}}
          :ret ::number}
@@ -180,14 +180,12 @@
    ;; 2327
    'atom {:ret ::atom}
    ;; 2345
-   'swap! {;; TODO: how to express this in config?
-           :args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
+   'swap! {:arities {:varargs {:arg-tags '[::atom ::ifn (* ::any)]
+                               :ret-tag ::any}}}
    ;; 2576
-   'juxt {;; TODO: how to express this in config?
-          :arities {:varargs {:min-arity 0
-                              :arg-tags '[(* ::ifn)]}}
-          :args (s/+ ::ifn)
-          :ret ::ifn}
+   'juxt {:arities {:varargs {:min-arity 0
+                              :arg-tags '[(* ::ifn)]
+                              :ret-tag ::ifn}}}
    ;; 2727
    'map {:args (s/alt :transducer (s/cat :f ::ifn)
                       :seqable (s/cat :f ::ifn :colls (s/+ ::seqable)))
@@ -327,8 +325,10 @@
         (if-let [spec (get-in specs [call-ns call-name])]
           (or
            (when-let [a (:arities spec)]
-             (when-let [t (get-in a [(:arity call) :ret-tag])]
-               {:tag t}))
+             ;; TODO: match varargs
+             (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
+               (when-let [t (:ret-tag called-arity)]
+                 {:tag t})))
            (if-let [fn-spec (:fn spec)]
              {:tag (fn-spec @arg-types)}
              {:tag (:ret spec)}))
@@ -429,7 +429,7 @@
                [t & rest-tags :as all-tags] tags]
           ;; (prn all-specs all-args)
           (cond (empty? all-args)
-                (cond (empty? all-specs) ::done
+                (cond (or (empty? all-specs) (= '* (first s))) ::done
                       :else (emit-more-input-expected! ctx (last args)))
                 (and (nil? s) (seq all-specs)) (recur check-ctx rest-args-spec rest-args rest-tags) ;; nil is ::any
                 :else
