@@ -2512,6 +2512,25 @@
       :message "Expected: string, received: nil."})
    (lint! "(subs nil 1 2)"
           {:linters {:type-mismatch {:level :error}}}))
+  (testing "handle multiple errors"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 7,
+        :level :error,
+        :message "Expected: string, received: nil."}
+       {:file "<stdin>",
+        :row 1,
+        :col 11,
+        :level :error,
+        :message "Expected: natural integer, received: nil."}
+       {:file "<stdin>",
+        :row 1,
+        :col 15,
+        :level :error,
+        :message "Expected: natural integer, received: nil."})
+     (lint! "(subs nil nil nil)"
+            {:linters {:type-mismatch {:level :error}}})))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))

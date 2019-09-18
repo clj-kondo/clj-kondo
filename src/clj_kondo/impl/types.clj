@@ -150,24 +150,27 @@
 
 (def clojure-core
   {;; 22
-   'cons {:args (s/cat :x ::any :seq ::seqable)}
+   'cons {:arities {2 {:arg-tags [::any ::seqable]}}}
    ;; 181
-   'assoc {:args (s/cat :map (s/alt :a ::associative :nil ::nil)
+   'assoc {;; TODO: how to express this in config?
+           :args (s/cat :map (s/alt :a ::associative :nil ::nil)
                         :key ::any :val ::any :kvs (s/* (s/cat :ks ::any :vs ::any)))}
    ;; 544
    'str {:ret ::string}
    ;; 922
-   'inc {:args (s/cat :x ::number)
+   'inc {:arities {1 {:arg-tags [::number]}}
          :ret ::number}
    ;; 947
-   'reverse {:args (s/cat :x ::seqable)
+   'reverse {:arities {1 {:arg-tags [::seqable]}}
              :ret ::seqable-out}
    ;; 2327
    'atom {:ret ::atom}
    ;; 2345
-   'swap! {:args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
+   'swap! {;; TODO: how to express this in config?
+           :args (s/cat :atom ::atom :f ::ifn :args (s/* ::any))}
    ;; 2576
-   'juxt {:args (s/+ ::ifn)
+   'juxt {;; TODO: how to express this in config?
+          :args (s/+ ::ifn)
           :ret ::ifn}
    ;; 2727
    'map {:args (s/alt :transducer (s/cat :f ::ifn)
@@ -179,36 +182,33 @@
                    ::transducer
                    ::seqable-out)))}
    ;; 2793
-   'filter {:args (s/alt :transducer (s/cat :f ::ifn)
-                         :seqable (s/cat :f ::ifn :coll ::seqable))
-            ;; :ret ::seqable-or-transducer
-            :fn (fn [args]
-                  (if (= 1 (count args))
-                    ::transducer
-                    ::seqable-out))}
+   'filter {:arities {1 {:arg-tags [::ifn]
+                         :ret-tag ::transducer}
+                      2 {:arg-tags [::ifn ::seqable]
+                         :ret-tag ::seqable-out}}}
    ;; 2826
-   'remove {:args (s/alt :transducer (s/cat :f ::ifn)
-                         :seqable (s/cat :f ::ifn :coll ::seqable))
-            ;; :ret ::seqable-or-transducer
-            :fn (with-meta-fn
-                  (fn [args]
-                    (if (= 1 (count args))
-                      ::transducer
-                      ::seqable-out)))}
+   'remove {:arities {1 {:arg-tags [::ifn]
+                         :ret-tag ::transducer}
+                      2 {:arg-tags [::ifn ::seqable]
+                         :ret-tag ::seqable-out}}}
    ;; 4105
    'set {:ret ::set}
    ;; 4981
-   'subs {:args (s/cat :s ::string
-                       :start ::nat-int
-                       :end (s/? ::nat-int))
-          :ret ::string}
+   'subs {:arities {2 {:arg-tags [::string ::nat-int]
+                       :ret-tag ::string}
+                    3 {:arg-tags [::string ::nat-int ::nat-int]
+                       :ret-tag ::string}}}
    ;; 6790
-   'reduce {:args (s/cat :f ::ifn :val (s/? ::any) :coll ::seqable)}
+   'reduce {:arities {2 {:arg-tags [::ifn ::seqable]
+                         :ret-tag ::any}
+                      3 {:arg-tags [::ifn ::any ::seqable]
+                         :ret-tag ::any}}}
    ;; 6887
-   'into {:args (s/alt :no-arg (s/cat)
-                       :identity (s/cat :to ::coll)
-                       :seqable (s/cat :to ::coll :from ::seqable)
-                       :transducer (s/cat :to ::coll :xf ::transducer :from ::seqable))
+   'into {:arities {0 {:arg-tags []
+                       :ret-tag ::coll}
+                    1 {:arg-tags [::coll]}
+                    2 {:arg-tags [::coll ::seqable]}
+                    3 {:arg-tags [::coll ::transducer ::seqable]}}
           :fn (with-meta-fn
                 (fn [args]
                   (let [t (:tag (first args))]
@@ -225,23 +225,13 @@
                     ::transducer
                     ::vector)))}
    ;; 7313
-   'filterv {:args (s/alt :transducer (s/cat :f ::ifn)
-                          :seqable (s/cat :f ::ifn :coll ::seqable))
-             ;; :ret ::seqable-or-transducer
-             :fn (with-meta-fn
-                   (fn [args]
-                     (if (= 1 (count args))
-                       ::transducer
-                       ::vector)))}
+   'filterv {:arities {2 {:arg-tags [::ifn ::seqable]
+                          :ret-tag ::vector}}}
    ;; 7313
-   'keep {:args (s/alt :transducer (s/cat :f ::ifn)
-                       :seqable (s/cat :f ::ifn :coll ::seqable))
-          ;; :ret ::seqable-or-transducer
-          :fn (with-meta-fn
-                (fn [args]
-                  (if (= 1 (count args))
-                    ::transducer
-                    ::seqable-out)))}})
+   'keep {:arities {1 {:arg-tags [::ifn]
+                       :ret-tag ::transducer}
+                    2 {:arg-tags [::ifn ::seqable]
+                       :ret-tag ::seqable-out}}}})
 
 (def specs
   {'clojure.core clojure-core
@@ -258,21 +248,19 @@
      :ret ::set}}
    'clojure.string
    {'join
-    {:args (s/cat :separator (s/? ::any)
-                  :coll ::seqable)
-     :ret ::string}
+    {:arities {1 {:arg-tags [::seqable]
+                  :ret-tag ::string}
+               2 {:arg-tags [::any ::seqable]
+                  :ret-tag ::string}}}
     'starts-with?
-    {:args (s/cat :cs ::char-sequence
-                  :substr ::string)
-     :ret ::string}
+    {:arities {2 {:arg-tags [::char-sequence ::string]
+                  :ret-tag ::boolean}}}
     'ends-with?
-    {:args (s/cat :cs ::char-sequence
-                  :substr ::string)
-     :ret ::string}
+    {:arities {2 {:arg-tags [::char-sequence ::string]
+                  :ret-tag ::boolean}}}
     'includes?
-    {:args (s/cat :cs ::char-sequence
-                  :s ::char-sequence)
-     :ret ::string}}})
+    {:arities {2 {:arg-tags [::char-sequence ::string]
+                  :ret-tag ::boolean}}}}})
 
 (defn number->tag [v]
   (cond (int? v)
@@ -320,9 +308,13 @@
             call-name (:name call)]
         ;; (prn call-ns call-name)
         (if-let [spec (get-in specs [call-ns call-name])]
-          (if-let [fn-spec (:fn spec)]
-            {:tag (fn-spec @arg-types)}
-            {:tag (:ret spec)})
+          (or
+           (when-let [a (:arities spec)]
+             (when-let [t (get-in a [(:arity call) :ret-tag])]
+               {:tag t}))
+           (if-let [fn-spec (:fn spec)]
+             {:tag (fn-spec @arg-types)}
+             {:tag (:ret spec)}))
           {:call call})))))
 
 (defn add-arg-type-from-call [ctx call _expr]
@@ -380,7 +372,7 @@
                               (when-let [v (:varargs arity)]
                                 (when (>= arity (:min-arity v))
                                   v)))]
-    (:arg-tags called-arity)
+    (vec (:arg-tags called-arity))
     #_(when-let [ats (:arg-tags called-arity)]
       (prn "ATS" ats)
       (let [ats (replace {nil ::any} ats)]
@@ -390,10 +382,13 @@
 (defn lint-arg-types [ctx {called-ns :ns called-name :name arities :arities :as _called-fn} args tags]
   (let [ ;; TODO also pass the call, so we don't need the count
         arity (count args)]
-    (when-let [args-spec (or (:args (get-in specs [called-ns called-name]))
+    (when-let [args-spec (or (when-let [s (get-in specs [called-ns called-name])]
+                               (or (when-let [a (:arities s)]
+                                     (args-spec-from-arities a arity))
+                                   (:args s)))
                              (args-spec-from-arities arities arity))]
       ;; (prn "ARGS SPEC" args-spec)
-      (if (seq? args-spec)
+      (if (vector? args-spec)
         (doseq [[s a t] (map vector args-spec args tags)
                 :when s] ;; nil is interpreted as any
           ;; (prn s t)
