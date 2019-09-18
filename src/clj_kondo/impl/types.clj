@@ -61,6 +61,8 @@
    ::nilable-int ::int
    ::nilable-boolean ::boolean})
 
+(def current-ns-name (str (ns-name *ns*)))
+
 (defn sub? [k target]
   (or (identical? k target)
       (when-let [targets (get is-a-relations k)]
@@ -90,14 +92,32 @@
             (or (sub? k target)
                 (super? k target))))))
 
-(def current-ns-name (str (ns-name *ns*)))
+(def all-nilable-types
+  #{::char-sequence ::string ::regex ::char
+    ::number ::double ::int ::neg-int ::nat-int ::pos-int
+    ::coll ::vector ::set ::map ::list
+    ::associative
+    ::ifn ::fn ::transducer
+    ::atom
+    ::keyword ::symbol})
 
-(defmacro reg-spec!
+(def all-other-types
+  #{::seqable ::seqable-out ::nil})
+
+(s/def ::any any?)
+
+(defmacro reg-specs!
   "Defines spec for type k and type nilable-k."
-  [k]
-  (let [nilable-k (keyword current-ns-name (str "nilable-" (name k)))]
-    `(do (s/def ~k #(is? % ~k))
-         (s/def ~nilable-k #(is? % ~nilable-k)))))
+  []
+  `(do ~@(for [k all-nilable-types]
+           (let [nilable-k (keyword current-ns-name (str "nilable-" (name k)))]
+             `(do (s/def ~k #(match? % ~k))
+                  (s/def ~nilable-k #(match? % ~nilable-k)))))
+       ~@(for [k all-other-types]
+           (do ;; (prn "k" k)
+              `(do (s/def ~k #(match? % ~k)))))))
+
+(reg-specs!)
 
 #_(defmacro derive! [children parent]
     `(doseq [c# ~children]
@@ -112,48 +132,9 @@
      ;; parent COULD be an a x, but we can't prove it just by looking at the code!
      (isa? parent x)))
 
-(defn is? [x parent]
+#_(defn is? [x parent]
   ;; (prn x parent (isa? x parent) (isa? parent x))
   (match? x parent))
-
-(reg-spec! ::coll)
-;; (derive! [::vector ::list ::map ::set ::lazy-seq] ::coll)
-(reg-spec! ::set)
-;; (derive! [::string ::char ::regex] ::char-sequence)
-(reg-spec! ::string)
-;; (derive! [::nil ::string ::coll] ::seqable)
-;; (derive! [::list ::lazy-seq] ::seq)
-;; It seems very unlikely that a sequence function produces a vector, set or
-;; map. in any case, you should probably not rely on it. You should also not
-;; rely on it giving nil or an empty seq, so nil is left out on purpose.
-;; (derive! [::list ::vector ::lazy-seq] ::seqable-out)
-;; (derive! [::seqable-out] ::seqable) ;; a seqable-out is a seqable
-;; (derive! [::seqable-out] ::coll) ;; a seqable-out is a valid coll
-;; (derive! [::vector ::map] ::associative)
-;; (derive! [::vector ::keyword ::symbol ::map ::set ::transducer ::fn] ::ifn)
-;; (derive! [::double ::int ::pos-int ::neg-int ::nat-int] ::number)
-;; (derive! [::pos-int ::nat-int ::neg-int] ::int)
-;; (derive ::pos-int ::nat-int)
-(reg-spec! ::boolean)
-(s/def ::nil #(is? % ::nil))
-(s/def ::boolean #(is? % ::boolean))
-(s/def ::seqable #(is? % ::seqable)) ;; since nil is part of seqable, we have to define it manually
-(reg-spec! ::associative)
-(reg-spec! ::number)
-(reg-spec! ::int)
-(reg-spec! ::nat-int)
-(s/def ::atom #(is? % ::atom))
-(reg-spec! ::ifn)
-(s/def ::transducer #(is? % ::transducer))
-(reg-spec! ::char-sequence)
-(reg-spec! ::string)
-(reg-spec! ::char)
-(reg-spec! ::conjable)
-(reg-spec! ::set)
-(s/def ::any any?)
-(reg-spec! ::byte)
-(reg-spec! ::boolean)
-(reg-spec! ::double)
 
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
