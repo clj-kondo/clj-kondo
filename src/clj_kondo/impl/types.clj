@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.types
   {:no-doc true}
   (:require
-   [clj-kondo.impl.clojure.spec.alpha :as s]
+   ;;[clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer
     [tag sexpr]]))
