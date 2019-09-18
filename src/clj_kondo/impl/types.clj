@@ -333,13 +333,8 @@
                                    :col (:col call))
                             {:tag ::any}))))
 
-(defn emit-warning! [{:keys [:findings] :as ctx} args tags problem]
-  (let [via (first (:via problem))
-        in-path (:in problem)
-        pos (first in-path)
-        offending-arg (when pos (nth args pos))
-        offending-tag (when pos (nth tags pos))
-        via-label (or (get labels via)
+(defn emit-warning* [{:keys [:findings] :as ctx} problem args via offending-arg offending-tag]
+  (let [via-label (or (get labels via)
                       (when via
                         (name via)))
         offending-tag-label (or (get labels offending-tag)
@@ -372,27 +367,46 @@
                                                            (format " (%s)" offending-tag))
                                                          ".")}))))
 
+(defn emit-warning! [ctx problem args tags]
+  (let [via (first (:via problem))
+        in-path (:in problem)
+        pos (first in-path)
+        offending-arg (when pos (nth args pos))
+        offending-tag (when pos (nth tags pos))]
+    (emit-warning* ctx problem args via offending-arg offending-tag)))
+
 (defn args-spec-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity)
                               (when-let [v (:varargs arity)]
                                 (when (>= arity (:min-arity v))
                                   v)))]
-    (when-let [ats (:arg-tags called-arity)]
+    (:arg-tags called-arity)
+    #_(when-let [ats (:arg-tags called-arity)]
+      (prn "ATS" ats)
       (let [ats (replace {nil ::any} ats)]
         ;; (prn (s/cat-impl [:a :b] ats ats))
         (s/cat-impl (repeatedly #(keyword (gensym))) ats ats)))))
 
-(defn lint-arg-types [ctx {called-ns :ns called-name :name arities :arities :as called-fn} args tags]
+(defn lint-arg-types [ctx {called-ns :ns called-name :name arities :arities :as _called-fn} args tags]
   (let [ ;; TODO also pass the call, so we don't need the count
         arity (count args)]
     (when-let [args-spec (or (:args (get-in specs [called-ns called-name]))
                              (args-spec-from-arities arities arity))]
-      (when-not (s/valid? args-spec tags)
-        (let [d (s/explain-data args-spec tags)]
-          ;; (prn called-ns called-name tags)
-          ;; (prn "D" d)
-          (run! #(emit-warning! ctx args tags %)
-                (take 1 (:clj-kondo.impl.clojure.spec.alpha/problems d))))))))
+      ;; (prn "ARGS SPEC" args-spec)
+      (if (seq? args-spec)
+        (doseq [[s a t] (map vector args-spec args tags)]
+          ;; (prn s t)
+          (when-not (s/valid? s t)
+            (let [d (s/explain-data s t)]
+              ;; (prn called-ns called-name tags)
+              (run! #(emit-warning* ctx % args s a t)
+                    (:clj-kondo.impl.clojure.spec.alpha/problems d)))))
+        (when-not (s/valid? args-spec tags)
+          (let [d (s/explain-data args-spec tags)]
+            ;; (prn called-ns called-name tags)
+            ;; (prn "D" d)
+            (run! #(emit-warning! ctx % args tags)
+                  (:clj-kondo.impl.clojure.spec.alpha/problems d))))))))
 
 ;;;; Scratch
 
