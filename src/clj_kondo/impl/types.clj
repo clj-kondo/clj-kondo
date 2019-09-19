@@ -11,6 +11,7 @@
    ::string "string"
    ::nilable-string "string or nil"
    ::number "number"
+   ::nilable-number "number or nil"
    ::int "integer"
    ::nilable-int "integer or nil"
    ::pos-int "positive integer"
@@ -106,6 +107,8 @@
 
 (comment
   (match? ::associative ::seqable)
+  (match? ::nilable-number ::seqable)
+  (match? ::pos-int ::seqable)
   )
 
 (def nilable-types
@@ -389,7 +392,7 @@
 
 (defn emit-non-match! [{:keys [:findings :filename]} s arg t]
   (let [expected-label (or (get labels s) (name s))
-        offending-tag-label (or (get labels t) (name s))]
+        offending-tag-label (or (get labels t) (name t))]
     ;; (prn s arg t)
     (findings/reg-finding! findings {:filename filename
                                      :row (:row arg)

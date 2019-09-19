@@ -2520,6 +2520,14 @@
       :message "Expected: number, received: set or nil."})
    (lint! "(require '[clojure.set :as set]) (inc (set/union nil))"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 31,
+      :level :error,
+      :message "Expected: seqable collection, received: number or nil."})
+   (lint! "(defn foo [^Number x] (cons 1 x))"
+          {:linters {:type-mismatch {:level :error}}}))
   (testing "Insufficient input"
     (assert-submaps
      '({:file "<stdin>",
