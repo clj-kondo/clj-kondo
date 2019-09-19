@@ -165,7 +165,7 @@
                                   (:tag v))))]
                 tag)))
           nil))
-      :clj-kondo.impl.types/any))
+      :any))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]

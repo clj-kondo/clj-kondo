@@ -7,7 +7,13 @@
            :unresolved-symbol
            {:exclude [(clj-kondo.impl.utils/one-of)]}
            :unused-referred-var
-           {:exclude {clojure.test [is deftest testing]}}}
+           {:exclude {clojure.test [is deftest testing]}}
+           :type-mismatch
+           {:level :warning
+            :vars {clj-kondo.core/print! {:arities {1 {:args [:map]
+                                                       :ret :nil}}}
+                   clj-kondo.core/run! {:arities {1 {:args [:map]
+                                                     :ret :map}}}}}}
  :lint-as {me.raynes.conch/programs clojure.core/declare
            me.raynes.conch/let-programs clojure.core/let}
  :output {:exclude-files ["src/clj_kondo/impl/rewrite_clj_patch.clj"]}}

@@ -2,7 +2,8 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
+   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]
+   [clojure.set :as set]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
@@ -205,6 +206,19 @@
             (contains? namespace-syms excluded-ns)
             (let [ns-str (str excluded-ns)]
               (boolean (some #(re-find % ns-str) namespace-regexes))))))))
+
+(def type-mismatch-config
+  (let [delayed-cfg (fn [config var-ns var-name]
+                      (let [var-sym (symbol (str var-ns) (str var-name))]
+                        (when-let [spec (get-in config [:linters :type-mismatch :vars var-sym])]
+                          (update spec :arities (fn [arities]
+                                                  (map-vals
+                                                   (fn [ar]
+                                                     (set/rename-keys ar {:args :arg-tags
+                                                                          :ret :ret-tag}))
+                                                   arities))))))
+        delayed-cfg (memoize delayed-cfg)]
+    delayed-cfg))
 
 ;;;; Scratch
 
