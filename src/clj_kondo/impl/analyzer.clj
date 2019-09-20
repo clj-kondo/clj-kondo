@@ -1205,7 +1205,8 @@
                                          :callstack #(cons [nil t] %)) children)]
                    (types/add-arg-type-from-expr ctx (assoc expr
                                                             :children children
-                                                            :analyzed analyzed))))
+                                                            :analyzed analyzed))
+                   analyzed))
         :set (do (key-linter/lint-set ctx expr)
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
