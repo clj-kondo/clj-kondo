@@ -13,7 +13,10 @@
             :vars {clj-kondo.core/print! {:arities {1 {:args [:map]
                                                        :ret :nil}}}
                    clj-kondo.core/run! {:arities {1 {:args [:map]
-                                                     :ret :map}}}}}}
+                                                     :ret :map}}}
+                   foo/key-args {:arities {1 {:args [{:type :map
+                                                      :req {:a :string
+                                                            :b :string}}]}}}}}}
  :lint-as {me.raynes.conch/programs clojure.core/declare
            me.raynes.conch/let-programs clojure.core/let}
  :output {:exclude-files ["src/clj_kondo/impl/rewrite_clj_patch.clj"]}}

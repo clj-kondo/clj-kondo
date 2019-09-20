@@ -929,6 +929,10 @@
                    msg)))
     (analyze-children ctx children)))
 
+(defn reg-call [{:keys [:calls-by-id]} call id]
+  (swap! calls-by-id assoc id call)
+  nil)
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1072,6 +1076,7 @@
     (if (= 'ns resolved-as-clojure-var-name)
       analyzed
       (let [in-def (:in-def ctx)
+            id (:id expr)
             call (cond-> {:type :call
                           :resolved-ns resolved-namespace
                           :ns ns-name
@@ -1087,12 +1092,13 @@
                           :lang lang
                           :filename (:filename ctx)
                           :expr expr
-                          :id (:id expr)
                           :callstack (:callstack ctx)
                           :config (:config ctx)
                           :top-ns (:top-ns ctx)
                           :arg-types (:arg-types ctx)}
+                   id (assoc :id id)
                    in-def (assoc :in-def in-def))]
+        (when id (reg-call ctx call id))
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
           (namespace/reg-used-namespace! ctx
@@ -1168,7 +1174,7 @@
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
-      (when-not (one-of t [:list :quote]) ;; list and quote are handled specially because of return types
+      (when-not (one-of t [:map :list :quote]) ;; list and quote are handled specially because of return types
         (types/add-arg-type-from-expr ctx expr))
       (case t
         :quote (let [ctx (assoc ctx :quoted true)]
@@ -1190,8 +1196,16 @@
                              (update :callstack #(cons [nil t] %)))
                          expr)
         :map (do (key-linter/lint-map-keys ctx expr)
-                 (analyze-children (update ctx
-                                           :callstack #(cons [nil t] %)) children))
+                 (let [children (map (fn [c s]
+                                       (assoc c :id s))
+                                     children
+                                     (repeatedly #(gensym)))
+                       analyzed (analyze-children
+                                 (update ctx
+                                         :callstack #(cons [nil t] %)) children)]
+                   (types/add-arg-type-from-expr ctx (assoc expr
+                                                            :children children
+                                                            :analyzed analyzed))))
         :set (do (key-linter/lint-set ctx expr)
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
@@ -1332,6 +1346,7 @@
                                     (parse-string "(ns user)")))
          init-ctx (assoc ctx
                          :ns init-ns
+                         :calls-by-id (atom {})
                          :top-ns nil
                          :global-config config)]
      (loop [ctx init-ctx

@@ -91,6 +91,8 @@
         (identical? target :any) true
         (identical? k :nil) (or (nilable? target)
                                 (identical? :seqable target))
+        (map? k) (do
+                   (recur (:type k) target ))
         :else
         (let [nk (unnil k)
               nt (unnil target)]
@@ -266,14 +268,62 @@
         (double? v) :double
         :else :number))
 
-(defn expr->tag [{:keys [:bindings :lang]} expr]
+(defn map-keys [expr]
+  (take-nth 2 (:children expr)))
+
+(defn map-vals [expr]
+  (take-nth 2 (rest (:children expr))))
+
+(declare expr->tag)
+
+(defn map-key [_ctx expr]
+  (case (tag expr)
+    :token (sexpr expr)
+    ::unknown))
+
+(defn map->tag [ctx expr]
+  (let [ks (map #(map-key ctx %) (map-keys expr))
+        mvals (map-vals expr)
+        vtags (map (fn [e]
+                     (assoc (meta e)
+                            :tag (expr->tag ctx e))) mvals)]
+    {:type :map
+     :val (zipmap ks vtags)}))
+
+(defn spec-from-call [_ctx call _expr]
+  (when (and (not (:unresolved? call)))
+    (when-let [arg-types (:arg-types call)]
+      (let [call-ns (:resolved-ns call)
+            call-name (:name call)]
+        ;; (prn call-ns call-name)
+        (if-let [spec (get-in specs [call-ns call-name])]
+          (or
+           (when-let [a (:arities spec)]
+             (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
+               (when-let [t (:ret-tag called-arity)]
+                 {:tag t})))
+           (if-let [fn-spec (:fn spec)]
+             {:tag (fn-spec @arg-types)}
+             {:tag (:ret spec)}))
+          {:call call})))))
+
+(defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
+  (or (if-let [id (:id expr)]
+        (if-let [call (get @calls-by-id id)]
+          (or (spec-from-call ctx call expr)
+              {:tag :any})
+          {:tag :any})
+        {:tag :any})))
+
+(defn expr->tag [{:keys [:bindings :lang] :as ctx} expr]
   (let [t (tag expr)
         edn? (= :edn lang)]
     ;; (prn t expr)
     (case t
-      :map :map
+      :map (map->tag ctx expr)
       :vector :vector
-      :list (if edn? :list :any) ;; a call we know nothing about
+      :list (if edn? :list
+                (:tag (spec-from-list-expr ctx expr))) ;; a call we know nothing about
       :fn :fn
       :token (let [v (sexpr expr)]
                (cond
@@ -294,23 +344,6 @@
       (swap! arg-types conj {:tag (expr->tag ctx expr)
                              :row row
                              :col col}))))
-
-(defn spec-from-call [_ctx call _expr]
-  (when (and (not (:unresolved? call)))
-    (when-let [arg-types (:arg-types call)]
-      (let [call-ns (:resolved-ns call)
-            call-name (:name call)]
-        ;; (prn call-ns call-name)
-        (if-let [spec (get-in specs [call-ns call-name])]
-          (or
-           (when-let [a (:arities spec)]
-             (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
-               (when-let [t (:ret-tag called-arity)]
-                 {:tag t})))
-           (if-let [fn-spec (:fn spec)]
-             {:tag (fn-spec @arg-types)}
-             {:tag (:ret spec)}))
-          {:call call})))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]
@@ -351,9 +384,24 @@
                           :type :type-mismatch
                           :message (str "Insufficient input.")}))
 
-(defn lint-arg-types [{:keys [:config] :as ctx} {called-ns :ns called-name :name arities :arities :as _called-fn} args tags]
+(defn match-map [ctx m s]
+  ;; (prn "M" m "S" s)
+  (let [m (-> m :tag :val)]
+    (doseq [[k target] (:req s)]
+      (let [v (get m k)
+            t (:tag v)]
+        (if (keyword? target)
+          (if-not (match? t target)
+            (emit-non-match! ctx target v t))
+          (match-map ctx v target))))))
+
+(defn lint-arg-types
+  [{:keys [:config] :as ctx}
+   {called-ns :ns called-name :name arities :arities :as _called-fn}
+   args tags]
   (let [ ;; TODO also pass the call, so we don't need the count
         arity (count args)]
+    ;; (prn args)
     (when-let [args-spec
                (or
                 (when-let [s (config/type-mismatch-config config called-ns called-name)]
@@ -398,6 +446,9 @@
                                       (match? t s))
                             (emit-non-match! ctx s a t))
                           (recur check-ctx rest-args-spec rest-args rest-tags)))
+                (= :map (:type s))
+                ;; TODO: recur, etc.
+                (match-map ctx a s)
                 :else
                 (throw (Exception. (str "unexpected spec: " (pr-str s))))))
         (throw (ex-info "unexpected" {}))))))
