@@ -1,0 +1,1 @@
+{lint-as-config {:arities {1 {:args [:map]}}}}

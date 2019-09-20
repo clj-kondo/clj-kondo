@@ -208,15 +208,15 @@
               (boolean (some #(re-find % ns-str) namespace-regexes))))))))
 
 (def type-mismatch-config
-  (let [delayed-cfg (fn [config var-ns var-name]
-                      (let [var-sym (symbol (str var-ns) (str var-name))]
-                        (when-let [spec (get-in config [:linters :type-mismatch :vars var-sym])]
-                          (update spec :arities (fn [arities]
-                                                  (map-vals
-                                                   (fn [ar]
-                                                     (set/rename-keys ar {:args :arg-tags
-                                                                          :ret :ret-tag}))
-                                                   arities))))))
+  (let [delayed-cfg
+        (fn [config var-ns var-name]
+          (when-let [spec (get-in config [:linters :type-mismatch :namespaces var-ns var-name])]
+            (update spec :arities (fn [arities]
+                                    (map-vals
+                                     (fn [ar]
+                                       (set/rename-keys ar {:args :arg-tags
+                                                            :ret :ret-tag}))
+                                     arities)))))
         delayed-cfg (memoize delayed-cfg)]
     delayed-cfg))
 
