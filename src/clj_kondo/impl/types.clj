@@ -289,14 +289,12 @@
       :any)))
 
 (defn add-arg-type-from-expr [ctx expr]
-  ;; (prn expr "=>" (expr->tag ctx expr) (meta expr))
   (when-let [arg-types (:arg-types ctx)]
     (let [{:keys [:row :col]} (meta expr)]
       (swap! arg-types conj {:tag (expr->tag ctx expr)
                              :row row
                              :col col}))))
 
-;; TODO: rename return-type
 (defn spec-from-call [_ctx call _expr]
   (when (and (not (:unresolved? call)))
     (when-let [arg-types (:arg-types call)]
@@ -306,7 +304,6 @@
         (if-let [spec (get-in specs [call-ns call-name])]
           (or
            (when-let [a (:arities spec)]
-             ;; TODO: match varargs
              (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
                (when-let [t (:ret-tag called-arity)]
                  {:tag t})))
@@ -323,48 +320,6 @@
                                    :col (:col call))
                             {:tag :any}))))
 
-(defn emit-warning* [{:keys [:findings] :as ctx} problem args via offending-arg offending-tag]
-  (let [via-label (or (label via)
-                      (when via
-                        (name via)))
-        offending-tag-label (or (label offending-tag)
-                                (when offending-tag
-                                  (when (keyword? offending-tag)
-                                    (name offending-tag))))
-        reason (:reason problem)
-        insufficient? (= "Insufficient input" reason)
-        extra? (= "Extra input" reason)]
-    (cond insufficient?
-          (findings/reg-finding! findings {:filename (:filename ctx)
-                                           :row (:row (last args))
-                                           :col (:col (last args))
-                                           :type :type-mismatch
-                                           :message "More arguments expected."})
-          extra?
-          (findings/reg-finding! findings {:filename (:filename ctx)
-                                           :row (:row (last args))
-                                           :col (:col (last args))
-                                           :type :type-mismatch
-                                           :message "Too many arguments."})
-          (and via-label offending-tag-label)
-          (findings/reg-finding! findings {:filename (:filename ctx)
-                                           :row (:row offending-arg)
-                                           :col (:col offending-arg)
-                                           :type :type-mismatch
-                                           :message (str "Expected: " via-label
-                                                         ", received: " offending-tag-label
-                                                         (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
-                                                           (format " (%s)" offending-tag))
-                                                         ".")}))))
-
-(defn emit-warning! [ctx problem args tags]
-  (let [via (first (:via problem))
-        in-path (:in problem)
-        pos (first in-path)
-        offending-arg (when pos (nth args pos))
-        offending-tag (when pos (nth tags pos))]
-    (emit-warning* ctx problem args via offending-arg offending-tag)))
-
 (defn args-spec-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity)
                               (:varargs arities))]
@@ -375,24 +330,26 @@
   (let [expected-label (or (label s) (name s))
         offending-tag-label (or (label t) (name t))]
     ;; (prn s arg t)
-    (findings/reg-finding! findings {:filename filename
-                                     :row (:row arg)
-                                     :col (:col arg)
-                                     :type :type-mismatch
-                                     :message (str "Expected: " expected-label
-                                                   (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
-                                                     (format " (%s)" s))
-                                                   ", received: " offending-tag-label
-                                                   (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
-                                                     (format " (%s)" t))
-                                                   ".")})))
+    (findings/reg-finding! findings
+                           {:filename filename
+                            :row (:row arg)
+                            :col (:col arg)
+                            :type :type-mismatch
+                            :message (str "Expected: " expected-label
+                                          (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                                            (format " (%s)" s))
+                                          ", received: " offending-tag-label
+                                          (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                                            (format " (%s)" t))
+                                          ".")})))
 
 (defn emit-more-input-expected! [{:keys [:findings :filename]} arg]
-  (findings/reg-finding! findings {:filename filename
-                                   :row (:row arg)
-                                   :col (:col arg)
-                                   :type :type-mismatch
-                                   :message (str "Insufficient input.")}))
+  (findings/reg-finding! findings
+                         {:filename filename
+                          :row (:row arg)
+                          :col (:col arg)
+                          :type :type-mismatch
+                          :message (str "Insufficient input.")}))
 
 (defn lint-arg-types [{:keys [:config] :as ctx} {called-ns :ns called-name :name arities :arities :as _called-fn} args tags]
   (let [ ;; TODO also pass the call, so we don't need the count
@@ -439,21 +396,11 @@
                                       ;; (prn "match t s" t s)
                                       nil
                                       (match? t s))
-                            (emit-non-match! ctx s a t)
-                            #_(let [d (s/explain-data s t)]
-                                ;; (prn called-ns called-name tags)
-                                (run! #(emit-warning* ctx % args s a t)
-                                      (:clj-kondo.impl.clojure.spec.alpha/problems d))))
+                            (emit-non-match! ctx s a t))
                           (recur check-ctx rest-args-spec rest-args rest-tags)))
                 :else
                 (throw (Exception. (str "unexpected spec: " (pr-str s))))))
-        (throw (ex-info "unexpected" {}))
-        #_(when-not (s/valid? args-spec tags)
-            (let [d (s/explain-data args-spec tags)]
-              ;; (prn called-ns called-name tags)
-              ;; (prn "D" d)
-              (run! #(emit-warning! ctx % args tags)
-                    (:clj-kondo.impl.clojure.spec.alpha/problems d))))))))
+        (throw (ex-info "unexpected" {}))))))
 
 ;;;; Scratch
 
