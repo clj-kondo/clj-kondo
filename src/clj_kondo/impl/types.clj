@@ -7,33 +7,6 @@
     [tag sexpr]]
    [clj-kondo.impl.config :as config]))
 
-(def labels
-  {:nil "nil"
-   :string "string"
-   :nilable-string "string or nil"
-   :number "number"
-   :nilable-number "number or nil"
-   :int "integer"
-   :nilable-int "integer or nil"
-   :pos-int "positive integer"
-   :nat-int "natural integer"
-   :neg-int "negative integer"
-   :seqable-out "seqable collection"
-   :seqable "seqable collection"
-   :vector "vector"
-   :associative "associative collection"
-   :nilable-associative "associative collection or nil"
-   :map "map"
-   :atom "atom"
-   :fn "function"
-   :ifn "function"
-   :keyword "keyword"
-   :transducer "transducer"
-   :seqable-or-transducer "seqable or transducer"
-   :set "set"
-   :nilable-set "set or nil"
-   :char-sequence "char sequence"})
-
 (def is-a-relations
   {:string #{:char-sequence :seqable} ;; string is a char-sequence
    :regex #{:char-sequence}
@@ -62,15 +35,41 @@
    :seqable #{:coll :string :nil}
    :associative #{:seqable :map :vector}})
 
-;; TODO: check that every nilable type occurs as a key in this table!
-(def nilable->type
-  {:nilable-string :string
-   :nilable-char-sequence :char-sequence
-   :nilable-number :number
-   :nilable-int :int
-   :nilable-boolean :boolean
-   :nilable-associative :associative
-   :nilable-set :set})
+(defn nilable? [k]
+  (= "nilable" (namespace k)))
+
+(defn unnil
+  "Returns the non-nilable version of k when it's nilable."
+  [k]
+  (when (nilable? k)
+    (keyword (name k))))
+
+(def labels
+  {:nil "nil"
+   :string "string"
+   :number "number"
+   :int "integer"
+   :pos-int "positive integer"
+   :nat-int "natural integer"
+   :neg-int "negative integer"
+   :seqable-out "seqable collection"
+   :seqable "seqable collection"
+   :vector "vector"
+   :associative "associative collection"
+   :map "map"
+   :atom "atom"
+   :fn "function"
+   :ifn "function"
+   :keyword "keyword"
+   :transducer "transducer"
+   :seqable-or-transducer "seqable or transducer"
+   :set "set"
+   :char-sequence "char sequence"})
+
+(defn label [k]
+  (if (nilable? k)
+    (str (get labels (unnil k)) " or nil")
+    (get labels k)))
 
 (def current-ns-name (str (ns-name *ns*)))
 
@@ -90,11 +89,11 @@
   ;; (prn k '-> target)
   (cond (identical? k :any) true
         (identical? target :any) true
-        (identical? k :nil) (or (contains? nilable->type target)
+        (identical? k :nil) (or (nilable? target)
                                 (identical? :seqable target))
         :else
-        (let [nk (get nilable->type k)
-              nt (get nilable->type target)]
+        (let [nk (unnil k)
+              nt (unnil target)]
           ;; (prn k '-> nk '| target '-> nt)
           (case [(some? nk) (some? nt)]
             [true true]
@@ -106,12 +105,6 @@
             (or (sub? k target)
                 (super? k target))))))
 
-(comment
-  (match? :associative :seqable)
-  (match? :nilable-number :seqable)
-  (match? :pos-int :seqable)
-  )
-
 (def nilable-types
   #{:char-sequence :string :regex :char
     :number :double :int :neg-int :nat-int :pos-int
@@ -122,22 +115,9 @@
     :atom
     :keyword :symbol})
 
+;; these types already contain nil
 (def other-types
   #{:seqable :seqable-out :nil})
-
-;; (s/def :any any?)
-
-#_(defmacro reg-specs!
-    "Defines spec for type k and type nilable-k."
-    []
-    `(do ~@(for [k nilable-types]
-             (let [nilable-k (keyword current-ns-name (str "nilable-" (name k)))]
-               `(do (s/def ~k #(match? % ~k))
-                    (s/def ~nilable-k #(match? % ~nilable-k)))))
-         ~@(for [k other-types]
-             `(do (s/def ~k #(match? % ~k))))))
-
-;; (reg-specs!)
 
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
@@ -145,21 +125,21 @@
    (case meta-tag
      void :nil
      (boolean) :boolean
-     (Boolean java.lang.Boolean) :nilable-boolean
+     (Boolean java.lang.Boolean) :nilable/boolean
      (byte) :byte
-     (Byte java.lang.Byte) :nilable-byte
-     (Number java.lang.Number) :nilable-number
+     (Byte java.lang.Byte) :nilable/byte
+     (Number java.lang.Number) :nilable/number
      (int long) :int
-     (Long java.lang.Long) :nilable-int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
+     (Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
      (float double) :double
-     (Float Double java.lang.Float java.lang.Double) :nilable-double
-     (CharSequence java.lang.CharSequence) :nilable-char-sequence
-     (String java.lang.String) :nilable-string ;; as this is now way to
+     (Float Double java.lang.Float java.lang.Double) :nilable/double
+     (CharSequence java.lang.CharSequence) :nilable/char-sequence
+     (String java.lang.String) :nilable/string ;; as this is now way to
      ;; express non-nilable,
      ;; we'll go for the most
      ;; relaxed type
      (char) :char
-     (Character java.lang.Character) :nilable-char
+     (Character java.lang.Character) :nilable/char
      (Seqable clojure.lang.Seqable) (if out? :seqable-out :seqable)
      (do #_(prn "did not catch tag:" meta-tag) nil nil))))
 
@@ -172,10 +152,10 @@
   {;; 22
    'cons {:arities {2 {:arg-tags [:any :seqable]}}}
    ;; 181
-   'assoc {:arities {3 {:arg-tags [:nilable-associative :any :any]
+   'assoc {:arities {3 {:arg-tags [:nilable/associative :any :any]
                         :ret-tag :associative}
                      :varargs {:min-arity 3
-                               :arg-tags '[:nilable-associative :any :any (* [:any :any])]
+                               :arg-tags '[:nilable/associative :any :any (* [:any :any])]
                                :ret-tag :associative}}}
    ;; 544
    'str {:arities {:varargs {:arg-tags '[(* :any)]
@@ -254,14 +234,14 @@
    'clojure.set
    {'union
     {:arities {:varargs {:min-arity 0
-                         :arg-tags '[(* :nilable-set)]
-                         :ret-tag :nilable-set}}}
+                         :arg-tags '[(* :nilable/set)]
+                         :ret-tag :nilable/set}}}
     'intersection
-    {:arities {:varargs {:arg-tags '[:nilable-set (* :nilable-set)]
-                         :ret-tag :nilable-set}}}
+    {:arities {:varargs {:arg-tags '[:nilable/set (* :nilable/set)]
+                         :ret-tag :nilable/set}}}
     'difference
-    {:arities {:varargs {:arg-tags '[:nilable-set (* :nilable-set)]
-                         :ret-tag :nilable-set}}}}
+    {:arities {:varargs {:arg-tags '[:nilable/set (* :nilable/set)]
+                         :ret-tag :nilable/set}}}}
    'clojure.string
    {'join
     {:arities {1 {:arg-tags [:seqable]
@@ -344,10 +324,10 @@
                             {:tag :any}))))
 
 (defn emit-warning* [{:keys [:findings] :as ctx} problem args via offending-arg offending-tag]
-  (let [via-label (or (get labels via)
+  (let [via-label (or (label via)
                       (when via
                         (name via)))
-        offending-tag-label (or (get labels offending-tag)
+        offending-tag-label (or (label offending-tag)
                                 (when offending-tag
                                   (when (keyword? offending-tag)
                                     (name offending-tag))))
@@ -392,8 +372,8 @@
       (vec s))))
 
 (defn emit-non-match! [{:keys [:findings :filename]} s arg t]
-  (let [expected-label (or (get labels s) (name s))
-        offending-tag-label (or (get labels t) (name t))]
+  (let [expected-label (or (label s) (name s))
+        offending-tag-label (or (label t) (name t))]
     ;; (prn s arg t)
     (findings/reg-finding! findings {:filename filename
                                      :row (:row arg)
@@ -480,5 +460,6 @@
 (comment
   (match? :seqable :vector)
   (match? :map :associative)
-  (match? :map :nilable-associative)
+  (match? :map :nilable/associative)
+  (label :nilable/set)
   )

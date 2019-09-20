@@ -360,7 +360,6 @@
                                  (assoc :docstring? docstring
                                         :in-def fn-name)) %)
                            bodies)
-        fixed-arities (set (keep :fixed-arity parsed-bodies))
         arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :tag :tags]}]
                                 (let [arg-tags (when (some identity tags)
                                                  tags)
@@ -371,8 +370,8 @@
                                     [:varargs v]
                                     [fixed-arity v]))))
                       parsed-bodies)
-        ;; _ (prn ">" arities)
-        var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))]
+        fixed-arities (into #{} (filter number?) (keys arities))
+        var-args-min-arity (get-in arities [:varargs :min-arity])]
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr

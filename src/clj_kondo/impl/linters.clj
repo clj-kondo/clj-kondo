@@ -260,9 +260,11 @@
                                                                          :base-lang base-lang
                                                                          :lang call-lang)
                                                                   caller-ns-sym fn-ns fn-name))
-                             fixed-arities (:fixed-arities called-fn)
-                             var-args-min-arity (:var-args-min-arity called-fn)
-                             ;; arities (:arities called-fn)
+                             arities (:arities called-fn)
+                             fixed-arities (or (:fixed-arities called-fn) (into #{} (filter number?) (keys arities)))
+                             ;; fixed-arities (:fixed-arities called-fn)
+                             var-args-min-arity (or (:var-args-min-arity called-fn) (-> arities :varargs :min-arity))
+                             ;; var-args-min-arity (:var-args-min-arity called-fn)
                              ;; _ (prn ">>" (:name called-fn) arities (keys called-fn))
                              arity-error?
                              (and
