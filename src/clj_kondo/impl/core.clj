@@ -45,8 +45,12 @@
           (binding [*out* *err*]
             (println "WARNING: included file" (.getCanonicalPath f) "does not exist.")))))}})
 
-(defn read-edn-file [f]
-  (edn/read-string (opts f) (slurp f)))
+(defn read-edn-file [^java.io.File f]
+  (try (edn/read-string (opts f) (slurp f))
+       (catch Exception e
+         (binding [*out* *err*]
+           (println "WARNING: error while reading"
+                    (.getCanonicalPath f) (format "(%s)" (.getMessage e)))))))
 
 (defn resolve-config [cfg-dir config]
   (reduce config/merge-config! config/default-config
