@@ -2562,14 +2562,20 @@
         :row 1,
         :col 31,
         :level :error,
-        :message "Missing required key: :b"}
+        :message "Expected: string, received: positive integer."}
        {:file "<stdin>",
         :row 1,
-        :col 35,
+        :col 31,
         :level :error,
-        :message "Expected: string, received: positive integer."})
+        :message "Missing required key: :b"}
+       {:file "<stdin>",
+        :row 3,
+        :col 36,
+        :level :error,
+        :message "Expected: map, received: string."})
      (lint! "(ns foo) (defn foo [_x]) (foo {:a 1})
              (defn bar [x] x) (foo (bar {})) ;; no false positive for this one
+             (defn baz [x] x) (foo (baz 1)) ;; warning about baz not returning a map
              "
             {:linters {:type-mismatch
                        {:level :error
@@ -2578,7 +2584,9 @@
                                                                            :b :any}}]
                                                              :ret :map}}}
                                            bar {:arities {1 {:args [:map]
-                                                             :ret :map}}}}}}}})))
+                                                             :ret :map}}}
+                                           baz {:arities {1 {:args [:int]
+                                                             :ret :string}}}}}}}})))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))

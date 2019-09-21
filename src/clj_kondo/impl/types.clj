@@ -409,16 +409,12 @@
                           :type :type-mismatch
                           :message (str "Missing required key: " k)}))
 
-(defn match-map [ctx m s]
-  (when-let [mval (-> m :tag :val)]
-    (doseq [[k target] (:req s)]
-      (if-let [v (get mval k)]
-        (when-let [t (:tag v)]
-          (if (keyword? target)
-            (if-not (match? t target)
-              (emit-non-match! ctx target v t))
-            (match-map ctx v target)))
-        (emit-missing-required-key! ctx m k)))))
+(defn match-map [ctx s a t]
+  (prn "M" t "S" s)
+  )
+
+(defn match* [ctx s a t]
+  )
 
 (defn lint-arg-types
   [{:keys [:config] :as ctx}
@@ -471,8 +467,19 @@
                             (emit-non-match! ctx s a t))
                           (recur check-ctx rest-args-spec rest-args rest-tags)))
                 (= :map (:type s))
-                ;; TODO: recur, etc.
-                (match-map ctx a s)
+                (cond (keyword? t)
+                      (when-not (match? t :map)
+                        (emit-non-match! ctx :map a t))
+                      :else
+                      (do
+                        nil ;; (prn "S" s "A" a "T" t)
+                        (when-let [mval (-> t :val)]
+                          (doseq [[k target] (:req s)]
+                            (if-let [v (get mval k)]
+                              (when-let [t (:tag v)]
+                                (when-not (match? t target)
+                                  (emit-non-match! ctx target a t)))
+                              (emit-missing-required-key! ctx a k))))))
                 :else
                 (throw (Exception. (str "unexpected spec: " (pr-str s))))))
         (throw (ex-info "unexpected" {}))))))
