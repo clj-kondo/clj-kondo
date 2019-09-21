@@ -159,66 +159,66 @@
 
 (def clojure-core
   {;; 22
-   'cons {:arities {2 {:arg-tags [:any :seqable]}}}
+   'cons {:arities {2 {:args [:any :seqable]}}}
    ;; 181
-   'assoc {:arities {3 {:arg-tags [:nilable/associative :any :any]
-                        :ret-tag :associative}
+   'assoc {:arities {3 {:args [:nilable/associative :any :any]
+                        :ret :associative}
                      :varargs {:min-arity 3
-                               :arg-tags '[:nilable/associative :any :any #_(* [:any :any])
+                               :args '[:nilable/associative :any :any #_(* [:any :any])
                                            {:op :rest
                                             :spec [:any :any]}]
-                               :ret-tag :associative}}}
+                               :ret :associative}}}
    ;; 544
-   'str {:arities {:varargs {:arg-tags '[(* :any)]
-                             :ret-tag :string}}}
+   'str {:arities {:varargs {:args '[(* :any)]
+                             :ret :string}}}
    ;; 922
-   'inc {:arities {1 {:arg-tags [:number]}}
+   'inc {:arities {1 {:args [:number]}}
          :ret :number}
    ;; 947
-   'reverse {:arities {1 {:arg-tags [:seqable]}}
+   'reverse {:arities {1 {:args [:seqable]}}
              :ret :seqable-out}
    ;; 2327
    'atom {:ret :atom}
    ;; 2345
-   'swap! {:arities {:varargs {:arg-tags '[:atom :ifn (* :any)]
-                               :ret-tag :any}}}
+   'swap! {:arities {:varargs {:args '[:atom :ifn (* :any)]
+                               :ret :any}}}
    ;; 2576
    'juxt {:arities {:varargs {:min-arity 0
-                              :arg-tags '[(* :ifn)]
-                              :ret-tag :ifn}}}
+                              :args '[(* :ifn)]
+                              :ret :ifn}}}
    ;; 2727
-   'map {:arities {1 {:arg-tags [:ifn]
-                      :ret-tag :transducer}
-                   :varargs {:arg-tags '[:ifn :seqable (* :seqable)]
-                             :ret-tag :seqable-out}}}
+   'map {:arities {1 {:args [:ifn]
+                      :ret :transducer}
+                   :varargs {:args '[:ifn :seqable (* :seqable)]
+                             :ret :seqable-out}}}
    ;; 2793
-   'filter {:arities {1 {:arg-tags [:ifn]
-                         :ret-tag :transducer}
-                      2 {:arg-tags [:ifn :seqable]
-                         :ret-tag :seqable-out}}}
+   'filter {:arities {1 {:args [:ifn]
+                         :ret :transducer}
+                      2 {:args [:ifn :seqable]
+                         :ret :seqable-out}}}
    ;; 2826
-   'remove {:arities {1 {:arg-tags [:ifn]
-                         :ret-tag :transducer}
-                      2 {:arg-tags [:ifn :seqable]
-                         :ret-tag :seqable-out}}}
+   'remove {:arities {1 {:args [:ifn]
+                         :ret :transducer}
+                      2 {:args [:ifn :seqable]
+                         :ret :seqable-out}}}
    ;; 4105
    'set {:ret :set}
    ;; 4981
-   'subs {:arities {2 {:arg-tags [:string :nat-int]
-                       :ret-tag :string}
-                    3 {:arg-tags [:string :nat-int :nat-int]
-                       :ret-tag :string}}}
+   'subs {:arities {2 {:args [:string :nat-int]
+                       :ret :string}
+                    3 {:args [:string :nat-int :nat-int]
+                       :ret :string}}}
    ;; 6790
-   'reduce {:arities {2 {:arg-tags [:ifn :seqable]
-                         :ret-tag :any}
-                      3 {:arg-tags [:ifn :any :seqable]
-                         :ret-tag :any}}}
+   'reduce {:arities {2 {:args [:ifn :seqable]
+                         :ret :any}
+                      3 {:args [:ifn :any :seqable]
+                         :ret :any}}}
    ;; 6887
-   'into {:arities {0 {:arg-tags []
-                       :ret-tag :coll}
-                    1 {:arg-tags [:coll]}
-                    2 {:arg-tags [:coll :seqable]}
-                    3 {:arg-tags [:coll :transducer :seqable]}}
+   'into {:arities {0 {:args []
+                       :ret :coll}
+                    1 {:args [:coll]}
+                    2 {:args [:coll :seqable]}
+                    3 {:args [:coll :transducer :seqable]}}
           :fn (with-meta-fn
                 (fn [args]
                   (let [t (:tag (first args))]
@@ -226,18 +226,18 @@
                       :coll
                       t))))}
    ;; 6903
-   'mapv {:arities {1 {:arg-tags [:ifn]
-                       :ret-tag :transducer}
-                    :varargs {:arg-tags '[:ifn :seqable (* :seqable)]
-                              :ret-tag :vector}}}
+   'mapv {:arities {1 {:args [:ifn]
+                       :ret :transducer}
+                    :varargs {:args '[:ifn :seqable (* :seqable)]
+                              :ret :vector}}}
    ;; 7313
-   'filterv {:arities {2 {:arg-tags [:ifn :seqable]
-                          :ret-tag :vector}}}
+   'filterv {:arities {2 {:args [:ifn :seqable]
+                          :ret :vector}}}
    ;; 7313
-   'keep {:arities {1 {:arg-tags [:ifn]
-                       :ret-tag :transducer}
-                    2 {:arg-tags [:ifn :seqable]
-                       :ret-tag :seqable-out}}}})
+   'keep {:arities {1 {:args [:ifn]
+                       :ret :transducer}
+                    2 {:args [:ifn :seqable]
+                       :ret :seqable-out}}}})
 
 (def specs
   {'clojure.core clojure-core
@@ -245,29 +245,29 @@
    'clojure.set
    {'union
     {:arities {:varargs {:min-arity 0
-                         :arg-tags '[(* :nilable/set)]
-                         :ret-tag :nilable/set}}}
+                         :args '[(* :nilable/set)]
+                         :ret :nilable/set}}}
     'intersection
-    {:arities {:varargs {:arg-tags '[:nilable/set (* :nilable/set)]
-                         :ret-tag :nilable/set}}}
+    {:arities {:varargs {:args '[:nilable/set (* :nilable/set)]
+                         :ret :nilable/set}}}
     'difference
-    {:arities {:varargs {:arg-tags '[:nilable/set (* :nilable/set)]
-                         :ret-tag :nilable/set}}}}
+    {:arities {:varargs {:args '[:nilable/set (* :nilable/set)]
+                         :ret :nilable/set}}}}
    'clojure.string
    {'join
-    {:arities {1 {:arg-tags [:seqable]
-                  :ret-tag :string}
-               2 {:arg-tags [:any :seqable]
-                  :ret-tag :string}}}
+    {:arities {1 {:args [:seqable]
+                  :ret :string}
+               2 {:args [:any :seqable]
+                  :ret :string}}}
     'starts-with?
-    {:arities {2 {:arg-tags [:char-sequence :string]
-                  :ret-tag :boolean}}}
+    {:arities {2 {:args [:char-sequence :string]
+                  :ret :boolean}}}
     'ends-with?
-    {:arities {2 {:arg-tags [:char-sequence :string]
-                  :ret-tag :boolean}}}
+    {:arities {2 {:args [:char-sequence :string]
+                  :ret :boolean}}}
     'includes?
-    {:arities {2 {:arg-tags [:char-sequence :char-sequence]
-                  :ret-tag :boolean}}}}})
+    {:arities {2 {:args [:char-sequence :char-sequence]
+                  :ret :boolean}}}}})
 
 (defn number->tag [v]
   (cond (int? v)
@@ -301,7 +301,7 @@
 
 (defn ret-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity) (:varargs arities))]
-    (when-let [t (:ret-tag called-arity)]
+    (when-let [t (:ret called-arity)]
       {:tag t})))
 
 (defn ret-tag-from-call [{:keys [:config]} call _expr]
@@ -317,7 +317,7 @@
           (or
            (when-let [a (:arities spec)]
              (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
-               (when-let [t (:ret-tag called-arity)]
+               (when-let [t (:ret called-arity)]
                  {:tag t})))
            (if-let [fn-spec (:fn spec)]
              {:tag (fn-spec @arg-types)}
@@ -375,7 +375,7 @@
 (defn args-spec-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity)
                               (:varargs arities))]
-    (when-let [s (:arg-tags called-arity)]
+    (when-let [s (:args called-arity)]
       (vec s))))
 
 (defn emit-non-match! [{:keys [:findings :filename]} s arg t]

@@ -221,7 +221,7 @@
             (update spec :arities (fn [arities]
                                     (map-vals
                                      (fn [ar]
-                                       (set/rename-keys ar {:args :arg-tags
+                                       ar #_(set/rename-keys ar {:args :arg-tags
                                                             :ret :ret-tag}))
                                      arities)))))
         delayed-cfg (memoize delayed-cfg)]
