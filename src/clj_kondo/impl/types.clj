@@ -130,6 +130,8 @@
          (contains? (get is-a-relations k) target)
          (contains? (get could-be-relations k) target))))))
 
+;; TODO: we could look more intelligently at the source of the tag, e.g. if it
+;; is not a third party String type
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
   ([meta-tag out?]
@@ -154,8 +156,6 @@
      (Seqable clojure.lang.Seqable) (if out? :seqable-out :seqable)
      (do #_(prn "did not catch tag:" meta-tag) nil nil))))
 
-
-
 (defn number->tag [v]
   (cond (int? v)
         (cond (pos-int? v) :pos-int
@@ -163,12 +163,6 @@
               (neg-int? v) :neg-int)
         (double? v) :double
         :else :number))
-
-(defn map-keys [expr]
-  (take-nth 2 (:children expr)))
-
-(defn map-vals [expr]
-  (take-nth 2 (rest (:children expr))))
 
 (declare expr->tag)
 
@@ -178,8 +172,9 @@
     ::unknown))
 
 (defn map->tag [ctx expr]
-  (let [ks (map #(map-key ctx %) (map-keys expr))
-        mvals (map-vals expr)
+  (let [children (:children expr)
+        ks (map #(map-key ctx %) (take-nth 2 children))
+        mvals (take-nth 2 (rest children))
         vtags (map (fn [e]
                      (assoc (meta e)
                             :tag (expr->tag ctx e))) mvals)]
@@ -297,68 +292,64 @@
                           :type :type-mismatch
                           :message (str "Missing required key: " k)}))
 
-;; TODO: we don't need to get the tags separately, because we already have them in the args
 (defn lint-arg-types
   [{:keys [:config] :as ctx}
    {called-ns :ns called-name :name arities :arities :as _called-fn}
-   args tags]
-  (let [ ;; TODO also pass the call, so we don't need the count
-        arity (count args)]
-    ;; (prn args)
-    (when-let [args-spec
-               (or
-                (when-let [s (config/type-mismatch-config config called-ns called-name)]
-                  (when-let [a (:arities s)]
-                    (args-spec-from-arities a arity)))
-                (when-let [s (get-in built-in-specs [called-ns called-name])]
-                  (when-let [a (:arities s)]
-                    (args-spec-from-arities a arity)))
-                (args-spec-from-arities arities arity))]
-      (when (vector? args-spec)
-        (loop [check-ctx {}
-               [s & rest-args-spec :as all-specs] args-spec
-               [a & rest-args :as all-args] args
-               [t & rest-tags :as all-tags] tags]
-          ;; (prn all-specs all-args)
-          ;; (prn s t)
-          (let [op (:op s)]
-            (cond (and (empty? all-args)
-                       (empty? all-specs)) :done
-                  op
-                  (case op
-                    :rest
-                    (recur (assoc check-ctx :rest (:spec s))
-                           nil
-                           all-args
-                           all-tags)
-                    :keys
-                    (do (cond (keyword? t)
-                              (when-not (match? t :map)
-                                (emit-non-match! ctx :map a t))
-                              :else
-                              (do
-                                nil ;; (prn "S" s "A" a "T" t)
-                                (when-let [mval (-> t :val)]
-                                  (doseq [[k target] (:req s)]
-                                    (if-let [v (get mval k)]
-                                      (when-let [t (:tag v)]
-                                        (when-not (match? t target)
-                                          (emit-non-match! ctx target v t)))
-                                      (emit-missing-required-key! ctx a k))))))
-                        (recur check-ctx rest-args-spec rest-args rest-tags)))
-                  (nil? s) (cond (seq all-specs) (recur check-ctx rest-args-spec rest-args rest-tags)
-                                 (:rest check-ctx)
-                                 (recur check-ctx [(:rest check-ctx)] all-args all-tags)) ;; nil is :any
-                  (vector? s) (recur check-ctx (concat s rest-args-spec) all-args all-tags)
-                  (keyword? s)
-                  (cond (empty? all-args) (emit-more-input-expected! ctx (last args))
-                        :else
-                        (do (when-not (do
-                                        ;; (prn "match t s" t s)
-                                        nil
-                                        (match? t s))
-                              (emit-non-match! ctx s a t))
-                            (recur check-ctx rest-args-spec rest-args rest-tags))))))))))
+   args tags arity]
+  (when-let [args-spec
+             (or
+              (when-let [s (config/type-mismatch-config config called-ns called-name)]
+                (when-let [a (:arities s)]
+                  (args-spec-from-arities a arity)))
+              (when-let [s (get-in built-in-specs [called-ns called-name])]
+                (when-let [a (:arities s)]
+                  (args-spec-from-arities a arity)))
+              (args-spec-from-arities arities arity))]
+    (when (vector? args-spec)
+      (loop [check-ctx {}
+             [s & rest-args-spec :as all-specs] args-spec
+             [a & rest-args :as all-args] args
+             [t & rest-tags :as all-tags] tags]
+        ;; (prn all-specs all-args)
+        ;; (prn s t)
+        (let [op (:op s)]
+          (cond (and (empty? all-args)
+                     (empty? all-specs)) :done
+                op
+                (case op
+                  :rest
+                  (recur (assoc check-ctx :rest (:spec s))
+                         nil
+                         all-args
+                         all-tags)
+                  :keys
+                  (do (cond (keyword? t)
+                            (when-not (match? t :map)
+                              (emit-non-match! ctx :map a t))
+                            :else
+                            (do
+                              nil ;; (prn "S" s "A" a "T" t)
+                              (when-let [mval (-> t :val)]
+                                (doseq [[k target] (:req s)]
+                                  (if-let [v (get mval k)]
+                                    (when-let [t (:tag v)]
+                                      (when-not (match? t target)
+                                        (emit-non-match! ctx target v t)))
+                                    (emit-missing-required-key! ctx a k))))))
+                      (recur check-ctx rest-args-spec rest-args rest-tags)))
+                (nil? s) (cond (seq all-specs) (recur check-ctx rest-args-spec rest-args rest-tags)
+                               (:rest check-ctx)
+                               (recur check-ctx [(:rest check-ctx)] all-args all-tags)) ;; nil is :any
+                (vector? s) (recur check-ctx (concat s rest-args-spec) all-args all-tags)
+                (keyword? s)
+                (cond (empty? all-args) (emit-more-input-expected! ctx (last args))
+                      :else
+                      (do (when-not (do
+                                      ;; (prn "match t s" t s)
+                                      nil
+                                      (match? t s))
+                            (emit-non-match! ctx s a t))
+                          (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
 
 ;;;; Scratch
 

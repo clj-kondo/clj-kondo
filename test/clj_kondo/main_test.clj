@@ -2493,8 +2493,13 @@
         :row 1,
         :col 73,
         :level :error,
-        :message #"Expected: number"})
-     (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo))"
+        :message "Expected: number, received: string or nil."}
+       {:file "<stdin>",
+        :row 1,
+        :col 85,
+        :level :error,
+        :message "Expected: number, received: string or nil."})
+     (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo)) (inc (foo 1 2 3 4))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
      '({:file "<stdin>",

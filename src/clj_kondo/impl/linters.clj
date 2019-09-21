@@ -152,26 +152,25 @@
       called-fn)))
 
 (defn resolve-arg-type [idacs arg-type]
-  (or (if-let [t (:tag arg-type)]
-        t
-        (if-let [call (:call arg-type)]
-          (let [arity (:arity call)]
-            (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
-              (let [arities (:arities called-fn)
-                    tag (or (when-let [v (get arities arity)]
-                                (:ret v))
-                              (when-let [v (get arities :varargs)]
-                                (when (>= arity (:min-arity v))
-                                  (:ret v))))]
-                tag)))
-          nil))
+  (or (:tag arg-type)
+      (if-let [call (:call arg-type)]
+        (let [arity (:arity call)]
+          (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
+            (let [arities (:arities called-fn)
+                  tag (or (when-let [v (get arities arity)]
+                            (:ret v))
+                          (when-let [v (get arities :varargs)]
+                            (when (>= arity (:min-arity v))
+                              (:ret v))))]
+              tag)))
+        :any)
       :any))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
           tags (map #(resolve-arg-type idacs %) arg-types)]
-      (types/lint-arg-types ctx called-fn arg-types tags))))
+      (types/lint-arg-types ctx called-fn arg-types tags (:arity call)))))
 
 (defn show-arities [fixed-arities var-args-min-arity]
   (let [fas (vec (sort fixed-arities))
