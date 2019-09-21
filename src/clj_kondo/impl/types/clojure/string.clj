@@ -1,4 +1,5 @@
-(ns clj-kondo.impl.types.clojure.string)
+(ns clj-kondo.impl.types.clojure.string
+  {:no-doc true})
 
 (def clojure-string
   {'join

@@ -1,4 +1,5 @@
-(ns clj-kondo.impl.types.clojure.core)
+(ns clj-kondo.impl.types.clojure.core
+  {:no-doc true})
 
 (defmacro with-meta-fn [fn-expr]
   `(with-meta

@@ -1,4 +1,5 @@
-(ns clj-kondo.impl.types.clojure.set)
+(ns clj-kondo.impl.types.clojure.set
+  {:no-doc true})
 
 (def clojure-set
   {'union

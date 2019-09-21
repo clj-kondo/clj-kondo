@@ -2,7 +2,6 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.config :as config]
-   ;;[clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.types.clojure.core :refer [clojure-core]]
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
