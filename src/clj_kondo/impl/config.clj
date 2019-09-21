@@ -100,10 +100,6 @@
          [(symbol (namespace fq-sym)) (symbol (name fq-sym))])
        fq-syms))
 
-(comment
-  (inc (merge-config! "foo" nil))
-  (inc (fq-syms->vecs 1)))
-
 (defn skip-args*
   ([config]
    (fq-syms->vecs (get config :skip-args)))
@@ -128,6 +124,13 @@
       (some (fn [disabled-sym]
               (some #(= disabled-sym %) callstack))
             disabled)))))
+
+#_(comment
+  (inc (merge-config! "foo" nil))
+  (inc (fq-syms->vecs 1))
+  (inc (skip-args "foo"))
+  (inc (skip? nil nil)) 
+  )
 
 (defn lint-as-config* [config]
   (let [m (get config :lint-as)]

@@ -86,26 +86,33 @@
         (some #(super? % target) targets))))
 
 (defn match? [k target]
-  ;; (prn k '-> target)
-  (cond (identical? k :any) true
-        (identical? target :any) true
-        (identical? k :nil) (or (nilable? target)
-                                (identical? :seqable target))
-        (map? k) (do
-                   (recur (:type k) target ))
-        :else
-        (let [nk (unnil k)
-              nt (unnil target)]
-          ;; (prn k '-> nk '| target '-> nt)
-          (case [(some? nk) (some? nt)]
-            [true true]
-            (match? nk nt)
-            [true false]
-            (match? nk target)
-            [false true]
-            (match? k nt)
-            (or (sub? k target)
-                (super? k target))))))
+  (try
+    (loop [k k
+           target target]
+      ;; (prn k '-> target)
+      (cond (identical? k :any) true
+            (identical? target :any) true
+            (identical? k :nil) (or (nilable? target)
+                                    (identical? :seqable target))
+            (map? k) (recur (:type k) target)
+            (map? target) (recur k (:type target))
+            (and (keyword? k) (keyword? target))
+            (let [nk (unnil k)
+                  nt (unnil target)]
+              ;; (prn k '-> nk '| target '-> nt)
+              (case [(some? nk) (some? nt)]
+                [true true]
+                (match? nk nt)
+                [true false]
+                (match? nk target)
+                [false true]
+                (match? k nt)
+                (or (sub? k target)
+                    (super? k target))))
+            :else (throw (ex-info "" {:k k :target target}))))
+    (catch Exception e
+      (binding [*out* *err*]
+        (println "WARNING:" (.getMessage e) k target)))))
 
 (def nilable-types
   #{:char-sequence :string :regex :char
@@ -392,16 +399,24 @@
                           :type :type-mismatch
                           :message (str "Insufficient input.")}))
 
+(defn emit-missing-required-key! [{:keys [:findings :filename]} arg k]
+  (findings/reg-finding! findings
+                         {:filename filename
+                          :row (:row arg)
+                          :col (:col arg)
+                          :type :type-mismatch
+                          :message (str "Missing required key: " k)}))
+
 (defn match-map [ctx m s]
-  ;; (prn "M" m "S" s)
-  (let [m (-> m :tag :val)]
+  (when-let [mval (-> m :tag :val)]
     (doseq [[k target] (:req s)]
-      (let [v (get m k)
-            t (:tag v)]
-        (if (keyword? target)
-          (if-not (match? t target)
-            (emit-non-match! ctx target v t))
-          (match-map ctx v target))))))
+      (if-let [v (get mval k)]
+        (when-let [t (:tag v)]
+          (if (keyword? target)
+            (if-not (match? t target)
+              (emit-non-match! ctx target v t))
+            (match-map ctx v target)))
+        (emit-missing-required-key! ctx m k)))))
 
 (defn lint-arg-types
   [{:keys [:config] :as ctx}
