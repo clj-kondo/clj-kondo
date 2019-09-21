@@ -112,7 +112,9 @@
   (cond
     (or (identical? k target)
         (identical? k :any)
-        (identical? target :any)) true
+        (identical? target :any)
+        (contains? (get is-a-relations k) target)
+        (contains? (get could-be-relations k) target)) true
     (identical? k :nil) (or (nilable? target)
                             (identical? :seqable target))
     (map? k) (recur (:type k) target)
