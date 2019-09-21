@@ -17,15 +17,15 @@
    'clojure.string clojure-string})
 
 (def is-a-relations
-  {:string #{:char-sequence :seqable} ;; string is a char-sequence
+  {:string #{:char-sequence :seqable}
    :regex #{:char-sequence}
    :char #{:char-sequence}
-   :int #{:number} ;; int is a number
-   :pos-int #{:int :nat-int}
-   :nat-int #{:int}
-   :neg-int #{:int}
+   :int #{:number}
+   :pos-int #{:int :nat-int :number}
+   :nat-int #{:int :number}
+   :neg-int #{:int :number}
    :double #{:number}
-   :vector #{:seqable :associative :coll :ifn}
+   :vector #{:seqable :seqable-out :associative :coll :ifn}
    :map #{:seqable :associative :coll :ifn}
    :nil #{:seqable}
    :seqable-out #{:seqable :coll}
@@ -34,16 +34,22 @@
    :fn #{:ifn}
    :keyword #{:ifn}
    :symbol #{:ifn}
-   :associative #{:seqable}})
+   :associative #{:seqable :coll}
+   :transducer #{:ifn}
+   :list #{:seqable :seqable-out :coll}})
 
 (def could-be-relations
   {:char-sequence #{:string :char :regex}
    :int #{:neg-int :nat-int :pos-int}
-   :number #{:int :double}
+   :number #{:neg-int :pos-int :nat-int :int :double}
    :seqable-out #{:list :vector}
-   :coll #{:map :vector :set :list}
-   :seqable #{:coll :string :nil}
-   :associative #{:seqable :map :vector}})
+   :coll #{:map :vector :set :list :seqable-out :associative}
+   :seqable #{:coll :vector :set :map :associative :string :nil :seqable-out :list}
+   :associative #{:map :vector}
+   :ifn #{:fn :transducer :symbol :keyword :map :set :vector}
+   :nat-int #{:pos-int}})
+
+(def misc-types #{:boolean :atom})
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
@@ -59,6 +65,7 @@
    :string "string"
    :number "number"
    :int "integer"
+   :double "double"
    :pos-int "positive integer"
    :nat-int "natural integer"
    :neg-int "negative integer"
@@ -67,10 +74,16 @@
    :vector "vector"
    :associative "associative collection"
    :map "map"
+   :coll "collection"
+   :list "list"
+   :regex "regular expression"
+   :char "character"
+   :boolean "boolean"
    :atom "atom"
    :fn "function"
    :ifn "function"
    :keyword "keyword"
+   :symbol "symbol"
    :transducer "transducer"
    :seqable-or-transducer "seqable or transducer"
    :set "set"
@@ -117,26 +130,16 @@
                 (match? nk target)
                 [false true]
                 (match? k nt)
-                (or (sub? k target)
-                    (super? k target))))
+                (or
+                 (identical? k target)
+                 (contains? (get is-a-relations k) target)
+                 (contains? (get could-be-relations k) target))
+                #_(or (sub? k target)
+                      (super? k target))))
             :else (throw (ex-info "" {:k k :target target}))))
     (catch Exception e
       (binding [*out* *err*]
         (println "WARNING:" (.getMessage e) k target)))))
-
-(def nilable-types
-  #{:char-sequence :string :regex :char
-    :number :double :int :neg-int :nat-int :pos-int
-    :coll :vector :set :map :list
-    :associative
-    :ifn :fn :transducer
-    :boolean
-    :atom
-    :keyword :symbol})
-
-;; these types already contain nil
-(def other-types
-  #{:seqable :seqable-out :nil})
 
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))

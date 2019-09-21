@@ -4,32 +4,25 @@
    [clj-kondo.impl.types :as types]
    [clojure.test :as t :refer [deftest is testing]]))
 
-(comment
-  (defn all-used-types []
-    (let [rels (merge types/is-a-relations types/could-be-relations)
-          ks (keys rels)
-          vs (reduce into #{} (vals rels))
-          nilables (keys types/nilable->type)
-          non-nilables (vals types/nilable->type)
-          all (concat ks vs nilables non-nilables)]
-      (set all)))
+(deftest all-what-is-could-be
+  (is (empty?
+       (distinct (for [[k vs] types/is-a-relations
+                       v vs
+                       :let [could-bes (get types/could-be-relations v)]
+                       :when (not (contains? could-bes k))]
+                   k)))))
 
-  (deftest all-used-types-have-specs
-    (doseq [t (all-used-types)]
-      (is (s/get-spec t))))
+(deftest all-what-could-be-is
+  (is (empty?
+       (distinct (for [[k vs] types/could-be-relations
+                       v vs
+                       :let [are (get types/is-a-relations v)]
+                       :when (not (contains? are k))]
+                   k)))))
 
-  (defn keywords-from-spec
-    [spec]
-    (filter (fn [k]
-              (when (keyword? k)
-                (= "clj-kondo.impl.types"
-                   (namespace k))))
-            (tree-seq seq? identity (or (:form spec) (s/form spec)))))
-
-  (deftest specs-refer-to-known-specs
-    (doseq [[_ns ns-specs] types/specs
-            [_var-name spec] ns-specs
-            spec [(:args spec) (:ret spec) (meta (:fn spec))]
-            :when (do nil #_(prn spec) spec)
-            k (keywords-from-spec spec)]
-      (is (s/get-spec k)))))
+(deftest all-types-have-labels
+  (let [all-types (concat (keys types/is-a-relations)
+                          (keys types/could-be-relations)
+                          types/misc-types)]
+    (doseq [t all-types]
+      (is (types/label t)))))
