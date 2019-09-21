@@ -6,7 +6,7 @@ Clj-kondo provides rudimentary type checking using a few basic rules and type
 annotations. The linter for this is called `:type-mismatch` in the
 configuration. Clj-kondo knows the types of a selection of
 [clojure](https://github.com/borkdude/clj-kondo/tree/master/src/clj_kondo/impl/types/clojure)
-functions and is therefore able to warn about some mismatches like:
+functions and is therefore able to warn about mismatches like:
 
 ``` clojure
 $ clj-kondo --lint - <<< '(first (map inc))'
