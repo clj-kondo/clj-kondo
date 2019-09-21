@@ -2568,12 +2568,16 @@
         :col 35,
         :level :error,
         :message "Expected: string, received: positive integer."})
-     (lint! "(ns foo) (defn foo [_x]) (foo {:a 1})"
+     (lint! "(ns foo) (defn foo [_x]) (foo {:a 1})
+             (defn bar [x] x) (foo (bar {})) ;; no false positive for this one
+             "
             {:linters {:type-mismatch
                        {:level :error
                         :namespaces '{foo {foo {:arities {1 {:args [{:type :map
                                                                      :req {:a :string
                                                                            :b :any}}]
+                                                             :ret :map}}}
+                                           bar {:arities {1 {:args [:map]
                                                              :ret :map}}}}}}}})))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
