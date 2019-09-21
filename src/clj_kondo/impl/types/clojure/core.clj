@@ -9,8 +9,14 @@
 ;; sorted in order of appearance in
 ;; https://github.com/clojure/clojure/blob/master/src/clj/clojure/core.clj
 
+;; a lot of this work was already figured out here:
+;; https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc
+
 (def clojure-core
-  {;; 22
+  {;; 16
+   'list {:arities {:varargs {:ret :list}}}
+
+   ;; 22
    'cons {:arities {2 {:args [:any :seqable]}}}
    ;; 49
    'first {:arities {1 {:args [:seqable]
