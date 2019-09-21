@@ -15,14 +15,16 @@
 (def seqable->seqable {:arities {1 {:args [:seqable]
                                     :ret :seqable-out}}})
 
+(def seqable->any {:arities {1 {:args [:seqable]
+                                :ret :any}}})
+
 (def clojure-core
   {;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
    'cons {:arities {2 {:args [:any :seqable]}}}
    ;; 49
-   'first {:arities {1 {:args [:seqable]
-                        :ret :any}}}
+   'first seqable->any
    ;; 57
    'next seqable->seqable
    ;; 66
@@ -38,6 +40,12 @@
                                        {:op :rest
                                         :spec [:any :any]}]
                                :ret :associative}}}
+   ;; 262
+   'last seqable->any
+   ;; 353
+   'vector {:arities {:varargs {:ret :vector}}}
+   ;; 367
+   'vec {:arities {1 {:ret :vector}}}
    ;; 544
    'str {:arities {:varargs {:args [{:op :rest
                                      :spec :any}]
