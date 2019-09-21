@@ -30,7 +30,7 @@
    :nil #{:seqable}
    :seqable-out #{:seqable :coll}
    :coll #{:seqable}
-   :set #{:seqable :ifn}
+   :set #{:seqable :coll :ifn}
    :fn #{:ifn}
    :keyword #{:ifn}
    :symbol #{:ifn}
