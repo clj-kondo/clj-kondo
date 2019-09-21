@@ -28,7 +28,7 @@
    :vector #{:seqable :associative :coll :ifn}
    :map #{:seqable :associative :coll :ifn}
    :nil #{:seqable}
-   :seqable-out #{:seqable}
+   :seqable-out #{:seqable :coll}
    :coll #{:seqable}
    :set #{:seqable :ifn}
    :fn #{:ifn}
@@ -40,7 +40,8 @@
   {:char-sequence #{:string :char :regex}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:int :double}
-   :seqable-out #{:coll}
+   :seqable-out #{:list :vector}
+   :coll #{:map :vector :set :list}
    :seqable #{:coll :string :nil}
    :associative #{:seqable :map :vector}})
 
