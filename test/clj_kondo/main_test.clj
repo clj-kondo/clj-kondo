@@ -2477,7 +2477,7 @@
         :row 1,
         :col 22,
         :level :error,
-        :message "Expected: number, received: string."})
+        :message #"Expected: number"})
      (lint! "(fn [^String x] (inc x))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
@@ -2487,7 +2487,172 @@
         :level :error,
         :message "Expected: string, received: integer."})
      (lint! "(fn [^long x] (subs x 1 1))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 73,
+        :level :error,
+        :message "Expected: number, received: string or nil."}
+       {:file "<stdin>",
+        :row 1,
+        :col 85,
+        :level :error,
+        :message "Expected: number, received: string or nil."})
+     (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo)) (inc (foo 1 2 3 4))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 73,
+        :level :error,
+        :message #"Expected: number"})
+     (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 31,
+        :level :error,
+        :message "Expected: string or nil, received: positive integer."})
+     (lint! "(defn foo [^String x] x) (foo 1)"
             {:linters {:type-mismatch {:level :error}}})))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :error,
+      :message "Expected: string, received: nil."})
+   (lint! "(subs nil 1 2)"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 39,
+      :level :error,
+      :message "Expected: number, received: set or nil."})
+   (lint! "(require '[clojure.set :as set]) (inc (set/union nil))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 31,
+      :level :error,
+      :message "Expected: seqable collection, received: number or nil."})
+   (lint! "(defn foo [^Number x] (cons 1 x))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 6,
+      :level :error,
+      :message "Expected: number, received: list."})
+   (lint! "(inc ())"
+          {:linters {:type-mismatch {:level :error}}}))
+  (testing "Insufficient input"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 15,
+        :level :error,
+        :message "Insufficient input."})
+     (lint! "(assoc {} 1 2 3)"
+            {:linters {:type-mismatch {:level :error}}})))
+  (testing "handle multiple errors"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 7,
+        :level :error,
+        :message "Expected: string, received: nil."}
+       {:file "<stdin>",
+        :row 1,
+        :col 11,
+        :level :error,
+        :message "Expected: natural integer, received: nil."}
+       {:file "<stdin>",
+        :row 1,
+        :col 15,
+        :level :error,
+        :message "Expected: natural integer, received: nil."})
+     (lint! "(subs nil nil nil)"
+            {:linters {:type-mismatch {:level :error}}})))
+  (testing "map spec"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 34,
+        :level :error,
+        :message "Missing required key: :b"}
+       {:file "<stdin>",
+        :row 1,
+        :col 38,
+        :level :error,
+        :message "Expected: string, received: positive integer."}
+       {:file "<stdin>",
+        :row 1,
+        :col 41,
+        :level :error,
+        :message "Expected: string, received: positive integer."}
+       {:file "<stdin>",
+        :row 2,
+        :col 45,
+        :level :error,
+        :message "Expected: string, received: positive integer."}
+       {:file "<stdin>",
+        :row 3,
+        :col 36,
+        :level :error,
+        :message "Expected: map, received: string."}
+       {:file "<stdin>",
+        :row 3,
+        :col 44,
+        :level :error,
+        :message "Expected: string, received: positive integer."}
+       {:file "<stdin>",
+        :row 4,
+        :col 37,
+        :level :error,
+        :message "Expected: string, received: positive integer."})
+     (lint! "(ns foo) (defn foo [_x _y]) (foo {:a 1} 1) ;; a should be a string, :b is missing
+             (defn bar [x] x) (foo (bar {}) 1) ;; no false positive for this one
+             (defn baz [x] x) (foo (baz 1) 1) ;; warning about baz not returning a map
+             (foo {:a \"foo\" :b 1 :c 1} \"foo\") ;; the optional key :c has the wrong type
+             "
+            {:linters {:type-mismatch
+                       {:level :error
+                        :namespaces '{foo {foo {:arities {2 {:args [{:op :keys
+                                                                     :req {:a :string
+                                                                           :b :any}
+                                                                     :opt {:c :string}}
+                                                                    :string]
+                                                             :ret :map}}}
+                                           bar {:arities {1 {:args [:map]
+                                                             :ret :map}}}
+                                           baz {:arities {1 {:args [:int]
+                                                             :ret :string}}}}}}}}))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 2,
+        :col 23,
+        :level :error,
+        :message "Expected: map, received: keyword."}
+       {:file "<stdin>",
+        :row 3,
+        :col 27,
+        :level :error,
+        :message "Expected: string, received: positive integer."})
+     (lint! "(ns foo) (defn foo [_m])
+             (foo {:a :string})
+             (foo {:a {:b 1}})
+             (foo {:a {:b \"foo\"}})"
+            {:linters {:type-mismatch
+                       {:level :error
+                        :namespaces '{foo {foo
+                                           {:arities {1 {:args
+                                                         [{:op :keys
+                                                           :req {:a {:op :keys
+                                                                     :req {:b :string}}}}]}}}}}}}})))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
@@ -2505,7 +2670,8 @@
                (str/starts-with? (str/join [1 2 3]) \"f\")
                (str/includes? (str/join [1 2 3]) #\"f\")
                (remove #{1 2 3} [1 2 3])
-               (set/difference (into #{} [1 2 3]) #{1 2 3})"
+               (set/difference (into #{} [1 2 3]) #{1 2 3})
+               (reduce conj () [1 2 3])"
               {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(require '[clojure.string :as str])
                       (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
@@ -2514,9 +2680,16 @@
                       (let [xs ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
                      {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(doto (atom []) (swap! identity))"
-                     {:linters {:type-mismatch {:level :error}}}))))
-
-
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(defn foo [^Long x] (foo nil))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(defn foo ^Long [x] x) (defn bar [^long x]) (bar (foo 1)) (bar (foo nil))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (testing "no warning, despite string able to be nil"
+    (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(defn foo [^Long x] (subs \"foo\" x))"
+                       {:linters {:type-mismatch {:level :error}}})))))
 
 ;;;; Scratch
 

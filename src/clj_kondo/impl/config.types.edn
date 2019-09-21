@@ -1,0 +1,11 @@
+{lint-as-config {:arities {1 {:args [:map]}}}
+ merge-config! {:arities {2 {:args [:nilable/map :nilable/map]
+                             :ret :nilable/map}}}
+ fq-syms->vecs {:arities {1 {:args [:seqable]
+                             :ret :seqable}}}
+ skip-args {:arities {1 {:args [:map]
+                         :ret :seqable}
+                      2 {:args [:map :keyword]
+                         :ret :seqable}}}
+ skip? {:arities {2 {:args [:map :seqable]
+                     :ret :boolean}}}}

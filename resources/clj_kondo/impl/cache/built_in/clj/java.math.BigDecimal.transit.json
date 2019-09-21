@@ -1,1 +1,1 @@
-["^ ","~$valueOf",["^ ","~:ns","~$java.math.BigDecimal","~:name","^0","~:fixed-arities",["~#set",[1,2]]]]
+["^ ","~$valueOf",["^ ","~:ns","~$java.math.BigDecimal","~:name","^0","~:fixed-arities",["~#set",[1,2]],"~:arities",["^ ","~i2",["^ "],"~i1",["^ "]]]]

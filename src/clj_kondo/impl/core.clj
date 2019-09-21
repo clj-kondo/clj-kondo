@@ -33,18 +33,38 @@
 
 ;;;; process config
 
+(declare read-edn-file)
+
+(defn opts [^java.io.File cfg-file]
+  {:readers
+   {'include
+    (fn [file]
+      (let [f (io/file (.getParent cfg-file) file)]
+        (if (.exists f)
+          (read-edn-file f)
+          (binding [*out* *err*]
+            (println "WARNING: included file" (.getCanonicalPath f) "does not exist.")))))}})
+
+(defn read-edn-file [^java.io.File f]
+  (try (edn/read-string (opts f) (slurp f))
+       (catch Exception e
+         (binding [*out* *err*]
+           (println "WARNING: error while reading"
+                    (.getCanonicalPath f) (format "(%s)" (.getMessage e)))))))
+
 (defn resolve-config [cfg-dir config]
   (reduce config/merge-config! config/default-config
           [(when cfg-dir
              (let [f (io/file cfg-dir "config.edn")]
                (when (.exists f)
-                 (edn/read-string (slurp f)))))
+                 (read-edn-file f))))
            (when config
              (cond (map? config) config
                    (or (str/starts-with? config "{")
                        (str/starts-with? config "^"))
                    (edn/read-string config)
-                   :else (edn/read-string (slurp config))))]))
+                   ;; config is a string that represents a file
+                   :else (read-edn-file config)))]))
 
 ;;;; process cache
 
@@ -194,7 +214,8 @@
                   (select-keys [:row :col
                                 :macro :private :deprecated
                                 :fixed-arities :var-args-min-arity
-                                :name :ns :top-ns :imported-ns :imported-var])))
+                                :name :ns :top-ns :imported-ns :imported-var
+                                :arities])))
             vars))
 
 (defn namespaces->indexed [namespaces]

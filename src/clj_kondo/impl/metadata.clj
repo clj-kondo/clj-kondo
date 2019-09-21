@@ -5,10 +5,10 @@
    [clj-kondo.impl.utils :as utils]
    [clj-kondo.impl.analyzer.usages :refer [analyze-usages2]]))
 
-(defn meta? [node]
+#_(defn meta? [node]
   (utils/one-of (utils/tag node) [:meta :meta*]))
 
-(defn lift-meta-content [ctx meta-node]
+#_(defn lift-meta-content [ctx meta-node]
   (if (meta? meta-node)
     (let [children (:children meta-node)
           meta-expr (first children)
@@ -52,5 +52,5 @@
 ;;;; Scratch
 
 (comment
-  (meta (lift-meta-content2 {} (clj-kondo.impl.utils/parse-string "^{:a 1 :a 2} []")))
+  (meta (lift-meta-content2 {:findings (atom [])} (clj-kondo.impl.utils/parse-string "^{:a 1 :a 2} []")))
   )

@@ -124,6 +124,13 @@
               (some #(= disabled-sym %) callstack))
             disabled)))))
 
+#_(comment
+  (inc (merge-config! "foo" nil))
+  (inc (fq-syms->vecs 1))
+  (inc (skip-args "foo"))
+  (inc (skip? nil nil)) 
+  )
+
 (defn lint-as-config* [config]
   (let [m (get config :lint-as)]
     (zipmap (fq-syms->vecs (keys m))
@@ -205,6 +212,13 @@
             (contains? namespace-syms excluded-ns)
             (let [ns-str (str excluded-ns)]
               (boolean (some #(re-find % ns-str) namespace-regexes))))))))
+
+(def type-mismatch-config
+  (let [delayed-cfg
+        (fn [config var-ns var-name]
+          (get-in config [:linters :type-mismatch :namespaces var-ns var-name]))
+        delayed-cfg (memoize delayed-cfg)]
+    delayed-cfg))
 
 ;;;; Scratch
 

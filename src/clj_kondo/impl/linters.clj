@@ -100,11 +100,6 @@
     (lint-missing-test-assertion ctx call called-fn)
     nil))
 
-(defn lint-arg-types! [ctx call called-fn]
-  (when-let [arg-types (:arg-types call)]
-    (let [arg-types @arg-types]
-      (types/lint-arg-types ctx (:ns called-fn) (:name called-fn) arg-types))))
-
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
   (let [call-lang (:lang call)
@@ -155,6 +150,27 @@
       (recur idacs call call-lang imported-ns
              (:imported-var called-fn) unresolved? refer-alls)
       called-fn)))
+
+(defn resolve-arg-type [idacs arg-type]
+  (or (:tag arg-type)
+      (if-let [call (:call arg-type)]
+        (let [arity (:arity call)]
+          (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
+            (let [arities (:arities called-fn)
+                  tag (or (when-let [v (get arities arity)]
+                            (:ret v))
+                          (when-let [v (get arities :varargs)]
+                            (when (>= arity (:min-arity v))
+                              (:ret v))))]
+              tag)))
+        :any)
+      :any))
+
+(defn lint-arg-types! [ctx idacs call called-fn]
+  (when-let [arg-types (:arg-types call)]
+    (let [arg-types @arg-types
+          tags (map #(resolve-arg-type idacs %) arg-types)]
+      (types/lint-arg-types ctx called-fn arg-types tags (:arity call)))))
 
 (defn show-arities [fixed-arities var-args-min-arity]
   (let [fas (vec (sort fixed-arities))
@@ -243,8 +259,12 @@
                                                                          :base-lang base-lang
                                                                          :lang call-lang)
                                                                   caller-ns-sym fn-ns fn-name))
-                             fixed-arities (:fixed-arities called-fn)
-                             var-args-min-arity (:var-args-min-arity called-fn)
+                             arities (:arities called-fn)
+                             fixed-arities (or (:fixed-arities called-fn) (into #{} (filter number?) (keys arities)))
+                             ;; fixed-arities (:fixed-arities called-fn)
+                             var-args-min-arity (or (:var-args-min-arity called-fn) (-> arities :varargs :min-arity))
+                             ;; var-args-min-arity (:var-args-min-arity called-fn)
+                             ;; _ (prn ">>" (:name called-fn) arities (keys called-fn))
                              arity-error?
                              (and
                               (= :call (:type call))
@@ -304,7 +324,7 @@
                                          :filename filename)
                                   call called-fn)
                                  (when-not arity-error?
-                                   (lint-arg-types! ctx call called-fn)))]
+                                   (lint-arg-types! ctx idacs call called-fn)))]
                        e errors
                        :when e]
                    e)]

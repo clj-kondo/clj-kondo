@@ -101,17 +101,17 @@
                (if valid?
                  (let [s (symbol (name sym))
                        m (meta expr)
+                       t (or (types/tag-from-meta (:tag m))
+                             (:tag opts))
                        v (assoc m
                                 :name s
                                 :filename (:filename ctx)
-                                :tag (or (when-let [t (:tag m)]
-                                           (types/tag-from-meta t))
-                                         (:tag opts)))]
+                                :tag t)]
                    (when-not skip-reg-binding?
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
                                              v))
-                   {s v})
+                   (with-meta {s v} (when t {:tag t})))
                  (findings/reg-finding!
                   findings
                   (node->line (:filename ctx)
@@ -152,7 +152,18 @@
                       :error
                       :syntax
                       (str "unsupported binding form " expr))))
-       :vector (into {} (map #(extract-bindings ctx % opts)) (:children expr))
+       :vector (let [v (map #(extract-bindings ctx % opts) (:children expr))
+                     tags (map :tag (map meta v))
+                     expr-meta (meta expr)
+                     t (:tag expr-meta)
+                     t (when t (types/tag-from-meta t true ;; true means it's a
+                                                           ;; return type
+                                                    ))]
+                 (with-meta (into {} v)
+                   ;; this is used for checking the return tag of a function body
+                   (assoc expr-meta
+                          :tag t
+                          :tags tags)))
        :namespaced-map (extract-bindings ctx (first (:children expr)) opts)
        :map
        (loop [[k v & rest-kvs] (:children expr)
@@ -226,13 +237,18 @@
 
 (defn analyze-fn-arity [ctx body]
   (let [children (:children body)
-        arg-vec  (first children)
-        arg-list (sexpr arg-vec)
+        arg-vec (first children)
         arg-bindings (extract-bindings ctx arg-vec {:fn-args? true})
-        arity (analyze-arity arg-list)]
-    {:arg-bindings (dissoc arg-bindings :analyzed)
-     :arity arity
-     :analyzed-arg-vec (:analyzed arg-bindings)}))
+        {return-tag :tag
+         arg-tags :tags} (meta arg-bindings)
+        arg-list (sexpr arg-vec)
+        arity (analyze-arity arg-list)
+        ret {:arg-bindings (dissoc arg-bindings :analyzed)
+             :arity arity
+             :analyzed-arg-vec (:analyzed arg-bindings)
+             :args arg-tags
+             :ret return-tag}]
+    ret))
 
 (defn ctx-with-bindings [ctx bindings]
   (update ctx :bindings (fn [b]
@@ -252,7 +268,9 @@
 
 (defn analyze-fn-body [{:keys [:docstring?] :as ctx} body]
   (let [{:keys [:arg-bindings
-                :arity :analyzed-arg-vec]} (analyze-fn-arity ctx body)
+                :arity :analyzed-arg-vec]
+         return-tag :ret
+         arg-tags :args} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
         ctx (assoc ctx
                    :recur-arity arity
@@ -279,7 +297,9 @@
         (analyze-children ctx body-exprs)]
     (assoc arity
            :parsed
-           (concat analyzed-first-child analyzed-arg-vec parsed))))
+           (concat analyzed-first-child analyzed-arg-vec parsed)
+           :ret return-tag
+           :args arg-tags)))
 
 (defn fn-bodies [ctx children]
   (loop [[expr & rest-exprs :as exprs] children]
@@ -337,8 +357,18 @@
                                  (assoc :docstring? docstring
                                         :in-def fn-name)) %)
                            bodies)
-        fixed-arities (set (keep :fixed-arity parsed-bodies))
-        var-args-min-arity (:min-arity (first (filter :varargs? parsed-bodies)))]
+        arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
+                                (let [arg-tags (when (some identity args)
+                                                 args)
+                                      v (assoc-some {}
+                                                    :ret ret :min-arity min-arity
+                                                    :args arg-tags)]
+                                  (if varargs?
+                                    [:varargs v]
+                                    [fixed-arity v]))))
+                      parsed-bodies)
+        fixed-arities (into #{} (filter number?) (keys arities))
+        var-args-min-arity (get-in arities [:varargs :min-arity])]
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -347,6 +377,7 @@
                    :private private?
                    :deprecated deprecated
                    :fixed-arities (not-empty fixed-arities)
+                   :arities arities
                    :var-args-min-arity var-args-min-arity
                    :doc docstring
                    :added (:added var-meta))))
@@ -404,16 +435,10 @@
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx* (assoc value :id value-id)))
                   tag (when (and let? binding (= :token (tag binding)))
-                        (let [;; TODO: the problem here is that there might have
-                              ;; been more things in between this and the call
-                              ;; we got back, but this isn't emitted. How can we relate?
-                              maybe-call (first analyzed-value)
-                              maybe-call (when (and maybe-call (= :call (:type maybe-call))
-                                                    (= value-id (:id maybe-call)))
-                                           maybe-call)]
-                          (cond maybe-call (types/spec-from-call ctx maybe-call value)
-                                value (types/expr->tag ctx* value))))
-                  new-bindings (when binding (extract-bindings ctx* binding {:tag tag}))
+                        (let [maybe-call (get @(:calls-by-id ctx) value-id)]
+                          (cond maybe-call (types/ret-tag-from-call ctx maybe-call value)
+                                value {:tag (types/expr->tag ctx* value)})))
+                  new-bindings (when binding (extract-bindings ctx* binding tag))
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
                   next-arities (if-let [arity (:arity (meta analyzed-value))]
@@ -895,6 +920,10 @@
                    msg)))
     (analyze-children ctx children)))
 
+(defn reg-call [{:keys [:calls-by-id]} call id]
+  (swap! calls-by-id assoc id call)
+  nil)
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1038,6 +1067,7 @@
     (if (= 'ns resolved-as-clojure-var-name)
       analyzed
       (let [in-def (:in-def ctx)
+            id (:id expr)
             call (cond-> {:type :call
                           :resolved-ns resolved-namespace
                           :ns ns-name
@@ -1053,12 +1083,13 @@
                           :lang lang
                           :filename (:filename ctx)
                           :expr expr
-                          :id (:id expr)
                           :callstack (:callstack ctx)
                           :config (:config ctx)
                           :top-ns (:top-ns ctx)
                           :arg-types (:arg-types ctx)}
+                   id (assoc :id id)
                    in-def (assoc :in-def in-def))]
+        (when id (reg-call ctx call id))
         (namespace/reg-var-usage! ctx ns-name call)
         (when-not unresolved?
           (namespace/reg-used-namespace! ctx
@@ -1134,7 +1165,7 @@
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
-      (when-not (one-of t [:list :quote]) ;; list and quote are handled specially because of return types
+      (when-not (one-of t [:map :list :quote]) ;; list and quote are handled specially because of return types
         (types/add-arg-type-from-expr ctx expr))
       (case t
         :quote (let [ctx (assoc ctx :quoted true)]
@@ -1156,8 +1187,17 @@
                              (update :callstack #(cons [nil t] %)))
                          expr)
         :map (do (key-linter/lint-map-keys ctx expr)
-                 (analyze-children (update ctx
-                                           :callstack #(cons [nil t] %)) children))
+                 (let [children (map (fn [c s]
+                                       (assoc c :id s))
+                                     children
+                                     (repeatedly #(gensym)))
+                       analyzed (analyze-children
+                                 (update ctx
+                                         :callstack #(cons [nil t] %)) children)]
+                   (types/add-arg-type-from-expr ctx (assoc expr
+                                                            :children children
+                                                            :analyzed analyzed))
+                   analyzed))
         :set (do (key-linter/lint-set ctx expr)
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
@@ -1166,7 +1206,7 @@
                    (macroexpand/expand-fn expr))
         :token (when-not (or (:quoted ctx) (= :edn (:lang ctx))) (analyze-usages2 ctx expr))
         :list
-        (when-let [function (first children)]
+        (if-let [function (first children)]
           (if (or (:quoted ctx) (= :edn (:lang ctx)))
             (analyze-children ctx children)
             (let [t (tag function)]
@@ -1226,12 +1266,14 @@
                         (analyze-children ctx children)))))
                 ;; catch-call
                 (do
-                  ;; (prn "--" expr)
+                  ;; (prn "--" expr (types/add-arg-type-from-expr ctx expr))
                   (types/add-arg-type-from-expr ctx expr)
-                  (analyze-children ctx children))))))
+                  (analyze-children ctx children)))))
+          (types/add-arg-type-from-expr ctx expr :list))
         ;; catch-all
         (do
-          ;;(prn "--")
+          ;; (prn "--")
+          nil
           (analyze-children (update ctx
                                     :callstack #(cons [nil t] %))
                             children))))))
@@ -1297,6 +1339,7 @@
                                     (parse-string "(ns user)")))
          init-ctx (assoc ctx
                          :ns init-ns
+                         :calls-by-id (atom {})
                          :top-ns nil
                          :global-config config)]
      (loop [ctx init-ctx
