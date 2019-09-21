@@ -2,8 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]
-   [clojure.set :as set]))
+   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
