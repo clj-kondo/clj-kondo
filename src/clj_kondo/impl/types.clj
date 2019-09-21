@@ -108,27 +108,27 @@
         (some #(super? % target) targets))))
 
 (defn match? [k target]
-  (cond (identical? k :any) true
-        (identical? target :any) true
-        (identical? k :nil) (or (nilable? target)
-                                (identical? :seqable target))
-        (map? k) (recur (:type k) target)
-        (map? target) (recur k (:type target))
-        (and (keyword? k) (keyword? target))
-        (let [nk (unnil k)
-              nt (unnil target)]
-          ;; (prn k '-> nk '| target '-> nt)
-          (case [(some? nk) (some? nt)]
-            [true true]
-            (match? nk nt)
-            [true false]
-            (match? nk target)
-            [false true]
-            (match? k nt)
-            (or
-             (identical? k target)
-             (contains? (get is-a-relations k) target)
-             (contains? (get could-be-relations k) target))))))
+  (cond
+    (identical? k target) true
+    (identical? k :any) true
+    (identical? target :any) true
+    (identical? k :nil) (or (nilable? target)
+                            (identical? :seqable target))
+    (map? k) (recur (:type k) target)
+    :else
+    (let [nk (unnil k)
+          nt (unnil target)]
+      ;; (prn k '-> nk '| target '-> nt)
+      (case [(some? nk) (some? nt)]
+        [true true]
+        (match? nk nt)
+        [true false]
+        (match? nk target)
+        [false true]
+        (match? k nt)
+        (or
+         (contains? (get is-a-relations k) target)
+         (contains? (get could-be-relations k) target))))))
 
 (defn tag-from-meta
   ([meta-tag] (tag-from-meta meta-tag false))
