@@ -170,7 +170,7 @@
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
           tags (map #(resolve-arg-type idacs %) arg-types)]
-      (types/lint-arg-types ctx called-fn arg-types tags (:arity call)))))
+      (types/lint-arg-types ctx called-fn arg-types tags call))))
 
 (defn show-arities [fixed-arities var-args-min-arity]
   (let [fas (vec (sort fixed-arities))

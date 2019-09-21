@@ -216,6 +216,7 @@
 (def type-mismatch-config
   (let [delayed-cfg
         (fn [config var-ns var-name]
+          ;; (prn (get-in config [:linters :type-mismatch :namespaces 'foo 'foo]))
           (get-in config [:linters :type-mismatch :namespaces var-ns var-name]))
         delayed-cfg (memoize delayed-cfg)]
     delayed-cfg))
