@@ -12,15 +12,24 @@
 ;; a lot of this work was already figured out here:
 ;; https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc
 
+(def seqable->seqable {:arities {1 {:args [:seqable]
+                                    :ret :seqable-out}}})
+
 (def clojure-core
   {;; 16
    'list {:arities {:varargs {:ret :list}}}
-
    ;; 22
    'cons {:arities {2 {:args [:any :seqable]}}}
    ;; 49
    'first {:arities {1 {:args [:seqable]
                         :ret :any}}}
+   ;; 57
+   'next seqable->seqable
+   ;; 66
+   'rest seqable->seqable
+   ;; 126
+   'seq {:arities {1 {:args [:seqable]
+                      :ret :seq}}}
    ;; 181
    'assoc {:arities {3 {:args [:nilable/associative :any :any]
                         :ret :associative}

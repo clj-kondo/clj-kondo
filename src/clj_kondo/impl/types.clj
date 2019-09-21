@@ -35,18 +35,20 @@
    :symbol #{:ifn}
    :associative #{:seqable :coll}
    :transducer #{:ifn}
-   :list #{:seqable :seqable-out :coll}})
+   :list #{:seq :seqable :seqable-out :coll}
+   :seq #{:seqable :seqable-out}})
 
 (def could-be-relations
   {:char-sequence #{:string :char :regex}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double}
-   :seqable-out #{:list :vector}
+   :seqable-out #{:list :vector :seq}
    :coll #{:map :vector :set :list :seqable-out :associative}
-   :seqable #{:coll :vector :set :map :associative :string :nil :seqable-out :list}
+   :seqable #{:coll :vector :set :map :associative :string :nil :seqable-out :list :seq}
    :associative #{:map :vector}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector}
-   :nat-int #{:pos-int}})
+   :nat-int #{:pos-int}
+   :seq #{:list}})
 
 (def misc-types #{:boolean :atom})
 
@@ -71,6 +73,7 @@
    :neg-int "negative integer"
    :seqable-out "seqable collection"
    :seqable "seqable collection"
+   :seq "seq"
    :vector "vector"
    :associative "associative collection"
    :map "map"
