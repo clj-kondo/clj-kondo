@@ -2652,25 +2652,34 @@
                                            {:arities {1 {:args
                                                          [{:op :keys
                                                            :req {:a {:op :keys
-                                                                     :req {:b :string}}}}]}}}}}}}}))
-    (testing "checking also works when function is not found in cache"
-      (assert-submaps
-       '({:file "<stdin>",
-          :row 1,
-          :col 45,
-          :level :warning,
-          :message "Expected: number, received: string."}
-         {:file "<stdin>",
-          :row 1,
-          :col 50,
-          :level :warning,
-          :message "Expected: string, received: positive integer."})
-       (lint! "(ns bar (:require [foo :refer [foo]])) (inc (foo 1))"
-              '{:linters
-                {:type-mismatch
-                 {:level :warning
-                  :namespaces {foo {foo {:arities {1 {:args [:string]
-                                                      :ret :string}}}}}}}}))))
+                                                                     :req {:b :string}}}}]}}}}}}}})))
+  (testing "checking also works when function is not found in cache"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 45,
+        :level :warning,
+        :message "Expected: number, received: string."}
+       {:file "<stdin>",
+        :row 1,
+        :col 50,
+        :level :warning,
+        :message "Expected: string, received: positive integer."})
+     (lint! "(ns bar (:require [foo :refer [foo]])) (inc (foo 1))"
+            '{:linters
+              {:type-mismatch
+               {:level :warning
+                :namespaces {foo {foo {:arities {1 {:args [:string]
+                                                    :ret :string}}}}}}}})))
+  (testing "specs work also when not providing only a ret spec"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 6,
+        :level :error,
+        :message "Expected: number, received: list."})
+     (lint! "(inc (list 1 2 3))"
+            {:linters {:type-mismatch {:level :error}}})))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
