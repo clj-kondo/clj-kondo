@@ -340,19 +340,20 @@
                            all-args
                            all-tags)
                     :keys
-                    (cond (keyword? t)
-                          (when-not (match? t :map)
-                            (emit-non-match! ctx :map a t))
-                          :else
-                          (do
-                            nil ;; (prn "S" s "A" a "T" t)
-                            (when-let [mval (-> t :val)]
-                              (doseq [[k target] (:req s)]
-                                (if-let [v (get mval k)]
-                                  (when-let [t (:tag v)]
-                                    (when-not (match? t target)
-                                      (emit-non-match! ctx target a t)))
-                                  (emit-missing-required-key! ctx a k)))))))
+                    (do (cond (keyword? t)
+                              (when-not (match? t :map)
+                                (emit-non-match! ctx :map a t))
+                              :else
+                              (do
+                                nil ;; (prn "S" s "A" a "T" t)
+                                (when-let [mval (-> t :val)]
+                                  (doseq [[k target] (:req s)]
+                                    (if-let [v (get mval k)]
+                                      (when-let [t (:tag v)]
+                                        (when-not (match? t target)
+                                          (emit-non-match! ctx target v t)))
+                                      (emit-missing-required-key! ctx a k))))))
+                        (recur check-ctx rest-args-spec rest-args rest-tags)))
                   (nil? s) (cond (seq all-specs) (recur check-ctx rest-args-spec rest-args rest-tags)
                                  (:rest check-ctx)
                                  (recur check-ctx [(:rest check-ctx)] all-args all-tags)) ;; nil is :any

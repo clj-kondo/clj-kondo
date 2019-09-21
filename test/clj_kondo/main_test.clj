@@ -2568,28 +2568,44 @@
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
-        :col 31,
+        :col 34,
+        :level :error,
+        :message "Missing required key: :b"}
+       {:file "<stdin>",
+        :row 1,
+        :col 38,
         :level :error,
         :message "Expected: string, received: positive integer."}
        {:file "<stdin>",
         :row 1,
-        :col 31,
+        :col 41,
         :level :error,
-        :message "Missing required key: :b"}
+        :message "Expected: string, received: positive integer."}
+       {:file "<stdin>",
+        :row 2,
+        :col 45,
+        :level :error,
+        :message "Expected: string, received: positive integer."}
        {:file "<stdin>",
         :row 3,
         :col 36,
         :level :error,
-        :message "Expected: map, received: string."})
-     (lint! "(ns foo) (defn foo [_x]) (foo {:a 1})
-             (defn bar [x] x) (foo (bar {})) ;; no false positive for this one
-             (defn baz [x] x) (foo (baz 1)) ;; warning about baz not returning a map
+        :message "Expected: map, received: string."}
+       {:file "<stdin>",
+        :row 3,
+        :col 44,
+        :level :error,
+        :message "Expected: string, received: positive integer."})
+     (lint! "(ns foo) (defn foo [_x _y]) (foo {:a 1} 1)
+             (defn bar [x] x) (foo (bar {}) 1) ;; no false positive for this one
+             (defn baz [x] x) (foo (baz 1) 1) ;; warning about baz not returning a map
              "
             {:linters {:type-mismatch
                        {:level :error
-                        :namespaces '{foo {foo {:arities {1 {:args [{:op :keys
+                        :namespaces '{foo {foo {:arities {2 {:args [{:op :keys
                                                                      :req {:a :string
-                                                                           :b :any}}]
+                                                                           :b :any}}
+                                                                    :string]
                                                              :ret :map}}}
                                            bar {:arities {1 {:args [:map]
                                                              :ret :map}}}
