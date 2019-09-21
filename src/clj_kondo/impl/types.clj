@@ -54,10 +54,11 @@
   (= "nilable" (namespace k)))
 
 (defn unnil
-  "Returns the non-nilable version of k when it's nilable."
+  "Returns the non-nilable version of k when it's nilable. Returns k otherwise."
   [k]
-  (when (nilable? k)
-    (keyword (name k))))
+  (if (nilable? k)
+    (keyword (name k))
+    k))
 
 (def labels
   {:nil "nil"
@@ -109,26 +110,19 @@
 
 (defn match? [k target]
   (cond
-    (identical? k target) true
-    (identical? k :any) true
-    (identical? target :any) true
+    (or (identical? k target)
+        (identical? k :any)
+        (identical? target :any)) true
     (identical? k :nil) (or (nilable? target)
                             (identical? :seqable target))
     (map? k) (recur (:type k) target)
     :else
-    (let [nk (unnil k)
-          nt (unnil target)]
-      ;; (prn k '-> nk '| target '-> nt)
-      (case [(some? nk) (some? nt)]
-        [true true]
-        (recur nk nt)
-        [true false]
-        (recur nk target)
-        [false true]
-        (recur k nt)
-        (or
-         (contains? (get is-a-relations k) target)
-         (contains? (get could-be-relations k) target))))))
+    (let [k (unnil k)
+          target (unnil target)]
+      (or
+       (identical? k target)
+       (contains? (get is-a-relations k) target)
+       (contains? (get could-be-relations k) target)))))
 
 ;; TODO: we could look more intelligently at the source of the tag, e.g. if it
 ;; is not a third party String type
