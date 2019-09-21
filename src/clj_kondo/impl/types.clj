@@ -292,6 +292,15 @@
                           :type :type-mismatch
                           :message (str "Missing required key: " k)}))
 
+(defn lint-map-types! [ctx arg mval spec spec-key required?]
+  (doseq [[k target] (get spec spec-key)]
+    (if-let [v (get mval k)]
+      (when-let [t (:tag v)]
+        (when-not (match? t target)
+          (emit-non-match! ctx target v t)))
+      (when required?
+        (emit-missing-required-key! ctx arg k)))))
+
 (defn lint-arg-types
   [{:keys [:config] :as ctx}
    {called-ns :ns called-name :name arities :arities :as _called-fn}
@@ -327,15 +336,9 @@
                             (when-not (match? t :map)
                               (emit-non-match! ctx :map a t))
                             :else
-                            (do
-                              nil ;; (prn "S" s "A" a "T" t)
-                              (when-let [mval (-> t :val)]
-                                (doseq [[k target] (:req s)]
-                                  (if-let [v (get mval k)]
-                                    (when-let [t (:tag v)]
-                                      (when-not (match? t target)
-                                        (emit-non-match! ctx target v t)))
-                                    (emit-missing-required-key! ctx a k))))))
+                            (when-let [mval (-> t :val)]
+                              (lint-map-types! ctx a mval s :req true)
+                              (lint-map-types! ctx a mval s :opt false)))
                       (recur check-ctx rest-args-spec rest-args rest-tags)))
                 (nil? s) (cond (seq all-specs) (recur check-ctx rest-args-spec rest-args rest-tags)
                                (:rest check-ctx)
