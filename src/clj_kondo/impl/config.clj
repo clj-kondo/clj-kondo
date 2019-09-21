@@ -100,6 +100,10 @@
          [(symbol (namespace fq-sym)) (symbol (name fq-sym))])
        fq-syms))
 
+(comment
+  (inc (merge-config! "foo" nil))
+  (inc (fq-syms->vecs 1)))
+
 (defn skip-args*
   ([config]
    (fq-syms->vecs (get config :skip-args)))

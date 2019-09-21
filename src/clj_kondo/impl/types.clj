@@ -290,13 +290,21 @@
     {:type :map
      :val (zipmap ks vtags)}))
 
-(defn spec-from-call [_ctx call _expr]
+(defn ret-from-arities [arities arity]
+  (when-let [called-arity (or (get arities arity) (:varargs arities))]
+    (when-let [t (:ret-tag called-arity)]
+      {:tag t})))
+
+(defn spec-from-call [{:keys [:config]} call _expr]
   (when (and (not (:unresolved? call)))
     (when-let [arg-types (:arg-types call)]
-      (let [call-ns (:resolved-ns call)
-            call-name (:name call)]
+      (let [called-ns (:resolved-ns call)
+            called-name (:name call)]
         ;; (prn call-ns call-name)
-        (if-let [spec (get-in specs [call-ns call-name])]
+        (if-let [spec
+                 (or
+                  (config/type-mismatch-config config called-ns called-name)
+                  (get-in specs [called-ns called-name]))]
           (or
            (when-let [a (:arities spec)]
              (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
