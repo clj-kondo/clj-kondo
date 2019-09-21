@@ -2541,6 +2541,14 @@
       :message "Expected: seqable collection, received: number or nil."})
    (lint! "(defn foo [^Number x] (cons 1 x))"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 6,
+      :level :error,
+      :message "Expected: number, received: list."})
+   (lint! "(inc ())"
+          {:linters {:type-mismatch {:level :error}}}))
   (testing "Insufficient input"
     (assert-submaps
      '({:file "<stdin>",
@@ -2662,7 +2670,8 @@
                (str/starts-with? (str/join [1 2 3]) \"f\")
                (str/includes? (str/join [1 2 3]) #\"f\")
                (remove #{1 2 3} [1 2 3])
-               (set/difference (into #{} [1 2 3]) #{1 2 3})"
+               (set/difference (into #{} [1 2 3]) #{1 2 3})
+               (reduce conj () [1 2 3])"
               {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(require '[clojure.string :as str])
                       (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"

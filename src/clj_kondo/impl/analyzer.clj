@@ -1206,7 +1206,7 @@
                    (macroexpand/expand-fn expr))
         :token (when-not (or (:quoted ctx) (= :edn (:lang ctx))) (analyze-usages2 ctx expr))
         :list
-        (when-let [function (first children)]
+        (if-let [function (first children)]
           (if (or (:quoted ctx) (= :edn (:lang ctx)))
             (analyze-children ctx children)
             (let [t (tag function)]
@@ -1268,7 +1268,8 @@
                 (do
                   ;; (prn "--" expr (types/add-arg-type-from-expr ctx expr))
                   (types/add-arg-type-from-expr ctx expr)
-                  (analyze-children ctx children))))))
+                  (analyze-children ctx children)))))
+          (types/add-arg-type-from-expr ctx expr :list))
         ;; catch-all
         (do
           ;; (prn "--")
