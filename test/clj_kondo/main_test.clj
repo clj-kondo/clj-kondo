@@ -2511,10 +2511,10 @@
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
      '({:file "<stdin>",
-       :row 1,
-       :col 31,
-       :level :error,
-       :message "Expected: string or nil, received: positive integer."})
+        :row 1,
+        :col 31,
+        :level :error,
+        :message "Expected: string or nil, received: positive integer."})
      (lint! "(defn foo [^String x] x) (foo 1)"
             {:linters {:type-mismatch {:level :error}}})))
   (assert-submaps
@@ -2600,22 +2600,51 @@
         :row 3,
         :col 44,
         :level :error,
+        :message "Expected: string, received: positive integer."}
+       {:file "<stdin>",
+        :row 4,
+        :col 37,
+        :level :error,
         :message "Expected: string, received: positive integer."})
-     (lint! "(ns foo) (defn foo [_x _y]) (foo {:a 1} 1)
+     (lint! "(ns foo) (defn foo [_x _y]) (foo {:a 1} 1) ;; a should be a string, :b is missing
              (defn bar [x] x) (foo (bar {}) 1) ;; no false positive for this one
              (defn baz [x] x) (foo (baz 1) 1) ;; warning about baz not returning a map
+             (foo {:a \"foo\" :b 1 :c 1} \"foo\") ;; the optional key :c has the wrong type
              "
             {:linters {:type-mismatch
                        {:level :error
                         :namespaces '{foo {foo {:arities {2 {:args [{:op :keys
                                                                      :req {:a :string
-                                                                           :b :any}}
+                                                                           :b :any}
+                                                                     :opt {:c :string}}
                                                                     :string]
                                                              :ret :map}}}
                                            bar {:arities {1 {:args [:map]
                                                              :ret :map}}}
                                            baz {:arities {1 {:args [:int]
-                                                             :ret :string}}}}}}}})))
+                                                             :ret :string}}}}}}}}))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 2,
+        :col 23,
+        :level :error,
+        :message "Expected: map, received: keyword."}
+       {:file "<stdin>",
+        :row 3,
+        :col 27,
+        :level :error,
+        :message "Expected: string, received: positive integer."})
+     (lint! "(ns foo) (defn foo [_m])
+             (foo {:a :string})
+             (foo {:a {:b 1}})
+             (foo {:a {:b \"foo\"}})"
+            {:linters {:type-mismatch
+                       {:level :error
+                        :namespaces '{foo {foo
+                                           {:arities {1 {:args
+                                                         [{:op :keys
+                                                           :req {:a {:op :keys
+                                                                     :req {:b :string}}}}]}}}}}}}})))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
