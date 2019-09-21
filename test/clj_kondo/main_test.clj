@@ -2579,7 +2579,7 @@
              "
             {:linters {:type-mismatch
                        {:level :error
-                        :namespaces '{foo {foo {:arities {1 {:args [{:type :map
+                        :namespaces '{foo {foo {:arities {1 {:args [{:op :keys
                                                                      :req {:a :string
                                                                            :b :any}}]
                                                              :ret :map}}}

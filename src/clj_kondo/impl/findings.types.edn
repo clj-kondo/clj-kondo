@@ -1,6 +1,7 @@
-{reg-finding! {:arities {2 {:args [:atom {:type :map
-                                          :req {:filename :string
-                                                :row :int
-                                                :col :int
-                                                :type :keyword
-                                                :message :string}}]}}}}
+{reg-finding!
+ {:arities {2 {:args [:atom {:op :keys
+                             :req {:filename :string
+                                   :row :int
+                                   :col :int
+                                   :type :keyword
+                                   :message :string}}]}}}}

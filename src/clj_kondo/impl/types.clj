@@ -164,7 +164,9 @@
    'assoc {:arities {3 {:arg-tags [:nilable/associative :any :any]
                         :ret-tag :associative}
                      :varargs {:min-arity 3
-                               :arg-tags '[:nilable/associative :any :any (* [:any :any])]
+                               :arg-tags '[:nilable/associative :any :any #_(* [:any :any])
+                                           {:op :rest
+                                            :spec [:any :any]}]
                                :ret-tag :associative}}}
    ;; 544
    'str {:arities {:varargs {:arg-tags '[(* :any)]
@@ -409,13 +411,6 @@
                           :type :type-mismatch
                           :message (str "Missing required key: " k)}))
 
-(defn match-map [ctx s a t]
-  (prn "M" t "S" s)
-  )
-
-(defn match* [ctx s a t]
-  )
-
 (defn lint-arg-types
   [{:keys [:config] :as ctx}
    {called-ns :ns called-name :name arities :arities :as _called-fn}
@@ -445,13 +440,18 @@
                             ;; (prn "s" s)
                             (case op
                               * (recur
-                                 (assoc check-ctx :remaining (second s))
+                                 (assoc check-ctx :rest (second s))
                                  nil
                                  all-args
                                  all-tags)))
+                (= :rest (:op s))
+                (recur (assoc check-ctx :rest (:spec s))
+                 nil
+                 all-args
+                 all-tags)
                 (nil? s) (cond (seq all-specs) (recur check-ctx rest-args-spec rest-args rest-tags)
-                               (:remaining check-ctx)
-                               (recur check-ctx [(:remaining check-ctx)] all-args all-tags)) ;; nil is :any
+                               (:rest check-ctx)
+                               (recur check-ctx [(:rest check-ctx)] all-args all-tags)) ;; nil is :any
                 (vector? s) (recur
                              check-ctx
                              (concat s rest-args-spec)
@@ -466,7 +466,7 @@
                                       (match? t s))
                             (emit-non-match! ctx s a t))
                           (recur check-ctx rest-args-spec rest-args rest-tags)))
-                (= :map (:type s))
+                (= :keys (:op s))
                 (cond (keyword? t)
                       (when-not (match? t :map)
                         (emit-non-match! ctx :map a t))
