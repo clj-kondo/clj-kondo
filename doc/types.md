@@ -29,8 +29,7 @@ $ clj-kondo --lint - <<< '(defn foo [^String x] x) (foo 1)'
 
 This provides a way for users to inform clj-kondo and get some type checking for
 free. But type hints were never designed with type checking in mind. Therefore
-clj-kondo provides a third way to let users bring in their own type annotations,
-via:
+clj-kondo lets users bring in their own type annotations in the configuration:
 
 ``` clojure
 {:linters
