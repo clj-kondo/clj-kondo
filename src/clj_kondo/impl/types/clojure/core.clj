@@ -6,9 +6,15 @@
      ~fn-expr
      {:form '~fn-expr}))
 
+;; sorted in order of appearance in
+;; https://github.com/clojure/clojure/blob/master/src/clj/clojure/core.clj
+
 (def clojure-core
   {;; 22
    'cons {:arities {2 {:args [:any :seqable]}}}
+   ;; 49
+   'first {:arities {1 {:args [:seqable]
+                        :ret :any}}}
    ;; 181
    'assoc {:arities {3 {:args [:nilable/associative :any :any]
                         :ret :associative}
