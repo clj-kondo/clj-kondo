@@ -2556,6 +2556,25 @@
         :message "Expected: natural integer, received: nil."})
      (lint! "(subs nil nil nil)"
             {:linters {:type-mismatch {:level :error}}})))
+  (testing "map spec"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 31,
+        :level :error,
+        :message "Missing required key: :b"}
+       {:file "<stdin>",
+        :row 1,
+        :col 35,
+        :level :error,
+        :message "Expected: string, received: positive integer."})
+     (lint! "(ns foo) (defn foo [_x]) (foo {:a 1})"
+            {:linters {:type-mismatch
+                       {:level :error
+                        :namespaces '{foo {foo {:arities {1 {:args [{:type :map
+                                                                     :req {:a :string
+                                                                           :b :any}}]
+                                                             :ret :map}}}}}}}})))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))

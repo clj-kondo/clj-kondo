@@ -434,7 +434,6 @@
                   (when-let [a (:arities s)]
                     (args-spec-from-arities a arity)))
                 (args-spec-from-arities arities arity))]
-      ;; (prn "ARGS SPEC" called-ns called-name args-spec)
       (if (vector? args-spec)
         (loop [check-ctx {}
                [s & rest-args-spec :as all-specs] args-spec
