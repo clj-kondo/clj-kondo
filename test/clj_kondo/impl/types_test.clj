@@ -1,6 +1,5 @@
 (ns clj-kondo.impl.types-test
   (:require
-   ;; [clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.types :as types]
    [clojure.test :as t :refer [deftest is testing]]))
 

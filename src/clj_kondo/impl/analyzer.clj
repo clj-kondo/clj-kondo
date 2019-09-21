@@ -435,13 +435,7 @@
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx* (assoc value :id value-id)))
                   tag (when (and let? binding (= :token (tag binding)))
-                        (let [;; TODO: the problem here is that there might have
-                              ;; been more things in between this and the call
-                              ;; we got back, but this isn't emitted. How can we relate?
-                              maybe-call (first analyzed-value)
-                              maybe-call (when (and maybe-call (= :call (:type maybe-call))
-                                                    (= value-id (:id maybe-call)))
-                                           maybe-call)]
+                        (let [maybe-call (get @(:calls-by-id ctx) value-id)]
                           (cond maybe-call (types/ret-tag-from-call ctx maybe-call value)
                                 value {:tag (types/expr->tag ctx* value)})))
                   new-bindings (when binding (extract-bindings ctx* binding tag))
