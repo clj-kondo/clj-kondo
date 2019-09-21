@@ -159,10 +159,10 @@
             (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
               (let [arities (:arities called-fn)
                     tag (or (when-let [v (get arities arity)]
-                                (:tag v))
+                                (:ret v))
                               (when-let [v (get arities :varargs)]
                                 (when (>= arity (:min-arity v))
-                                  (:tag v))))]
+                                  (:ret v))))]
                 tag)))
           nil))
       :any))

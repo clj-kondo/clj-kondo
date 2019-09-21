@@ -241,16 +241,13 @@
         arg-bindings (extract-bindings ctx arg-vec {:fn-args? true})
         {return-tag :tag
          arg-tags :tags} (meta arg-bindings)
-        ;; _ (prn "ARG TAGS" arg-tags)
         arg-list (sexpr arg-vec)
         arity (analyze-arity arg-list)
         ret {:arg-bindings (dissoc arg-bindings :analyzed)
              :arity arity
              :analyzed-arg-vec (:analyzed arg-bindings)
-             ;; TODO: rename to arg-tags
-             :tags arg-tags
-             ;; TODO: rename to return-tag
-             :tag return-tag}]
+             :args arg-tags
+             :ret return-tag}]
     ret))
 
 (defn ctx-with-bindings [ctx bindings]
@@ -272,8 +269,8 @@
 (defn analyze-fn-body [{:keys [:docstring?] :as ctx} body]
   (let [{:keys [:arg-bindings
                 :arity :analyzed-arg-vec]
-         return-tag :tag
-         arg-tags :tags} (analyze-fn-arity ctx body)
+         return-tag :ret
+         arg-tags :args} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
         ctx (assoc ctx
                    :recur-arity arity
@@ -301,8 +298,8 @@
     (assoc arity
            :parsed
            (concat analyzed-first-child analyzed-arg-vec parsed)
-           :tag return-tag
-           :tags arg-tags)))
+           :ret return-tag
+           :args arg-tags)))
 
 (defn fn-bodies [ctx children]
   (loop [[expr & rest-exprs :as exprs] children]
@@ -360,12 +357,12 @@
                                  (assoc :docstring? docstring
                                         :in-def fn-name)) %)
                            bodies)
-        arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :tag :tags]}]
-                                (let [arg-tags (when (some identity tags)
-                                                 tags)
+        arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
+                                (let [arg-tags (when (some identity args)
+                                                 args)
                                       v (assoc-some {}
-                                                    :tag tag :min-arity min-arity
-                                                    :arg-tags arg-tags)]
+                                                    :ret ret :min-arity min-arity
+                                                    :args arg-tags)]
                                   (if varargs?
                                     [:varargs v]
                                     [fixed-arity v]))))
