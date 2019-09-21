@@ -217,13 +217,7 @@
 (def type-mismatch-config
   (let [delayed-cfg
         (fn [config var-ns var-name]
-          (when-let [spec (get-in config [:linters :type-mismatch :namespaces var-ns var-name])]
-            (update spec :arities (fn [arities]
-                                    (map-vals
-                                     (fn [ar]
-                                       ar #_(set/rename-keys ar {:args :arg-tags
-                                                            :ret :ret-tag}))
-                                     arities)))))
+          (get-in config [:linters :type-mismatch :namespaces var-ns var-name]))
         delayed-cfg (memoize delayed-cfg)]
     delayed-cfg))
 
