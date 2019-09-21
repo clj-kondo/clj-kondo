@@ -445,7 +445,7 @@
                               maybe-call (when (and maybe-call (= :call (:type maybe-call))
                                                     (= value-id (:id maybe-call)))
                                            maybe-call)]
-                          (cond maybe-call (types/spec-from-call ctx maybe-call value)
+                          (cond maybe-call (types/ret-tag-from-call ctx maybe-call value)
                                 value {:tag (types/expr->tag ctx* value)})))
                   new-bindings (when binding (extract-bindings ctx* binding tag))
                   analyzed-binding (:analyzed new-bindings)

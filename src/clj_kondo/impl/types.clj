@@ -302,7 +302,7 @@
     (when-let [t (:ret-tag called-arity)]
       {:tag t})))
 
-(defn spec-from-call [{:keys [:config]} call _expr]
+(defn ret-tag-from-call [{:keys [:config]} call _expr]
   (when (and (not (:unresolved? call)))
     (when-let [arg-types (:arg-types call)]
       (let [called-ns (:resolved-ns call)
@@ -320,12 +320,14 @@
            (if-let [fn-spec (:fn spec)]
              {:tag (fn-spec @arg-types)}
              {:tag (:ret spec)}))
-          {:call call})))))
+          ;; we delay resolving this call, because we might find the spec for by linting other code
+          ;; see linters.clj
+          {:call (select-keys call [:type :lang :base-lang :resolved-ns :ns :name :arity])})))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
   (or (if-let [id (:id expr)]
         (if-let [call (get @calls-by-id id)]
-          (or (spec-from-call ctx call expr)
+          (or (ret-tag-from-call ctx call expr)
               {:tag :any})
           {:tag :any})
         {:tag :any})))
@@ -362,7 +364,7 @@
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]
-    (swap! arg-types conj (if-let [r (spec-from-call ctx call _expr)]
+    (swap! arg-types conj (if-let [r (ret-tag-from-call ctx call _expr)]
                             (assoc r
                                    :row (:row call)
                                    :col (:col call))
