@@ -73,7 +73,6 @@
            (if (map? m)
              [m (rest args)]
              [nil args]))
-         _ (def c config)
          config (str (deep-merge base-config config))
          res (with-out-str
                (try
