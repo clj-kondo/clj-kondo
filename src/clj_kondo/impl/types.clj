@@ -121,11 +121,11 @@
       ;; (prn k '-> nk '| target '-> nt)
       (case [(some? nk) (some? nt)]
         [true true]
-        (match? nk nt)
+        (recur nk nt)
         [true false]
-        (match? nk target)
+        (recur nk target)
         [false true]
-        (match? k nt)
+        (recur k nt)
         (or
          (contains? (get is-a-relations k) target)
          (contains? (get could-be-relations k) target))))))
