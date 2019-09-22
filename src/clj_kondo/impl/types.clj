@@ -222,6 +222,7 @@
     (case t
       :map (map->tag ctx expr)
       :vector :vector
+      :set :set
       :list (if edn? :list
                 (:tag (spec-from-list-expr ctx expr))) ;; a call we know nothing about
       :fn :fn
@@ -236,6 +237,7 @@
                  (keyword? v) :keyword
                  (number? v) (number->tag v)
                  :else :any))
+      :regex :regex
       :any)))
 
 (defn add-arg-type-from-expr
@@ -336,25 +338,35 @@
                [s & rest-args-spec :as all-specs] args-spec
                [a & rest-args :as all-args] args
                [t & rest-tags :as all-tags] tags]
-          ;; (prn all-specs all-args)
-          ;; (prn s t)
+          ;; (prn "S" s "CTX" check-ctx)
           (let [op (:op s)]
             (cond (and (empty? all-args)
                        (empty? all-specs)) :done
                   op
                   (case op
                     :rest
-                    (recur (assoc check-ctx :rest (:spec s))
+                    (recur (assoc check-ctx
+                                  :rest (:spec s)
+                                  :last (:last s))
                            nil
                            all-args
                            all-tags)
                     :keys
                     (do (lint-map! ctx s a t)
                         (recur check-ctx rest-args-spec rest-args rest-tags)))
-                  (nil? s) (cond (seq all-specs) (recur check-ctx rest-args-spec rest-args rest-tags)
+                  (nil? s) (cond (seq all-specs)
+                                 ;; nil is :any
+                                 (recur check-ctx rest-args-spec rest-args rest-tags)
                                  (:rest check-ctx)
-                                 (recur check-ctx [(:rest check-ctx)] all-args all-tags)) ;; nil is :any
+                                 (if (seq rest-args)
+                                   ;; not the last one
+                                   (recur check-ctx [(:rest check-ctx)] all-args all-tags)
+                                   ;; the last arg
+                                   (recur check-ctx [(some check-ctx [:last :rest])] all-args all-tags)))
                   (vector? s) (recur check-ctx (concat s rest-args-spec) all-args all-tags)
+                  (set? s) (do (when-not (some #(match? t %) s)
+                                 (emit-non-match! ctx s a t))
+                               (recur check-ctx rest-args-spec rest-args rest-tags))
                   (keyword? s)
                   (cond (empty? all-args) (emit-more-input-expected! ctx (last args))
                         :else

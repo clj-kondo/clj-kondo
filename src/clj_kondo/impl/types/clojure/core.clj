@@ -83,14 +83,14 @@
                                      :spec :any}]
                              :ret :string}}}
    ;; 648
-   ;; TODO: with our current config you cannot express that the last one should be a seqable
-   ;; so maybe we have to re-introduce a greedy version of star?
-   'list* {:arities {:varargs {:args [{:op :rest :spec :any}]
+   'list* {:arities {:varargs {:args [{:op :rest
+                                       :spec :any
+                                       :last :seqable}]
                                :ret :list}}}
    ;; 660
-   ;; TODO: with our current config you cannot express that the last one should be a seqable
-   ;; so maybe we have to re-introduce a greedy version of star?
-   'apply {:arities {:varargs {:args [:ifn {:op :rest :spec :any}]
+   'apply {:arities {:varargs {:args [:ifn {:op :rest
+                                            :spec :any
+                                            :last :seqable}]
                                :ret :any}}}
    ;; 718
    'concat {:arities {:varargs {:args [{:op :rest :spec :seqable}]
@@ -168,7 +168,21 @@
    'juxt {:arities {:varargs {:args [:ifn {:op :rest
                                            :spec :ifn}]
                               :ret :ifn}}}
-   ;; TODO: continue with every?, etc. in https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc
+   ;; 2672
+   'every? {:arities {2 {:args [:ifn :seqable]
+                         :ret :boolean}}}
+   ;; 2684
+   'not-every? {:arities {2 {:args [:ifn :seqable]
+                             :ret :boolean}}}
+   ;; 2614
+   'partial {:arities {:varargs {:args [:ifn {:op :rest :spec :any}]
+                                 :ret :ifn}}}
+   ;; 2693
+   'some {:arities {2 {:args [:ifn :seqable]
+                       :ret :any}}}
+   ;; 2703
+   'not-any? {:arities {2 {:args [:ifn :seqable]
+                           :ret :boolean}}}
    ;; 2727
    'map {:arities {1 {:args [:ifn]
                       :ret :transducer}
@@ -185,13 +199,84 @@
                          :ret :transducer}
                       2 {:args [:ifn :seqable]
                          :ret :seqable-out}}}
+   ;; 3019
+   'range {:arities {0 {:ret :seqable}
+                     1 {:args [:number]
+                        :ret :seqable}
+                     2 {:args [:number :number]
+                        :ret :seqable}
+                     3 {:args [:number :number :number]
+                        :ret :seqable}}}
+   ;; 3041
+   'merge {:arities {:varargs {:args [{:op :rest
+                                       :spec :seqable}]
+                               :ret :nilable/map}}}
+   ;; 3051
+   'merge-with {:arities {:varargs {:args [:ifn {:op :rest
+                                                 :spec :seqable}]
+                                    :ret :nilable/map}}}
+   ;; 3071
+   'zipmap {:arities {2 {:args [:seqable :seqable]
+                         :ret :map}}}
+   ;; 3184
+   'partition {:arities {2 {:args [:int :seqable]
+                            :ret :seqable}
+                         3 {:args [:int :int :seqable]
+                            :ret :seqable}
+                         4 {:args [:int :int :int :seqable]
+                            :ret :seqable}}}
    ;; 4105
    'set {:ret :set}
+   ;; 4839
+   're-pattern {:arities {1 {:args [#{:string :regex}] ;; arg can also be a regex...
+                             :ret :regex}}}
+   ;; 4874
+   're-seq {:arities {2 {:args [:regex :string]
+                         :ret :seqable}}}
+   ;; 4886
+   're-matches {:arities {2 {:args [:regex :string]
+                             :ret :seqable}}}
+   ;; 4898
+   're-find {:arities {1 {:args [:any] ;; matcher
+                          :ret :seqable}
+                       2 {:args [:regex :string]
+                          :ret :seqable}}}
    ;; 4981
    'subs {:arities {2 {:args [:string :nat-int]
                        :ret :string}
                     3 {:args [:string :nat-int :nat-int]
                        :ret :string}}}
+   ;; 4898
+   'max-key {:arities {:varargs {:args [:ifn :any {:op :rest :spec :any}]
+                                 :ret :any}}}
+   ;; 5009
+   'min-key {:arities {:varargs {:args [:ifn :any {:op :rest :spec :any}]
+                                 :ret :any}}}
+   ;; 5029
+   'distinct {:arities {0 {:args []
+                           :ret :transducer}
+                        1 {:args [:seqable]
+                           :ret :seqable}}}
+   ;; 5206
+   'interpose {:arities {1 {:args [:any]
+                            :ret :transducer}
+                         2 {:args [:any :seqable]
+                            :ret :seqable}}}
+   ;; 6142
+   'get-in {:arities {2 {:args [:nilable/associative :seqable]
+                         :ret :any}
+                      3 {:args [:nilable/associative :seqable :any]
+                         :ret :any}}}
+   ;; 6152
+   'assoc-in {:arities {3 {:args [:nilable/associative :seqable :any]
+                           :ret :associative}}}
+   ;; 6172
+   'update-in {:arities {:varargs {:args [:nilable/associative :seqable :ifn {:op :rest :spec :any}]
+                                   :ret :associative}}}
+   ;; 6188
+   'update {:arities {:varargs {:args [:nilable/associative :any :ifn {:op :rest :spec :any}]
+                                :ret :associative}}}
+   ;; 6536, fnil, TODO continue here https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc#L470
    ;; 6790
    'reduce {:arities {2 {:args [:ifn :seqable]
                          :ret :any}
