@@ -219,6 +219,7 @@
 (defn expr->tag [{:keys [:bindings :lang] :as ctx} expr]
   (let [t (tag expr)
         edn? (= :edn lang)]
+    ;; (prn "T" t)
     (case t
       :map (map->tag ctx expr)
       :vector :vector
@@ -236,6 +237,7 @@
                  (keyword? v) :keyword
                  (number? v) (number->tag v)
                  :else :any))
+      :regex :regex
       :any)))
 
 (defn add-arg-type-from-expr
@@ -344,17 +346,28 @@
                   op
                   (case op
                     :rest
-                    (recur (assoc check-ctx :rest (:spec s))
+                    (recur (assoc check-ctx
+                                  :rest (:spec s)
+                                  :last (:last s))
                            nil
                            all-args
                            all-tags)
                     :keys
                     (do (lint-map! ctx s a t)
                         (recur check-ctx rest-args-spec rest-args rest-tags)))
-                  (nil? s) (cond (seq all-specs) (recur check-ctx rest-args-spec rest-args rest-tags)
+                  (nil? s) (cond (seq all-specs)
+                                 ;; nil is :any
+                                 (recur check-ctx rest-args-spec rest-args rest-tags)
                                  (:rest check-ctx)
-                                 (recur check-ctx [(:rest check-ctx)] all-args all-tags)) ;; nil is :any
+                                 (if (seq rest-args)
+                                   ;; not the last one
+                                   (recur check-ctx [(:rest check-ctx)] all-args all-tags)
+                                   ;; the last arg
+                                   (recur check-ctx [(some check-ctx [:last :spec])] all-args all-tags)))
                   (vector? s) (recur check-ctx (concat s rest-args-spec) all-args all-tags)
+                  (set? s) (do (when-not (some #(match? t %) s)
+                                 (emit-non-match! ctx s a t))
+                               (recur check-ctx rest-args-spec rest-args rest-tags))
                   (keyword? s)
                   (cond (empty? all-args) (emit-more-input-expected! ctx (last args))
                         :else

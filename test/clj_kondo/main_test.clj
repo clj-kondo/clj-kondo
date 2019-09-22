@@ -1952,7 +1952,7 @@
       :level :error,
       :message "foo is called with 1 arg but expects 0"})
    (lint! "(require '[clojure.test :as t]) (t/async foo (foo 1))"
-           "--lang" "cljs"))
+          "--lang" "cljs"))
   (is (empty? (lint! (io/file "corpus" "deftest.cljc")
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
@@ -2688,6 +2688,15 @@
         :message "Expected: number, received: list."})
      (lint! "(inc (list 1 2 3))"
             {:linters {:type-mismatch {:level :error}}})))
+  (testing "last element can be different in rest op"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 14,
+        :level :error,
+        :message "Expected: seqable collection, received: positive integer."})
+     (lint! "(apply + 1 2 3)"
+            {:linters {:type-mismatch {:level :error}}})))
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
@@ -2724,6 +2733,9 @@
     (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
                        {:linters {:type-mismatch {:level :error}}})))
     (is (empty? (lint! "(defn foo [^Long x] (subs \"foo\" x))"
+                       {:linters {:type-mismatch {:level :error}}}))))
+  (testing "set spec (multiple keywords)"
+    (is (empty? (lint! "(re-pattern #\"foo\")"
                        {:linters {:type-mismatch {:level :error}}})))))
 
 ;;;; Scratch
