@@ -18,6 +18,9 @@
 (def seqable->any {:arities {1 {:args [:seqable]
                                 :ret :any}}})
 
+(def any->boolean {:arities {1 {:args [:any]
+                                :ret :boolean}}})
+
 (def clojure-core
   {;; 16
    'list {:arities {:varargs {:ret :list}}}
@@ -29,6 +32,11 @@
    'next seqable->seqable
    ;; 66
    'rest seqable->seqable
+   ;; 75
+   'conj {:arities {0 {:args [:coll]
+                       :ret :coll}
+                    :varargs {:args [:coll {:op :rest :spec :any}]
+                              :ret :coll}}}
    ;; 126
    'seq {:arities {1 {:args [:seqable]
                       :ret :seq}}}
@@ -46,10 +54,35 @@
    'vector {:arities {:varargs {:ret :vector}}}
    ;; 367
    'vec {:arities {1 {:ret :vector}}}
+   ;; 379
+   'hash-map {:arities {:varargs {:args [{:op :rest :spec [:any :any]}]
+                                  :ret :map}}}
+   ;; 389
+   'hash-set {:arities {:varargs {:args [{:op :rest :spec [:any :any]}]
+                                  :ret :set}}}
+   ;; 436
+   'nil? any->boolean
+   ;; 524
+   'not any->boolean
+   ;; 531
+   'some? any->boolean
    ;; 544
    'str {:arities {:varargs {:args [{:op :rest
                                      :spec :any}]
                              :ret :string}}}
+   ;; 648
+   ;; TODO: with our current config you cannot express that the last one should be a seqable
+   ;; so maybe we have to re-introduce a greedy version of star?
+   'list* {:arities {:varargs {:args [{:op :rest :spec :any}]
+                               :ret :list}}}
+   ;; 660
+   ;; TODO: with our current config you cannot express that the last one should be a seqable
+   ;; so maybe we have to re-introduce a greedy version of star?
+   'apply {:arities {:varargs {:args [:ifn {:op :rest :spec :any}]
+                               :ret :any}}}
+   ;; 718
+   'concat {:arities {:varargs {:args [{:op :rest :spec :seqable}]
+                                :ret :seqable}}}
    ;; 922
    'inc {:arities {1 {:args [:number]}}
          :ret :number}
