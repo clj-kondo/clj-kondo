@@ -23,10 +23,10 @@
    :nat-int #{:int :number}
    :neg-int #{:int :number}
    :double #{:number}
-   :vector #{:seqable :seqable-out :associative :coll :ifn}
+   :vector #{:seqable :seqable-out :sequential :associative :coll :ifn}
    :map #{:seqable :associative :coll :ifn}
    :nil #{:seqable}
-   :seqable-out #{:seqable :coll}
+   :seqable-out #{:sequential :seqable :coll}
    :coll #{:seqable}
    :set #{:seqable :coll :ifn}
    :fn #{:ifn}
@@ -34,8 +34,9 @@
    :symbol #{:ifn}
    :associative #{:seqable :coll}
    :transducer #{:ifn}
-   :list #{:seq :seqable :seqable-out :coll}
-   :seq #{:seqable :seqable-out}})
+   :list #{:seq :sequential :seqable :seqable-out :coll}
+   :seq #{:seqable :seqable-out :sequential}
+   :sequential #{:seqable}})
 
 (def could-be-relations
   {:char-sequence #{:string}
@@ -43,11 +44,14 @@
    :number #{:neg-int :pos-int :nat-int :int :double}
    :seqable-out #{:list :vector :seq}
    :coll #{:map :vector :set :list :seqable-out :associative}
-   :seqable #{:coll :vector :set :map :associative :char-sequence :string :nil :seqable-out :list :seq}
+   :seqable #{:coll :vector :set :map :associative
+              :char-sequence :string :nil :seqable-out
+              :list :seq :sequential}
    :associative #{:map :vector}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector}
    :nat-int #{:pos-int}
-   :seq #{:list}})
+   :seq #{:list}
+   :sequential #{:seq :list :vector :seqable-out}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
@@ -89,7 +93,8 @@
    :transducer "transducer"
    :seqable-or-transducer "seqable or transducer"
    :set "set"
-   :char-sequence "char sequence"})
+   :char-sequence "char sequence"
+   :sequential "sequential collection"})
 
 (defn label [k]
   (cond

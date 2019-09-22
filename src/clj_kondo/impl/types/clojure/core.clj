@@ -276,7 +276,13 @@
    ;; 6188
    'update {:arities {:varargs {:args [:nilable/associative :any :ifn {:op :rest :spec :any}]
                                 :ret :associative}}}
-   ;; 6536, fnil, TODO continue here https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc#L470
+   ;; 6536
+   'fnil {:arities {2 {:args [:ifn :any]
+                       :ret :ifn}
+                    3 {:args [:ifn :any :any]
+                       :ret :ifn}
+                    4 {:args [:ifn :any :any :any]
+                       :ret :ifn}}}
    ;; 6790
    'reduce {:arities {2 {:args [:ifn :seqable]
                          :ret :any}
@@ -300,11 +306,58 @@
                     :varargs {:args '[:ifn :seqable {:op :rest
                                                      :spec :seqable}]
                               :ret :vector}}}
-   ;; 7313
+   ;; 6921
    'filterv {:arities {2 {:args [:ifn :seqable]
                           :ret :vector}}}
+   ;; 7136
+   'flatten {:arities {1 {:args [:nilable/sequential]
+                          :ret :sequential}}}
+   ;; 7146
+   'group-by {:arities {2 {:args [:ifn :seqable]
+                           :ret :map}}}
+   ;; 7160
+   'partition-by {:arities {1 {:args [:ifn]
+                               :ret :transducer}
+                            2 {:args [:ifn :seqable]
+                               :ret :seqable}}}
+   ;; 7203
+   'frequencies {:arities {1 {:args [:seqable]
+                              :ret :map}}}
+   ;; 7240
+   'partition-all {:arities {1 {:args [:int]
+                                :ret :transducer}
+                             2 {:args [:int :seqable]
+                                :ret :seqable}
+                             3 {:args [:int :int :seqable]
+                                :ret :seqable}}}
+   ;; 7274
+   'shuffle {:arities {1 {:args [:coll]
+                          :ret :coll}}}
+   ;; 7283
+   'map-indexed {:arities {1 {:args [:ifn]
+                              :ret :transducer}
+                           2 {:args [:ifn :seqable]
+                              :ret :seqable}}}
    ;; 7313
    'keep {:arities {1 {:args [:ifn]
                        :ret :transducer}
                     2 {:args [:ifn :seqable]
-                       :ret :seqable-out}}}})
+                       :ret :seqable-out}}}
+   ;; 7283
+   'keep-indexed {:arities {1 {:args [:ifn]
+                               :ret :transducer}
+                            2 {:args [:ifn :seqable]
+                               :ret :seqable}}}
+   ;; 7396
+   'every-pred {:arities {:varargs {:args [:ifn {:op :rest
+                                                 :spec :ifn}]
+                                    :ret :ifn}}}
+   ;; 7436
+   'some-fn {:arities {:varargs {:args [:ifn {:op :rest
+                                              :spec :ifn}]
+                                 :ret :ifn}}}
+   ;; 7655
+   'dedupe {:arities {0 {:args []
+                         :ret :transducer}
+                      1 {:args [:seqable]
+                         :ret :seqable}}}})
