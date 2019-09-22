@@ -93,9 +93,11 @@
    :char-sequence "char sequence"})
 
 (defn label [k]
-  (if (nilable? k)
+  (cond
+    (map? k) (recur (:type k))
+    (nilable? k)
     (str (get labels (unnil k)) " or nil")
-    (get labels k)))
+    :else (get labels k)))
 
 (def current-ns-name (str (ns-name *ns*)))
 
