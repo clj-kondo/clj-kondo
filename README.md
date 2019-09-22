@@ -41,6 +41,7 @@ clj-kondo detects:
 * missing map keys
 * invalid number of forms in binding vectors
 * missing assertions in `clojure.test/deftest`
+* [type checking](doc/types.md)
 
 before your REPL knows it.
 
