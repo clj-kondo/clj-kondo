@@ -25,6 +25,11 @@
      linter-disabled? tag sexpr string-from-token assoc-some]]
    [clojure.string :as str]))
 
+;; not part of the ns :require on purpose (uses in-ns, so share the same requires)
+(require '[clj-kondo.impl.analyzer.test])
+;; brings in:
+(declare analyze-deftest analyze-cljs-test-async)
+
 (set! *warn-on-reflection* true)
 
 (declare analyze-expression**)
@@ -683,16 +688,6 @@
        defmethod (analyze-defmethod ctx expr))
      (analyze-children ctx schemas))))
 
-(defn analyze-deftest [ctx _deftest-ns expr]
-  (analyze-defn ctx
-                (update expr :children
-                        (fn [[_ name-expr & body]]
-                          (list*
-                           (utils/token-node 'clojure.core/defn)
-                           name-expr
-                           (utils/vector-node [])
-                           body)))))
-
 (defn analyze-binding-call [{:keys [:callstack :config :findings] :as ctx} fn-name expr]
   (let [ns-name (-> ctx :ns :name)]
     (namespace/reg-used-binding! ctx
@@ -1046,6 +1041,8 @@
              #_[:clj-kondo/unknown-namespace deftest])
             (do (lint-inline-def! ctx expr)
                 (analyze-deftest ctx resolved-namespace expr))
+            [cljs.test async]
+            (analyze-cljs-test-async ctx expr)
             ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
             (spec/analyze-fdef (assoc ctx
                                       :analyze-children

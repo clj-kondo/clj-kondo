@@ -1,5 +1,5 @@
 (ns deftest
-  (:require [clojure.test :refer [deftest is are]])
+  (:require [clojure.test :refer [deftest is are #?(:cljs async)]])
   (:import clojure.lang.ExceptionInfo))
 
 (deftest are-test
@@ -20,3 +20,6 @@
        ExceptionInfo #"uh oh"
        (throw (ex-info "uh oh" {}))))
   (is (thrown? ExceptionInfo (throw (ex-info "uh oh" {})))))
+
+#?(:cljs
+   (async foo (foo)))
