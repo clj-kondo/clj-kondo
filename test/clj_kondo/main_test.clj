@@ -1945,6 +1945,14 @@
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest deftest-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 46,
+      :level :error,
+      :message "foo is called with 1 arg but expects 0"})
+   (lint! "(require '[clojure.test :as t]) (t/async foo (foo 1))"
+           "--lang" "cljs"))
   (is (empty? (lint! (io/file "corpus" "deftest.cljc")
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
