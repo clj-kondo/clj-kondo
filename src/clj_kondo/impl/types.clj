@@ -17,8 +17,7 @@
 
 (def is-a-relations
   {:string #{:char-sequence :seqable}
-   :regex #{:char-sequence}
-   :char #{:char-sequence}
+   :char-sequence #{:seqable}
    :int #{:number}
    :pos-int #{:int :nat-int :number}
    :nat-int #{:int :number}
@@ -39,18 +38,18 @@
    :seq #{:seqable :seqable-out}})
 
 (def could-be-relations
-  {:char-sequence #{:string :char :regex}
+  {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double}
    :seqable-out #{:list :vector :seq}
    :coll #{:map :vector :set :list :seqable-out :associative}
-   :seqable #{:coll :vector :set :map :associative :string :nil :seqable-out :list :seq}
+   :seqable #{:coll :vector :set :map :associative :char-sequence :string :nil :seqable-out :list :seq}
    :associative #{:map :vector}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector}
    :nat-int #{:pos-int}
    :seq #{:list}})
 
-(def misc-types #{:boolean :atom})
+(def misc-types #{:boolean :atom :regex :char})
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
