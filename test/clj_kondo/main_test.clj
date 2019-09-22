@@ -2712,7 +2712,7 @@
                (cons 1 nil)
                (require '[clojure.string :as str])
                (str/starts-with? (str/join [1 2 3]) \"f\")
-               (str/includes? (str/join [1 2 3]) #\"f\")
+               (str/includes? (str/join [1 2 3]) \"f\")
                (remove #{1 2 3} [1 2 3])
                (set/difference (into #{} [1 2 3]) #{1 2 3})
                (reduce conj () [1 2 3])"

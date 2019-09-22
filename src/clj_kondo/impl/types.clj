@@ -338,8 +338,7 @@
                [s & rest-args-spec :as all-specs] args-spec
                [a & rest-args :as all-args] args
                [t & rest-tags :as all-tags] tags]
-          ;; (prn all-specs all-args)
-          ;; (prn s t)
+          ;; (prn "S" s "CTX" check-ctx)
           (let [op (:op s)]
             (cond (and (empty? all-args)
                        (empty? all-specs)) :done
@@ -363,7 +362,7 @@
                                    ;; not the last one
                                    (recur check-ctx [(:rest check-ctx)] all-args all-tags)
                                    ;; the last arg
-                                   (recur check-ctx [(some check-ctx [:last :spec])] all-args all-tags)))
+                                   (recur check-ctx [(some check-ctx [:last :rest])] all-args all-tags)))
                   (vector? s) (recur check-ctx (concat s rest-args-spec) all-args all-tags)
                   (set? s) (do (when-not (some #(match? t %) s)
                                  (emit-non-match! ctx s a t))
