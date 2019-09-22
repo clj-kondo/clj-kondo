@@ -219,10 +219,10 @@
 (defn expr->tag [{:keys [:bindings :lang] :as ctx} expr]
   (let [t (tag expr)
         edn? (= :edn lang)]
-    ;; (prn "T" t)
     (case t
       :map (map->tag ctx expr)
       :vector :vector
+      :set :set
       :list (if edn? :list
                 (:tag (spec-from-list-expr ctx expr))) ;; a call we know nothing about
       :fn :fn
