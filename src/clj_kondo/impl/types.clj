@@ -35,7 +35,7 @@
    :associative #{:seqable :coll}
    :transducer #{:ifn}
    :list #{:seq :sequential :seqable :seqable-out :coll}
-   :seq #{:seqable :seqable-out :sequential}
+   :seq #{:seqable :seqable-out :sequential :coll}
    :sequential #{:seqable}})
 
 (def could-be-relations
@@ -43,7 +43,7 @@
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double}
    :seqable-out #{:list :vector :seq}
-   :coll #{:map :vector :set :list :seqable-out :associative}
+   :coll #{:map :vector :set :list :seqable-out :associative :seq}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil :seqable-out
               :list :seq :sequential}
