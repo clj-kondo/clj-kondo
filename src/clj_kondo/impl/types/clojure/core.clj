@@ -33,6 +33,10 @@
 (def number->boolean {:arities {:varargs {:args [:number]
                                           :ret :boolean}}})
 
+(def compare-numbers {:arities {:varargs {:args [{:op :rest
+                                                  :spec :number}]
+                                          :ret :boolean}}})
+
 (def clojure-core
   {;; 16
    'list {:arities {:varargs {:ret :list}}}
@@ -106,6 +110,8 @@
                       :ret :any}
                    3 {:args [:seqable :int :any]
                       :ret :any}}}
+   ;; 900
+   '< compare-numbers
    ;; 922
    'inc number->number
    ;; 947
@@ -118,7 +124,14 @@
    ;; 1020
    '/ number+->number
    ;; 1043
+   '<= compare-numbers
    '- number+->number
+   ;; 1070
+   '> compare-numbers
+   ;; 1085
+   '>= compare-numbers
+   ;; 1100
+   '== compare-numbers
    ;; 1142
    'dec number->number
    ;; 1115
@@ -227,6 +240,11 @@
                             :ret :seqable}}}
    ;; 4105
    'set {:ret :set}
+   ;; 4288
+   'take-nth {:arities {1 {:args [:int]
+                           :ret :transducer}
+                        2 {:args [:int :seqable]
+                           :ret :seqable}}}
    ;; 4839
    're-pattern {:arities {1 {:args [#{:string :regex}] ;; arg can also be a regex...
                              :ret :regex}}}
