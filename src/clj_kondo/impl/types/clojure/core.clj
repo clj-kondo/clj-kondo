@@ -21,6 +21,18 @@
 (def any->boolean {:arities {1 {:args [:any]
                                 :ret :boolean}}})
 
+(def number->number {:arities {1 {:args [:number]
+                                  :ret :number}}})
+
+(def number*->number {:arities {:varargs {:args [{:op :rest :spec :number}]
+                                          :ret :number}}})
+
+(def number+->number {:arities {:varargs {:args [:number {:op :rest :spec :number}]
+                                          :ret :number}}})
+
+(def number->boolean {:arities {:varargs {:args [:number]
+                                          :ret :boolean}}})
+
 (def clojure-core
   {;; 16
    'list {:arities {:varargs {:ret :list}}}
@@ -83,23 +95,80 @@
    ;; 718
    'concat {:arities {:varargs {:args [{:op :rest :spec :seqable}]
                                 :ret :seqable}}}
+   ;; 783
+   '= {:arities {:varargs {:args [:any {:op :rest :spec :any}]
+                           :ret :boolean}}}
+   ;; 874
+   'count {:arities {1 {:args [:seqable]
+                        :ret :number}}}
+   ;; 889
+   'nth {:arities {2 {:args [:seqable :int]
+                      :ret :any}
+                   3 {:args [:seqable :int :any]
+                      :ret :any}}}
    ;; 922
-   'inc {:arities {1 {:args [:number]}}
-         :ret :number}
+   'inc number->number
    ;; 947
    'reverse {:arities {1 {:args [:seqable]}}
              :ret :seqable-out}
+   ;; 984
+   '+ number*->number
+   ;; 1008
+   '* number*->number
+   ;; 1020
+   '/ number+->number
+   ;; 1043
+   '- number+->number
+   ;; 1142
+   'dec number->number
+   ;; 1115
+   'max number+->number
+   ;; 1125
+   'min number+->number
+   ;; 1247
+   'pos? number->boolean
+   ;; 1254
+   'neg? number->boolean
+   ;; 1459
+   'peek {:arities {1 {:args [:vector]
+                       :ret :any}}}
+   ;; 1467
+   'pop {:arities {1 {:args [:vector]
+                      :ret :vector}}}
+   ;; 1504
+   'dissoc {:arities {:varargs {:args [:map {:op :rest :spec :any}]
+                                :ret :map}}}
+   ;; 1534
+   'find {:arities {2 {:args [:associative :any]}}}
+   ;; 1540
+   'select-keys {:arities {2 {:args [:associative :seqable]
+                              :ret :map}}}
+   ;; 1555
+   'keys {:arities {1 {:args [:seqable]
+                       :ret :seqable}}}
+   ;; 1561
+   'vals {:arities {1 {:args [:seqable]
+                       :ret :seqable}}}
+   ;; 1589
+   ;;'name TODO
    ;; 2327
    'atom {:ret :atom}
    ;; 2345
-   'swap! {:arities {:varargs {:args '[:atom :ifn [{:op :rest
-                                                    :spec :any}]]
+   'swap! {:arities {:varargs {:args [:atom :ifn [{:op :rest
+                                                   :spec :any}]]
                                :ret :any}}}
+   ;; 2376
+   'reset! {:arities {2 {:args [:atom :any]
+                         :ret :any}}}
+   ;; 2557
+   'comp {:arities {:varargs [{:op :rest
+                               :spec :ifn}]
+                    :ret :ifn}}
    ;; 2576
-   'juxt {:arities {:varargs {:min-arity 0
-                              :args [{:op :rest
-                                      :spec :ifn}]
+   'juxt {:arities {:varargs {:args [:ifn {:op :rest
+                                           :spec :ifn}]
                               :ret :ifn}}}
+   ;; TODO: continue with every?, etc. in https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc
    ;; 2727
    'map {:arities {1 {:args [:ifn]
                       :ret :transducer}
