@@ -1,6 +1,7 @@
 # Types
 
-STATUS: WORK IN PROGRESS.
+STATUS: WORK IN PROGRESS. THE CONFIGURATION FORMAT IS STILL IN FLUX, BREAKING
+CHANGES WILL HAPPEN.
 
 Clj-kondo provides rudimentary type checking using a few basic rules and type
 annotations. The linter for this is called `:type-mismatch` in the
@@ -72,7 +73,11 @@ Available types and relations can be found
 Special operators:
 
 - `{:op :rest, :spec :int}`. This can be used to match remaining arguments in
-  vararg signatures.
+  vararg signatures. This operation also supports `:last` which can be used if
+  the last vararg has a different type than the others (like in
+  `clojure.core/apply`). The spec may be wrapped in a vector, to match pair-wise
+  arguments: `{:args [{:op :rest, :spec [:any :any]}]`. Trying to match this
+  spec with an uneven number of arguments will fail.
 
 - `{:op :keys, :req {:a :string} :opt {:b :int}}`. This can be used to match map
   literals and check for required and optional keys.
