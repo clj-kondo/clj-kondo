@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.analyzer.potemkin
+  {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require [clj-kondo.impl.namespace :as namespace]))
 

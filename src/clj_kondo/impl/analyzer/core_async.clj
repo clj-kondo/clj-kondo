@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.analyzer.core-async
+  {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [tag]]))
 
