@@ -73,7 +73,7 @@
                 :namespace-usages
                 :var-usages
                 :var-definitions]}
-        (analyze "(ns foo (:require [clojure.string]))
+        (analyze "(ns foo (:require [clojure.string :as string]))
                   (defn f [] (inc 1 2 3))" {:lang :cljc})]
     (assert-submaps
      '[{:filename "<stdin>", :row 1, :col 1, :name foo, :lang :clj}
@@ -85,12 +85,14 @@
         :col 20,
         :from foo,
         :to clojure.string,
+        :as string
         :lang :clj}
        {:filename "<stdin>",
         :row 1,
         :col 20,
         :from foo,
         :to clojure.string,
+        :as string
         :lang :cljs}]
      namespace-usages)
     (assert-submaps
@@ -148,4 +150,7 @@
         :arity 3,
         :row 2,
         :to cljs.core}]
-     var-usages)))
+     var-usages))
+  (let [{:keys [:namespace-usages]}
+        (analyze "(ns foo (:require [clojure.string]))" {:lang :cljc})]
+    (is (every? #(not (contains? % :as)) namespace-usages))))

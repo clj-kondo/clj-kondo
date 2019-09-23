@@ -198,6 +198,7 @@
                            analyzed)]
     (lint-duplicate-requires! ctx (map (juxt :require-kw :ns) analyzed))
     {:required (map :ns analyzed)
+     :aliases (into {} (map (juxt :ns :as) (filter :as analyzed)))
      :qualify-ns (reduce (fn [acc sc]
                            (cond-> (assoc acc (:ns sc) (:ns sc))
                              (:as sc)
@@ -322,7 +323,8 @@
                                                          :author (:author ns-meta)))
       (doseq [req (:required ns)]
         (let [{:keys [row col]} (meta req)]
-          (analysis/reg-namespace-usage! ctx filename row col ns-name req))))
+          (analysis/reg-namespace-usage! ctx filename row col ns-name req
+                                         (get-in ns [:aliases req])))))
     (namespace/reg-namespace! ctx ns)
     ns))
 
