@@ -44,7 +44,7 @@ jobs:
           name: Create uberjar
           command: |
             mkdir -p /tmp/release
-            lein uberjar
+            lein do clean, uberjar
             VERSION=$(cat resources/CLJ_KONDO_VERSION)
             cp target/clj-kondo-$VERSION-standalone.jar /tmp/release
       - store_artifacts:
