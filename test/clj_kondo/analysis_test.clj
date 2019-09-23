@@ -85,14 +85,14 @@
         :col 20,
         :from foo,
         :to clojure.string,
-        :as string
+        :alias string
         :lang :clj}
        {:filename "<stdin>",
         :row 1,
         :col 20,
         :from foo,
         :to clojure.string,
-        :as string
+        :alias string
         :lang :cljs}]
      namespace-usages)
     (assert-submaps
