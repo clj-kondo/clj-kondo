@@ -1939,10 +1939,12 @@
   (is (empty? (lint! "(ns foo) (defn foo [] (ns bar (:require [clojure.string :as s])))")))
   (is (empty? (lint! "(defn foo [x y z] ^{:a x :b y :c z} [1 2 3])")))
   (is (empty? (lint! "(fn [^js x] x)"
-                     '{:linters {:unresolved-symbol {:level :error}}}
+                     {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "(= '`+ (read-string \"`+\"))"
-                     '{:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! (io/file "corpus" "core.rrb-vector.clj")
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest deftest-test
   (assert-submaps

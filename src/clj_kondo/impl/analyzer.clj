@@ -22,7 +22,7 @@
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
-     linter-disabled? tag sexpr string-from-token assoc-some]]
+     linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
    [clojure.string :as str]))
 
 ;; not part of the ns :require on purpose (uses in-ns, so share the same requires)
@@ -254,10 +254,6 @@
              :args arg-tags
              :ret return-tag}]
     ret))
-
-(defn ctx-with-bindings [ctx bindings]
-  (update ctx :bindings (fn [b]
-                          (into b bindings))))
 
 (defn analyze-pre-post-map [ctx expr]
   (let [children (:children expr)]
@@ -829,6 +825,7 @@
                           (ctx-with-linter-disabled :invalid-arity)
                           (ctx-with-linter-disabled :unresolved-symbol)
                           (ctx-with-linter-disabled :type-mismatch)
+                          (ctx-with-linter-disabled :private-call)
                           (ctx-with-bindings bindings))
                       (nnext children))))
 

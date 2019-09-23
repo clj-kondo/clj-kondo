@@ -198,6 +198,10 @@
 (defn linter-disabled? [ctx linter]
   (= :off (get-in ctx [:config :linters linter :level])))
 
+(defn ctx-with-bindings [ctx bindings]
+  (update ctx :bindings (fn [b]
+                          (into b bindings))))
+
 (defn kw->sym [^clojure.lang.Keyword k]
   (.sym k))
 
