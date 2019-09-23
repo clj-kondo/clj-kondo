@@ -150,7 +150,4 @@
         :arity 3,
         :row 2,
         :to cljs.core}]
-     var-usages))
-  (let [{:keys [:namespace-usages]}
-        (analyze "(ns foo (:require [clojure.string]))" {:lang :cljc})]
-    (is (every? #(not (contains? % :as)) namespace-usages))))
+     var-usages)))
