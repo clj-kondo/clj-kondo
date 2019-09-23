@@ -236,7 +236,7 @@
                             :ret :seqable}
                          3 {:args [:int :int :seqable]
                             :ret :seqable}
-                         4 {:args [:int :int :int :seqable]
+                         4 {:args [:int :int :seqable :seqable]
                             :ret :seqable}}}
    ;; 4105
    'set {:ret :set}
