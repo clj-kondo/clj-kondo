@@ -1,12 +1,9 @@
 (ns clj-kondo.impl.analyzer.test
-  {:no-doc true})
+  {:no-doc true}
+  (:require
+   [clj-kondo.impl.utils :as utils]))
 
-(in-ns 'clj-kondo.impl.analyzer)
-
-;; defined in clj-kondo.impl.analyzer
-(declare extract-bindings analyze-children analyze-defn)
-
-(defn analyze-deftest [ctx _deftest-ns expr]
+(defn analyze-deftest [{:keys [:analyze-defn] :as ctx} _deftest-ns expr]
   (analyze-defn ctx
                 (update expr :children
                         (fn [[_ name-expr & body]]
@@ -16,7 +13,7 @@
                            (utils/vector-node [])
                            body)))))
 
-(defn analyze-cljs-test-async [ctx expr]
+(defn analyze-cljs-test-async [{:keys [:analyze-children] :as ctx} expr]
   (let [[binding-expr & rest-children] (rest (:children expr))
         binding-name (:value binding-expr)
         ctx (utils/ctx-with-bindings ctx {binding-name (meta binding-expr)})
