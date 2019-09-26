@@ -78,7 +78,7 @@
    ns-sym usage]
   (let [path [base-lang lang ns-sym]
         usage (assoc usage
-                     :invalid-arity-disabled? (linter-disabled? ctx :invalid-arity)
+                     :config (:config ctx)
                      :unresolved-symbol-disabled?
                      ;; TODO: can we do this via the ctx only?
                      (or (:unresolved-symbol-disabled? usage)

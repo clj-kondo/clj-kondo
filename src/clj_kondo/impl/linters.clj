@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.linters
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [node->line constant? sexpr]]
+   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr]]
    [clj-kondo.impl.var-info :as var-info]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.analysis :as analysis]
@@ -268,7 +268,7 @@
                              arity-error?
                              (and
                               (= :call (:type call))
-                              (not (:invalid-arity-disabled? call))
+                              (not (utils/linter-disabled? call :invalid-arity))
                               (or (not-empty fixed-arities)
                                   var-args-min-arity)
                               (not (or (contains? fixed-arities arity)
@@ -285,7 +285,8 @@
                               (when (and (:private called-fn)
                                          (not= caller-ns-sym
                                                fn-ns)
-                                         (not (:private-access? call)))
+                                         (not (:private-access? call))
+                                         (not (utils/linter-disabled? call :private-call)))
                                 {:filename filename
                                  :row row
                                  :col col
