@@ -1,11 +1,6 @@
 (ns clj-kondo.impl.types.clojure.core
   {:no-doc true})
 
-(defmacro with-meta-fn [fn-expr]
-  `(with-meta
-     ~fn-expr
-     {:form '~fn-expr}))
-
 ;; sorted in order of appearance in
 ;; https://github.com/clojure/clojure/blob/master/src/clj/clojure/core.clj
 
@@ -57,13 +52,16 @@
    'seq {:arities {1 {:args [:seqable]
                       :ret :seq}}}
    ;; 181
-   'assoc {:arities {3 {:args [:nilable/associative :any :any]
-                        :ret :associative}
+   'assoc {:arities {3 {:args [:nilable/associative :any :any]}
                      :varargs {:min-arity 3
                                :args '[:nilable/associative :any :any
                                        {:op :rest
-                                        :spec [:any :any]}]
-                               :ret :associative}}}
+                                        :spec [:any :any]}]}}
+           :fn (fn [args]
+                 (let [t (:tag (first args))]
+                   (if (identical? :any t)
+                     :associative
+                     t)))}
    ;; 262
    'last seqable->any
    ;; 353
@@ -312,12 +310,11 @@
                     1 {:args [:coll]}
                     2 {:args [:coll :seqable]}
                     3 {:args [:coll :transducer :seqable]}}
-          :fn (with-meta-fn
-                (fn [args]
-                  (let [t (:tag (first args))]
-                    (if (identical? :any t)
-                      :coll
-                      t))))}
+          :fn (fn [args]
+                (let [t (:tag (first args))]
+                  (if (identical? :any t)
+                    :coll
+                    t)))}
    ;; 6903
    'mapv {:arities {1 {:args [:ifn]
                        :ret :transducer}
