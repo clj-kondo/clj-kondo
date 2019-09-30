@@ -2699,6 +2699,16 @@
         :message "Expected: seqable collection, received: positive integer."})
      (lint! "(apply + 1 2 3)"
             {:linters {:type-mismatch {:level :error}}})))
+  (testing "return type of assoc depends on first arg"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 6,
+        :level :error,
+        :message "Expected: number, received: map."})
+     (lint! "(inc (assoc {} :a 1))"
+            {:linters {:type-mismatch {:level :error}}})))
+  ;; avoiding false positives:
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
@@ -2738,6 +2748,9 @@
                        {:linters {:type-mismatch {:level :error}}}))))
   (testing "set spec (multiple keywords)"
     (is (empty? (lint! "(re-pattern #\"foo\")"
+                       {:linters {:type-mismatch {:level :error}}}))))
+  (testing "associative is an ifn"
+    (is (empty? (lint! "(remove (assoc x :b 2) [:a :a :b :b])"
                        {:linters {:type-mismatch {:level :error}}})))))
 
 ;;;; Scratch
