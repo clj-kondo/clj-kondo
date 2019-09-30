@@ -49,9 +49,11 @@
              (vector-node (into (normalize-libspec ctx prefix (first children)) (rest children)))
              (meta libspec-expr))]
           (valid-ns-name? form)
-          [(with-meta (token-node (symbol (str (when prefix (str prefix ".")) form)))
-             (assoc (meta libspec-expr)
-                    :raw-name form))]
+          (let [full-form (symbol (str (when prefix (str prefix "."))
+                                       form))]
+            [(with-meta (token-node full-form)
+               (assoc (meta libspec-expr)
+                      :raw-name form))])
           (keyword? form)  ; Some people write (:require ... :reload-all)
           nil
           :else

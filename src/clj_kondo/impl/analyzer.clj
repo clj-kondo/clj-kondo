@@ -2,12 +2,12 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
-   #_[clj-kondo.impl.clojure.spec.alpha :as s]
    [clj-kondo.impl.analyzer.core-async :as core-async]
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.potemkin :as potemkin]
    [clj-kondo.impl.analyzer.spec :as spec]
+   [clj-kondo.impl.analyzer.test :refer [analyze-deftest analyze-cljs-test-async]]
    [clj-kondo.impl.analyzer.usages :as usages :refer [analyze-usages2]]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -24,11 +24,6 @@
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
    [clojure.string :as str]))
-
-;; not part of the ns :require on purpose (uses in-ns, so share the same requires)
-(require '[clj-kondo.impl.analyzer.test])
-;; brings in:
-(declare analyze-deftest analyze-cljs-test-async)
 
 (set! *warn-on-reflection* true)
 
@@ -1037,9 +1032,10 @@
              [cljs.test deftest]
              #_[:clj-kondo/unknown-namespace deftest])
             (do (lint-inline-def! ctx expr)
-                (analyze-deftest ctx resolved-namespace expr))
+                (analyze-deftest (assoc ctx :analyze-defn analyze-defn)
+                                 resolved-namespace expr))
             [cljs.test async]
-            (analyze-cljs-test-async ctx expr)
+            (analyze-cljs-test-async (assoc ctx :analyze-children analyze-children) expr)
             ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
             (spec/analyze-fdef (assoc ctx
                                       :analyze-children

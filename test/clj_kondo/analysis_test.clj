@@ -2,6 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [assert-submaps]]
+   [clojure.edn :as edn]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (defn analyze
@@ -151,3 +152,9 @@
         :row 2,
         :to cljs.core}]
      var-usages)))
+
+(deftest analysis-is-valid-edn-test
+  (testing "solution for GH-476, CLJS with string require"
+    (let [analysis (analyze "(ns foo (:require [\"@dude\" :as d])) (d/fn-call)")
+          analysis-edn (pr-str analysis)]
+      (is (edn/read-string analysis-edn)))))
