@@ -19,14 +19,14 @@
              (select-some metadata
                           [:private :macro
                            :fixed-arities
-                           :var-args-min-arity
+                           :varargs-min-arity
                            :deprecated]))
             :arity arity
             :lang lang))))
 
 (defn reg-var! [{:keys [:analysis :base-lang :lang] :as _ctx}
                 filename row col ns name attrs]
-  (let [attrs (select-keys attrs [:private :macro :fixed-arities :var-args-min-arity
+  (let [attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
                                   :doc :added :deprecated])]
     (swap! analysis update :var-definitions conj
            (assoc-some
