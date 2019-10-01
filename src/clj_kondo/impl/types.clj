@@ -1,4 +1,4 @@
-(ns clj-kondo.impl.types
+:s(ns clj-kondo.impl.types
   {:no-doc true}
   (:require
    [clj-kondo.impl.config :as config]
@@ -36,14 +36,14 @@
    :transducer #{:ifn}
    :list #{:seq :sequential :seqable :seqable-out :coll}
    :seq #{:seqable :seqable-out :sequential :coll}
-   :sequential #{:seqable}})
+   :sequential #{:coll :seqable}})
 
 (def could-be-relations
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double}
    :seqable-out #{:list :vector :seq}
-   :coll #{:map :vector :set :list :seqable-out :associative :seq}
+   :coll #{:map :vector :set :list :seqable-out :associative :seq :sequential}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil :seqable-out
               :list :seq :sequential}
