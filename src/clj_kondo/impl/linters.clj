@@ -404,6 +404,27 @@
           :row row
           :col col})))))
 
+(defn lint-unused-private-vars!
+  [{:keys [:findings] :as ctx}]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [ns-name (:name ns)
+                filename (:filename ns)
+                vars (vals (:vars ns))
+                used-vars (into #{} (comp (filter #(= (:ns %) ns-name))
+                                          (map :name))
+                                (:used-vars ns))]
+          v vars
+          :let [var-name (:name v)]
+          :when (:private v)
+          :when (not (contains? used-vars (:name v)))
+          :let [{:keys [:row :col]} v]]
+    (findings/reg-finding! findings {:level :warning
+                                     :type :unused-private-var
+                                     :filename filename
+                                     :row row
+                                     :col col
+                                     :message (str "Unused private var " ns-name "/" var-name)})))
+
 (defn lint-unresolved-symbols!
   [{:keys [:findings] :as ctx}]
   (doseq [ns (namespace/list-namespaces ctx)

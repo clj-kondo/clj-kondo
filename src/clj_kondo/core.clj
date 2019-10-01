@@ -103,6 +103,7 @@
         idacs (overrides idacs)
         linted-calls (doall (l/lint-var-usage ctx idacs))
         _ (l/lint-unused-namespaces! ctx)
+        _ (l/lint-unused-private-vars! ctx)
         _ (l/lint-unused-bindings! ctx)
         _ (l/lint-unresolved-symbols! ctx)
         ;; _ (namespace/reg-analysis-output! ctx)
