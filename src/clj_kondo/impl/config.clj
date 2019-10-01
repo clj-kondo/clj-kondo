@@ -36,7 +36,7 @@
                                  :exclude [#_clj-kondo.impl.var-info-gen]
                                  ;; :simple-libspec true
                                  }
-              :unresolved-symbol {:level :info ;; for now
+              :unresolved-symbol {:level :warning
                                   :exclude [;; ignore globally:
                                             #_js*
                                             ;; ignore occurrences of service and event in call to riemann.streams/where:
