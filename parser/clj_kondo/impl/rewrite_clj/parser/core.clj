@@ -116,11 +116,16 @@
 
 ;; ### Reader Specialities
 
+(defn- read-symbolic-value [reader]
+  (reader/unread reader \#)
+  (parse-token reader))
+
 (defmethod parse-next* :sharp
   [reader]
   (reader/ignore reader)
   (case (reader/peek reader)
     nil (reader/throw-reader reader "Unexpected EOF.")
+    \# (read-symbolic-value reader)
     \! (do (reader/read-include-linebreak reader)
            reader)
     \{ (node/set-node (parse-delim reader \}))

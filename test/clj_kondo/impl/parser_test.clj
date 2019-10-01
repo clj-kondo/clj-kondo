@@ -11,6 +11,18 @@
   (is (= '#:it{:a #:it{:a 1}} (utils/sexpr (utils/parse-string "#::it {:a #::it{:a 1}}"))))
   (is (= '#:__current-ns__{:a 1} (utils/sexpr (utils/parse-string "#::{:a 1}")))))
 
+(deftest nan-test
+  (is (= true (Double/isNaN (utils/sexpr (utils/parse-string "##NaN"))))))
+
+(deftest inf-test
+  (is (= true (let [thing (utils/sexpr (utils/parse-string "##Inf"))]
+                (and (Double/isInfinite thing)
+                     (< 0 thing)))))
+  (is (= true (let [thing (utils/sexpr (utils/parse-string "##-Inf"))]
+                (and (Double/isInfinite thing)
+                     (< thing 0))))))
+
+
 ;;;; Scratch
 
 (comment

@@ -8,9 +8,9 @@
 (defn parse-string [s]
   (let [input (-> s
                   ;; workaround for https://github.com/xsc/rewrite-clj/issues/75
-                  (str/replace "##Inf" "::Inf")
-                  (str/replace "##-Inf" "::-Inf")
-                  (str/replace "##NaN" "::NaN")
+                  #_(str/replace "##Inf" "::Inf")
+                  #_(str/replace "##-Inf" "::-Inf")
+                  #_(str/replace "##NaN" "::NaN")
                   ;; workaround for https://github.com/borkdude/clj-kondo/issues/11
                   #_(str/replace #_"#:a{#::a {:a b}}"
                                #"#(::?)(.*?)\{" (fn [[_ colons name]]
