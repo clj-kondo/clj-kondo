@@ -1,4 +1,4 @@
-:s(ns clj-kondo.impl.types
+(ns clj-kondo.impl.types
   {:no-doc true}
   (:require
    [clj-kondo.impl.config :as config]
