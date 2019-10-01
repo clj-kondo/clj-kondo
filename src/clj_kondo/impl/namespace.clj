@@ -27,6 +27,9 @@
    (reg-var! ctx ns-sym var-sym expr nil))
   ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns] :as ctx}
     ns-sym var-sym expr metadata]
+   ;; TODO: if private, register it as defined TODO: then walk through all calls
+   ;; to+from this namespace and see if this var is used anywhere.  Maybe this
+   ;; is already possible in linters.clj without changing anything.
    (let [metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym)
