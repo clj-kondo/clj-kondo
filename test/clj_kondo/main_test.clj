@@ -2386,6 +2386,23 @@
       :message "Too many arguments to if."})
    (lint! "(if) (if 1 1) (if 1 1 1 1)")))
 
+(deftest unused-private-var-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 25,
+      :level :warning,
+      :message "Unused private var foo/f"})
+   (lint! "(ns foo) (def ^:private f)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 17,
+      :level :warning,
+      :message "Unused private var foo/f"})
+   (lint! "(ns foo) (defn- f [])"))
+  (is (empty? (lint! "(ns foo) (defn- f []) (f)"))))
+
 ;;;; Scratch
 
 (comment
