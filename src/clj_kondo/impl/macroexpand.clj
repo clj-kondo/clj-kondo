@@ -64,26 +64,26 @@
                         (Integer/parseInt n))))
               children)
         args (sort args)
-        var-args? (when-let [fst (first args)]
+        varargs? (when-let [fst (first args)]
                     (zero? fst))
-        args (seq (if var-args? (rest args) args))
+        args (seq (if varargs? (rest args) args))
         max-n (last args)
         args (when args (map (fn [i]
                                (symbol (str "%" i)))
                              (range 1 (inc max-n))))]
-    {:var-args? var-args?
+    {:varargs? varargs?
      :args args}))
 
 (defn expand-fn [{:keys [:children] :as expr}]
   (let [{:keys [:row :col] :as m} (meta expr)
-        {:keys [:args :var-args?]} (fn-args children)
+        {:keys [:args :varargs?]} (fn-args children)
         fn-body (with-meta (list-node children)
                   {:row row
                    :col (inc col)})
         arg-list (vector-node
                   (map #(with-meta (token-node %)
                           {:clj-kondo/mark-used true})
-                       (if var-args?
+                       (if varargs?
                          (concat args '[& %&])
                          args)))
         has-first-arg? (= '%1 (first args))

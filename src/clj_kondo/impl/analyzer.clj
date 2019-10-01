@@ -364,7 +364,7 @@
                                     [fixed-arity v]))))
                       parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
-        var-args-min-arity (get-in arities [:varargs :min-arity])]
+        varargs-min-arity (get-in arities [:varargs :min-arity])]
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -374,7 +374,7 @@
                    :deprecated deprecated
                    :fixed-arities (not-empty fixed-arities)
                    :arities arities
-                   :var-args-min-arity var-args-min-arity
+                   :varargs-min-arity varargs-min-arity
                    :doc docstring
                    :added (:added var-meta))))
     (mapcat :parsed parsed-bodies)))
@@ -566,11 +566,11 @@
 (defn fn-arity [ctx bodies]
   (let [arities (map #(analyze-fn-arity ctx %) bodies)
         fixed-arities (set (keep (comp :fixed-arity :arity) arities))
-        var-args-min-arity (some #(when (:varargs? (:arity %))
+        varargs-min-arity (some #(when (:varargs? (:arity %))
                                     (:min-arity (:arity %))) arities)]
     (cond-> {}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-      var-args-min-arity (assoc :var-args-min-arity var-args-min-arity))))
+      varargs-min-arity (assoc :varargs-min-arity varargs-min-arity))))
 
 (defn analyze-fn [ctx expr]
   (let [children (:children expr)
@@ -617,7 +617,7 @@
     (let [arg-count (count (rest (:children expr)))
           expected-arity
           (or (:fixed-arity recur-arity)
-              ;; var-args must be passed as a seq or nil in recur
+              ;; varargs must be passed as a seq or nil in recur
               (when-let [min-arity (:min-arity recur-arity)]
                 (inc min-arity)))]
       (cond
@@ -688,15 +688,15 @@
       (let [filename (:filename ctx)
             children (:children expr)]
         (when-not (linter-disabled? ctx :invalid-arity)
-          (when-let [{:keys [:fixed-arities :var-args-min-arity]}
+          (when-let [{:keys [:fixed-arities :varargs-min-arity]}
                      (get (:arities ctx) fn-name)]
             (let [arg-count (count (rest children))]
               (when-not (or (contains? fixed-arities arg-count)
-                            (and var-args-min-arity (>= arg-count var-args-min-arity)))
+                            (and varargs-min-arity (>= arg-count varargs-min-arity)))
                 (findings/reg-finding! findings
                                        (node->line filename expr :error
                                                    :invalid-arity
-                                                   (linters/arity-error nil fn-name arg-count fixed-arities var-args-min-arity)))))))
+                                                   (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))
         (analyze-children ctx (rest children))))))
 
 (defn lint-inline-def! [{:keys [:in-def :findings :filename]} expr]

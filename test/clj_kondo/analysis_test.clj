@@ -123,7 +123,7 @@
         :arity 3,
         :lang :clj}
        {:name defn,
-        :var-args-min-arity 2,
+        :varargs-min-arity 2,
         :lang :clj,
         :filename "<stdin>",
         :from foo,
@@ -142,7 +142,7 @@
         :arity 3,
         :lang :cljs}
        {:name defn,
-        :var-args-min-arity 2,
+        :varargs-min-arity 2,
         :lang :cljs,
         :filename "<stdin>",
         :from foo,

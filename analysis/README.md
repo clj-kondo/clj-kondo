@@ -36,7 +36,7 @@ The analysis output consists of a map with:
 
   Optional:
   - `:fixed-arities`: a set of fixed arities
-  - `:var-args-min-arity`: the minimal number of arguments of a var-args signature
+  - `:varargs-min-arity`: the minimal number of arguments of a varargs signature
   - several metadata values: `:private`, `:macro`, `:deprecated`, `:doc`, `:added`
   - `:lang`: if definition occurred in a `.cljc` file, the language in which the
     definition was done: `:clj` or `:cljs`
@@ -52,7 +52,7 @@ The analysis output consists of a map with:
   - `:lang`: if usage occurred in a `.cljc` file, the language in which the call
     was resolved: `:clj` or `:cljs`
   - several attributes of the used var: `:private`, `:macro`, `:fixed-arities`,
-    `:var-args-min-arity`, `:deprecated`.
+    `:varargs-min-arity`, `:deprecated`.
 
 Example output after linting this code:
 
@@ -103,7 +103,7 @@ $ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}
                    {:added "1.2",
                     :ns foo,
                     :name g,
-                    :var-args-min-arity 1,
+                    :varargs-min-arity 1,
                     :filename "/tmp/foo.clj",
                     :macro true,
                     :col 1,
@@ -119,7 +119,7 @@ $ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}
                :fixed-arities #{1},
                :arity 1}
               {:name defn-,
-               :var-args-min-arity 2,
+               :varargs-min-arity 2,
                :filename "/tmp/foo.clj",
                :from foo,
                :macro true,
@@ -134,9 +134,9 @@ $ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}
                :to clojure.core,
                :name comment,
                :macro true,
-               :var-args-min-arity 0}
+               :varargs-min-arity 0}
               {:name defmacro,
-               :var-args-min-arity 2,
+               :varargs-min-arity 2,
                :filename "/tmp/foo.clj",
                :from foo,
                :macro true,

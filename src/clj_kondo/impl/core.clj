@@ -212,7 +212,7 @@
               (-> meta
                   (select-keys [:row :col
                                 :macro :private :deprecated
-                                :fixed-arities :var-args-min-arity
+                                :fixed-arities :varargs-min-arity
                                 :name :ns :top-ns :imported-ns :imported-var
                                 :arities])))
             vars))
