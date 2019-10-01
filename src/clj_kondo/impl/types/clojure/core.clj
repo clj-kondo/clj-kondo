@@ -16,6 +16,9 @@
 (def any->boolean {:arities {1 {:args [:any]
                                 :ret :boolean}}})
 
+(def any->any {:arities {1 {:args [:any]
+                            :ret :any}}})
+
 (def number->number {:arities {1 {:args [:number]
                                   :ret :number}}})
 
@@ -48,9 +51,29 @@
                        :ret :coll}
                     :varargs {:args [:coll {:op :rest :spec :any}]
                               :ret :coll}}}
+   ;; 91
+   'second seqable->any
+   ;; 98
+   'ffirst seqable->any
+   ;; 105
+   'nfirst seqable->seqable
+   ;; 112
+   'fnext seqable->any
+   ;; 119
+   'nnext seqable->seqable
    ;; 126
    'seq {:arities {1 {:args [:seqable]
                       :ret :seq}}}
+   ;; 139
+   'instance? any->boolean
+   ;; 146
+   'seq? any->boolean
+   ;; 153
+   'char? any->boolean
+   ;; 160
+   'string? any->boolean
+   ;; 167
+   'map? any->boolean
    ;; 181
    'assoc {:arities {3 {:args [:nilable/associative :any :any]}
                      :varargs {:min-arity 3
@@ -62,8 +85,17 @@
                    (if (identical? :any t)
                      :associative
                      t)))}
+   ;; 202
+   'meta any->any
+   ;; 211
+   'with-meta any->any
    ;; 262
    'last seqable->any
+   ;; 272
+   'butlast seqable->seqable
+   ;; 283 'defn
+   ;; 338 'to-array
+   ;; 346 'cast
    ;; 353
    'vector {:arities {:varargs {:ret :vector}}}
    ;; 367
@@ -74,16 +106,40 @@
    ;; 389
    'hash-set {:arities {:varargs {:args [{:op :rest :spec [:any :any]}]
                                   :ret :set}}}
+   ;; 398 'sorted-map
+   ;; 407 'sorted-map-by
+   ;; 417 'sorted-set
+   ;; 425 'sorted-set-by
    ;; 436
    'nil? any->boolean
+   ;; 444 'defmacro
+   ;; 493 'when
+   ;; 499 'when-not
+   ;; 505
+   'false? any->boolean
+   ;; 512
+   'true? any->boolean
+   ;; 519
+   'boolean? any->boolean
    ;; 524
    'not any->boolean
    ;; 531
    'some? any->boolean
+   ;; 538
+   'any? any->boolean
    ;; 544
    'str {:arities {:varargs {:args [{:op :rest
                                      :spec :any}]
                              :ret :string}}}
+   ;; 562
+   'symbol? any->boolean
+   ;; 568
+   'keyword? any->boolean
+   ;; 574 'cond
+   ;; 589 'symbol
+   ;; 604 'gensym
+   ;; 614 'keyword
+   ;; 625 'find-keyword
    ;; 648
    'list* {:arities {:varargs {:args [{:op :rest
                                        :spec :any
@@ -94,15 +150,37 @@
                                             :spec :any
                                             :last :seqable}]
                                :ret :any}}}
+   ;; 675 'vary-meta
+   ;; 683 'lazy-seq
+   ;; 692 'chunk-buffer
+   ;; 695 'chunk-append
+   ;; 698 'chunk
+   ;; 701 'chunk-first
+   ;; 704 'chunk-rest
+   ;; 707 'chunk-next
+   ;; 710 'chunk-cons
+   ;; 715 'chunked-seq?
    ;; 718
    'concat {:arities {:varargs {:args [{:op :rest :spec :seqable}]
                                 :ret :seqable}}}
+   ;; 746 'delay
+   ;; 755 'delay?
+   ;; 761 'force
+   ;; 767 'if-not
+   ;; 775 'identical?
    ;; 783
    '= {:arities {:varargs {:args [:any {:op :rest :spec :any}]
                            :ret :boolean}}}
+   ;; 819 'not=
+   ;; 831 'compare
+   ;; 842 'and
+   ;; 854 'or
+   ;; 867
+   'zero? any->boolean
    ;; 874
    'count {:arities {1 {:args [:seqable]
                         :ret :number}}}
+   ;; 882 'int
    ;; 889
    'nth {:arities {2 {:args [:seqable :int]
                       :ret :any}
@@ -110,45 +188,95 @@
                       :ret :any}}}
    ;; 900
    '< compare-numbers
+   ;; 915 'inc'
    ;; 922
    'inc number->number
    ;; 947
    'reverse {:arities {1 {:args [:seqable]}}
              :ret :seqable-out}
+   ;; 972 '+'
    ;; 984
    '+ number*->number
+   ;; 996 '*'
    ;; 1008
    '* number*->number
    ;; 1020
    '/ number+->number
+   ;; 1031 '-'
    ;; 1043
-   '<= compare-numbers
    '- number+->number
+   ;; 1055
+   '<= compare-numbers
    ;; 1070
    '> compare-numbers
    ;; 1085
    '>= compare-numbers
    ;; 1100
    '== compare-numbers
-   ;; 1142
-   'dec number->number
    ;; 1115
    'max number+->number
    ;; 1125
    'min number+->number
+   ;; 1135 'dec'
+   ;; 1142
+   'dec number->number
+   ;; 1149 'unchecked-inc-int
+   ;; 1156 'unchecked-inc
+   ;; 1163 'unchecked-dec-int
+   ;; 1170 'unchecked-dec
+   ;; 1177 'unchecked-negate-int
+   ;; 1184 'unchecked-negate
+   ;; 1191 'unchecked-add-int
+   ;; 1198 'unchecked-add
+   ;; 1205 'unchecked-subtract-int
+   ;; 1212 'unchecked-subtract
+   ;; 1219 'unchecked-multiply-int
+   ;; 1226 'unchecked-multiply
+   ;; 1233 'unchecked-divide-int
+   ;; 1240 'unchecked-remainder-int
    ;; 1247
    'pos? number->boolean
    ;; 1254
    'neg? number->boolean
+   ;; 1261 'quot
+   ;; 1269 'rem
+   ;; 1277 'rationalize
+   ;; 1286 'bit-not
+   ;; 1293 'bit-and
+   ;; 1302 'bit-or
+   ;; 1311 'bit-xor
+   ;; 1320 'bit-and-not
+   ;; 1331 'bit-clear
+   ;; 1337 'bit-set
+   ;; 1343 'bit-flip
+   ;; 1349 'bit-test
+   ;; 1356 'bit-shift-left
+   ;; 1362 'bit-shift-right
+   ;; 1368 'unsigned-bit-shift-right
+   ;; 1374 'integer?
+   ;; 1386 'even?
+   ;; 1394 'odd?
+   ;; 1400 'int?
+   ;; 1408 'pos-int?
+   ;; 1414 'neg-int?
+   ;; 1420 'nat-int?
+   ;; 1426 'double?
+   ;; 1433 'complement
+   ;; 1445 'constantly
+   ;; 1451 'identity
    ;; 1459
    'peek {:arities {1 {:args [:vector]
                        :ret :any}}}
    ;; 1467
    'pop {:arities {1 {:args [:vector]
                       :ret :vector}}}
+   ;; 1478 'map-entry?
+   ;; 1484 'contains?
+   ;; 1494 'get
    ;; 1504
    'dissoc {:arities {:varargs {:args [:map {:op :rest :spec :any}]
                                 :ret :map}}}
+   ;; 1518 'disj
    ;; 1534
    'find {:arities {2 {:args [:associative :any]}}}
    ;; 1540
@@ -160,17 +288,95 @@
    ;; 1561
    'vals {:arities {1 {:args [:seqable]
                        :ret :seqable}}}
-   ;; 1589
-   ;;'name TODO
+   ;; 1567 'key
+   ;; 1574 'val
+   ;; 1581 'rseq
+   ;; 1589 'name
+   ;; 1597 'namespace
+   ;; 1605 'boolean
+   ;; 1612 'ident?
+   ;; 1617 'simple-ident?
+   ;; 1622 'qualified-ident?
+   ;; 1627 'simple-symbol?
+   ;; 1632 'qualified-symbol?
+   ;; 1637 'simple-keyword?
+   ;; 1642 'qualified-keyword?
+   ;; 1647 'locking
+   ;; 1659 '..
+   ;; 1677 '->
+   ;; 1693 '->>
+   ;; 1709 'map
+   ;; 1723 'global-hierarchy
+   ;; 1725 'defmulti
+   ;; 1783 'defmethod
+   ;; 1789 'remove-all-methods
+   ;; 1796 'remove-method
+   ;; 1803 'prefer-method
+   ;; 1811 'methods
+   ;; 1817 'get-method
+   ;; 1824 'prefers
+   ;; 1841 'if-let
+   ;; 1861 'when-let
+   ;; 1876 'if-some
+   ;; 1896 'when-some
+   ;; 1913 'push-thread-bindings
+   ;; 1931 'pop-thread-bindings
+   ;; 1939 'get-thread-bindings
+   ;; 1947 'binding
+   ;; 1973 'with-bindings*
+   ;; 1986 'with-bindings
+   ;; 1994 'bound-fn*
+   ;; 2006 'bound-fn
+   ;; 2015 'find-var
+   ;; 2054 'agent
+   ;; 2089 'set-agent-send-executor!
+   ;; 2095 'set-agent-send-off-executor!
+   ;; 2101 'send-via
+   ;; 2111 'send
+   ;; 2122 'send-off
+   ;; 2133 'release-pending-sends
+   ;; 2144 'add-watch
+   ;; 2162 'remove-watch
+   ;; 2169 'agent-error
+   ;; 2177 'restart-agent
+   ;; 2194 'set-error-handler!
+   ;; 2204 'error-handler
+   ;; 2212 'set-error-mode!
+   ;; 2229 'error-mode
+   ;; 2236 'agent-errors
+   ;; 2246 'clear-agent-errors
+   ;; 2254 'shutdown-agents
+   ;; 2262 'ref
+   ;; 2306 'deref
    ;; 2327
    'atom {:ret :atom}
    ;; 2345
    'swap! {:arities {:varargs {:args [:atom :ifn [{:op :rest
                                                    :spec :any}]]
                                :ret :any}}}
+   ;; 2357 'swap-vals!
+   ;; 2368 'compare-and-set!
    ;; 2376
    'reset! {:arities {2 {:args [:atom :any]
                          :ret :any}}}
+   ;; 2383 'reset-vals!
+   ;; 2389 'set-validator!
+   ;; 2400 'get-validator
+   ;; 2406 'alter-meta!
+   ;; 2416 'reset-meta!
+   ;; 2422 'commute
+   ;; 2443 'alter
+   ;; 2455 'ref-set
+   ;; 2463 'ref-history-count
+   ;; 2470 'ref-min-history
+   ;; 2479 'ref-max-history
+   ;; 2488 'ensure
+   ;; 2498 'sync
+   ;; 2512 'io!
+   ;; 2525 'volatile!
+   ;; 2532 'vreset!
+   ;; 2539 'vswap!
+   ;; 2548 'volatile?
    ;; 2557
    'comp {:arities {:varargs [{:op :rest
                                :spec :ifn}]
@@ -179,27 +385,32 @@
    'juxt {:arities {:varargs {:args [:ifn {:op :rest
                                            :spec :ifn}]
                               :ret :ifn}}}
+   ;; 2614
+   'partial {:arities {:varargs {:args [:ifn {:op :rest :spec :any}]
+                                 :ret :ifn}}}
+   ;; 2647 'sequence
    ;; 2672
    'every? {:arities {2 {:args [:ifn :seqable]
                          :ret :boolean}}}
    ;; 2684
    'not-every? {:arities {2 {:args [:ifn :seqable]
                              :ret :boolean}}}
-   ;; 2614
-   'partial {:arities {:varargs {:args [:ifn {:op :rest :spec :any}]
-                                 :ret :ifn}}}
    ;; 2693
    'some {:arities {2 {:args [:ifn :seqable]
                        :ret :any}}}
    ;; 2703
    'not-any? {:arities {2 {:args [:ifn :seqable]
                            :ret :boolean}}}
+   ;; 2712 'dotimes
    ;; 2727
    'map {:arities {1 {:args [:ifn]
                       :ret :transducer}
                    :varargs {:args '[:ifn :seqable [{:op :rest
                                                      :spec :seqable}]]
                              :ret :seqable-out}}}
+   ;; 2776 'declare
+   ;; 2781 'cat
+   ;; 2783 'mapcat
    ;; 2793
    'filter {:arities {1 {:args [:ifn]
                          :ret :transducer}
@@ -210,6 +421,22 @@
                          :ret :transducer}
                       2 {:args [:ifn :seqable]
                          :ret :seqable-out}}}
+   ;; 2836 'reduced
+   ;; 2842 'reduced?
+   ;; 2849 'ensure-reduced
+   ;; 2855 'unreduced
+   ;; 2861 'take
+   ;; 2888 'take-while
+   ;; 2909 'drop
+   ;; 2934 'drop-last
+   ;; 2941 'take-last
+   ;; 2952 'drop-while
+   ;; 2979 'cycle
+   ;; 2985 'split-at
+   ;; 2992 'split-with
+   ;; 2999 'repeat
+   ;; 3006 'replicate
+   ;; 3013 'iterate
    ;; 3019
    'range {:arities {0 {:ret :seqable}
                      1 {:args [:number]
@@ -229,6 +456,14 @@
    ;; 3071
    'zipmap {:arities {2 {:args [:seqable :seqable]
                          :ret :map}}}
+   ;; 3085 'line-seq
+   ;; 3094 'comparator
+   ;; 3102 'sort
+   ;; 3119 'sort-by
+   ;; 3133 'dorun
+   ;; 3148 'doall
+   ;; 3164 'nthnext
+   ;; 3174 'nthrest
    ;; 3184
    'partition {:arities {2 {:args [:int :seqable]
                             :ret :seqable}
@@ -236,16 +471,136 @@
                             :ret :seqable}
                          4 {:args [:int :int :seqable :seqable]
                             :ret :seqable}}}
+   ;; 3210 'eval
+   ;; 3216 'doseq
+   ;; 3274 'await
+   ;; 3291 'await1
+   ;; 3296 'await-for
+   ;; 3313 'dotimes
+   ;; 3342 'transient
+   ;; 3349 'persistent!
+   ;; 3358 'conj!
+   ;; 3368 'assoc!
+   ;; 3381 'dissoc!
+   ;; 3392 'pop!
+   ;; 3400 'disj!
+   ;; 3425 'import
+   ;; 3443 'into-array
+   ;; 3460 'class
+   ;; 3466 'type
+   ;; 3473 'num
+   ;; 3480 'long
+   ;; 3486 'float
+   ;; 3492 'double
+   ;; 3498 'short
+   ;; 3504 'byte
+   ;; 3510 'char
+   ;; 3516 'unchecked-byte
+   ;; 3522 'unchecked-short
+   ;; 3528 'unchecked-char
+   ;; 3534 'unchecked-int
+   ;; 3540 'unchecked-long
+   ;; 3546 'unchecked-float
+   ;; 3552 'unchecked-double
+   ;; 3559 'number?
+   ;; 3566 'mod
+   ;; 3576 'ratio?
+   ;; 3582 'numerator
+   ;; 3590 'denominator
+   ;; 3598 'decimal?
+   ;; 3604 'float?
+   ;; 3612 'rational?
+   ;; 3619 'bigint
+   ;; 3633 'biginteger
+   ;; 3647 'bigdec
+   ;; 3663 'print-method
+   ;; 3666 'print-dup
+   ;; 3677 'pr
+   ;; 3697 'newline
+   ;; 3705 'flush
+   ;; 3714 'prn
+   ;; 3724 'print
+   ;; 3733 'println
+   ;; 3741 'read
+   ;; 3770 'read+string
+   ;; 3796 'read-line
+   ;; 3805 'read-string
+   ;; 3818 'subvec
+   ;; 3831 'with-open
+   ;; 3852 'doto
+   ;; 3871 'memfn
+   ;; 3884 'time
+   ;; 3898 'alength
+   ;; 3905 'aclone
+   ;; 3912 'aget
+   ;; 3923 'aset
+   ;; 3986 'make-array
+   ;; 4003 'to-array-2d
+   ;; 4018 'macroexpand-1
+   ;; 4026 'macroexpand
+   ;; 4038 'create-struct
+   ;; 4045 'defstruct
+   ;; 4052 'struct-map
+   ;; 4062 'struct
+   ;; 4071 'accessor
+   ;; 4082 'load-reader
+   ;; 4089 'load-string
+   ;; 4099 'set?
    ;; 4105
    'set {:ret :set}
+   ;; 4126 'find-ns
+   ;; 4132 'create-ns
+   ;; 4140 'remove-ns
+   ;; 4147 'all-ns
+   ;; 4153 'the-ns
+   ;; 4164 'ns-name
+   ;; 4171 'ns-map
+   ;; 4178 'ns-unmap
+   ;; 4189 'ns-publics
+   ;; 4200 'ns-imports
+   ;; 4207 'ns-interns
+   ;; 4217 'refer
+   ;; 4254 'ns-refers
+   ;; 4264 'alias
+   ;; 4274 'ns-aliases
+   ;; 4281 'ns-unalias
    ;; 4288
    'take-nth {:arities {1 {:args [:int]
                            :ret :transducer}
                         2 {:args [:int :seqable]
                            :ret :seqable}}}
+   ;; 4309 'interleave
+   ;; 4327 'var-get
+   ;; 4333 'var-set
+   ;; 4340 'with-local-vars
+   ;; 4359 'ns-resolve
+   ;; 4372 'resolve
+   ;; 4379 'array-map
+   ;; 4389 'destructure
+   ;; 4481 'let
+   ;; 4513 'fn
+   ;; 4575 'loop
+   ;; 4600 'when-first
+   ;; 4614 'lazy-cat
+   ;; 4624 'for
+   ;; 4711 'comment
+   ;; 4716 'with-out-str
+   ;; 4727 'with-in-str
+   ;; 4736 'pr-str
+   ;; 4745 'prn-str
+   ;; 4754 'print-str
+   ;; 4763 'println-str
+   ;; 4783 'ex-info
+   ;; 4792 'ex-data
+   ;; 4800 'ex-message
+   ;; 4808 'ex-cause
+   ;; 4816 'assert
+   ;; 4829 'test
    ;; 4839
    're-pattern {:arities {1 {:args [#{:string :regex}] ;; arg can also be a regex...
                              :ret :regex}}}
+   ;; 4849 're-matcher
+   ;; 4858 're-groups
    ;; 4874
    're-seq {:arities {2 {:args [:regex :string]
                          :ret :seqable}}}
@@ -257,12 +612,20 @@
                           :ret :seqable}
                        2 {:args [:regex :string]
                           :ret :seqable}}}
+   ;; 4911 'rand
+   ;; 4919 'rand-int
+   ;; 4925 'defn-
+   ;; 4931 'tree-seq
+   ;; 4948 'file-seq
+   ;; 4958 'xml-seq
+   ;; 4968 'special-symbol?
+   ;; 4975 'var?
    ;; 4981
    'subs {:arities {2 {:args [:string :nat-int]
                        :ret :string}
                     3 {:args [:string :nat-int :nat-int]
                        :ret :string}}}
-   ;; 4898
+   ;; 4989
    'max-key {:arities {:varargs {:args [:ifn :any {:op :rest :spec :any}]
                                  :ret :any}}}
    ;; 5009
@@ -273,11 +636,77 @@
                            :ret :transducer}
                         1 {:args [:seqable]
                            :ret :seqable}}}
+   ;; 5058 'replace
+   ;; 5076 'dosync
+   ;; 5086 'with-precision
+   ;; 5109 'subseq
+   ;; 5126 'rsubseq
+   ;; 5143 'repeatedly
+   ;; 5152 'add-classpath
+   ;; 5165 'hash
+   ;; 5175 'mix-collection-hash
+   ;; 5186 'hash-ordered-coll
+   ;; 5195 'hash-unordered-coll
    ;; 5206
    'interpose {:arities {1 {:args [:any]
                             :ret :transducer}
                          2 {:args [:any :seqable]
                             :ret :seqable}}}
+   ;; 5229 'definline
+   ;; 5241 'empty
+   ;; 5249 'amap
+   ;; 5265 'areduce
+   ;; 5277 'float-array
+   ;; 5285 'boolean-array
+   ;; 5293 'byte-array
+   ;; 5301 'char-array
+   ;; 5309 'short-array
+   ;; 5317 'double-array
+   ;; 5325 'object-array
+   ;; 5332 'int-array
+   ;; 5340 'long-array
+   ;; 5348 'booleans
+   ;; 5353 'bytes
+   ;; 5358 'chars
+   ;; 5363 'shorts
+   ;; 5368 'floats
+   ;; 5373 'ints
+   ;; 5378 'doubles
+   ;; 5383 'longs
+   ;; 5388 'bytes?
+   ;; 5397 'seque
+   ;; 5443 'class?
+   ;; 5505 'alter-var-root
+   ;; 5512 'bound?
+   ;; 5520 'thread-bound?
+   ;; 5528 'make-hierarchy
+   ;; 5537 'not-empty
+   ;; 5543 'bases
+   ;; 5553 'supers
+   ;; 5564 'isa?
+   ;; 5585 'parents
+   ;; 5598 'ancestors
+   ;; 5614 'descendants
+   ;; 5626 'derive
+   ;; 5662 'flatten
+   ;; 5664 'underive
+   ;; 5685 'distinct?
+   ;; 5702 'resultset-seq
+   ;; 5721 'iterator-seq
+   ;; 5731 'enumeration-seq
+   ;; 5738 'format
+   ;; 5746 'printf
+   ;; 5753 'gen-class
+   ;; 5755 'with-loading-context
+   ;; 5764 'ns
+   ;; 5822 'refer-clojure
+   ;; 5828 'defonce
+   ;; 6007 'require
+   ;; 6082 'requiring-resolve
+   ;; 6093 'use
+   ;; 6104 'loaded-libs
+   ;; 6109 'load
+   ;; 6128 'compile
    ;; 6142
    'get-in {:arities {2 {:args [:nilable/associative :seqable]
                          :ret :any}
@@ -292,18 +721,51 @@
    ;; 6188
    'update {:arities {:varargs {:args [:nilable/associative :any :ifn {:op :rest :spec :any}]
                                 :ret :associative}}}
-   ;; 6536
+   ;; 6206 'empty?
+   ;; 6213 'coll?
+   ;; 6219 'list?
+   ;; 6225 'seqable?
+   ;; 6230 'ifn?
+   ;; 6237 'fn?
+   ;; 6244 'associative?
+   ;; 6250 'sequential?
+   ;; 6256 'sorted?
+   ;; 6262 'counted?
+   ;; 6268 'reversible?
+   ;; 6274 'indexed?
+   ;; 6279 '*1
+   ;; 6284 '*2
+   ;; 6289 '*3
+   ;; 6294 '*e
+   ;; 6299 'trampoline
+   ;; 6317 'intern
+   ;; 6333 'while
+   ;; 6343 'memoize
+   ;; 6359 'condp
+   ;; 6530 'future?
+   ;; 6536 'future-done?
+   ;; 6543 'letfn
+   ;; 6556
    'fnil {:arities {2 {:args [:ifn :any]
                        :ret :ifn}
                     3 {:args [:ifn :any :any]
                        :ret :ifn}
                     4 {:args [:ifn :any :any :any]
                        :ret :ifn}}}
-   ;; 6790
+   ;; 6697 'case
+   ;; 6780 'Inst
+   ;; 6780 'inst-ms*
+   ;; 6787 'inst-ms
+   ;; 6793 'inst?
+   ;; 6805 'uuid?
+   ;; 6810
    'reduce {:arities {2 {:args [:ifn :seqable]
                          :ret :any}
                       3 {:args [:ifn :any :seqable]
                          :ret :any}}}
+   ;; 6847 'reduce-kv
+   ;; 6858 'completing
+   ;; 6870 'transduce
    ;; 6887
    'into {:arities {0 {:args []
                        :ret :coll}
@@ -324,6 +786,19 @@
    ;; 6921
    'filterv {:arities {2 {:args [:ifn :seqable]
                           :ret :vector}}}
+   ;; 6942 'slurp
+   ;; 6954 'spit
+   ;; 6963 'future-call
+   ;; 6990 'future
+   ;; 7000 'future-cancel
+   ;; 7006 'future-cancelled?
+   ;; 7012 'pmap
+   ;; 7037 'pcalls
+   ;; 7044 'pvalues
+   ;; 7069 '*clojure-version*
+   ;; 7081 'clojure-version
+   ;; 7096 'promise
+   ;; 7127 'deliver
    ;; 7136
    'flatten {:arities {1 {:args [:nilable/sequential]
                           :ret :sequential}}}
@@ -338,6 +813,8 @@
    ;; 7203
    'frequencies {:arities {1 {:args [:seqable]
                               :ret :map}}}
+   ;; 7214 'reductions
+   ;; 7231 'rand-nth
    ;; 7240
    'partition-all {:arities {1 {:args [:int]
                                 :ret :transducer}
@@ -363,6 +840,7 @@
                                :ret :transducer}
                             2 {:args [:ifn :seqable]
                                :ret :seqable}}}
+   ;; 7384 'bounded-count
    ;; 7396
    'every-pred {:arities {:varargs {:args [:ifn {:op :rest
                                                  :spec :ifn}]
@@ -371,8 +849,34 @@
    'some-fn {:arities {:varargs {:args [:ifn {:op :rest
                                               :spec :ifn}]
                                  :ret :ifn}}}
+   ;; 7498 'with-redefs-fn
+   ;; 7518 'with-redefs
+   ;; 7533 'realized?
+   ;; 7538 'cond->
+   ;; 7555 'cond->>
+   ;; 7572 'as->
+   ;; 7584 'some->
+   ;; 7598 'some->>
+   ;; 7619 'cat
+   ;; 7631 'halt-when
    ;; 7655
    'dedupe {:arities {0 {:args []
                          :ret :transducer}
                       1 {:args [:seqable]
                          :ret :seqable}}}})
+   ;; 7673 'random-sample
+   ;; 7682 'Eduction
+   ;; 7682 '->Eduction
+   ;; 7694 'eduction
+   ;; 7710 'run!
+   ;; 7719 'tagged-literal?
+   ;; 7725 'tagged-literal
+   ;; 7732 'reader-conditional?
+   ;; 7738 'reader-conditional
+   ;; 7750 'default-data-readers
+   ;; 7758 '*data-readers*
+   ;; 7787 '*default-data-reader-fn*
+   ;; 7845 'uri?
+   ;; 7868 'add-tap
+   ;; 7879 'remove-tap
+   ;; 7886 'tap>
