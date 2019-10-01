@@ -406,13 +406,12 @@
 
 (defn lint-unused-private-vars!
   [{:keys [:findings] :as ctx}]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [ns-name (:name ns)
-                filename (:filename ns)
-                vars (vals (:vars ns))
+  (doseq [{:keys [:filename :vars :used-vars]
+           ns-name :name} (namespace/list-namespaces ctx)
+          :let [vars (vals vars)
                 used-vars (into #{} (comp (filter #(= (:ns %) ns-name))
                                           (map :name))
-                                (:used-vars ns))]
+                                used-vars)]
           v vars
           :let [var-name (:name v)]
           :when (:private v)
