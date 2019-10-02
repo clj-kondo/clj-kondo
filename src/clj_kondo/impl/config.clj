@@ -57,7 +57,7 @@
                                    :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}
               :unused-referred-var {:level :warning
                                     :exclude {#_#_taoensso.timbre [debug]}}
-              :unused-private-var {:level :off} ;; WIP
+              :unused-private-var {:level :warning}
               :duplicate-require {:level :warning}
               :refer-all {:level :warning}
               :use {:level :warning}
