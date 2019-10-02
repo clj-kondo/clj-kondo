@@ -105,11 +105,15 @@ and CLJC (`.cljc`).
 3. Choose a name. E.g. `clj-kondo <filetype>` (where `<filetype>` is one of
    Clojure, ClojureScript or CLJC).
 4. In the File type field, choose the correct filetype.
-5. In the Program field, type `clj-kondo`.
-6. In the Arguments field, type `--lint $FilePath$ --cache`.
-7. In the Working directory field, type `$FileDir$`.
-8. Enable `Create output file from stdout`
-9. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`.
+5. Scope: `Current file`
+6. In the Program field, type `clj-kondo`.
+7. In the Arguments field, type `--lint $FilePath$ --cache`.<br>
+You may use a custom config E.g `--lint $FilePath$ --cache --config "{:lint-as {manifold.deferred/let-flow clojure.core/let}}"`.
+8. In the Working directory field, type `$FileDir$`.
+9. Enable `Create output file from stdout`
+10. Show console: `Never`
+11. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`.
+12. Click `ok` and under the newly created file-watcher, change level to `Global` - this will enable the watcher in all future projects.
 
 <img src="../screenshots/intellij-fw-config.png">
 
