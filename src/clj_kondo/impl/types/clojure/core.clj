@@ -16,8 +16,9 @@
 (def any->boolean {:arities {1 {:args [:any]
                                 :ret :boolean}}})
 
-(def any->any {:arities {1 {:args [:any]
-                            :ret :any}}})
+;; this is set to nil on purpose, for performance reasons.
+(def any->any nil #_{:arities {1 {:args [:any]
+                                  :ret :any}}})
 
 (def number->number {:arities {1 {:args [:number]
                                   :ret :number}}})
