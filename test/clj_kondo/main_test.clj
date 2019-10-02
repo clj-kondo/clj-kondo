@@ -894,6 +894,10 @@
    (lint! (io/file "corpus" "schema")
           '{:linters {:unresolved-symbol {:level :error}}}))
   (is (empty? (lint! "(ns foo (:require [schema.core :refer [defschema]])) (defschema foo nil) foo"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns yyyy (:require [schema.core :as s]))
+                      (s/fn my-identity :- s/Any
+                        [x :- s/Any] x)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest in-ns-test

@@ -675,6 +675,7 @@
                               expr)]
     (concat
      (case fn-sym
+       fn (analyze-fn ctx expr)
        defn (analyze-defn ctx expr)
        defmethod (analyze-defmethod ctx expr))
      (analyze-children ctx schemas))))
@@ -1024,6 +1025,8 @@
           if (analyze-if ctx expr)
           ;; catch-all
           (case [resolved-as-namespace resolved-as-name]
+            [schema.core fn]
+            (analyze-schema ctx 'fn expr)
             [schema.core defn]
             (analyze-schema ctx 'defn expr)
             [schema.core defmethod]
