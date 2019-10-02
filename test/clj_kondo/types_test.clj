@@ -368,6 +368,9 @@
                        {:linters {:type-mismatch {:level :error}}}))))
   (testing "associative is an ifn"
     (is (empty? (lint! "(remove (assoc x :b 2) [:a :a :b :b])"
+                       {:linters {:type-mismatch {:level :error}}}))))
+  (testing "sequential is a coll"
+    (is (empty? (lint! "(conj (flatten []) {})"
                        {:linters {:type-mismatch {:level :error}}})))))
 
 ;;;; Scratch
