@@ -36,7 +36,7 @@
          path [base-lang lang ns-sym]]
      (when (and (-> ctx :config :output :analysis)
                 (not (:temp metadata)))
-       (analysis/reg-var! ctx filename expr-col expr-row
+       (analysis/reg-var! ctx filename expr-row expr-col
                           ns-sym var-sym
                           metadata))
      (swap! namespaces update-in path
