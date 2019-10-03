@@ -198,6 +198,8 @@
                      :message "spec.alpha/def is called with 2 args but expects 3"})
                   (lint! (io/file "corpus" "spec")))
   (is (empty? (lint! "(defn foo [#?(:default s :clj s)]) (foo 1)"
+                     "--lang" "cljc")))
+  (is (empty? (lint! "(defn foo [_x _y]) (foo 1 #uuid \"00000000-0000-0000-0000-000000000000\")"
                      "--lang" "cljc"))))
 
 (deftest exclude-clojure-test

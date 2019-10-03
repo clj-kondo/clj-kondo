@@ -75,7 +75,10 @@
                                   (cz/next zloc)))))))))
 
 (defn process-reader-conditional [node lang]
-  (if (= :reader-macro (and node (node/tag node)))
+  (if (and node
+           (= :reader-macro (node/tag node))
+           (let [sv (-> node :children first :string-value)]
+             (str/starts-with? sv "?")))
     (let [tokens (-> node :children last :children)]
       (loop [[k v & ts] tokens
              default nil]
@@ -94,16 +97,17 @@
 
 (defn select-lang-children [node lang]
   (if-let [children (:children node)]
-    (assoc node :children
-           (reduce
-            (fn [acc node]
-              (if-let [processed (select-lang* node lang)]
-                (if (= "?@" (-> node :children first :string-value))
-                  (into acc (:children  processed))
-                  (conj acc processed))
-                acc))
-            []
-            children))
+    (let [new-children (reduce
+                        (fn [acc node]
+                          (if-let [processed (select-lang* node lang)]
+                            (if (= "?@" (some-> node :children first :string-value))
+                              (into acc (:children processed))
+                              (conj acc processed))
+                            acc))
+                        []
+                        children)]
+      (assoc node :children
+             new-children))
     node))
 
 (defn select-lang* [node lang]
