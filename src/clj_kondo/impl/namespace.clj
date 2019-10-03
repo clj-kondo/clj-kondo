@@ -27,16 +27,18 @@
    (reg-var! ctx ns-sym var-sym expr nil))
   ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns] :as ctx}
     ns-sym var-sym expr metadata]
-   (let [metadata (assoc metadata
+   (let [{expr-row :row expr-col :col} (meta expr)
+         metadata (assoc metadata
                          :ns ns-sym
-                         :name var-sym)
+                         :name var-sym
+                         :row expr-row
+                         :col expr-col)
          path [base-lang lang ns-sym]]
      (when (and (-> ctx :config :output :analysis)
                 (not (:temp metadata)))
-       (let [{:keys [:row :col]} (meta expr)]
-         (analysis/reg-var! ctx filename row col
-                            ns-sym var-sym
-                            metadata)))
+       (analysis/reg-var! ctx filename expr-row expr-col
+                          ns-sym var-sym
+                          metadata))
      (swap! namespaces update-in path
             (fn [ns]
               (let [vars (:vars ns)
