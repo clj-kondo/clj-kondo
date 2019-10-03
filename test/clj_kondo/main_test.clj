@@ -2397,14 +2397,14 @@
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 25,
+      :col 10,
       :level :warning,
       :message "Unused private var foo/f"})
    (lint! "(ns foo) (def ^:private f)"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 17,
+      :col 10,
       :level :warning,
       :message "Unused private var foo/f"})
    (lint! "(ns foo) (defn- f [])"))
