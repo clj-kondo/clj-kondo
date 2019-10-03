@@ -16,12 +16,15 @@
 (def any->boolean {:arities {1 {:args [:any]
                                 :ret :boolean}}})
 
-;; this is set to nil on purpose, for performance reasons.
-(def any->any nil #_{:arities {1 {:args [:any]
-                                  :ret :any}}})
+;; arity-1 function that returns the same type
+(def a->a {:arities {1 {:args [:any]}}
+           :fn #(:tag (first %))})
 
 (def number->number {:arities {1 {:args [:number]
                                   :ret :number}}})
+
+(def number->number->number {:arities {2 {:args [:number :number]
+                                          :ret :number}}})
 
 (def number*->number {:arities {:varargs {:args [{:op :rest :spec :number}]
                                           :ret :number}}})
@@ -35,6 +38,12 @@
 (def compare-numbers {:arities {:varargs {:args [{:op :rest
                                                   :spec :number}]
                                           :ret :boolean}}})
+
+(def int->int {:arities {1 {:args [:int]
+                            :ret :int}}})
+
+(def int->int->int {:arities {2 {:args [:int :int]
+                                 :ret :int}}})
 
 (def clojure-core
   {;; 16
@@ -87,9 +96,9 @@
                      :associative
                      t)))}
    ;; 202
-   'meta any->any
+   'meta {:arities {1 {:ret :nilable/map}}}
    ;; 211
-   'with-meta any->any
+   'with-meta a->a
    ;; 262
    'last seqable->any
    ;; 272
@@ -181,7 +190,9 @@
    ;; 874
    'count {:arities {1 {:args [:seqable]
                         :ret :number}}}
-   ;; 882 'int
+   ;; 882
+   'int {:arities {1 {:args [#{:number :char}]
+                      :ret :int}}}
    ;; 889
    'nth {:arities {2 {:args [:seqable :int]
                       :ret :any}
@@ -189,21 +200,25 @@
                       :ret :any}}}
    ;; 900
    '< compare-numbers
-   ;; 915 'inc'
+   ;; 915
+   'inc' number->number
    ;; 922
    'inc number->number
    ;; 947
    'reverse {:arities {1 {:args [:seqable]}}
              :ret :seqable-out}
-   ;; 972 '+'
+   ;; 972
+   '+' number*->number
    ;; 984
    '+ number*->number
-   ;; 996 '*'
+   ;; 996
+   '*' number*->number
    ;; 1008
    '* number*->number
    ;; 1020
    '/ number+->number
-   ;; 1031 '-'
+   ;; 1031
+   '-' number+->number
    ;; 1043
    '- number+->number
    ;; 1055
@@ -218,30 +233,48 @@
    'max number+->number
    ;; 1125
    'min number+->number
-   ;; 1135 'dec'
+   ;; 1135
+   'dec' number->number
    ;; 1142
    'dec number->number
-   ;; 1149 'unchecked-inc-int
-   ;; 1156 'unchecked-inc
-   ;; 1163 'unchecked-dec-int
-   ;; 1170 'unchecked-dec
-   ;; 1177 'unchecked-negate-int
-   ;; 1184 'unchecked-negate
-   ;; 1191 'unchecked-add-int
-   ;; 1198 'unchecked-add
-   ;; 1205 'unchecked-subtract-int
-   ;; 1212 'unchecked-subtract
-   ;; 1219 'unchecked-multiply-int
-   ;; 1226 'unchecked-multiply
-   ;; 1233 'unchecked-divide-int
-   ;; 1240 'unchecked-remainder-int
+   ;; 1149
+   'unchecked-inc-int int->int
+   ;; 1156
+   'unchecked-inc number->number
+   ;; 1163
+   'unchecked-dec-int int->int
+   ;; 1170
+   'unchecked-dec number->number
+   ;; 1177
+   'unchecked-negate-int int->int
+   ;; 1184
+   'unchecked-negate number->number
+   ;; 1191
+   'unchecked-add-int int->int->int
+   ;; 1198
+   'unchecked-add number->number->number
+   ;; 1205
+   'unchecked-subtract-int int->int->int
+   ;; 1212
+   'unchecked-subtract number->number->number
+   ;; 1219
+   'unchecked-multiply-int int->int->int
+   ;; 1226
+   'unchecked-multiply number->number->number
+   ;; 1233
+   'unchecked-divide-int int->int->int
+   ;; 1240
+   'unchecked-remainder-int int->int->int
    ;; 1247
    'pos? number->boolean
    ;; 1254
    'neg? number->boolean
-   ;; 1261 'quot
-   ;; 1269 'rem
-   ;; 1277 'rationalize
+   ;; 1261
+   'quot number->number->number
+   ;; 1269
+   'rem number->number->number
+   ;; 1277
+   'rationalize number->number
    ;; 1286 'bit-not
    ;; 1293 'bit-and
    ;; 1302 'bit-or
@@ -254,17 +287,29 @@
    ;; 1356 'bit-shift-left
    ;; 1362 'bit-shift-right
    ;; 1368 'unsigned-bit-shift-right
-   ;; 1374 'integer?
-   ;; 1386 'even?
-   ;; 1394 'odd?
-   ;; 1400 'int?
-   ;; 1408 'pos-int?
-   ;; 1414 'neg-int?
-   ;; 1420 'nat-int?
-   ;; 1426 'double?
-   ;; 1433 'complement
-   ;; 1445 'constantly
-   ;; 1451 'identity
+   ;; 1374
+   'integer? any->boolean
+   ;; 1386
+   'even? any->boolean
+   ;; 1394
+   'odd? any->boolean
+   ;; 1400
+   'int? any->boolean
+   ;; 1408
+   'pos-int? any->boolean
+   ;; 1414
+   'neg-int? any->boolean
+   ;; 1420
+   'nat-int? any->boolean
+   ;; 1426
+   'double? any->boolean
+   ;; 1433
+   'complement {:arities {1 {:args [:ifn]
+                             :ret :fn}}}
+   ;; 1445
+   'constantly {:arities {1 {:ret :fn}}}
+   ;; 1451
+   'identity a->a
    ;; 1459
    'peek {:arities {1 {:args [:vector]
                        :ret :any}}}
