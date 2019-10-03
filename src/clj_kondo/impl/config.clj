@@ -222,6 +222,16 @@
         delayed-cfg (memoize delayed-cfg)]
     delayed-cfg))
 
+(def unused-private-var-excluded
+  (let [delayed-cfg
+        (fn [config]
+          (let [syms (get-in config [:linters :unused-private-var :exclude])
+                vecs (fq-syms->vecs syms)]
+            (set vecs)))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config ns-name var-name]
+      (contains? (delayed-cfg config) [ns-name var-name]))))
+
 ;;;; Scratch
 
 (comment

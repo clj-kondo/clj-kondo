@@ -2405,7 +2405,9 @@
       :level :warning,
       :message "Unused private var foo/f"})
    (lint! "(ns foo) (defn- f [])"))
-  (is (empty? (lint! "(ns foo) (defn- f []) (f)"))))
+  (is (empty? (lint! "(ns foo) (defn- f []) (f)")))
+  (is (empty? (lint! "(ns foo) (defn- f [])"
+                     '{:linters {:unused-private-var {:exclude [foo/f]}}}))))
 
 ;;;; Scratch
 
