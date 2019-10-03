@@ -1948,7 +1948,10 @@
   (is (empty? (lint! "(= '`+ (read-string \"`+\"))"
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! (io/file "corpus" "core.rrb-vector.clj")
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  ;; don't crash in this example. maybe in the future have better syntax checking for ns
+  ;; see GH-497
+  (is (empty? (lint! "(ns circleci.rollcage.test-core (:require [clojure.test :refer :refer [deftest]]))"))))
 
 (deftest deftest-test
   (assert-submaps
