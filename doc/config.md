@@ -303,6 +303,20 @@ $ echo '(defn f [{:keys [:a :b :c]} _d])' | clj-kondo --lint - --config \
 linting took 8ms, errors: 0, warnings: 0
 ```
 
+## Exclude unused private vars from being reported
+
+Example code:
+
+``` clojure
+(ns foo) (defn- f [])
+```
+
+Example config:
+
+``` clojure
+{:linters {:unused-private-var {:exclude [foo/f]}}}
+```
+
 ## Example configurations
 
 These are some example configurations used in real projects. Feel free to create a PR with yours too.
