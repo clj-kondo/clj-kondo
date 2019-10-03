@@ -103,7 +103,7 @@
           ;; (prn "children" children)
           (if-let [child-expr (first children)]
             (let [opt-expr (fnext children)
-                  opt (sexpr opt-expr)
+                  opt (when opt-expr (sexpr opt-expr))
                   child-k (:k child-expr)]
               (case child-k
                 (:refer :refer-macros :only)
