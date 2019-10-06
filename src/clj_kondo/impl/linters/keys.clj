@@ -15,7 +15,10 @@
   ([ctx expr]
    (lint-map-keys ctx expr nil))
   ([{:keys [:findings :filename]} expr {:keys [:known-key?] :or {known-key? (constantly true)}}]
-   (let [children (:children expr)]
+   (let [t (tag expr)
+         children (if (= :namespaced-map t)
+                    (-> expr :children first :children)
+                    (:children expr))]
      (reduce
       (fn [{:keys [:seen] :as acc} key-expr]
         (if-let [k (key-value key-expr)]
