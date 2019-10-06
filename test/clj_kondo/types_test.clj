@@ -1,6 +1,6 @@
 (ns clj-kondo.types-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest type-mismatch-test
@@ -324,6 +324,15 @@
         :level :error,
         :message "Expected: number, received: map."})
      (lint! "(inc (assoc {} :a 1))"
+            {:linters {:type-mismatch {:level :error}}})))
+  (testing "cond->"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 32,
+        :level :error,
+        :message "Expected: number, received: map."})
+     (lint! "(let [m {:a 1}] (cond-> m (inc m) (assoc :a 1)))"
             {:linters {:type-mismatch {:level :error}}})))
   ;; avoiding false positives:
   (is (empty?

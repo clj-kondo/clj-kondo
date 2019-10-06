@@ -1,21 +1,11 @@
 (ns clj-kondo.impl.parser
   {:no-doc true}
   (:require
-   [clojure.string :as str]
    [clj-kondo.impl.utils :as utils :refer [parse-string-all]]
    [clj-kondo.impl.profiler :refer [profile]]))
 
 (defn parse-string [s]
-  (let [input (-> s
-                  ;; workaround for https://github.com/xsc/rewrite-clj/issues/75
-                  #_(str/replace "##Inf" "::Inf")
-                  #_(str/replace "##-Inf" "::-Inf")
-                  #_(str/replace "##NaN" "::NaN")
-                  ;; workaround for https://github.com/borkdude/clj-kondo/issues/11
-                  #_(str/replace #_"#:a{#::a {:a b}}"
-                               #"#(::?)(.*?)\{" (fn [[_ colons name]]
-                                                  (str "#_" colons name "{"))))
-        parsed (profile :parse-string-all (parse-string-all input))]
+  (let [parsed (profile :parse-string-all (parse-string-all s))]
     parsed))
 
 ;;;; Scratch
