@@ -23,6 +23,23 @@
            (recur threaded (next forms)))
          x)))))
 
+(defn expand-cond-> [_ctx expr]
+  (let [[_cond->-sym start-expr & clauses] (:children expr)]
+    ;; TODO: lint amount of clauses here?
+    (loop [[x y & rest-clauses] clauses
+           new-expr start-expr]
+      (if x
+        (recur rest-clauses
+               (list-node [(token-node 'if)
+                           x
+                           (list-node [(token-node '->)
+                                       new-expr
+                                       (or y (token-node nil))])
+                           new-expr]))
+        (do nil
+          ;; (prn "NEW EXPR" new-expr)
+          new-expr)))))
+
 (defn expand->> [_ctx expr]
   (let [expr expr
         children (:children expr)
@@ -65,7 +82,7 @@
               children)
         args (sort args)
         varargs? (when-let [fst (first args)]
-                    (zero? fst))
+                   (zero? fst))
         args (seq (if varargs? (rest args) args))
         max-n (last args)
         args (when args (map (fn [i]

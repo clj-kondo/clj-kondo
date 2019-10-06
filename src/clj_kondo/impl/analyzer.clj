@@ -157,7 +157,7 @@
                      expr-meta (meta expr)
                      t (:tag expr-meta)
                      t (when t (types/tag-from-meta t true ;; true means it's a
-                                                           ;; return type
+                                                    ;; return type
                                                     ))]
                  (with-meta (into {} v)
                    ;; this is used for checking the return tag of a function body
@@ -569,7 +569,7 @@
   (let [arities (map #(analyze-fn-arity ctx %) bodies)
         fixed-arities (set (keep (comp :fixed-arity :arity) arities))
         varargs-min-arity (some #(when (:varargs? (:arity %))
-                                    (:min-arity (:arity %))) arities)]
+                                   (:min-arity (:arity %))) arities)]
     (cond-> {}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity))))
@@ -993,11 +993,14 @@
                                 (ctx-with-linter-disabled :unresolved-symbol)
                                 (ctx-with-linter-disabled :type-mismatch))
                             children)
-          (cond-> cond->>) (analyze-usages2
-                            (-> ctx
-                                (ctx-with-linter-disabled :invalid-arity)
-                                (ctx-with-linter-disabled :unresolved-symbol)
-                                (ctx-with-linter-disabled :type-mismatch)) expr)
+          (cond->)
+          (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
+          (cond->>)
+          (analyze-usages2
+           (-> ctx
+               (ctx-with-linter-disabled :invalid-arity)
+               (ctx-with-linter-disabled :unresolved-symbol)
+               (ctx-with-linter-disabled :type-mismatch)) expr)
           (let let* for doseq dotimes with-open)
           (analyze-like-let ctx expr)
           letfn
