@@ -183,8 +183,10 @@
                        ;; or doesn't introduce new bindings, it only gives defaults
                        :or
                        (if (empty? rest-kvs)
-                         (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
-                                                                ctx res v)}))
+                         ;; or can refer to a binding introduced by what we extracted
+                         (let [ctx (ctx-with-bindings ctx res)]
+                           (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
+                                                                  ctx res v)})))
                          ;; analyze or after the rest
                          (recur (concat rest-kvs [k v]) res))
                        :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
