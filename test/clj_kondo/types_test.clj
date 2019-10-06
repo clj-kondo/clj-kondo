@@ -1,6 +1,6 @@
 (ns clj-kondo.types-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest type-mismatch-test
