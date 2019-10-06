@@ -256,7 +256,8 @@
             :col 12,
             :level :error,
             :message "duplicate key :a"})
-         (lint! (io/file "corpus" "nested_namespaced_maps.clj")))))
+         (lint! (io/file "corpus" "nested_namespaced_maps.clj"))))
+  (is (empty? (lint! "(meta ^#:foo{:a 1} {})"))))
 
 (deftest exit-code-test
   (with-out-str
