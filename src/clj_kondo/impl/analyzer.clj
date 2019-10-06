@@ -214,7 +214,8 @@
               :used-referred-vars #{}
               :used #{}
               :bindings #{}
-              :used-bindings #{}})]
+              :used-bindings #{}
+              :filename (:filename ctx)})]
     (namespace/reg-namespace! ctx ns)
     (analyze-children ctx (next children))
     ns))
@@ -995,7 +996,7 @@
                             children)
           (cond->)
           (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
-          (cond->>)
+          (#_cond-> cond->>)
           (analyze-usages2
            (-> ctx
                (ctx-with-linter-disabled :invalid-arity)
@@ -1358,6 +1359,7 @@
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
   [{:keys [:config] :as ctx} filename input lang dev?]
+  ;; (prn "FILENAME" filename)
   (try
     (let [parsed (p/parse-string input)
           analyzed-expressions
