@@ -23,14 +23,17 @@
            (recur threaded (next forms)))
          x)))))
 
-(defn expand-cond-> [_ctx expr]
-  (let [[_cond->-sym start-expr & clauses] (:children expr)
+(defn expand-cond->
+  "Expands cond-> and cond->>"
+  [_ctx expr]
+  (let [[cond->-sym start-expr & clauses] (:children expr)
+        thread-sym (symbol (name (:value cond->-sym)))
         g (token-node (gensym))
         steps (map (fn [[test step]]
                      (list-node [(token-node 'if)
                                  test
                                  (list-node
-                                  [(token-node '->)
+                                  [(token-node thread-sym)
                                    g
                                    step])
                                  g]))

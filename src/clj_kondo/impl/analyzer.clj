@@ -994,14 +994,8 @@
                                 (ctx-with-linter-disabled :unresolved-symbol)
                                 (ctx-with-linter-disabled :type-mismatch))
                             children)
-          (cond->)
+          (cond-> cond->>)
           (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
-          (#_cond-> cond->>)
-          (analyze-usages2
-           (-> ctx
-               (ctx-with-linter-disabled :invalid-arity)
-               (ctx-with-linter-disabled :unresolved-symbol)
-               (ctx-with-linter-disabled :type-mismatch)) expr)
           (let let* for doseq dotimes with-open)
           (analyze-like-let ctx expr)
           letfn
