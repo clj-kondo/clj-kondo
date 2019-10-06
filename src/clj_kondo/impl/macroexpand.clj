@@ -23,41 +23,23 @@
            (recur threaded (next forms)))
          x)))))
 
-;; user=> (macroexpand '(cond-> {:a 1} :a :a pos? - neg? (* -1)))
-;; (let* [G__150 {:a 1} G__150 (if :a (clojure.core/-> G__150 :a) G__150) G__150 (if pos? (clojure.core/-> G__150 -) G__150)] (if neg? (clojure.core/-> G__150 (* -1)) G__150))
-
-#_(defmacro cond->
-  "Takes an expression and a set of test/form pairs. Threads expr (via ->)
-  through each form for which the corresponding test
-  expression is true. Note that, unlike cond branching, cond-> threading does
-  not short circuit after the first true test expression."
-  {:added "1.5"}
-  [expr & clauses]
-  (assert (even? (count clauses)))
-  (let [g (gensym)
-        steps (map (fn [[test step]] `(if ~test (-> ~g ~step) ~g))
-                   (partition 2 clauses))]
-    `(let [~g ~expr
-           ~@(interleave (repeat g) (butlast steps))]
-       ~(if (empty? steps)
-          g
-          (last steps)))))
-
 (defn expand-cond-> [_ctx expr]
   (let [[_cond->-sym start-expr & clauses] (:children expr)
         g (token-node (gensym))
-        steps (map (fn [[test step]] (list-node [(token-node 'if)
-                                                 test
-                                                 (list-node
-                                                  [(token-node '->)
-                                                   g
-                                                   step])
-                                                 g]))
+        steps (map (fn [[test step]]
+                     (list-node [(token-node 'if)
+                                 test
+                                 (list-node
+                                  [(token-node '->)
+                                   g
+                                   step])
+                                 g]))
                    (partition 2 clauses))
         ret (list-node [(token-node 'let)
-                        (vector-node (list* g start-expr (interleave (repeat g) (butlast steps))))
+                        (vector-node
+                         (list* g start-expr
+                                (interleave (repeat g) (butlast steps))))
                         (if (empty? steps) g (last steps))])]
-    ;; (prn "RET" ret)
     ret))
 
 (defn expand->> [_ctx expr]
