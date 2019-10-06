@@ -27,8 +27,11 @@
   "Expands cond-> and cond->>"
   [_ctx expr]
   (let [[cond->-sym start-expr & clauses] (:children expr)
-        thread-sym (symbol (name (:value cond->-sym)))
-        g (token-node (gensym))
+        thread-sym (case (name (:value cond->-sym))
+                     "cond->" '->
+                     "cond->>" '->>)
+        g (with-meta (token-node (gensym))
+            (meta start-expr))
         steps (map (fn [[test step]]
                      (list-node [(token-node 'if)
                                  test
