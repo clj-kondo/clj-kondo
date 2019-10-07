@@ -325,15 +325,7 @@
         :message "Expected: number, received: map."})
      (lint! "(inc (assoc {} :a 1))"
             {:linters {:type-mismatch {:level :error}}})))
-  (testing "cond->"
-    (assert-submaps
-     '({:file "<stdin>",
-        :row 1,
-        :col 32,
-        :level :error,
-        :message "Expected: number, received: map."})
-     (lint! "(let [m {:a 1}] (cond-> m (inc m) (assoc :a 1)))"
-            {:linters {:type-mismatch {:level :error}}})))
+
   ;; avoiding false positives:
   (is (empty?
        (lint! "(cons [nil] (list 1 2 3))

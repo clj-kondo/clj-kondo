@@ -23,6 +23,27 @@
            (recur threaded (next forms)))
          x)))))
 
+(defn expand->> [_ctx expr]
+  (let [expr expr
+        children (:children expr)
+        [c & cforms] (rest children)]
+    (loop [x c, forms cforms]
+      (if forms
+        (let [form (first forms)
+              threaded
+              (if (= :list (tag form))
+                (with-meta
+                  (list-node
+                   (concat
+                    (cons (first (:children form))
+                          (next (:children form)))
+                    (list x)))
+                  (meta form))
+                (with-meta (list-node (list form x))
+                  (meta form)))]
+          (recur threaded (next forms)))
+        x))))
+
 (defn expand-cond->
   "Expands cond-> and cond->>"
   [_ctx expr]
@@ -48,26 +69,21 @@
                         (if (empty? steps) g (last steps))])]
     ret))
 
-(defn expand->> [_ctx expr]
-  (let [expr expr
-        children (:children expr)
-        [c & cforms] (rest children)]
-    (loop [x c, forms cforms]
-      (if forms
-        (let [form (first forms)
-              threaded
-              (if (= :list (tag form))
-                (with-meta
-                  (list-node
-                   (concat
-                    (cons (first (:children form))
-                          (next (:children form)))
-                    (list x)))
-                  (meta form))
-                (with-meta (list-node (list form x))
-                  (meta form)))]
-          (recur threaded (next forms)))
-        x))))
+(defn expand-doto [_ctx expr]
+  (let [[_doto x & forms] (:children expr)
+        gx (with-meta (token-node (gensym))
+             (meta x))
+        ret (list-node
+             (list* (token-node 'let) (vector-node [gx x])
+                    (map (fn [f]
+                           (with-meta
+                             (let [t (tag f)]
+                               (if (= :list t)
+                                 (let [fc (:children f)]
+                                   (list-node (list* (first fc) gx (next fc))))
+                                 (list-node [f gx])))
+                             (meta f))) forms)))]
+    ret))
 
 (defn find-children
   "Recursively filters children by pred"
