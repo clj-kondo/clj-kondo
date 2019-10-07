@@ -2417,6 +2417,54 @@
   (is (empty? (lint! "(ns foo) (defn- f [])"
                      '{:linters {:unused-private-var {:exclude [foo/f]}}}))))
 
+(deftest cond->test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 32,
+      :level :error,
+      :message "Expected: number, received: map."})
+   (lint! "(let [m {:a 1}] (cond-> m (inc m) (assoc :a 1)))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 9,
+      :level :error,
+      :message "Expected: number, received: map."})
+   (lint! "(cond-> {:a 1} (odd? 1) (inc))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 25,
+      :level :error,
+      :message "clojure.core/inc is called with 2 args but expects 1"})
+   (lint! "(cond-> {:a 1} (odd? 1) (inc 1))"
+          {:linters {:type-mismatch {:level :error}}})))
+
+(deftest doto-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :error,
+      :message "Expected: number, received: map."})
+   (lint! "(doto {} (inc))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :error,
+      :message "clojure.core/inc is called with 3 args but expects 1"})
+   (lint! "(doto {} (inc 1 2))"
+          {:linters {:invalid-arity {:level :error}}}))
+
+  ;; preventing false positives
+  (is (empty? (lint! "(doto (java.util.ArrayList. [1 2 3]) (as-> a (.addAll a a)))"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
+
 ;;;; Scratch
 
 (comment

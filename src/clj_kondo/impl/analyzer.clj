@@ -986,7 +986,9 @@
           (analyze-expression** ctx (macroexpand/expand-> ctx expr))
           (->> some->>)
           (analyze-expression** ctx (macroexpand/expand->> ctx expr))
-          (. .. proxy extend-protocol doto reify
+          doto
+          (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
+          (. .. proxy extend-protocol reify
              defcurried extend-type)
           ;; don't lint calls in these expressions, only register them as used vars
           (analyze-children (-> ctx
