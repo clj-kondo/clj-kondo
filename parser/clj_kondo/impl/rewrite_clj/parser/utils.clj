@@ -25,12 +25,10 @@
 (defn throw-reader
   "Throw reader exception, including line/column."
   [reader fmt & data]
-  (let [c (r/get-column-number reader)
-        l (r/get-line-number reader)]
-    (throw
-     (Exception.
-      (str (apply format fmt data)
-           " [at line " l ", column " c "]")))))
+  (let [f {:row (r/get-line-number reader)
+           :col (r/get-column-number reader)
+           :message (apply format fmt data)}]
+    (throw (ex-info "Syntax error" {:findings [f]}))))
 
 (defn read-eol
   [reader]
