@@ -40,24 +40,56 @@
     '[str-foo str-bar] "{:strs [str-foo str-bar]}"
     '[sym-foo sym-bar] "{:syms [sym-foo sym-bar]}"))
 
-
-(deftest ->finding-test
+(deftest ->findings-test
   (testing "unexpected exceptions"
-    (is (= {:level :error
-            :filename "file.clj"
-            :col 0
-            :row 0
-            :type :syntax
-            :message "can't parse file.clj, this is unexpected"}
-           (#'ana/->finding (Exception. "this is unexpected") "file.clj")))
+    (is (= [{:level :error
+             :filename "file.clj"
+             :col 0
+             :row 0
+             :type :syntax
+             :message "can't parse file.clj, this is unexpected"}]
+           (#'ana/->findings (Exception. "this is unexpected") "file.clj")))
     (testing "parse errors"
-      (is (= {:level :error
-              :filename "core.clj"
-              :col 9
-              :row 7
-              :type :syntax
-              :message "expected failure"}
-             (#'ana/->finding (Exception. "expected failure [at line 7, column 9]") "core.clj"))))))
+      (is (= [{:level :error
+               :filename "core.clj"
+               :col 0
+               :row 0
+               :type :syntax
+               :message "can't parse core.clj, expected failure"}]
+             (#'ana/->findings (ex-info "expected failure" {:row 7
+                                                            :col 9
+                                                            :type :syntax})
+                               "core.clj"))))))
+
+(deftest analyze-input-test
+  (let [analyze (fn [^String source]
+                  (ana/analyze-input {:config nil} "test.clj" source :clj false))]
+    (testing "unmatched delimiters"
+      (is (= {:findings [{:type :syntax
+                          :level :error
+                          :filename "test.clj"
+                          :row 1
+                          :col 1
+                          :message "Mismatched brackets found an opening ( and a closing } on line 1"}
+                         {:type :syntax
+                          :level :error
+                          :filename "test.clj"
+                          :row 1
+                          :col 2
+                          :message "Mismatched brackets found an opening ( on line 1 and a closing }"}]}
+             (analyze "(}"))))
+    (testing "unclosed delimiter"
+      (is (= {:findings [{:type :syntax
+                          :level :error
+                          :filename "test.clj"
+                          :row 1
+                          :col 1
+                          :message "Found an opening ( with no matching )"}
+                         {:type :syntax, :level :error, :filename "test.clj"
+                          :row 1
+                          :col 9
+                          :message "Expected a ) to match ( from line 1"}]}
+             (analyze "(defn []"))))))
 
 (comment
   (t/run-tests)
