@@ -23,12 +23,14 @@
   nil)
 
 (defn throw-reader
-  [reader & msg]
+  "Throw reader exception, including line/column."
+  [reader fmt & data]
   (let [c (r/get-column-number reader)
         l (r/get-line-number reader)]
     (throw
-      (Exception.
-        (str (apply str msg) " [at line " l ", column " c "]")))))
+     (Exception.
+      (str (apply format fmt data)
+           " [at line " l ", column " c "]")))))
 
 (defn read-eol
   [reader]

@@ -5,6 +5,7 @@
     [node :as node]
     [reader :as reader]]
    [clj-kondo.impl.rewrite-clj.parser
+    [utils :as u]
     [keyword :refer [parse-keyword]]
     [string :refer [parse-string parse-regex]]
     [token :refer [parse-token]]]))
@@ -68,7 +69,7 @@
 
 (defmethod parse-next* :unmatched
   [reader]
-  (reader/throw-reader
+  (u/throw-reader
    reader
    "Unmatched delimiter: %s"
    (reader/peek reader)))
@@ -76,7 +77,7 @@
 (defmethod parse-next* :eof
   [reader]
   (when *delimiter*
-    (reader/throw-reader reader "Unexpected EOF.")))
+    (u/throw-reader reader "Unexpected EOF.")))
 
 ;; ### Whitespace
 
@@ -124,7 +125,7 @@
   [reader]
   (reader/ignore reader)
   (case (reader/peek reader)
-    nil (reader/throw-reader reader "Unexpected EOF.")
+    nil (u/throw-reader reader "Unexpected EOF.")
     \# (read-symbolic-value reader)
     \! (do (reader/read-include-linebreak reader)
            reader)
