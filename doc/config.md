@@ -5,9 +5,9 @@ Clj-kondo can be configured in four ways, by providing:
 - a `config.edn` file in the `.clj-kondo` directory (see [project setup](../README.md#project-setup))
 - a `--config` file argument from the command line
 - a `--config` EDN argument from the command line (see examples below)
-- a namespace local configuration as in this screenshot:
+- a namespace local configuration using `:clj-kondo/config` metadata in the namespace form
 
-<img src="../screenshots/compojure-config.png">
+<!-- <img src="../screenshots/compojure-config.png"> -->
 
 Config takes precedence in the order of namespace, command line,
 `.clj-kondo/config.edn`. Note that not all linters are currently supported in
