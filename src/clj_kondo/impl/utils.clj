@@ -252,4 +252,8 @@
   (map-node-vals (parse-string "{:a 1 :b 2}"))
   (assoc-some {} :a 1 :b nil :c false)
   (select-some {:a 1 :b nil :c 2 :d false} [:a :b :d]) ;; => {:a 1, :d false}
+  (tag (parse-string "\"x
+
+y\""))
+  (tag (parse-string "\"xy\""))
   )

@@ -265,7 +265,7 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
-(defn analyze-fn-body [{:keys [:docstring?] :as ctx} body]
+(defn analyze-fn-body [{:keys [:docstring] :as ctx} body]
   (let [{:keys [:arg-bindings
                 :arity :analyzed-arg-vec]
          return-tag :ret
@@ -281,15 +281,16 @@
         (let [t (when first-child (tag first-child))]
           (cond (= :map t)
                 (analyze-pre-post-map ctx first-child)
-                (and (not docstring?)
-                     (= :token t) (:lines first-child)
-                     (> (count body-exprs) 1))
+                (and (not docstring)
+                     (> (count body-exprs) 1)
+                     (one-of (tag first-child) [:token :multi-line])
+                     (string-from-token first-child))
                 (findings/reg-finding! (:findings ctx)
                                        (node->line (:filename ctx)
                                                    first-child
                                                    :warning
                                                    :misplaced-docstring
-                                                   "misplaced docstring"))
+                                                   "Misplaced docstring."))
                 :else (analyze-expression** ctx first-child)))
         body-exprs (rest body-exprs)
         parsed
@@ -353,7 +354,7 @@
              ctx ns-name fn-name expr {:temp true}))
         parsed-bodies (map #(analyze-fn-body
                              (-> ctx
-                                 (assoc :docstring? docstring
+                                 (assoc :docstring docstring
                                         :in-def fn-name)) %)
                            bodies)
         arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
