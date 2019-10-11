@@ -3,20 +3,10 @@
   (:require [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader
              [edn :as edn]
              [reader-types :as r]]
+            [clj-kondo.impl.rewrite-clj.parser
+              [utils :as u]]
             [clojure.java.io :as io])
   (:import [java.io PushbackReader]))
-
-;; ## Exception
-
-(defn throw-reader
-  "Throw reader exception, including line/column."
-  [reader fmt & data]
-  (let [c (r/get-column-number reader)
-        l (r/get-line-number reader)]
-    (throw
-      (Exception.
-        (str (apply format fmt data)
-             " [at line " l ", column " c "]")))))
 
 ;; ## Decisions
 
@@ -73,7 +63,7 @@
             (str buf)))
         (if eof?
           (str buf)
-          (throw-reader reader "Unexpected EOF."))))))
+          (u/throw-reader reader "Unexpected EOF."))))))
 
 (defn read-until
   "Read until a char fulfills the given condition. Ignores the
@@ -156,7 +146,7 @@
         (recur
           (if (p? v) (inc c) c)
           (conj vs v))
-        (throw-reader
+        (u/throw-reader
           reader
           "%s node expects %d value%s."
           node-tag
