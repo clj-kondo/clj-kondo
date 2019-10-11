@@ -4,7 +4,7 @@
    [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.utils :refer [parse-string]]
-   [clojure.test :as t :refer [deftest is are]]))
+   [clojure.test :as t :refer [deftest testing is are]]))
 
 (deftest lift-meta-test
   (is (:private (meta (meta/lift-meta-content2 {:lang :clj
@@ -39,6 +39,25 @@
     '[x foo] '[x {:keys [::foo]}]
     '[str-foo str-bar] "{:strs [str-foo str-bar]}"
     '[sym-foo sym-bar] "{:syms [sym-foo sym-bar]}"))
+
+
+(deftest ->finding-test
+  (testing "unexpected exceptions"
+    (is (= {:level :error
+            :filename "file.clj"
+            :col 0
+            :row 0
+            :type :syntax
+            :message "can't parse file.clj, this is unexpected"}
+           (#'ana/->finding (Exception. "this is unexpected") "file.clj")))
+    (testing "parse errors"
+      (is (= {:level :error
+              :filename "core.clj"
+              :col 9
+              :row 7
+              :type :syntax
+              :message "expected failure"}
+             (#'ana/->finding (Exception. "expected failure [at line 7, column 9]") "core.clj"))))))
 
 (comment
   (t/run-tests)
