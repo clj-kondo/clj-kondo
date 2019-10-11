@@ -2036,8 +2036,17 @@
       :row 1,
       :col 13,
       :level :warning,
-      :message "misplaced docstring"})
+      :message "Misplaced docstring."})
    (lint! "(defn f [x] \"dude\" x)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 17,
+      :level :warning,
+      :message "Misplaced docstring."})
+   (lint! "(defn foo [x y] \"dude
+
+          \" [x y])"))
   (is (empty? (lint! "(defn f [x] \"dude\")")))
   ;; for now this is empty, but in the next version we might warn about the
   ;; string "dude" being a discarded value
