@@ -69,6 +69,18 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 (rest of the output omitted)
 ```
 
+## Enable optional linters
+
+Some linters are not enabled by default. Right now these linters are:
+
+- `:missing-docstring`: warn when public var doesn't have a docstring.
+
+You can enable these linters by setting the `:level`:
+
+``` clojure
+{:linters {:missing-docstring {:level :warning}}}
+```
+
 ## Disable a linter
 
 ``` shellsession
