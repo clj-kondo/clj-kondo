@@ -2465,6 +2465,17 @@
   (is (empty? (lint! "(doto (java.util.ArrayList. [1 2 3]) (as-> a (.addAll a a)))"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
+(deftest missing-docstring-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "Missing docstring."})
+   (lint! "(defn foo [])" {:linters {:missing-docstring {:level :warning}}}))
+  (is (empty? (lint! "(defn foo \"dude\" [])" {:linters {:missing-docstring {:level :warning}}})))
+  (is (empty? (lint! "(defn- foo []) (foo)" {:linters {:missing-docstring {:level :warning}}}))))
+
 ;;;; Scratch
 
 (comment

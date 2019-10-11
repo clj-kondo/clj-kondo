@@ -36,7 +36,7 @@
                                  :exclude [#_clj-kondo.impl.var-info-gen]
                                  ;; :simple-libspec true
                                  }
-              :unresolved-symbol {:level :warning
+              :unresolved-symbol {:level :error
                                   :exclude [;; ignore globally:
                                             #_js*
                                             ;; ignore occurrences of service and event in call to riemann.streams/where:
@@ -62,7 +62,8 @@
               :refer-all {:level :warning}
               :use {:level :warning}
               :if {:level :warning}
-              :type-mismatch {:level :error}}
+              :type-mismatch {:level :error}
+              :missing-docstring {:level :off}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn

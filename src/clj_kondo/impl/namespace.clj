@@ -33,9 +33,10 @@
                          :name var-sym
                          :row expr-row
                          :col expr-col)
-         path [base-lang lang ns-sym]]
+         path [base-lang lang ns-sym]
+         temp? (:temp metadata)]
      (when (and (-> ctx :config :output :analysis)
-                (not (:temp metadata)))
+                (not temp?))
        (analysis/reg-var! ctx filename expr-row expr-col
                           ns-sym var-sym
                           metadata))
@@ -68,7 +69,16 @@
                                  :redefined-var
                                  (if (= ns-sym redefined-ns)
                                    (str "redefined var #'" redefined-ns "/" var-sym)
-                                   (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
+                                   (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))
+                  (when (and (not (:private metadata))
+                             (not (:doc metadata))
+                             (not temp?))
+                    (findings/reg-finding!
+                     findings
+                     (node->line filename
+                                 expr :warning
+                                 :missing-docstring
+                                 "Missing docstring."))))
                 (update ns :vars assoc
                         var-sym
                         (assoc
