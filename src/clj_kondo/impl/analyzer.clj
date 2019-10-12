@@ -326,6 +326,7 @@
                             (when-let [sc (second children)]
                               (when (= :map (tag sc))
                                 sc))))))
+        _ (when meta-node (analyze-usages2 ctx meta-node))
         var-meta (if meta-node
                    (merge var-meta
                           (sexpr meta-node))
