@@ -26,6 +26,10 @@
                                                    :name quote
                                                    :macro true
                                                    :fixed-arities #{1}})
+      (assoc-in '[:clj :defs clojure.core var] '{:ns clojure.core
+                                                 :name var
+                                                 :macro true
+                                                 :fixed-arities #{1}})
       (assoc-in '[:cljs :defs cljs.core array :varargs-min-arity] 0)
       (assoc-in '[:cljc :defs cljs.core :clj def] '{:ns cljs.core
                                                     :name def
@@ -66,4 +70,12 @@
       (assoc-in '[:cljc :defs cljs.core :cljs quote] '{:ns cljs.core
                                                        :name quote
                                                        :macro true
-                                                       :fixed-arities #{1}})))
+                                                       :fixed-arities #{1}})
+      (assoc-in '[:cljc :defs cljs.core :cljs var] '{:ns cljs.core
+                                                     :name var
+                                                     :macro true
+                                                     :fixed-arities #{1}})
+      (assoc-in '[:cljc :defs cljs.core :clj var] '{:ns cljs.core
+                                                    :name var
+                                                    :macro true
+                                                    :fixed-arities #{1}})))
