@@ -37,6 +37,7 @@
   ;; the `clj-kondo.impl.rewrite-clj.parser.utils/throw-reader` function.
   ;; This allows us to test for regressions when that function is refactored.
   (are [source message] (= message (parse-error source))
+    "[\n" "Unexpected EOF. [at line 1, column 2]"
     "[" "Unexpected EOF. [at line 1, column 2]"
     "[}" "Unmatched delimiter: } [at line 1, column 2]"
     "#" "Unexpected EOF. [at line 1, column 2]"
