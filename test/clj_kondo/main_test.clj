@@ -2485,6 +2485,21 @@
   (is (empty? (lint! "(defn foo \"dude\" [])" {:linters {:missing-docstring {:level :warning}}})))
   (is (empty? (lint! "(defn- foo []) (foo)" {:linters {:missing-docstring {:level :warning}}}))))
 
+(deftest var-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 19,
+      :level :error,
+      :message "clojure.core/var is called with 0 args but expects 1"}
+     {:file "<stdin>",
+      :row 1,
+      :col 30,
+      :level :error,
+      :message "unresolved symbol y"})
+   (lint! "(def x 1) (var x) (var) (var y)"
+          {:linters {:unresolved-symbol {:level :error}}})))
+
 ;;;; Scratch
 
 (comment
