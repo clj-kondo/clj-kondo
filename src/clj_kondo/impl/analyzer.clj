@@ -1353,29 +1353,24 @@
 
 ;;;; processing of string input
 
-(defn- ->finding
-  "Convert an exception thrown from rewrite-clj into a clj-kondo :finding."
-  [^Exception e ^String filename]
-  (let [m (.getMessage e)]
-    (if-let [[_ msg row col]
-             (and m
-                  (re-find #"(.*)\[at line (\d+), column (\d+)\]"
-                           m))]
-      {:level :error
-       :filename filename
-       :col (Integer/parseInt col)
-       :row (Integer/parseInt row)
-       :type :syntax
-       :message (str/trim msg)}
-      {:level :error
-       :filename filename
-       :col 0
-       :row 0
-       :type :syntax
-       :message (str "can't parse "
-                     filename ", "
-                     (or m (str e)))})))
-
+(defn- ->findings
+  "Convert an exception thrown from rewrite-clj into a sequence clj-kondo :finding"
+  [^Exception ex ^String filename]
+  (if-let [findings (:findings (ex-data ex))]
+    (for [finding findings]
+      (merge {:type :syntax
+              :level :error
+              :filename filename}
+             finding))
+    [{:level :error
+      :filename filename
+      :col 0
+      :row 0
+      :type :syntax
+      :message (str "can't parse "
+                    filename ", "
+                    (or (.getMessage ex) (str ex)))}]))
+  
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
@@ -1398,7 +1393,7 @@
       analyzed-expressions)
     (catch Exception e
       (if dev? (throw e)
-          {:findings [(->finding e filename)]}))
+          {:findings (->findings e filename)}))
     (finally
       (let [output-cfg (:output config)]
         (when (and (= :text (:format output-cfg))

@@ -23,27 +23,35 @@
                      (< thing 0))))))
 
 (defn- parse-error
-  "Parse the source, which is expected to contain a syntax error, and return the
-  error message produced from rewrite-clj."
+  "Parse the source, which is expected to contain a syntax error, and return a
+  sequence of error messages in the form [message line column] produced from
+  rewrite-clj."
   [source]
   (try
     (parse-string source)
     nil
     (catch Exception e
-      (.getMessage e))))
+      (if-let [findings (:findings (ex-data e))]
+        (for [{:keys [row col message]} findings]
+          [message row col])
+        [[(.getMessage e) 0 0]]))))
 
 (deftest parse-string-test
   ;; This test has every syntax error that can cause rewrite-clj to throw using
   ;; the `clj-kondo.impl.rewrite-clj.parser.utils/throw-reader` function.
   ;; This allows us to test for regressions when that function is refactored.
-  (are [source message] (= message (parse-error source))
-    "[" "Unexpected EOF. [at line 1, column 2]"
-    "[}" "Unmatched delimiter: } [at line 1, column 2]"
-    "#" "Unexpected EOF. [at line 1, column 2]"
-    ":" "unexpected EOF while reading keyword. [at line 1, column 2]"
-    "\"" "Unexpected EOF while reading string. [at line 1, column 2]"
-    "#?" ":reader-macro node expects 1 value. [at line 1, column 3]"
-    "#:" "Unexpected EOF. [at line 1, column 3]"))
+  (are [source messages] (= messages (parse-error source))
+    "}" [["Unmatched bracket: unexpected }" 1 1]]
+    "[" [["Found an opening [ with no matching ]" 1 1]
+         ["Expected a ] to match [ from line 1" 1 2]]
+    "[}"  [["Mismatched bracket: found an opening [ and a closing } on line 1" 1 1]
+           ["Mismatched bracket: found an opening [ on line 1 and a closing }" 1 2]]
+    "#"  [["Unexpected EOF." 1 2]]
+    ":"  [["unexpected EOF while reading keyword." 1 2]]
+    "\"" [["Unexpected EOF while reading string." 1 2]]
+    "#?" [[":reader-macro node expects 1 value." 1 3]]
+    "[1..1]" [["Invalid number: 1..1." 0 0]]
+    "#:" [["Unexpected EOF." 1 3]]))
 
 ;;;; Scratch
 
