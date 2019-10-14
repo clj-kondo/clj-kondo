@@ -20,4 +20,4 @@ A clear and concise description of any alternative solutions or features you've 
 Add any other context or screenshots about the feature request here.
 
 **Are interested in doing a PR yourself?**
-Pleae indicate if you are. Would you like some hints pointing you in the right direction?
+Please indicate if you are. Would you like some hints pointing you in the right direction?
