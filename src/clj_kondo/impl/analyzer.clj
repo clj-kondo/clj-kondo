@@ -1356,20 +1356,34 @@
 (defn- ->findings
   "Convert an exception thrown from rewrite-clj into a sequence clj-kondo :finding"
   [^Exception ex ^String filename]
-  (if-let [findings (:findings (ex-data ex))]
-    (for [finding findings]
-      (merge {:type :syntax
-              :level :error
-              :filename filename}
-             finding))
-    [{:level :error
-      :filename filename
-      :col 0
-      :row 0
-      :type :syntax
-      :message (str "can't parse "
-                    filename ", "
-                    (or (.getMessage ex) (str ex)))}]))
+  (let [{:keys [findings line col type]} (ex-data ex)]
+    (cond
+      (seq findings)
+      (for [finding findings]
+        (merge {:type :syntax
+                :level :error
+                :filename filename}
+               finding))
+
+      ;; The edn parser in tools.reader throw ex-data with the following shape:
+      ;; {:type :reader-exception, :ex-kind :reader-error, :file nil, :line 1, :col 4}
+      (= :reader-exception type)
+      [{:type :syntax
+        :level :error
+        :filename filename
+        :row line
+        :col col
+        :message (.getMessage ex)}]
+
+      :else
+      [{:level :error
+        :filename filename
+        :col 0
+        :row 0
+        :type :syntax
+        :message (str "can't parse "
+                      filename ", "
+                      (or (.getMessage ex) (str ex)))}])))
   
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some

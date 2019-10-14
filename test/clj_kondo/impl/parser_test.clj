@@ -31,10 +31,11 @@
     (parse-string source)
     nil
     (catch Exception e
-      (if-let [findings (:findings (ex-data e))]
-        (for [{:keys [row col message]} findings]
-          [message row col])
-        [[(.getMessage e) 0 0]]))))
+      (let [{:keys [findings line col]} (ex-data e)]
+        (if findings
+          (for [{:keys [row col message]} findings]
+            [message row col])
+          [[(.getMessage e) line col]])))))
 
 (deftest parse-string-test
   ;; This test has every syntax error that can cause rewrite-clj to throw using
@@ -50,7 +51,7 @@
     ":"  [["unexpected EOF while reading keyword." 1 2]]
     "\"" [["Unexpected EOF while reading string." 1 2]]
     "#?" [[":reader-macro node expects 1 value." 1 3]]
-    "[1..1]" [["Invalid number: 1..1." 0 0]]
+    "[1..1]" [["Invalid number: 1..1." 1 4]]
     "#:" [["Unexpected EOF." 1 3]]))
 
 ;;;; Scratch
