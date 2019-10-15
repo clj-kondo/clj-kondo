@@ -78,19 +78,6 @@
                           :col 2
                           :message "Mismatched bracket: found an opening ( on line 1 and a closing }"}]}
              (analyze "(}"))))
-    (testing "unclosed delimiter"
-      (is (= {:findings [{:type :syntax
-                          :level :error
-                          :filename "test.clj"
-                          :row 1
-                          :col 1
-                          :message "Found an opening ( with no matching )"}
-                         {:type :syntax, :level :error, :filename "test.clj"
-                          :row 1
-                          :col 9
-                          :message "Expected a ) to match ( from line 1"}]}
-             (analyze "(defn []"))))
-
     (testing "invalid tokens"
       (is (= {:findings [{:type :syntax
                           :level :error
@@ -99,6 +86,25 @@
                           :col 4
                           :message "Invalid number: 1..1."}]}
            (analyze "1..1"))))))
+
+
+(defn- compile-errors [^String source]
+  (let  [result (ana/analyze-input {:filename "example.clj"
+                                      :namespaces (atom {})
+                                      :findings (atom [])
+                                      :base-lang :clj
+                                      :lang :clj
+                                      :bindings {}} "example.clj" source :clj false)]
+    (for [{:keys [row col message]} (:findings result)]
+      [row col message])))
+
+(deftest parser-reader-analyzer-errors
+  ;; Some tests of the parser, reader, and analyzer when given invalid Clojure
+  ;; code. Make sure that the results have valid line numbers and messages.
+  (are [source messages] (= messages (compile-errors source))
+    "(defn []" [[1 1 "Found an opening ( with no matching )"]
+                [1 9 "Expected a ) to match ( from line 1"]]
+    "(defn oops ())" [[0 0 "can't parse example.clj, No implementation of method: :tag of protocol: #'clj-kondo.impl.rewrite-clj.node.protocols/Node found for class: nil"]]))
 
 (comment
   (t/run-tests)
