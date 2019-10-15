@@ -930,172 +930,175 @@
          unresolved? :unresolved?
          clojure-excluded? :clojure-excluded?
          :as _m}
-        (resolve-name ctx ns-name full-fn-name)
-        [resolved-as-namespace resolved-as-name _lint-as?]
-        (or (when-let
-                [[ns n]
-                 (config/lint-as config
-                                 [resolved-namespace resolved-name])]
-              [ns n true])
-            [resolved-namespace resolved-name false])
-        fq-sym (when (and resolved-namespace
-                          resolved-name)
-                 (symbol (str resolved-namespace)
-                         (str resolved-name)))
-        unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
-        resolved-namespace* (if unknown-ns?
-                              ns-name resolved-namespace)
-        ctx (if fq-sym
-              (update ctx :callstack
-                      (fn [cs]
-                        (cons (with-meta [resolved-namespace* resolved-name]
-                                (meta expr)) cs)))
-              ctx)
-        resolved-as-clojure-var-name
-        (when (one-of resolved-as-namespace [clojure.core cljs.core])
-          resolved-as-name)
-        arg-types (if (and resolved-namespace resolved-name
-                           (not (linter-disabled? ctx :type-mismatch)))
-                    (atom [])
-                    nil)
-        ctx (assoc ctx :arg-types arg-types)
-        ctx (if resolved-as-clojure-var-name
-              (assoc ctx
-                     :resolved-as-clojure-var-name resolved-as-clojure-var-name)
-              ctx)
-        analyzed
-        (case resolved-as-clojure-var-name
-          ns
-          (when top-level?
-            [(analyze-ns-decl ctx expr)])
-          in-ns (if top-level? [(analyze-in-ns ctx expr)]
-                    (analyze-children ctx (next children)))
-          alias
-          [(analyze-alias ctx expr)]
-          declare (analyze-declare ctx expr)
-          (def defonce defmulti goog-define)
-          (do (lint-inline-def! ctx expr)
-              (analyze-def ctx expr))
-          (defn defn- defmacro definline)
-          (do (lint-inline-def! ctx expr)
-              (analyze-defn ctx expr))
-          defmethod (analyze-defmethod ctx expr)
-          defprotocol (analyze-defprotocol ctx expr)
-          (defrecord deftype definterface) (analyze-defrecord ctx expr)
-          comment
-          (analyze-children ctx children)
-          (-> some->)
-          (analyze-expression** ctx (macroexpand/expand-> ctx expr))
-          (->> some->>)
-          (analyze-expression** ctx (macroexpand/expand->> ctx expr))
-          doto
-          (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
-          (. .. proxy extend-protocol reify
-             defcurried extend-type)
-          ;; don't lint calls in these expressions, only register them as used vars
-          (analyze-children (-> ctx
-                                (ctx-with-linter-disabled :invalid-arity)
-                                (ctx-with-linter-disabled :unresolved-symbol)
-                                (ctx-with-linter-disabled :type-mismatch))
-                            children)
-          (cond-> cond->>)
-          (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
-          (let let* for doseq dotimes with-open)
-          (analyze-like-let ctx expr)
-          letfn
-          (analyze-letfn ctx expr)
-          (if-let if-some when-let when-some when-first)
-          (analyze-conditional-let ctx resolved-as-clojure-var-name expr)
-          do
-          (analyze-do ctx expr)
-          (fn fn*)
-          (analyze-fn ctx expr)
-          case
-          (analyze-case ctx expr)
-          loop
-          (analyze-loop ctx expr)
-          recur
-          (analyze-recur ctx expr)
-          quote nil
-          try (analyze-try ctx expr)
-          as-> (analyze-as-> ctx expr)
-          areduce (analyze-areduce ctx expr)
-          this-as (analyze-this-as ctx expr)
-          memfn (analyze-memfn ctx expr)
-          empty? (analyze-empty? ctx expr)
-          (use require)
-          (if top-level? (analyze-require ctx expr)
-              (analyze-children ctx (next (:children expr))))
-          if (analyze-if ctx expr)
-          ;; catch-all
-          (case [resolved-as-namespace resolved-as-name]
-            [schema.core fn]
-            (analyze-schema ctx 'fn expr)
-            [schema.core defn]
-            (analyze-schema ctx 'defn expr)
-            [schema.core defmethod]
-            (analyze-schema ctx 'defmethod expr)
-            ([clojure.test deftest]
-             [cljs.test deftest]
-             #_[:clj-kondo/unknown-namespace deftest])
-            (do (lint-inline-def! ctx expr)
-                (analyze-deftest (assoc ctx :analyze-defn analyze-defn)
-                                 resolved-namespace expr))
-            [cljs.test async]
-            (analyze-cljs-test-async (assoc ctx :analyze-children analyze-children) expr)
-            ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
-            (spec/analyze-fdef (assoc ctx
-                                      :analyze-children
-                                      analyze-children) expr)
-            [potemkin import-vars]
-            (potemkin/analyze-import-vars ctx expr)
-            ([clojure.core.async alt!] [clojure.core.async alt!!]
-             [cljs.core.async alt!] [cljs.core.async alt!!])
-            (core-async/analyze-alt! (assoc ctx
-                                            :analyze-expression** analyze-expression**
-                                            :extract-bindings extract-bindings)
-                                     expr)
-            ;; catch-all
-            (let [next-ctx (cond-> ctx
-                             (= '[clojure.core.async thread]
-                                [resolved-namespace resolved-name])
-                             (assoc-in [:recur-arity :fixed-arity] 0))]
-              (analyze-children next-ctx (rest children) false))))]
-    (if (= 'ns resolved-as-clojure-var-name)
-      analyzed
-      (let [in-def (:in-def ctx)
-            id (:id expr)
-            call (cond-> {:type :call
-                          :resolved-ns resolved-namespace
-                          :ns ns-name
-                          :name (with-meta
-                                  (or resolved-name full-fn-name)
-                                  (meta full-fn-name))
-                          :unresolved? unresolved?
-                          :clojure-excluded? clojure-excluded?
-                          :arity arg-count
-                          :row row
-                          :col col
-                          :base-lang base-lang
-                          :lang lang
-                          :filename (:filename ctx)
-                          :expr expr
-                          :callstack (:callstack ctx)
-                          :config (:config ctx)
-                          :top-ns (:top-ns ctx)
-                          :arg-types (:arg-types ctx)}
-                   id (assoc :id id)
-                   in-def (assoc :in-def in-def))]
-        (when id (reg-call ctx call id))
-        (namespace/reg-var-usage! ctx ns-name call)
-        (when-not unresolved?
-          (namespace/reg-used-namespace! ctx
-                                         ns-name
-                                         resolved-namespace))
-        (if-let [m (meta analyzed)]
-          (with-meta (cons call analyzed)
-            m)
-          (cons call analyzed))))))
+        (resolve-name ctx ns-name full-fn-name)]
+    (if (and unresolved?
+             (str/ends-with? full-fn-name "."))
+      (analyze-expression** ctx (macroexpand/expand-constructor expr))
+      (let [[resolved-as-namespace resolved-as-name _lint-as?]
+            (or (when-let
+                    [[ns n]
+                     (config/lint-as config
+                                     [resolved-namespace resolved-name])]
+                  [ns n true])
+                [resolved-namespace resolved-name false])
+            fq-sym (when (and resolved-namespace
+                              resolved-name)
+                     (symbol (str resolved-namespace)
+                             (str resolved-name)))
+            unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
+            resolved-namespace* (if unknown-ns?
+                                  ns-name resolved-namespace)
+            ctx (if fq-sym
+                  (update ctx :callstack
+                          (fn [cs]
+                            (cons (with-meta [resolved-namespace* resolved-name]
+                                    (meta expr)) cs)))
+                  ctx)
+            resolved-as-clojure-var-name
+            (when (one-of resolved-as-namespace [clojure.core cljs.core])
+              resolved-as-name)
+            arg-types (if (and resolved-namespace resolved-name
+                               (not (linter-disabled? ctx :type-mismatch)))
+                        (atom [])
+                        nil)
+            ctx (assoc ctx :arg-types arg-types)
+            ctx (if resolved-as-clojure-var-name
+                  (assoc ctx
+                         :resolved-as-clojure-var-name resolved-as-clojure-var-name)
+                  ctx)
+            analyzed
+            (case resolved-as-clojure-var-name
+              ns
+              (when top-level?
+                [(analyze-ns-decl ctx expr)])
+              in-ns (if top-level? [(analyze-in-ns ctx expr)]
+                        (analyze-children ctx (next children)))
+              alias
+              [(analyze-alias ctx expr)]
+              declare (analyze-declare ctx expr)
+              (def defonce defmulti goog-define)
+              (do (lint-inline-def! ctx expr)
+                  (analyze-def ctx expr))
+              (defn defn- defmacro definline)
+              (do (lint-inline-def! ctx expr)
+                  (analyze-defn ctx expr))
+              defmethod (analyze-defmethod ctx expr)
+              defprotocol (analyze-defprotocol ctx expr)
+              (defrecord deftype definterface) (analyze-defrecord ctx expr)
+              comment
+              (analyze-children ctx children)
+              (-> some->)
+              (analyze-expression** ctx (macroexpand/expand-> ctx expr))
+              (->> some->>)
+              (analyze-expression** ctx (macroexpand/expand->> ctx expr))
+              doto
+              (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
+              (. .. proxy extend-protocol reify
+                 defcurried extend-type)
+              ;; don't lint calls in these expressions, only register them as used vars
+              (analyze-children (-> ctx
+                                    (ctx-with-linter-disabled :invalid-arity)
+                                    (ctx-with-linter-disabled :unresolved-symbol)
+                                    (ctx-with-linter-disabled :type-mismatch))
+                                children)
+              (cond-> cond->>)
+              (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
+              (let let* for doseq dotimes with-open)
+              (analyze-like-let ctx expr)
+              letfn
+              (analyze-letfn ctx expr)
+              (if-let if-some when-let when-some when-first)
+              (analyze-conditional-let ctx resolved-as-clojure-var-name expr)
+              do
+              (analyze-do ctx expr)
+              (fn fn*)
+              (analyze-fn ctx expr)
+              case
+              (analyze-case ctx expr)
+              loop
+              (analyze-loop ctx expr)
+              recur
+              (analyze-recur ctx expr)
+              quote nil
+              try (analyze-try ctx expr)
+              as-> (analyze-as-> ctx expr)
+              areduce (analyze-areduce ctx expr)
+              this-as (analyze-this-as ctx expr)
+              memfn (analyze-memfn ctx expr)
+              empty? (analyze-empty? ctx expr)
+              (use require)
+              (if top-level? (analyze-require ctx expr)
+                  (analyze-children ctx (next (:children expr))))
+              if (analyze-if ctx expr)
+              ;; catch-all
+              (case [resolved-as-namespace resolved-as-name]
+                [schema.core fn]
+                (analyze-schema ctx 'fn expr)
+                [schema.core defn]
+                (analyze-schema ctx 'defn expr)
+                [schema.core defmethod]
+                (analyze-schema ctx 'defmethod expr)
+                ([clojure.test deftest]
+                 [cljs.test deftest]
+                 #_[:clj-kondo/unknown-namespace deftest])
+                (do (lint-inline-def! ctx expr)
+                    (analyze-deftest (assoc ctx :analyze-defn analyze-defn)
+                                     resolved-namespace expr))
+                [cljs.test async]
+                (analyze-cljs-test-async (assoc ctx :analyze-children analyze-children) expr)
+                ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
+                (spec/analyze-fdef (assoc ctx
+                                          :analyze-children
+                                          analyze-children) expr)
+                [potemkin import-vars]
+                (potemkin/analyze-import-vars ctx expr)
+                ([clojure.core.async alt!] [clojure.core.async alt!!]
+                 [cljs.core.async alt!] [cljs.core.async alt!!])
+                (core-async/analyze-alt! (assoc ctx
+                                                :analyze-expression** analyze-expression**
+                                                :extract-bindings extract-bindings)
+                                         expr)
+                ;; catch-all
+                (let [next-ctx (cond-> ctx
+                                 (= '[clojure.core.async thread]
+                                    [resolved-namespace resolved-name])
+                                 (assoc-in [:recur-arity :fixed-arity] 0))]
+                  (analyze-children next-ctx (rest children) false))))]
+        (if (= 'ns resolved-as-clojure-var-name)
+          analyzed
+          (let [in-def (:in-def ctx)
+                id (:id expr)
+                call (cond-> {:type :call
+                              :resolved-ns resolved-namespace
+                              :ns ns-name
+                              :name (with-meta
+                                      (or resolved-name full-fn-name)
+                                      (meta full-fn-name))
+                              :unresolved? unresolved?
+                              :clojure-excluded? clojure-excluded?
+                              :arity arg-count
+                              :row row
+                              :col col
+                              :base-lang base-lang
+                              :lang lang
+                              :filename (:filename ctx)
+                              :expr expr
+                              :callstack (:callstack ctx)
+                              :config (:config ctx)
+                              :top-ns (:top-ns ctx)
+                              :arg-types (:arg-types ctx)}
+                       id (assoc :id id)
+                       in-def (assoc :in-def in-def))]
+            (when id (reg-call ctx call id))
+            (namespace/reg-var-usage! ctx ns-name call)
+            (when-not unresolved?
+              (namespace/reg-used-namespace! ctx
+                                             ns-name
+                                             resolved-namespace))
+            (if-let [m (meta analyzed)]
+              (with-meta (cons call analyzed)
+                m)
+              (cons call analyzed))))))))
 
 (defn lint-keyword-call! [{:keys [:callstack :config :findings] :as ctx} kw namespaced? arg-count expr]
   (when-not (config/skip? config :invalid-arity callstack)

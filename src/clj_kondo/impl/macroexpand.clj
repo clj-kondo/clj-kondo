@@ -143,6 +143,20 @@
                     let-expr fn-body)])
       m)))
 
+(defn expand-constructor
+  "Expand (Obj.) to (new Obj)."
+  [{:keys [children] :as expr}]
+  (let [ctor (-> children first :value)
+        ctor-name (name ctor)]
+    (if (= \. (last ctor-name))
+      (list-node
+       (list* (token-node 'new)
+              (token-node (-> ctor-name
+                              (subs 0 (dec (count ctor-name)))
+                              symbol))
+              (rest children)))
+      expr)))
+
 ;;;; Scratch
 
 (comment
