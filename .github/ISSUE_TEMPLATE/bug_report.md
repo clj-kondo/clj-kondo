@@ -32,6 +32,4 @@ new binary when the issue is resolved. ]
 
 [ What is the actual behavior of clj-kondo? ]
 
-**Are interested in doing a PR yourself?**
-
-[ Please indicate if you are. Would you like some hints pointing you in the right direction? ]
+[ Optional: if you are interested in doing a PR yourself, please leave a note. ]
