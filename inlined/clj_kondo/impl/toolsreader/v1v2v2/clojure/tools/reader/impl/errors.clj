@@ -22,16 +22,8 @@
       details)))
 
 (defn ^:private throw-ex
-  [rdr ex-type  & msg]
-  (let [details (location-details rdr ex-type)
-        file (:file details)
-        line (:line details)
-        col (:col details)
-        msg1 (if file (str file " "))
-        msg2 (if line (str "[line " line ", col " col "]"))
-        msg3 (if (or msg1 msg2) " ")
-        full-msg (apply str msg1 msg2 msg3 msg)]
-    (throw (ex-info full-msg details))))
+  [rdr ex-type msg]
+    (throw (ex-info msg (location-details rdr ex-type))))
 
 (defn reader-error
   "Throws an ExceptionInfo with the given message.

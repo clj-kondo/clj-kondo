@@ -9,7 +9,7 @@
 (ns ^{:no-doc true} clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.edn
   (:refer-clojure :exclude [read read-string char default-data-readers])
   (:require [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :refer
-             [read-char unread peek-char indexing-reader?
+             [read-char unread peek-char indexing-reader? indexing-push-back-reader
               get-line-number get-column-number get-file-name string-push-back-reader]]
             [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.utils :refer
              [char ex-info? whitespace? numeric? desugar-meta namespace-keys second']]
@@ -436,4 +436,5 @@
   ([s] (read-string {:eof nil} s))
   ([opts s]
      (when (and s (not (identical? s "")))
-       (read opts (string-push-back-reader s)))))
+       (read opts (indexing-push-back-reader
+                   (string-push-back-reader s))))))

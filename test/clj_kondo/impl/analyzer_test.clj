@@ -89,7 +89,16 @@
                           :row 1
                           :col 9
                           :message "Expected a ) to match ( from line 1"}]}
-             (analyze "(defn []"))))))
+             (analyze "(defn []"))))
+
+    (testing "invalid tokens"
+      (is (= {:findings [{:type :syntax
+                          :level :error
+                          :filename "test.clj"
+                          :row 1
+                          :col 4
+                          :message "Invalid number: 1..1."}]}
+           (analyze "1..1"))))))
 
 (comment
   (t/run-tests)
