@@ -144,23 +144,6 @@
                     let-expr fn-body)])
       m)))
 
-#_(defn expand-constructor
-  "Expand (Obj.) to (new Obj)."
-  [expr]
-  (let [[ctor-node & children] (:children expr)
-        ctor (:value ctor-node)
-        ctor-name (name ctor)]
-    (if (str/ends-with? ctor-name ".")
-      (with-meta (list-node
-                  (list* (token-node 'new)
-                         (with-meta (token-node (-> ctor-name
-                                                    (subs 0 (dec (count ctor-name)))
-                                                    symbol))
-                           (meta ctor-node))
-                         (rest children)))
-        (meta expr))
-      expr)))
-
 ;;;; Scratch
 
 (comment
