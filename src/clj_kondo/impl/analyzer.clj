@@ -917,6 +917,18 @@
   (swap! calls-by-id assoc id call)
   nil)
 
+(defn analyze-constructor [ctx expr]
+  (let [[ctor-node & children] (:children expr)
+        ctor (:value ctor-node)
+        ctor-name (name ctor)
+        ctor-name (-> ctor-name
+                      (subs 0 (dec (count ctor-name)))
+                      symbol)
+        ctor-node (with-meta (utils/token-node ctor-name)
+                    (meta ctor-node))]
+    (analyze-usages2 (ctx-with-linter-disabled ctx :unresolved-symbol) ctor-node)
+    (analyze-children ctx children)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -933,7 +945,7 @@
         (resolve-name ctx ns-name full-fn-name)]
     (if (and unresolved?
              (str/ends-with? full-fn-name "."))
-      (analyze-expression** ctx (macroexpand/expand-constructor expr))
+      (analyze-constructor ctx expr)
       (let [[resolved-as-namespace resolved-as-name _lint-as?]
             (or (when-let
                     [[ns n]

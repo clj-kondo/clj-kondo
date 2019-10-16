@@ -144,7 +144,7 @@
                     let-expr fn-body)])
       m)))
 
-(defn expand-constructor
+#_(defn expand-constructor
   "Expand (Obj.) to (new Obj)."
   [expr]
   (let [[ctor-node & children] (:children expr)
