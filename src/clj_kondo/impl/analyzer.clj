@@ -917,28 +917,12 @@
   (swap! calls-by-id assoc id call)
   nil)
 
-(defn analyze-constructor* [ctx ctor-node children]
-  (analyze-usages2 (ctx-with-linter-disabled ctx :unresolved-symbol) ctor-node)
-  (analyze-children ctx children))
-
 (defn analyze-constructor
   "Analyzes (new Foo ...) constructor call."
   [ctx expr]
   (let [[_ ctor-node & children] (:children expr)]
-    (analyze-constructor* ctx ctor-node children)))
-
-(defn analyze-dot-constructor
-  "Analyzes (Foo. ...) constructor call."
-  [ctx expr]
-  (let [[ctor-node & children] (:children expr)
-        ctor (:value ctor-node)
-        ctor-name (name ctor)
-        ctor-name (-> ctor-name
-                      (subs 0 (dec (count ctor-name)))
-                      symbol)
-        ctor-node (with-meta (utils/token-node ctor-name)
-                    (meta ctor-node))]
-    (analyze-constructor* ctx ctor-node children)))
+    (analyze-usages2 (ctx-with-linter-disabled ctx :unresolved-symbol) ctor-node)
+    (analyze-children ctx children)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
@@ -956,7 +940,7 @@
         (resolve-name ctx ns-name full-fn-name)]
     (if (and unresolved?
              (str/ends-with? full-fn-name "."))
-      (analyze-dot-constructor ctx expr)
+      (analyze-expression** ctx (macroexpand/expand-dot-constructor ctx expr))
       (let [[resolved-as-namespace resolved-as-name _lint-as?]
             (or (when-let
                     [[ns n]
