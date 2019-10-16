@@ -152,10 +152,7 @@
                 (config/unresolved-symbol-excluded config
                                                    callstack symbol)
                 (let [symbol-name (name symbol)]
-                  (or (str/starts-with? symbol-name
-                                        ".")
-                      (str/ends-with? symbol-name
-                                      ".")
+                  (or (str/starts-with? symbol-name ".")
                       (java-class? symbol-name))))
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
            (fn [old-sym-info]

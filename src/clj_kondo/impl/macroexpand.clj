@@ -85,6 +85,18 @@
                              (meta f))) forms)))]
     ret))
 
+(defn expand-dot-constructor
+  [_ctx expr]
+  (let [[ctor-node & children] (:children expr)
+        ctor (:value ctor-node)
+        ctor-name (name ctor)
+        ctor-name (-> ctor-name
+                      (subs 0 (dec (count ctor-name)))
+                      symbol)
+        ctor-node (with-meta (token-node ctor-name)
+                    (meta ctor-node))]
+    (list-node (list* (token-node 'new) ctor-node children))))
+
 (defn find-children
   "Recursively filters children by pred"
   [pred children]

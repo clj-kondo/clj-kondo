@@ -1964,6 +1964,11 @@
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns repro (:require [clojure.string :refer [starts-with?]]))
                       (defn foo {:test-fn starts-with?} [])"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  ;; There actually still is issue #450 that would cause this error. But we had
+  ;; special handling for constructor calls before and we don't want new errors
+  ;; when PR #557 is merged.
+  (is (empty? (lint! "(import my.ns.Obj) (Obj.)"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest deftest-test
