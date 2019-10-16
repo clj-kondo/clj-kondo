@@ -3,7 +3,8 @@
   (:require
    [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node
                                  token-node]]
-   [clj-kondo.impl.profiler :as profiler]))
+   [clj-kondo.impl.profiler :as profiler]
+   [clojure.string :as str]))
 
 (defn expand-> [_ctx expr]
   (profiler/profile
@@ -145,16 +146,19 @@
 
 (defn expand-constructor
   "Expand (Obj.) to (new Obj)."
-  [{:keys [children] :as expr}]
-  (let [ctor (-> children first :value)
+  [expr]
+  (let [[ctor-node & children] (:children expr)
+        ctor (:value ctor-node)
         ctor-name (name ctor)]
-    (if (= \. (last ctor-name))
-      (list-node
-       (list* (token-node 'new)
-              (token-node (-> ctor-name
-                              (subs 0 (dec (count ctor-name)))
-                              symbol))
-              (rest children)))
+    (if (str/ends-with? ctor-name ".")
+      (with-meta (list-node
+                  (list* (token-node 'new)
+                         (with-meta (token-node (-> ctor-name
+                                                    (subs 0 (dec (count ctor-name)))
+                                                    symbol))
+                           (meta ctor-node))
+                         (rest children)))
+        (meta expr))
       expr)))
 
 ;;;; Scratch
