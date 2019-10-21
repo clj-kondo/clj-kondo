@@ -239,19 +239,33 @@
       {:fixed-arity arity})))
 
 (defn analyze-fn-arity [ctx body]
-  (let [children (:children body)
-        arg-vec (first children)
-        arg-bindings (extract-bindings ctx arg-vec {:fn-args? true})
-        {return-tag :tag
-         arg-tags :tags} (meta arg-bindings)
-        arg-list (sexpr arg-vec)
-        arity (analyze-arity arg-list)
-        ret {:arg-bindings (dissoc arg-bindings :analyzed)
-             :arity arity
-             :analyzed-arg-vec (:analyzed arg-bindings)
-             :args arg-tags
-             :ret return-tag}]
-    ret))
+  (if-let [children (not-empty (:children body))]
+    (let [arg-vec (first children)
+          arg-vec-t (tag arg-vec)]
+      (if (not= :vector arg-vec-t)
+        (findings/reg-finding! (:findings ctx)
+                               (node->line (:filename ctx)
+                                           body
+                                           :warning
+                                           :syntax
+                                           "Function arguments should be wrapped in vector."))
+        (let [arg-bindings (extract-bindings ctx arg-vec {:fn-args? true})
+              {return-tag :tag
+               arg-tags :tags} (meta arg-bindings)
+              arg-list (sexpr arg-vec)
+              arity (analyze-arity arg-list)
+              ret {:arg-bindings (dissoc arg-bindings :analyzed)
+                   :arity arity
+                   :analyzed-arg-vec (:analyzed arg-bindings)
+                   :args arg-tags
+                   :ret return-tag}]
+          ret)))
+    (findings/reg-finding! (:findings ctx)
+                           (node->line (:filename ctx)
+                                       body
+                                       :warning
+                                       :syntax
+                                       "Invalid function body."))))
 
 (defn analyze-pre-post-map [ctx expr]
   (let [children (:children expr)]
@@ -348,7 +362,7 @@
                                                expr
                                                :warning
                                                :syntax
-                                               "invalid function body")))
+                                               "Invalid function body.")))
         ;; var is known when making recursive call
         _ (when fn-name
             (namespace/reg-var!
