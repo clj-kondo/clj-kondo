@@ -129,7 +129,7 @@
         :row 1,
         :col 1,
         :level :error,
-        :message "invalid function body"}
+        :message "Invalid function body."}
        {:file "<stdin>",
         :row 1,
         :col 8,
@@ -139,7 +139,7 @@
         :row 1,
         :col 8,
         :level :error,
-        :message "invalid function body"})
+        :message "Invalid function body."})
      (lint! "(defn) (defmacro)")))
   (testing "redefining clojure var gives no error about incorrect arity of clojure var"
     (is (empty? (lint! "(defn inc [x y] (+ x y))
@@ -898,7 +898,7 @@
       :row 12,
       :col 1,
       :level :error,
-      :message "invalid function body"})
+      :message "Invalid function body."})
    (lint! (io/file "corpus" "schema")
           '{:linters {:unresolved-symbol {:level :error}}}))
   (is (empty? (lint! "(ns foo (:require [schema.core :refer [defschema]])) (defschema foo nil) foo"
@@ -2070,8 +2070,22 @@
                      :row 1,
                      :col 1,
                      :level :error,
-                     :message "invalid function body"})
-                  (lint! "(defn f \"dude\" x) (f 1)")))
+                     :message "Invalid function body."})
+                  (lint! "(defn f \"dude\" x) (f 1)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :error,
+      :message "Invalid function body."})
+   (lint! "(defn oops ())"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :error,
+      :message "Function arguments should be wrapped in vector."})
+   (lint! "(defn oops (x))")))
 
 (deftest not-empty?-test
   (assert-submaps
