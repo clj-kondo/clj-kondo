@@ -1,7 +1,7 @@
 # These are supported funding model platforms
 
 github: # [borkdude] # I joined the waiting list, but so far no response
-patreon: # borkdude # Replace with a single Patreon username
+patreon: borkdude
 open_collective: # clj-kondo # Replace with a single Open Collective username
 ko_fi: borkdude
 tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
