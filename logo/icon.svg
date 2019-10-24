@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="58.642101"
+   height="58.642101"
+   viewBox="0 0 58.642102 58.642101"
+   version="1.1"
+   id="svg78"
+   sodipodi:docname="icon.svg"
+   inkscape:version="0.92.4 (unknown)"
+   style="fill:none"
+   inkscape:export-filename="/media/psf/Home/proj/oss/clj-kondo/logo/icon.png"
+   inkscape:export-xdpi="209.54228"
+   inkscape:export-ydpi="209.54228">
+  <metadata
+     id="metadata84">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs82" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1280"
+     inkscape:window-height="1233"
+     id="namedview80"
+     showgrid="false"
+     inkscape:zoom="17.819962"
+     inkscape:cx="19.612837"
+     inkscape:cy="29.321051"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg78"
+     fit-margin-top="0"
+     fit-margin-left="6.31095"
+     fit-margin-right="6.31095"
+     fit-margin-bottom="0"
+     units="px"
+     inkscape:pagecheckerboard="true"
+     showborder="true"
+     inkscape:showpageshadow="false" />
+  <path
+     d="m 45.52505,23.832 c 0,9.216 -2.928,14.352 -9.816,20.952 l 2.977,2.88 c 7.728,-6.408 12.384,-13.056 12.384,-23.832 0,-10.776 -4.656,-17.424 -12.384,-23.832 l -2.977,2.88 c 6.744,6.48 9.816,11.688 9.816,20.952 z"
+     id="path30"
+     inkscape:connector-curvature="0"
+     style="fill:#6c71c4" />
+  <path
+     d="m 10.64905,46.2961 h 13.08 v -4.248 h -8.016 V 5.6641 h 8.016 v -4.296 h -13.08 z"
+     id="path32"
+     inkscape:connector-curvature="0"
+     style="fill:#6c71c4" />
+  <path
+     d="m 7.3210502,57.632 3.9999998,-4 4,4 4,-4 4,4 4,-4 4,4 4,-4 4,4 4,-4 4,4 4,-4"
+     id="path34"
+     inkscape:connector-curvature="0"
+     style="stroke:#b58900;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" />
+</svg>
