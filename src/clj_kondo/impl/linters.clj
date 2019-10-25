@@ -265,15 +265,18 @@
                              varargs-min-arity (or (:varargs-min-arity called-fn) (-> arities :varargs :min-arity))
                              ;; varargs-min-arity (:varargs-min-arity called-fn)
                              ;; _ (prn ">>" (:name called-fn) arities (keys called-fn))
+                             skip-arity-check?
+                             (and call?
+                                  (or (utils/linter-disabled? call :invalid-arity)
+                                      (config/skip? config :invalid-arity (rest (:callstack call)))))
                              arity-error?
                              (and
-                              (= :call (:type call))
-                              (not (utils/linter-disabled? call :invalid-arity))
+                              call?
+                              (not skip-arity-check?)
                               (or (not-empty fixed-arities)
                                   varargs-min-arity)
                               (not (or (contains? fixed-arities arity)
-                                       (and varargs-min-arity (>= arity varargs-min-arity))
-                                       (config/skip? config :invalid-arity (rest (:callstack call))))))
+                                       (and varargs-min-arity (>= arity varargs-min-arity)))))
                              errors
                              [(when arity-error?
                                 {:filename filename
@@ -324,7 +327,7 @@
                                   (assoc ctx
                                          :filename filename)
                                   call called-fn)
-                                 (when-not arity-error?
+                                 (when-not (or arity-error? skip-arity-check?)
                                    (lint-arg-types! ctx idacs call called-fn)))]
                        e errors
                        :when e]
