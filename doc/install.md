@@ -50,6 +50,12 @@ To upgrade:
     sudo snap refresh clj-kondo
 -->
 
+## NPM (Linux, MacOS, Windows)
+
+    npm install -g clj-kondo
+    
+Note: on Windows this invokes the standalone jar.
+
 ## Arch (Linux)
 
 `clj-kondo` is [available](https://aur.archlinux.org/packages/clj-kondo-bin/) in the [Arch User Repository](https://aur.archlinux.org). It can be installed using your favorite [AUR](https://aur.archlinux.org) helper such as
