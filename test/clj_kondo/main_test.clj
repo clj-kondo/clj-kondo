@@ -1971,6 +1971,8 @@
   (is (empty? (lint! "(import my.ns.Obj) (Obj.)"
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! (io/file "project.clj")
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "^{:a #js [1 2 3]} [1 2 3]"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest deftest-test
