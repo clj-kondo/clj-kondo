@@ -43,9 +43,9 @@
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
          ns-name (:name ns)
-         tag (tag expr)
-         quote? (or quote? (= :quote tag))]
-     (if (one-of tag [:unquote :unquote-splicing])
+         t (tag expr)
+         quote? (or quote? (= :quote t))]
+     (if (one-of t [:unquote :unquote-splicing])
        (when-let [f (:analyze-expression** ctx)]
          (f ctx expr))
        (when (or (not quote?)
@@ -54,8 +54,8 @@
                  syntax-quote?)
          (let [syntax-quote?
                (or syntax-quote?
-                   (= :syntax-quote tag))]
-           (case tag
+                   (= :syntax-quote t))]
+           (case t
              :token
              (if-let [symbol-val (symbol-from-token expr)]
                (let [simple-symbol? (empty? (namespace symbol-val))]
@@ -98,7 +98,13 @@
                                                   :config (:config ctx)})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
+             :reader-macro
+             (doall (mapcat
+                     #(analyze-usages2 ctx %
+                                       (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
+                     (rest (:children expr))))
              ;; catch-call
              (doall (mapcat
-                     #(analyze-usages2 ctx % (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
+                     #(analyze-usages2 ctx %
+                                       (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
                      (:children expr))))))))))

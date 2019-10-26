@@ -1442,5 +1442,5 @@
 ;;;; Scratch
 
 (comment
-  (parse-string "#'foo")
+  (parse-string "#js [1 2 3]")
   )
