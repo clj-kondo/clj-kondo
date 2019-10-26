@@ -13,9 +13,29 @@ For Spacemacs, check [here](#spacemacs).
 
 ## Visual Studio Code
 
-In Visual Studio Code, go to Preferences > Extensions. Search for 'clojure lint' and select the 'Clojure Lint' extension by [@marcomorain](https://github.com/marcomorain/clojure-lint). Click 'install'. That's it.
+### clojure-lint extension
+
+Like most editor plugins, the 'Clojure Lint' extension by
+[@marcomorain](https://github.com/marcomorain/clojure-lint) uses the installed
+version of clj-kondo.  In Visual Studio Code, go to Preferences >
+Extensions. Search for 'clojure lint' and select the Click 'install'. That's it.
 
 <img src="../screenshots/vscode.png" width="75%">
+
+### clj-kondo extension
+
+The native version of clj-kondo is not well supported yet for Windows
+environments due to limitations of GraalVM. If you're using Windows, you can
+install the
+[clj-kondo](https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo)
+extension instead. It bundles clj-kondo and requires no additional
+installation. Note that this extension is part of
+[Calva](https://github.com/BetterThanTomorrow/calva) since v2.0.54.
+
+Despite the native not working well on Windows, users can still have
+command-line version of clj-kondo by installing the
+[NPM](https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows)
+package. This invokes the clj-kondo standalone jar.
 
 ## Atom
 
