@@ -1969,6 +1969,8 @@
   ;; special handling for constructor calls before and we don't want new errors
   ;; when PR #557 is merged.
   (is (empty? (lint! "(import my.ns.Obj) (Obj.)"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! (io/file "project.clj")
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest deftest-test
