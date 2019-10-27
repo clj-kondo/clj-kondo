@@ -372,6 +372,9 @@
                        {:linters {:type-mismatch {:level :error}}}))))
   (testing "sequential is a coll"
     (is (empty? (lint! "(conj (flatten []) {})"
+                       {:linters {:type-mismatch {:level :error}}}))))
+  (testing "collection could be a function"
+    (is (empty? (lint! "(filter (conj #{} 1) [1])"
                        {:linters {:type-mismatch {:level :error}}})))))
 
 ;;;; Scratch
