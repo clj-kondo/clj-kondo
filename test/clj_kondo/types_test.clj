@@ -1,6 +1,7 @@
 (ns clj-kondo.types-test
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clojure.java.io :as io]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest type-mismatch-test
@@ -83,6 +84,32 @@
            (str/starts-with? 1 \"s\")
            (str/includes? (str/join [1 2 3]) 1)"
           {:linters {:type-mismatch {:level :error}}}))
+  (testing "No type checking if invalid-arity is disabled"
+    (assert-submaps
+     '({:file "corpus/types/insufficient.clj"
+        :row 6
+        :col 11
+        :level :error
+        :message "Expected: string or nil, received: keyword."}
+       {:file "corpus/types/insufficient.clj"
+        :row 10
+        :col 11
+        :level :error})
+     (lint! (io/file "corpus" "types" "insufficient.clj")
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "corpus/types/insufficient.clj"
+        :row 6
+        :col 11
+        :level :error,
+        :message "Expected: string or nil, received: keyword."})
+     (lint! (io/file "corpus" "types" "insufficient.clj")
+            {:linters {:invalid-arity {:skip-args ['corpus.types.insufficient/my-macro]}
+                       :type-mismatch {:level :error}}}))
+    (is (empty?
+         (lint! (io/file "corpus" "types" "insufficient.clj")
+                {:linters {:invalid-arity {:level :off}
+                           :type-mismatch {:level :error}}}))))
   (testing "CLJS also works"
     (assert-submaps
      '({:file "<stdin>",
