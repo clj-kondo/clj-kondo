@@ -43,15 +43,16 @@
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double}
    :seqable-out #{:list :vector :seq}
-   :coll #{:map :vector :set :list :seqable-out :associative :seq :sequential}
+   :coll #{:map :vector :set :list :seqable-out :associative :seq :sequential :ifn}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil :seqable-out
-              :list :seq :sequential}
-   :associative #{:map :vector}
-   :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative}
+              :list :seq :sequential :ifn}
+   :associative #{:map :vector :sequential}
+   :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
+          :sequential}
    :nat-int #{:pos-int}
    :seq #{:list}
-   :sequential #{:seq :list :vector :seqable-out}})
+   :sequential #{:seq :list :vector :seqable-out :ifn :associative}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
