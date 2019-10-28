@@ -37,7 +37,7 @@ This is how [borkdude](https://github.com/borkdude) starts his REPL using CIDER:
 
 The `test` alias includes sources in the `test` directory on the classpath.
 
-Once started, I connect from Emacs using `cider-connect`.
+Once started, he connect from Emacs using `cider-connect`.
 
 The alias `cider-nrepl` is defined in his `~/.clojure/deps.edn`:
 
