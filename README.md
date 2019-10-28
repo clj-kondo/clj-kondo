@@ -162,11 +162,7 @@ All other error codes indicate an unexpected error.
 
 ## [Analysis data](analysis)
 
-## Tests
-
-    script/test
-
-## [Building from source](doc/build.md)
+## [Developer documentation](doc/dev.md)
 
 ## Thanks to:
 
