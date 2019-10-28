@@ -1,4 +1,4 @@
-# Dev guidelines
+# Developer documentation
 
 ## Design principles
 
