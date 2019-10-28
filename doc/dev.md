@@ -19,6 +19,7 @@
 
    1. Single-file mode should be able to find the configuration it needs in a predicable location. Scattering configuration in metadata across libraries does not work well for this.
    2. Configuration should be able to live in a project's source repository, so team members can profit from each others additions.
+   3. Configuration spread across multiple files can be harder to debug.
 
 ## REPL
 
