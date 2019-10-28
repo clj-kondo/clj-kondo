@@ -7,4 +7,5 @@
   ["Types" {:file "doc/types.md"}]
   ["Analysis data" {:file "analysis/README.md"}]
   ["Editor integration" {:file "doc/editor-integration.md"}]
+  ["Developer documentation" {:file "doc/dev.md"}]
   ["Building from source" {:file "doc/build.md"}]]}
