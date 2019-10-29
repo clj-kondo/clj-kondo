@@ -2,7 +2,7 @@
 
 ## Design principles
 
-1) Linters should be designed to work in these modes:
+1) Linters should be designed to add value in both of these modes:
 
    1. a single file at a time, integrated in an editor (single-file for short)
    2. an entire directory, project or classpath
