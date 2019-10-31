@@ -123,7 +123,7 @@ $ clj-kondo --lint "<classpath>"
 
 Build tool specific ways to get a classpath:
 - `lein classpath`
-- `boot with-cp -w -f`
+- `boot with-cp -w -f -`
 - `clojure -Spath`
 
 So for `lein` the entire command would be:
