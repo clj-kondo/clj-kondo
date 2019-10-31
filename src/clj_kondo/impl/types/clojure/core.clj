@@ -114,8 +114,7 @@
    'hash-map {:arities {:varargs {:args [{:op :rest :spec [:any :any]}]
                                   :ret :map}}}
    ;; 389
-   'hash-set {:arities {:varargs {:args [{:op :rest :spec [:any :any]}]
-                                  :ret :set}}}
+   'hash-set {:arities {:varargs {:ret :set}}}
    ;; 398 'sorted-map
    ;; 407 'sorted-map-by
    ;; 417 'sorted-set
