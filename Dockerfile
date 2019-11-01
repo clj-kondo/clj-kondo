@@ -3,10 +3,10 @@ FROM ubuntu AS BASE
 RUN apt-get update
 RUN apt-get install -yy curl unzip build-essential zlib1g-dev
 WORKDIR "/opt"
-RUN curl -sLO https://github.com/oracle/graal/releases/download/vm-19.1.1/graalvm-ce-linux-amd64-19.1.1.tar.gz
-RUN tar -xzf graalvm-ce-linux-amd64-19.1.1.tar.gz
-ENV GRAALVM_HOME="/opt/graalvm-ce-19.1.1"
-ENV JAVA_HOME="/opt/graalvm-ce-19.1.1/bin"
+RUN curl -sLO https://github.com/oracle/graal/releases/download/vm-19.2.1/graalvm-ce-linux-amd64-19.2.1.tar.gz
+RUN tar -xzf graalvm-ce-linux-amd64-19.2.1.tar.gz
+ENV GRAALVM_HOME="/opt/graalvm-ce-19.2.1"
+ENV JAVA_HOME="/opt/graalvm-ce-19.2.1/bin"
 ENV PATH="$PATH:$JAVA_HOME"
 COPY . .
 RUN apt install -y sudo
