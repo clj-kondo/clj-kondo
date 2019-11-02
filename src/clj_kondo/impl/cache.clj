@@ -62,6 +62,8 @@
   [cache-dir max-retries & body]
   `(let [lock-file# (io/file ~cache-dir "lock")
          _# (io/make-parents lock-file#)]
+     (println "exists?" (.exists lock-file#))
+     (println "can-read?" (.canRead lock-file#))
      (with-open [raf# (RandomAccessFile. lock-file# "rw")
                  channel# (.getChannel raf#)]
        (loop [retry# 0]
@@ -77,7 +79,9 @@
              (if (= retry# ~max-retries)
                (throw (Exception.
                        (str "clj-kondo cache is locked by other process")))
-               (recur (inc retry#)))))))))
+               (do
+                 (println "retry" retry#)
+                 (recur (inc retry#))))))))))
 
 (defn load-when-missing [idacs cache-dir lang ns-sym]
   (let [path [lang :defs ns-sym]]
