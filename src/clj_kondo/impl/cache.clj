@@ -132,8 +132,36 @@
   (profiler/profile
    :sync-cache
    (if cache-dir
-     (with-cache cache-dir 6
-       (sync-cache* idacs cache-dir))
+     (let [lock-file# (io/file cache-dir "lock")
+           _# (try (io/make-parents lock-file#)
+                   (catch Exception e#
+                     (println "error creating parents" lock-file#)
+                     (.printStackTrace e#)))]
+       (println "exists?" (.exists lock-file#))
+       (println "can-read?" (.canRead lock-file#))
+       (println "sleep!")
+       (flush)
+       (Thread/sleep 5000)
+       (with-open [raf# (RandomAccessFile. lock-file# "rw")
+                   channel# (.getChannel raf#)]
+         (loop [retry# 0]
+           (if-let [lock#
+                    (try (.tryLock channel#)
+                         (catch java.nio.channels.OverlappingFileLockException _#
+                           nil))]
+             (try
+               (sync-cache* idacs cache-dir)
+               (finally (try (.release ^java.nio.channels.FileLock lock#)
+                             (catch Exception e#
+                               (println "error releasing lock file!")))))
+             (do
+               (Thread/sleep 250)
+               (if (= retry# 6)
+                 (throw (Exception.
+                         (str "clj-kondo cache is locked by other process")))
+                 (do
+                   (println "retry" retry#)
+                   (recur (inc retry#)))))))))
      (sync-cache* idacs cache-dir))))
 
 ;;;; Scratch
