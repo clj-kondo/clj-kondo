@@ -34,13 +34,13 @@
              {:row 8, :col 3, :file "corpus/redundant_let.clj"}
              {:row 12, :col 3, :file "corpus/redundant_let.clj"}}
            row-col-files))
-    (is (= #{"redundant let"} (set (map :message linted)))))
-  (assert-submaps '({:file "<stdin>", :row 1, :col 12, :level :warning, :message "redundant let"})
+    (is (= #{"Redundant let expression."} (set (map :message linted)))))
+  (assert-submaps '({:file "<stdin>", :row 1, :col 12, :level :warning, :message #"Redundant let"})
                   (lint! "(let [x 2] (let [y 1]))" "--lang" "cljs"))
   (testing "linters still work in areas where arity linter is are disabled"
-    (assert-submaps '({:file "<stdin>", :row 1, :col 43, :level :warning, :message "redundant let"})
+    (assert-submaps '({:file "<stdin>", :row 1, :col 43, :level :warning, :message #"Redundant let"})
                     (lint! "(reify Object (toString [this] (let [y 1] (let [x y] x))))")))
-
+  (assert-submaps [{:row 1, :col 1 :message #"Redundant let"} ](lint! "(let [] 1)"))
   (is (empty? (lint! "(let [x 2] `(let [y# 3]))")))
   (is (empty? (lint! "(let [x 2] '(let [y 3]))")))
   (is (empty? (lint! "(let [x 2] (let [y 1]) (let [y 2]))")))
@@ -58,7 +58,7 @@
      {:row 4, :col 7, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 5, :col 14, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 6, :col 8, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 7, :col 13, :file "corpus/redundant_do.clj" :message "redundant do"})
+     {:row 7, :col 16, :file "corpus/redundant_do.clj" :message "redundant do"})
    (lint! (io/file "corpus" "redundant_do.clj")))
   (is (empty? (lint! "(do 1 `(do 1 2 3))")))
   (is (empty? (lint! "(do 1 '(do 1 2 3))")))
@@ -640,6 +640,20 @@
       :level :error,
       :message "f is called with 1 arg but expects 0"})
    (lint! "(let [f (fn [])] (f 1))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 6,
+      :level :error,
+      :message #"vector"})
+   (lint! "(let x 1)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message #"0 args"})
+   (lint! "(let)"))
   (is (empty (lint! "(let [f (fn []) f (fn [_]) y (f 1)])")))
   (is (empty? (lint! "(let [err (fn [& msg])] (err 1 2 3))"))))
 
@@ -1254,6 +1268,9 @@
               (lint! prog)))))
 
 (deftest for-doseq-test
+  (assert-submaps
+   [{:col 8 :message #"vector"}]
+   (lint! "(doseq 1 2)"))
   (is (empty? (lint! "(for [select-keys []] (select-keys 1))")))
   (is (empty? (lint! "(doseq [select-keys []] (select-keys 1))"))))
 

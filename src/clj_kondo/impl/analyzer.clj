@@ -487,22 +487,32 @@
         let-parent? (one-of (second callstack)
                             [[clojure.core let]
                              [cljs.core let]])
-        bv (-> expr :children second)]
-    (when (and let? let-parent? maybe-redundant-let?)
+        bv-node (-> expr :children second)
+        valid-bv-node (when (and bv-node (= :vector (tag bv-node)))
+                        bv-node)]
+    (when (and let? (or (and let-parent? maybe-redundant-let?)
+                        (and valid-bv-node (empty? (:children valid-bv-node)))))
       (findings/reg-finding!
        (:findings ctx)
-       (node->line filename expr :warning :redundant-let "redundant let")))
-    (when (and bv (= :vector (tag bv)))
+       (node->line filename expr :warning :redundant-let "Redundant let expression.")))
+    (when bv-node
+      ;; invalid binding vector
+      (when-not valid-bv-node
+        (findings/reg-finding!
+         (:findings ctx)
+         (node->line filename bv-node :error :syntax
+                     ;; cf. error in clojure
+                     (format "%s requires a vector for its binding" call))))
       (let [{analyzed-bindings :bindings
              arities :arities
              analyzed :analyzed}
             (analyze-let-like-bindings
              (-> ctx
                  ;; prevent linting redundant let when using let in bindings
-                 (update :callstack #(cons [nil :let-bindings] %))) bv)
+                 (update :callstack #(cons [nil :let-bindings] %))) valid-bv-node)
             let-body (nnext (:children expr))
             single-child? (and let? (= 1 (count let-body)))]
-        (lint-even-forms-bindings! ctx 'let bv)
+        (lint-even-forms-bindings! ctx call valid-bv-node)
         (concat analyzed
                 (analyze-children
                  (-> ctx
@@ -1409,7 +1419,7 @@
         :message (str "can't parse "
                       filename ", "
                       (or (.getMessage ex) (str ex)))}])))
-  
+
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
