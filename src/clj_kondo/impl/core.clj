@@ -102,16 +102,20 @@
 
 (defn sources-from-jar
   [^java.io.File jar-file canonical?]
-  (let [jar (JarFile. jar-file)
-        entries (enumeration-seq (.entries jar))
-        entries (filter (fn [^JarFile$JarFileEntry x]
-                          (let [nm (.getName x)]
-                            (and (not (.isDirectory x)) (source-file? nm)))) entries)]
-    (map (fn [^JarFile$JarFileEntry entry]
-           {:filename (str (when canonical?
-                             (str (.getCanonicalPath jar-file) ":"))
-                           (.getName entry))
-            :source (slurp (.getInputStream jar entry))}) entries)))
+  (with-open [jar (JarFile. jar-file)]
+    (let [entries (enumeration-seq (.entries jar))
+          entries (filter (fn [^JarFile$JarFileEntry x]
+                            (let [nm (.getName x)]
+                              (and (not (.isDirectory x)) (source-file? nm)))) entries)]
+      ;; Important that we close the `JarFile` so this has to be strict see GH
+      ;; issue #542. Maybe it makes sense to refactor loading source using
+      ;; transducers so we don't have to load the entire source of a jar file in
+      ;; memory at once?
+      (mapv (fn [^JarFile$JarFileEntry entry]
+              {:filename (str (when canonical?
+                                (str (.getCanonicalPath jar-file) ":"))
+                              (.getName entry))
+               :source (slurp (.getInputStream jar entry))}) entries))))
 
 ;;;; dir processing
 

@@ -49,19 +49,20 @@
   [cache-dir lang ns-sym ns-data]
   (let [file (cache-file cache-dir lang ns-sym)
         ;; first we write to a baos as a workaround for transit-clj #43
-        bos (java.io.ByteArrayOutputStream. 1024)
-        writer (transit/writer (io/output-stream bos) :json)]
-    (io/make-parents file)
-    (transit/write writer ns-data)
-    (io/copy (.toByteArray bos) file)))
+        bos (java.io.ByteArrayOutputStream. 1024)]
+    (with-open [os (io/output-stream bos)]
+      (let [writer (transit/writer os :json)]
+        (io/make-parents file)
+        (transit/write writer ns-data)
+        (io/copy (.toByteArray bos) file)))))
 
 (defmacro with-cache
   "Tries to lock cache in the scope of `body`. Retries `max-retries`
   times while sleeping 250ms in between. If not succeeded after
   retries, throws `Exception`."
   [cache-dir max-retries & body]
-  `(let [lock-file# (io/file ~cache-dir "lock")
-         _# (io/make-parents lock-file#)]
+  `(let [lock-file# (io/file ~cache-dir "lock")]
+     (io/make-parents lock-file#)
      (with-open [raf# (RandomAccessFile. lock-file# "rw")
                  channel# (.getChannel raf#)]
        (loop [retry# 0]
@@ -76,7 +77,7 @@
              (Thread/sleep 250)
              (if (= retry# ~max-retries)
                (throw (Exception.
-                       (str "clj-kondo cache is locked by other process")))
+                       (str "Clj-kondo cache is locked by other process.")))
                (recur (inc retry#)))))))))
 
 (defn load-when-missing [idacs cache-dir lang ns-sym]
