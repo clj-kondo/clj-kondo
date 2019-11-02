@@ -49,27 +49,20 @@
   [cache-dir lang ns-sym ns-data]
   (let [file (cache-file cache-dir lang ns-sym)
         ;; first we write to a baos as a workaround for transit-clj #43
-        bos (java.io.ByteArrayOutputStream. 1024)
-        writer (transit/writer (io/output-stream bos) :json)]
-    (io/make-parents file)
-    (transit/write writer ns-data)
-    (io/copy (.toByteArray bos) file)))
+        bos (java.io.ByteArrayOutputStream. 1024)]
+    (with-open [os (io/output-stream bos)]
+      (let [writer (transit/writer os :json)]
+        (io/make-parents file)
+        (transit/write writer ns-data)
+        (io/copy (.toByteArray bos) file)))))
 
 (defmacro with-cache
   "Tries to lock cache in the scope of `body`. Retries `max-retries`
   times while sleeping 250ms in between. If not succeeded after
   retries, throws `Exception`."
   [cache-dir max-retries & body]
-  `(let [lock-file# (io/file ~cache-dir "lock")
-         _# (try (io/make-parents lock-file#)
-                 (catch Exception e#
-                   (println "error creating parents" lock-file#)
-                   (.printStackTrace e#)))]
-     (println "exists?" (.exists lock-file#))
-     (println "can-read?" (.canRead lock-file#))
-     (println "sleep!")
-     (flush)
-     (Thread/sleep 5000)
+  `(let [lock-file# (io/file ~cache-dir "lock")]
+     (io/make-parents lock-file)
      (with-open [raf# (RandomAccessFile. lock-file# "rw")
                  channel# (.getChannel raf#)]
        (loop [retry# 0]
@@ -79,17 +72,13 @@
                          nil))]
            (try
              ~@body
-             (finally (try (.release ^java.nio.channels.FileLock lock#)
-                           (catch Exception e#
-                             (println "error releasing lock file!")))))
+             (finally (.release ^java.nio.channels.FileLock lock#)))
            (do
              (Thread/sleep 250)
              (if (= retry# ~max-retries)
                (throw (Exception.
-                       (str "clj-kondo cache is locked by other process")))
-               (do
-                 (println "retry" retry#)
-                 (recur (inc retry#))))))))))
+                       (str "Clj-kondo cache is locked by other process.")))
+               (recur (inc retry#)))))))))
 
 (defn load-when-missing [idacs cache-dir lang ns-sym]
   (let [path [lang :defs ns-sym]]
@@ -132,36 +121,8 @@
   (profiler/profile
    :sync-cache
    (if cache-dir
-     (let [lock-file# (io/file cache-dir "lock")
-           _# (try (io/make-parents lock-file#)
-                   (catch Exception e#
-                     (println "error creating parents" lock-file#)
-                     (.printStackTrace e#)))]
-       (println "exists?" (.exists lock-file#))
-       (println "can-read?" (.canRead lock-file#))
-       (println "sleep!")
-       (flush)
-       (Thread/sleep 5000)
-       (with-open [raf# (RandomAccessFile. lock-file# "rw")
-                   channel# (.getChannel raf#)]
-         (loop [retry# 0]
-           (if-let [lock#
-                    (try (.tryLock channel#)
-                         (catch java.nio.channels.OverlappingFileLockException _#
-                           nil))]
-             (try
-               (sync-cache* idacs cache-dir)
-               (finally (try (.release ^java.nio.channels.FileLock lock#)
-                             (catch Exception e#
-                               (println "error releasing lock file!")))))
-             (do
-               (Thread/sleep 250)
-               (if (= retry# 6)
-                 (throw (Exception.
-                         (str "clj-kondo cache is locked by other process")))
-                 (do
-                   (println "retry" retry#)
-                   (recur (inc retry#)))))))))
+     (with-cache cache-dir 6
+       (sync-cache* idacs cache-dir))
      (sync-cache* idacs cache-dir))))
 
 ;;;; Scratch
