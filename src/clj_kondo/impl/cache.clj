@@ -61,7 +61,10 @@
   retries, throws `Exception`."
   [cache-dir max-retries & body]
   `(let [lock-file# (io/file ~cache-dir "lock")
-         _# (io/make-parents lock-file#)]
+         _# (try (io/make-parents lock-file#)
+                 (catch Exception e#
+                   (println "error creating parents" lock-file#)
+                   (.printStackTrace e#)))]
      (println "exists?" (.exists lock-file#))
      (println "can-read?" (.canRead lock-file#))
      (with-open [raf# (RandomAccessFile. lock-file# "rw")
@@ -73,7 +76,9 @@
                          nil))]
            (try
              ~@body
-             (finally (.release ^java.nio.channels.FileLock lock#)))
+             (finally (try (.release ^java.nio.channels.FileLock lock#)
+                           (catch Exception e#
+                             (println "error releasing lock file!")))))
            (do
              (Thread/sleep 250)
              (if (= retry# ~max-retries)
