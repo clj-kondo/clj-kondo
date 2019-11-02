@@ -487,25 +487,30 @@
         let-parent? (one-of (second callstack)
                             [[clojure.core let]
                              [cljs.core let]])
-        bv (-> expr :children second)
-        bv (when (and bv (= :vector (tag bv)))
-             bv)]
+        bv-node (-> expr :children second)
+        valid-bv-node (when (and bv-node (= :vector (tag bv-node)))
+                        bv-node)]
     (when (and let? (or (and let-parent? maybe-redundant-let?)
-                        (and bv (empty? (:children bv)))))
+                        (and valid-bv-node (empty? (:children valid-bv-node)))))
       (findings/reg-finding!
        (:findings ctx)
        (node->line filename expr :warning :redundant-let "Redundant let expression.")))
-    (when bv
+    (when bv-node
+      ;; invalid binding vector
+      (when-not valid-bv-node
+        (findings/reg-finding!
+         (:findings ctx)
+         (node->line filename bv-node :error :syntax "Binding vector expected.")))
       (let [{analyzed-bindings :bindings
              arities :arities
              analyzed :analyzed}
             (analyze-let-like-bindings
              (-> ctx
                  ;; prevent linting redundant let when using let in bindings
-                 (update :callstack #(cons [nil :let-bindings] %))) bv)
+                 (update :callstack #(cons [nil :let-bindings] %))) valid-bv-node)
             let-body (nnext (:children expr))
             single-child? (and let? (= 1 (count let-body)))]
-        (lint-even-forms-bindings! ctx 'let bv)
+        (lint-even-forms-bindings! ctx 'let valid-bv-node)
         (concat analyzed
                 (analyze-children
                  (-> ctx

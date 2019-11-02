@@ -640,6 +640,20 @@
       :level :error,
       :message "f is called with 1 arg but expects 0"})
    (lint! "(let [f (fn [])] (f 1))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 6,
+      :level :error,
+      :message #"vector"})
+   (lint! "(let x 1)"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message #"0 args"})
+   (lint! "(let)"))
   (is (empty (lint! "(let [f (fn []) f (fn [_]) y (f 1)])")))
   (is (empty? (lint! "(let [err (fn [& msg])] (err 1 2 3))"))))
 
