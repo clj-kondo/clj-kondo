@@ -500,7 +500,9 @@
       (when-not valid-bv-node
         (findings/reg-finding!
          (:findings ctx)
-         (node->line filename bv-node :error :syntax "Binding vector expected.")))
+         (node->line filename bv-node :error :syntax
+                     ;; cf. error in clojure
+                     (format "%s requires a vector for its binding" call))))
       (let [{analyzed-bindings :bindings
              arities :arities
              analyzed :analyzed}
@@ -510,7 +512,7 @@
                  (update :callstack #(cons [nil :let-bindings] %))) valid-bv-node)
             let-body (nnext (:children expr))
             single-child? (and let? (= 1 (count let-body)))]
-        (lint-even-forms-bindings! ctx 'let valid-bv-node)
+        (lint-even-forms-bindings! ctx call valid-bv-node)
         (concat analyzed
                 (analyze-children
                  (-> ctx

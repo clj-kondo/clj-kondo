@@ -1268,6 +1268,9 @@
               (lint! prog)))))
 
 (deftest for-doseq-test
+  (assert-submaps
+   [{:col 8 :message #"vector"}]
+   (lint! "(doseq 1 2)"))
   (is (empty? (lint! "(for [select-keys []] (select-keys 1))")))
   (is (empty? (lint! "(doseq [select-keys []] (select-keys 1))"))))
 
