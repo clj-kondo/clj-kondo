@@ -67,6 +67,9 @@
                    (.printStackTrace e#)))]
      (println "exists?" (.exists lock-file#))
      (println "can-read?" (.canRead lock-file#))
+     (println "sleep!")
+     (flush)
+     (Thread/sleep 5000)
      (with-open [raf# (RandomAccessFile. lock-file# "rw")
                  channel# (.getChannel raf#)]
        (loop [retry# 0]
