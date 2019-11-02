@@ -61,23 +61,23 @@
   retries, throws `Exception`."
   [cache-dir max-retries & body]
   `(let [lock-file# (io/file ~cache-dir "lock")
-         _# (io/make-parents lock-file#)
-         raf# (RandomAccessFile. lock-file# "rw")
-         channel# (.getChannel raf#)]
-     (loop [retry# 0]
-       (if-let [lock#
-                (try (.tryLock channel#)
-                     (catch java.nio.channels.OverlappingFileLockException _#
-                       nil))]
-         (try
-           ~@body
-           (finally (.release ^java.nio.channels.FileLock lock#)))
-         (do
-           (Thread/sleep 250)
-           (if (= retry# ~max-retries)
-             (throw (Exception.
-                     (str "clj-kondo cache is locked by other process")))
-             (recur (inc retry#))))))))
+         _# (io/make-parents lock-file#)]
+     (with-open [raf# (RandomAccessFile. lock-file# "rw")
+                 channel# (.getChannel raf#)]
+       (loop [retry# 0]
+         (if-let [lock#
+                  (try (.tryLock channel#)
+                       (catch java.nio.channels.OverlappingFileLockException _#
+                         nil))]
+           (try
+             ~@body
+             (finally (.release ^java.nio.channels.FileLock lock#)))
+           (do
+             (Thread/sleep 250)
+             (if (= retry# ~max-retries)
+               (throw (Exception.
+                       (str "clj-kondo cache is locked by other process")))
+               (recur (inc retry#)))))))))
 
 (defn load-when-missing [idacs cache-dir lang ns-sym]
   (let [path [lang :defs ns-sym]]
