@@ -62,7 +62,7 @@
   retries, throws `Exception`."
   [cache-dir max-retries & body]
   `(let [lock-file# (io/file ~cache-dir "lock")]
-     (io/make-parents lock-file)
+     (io/make-parents lock-file#)
      (with-open [raf# (RandomAccessFile. lock-file# "rw")
                  channel# (.getChannel raf#)]
        (loop [retry# 0]
