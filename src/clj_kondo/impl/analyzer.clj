@@ -487,12 +487,15 @@
         let-parent? (one-of (second callstack)
                             [[clojure.core let]
                              [cljs.core let]])
-        bv (-> expr :children second)]
-    (when (and let? let-parent? maybe-redundant-let?)
+        bv (-> expr :children second)
+        bv (when (and bv (= :vector (tag bv)))
+             bv)]
+    (when (and let? (or (and let-parent? maybe-redundant-let?)
+                        (and bv (empty? (:children bv)))))
       (findings/reg-finding!
        (:findings ctx)
-       (node->line filename expr :warning :redundant-let "redundant let")))
-    (when (and bv (= :vector (tag bv)))
+       (node->line filename expr :warning :redundant-let "Redundant let expression.")))
+    (when bv
       (let [{analyzed-bindings :bindings
              arities :arities
              analyzed :analyzed}
@@ -1409,7 +1412,7 @@
         :message (str "can't parse "
                       filename ", "
                       (or (.getMessage ex) (str ex)))}])))
-  
+
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
