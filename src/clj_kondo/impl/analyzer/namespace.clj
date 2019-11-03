@@ -61,9 +61,19 @@
                           {:reason ::unparsable-ns-form
                            :form form})))))
 
+(defn lint-alias-consistency [{:keys [:findings :config
+                                      :filename]} ns-name alias]
+  (when-let [expected-alias (get-in config [:linters :consistent-alias :aliases ns-name])]
+    (when-not (= expected-alias alias)
+      (findings/reg-finding!
+       findings
+       (node->line filename alias :warning
+                   :consistent-alias
+                   (str "Inconsistent alias. Expected " expected-alias " instead of " alias "."))))))
+
 (defn analyze-libspec
   [{:keys [:base-lang :lang
-           :filename :findings]} current-ns-name require-kw-expr libspec-expr]
+           :filename :findings] :as ctx} current-ns-name require-kw-expr libspec-expr]
   (let [require-sym (:value require-kw-expr)
         require-kw (or (:k require-kw-expr)
                        (when require-sym
@@ -93,13 +103,11 @@
                            (= current-ns-name ns-name)
                            (= :require-macros require-kw))]
         (loop [children option-exprs
-               {:keys [:as :referred :excluded
-                       :referred-all :renamed] :as m}
-               {:as nil
-                :referred #{}
-                :excluded #{}
-                :referred-all (when use? require-kw-expr)
-                :renamed {}}]
+               m {:as nil
+                  :referred #{}
+                  :excluded #{}
+                  :referred-all (when use? require-kw-expr)
+                  :renamed {}}]
           ;; (prn "children" children)
           (if-let [child-expr (first children)]
             (let [opt-expr (fnext children)
@@ -116,7 +124,7 @@
                                       findings
                                       (node->line
                                        filename
-                                       referred-all
+                                       (:referred-all m)
                                        :warning
                                        :use
                                        (format "use %srequire with alias or :refer with [%s]"
@@ -133,7 +141,8 @@
                        :else m))
                 :as (recur
                      (nnext children)
-                     (assoc m :as opt))
+                     (assoc m :as (with-meta opt
+                                    (meta opt-expr))))
                 ;; shadow-cljs:
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default
@@ -153,20 +162,22 @@
                      (update :referred set/difference (set (keys opt)))))
                 (recur (nnext children)
                        m)))
-            [{:type :require
-              :ns ns-name
-              :as as
-              :require-kw require-kw
-              :excluded excluded
-              :referred (concat (map (fn [refer]
-                                       [refer {:ns ns-name
-                                               :name refer}])
-                                     referred)
-                                (map (fn [[original-name new-name]]
-                                       [new-name {:ns ns-name
-                                                  :name original-name}])
-                                     renamed))
-              :referred-all referred-all}]))))))
+            (let [{:keys [:as :referred :excluded :referred-all :renamed]} m]
+              (lint-alias-consistency ctx ns-name as)
+              [{:type :require
+                :ns ns-name
+                :as as
+                :require-kw require-kw
+                :excluded excluded
+                :referred (concat (map (fn [refer]
+                                         [refer {:ns ns-name
+                                                 :name refer}])
+                                       referred)
+                                  (map (fn [[original-name new-name]]
+                                         [new-name {:ns ns-name
+                                                    :name original-name}])
+                                       renamed))
+                :referred-all referred-all}])))))))
 
 (defn analyze-java-import [_ctx _ns-name libspec-expr]
   (case (tag libspec-expr)

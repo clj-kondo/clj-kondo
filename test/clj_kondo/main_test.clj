@@ -2371,6 +2371,13 @@
    (lint! "(def x 1) (var x) (var) (var y)"
           {:linters {:unresolved-symbol {:level :error}}})))
 
+(deftest consistent-alias-test
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 39,
+     :level :warning, :message #"Inconsistent.*str.*x"}]
+   (lint! "(ns foo (:require [clojure.string :as x])) x/join"
+          {:linters {:consistent-alias {:aliases '{clojure.string str}}}})))
+
 ;;;; Scratch
 
 (comment

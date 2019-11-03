@@ -64,7 +64,11 @@
               :use {:level :warning}
               :if {:level :warning}
               :type-mismatch {:level :error}
-              :missing-docstring {:level :off}}
+              :missing-docstring {:level :off}
+              :consistent-alias {:level :warning
+                                 ;; warn when alias for clojure.string is
+                                 ;; different from str
+                                 :aliases {#_clojure.string #_str}}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
