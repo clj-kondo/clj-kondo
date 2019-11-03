@@ -16,60 +16,23 @@ namespace local configuration.
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
 
-## Output
+- [Linters](#linters)
+- [Output](#output)
 
-### Print results in JSON format
+## Linters
 
-
-``` shell
-$ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0]'
-{
-  "type": "invalid-arity",
-  "filename": "corpus/nested_namespaced_maps.clj",
-  "row": 9,
-  "col": 1,
-  "level": "error",
-  "message": "wrong number of args (2) passed to nested-namespaced-maps/test-fn"
-}
-```
-
-Printing in EDN format is also supported.
-
-### Include and exclude files from the output
+### Disable a linter
 
 ``` shellsession
-$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"]}}'
-clojure/test.clj:496:6: warning: redundant let
-clojure/test/tap.clj:86:5: warning: redundant do
-linting took 3289ms, errors: 0, warnings: 2
+$ echo '(select-keys [:a])' | clj-kondo --lint -
+<stdin>:1:1: error: wrong number of args (1) passed to clojure.core/select-keys
+linting took 10ms, errors: 1, warnings: 0
 
-$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"] :exclude-files ["tap"]}}'
-clojure/test.clj:496:6: warning: redundant let
-linting took 3226ms, errors: 0, warnings: 1
+$ echo '(select-keys [:a])' | clj-kondo --lint - --config '{:linters {:invalid-arity {:level :off}}}'
+linting took 10ms, errors: 0, warnings: 0
 ```
 
-### Show progress bar while linting
-
-``` shellsession
-$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:progress true}}'
-.................................................................................................................
-cljs/tools/reader.cljs:527:9: warning: redundant do
-(rest of the output omitted)
-```
-
-### Output canonical file paths
-
-The config `'{:output {:canonical-paths true}}'` will output canonical file
-paths (absolute file paths without `..`). This also shows the full path of a jar
-file when you lint a classpath.
-
-``` shellsession
-$ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
-/Users/borkdude/dev/clj-kondo/corpus/cljc/datascript.cljc:8:1: error: datascript.db/seqable? is called with 2 args but expects 1
-(rest of the output omitted)
-```
-
-## Enable optional linters
+### Enable optional linters
 
 Some linters are not enabled by default. Right now these linters are:
 
@@ -81,18 +44,7 @@ You can enable these linters by setting the `:level`:
 {:linters {:missing-docstring {:level :warning}}}
 ```
 
-## Disable a linter
-
-``` shellsession
-$ echo '(select-keys [:a])' | clj-kondo --lint -
-<stdin>:1:1: error: wrong number of args (1) passed to clojure.core/select-keys
-linting took 10ms, errors: 1, warnings: 0
-
-$ echo '(select-keys [:a])' | clj-kondo --lint - --config '{:linters {:invalid-arity {:level :off}}}'
-linting took 10ms, errors: 0, warnings: 0
-```
-
-## Disable all linters but one
+### Disable all linters but one
 
 You can accomplish this by using `^:replace` metadata, which will override
 instead of merge with other configurations:
@@ -104,32 +56,7 @@ corpus/redundant_let.clj:8:3: info: redundant let
 corpus/redundant_let.clj:12:3: info: redundant let
 ```
 
-## Exclude arity linting inside a specific macro call
-
-Some macros rewrite their arguments and therefore can cause false positive arity
-errors. Imagine the following silly macro:
-
-``` clojure
-(ns silly-macros)
-
-(defmacro with-map [m [fn & args]]
-  `(~fn ~m ~@args))
-```
-
-which you can call like:
-
-``` clojure
-(silly-macros/with-map {:a 1 :d 2} (select-keys [:a :b :c])) ;;=> {:a 1}
-```
-
-Normally a call to this macro will give an invalid arity error for `(select-keys
-[:a :b :c])`, but not when you use the following configuration:
-
-``` clojure
-{:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
-```
-
-## Lint a custom macro like a built-in macro
+### Lint a custom macro like a built-in macro
 
 In the following code the `my-defn` macro is defined, but clj-kondo doesn't know how to interpret it:
 
@@ -152,40 +79,7 @@ we might have just linted it like that. That is what the following configuration
 {:lint-as {foo/my-defn clojure.core/defn}}
 ```
 
-## Exclude required but unused namespace from being reported
-
-In the following code, the namespaces `foo.specs` and `bar.specs` are only loaded for the side effect of registering specs, so we don't like clj-kondo reporting those namespaces as required but unused.
-
-``` clojure
-(ns foo (:require [foo.specs] [bar.specs]))
-(defn my-fn [x] x)
-```
-
-That can be done using this config:
-
-``` clojure
-{:linters {:unused-namespace {:exclude [foo.specs bar.specs]}}}
-```
-
-A regex is also supported:
-
-``` clojure
-{:linters {:unused-namespace {:exclude [".*\\.specs$"]}}}
-```
-
-This will exclude all namespaces ending with `.specs`.
-
-## Exclude unused referred vars from being reported.
-
-Imagine you want to have `taoensso.timbre/debug` available in all of your
-namespaces. Even when you don't use it, you don't want to get a warning about
-it. That can be done as follows:
-
-``` clojure
-{:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
-```
-
-## Exclude unresolved symbols from being reported
+### Exclude unresolved symbols from being reported
 
 In the following code `streams` is a macro that assigns a special meaning to the symbol `where`, so it should not be reported as an unresolved symbol:
 
@@ -245,7 +139,65 @@ and helps preventing false positive unresolved symbols in this code:
   ,,,)
 ```
 
-## Exclude deprecated var usage from being reported
+### Exclude arity linting inside a specific macro call
+
+Some macros rewrite their arguments and therefore can cause false positive arity
+errors. Imagine the following silly macro:
+
+``` clojure
+(ns silly-macros)
+
+(defmacro with-map [m [fn & args]]
+  `(~fn ~m ~@args))
+```
+
+which you can call like:
+
+``` clojure
+(silly-macros/with-map {:a 1 :d 2} (select-keys [:a :b :c])) ;;=> {:a 1}
+```
+
+Normally a call to this macro will give an invalid arity error for `(select-keys
+[:a :b :c])`, but not when you use the following configuration:
+
+``` clojure
+{:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
+```
+
+### Exclude required but unused namespace from being reported
+
+In the following code, the namespaces `foo.specs` and `bar.specs` are only loaded for the side effect of registering specs, so we don't like clj-kondo reporting those namespaces as required but unused.
+
+``` clojure
+(ns foo (:require [foo.specs] [bar.specs]))
+(defn my-fn [x] x)
+```
+
+That can be done using this config:
+
+``` clojure
+{:linters {:unused-namespace {:exclude [foo.specs bar.specs]}}}
+```
+
+A regex is also supported:
+
+``` clojure
+{:linters {:unused-namespace {:exclude [".*\\.specs$"]}}}
+```
+
+This will exclude all namespaces ending with `.specs`.
+
+### Exclude unused referred vars from being reported.
+
+Imagine you want to have `taoensso.timbre/debug` available in all of your
+namespaces. Even when you don't use it, you don't want to get a warning about
+it. That can be done as follows:
+
+``` clojure
+{:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
+```
+
+### Exclude deprecated var usage from being reported
 
 Say you have the following function:
 
@@ -289,7 +241,7 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 {:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
 ```
 
-## Exclude unused bindings from being reported
+### Exclude unused bindings from being reported
 
 To exclude unused bindings from being reported, start their names with
 underscores: `_x`. To exclude warnings about key-destructured function arguments, use:
@@ -315,7 +267,7 @@ $ echo '(defn f [{:keys [:a :b :c]} _d])' | clj-kondo --lint - --config \
 linting took 8ms, errors: 0, warnings: 0
 ```
 
-## Exclude unused private vars from being reported
+### Exclude unused private vars from being reported
 
 Example code:
 
@@ -327,6 +279,81 @@ Example config:
 
 ``` clojure
 {:linters {:unused-private-var {:exclude [foo/f]}}}
+```
+
+### Alias consistency
+
+Sometimes it's desirable to have a consistent alias for certain namespaces in a project. E.g. in the below code it could be desirable if every alias for `old.api` was `old-api`:
+
+``` clojure
+(ns foo (:require [new.api :as api]))
+(ns bar (:require [old.api :as old-api]))
+(ns baz (:require [old.api :as api]))
+```
+
+This configuration:
+
+``` clojure
+{:linters {:consistent-alias {:aliases {old.api old-api}}}}
+```
+
+will give this warning:
+
+``` clojure
+Inconsistent alias. Expected old-api instead of api.
+```
+
+## Output
+
+### Print results in JSON format
+
+
+``` shell
+$ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0]'
+{
+  "type": "invalid-arity",
+  "filename": "corpus/nested_namespaced_maps.clj",
+  "row": 9,
+  "col": 1,
+  "level": "error",
+  "message": "wrong number of args (2) passed to nested-namespaced-maps/test-fn"
+}
+```
+
+Printing in EDN format is also supported.
+
+### Include and exclude files from the output
+
+``` shellsession
+$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"]}}'
+clojure/test.clj:496:6: warning: redundant let
+clojure/test/tap.clj:86:5: warning: redundant do
+linting took 3289ms, errors: 0, warnings: 2
+
+$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"] :exclude-files ["tap"]}}'
+clojure/test.clj:496:6: warning: redundant let
+linting took 3226ms, errors: 0, warnings: 1
+```
+
+### Show progress bar while linting
+
+``` shellsession
+$ clj-kondo --lint "$(clj -Spath)" --config '{:output {:progress true}}'
+.................................................................................................................
+cljs/tools/reader.cljs:527:9: warning: redundant do
+(rest of the output omitted)
+```
+
+### Output canonical file paths
+
+The config `'{:output {:canonical-paths true}}'` will output canonical file
+paths (absolute file paths without `..`). This also shows the full path of a jar
+file when you lint a classpath.
+
+``` shellsession
+$ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
+/Users/borkdude/dev/clj-kondo/corpus/cljc/datascript.cljc:8:1: error: datascript.db/seqable? is called with 2 args but expects 1
+(rest of the output omitted)
 ```
 
 ## Example configurations
