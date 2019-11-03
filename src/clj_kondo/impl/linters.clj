@@ -232,11 +232,16 @@
                                                    (or (> row-call row-called-fn)
                                                        (and (= row-call row-called-fn)
                                                             (> (:col call) (:col called-fn)))))))
+                             name-meta (meta fn-name)
+                             name-row (:row name-meta)
+                             name-col (:col name-meta)
                              _ (when (and (not valid-call?)
                                           (not unresolved-symbol-disabled?))
                                  (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
                                                                    (if call?
-                                                                     (merge call (meta fn-name))
+                                                                     (assoc call
+                                                                       :row name-row
+                                                                       :col name-col)
                                                                      call)))
                              row (:row call)
                              col (:col call)
@@ -246,7 +251,12 @@
                              arity (:arity call)
                              _ (when output-analysis?
                                  (analysis/reg-usage! ctx
-                                                      filename row col caller-ns-sym
+                                                      filename
+                                                      (if call? name-row
+                                                        row)
+                                                      (if call? name-col
+                                                        col)
+                                                      caller-ns-sym
                                                       resolved-ns fn-name arity
                                                       (when (= :cljc base-lang)
                                                         call-lang) called-fn))]

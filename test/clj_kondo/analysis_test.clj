@@ -33,7 +33,7 @@
     (assert-submaps
      '[{:filename "<stdin>",
         :row 1,
-        :col 1,
+        :col 2,
         :from user,
         :to clojure.core,
         :name defn,
@@ -115,7 +115,7 @@
     (assert-submaps
      '[{:filename "<stdin>",
         :row 2,
-        :col 30,
+        :col 31,
         :from foo,
         :to clojure.core,
         :name inc,
@@ -128,13 +128,13 @@
         :filename "<stdin>",
         :from foo,
         :macro true,
-        :col 19,
+        :col 20,
         :arity 3,
         :row 2,
         :to clojure.core}
        {:filename "<stdin>",
         :row 2,
-        :col 30,
+        :col 31,
         :from foo,
         :to cljs.core,
         :name inc,
@@ -147,7 +147,7 @@
         :filename "<stdin>",
         :from foo,
         :macro true,
-        :col 19,
+        :col 20,
         :arity 3,
         :row 2,
         :to cljs.core}]
