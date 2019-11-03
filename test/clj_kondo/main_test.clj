@@ -2371,6 +2371,12 @@
    (lint! "(def x 1) (var x) (var) (var y)"
           {:linters {:unresolved-symbol {:level :error}}})))
 
+(deftest set!-test
+  (assert-submaps '[{:col 13 :message #"arg"}]
+                  (lint! "(declare x) (set! (.-foo x) 1 2 3)"))
+  (is (empty? (lint! "(def x (js-obj)) (set! x -field 2)"
+                     "--lang" "cljs"))))
+
 ;;;; Scratch
 
 (comment
