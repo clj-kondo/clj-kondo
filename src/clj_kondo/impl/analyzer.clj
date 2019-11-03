@@ -921,6 +921,20 @@
         (analyze-children ctx children)))
     (analyze-children ctx children)))
 
+(defn analyze-import
+  [ctx expr]
+  (let [ns-name (-> ctx :ns :name)
+        children (:children expr)
+        children (next children)]
+    (when-let [child (first children)]
+      (if (= :quote (tag child))
+        (when-let [libspec-expr (first (:children child))]
+          (let [analyzed
+                (namespace-analyzer/analyze-java-import ctx ns-name libspec-expr)]
+            (namespace/reg-imports! ctx ns-name analyzed)))
+        (analyze-children ctx children)))
+    (analyze-children ctx children)))
+
 (defn analyze-if
   [ctx expr]
   (let [children (rest (:children expr))]
@@ -1059,6 +1073,9 @@
               empty? (analyze-empty? ctx expr)
               (use require)
               (if top-level? (analyze-require ctx expr)
+                  (analyze-children ctx (next (:children expr))))
+              import
+              (if top-level? (analyze-import ctx expr)
                   (analyze-children ctx (next (:children expr))))
               if (analyze-if ctx expr)
               new (analyze-constructor ctx expr)

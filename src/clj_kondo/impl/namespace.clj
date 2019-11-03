@@ -140,6 +140,15 @@
            (merge-with into ns analyzed-require-clauses)))
   nil)
 
+(defn reg-imports!
+  [{:keys [:base-lang :lang :namespaces] :as _ctx} ns-sym imports]
+  (swap! namespaces update-in [base-lang lang ns-sym]
+         (fn [ns]
+           ;; TODO:
+           ;; (lint-duplicate-imports! ctx (:required ns) ...)
+           (update ns :imports merge imports)))
+  nil)
+
 (defn java-class? [s]
   (let [splits (str/split s #"\.")]
     (and (> (count splits) 2)
