@@ -11,6 +11,8 @@ For integrating with Emacs, see
 
 For Spacemacs, check [here](#spacemacs).
 
+or get [flymake-kondor](https://github.com/turbo-cafe/flymake-kondor) if you flymake user.
+
 ## Visual Studio Code
 
 ### clojure-lint extension
