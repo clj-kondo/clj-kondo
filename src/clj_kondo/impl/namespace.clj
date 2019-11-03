@@ -183,13 +183,18 @@
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
 
-(defn cljs-import
-  "CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp"
-  [ns name-sym]
-  (let [tokenizer (StringTokenizer. (str name-sym) ".")]
-    (when (.hasMoreTokens tokenizer)
-      (when-let [first-segment (.nextToken tokenizer)]
-        (get (:imports ns) (symbol first-segment))))))
+(defn next-token [^StringTokenizer st]
+  (when (.hasMoreTokens st)
+    (.nextToken st)))
+
+(defn first-segment
+  "Returns first segment dot-delimited string, only if there is at least
+  one part after the first dot."
+  [name-sym]
+  (let [st (StringTokenizer. (str name-sym) ".")]
+    (when-let [ft  (next-token st)]
+      (when (next-token st)
+        (symbol ft)))))
 
 (defn resolve-name
   [ctx ns-name name-sym]
@@ -218,14 +223,23 @@
        (when (contains? (:vars ns) name-sym)
          {:ns (:name ns)
           :name name-sym})
-       (when-let [java-class (or (get var-info/default-import->qname name-sym)
-                                 (get var-info/default-fq-imports name-sym)
-                                 (get (:imports ns) name-sym)
-                                 (when (identical? :cljs lang)
-                                   (cljs-import ns name-sym)))]
-         {:ns java-class
-          :java-interop? true
-          :name name-sym})
+       (try (when-let [[name-sym* package] (or (find var-info/default-import->qname name-sym)
+                                               (when-let [v (get var-info/default-fq-imports name-sym)]
+                                                 [v v])
+                                               ;; (find (:imports ns) name-sym)
+                                               (if (identical? :cljs lang)
+                                                 ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
+                                                 ;; hmm, this causes the extractor to fuck up
+                                                 (if-let [fs (first-segment name-sym)]
+                                                   (find (:imports ns) fs)
+                                                   (find (:imports ns) name-sym))
+                                                 (find (:imports ns) name-sym)))]
+              ;; (prn "package" name-sym* name-sym '-> package)
+              {:ns package
+               :java-interop? true
+               :name name-sym*})
+            (catch Exception e
+              (.printStackTrace e)))
        (when (= :cljs lang)
          (when-let [ns* (get (:qualify-ns ns) name-sym)]
            (when (some-> (meta ns*) :raw-name string?)
