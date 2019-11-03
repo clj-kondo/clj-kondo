@@ -8,7 +8,8 @@
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled?]]
    [clj-kondo.impl.var-info :as var-info]
-   [clojure.string :as str]))
+   [clojure.string :as str])
+  (:import [java.util StringTokenizer]))
 
 (set! *warn-on-reflection* true)
 
@@ -182,6 +183,18 @@
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
 
+(defn next-token [^StringTokenizer st]
+  (when (.hasMoreTokens st)
+    (.nextToken st)))
+
+(defn first-segment
+  "Returns first segment dot-delimited string, only if there is at least
+  one part after the first dot."
+  [name-sym]
+  (let [st (StringTokenizer. (str name-sym) ".")]
+    (when-let [ft (next-token st)]
+      (symbol ft))))
+
 (defn resolve-name
   [ctx ns-name name-sym]
   (let [lang (:lang ctx)
@@ -197,7 +210,7 @@
               (when (= :clj lang)
                 (when-let [ns* (or (get var-info/default-import->qname ns-sym)
                                    (get var-info/default-fq-imports ns-sym)
-                                   (get (:java-imports ns) ns-sym))]
+                                   (get (:imports ns) ns-sym))]
                   {:java-interop? true
                    :ns ns*
                    :name (symbol (name name-sym))})))))
@@ -209,12 +222,21 @@
        (when (contains? (:vars ns) name-sym)
          {:ns (:name ns)
           :name name-sym})
-       (when-let [java-class (or (get var-info/default-import->qname name-sym)
-                                 (get var-info/default-fq-imports name-sym)
-                                 (get (:java-imports ns) name-sym))]
-         {:ns java-class
+       (when-let [[name-sym* package]
+                  (or (find var-info/default-import->qname name-sym)
+                      (when-let [v (get var-info/default-fq-imports name-sym)]
+                        [v v])
+                      ;; (find (:imports ns) name-sym)
+                      (if (identical? :cljs lang)
+                        ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
+                        ;; hmm, this causes the extractor to fuck up
+                        (let [fs (first-segment name-sym)]
+                          (find (:imports ns) fs))
+                        (find (:imports ns) name-sym)))]
+         ;; (prn "package" name-sym* name-sym '-> package)
+         {:ns package
           :java-interop? true
-          :name name-sym})
+          :name name-sym*})
        (when (= :cljs lang)
          (when-let [ns* (get (:qualify-ns ns) name-sym)]
            (when (some-> (meta ns*) :raw-name string?)
