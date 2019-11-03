@@ -6,6 +6,7 @@
   but it's faster than merging one giant map."
   [idacs]
   (-> idacs
+      ;; clojure.core
       (assoc-in '[:clj :defs clojure.core def] '{:ns clojure.core
                                                  :name def
                                                  :macro true
@@ -30,6 +31,11 @@
                                                  :name var
                                                  :macro true
                                                  :fixed-arities #{1}})
+      (assoc-in '[:clj :defs clojure.core set!] '{:ns clojure.core
+                                                  :name set!
+                                                  :macro true
+                                                  :fixed-arities #{2}})
+      ;; cljs.core
       (assoc-in '[:cljs :defs cljs.core array :varargs-min-arity] 0)
       (assoc-in '[:cljc :defs cljs.core :clj def] '{:ns cljs.core
                                                     :name def
@@ -78,4 +84,12 @@
       (assoc-in '[:cljc :defs cljs.core :clj var] '{:ns cljs.core
                                                     :name var
                                                     :macro true
-                                                    :fixed-arities #{1}})))
+                                                    :fixed-arities #{1}})
+      (assoc-in '[:cljc :defs clojure.core :clj set!] '{:ns cljs.core
+                                                        :name set!
+                                                        :macro true
+                                                        :fixed-arities #{2 3}})
+      (assoc-in '[:cljc :defs clojure.core :cljs set!] '{:ns cljs.core
+                                                         :name set!
+                                                         :macro true
+                                                         :fixed-arities #{2 3}})))
