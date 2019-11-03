@@ -184,4 +184,6 @@
   (is (empty? (lint! "(ns foo (:import [goog.date UtcDateTime]))
                       (defn utc [x] (UtcDateTime.fromTimestamp x))"
                      '{:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(import '[java.foo Bar Baz]) Bar Baz"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
