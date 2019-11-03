@@ -962,6 +962,15 @@
     (analyze-usages2 (ctx-with-linter-disabled ctx :unresolved-symbol) ctor-node)
     (analyze-children ctx children)))
 
+(defn analyze-set!
+  [ctx expr]
+  (let [children (next (:children expr))]
+    (if (and (identical? :cljs (:lang ctx))
+             (= 3 (count children)))
+      ;; ignore second argument which is the field, e.g. (set! o -x 3)
+      (analyze-children ctx (cons (first children) (nnext children)))
+      (analyze-children ctx children))))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1079,6 +1088,7 @@
                   (analyze-children ctx (next (:children expr))))
               if (analyze-if ctx expr)
               new (analyze-constructor ctx expr)
+              set! (analyze-set! ctx expr)
               ;; catch-all
               (case [resolved-as-namespace resolved-as-name]
                 [schema.core fn]
