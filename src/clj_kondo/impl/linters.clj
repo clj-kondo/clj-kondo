@@ -192,9 +192,8 @@
           (show-arities fixed-arities varargs-min-arity)))
 
 (defn lint-var-usage
-  "Lints calls for arity errors, private calls errors. Also dispatches to call-specific linters.
-  TODO: split this out in a resolver and a linter, so other linters
-  can leverage the resolved results."
+  "Lints calls for arity errors, private calls errors. Also dispatches
+  to call-specific linters."
   [ctx idacs]
   (let [{:keys [:config]} ctx
         output-analysis? (-> config :output :analysis)

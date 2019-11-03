@@ -267,7 +267,7 @@
                       [require-kw-node (-> ?require-clause :children next)])
         analyzed-require-clauses
         (analyze-require-clauses ctx ns-name kw+libspecs)
-        java-imports
+        imports
         (apply merge
                (for [?import-clause clauses
                      :let [import-kw (some-> ?import-clause :children first :k
@@ -304,7 +304,7 @@
                        :used-referred-vars #{}
                        :used-vars []
                        :vars {}
-                       :java-imports java-imports
+                       :imports imports
                        :row row
                        :col col}
                       (merge-with into

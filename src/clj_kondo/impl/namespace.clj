@@ -8,7 +8,8 @@
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled?]]
    [clj-kondo.impl.var-info :as var-info]
-   [clojure.string :as str]))
+   [clojure.string :as str])
+  (:import [java.util StringTokenizer]))
 
 (set! *warn-on-reflection* true)
 
@@ -182,6 +183,14 @@
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
 
+(defn cljs-import
+  "CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp"
+  [ns name-sym]
+  (let [tokenizer (StringTokenizer. (str name-sym) ".")]
+    (when (.hasMoreTokens tokenizer)
+      (when-let [first-segment (.nextToken tokenizer)]
+        (get (:imports ns) (symbol first-segment))))))
+
 (defn resolve-name
   [ctx ns-name name-sym]
   (let [lang (:lang ctx)
@@ -197,7 +206,7 @@
               (when (= :clj lang)
                 (when-let [ns* (or (get var-info/default-import->qname ns-sym)
                                    (get var-info/default-fq-imports ns-sym)
-                                   (get (:java-imports ns) ns-sym))]
+                                   (get (:imports ns) ns-sym))]
                   {:java-interop? true
                    :ns ns*
                    :name (symbol (name name-sym))})))))
@@ -211,7 +220,9 @@
           :name name-sym})
        (when-let [java-class (or (get var-info/default-import->qname name-sym)
                                  (get var-info/default-fq-imports name-sym)
-                                 (get (:java-imports ns) name-sym))]
+                                 (get (:imports ns) name-sym)
+                                 (when (identical? :cljs lang)
+                                   (cljs-import ns name-sym)))]
          {:ns java-class
           :java-interop? true
           :name name-sym})
