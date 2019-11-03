@@ -192,9 +192,8 @@
   one part after the first dot."
   [name-sym]
   (let [st (StringTokenizer. (str name-sym) ".")]
-    (when-let [ft  (next-token st)]
-      (when (next-token st)
-        (symbol ft)))))
+    (when-let [ft (next-token st)]
+      (symbol ft))))
 
 (defn resolve-name
   [ctx ns-name name-sym]
@@ -223,23 +222,21 @@
        (when (contains? (:vars ns) name-sym)
          {:ns (:name ns)
           :name name-sym})
-       (try (when-let [[name-sym* package] (or (find var-info/default-import->qname name-sym)
-                                               (when-let [v (get var-info/default-fq-imports name-sym)]
-                                                 [v v])
-                                               ;; (find (:imports ns) name-sym)
-                                               (if (identical? :cljs lang)
-                                                 ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
-                                                 ;; hmm, this causes the extractor to fuck up
-                                                 (if-let [fs (first-segment name-sym)]
-                                                   (find (:imports ns) fs)
-                                                   (find (:imports ns) name-sym))
-                                                 (find (:imports ns) name-sym)))]
-              ;; (prn "package" name-sym* name-sym '-> package)
-              {:ns package
-               :java-interop? true
-               :name name-sym*})
-            (catch Exception e
-              (.printStackTrace e)))
+       (when-let [[name-sym* package]
+                  (or (find var-info/default-import->qname name-sym)
+                      (when-let [v (get var-info/default-fq-imports name-sym)]
+                        [v v])
+                      ;; (find (:imports ns) name-sym)
+                      (if (identical? :cljs lang)
+                        ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
+                        ;; hmm, this causes the extractor to fuck up
+                        (let [fs (first-segment name-sym)]
+                          (find (:imports ns) fs))
+                        (find (:imports ns) name-sym)))]
+         ;; (prn "package" name-sym* name-sym '-> package)
+         {:ns package
+          :java-interop? true
+          :name name-sym*})
        (when (= :cljs lang)
          (when-let [ns* (get (:qualify-ns ns) name-sym)]
            (when (some-> (meta ns*) :raw-name string?)
