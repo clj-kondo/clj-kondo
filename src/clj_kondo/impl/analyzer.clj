@@ -23,7 +23,8 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [datalog.parser :as datalog]))
 
 (set! *warn-on-reflection* true)
 
@@ -971,6 +972,20 @@
       (analyze-children ctx (cons (first children) (nnext children)))
       (analyze-children ctx children))))
 
+(defn analyze-datalog! [{:keys [:findings] :as ctx} raw-expr]
+  (let [query-raw (second (:children raw-expr))
+        expr (sexpr query-raw)]
+    (when (and (seq? expr) (= (first expr) 'quote))
+      (let [expr (second expr)]
+        (when (or (vector? expr) (map? expr)) 
+          (try
+            (datalog/parse expr)
+            nil
+            (catch Exception e
+              (findings/reg-finding! findings
+                                     (node->line (:filename ctx) query-raw :error :invalid-datalog (.getMessage e)))))
+          (analyze-children ctx (rest (rest (:children raw-expr))) false))))))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1117,6 +1132,10 @@
                                                 :analyze-expression** analyze-expression**
                                                 :extract-bindings extract-bindings)
                                          expr)
+                ([datahike.api q]
+                 [datascript.core q]
+                 [datomic.api q])
+                (analyze-datalog! ctx expr)
                 ;; catch-all
                 (let [next-ctx (cond-> ctx
                                  (= '[clojure.core.async thread]

@@ -98,11 +98,35 @@
                           :row 1
                           :col 4
                           :message "Invalid number: 1..1."}]}
-           (analyze "1..1"))))))
+             (analyze "1..1"))))
+
+    ))
+
+
+(deftest datalog-syntax
+  (testing "datalog parsing"
+    (is (= {:type :invalid-datalog,
+            :message "Query for unknown vars: [?a]",
+            :level :error,
+            :row 1,
+            :col 4,
+            :filename "-"}
+           (let [ctx {:filename "-"
+                      :namespaces (atom {})
+                      :findings (atom [])
+                      :base-lang :clj
+                      :lang :clj
+                      :bindings {}}
+                 ctx (assoc ctx :ns (analyze-ns-decl ctx (parse-string "(ns user (:require [datahike.api :refer [q]]))")))]
+             (ana/analyze-expression** ctx (parse-string "(q '[:find ?a :where [?b :foo _]] 42)"))
+             (first @(:findings ctx))
+             )))))
+
 
 (comment
-  (t/run-tests)
+  (t/run-tests) 
   (analyze-ns-decl
    :clj
-   (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))
+   (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))")) 
   )
+
