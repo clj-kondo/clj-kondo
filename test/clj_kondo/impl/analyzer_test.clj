@@ -105,6 +105,17 @@
 
 (deftest datalog-syntax
   (testing "datalog parsing"
+    (is (= nil
+           (let [ctx {:filename "-"
+                      :namespaces (atom {})
+                      :findings (atom [])
+                      :base-lang :clj
+                      :lang :clj
+                      :bindings {}}
+                 ctx (assoc ctx :ns (analyze-ns-decl ctx (parse-string "(ns user (:require [datahike.api :refer [q]]))")))]
+             (ana/analyze-expression** ctx (parse-string "(q '[:find ?a :where [?a :foo _]] 42)"))
+             (first @(:findings ctx))
+             )))
     (is (= {:type :invalid-datalog,
             :message "Query for unknown vars: [?a]",
             :level :error,
