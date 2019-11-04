@@ -22,7 +22,8 @@
              cheshire {:mvn/version "5.8.1"}
              borkdude/eastwood
              {:git/url "https://github.com/borkdude/eastwood.git"
-              :sha "a6e2771d4c8920582b68ab49522ede33e344bb99"}}
+              :sha "a6e2771d4c8920582b68ab49522ede33e344bb99"}
+             borkdude/naw {:mvn/version "0.0.6"}}
             :extra-paths ["test" "extract"]
             :main-opts ["-m" "cognitect.test-runner"]}
            :clojure-1.9.0 {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}
