@@ -7,7 +7,8 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
-   [me.raynes.conch :refer [programs] :as sh]))
+   [me.raynes.conch :refer [programs] :as sh]
+   [naw.core]))
 
 (programs rm mkdir echo mv)
 
@@ -178,7 +179,9 @@
    (lint! "(defn deep-merge [x y] (deep-merge))")))
 
 (deftest invalid-arity-schema-test
-  (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 67, :level :error, :message "foo/foo is called with 2 args but expects 1"})
+   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)")))
 
 (deftest cljc-test
   (assert-submaps

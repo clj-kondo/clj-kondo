@@ -13,7 +13,8 @@
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.1 {:dependencies [[org.clojure/clojure "1.10.1"]]}
              :test {:dependencies [[clj-commons/conch "0.9.2"]
-                                   [jonase/eastwood "0.3.6"]]
+                                   [jonase/eastwood "0.3.6"]
+                                   [borkdude/naw "0.0.6"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:global-vars {*assert* false}
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
