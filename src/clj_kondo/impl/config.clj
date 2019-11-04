@@ -28,7 +28,7 @@
               :missing-map-value {:level :error}
               :redefined-var {:level :warning}
               :unreachable-code {:level :warning}
-              :invalid-datalog {:level :error}
+              :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false}

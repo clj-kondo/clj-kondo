@@ -975,6 +975,7 @@
 (defn analyze-datalog! [{:keys [:findings] :as ctx} raw-expr]
   (let [query-raw (second (:children raw-expr))
         expr (sexpr query-raw)]
+    (analyze-expression** ctx query-raw)
     (when (and (seq? expr) (= (first expr) 'quote))
       (let [expr (second expr)]
         (when (or (vector? expr) (map? expr)) 
@@ -983,7 +984,9 @@
             nil
             (catch Exception e
               (findings/reg-finding! findings
-                                     (node->line (:filename ctx) query-raw :error :invalid-datalog (.getMessage e))))))))
+                                     (node->line (:filename ctx) query-raw
+                                                 :error :datalog-syntax
+                                                 (.getMessage e))))))))
     (analyze-children ctx (rest (rest (:children raw-expr))) false)))
 
 (defn analyze-call
