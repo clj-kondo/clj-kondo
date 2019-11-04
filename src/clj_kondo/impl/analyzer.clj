@@ -983,8 +983,8 @@
             nil
             (catch Exception e
               (findings/reg-finding! findings
-                                     (node->line (:filename ctx) query-raw :error :invalid-datalog (.getMessage e)))))
-          (analyze-children ctx (rest (rest (:children raw-expr))) false))))))
+                                     (node->line (:filename ctx) query-raw :error :invalid-datalog (.getMessage e))))))))
+    (analyze-children ctx (rest (rest (:children raw-expr))) false)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}

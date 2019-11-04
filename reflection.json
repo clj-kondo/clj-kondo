@@ -5,5 +5,19 @@
         "allPublicConstructors": true,
         "allDeclaredMethods": true,
         "allPublicMethods": true
+    },
+    {
+        "name": "clojure.lang.Symbol",
+        "allDeclaredConstructors": true,
+        "allPublicConstructors": true,
+        "allDeclaredMethods": true,
+        "allPublicMethods": true
+    },
+    {
+        "name": "clojure.lang.Keyword",
+        "allDeclaredConstructors": true,
+        "allPublicConstructors": true,
+        "allDeclaredMethods": true,
+        "allPublicMethods": true
     }
 ]
