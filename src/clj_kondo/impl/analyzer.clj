@@ -972,8 +972,8 @@
       (analyze-children ctx (cons (first children) (nnext children)))
       (analyze-children ctx children))))
 
-(defn analyze-datalog! [{:keys [:findings] :as ctx} raw-expr]
-  (let [children (next (:children raw-expr))
+(defn analyze-datalog [{:keys [:findings] :as ctx} expr]
+  (let [children (next (:children expr))
         query-raw (first children)
         quoted? (when query-raw
                   (= :quote (tag query-raw)))
@@ -1142,7 +1142,7 @@
                 ([datahike.api q]
                  [datascript.core q]
                  [datomic.api q])
-                (analyze-datalog! ctx expr)
+                (analyze-datalog ctx expr)
                 ;; catch-all
                 (let [next-ctx (cond-> ctx
                                  (= '[clojure.core.async thread]
