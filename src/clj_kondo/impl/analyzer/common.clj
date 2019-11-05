@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.analyzer.common
   {:no-doc true})
 
-(def common (atom {}))
+(defonce common (volatile! {}))
 
 (defn analyze-expression** [ctx expr]
   ((get @common 'analyze-expression**) ctx expr))

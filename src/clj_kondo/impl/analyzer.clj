@@ -1358,11 +1358,13 @@
                                     :callstack #(cons [nil t] %))
                             children))))))
 
-(reset! common
-        {'analyze-expression** analyze-expression**
-         'analyze-children analyze-children
-         'ctx-with-bindings ctx-with-bindings
-         'extract-bindings extract-bindings})
+;; Hack to make a few functions available in a common namespace without
+;; introducing circular depending namespaces. NOTE: alter-var-root! didn't work
+;; with GraalVM
+(vreset! common {'analyze-expression** analyze-expression**
+                 'analyze-children analyze-children
+                 'ctx-with-bindings ctx-with-bindings
+                 'extract-bindings extract-bindings})
 
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
