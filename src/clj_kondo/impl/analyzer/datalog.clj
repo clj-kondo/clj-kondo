@@ -1,4 +1,4 @@
-(ns clj-kondo.impl.datalog
+(ns clj-kondo.impl.analyzer.datalog
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
@@ -23,6 +23,4 @@
           (findings/reg-finding! findings
                                  (node->line (:filename ctx) query-raw
                                              :error :datalog-syntax
-                                             (.getMessage e))))))
-    ;; lint all children regardless if it was datalog to get additional EDN feedback
-    ))
+                                             (.getMessage e))))))))

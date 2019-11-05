@@ -24,7 +24,7 @@
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
    [clojure.string :as str]
-   [clj-kondo.impl.datalog :as datalog]))
+   [clj-kondo.impl.analyzer.datalog :as datalog]))
 
 (set! *warn-on-reflection* true)
 
