@@ -1,8 +1,5 @@
 (ns compojure.consumer
   ;; namespace local config
-  {:clj-kondo/config
-   '{:lint-as {compojure.core/defroutes clojure.core/def}
-     :linters {:unresolved-symbol {:exclude [(compojure.core/GET [user-id])]}}}}
   (:require [compojure.core :refer :all] ;; <- refer :all...
             [compojure.handler :as handler]))
 

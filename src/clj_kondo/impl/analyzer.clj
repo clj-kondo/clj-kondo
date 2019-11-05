@@ -24,7 +24,9 @@
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
    [clojure.string :as str]
-   [clj-kondo.impl.analyzer.datalog :as datalog]))
+   [clj-kondo.impl.analyzer.datalog :as datalog]
+   [clj-kondo.impl.analyzer.common :refer [common]]
+   [clj-kondo.impl.analyzer.compojure :as compojure]))
 
 (set! *warn-on-reflection* true)
 
@@ -972,38 +974,6 @@
       (analyze-children ctx (cons (first children) (nnext children)))
       (analyze-children ctx children))))
 
-(defn normalize-compojure-vector [ctx expr]
-  (loop [[fst & children] (:children expr)
-         normalized-children []]
-    (if fst
-      (if (when-let [k (utils/node->keyword fst)]
-            (identical? :<< k))
-        (let [snd (first children)]
-          ;; coercing function
-          (analyze-expression** ctx snd)
-          (recur (rest children)
-                 normalized-children))
-        (recur children (conj normalized-children fst)))
-      (assoc expr :children normalized-children))))
-
-(defn analyze-compojure-route [ctx expr fn-name]
-  (let [rfn? (= 'rfn fn-name)
-        children (next (:children expr))
-        children (if-not rfn? (do
-                                ;; rfn doesn't have the routes string arg
-                                (analyze-expression** ctx (first children))
-                                (rest children))
-                         children)
-        destructuring-form (first children)
-        vector? (when destructuring-form
-                  (= :vector (tag destructuring-form)))
-        destructuring-form (if vector?
-                             (normalize-compojure-vector ctx destructuring-form)
-                             destructuring-form)
-        bindings (extract-bindings ctx destructuring-form)
-        ctx (ctx-with-bindings ctx bindings)]
-    (analyze-children ctx (next children))))
-
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1165,7 +1135,7 @@
                  [compojure.core ANY]
                  [compojure.core context]
                  [compojure.core rfn])
-                (analyze-compojure-route ctx expr resolved-as-name)
+                (compojure/analyze-compojure-macro ctx expr resolved-as-name)
                 ;; catch-all
                 (let [next-ctx (cond-> ctx
                                  (= '[clojure.core.async thread]
@@ -1387,6 +1357,12 @@
           (analyze-children (update ctx
                                     :callstack #(cons [nil t] %))
                             children))))))
+
+(reset! common
+        {'analyze-expression** analyze-expression**
+         'analyze-children analyze-children
+         'ctx-with-bindings ctx-with-bindings
+         'extract-bindings extract-bindings})
 
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
