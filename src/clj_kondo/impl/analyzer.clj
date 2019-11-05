@@ -24,7 +24,7 @@
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
    [clojure.string :as str]
-   [datalog.parser :as datalog]))
+   [clj-kondo.impl.datalog :as datalog]))
 
 (set! *warn-on-reflection* true)
 
@@ -972,27 +972,6 @@
       (analyze-children ctx (cons (first children) (nnext children)))
       (analyze-children ctx children))))
 
-(defn analyze-datalog [{:keys [:findings] :as ctx} expr]
-  (let [children (next (:children expr))
-        query-raw (first children)
-        quoted? (when query-raw
-                  (= :quote (tag query-raw)))
-        datalog-node (when quoted?
-                       (when-let [edn-node (first (:children query-raw))]
-                         (when (one-of (tag edn-node) [:vector :map])
-                           edn-node)))]
-    (when datalog-node
-      (try
-        (datalog/parse (sexpr datalog-node))
-        nil
-        (catch Exception e
-          (findings/reg-finding! findings
-                                 (node->line (:filename ctx) query-raw
-                                             :error :datalog-syntax
-                                             (.getMessage e))))))
-    ;; lint all children regardless if it was datalog to get additional EDN feedback
-    (analyze-children ctx children false)))
-
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1000,7 +979,7 @@
            :row :col
            :expr]}]
   (let [ns-name (:name ns)
-        children (:children expr)
+        children (next(:children expr))
         {resolved-namespace :ns
          resolved-name :name
          unresolved? :unresolved?
@@ -1048,7 +1027,7 @@
               (when top-level?
                 [(analyze-ns-decl ctx expr)])
               in-ns (if top-level? [(analyze-in-ns ctx expr)]
-                        (analyze-children ctx (next children)))
+                        (analyze-children ctx children))
               alias
               [(analyze-alias ctx expr)]
               declare (analyze-declare ctx expr)
@@ -1104,10 +1083,10 @@
               empty? (analyze-empty? ctx expr)
               (use require)
               (if top-level? (analyze-require ctx expr)
-                  (analyze-children ctx (next (:children expr))))
+                  (analyze-children ctx children))
               import
               (if top-level? (analyze-import ctx expr)
-                  (analyze-children ctx (next (:children expr))))
+                  (analyze-children ctx children))
               if (analyze-if ctx expr)
               new (analyze-constructor ctx expr)
               set! (analyze-set! ctx expr)
@@ -1142,13 +1121,14 @@
                 ([datahike.api q]
                  [datascript.core q]
                  [datomic.api q])
-                (analyze-datalog ctx expr)
+                (do (datalog/analyze-datalog ctx expr)
+                    (analyze-children ctx children false))
                 ;; catch-all
                 (let [next-ctx (cond-> ctx
                                  (= '[clojure.core.async thread]
                                     [resolved-namespace resolved-name])
                                  (assoc-in [:recur-arity :fixed-arity] 0))]
-                  (analyze-children next-ctx (rest children) false))))]
+                  (analyze-children next-ctx children false))))]
         (if (= 'ns resolved-as-clojure-var-name)
           analyzed
           (let [in-def (:in-def ctx)
