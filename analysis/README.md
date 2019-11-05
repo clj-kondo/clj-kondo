@@ -27,7 +27,7 @@ The analysis output consists of a map with:
    - `:filename`, `:row`, `:col`
    - `:from`: the namespace which uses
    - `:to`: the used namespace
-   - `:as`: the alias of namespace, if used
+   - `:alias`: the alias of namespace, if used
 
 - `:var-definitions`, a list of maps with:
   - `:filename`, `:row`, `:col`
@@ -92,7 +92,7 @@ $ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}
                      :col 14,
                      :from foo,
                      :to clojure.set,
-                     :as set}],
+                     :alias set}],
  :var-definitions [{:filename "/tmp/foo.clj",
                     :row 8,
                     :col 1,

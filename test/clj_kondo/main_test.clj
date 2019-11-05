@@ -7,7 +7,8 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
-   [me.raynes.conch :refer [programs] :as sh]))
+   [me.raynes.conch :refer [programs] :as sh]
+   [missing.test.assertions]))
 
 (programs rm mkdir echo mv)
 
@@ -178,7 +179,9 @@
    (lint! "(defn deep-merge [x y] (deep-merge))")))
 
 (deftest invalid-arity-schema-test
-  (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 67, :level :error, :message "foo/foo is called with 2 args but expects 1"})
+   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)")))
 
 (deftest cljc-test
   (assert-submaps
@@ -2384,6 +2387,32 @@
                   (lint! "(declare x) (set! (.-foo x) 1 2 3)"))
   (is (empty? (lint! "(def x (js-obj)) (set! x -field 2)"
                      "--lang" "cljs"))))
+
+
+(deftest datalog-syntax
+    (testing "datalog parsing"
+      (is (empty? (lint! "(ns user (:require [datahike.api :refer [q]]))
+                          (q '[:find ?a :where [?a :foo _]] 42)"
+                         {:linters {:datalog-syntax {:level :error}}})))
+      (assert-submaps
+       '({:file "<stdin>", :row 2, :col 19,
+          :level :error, :message "Query for unknown vars: [?a]"})
+       (lint! "(ns user (:require [datahike.api :refer [q]]))
+               (q '[:find ?a :where [?b :foo _]] 42)"
+              {:linters {:datalog-syntax {:level :error}}}))
+      (assert-submaps
+       '({:file "<stdin>", :row 3, :col 22,
+          :level :warning, :message "unused binding y"}
+         {:file "<stdin>", :row 4, :col 23, :level :error,
+          :message "unresolved symbol db"})
+       (lint! "(ns user (:require [datahike.api :refer [q]]))
+               (let [x '[:find ?a :where [?a :foo _]]
+                     y 42]
+                 (q x db))"
+              {:linters {:datalog-syntax {:level :error}
+                         :unused-binding {:level :warning}
+                         :unresolved-symbol {:level :error}}}))))
+
 
 ;;;; Scratch
 

@@ -88,7 +88,7 @@
       (assoc-in '[:cljc :defs clojure.core :clj set!] '{:ns cljs.core
                                                         :name set!
                                                         :macro true
-                                                        :fixed-arities #{2 3}})
+                                                        :fixed-arities #{2}})
       (assoc-in '[:cljc :defs clojure.core :cljs set!] '{:ns cljs.core
                                                          :name set!
                                                          :macro true
