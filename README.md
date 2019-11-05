@@ -44,6 +44,7 @@ clj-kondo detects:
 * missing assertions in `clojure.test/deftest`
 * alias consistency
 * [type checking](doc/types.md)
+* Datalog syntax checking
 
 before your REPL knows it.
 
