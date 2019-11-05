@@ -98,11 +98,18 @@
                           :row 1
                           :col 4
                           :message "Invalid number: 1..1."}]}
-           (analyze "1..1"))))))
+             (analyze "1..1"))))
+
+    ))
+
+
+
+
 
 (comment
-  (t/run-tests)
+  (t/run-tests) 
   (analyze-ns-decl
    :clj
-   (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))
+   (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))")) 
   )
+
