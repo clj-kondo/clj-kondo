@@ -24,7 +24,9 @@
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
    [clojure.string :as str]
-   [clj-kondo.impl.analyzer.datalog :as datalog]))
+   [clj-kondo.impl.analyzer.datalog :as datalog]
+   [clj-kondo.impl.analyzer.common :refer [common]]
+   [clj-kondo.impl.analyzer.compojure :as compojure]))
 
 (set! *warn-on-reflection* true)
 
@@ -1123,6 +1125,17 @@
                  [datomic.api q])
                 (do (datalog/analyze-datalog ctx expr)
                     (analyze-children ctx children false))
+                ([compojure.core GET]
+                 [compojure.core POST]
+                 [compojure.core PUT]
+                 [compojure.core DELETE]
+                 [compojure.core HEAD]
+                 [compojure.core OPTIONS]
+                 [compojure.core PATCH]
+                 [compojure.core ANY]
+                 [compojure.core context]
+                 [compojure.core rfn])
+                (compojure/analyze-compojure-macro ctx expr resolved-as-name)
                 ;; catch-all
                 (let [next-ctx (cond-> ctx
                                  (= '[clojure.core.async thread]
@@ -1344,6 +1357,14 @@
           (analyze-children (update ctx
                                     :callstack #(cons [nil t] %))
                             children))))))
+
+;; Hack to make a few functions available in a common namespace without
+;; introducing circular depending namespaces. NOTE: alter-var-root! didn't work
+;; with GraalVM
+(vreset! common {'analyze-expression** analyze-expression**
+                 'analyze-children analyze-children
+                 'ctx-with-bindings ctx-with-bindings
+                 'extract-bindings extract-bindings})
 
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."

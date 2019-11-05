@@ -2047,23 +2047,23 @@
 (deftest refer-all-test
   (assert-submaps
    '({:file "corpus/compojure/consumer.clj",
-      :row 9,
+      :row 6,
       :col 1,
       :level :error,
       :message
       "compojure.core/defroutes is called with 0 args but expects 1 or more"}
      {:file "corpus/compojure/consumer.clj",
-      :row 10,
+      :row 7,
       :col 1,
       :level :error,
       :message "compojure.core/GET is called with 0 args but expects 2 or more"}
      {:file "corpus/compojure/consumer.clj",
-      :row 11,
+      :row 8,
       :col 1,
       :level :error,
       :message "compojure.core/POST is called with 0 args but expects 2 or more"}
      {:file "corpus/compojure/consumer.clj",
-      :row 17,
+      :row 14,
       :col 8,
       :level :error,
       :message "unresolved symbol x"})
