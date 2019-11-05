@@ -20,6 +20,8 @@ The analysis output consists of a map with:
   - `:name`: the name of the namespace
 
   Optional:
+  - `:lang`: if definition occurred in a `.cljc` file, the language in which the
+    definition was done: `:clj` or `:cljs`
   - several metadata values: `:deprecated`, `:doc`, `:author`, `:added`, `:no-doc` (used by
     [codox](https://github.com/weavejester/codox)).
 
@@ -28,6 +30,10 @@ The analysis output consists of a map with:
    - `:from`: the namespace which uses
    - `:to`: the used namespace
    - `:alias`: the alias of namespace, if used
+
+   Optional
+   - `:lang`: if usage occurred in a `.cljc` file, the language in which it
+     was resolved: `:clj` or `:cljs`
 
 - `:var-definitions`, a list of maps with:
   - `:filename`, `:row`, `:col`
