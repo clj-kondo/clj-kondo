@@ -8,7 +8,7 @@
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
    [me.raynes.conch :refer [programs] :as sh]
-   [naw.core]))
+   [missing.test.assertions]))
 
 (programs rm mkdir echo mv)
 
