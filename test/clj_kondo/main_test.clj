@@ -2388,32 +2388,6 @@
   (is (empty? (lint! "(def x (js-obj)) (set! x -field 2)"
                      "--lang" "cljs"))))
 
-
-(deftest datalog-syntax
-    (testing "datalog parsing"
-      (is (empty? (lint! "(ns user (:require [datahike.api :refer [q]]))
-                          (q '[:find ?a :where [?a :foo _]] 42)"
-                         {:linters {:datalog-syntax {:level :error}}})))
-      (assert-submaps
-       '({:file "<stdin>", :row 2, :col 19,
-          :level :error, :message "Query for unknown vars: [?a]"})
-       (lint! "(ns user (:require [datahike.api :refer [q]]))
-               (q '[:find ?a :where [?b :foo _]] 42)"
-              {:linters {:datalog-syntax {:level :error}}}))
-      (assert-submaps
-       '({:file "<stdin>", :row 3, :col 22,
-          :level :warning, :message "unused binding y"}
-         {:file "<stdin>", :row 4, :col 23, :level :error,
-          :message "unresolved symbol db"})
-       (lint! "(ns user (:require [datahike.api :refer [q]]))
-               (let [x '[:find ?a :where [?a :foo _]]
-                     y 42]
-                 (q x db))"
-              {:linters {:datalog-syntax {:level :error}
-                         :unused-binding {:level :warning}
-                         :unresolved-symbol {:level :error}}}))))
-
-
 ;;;; Scratch
 
 (comment
