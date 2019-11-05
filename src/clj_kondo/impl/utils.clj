@@ -42,6 +42,11 @@
       (when (symbol? ?sym)
         ?sym))))
 
+(defn node->keyword
+  "Returns keyword from node, if it contains any."
+  [node]
+  (:k node))
+
 (defn keyword-call
   "Returns keyword of call"
   [expr]

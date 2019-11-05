@@ -77,7 +77,9 @@
               clojure.test.check.generators/let clojure.core/let
               cljs.core.async/go-loop clojure.core/loop
               cljs.core.async.macros/go-loop clojure.core/loop
-              schema.core/defschema clojure.core/def}
+              schema.core/defschema clojure.core/def
+              compojure.core/defroutes clojure.core/def
+              compojure.core/let-routes clojure.core/let}
     :output {:format :text ;; or :edn
              :summary true ;; outputs summary at end, only applicable to output :text
              ;; outputs analyzed var definitions and usages of them
