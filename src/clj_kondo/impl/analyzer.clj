@@ -973,21 +973,25 @@
       (analyze-children ctx children))))
 
 (defn analyze-datalog! [{:keys [:findings] :as ctx} raw-expr]
-  (let [query-raw (second (:children raw-expr))
-        expr (sexpr query-raw)]
-    (analyze-expression** ctx query-raw)
-    (when (and (seq? expr) (= (first expr) 'quote))
-      (let [expr (second expr)]
-        (when (or (vector? expr) (map? expr)) 
-          (try
-            (datalog/parse expr)
-            nil
-            (catch Exception e
-              (findings/reg-finding! findings
-                                     (node->line (:filename ctx) query-raw
-                                                 :error :datalog-syntax
-                                                 (.getMessage e))))))))
-    (analyze-children ctx (rest (rest (:children raw-expr))) false)))
+  (let [children (next (:children raw-expr))
+        query-raw (first children)
+        quoted? (when query-raw
+                  (= :quote (tag query-raw)))
+        datalog-node (when quoted?
+                       (when-let [edn-node (first (:children query-raw))]
+                         (when (one-of (tag edn-node) [:vector :map])
+                           edn-node)))]
+    (when datalog-node
+      (try
+        (datalog/parse (sexpr datalog-node))
+        nil
+        (catch Exception e
+          (findings/reg-finding! findings
+                                 (node->line (:filename ctx) query-raw
+                                             :error :datalog-syntax
+                                             (.getMessage e))))))
+    ;; lint all children regardless if it was datalog to get additional EDN feedback
+    (analyze-children ctx children false)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
