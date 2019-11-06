@@ -352,6 +352,16 @@
         :message "Expected: number, received: map."})
      (lint! "(inc (assoc {} :a 1))"
             {:linters {:type-mismatch {:level :error}}})))
+  (testing "printing human readable label of alternative
+"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 6,
+        :level :error,
+        :message #"Expected: number or character, received: string"})
+     (lint! "(int \"foo\")"
+            {:linters {:type-mismatch {:level :error}}})))
 
   ;; avoiding false positives:
   (is (empty?

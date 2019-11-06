@@ -7,7 +7,8 @@
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
    [clj-kondo.impl.types.clojure.string :refer [clojure-string]]
    [clj-kondo.impl.utils :as utils :refer
-    [tag sexpr]]))
+    [tag sexpr]]
+   [clojure.string :as str]))
 
 (def built-in-specs
   {'clojure.core clojure-core
@@ -269,9 +270,10 @@
       (vec s))))
 
 (defn emit-non-match! [{:keys [:findings :filename]} s arg t]
-  (let [expected-label (or (label s) (name s))
+  (let [expected-label-1-fn #(or (label %) (name %))
+        expected-label (cond (keyword? s) (expected-label-1-fn s)
+                             (set? s) (str/join " or " (map expected-label-1-fn s)))
         offending-tag-label (or (label t) (name t))]
-    ;; (prn s arg t)
     (findings/reg-finding! findings
                            {:filename filename
                             :row (:row arg)
