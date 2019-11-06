@@ -13,8 +13,11 @@ assignees: ''
 
 **platform**
 
-[ Please specify which platform you are using clj-kondo on, so you can test a
-new binary when the issue is resolved. ]
+[ Please specify which platform you are using clj-kondo on. Are you using the native version of clj-kondo, or are you running it on the JVM? ]
+
+**editor**
+
+[ If applicable, please specify which editor you are using clj-kondo with and which editor plugin you are using. ]
 
 **problem**
 
@@ -22,14 +25,11 @@ new binary when the issue is resolved. ]
 
 **repro**
 
-[ Please provide a minimal working reproduction of the problem ]
+[ Please provide a minimal and complete reproduction of the problem, including a namespace form, which can be pasted in a repro.clj file. Please include the output of the invocation of `clj-kondo --lint repro.clj` (or .cljs/.cljc) from the command line. If relevant, also include your .clj-kondo/config.edn. ]
 
 **expected behavior**
 
-[ What is the behavior you expected to see from clj-kondo? Please provide a minimal working example ]
+[ What is the behavior you expected to see from clj-kondo? ]
 
-**actual behavior**
-
-[ What is the actual behavior of clj-kondo? ]
 
 [ Optional: if you are interested in doing a PR yourself, please leave a note. ]
