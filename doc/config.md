@@ -85,7 +85,7 @@ In the following code `streams` is a macro that assigns a special meaning to the
 
 ``` clojure
 (ns foo
-  (:require [riemann.streams [streams]]))
+  (:require [riemann.streams :refer [streams]]))
 
 (def email (mailer {:host "mail.relay"
                     :from "riemann@example.com"}))
