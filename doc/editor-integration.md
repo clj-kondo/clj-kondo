@@ -148,6 +148,8 @@ Ensure that:
 
 In the `.spacemacs` file:
 
+### Installing on master branch
+
 When using the stable `master` branch:
 
 1. In `dotspacemacs-additional-packages` add `flycheck-clj-kondo`.
@@ -179,6 +181,8 @@ To install it alongside joker:
                         (clj-kondo-edn . edn-joker)))
       (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
    ```
+
+### Installing on develop branch
 
 If using the `develop` branch, clj-kondo is available as a part of the standard
 clojure layer. This will become the way to install in the next stable
