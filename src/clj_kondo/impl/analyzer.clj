@@ -1122,7 +1122,8 @@
                                          expr)
                 ([datahike.api q]
                  [datascript.core q]
-                 [datomic.api q])
+                 [datomic.api q]
+                 [datomic.client.api q])
                 (do (datalog/analyze-datalog ctx expr)
                     (analyze-children ctx children false))
                 ([compojure.core GET]
