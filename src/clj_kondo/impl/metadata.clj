@@ -1,9 +1,9 @@
 (ns clj-kondo.impl.metadata
   {:no-doc true}
   (:require
-   [clj-kondo.impl.analyzer.usages :refer [analyze-usages2]]
    [clj-kondo.impl.linters.keys :as key-linter]
-   [clj-kondo.impl.utils :as utils]))
+   [clj-kondo.impl.utils :as utils]
+   [clj-kondo.impl.analyzer.common :as common]))
 
 (defn meta-node->map [ctx node]
   (let [s (utils/sexpr node)]
@@ -21,7 +21,7 @@
   (if-let [meta-list (:meta node)]
     (let [ctx-with-type-hint-bindings
           (utils/ctx-with-bindings ctx type-hint-bindings)
-          _ (run! #(analyze-usages2 ctx-with-type-hint-bindings %)
+          _ (run! #(common/analyze-expression** ctx-with-type-hint-bindings %)
                   meta-list)
           meta-maps (map #(meta-node->map ctx %) meta-list)
           meta-map (apply merge meta-maps)
