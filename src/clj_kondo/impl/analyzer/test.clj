@@ -2,7 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.utils :as utils]
-   [clj-kondo.impl.common :as common]))
+   [clj-kondo.impl.analyzer.common :as common]))
 
 (defn analyze-deftest [ctx _deftest-ns expr]
   (common/analyze-defn ctx
@@ -21,3 +21,5 @@
         ctx (assoc-in ctx [:arities binding-name]
                       {:fixed-arities #{0}})]
     (common/analyze-children ctx rest-children)))
+
+(defn analyze-are [ctx expr])

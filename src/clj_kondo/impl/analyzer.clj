@@ -1104,12 +1104,11 @@
                  [cljs.test deftest]
                  #_[:clj-kondo/unknown-namespace deftest])
                 (do (lint-inline-def! ctx expr)
-                    (test/analyze-deftest (assoc ctx :analyze-defn analyze-defn)
-                                     resolved-namespace expr))
+                    (test/analyze-deftest ctx resolved-namespace expr))
                 [cljs.test async]
-                (test/analyze-cljs-test-async (assoc ctx :analyze-children analyze-children) expr)
+                (test/analyze-cljs-test-async ctx expr)
                 ([clojure.test are] [cljs.test are])
-                (test/analyze-test-are ctx expr)
+                (test/analyze-are ctx expr)
                 ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
                 (spec/analyze-fdef (assoc ctx
                                           :analyze-children
@@ -1367,7 +1366,8 @@
 (vreset! common {'analyze-expression** analyze-expression**
                  'analyze-children analyze-children
                  'ctx-with-bindings ctx-with-bindings
-                 'extract-bindings extract-bindings})
+                 'extract-bindings extract-bindings
+                 'analyze-defn analyze-defn})
 
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
