@@ -22,4 +22,10 @@
                       {:fixed-arities #{0}})]
     (common/analyze-children ctx rest-children)))
 
-(defn analyze-are [ctx expr])
+(defn analyze-are [ctx expr]
+  (let [children (next (:children expr))
+        symbols-node (first children)
+        bindings (when symbols-node
+                   (common/extract-bindings ctx symbols-node))
+        ctx (common/ctx-with-bindings ctx bindings)]
+    (common/analyze-children ctx (rest children))))
