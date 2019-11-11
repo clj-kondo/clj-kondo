@@ -21,7 +21,8 @@
   (if-let [meta-list (:meta node)]
     (let [ctx-with-type-hint-bindings
           (utils/ctx-with-bindings ctx type-hint-bindings)
-          _ (run! #(common/analyze-expression** ctx-with-type-hint-bindings %)
+          ;; use dorun to force analysis, we don't use the end result!
+          _ (run! #(dorun (common/analyze-expression** ctx-with-type-hint-bindings %))
                   meta-list)
           meta-maps (map #(meta-node->map ctx %) meta-list)
           meta-map (apply merge meta-maps)

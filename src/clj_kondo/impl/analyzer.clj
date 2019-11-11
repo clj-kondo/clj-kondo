@@ -343,7 +343,8 @@
                             (when-let [sc (second children)]
                               (when (= :map (tag sc))
                                 sc))))))
-        _ (when meta-node (analyze-expression** ctx meta-node))
+        ;; use dorun to force evaluation, we don't use the result!
+        _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
         var-meta (if meta-node
                    (merge var-meta
                           (sexpr meta-node))
