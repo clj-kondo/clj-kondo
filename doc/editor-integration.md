@@ -204,3 +204,39 @@ dotspacemacs-configuration-layers
 ```
 
 Reload the config to enable clj-kondo.
+
+## Kakoune
+
+### Manual Linting
+
+Add the following to `~/.config/kak/kakrc`:
+
+```kak
+hook global WinSetOption filetype=clojure %{
+    set-option window lintcmd 'clj-kondo --lint'
+}
+```
+
+The `:lint` command will run `clj-kondo` and annotate the buffer with lint
+warnings and errors.
+
+### Automatic Linting on Idle
+
+`clj-kondo` is fast enough to lint as you code!  If you want to do this, use
+the following configuration:
+
+```kak
+hook global WinSetOption filetype=clojure %{
+    set-option window lintcmd 'clj-kondo --lint'
+    lint-enable
+    hook -group lint-diagnostics window NormalIdle .* %{ lint; lint-show }
+}
+```
+
+This works well, but tends to clear the message line too frequently.
+The following work-around prevents linting from displaying the warning
+and error counts on the message line:
+
+```kak
+define-command -hidden -override lint-show-counters %{}
+```
