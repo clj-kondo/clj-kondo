@@ -14,3 +14,6 @@
 
 (defn analyze-children [ctx expr]
   ((get @common 'analyze-children) ctx expr))
+
+(defn analyze-defn [ctx expr]
+  ((get @common 'analyze-defn) ctx expr))

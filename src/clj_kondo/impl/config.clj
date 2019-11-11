@@ -45,7 +45,7 @@
                                             ;; ignore all unresolved symbols in one-of:
                                             #_(clj-kondo.impl.utils/one-of)
                                             (user/defproject) ;; ignore project.clj's defproject
-                                            (clojure.test/are) (cljs.test/are)
+                                            ;; (clojure.test/are) (cljs.test/are)
                                             (clojure.test/is [thrown? thrown-with-msg?])
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
               :misplaced-docstring {:level :warning}
