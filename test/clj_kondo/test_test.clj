@@ -66,9 +66,9 @@
           {:linters {:unresolved-symbol {:level :error}
                      :unused-binding {:level :warning}}})))
 
-(deftest do-template-test
-  ;; TODO:
-  #_(is (empty? (lint! "(require '[clojure.template :as tmpl])
-                      (tmpl/do-template [a b] (def a b) d 1 e 2 f 3)"
+;; TODO: in different issue
+#_(deftest do-template-test
+  (is (empty? (lint! "(require '[clojure.template :as tmpl])
+                      (tmpl/do-template [a b] (def a b) d 1, e 2, f 3)"
                      {:linters {:unresolved-symbol {:level :error}
                                 :unused-binding {:level :warning}}}))))
