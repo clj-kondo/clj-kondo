@@ -702,6 +702,24 @@
 
 (declare analyze-defmethod)
 
+(defn analyze-def [ctx expr]
+  ;; (def foo ?docstring ?init)
+  (let [children (next (:children expr))
+        var-name-node (->> children first (meta/lift-meta-content2 ctx))
+        metadata (meta var-name-node)
+        var-name (:value var-name-node)
+        docstring (when (> (count children) 2)
+                    (string-from-token (second children)))]
+    (when var-name
+      (namespace/reg-var! ctx (-> ctx :ns :name)
+                          var-name
+                          expr
+                          (assoc-some metadata
+                                      :doc docstring)))
+    (analyze-children (assoc ctx
+                             :in-def var-name)
+                      (nnext (:children expr)))))
+
 (defn analyze-schema [ctx fn-sym expr]
   (let [{:keys [:expr :schemas]}
         (schema/expand-schema ctx
@@ -709,6 +727,7 @@
     (concat
      (case fn-sym
        fn (analyze-fn ctx expr)
+       def (analyze-def ctx expr)
        defn (analyze-defn ctx expr)
        defmethod (analyze-defmethod ctx expr))
      (analyze-children ctx schemas))))
@@ -748,24 +767,6 @@
                           expr
                           (assoc (meta expr)
                                  :declared true)))))
-
-(defn analyze-def [ctx expr]
-  ;; (def foo ?docstring ?init)
-  (let [children (next (:children expr))
-        var-name-node (->> children first (meta/lift-meta-content2 ctx))
-        metadata (meta var-name-node)
-        var-name (:value var-name-node)
-        docstring (when (> (count children) 2)
-                    (string-from-token (second children)))]
-    (when var-name
-      (namespace/reg-var! ctx (-> ctx :ns :name)
-                          var-name
-                          expr
-                          (assoc-some metadata
-                                      :doc docstring)))
-    (analyze-children (assoc ctx
-                             :in-def var-name)
-                      (nnext (:children expr)))))
 
 (defn analyze-catch [ctx expr]
   (let [children (next (:children expr))
@@ -1097,6 +1098,8 @@
               (case [resolved-as-namespace resolved-as-name]
                 [schema.core fn]
                 (analyze-schema ctx 'fn expr)
+                [schema.core def]
+                (analyze-schema ctx 'def expr)
                 [schema.core defn]
                 (analyze-schema ctx 'defn expr)
                 [schema.core defmethod]

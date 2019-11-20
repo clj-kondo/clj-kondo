@@ -24,3 +24,5 @@
 (s/defn bar :- #(last %)
   [x]
   x)
+
+(s/def foo :- long "a long" 2)
