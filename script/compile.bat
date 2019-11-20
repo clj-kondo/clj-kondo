@@ -37,4 +37,6 @@ echo Creating zip archive
 jar -cMf clj-kondo-%CLJ_KONDO_VERSION%-windows-amd64.zip clj-kondo.exe
 
 @echo on
-echo (inc 1) | clj-kondo --lint -
+echo (inc) | clj-kondo --lint -
+
+@echo off
