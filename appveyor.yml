@@ -7,7 +7,7 @@ image: Visual Studio 2015
 clone_folder: C:\projects\clj-kondo
 
 environment:
-  GRAALVM_HOME: C:\projects\clj-kondo\graalvm\graalvm-ce-19.2.1
+  GRAALVM_HOME: C:\projects\clj-kondo\graalvm\graalvm-ce-java8-19.3.0
 
 build_script:
 - cmd: >-
@@ -15,7 +15,7 @@ build_script:
 
     call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
 
-    powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/oracle/graal/releases/download/vm-19.2.1/graalvm-ce-windows-amd64-19.2.1.zip', 'graalvm.zip')"
+    powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-windows-amd64-19.3.0.zip', 'graalvm.zip')"
 
     powershell -Command "Expand-Archive graalvm.zip graalvm"
 
