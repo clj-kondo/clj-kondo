@@ -23,16 +23,18 @@ call %GRAALVM_HOME%\bin\native-image.cmd ^
   "-H:+ReportExceptionStackTraces" ^
   "-J-Dclojure.spec.skip-macros=true" ^
   "-J-Dclojure.compiler.direct-linking=true" ^
-  "-H:IncludeResources=clj_kondo\\impl\\cache\\built_in\\.*" ^
+  "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*" ^
   "-H:ReflectionConfigurationFiles=reflection.json" ^
   "--initialize-at-build-time"  ^
   "-H:Log=registerResource:" ^
   "--no-fallback" ^
   "--verbose" ^
   "-J-Xmx3g"
+
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo Creating zip archive
 jar -cMf clj-kondo-%CLJ_KONDO_VERSION%-windows-amd64.zip clj-kondo.exe
 
+@echo on
 echo (inc 1) | clj-kondo --lint -
