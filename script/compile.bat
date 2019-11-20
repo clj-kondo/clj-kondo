@@ -23,7 +23,7 @@ call %GRAALVM_HOME%\bin\native-image.cmd ^
   "-H:+ReportExceptionStackTraces" ^
   "-J-Dclojure.spec.skip-macros=true" ^
   "-J-Dclojure.compiler.direct-linking=true" ^
-  "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*" ^
+  "-H:IncludeResources=clj_kondo\impl\cache\built_in\.*" ^
   "-H:ReflectionConfigurationFiles=reflection.json" ^
   "--initialize-at-build-time"  ^
   "-H:Log=registerResource:" ^
