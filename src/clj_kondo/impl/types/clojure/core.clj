@@ -148,7 +148,7 @@
    ;; 589
    'symbol {:arities {1 {:args [#{:symbol :string :keyword}]
                          :ret :symbol}
-                      2 {:args [:string :string]
+                      2 {:args [:nilable/string :string]
                          :ret :symbol}}}
    ;; 604 'gensym
    ;; 614 'keyword
