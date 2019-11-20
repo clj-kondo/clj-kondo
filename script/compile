@@ -23,7 +23,7 @@ CLJ_KONDO_VERSION=$(cat resources/CLJ_KONDO_VERSION)
 lein with-profiles +clojure-1.10.1 do clean, uberjar
 $NATIVE_IMAGE \
   -jar target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar \
-  -H:Name=clj-kondo \
+  "-H:Name=clj-kondo" \
   -H:+ReportExceptionStackTraces \
   -J-Dclojure.spec.skip-macros=true \
   -J-Dclojure.compiler.direct-linking=true \
