@@ -34,7 +34,7 @@ build_script:
 
     echo (inc) | clj-kondo --lint - & exit 0
 
-    clj-kondo --lint src test & exit 0
+    clj-kondo --lint "C:\projects\clj-kondo\src" "C:\projects\clj-kondo\test" & exit 0
 
 test: off
 
