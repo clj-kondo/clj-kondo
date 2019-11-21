@@ -27,9 +27,13 @@ build_script:
 
 - cmd: >-
     if not exist "C:\temp" mkdir C:\temp
+
     copy "clj-kondo.exe" "C:\temp"
+
     cd "C:\temp"
+
     echo (inc) | clj-kondo --lint -
+
     clj-kondo --lint src test
 
 test: off
