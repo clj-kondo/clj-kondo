@@ -35,11 +35,3 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo Creating zip archive
 jar -cMf clj-kondo-%CLJ_KONDO_VERSION%-windows-amd64.zip clj-kondo.exe
-
-@echo on
-copy clj-kondo.exe c:\temp
-cd c:\temp
-echo (inc) | clj-kondo --lint -
-clj-kondo --lint src test
-
-@echo off
