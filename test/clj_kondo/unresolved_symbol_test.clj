@@ -88,6 +88,14 @@
      (lint! "slurp"
             '{:linters {:unresolved-symbol {:level :error}}}
             "--lang" "cljc")))
+  (testing "metadata in ns macro is linted"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 25, :level :error, :message "unresolved symbol a"}
+       {:file "<stdin>", :row 1, :col 30, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
+     (lint! "(ns foo \"docstring\" {:a a :b (inc)})"
+            '{:linters {:unresolved-symbol {:level :error}}})))
+
+  ;; Preventing false positives
   (is (empty? (lint! "slurp"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(try 1 (catch Exception e e) (finally 3))"
