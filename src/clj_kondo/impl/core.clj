@@ -80,25 +80,39 @@
 
 ;;;; find cache/config dir
 
-(defn config-dir
-  ([] (config-dir
-       (io/file
-        (System/getProperty "user.dir"))))
-  ([cwd]
-   (loop [dir (io/file cwd)]
-     (let [cfg-dir (io/file dir ".clj-kondo")]
-       (if (.exists cfg-dir)
-         (if (.isDirectory cfg-dir)
-           cfg-dir
-           (throw (Exception. (str cfg-dir " must be a directory"))))
-         (when-let [parent (.getParentFile dir)]
-           (recur parent)))))))
-
-;;;; jar processing
+(defn- lineage [^java.io.File file]
+  (lazy-seq
+    (when file
+      (cons file (lineage (.getParentFile file))))))
 
 (defn source-file? [filename]
   (when-let [[_ ext] (re-find #"\.(\w+)$" filename)]
     (one-of (keyword ext) [:clj :cljs :cljc :edn])))
+
+(defn- single-file-lint? [lint]
+  (and (= 1 (count lint))
+       (.isFile (io/file (first lint)))
+       (source-file? (str (first lint)))))
+
+(defn- possible-config-dir-locations [lint]
+  (concat
+    (when (single-file-lint? lint)
+      (lineage (.getParentFile (io/file (first lint)))))
+    (lineage (io/file (System/getProperty "user.dir")))))
+
+(defn config-dir [lint]
+  (transduce (comp (map #(io/file % ".clj-kondo"))
+                   (filter #(.exists ^java.io.File %)))
+             (fn
+               ([] nil)
+               ([result] result)
+               ([_ ^java.io.File cfg-dir]
+                (if (.isDirectory cfg-dir)
+                  (reduced cfg-dir)
+                  (throw (Exception. (str cfg-dir " must be a directory"))))))
+             (possible-config-dir-locations lint)))
+
+;;;; jar processing
 
 (defn sources-from-jar
   [^java.io.File jar-file canonical?]
