@@ -362,6 +362,30 @@
         :message #"Expected: number or character, received: string"})
      (lint! "(int \"foo\")"
             {:linters {:type-mismatch {:level :error}}})))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 6,
+      :level :error,
+      :message #"Expected: seqable collection, received: symbol"})
+   (lint! "(seq (symbol \"foo\"))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 8,
+      :level :error,
+      :message #"Expected: seqable collection, received: symbol"})
+   (lint! "(list* (symbol \"foo\"))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 9,
+      :level :error,
+      :message #"Expected: seqable collection, received: symbol"})
+   (lint! "(list* 'foo)"
+          {:linters {:type-mismatch {:level :error}}}))
 
   ;; avoiding false positives:
   (is (empty?
