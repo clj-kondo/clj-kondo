@@ -81,7 +81,7 @@
            :config]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
-        cfg-dir (core-impl/config-dir)
+        cfg-dir (core-impl/config-dir lint)
         config (core-impl/resolve-config cfg-dir config)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
         findings (atom [])
