@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.analysis :as analysis]
+   [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.metadata :as meta]
@@ -253,6 +254,7 @@
                         (when-let [sc (second children)]
                           (when (= :map (tag sc))
                             sc)))))
+        _ (when meta-node (common/analyze-expression** ctx meta-node))
         ns-meta (if meta-node
                   (merge metadata
                          (sexpr meta-node))
