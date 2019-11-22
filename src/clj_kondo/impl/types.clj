@@ -108,13 +108,11 @@
 (def current-ns-name (str (ns-name *ns*)))
 
 (defn sub? [k target]
-  ;; (prn "sub?" k '-> target)
   (or (identical? k target)
       (when-let [targets (get is-a-relations k)]
         (some #(sub? % target) targets))))
 
 (defn super? [k target]
-  ;; (prn "super?" k '-> target)
   (or (identical? k target)
       (when-let [targets (get could-be-relations k)]
         (some #(super? % target) targets))))
@@ -223,20 +221,20 @@
           {:tag :any})
         {:tag :any})))
 
-(defn expr->tag [{:keys [:bindings :lang] :as ctx} expr]
+(defn expr->tag [{:keys [:bindings :lang :quoted] :as ctx} expr]
   (let [t (tag expr)
-        edn? (= :edn lang)]
+        quoted? (or quoted (= :edn lang))]
     (case t
       :map (map->tag ctx expr)
       :vector :vector
       :set :set
-      :list (if edn? :list
+      :list (if quoted? :list
                 (:tag (spec-from-list-expr ctx expr))) ;; a call we know nothing about
       :fn :fn
       :token (let [v (sexpr expr)]
                (cond
                  (nil? v) :nil
-                 (symbol? v) (if edn? :symbol
+                 (symbol? v) (if quoted? :symbol
                                  (if-let [b (get bindings v)]
                                    (or (:tag b) :any)
                                    :any))
