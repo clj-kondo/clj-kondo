@@ -57,7 +57,7 @@ jobs:
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_HOME: /home/circleci/graalvm-ce-19.2.1
+      GRAALVM_HOME: /home/circleci/graalvm-ce-java8-19.3.0
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_TEST_ENV: native
     steps:
@@ -80,9 +80,9 @@ jobs:
           name: Download GraalVM
           command: |
             cd ~
-            if ! [ -d graalvm-ce-19.2.1 ]; then
-              curl -O -sL https://github.com/oracle/graal/releases/download/vm-19.2.1/graalvm-ce-linux-amd64-19.2.1.tar.gz
-              tar xzf graalvm-ce-linux-amd64-19.2.1.tar.gz
+            if ! [ -d graalvm-ce-java8-19.3.0 ]; then
+              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-linux-amd64-19.3.0.tar.gz
+              tar xzf graalvm-ce-java8-linux-amd64-19.3.0.tar.gz
             fi
       - run:
           name: Build binary
@@ -104,7 +104,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-19.2.1
+            - ~/graalvm-ce-java8-19.3.0
           key: linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
@@ -113,7 +113,7 @@ jobs:
     macos:
       xcode: "9.0"
     environment:
-      GRAALVM_HOME: /Users/distiller/graalvm-ce-19.2.1/Contents/Home
+      GRAALVM_HOME: /Users/distiller/graalvm-ce-java8-19.3.0/Contents/Home
       CLJ_KONDO_PLATFORM: macos # used in release script
       CLJ_KONDO_TEST_ENV: native
     steps:
@@ -135,9 +135,9 @@ jobs:
           command: |
             cd ~
             ls -la
-            if ! [ -d graalvm-ce-19.2.1 ]; then
-              curl -O -sL https://github.com/oracle/graal/releases/download/vm-19.2.1/graalvm-ce-darwin-amd64-19.2.1.tar.gz
-              tar xzf graalvm-ce-darwin-amd64-19.2.1.tar.gz
+            if ! [ -d graalvm-ce-java8-19.3.0 ]; then
+              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-darwin-amd64-19.3.0.tar.gz
+              tar xzf graalvm-ce-java8-darwin-amd64-19.3.0.tar.gz
             fi
       - run:
           name: Build binary
@@ -159,7 +159,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-19.2.1
+            - ~/graalvm-ce-java8-19.3.0
           key: mac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
