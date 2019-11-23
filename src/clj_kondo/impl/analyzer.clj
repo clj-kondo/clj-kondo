@@ -770,11 +770,11 @@
                                  :declared true)))))
 
 (defn analyze-catch [ctx expr]
-  (let [children (next (:children expr))
-        binding-expr (second children)
+  (let [[class-expr binding-expr & exprs] (next (:children expr))
+        _ (analyze-usages2 ctx class-expr) ;; analyze usage for unused import linter
         binding (extract-bindings ctx binding-expr)]
     (analyze-children (ctx-with-bindings ctx binding)
-                      (nnext children))))
+                      exprs)))
 
 (defn analyze-try [ctx expr]
   (loop [[fst-child & rst-children] (next (:children expr))
