@@ -195,7 +195,8 @@
     :token (let [package+class (:value libspec-expr)
                  splitted (-> package+class name (str/split #"\."))
                  java-package (symbol (str/join "." (butlast splitted)))
-                 imported (symbol (last splitted))]
+                 imported (with-meta (symbol (last splitted))
+                            (meta libspec-expr))]
              {imported java-package})
     nil))
 
