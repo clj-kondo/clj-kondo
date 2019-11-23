@@ -206,19 +206,17 @@
                     :syntax
                     (str "unsupported binding form " expr)))))))
 
-(defn analyze-in-ns [ctx {:keys [:children] :as _expr}]
-  (let [ns-name (-> children second :children first :value)
+(defn analyze-in-ns [ctx {:keys [:children] :as expr}]
+  (let [{:keys [:row :col]} expr
+        ns-name (-> children second :children first :value)
         ns (when ns-name
-             {:type :in-ns
-              :name ns-name
-              :lang (:lang ctx)
-              :vars {}
-              :used-vars []
-              :used-referred-vars #{}
-              :used #{}
-              :bindings #{}
-              :used-bindings #{}
-              :filename (:filename ctx)})]
+             (namespace-analyzer/new-namespace
+              (:filename ctx)
+              (:base-lang ctx)
+              (:lang ctx)
+              ns-name
+              :in-ns
+              row col))]
     (namespace/reg-namespace! ctx ns)
     (analyze-children ctx (next children))
     ns))
@@ -769,11 +767,11 @@
                                  :declared true)))))
 
 (defn analyze-catch [ctx expr]
-  (let [children (next (:children expr))
-        binding-expr (second children)
+  (let [[class-expr binding-expr & exprs] (next (:children expr))
+        _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
         binding (extract-bindings ctx binding-expr)]
     (analyze-children (ctx-with-bindings ctx binding)
-                      (nnext children))))
+                      exprs)))
 
 (defn analyze-try [ctx expr]
   (loop [[fst-child & rst-children] (next (:children expr))
@@ -926,19 +924,18 @@
         (analyze-children ctx children)))
     (analyze-children ctx children)))
 
+(defn analyze-import-libspec [ctx ns-name expr]
+  (let [libspec-expr (if (= :quote (tag expr))
+                       (first (:children expr))
+                       expr)
+        analyzed (namespace-analyzer/analyze-import ctx ns-name libspec-expr)]
+    (namespace/reg-imports! ctx ns-name analyzed)))
+
 (defn analyze-import
   [ctx expr]
   (let [ns-name (-> ctx :ns :name)
-        children (:children expr)
-        children (next children)]
-    (when-let [child (first children)]
-      (if (= :quote (tag child))
-        (when-let [libspec-expr (first (:children child))]
-          (let [analyzed
-                (namespace-analyzer/analyze-java-import ctx ns-name libspec-expr)]
-            (namespace/reg-imports! ctx ns-name analyzed)))
-        (analyze-children ctx children)))
-    (analyze-children ctx children)))
+        children (next (:children expr))]
+    (run! #(analyze-import-libspec ctx ns-name %) children)))
 
 (defn analyze-if
   [ctx expr]

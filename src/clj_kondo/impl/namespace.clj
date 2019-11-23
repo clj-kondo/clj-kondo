@@ -189,6 +189,13 @@
         [_ns-name ns] nss]
     ns))
 
+(defn reg-used-import!
+  [{:keys [:base-lang :lang :namespaces] :as _ctx}
+   ns-sym import]
+  ;; (prn "import" import)
+  (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
+         conj import))
+
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
 
@@ -206,6 +213,7 @@
 
 (defn resolve-name
   [ctx ns-name name-sym]
+  ;; (prn "NAME" name-sym)
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
     (if-let [ns* (namespace name-sym)]
@@ -216,13 +224,16 @@
                                ns-sym))]
               {:ns ns*
                :name (symbol (name name-sym))}
-              (when (= :clj lang)
-                (when-let [ns* (or (get var-info/default-import->qname ns-sym)
-                                   (get var-info/default-fq-imports ns-sym)
-                                   (get (:imports ns) ns-sym))]
-                  {:java-interop? true
-                   :ns ns*
-                   :name (symbol (name name-sym))})))))
+              (when-let [[class-name package]
+                         (or (when (identical? :clj lang)
+                               (or (find var-info/default-import->qname ns-sym)
+                                   (when-let [v (get var-info/default-fq-imports ns-sym)]
+                                     [v v])))
+                             (find (:imports ns) ns-sym))]
+                (reg-used-import! ctx ns-name class-name)
+                {:interop? true
+                 :ns package
+                 :name (symbol (name name-sym))}))))
       (or
        (when-let [[k v] (find (:referred-vars ns)
                               name-sym)]
@@ -242,9 +253,10 @@
                         (let [fs (first-segment name-sym)]
                           (find (:imports ns) fs))
                         (find (:imports ns) name-sym)))]
-         ;; (prn "package" name-sym* name-sym '-> package)
+         ;; (prn "name-sym" name-sym*)
+         (reg-used-import! ctx ns-name name-sym*)
          {:ns package
-          :java-interop? true
+          :interop? true
           :name name-sym*})
        (when (= :cljs lang)
          (when-let [ns* (get (:qualify-ns ns) name-sym)]

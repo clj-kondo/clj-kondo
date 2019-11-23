@@ -180,18 +180,23 @@
                                        renamed))
                 :referred-all referred-all}])))))))
 
-(defn analyze-java-import [_ctx _ns-name libspec-expr]
+(defn class-with-location [node]
+  (with-meta (:value node)
+    (meta node)))
+
+(defn analyze-import [_ctx _ns-name libspec-expr]
   (case (tag libspec-expr)
     (:vector :list) (let [children (:children libspec-expr)
                           java-package-name-node (first children)
                           java-package (:value java-package-name-node)
-                          imported (map :value (rest children))]
+                          imported (map class-with-location (rest children))]
                       (into {} (for [i imported]
                                  [i java-package])))
     :token (let [package+class (:value libspec-expr)
                  splitted (-> package+class name (str/split #"\."))
                  java-package (symbol (str/join "." (butlast splitted)))
-                 imported (symbol (last splitted))]
+                 imported (with-meta (symbol (last splitted))
+                            (meta libspec-expr))]
              {imported java-package})
     nil))
 
@@ -235,6 +240,21 @@
                                     (empty? (:referred req)))
                            (:ns req)))
                        analyzed))))}))
+
+(defn new-namespace [filename base-lang lang ns-name type row col]
+  {:type type
+   :filename filename
+   :base-lang base-lang
+   :lang lang
+   :name ns-name
+   :bindings #{}
+   :used-bindings #{}
+   :used-referred-vars #{}
+   :used-imports #{}
+   :used-vars []
+   :vars {}
+   :row row
+   :col col})
 
 (defn analyze-ns-decl
   [{:keys [:base-lang :lang :findings :filename] :as ctx} expr]
@@ -287,7 +307,7 @@
                                              (= :import))]
                      :when import-kw
                      libspec-expr (rest (:children ?import-clause))]
-                 (analyze-java-import ctx ns-name libspec-expr)))
+                 (analyze-import ctx ns-name libspec-expr)))
         refer-clojure-clauses
         (apply merge-with into
                (for [?refer-clojure (nnext (sexpr expr))
@@ -307,19 +327,8 @@
                                      (:renamed refer-clojure-clauses)))
                        :clojure-excluded (:excluded refer-clojure-clauses)}
         ns (cond->
-               (merge {:type :ns
-                       :filename filename
-                       :base-lang base-lang
-                       :lang lang
-                       :name ns-name
-                       :bindings #{}
-                       :used-bindings #{}
-                       :used-referred-vars #{}
-                       :used-vars []
-                       :vars {}
-                       :imports imports
-                       :row row
-                       :col col}
+               (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
+                             :imports imports)
                       (merge-with into
                                   analyzed-require-clauses
                                   refer-clojure))

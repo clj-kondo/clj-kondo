@@ -69,7 +69,8 @@
               :consistent-alias {:level :warning
                                  ;; warn when alias for clojure.string is
                                  ;; different from str
-                                 :aliases {#_clojure.string #_str}}}
+                                 :aliases {#_clojure.string #_str}}
+              :unused-import {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn

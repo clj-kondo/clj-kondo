@@ -5,8 +5,7 @@
    [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
    [cognitect.transit :as transit])
-  (:import [java.io RandomAccessFile]
-           [java.nio.channels FileChannel]))
+  (:import [java.io RandomAccessFile]))
 
 (set! *warn-on-reflection* true)
 
