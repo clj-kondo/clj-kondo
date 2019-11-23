@@ -225,9 +225,10 @@
               {:ns ns*
                :name (symbol (name name-sym))}
               (when-let [[class-name package]
-                         (or (find var-info/default-import->qname ns-sym)
-                             (when-let [v (get var-info/default-fq-imports ns-sym)]
-                               [v v])
+                         (or (when (identical? :clj lang)
+                               (or (find var-info/default-import->qname ns-sym)
+                                   (when-let [v (get var-info/default-fq-imports ns-sym)]
+                                     [v v])))
                              (find (:imports ns) ns-sym))]
                 (reg-used-import! ctx ns-name class-name)
                 {:interop? true
