@@ -106,6 +106,7 @@
         _ (l/lint-unused-private-vars! ctx)
         _ (l/lint-unused-bindings! ctx)
         _ (l/lint-unresolved-symbols! ctx)
+        _ (l/lint-unused-imports! ctx)
         ;; _ (namespace/reg-analysis-output! ctx)
         all-findings (concat linted-calls (mapcat :findings processed)
                              @findings)

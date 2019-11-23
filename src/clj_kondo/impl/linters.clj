@@ -420,7 +420,7 @@
   [{:keys [:findings :config] :as ctx}]
   (doseq [{:keys [:filename :vars :used-vars]
            ns-name :name} (namespace/list-namespaces ctx)
-          :let [ vars (vals vars)
+          :let [vars (vals vars)
                 used-vars (into #{} (comp (filter #(= (:ns %) ns-name))
                                           (map :name))
                                 used-vars)]
@@ -449,6 +449,24 @@
       :type :unresolved-symbol
       :filename filename
       :message (str "unresolved symbol " name)
+      :row row
+      :col col})))
+
+(defn lint-unused-imports!
+  [{:keys [:findings] :as ctx}]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [filename (:filename ns)
+                imports (:imports ns)
+                used-imports (:used-imports ns)]
+          [import _] imports
+          :when (not (contains? used-imports import))
+          :let [{:keys [:row :col]} (meta import)]]
+    (findings/reg-finding!
+     findings
+     {:level :warning
+      :type :unused-import
+      :filename filename
+      :message (str "Unused import " import)
       :row row
       :col col})))
 

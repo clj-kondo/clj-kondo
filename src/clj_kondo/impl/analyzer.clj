@@ -936,7 +936,7 @@
       (if (= :quote (tag child))
         (when-let [libspec-expr (first (:children child))]
           (let [analyzed
-                (namespace-analyzer/analyze-java-import ctx ns-name libspec-expr)]
+                (namespace-analyzer/analyze-import ctx ns-name libspec-expr)]
             (namespace/reg-imports! ctx ns-name analyzed)))
         (analyze-children ctx children)))
     (analyze-children ctx children)))

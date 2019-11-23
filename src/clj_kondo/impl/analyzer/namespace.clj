@@ -180,12 +180,16 @@
                                        renamed))
                 :referred-all referred-all}])))))))
 
-(defn analyze-java-import [_ctx _ns-name libspec-expr]
+(defn class-with-location [node]
+  (with-meta (:value node)
+    (meta node)))
+
+(defn analyze-import [_ctx _ns-name libspec-expr]
   (case (tag libspec-expr)
     (:vector :list) (let [children (:children libspec-expr)
                           java-package-name-node (first children)
                           java-package (:value java-package-name-node)
-                          imported (map :value (rest children))]
+                          imported (map class-with-location (rest children))]
                       (into {} (for [i imported]
                                  [i java-package])))
     :token (let [package+class (:value libspec-expr)
@@ -287,7 +291,7 @@
                                              (= :import))]
                      :when import-kw
                      libspec-expr (rest (:children ?import-clause))]
-                 (analyze-java-import ctx ns-name libspec-expr)))
+                 (analyze-import ctx ns-name libspec-expr)))
         refer-clojure-clauses
         (apply merge-with into
                (for [?refer-clojure (nnext (sexpr expr))
@@ -307,6 +311,7 @@
                                      (:renamed refer-clojure-clauses)))
                        :clojure-excluded (:excluded refer-clojure-clauses)}
         ns (cond->
+               ;; TODO: make function to create empty namespace, which can also be used in analyzer.clj
                (merge {:type :ns
                        :filename filename
                        :base-lang base-lang

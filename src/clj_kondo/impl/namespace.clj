@@ -192,7 +192,6 @@
 (defn reg-used-import!
   [{:keys [:base-lang :lang :namespaces] :as _ctx}
    ns-sym import]
-  (prn "import" import)
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj import))
 
@@ -251,9 +250,7 @@
                         (let [fs (first-segment name-sym)]
                           (find (:imports ns) fs))
                         (find (:imports ns) name-sym)))]
-         (prn ">>")
-         (reg-used-import! ctx ns-name package)
-         ;; (prn "package" name-sym* name-sym '-> package)
+         (reg-used-import! ctx ns-name name-sym*)
          {:ns package
           :java-interop? true
           :name name-sym*})
