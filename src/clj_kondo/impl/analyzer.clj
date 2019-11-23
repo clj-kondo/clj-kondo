@@ -218,6 +218,7 @@
               :used #{}
               :bindings #{}
               :used-bindings #{}
+              :used-imports #{}
               :filename (:filename ctx)})]
     (namespace/reg-namespace! ctx ns)
     (analyze-children ctx (next children))

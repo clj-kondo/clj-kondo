@@ -315,6 +315,7 @@
                        :bindings #{}
                        :used-bindings #{}
                        :used-referred-vars #{}
+                       :used-imports #{}
                        :used-vars []
                        :vars {}
                        :imports imports

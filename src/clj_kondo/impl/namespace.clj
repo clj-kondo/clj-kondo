@@ -189,6 +189,13 @@
         [_ns-name ns] nss]
     ns))
 
+(defn reg-used-import!
+  [{:keys [:base-lang :lang :namespaces] :as _ctx}
+   ns-sym import]
+  (prn "import" import)
+  (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
+         conj import))
+
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
 
@@ -220,6 +227,8 @@
                 (when-let [ns* (or (get var-info/default-import->qname ns-sym)
                                    (get var-info/default-fq-imports ns-sym)
                                    (get (:imports ns) ns-sym))]
+                  (prn ">")
+                  (reg-used-import! ctx ns-name ns*)
                   {:java-interop? true
                    :ns ns*
                    :name (symbol (name name-sym))})))))
@@ -242,6 +251,8 @@
                         (let [fs (first-segment name-sym)]
                           (find (:imports ns) fs))
                         (find (:imports ns) name-sym)))]
+         (prn ">>")
+         (reg-used-import! ctx ns-name package)
          ;; (prn "package" name-sym* name-sym '-> package)
          {:ns package
           :java-interop? true
