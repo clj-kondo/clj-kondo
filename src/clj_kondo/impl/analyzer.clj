@@ -206,20 +206,17 @@
                     :syntax
                     (str "unsupported binding form " expr)))))))
 
-(defn analyze-in-ns [ctx {:keys [:children] :as _expr}]
-  (let [ns-name (-> children second :children first :value)
+(defn analyze-in-ns [ctx {:keys [:children] :as expr}]
+  (let [{:keys [:row :col]} expr
+        ns-name (-> children second :children first :value)
         ns (when ns-name
-             {:type :in-ns
-              :name ns-name
-              :lang (:lang ctx)
-              :vars {}
-              :used-vars []
-              :used-referred-vars #{}
-              :used #{}
-              :bindings #{}
-              :used-bindings #{}
-              :used-imports #{}
-              :filename (:filename ctx)})]
+             (namespace-analyzer/new-namespace
+              (:filename ctx)
+              (:base-lang ctx)
+              (:lang ctx)
+              ns-name
+              :in-ns
+              row col))]
     (namespace/reg-namespace! ctx ns)
     (analyze-children ctx (next children))
     ns))

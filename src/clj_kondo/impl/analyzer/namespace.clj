@@ -241,6 +241,21 @@
                            (:ns req)))
                        analyzed))))}))
 
+(defn new-namespace [filename base-lang lang ns-name type row col]
+  {:type type
+   :filename filename
+   :base-lang base-lang
+   :lang lang
+   :name ns-name
+   :bindings #{}
+   :used-bindings #{}
+   :used-referred-vars #{}
+   :used-imports #{}
+   :used-vars []
+   :vars {}
+   :row row
+   :col col})
+
 (defn analyze-ns-decl
   [{:keys [:base-lang :lang :findings :filename] :as ctx} expr]
   (let [{:keys [row col]} (meta expr)
@@ -312,21 +327,8 @@
                                      (:renamed refer-clojure-clauses)))
                        :clojure-excluded (:excluded refer-clojure-clauses)}
         ns (cond->
-               ;; TODO: make function to create empty namespace, which can also be used in analyzer.clj
-               (merge {:type :ns
-                       :filename filename
-                       :base-lang base-lang
-                       :lang lang
-                       :name ns-name
-                       :bindings #{}
-                       :used-bindings #{}
-                       :used-referred-vars #{}
-                       :used-imports #{}
-                       :used-vars []
-                       :vars {}
-                       :imports imports
-                       :row row
-                       :col col}
+               (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
+                             :imports imports)
                       (merge-with into
                                   analyzed-require-clauses
                                   refer-clojure))
