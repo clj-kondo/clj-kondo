@@ -38,6 +38,9 @@
      (lint! "(import 'java.util.Foo)")))
   (testing "Preventing false positives"
     (is (empty? (lint! "(import '[java.util Foo Bar]) Foo Bar")))
+    (is (empty? (lint! "(import '[java.util Foo]) (Foo.)")))
+    (is (empty? (lint! "(ns cheshire.test.custom (:import (java.sql Timestamp))) (Timestamp.)")))
+    (is (empty? (lint! "(ns cheshire.test.custom (:import (java.sql Timestamp))) `(Timestamp.)")))
     (is (empty? (lint! "(ns bar (:import [java.util Foo Bar])) Foo Bar")))
     (is (empty? (lint! "(import '[java.util Foo Bar]) Foo/CONSTANT (Bar/static_fn)")))
     (is (empty? (lint! "(import '[java.util Foo]) (defn foo [^Foo x] x)")))))

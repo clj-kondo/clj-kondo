@@ -192,7 +192,7 @@
 (defn reg-used-import!
   [{:keys [:base-lang :lang :namespaces] :as _ctx}
    ns-sym import]
-  ;;(prn "import" import)
+  ;; (prn "import" import)
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj import))
 
@@ -213,6 +213,7 @@
 
 (defn resolve-name
   [ctx ns-name name-sym]
+  ;; (prn "NAME" name-sym)
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
     (if-let [ns* (namespace name-sym)]
