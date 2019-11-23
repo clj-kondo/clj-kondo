@@ -224,15 +224,15 @@
                                ns-sym))]
               {:ns ns*
                :name (symbol (name name-sym))}
-              (when (= :clj lang)
-                (when-let [[class-name package] (or (find var-info/default-import->qname ns-sym)
-                                                    (when-let [v (get var-info/default-fq-imports ns-sym)]
-                                                      [v v])
-                                                    (find (:imports ns) ns-sym))]
-                  (reg-used-import! ctx ns-name class-name)
-                  {:java-interop? true
-                   :ns package
-                   :name (symbol (name name-sym))})))))
+              (when-let [[class-name package]
+                         (or (find var-info/default-import->qname ns-sym)
+                             (when-let [v (get var-info/default-fq-imports ns-sym)]
+                               [v v])
+                             (find (:imports ns) ns-sym))]
+                (reg-used-import! ctx ns-name class-name)
+                {:interop? true
+                 :ns package
+                 :name (symbol (name name-sym))}))))
       (or
        (when-let [[k v] (find (:referred-vars ns)
                               name-sym)]
@@ -255,7 +255,7 @@
          ;; (prn "name-sym" name-sym*)
          (reg-used-import! ctx ns-name name-sym*)
          {:ns package
-          :java-interop? true
+          :interop? true
           :name name-sym*})
        (when (= :cljs lang)
          (when-let [ns* (get (:qualify-ns ns) name-sym)]

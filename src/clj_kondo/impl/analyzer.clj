@@ -771,7 +771,7 @@
 
 (defn analyze-catch [ctx expr]
   (let [[class-expr binding-expr & exprs] (next (:children expr))
-        _ (analyze-usages2 ctx class-expr) ;; analyze usage for unused import linter
+        _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
         binding (extract-bindings ctx binding-expr)]
     (analyze-children (ctx-with-bindings ctx binding)
                       exprs)))
@@ -927,19 +927,18 @@
         (analyze-children ctx children)))
     (analyze-children ctx children)))
 
+(defn analyze-import-libspec [ctx ns-name expr]
+  (let [libspec-expr (if (= :quote (tag expr))
+                       (first (:children expr))
+                       expr)
+        analyzed (namespace-analyzer/analyze-import ctx ns-name libspec-expr)]
+    (namespace/reg-imports! ctx ns-name analyzed)))
+
 (defn analyze-import
   [ctx expr]
   (let [ns-name (-> ctx :ns :name)
-        children (:children expr)
-        children (next children)]
-    (when-let [child (first children)]
-      (if (= :quote (tag child))
-        (when-let [libspec-expr (first (:children child))]
-          (let [analyzed
-                (namespace-analyzer/analyze-import ctx ns-name libspec-expr)]
-            (namespace/reg-imports! ctx ns-name analyzed)))
-        (analyze-children ctx children)))
-    (analyze-children ctx children)))
+        children (next (:children expr))]
+    (run! #(analyze-import-libspec ctx ns-name %) children)))
 
 (defn analyze-if
   [ctx expr]
