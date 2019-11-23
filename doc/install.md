@@ -53,8 +53,6 @@ To upgrade:
 ## NPM (Linux, MacOS, Windows)
 
     npm install -g clj-kondo
-    
-Note: on Windows this invokes the standalone jar.
 
 ## Arch (Linux)
 
@@ -70,6 +68,17 @@ Note: on Windows this invokes the standalone jar.
 To install it globally, add it to your `systemPackages`. If you just want to try it, you can do it in a Nix shell:
 
     nix-shell -p clj-kondo
+
+## Scoop (Windows)
+
+A Windows binary version of `clj-kondo.exe` is available via this [scoop bucket](https://github.com/littleli/scoop-clojure) which also has several other Clojure tools for Windows:
+
+    scoop bucket add scoop-clojure https://github.com/littleli/scoop-clojure
+    scoop install clj-kondo
+
+To update:
+
+    scoop update clj-kondo
 
 ## [Running on the JVM](jvm.md)
 
