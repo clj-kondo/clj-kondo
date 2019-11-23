@@ -226,7 +226,6 @@
                 (when-let [ns* (or (get var-info/default-import->qname ns-sym)
                                    (get var-info/default-fq-imports ns-sym)
                                    (get (:imports ns) ns-sym))]
-                  (prn ">")
                   (reg-used-import! ctx ns-name ns*)
                   {:java-interop? true
                    :ns ns*
