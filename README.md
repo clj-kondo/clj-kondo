@@ -35,6 +35,7 @@ clj-kondo detects:
 * referred but unused vars
 * duplicate requires
 * unused function arguments and let bindings
+* unused imports
 * redefined vars
 * unresolved symbols
 * misplaced docstrings
