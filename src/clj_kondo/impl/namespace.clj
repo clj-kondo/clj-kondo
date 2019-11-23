@@ -192,6 +192,7 @@
 (defn reg-used-import!
   [{:keys [:base-lang :lang :namespaces] :as _ctx}
    ns-sym import]
+  ;;(prn "import" import)
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj import))
 
@@ -223,12 +224,13 @@
               {:ns ns*
                :name (symbol (name name-sym))}
               (when (= :clj lang)
-                (when-let [ns* (or (get var-info/default-import->qname ns-sym)
-                                   (get var-info/default-fq-imports ns-sym)
-                                   (get (:imports ns) ns-sym))]
-                  (reg-used-import! ctx ns-name ns*)
+                (when-let [[class-name package] (or (find var-info/default-import->qname ns-sym)
+                                                    (when-let [v (get var-info/default-fq-imports ns-sym)]
+                                                      [v v])
+                                                    (find (:imports ns) ns-sym))]
+                  (reg-used-import! ctx ns-name class-name)
                   {:java-interop? true
-                   :ns ns*
+                   :ns package
                    :name (symbol (name name-sym))})))))
       (or
        (when-let [[k v] (find (:referred-vars ns)
@@ -249,6 +251,7 @@
                         (let [fs (first-segment name-sym)]
                           (find (:imports ns) fs))
                         (find (:imports ns) name-sym)))]
+         ;; (prn "name-sym" name-sym*)
          (reg-used-import! ctx ns-name name-sym*)
          {:ns package
           :java-interop? true
