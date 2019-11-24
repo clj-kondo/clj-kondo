@@ -28,10 +28,13 @@ build_script:
 test_script:
 - cmd: >-
     powershell -Command "Set-ExecutionPolicy RemoteSigned -scope CurrentUser"
+
     powershell -Command "iwr -useb get.scoop.sh | iex"
+
     powershell -Command "scoop install clojure"
 
     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
+
     cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
 
 artifacts:
