@@ -29,8 +29,8 @@ build_script:
     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
 
     echo "goodbye"
-    
-    # rem cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
+
+#   rem cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
 
 - cmd: >-
     choco install windows-sdk-7.1
