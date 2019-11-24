@@ -139,6 +139,8 @@
   [& more]
   (.getPath ^java.io.File (apply io/file more)))
 
+(def file-separator java.io.File/separator)
+
 ;;;; Scratch
 
 (comment
