@@ -10,12 +10,12 @@ environment:
   GRAALVM_HOME: C:\projects\clj-kondo\graalvm\graalvm-ce-java8-19.3.0
 
 init:
-- ps: iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
+# - ps: iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 # - ps: scoop bucket add java
-- ps: scoop bucket add scoop-clojure https://github.com/littleli/scoop-clojure
+# - ps: scoop bucket add scoop-clojure https://github.com/littleli/scoop-clojure
 # - ps: scoop install java/adopt8-hotspot
-- ps: scoop install clojure
-- ps: scoop which clojure
+# - ps: scoop install clojure
+# - ps: scoop which clojure
 
 build_script:
 - cmd: >-
@@ -29,6 +29,7 @@ build_script:
     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
 
     echo "goodbye"
+    
     # rem cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
 
 - cmd: >-
