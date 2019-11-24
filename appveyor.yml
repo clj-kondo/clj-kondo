@@ -11,6 +11,17 @@ environment:
 
 build_script:
 - cmd: >-
+    powershell -Command "Set-ExecutionPolicy RemoteSigned -scope CurrentUser"
+
+    powershell -Command "iwr -useb get.scoop.sh | iex"
+
+    scoop install clojure"
+
+    cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
+
+    cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
+
+- cmd: >-
     choco install windows-sdk-7.1
 
     call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
@@ -31,7 +42,7 @@ test_script:
 
     powershell -Command "iwr -useb get.scoop.sh | iex"
 
-    powershell -Command "scoop install clojure"
+    scoop install clojure"
 
     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
 
