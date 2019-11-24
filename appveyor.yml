@@ -34,29 +34,29 @@ build_script:
 
 #   rem cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
 
-- cmd: >-
-    choco install windows-sdk-7.1
+# - cmd: >-
+#     choco install windows-sdk-7.1
 
-    call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
+#     call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
 
-    powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-windows-amd64-19.3.0.zip', 'graalvm.zip')"
+#     powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-windows-amd64-19.3.0.zip', 'graalvm.zip')"
 
-    powershell -Command "Expand-Archive graalvm.zip graalvm"
+#     powershell -Command "Expand-Archive graalvm.zip graalvm"
 
-    call script/compile.bat
+#     call script/compile.bat
 
-test_script:
-- cmd: >-
-    powershell -Command "Set-ExecutionPolicy RemoteSigned -scope CurrentUser"
+# test_script:
+# - cmd: >-
+#     powershell -Command "Set-ExecutionPolicy RemoteSigned -scope CurrentUser"
 
-    powershell -Command "iwr -useb get.scoop.sh | iex"
+#     powershell -Command "iwr -useb get.scoop.sh | iex"
 
-    scoop install clojure
+#     scoop install clojure
 
-    cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
+#     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
 
-    cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
+#     cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
 
-artifacts:
-- path: clj-kondo-*-windows-amd64.zip
-  name: clj-kondo
+# artifacts:
+# - path: clj-kondo-*-windows-amd64.zip
+#   name: clj-kondo
