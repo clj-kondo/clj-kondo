@@ -19,6 +19,11 @@ init:
 
 build_script:
 - cmd: >-
+    powershell -Command "(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein.bat', 'lein.bat')"
+
+    call lein self-install
+
+- cmd: >-
     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
 
     rem cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
@@ -31,10 +36,6 @@ build_script:
     powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-windows-amd64-19.3.0.zip', 'graalvm.zip')"
 
     powershell -Command "Expand-Archive graalvm.zip graalvm"
-
-    powershell -Command "(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein.bat', 'lein.bat')"
-
-    call lein self-install
 
     call script/compile.bat
 
