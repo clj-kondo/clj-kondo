@@ -34,7 +34,7 @@
 
 (defn make-dirs [dir]
   (if windows?
-    (mkdir dir)
+    (.mkdirs (io/file dir))
     (mkdir "-p" dir)))
 
 (def cache-version core-impl/version)
