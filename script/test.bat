@@ -18,3 +18,5 @@ IF "%CLJ_KONDO_TEST_ENV%"=="native" (
 )
 
 rem end script
+
+echo "end batch script"
