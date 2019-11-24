@@ -13,7 +13,7 @@ init:
 - ps: iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 - ps: scoop bucket add scoop-clojure https://github.com/littleli/scoop-clojure
 - ps: scoop install clojure
-- cmd: clojure
+- ps: clojure
 
 build_script:
 - cmd: >-
