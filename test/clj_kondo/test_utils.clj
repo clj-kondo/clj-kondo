@@ -142,6 +142,10 @@
 
 (def file-separator java.io.File/separator)
 
+(def windows? (-> (System/getProperty "os.name")
+                  (str/lower-case)
+                  (str/includes? "win")))
+
 ;;;; Scratch
 
 (comment

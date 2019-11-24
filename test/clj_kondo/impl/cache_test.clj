@@ -2,13 +2,23 @@
   (:require
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.core :as core-impl]
-   [clj-kondo.test-utils :refer [lint!]]
+   [clj-kondo.test-utils :refer [lint! windows?]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
    [me.raynes.conch :refer [programs] :as sh]))
 
-(programs rm mkdir echo mv)
+(programs rm rmdir mkdir echo mv)
+
+(defn remove-dir [dir]
+  (if windows?
+    (rmdir dir "/S" "/Q")
+    (rm "-rf" dir)))
+
+(defn make-dirs [dir]
+  (if windows?
+    (mkdir dir)
+    (mkdir "-p" dir)))
 
 (def cache-version core-impl/version)
 
@@ -29,10 +39,10 @@
       (let [tmp-dir (System/getProperty "java.io.tmpdir")
             test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
             test-source-dir (io/file tmp-dir "test-source-dir")]
-        (rm "-rf" test-cache-dir)
-        (mkdir "-p" test-cache-dir)
-        (rm "-rf" test-source-dir)
-        (mkdir "-p" test-source-dir)
+        (remove-dir test-cache-dir)
+        (make-dirs test-cache-dir)
+        (remove-dir test-source-dir)
+        (make-dirs test-source-dir)
         (io/copy "(ns foo) (defn foo [x])"
                  (io/file test-source-dir (str "foo."
                                                (name lang))))
@@ -80,10 +90,10 @@
       (doseq [lang [:clj :cljs]]
         (let [bar (io/file test-source-dir (str "bar."
                                                 (name lang)))]
-          (rm "-rf" test-cache-dir)
-          (mkdir "-p" test-cache-dir)
-          (rm "-rf" test-source-dir)
-          (mkdir "-p" test-source-dir)
+          (remove-dir test-cache-dir)
+          (make-dirs test-cache-dir)
+          (remove-dir test-source-dir)
+          (make-dirs test-source-dir)
           (io/copy "(ns foo) (defn foo [x])"
                    foo)
           (io/copy "(ns bar (:require [foo :refer [foo]])) (foo 1 2 3)"
@@ -99,10 +109,10 @@
             test-source-dir (io/file tmp-dir "test-source-dir")
             foo (io/file test-source-dir "foo.clj")
             bar (io/file test-source-dir (str "bar.clj"))]
-        (rm "-rf" test-cache-dir)
-        (mkdir "-p" test-cache-dir)
-        (rm "-rf" test-source-dir)
-        (mkdir "-p" test-source-dir)
+        (remove-dir test-cache-dir)
+        (make-dirs test-cache-dir)
+        (remove-dir test-source-dir)
+        (make-dirs test-source-dir)
         (io/copy "(ns foo) (defn foo [x])"
                  foo)
         (io/copy "(ns bar (:require [foo :refer :all])) (foo 1 2 3)"
@@ -118,10 +128,10 @@
           test-source-dir (io/file tmp-dir "test-source-dir")
           foo (io/file test-source-dir "foo.clj")
           bar (io/file test-source-dir (str "bar.clj"))]
-      (rm "-rf" test-cache-dir)
-      (mkdir "-p" test-cache-dir)
-      (rm "-rf" test-source-dir)
-      (mkdir "-p" test-source-dir)
+      (remove-dir test-cache-dir)
+      (make-dirs test-cache-dir)
+      (remove-dir test-source-dir)
+      (make-dirs test-source-dir)
       (io/copy "(ns foo) (defn foo [x])"
                foo)
       (io/copy "(ns bar (:require [foo :refer :all])) (foo 1 2 3)"
