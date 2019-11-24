@@ -30,7 +30,7 @@ build_script:
 
     call script/test.bat
 
-    echo "goodbye"
+#    echo "goodbye"
 
 #   rem cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
 
