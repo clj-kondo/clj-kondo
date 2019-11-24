@@ -8,15 +8,17 @@
    [clojure.test :as t :refer [deftest is testing]]
    [me.raynes.conch :refer [programs] :as sh]))
 
-(programs rm rmdir mkdir echo mv)
+(programs rm mkdir echo mv)
+
+;; from https://gist.github.com/edw/5128978
+(defn delete-recursively [fname]
+  (doseq [f (reverse (file-seq (clojure.java.io/file fname)))]
+    (clojure.java.io/delete-file f)))
 
 (defn remove-dir [dir]
   (when (.exists (io/file dir))
     (if windows?
-      (try (rmdir "/Q" "/S" dir)
-           (catch Exception e
-             (prn (ex-data e))
-             (throw e)))
+      (delete-recursively dir)
       (rm "-rf" dir))))
 
 (defn make-dirs [dir]
