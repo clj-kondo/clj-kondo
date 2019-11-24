@@ -1,9 +1,9 @@
 @echo off
 
 rem populate mvn cache for extract tests
-clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.9.0"}}}' -Spath > NUL
-clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.10.1"}}}' -Spath > NUL
-clojure -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.10.520"}}}' -Spath > NUL
+clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version ""1.9.0""}}}' -Spath > NUL
+clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version ""1.10.1""}}}' -Spath > NUL
+clojure -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version ""1.10.520""}}}' -Spath > NUL
 
 if "%CLJ_KONDO_TEST_ENV%"=="native" (
   clojure -A:test
