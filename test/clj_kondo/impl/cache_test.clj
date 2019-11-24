@@ -10,15 +10,25 @@
 
 (programs rm mkdir echo mv)
 
-;; from https://gist.github.com/edw/5128978
-(defn delete-recursively [fname]
-  (doseq [f (reverse (file-seq (clojure.java.io/file fname)))]
-    (clojure.java.io/delete-file f)))
+;; https://gist.github.com/olieidel/c551a911a4798312e4ef42a584677397
+(defn delete-directory-recursive
+  "Recursively delete a directory."
+  [^java.io.File file]
+  ;; when `file` is a directory, list its entries and call this
+  ;; function with each entry. can't `recur` here as it's not a tail
+  ;; position, sadly. could cause a stack overflow for many entries?
+  (when (.isDirectory file)
+    (doseq [file-in-dir (.listFiles file)]
+      (delete-directory-recursive file-in-dir)))
+  ;; delete the file or directory. if it it's a file, it's easily
+  ;; deletable. if it's a directory, we already have deleted all its
+  ;; contents with the code above (remember?)
+  (io/delete-file file))
 
 (defn remove-dir [dir]
   (when (.exists (io/file dir))
     (if windows?
-      (delete-recursively dir)
+      (delete-directory-recursive dir)
       (rm "-rf" dir))))
 
 (defn make-dirs [dir]
