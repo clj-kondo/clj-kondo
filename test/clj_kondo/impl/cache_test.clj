@@ -12,7 +12,11 @@
 
 (defn remove-dir [dir]
   (if windows?
-    (rmdir dir "/S" "/Q")
+    (try (rmdir dir "/S" "/Q")
+         (catch Exception e
+           (prn "E" e)
+           (prn "EX DATA" (ex-data e))
+           (throw e)))
     (rm "-rf" dir)))
 
 (defn make-dirs [dir]
