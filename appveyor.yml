@@ -9,14 +9,14 @@ clone_folder: C:\projects\clj-kondo
 environment:
   GRAALVM_HOME: C:\projects\clj-kondo\graalvm\graalvm-ce-java8-19.3.0
 
+init:
+- ps: iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
+- ps: scoop bucket add scoop-clojure https://github.com/littleli/scoop-clojure
+- ps: scoop install clojure
+
 build_script:
 - cmd: >-
-    powershell -Command "Set-ExecutionPolicy RemoteSigned -scope CurrentUser"
-
-    powershell -Command "iwr -useb get.scoop.sh | iex"
 - cmd: >-
-    call scoop install clojure
-
     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
 
     rem cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
