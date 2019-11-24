@@ -10,13 +10,12 @@ environment:
   GRAALVM_HOME: C:\projects\clj-kondo\graalvm\graalvm-ce-java8-19.3.0
 
 init:
-- ps: Set-ExecutionPolicy RemoteSigned -scope CurrentUser
 - ps: iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 - ps: scoop bucket add java
 - ps: scoop bucket add scoop-clojure https://github.com/littleli/scoop-clojure
 - ps: scoop install java/adopt8-hotspot
 - ps: scoop install clojure
-- ps: clojure
+- ps: scoop which clojure
 
 build_script:
 - cmd: >-
