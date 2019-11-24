@@ -13,7 +13,7 @@
 (defn remove-dir [dir]
   (when (.exists (io/file dir))
     (if windows?
-      (try (rmdir "/S" "/Q" dir)
+      (try (rmdir "/Q" "/S" dir)
            (catch Exception e
              (prn (ex-data e))
              (throw e)))
