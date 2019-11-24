@@ -1,6 +1,7 @@
 (ns clj-kondo.core-test
   (:require
    [clj-kondo.core :as clj-kondo]
+   [clj-kondo.impl.core :refer [path-separator]]
    [clj-kondo.test-utils :refer [file-path file-separator]]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -38,7 +39,9 @@
                                                  "spec.alpha-0.2.176.jar")]}))))))
     (testing "classpath 'file' arg"
       (let [findings (:findings (clj-kondo/run!
-                                 {:lint ["corpus/invalid_arity:corpus/private"]}))
+                                 {:lint [(str/join
+                                          path-separator
+                                          ["corpus/invalid_arity" "corpus/private"])]}))
             filenames (->> findings
                            (map :filename)
                            (map #(str/split % (re-pattern (java.util.regex.Pattern/quote file-separator))))
