@@ -1,4 +1,4 @@
-@echo off
+rem @echo off
 
 rem force download of clojure 1.10.1 for extraction test
 lein with-profiles +clojure-1.10.1 deps
