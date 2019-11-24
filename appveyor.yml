@@ -26,15 +26,12 @@ build_script:
     call script/compile.bat
 
 - cmd: >-
-    if not exist "C:\temp" mkdir C:\temp
+    Set-ExecutionPolicy RemoteSigned -scope CurrentUser
+    iwr -useb get.scoop.sh | iex
+    scoop install clojure
 
-    copy "clj-kondo.exe" "C:\temp"
-
-    cd "C:\temp"
-
-    echo (inc) | clj-kondo --lint - & exit 0
-
-    clj-kondo --lint "C:\projects\clj-kondo\src" "C:\projects\clj-kondo\test" & exit 0
+    cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
+    cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
 
 test: off
 
