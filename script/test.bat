@@ -1,5 +1,7 @@
 rem force download of clojure 1.10.1 for extraction test
+echo off
 call lein with-profiles +clojure-1.10.1 deps > NUL
+echo on
 
 IF "%CLJ_KONDO_TEST_ENV%"=="native" (
   rem if branch
@@ -8,7 +10,7 @@ IF "%CLJ_KONDO_TEST_ENV%"=="native" (
   rem else branch
   echo "Testing with Clojure 1.9.0"
   rem clojure -A:clojure-1.9.0:test
-  call lein with-profiles +test, +clojure-1.9.0 do clean, test
+  call lein with-profiles +clojure-1.9.0 do clean, test
 
   echo "Testing with Clojure 1.10.1"
   rem clojure -A:clojure-1.10.1:test
