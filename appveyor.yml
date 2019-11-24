@@ -25,15 +25,14 @@ build_script:
 
     call script/compile.bat
 
+test_script:
 - cmd: >-
-    Set-ExecutionPolicy RemoteSigned -scope CurrentUser
-    iwr -useb get.scoop.sh | iex
-    scoop install clojure
+    powershell -Command "Set-ExecutionPolicy RemoteSigned -scope CurrentUser"
+    powershell -Command "iwr -useb get.scoop.sh | iex"
+    powershell -Command "scoop install clojure"
 
     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
     cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
-
-test: off
 
 artifacts:
 - path: clj-kondo-*-windows-amd64.zip
