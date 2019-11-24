@@ -13,7 +13,10 @@
 (defn remove-dir [dir]
   (when (.exists (io/file dir))
     (if windows?
-      (rmdir "/S" "/Q" dir)
+      (try (rmdir "/S" "/Q" dir)
+           (catch Exception e
+             (prn (ex-data e))
+             (throw e)))
       (rm "-rf" dir))))
 
 (defn make-dirs [dir]
