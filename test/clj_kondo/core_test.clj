@@ -16,7 +16,7 @@
             findings (:findings res)
             filenames (->> findings
                            (map :filename)
-                           (map #(str/split % (re-pattern file-separator)))
+                           (map #(str/split % (re-pattern (java.util.regex.Pattern/quote file-separator))))
                            (map #(take 2 %))
                            set)]
         (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
@@ -41,7 +41,7 @@
                                  {:lint ["corpus/invalid_arity:corpus/private"]}))
             filenames (->> findings
                            (map :filename)
-                           (map #(str/split % (re-pattern file-separator)))
+                           (map #(str/split % (re-pattern (java.util.regex.Pattern/quote file-separator))))
                            (map #(take 2 %))
                            set)]
         (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
