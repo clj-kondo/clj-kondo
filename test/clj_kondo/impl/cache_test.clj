@@ -11,13 +11,10 @@
 (programs rm rmdir mkdir echo mv)
 
 (defn remove-dir [dir]
-  (if windows?
-    (try (rmdir dir "/S" "/Q")
-         (catch Exception e
-           (prn "E" e)
-           (prn "EX DATA" (ex-data e))
-           (throw e)))
-    (rm "-rf" dir)))
+  (when (.exists (io/file dir))
+    (if windows?
+      (rmdir dir "/S" "/Q")
+      (rm "-rf" dir))))
 
 (defn make-dirs [dir]
   (if windows?
