@@ -26,10 +26,11 @@
   (io/delete-file file))
 
 (defn remove-dir [dir]
-  (when (.exists (io/file dir))
-    (if windows?
-      (delete-directory-recursive dir)
-      (rm "-rf" dir))))
+  (let [f (io/file dir)]
+    (when (.exists f)
+      (if windows?
+        (delete-directory-recursive f)
+        (rm "-rf" dir)))))
 
 (defn make-dirs [dir]
   (if windows?
