@@ -23,7 +23,8 @@
   ;; delete the file or directory. if it it's a file, it's easily
   ;; deletable. if it's a directory, we already have deleted all its
   ;; contents with the code above (remember?)
-  (io/delete-file file))
+  (when (.exists file)
+    (io/delete-file file)))
 
 (defn remove-dir [dir]
   (let [f (io/file dir)]
