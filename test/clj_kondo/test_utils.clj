@@ -132,7 +132,7 @@
     #'lint-jvm!))
 
 (if (= lint! #'lint-jvm!)
-  (println "==== Testing JVM version")
+  (println "==== Testing JVM version" (clojure-version))
   (println "==== Testing native version"))
 
 (defn file-path
