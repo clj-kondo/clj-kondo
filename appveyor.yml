@@ -26,7 +26,9 @@ build_script:
 - cmd: >-
     echo "hello"
 
-    cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
+    set CLJ_KONDO_TEST_ENV=jvm
+
+    call script/test.bat
 
     echo "goodbye"
 
