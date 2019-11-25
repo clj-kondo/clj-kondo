@@ -17,6 +17,12 @@ build_script:
 
     set CLJ_KONDO_TEST_ENV=jvm
 
+    set CLJ_KONDO_DEV=true
+
+    lein test :only clj-kondo.main/deprecated-var-test
+
+    set CLJ_KONDO_DEV=false
+
     call script/test.bat
 
     choco install windows-sdk-7.1
