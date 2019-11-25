@@ -2,15 +2,14 @@
   (:require
    [cheshire.core :as cheshire]
    [clj-kondo.main :refer [main]]
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submap submap?]]
+   [clj-kondo.test-utils :refer
+    [lint! assert-submaps assert-submap submap?
+     make-dirs rename-path remove-dir]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
-   [me.raynes.conch :refer [programs] :as sh]
    [missing.test.assertions]))
-
-(programs rm mkdir echo mv)
 
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
@@ -2155,8 +2154,8 @@
           {:linters {:unresolved-symbol {:level :error}}}))
   (testing "import-vars works when using cache"
     (when (.exists (io/file ".clj-kondo"))
-      (mv ".clj-kondo" ".clj-kondo.bak"))
-    (mkdir ".clj-kondo")
+      (rename-path ".clj-kondo" ".clj-kondo.bak"))
+    (make-dirs ".clj-kondo")
     (lint! "(ns app.core) (defn foo [])" "--cache")
     (lint! "(ns app.api (:require [potemkin :refer [import-vars]]))
             (import-vars [app.core foo])"
@@ -2167,9 +2166,9 @@
                        :level :error,
                        :message "app.core/foo is called with 1 arg but expects 0"})
                     (lint! "(ns consumer (:require [app.api :refer [foo]])) (foo 1)" "--cache"))
-    (rm "-rf" ".clj-kondo")
+    (remove-dir ".clj-kondo")
     (when (.exists (io/file ".clj-kondo.bak"))
-      (mv ".clj-kondo.bak" ".clj-kondo"))))
+      (rename-path ".clj-kondo.bak" ".clj-kondo"))))
 
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
