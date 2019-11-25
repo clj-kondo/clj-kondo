@@ -27,7 +27,8 @@ build_script:
 
     call script/compile.bat
 
-    cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
+    set CLJ_KONDO_TEST_ENV=native
+    call script/test.bat
 
 artifacts:
 - path: clj-kondo-*-windows-amd64.zip
