@@ -5,7 +5,7 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [is]]
-   [me.raynes.conch :refer [let-programs] :as sh]))
+   [me.raynes.conch :refer [let-programs programs] :as sh]))
 
 (set! *warn-on-reflection* true)
 
@@ -145,6 +145,40 @@
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
                   (str/includes? "win")))
+
+(programs rm mkdir mv)
+
+;; https://gist.github.com/olieidel/c551a911a4798312e4ef42a584677397
+(defn delete-directory-recursive
+  "Recursively delete a directory."
+  [^java.io.File file]
+  ;; when `file` is a directory, list its entries and call this
+  ;; function with each entry. can't `recur` here as it's not a tail
+  ;; position, sadly. could cause a stack overflow for many entries?
+  (when (.isDirectory file)
+    (doseq [file-in-dir (.listFiles file)]
+      (delete-directory-recursive file-in-dir)))
+  ;; delete the file or directory. if it it's a file, it's easily
+  ;; deletable. if it's a directory, we already have deleted all its
+  ;; contents with the code above (remember?)
+  (.delete file))
+
+(defn remove-dir [dir]
+  (let [f (io/file dir)]
+    (when (.exists f)
+      (if windows?
+        (delete-directory-recursive f)
+        (rm "-rf" dir)))))
+
+(defn make-dirs [dir]
+  (if windows?
+    (.mkdirs (io/file dir))
+    (mkdir "-p" dir)))
+
+(defn rename-path [old new]
+  (if windows?
+    (.renameTo (io/file old) (io/file new))
+    (mv old new)))
 
 ;;;; Scratch
 
