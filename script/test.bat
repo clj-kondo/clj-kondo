@@ -1,7 +1,7 @@
 rem force download of clojure 1.10.1 for extraction test
 call lein with-profiles +clojure-1.10.1 deps > NUL
 
-echo "%CLJ_KONDO_TEST_ENV%"
+echo "CLJ_KONDO_TEST_ENV: %CLJ_KONDO_TEST_ENV%"
 
 IF "%CLJ_KONDO_TEST_ENV%"=="native" (
   lein do clean, test
