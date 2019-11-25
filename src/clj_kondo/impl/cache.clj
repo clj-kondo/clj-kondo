@@ -29,8 +29,8 @@
                    {:source :built-in
                     :resource resource}))]
     (assoc
-     (transit/read (transit/reader
-                    (io/input-stream resource) :json))
+     (with-open [is (io/input-stream resource)]
+       (transit/read (transit/reader is :json)))
      :source source)))
 
 (defn from-cache [cache-dir lang namespaces]
