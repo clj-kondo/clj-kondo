@@ -52,7 +52,9 @@
       :level :error,
       :message "foo is called with 1 arg but expects 0"})
    (lint! "(require '[clojure.test :as t]) (t/async foo (foo 1))"
-          "--lang" "cljs"))
+          "--lang" "cljs")))
+
+(deftest deftest-test
   (is (empty? (lint! (io/file "corpus" "deftest.cljc")
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
