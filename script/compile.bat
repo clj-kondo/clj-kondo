@@ -13,7 +13,7 @@ set PATH=%PATH%;%GRAALVM_HOME%\bin
 set /P CLJ_KONDO_VERSION=< resources\CLJ_KONDO_VERSION
 echo Building clj-kondo %CLJ_KONDO_VERSION%
 
-call lein do clean, uberjar
+call lein with-profiles +clojure-1.10.1 do clean, uberjar
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 Rem the --no-server option is not supported in GraalVM Windows.
