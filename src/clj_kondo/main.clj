@@ -108,7 +108,7 @@ Options:
                      ;; can't use clojure.stacktrace here, due to
                      ;; https://dev.clojure.org/jira/browse/CLJ-2502
                      (println "Unexpected error. Please report an issue.")
-                     (.printStackTrace e)
+                     (.printStackTrace e System/out)
                      ;; unexpected error
                      124))))]
     (flush)

@@ -29,6 +29,8 @@ build_script:
 
     call script/compile.bat
 
+    lein clean
+
     set CLJ_KONDO_TEST_ENV=native
 
     set CLJ_KONDO_DEV=true
