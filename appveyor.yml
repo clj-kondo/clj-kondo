@@ -33,7 +33,7 @@ build_script:
 
     set CLJ_KONDO_DEV=true
 
-    lein test :only clj-kondo.main/deprecated-var-test
+    lein test :only clj-kondo.main-test/deprecated-var-test
 
     set CLJ_KONDO_DEV=false
 
