@@ -46,10 +46,10 @@
 (defn to-cache
   "Writes ns-data to cache-dir. Always use with `with-cache`."
   [cache-dir lang ns-sym ns-data]
-  (let [file (cache-file cache-dir lang ns-sym)
-        ;; first we write to a baos as a workaround for transit-clj #43
-        bos (java.io.ByteArrayOutputStream. 1024)]
-    (with-open [os (io/output-stream bos)]
+  (let [file (cache-file cache-dir lang ns-sym)]
+    (with-open [;; first we write to a baos as a workaround for transit-clj #43
+                bos (java.io.ByteArrayOutputStream. 1024)
+                os (io/output-stream bos)]
       (let [writer (transit/writer os :json)]
         (io/make-parents file)
         (transit/write writer ns-data)
