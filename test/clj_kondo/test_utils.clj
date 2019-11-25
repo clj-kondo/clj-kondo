@@ -88,7 +88,7 @@
                    (apply main "--cache" "false" "--lint" (.getPath ^java.io.File input) "--config" config args)
                    (vector? input)
                    (apply main "--cache" "false" "--lint" (concat (map #(.getPath ^java.io.File %) input)
-                                                ["--config" config] args))
+                                                                  ["--config" config] args))
                    :else (with-in-str input
                            (apply main "--cache" "false" "--lint" "-"  "--config" config args)))
                  (catch Throwable e
@@ -104,6 +104,7 @@
              [m (rest args)]
              [nil args]))
          config (str (deep-merge base-config config))
+         _ (prn "CONFIG" config)
          res (let-programs [clj-kondo "./clj-kondo"]
                (binding [sh/*throw* false]
                  (cond
@@ -115,7 +116,7 @@
                    (apply clj-kondo
                           "--cache" "false"
                           "--lint" (concat (map #(.getPath ^java.io.File %) input)
-                                                     ["--config" config] args))
+                                           ["--config" config] args))
                    :else
                    (apply clj-kondo
                           "--cache" "false"
