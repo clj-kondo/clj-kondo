@@ -9,50 +9,26 @@ clone_folder: C:\projects\clj-kondo
 environment:
   GRAALVM_HOME: C:\projects\clj-kondo\graalvm\graalvm-ce-java8-19.3.0
 
-init:
-# - ps: iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
-# - ps: scoop bucket add java
-# - ps: scoop bucket add scoop-clojure https://github.com/littleli/scoop-clojure
-# - ps: scoop install java/adopt8-hotspot
-# - ps: scoop install clojure
-# - ps: scoop which clojure
-
 build_script:
 - cmd: >-
     powershell -Command "(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein.bat', 'lein.bat')"
 
     call lein self-install
 
-- cmd: >-
     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
 
-#    echo "goodbye"
+    choco install windows-sdk-7.1
 
-#   rem cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
+    call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
 
-# - cmd: >-
-#     choco install windows-sdk-7.1
+    powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-windows-amd64-19.3.0.zip', 'graalvm.zip')"
 
-#     call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
+    powershell -Command "Expand-Archive graalvm.zip graalvm"
 
-#     powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-windows-amd64-19.3.0.zip', 'graalvm.zip')"
+    call script/compile.bat
 
-#     powershell -Command "Expand-Archive graalvm.zip graalvm"
+    cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
 
-#     call script/compile.bat
-
-# test_script:
-# - cmd: >-
-#     powershell -Command "Set-ExecutionPolicy RemoteSigned -scope CurrentUser"
-
-#     powershell -Command "iwr -useb get.scoop.sh | iex"
-
-#     scoop install clojure
-
-#     cmd /C "set CLJ_KONDO_TEST_ENV=jvm && call script/test.bat"
-
-#     cmd /C "set CLJ_KONDO_TEST_ENV=native && call script/test.bat"
-
-# artifacts:
-# - path: clj-kondo-*-windows-amd64.zip
-#   name: clj-kondo
+artifacts:
+- path: clj-kondo-*-windows-amd64.zip
+  name: clj-kondo
