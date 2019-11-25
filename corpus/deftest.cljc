@@ -15,6 +15,10 @@
     :bar true?
     :baz true?))
 
+(deftest thrown-test
+  (is (thrown? Exception :foo))
+  (are [x] (thrown? Exception x) :foo))
+
 (deftest thown-with-msg-test
   (is (thrown-with-msg?
        ExceptionInfo #"uh oh"
