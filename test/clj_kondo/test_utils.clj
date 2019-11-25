@@ -95,6 +95,10 @@
                    (.printStackTrace e))))]
      (parse-output res))))
 
+(def windows? (-> (System/getProperty "os.name")
+                  (str/lower-case)
+                  (str/includes? "win")))
+
 (defn lint-native!
   ([input] (lint-native! input "--lang" "clj"))
   ([input & args]
@@ -104,7 +108,8 @@
              [m (rest args)]
              [nil args]))
          config (str (deep-merge base-config config))
-         _ (prn "CONFIG" config)
+         config (if windows? (str/replace config "\"" "\\\"")
+                    config)
          res (let-programs [clj-kondo "./clj-kondo"]
                (binding [sh/*throw* false]
                  (cond
@@ -142,10 +147,6 @@
   (.getPath ^java.io.File (apply io/file more)))
 
 (def file-separator java.io.File/separator)
-
-(def windows? (-> (System/getProperty "os.name")
-                  (str/lower-case)
-                  (str/includes? "win")))
 
 (programs rm mkdir mv)
 
