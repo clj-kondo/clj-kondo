@@ -53,23 +53,18 @@
                     (.getCanonicalPath f) (format "(%s)" (.getMessage e)))))))
 
 (defn resolve-config [cfg-dir config]
-  (try
-    (reduce config/merge-config! config/default-config
-            [(when cfg-dir
-               (let [f (io/file cfg-dir "config.edn")]
-                 (when (.exists f)
-                   (read-edn-file f))))
-             (when config
-               (cond (map? config) config
-                     (or (str/starts-with? config "{")
-                         (str/starts-with? config "^"))
-                     (edn/read-string config)
-                     ;; config is a string that represents a file
-                     :else (read-edn-file config)))])
-    (catch Exception e
-      (println "Could not parse config!" (.getMessage e)
-               (pr-str config))
-      (throw e))))
+  (reduce config/merge-config! config/default-config
+          [(when cfg-dir
+             (let [f (io/file cfg-dir "config.edn")]
+               (when (.exists f)
+                 (read-edn-file f))))
+           (when config
+             (cond (map? config) config
+                   (or (str/starts-with? config "{")
+                       (str/starts-with? config "^"))
+                   (edn/read-string config)
+                   ;; config is a string that represents a file
+                   :else (read-edn-file config)))]))
 
 ;;;; process cache
 
