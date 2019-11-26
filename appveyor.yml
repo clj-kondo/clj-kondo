@@ -19,6 +19,7 @@ build_script:
 
     call script/test.bat
 
+- cmd: >-
     choco install windows-sdk-7.1
 
     call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
@@ -29,15 +30,10 @@ build_script:
 
     call script/compile.bat
 
+- cmd: >-
     lein clean
 
     set CLJ_KONDO_TEST_ENV=native
-
-    set CLJ_KONDO_DEV=true
-
-    lein test :only clj-kondo.main-test/deprecated-var-test
-
-    set CLJ_KONDO_DEV=false
 
     call script/test.bat
 
