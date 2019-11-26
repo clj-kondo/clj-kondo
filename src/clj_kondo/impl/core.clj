@@ -160,10 +160,10 @@
           default-language))
     default-language))
 
-(def cp-sep (System/getProperty "path.separator"))
+(def path-separator (System/getProperty "path.separator"))
 
 (defn classpath? [f]
-  (str/includes? f cp-sep))
+  (str/includes? f path-separator))
 
 (defn process-file [ctx filename default-language canonical?]
   (try
@@ -193,7 +193,7 @@
         (classpath? filename)
         (mapcat #(process-file ctx % default-language canonical?)
                 (str/split filename
-                           (re-pattern cp-sep)))
+                           (re-pattern path-separator)))
         :else
         [{:findings [{:level :warning
                       :filename (if canonical?

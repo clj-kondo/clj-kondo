@@ -13,7 +13,8 @@
                  [cheshire "5.8.1"]]
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.1 {:dependencies [[org.clojure/clojure "1.10.1"]]}
-             :test {:dependencies [[clj-commons/conch "0.9.2"]
+             :test {:dependencies [[org.clojure/clojurescript "1.10.520"] ;; for extraction tests
+                                   [clj-commons/conch "0.9.2"]
                                    [jonase/eastwood "0.3.6"]
                                    [borkdude/missing.test.assertions "0.0.1"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
