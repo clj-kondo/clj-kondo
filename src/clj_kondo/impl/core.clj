@@ -82,8 +82,8 @@
 
 (defn- lineage [^java.io.File file]
   (lazy-seq
-    (when file
-      (cons file (lineage (.getParentFile file))))))
+   (when file
+     (cons file (lineage (.getParentFile file))))))
 
 (defn source-file? [filename]
   (when-let [[_ ext] (re-find #"\.(\w+)$" filename)]
@@ -96,9 +96,9 @@
 
 (defn- possible-config-dir-locations [lint]
   (concat
-    (when (single-file-lint? lint)
-      (lineage (.getParentFile (io/file (first lint)))))
-    (lineage (io/file (System/getProperty "user.dir")))))
+   (when (single-file-lint? lint)
+     (lineage (.getParentFile (io/file (first lint)))))
+   (lineage (io/file (System/getProperty "user.dir")))))
 
 (defn config-dir [lint]
   (transduce (comp (map #(io/file % ".clj-kondo"))
@@ -173,10 +173,10 @@
         (if (.isFile file)
           (if (str/ends-with? (.getPath file) ".jar")
             ;; process jar file
-            (map #(ana/analyze-input ctx (:filename %) (:source %)
-                                     (lang-from-file (:filename %) default-language)
-                                     dev?)
-                 (sources-from-jar file canonical?))
+            (pmap #(ana/analyze-input ctx (:filename %) (:source %)
+                                      (lang-from-file (:filename %) default-language)
+                                      dev?)
+                  (sources-from-jar file canonical?))
             ;; assume normal source file
             [(ana/analyze-input ctx (if canonical?
                                       (.getCanonicalPath file)
@@ -184,16 +184,16 @@
                                 (lang-from-file filename default-language)
                                 dev?)])
           ;; assume directory
-          (map #(ana/analyze-input ctx (:filename %) (:source %)
-                                   (lang-from-file (:filename %) default-language)
-                                   dev?)
-               (sources-from-dir file canonical?)))
+          (pmap #(ana/analyze-input ctx (:filename %) (:source %)
+                                    (lang-from-file (:filename %) default-language)
+                                    dev?)
+                (sources-from-dir file canonical?)))
         (= "-" filename)
         [(ana/analyze-input ctx "<stdin>" (slurp *in*) default-language dev?)]
         (classpath? filename)
-        (mapcat #(process-file ctx % default-language canonical?)
-                (str/split filename
-                           (re-pattern cp-sep)))
+        (mapcat identity (pmap #(process-file ctx % default-language canonical?)
+                               (str/split filename
+                                          (re-pattern cp-sep))))
         :else
         [{:findings [{:level :warning
                       :filename (if canonical?
@@ -216,7 +216,7 @@
 
 (defn process-files [ctx files default-lang]
   (let [canonical? (-> ctx :config :output :canonical-paths)]
-    (mapcat #(process-file ctx % default-lang canonical?) files)))
+    (mapcat identity (pmap #(process-file ctx % default-lang canonical?) files))))
 
 ;;;; index defs and calls by language and namespace
 
