@@ -9,9 +9,7 @@ a `.clj-kondo` directory in the root of your project.
 For integrating with Emacs, see
 [flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo).
 
-For Spacemacs, check [here](#spacemacs).
-
-or get [flymake-kondor](https://github.com/turbo-cafe/flymake-kondor) if you flymake user.
+For Spacemacs, check [here](#spacemacs) or get [flymake-kondor](https://github.com/turbo-cafe/flymake-kondor) if you are using flymake.
 
 ## Visual Studio Code
 
