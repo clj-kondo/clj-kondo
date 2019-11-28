@@ -992,9 +992,10 @@
                (str/ends-with? full-fn-name "."))
           (analyze-expression** ctx (macroexpand/expand-dot-constructor ctx expr))
           unresolved-ns
-          (namespace/reg-missing-require! ctx ns-name (with-meta unresolved-ns
-                                                        (meta full-fn-name)))
-          ;; TODO: lint arguments
+          (do
+            (namespace/reg-missing-require! ctx ns-name (with-meta unresolved-ns
+                                                          (meta full-fn-name)))
+            (analyze-children ctx children))
           :else
           (let [[resolved-as-namespace resolved-as-name _lint-as?]
                 (or (when-let
