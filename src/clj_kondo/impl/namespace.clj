@@ -218,22 +218,25 @@
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
     (if-let [ns* (namespace name-sym)]
       (let [ns-sym (symbol ns*)]
-        (or (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                             ;; referring to the namespace we're in
-                             (when (= (:name ns) ns-sym)
-                               ns-sym))]
+        (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
+                               ;; referring to the namespace we're in
+                               (when (= (:name ns) ns-sym)
+                                 ns-sym))]
+
               {:ns ns*
-               :name (symbol (name name-sym))}
-              (when-let [[class-name package]
-                         (or (when (identical? :clj lang)
-                               (or (find var-info/default-import->qname ns-sym)
-                                   (when-let [v (get var-info/default-fq-imports ns-sym)]
-                                     [v v])))
-                             (find (:imports ns) ns-sym))]
-                (reg-used-import! ctx ns-name class-name)
-                {:interop? true
-                 :ns package
-                 :name (symbol (name name-sym))}))))
+               :name (symbol (name name-sym))})
+            (when-let [[class-name package]
+                       (or (when (identical? :clj lang)
+                             (or (find var-info/default-import->qname ns-sym)
+                                 (when-let [v (get var-info/default-fq-imports ns-sym)]
+                                   [v v])))
+                           (find (:imports ns) ns-sym))]
+              (reg-used-import! ctx ns-name class-name)
+              {:interop? true
+               :ns package
+               :name (symbol (name name-sym))})
+            {:name (symbol (name name-sym))
+             :unresolved-ns ns-sym}))
       (or
        (when-let [[k v] (find (:referred-vars ns)
                               name-sym)]

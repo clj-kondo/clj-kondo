@@ -203,7 +203,11 @@
                        call (:used-vars ns)
                        :let [call? (= :call (:type call))
                              unresolved? (:unresolved? call)
-                             fn-name (:name call)
+                             unresolved-ns (:unresolved-ns call)
+                             _ (when unresolved-ns
+                                 (prn "unresolved ns" (:unresolved-ns call)))]
+                       :when (not unresolved-ns)
+                       :let [fn-name (:name call)
                              caller-ns-sym (:ns call)
                              call-lang (:lang call)
                              caller-ns (get-in @(:namespaces ctx)

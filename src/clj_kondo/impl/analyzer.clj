@@ -984,6 +984,7 @@
         {resolved-namespace :ns
          resolved-name :name
          unresolved? :unresolved?
+         unresolved-ns :unresolved-ns
          clojure-excluded? :clojure-excluded?
          :as _m}
         (resolve-name ctx ns-name full-fn-name)]
@@ -1156,6 +1157,7 @@
                                       (or resolved-name full-fn-name)
                                       (meta full-fn-name))
                               :unresolved? unresolved?
+                              :unresolved-ns unresolved-ns
                               :clojure-excluded? clojure-excluded?
                               :arity arg-count
                               :row row
