@@ -240,9 +240,10 @@
               {:interop? true
                :ns package
                :name (symbol (name name-sym))})
-            {:name (symbol (name name-sym))
-             :unresolved? true
-             :unresolved-ns ns-sym}))
+            (when-not (java-class? ns*)
+              {:name (symbol (name name-sym))
+               :unresolved? true
+               :unresolved-ns ns-sym})))
       (or
        (when-let [[k v] (find (:referred-vars ns)
                               name-sym)]
