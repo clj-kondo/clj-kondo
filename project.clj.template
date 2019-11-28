@@ -6,10 +6,7 @@
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src" "parser" "inlined"]
-  :dependencies [[org.clojure/clojure "1.9.0"]
-                 [com.cognitect/transit-clj "0.8.313"]
-                 [io.lambdaforge/datalog-parser "0.1.1"]
-                 [cheshire "5.8.1"]]
+  :dependencies {{dependencies|safe}}
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.1 {:dependencies [[org.clojure/clojure "1.10.1"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.10.520"] ;; for extraction tests
