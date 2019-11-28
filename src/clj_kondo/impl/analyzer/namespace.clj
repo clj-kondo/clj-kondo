@@ -252,6 +252,7 @@
    :used-referred-vars #{}
    :used-imports #{}
    :used-vars []
+   :missing-requires #{}
    :vars {}
    :row row
    :col col})

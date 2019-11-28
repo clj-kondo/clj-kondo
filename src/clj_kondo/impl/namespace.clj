@@ -196,6 +196,11 @@
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj import))
 
+(defn reg-missing-require!
+  [{:keys [:base-lang :lang :namespaces] :as _ctx} ns-sym unresolved-ns]
+  (swap! namespaces update-in [base-lang lang ns-sym :missing-requires]
+         conj unresolved-ns))
+
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
 
@@ -236,6 +241,7 @@
                :ns package
                :name (symbol (name name-sym))})
             {:name (symbol (name name-sym))
+             :unresolved? true
              :unresolved-ns ns-sym}))
       (or
        (when-let [[k v] (find (:referred-vars ns)
