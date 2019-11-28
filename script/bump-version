@@ -18,6 +18,7 @@ elif [ "$1" = "post-release" ]; then
     tomorrow=$($date_cmd $date_pattern --date='next day')
     snapshot_version="$tomorrow-SNAPSHOT"
     echo "$snapshot_version" > resources/CLJ_KONDO_VERSION
+    script/update-version.clj
 else
     echo "Usage: script/bump-version ( release | post-release )"
 fi
