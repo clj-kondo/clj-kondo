@@ -108,6 +108,37 @@ If you have [vim-dispatch](https://github.com/tpope/vim-dispatch/) installed, yo
 
 ## IntelliJ IDEA
 
+Currently there are two ways to get clj-kondo integration in IntelliJ: via the
+clj-kondo LSP server or via the File Watchers plugin.
+
+### LSP server
+
+1. Download the latest clj-kondo LSP server jar to your system. Go to the
+   [Github releases](https://github.com/borkdude/clj-kondo/releases) and look
+   for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided
+   since version `2019.11.23`.
+
+2. Install the LSP Support plugin by gtache, either from the marketplace of via
+   a zipfile downloaded from the a [Github
+   release](https://github.com/gtache/intellij-lsp/releases). Version 1.6.0 or
+   later is required.
+
+<img src="../screenshots/intellij-lsp.png" width="50%" align="right">
+
+3. Configure the LSP support plugin.
+   - Go to Preferences / Language Server Protocol / Server definitions. Select
+     `Raw command`.
+   - In the `Extension` field enter `clj;cljs;cljc;edn`.
+   -  In the command field enter `java -jar
+      <path>/clj-kondo-lsp-server-<version>-standalone.jar` where `<path>` is
+      the directory where the jar resides and `<version>` matches the downloaded
+      jar version,
+      e.g. `/Users/borkdude/clj-kondo-lsp-server-2019.11.23-standalone.jar`.
+
+Now, when editing a Clojure file, you should get linting feedback.
+
+### File Watchers + installed binary
+
 <img src="../screenshots/intellij-let.png" width="50%" align="right">
 
 This section assumes that you are already using
