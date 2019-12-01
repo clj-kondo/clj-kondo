@@ -74,3 +74,4 @@ clj-kondo*.snap
 
 .DS_Store
 !corpus/*jar
+lsp
