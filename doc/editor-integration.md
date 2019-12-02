@@ -126,7 +126,7 @@ clj-kondo LSP server or via the File Watchers plugin.
 <img src="../screenshots/intellij-lsp.png" width="50%" align="right">
 
 3. Configure the LSP Support plugin.
-   - Go to Preferences / Language Server Protocol / Server definitions. Select
+   - Go to Preferences / Languages & Frameworks / Language Server Protocol / Server definitions. Select
      `Raw command`.
    - In the `Extension` field enter `clj;cljs;cljc;edn`.
    -  In the command field enter `java -jar
