@@ -394,8 +394,9 @@
           :level :error,
           :message "java.math.BigInteger/valueOf is called with 3 args but expects 1"}
          (first (lint! "(BigInteger/valueOf 1 2 3)" "--lang" "clj"))))
-  (is (empty?
-       (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "cljs"))))
+  (assert-submap {:message #"java.lang.Thread"}
+                 (first (lint! "(java.lang.Thread/sleep 1 2 3)"
+                               "--lang" "cljs")))
   (is (= {:file "<stdin>",
           :row 1,
           :col 9,

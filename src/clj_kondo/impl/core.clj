@@ -154,11 +154,13 @@
 ;;;; file processing
 
 (defn lang-from-file [file default-language]
-  (if-let [[_ ext] (re-find #"\.(\w+)$" file)]
-    (let [k (keyword ext)]
-      (or (get #{:clj :cljs :cljc :edn} k)
-          default-language))
-    default-language))
+  (if (= "project.clj" (.getName (io/file file))) ;; lint project.clj as EDN
+    :edn
+    (if-let [[_ ext] (re-find #"\.(\w+)$" file)]
+      (let [k (keyword ext)]
+        (or (get #{:clj :cljs :cljc :edn} k)
+            default-language))
+      default-language)))
 
 (def path-separator (System/getProperty "path.separator"))
 

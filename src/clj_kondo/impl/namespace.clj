@@ -6,7 +6,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
-   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled?]]
+   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled? one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
   (:import [java.util StringTokenizer]))
@@ -149,7 +149,7 @@
            (update ns :imports merge imports)))
   nil)
 
-(defn java-class? [s]
+(defn class-name? [s]
   (let [splits (str/split s #"\.")]
     (and (> (count splits) 2)
          (Character/isUpperCase ^char (first (last splits))))))
@@ -163,7 +163,7 @@
                                                    callstack symbol)
                 (let [symbol-name (name symbol)]
                   (or (str/starts-with? symbol-name ".")
-                      (java-class? symbol-name))))
+                      (class-name? symbol-name))))
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
            (fn [old-sym-info]
              (if (nil? old-sym-info)
@@ -240,7 +240,10 @@
               {:interop? true
                :ns package
                :name (symbol (name name-sym))})
-            (when-not (java-class? ns*)
+            (when-not (if (identical? :clj lang)
+                        (or (one-of ns* ["clojure.core"])
+                            (class-name? ns*))
+                        (when (identical? :cljs lang) (one-of ns* ["js" "goog" "cljs.core"])))
               {:name (symbol (name name-sym))
                :unresolved? true
                :unresolved-ns ns-sym})))
