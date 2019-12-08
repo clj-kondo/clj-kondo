@@ -12,4 +12,8 @@
    (lint! "(clojure.string/includes? \"foo\" \"o\")"))
   ;; avoiding false positives
   ;; TODO:
-  #_(is (empty? (lint! (io/file "project.clj")))))
+  #_(is (empty? (lint! (io/file "project.clj"))))
+  (is (empty? (lint! "js/foo" "--lang" "cljs")))
+  (is (empty? (lint! "goog/foo" "--lang" "cljs")))
+  (is (empty? (lint! "(java.lang.Foo/Bar)")))
+  (is (empty? (lint! "(clojure.core/inc 1)"))))
