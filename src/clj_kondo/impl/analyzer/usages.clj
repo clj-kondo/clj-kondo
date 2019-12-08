@@ -73,9 +73,10 @@
                          (let [v (namespace/resolve-name ctx ns-name symbol-val)]
                            (when-not syntax-quote?
                              (when-let [n (:unresolved-ns v)]
-                               (namespace/reg-missing-require! ctx ns-name
-                                                               (with-meta n
-                                                                 (meta expr)))))
+                               (namespace/reg-unresolved-namespace!
+                                ctx ns-name
+                                (with-meta n
+                                  (meta expr)))))
                            (if (:unresolved? v)
                              (let [symbol-str (str symbol-val)]
                                (if (str/ends-with? (str symbol-val) ".")

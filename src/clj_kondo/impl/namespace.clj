@@ -196,9 +196,15 @@
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj import))
 
-(defn reg-missing-require!
+(defn reg-unresolved-namespace!
   [{:keys [:base-lang :lang :namespaces] :as _ctx} ns-sym unresolved-ns]
-  (swap! namespaces update-in [base-lang lang ns-sym :missing-requires]
+  #_(when-not (or (:unresolved-symbol-disabled? sym-info)
+                (config/unresolved-symbol-excluded config
+                                                   callstack symbol)
+                (let [symbol-name (name symbol)]
+                  (or (str/starts-with? symbol-name ".")
+                      (class-name? symbol-name)))))
+  (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces]
          conj unresolved-ns))
 
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]

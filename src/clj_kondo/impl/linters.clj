@@ -472,18 +472,18 @@
       :row row
       :col col})))
 
-(defn lint-missing-require!
+(defn lint-unresolved-namespaces!
   [{:keys [:findings] :as ctx}]
   (doseq [ns (namespace/list-namespaces ctx)
           :let [filename (:filename ns)]
-          missing (:missing-requires ns)
-          :let [{:keys [:row :col]} (meta missing)]]
+          un (:unresolved-namespaces ns)
+          :let [{:keys [:row :col]} (meta un)]]
     (findings/reg-finding!
      findings
      {:level :warning
-      :type :missing-require
+      :type :unresolved-namespace
       :filename filename
-      :message (str "Missing require for namespace " missing)
+      :message (str "Unresolved namespace " un ". Are you missing a require?")
       :row row
       :col col})))
 

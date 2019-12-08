@@ -993,8 +993,9 @@
           (analyze-expression** ctx (macroexpand/expand-dot-constructor ctx expr))
           unresolved-ns
           (do
-            (namespace/reg-missing-require! ctx ns-name (with-meta unresolved-ns
-                                                          (meta full-fn-name)))
+            (namespace/reg-unresolved-namespace! ctx ns-name
+                                                 (with-meta unresolved-ns
+                                                   (meta full-fn-name)))
             (analyze-children ctx children))
           :else
           (let [[resolved-as-namespace resolved-as-name _lint-as?]
