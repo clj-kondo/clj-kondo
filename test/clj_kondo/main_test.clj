@@ -14,14 +14,14 @@
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
         row-col-files (map #(select-keys % [:row :col :file])
-                        linted)]
+                           linted)]
     (assert-submaps
-      '({:row 5, :col 3, :file "corpus/inline_def.clj"}
-        {:row 8, :col 3, :file "corpus/inline_def.clj"}
-        {:row 10, :col 10, :file "corpus/inline_def.clj"}
-        {:row 12, :col 16, :file "corpus/inline_def.clj"}
-        {:row 14, :col 18, :file "corpus/inline_def.clj"})
-      row-col-files)
+     '({:row 5, :col 3, :file "corpus/inline_def.clj"}
+       {:row 8, :col 3, :file "corpus/inline_def.clj"}
+       {:row 10, :col 10, :file "corpus/inline_def.clj"}
+       {:row 12, :col 16, :file "corpus/inline_def.clj"}
+       {:row 14, :col 18, :file "corpus/inline_def.clj"})
+     row-col-files)
     (is (= #{"inline def"} (set (map :message linted)))))
   (doseq [lang [:clj :cljs]]
     (is (empty? (lint! "(defmacro foo [] `(def x 1))" "--lang" (name lang))))
@@ -30,12 +30,12 @@
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
         row-col-files (map #(select-keys % [:row :col :file])
-                        linted)]
+                           linted)]
     (assert-submaps
-      '({:row 4, :col 3, :file "corpus/redundant_let.clj"}
-        {:row 8, :col 3, :file "corpus/redundant_let.clj"}
-        {:row 12, :col 3, :file "corpus/redundant_let.clj"})
-      row-col-files)
+     '({:row 4, :col 3, :file "corpus/redundant_let.clj"}
+       {:row 8, :col 3, :file "corpus/redundant_let.clj"}
+       {:row 12, :col 3, :file "corpus/redundant_let.clj"})
+     row-col-files)
     (is (= #{"Redundant let expression."} (set (map :message linted)))))
   (assert-submaps '({:file "<stdin>", :row 1, :col 12, :level :warning, :message #"Redundant let"})
                   (lint! "(let [x 2] (let [y 1]))" "--lang" "cljs"))
@@ -114,10 +114,10 @@
   (testing "only invalid calls after definition are caught"
     (let [linted (lint! (io/file "corpus" "invalid_arity" "order.clj"))
           row-col-files (map #(select-keys % [:row :col :file])
-                          linted)]
+                             linted)]
       (assert-submaps
-        '({:row 9, :col 1, :file "corpus/invalid_arity/order.clj"})
-        row-col-files)))
+       '({:row 9, :col 1, :file "corpus/invalid_arity/order.clj"})
+       row-col-files)))
   (testing "varargs"
     (is (some? (seq (lint! "(defn foo [x & xs]) (foo)"))))
     (is (empty? (lint! "(defn foo [x & xs]) (foo 1 2 3)"))))
@@ -210,12 +210,12 @@
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
     (assert-submaps
-      '({:file "corpus/exclude_clojure.clj",
-         :row 12,
-         :col 1,
-         :level :error,
-         :message "clojure.core/get is called with 4 args but expects 2"})
-      linted)))
+     '({:file "corpus/exclude_clojure.clj",
+        :row 12,
+        :col 1,
+        :level :error,
+        :message "clojure.core/get is called with 4 args but expects 2"})
+     linted)))
 
 (deftest private-call-test
   (assert-submaps '({:file "corpus/private/private_calls.clj",
@@ -239,37 +239,37 @@
   (testing "when an error happens in one file, the other file is still linted"
     (let [linted (lint! (io/file "corpus" "read_error"))]
       (assert-submaps
-        '({:file "corpus/read_error/error.clj",
-           :row 1,
-           :col 1,
-           :level :error,
-           :message "Found an opening ( with no matching )"}
-          {:file "corpus/read_error/error.clj"
-           :row 2,
-           :col 1,
-           :level :error,
-           :message "Expected a ) to match ( from line 1"}
-          {:file "corpus/read_error/ok.clj",
-           :row 6,
-           :col 1,
-           :level :error,
-           :message "read-error.ok/foo is called with 1 arg but expects 0"})
-        linted))))
+       '({:file "corpus/read_error/error.clj",
+          :row 1,
+          :col 1,
+          :level :error,
+          :message "Found an opening ( with no matching )"}
+         {:file "corpus/read_error/error.clj"
+          :row 2,
+          :col 1,
+          :level :error,
+          :message "Expected a ) to match ( from line 1"}
+         {:file "corpus/read_error/ok.clj",
+          :row 6,
+          :col 1,
+          :level :error,
+          :message "read-error.ok/foo is called with 1 arg but expects 0"})
+       linted))))
 
 (deftest nested-namespaced-maps-test
   (assert-submaps
-    '({:file "corpus/nested_namespaced_maps.clj",
-       :row 9,
-       :col 1,
-       :level :error,
-       :message
-       "nested-namespaced-maps/test-fn is called with 2 args but expects 1"}
-      {:file "corpus/nested_namespaced_maps.clj",
-       :row 11,
-       :col 12,
-       :level :error,
-       :message "duplicate key :a"})
-    (lint! (io/file "corpus" "nested_namespaced_maps.clj")))
+   '({:file "corpus/nested_namespaced_maps.clj",
+      :row 9,
+      :col 1,
+      :level :error,
+      :message
+      "nested-namespaced-maps/test-fn is called with 2 args but expects 1"}
+     {:file "corpus/nested_namespaced_maps.clj",
+      :row 11,
+      :col 12,
+      :level :error,
+      :message "duplicate key :a"})
+   (lint! (io/file "corpus" "nested_namespaced_maps.clj")))
   (is (empty? (lint! "(meta ^#:foo{:a 1} {})"))))
 
 (deftest exit-code-test
@@ -1043,13 +1043,17 @@
       :message "foo/foo is called with 3 args but expects 1"})
    (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
           '{:lint-as {foo/my-defn clojure.core/defn}}))
+  (assert-submaps
+   '[{:level :error, :message #"fully qualified symbol"}]
+   (lint! "(foo.bar/when-let)" '{:lint-as {foo.bar/when-let when-let}}))
   (is (empty?
        (lint! "(ns foo) (defmacro deftest [name & body] `(defn ~name [] ~@body)) (deftest foo)"
               '{:linters {:unresolved-symbol {:level :warning}}
                 :lint-as {foo/deftest clojure.test/deftest}})))
   (is (empty?
        (lint! (io/file "corpus" "lint_as_for.clj")
-              '{:linters {:unresolved-symbol {:level :warning}}}))))
+              '{:linters {:unresolved-symbol {:level :warning}}})))
+  )
 
 (deftest letfn-test
   (assert-submaps '({:file "<stdin>",

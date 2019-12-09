@@ -108,7 +108,10 @@
 
 (defn fq-syms->vecs [fq-syms]
   (map (fn [fq-sym]
-         [(symbol (namespace fq-sym)) (symbol (name fq-sym))])
+         (if-let [ns* (namespace fq-sym)]
+           [(symbol ns*) (symbol (name fq-sym))]
+           (throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                           {:type :clj-kondo/config}))))
        fq-syms))
 
 (defn skip-args*

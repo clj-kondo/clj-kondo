@@ -1476,7 +1476,7 @@
         :col 0
         :row 0
         :type :syntax
-        :message (str "can't parse "
+        :message (str "Can't parse "
                       filename ", "
                       (or (.getMessage ex) (str ex)))}])))
 
@@ -1501,8 +1501,9 @@
                                  (:children parsed)))]
       analyzed-expressions)
     (catch Exception e
-      (if dev? (throw e)
-          {:findings (->findings e filename)}))
+      (if dev?
+        (throw e)
+        {:findings (->findings e filename)}))
     (finally
       (let [output-cfg (:output config)]
         (when (and (= :text (:format output-cfg))
