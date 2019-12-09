@@ -576,7 +576,11 @@
    ;; 3770 'read+string
    ;; 3796 'read-line
    ;; 3805 'read-string
-   ;; 3818 'subvec
+   ;; 3818
+   'subvec {:arities {2 {:args [:vector :nat-int]
+                         :ret :vector}
+                      3 {:args [:vector :nat-int :nat-int]
+                         :ret :vector}}}
    ;; 3831 'with-open
    ;; 3852 'doto
    ;; 3871 'memfn
