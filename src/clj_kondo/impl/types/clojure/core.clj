@@ -323,13 +323,13 @@
    ;; 1484 'contains?
    ;; 1494 'get
    ;; 1504
-   'dissoc {:arities {:varargs {:args [:map {:op :rest :spec :any}]
-                                :ret :map}}}
+   'dissoc {:arities {:varargs {:args [:nilable/map {:op :rest :spec :any}]
+                                :ret :nilable/map}}}
    ;; 1518 'disj
    ;; 1534
-   'find {:arities {2 {:args [:associative :any]}}}
+   'find {:arities {2 {:args [:nilable/associative :any]}}}
    ;; 1540
-   'select-keys {:arities {2 {:args [:associative :seqable]
+   'select-keys {:arities {2 {:args [:nilable/associative :seqable]
                               :ret :map}}}
    ;; 1555
    'keys {:arities {1 {:args [:nilable/associative]
