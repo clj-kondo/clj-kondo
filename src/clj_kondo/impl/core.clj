@@ -82,8 +82,8 @@
 
 (defn- lineage [^java.io.File file]
   (lazy-seq
-    (when file
-      (cons file (lineage (.getParentFile file))))))
+   (when file
+     (cons file (lineage (.getParentFile file))))))
 
 (defn source-file? [filename]
   (when-let [[_ ext] (re-find #"\.(\w+)$" filename)]
@@ -96,9 +96,9 @@
 
 (defn- possible-config-dir-locations [lint]
   (concat
-    (when (single-file-lint? lint)
-      (lineage (.getParentFile (io/file (first lint)))))
-    (lineage (io/file (System/getProperty "user.dir")))))
+   (when (single-file-lint? lint)
+     (lineage (.getParentFile (io/file (first lint)))))
+   (lineage (io/file (System/getProperty "user.dir")))))
 
 (defn config-dir [lint]
   (transduce (comp (map #(io/file % ".clj-kondo"))
@@ -204,15 +204,16 @@
                       :row 0
                       :message "file does not exist"}]}]))
     (catch Throwable e
-      (if dev? (throw e)
-          [{:findings [{:level :warning
-                        :filename (if canonical?
-                                    (.getCanonicalPath (io/file filename))
-                                    filename)
-                        :type :file
-                        :col 0
-                        :row 0
-                        :message "could not process file"}]}]))))
+      (if dev?
+        (throw e)
+        [{:findings [{:level :warning
+                      :filename (if canonical?
+                                  (.getCanonicalPath (io/file filename))
+                                  filename)
+                      :type :file
+                      :col 0
+                      :row 0
+                      :message "Could not process file."}]}]))))
 
 (defn process-files [ctx files default-lang]
   (let [canonical? (-> ctx :config :output :canonical-paths)]
