@@ -2336,10 +2336,12 @@
 
 (deftest consistent-alias-test
   (assert-submaps
-   [{:file "<stdin>", :row 1, :col 39,
-     :level :warning, :message #"Inconsistent.*str.*x"}]
-   (lint! "(ns foo (:require [clojure.string :as x])) x/join"
-          {:linters {:consistent-alias {:aliases '{clojure.string str}}}})))
+    [{:file "<stdin>", :row 1, :col 39,
+      :level :warning, :message #"Inconsistent.*str.*x"}]
+    (lint! "(ns foo (:require [clojure.string :as x])) x/join"
+           {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))
+  (is (empty? (lint! "(ns foo (:require [clojure.string])) x/join"
+                     {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
