@@ -65,7 +65,7 @@
 (defn lint-alias-consistency [{:keys [:findings :config
                                       :filename]} ns-name alias]
   (when-let [expected-alias (get-in config [:linters :consistent-alias :aliases ns-name])]
-    (when-not (= expected-alias alias)
+    (when (and alias (not= expected-alias alias))
       (findings/reg-finding!
        findings
        (node->line filename alias :warning
