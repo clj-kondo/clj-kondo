@@ -35,19 +35,22 @@
 (defn analyze-children
   ([ctx children]
    (analyze-children ctx children true))
-  ([{:keys [:callstack :config] :as ctx} children add-new-arg-types?]
-   ;; (prn callstack add-new-arg-types?)
-   (when-not (config/skip? config callstack)
-     (let [ctx (assoc ctx
-                      :top-level? false
-                      :arg-types (if add-new-arg-types?
-                                   (let [[k v] (first callstack)]
-                                     (if (and (symbol? k)
-                                              (symbol? v))
-                                       (atom [])
-                                       nil))
-                                   (:arg-types ctx)))]
-       (mapcat #(analyze-expression** ctx %) children)))))
+  ([{:keys [:callstack :config :top-level?] :as ctx} children add-new-arg-types?]
+   ;; (prn callstack)
+   (let [top-level? (and top-level?
+                         (= '[clojure.core comment]
+                            (first callstack)))]
+     (when-not (config/skip? config callstack)
+       (let [ctx (assoc ctx
+                        :top-level? top-level?
+                        :arg-types (if add-new-arg-types?
+                                     (let [[k v] (first callstack)]
+                                       (if (and (symbol? k)
+                                                (symbol? v))
+                                         (atom [])
+                                         nil))
+                                     (:arg-types ctx)))]
+         (mapcat #(analyze-expression** ctx %) children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx m defaults]
   (let [defaults (into {}

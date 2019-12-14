@@ -14,4 +14,5 @@
   (is (empty? (lint! "js/foo" "--lang" "cljs")))
   (is (empty? (lint! "goog/foo" "--lang" "cljs")))
   (is (empty? (lint! "(java.lang.Foo/Bar)")))
-  (is (empty? (lint! "(clojure.core/inc 1)"))))
+  (is (empty? (lint! "(clojure.core/inc 1)")))
+  (is (empty? (lint! "(comment (require '[foo.bar]) (foo.bar/x))"))))
