@@ -1059,7 +1059,7 @@
                                 children)
               (cond-> cond->>)
               (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
-              (let let* for doseq dotimes with-open)
+              (let let* for doseq dotimes with-open with-local-vars)
               (analyze-like-let ctx expr)
               letfn
               (analyze-letfn ctx expr)
