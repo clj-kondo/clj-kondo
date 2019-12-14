@@ -722,6 +722,8 @@
                              :in-def var-name)
                       (nnext (:children expr)))))
 
+(declare analyze-defrecord)
+
 (defn analyze-schema [ctx fn-sym expr]
   (let [{:keys [:expr :schemas]}
         (schema/expand-schema ctx
@@ -731,7 +733,8 @@
        fn (analyze-fn ctx expr)
        def (analyze-def ctx expr)
        defn (analyze-defn ctx expr)
-       defmethod (analyze-defmethod ctx expr))
+       defmethod (analyze-defmethod ctx expr)
+       defrecord (analyze-defrecord ctx expr))
      (analyze-children ctx schemas))))
 
 (defn analyze-binding-call [{:keys [:callstack :config :findings] :as ctx} fn-name expr]
@@ -1113,6 +1116,8 @@
                     (analyze-schema ctx 'defn expr)
                     [schema.core defmethod]
                     (analyze-schema ctx 'defmethod expr)
+                    [schema.core defrecord]
+                    (analyze-schema ctx 'defrecord expr)
                     ([clojure.test deftest]
                      [cljs.test deftest]
                      #_[:clj-kondo/unknown-namespace deftest])
