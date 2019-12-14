@@ -94,6 +94,11 @@
        {:file "<stdin>", :row 1, :col 30, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
      (lint! "(ns foo \"docstring\" {:a a :b (inc)})"
             '{:linters {:unresolved-symbol {:level :error}}})))
+  (testing "config is merged"
+    (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (t/is (foo? (inc 1))) (t/is (bar? (inc 1)))"
+                       '{:linters {:unresolved-symbol {:level :error
+                                                       :exclude [(clojure.test/is [foo?])
+                                                                 (clojure.test/is [bar?])]}}}))))
 
   ;; Preventing false positives
   (is (empty? (lint! "slurp"

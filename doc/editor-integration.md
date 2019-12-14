@@ -125,14 +125,13 @@ clj-kondo LSP server or via the File Watchers plugin.
 
 <img src="../screenshots/intellij-lsp.png" width="50%" align="right">
 
-3. Configure the LSP support plugin.
-   - Go to Preferences / Language Server Protocol / Server definitions. Select
+3. Configure the LSP Support plugin.
+   - Go to Preferences / Languages & Frameworks / Language Server Protocol / Server definitions. Select
      `Raw command`.
    - In the `Extension` field enter `clj;cljs;cljc;edn`.
    -  In the command field enter `java -jar
-      <path>/clj-kondo-lsp-server-<version>-standalone.jar` where `<path>` is
-      the directory where the jar resides and `<version>` matches the downloaded
-      jar version,
+      <path>` where `<path>` matches the downloaded
+      jar file,
       e.g. `/Users/borkdude/clj-kondo-lsp-server-2019.11.23-standalone.jar`.
 
 Now, when editing a Clojure file, you should get linting feedback.
