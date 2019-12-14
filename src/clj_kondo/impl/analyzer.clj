@@ -1282,10 +1282,7 @@
         :quote (let [ctx (assoc ctx :quoted true)]
                  (types/add-arg-type-from-expr ctx (first (:children expr)))
                  (analyze-children ctx children))
-        :syntax-quote (analyze-usages2 (assoc ctx
-                                              :analyze-expression**
-                                              analyze-expression**
-                                              :arg-types nil) expr)
+        :syntax-quote (analyze-usages2 (assoc ctx :arg-types nil) expr)
         :var (analyze-children (assoc ctx :private-access? true)
                                (:children expr))
         :reader-macro (analyze-reader-macro ctx expr)

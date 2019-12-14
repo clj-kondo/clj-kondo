@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.utils :as utils :refer
     [tag one-of symbol-from-token tag kw->sym]]
    [clojure.string :as str])
@@ -43,15 +44,23 @@
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
+         nested-syntax-quote? (:nested-syntax-quote? ctx)
          ns-name (:name ns)
          t (tag expr)
-         quote? (or quote? (= :quote t))]
-     (if (one-of t [:unquote :unquote-splicing])
-       (when-let [f (:analyze-expression** ctx)]
-         (f ctx expr))
+         quote? (or quote?
+                    (= :quote t))
+         ;; nested syntax quotes are treated as normal quoted expressions by clj-kondo
+         syntax-quote? (or syntax-quote? (= :syntax-quote t))
+         nested-syntax-quote? (or nested-syntax-quote? (and (:in-syntax-quote? ctx) (= :syntax-quote t)))
+         ctx (assoc ctx
+                    :in-syntax-quote? syntax-quote?
+                    :nested-syntax-quote? nested-syntax-quote?)]
+     (if (and (not nested-syntax-quote?) (one-of t [:unquote :unquote-splicing]))
+       (common/analyze-expression** ctx expr)
        (when (or (not quote?)
                  ;; when we're in syntax-quote, we should still look for
-                 ;; unquotes, since these will be evaluated first
+                 ;; unquotes, since these will be evaluated first, unless we're
+                 ;; in a nested syntax-quote
                  syntax-quote?)
          (let [syntax-quote?
                (or syntax-quote?

@@ -1798,7 +1798,8 @@
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(.log js/console ^js #js [1 2 3])"
                      {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! (io/file "corpus" "nested_syntax_quote.clj")))))
 
 (deftest file-error-test
   (assert-submaps '({:file "not-existing.clj",
