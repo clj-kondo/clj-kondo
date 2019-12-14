@@ -820,7 +820,10 @@
             :col 10,
             :level :error,
             :message "missing value for key :post"})
-         (lint! "(fn [x] {:post} x)"))))
+         (lint! "(fn [x] {:post} x)")))
+  (is (assert-submaps
+       '({:row 1, :col 22, :level :error, :message "missing value for key :c"})
+       (lint! "(let [{:keys [:a :b] :c} {}] [a b])"))))
 
 (deftest set-duplicate-key
   (is (= '({:file "<stdin>",

@@ -173,35 +173,37 @@
                           :tags tags)))
        :namespaced-map (extract-bindings ctx (first (:children expr)) opts)
        :map
-       (loop [[k v & rest-kvs] (:children expr)
-              res {}]
-         (if k
-           (let [k (lift-meta-content* ctx k)]
-             (cond (:k k)
-                   (do
-                     (analyze-usages2 ctx k)
-                     (case (keyword (name (:k k)))
-                       (:keys :syms :strs)
-                       (recur rest-kvs
-                              (into res (map #(extract-bindings
-                                               ctx %
-                                               (assoc opts :keys-destructuring? true)))
-                                    (:children v)))
-                       ;; or doesn't introduce new bindings, it only gives defaults
-                       :or
-                       (if (empty? rest-kvs)
-                         ;; or can refer to a binding introduced by what we extracted
-                         (let [ctx (ctx-with-bindings ctx res)]
-                           (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
-                                                                  ctx res v)})))
-                         ;; analyze or after the rest
-                         (recur (concat rest-kvs [k v]) res))
-                       :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
-                       (recur rest-kvs res)))
-                   :else
-                   (recur rest-kvs (merge res (extract-bindings ctx k opts)
-                                          {:analyzed (analyze-expression** ctx v)}))))
-           res))
+       ;; first check even amount of keys + vals
+       (do (key-linter/lint-map-keys ctx expr)
+           (loop [[k v & rest-kvs] (:children expr)
+                  res {}]
+             (if k
+               (let [k (lift-meta-content* ctx k)]
+                 (cond (:k k)
+                       (do
+                         (analyze-usages2 ctx k)
+                         (case (keyword (name (:k k)))
+                           (:keys :syms :strs)
+                           (recur rest-kvs
+                                  (into res (map #(extract-bindings
+                                                   ctx %
+                                                   (assoc opts :keys-destructuring? true)))
+                                        (:children v)))
+                           ;; or doesn't introduce new bindings, it only gives defaults
+                           :or
+                           (if (empty? rest-kvs)
+                             ;; or can refer to a binding introduced by what we extracted
+                             (let [ctx (ctx-with-bindings ctx res)]
+                               (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
+                                                                      ctx res v)})))
+                             ;; analyze or after the rest
+                             (recur (concat rest-kvs [k v]) res))
+                           :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
+                           (recur rest-kvs res)))
+                       :else
+                       (recur rest-kvs (merge res (extract-bindings ctx k opts)
+                                              {:analyzed (analyze-expression** ctx v)}))))
+               res)))
        (findings/reg-finding!
         findings
         (node->line (:filename ctx)
@@ -434,10 +436,11 @@
       (if binding
         (let [binding-tag (tag binding)
               binding-val (case binding-tag
-                            :token (or (:value binding)
-                                       (:k binding))
-                            :map (do (key-linter/lint-map-keys ctx binding)
-                                     nil)
+                            :token (or
+                                    ;; symbol
+                                    (:value binding)
+                                    ;; keyword
+                                    (:k binding))
                             nil)
               ;; binding-sexpr (sexpr binding)
               for-let? (and for-like?
