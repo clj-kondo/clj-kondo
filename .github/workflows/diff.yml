@@ -12,5 +12,7 @@ jobs:
       uses: actions/checkout@v1
     - name: Setup Clojure
       uses: DeLaGuardo/setup-clojure@2.0
+      with:
+        tools-deps: '1.10.1.469'
     - name: Diff
       run: ./script/diff
