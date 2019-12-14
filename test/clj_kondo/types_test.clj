@@ -437,7 +437,9 @@
                        {:linters {:type-mismatch {:level :error}}}))))
   (testing "collection could be a function"
     (is (empty? (lint! "(filter (conj #{} 1) [1])"
-                       {:linters {:type-mismatch {:level :error}}})))))
+                       {:linters {:type-mismatch {:level :error}}}))))
+  (testing "nilable types"
+    (is (empty? (lint! "(dissoc nil) (dissoc nil 1 2 3) (find nil 1) (select-keys nil [1 2 3])")))))
 
 ;;;; Scratch
 

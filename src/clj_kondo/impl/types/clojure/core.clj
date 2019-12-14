@@ -321,17 +321,19 @@
                       :ret :vector}}}
    ;; 1478 'map-entry?
    ;; 1484 'contains?
+   ;; NOTE: get is an any->any function on any object that implements ILookup.
    ;; 1494 'get
    ;; 1504
-   'dissoc {:arities {:varargs {:args [:map {:op :rest :spec :any}]
-                                :ret :map}}}
+   'dissoc {:arities {:varargs {:args [:nilable/map {:op :rest :spec :any}]
+                                :ret :nilable/map}}}
    ;; 1518 'disj
    ;; 1534
-   'find {:arities {2 {:args [:associative :any]}}}
+   'find {:arities {2 {:args [:nilable/associative :any]}}}
    ;; 1540
-   'select-keys {:arities {2 {:args [:associative :seqable]
+   'select-keys {:arities {2 {:args [:nilable/associative :seqable]
                               :ret :map}}}
    ;; 1555
+   ;; NOTE: keys and vals can be called on seqs of MapEntry's, hence not :associative.
    'keys {:arities {1 {:args [:seqable]
                        :ret :seqable}}}
    ;; 1561
