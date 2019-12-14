@@ -37,7 +37,7 @@ clj-kondo detects:
 * unused function arguments and let bindings
 * unused imports
 * redefined vars
-* unresolved symbols
+* unresolved symbols and namespaces
 * misplaced docstrings
 * duplicate map keys and set elements
 * missing map keys
