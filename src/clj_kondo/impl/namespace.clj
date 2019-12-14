@@ -197,15 +197,11 @@
          conj import))
 
 (defn reg-unresolved-namespace!
-  [{:keys [:base-lang :lang :namespaces] :as _ctx} ns-sym unresolved-ns]
-  #_(when-not (or (:unresolved-symbol-disabled? sym-info)
-                (config/unresolved-symbol-excluded config
-                                                   callstack symbol)
-                (let [symbol-name (name symbol)]
-                  (or (str/starts-with? symbol-name ".")
-                      (class-name? symbol-name)))))
-  (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces]
-         conj unresolved-ns))
+  [{:keys [:base-lang :lang :namespaces :config :callstack] :as _ctx} ns-sym unresolved-ns]
+  (when-not (config/unresolved-symbol-excluded config
+                                               callstack symbol)
+    (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces]
+           conj unresolved-ns)))
 
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))

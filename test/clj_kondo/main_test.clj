@@ -1046,15 +1046,14 @@
           '{:lint-as {foo/my-defn clojure.core/defn}}))
   (assert-submaps
    '[{:level :error, :message #"fully qualified symbol"}]
-   (lint! "(foo.bar/when-let)" '{:lint-as {foo.bar/when-let when-let}}))
+   (lint! "(require '[foo.bar]) (foo.bar/when-let)" '{:lint-as {foo.bar/when-let when-let}}))
   (is (empty?
        (lint! "(ns foo) (defmacro deftest [name & body] `(defn ~name [] ~@body)) (deftest foo)"
               '{:linters {:unresolved-symbol {:level :warning}}
                 :lint-as {foo/deftest clojure.test/deftest}})))
   (is (empty?
        (lint! (io/file "corpus" "lint_as_for.clj")
-              '{:linters {:unresolved-symbol {:level :warning}}})))
-  )
+              '{:linters {:unresolved-symbol {:level :warning}}}))))
 
 (deftest letfn-test
   (assert-submaps '({:file "<stdin>",
@@ -2343,7 +2342,7 @@
       :level :warning, :message #"Inconsistent.*str.*x"}]
     (lint! "(ns foo (:require [clojure.string :as x])) x/join"
            {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))
-  (is (empty? (lint! "(ns foo (:require [clojure.string])) x/join"
+  (is (empty? (lint! "(ns foo (:require [clojure.string])) clojure.string/join"
                      {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))))
 
 (deftest set!-test
