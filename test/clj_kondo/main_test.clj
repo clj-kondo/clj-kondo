@@ -1800,6 +1800,8 @@
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! (io/file "corpus" "nested_syntax_quote.clj")
+                     {:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(doseq [[ns-sym _ alias-sym] (cons t ts)] (create-ns ns-sym)  (alias alias-sym ns-sym))"
                      {:linters {:unused-binding {:level :warning}}}))))
 
 (deftest file-error-test

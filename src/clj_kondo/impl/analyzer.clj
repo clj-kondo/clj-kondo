@@ -644,10 +644,14 @@
 
 (defn analyze-alias [ctx expr]
   (let [ns (:ns ctx)
-        [alias-sym ns-sym]
-        (map #(-> % :children first :value)
-             (rest (:children expr)))]
-    (namespace/reg-alias! ctx (:name ns) alias-sym ns-sym)
+        [alias-expr ns-expr :as children] (rest (:children expr))
+        alias-sym (when (= :quote (tag alias-expr))
+                    (:value (first (:children alias-expr))))
+        ns-sym (when (= :quote (tag alias-expr))
+                 (:value (first (:children ns-expr))))]
+    (if (and alias-sym (symbol? alias-sym) ns-sym (symbol? ns-sym))
+      (namespace/reg-alias! ctx (:name ns) alias-sym ns-sym)
+      (analyze-children ctx children))
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
 (defn analyze-loop [ctx expr]
