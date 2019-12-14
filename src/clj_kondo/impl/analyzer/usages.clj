@@ -44,18 +44,20 @@
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
-         nested-syntax-quote? (:nested-syntax-quote? ctx)
+         syntax-quote-level (or (:syntax-quote-level ctx) 0)
          ns-name (:name ns)
          t (tag expr)
          quote? (or quote?
                     (= :quote t))
          ;; nested syntax quotes are treated as normal quoted expressions by clj-kondo
-         syntax-quote? (or syntax-quote? (= :syntax-quote t))
-         nested-syntax-quote? (or nested-syntax-quote? (and (:in-syntax-quote? ctx) (= :syntax-quote t)))
-         ctx (assoc ctx
-                    :in-syntax-quote? syntax-quote?
-                    :nested-syntax-quote? nested-syntax-quote?)]
-     (if (and (not nested-syntax-quote?) (one-of t [:unquote :unquote-splicing]))
+         syntax-quote-tag? (= :syntax-quote t)
+         unquote-tag? (one-of t [:unquote :unquote-splicing])
+         new-syntax-quote-level (cond syntax-quote-tag? (inc syntax-quote-level)
+                                      unquote-tag? (dec syntax-quote-level)
+                                      :else syntax-quote-level)
+         syntax-quote? (or syntax-quote? syntax-quote-tag?)
+         ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)]
+     (if (and (= 1 syntax-quote-level) unquote-tag?)
        (common/analyze-expression** ctx expr)
        (when (or (not quote?)
                  ;; when we're in syntax-quote, we should still look for
