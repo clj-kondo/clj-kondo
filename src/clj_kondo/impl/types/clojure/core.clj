@@ -321,7 +321,7 @@
                       :ret :vector}}}
    ;; 1478 'map-entry?
    ;; 1484 'contains?
-   ;; NOTE: get is an any->any function on any object that implements ILookup
+   ;; NOTE: get is an any->any function on any object that implements ILookup.
    ;; 1494 'get
    ;; 1504
    'dissoc {:arities {:varargs {:args [:nilable/map {:op :rest :spec :any}]
