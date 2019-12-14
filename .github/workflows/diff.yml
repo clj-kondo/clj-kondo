@@ -1,0 +1,14 @@
+name: Linting diff
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Diff
+      run: ./script/diff
