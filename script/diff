@@ -14,7 +14,7 @@ EOF
 out="/tmp/clj-kondo-diff/branch.txt"
 
 echo "Linting and writing output to $out"
-clj -A:clj-kondo --lint "$cp" --cache --config "$config" > "$out"
+clojure -A:clj-kondo --lint "$cp" --cache --config "$config" > "$out"
 
 cd /tmp
 rm -rf clj-kondo
@@ -25,6 +25,6 @@ out="/tmp/clj-kondo-diff/master.txt"
 
 echo "Linting and writing output to $out"
 
-clj -A:clj-kondo --lint "$cp" --cache --config "$config" > "$out"
+clojure -A:clj-kondo --lint "$cp" --cache --config "$config" > "$out"
 
 diff /tmp/clj-kondo-diff/branch.txt /tmp/clj-kondo-diff/master.txt
