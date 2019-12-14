@@ -3,7 +3,7 @@ name: Linting diff
 on: [push]
 
 jobs:
-  build:
+  linting-diff:
 
     runs-on: ubuntu-latest
 
