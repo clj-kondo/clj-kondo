@@ -80,7 +80,7 @@
 
 ;;;; find cache/config dir
 
-(defn- lineage [^java.io.File file]
+(defn lineage [^java.io.File file]
   (lazy-seq
    (when file
      (cons file (lineage (.getParentFile file))))))
@@ -89,18 +89,7 @@
   (when-let [[_ ext] (re-find #"\.(\w+)$" filename)]
     (one-of (keyword ext) [:clj :cljs :cljc :edn])))
 
-(defn- single-file-lint? [lint]
-  (and (= 1 (count lint))
-       (.isFile (io/file (first lint)))
-       (source-file? (str (first lint)))))
-
-(defn- possible-config-dir-locations [lint]
-  (concat
-   (when (single-file-lint? lint)
-     (lineage (.getParentFile (io/file (first lint)))))
-   (lineage (io/file (System/getProperty "user.dir")))))
-
-(defn config-dir [lint]
+(defn config-dir [cwd]
   (transduce (comp (map #(io/file % ".clj-kondo"))
                    (filter #(.exists ^java.io.File %)))
              (fn
@@ -110,7 +99,7 @@
                 (if (.isDirectory cfg-dir)
                   (reduced cfg-dir)
                   (throw (Exception. (str cfg-dir " must be a directory"))))))
-             (possible-config-dir-locations lint)))
+             (lineage cwd)))
 
 ;;;; jar processing
 
