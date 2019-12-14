@@ -17,10 +17,14 @@
 (def type-hint-bindings
   '{void {} objects {}})
 
-(defn lift-meta-content2 [ctx node]
+(defn lift-meta-content2 [{:keys [:lang] :as ctx} node]
   (if-let [meta-list (:meta node)]
     (let [ctx-with-type-hint-bindings
-          (utils/ctx-with-bindings ctx type-hint-bindings)
+          (utils/ctx-with-bindings ctx
+                                   (cond->
+                                       type-hint-bindings
+                                     (identical? :cljs lang)
+                                     (assoc 'js {})))
           ;; use dorun to force analysis, we don't use the end result!
           _ (run! #(dorun (common/analyze-expression** ctx-with-type-hint-bindings %))
                   meta-list)
