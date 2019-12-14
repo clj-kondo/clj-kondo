@@ -59,8 +59,8 @@
            (case t
              :token
              (if-let [symbol-val (symbol-from-token expr)]
-               (let [simple-symbol? (empty? (namespace symbol-val))]
-                 (if-let [b (when (and simple-symbol? (not syntax-quote?))
+               (let [simple? (simple-symbol? symbol-val)]
+                 (if-let [b (when (and simple? (not syntax-quote?))
                               (get (:bindings ctx) symbol-val))]
                    (namespace/reg-used-binding! ctx
                                                 (-> ns :name)
@@ -71,6 +71,12 @@
                           clojure-excluded? :clojure-excluded?
                           :as _m}
                          (let [v (namespace/resolve-name ctx ns-name symbol-val)]
+                           (when-not syntax-quote?
+                             (when-let [n (:unresolved-ns v)]
+                               (namespace/reg-unresolved-namespace!
+                                ctx ns-name
+                                (with-meta n
+                                  (meta expr)))))
                            (if (:unresolved? v)
                              (let [symbol-str (str symbol-val)]
                                (if (str/ends-with? (str symbol-val) ".")

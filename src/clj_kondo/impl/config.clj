@@ -49,6 +49,7 @@
                                             (cljs.test/are [thrown? thrown-with-msg?])
                                             (clojure.test/is [thrown? thrown-with-msg?])
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
+              :unresolved-namespace {:level :warning}
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}
               :deprecated-var {:level :warning

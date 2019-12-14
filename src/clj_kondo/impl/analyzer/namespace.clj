@@ -252,6 +252,7 @@
    :used-referred-vars #{}
    :used-imports #{}
    :used-vars []
+   :unresolved-namespaces #{}
    :vars {}
    :row row
    :col col})

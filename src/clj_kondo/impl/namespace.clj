@@ -6,7 +6,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
-   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled?]]
+   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled? one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
   (:import [java.util StringTokenizer]))
@@ -149,7 +149,7 @@
            (update ns :imports merge imports)))
   nil)
 
-(defn java-class? [s]
+(defn class-name? [s]
   (let [splits (str/split s #"\.")]
     (and (> (count splits) 2)
          (Character/isUpperCase ^char (first (last splits))))))
@@ -163,7 +163,7 @@
                                                    callstack symbol)
                 (let [symbol-name (name symbol)]
                   (or (str/starts-with? symbol-name ".")
-                      (java-class? symbol-name))))
+                      (class-name? symbol-name))))
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
            (fn [old-sym-info]
              (if (nil? old-sym-info)
@@ -196,6 +196,17 @@
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj import))
 
+(defn reg-unresolved-namespace!
+  [{:keys [:base-lang :lang :namespaces :config :callstack] :as _ctx} ns-sym unresolved-ns]
+  ;; NOTE: we check the unresolved-symbol config to exclude certain macros, most
+  ;; notably user/defproject, but this is not documented yet. We might have to
+  ;; come up with a separate config for unresolved-namespace, but it's not yet
+  ;; clear what it should look like.
+  (when-not (config/unresolved-symbol-excluded config
+                                               callstack symbol)
+    (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces]
+           conj unresolved-ns)))
+
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
 
@@ -215,25 +226,40 @@
   [ctx ns-name name-sym]
   ;; (prn "NAME" name-sym)
   (let [lang (:lang ctx)
-        ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
+        ns (get-namespace ctx (:base-lang ctx) lang ns-name)
+        cljs? (identical? :cljs lang)]
     (if-let [ns* (namespace name-sym)]
-      (let [ns-sym (symbol ns*)]
-        (or (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                             ;; referring to the namespace we're in
-                             (when (= (:name ns) ns-sym)
-                               ns-sym))]
+      (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
+                    ns*)
+            ns-sym (symbol ns*)]
+        (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
+                               ;; referring to the namespace we're in
+                               (when (= (:name ns) ns-sym)
+                                 ns-sym))]
+
               {:ns ns*
-               :name (symbol (name name-sym))}
-              (when-let [[class-name package]
-                         (or (when (identical? :clj lang)
-                               (or (find var-info/default-import->qname ns-sym)
-                                   (when-let [v (get var-info/default-fq-imports ns-sym)]
-                                     [v v])))
-                             (find (:imports ns) ns-sym))]
-                (reg-used-import! ctx ns-name class-name)
-                {:interop? true
-                 :ns package
-                 :name (symbol (name name-sym))}))))
+               :name (symbol (name name-sym))})
+            (when-let [[class-name package]
+                       (or (when (identical? :clj lang)
+                             (or (find var-info/default-import->qname ns-sym)
+                                 (when-let [v (get var-info/default-fq-imports ns-sym)]
+                                   [v v])))
+                           (find (:imports ns) ns-sym))]
+              (reg-used-import! ctx ns-name class-name)
+              {:interop? true
+               :ns package
+               :name (symbol (name name-sym))})
+            (when-not (if (identical? :clj lang)
+                        (or (one-of ns* ["clojure.core"])
+                            (class-name? ns*))
+                        (when cljs?
+                          ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
+                          (one-of ns* ["js" "goog" "cljs.core"
+                                       "Math" "String" "goog.object" "goog.string"
+                                       "goog.array"])))
+              {:name (symbol (name name-sym))
+               :unresolved? true
+               :unresolved-ns ns-sym})))
       (or
        (when-let [[k v] (find (:referred-vars ns)
                               name-sym)]
@@ -247,7 +273,7 @@
                       (when-let [v (get var-info/default-fq-imports name-sym)]
                         [v v])
                       ;; (find (:imports ns) name-sym)
-                      (if (identical? :cljs lang)
+                      (if cljs?
                         ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
                         ;; hmm, this causes the extractor to fuck up
                         (let [fs (first-segment name-sym)]
@@ -258,7 +284,7 @@
          {:ns package
           :interop? true
           :name name-sym*})
-       (when (= :cljs lang)
+       (when cljs?
          (when-let [ns* (get (:qualify-ns ns) name-sym)]
            (when (some-> (meta ns*) :raw-name string?)
              {:ns ns*

@@ -203,7 +203,9 @@
                        call (:used-vars ns)
                        :let [call? (= :call (:type call))
                              unresolved? (:unresolved? call)
-                             fn-name (:name call)
+                             unresolved-ns (:unresolved-ns call)]
+                       :when (not unresolved-ns)
+                       :let [fn-name (:name call)
                              caller-ns-sym (:ns call)
                              call-lang (:lang call)
                              caller-ns (get-in @(:namespaces ctx)
@@ -467,6 +469,21 @@
       :type :unused-import
       :filename filename
       :message (str "Unused import " import)
+      :row row
+      :col col})))
+
+(defn lint-unresolved-namespaces!
+  [{:keys [:findings] :as ctx}]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [filename (:filename ns)]
+          un (:unresolved-namespaces ns)
+          :let [{:keys [:row :col]} (meta un)]]
+    (findings/reg-finding!
+     findings
+     {:level :warning
+      :type :unresolved-namespace
+      :filename filename
+      :message (str "Unresolved namespace " un ". Are you missing a require?")
       :row row
       :col col})))
 
