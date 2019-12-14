@@ -173,35 +173,37 @@
                           :tags tags)))
        :namespaced-map (extract-bindings ctx (first (:children expr)) opts)
        :map
-       (loop [[k v & rest-kvs] (:children expr)
-              res {}]
-         (if k
-           (let [k (lift-meta-content* ctx k)]
-             (cond (:k k)
-                   (do
-                     (analyze-usages2 ctx k)
-                     (case (keyword (name (:k k)))
-                       (:keys :syms :strs)
-                       (recur rest-kvs
-                              (into res (map #(extract-bindings
-                                               ctx %
-                                               (assoc opts :keys-destructuring? true)))
-                                    (:children v)))
-                       ;; or doesn't introduce new bindings, it only gives defaults
-                       :or
-                       (if (empty? rest-kvs)
-                         ;; or can refer to a binding introduced by what we extracted
-                         (let [ctx (ctx-with-bindings ctx res)]
-                           (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
-                                                                  ctx res v)})))
-                         ;; analyze or after the rest
-                         (recur (concat rest-kvs [k v]) res))
-                       :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
-                       (recur rest-kvs res)))
-                   :else
-                   (recur rest-kvs (merge res (extract-bindings ctx k opts)
-                                          {:analyzed (analyze-expression** ctx v)}))))
-           res))
+       ;; first check even amount of keys + vals
+       (do (key-linter/lint-map-keys ctx expr)
+           (loop [[k v & rest-kvs] (:children expr)
+                  res {}]
+             (if k
+               (let [k (lift-meta-content* ctx k)]
+                 (cond (:k k)
+                       (do
+                         (analyze-usages2 ctx k)
+                         (case (keyword (name (:k k)))
+                           (:keys :syms :strs)
+                           (recur rest-kvs
+                                  (into res (map #(extract-bindings
+                                                   ctx %
+                                                   (assoc opts :keys-destructuring? true)))
+                                        (:children v)))
+                           ;; or doesn't introduce new bindings, it only gives defaults
+                           :or
+                           (if (empty? rest-kvs)
+                             ;; or can refer to a binding introduced by what we extracted
+                             (let [ctx (ctx-with-bindings ctx res)]
+                               (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
+                                                                      ctx res v)})))
+                             ;; analyze or after the rest
+                             (recur (concat rest-kvs [k v]) res))
+                           :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
+                           (recur rest-kvs res)))
+                       :else
+                       (recur rest-kvs (merge res (extract-bindings ctx k opts)
+                                              {:analyzed (analyze-expression** ctx v)}))))
+               res)))
        (findings/reg-finding!
         findings
         (node->line (:filename ctx)
@@ -432,9 +434,17 @@
            arities (:arities ctx)
            analyzed []]
       (if binding
-        (let [binding-sexpr (sexpr binding)
+        (let [binding-tag (tag binding)
+              binding-val (case binding-tag
+                            :token (or
+                                    ;; symbol
+                                    (:value binding)
+                                    ;; keyword
+                                    (:k binding))
+                            nil)
+              ;; binding-sexpr (sexpr binding)
               for-let? (and for-like?
-                            (= :let binding-sexpr))]
+                            (= :let binding-val))]
           (if for-let?
             (let [{new-bindings :bindings
                    new-analyzed :analyzed
@@ -447,7 +457,7 @@
                      (concat analyzed new-analyzed)))
             (let [binding (cond for-let? value
                                 ;; ignore :when and :while in for
-                                (keyword? binding-sexpr) nil
+                                (keyword? binding-val) nil
                                 :else binding)
                   ctx* (-> ctx
                            (ctx-with-bindings bindings)
@@ -463,7 +473,9 @@
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
                   next-arities (if-let [arity (:arity (meta analyzed-value))]
-                                 (assoc arities binding-sexpr arity)
+                                 ;; in this case binding-sexpr is a symbol,
+                                 ;; since functions cannot be destructured
+                                 (assoc arities binding-val arity)
                                  arities)]
               (recur rest-bindings
                      (merge bindings new-bindings)
