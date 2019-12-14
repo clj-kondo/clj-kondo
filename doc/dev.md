@@ -20,8 +20,27 @@
    1. Single-file mode should be able to find the configuration it needs in a predicable location. Scattering configuration in metadata across libraries does not work well for this.
    2. Configuration should be able to live in a project's source repository, so team members can profit from each other's additions.
    3. Configuration spread across multiple files is harder to debug.
- 
+
  6) Clj-kondo should be unobtrusive. Users of clj-kondo should not have to change their code only to make the linter happy. Team members who do not wish to use clj-kondo should not be confronted with clj-kondo-related annotations in their code.
+
+## PR
+
+### Linting diff
+
+When implementing a new linter or changing an existing one, run the
+`script/diff` to view changed linting output between your branch and the master
+branch on Github. Please include the output in a PR. This step may be automated
+in the future using a Github action.
+
+### Force-push
+
+Please do not use `git push --force` on your PR branch for the following
+reasons:
+
+- It makes it more difficult for others to contribute to your branch if needed.
+- CircleCI doesn't play well with it: it might try to fetch a commit which
+  doesn't exist anymore.
+- Your PR will be squashed anyway.
 
 ## REPL
 
