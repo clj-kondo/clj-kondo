@@ -336,10 +336,10 @@
    'select-keys {:arities {2 {:args [:nilable/associative :seqable]
                               :ret :map}}}
    ;; 1555
-   'keys {:arities {1 {:args [:nilable/associative]
+   'keys {:arities {1 {:args [:seqable]
                        :ret :seqable}}}
    ;; 1561
-   'vals {:arities {1 {:args [:nilable/associative]
+   'vals {:arities {1 {:args [:seqable]
                        :ret :seqable}}}
    ;; 1567 'key
    ;; 1574 'val
