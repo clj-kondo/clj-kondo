@@ -249,7 +249,13 @@
             (when-not (if (identical? :clj lang)
                         (or (one-of ns* ["clojure.core"])
                             (class-name? ns*))
-                        (when (identical? :cljs lang) (one-of ns* ["js" "goog" "cljs.core"])))
+                        (when (identical? :cljs lang)
+                          ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
+                          (one-of ns* ["js" "goog" "cljs.core"
+                                       "Math" "String" "goog.object" "goog.string"
+                                       "goog.array"])
+                          ;; TODO: cljs.spec.alpha$macros
+                          ))
               {:name (symbol (name name-sym))
                :unresolved? true
                :unresolved-ns ns-sym})))

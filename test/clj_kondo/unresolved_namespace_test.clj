@@ -15,4 +15,7 @@
   (is (empty? (lint! "goog/foo" "--lang" "cljs")))
   (is (empty? (lint! "(java.lang.Foo/Bar)")))
   (is (empty? (lint! "(clojure.core/inc 1)")))
-  (is (empty? (lint! "(comment (require '[foo.bar]) (foo.bar/x))"))))
+  (is (empty? (lint! "(comment (require '[foo.bar]) (foo.bar/x))")))
+  (is (empty? (lint! "(Math/pow 2 3)" "--lang" "cljs")))
+  (is (empty? (lint! "(System/exit 0)")))
+  (is (empty? (lint! "(require '[foo.bar] '[clojure.string :as str]) (str/starts-with? \"foo\" \"bar\")"))))

@@ -38,8 +38,9 @@
   ([{:keys [:callstack :config :top-level?] :as ctx} children add-new-arg-types?]
    ;; (prn callstack)
    (let [top-level? (and top-level?
-                         (= '[clojure.core comment]
-                            (first callstack)))]
+                         (let [fst (first callstack)]
+                           (one-of fst [[clojure.core comment]
+                                        [cljs.core comment]])))]
      (when-not (config/skip? config callstack)
        (let [ctx (assoc ctx
                         :top-level? top-level?
@@ -918,7 +919,7 @@
         children (:children expr)
         require-node (first children)
         children (next children)]
-    (when-let [child (first children)]
+    (doseq [child children]
       (if (= :quote (tag child))
         (when-let [libspec-expr (first (:children child))]
           (let [analyzed
