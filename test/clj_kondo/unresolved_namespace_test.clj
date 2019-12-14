@@ -19,4 +19,6 @@
   (is (empty? (lint! "(Math/pow 2 3)" "--lang" "cljs")))
   (is (empty? (lint! "(System/exit 0)")))
   (is (empty? (lint! "(require '[foo.bar] '[clojure.string :as str]) (str/starts-with? \"foo\" \"bar\")")))
-  (is (empty? (lint! "(ns foo (:import java.util.regex.Pattern)) (Pattern/compile \"foo\")"))))
+  (is (empty? (lint! "(ns foo (:import java.util.regex.Pattern)) (Pattern/compile \"foo\")")))
+  (is (empty? (lint! "(ns foo (:require [foo.bar])) (foo.bar$macros/x)"
+                     "--lang" "cljs"))))

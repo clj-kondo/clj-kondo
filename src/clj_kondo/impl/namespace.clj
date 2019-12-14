@@ -226,9 +226,12 @@
   [ctx ns-name name-sym]
   ;; (prn "NAME" name-sym)
   (let [lang (:lang ctx)
-        ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
+        ns (get-namespace ctx (:base-lang ctx) lang ns-name)
+        cljs? (identical? :cljs lang)]
     (if-let [ns* (namespace name-sym)]
-      (let [ns-sym (symbol ns*)]
+      (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
+                    ns*)
+            ns-sym (symbol ns*)]
         (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)
@@ -249,13 +252,11 @@
             (when-not (if (identical? :clj lang)
                         (or (one-of ns* ["clojure.core"])
                             (class-name? ns*))
-                        (when (identical? :cljs lang)
+                        (when cljs?
                           ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
                           (one-of ns* ["js" "goog" "cljs.core"
                                        "Math" "String" "goog.object" "goog.string"
-                                       "goog.array"])
-                          ;; TODO: cljs.spec.alpha$macros
-                          ))
+                                       "goog.array"])))
               {:name (symbol (name name-sym))
                :unresolved? true
                :unresolved-ns ns-sym})))
@@ -272,7 +273,7 @@
                       (when-let [v (get var-info/default-fq-imports name-sym)]
                         [v v])
                       ;; (find (:imports ns) name-sym)
-                      (if (identical? :cljs lang)
+                      (if cljs?
                         ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
                         ;; hmm, this causes the extractor to fuck up
                         (let [fs (first-segment name-sym)]
@@ -283,7 +284,7 @@
          {:ns package
           :interop? true
           :name name-sym*})
-       (when (= :cljs lang)
+       (when cljs?
          (when-let [ns* (get (:qualify-ns ns) name-sym)]
            (when (some-> (meta ns*) :raw-name string?)
              {:ns ns*
