@@ -80,26 +80,23 @@
 
 ;;;; find cache/config dir
 
-(defn lineage [^java.io.File file]
-  (lazy-seq
-   (when file
-     (cons file (lineage (.getParentFile file))))))
-
 (defn source-file? [filename]
   (when-let [[_ ext] (re-find #"\.(\w+)$" filename)]
     (one-of (keyword ext) [:clj :cljs :cljc :edn])))
 
-(defn config-dir [cwd]
-  (transduce (comp (map #(io/file % ".clj-kondo"))
-                   (filter #(.exists ^java.io.File %)))
-             (fn
-               ([] nil)
-               ([result] result)
-               ([_ ^java.io.File cfg-dir]
-                (if (.isDirectory cfg-dir)
-                  (reduced cfg-dir)
-                  (throw (Exception. (str cfg-dir " must be a directory"))))))
-             (lineage cwd)))
+(defn config-dir
+  ([] (config-dir
+       (io/file
+        (System/getProperty "user.dir"))))
+  ([cwd]
+   (loop [dir (io/file cwd)]
+     (let [cfg-dir (io/file dir ".clj-kondo")]
+       (if (.exists cfg-dir)
+         (if (.isDirectory cfg-dir)
+           cfg-dir
+           (throw (Exception. (str cfg-dir " must be a directory"))))
+         (when-let [parent (.getParentFile dir)]
+           (recur parent)))))))
 
 ;;;; jar processing
 
