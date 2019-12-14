@@ -321,11 +321,7 @@
                       :ret :vector}}}
    ;; 1478 'map-entry?
    ;; 1484 'contains?
-   ;; 1494
-   'get {:arities {2 {:args [:nilable/associative :any]
-                      :ret :any}
-                   3 {:args [:nilable/associative :any :any]
-                      :ret :any}}}
+   ;; 1494 'get
    ;; 1504
    'dissoc {:arities {:varargs {:args [:nilable/map {:op :rest :spec :any}]
                                 :ret :nilable/map}}}
