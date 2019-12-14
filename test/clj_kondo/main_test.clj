@@ -1458,6 +1458,11 @@
    (lint! "(with-open [x ? y ?] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
+   '({:level :warning,
+      :message "unused binding x"})
+   (lint! "(with-local-vars [x 1] 1)"
+          '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 7,
