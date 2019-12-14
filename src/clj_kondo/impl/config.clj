@@ -108,7 +108,10 @@
 
 (defn fq-syms->vecs [fq-syms]
   (map (fn [fq-sym]
-         [(symbol (namespace fq-sym)) (symbol (name fq-sym))])
+         (if-let [ns* (namespace fq-sym)]
+           [(symbol ns*) (symbol (name fq-sym))]
+           (throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                           {:type :clj-kondo/config}))))
        fq-syms))
 
 (defn skip-args*
@@ -135,13 +138,6 @@
       (some (fn [disabled-sym]
               (some #(= disabled-sym %) callstack))
             disabled)))))
-
-#_(comment
-  (inc (merge-config! "foo" nil))
-  (inc (fq-syms->vecs 1))
-  (inc (skip-args "foo"))
-  (inc (skip? nil nil)) 
-  )
 
 (defn lint-as-config* [config]
   (let [m (get config :lint-as)]
@@ -187,9 +183,17 @@
              (reduce (fn [acc [fq-name excluded]]
                        (let [ns-name (symbol (namespace fq-name))
                              var-name (symbol (name fq-name))]
-                         (assoc acc [ns-name var-name] (if excluded
-                                                         (set excluded)
-                                                         identity))))
+                         (update acc [ns-name var-name]
+                                 (fn [old]
+                                   (cond (nil? old)
+                                         (if excluded
+                                           (set excluded)
+                                           identity)
+                                         (set? old)
+                                         (if excluded
+                                           (into old excluded)
+                                           old)
+                                         :else identity)))))
                      {} calls)}))
         delayed-cfg (memoize delayed-cfg)]
     (fn [config callstack sym]

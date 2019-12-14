@@ -164,7 +164,7 @@
                 (recur (nnext children)
                        m)))
             (let [{:keys [:as :referred :excluded :referred-all :renamed]} m]
-              (lint-alias-consistency ctx ns-name as)
+              (when as (lint-alias-consistency ctx ns-name as))
               [{:type :require
                 :ns ns-name
                 :as as
