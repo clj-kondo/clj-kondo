@@ -198,6 +198,10 @@
 
 (defn reg-unresolved-namespace!
   [{:keys [:base-lang :lang :namespaces :config :callstack] :as _ctx} ns-sym unresolved-ns]
+  ;; NOTE: we check the unresolved-symbol config to exclude certain macros, most
+  ;; notably user/defproject, but this is not documented yet. We might have to
+  ;; come up with a separate config for unresolved-namespace, but it's not yet
+  ;; clear what it should look like.
   (when-not (config/unresolved-symbol-excluded config
                                                callstack symbol)
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces]
