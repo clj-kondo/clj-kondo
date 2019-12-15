@@ -7,8 +7,8 @@
 ;; a lot of this work was already figured out here:
 ;; https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc
 
-(def seqable->seqable {:arities {1 {:args [:seqable]
-                                    :ret :seqable-out}}})
+(def seqable->seq {:arities {1 {:args [:seqable]
+                                :ret :seq}}})
 
 (def seqable->any {:arities {1 {:args [:seqable]
                                 :ret :any}}})
@@ -53,9 +53,9 @@
    ;; 49
    'first seqable->any
    ;; 57
-   'next seqable->seqable
+   'next seqable->seq
    ;; 66
-   'rest seqable->seqable
+   'rest seqable->seq
    ;; 75
    'conj {:arities {0 {:args [:coll]
                        :ret :coll}
@@ -66,11 +66,11 @@
    ;; 98
    'ffirst seqable->any
    ;; 105
-   'nfirst seqable->seqable
+   'nfirst seqable->seq
    ;; 112
    'fnext seqable->any
    ;; 119
-   'nnext seqable->seqable
+   'nnext seqable->seq
    ;; 126
    'seq {:arities {1 {:args [:seqable]
                       :ret :seq}}}
@@ -102,7 +102,7 @@
    ;; 262
    'last seqable->any
    ;; 272
-   'butlast seqable->seqable
+   'butlast seqable->seq
    ;; 283 'defn
    ;; 338 'to-array
    ;; 346 'cast
@@ -209,7 +209,7 @@
    'inc number->number
    ;; 947
    'reverse {:arities {1 {:args [:seqable]}}
-             :ret :seqable-out}
+             :ret :seq}
    ;; 972
    '+' number*->number
    ;; 984
@@ -458,7 +458,7 @@
                       :ret :transducer}
                    :varargs {:args '[:ifn :seqable [{:op :rest
                                                      :spec :seqable}]]
-                             :ret :seqable-out}}}
+                             :ret :seq}}}
    ;; 2776 'declare
    ;; 2781 'cat
    ;; 2783 'mapcat
@@ -466,12 +466,12 @@
    'filter {:arities {1 {:args [:ifn]
                          :ret :transducer}
                       2 {:args [:ifn :seqable]
-                         :ret :seqable-out}}}
+                         :ret :seq}}}
    ;; 2826
    'remove {:arities {1 {:args [:ifn]
                          :ret :transducer}
                       2 {:args [:ifn :seqable]
-                         :ret :seqable-out}}}
+                         :ret :seq}}}
    ;; 2836 'reduced
    ;; 2842 'reduced?
    ;; 2849 'ensure-reduced
@@ -889,7 +889,7 @@
    'keep {:arities {1 {:args [:ifn]
                        :ret :transducer}
                     2 {:args [:ifn :seqable]
-                       :ret :seqable-out}}}
+                       :ret :seq}}}
    ;; 7283
    'keep-indexed {:arities {1 {:args [:ifn]
                                :ret :transducer}
