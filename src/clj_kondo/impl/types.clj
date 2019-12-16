@@ -24,7 +24,7 @@
    :nat-int #{:int :number}
    :neg-int #{:int :number}
    :double #{:number}
-   :vector #{:seqable :seqable-out :sequential :associative :coll :ifn}
+   :vector #{:seqable :seqable-out :sequential :associative :coll :ifn :stack}
    :map #{:seqable :associative :coll :ifn}
    :nil #{:seqable}
    :seqable-out #{:sequential :seqable :coll}
@@ -35,7 +35,7 @@
    :symbol #{:ifn}
    :associative #{:seqable :coll :ifn}
    :transducer #{:ifn}
-   :list #{:seq :sequential :seqable :seqable-out :coll}
+   :list #{:seq :sequential :seqable :seqable-out :coll :stack}
    :seq #{:seqable :seqable-out :sequential :coll}
    :sequential #{:coll :seqable}})
 
@@ -47,15 +47,17 @@
    :coll #{:map :vector :set :list :seqable-out :associative :seq :sequential :ifn}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil :seqable-out
-              :list :seq :sequential :ifn}
+              :list :seq :sequential :ifn :stack}
    :associative #{:map :vector :sequential}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
-          :sequential}
+          :sequential :stack}
    :nat-int #{:pos-int}
-   :seq #{:list}
-   :sequential #{:seq :list :vector :seqable-out :ifn :associative}})
+   :seq #{:list :stack}
+   :stack #{:list :vector}
+   :sequential #{:seq :list :vector :seqable-out :ifn :associative :stack}})
 
 (def misc-types #{:boolean :atom :regex :char})
+
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
@@ -80,6 +82,7 @@
    :seqable "seqable collection"
    :seq "seq"
    :vector "vector"
+   :stack "stack (list, vector, etc.)"
    :associative "associative collection"
    :map "map"
    :coll "collection"
