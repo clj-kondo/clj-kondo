@@ -1,6 +1,6 @@
 name: Linting diff
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   linting-diff:
