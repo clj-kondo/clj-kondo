@@ -48,7 +48,7 @@
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil :seqable-out
               :list :seq :sequential :ifn :stack}
-   :associative #{:map :vector :sequential}
+   :associative #{:map :vector :sequential :stack}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
           :sequential :stack}
    :nat-int #{:pos-int}
