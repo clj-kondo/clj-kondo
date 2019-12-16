@@ -44,7 +44,7 @@
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double}
    :seqable-out #{:list :vector :seq}
-   :coll #{:map :vector :set :list :seqable-out :associative :seq :sequential :ifn}
+   :coll #{:map :vector :set :list :seqable-out :associative :seq :sequential :ifn :stack}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil :seqable-out
               :list :seq :sequential :ifn :stack}
@@ -53,7 +53,7 @@
           :sequential :stack}
    :nat-int #{:pos-int}
    :seq #{:list :stack}
-   :stack #{:list :vector}
+   :stack #{:list :vector :seq :sequential :seqable :seqable-out :coll :ifn :associative}
    :sequential #{:seq :list :vector :seqable-out :ifn :associative :stack}})
 
 (def misc-types #{:boolean :atom :regex :char})
