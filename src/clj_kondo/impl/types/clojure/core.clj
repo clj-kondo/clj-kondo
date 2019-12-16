@@ -314,11 +314,11 @@
    ;; 1451
    'identity a->a
    ;; 1459
-   'peek {:arities {1 {:args [:vector]
+   'peek {:arities {1 {:args [:stack]
                        :ret :any}}}
    ;; 1467
-   'pop {:arities {1 {:args [:vector]
-                      :ret :vector}}}
+   'pop {:arities {1 {:args [:stack]
+                      :ret :stack}}}
    ;; 1478 'map-entry?
    ;; 1484 'contains?
    ;; NOTE: get is an any->any function on any object that implements ILookup.
