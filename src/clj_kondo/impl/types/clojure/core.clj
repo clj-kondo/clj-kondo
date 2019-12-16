@@ -57,7 +57,7 @@
    ;; 66
    'rest seqable->seqable
    ;; 75
-   'conj {:arities {0 {:args [:coll]
+   'conj {:arities {0 {:args [:nilable/coll]
                        :ret :coll}
                     :varargs {:args [:coll {:op :rest :spec :any}]
                               :ret :coll}}}
