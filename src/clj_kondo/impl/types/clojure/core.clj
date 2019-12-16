@@ -475,7 +475,12 @@
                              :ret :seq}}}
    ;; 2776 'declare
    ;; 2781 'cat
-   ;; 2783 'mapcat
+   ;; 2783
+   'mapcat {:arities {1 {:args [:ifn]
+                         :ret :transducer}
+                      :varargs {:args '[:ifn :seqable [{:op :rest
+                                                        :spec :seqable}]]
+                                :ret :seq}}}
    ;; 2793
    'filter {:arities {1 {:args [:ifn]
                          :ret :transducer}
@@ -491,18 +496,50 @@
    'reduced? any->boolean
    ;; 2849 'ensure-reduced
    ;; 2855 'unreduced
-   ;; 2861 'take
-   ;; 2888 'take-while
-   ;; 2909 'drop
-   ;; 2934 'drop-last
-   ;; 2941 'take-last
-   ;; 2952 'drop-while
-   ;; 2979 'cycle
-   ;; 2985 'split-at
-   ;; 2992 'split-with
-   ;; 2999 'repeat
-   ;; 3006 'replicate
-   ;; 3013 'iterate
+   ;; 2861
+   'take {:arities {1 {:args [:nat-int]
+                       :ret :transducer}
+                    2 {:args [:nat-int :seqable]
+                       :ret :seq}}}
+   ;; 2888
+   'take-while {:arities {1 {:args [:ifn]
+                             :ret :transducer}
+                          2 {:args [:ifn :seqable]
+                             :ret :seq}}}
+   ;; 2909
+   'drop {:arities {1 {:args [:nat-int]
+                       :ret :transducer}
+                    2 {:args [:nat-int :seqable]
+                       :ret :seq}}}
+   ;; 2934
+   'drop-last {:arities {1 {:args [:seqable]
+                            :ret :seq}
+                         2 {:args [:nat-int :seqable]
+                            :ret :seq}}}
+   ;; 2941
+   'take-last {:arities {2 {:args [:nat-int :seqable]
+                            :ret :seq}}}
+   ;; 2952
+   'drop-while {:arities {1 {:args [:ifn]
+                             :ret :transducer}
+                          2 {:args [:ifn :seqable]
+                             :ret :seq}}}
+   ;; 2979
+   'cycle seqable->seq
+   ;; 2985
+   'split-at {:arities {2 {:args [:nat-int :seqable]
+                           :ret :vector}}}
+   ;; 2992
+   'split-with {:arities {2 {:args [:ifn :seqable]
+                             :ret :vector}}}
+   ;; 2999
+   'repeat {:arities {1 {:args [:any]
+                         :ret :seq}
+                      2 {:args [:nat-int :any]}}}
+   ;; 3006 'replicate (deprecated)
+   ;; 3013
+   'iterate {:arities {2 {:args [:ifn :any]
+                          :ret :seq}}}
    ;; 3019
    'range {:arities {0 {:ret :seqable}
                      1 {:args [:number]
