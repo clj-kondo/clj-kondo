@@ -24,10 +24,9 @@
    :nat-int #{:int :number}
    :neg-int #{:int :number}
    :double #{:number}
-   :vector #{:seqable :seqable-out :sequential :associative :coll :ifn :stack}
+   :vector #{:seqable :sequential :associative :coll :ifn :stack}
    :map #{:seqable :associative :coll :ifn}
    :nil #{:seqable}
-   :seqable-out #{:sequential :seqable :coll}
    :coll #{:seqable}
    :set #{:seqable :coll :ifn}
    :fn #{:ifn}
@@ -35,26 +34,25 @@
    :symbol #{:ifn}
    :associative #{:seqable :coll :ifn}
    :transducer #{:ifn}
-   :list #{:seq :sequential :seqable :seqable-out :coll :stack}
-   :seq #{:seqable :seqable-out :sequential :coll}
+   :list #{:seq :sequential :seqable :coll :stack}
+   :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}})
 
 (def could-be-relations
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double}
-   :seqable-out #{:list :vector :seq}
-   :coll #{:map :vector :set :list :seqable-out :associative :seq :sequential :ifn :stack}
+   :coll #{:map :vector :set :list  :associative :seq :sequential :ifn :stack}
    :seqable #{:coll :vector :set :map :associative
-              :char-sequence :string :nil :seqable-out
+              :char-sequence :string :nil
               :list :seq :sequential :ifn :stack}
    :associative #{:map :vector :sequential :stack}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
           :sequential :stack}
    :nat-int #{:pos-int}
    :seq #{:list :stack}
-   :stack #{:list :vector :seq :sequential :seqable :seqable-out :coll :ifn :associative}
-   :sequential #{:seq :list :vector :seqable-out :ifn :associative :stack}})
+   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
+   :sequential #{:seq :list :vector :ifn :associative :stack}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
@@ -78,7 +76,6 @@
    :pos-int "positive integer"
    :nat-int "natural integer"
    :neg-int "negative integer"
-   :seqable-out "seqable collection"
    :seqable "seqable collection"
    :seq "seq"
    :vector "vector"
@@ -161,7 +158,7 @@
      ;; relaxed type
      (char) :char
      (Character java.lang.Character) :nilable/char
-     (Seqable clojure.lang.Seqable) (if out? :seqable-out :seqable)
+     (Seqable clojure.lang.Seqable) :seqable
      (do #_(prn "did not catch tag:" meta-tag) nil nil))))
 
 (defn number->tag [v]
