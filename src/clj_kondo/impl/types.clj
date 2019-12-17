@@ -24,10 +24,9 @@
    :nat-int #{:int :number}
    :neg-int #{:int :number}
    :double #{:number}
-   :vector #{:seqable :seqable-out :sequential :associative :coll :ifn}
+   :vector #{:seqable :sequential :associative :coll :ifn :stack}
    :map #{:seqable :associative :coll :ifn}
    :nil #{:seqable}
-   :seqable-out #{:sequential :seqable :coll}
    :coll #{:seqable}
    :set #{:seqable :coll :ifn}
    :fn #{:ifn}
@@ -35,27 +34,28 @@
    :symbol #{:ifn}
    :associative #{:seqable :coll :ifn}
    :transducer #{:ifn}
-   :list #{:seq :sequential :seqable :seqable-out :coll}
-   :seq #{:seqable :seqable-out :sequential :coll}
+   :list #{:seq :sequential :seqable :coll :stack}
+   :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}})
 
 (def could-be-relations
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double}
-   :seqable-out #{:list :vector :seq}
-   :coll #{:map :vector :set :list :seqable-out :associative :seq :sequential :ifn}
+   :coll #{:map :vector :set :list  :associative :seq :sequential :ifn :stack}
    :seqable #{:coll :vector :set :map :associative
-              :char-sequence :string :nil :seqable-out
-              :list :seq :sequential :ifn}
-   :associative #{:map :vector :sequential}
+              :char-sequence :string :nil
+              :list :seq :sequential :ifn :stack}
+   :associative #{:map :vector :sequential :stack}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
-          :sequential}
+          :sequential :stack}
    :nat-int #{:pos-int}
-   :seq #{:list}
-   :sequential #{:seq :list :vector :seqable-out :ifn :associative}})
+   :seq #{:list :stack}
+   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
+   :sequential #{:seq :list :vector :ifn :associative :stack}})
 
 (def misc-types #{:boolean :atom :regex :char})
+
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
@@ -76,10 +76,10 @@
    :pos-int "positive integer"
    :nat-int "natural integer"
    :neg-int "negative integer"
-   :seqable-out "seqable collection"
    :seqable "seqable collection"
    :seq "seq"
    :vector "vector"
+   :stack "stack (list, vector, etc.)"
    :associative "associative collection"
    :map "map"
    :coll "collection"
@@ -138,28 +138,27 @@
 ;; TODO: we could look more intelligently at the source of the tag, e.g. if it
 ;; is not a third party String type
 (defn tag-from-meta
-  ([meta-tag] (tag-from-meta meta-tag false))
-  ([meta-tag out?]
-   (case meta-tag
-     void :nil
-     (boolean) :boolean
-     (Boolean java.lang.Boolean) :nilable/boolean
-     (byte) :byte
-     (Byte java.lang.Byte) :nilable/byte
-     (Number java.lang.Number) :nilable/number
-     (int long) :int
-     (Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
-     (float double) :double
-     (Float Double java.lang.Float java.lang.Double) :nilable/double
-     (CharSequence java.lang.CharSequence) :nilable/char-sequence
-     (String java.lang.String) :nilable/string ;; as this is now way to
-     ;; express non-nilable,
-     ;; we'll go for the most
-     ;; relaxed type
-     (char) :char
-     (Character java.lang.Character) :nilable/char
-     (Seqable clojure.lang.Seqable) (if out? :seqable-out :seqable)
-     (do #_(prn "did not catch tag:" meta-tag) nil nil))))
+  [meta-tag]
+  (case meta-tag
+    void :nil
+    (boolean) :boolean
+    (Boolean java.lang.Boolean) :nilable/boolean
+    (byte) :byte
+    (Byte java.lang.Byte) :nilable/byte
+    (Number java.lang.Number) :nilable/number
+    (int long) :int
+    (Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
+    (float double) :double
+    (Float Double java.lang.Float java.lang.Double) :nilable/double
+    (CharSequence java.lang.CharSequence) :nilable/char-sequence
+    (String java.lang.String) :nilable/string ;; as this is now way to
+    ;; express non-nilable,
+    ;; we'll go for the most
+    ;; relaxed type
+    (char) :char
+    (Character java.lang.Character) :nilable/char
+    (Seqable clojure.lang.Seqable) :seqable
+    (do #_(prn "did not catch tag:" meta-tag) nil nil)))
 
 (defn number->tag [v]
   (cond (int? v)

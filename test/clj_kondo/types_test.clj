@@ -59,7 +59,7 @@
       :row 2,
       :col 28,
       :level :error,
-      :message "Expected: set or nil, received: seqable collection."}
+      :message "Expected: set or nil, received: seq."}
      {:file "<stdin>",
       :row 3,
       :col 28,
@@ -83,6 +83,23 @@
    (lint! "(require '[clojure.string :as str])
            (str/starts-with? 1 \"s\")
            (str/includes? (str/join [1 2 3]) 1)"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 9,
+      :level :error,
+      :message "Expected: vector, received: seq."})
+   (lint! "(subvec (map inc [1 2 3]) 10 20)"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :error,
+      :message
+      "Expected: stack (list, vector, etc.), received: set."})
+   (lint! "(peek #{:a :b :c})"
           {:linters {:type-mismatch {:level :error}}}))
   (testing "No type checking if invalid-arity is disabled"
     (assert-submaps
