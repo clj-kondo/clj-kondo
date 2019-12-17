@@ -138,28 +138,27 @@
 ;; TODO: we could look more intelligently at the source of the tag, e.g. if it
 ;; is not a third party String type
 (defn tag-from-meta
-  ([meta-tag] (tag-from-meta meta-tag false))
-  ([meta-tag out?]
-   (case meta-tag
-     void :nil
-     (boolean) :boolean
-     (Boolean java.lang.Boolean) :nilable/boolean
-     (byte) :byte
-     (Byte java.lang.Byte) :nilable/byte
-     (Number java.lang.Number) :nilable/number
-     (int long) :int
-     (Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
-     (float double) :double
-     (Float Double java.lang.Float java.lang.Double) :nilable/double
-     (CharSequence java.lang.CharSequence) :nilable/char-sequence
-     (String java.lang.String) :nilable/string ;; as this is now way to
-     ;; express non-nilable,
-     ;; we'll go for the most
-     ;; relaxed type
-     (char) :char
-     (Character java.lang.Character) :nilable/char
-     (Seqable clojure.lang.Seqable) :seqable
-     (do #_(prn "did not catch tag:" meta-tag) nil nil))))
+  [meta-tag]
+  (case meta-tag
+    void :nil
+    (boolean) :boolean
+    (Boolean java.lang.Boolean) :nilable/boolean
+    (byte) :byte
+    (Byte java.lang.Byte) :nilable/byte
+    (Number java.lang.Number) :nilable/number
+    (int long) :int
+    (Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
+    (float double) :double
+    (Float Double java.lang.Float java.lang.Double) :nilable/double
+    (CharSequence java.lang.CharSequence) :nilable/char-sequence
+    (String java.lang.String) :nilable/string ;; as this is now way to
+    ;; express non-nilable,
+    ;; we'll go for the most
+    ;; relaxed type
+    (char) :char
+    (Character java.lang.Character) :nilable/char
+    (Seqable clojure.lang.Seqable) :seqable
+    (do #_(prn "did not catch tag:" meta-tag) nil nil)))
 
 (defn number->tag [v]
   (cond (int? v)
