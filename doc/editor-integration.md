@@ -11,6 +11,31 @@ For integrating with Emacs, see
 
 For Spacemacs, check [here](#spacemacs) or get [flymake-kondor](https://github.com/turbo-cafe/flymake-kondor) if you are using flymake.
 
+### LSP server
+
+Emacs has the [lsp-mode](https://github.com/emacs-lsp/lsp-mode) where you can configure multiple lsp for different programming languagues. 
+To use `clj-kondo` as a clojure lsp, you can configure the lsp-mode server command to point to `clj-kondo` lsp server jar.
+
+1. Download the latest clj-kondo LSP server jar to your system. Go to the
+   [Github releases](https://github.com/borkdude/clj-kondo/releases) and look
+   for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided
+   since version `2019.11.23`.
+
+2. Configure your `lsp-mode` pointing to the clj-kondo lsp server jar that you downloaded, like the example below:
+
+```lisp
+(use-package lsp-mode
+  :ensure t
+  :hook ((clojure-mode . lsp))
+  :commands lsp
+  :custom
+  ((lsp-clojure-server-command '("java" "-jar" "/home/user/clj-kondo/clj-kondo-lsp-server.jar")))
+  :config
+  (dolist (m '(clojure-mode
+               clojurescript-mode))
+    (add-to-list 'lsp-language-id-configuration `(,m . "clojure"))))
+```
+
 ## Visual Studio Code
 
 ### clojure-lint extension
