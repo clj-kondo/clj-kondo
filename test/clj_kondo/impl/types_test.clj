@@ -23,15 +23,13 @@
 
 (deftest x-could-be-y-and-y-is-z-implies-x-could-also-be-z
   (doseq [[x ys] types/could-be-relations
-          :when (not= :seqable-out x)
           y ys
           :let [is-a (get types/is-a-relations x)
                 zs (get types/is-a-relations y)]]
     (doseq [z zs
             :when (not (or
                         (contains? is-a z)
-                        (= x z)
-                        (= :seqable-out z)))]
+                        (= x z)))]
       (testing (format "%s could be %s, %s is %s, implies %s could also be a %s"
                        x y y z x z)
         (is (contains? ys z))))))
