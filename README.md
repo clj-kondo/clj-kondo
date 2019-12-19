@@ -163,6 +163,7 @@ directory, use `--cache false`.
 
 All other error codes indicate an unexpected error.
 
+## [CI Integration](doc/ci-integration.md)
 ## [Analysis data](analysis)
 
 ## [Developer documentation](doc/dev.md)
