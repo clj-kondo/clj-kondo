@@ -22,7 +22,7 @@ Clj-kondo performs static analysis on Clojure, ClojureScript and EDN, without th
 
 ## Features
 
-clj-kondo detects:
+Clj-kondo detects:
 
 * inline `def` expressions
 * redundant `do` and `let` wrappings
