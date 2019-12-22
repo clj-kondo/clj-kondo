@@ -10,13 +10,15 @@ A linter for Clojure code that sparks joy.
 
 <img src="screenshots/demo.png" width="50%" align="right">
 
+<blockquote class="twitter-tweet" data-lang="en">
+    <p lang="en" dir="ltr">Thanks a lot for clj-kondo. It is like a companion for me. It has made clojure fun again.</p>
+    &mdash;
+    <a href="https://github.com/geraldodev">@geraldodev</a> on Clojurians Slack
+</blockquote>
+
 ## Rationale
 
-You don't mind the occasional [inline
-def](https://blog.michielborkent.nl/2017/05/25/inline-def-debugging/) for
-debugging, but you would like to get rid of them before making your code
-public. Also, unnecessary `do` and `let` nestings don't really add any value to
-your life. Let clj-kondo help you tidy your code.
+Clj-kondo performs static analysis on Clojure, ClojureScript and EDN, without the need of a running REPL. It informs you about potential errors while you are typing.
 
 ## Features
 
