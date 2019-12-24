@@ -16,8 +16,7 @@
 (def seqable->any {:arities {1 {:args [:seqable]
                                 :ret :any}}})
 
-(def any->boolean {:arities {1 {:args [:any]
-                                :ret :boolean}}})
+(def any->boolean {:arities {1 {:ret :boolean}}})
 
 
 ;; arity-1 function that returns the same type
@@ -188,11 +187,9 @@
    ;; 767 'if-not
    ;; 775 'identical?
    ;; 783
-   '= {:arities {:varargs {:args [:any {:op :rest :spec :any}]
-                           :ret :boolean}}}
+   '= {:arities {:varargs {:ret :boolean}}}
    ;; 819
-   'not= {:arities {:varargs {:args [:any {:op :rest :spec :any}]
-                              :ret :boolean}}}
+   'not= {:arities {:varargs {:ret :boolean}}}
    ;; 831 'compare
    ;; 842 'and
    ;; 854 'or
