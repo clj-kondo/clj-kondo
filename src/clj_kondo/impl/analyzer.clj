@@ -748,7 +748,7 @@
        def (analyze-def ctx expr)
        defn (analyze-defn ctx expr)
        defmethod (analyze-defmethod ctx expr)
-       defrecord (analyze-defrecord ctx expr))
+       defrecord (analyze-defrecord ctx expr 'defrecord))
      (analyze-children ctx schemas))))
 
 (defn analyze-binding-call [{:keys [:callstack :config :findings] :as ctx} fn-name expr]
@@ -842,30 +842,28 @@
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
-  [{:keys [:ns] :as ctx} expr]
+  [{:keys [:ns] :as ctx} expr resolved-as]
   (let [ns-name (:name ns)
         children (:children expr)
-        type (-> children first :value)
         children (next children)
         name-node (first children)
         name-node (meta/lift-meta-content2 ctx name-node)
         metadata (meta name-node)
         record-name (:value name-node)
-        bindings? (not= 'definterface type)
+        bindings? (not= 'definterface resolved-as)
         binding-vector (when bindings? (second children))
         field-count (when bindings? (count (:children binding-vector)))
         bindings (when bindings? (extract-bindings (assoc ctx
                                                           :skip-reg-binding? true)
                                                    binding-vector))]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
-    (when-not (= 'definterface type)
+    (when-not (= 'definterface resolved-as)
       ;; TODO: it seems like we can abstract creating defn types into a function,
       ;; so we can also call reg-var there
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
                           (assoc metadata
-                                 :fixed-arities #{field-count}
-                                 #_#_:expr expr)))
-    (when (= 'defrecord type)
+                                 :fixed-arities #{field-count})))
+    (when (= 'defrecord resolved-as)
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                           expr (assoc metadata
                                       :fixed-arities #{1}
@@ -1069,7 +1067,7 @@
                       (analyze-defn ctx expr))
                   defmethod (analyze-defmethod ctx expr)
                   defprotocol (analyze-defprotocol ctx expr)
-                  (defrecord deftype definterface) (analyze-defrecord ctx expr)
+                  (defrecord deftype definterface) (analyze-defrecord ctx expr resolved-as-clojure-var-name)
                   comment
                   (analyze-children ctx children)
                   (-> some->)
