@@ -10,3 +10,6 @@
   (StampedNames. (str (System/currentTimeMillis)) names))
 
 (stamped-names ["foo" "bar"])
+
+->StampedNames
+map->StampedNames
