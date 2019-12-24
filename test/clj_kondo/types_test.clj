@@ -220,6 +220,10 @@
       :message "Expected: number, received: list."})
    (lint! "(inc ())"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '[{:file "<stdin>", :row 1, :col 9, :level :error, :message "Expected: seqable collection, received: positive integer."}]
+   (lint! "(empty? 1)"
+          {:linters {:type-mismatch {:level :error}}}))
   (testing "Insufficient input"
     (assert-submaps
      '({:file "<stdin>",

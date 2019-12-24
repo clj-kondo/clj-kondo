@@ -10,11 +10,15 @@
 (def seqable->seq {:arities {1 {:args [:seqable]
                                 :ret :seq}}})
 
+(def seqable->boolean {:arities {1 {:args [:seqable]
+                                :ret :boolean}}})
+
 (def seqable->any {:arities {1 {:args [:seqable]
                                 :ret :any}}})
 
 (def any->boolean {:arities {1 {:args [:any]
                                 :ret :boolean}}})
+
 
 ;; arity-1 function that returns the same type
 (def a->a {:arities {1 {:args [:any]}}
@@ -839,6 +843,7 @@
    'update {:arities {:varargs {:args [:nilable/associative :any :ifn {:op :rest :spec :any}]
                                 :ret :associative}}}
    ;; 6206 'empty?
+   'empty? seqable->boolean
    ;; 6213
    'coll? any->boolean
    ;; 6219
