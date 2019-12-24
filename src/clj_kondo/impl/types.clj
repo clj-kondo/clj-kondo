@@ -246,11 +246,12 @@
 
 (defn add-arg-type-from-expr
   ([ctx expr] (add-arg-type-from-expr ctx expr (expr->tag ctx expr)))
-  ([ctx expr tag] (when-let [arg-types (:arg-types ctx)]
-                    (let [{:keys [:row :col]} (meta expr)]
-                      (swap! arg-types conj {:tag tag
-                                             :row row
-                                             :col col})))))
+  ([ctx expr tag]
+   (when-let [arg-types (:arg-types ctx)]
+     (let [{:keys [:row :col]} (meta expr)]
+       (swap! arg-types conj {:tag tag
+                              :row row
+                              :col col})))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]

@@ -927,7 +927,7 @@
        (node->line (:filename ctx) not-expr
                    :warning :not-empty?
                    "use the idiom (seq x) rather than (not (empty? x))")))
-    (analyze-children ctx (:children expr))))
+    (analyze-children ctx (rest (:children expr)) false)))
 
 (defn analyze-require
   "For now we only support the form (require '[...])"
