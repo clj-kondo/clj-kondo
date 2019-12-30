@@ -32,9 +32,6 @@
 (defmacro assert-submap [m r]
   `(is (submap? ~m ~r)))
 
-(defmacro assert-some-submap [m r]
-  `(is (some #(submap? ~m %) ~r)))
-
 (defmacro assert-submaps
   "Asserts that maps are submaps of result in corresponding order and
   that the number of maps corresponds to the number of

@@ -9,17 +9,6 @@
 
 (def cache-version core-impl/version)
 
-(defmacro with-err-str
-  "Evaluates exprs in a context in which *out* is bound to a fresh
-  StringWriter.  Returns the string created by any nested printing
-  calls."
-  {:added "1.0"}
-  [& body]
-  `(let [s# (new java.io.StringWriter)]
-     (binding [*err* s#]
-       ~@body
-       (str s#))))
-
 (deftest cache-test
   (testing "arity checks work in all languages"
     (doseq [lang [:clj :cljs :cljc]]
