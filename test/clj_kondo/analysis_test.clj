@@ -153,6 +153,15 @@
         :to cljs.core}]
      var-usages)))
 
+(deftest test-var-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo (:require [clojure.test :as t]))
+                  (t/deftest foo)")]
+    (assert-submaps
+     '[{:filename "<stdin>", :row 2, :col 19, :ns foo, :name foo, :fixed-arities #{0}, :test true}]
+     var-definitions)))
+
+
 (deftest analysis-is-valid-edn-test
   (testing "solution for GH-476, CLJS with string require"
     (let [analysis (analyze "(ns foo (:require [\"@dude\" :as d])) (d/fn-call)")

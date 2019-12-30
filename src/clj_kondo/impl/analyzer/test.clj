@@ -6,13 +6,15 @@
 
 (defn analyze-deftest [ctx _deftest-ns expr]
   (common/analyze-defn ctx
-                       (update expr :children
-                               (fn [[_ name-expr & body]]
-                                 (list*
-                                  (utils/token-node 'clojure.core/defn)
-                                  name-expr
-                                  (utils/vector-node [])
-                                  body)))))
+                       (-> expr
+                           (update
+                            :children
+                            (fn [[_ name-expr & body]]
+                              (list*
+                               (utils/token-node 'clojure.core/defn)
+                               (when name-expr (vary-meta name-expr assoc :test true))
+                               (utils/vector-node [])
+                               body))))))
 
 (defn analyze-cljs-test-async [ctx expr]
   (let [[binding-expr & rest-children] (rest (:children expr))
