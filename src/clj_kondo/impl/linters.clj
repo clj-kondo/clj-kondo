@@ -32,10 +32,6 @@
                            :unreachable-code "unreachable code"))))))
       (recur rest-conditions))))
 
-(defn =? [sexpr]
-  (and (list? sexpr)
-       (= '= (first sexpr))))
-
 #_(defn lint-cond-as-case! [filename expr conditions]
     (let [[fst-sexpr & rest-sexprs] (map node/sexpr conditions)
           init (when (=? fst-sexpr)

@@ -33,16 +33,6 @@
        (transit/read (transit/reader is :json)))
      :source source)))
 
-(defn from-cache [cache-dir lang namespaces]
-  (reduce (fn [acc ns-sym]
-            (if-let [data (from-cache-1 cache-dir
-                                        lang ns-sym)]
-              (update acc ns-sym
-                      (fn [ns]
-                        (merge data ns)))
-              acc))
-          {} namespaces))
-
 (defn to-cache
   "Writes ns-data to cache-dir. Always use with `with-cache`."
   [cache-dir lang ns-sym ns-data]

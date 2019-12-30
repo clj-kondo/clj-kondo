@@ -225,11 +225,6 @@
     (analyze-children ctx (next children))
     ns))
 
-(defn fn-call? [expr]
-  (let [tag (tag expr)]
-    (and (= :list tag)
-         (symbol? (:value (first (:children expr)))))))
-
 ;;;; function arity
 
 (defn analyze-arity [sexpr]

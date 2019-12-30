@@ -5,10 +5,6 @@
   (swap! findings conj m)
   nil)
 
-(defn reg-findings! [findings maps]
-  (swap! findings into maps)
-  nil)
-
 ;;;; Scratch
 
 (comment

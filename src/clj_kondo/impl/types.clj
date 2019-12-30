@@ -105,8 +105,6 @@
     (str (get labels (unnil k)) " or nil")
     :else (get labels k)))
 
-(def current-ns-name (str (ns-name *ns*)))
-
 (defn sub? [k target]
   (or (identical? k target)
       (when-let [targets (get is-a-relations k)]
@@ -184,11 +182,6 @@
                             :tag (expr->tag ctx e))) mvals)]
     {:type :map
      :val (zipmap ks vtags)}))
-
-(defn ret-from-arities [arities arity]
-  (when-let [called-arity (or (get arities arity) (:varargs arities))]
-    (when-let [t (:ret called-arity)]
-      {:tag t})))
 
 (defn ret-tag-from-call [{:keys [:config]} call _expr]
   (when (and (not (:unresolved? call)))

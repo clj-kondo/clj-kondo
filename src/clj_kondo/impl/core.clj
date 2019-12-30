@@ -68,8 +68,6 @@
 
 ;;;; process cache
 
-(def empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
-
 (defn resolve-cache-dir [cfg-dir cache cache-dir]
   (when-let [cache-dir (or cache-dir
                            ;; for backward compatibility

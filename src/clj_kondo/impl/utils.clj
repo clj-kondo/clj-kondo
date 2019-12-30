@@ -27,12 +27,6 @@
     (apply println strs))
   nil)
 
-(defn uneval? [node]
-  (= :uneval (node/tag node)))
-
-(defn comment? [node]
-  (= :comment (node/tag node)))
-
 (defn symbol-call
   "Returns symbol of call"
   [expr]
@@ -46,23 +40,6 @@
   "Returns keyword from node, if it contains any."
   [node]
   (:k node))
-
-(defn keyword-call
-  "Returns keyword of call"
-  [expr]
-  (when (= :list (node/tag expr))
-    (let [first-child (-> expr :children first)
-          ?k (:k first-child)]
-      (when (keyword? ?k)
-        {:k ?k
-         :namespaced? (:namespaced? first-child)}))))
-
-(defmacro some-call
-  "Determines if expr is a call to some symbol. Returns symbol if so."
-  [expr & syms]
-  (let [syms (set syms)]
-    `(and (= :list (tag ~expr))
-          ((quote ~syms) (:value (first (:children ~expr)))))))
 
 ;; this zipper version is much slower than the above
 #_(defn remove-noise
