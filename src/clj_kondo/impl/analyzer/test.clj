@@ -4,17 +4,20 @@
    [clj-kondo.impl.utils :as utils]
    [clj-kondo.impl.analyzer.common :as common]))
 
-(defn analyze-deftest [ctx _deftest-ns expr]
-  (common/analyze-defn ctx
-                       (-> expr
-                           (update
-                            :children
-                            (fn [[_ name-expr & body]]
-                              (list*
-                               (utils/token-node 'clojure.core/defn)
-                               (when name-expr (vary-meta name-expr assoc :test true))
-                               (utils/vector-node [])
-                               body))))))
+(defn analyze-deftest [ctx deftest-ns expr]
+  (common/analyze-defn
+   ctx
+   (-> expr
+       (update
+        :children
+        (fn [[_ name-expr & body]]
+          (list*
+           (utils/token-node 'clojure.core/defn)
+           (when name-expr (vary-meta name-expr assoc
+                                      :defined-by (symbol (str deftest-ns) "deftest")
+                                      :test true))
+           (utils/vector-node [])
+           body))))))
 
 (defn analyze-cljs-test-async [ctx expr]
   (let [[binding-expr & rest-children] (rest (:children expr))

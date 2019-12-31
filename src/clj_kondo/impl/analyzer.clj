@@ -844,6 +844,7 @@
         name-node (first children)
         name-node (meta/lift-meta-content2 ctx name-node)
         metadata (meta name-node)
+        metadata (assoc metadata :defined-by (symbol "clojure.core" (str resolved-as)))
         record-name (:value name-node)
         bindings? (not= 'definterface resolved-as)
         binding-vector (when bindings? (second children))

@@ -158,7 +158,17 @@
         (analyze "(ns foo (:require [clojure.test :as t]))
                   (t/deftest foo)")]
     (assert-submaps
-     '[{:filename "<stdin>", :row 2, :col 19, :ns foo, :name foo, :fixed-arities #{0}, :test true}]
+     '[{:filename "<stdin>", :row 2, :col 19, :ns foo, :name foo, :fixed-arities #{0},
+        :test true :defined-by clojure.test/deftest}]
+     var-definitions)))
+
+(deftest deftype-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo)
+                  (deftype Foo [])")]
+    (assert-submaps
+     '[{:filename "<stdin>", :row 2, :col 19, :ns foo, :name Foo, :defined-by clojure.core/deftype}
+       {:filename "<stdin>", :row 2, :col 19, :ns foo, :name ->Foo, :fixed-arities #{0}, :defined-by clojure.core/deftype}]
      var-definitions)))
 
 
