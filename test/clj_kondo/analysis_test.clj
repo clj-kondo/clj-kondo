@@ -171,6 +171,11 @@
        {:filename "<stdin>", :row 2, :col 19, :ns foo, :name ->Foo, :fixed-arities #{0}, :defined-by clojure.core/deftype}]
      var-definitions)))
 
+(deftest defprotocol-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo)
+                  (defprotocol Foo (foo [_]))")]
+    (is (= '#{clojure.core/defprotocol} (set (map :defined-by var-definitions))))))
 
 (deftest analysis-is-valid-edn-test
   (testing "solution for GH-476, CLJS with string require"

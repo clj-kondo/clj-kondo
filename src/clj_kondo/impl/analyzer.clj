@@ -819,7 +819,8 @@
         protocol-name (:value name-node)
         ns-name (:name ns)]
     (when protocol-name
-      (namespace/reg-var! ctx ns-name protocol-name expr))
+      (namespace/reg-var! ctx ns-name protocol-name expr
+                          {:defined-by 'clojure.core/defprotocol}))
     (doseq [c (next children)
             :when (= :list (tag c)) ;; skip first docstring
             :let [children (:children c)
@@ -833,7 +834,8 @@
       (when fn-name
         (namespace/reg-var!
          ctx ns-name fn-name expr (assoc (meta c)
-                                         :fixed-arities fixed-arities))))))
+                                         :fixed-arities fixed-arities
+                                         :defined-by 'clojure.core/defprotocol))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
