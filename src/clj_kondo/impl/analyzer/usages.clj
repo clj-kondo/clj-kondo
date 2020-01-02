@@ -121,7 +121,8 @@
                                                       (= symbol-val (get (:qualify-ns ns) symbol-val)))
                                                   :private-access? (:private-access? ctx)
                                                   :callstack (:callstack ctx)
-                                                  :config (:config ctx)})))))
+                                                  :config (:config ctx)
+                                                  :in-def (:in-def ctx)})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              :reader-macro

@@ -195,4 +195,10 @@
         usage (some #(when (= 'foo (:name %))
                        %)
                     var-usages)]
+    (is (:recursive usage)))
+  (let [{:keys [:var-usages]}
+        (analyze "(def foo foo)")
+        usage (some #(when (= 'foo (:name %))
+                       %)
+                    var-usages)]
     (is (:recursive usage))))
