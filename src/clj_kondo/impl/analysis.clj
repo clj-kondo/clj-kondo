@@ -27,7 +27,7 @@
 (defn reg-var! [{:keys [:analysis :base-lang :lang] :as _ctx}
                 filename row col ns name attrs]
   (let [attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
-                                  :doc :added :deprecated :test :defined-by])]
+                                  :doc :added :deprecated :test :export :defined-by])]
     (swap! analysis update :var-definitions conj
            (assoc-some
             (merge {:filename filename

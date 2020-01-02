@@ -153,6 +153,12 @@
         :to cljs.core}]
      var-usages)))
 
+(deftest analysis-is-valid-edn-test
+  (testing "solution for GH-476, CLJS with string require"
+    (let [analysis (analyze "(ns foo (:require [\"@dude\" :as d])) (d/fn-call)")
+          analysis-edn (pr-str analysis)]
+      (is (edn/read-string analysis-edn)))))
+
 (deftest test-var-test
   (let [{:keys [:var-definitions]}
         (analyze "(ns foo (:require [clojure.test :as t]))
@@ -177,8 +183,9 @@
                   (defprotocol Foo (foo [_]))")]
     (is (= '#{clojure.core/defprotocol} (set (map :defined-by var-definitions))))))
 
-(deftest analysis-is-valid-edn-test
-  (testing "solution for GH-476, CLJS with string require"
-    (let [analysis (analyze "(ns foo (:require [\"@dude\" :as d])) (d/fn-call)")
-          analysis-edn (pr-str analysis)]
-      (is (edn/read-string analysis-edn)))))
+
+(deftest export-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo)
+                  (defn ^:export foo [])")]
+    (is (true? (:export (first var-definitions))))))
