@@ -4,8 +4,9 @@
   (:refer-clojure :exclude [ns-name])
   (:require [clj-kondo.impl.utils :refer [assoc-some select-some]]))
 
-(defn reg-usage! [{:keys [analysis] :as _ctx}
-                  filename row col from-ns to-ns var-name arity lang metadata]
+(defn reg-usage! [{:keys [:analysis] :as _ctx}
+                  filename row col from-ns to-ns var-name arity lang in-def
+                  recursive? metadata]
   (let [to-ns (or (some-> to-ns meta :raw-name) to-ns)]
     (swap! analysis update :var-usages conj
            (assoc-some
@@ -22,7 +23,10 @@
                            :varargs-min-arity
                            :deprecated]))
             :arity arity
-            :lang lang))))
+            :lang lang
+            :from-var in-def
+            :recursive (when recursive?
+                         recursive?)))))
 
 (defn reg-var! [{:keys [:analysis :base-lang :lang] :as _ctx}
                 filename row col ns name attrs]

@@ -246,6 +246,10 @@
                              fn-ns (:ns called-fn)
                              resolved-ns (or fn-ns resolved-ns)
                              arity (:arity call)
+                             in-def (:in-def call)
+                             recursive? (and
+                                         (= fn-ns caller-ns-sym)
+                                         (= fn-name in-def))
                              _ (when output-analysis?
                                  (analysis/reg-usage! ctx
                                                       filename
@@ -256,7 +260,10 @@
                                                       caller-ns-sym
                                                       resolved-ns fn-name arity
                                                       (when (= :cljc base-lang)
-                                                        call-lang) called-fn))]
+                                                        call-lang)
+                                                      in-def
+                                                      recursive?
+                                                      called-fn))]
                        :when valid-call?
                        :let [fn-name (:name called-fn)
                              _ (when (and unresolved?
@@ -308,9 +315,7 @@
                                 (when-not
                                     (or
                                      ;; recursive call
-                                     (and
-                                      (= fn-ns caller-ns-sym)
-                                      (= fn-name (:in-def call)))
+                                     recursive?
                                      (config/deprecated-var-excluded
                                       config
                                       (symbol (str fn-ns)
