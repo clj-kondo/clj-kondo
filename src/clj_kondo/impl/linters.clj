@@ -383,7 +383,8 @@
             :message (str "#'" var-ns "/" (:name v) " is referred but never used")
             :row row
             :col col}))))
-    (doseq [[_referred-all-ns {:keys [:referred :node]}] refer-alls]
+    (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
+            :when (not (config/refer-all-excluded? config referred-all-ns))]
       (let [{:keys [:k :value]} node
             use? (or (= :use k)
                      (= 'use value))

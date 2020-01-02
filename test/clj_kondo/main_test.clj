@@ -2054,27 +2054,29 @@
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 40,
+      :col 42,
       :level :warning,
-      :message "use alias or :refer [deftest is]"})
-   (lint! "(ns foo (:require [clojure.test :refer :all]))
-           (deftest foo (is (empty? [])))"
+      :message "use alias or :refer [capitalize join]"})
+   (lint! "(ns foo (:require [clojure.string :refer :all]))
+           (defn foo [strs] (join (map capitalize strs)))"
           {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 46,
+      :col 48,
       :level :warning,
-      :message "use alias or :refer [is]"})
-   (lint! "(ns foo (:require [clojure.test :as t :refer :all])) (t/deftest foo (is true))"
+      :message "use alias or :refer [capitalize]"})
+   (lint! "(ns foo (:require [clojure.string :as s :refer :all]))
+           (defn foo [strs] (s/join (map capitalize strs)))"
           {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 52,
+      :col 56,
       :level :warning,
-      :message "use alias or :refer [deftest]"})
-   (lint! "(ns foo (:require [clojure.test :refer [is] :refer :all])) (deftest foo (is true))"
+      :message "use alias or :refer [capitalize]"})
+   (lint! "(ns foo (:require [clojure.string :refer [join] :refer :all]))
+           (defn foo [strs] (join (map capitalize strs)))"
           {:linters {:refer-all {:level :warning}}}))
   (assert-submaps
    '({:file "corpus/use.clj",
