@@ -303,6 +303,14 @@ will give this warning:
 Inconsistent alias. Expected old-api instead of api.
 ```
 
+### Ignore the contents of comment forms
+
+If you prefer not to lint the contents of `(comment ...)` forms, use this configuration:
+
+```clojure
+{:skip-comments true}
+```
+
 ## Output
 
 ### Print results in JSON format
