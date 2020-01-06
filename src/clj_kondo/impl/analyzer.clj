@@ -1092,7 +1092,7 @@
                   (analyze-conditional-let ctx resolved-as-clojure-var-name expr)
                   do
                   (analyze-do ctx expr)
-                  (fn fn*)
+                  (fn fn* bound-fn)
                   (analyze-fn ctx expr)
                   case
                   (analyze-case ctx expr)
