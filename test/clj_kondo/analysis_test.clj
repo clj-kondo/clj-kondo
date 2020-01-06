@@ -151,6 +151,31 @@
         :arity 3,
         :row 2,
         :to cljs.core}]
+     var-usages))
+  (let [{:keys [:var-usages]}
+        (analyze "(ns foo)
+                  (fn [x] x)
+                  (fn* [x] x)
+                  (bound-fn [x] x)")]
+    (assert-submaps
+     '[{:filename "<stdin>",
+        :row 2,
+        :col 20,
+        :name fn,
+        :from foo,
+        :to clojure.core}
+       {:filename "<stdin>",
+        :row 3,
+        :col 20,
+        :name fn*,
+        :from foo,
+        :to clojure.core}
+       {:filename "<stdin>",
+        :row 4,
+        :col 20,
+        :name bound-fn,
+        :from foo,
+        :to clojure.core}]
      var-usages)))
 
 (deftest analysis-is-valid-edn-test
