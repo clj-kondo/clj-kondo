@@ -39,11 +39,13 @@ These steps assume a Windows 10 installation with [Git for Windows](https://gitf
 
 * Download [GraalVM](https://github.com/oracle/graal/releases) 19 or newer.
 
-* Install the [Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8442). See [this link](https://stackoverflow.com/questions/20115186/what-sdk-version-to-download/22987999#22987999) for an explanation which image is which.
+* Install the [Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8442). See [this link](https://stackoverflow.com/questions/20115186/what-sdk-version-to-download/22987999#22987999) for an explanation of which image is which.
 
   You might first have to:
     - Uninstall any Visual C++ 2010 Redistributables from the control panel. See this [SO answer](https://stackoverflow.com/a/32534158/6264).
-    - Tweak [these](https://stackoverflow.com/questions/32091593/cannot-install-windows-sdk-7-1-on-windows-10/32322920#32322920) registry settings as a workaround for a message about an incorrect .NET version.
+
+  After installation of Windows SDK 7.1, you may also have to:
+    - Install [Microsoft Visual C++ 2010 Service Pack 1 Compiler Update for the Windows SDK 7.1"](http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=4422), because it may not have been installed with the Windows SDK 7.1 due to [an unfortunate situation](https://stackoverflow.com/questions/32091593/cannot-install-windows-sdk-7-1-on-windows-10).
 
 The following steps need to be executed from the Windows SDK 7.1 command prompt.
 
