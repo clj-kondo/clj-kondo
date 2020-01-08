@@ -995,7 +995,7 @@
    {:keys [:arg-count
            :full-fn-name
            :row :col
-           :expr]}]
+           :expr] :as m}]
   (let [ns-name (:name ns)
         children (next(:children expr))
         {resolved-namespace :ns
@@ -1007,7 +1007,12 @@
         (resolve-name ctx ns-name full-fn-name)]
     (cond (and unresolved?
                (str/ends-with? full-fn-name "."))
-          (analyze-expression** ctx (macroexpand/expand-dot-constructor ctx expr))
+          (recur ctx
+                 (let [expr (macroexpand/expand-dot-constructor ctx expr)]
+                   (assoc m
+                          :expr expr
+                          :full-fn-name 'new
+                          :arg-count (inc (:arg-count m)))))
           unresolved-ns
           (do
             (namespace/reg-unresolved-namespace! ctx ns-name
