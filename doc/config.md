@@ -11,7 +11,7 @@ Clj-kondo can be configured in four ways, by providing:
 
 Config takes precedence in the order of namespace, command line,
 `.clj-kondo/config.edn`. Note that not all linters are currently supported in
-namespace local configuration.
+namespace local configuration. Also note that namespace local config must always be quoted.
 
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
