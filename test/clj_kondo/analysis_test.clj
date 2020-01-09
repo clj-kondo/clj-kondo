@@ -213,17 +213,3 @@
         (analyze "(ns foo)
                   (defn ^:export foo [])")]
     (is (true? (:export (first var-definitions))))))
-
-(deftest recursive-test
-  (let [{:keys [:var-usages]}
-        (analyze "(defn foo [] (foo))")
-        usage (some #(when (= 'foo (:name %))
-                       %)
-                    var-usages)]
-    (is (:recursive usage)))
-  (let [{:keys [:var-usages]}
-        (analyze "(def foo foo)")
-        usage (some #(when (= 'foo (:name %))
-                       %)
-                    var-usages)]
-    (is (:recursive usage))))

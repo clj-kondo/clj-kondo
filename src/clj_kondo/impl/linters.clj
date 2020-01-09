@@ -262,7 +262,6 @@
                                                       (when (= :cljc base-lang)
                                                         call-lang)
                                                       in-def
-                                                      recursive?
                                                       called-fn))]
                        :when valid-call?
                        :let [fn-name (:name called-fn)

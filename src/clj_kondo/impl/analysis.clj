@@ -5,8 +5,7 @@
   (:require [clj-kondo.impl.utils :refer [assoc-some select-some]]))
 
 (defn reg-usage! [{:keys [:analysis] :as _ctx}
-                  filename row col from-ns to-ns var-name arity lang in-def
-                  recursive? metadata]
+                  filename row col from-ns to-ns var-name arity lang in-def metadata]
   (let [to-ns (or (some-> to-ns meta :raw-name) to-ns)]
     (swap! analysis update :var-usages conj
            (assoc-some
@@ -24,9 +23,7 @@
                            :deprecated]))
             :arity arity
             :lang lang
-            :from-var in-def
-            :recursive (when recursive?
-                         recursive?)))))
+            :from-var in-def))))
 
 (defn reg-var! [{:keys [:analysis :base-lang :lang] :as _ctx}
                 filename row col ns name attrs]
