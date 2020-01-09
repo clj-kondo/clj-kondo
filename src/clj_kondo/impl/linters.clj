@@ -475,9 +475,8 @@
 (defn lint-unresolved-namespaces!
   [{:keys [:findings] :as ctx}]
   (doseq [ns (namespace/list-namespaces ctx)
-          :let [filename (:filename ns)]
           un (:unresolved-namespaces ns)
-          :let [{:keys [:row :col]} (meta un)]]
+          :let [{:keys [:row :col :filename]} (meta un)]]
     (findings/reg-finding!
      findings
      {:level :warning

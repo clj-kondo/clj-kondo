@@ -491,15 +491,16 @@
         :filename (:filename ctx)}))))
 
 (defn assert-vector [{:keys [:filename :findings]} call expr]
-  (let [vector? (and expr (= :vector (tag expr)))]
-    (if-not vector?
-      (do (findings/reg-finding!
-           findings
-           (node->line filename expr :error :syntax
-                       ;; cf. error in clojure
-                       (format "%s requires a vector for its binding" call)))
-          nil)
-      expr)))
+  (when expr
+    (let [vector? (and expr (= :vector (tag expr)))]
+      (if-not vector?
+        (do (findings/reg-finding!
+             findings
+             (node->line filename expr :error :syntax
+                         ;; cf. error in clojure
+                         (format "%s requires a vector for its binding" call)))
+            nil)
+        expr))))
 
 (defn analyze-like-let
   [{:keys [:filename :callstack
