@@ -990,6 +990,19 @@
       (analyze-children ctx (cons (first children) (nnext children)))
       (analyze-children ctx children))))
 
+(defn analyze-with-redefs
+  [ctx expr]
+  (let [children (next (:children expr))
+        binding-vector (first children)
+        bindings (:children binding-vector)
+        lhs (take-nth 2 bindings)
+        rhs (take-nth 2 (rest bindings))
+        body (next children)]
+    (analyze-children (ctx-with-linter-disabled ctx :private-call)
+                      lhs)
+    (analyze-children ctx rhs)
+    (analyze-children ctx body)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1121,6 +1134,7 @@
                   if (analyze-if ctx expr)
                   new (analyze-constructor ctx expr)
                   set! (analyze-set! ctx expr)
+                  with-redefs (analyze-with-redefs ctx expr)
                   ;; catch-all
                   (case [resolved-as-namespace resolved-as-name]
                     [schema.core fn]

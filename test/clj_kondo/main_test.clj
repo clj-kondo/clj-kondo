@@ -1804,7 +1804,12 @@
   (is (empty? (lint! (io/file "corpus" "nested_syntax_quote.clj")
                      {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(doseq [[ns-sym _ alias-sym] (cons t ts)] (create-ns ns-sym)  (alias alias-sym ns-sym))"
-                     {:linters {:unused-binding {:level :warning}}}))))
+                     {:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "
+(ns foo) (defn- private-fn []) (private-fn)
+(ns bar (:require [foo]))
+(with-redefs [foo/private-fn (fn [])]
+  (+ 1 2 3))"))))
 
 (deftest file-error-test
   (assert-submaps '({:file "not-existing.clj",
