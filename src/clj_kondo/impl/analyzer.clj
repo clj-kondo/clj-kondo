@@ -490,6 +490,17 @@
         :level :error
         :filename (:filename ctx)}))))
 
+(defn assert-vector [{:keys [:filename :findings]} call expr]
+  (let [vector? (and expr (= :vector (tag expr)))]
+    (if-not vector?
+      (do (findings/reg-finding!
+           findings
+           (node->line filename expr :error :syntax
+                       ;; cf. error in clojure
+                       (format "%s requires a vector for its binding" call)))
+          nil)
+      expr)))
+
 (defn analyze-like-let
   [{:keys [:filename :callstack
            :maybe-redundant-let?] :as ctx} expr]
@@ -499,21 +510,13 @@
                             [[clojure.core let]
                              [cljs.core let]])
         bv-node (-> expr :children second)
-        valid-bv-node (when (and bv-node (= :vector (tag bv-node)))
-                        bv-node)]
+        valid-bv-node (assert-vector ctx call bv-node)]
     (when (and let? (or (and let-parent? maybe-redundant-let?)
                         (and valid-bv-node (empty? (:children valid-bv-node)))))
       (findings/reg-finding!
        (:findings ctx)
        (node->line filename expr :warning :redundant-let "Redundant let expression.")))
     (when bv-node
-      ;; invalid binding vector
-      (when-not valid-bv-node
-        (findings/reg-finding!
-         (:findings ctx)
-         (node->line filename bv-node :error :syntax
-                     ;; cf. error in clojure
-                     (format "%s requires a vector for its binding" call))))
       (let [{analyzed-bindings :bindings
              arities :arities
              analyzed :analyzed}
@@ -993,7 +996,9 @@
 (defn analyze-with-redefs
   [ctx expr]
   (let [children (next (:children expr))
-        binding-vector (first children)
+        binding-vector (assert-vector ctx 'with-redefs (first children))
+        _ (when binding-vector
+            (lint-even-forms-bindings! ctx 'with-redefs binding-vector))
         bindings (:children binding-vector)
         lhs (take-nth 2 bindings)
         rhs (take-nth 2 (rest bindings))

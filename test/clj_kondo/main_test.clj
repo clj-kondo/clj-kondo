@@ -1804,7 +1804,15 @@
   (is (empty? (lint! (io/file "corpus" "nested_syntax_quote.clj")
                      {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(doseq [[ns-sym _ alias-sym] (cons t ts)] (create-ns ns-sym)  (alias alias-sym ns-sym))"
-                     {:linters {:unused-binding {:level :warning}}})))
+                     {:linters {:unused-binding {:level :warning}}}))))
+
+(deftest with-redefs-test
+  (assert-submaps '({:file "<stdin>", :row 1, :col 14,
+                     :level :error, :message "with-redefs requires a vector for its binding"})
+                  (lint! "(with-redefs 1)"))
+  (assert-submaps '({:file "<stdin>", :row 1, :col 14,
+                     :level :error, :message "with-redefs binding vector requires even number of forms"})
+                  (lint! "(with-redefs [clojure.core/inc])"))
   (is (empty? (lint! "
 (ns foo) (defn- private-fn []) (private-fn)
 (ns bar (:require [foo]))
