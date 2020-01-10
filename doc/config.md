@@ -311,6 +311,12 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 {:skip-comments true}
 ```
 
+### Exclude namespace in `:refer-all` linter
+
+```clojure
+{:linters {:refer-all {:exclude [alda.core]}}}
+```
+
 ## Output
 
 ### Print results in JSON format
