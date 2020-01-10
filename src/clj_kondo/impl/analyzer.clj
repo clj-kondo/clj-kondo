@@ -73,6 +73,16 @@
 (defn ctx-with-linter-disabled [ctx linter]
   (assoc-in ctx [:config :linters linter :level] :off))
 
+(defn ctx-with-linters-disabled [ctx linters]
+  (let [config (get ctx :config)
+        linters-config (get config :linters)
+        linters-config (reduce (fn [linters linter]
+                                 (assoc-in linters [linter :level] :off))
+                               linters-config linters)
+        config (assoc config :linters linters-config)
+        ctx (assoc ctx :config config)]
+    ctx))
+
 (defn lift-meta-content*
   "Used within extract-bindings. Disables unresolved symbols while
   linting metadata."
@@ -871,10 +881,10 @@
                                       :fixed-arities #{1}
                                       #_#_:expr expr)))
     (analyze-children (-> ctx
-                          (ctx-with-linter-disabled :invalid-arity)
-                          (ctx-with-linter-disabled :unresolved-symbol)
-                          (ctx-with-linter-disabled :type-mismatch)
-                          (ctx-with-linter-disabled :private-call)
+                          (ctx-with-linters-disabled [:invalid-arity
+                                                      :unresolved-symbol
+                                                      :type-mismatch
+                                                      :private-call])
                           (ctx-with-bindings bindings))
                       (nnext children))))
 
@@ -1009,6 +1019,22 @@
     (analyze-children ctx rhs)
     (analyze-children ctx body)))
 
+(defn analyze-def-catch-call [ctx expr]
+  (let [ns-name (-> ctx :ns :name)
+        children (next (:children expr))
+        name-expr (->> (first children)
+                       (meta/lift-meta-content2 ctx)
+                       :value)
+        body (next children)
+        ctx (ctx-with-linters-disabled ctx [:invalid-arity
+                                            :unresolved-symbol
+                                            :type-mismatch
+                                            :private-call])]
+    (namespace/reg-var! ctx ns-name
+                        (meta/lift-meta-content2 ctx name-expr)
+                        (meta expr))
+    (run! #(analyze-usages2 ctx %) body)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1101,10 +1127,9 @@
                   (. .. proxy extend-protocol reify
                      defcurried extend-type)
                   ;; don't lint calls in these expressions, only register them as used vars
-                  (analyze-children (-> ctx
-                                        (ctx-with-linter-disabled :invalid-arity)
-                                        (ctx-with-linter-disabled :unresolved-symbol)
-                                        (ctx-with-linter-disabled :type-mismatch))
+                  (analyze-children (ctx-with-linters-disabled ctx [:invalid-arity
+                                                                    :unresolved-symbol
+                                                                    :type-mismatch])
                                     children)
                   (cond-> cond->>)
                   (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
@@ -1143,6 +1168,8 @@
                   with-redefs (analyze-with-redefs ctx expr)
                   ;; catch-all
                   (case [resolved-as-namespace resolved-as-name]
+                    [clj-kondo.lint-as def-catch-all]
+                    (analyze-def-catch-call ctx expr)
                     [schema.core fn]
                     (analyze-schema ctx 'fn expr)
                     [schema.core def]

@@ -79,6 +79,12 @@ we might have just linted it like that. That is what the following configuration
 {:lint-as {foo/my-defn clojure.core/defn}}
 ```
 
+When you have custom `def` or `defn`-like macros and you can't find a supported macro that is like it, you can use:
+
+``` clojure
+{:lint-as {foo/my-defn clj-kondo.lint-as/def-catch-call}}
+```
+
 ### Exclude unresolved symbols from being reported
 
 In the following code `streams` is a macro that assigns a special meaning to the symbol `where`, so it should not be reported as an unresolved symbol:
