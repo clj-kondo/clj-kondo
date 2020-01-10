@@ -50,6 +50,8 @@ Run `clj-kondo.main` directly:
 $ shadow-cljs run clj-kondo.main --lint src
 ```
 
+Execution will be much faster if there's a background server (either `shadow-cljs server` or `shadow-cljs watch`) running.
+
 ## API
 
 To use clj-kondo from other Clojure programs, use the API in
