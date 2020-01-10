@@ -2151,7 +2151,9 @@
       :message "use require with alias or :refer [join]"})
    (lint! (io/file "corpus" "use.clj")
           {:linters {:refer-all {:level :warning}
-                     :use {:level :warning}}})))
+                     :use {:level :warning}}}))
+  (is (empty? (lint! "(require '[clojure.test :refer :all])"
+                     '{:linters {:refer-all {:level :warning :exclude [clojure.test]}}}))))
 
 (deftest canonical-paths-test
   (testing "single file"
