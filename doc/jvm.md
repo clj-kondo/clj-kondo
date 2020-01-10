@@ -38,6 +38,18 @@ Or add it as an alias to `~/.clojure/deps.edn`:
 $ clj -A:clj-kondo --lint src
 ```
 
+## shadow-cljs
+
+Run `clj-kondo.main` directly:
+
+``` clojure
+{:dependencies [[clj-kondo "RELEASE"]]}
+```
+
+``` shellsession
+$ shadow-cljs run clj-kondo.main --lint src
+```
+
 ## API
 
 To use clj-kondo from other Clojure programs, use the API in
