@@ -1056,7 +1056,41 @@
                 :lint-as {foo/deftest clojure.test/deftest}})))
   (is (empty?
        (lint! (io/file "corpus" "lint_as_for.clj")
-              '{:linters {:unresolved-symbol {:level :warning}}}))))
+              '{:linters {:unresolved-symbol {:level :warning}}})))
+  (is (empty?
+       (lint! "(ns foo (:require [weird.lib :refer [weird-def]]))
+
+(weird-def foo x y z) foo"
+              '{:linters {:unresolved-symbol {:level :warning}}
+                :lint-as {weird.lib/weird-def clj-kondo.lint-as/def-catch-all}})))
+  (is (empty?
+       (lint! "(ns foo (:require [orchestra.core :refer [defn-spec]]))
+
+(defn- foo [])
+
+(defn-spec my-inc integer?
+  [a integer?] ; Each argument is followed by its spec.
+  (foo) ;; private function is used
+  (inc \"foo\") ;; type mismatch ignored
+)
+
+(my-inc)"
+              '{:linters {:unresolved-symbol {:level :warning}}
+                :lint-as {orchestra.core/defn-spec clj-kondo.lint-as/def-catch-all}})))
+
+  (is (empty?
+       (lint! "(ns foo (:require [rum.core :as rum]))
+
+(rum/defcs stateful < (rum/local 0 ::key)
+  [state label]
+  (let [local-atom (::key state)]
+    [:div { :on-click (fn [_] (swap! local-atom inc)) }
+      label \": \" @local-atom]))
+
+(stateful)
+"
+              '{:linters {:unresolved-symbol {:level :warning}}
+                :lint-as {rum.core/defcs clj-kondo.lint-as/def-catch-all}}))))
 
 (deftest letfn-test
   (assert-submaps '({:file "<stdin>",
