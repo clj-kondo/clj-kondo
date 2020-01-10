@@ -63,7 +63,8 @@
                                     :exclude {#_#_taoensso.timbre [debug]}}
               :unused-private-var {:level :warning}
               :duplicate-require {:level :warning}
-              :refer-all {:level :warning}
+              :refer-all {:level :warning
+                          :exclude #{}}
               :use {:level :warning}
               :if {:level :warning}
               :type-mismatch {:level :error}
@@ -247,6 +248,16 @@
         delayed-cfg (memoize delayed-cfg)]
     (fn [config ns-name var-name]
       (contains? (delayed-cfg config) [ns-name var-name]))))
+
+(def refer-all-excluded?
+  (let [delayed-cfg (fn [config]
+                      (let [excluded (get-in config [:linters :refer-all :exclude]
+                                             #{'clojure.test})]
+                        (set excluded)))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config referred-all-ns]
+      (let [excluded (delayed-cfg config)]
+        (excluded referred-all-ns)))))
 
 ;;;; Scratch
 
