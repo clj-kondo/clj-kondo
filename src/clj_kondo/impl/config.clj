@@ -251,13 +251,12 @@
 
 (def refer-all-excluded?
   (let [delayed-cfg (fn [config]
-                      (let [excluded (get-in config [:linters :refer-all :exclude]
-                                             #{'clojure.test})]
-                        (set excluded)))
+                      (let [syms (get-in config [:linters :refer-all :exclude])]
+                        (set syms)))
         delayed-cfg (memoize delayed-cfg)]
     (fn [config referred-all-ns]
       (let [excluded (delayed-cfg config)]
-        (excluded referred-all-ns)))))
+        (contains? excluded referred-all-ns)))))
 
 ;;;; Scratch
 
