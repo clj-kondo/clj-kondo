@@ -1006,14 +1006,16 @@
 
 (defn analyze-with-redefs
   [ctx expr]
-  (let [children (next (:children expr))
-        binding-vector (assert-vector ctx 'with-redefs (first children))
+  (let [call (-> (:callstack ctx) first second) ;; can be with-redefs or binding
+        children (next (:children expr))
+        binding-vector (assert-vector ctx call (first children))
         _ (when binding-vector
-            (lint-even-forms-bindings! ctx 'with-redefs binding-vector))
+            (lint-even-forms-bindings! ctx call binding-vector))
         bindings (:children binding-vector)
         lhs (take-nth 2 bindings)
         rhs (take-nth 2 (rest bindings))
         body (next children)]
+    ;;  NOTE: because of lazy evaluation we need to use doall!
     (doall (analyze-children (ctx-with-linter-disabled ctx :private-call)
                              lhs))
     (doall (analyze-children ctx rhs))
@@ -1165,7 +1167,7 @@
                   if (analyze-if ctx expr)
                   new (analyze-constructor ctx expr)
                   set! (analyze-set! ctx expr)
-                  with-redefs (analyze-with-redefs ctx expr)
+                  (with-redefs binding) (analyze-with-redefs ctx expr)
                   ;; catch-all
                   (case [resolved-as-namespace resolved-as-name]
                     [clj-kondo.lint-as def-catch-all]
