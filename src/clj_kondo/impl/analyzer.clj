@@ -1014,9 +1014,9 @@
         lhs (take-nth 2 bindings)
         rhs (take-nth 2 (rest bindings))
         body (next children)]
-    (analyze-children (ctx-with-linter-disabled ctx :private-call)
-                      lhs)
-    (analyze-children ctx rhs)
+    (doall (analyze-children (ctx-with-linter-disabled ctx :private-call)
+                             lhs))
+    (doall (analyze-children ctx rhs))
     (analyze-children ctx body)))
 
 (defn analyze-def-catch-call [ctx expr]

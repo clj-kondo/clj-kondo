@@ -1851,7 +1851,8 @@
 (ns foo) (defn- private-fn []) (private-fn)
 (ns bar (:require [foo]))
 (with-redefs [foo/private-fn (fn [])]
-  (+ 1 2 3))"))))
+  (+ 1 2 3))")))
+  (is (empty? (lint! (io/file "corpus" "with_redefs.clj")))))
 
 (deftest file-error-test
   (assert-submaps '({:file "not-existing.clj",
