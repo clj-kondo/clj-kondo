@@ -82,7 +82,7 @@ we might have just linted it like that. That is what the following configuration
 When you have custom `def` or `defn`-like macros and you can't find a supported macro that is like it, you can use:
 
 ``` clojure
-{:lint-as {foo/my-defn clj-kondo.lint-as/def-catch-call}}
+{:lint-as {foo/my-defn clj-kondo.lint-as/def-catch-all}}
 ```
 
 ### Exclude unresolved symbols from being reported
