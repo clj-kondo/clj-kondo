@@ -6,6 +6,7 @@
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.utils :as utils :refer
     [tag one-of symbol-from-token tag kw->sym]]
+   [clj-kondo.impl.metadata :as meta]
    [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
@@ -67,6 +68,7 @@
          (let [syntax-quote?
                (or syntax-quote?
                    (= :syntax-quote t))]
+           (meta/lift-meta-content2 ctx expr true)
            (case t
              :token
              (if-let [symbol-val (symbol-from-token expr)]

@@ -17,24 +17,29 @@
 (def type-hint-bindings
   '{void {} objects {}})
 
-(defn lift-meta-content2 [{:keys [:lang] :as ctx} node]
-  (if-let [meta-list (:meta node)]
-    (let [ctx-with-type-hint-bindings
-          (utils/ctx-with-bindings ctx
-                                   (cond->
-                                       type-hint-bindings
-                                     (identical? :cljs lang)
-                                     (assoc 'js {})))
-          ;; use dorun to force analysis, we don't use the end result!
-          _ (run! #(dorun (common/analyze-expression** ctx-with-type-hint-bindings %))
-                  meta-list)
-          meta-maps (map #(meta-node->map ctx %) meta-list)
-          meta-map (apply merge meta-maps)
-          node (-> node
-                   (dissoc :meta)
-                   (with-meta (merge (meta node) meta-map)))]
-      node)
-    node))
+(defn lift-meta-content2
+  ([ctx node] (lift-meta-content2 ctx node false))
+  ([{:keys [:lang] :as ctx} node only-usage?]
+   (if-let [meta-list (:meta node)]
+     (let [ctx-with-type-hint-bindings
+           (utils/ctx-with-bindings ctx
+                                    (cond->
+                                        type-hint-bindings
+                                      (identical? :cljs lang)
+                                      (assoc 'js {})))
+           ;; use dorun to force analysis, we don't use the end result!
+           _ (if only-usage?
+               (run! #(dorun (common/analyze-usages2 ctx-with-type-hint-bindings %))
+                     meta-list)
+               (run! #(dorun (common/analyze-expression** ctx-with-type-hint-bindings %))
+                     meta-list))
+           meta-maps (map #(meta-node->map ctx %) meta-list)
+           meta-map (apply merge meta-maps)
+           node (-> node
+                    (dissoc :meta)
+                    (with-meta (merge (meta node) meta-map)))]
+       node)
+     node)))
 
 ;;;; Scratch
 

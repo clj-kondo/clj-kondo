@@ -1015,10 +1015,10 @@
         lhs (take-nth 2 bindings)
         rhs (take-nth 2 (rest bindings))
         body (next children)]
-    ;;  NOTE: because of lazy evaluation we need to use doall!
-    (doall (analyze-children (ctx-with-linter-disabled ctx :private-call)
+    ;;  NOTE: because of lazy evaluation we need to use dorun!
+    (dorun (analyze-children (ctx-with-linter-disabled ctx :private-call)
                              lhs))
-    (doall (analyze-children ctx rhs))
+    (dorun (analyze-children ctx rhs))
     (analyze-children ctx body)))
 
 (defn analyze-def-catch-call [ctx expr]
@@ -1447,7 +1447,8 @@
                  'analyze-children analyze-children
                  'ctx-with-bindings ctx-with-bindings
                  'extract-bindings extract-bindings
-                 'analyze-defn analyze-defn})
+                 'analyze-defn analyze-defn
+                 'analyze-usages2 analyze-usages2})
 
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
