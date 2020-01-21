@@ -1838,7 +1838,15 @@
   (is (empty? (lint! (io/file "corpus" "nested_syntax_quote.clj")
                      {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(doseq [[ns-sym _ alias-sym] (cons t ts)] (create-ns ns-sym)  (alias alias-sym ns-sym))"
-                     {:linters {:unused-binding {:level :warning}}}))))
+                     {:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "
+(ns app.repro (:import java.lang.String))
+(defmacro test-macro
+  []
+  ;^String (str \"a\" \"b\")
+  `(let [test# ^String (str \"a\" \"b\")]
+     test#))"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest with-redefs-test
   (assert-submaps '({:file "<stdin>", :row 1, :col 14,
