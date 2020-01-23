@@ -14,6 +14,20 @@ cache:
   - '%USERPROFILE%\.m2 -> project.clj'
   - 'graalvm -> appveyor.yml'
 
+clone_script:
+- ps: >-
+    if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
+      git clone -q --branch=$env:APPVEYOR_REPO_BRANCH https://github.com/$env:APPVEYOR_REPO_NAME.git $env:APPVEYOR_BUILD_FOLDER
+      cd $env:APPVEYOR_BUILD_FOLDER
+      git checkout -qf $env:APPVEYOR_REPO_COMMIT
+    } else {
+      git clone -q https://github.com/$env:APPVEYOR_REPO_NAME.git $env:APPVEYOR_BUILD_FOLDER
+      cd $env:APPVEYOR_BUILD_FOLDER
+      git fetch -q origin +refs/pull/$env:APPVEYOR_PULL_REQUEST_NUMBER/merge:
+      git checkout -qf FETCH_HEAD
+    }
+#- cmd: git submodule update --init --recursive
+
 build_script:
 - cmd: >-
     powershell -Command "(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein.bat', 'lein.bat')"
