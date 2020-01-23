@@ -70,6 +70,7 @@
                (recur (inc retry#)))))))))
 
 (defn load-when-missing [idacs cache-dir lang ns-sym]
+  ;;(prn (meta ns-sym))
   (let [path [lang :defs ns-sym]]
     (if-not (get-in idacs path)
       (if-let [data (from-cache-1 cache-dir lang ns-sym)]

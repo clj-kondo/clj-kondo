@@ -2428,6 +2428,10 @@
   (is (empty? (lint! "(def x (js-obj)) (set! x -field 2)"
                      "--lang" "cljs"))))
 
+(deftest absolute-path-namespace
+  #_(is (empty? (lint! "(ns main.core (:require [\"/vendors/daterangepicker\"]))"
+                     "--lang" "cljs" "--cache" "true"))))
+
 ;;;; Scratch
 
 (comment
