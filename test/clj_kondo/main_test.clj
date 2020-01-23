@@ -2429,8 +2429,8 @@
                      "--lang" "cljs"))))
 
 (deftest absolute-path-namespace
-  #_(is (empty? (lint! "(ns main.core (:require [\"/vendors/daterangepicker\"]))"
-                     "--lang" "cljs" "--cache" "true"))))
+  (is (empty? (lint! "(ns main.core (:require [\"/vendors/daterangepicker\"]))"
+                     "--lang" "cljc" "--cache" "true"))))
 
 ;;;; Scratch
 
