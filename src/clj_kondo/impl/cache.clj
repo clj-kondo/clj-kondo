@@ -70,18 +70,22 @@
                (recur (inc retry#)))))))))
 
 (defn load-when-missing [idacs cache-dir lang ns-sym]
-  (let [path [lang :defs ns-sym]]
-    (if-not (get-in idacs path)
-      (if-let [data (from-cache-1 cache-dir lang ns-sym)]
-        (let [res (assoc-in idacs path data)]
-          ;; proxied-namespaces are here because of potemkin/import-vars since
-          ;; import-vars only supports clj and not cljs, we're fine with loading
-          ;; these namespace only with the current language (which is :clj)
-          (if-let [proxied (:proxied-namespaces data)]
-            (reduce #(load-when-missing %1 cache-dir lang %2) res proxied)
-            res))
-        idacs)
-      idacs)))
+  (if (string? (-> ns-sym meta :raw-name))
+    ;; if raw-name is a string, the source is JavaScript, there is no point in
+    ;; searching for that
+    idacs
+    (let [path [lang :defs ns-sym]]
+      (if-not (get-in idacs path)
+        (if-let [data (from-cache-1 cache-dir lang ns-sym)]
+          (let [res (assoc-in idacs path data)]
+            ;; proxied-namespaces are here because of potemkin/import-vars since
+            ;; import-vars only supports clj and not cljs, we're fine with loading
+            ;; these namespace only with the current language (which is :clj)
+            (if-let [proxied (:proxied-namespaces data)]
+              (reduce #(load-when-missing %1 cache-dir lang %2) res proxied)
+              res))
+          idacs)
+        idacs))))
 
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
