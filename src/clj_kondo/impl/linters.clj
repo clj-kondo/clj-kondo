@@ -86,12 +86,12 @@
                                        :missing-test-assertion "missing test assertion"))))
 
 
-(defn child-of-deftest? [callstack]
+(defn expected-test-assertion? [callstack]
   (when callstack
     (let [parent (first callstack)]
       (case parent
         ([clojure.core let] [cljs.core let]) (recur (next callstack))
-        ([clojure.test testing] [cljs.test testing]) (recur (next callstack))
+        ([clojure.test testing] [cljs.test testing]) true
         ([clojure.test deftest] [cljs.test deftest]) true
         false))))
 
@@ -101,7 +101,7 @@
     (lint-cond ctx (:expr call))
     nil)
   ;; missing test assertion
-  (when (child-of-deftest? (next (:callstack call)))
+  (when (expected-test-assertion? (next (:callstack call)))
     (lint-missing-test-assertion ctx call called-fn)))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
