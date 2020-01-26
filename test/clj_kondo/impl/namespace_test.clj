@@ -79,7 +79,7 @@
                ctx
                (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
 "))]
-        (nil? (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string))))
+        (is (nil? (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string)))))
     (testing "referring with full namespace"
       (let [_ (analyze-ns-decl
                 ctx
