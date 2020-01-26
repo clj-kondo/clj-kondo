@@ -238,7 +238,9 @@
                                                                    (if call?
                                                                      (assoc call
                                                                        :row name-row
-                                                                       :col name-col)
+                                                                       :col name-col
+                                                                       :end-row (:end-row name-meta)
+                                                                       :end-col (:end-col name-meta))
                                                                      call)))
                              row (:row call)
                              col (:col call)

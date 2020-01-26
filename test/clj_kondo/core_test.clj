@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :refer [path-separator]]
-   [clj-kondo.test-utils :refer [file-path file-separator]]
+   [clj-kondo.test-utils :refer [file-path file-separator assert-submaps]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -54,7 +54,15 @@
       (is s)
       (is (nat-int? (:error s)))
       (is (nat-int? (:warning s)))
-      (is (nat-int? (:duration s))))))
+      (is (nat-int? (:duration s)))))
+  (testing "end locations are reported correctly"
+    (let [{:keys [:findings]}
+          (with-in-str
+            "(x  )" (clj-kondo/run! {:lint ["-"]}))]
+      (assert-submaps
+       [{:level :error, :type :unresolved-symbol, :message "unresolved symbol x",
+         :row 1, :col 2, :end-row 1, :end-col 3}]
+       findings))))
 
 ;;;; Scratch
 
