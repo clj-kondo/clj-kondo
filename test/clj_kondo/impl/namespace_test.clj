@@ -75,11 +75,15 @@
       (is (= '{:ns rewrite-clj.parser :name parse-string}
              (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string))))
     (testing "referring to unknown namespace alias"
-      (let [_ (analyze-ns-decl
+      (let [ctx {:namespaces (atom {})
+                 :findings (atom [])
+                 :base-lang :clj
+                 :lang :clj}
+            _ (analyze-ns-decl
                ctx
                (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
 "))]
-        (is (nil? (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string)))))
+        (is (= 'p (:unresolved-ns (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string))))))
     (testing "referring with full namespace"
       (let [_ (analyze-ns-decl
                 ctx
