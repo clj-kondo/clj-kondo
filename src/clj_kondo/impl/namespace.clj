@@ -36,6 +36,10 @@
          metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym
+                         :name-row (:row metadata)
+                         :name-col (:col metadata)
+                         :name-end-row (:end-row metadata)
+                         :name-end-col (:end-col metadata)
                          :row expr-row
                          :col expr-col
                          :end-row expr-end-row
@@ -91,7 +95,9 @@
                 (update ns :vars assoc
                         var-sym
                         (assoc
-                         (merge metadata (select-keys prev-var [:row :col]))
+                         (merge metadata (select-keys
+                                          prev-var
+                                          [:row :col :end-row :end-col]))
                          :top-ns top-ns))))))))
 
 (defn reg-var-usage!

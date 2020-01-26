@@ -425,8 +425,7 @@
                                           (map :name))
                                 used-vars)]
           v vars
-          :let [var-name (:name v)
-                ]
+          :let [var-name (:name v)]
           :when (:private v)
           :when (not (contains? used-vars var-name))
           :when (not (config/unused-private-var-excluded config ns-name var-name))]
@@ -435,10 +434,10 @@
      {:level :warning
       :type :unused-private-var
       :filename filename
-      :row (:row v)
-      :col (:col v)
-      :end-row (:end-row v)
-      :end-col (:end-col v)
+      :row (:name-row v)
+      :col (:name-col v)
+      :end-row (:name-end-row v)
+      :end-col (:name-end-col v)
       :message (str "Unused private var " ns-name "/" var-name)})))
 
 (defn lint-unresolved-symbols!
