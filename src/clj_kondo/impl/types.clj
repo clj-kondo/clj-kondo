@@ -241,17 +241,21 @@
   ([ctx expr] (add-arg-type-from-expr ctx expr (expr->tag ctx expr)))
   ([ctx expr tag]
    (when-let [arg-types (:arg-types ctx)]
-     (let [{:keys [:row :col]} (meta expr)]
+     (let [m (meta expr)]
        (swap! arg-types conj {:tag tag
-                              :row row
-                              :col col})))))
+                              :row (:row m)
+                              :col (:col m)
+                              :end-row (:end-row m)
+                              :end-col (:end-col m)})))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]
     (swap! arg-types conj (if-let [r (ret-tag-from-call ctx call _expr)]
                             (assoc r
                                    :row (:row call)
-                                   :col (:col call))
+                                   :col (:col call)
+                                   :end-row (:end-row call)
+                                   :end-col (:end-col call))
                             {:tag :any}))))
 
 (defn args-spec-from-arities [arities arity]
@@ -269,6 +273,8 @@
                            {:filename filename
                             :row (:row arg)
                             :col (:col arg)
+                            :end-row (:end-row arg)
+                            :end-col (:end-col arg)
                             :type :type-mismatch
                             :message (str "Expected: " expected-label
                                           (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
@@ -278,19 +284,24 @@
                                             (format " (%s)" t))
                                           ".")})))
 
-(defn emit-more-input-expected! [{:keys [:findings :filename]} arg]
-  (findings/reg-finding! findings
-                         {:filename filename
-                          :row (:row arg)
-                          :col (:col arg)
-                          :type :type-mismatch
-                          :message (str "Insufficient input.")}))
+(defn emit-more-input-expected! [{:keys [:findings :filename]} call arg]
+  (let [expr (or arg call)]
+    (findings/reg-finding! findings
+                           {:filename filename
+                            :row (:row expr)
+                            :col (:col expr)
+                            :end-row (:end-row expr)
+                            :end-col (:end-col expr)
+                            :type :type-mismatch
+                            :message (str "Insufficient input.")})))
 
 (defn emit-missing-required-key! [{:keys [:findings :filename]} arg k]
   (findings/reg-finding! findings
                          {:filename filename
                           :row (:row arg)
                           :col (:col arg)
+                          :end-row (:end-row arg)
+                          :end-col (:end-col arg)
                           :type :type-mismatch
                           :message (str "Missing required key: " k)}))
 
@@ -301,7 +312,7 @@
     (if-let [v (get mval k)]
       (when-let [t (:tag v)]
         (if (= :keys (:op target))
-          (lint-map! ctx target v (:tag v))
+          (lint-map! ctx target v t)
           (when-not (match? t target)
             (emit-non-match! ctx target v t))))
       (when required?
@@ -367,7 +378,7 @@
                                  (emit-non-match! ctx s a t))
                                (recur check-ctx rest-args-spec rest-args rest-tags))
                   (keyword? s)
-                  (cond (empty? all-args) (emit-more-input-expected! ctx (last args))
+                  (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
                         :else
                         (do (when-not (do
                                         ;; (prn "match t s" t s)
