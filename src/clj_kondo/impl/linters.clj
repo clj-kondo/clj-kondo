@@ -85,16 +85,24 @@
                            (node->line filename (:expr call) :warning
                                        :missing-test-assertion "missing test assertion"))))
 
+
+(defn expected-test-assertion? [callstack]
+  (when callstack
+    (let [parent (first callstack)]
+      (case parent
+        ([clojure.core let] [cljs.core let]) (recur (next callstack))
+        ([clojure.test testing] [cljs.test testing]) true
+        ([clojure.test deftest] [cljs.test deftest]) true
+        false))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (case [(:ns called-fn) (:name called-fn)]
     ([clojure.core cond] [cljs.core cond])
     (lint-cond ctx (:expr call))
     nil)
   ;; missing test assertion
-  (case (second (:callstack call))
-    ([clojure.test deftest] [cljs.test deftest])
-    (lint-missing-test-assertion ctx call called-fn)
-    nil))
+  (when (expected-test-assertion? (next (:callstack call)))
+    (lint-missing-test-assertion ctx call called-fn)))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
