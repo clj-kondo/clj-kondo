@@ -101,11 +101,16 @@
                     (select-lang* expr lang)))
 
 (defn node->line [filename node level type message]
+  #_(when (and (= type :missing-docstring)
+             (not (:row (meta node))))
+    (prn node))
   (let [m (meta node)]
     {:type type
      :message message
      :level level
      :row (:row m)
+     :end-row (:end-row m)
+     :end-col (:end-col m)
      :col (:col m)
      :filename filename}))
 

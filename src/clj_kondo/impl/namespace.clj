@@ -28,12 +28,18 @@
    (reg-var! ctx ns-sym var-sym expr nil))
   ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns] :as ctx}
     ns-sym var-sym expr metadata]
-   (let [{expr-row :row expr-col :col} (meta expr)
+   (let [m (meta expr)
+         expr-row (:row m)
+         expr-col (:col m)
+         expr-end-row (:end-row m)
+         expr-end-col (:end-col m)
          metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym
                          :row expr-row
-                         :col expr-col)
+                         :col expr-col
+                         :end-row expr-end-row
+                         :end-col expr-end-col)
          path [base-lang lang ns-sym]
          temp? (:temp metadata)
          config (:config ctx)]

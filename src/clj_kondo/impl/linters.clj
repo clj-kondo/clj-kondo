@@ -242,6 +242,8 @@
                                                                      call)))
                              row (:row call)
                              col (:col call)
+                             end-row (:end-row call)
+                             end-col (:end-col call)
                              filename (:filename call)
                              fn-ns (:ns called-fn)
                              resolved-ns (or fn-ns resolved-ns)
@@ -294,7 +296,9 @@
                              [(when arity-error?
                                 {:filename filename
                                  :row row
+                                 :end-row end-row
                                  :col col
+                                 :end-col end-col
                                  :level :error
                                  :type :invalid-arity
                                  :message (arity-error fn-ns fn-name arity fixed-arities varargs-min-arity)})
@@ -360,29 +364,20 @@
                 config (config/merge-config! config (:config ns))]]
     (doseq [ns-sym unused]
       (when-not (config/unused-namespace-excluded config ns-sym)
-        (let [{:keys [:row :col :filename]} (meta ns-sym)]
+        (let [m (meta ns-sym)
+              filename (:filename m)]
           (findings/reg-finding!
            findings
-           {:level :warning
-            :type :unused-namespace
-            :filename filename
-            :message (format "namespace %s is required but never used" ns-sym)
-            :row row
-            :col col}))))
-    (doseq [[k v] referred-vars
-            :let [{:keys [:row :col]} (meta k)]]
+           (node->line filename ns-sym :warning :unused-namespace
+                       (format "namespace %s is required but never used" ns-sym))))))
+    (doseq [[k v] referred-vars]
       (let [var-ns (:ns v)]
         (when-not
             (or (contains? used-referred-vars k)
                 (config/unused-referred-var-excluded config var-ns k))
           (findings/reg-finding!
            findings
-           {:level :warning
-            :type :unused-referred-var
-            :filename filename
-            :message (str "#'" var-ns "/" (:name v) " is referred but never used")
-            :row row
-            :col col}))))
+           (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))))))
     (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
             :when (not (config/refer-all-excluded? config referred-all-ns))]
       (let [{:keys [:k :value]} node
@@ -408,16 +403,18 @@
                 used-bindings (:used-bindings ns)
                 diff (set/difference bindings used-bindings)]
           binding diff]
-    (let [{:keys [:row :col :filename :name]} binding]
+    (let [name (:name binding)]
       (when-not (str/starts-with? (str name) "_")
         (findings/reg-finding!
          findings
          {:level :warning
           :type :unused-binding
-          :filename filename
+          :filename (:filename binding)
           :message (str "unused binding " name)
-          :row row
-          :col col})))))
+          :row (:row binding)
+          :col (:col binding)
+          :end-row (:end-row binding)
+          :end-col (:end-col binding)})))))
 
 (defn lint-unused-private-vars!
   [{:keys [:findings :config] :as ctx}]
@@ -428,32 +425,39 @@
                                           (map :name))
                                 used-vars)]
           v vars
-          :let [var-name (:name v)]
+          :let [var-name (:name v)
+                ]
           :when (:private v)
           :when (not (contains? used-vars var-name))
-          :when (not (config/unused-private-var-excluded config ns-name var-name))
-          :let [{:keys [:row :col]} v]]
+          :when (not (config/unused-private-var-excluded config ns-name var-name))]
     (findings/reg-finding!
      findings
      {:level :warning
       :type :unused-private-var
       :filename filename
-      :row row ;; row and col are not correct yet
-      :col col
+      :row (:row v)
+      :col (:col v)
+      :end-row (:end-row v)
+      :end-col (:end-col v)
       :message (str "Unused private var " ns-name "/" var-name)})))
 
 (defn lint-unresolved-symbols!
   [{:keys [:findings] :as ctx}]
   (doseq [ns (namespace/list-namespaces ctx)
-          [_ {:keys [:row :col :filename :name]}] (:unresolved-symbols ns)]
-    (findings/reg-finding!
-     findings
-     {:level :error
-      :type :unresolved-symbol
-      :filename filename
-      :message (str "unresolved symbol " name)
-      :row row
-      :col col})))
+          [_ v] (:unresolved-symbols ns)]
+    (let [
+          filename (:filename v)
+          name (:name v)]
+      (findings/reg-finding!
+       findings
+       {:level :error
+        :type :unresolved-symbol
+        :filename filename
+        :message (str "unresolved symbol " name)
+        :row (:row v)
+        :col (:col v)
+        :end-row (:end-row v)
+        :end-col (:end-col v)}))))
 
 (defn lint-unused-imports!
   [{:keys [:findings] :as ctx}]
@@ -462,30 +466,27 @@
                 imports (:imports ns)
                 used-imports (:used-imports ns)]
           [import _] imports
-          :when (not (contains? used-imports import))
-          :let [{:keys [:row :col]} (meta import)]]
+          :when (not (contains? used-imports import))]
     (findings/reg-finding!
      findings
-     {:level :warning
-      :type :unused-import
-      :filename filename
-      :message (str "Unused import " import)
-      :row row
-      :col col})))
+     (node->line filename import :warning :unused-import (str "Unused import " import)))))
 
 (defn lint-unresolved-namespaces!
   [{:keys [:findings] :as ctx}]
   (doseq [ns (namespace/list-namespaces ctx)
           un (:unresolved-namespaces ns)
-          :let [{:keys [:row :col :filename]} (meta un)]]
+          :let [m (meta un)
+                filename (:filename m)]]
     (findings/reg-finding!
      findings
      {:level :warning
       :type :unresolved-namespace
       :filename filename
       :message (str "Unresolved namespace " un ". Are you missing a require?")
-      :row row
-      :col col})))
+      :row (:row m)
+      :col (:col m)
+      :end-row (:end-row m)
+      :end-col (:end-col m)})))
 
 ;;;; scratch
 

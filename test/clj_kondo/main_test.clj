@@ -1710,6 +1710,8 @@
                         :filename "<stdin>",
                         :row 1,
                         :col 1,
+                        :end-row 1,
+                        :end-col 6,
                         :level (case output-format :edn :error
                                      "error"),
                         :message "clojure.core/inc is called with 0 args but expects 1"}
@@ -1718,6 +1720,8 @@
                         :filename "<stdin>",
                         :row 1,
                         :col 6,
+                        :end-row 1,
+                        :end-col 11,
                         :level (case output-format :edn :error
                                      "error"),
                         :message "clojure.core/dec is called with 0 args but expects 1"}]}

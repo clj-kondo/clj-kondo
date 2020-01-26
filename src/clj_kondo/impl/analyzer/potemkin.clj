@@ -13,6 +13,6 @@
                   imported-ns-sym (:value imported-ns)]]
         (do (doseq [iv imported-vars]
               (let [iv-sym (:value iv)]
-                (namespace/reg-var! ctx ns-name iv-sym nil {:imported-ns imported-ns-sym
-                                                            :imported-var iv-sym})))
+                (namespace/reg-var! ctx ns-name iv-sym expr {:imported-ns imported-ns-sym
+                                                             :imported-var iv-sym})))
             imported-ns-sym))}]))

@@ -99,7 +99,10 @@
                                  v))
                              v))
                          m (meta expr)
-                         {:keys [:row :col]} m]
+                         row (:row m)
+                         col (:col m)
+                         end-row (:end-row m)
+                         end-col (:end-col m)]
                      (when resolved-ns
                        (namespace/reg-used-namespace! ctx
                                                       ns-name
@@ -112,7 +115,9 @@
                                                   :unresolved? unresolved?
                                                   :clojure-excluded? clojure-excluded?
                                                   :row row
+                                                  :end-row end-row
                                                   :col col
+                                                  :end-col end-col
                                                   :base-lang (:base-lang ctx)
                                                   :lang (:lang ctx)
                                                   :top-ns (:top-ns ctx)

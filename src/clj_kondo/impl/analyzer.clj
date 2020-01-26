@@ -66,6 +66,8 @@
          {:message (str k " is not bound in this destructuring form") :level :warning
           :row (:row v)
           :col (:col v)
+          :end-row (:end-row v)
+          :end-col (:end-col v)
           :filename (:filename ctx)
           :type :unbound-destructuring-default}))))
   (analyze-children ctx (utils/map-node-vals defaults)))
@@ -488,17 +490,12 @@
          :analyzed analyzed}))))
 
 (defn lint-even-forms-bindings! [ctx form-name bv]
-  (let [num-children (count (:children bv))
-        {:keys [:row :col]} (meta bv)]
+  (let [num-children (count (:children bv))]
     (when (odd? num-children)
       (findings/reg-finding!
        (:findings ctx)
-       {:type :syntax
-        :message (format "%s binding vector requires even number of forms" form-name)
-        :row row
-        :col col
-        :level :error
-        :filename (:filename ctx)}))))
+       (node->line (:filename ctx) bv :error :syntax
+                   (format "%s binding vector requires even number of forms" form-name))))))
 
 (defn assert-vector [{:keys [:filename :findings]} call expr]
   (when expr
@@ -572,31 +569,19 @@
   (analyze-children ctx (next (:children expr))))
 
 (defn lint-two-forms-binding-vector! [ctx form-name expr]
-  (let [num-children (count (:children expr))
-        {:keys [:row :col]} (meta expr)]
+  (let [num-children (count (:children expr))]
     (when (not= 2 num-children)
       (findings/reg-finding!
        (:findings ctx)
-       {:type :syntax
-        :message (format "%s binding vector requires exactly 2 forms" form-name)
-        :row row
-        :col col
-        :filename (:filename ctx)
-        :level :error}))))
+       (node->line (:filename ctx) expr :error :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
 (defn lint-one-or-two-forms-body! [ctx form-name main-expr body-exprs]
-  (let [num-children (count body-exprs)
-        {:keys [:row :col]} (meta main-expr)]
+  (let [num-children (count body-exprs)]
     (when-not (or (= 1 num-children)
                   (= 2 num-children))
       (findings/reg-finding!
        (:findings ctx)
-       {:type :syntax
-        :message (format "%s body requires one or two forms" form-name)
-        :row row
-        :col col
-        :filename (:filename ctx)
-        :level :error}))))
+       (node->line (:filename ctx) main-expr :error :syntax (format "%s body requires one or two forms" form-name))))))
 
 (defn analyze-conditional-let [ctx call expr]
   ;; TODO: add check for number of children. I.e. when the first child is
@@ -1081,11 +1066,12 @@
                 unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
                 resolved-namespace* (if unknown-ns?
                                       ns-name resolved-namespace)
+                expr-meta (meta expr)
                 ctx (if fq-sym
                       (update ctx :callstack
                               (fn [cs]
                                 (cons (with-meta [resolved-namespace* resolved-name]
-                                        (meta expr)) cs)))
+                                        expr-meta) cs)))
                       ctx)
                 resolved-as-clojure-var-name
                 (when (one-of resolved-as-namespace [clojure.core cljs.core])
@@ -1241,7 +1227,9 @@
                                   :clojure-excluded? clojure-excluded?
                                   :arity arg-count
                                   :row row
+                                  :end-row (:end-row expr-meta)
                                   :col col
+                                  :end-col (:end-col expr-meta)
                                   :base-lang base-lang
                                   :lang lang
                                   :filename (:filename ctx)
