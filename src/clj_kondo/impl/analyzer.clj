@@ -561,7 +561,7 @@
                     ;; implicit do
                     (one-of core-sym [fn defn defn-
                                       let loop binding with-open
-                                      doseq try])))))]
+                                      doseq try when when-not])))))]
     (when redundant?
       (findings/reg-finding!
        (:findings ctx)
@@ -1006,7 +1006,7 @@
     (dorun (analyze-children ctx rhs))
     (analyze-children ctx body)))
 
-(defn analyze-def-catch-call [ctx expr]
+(defn analyze-def-catch-all [ctx expr]
   (let [ns-name (-> ctx :ns :name)
         children (next (:children expr))
         name-expr (->> (first children)
@@ -1021,6 +1021,16 @@
                         (meta/lift-meta-content2 ctx name-expr)
                         (meta expr))
     (run! #(analyze-usages2 ctx %) body)))
+
+(defn analyze-when [ctx expr]
+  (let [children (next (:children expr))
+        condition (first children)
+        body (next children)]
+    (dorun (analyze-expression**
+            ;; avoid redundant do check for condition
+            (update ctx :callstack conj nil)
+            condition))
+    (analyze-children ctx body)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
@@ -1154,10 +1164,11 @@
                   new (analyze-constructor ctx expr)
                   set! (analyze-set! ctx expr)
                   (with-redefs binding) (analyze-with-redefs ctx expr)
+                  (when when-not) (analyze-when ctx expr)
                   ;; catch-all
                   (case [resolved-as-namespace resolved-as-name]
                     [clj-kondo.lint-as def-catch-all]
-                    (analyze-def-catch-call ctx expr)
+                    (analyze-def-catch-all ctx expr)
                     [schema.core fn]
                     (analyze-schema ctx 'fn expr)
                     [schema.core def]
