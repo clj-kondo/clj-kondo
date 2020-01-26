@@ -7,7 +7,7 @@
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
    [clj-kondo.impl.types.clojure.string :refer [clojure-string]]
    [clj-kondo.impl.utils :as utils :refer
-    [tag sexpr node->line]]
+    [tag sexpr]]
    [clojure.string :as str]))
 
 (def built-in-specs
