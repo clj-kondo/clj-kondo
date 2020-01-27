@@ -139,22 +139,19 @@
   ([a b & more]
    (apply merge-with deep-merge a b more)))
 
-(defn- constant-val?
-  [v]
-  (or (boolean? v)
-      (string? v)
-      (char? v)
-      (number? v)
-      (keyword? v)
-      (and (list? v) (= 'quote (first v)))
-      (and (or (vector? v) (set? v) (map? v))
-           (every? constant-val? v))))
-
 (defn constant?
   "returns true of expr represents a compile time constant"
   [expr]
-  (let [v (node/sexpr expr)]
-    (constant-val? v)))
+  (let [t (node/tag expr)]
+    (case t
+      ;; boolean, single-line string, char, number, keyword
+      :token
+      (not (symbol? (:value expr)))
+      ;; multi-line string and quoted values
+      (:multi-line :quote) true
+      (:vector :set :map) (every? constant? (:children expr))
+      :namespaced-map (every? constant? (-> expr :children first :children))
+      false)))
 
 (defn boolean-token? [node]
   (boolean? (:value node)))
@@ -163,9 +160,7 @@
   (char? (:value node)))
 
 (defn string-from-token [node]
-  (when-let [lines
-             (or (:lines node)
-                 (:multi-line node))]
+  (when-let [lines (:lines node)]
     (str/join "\n" lines)))
 
 (defn number-token? [node]

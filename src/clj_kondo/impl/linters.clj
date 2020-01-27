@@ -94,12 +94,21 @@
                            (node->line filename (:expr call) :warning
                                        :missing-test-assertion "missing test assertion"))))
 
+#_(defn lint-test-is [ctx expr]
+  (let [children (next (:children expr))]
+    (when (every? constant? children)
+      (findings/reg-finding! (:findings ctx)
+                             (node->line (:filename ctx) expr :warning
+                                         :constant-test-assertion "Test assertion with only constants.")))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)]
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
+      #_([clojure.test is] [cljs.test is])
+      #_(lint-test-is ctx (:expr call))
       nil)
     (when (get-in var-info/predicates [called-ns called-name])
       (lint-missing-test-assertion ctx call))))
