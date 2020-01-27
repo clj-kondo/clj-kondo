@@ -79,13 +79,6 @@
         (lint-cond-constants! ctx conditions)
         #_(lint-cond-as-case! filename expr conditions)))))
 
-(defn lint-missing-test-assertion [{:keys [:findings :filename]} call called-fn]
-  (when (get-in var-info/predicates [(:ns called-fn) (:name called-fn)])
-    (findings/reg-finding! findings
-                           (node->line filename (:expr call) :warning
-                                       :missing-test-assertion "missing test assertion"))))
-
-
 (defn expected-test-assertion? [callstack]
   (when callstack
     (let [parent (first callstack)]
@@ -95,14 +88,21 @@
         ([clojure.test deftest] [cljs.test deftest]) true
         false))))
 
-(defn lint-specific-calls! [ctx call called-fn]
-  (case [(:ns called-fn) (:name called-fn)]
-    ([clojure.core cond] [cljs.core cond])
-    (lint-cond ctx (:expr call))
-    nil)
-  ;; missing test assertion
+(defn lint-missing-test-assertion [{:keys [:findings :filename]} call]
   (when (expected-test-assertion? (next (:callstack call)))
-    (lint-missing-test-assertion ctx call called-fn)))
+    (findings/reg-finding! findings
+                           (node->line filename (:expr call) :warning
+                                       :missing-test-assertion "missing test assertion"))))
+
+(defn lint-specific-calls! [ctx call called-fn]
+  (let [called-ns (:ns called-fn)
+        called-name (:name called-fn)]
+    (case [called-ns called-name]
+      ([clojure.core cond] [cljs.core cond])
+      (lint-cond ctx (:expr call))
+      nil)
+    (when (get-in var-info/predicates [called-ns called-name])
+      (lint-missing-test-assertion ctx call))))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
