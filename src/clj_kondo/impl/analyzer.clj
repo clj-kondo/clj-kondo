@@ -2,7 +2,10 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+   [clj-kondo.impl.analyzer.common :refer [common]]
+   [clj-kondo.impl.analyzer.compojure :as compojure]
    [clj-kondo.impl.analyzer.core-async :as core-async]
+   [clj-kondo.impl.analyzer.datalog :as datalog]
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.potemkin :as potemkin]
@@ -23,10 +26,7 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
-   [clojure.string :as str]
-   [clj-kondo.impl.analyzer.datalog :as datalog]
-   [clj-kondo.impl.analyzer.common :refer [common]]
-   [clj-kondo.impl.analyzer.compojure :as compojure]))
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -930,15 +930,16 @@
   (let [ns-name (-> ctx :ns :name)
         children (:children expr)
         require-node (first children)
-        children (next children)]
-    (doseq [child children]
-      (if (= :quote (tag child))
-        (when-let [libspec-expr (first (:children child))]
-          (let [analyzed
-                (namespace-analyzer/analyze-require-clauses ctx ns-name [[require-node [libspec-expr]]])]
-            (namespace/reg-required-namespaces! ctx ns-name analyzed)))
-        (analyze-children ctx children)))
-    (analyze-children ctx children)))
+        children (next children)
+        [quoted-children non-quoted-children]
+        (utils/filter-remove #(= :quote (tag %))
+                             children)
+        libspecs (map #(first (:children %)) quoted-children)]
+    (let [analyzed
+          (namespace-analyzer/analyze-require-clauses ctx ns-name [[require-node libspecs]])]
+      (namespace/reg-required-namespaces! ctx ns-name analyzed))
+    ;; also analyze children that weren't quoted
+    (analyze-children ctx non-quoted-children)))
 
 (defn analyze-import-libspec [ctx ns-name expr]
   (let [libspec-expr (if (= :quote (tag expr))
