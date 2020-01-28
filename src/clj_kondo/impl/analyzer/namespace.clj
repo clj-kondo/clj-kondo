@@ -5,8 +5,8 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
+   [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [node->line one-of tag sexpr vector-node
                                  token-node string-from-token symbol-from-token
