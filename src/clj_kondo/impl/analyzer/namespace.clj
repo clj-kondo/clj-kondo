@@ -6,6 +6,7 @@
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
+   [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [node->line one-of tag sexpr vector-node
                                  token-node string-from-token symbol-from-token
@@ -211,25 +212,6 @@
        :type :unsorted-namespaces
        :filename filename
        :message "Unsorted namespaces."})))
-
-(defn lint-duplicate-requires!
-  ([ctx namespaces] (lint-duplicate-requires! ctx #{} namespaces))
-  ([ctx init namespaces]
-   (reduce (fn [required ns]
-             (if (contains? required ns)
-               (let [ns (if (symbol? ns) ns (second ns))]
-                 (findings/reg-finding!
-                   (:findings ctx)
-                   (node->line (:filename ctx)
-                               ns
-                               :warning
-                               :duplicate-require
-                               (str "duplicate require of " ns)))
-                 required)
-               (conj required ns)))
-           (set init)
-           namespaces)
-   nil))
 
 (defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
   (let [analyzed (for [[require-kw libspecs] kw+libspecs

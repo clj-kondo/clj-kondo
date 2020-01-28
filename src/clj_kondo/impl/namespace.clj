@@ -5,6 +5,7 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled? one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
@@ -86,11 +87,11 @@
                              (not (:doc metadata))
                              (not temp?))
                     (findings/reg-finding!
-                      findings
-                      (node->line filename
-                                  expr :warning
-                                  :missing-docstring
-                                  "Missing docstring."))))
+                     findings
+                     (node->line filename
+                                 expr :warning
+                                 :missing-docstring
+                                 "Missing docstring."))))
                 (update ns :vars assoc
                         var-sym
                         (assoc
@@ -144,9 +145,10 @@
   nil)
 
 (defn reg-required-namespaces!
-  [{:keys [:base-lang :lang :namespaces] :as _ctx} ns-sym analyzed-require-clauses]
+  [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
+           (lint-duplicate-requires! ctx (:required ns) (:required analyzed-require-clauses))
            (merge-with into ns analyzed-require-clauses)))
   nil)
 
