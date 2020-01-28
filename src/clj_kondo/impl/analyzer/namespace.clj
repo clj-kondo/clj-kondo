@@ -202,11 +202,11 @@
 
 (defn lint-unsorted-namespaces! [{:keys [config filename findings] :as _ctx} namespaces]
   (when-not (= :off (-> config :linters :unsorted-namespaces :level))
-    (loop [processed-ns []
-           ns-list namespaces]
-      (when (seq ns-list)
+    (loop [last-processed-ns nil
+           ns-list (seq namespaces)]
+      (when ns-list
         (let [ns (first ns-list)]
-          (if-not (neg? (compare (last processed-ns) ns))
+          (if-not (neg? (compare last-processed-ns ns))
             (findings/reg-finding!
               findings
               (node->line filename
@@ -214,8 +214,8 @@
                           :warning
                           :unsorted-namespaces
                           (str "Unsorted namespace: " ns)))
-            (recur (conj processed-ns ns)
-                   (rest ns-list))))))))
+            (recur ns
+                   (next ns-list))))))))
 
 (defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
   (let [analyzed (for [[require-kw libspecs] kw+libspecs
@@ -231,12 +231,13 @@
                                        :referred #{}})
                                acc))
                            {}
-                           analyzed)]
-    (lint-unsorted-namespaces! ctx (map :ns analyzed))
+                           analyzed)
+        required-namespaces (map (fn [req]
+                                   (vary-meta (:ns req)
+                                              #(assoc % :alias (:as req)))) analyzed)]
+    (lint-unsorted-namespaces! ctx required-namespaces)
     (lint-duplicate-requires! ctx (map (juxt :require-kw :ns) analyzed))
-    {:required (map (fn [req]
-                      (vary-meta (:ns req)
-                                 #(assoc % :alias (:as req)))) analyzed)
+    {:required required-namespaces
      :qualify-ns (reduce (fn [acc sc]
                            (cond-> (assoc acc (:ns sc) (:ns sc))
                              (:as sc)
