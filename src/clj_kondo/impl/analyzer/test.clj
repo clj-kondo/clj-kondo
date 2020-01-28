@@ -1,8 +1,8 @@
 (ns clj-kondo.impl.analyzer.test
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :as utils]
-   [clj-kondo.impl.analyzer.common :as common]))
+    [clj-kondo.impl.analyzer.common :as common]
+    [clj-kondo.impl.utils :as utils]))
 
 (defn analyze-deftest [ctx deftest-ns expr]
   (common/analyze-defn
