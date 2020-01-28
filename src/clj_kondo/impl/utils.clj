@@ -225,6 +225,17 @@
             (transient {})
             ks))))
 
+(defn filter-remove [p xs]
+  (loop [xs xs
+         filtered (transient [])
+         removed (transient [])]
+    (if xs
+      (let [x (first xs)] (if (p x)
+                            (recur (next xs)
+                                   (conj! filtered x) removed)
+                            (recur (next xs) filtered (conj! removed x))))
+      [(persistent! filtered) (persistent! removed)])))
+
 ;;;; Scratch
 
 (comment

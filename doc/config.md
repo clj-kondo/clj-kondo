@@ -37,6 +37,7 @@ linting took 10ms, errors: 0, warnings: 0
 Some linters are not enabled by default. Right now these linters are:
 
 - `:missing-docstring`: warn when public var doesn't have a docstring.
+- `:unsorted-namespaces`: warn when namespaces in `:require` are not sorted.
 
 You can enable these linters by setting the `:level`:
 

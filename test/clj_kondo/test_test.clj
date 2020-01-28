@@ -1,8 +1,8 @@
 (ns clj-kondo.test-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
-   [clojure.test :refer [deftest is]]
-   [clojure.java.io :as io]))
+    [clj-kondo.test-utils :refer [lint! assert-submaps]]
+    [clojure.java.io :as io]
+    [clojure.test :refer [deftest is]]))
 
 (deftest missing-test-assertion-test
   (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest (t/is (odd? 1)))")))

@@ -1,9 +1,9 @@
 (ns clj-kondo.unresolved-symbol-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
-   [clojure.java.io :as io]
-   [clojure.test :as t :refer [deftest is testing]]
-   [clojure.edn :as edn]))
+    [clj-kondo.test-utils :refer [lint! assert-submaps]]
+    [clojure.edn :as edn]
+    [clojure.java.io :as io]
+    [clojure.test :refer [deftest is testing]]))
 
 (deftest unresolved-symbol-test
   (assert-submaps

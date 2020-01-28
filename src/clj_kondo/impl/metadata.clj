@@ -1,9 +1,9 @@
 (ns clj-kondo.impl.metadata
   {:no-doc true}
   (:require
-   [clj-kondo.impl.linters.keys :as key-linter]
-   [clj-kondo.impl.utils :as utils]
-   [clj-kondo.impl.analyzer.common :as common]))
+    [clj-kondo.impl.analyzer.common :as common]
+    [clj-kondo.impl.linters.keys :as key-linter]
+    [clj-kondo.impl.utils :as utils]))
 
 (defn meta-node->map [ctx node]
   (let [s (utils/sexpr node)]

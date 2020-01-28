@@ -33,6 +33,7 @@
               :unbound-destructuring-default {:level :warning}
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false}
+              :unsorted-namespaces {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
                                  :exclude [#_clj-kondo.impl.var-info-gen]

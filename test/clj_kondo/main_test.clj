@@ -2428,6 +2428,27 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string])) clojure.string/join"
                      {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))))
 
+(deftest unsorted-namespaces-test
+  (assert-submaps
+    [{:file "<stdin>"
+      :row 1
+      :col 31
+      :level :warning
+      :message "Unsorted namespace: abar.core"}]
+    (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-namespaces {:level :warning}}}))
+  (assert-submaps
+    [{:file "<stdin>"
+      :row 1
+      :col 21
+      :level :warning
+      :message "Unsorted namespace: abar.core"}]
+    (lint! "(require 'bar.core 'abar.core)" {:linters {:unsorted-namespaces {:level :warning}}}))
+  (is (empty? (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-namespaces {:level :off}}})))
+  (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-namespaces {:level :warning}}})))
+  (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]) (:import [java.lib JavaClass] [ajava.lib AnotherClass]))"
+                     {:linters {:unsorted-namespaces {:level :warning}
+                                :unused-import {:level :off}}}))))
+
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
                   (lint! "(declare x) (set! (.-foo x) 1 2 3)"))

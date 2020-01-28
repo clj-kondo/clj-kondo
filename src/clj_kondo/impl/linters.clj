@@ -1,15 +1,15 @@
 (ns clj-kondo.impl.linters
   {:no-doc true}
   (:require
+   [clj-kondo.impl.analysis :as analysis]
+   [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr]]
    [clj-kondo.impl.var-info :as var-info]
-   [clj-kondo.impl.config :as config]
-   [clj-kondo.impl.analysis :as analysis]
-   [clj-kondo.impl.findings :as findings]
    [clojure.set :as set]
-   [clj-kondo.impl.namespace :as namespace]
-   [clojure.string :as str]
-   [clj-kondo.impl.types :as types]))
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
