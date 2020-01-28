@@ -2432,10 +2432,11 @@
   (assert-submaps
     [{:file "<stdin>"
       :row 1
-      :col 1
+      :col 31
       :level :warning
-      :message "Unsorted namespaces."}]
+      :message "Unsorted namespace: abar.core"}]
     (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-namespaces {:level :warning}}}))
+  (is (empty? (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-namespaces {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-namespaces {:level :warning}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]) (:import [java.lib JavaClass] [ajava.lib AnotherClass]))"
                      {:linters {:unsorted-namespaces {:level :warning}

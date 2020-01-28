@@ -201,17 +201,21 @@
     nil))
 
 (defn lint-unsorted-namespaces! [{:keys [config filename findings] :as _ctx} namespaces]
-  (when (and (seq namespaces)
-             (not= :off (-> config :linters :unsorted-namespaces :level))
-             (not= namespaces (sort namespaces)))
-    (findings/reg-finding!
-      findings
-      {:level :warning
-       :row 1
-       :col 1
-       :type :unsorted-namespaces
-       :filename filename
-       :message "Unsorted namespaces."})))
+  (when-not (= :off (-> config :linters :unsorted-namespaces :level))
+    (loop [processed-ns []
+           ns-list namespaces]
+      (when (seq ns-list)
+        (let [ns (first ns-list)]
+          (if-not (neg? (compare (last processed-ns) ns))
+            (findings/reg-finding!
+              findings
+              (node->line filename
+                          ns
+                          :warning
+                          :unsorted-namespaces
+                          (str "Unsorted namespace: " ns)))
+            (recur (conj processed-ns ns)
+                   (rest ns-list))))))))
 
 (defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
   (let [analyzed (for [[require-kw libspecs] kw+libspecs
