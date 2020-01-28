@@ -144,7 +144,7 @@
   nil)
 
 (defn reg-required-namespaces!
-  [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
+  [{:keys [:base-lang :lang :namespaces] :as _ctx} ns-sym analyzed-require-clauses]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
            (merge-with into ns analyzed-require-clauses)))
