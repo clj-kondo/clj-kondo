@@ -64,7 +64,7 @@
                        (str/starts-with? config "^"))
                    (edn/read-string config)
                    ;; config is a string that represents a file
-                   :else (read-edn-file config)))]))
+                   :else (read-edn-file (io/file config))))]))
 
 ;;;; process cache
 
