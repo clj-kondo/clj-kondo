@@ -5,7 +5,6 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [node->line one-of tag sexpr vector-node
@@ -200,23 +199,6 @@
              {imported java-package})
     nil))
 
-(defn lint-unsorted-namespaces! [{:keys [config filename findings] :as _ctx} namespaces]
-  (when-not (= :off (-> config :linters :unsorted-namespaces :level))
-    (loop [last-processed-ns (first namespaces)
-           ns-list (next namespaces)]
-      (when ns-list
-        (let [ns (first ns-list)]
-          (if-not (neg? (compare last-processed-ns ns))
-            (findings/reg-finding!
-              findings
-              (node->line filename
-                          ns
-                          :warning
-                          :unsorted-namespaces
-                          (str "Unsorted namespace: " ns)))
-            (recur ns
-                   (next ns-list))))))))
-
 (defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
   (let [analyzed (for [[require-kw libspecs] kw+libspecs
                        libspec-expr libspecs
@@ -235,8 +217,8 @@
         required-namespaces (map (fn [req]
                                    (vary-meta (:ns req)
                                               #(assoc % :alias (:as req)))) analyzed)]
-    (lint-unsorted-namespaces! ctx required-namespaces)
-    (lint-duplicate-requires! ctx (map (juxt :require-kw :ns) analyzed))
+    (namespace/lint-unsorted-namespaces! ctx required-namespaces)
+    (namespace/lint-duplicate-requires! ctx (map (juxt :require-kw :ns) analyzed))
     {:required required-namespaces
      :qualify-ns (reduce (fn [acc sc]
                            (cond-> (assoc acc (:ns sc) (:ns sc))

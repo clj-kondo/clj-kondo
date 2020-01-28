@@ -5,13 +5,48 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled? one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
   (:import [java.util StringTokenizer]))
 
 (set! *warn-on-reflection* true)
+
+(defn lint-duplicate-requires!
+  ([ctx namespaces] (lint-duplicate-requires! ctx #{} namespaces))
+  ([ctx init namespaces]
+   (reduce (fn [required ns]
+             (if (contains? required ns)
+               (let [ns (if (symbol? ns) ns (second ns))]
+                 (findings/reg-finding!
+                   (:findings ctx)
+                   (node->line (:filename ctx)
+                               ns
+                               :warning
+                               :duplicate-require
+                               (str "duplicate require of " ns)))
+                 required)
+               (conj required ns)))
+           (set init)
+           namespaces)
+   nil))
+
+(defn lint-unsorted-namespaces! [{:keys [config filename findings] :as _ctx} namespaces]
+  (when-not (= :off (-> config :linters :unsorted-namespaces :level))
+    (loop [last-processed-ns (first namespaces)
+           ns-list (next namespaces)]
+      (when ns-list
+        (let [ns (first ns-list)]
+          (if-not (neg? (compare last-processed-ns ns))
+            (findings/reg-finding!
+              findings
+              (node->line filename
+                          ns
+                          :warning
+                          :unsorted-namespaces
+                          (str "Unsorted namespace: " ns)))
+            (recur ns
+                   (next ns-list))))))))
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
