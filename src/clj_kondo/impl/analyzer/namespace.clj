@@ -202,8 +202,8 @@
 
 (defn lint-unsorted-namespaces! [{:keys [config filename findings] :as _ctx} namespaces]
   (when-not (= :off (-> config :linters :unsorted-namespaces :level))
-    (loop [last-processed-ns nil
-           ns-list (seq namespaces)]
+    (loop [last-processed-ns (first namespaces)
+           ns-list (next namespaces)]
       (when ns-list
         (let [ns (first ns-list)]
           (if-not (neg? (compare last-processed-ns ns))
