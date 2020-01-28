@@ -368,6 +368,7 @@
                    e)]
     findings))
 
+
 (defn lint-unused-namespaces!
   [{:keys [:config :findings] :as ctx}]
   (doseq [ns (namespace/list-namespaces ctx)

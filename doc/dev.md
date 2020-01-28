@@ -22,6 +22,11 @@
    3. Configuration spread across multiple files is harder to debug.
 
  6) Clj-kondo should be unobtrusive. Users of clj-kondo should not have to change their code only to make the linter happy. Team members who do not wish to use clj-kondo should not be confronted with clj-kondo-related annotations in their code.
+ 
+## Adding a new linter
+If you wish to add a new linter, do not forget to add the appropriate keyword in `clj-kondo.impl.config/default-config`, the map that defines the default configuration.
+
+This is necessary because only the linters with a keyword in the default config appear in the report.  
 
 ## PR
 
