@@ -200,11 +200,18 @@
     nil))
 
 (defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
-  (let [analyzed (for [[require-kw libspecs] kw+libspecs
-                       libspec-expr libspecs
-                       normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
-                       analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
-                   analyzed)
+  (let [analyzed
+        (map (fn [[require-kw libspecs]]
+               (for [libspec-expr libspecs
+                     normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
+                     analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
+                 analyzed))
+             kw+libspecs)
+        _ (doseq [analyzed analyzed]
+            (let [namespaces (map :ns analyzed)]
+              (namespace/lint-unsorted-namespaces! ctx namespaces)
+              (namespace/lint-duplicate-requires! ctx namespaces)))
+        analyzed (apply concat analyzed)
         refer-alls (reduce (fn [acc clause]
                              (if-let [m (:referred-all clause)]
                                (assoc acc (:ns clause)
@@ -217,8 +224,6 @@
         required-namespaces (map (fn [req]
                                    (vary-meta (:ns req)
                                               #(assoc % :alias (:as req)))) analyzed)]
-    (namespace/lint-unsorted-namespaces! ctx required-namespaces)
-    (namespace/lint-duplicate-requires! ctx (map (juxt :require-kw :ns) analyzed))
     {:required required-namespaces
      :qualify-ns (reduce (fn [acc sc]
                            (cond-> (assoc acc (:ns sc) (:ns sc))
