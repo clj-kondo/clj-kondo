@@ -2448,7 +2448,7 @@
                        {:linters {:unsorted-namespaces {:level :warning}
                                   :duplicate-require {:level :off}}}))))
   (testing "Duplicate requires are not reported when occurring in different clauses"
-    (is (empty? (lint! "(ns foo (:require [cljs.core.async]) (:require-macro [cljs.core.async]))"
+    (is (empty? (lint! "(ns foo (:require-macros [cljs.core.async.macros]) (:require [cljs.core.async]))"
                        {:linters {:unsorted-namespaces {:level :warning}}}))))
   (is (empty? (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-namespaces {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-namespaces {:level :warning}}})))
