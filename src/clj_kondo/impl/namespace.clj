@@ -37,7 +37,7 @@
            ns-list (next namespaces)]
       (when ns-list
         (let [ns (first ns-list)]
-          (if-not (neg? (compare last-processed-ns ns))
+          (if (pos? (compare last-processed-ns ns))
             (findings/reg-finding!
               findings
               (node->line filename

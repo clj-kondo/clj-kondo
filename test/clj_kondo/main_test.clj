@@ -2443,6 +2443,10 @@
       :level :warning
       :message "Unsorted namespace: abar.core"}]
     (lint! "(require 'bar.core 'abar.core)" {:linters {:unsorted-namespaces {:level :warning}}}))
+  (testing "Duplicate requires are not reported as unsorted."
+    (is (empty? (lint! "(ns foo (:require [cljs.core.async] [cljs.core.async]))"
+                       {:linters {:unsorted-namespaces {:level :warning}
+                                  :duplicate-require {:level :off}}}))))
   (is (empty? (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-namespaces {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-namespaces {:level :warning}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]) (:import [java.lib JavaClass] [ajava.lib AnotherClass]))"
