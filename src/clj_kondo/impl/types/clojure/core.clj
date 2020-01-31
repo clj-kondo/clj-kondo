@@ -179,7 +179,7 @@
    'chunked-seq? any->boolean
    ;; 718
    'concat {:arities {:varargs {:args [{:op :rest :spec :seqable}]
-                                :ret :seqable}}}
+                                :ret :seq}}}
    ;; 746 'delay
    ;; 755
    'delay? any->boolean
@@ -341,10 +341,10 @@
    ;; 1555
    ;; NOTE: keys and vals can be called on seqs of MapEntry's, hence not :associative.
    'keys {:arities {1 {:args [:seqable]
-                       :ret :seqable}}}
+                       :ret :seq}}}
    ;; 1561
    'vals {:arities {1 {:args [:seqable]
-                       :ret :seqable}}}
+                       :ret :seq}}}
    ;; 1567 'key
    ;; 1574 'val
    ;; 1581 'rseq
@@ -542,13 +542,13 @@
    'iterate {:arities {2 {:args [:ifn :any]
                           :ret :seq}}}
    ;; 3019
-   'range {:arities {0 {:ret :seqable}
+   'range {:arities {0 {:ret :seq}
                      1 {:args [:number]
-                        :ret :seqable}
+                        :ret :seq}
                      2 {:args [:number :number]
-                        :ret :seqable}
+                        :ret :seq}
                      3 {:args [:number :number :number]
-                        :ret :seqable}}}
+                        :ret :seq}}}
    ;; 3041
    'merge {:arities {:varargs {:args [{:op :rest
                                        :spec :seqable}]
@@ -570,11 +570,11 @@
    ;; 3174 'nthrest
    ;; 3184
    'partition {:arities {2 {:args [:int :seqable]
-                            :ret :seqable}
+                            :ret :seq}
                          3 {:args [:int :int :seqable]
-                            :ret :seqable}
+                            :ret :seq}
                          4 {:args [:int :int :seqable :seqable]
-                            :ret :seqable}}}
+                            :ret :seq}}}
    ;; 3210 'eval
    ;; 3216 'doseq
    ;; 3274 'await
@@ -682,7 +682,7 @@
    'take-nth {:arities {1 {:args [:int]
                            :ret :transducer}
                         2 {:args [:int :seqable]
-                           :ret :seqable}}}
+                           :ret :seq}}}
    ;; 4309 'interleave
    ;; 4327 'var-get
    ;; 4333 'var-set
@@ -717,15 +717,15 @@
    ;; 4858 're-groups
    ;; 4874
    're-seq {:arities {2 {:args [:regex :string]
-                         :ret :seqable}}}
+                         :ret :seq}}}
    ;; 4886
    're-matches {:arities {2 {:args [:regex :string]
-                             :ret :seqable}}}
+                             :ret :seq}}}
    ;; 4898
    're-find {:arities {1 {:args [:any] ;; matcher
-                          :ret :seqable}
+                          :ret :seq}
                        2 {:args [:regex :string]
-                          :ret :seqable}}}
+                          :ret :seq}}}
    ;; 4911 'rand
    ;; 4919 'rand-int
    ;; 4925 'defn-
@@ -751,7 +751,7 @@
    'distinct {:arities {0 {:args []
                            :ret :transducer}
                         1 {:args [:seqable]
-                           :ret :seqable}}}
+                           :ret :seq}}}
    ;; 5058 'replace
    ;; 5076 'dosync
    ;; 5086 'with-precision
@@ -767,7 +767,7 @@
    'interpose {:arities {1 {:args [:any]
                             :ret :transducer}
                          2 {:args [:any :seqable]
-                            :ret :seqable}}}
+                            :ret :seq}}}
    ;; 5229 'definline
    ;; 5241 'empty
    ;; 5249 'amap
@@ -942,7 +942,7 @@
    'partition-by {:arities {1 {:args [:ifn]
                                :ret :transducer}
                             2 {:args [:ifn :seqable]
-                               :ret :seqable}}}
+                               :ret :seq}}}
    ;; 7203
    'frequencies {:arities {1 {:args [:seqable]
                               :ret :map}}}
@@ -952,9 +952,9 @@
    'partition-all {:arities {1 {:args [:int]
                                 :ret :transducer}
                              2 {:args [:int :seqable]
-                                :ret :seqable}
+                                :ret :seq}
                              3 {:args [:int :int :seqable]
-                                :ret :seqable}}}
+                                :ret :seq}}}
    ;; 7274
    'shuffle {:arities {1 {:args [:coll]
                           :ret :coll}}}
@@ -962,7 +962,7 @@
    'map-indexed {:arities {1 {:args [:ifn]
                               :ret :transducer}
                            2 {:args [:ifn :seqable]
-                              :ret :seqable}}}
+                              :ret :seq}}}
    ;; 7313
    'keep {:arities {1 {:args [:ifn]
                        :ret :transducer}
@@ -972,7 +972,7 @@
    'keep-indexed {:arities {1 {:args [:ifn]
                                :ret :transducer}
                             2 {:args [:ifn :seqable]
-                               :ret :seqable}}}
+                               :ret :seq}}}
    ;; 7384 'bounded-count
    ;; 7396
    'every-pred {:arities {:varargs {:args [:ifn {:op :rest
@@ -996,7 +996,7 @@
    'dedupe {:arities {0 {:args []
                          :ret :transducer}
                       1 {:args [:seqable]
-                         :ret :seqable}}}
+                         :ret :seq}}}
    ;; 7673 'random-sample
    ;; 7682 'Eduction
    ;; 7682 '->Eduction
