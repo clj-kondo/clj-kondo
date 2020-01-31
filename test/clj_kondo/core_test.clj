@@ -62,7 +62,15 @@
       (assert-submaps
        [{:level :error, :type :unresolved-symbol, :message "unresolved symbol x",
          :row 1, :col 2, :end-row 1, :end-col 3}]
-       findings))))
+       findings)))
+  (testing "passing file as config arg"
+    (let [{{:keys [error warning info]} :summary}
+          (clj-kondo/run!
+            {:lint   [(file-path "corpus" "invalid_arity")]
+             :config (file-path "corpus" "config" "invalid_arity.edn")})]
+      (is (zero? error))
+      (is (zero? warning))
+      (is (zero? info)))))
 
 ;;;; Scratch
 
