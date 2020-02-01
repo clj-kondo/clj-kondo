@@ -331,9 +331,9 @@
                       last-expr)
         return-tag (or return-tag
                        (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
-                             tag (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
-                                       last-expr {:tag (types/expr->tag ctx last-expr)})]
-                         (:tag tag)))]
+                             tag (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
+                                       last-expr (types/expr->tag ctx last-expr))]
+                         tag))]
     (assoc arity
            :parsed
            (concat analyzed-arg-vec parsed)
@@ -546,15 +546,24 @@
                  ;; prevent linting redundant let when using let in bindings
                  (update :callstack #(cons [nil :let-bindings] %))) valid-bv-node)
             let-body (nnext (:children expr))
-            single-child? (and let? (= 1 (count let-body)))]
-        (lint-even-forms-bindings! ctx call valid-bv-node)
-        (concat analyzed
-                (analyze-children
-                 (-> ctx
-                     (ctx-with-bindings analyzed-bindings)
-                     (update :arities merge arities)
-                     (assoc :maybe-redundant-let? single-child?))
-                 let-body))))))
+            single-child? (and let? (= 1 (count let-body)))
+            _ (lint-even-forms-bindings! ctx call valid-bv-node)
+            last-expr (last let-body)
+            ret-expr-id (gensym)
+            last-expr (when last-expr (assoc last-expr :id ret-expr-id))
+            let-body (concat (butlast let-body) [last-expr])
+            maybe-call (get @(:calls-by-id ctx) ret-expr-id)
+            ret (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
+                      last-expr (types/expr->tag ctx last-expr))]
+        (with-meta
+          (concat analyzed
+                  (analyze-children
+                   (-> ctx
+                       (ctx-with-bindings analyzed-bindings)
+                       (update :arities merge arities)
+                       (assoc :maybe-redundant-let? single-child?))
+                   let-body))
+          {:ret ret})))))
 
 (defn analyze-do [{:keys [:filename :callstack] :as ctx} expr]
   (let [parent-call (second callstack)
@@ -1241,6 +1250,8 @@
               analyzed
               (let [in-def (:in-def ctx)
                     id (:id expr)
+                    m (meta analyzed)
+                    ret-tag (when m (:ret m))
                     call (cond-> {:type :call
                                   :resolved-ns resolved-namespace
                                   :ns ns-name
@@ -1264,14 +1275,15 @@
                                   :top-ns (:top-ns ctx)
                                   :arg-types (:arg-types ctx)}
                            id (assoc :id id)
-                           in-def (assoc :in-def in-def))]
+                           in-def (assoc :in-def in-def)
+                           ret-tag (assoc :ret ret-tag))]
                 (when id (reg-call ctx call id))
                 (namespace/reg-var-usage! ctx ns-name call)
                 (when-not unresolved?
                   (namespace/reg-used-namespace! ctx
                                                  ns-name
                                                  resolved-namespace))
-                (if-let [m (meta analyzed)]
+                (if m
                   (with-meta (cons call analyzed)
                     m)
                   (cons call analyzed))))))))
