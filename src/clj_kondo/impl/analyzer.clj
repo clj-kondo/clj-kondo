@@ -548,13 +548,17 @@
             let-body (nnext (:children expr))
             single-child? (and let? (= 1 (count let-body)))
             _ (lint-even-forms-bindings! ctx call valid-bv-node)
-            last-expr (last let-body)
-            ret-expr-id (gensym)
-            last-expr (when last-expr (assoc last-expr :id ret-expr-id))
-            let-body (concat (butlast let-body) [last-expr])
-            maybe-call (get @(:calls-by-id ctx) ret-expr-id)
-            ret (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
-                      last-expr (types/expr->tag ctx last-expr))]
+            [let-body ret] (cond let?
+                                 (let [last-expr (last let-body)
+                                       ret-expr-id (gensym)
+                                       last-expr (when last-expr (assoc last-expr :id ret-expr-id))
+                                       let-body (concat (butlast let-body) [last-expr])
+                                       maybe-call (get @(:calls-by-id ctx) ret-expr-id)
+                                       ret (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
+                                                 last-expr (types/expr->tag ctx last-expr))]
+                                   [let-body ret])
+                                 (= 'for call) [let-body :seq]
+                                 :else [let-body nil])]
         (with-meta
           (concat analyzed
                   (analyze-children

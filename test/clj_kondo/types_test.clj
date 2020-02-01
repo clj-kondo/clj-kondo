@@ -423,6 +423,10 @@
      '({:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: number, received: string."})
      (lint! "(defn foo [_] (let [_x 1] \"foo\")) (inc (foo 1))"
             {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:level :error, :message "Expected: number, received: seq."})
+     (lint! "(defn foo [_] (for [_x [1 2 3]] \"foo\")) (inc (foo 1))"
+            {:linters {:type-mismatch {:level :error}}}))
     ;; avoiding false positives:
     (is (empty?
          (lint! "(cons [nil] (list 1 2 3))
