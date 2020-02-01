@@ -3,7 +3,7 @@
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.types.clojure.core :refer [clojure-core]]
+   [clj-kondo.impl.types.clojure.core :refer [clojure-core cljs-core]]
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
    [clj-kondo.impl.types.clojure.string :refer [clojure-string]]
    [clj-kondo.impl.utils :as utils :refer
@@ -12,7 +12,7 @@
 
 (def built-in-specs
   {'clojure.core clojure-core
-   'cljs.core clojure-core
+   'cljs.core cljs-core
    'clojure.set clojure-set
    'clojure.string clojure-string})
 
@@ -125,6 +125,7 @@
     (identical? k :nil) (or (nilable? target)
                             (identical? :seqable target))
     (map? k) (recur (:type k) target)
+    (set? k) (some #(match? % target) k)
     :else
     (let [k (unnil k)
           target (unnil target)]
@@ -184,26 +185,27 @@
      :val (zipmap ks vtags)}))
 
 (defn ret-tag-from-call [{:keys [:config]} call _expr]
-  (when (and (not (:unresolved? call)))
-    (when-let [arg-types (:arg-types call)]
-      (let [called-ns (:resolved-ns call)
-            called-name (:name call)]
-        ;; (prn called-ns called-name)
-        (if-let [spec
-                 (or
-                  (config/type-mismatch-config config called-ns called-name)
-                  (get-in built-in-specs [called-ns called-name]))]
-          (or
-           (when-let [a (:arities spec)]
-             (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
-               (when-let [t (:ret called-arity)]
-                 {:tag t})))
-           (if-let [fn-spec (:fn spec)]
-             {:tag (fn-spec @arg-types)}
-             {:tag (:ret spec)}))
-          ;; we delay resolving this call, because we might find the spec for by linting other code
-          ;; see linters.clj
-          {:call (select-keys call [:type :lang :base-lang :resolved-ns :ns :name :arity])})))))
+  (when-not (:unresolved? call)
+    (or (when-let [ret (:ret call)]
+          {:tag ret})
+        (when-let [arg-types (:arg-types call)]
+          (let [called-ns (:resolved-ns call)
+                called-name (:name call)]
+            (if-let [spec
+                     (or
+                      (config/type-mismatch-config config called-ns called-name)
+                      (get-in built-in-specs [called-ns called-name]))]
+              (or
+               (when-let [a (:arities spec)]
+                 (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
+                   (when-let [t (:ret called-arity)]
+                     {:tag t})))
+               (if-let [fn-spec (:fn spec)]
+                 {:tag (fn-spec @arg-types)}
+                 {:tag (:ret spec)}))
+              ;; we delay resolving this call, because we might find the spec for by linting other code
+              ;; see linters.clj
+              {:call (select-keys call [:type :lang :base-lang :resolved-ns :ns :name :arity])}))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
   (or (if-let [id (:id expr)]

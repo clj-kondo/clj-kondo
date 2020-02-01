@@ -418,7 +418,15 @@
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 53, :level :error, :message "Expected: number, received: string."})
      (lint! "(defn foo ([_] 1) ([_ _] \"foo\")) (inc (foo 1)) (inc (foo 1 1))"
-                {:linters {:type-mismatch {:level :error}}}))
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: number, received: string."})
+     (lint! "(defn foo [_] (let [_x 1] \"foo\")) (inc (foo 1))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:level :error, :message "Expected: number, received: seq."})
+     (lint! "(defn foo [_] (let [_x 1] (for [_x [1 2 3]] \"foo\"))) (inc (foo 1))"
+            {:linters {:type-mismatch {:level :error}}}))
     ;; avoiding false positives:
     (is (empty?
          (lint! "(cons [nil] (list 1 2 3))
@@ -440,7 +448,8 @@
                (require '[clojure.set :as set])
                (set/difference (into #{} [1 2 3]) #{1 2 3})
                (reduce conj () [1 2 3])
-               (hash-set 1)"
+               (hash-set 1)
+               (str/includes? (re-find #\"foo\" \"foo\") \"foo\")"
                 {:linters {:type-mismatch {:level :error}}}))))
   (is (empty? (lint! "(require '[clojure.string :as str])
                       (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
@@ -456,6 +465,9 @@
                      {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(assoc {} :key1 2 :key2 (java.util.Date.))"
                      {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(keyword \"widget\" 'foo)"
+                     {:linters {:type-mismatch {:level :error}}}
+                     "--lang" "cljs")))
   (testing "no warning, despite string able to be nil"
     (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
                        {:linters {:type-mismatch {:level :error}}})))

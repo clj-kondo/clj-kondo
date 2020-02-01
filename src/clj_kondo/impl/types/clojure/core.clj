@@ -703,6 +703,7 @@
    ;; 4600 'when-first
    ;; 4614 'lazy-cat
    ;; 4624 'for
+   'for {:arities {2 {:ret :seq}}}
    ;; 4711 'comment
    ;; 4716 'with-out-str
    ;; 4727 'with-in-str
@@ -726,12 +727,12 @@
                          :ret :seq}}}
    ;; 4886
    're-matches {:arities {2 {:args [:regex :string]
-                             :ret :seq}}}
+                             :ret #{:vector :string}}}}
    ;; 4898
    're-find {:arities {1 {:args [:any] ;; matcher
                           :ret :seq}
                        2 {:args [:regex :string]
-                          :ret :seq}}}
+                          :ret #{:vector :string}}}}
    ;; 4911 'rand
    ;; 4919 'rand-int
    ;; 4925 'defn-
@@ -1023,3 +1024,11 @@
    ;; 7879 'remove-tap
    ;; 7886 'tap>
    })
+
+(def cljs-core
+  (assoc clojure-core
+         'keyword {:arities {1 {:args [#{:string :keyword :symbol}]
+                                :ret :keyword}
+                             2 {:args [#{:nilable/string :keyword :symbol}
+                                       #{:string :keyword :symbol}]
+                                :ret :keyword}}}))
