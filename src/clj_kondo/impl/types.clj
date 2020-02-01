@@ -190,7 +190,6 @@
         (when-let [arg-types (:arg-types call)]
           (let [called-ns (:resolved-ns call)
                 called-name (:name call)]
-            ;; (prn called-ns called-name)
             (if-let [spec
                      (or
                       (config/type-mismatch-config config called-ns called-name)

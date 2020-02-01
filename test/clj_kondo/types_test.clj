@@ -425,7 +425,7 @@
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
      '({:level :error, :message "Expected: number, received: seq."})
-     (lint! "(defn foo [_] (for [_x [1 2 3]] \"foo\")) (inc (foo 1))"
+     (lint! "(defn foo [_] (let [_x 1] (for [_x [1 2 3]] \"foo\"))) (inc (foo 1))"
             {:linters {:type-mismatch {:level :error}}}))
     ;; avoiding false positives:
     (is (empty?

@@ -703,6 +703,7 @@
    ;; 4600 'when-first
    ;; 4614 'lazy-cat
    ;; 4624 'for
+   'for {:arities {2 {:ret :seq}}}
    ;; 4711 'comment
    ;; 4716 'with-out-str
    ;; 4727 'with-in-str
