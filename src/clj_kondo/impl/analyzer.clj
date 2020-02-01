@@ -300,20 +300,21 @@
         ctx (assoc ctx
                    :recur-arity arity
                    :top-level? false)
-        children (:children body)
-        all-body-exprs (rest children)
-        first-child (first all-body-exprs)
-        one-child? (= 1 (count all-body-exprs))
+        children (next (:children body))
+        first-child (first children)
+        one-child? (= 1 (count children))
+        pre-post-map (when-not one-child?
+                       (when (and first-child
+                                  (identical? :map (tag first-child)))
+                         first-child))
+        _ (when pre-post-map
+            (analyze-pre-post-map ctx first-child))
+        children (if pre-post-map (next children) children)
         ret-expr-id (gensym)
-        first-child (if one-child?
-                      (assoc first-child :id ret-expr-id)
-                      first-child)
-        analyzed-first-child
+        _
         (let [t (when first-child (tag first-child))]
-          (cond (= :map t)
-                (analyze-pre-post-map ctx first-child)
-                (and (not docstring)
-                     (> (count all-body-exprs) 1)
+          (cond (and (not docstring)
+                     (not one-child?) ;; TODO: how does this interact with the pre-post map?
                      (one-of t [:token :multi-line])
                      (string-from-token first-child))
                 (findings/reg-finding! (:findings ctx)
@@ -321,12 +322,10 @@
                                                    first-child
                                                    :warning
                                                    :misplaced-docstring
-                                                   "Misplaced docstring."))
-                :else (analyze-expression** ctx first-child)))
-        middle-body-exprs (when-not one-child? (butlast all-body-exprs))
-        last-expr (when-not one-child? (last all-body-exprs))
+                                                   "Misplaced docstring."))))
+        last-expr (last children)
         last-expr (when last-expr (assoc last-expr :id ret-expr-id))
-        body-exprs (concat middle-body-exprs [last-expr])
+        body-exprs (concat (butlast children) [last-expr])
         parsed (analyze-children ctx body-exprs)
         last-expr (if one-child? first-child
                       last-expr)
@@ -337,7 +336,7 @@
                          (:tag tag)))]
     (assoc arity
            :parsed
-           (concat analyzed-first-child analyzed-arg-vec parsed)
+           (concat analyzed-arg-vec parsed)
            :ret return-tag
            :args arg-tags)))
 

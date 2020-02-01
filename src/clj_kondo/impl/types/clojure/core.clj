@@ -185,12 +185,14 @@
    'delay? any->boolean
    ;; 761 'force
    ;; 767 'if-not
-   ;; 775 'identical?
+   ;; 775
+   'identical? {:arities {2 {:ret :boolean}}}
    ;; 783
    '= {:arities {:varargs {:ret :boolean}}}
    ;; 819
    'not= {:arities {:varargs {:ret :boolean}}}
    ;; 831 'compare
+   'compare {:arities {2 {:ret :number}}}
    ;; 842 'and
    ;; 854 'or
    ;; 867
