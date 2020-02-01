@@ -1024,3 +1024,11 @@
    ;; 7879 'remove-tap
    ;; 7886 'tap>
    })
+
+(def cljs-core
+  (assoc clojure-core
+         'keyword {:arities {1 {:args [#{:string :keyword :symbol}]
+                                :ret :keyword}
+                             2 {:args [#{:nilable/string :keyword :symbol}
+                                       #{:string :keyword :symbol}]
+                                :ret :keyword}}}))

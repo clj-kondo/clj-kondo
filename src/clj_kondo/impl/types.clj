@@ -3,7 +3,7 @@
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.types.clojure.core :refer [clojure-core]]
+   [clj-kondo.impl.types.clojure.core :refer [clojure-core cljs-core]]
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
    [clj-kondo.impl.types.clojure.string :refer [clojure-string]]
    [clj-kondo.impl.utils :as utils :refer
@@ -12,7 +12,7 @@
 
 (def built-in-specs
   {'clojure.core clojure-core
-   'cljs.core clojure-core
+   'cljs.core cljs-core
    'clojure.set clojure-set
    'clojure.string clojure-string})
 

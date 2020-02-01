@@ -465,6 +465,9 @@
                      {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(assoc {} :key1 2 :key2 (java.util.Date.))"
                      {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(keyword \"widget\" 'foo)"
+                     {:linters {:type-mismatch {:level :error}}}
+                     "--lang" "cljs")))
   (testing "no warning, despite string able to be nil"
     (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
                        {:linters {:type-mismatch {:level :error}}})))
