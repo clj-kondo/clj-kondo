@@ -301,15 +301,20 @@
                    :recur-arity arity
                    :top-level? false)
         children (:children body)
-        body-exprs (rest children)
-        first-child (first body-exprs)
+        all-body-exprs (rest children)
+        first-child (first all-body-exprs)
+        one-child? (= 1 (count all-body-exprs))
+        ret-expr-id (gensym)
+        first-child (if one-child?
+                      (assoc first-child :id ret-expr-id)
+                      first-child)
         analyzed-first-child
         (let [t (when first-child (tag first-child))]
           (cond (= :map t)
                 (analyze-pre-post-map ctx first-child)
                 (and (not docstring)
-                     (> (count body-exprs) 1)
-                     (one-of (tag first-child) [:token :multi-line])
+                     (> (count all-body-exprs) 1)
+                     (one-of t [:token :multi-line])
                      (string-from-token first-child))
                 (findings/reg-finding! (:findings ctx)
                                        (node->line (:filename ctx)
@@ -318,9 +323,18 @@
                                                    :misplaced-docstring
                                                    "Misplaced docstring."))
                 :else (analyze-expression** ctx first-child)))
-        body-exprs (rest body-exprs)
-        parsed
-        (analyze-children ctx body-exprs)]
+        middle-body-exprs (when-not one-child? (butlast all-body-exprs))
+        last-expr (when-not one-child? (last all-body-exprs))
+        last-expr (when last-expr (assoc last-expr :id ret-expr-id))
+        body-exprs (concat middle-body-exprs [last-expr])
+        parsed (analyze-children ctx body-exprs)
+        last-expr (if one-child? first-child
+                      last-expr)
+        return-tag (or return-tag
+                       (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
+                             tag (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
+                                       last-expr {:tag (types/expr->tag ctx last-expr)})]
+                         (:tag tag)))]
     (assoc arity
            :parsed
            (concat analyzed-first-child analyzed-arg-vec parsed)
