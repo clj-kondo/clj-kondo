@@ -155,6 +155,10 @@
                          :ret :symbol}}}
    ;; 604 'gensym
    ;; 614 'keyword
+   'keyword {:arities {1 {:args [#{:symbol :string :keyword}]
+                          :ret :keyword}
+                       2 {:args [:nilable/string :string]
+                          :ret :keyword}}}
    ;; 625 'find-keyword
    ;; 648
    'list* {:arities {:varargs {:args [{:op :rest
@@ -167,7 +171,7 @@
                                             :last :seqable}]
                                :ret :any}}}
    ;; 675 'vary-meta
-   ;; 683 'lazy-seq
+   'lazy-seq {:arities {:varargs {:ret :seq}}}
    ;; 692 'chunk-buffer
    ;; 695 'chunk-append
    ;; 698 'chunk
@@ -185,12 +189,14 @@
    'delay? any->boolean
    ;; 761 'force
    ;; 767 'if-not
-   ;; 775 'identical?
+   ;; 775
+   'identical? {:arities {2 {:ret :boolean}}}
    ;; 783
    '= {:arities {:varargs {:ret :boolean}}}
    ;; 819
    'not= {:arities {:varargs {:ret :boolean}}}
    ;; 831 'compare
+   'compare {:arities {2 {:ret :number}}}
    ;; 842 'and
    ;; 854 'or
    ;; 867
@@ -349,7 +355,8 @@
    ;; 1574 'val
    ;; 1581 'rseq
    ;; 1589 'name
-   ;; 1597 'namespace
+   ;; 1597
+   'namespace {:arities {1 {:ret :string}}}
    ;; 1605
    'boolean any->boolean
    ;; 1612
@@ -370,7 +377,6 @@
    ;; 1659 '..
    ;; 1677 '->
    ;; 1693 '->>
-   ;; 1709 'map
    ;; 1723 'global-hierarchy
    ;; 1725 'defmulti
    ;; 1783 'defmethod
