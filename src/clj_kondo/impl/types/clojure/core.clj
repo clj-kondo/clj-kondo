@@ -167,7 +167,7 @@
                                             :last :seqable}]
                                :ret :any}}}
    ;; 675 'vary-meta
-   ;; 683 'lazy-seq
+   'lazy-seq {:arities {:varargs {:ret :seq}}}
    ;; 692 'chunk-buffer
    ;; 695 'chunk-append
    ;; 698 'chunk
