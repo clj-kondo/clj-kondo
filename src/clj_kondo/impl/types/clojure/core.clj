@@ -155,6 +155,10 @@
                          :ret :symbol}}}
    ;; 604 'gensym
    ;; 614 'keyword
+   'keyword {:arities {1 {:args [#{:symbol :string :keyword}]
+                          :ret :keyword}
+                       2 {:args [:nilable/string :string]
+                          :ret :keyword}}}
    ;; 625 'find-keyword
    ;; 648
    'list* {:arities {:varargs {:args [{:op :rest
@@ -351,7 +355,8 @@
    ;; 1574 'val
    ;; 1581 'rseq
    ;; 1589 'name
-   ;; 1597 'namespace
+   ;; 1597
+   'namespace {:arities {1 {:ret :string}}}
    ;; 1605
    'boolean any->boolean
    ;; 1612
@@ -372,7 +377,6 @@
    ;; 1659 '..
    ;; 1677 '->
    ;; 1693 '->>
-   ;; 1709 'map
    ;; 1723 'global-hierarchy
    ;; 1725 'defmulti
    ;; 1783 'defmethod

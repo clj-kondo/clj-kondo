@@ -415,7 +415,6 @@
     (assert-submaps '({:file "<stdin>", :row 1, :col 36, :level :error, :message "Expected: number, received: map."})
                     (lint! "(defn foo [] (assoc {} :a 1)) (inc (foo))"
                            {:linters {:type-mismatch {:level :error}}}))
-
     ;; avoiding false positives:
     (is (empty?
          (lint! "(cons [nil] (list 1 2 3))
