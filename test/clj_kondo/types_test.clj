@@ -407,10 +407,18 @@
       :message #"Expected: seqable collection, received: symbol"})
    (lint! "(list* 'foo)"
           {:linters {:type-mismatch {:level :error}}}))
+  (testing "Function return types"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 26, :level :error, :message "Expected: number, received: string."})
+     (lint! "(defn foo [] \"foo\") (inc (foo))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps '({:file "<stdin>", :row 1, :col 36, :level :error, :message "Expected: number, received: map."})
+                    (lint! "(defn foo [] (assoc {} :a 1)) (inc (foo))"
+                           {:linters {:type-mismatch {:level :error}}}))
 
-  ;; avoiding false positives:
-  (is (empty?
-       (lint! "(cons [nil] (list 1 2 3))
+    ;; avoiding false positives:
+    (is (empty?
+         (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
                (let [x (atom 1)] (swap! x identity))
                (assoc {} :a `(dude))
@@ -430,7 +438,7 @@
                (set/difference (into #{} [1 2 3]) #{1 2 3})
                (reduce conj () [1 2 3])
                (hash-set 1)"
-              {:linters {:type-mismatch {:level :error}}})))
+                {:linters {:type-mismatch {:level :error}}}))))
   (is (empty? (lint! "(require '[clojure.string :as str])
                       (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
                      {:linters {:type-mismatch {:level :error}}})))

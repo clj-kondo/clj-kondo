@@ -314,7 +314,7 @@
         _
         (let [t (when first-child (tag first-child))]
           (cond (and (not docstring)
-                     (not one-child?) ;; TODO: how does this interact with the pre-post map?
+                     (not one-child?)
                      (one-of t [:token :multi-line])
                      (string-from-token first-child))
                 (findings/reg-finding! (:findings ctx)
