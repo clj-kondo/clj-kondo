@@ -727,12 +727,12 @@
                          :ret :seq}}}
    ;; 4886
    're-matches {:arities {2 {:args [:regex :string]
-                             :ret :seq}}}
+                             :ret #{:vector :string}}}}
    ;; 4898
    're-find {:arities {1 {:args [:any] ;; matcher
                           :ret :seq}
                        2 {:args [:regex :string]
-                          :ret :seq}}}
+                          :ret #{:vector :string}}}}
    ;; 4911 'rand
    ;; 4919 'rand-int
    ;; 4925 'defn-

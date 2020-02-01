@@ -125,6 +125,7 @@
     (identical? k :nil) (or (nilable? target)
                             (identical? :seqable target))
     (map? k) (recur (:type k) target)
+    (set? k) (some #(match? % target) k)
     :else
     (let [k (unnil k)
           target (unnil target)]
