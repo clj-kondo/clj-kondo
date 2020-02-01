@@ -2,10 +2,15 @@
 
 user="$1"
 project="$2"
+if [ -z "$project" ]; then
+    echo "Usage: username project"
+    exit 1
+fi
+
 cd /tmp
 git clone "https://github.com/$user/$project"
 cd "$project"
 
 lein_classpath="$(lein with-profile -user classpath)"
 clj_classpath="$(clojure -Spath)"
-clj-kondo --lint "$lein_classpath $clj_classpath" src test resources
+clj-kondo --lint "$lein_classpath:$clj_classpath" src test resources
