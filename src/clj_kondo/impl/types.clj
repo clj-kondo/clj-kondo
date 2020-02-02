@@ -225,6 +225,7 @@
       :list (if quoted? :list
                 (:tag (spec-from-list-expr ctx expr))) ;; a call we know nothing about
       :fn :fn
+      :multi-line :string
       :token (let [v (sexpr expr)]
                (cond
                  (nil? v) :nil
@@ -232,6 +233,7 @@
                                  (if-let [b (get bindings v)]
                                    (or (:tag b) :any)
                                    :any))
+                 (boolean? v) :boolean
                  (string? v) :string
                  (keyword? v) :keyword
                  (number? v) (number->tag v)

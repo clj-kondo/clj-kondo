@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.rewrite-clj.node.keyword]
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
