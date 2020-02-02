@@ -48,8 +48,23 @@
 (def int->int->int {:arities {2 {:args [:int :int]
                                  :ret :int}}})
 
+'assoc {:arities {3 {:args [:nilable/associative :any :any]}
+                  :varargs {:min-arity 3
+                            :args '[:nilable/associative :any :any
+                                    {:op :rest
+                                     :spec [:any :any]}]}}
+        :fn (fn [args]
+              (let [t (:tag (first args))]
+                (if (identical? :any t)
+                  :associative
+                  t)))}
+
 (def clojure-core
-  {;; 16
+  {'if {:fn (fn [[_ then else]]
+              (let [t1 (:tag then)
+                    t2 (:tag else)]
+                (hash-set t1 t2)))}
+   ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
    'cons {:arities {2 {:args [:any :seqable]}}}

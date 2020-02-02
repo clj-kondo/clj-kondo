@@ -268,11 +268,15 @@
     (when-let [s (:args called-arity)]
       (vec s))))
 
+(defn tag->label [x]
+  (let [label-fn #(or (label %) (name %))
+        l (cond (keyword? x) (label-fn x)
+                (set? x) (str/join " or " (map label-fn x)))]
+    l))
+
 (defn emit-non-match! [{:keys [:findings :filename]} s arg t]
-  (let [expected-label-1-fn #(or (label %) (name %))
-        expected-label (cond (keyword? s) (expected-label-1-fn s)
-                             (set? s) (str/join " or " (map expected-label-1-fn s)))
-        offending-tag-label (or (label t) (name t))]
+  (let [expected-label (tag->label s)
+        offending-tag-label (tag->label t)]
     (findings/reg-finding! findings
                            {:filename filename
                             :row (:row arg)

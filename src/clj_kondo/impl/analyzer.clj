@@ -1000,7 +1000,11 @@
        (node->line (:filename ctx) expr
                    :warning linter
                    msg)))
-    (analyze-children ctx children)))
+    (let [[condition then else] children]
+      (analyze-expression** ctx condition)
+      (let [ana-then (analyze-expression** ctx then)
+            ana-else (analyze-expression** ctx else)]
+        (concat ana-then ana-else)))))
 
 (defn reg-call [{:keys [:calls-by-id]} call id]
   (swap! calls-by-id assoc id call)
