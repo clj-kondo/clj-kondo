@@ -63,7 +63,13 @@
   {'if {:fn (fn [[_ then else]]
               (let [t1 (:tag then)
                     t2 (:tag else)]
-                (hash-set t1 t2)))}
+                (if t1
+                  (if t2
+                    (if (= t1 t2)
+                      t1
+                      #{t1 t2})
+                    t1)
+                  t2)))}
    ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22

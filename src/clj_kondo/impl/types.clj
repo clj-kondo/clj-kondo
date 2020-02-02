@@ -271,7 +271,9 @@
 (defn tag->label [x]
   (let [label-fn #(or (label %) (name %))
         l (cond (keyword? x) (label-fn x)
-                (set? x) (str/join " or " (map label-fn x)))]
+                (set? x) (str/join " or " (map label-fn x))
+                ;; TODO:
+                (map? x) "map")]
     l))
 
 (defn emit-non-match! [{:keys [:findings :filename]} s arg t]
