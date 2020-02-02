@@ -449,7 +449,8 @@
                (set/difference (into #{} [1 2 3]) #{1 2 3})
                (reduce conj () [1 2 3])
                (hash-set 1)
-               (str/includes? (re-find #\"foo\" \"foo\") \"foo\")"
+               (str/includes? (re-find #\"foo\" \"foo\") \"foo\")
+               (keyword (when-not false \"foo\") \"bar\")"
                 {:linters {:type-mismatch {:level :error}}}))))
   (is (empty? (lint! "(require '[clojure.string :as str])
                       (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"

@@ -291,8 +291,10 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
-(defn analyze-fn-body [{:keys [:docstring] :as ctx} body]
-  (let [{:keys [:arg-bindings
+(defn analyze-fn-body [ctx body]
+  (let [docstring (:docstring ctx)
+        macro? (:macro? ctx)
+        {:keys [:arg-bindings
                 :arity :analyzed-arg-vec]
          return-tag :ret
          arg-tags :args} (analyze-fn-arity ctx body)
@@ -310,7 +312,6 @@
         _ (when pre-post-map
             (analyze-pre-post-map ctx first-child))
         children (if pre-post-map (next children) children)
-        ret-expr-id (gensym)
         _
         (let [t (when first-child (tag first-child))]
           (cond (and (not docstring)
@@ -323,17 +324,19 @@
                                                    :warning
                                                    :misplaced-docstring
                                                    "Misplaced docstring."))))
-        last-expr (last children)
-        last-expr (when last-expr (assoc last-expr :id ret-expr-id))
-        body-exprs (concat (butlast children) [last-expr])
-        parsed (analyze-children ctx body-exprs)
-        last-expr (if one-child? first-child
-                      last-expr)
-        return-tag (or return-tag
-                       (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
-                             tag (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
-                                       last-expr (types/expr->tag ctx last-expr))]
-                         tag))]
+        [parsed return-tag] (if (or macro? return-tag)
+                              [(analyze-children ctx children) return-tag]
+                              (let [last-expr (last children)
+                                    ret-expr-id (gensym)
+                                    last-expr (when last-expr (assoc last-expr :id ret-expr-id))
+                                    body-exprs (concat (butlast children) [last-expr])
+                                    parsed (doall (analyze-children ctx body-exprs))
+                                    ret-tag (or return-tag
+                                                (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
+                                                      tag (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
+                                                                last-expr (types/expr->tag ctx last-expr))]
+                                                  tag))]
+                                [parsed ret-tag]))]
     (assoc arity
            :parsed
            (concat analyzed-arg-vec parsed)
@@ -396,7 +399,8 @@
         parsed-bodies (map #(analyze-fn-body
                              (-> ctx
                                  (assoc :docstring docstring
-                                        :in-def fn-name)) %)
+                                        :in-def fn-name
+                                        :macro? macro?)) %)
                            bodies)
         arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
                                 (let [arg-tags (when (some identity args)
@@ -549,12 +553,12 @@
             single-child? (and let? (= 1 (count let-body)))
             _ (lint-even-forms-bindings! ctx call valid-bv-node)
             [let-body ret-expr-id last-expr] (if let?
-                             (let [last-expr (last let-body)
-                                   ret-expr-id (gensym)
-                                   last-expr (when last-expr (assoc last-expr :id ret-expr-id))
-                                   let-body (concat (butlast let-body) [last-expr])]
-                               [let-body ret-expr-id last-expr])
-                             [let-body nil])
+                                               (let [last-expr (last let-body)
+                                                     ret-expr-id (gensym)
+                                                     last-expr (when last-expr (assoc last-expr :id ret-expr-id))
+                                                     let-body (concat (butlast let-body) [last-expr])]
+                                                 [let-body ret-expr-id last-expr])
+                                               [let-body nil])
             analyzed (concat analyzed
                              (doall
                               (analyze-children
@@ -1435,7 +1439,10 @@
                                                      :col col
                                                      :expr expr})
                               maybe-call (first ret)]
-                          (if (= :call (:type maybe-call))
+                          #_(when maybe-call
+                              (prn (:ns maybe-call) (:name maybe-call) (:resolved-ns maybe-call)
+                                   (:type maybe-call)))
+                          (if (identical? :call (:type maybe-call))
                             (types/add-arg-type-from-call ctx maybe-call expr)
                             (types/add-arg-type-from-expr ctx expr))
                           ret)))
