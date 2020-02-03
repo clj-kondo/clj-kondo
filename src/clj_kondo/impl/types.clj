@@ -116,6 +116,7 @@
         (some #(super? % target) targets))))
 
 (defn match? [k target]
+  ;; (prn 'match? k '-> target)
   (cond
     (or (identical? k target)
         (identical? k :any)
@@ -217,7 +218,7 @@
 
 (defn expr->tag [{:keys [:bindings :lang :quoted] :as ctx} expr]
   (let [t (tag expr)
-        quoted? (or quoted (= :edn lang))]
+        quoted? (or quoted (identical? :edn lang))]
     (case t
       :map (map->tag ctx expr)
       :vector :vector
@@ -239,6 +240,7 @@
                  (number? v) (number->tag v)
                  :else :any))
       :regex :regex
+      :quote (expr->tag (assoc ctx :quoted true) (first (:children expr)))
       :any)))
 
 (defn add-arg-type-from-expr

@@ -59,10 +59,14 @@
                   :associative
                   t)))}
 
+(defn call [x]
+  (when (:call x)
+    x))
+
 (def clojure-core
   {'if {:fn (fn [[_ then else]]
-              (let [t1 (:tag then)
-                    t2 (:tag else)]
+              (let [t1 (or (:tag then) (call then))
+                    t2 (or (:tag else) (call else))]
                 (if t1
                   (if t2
                     (if (= t1 t2)

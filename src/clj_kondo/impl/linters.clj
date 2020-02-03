@@ -95,11 +95,11 @@
                                        :missing-test-assertion "missing test assertion"))))
 
 #_(defn lint-test-is [ctx expr]
-  (let [children (next (:children expr))]
-    (when (every? constant? children)
-      (findings/reg-finding! (:findings ctx)
-                             (node->line (:filename ctx) expr :warning
-                                         :constant-test-assertion "Test assertion with only constants.")))))
+    (let [children (next (:children expr))]
+      (when (every? constant? children)
+        (findings/reg-finding! (:findings ctx)
+                               (node->line (:filename ctx) expr :warning
+                                           :constant-test-assertion "Test assertion with only constants.")))))
 
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
@@ -165,24 +165,33 @@
       called-fn)))
 
 (defn resolve-arg-type [idacs arg-type]
-  (or (:tag arg-type)
-      (if-let [call (:call arg-type)]
-        (let [arity (:arity call)]
-          (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
-            (let [arities (:arities called-fn)
-                  tag (or (when-let [v (get arities arity)]
-                            (:ret v))
-                          (when-let [v (get arities :varargs)]
-                            (when (>= arity (:min-arity v))
-                              (:ret v))))]
-              tag)))
-        :any)
-      :any))
+  (let [ret
+        (cond (keyword? arg-type) arg-type
+              (set? arg-type) (into #{} (map #(resolve-arg-type idacs %) arg-type))
+              (map? arg-type)
+              (or (when-let [t (:tag arg-type)] (resolve-arg-type idacs t))
+                  (if-let [call (:call arg-type)]
+                    (let [arity (:arity call)]
+                      (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
+                        (let [arities (:arities called-fn)
+                              tag (or (when-let [v (get arities arity)]
+                                        (:ret v))
+                                      (when-let [v (get arities :varargs)]
+                                        (when (>= arity (:min-arity v))
+                                          (:ret v))))]
+                          ;; (prn arg-type '-> tag)
+                          (resolve-arg-type idacs tag))))
+                    :any)
+                  :any)
+              (nil? arg-type) :any)]
+    ;; (prn arg-type '-> ret)
+    ret))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
           tags (map #(resolve-arg-type idacs %) arg-types)]
+      ;; (prn "tags" tags)
       (types/lint-arg-types ctx called-fn arg-types tags call))))
 
 (defn show-arities [fixed-arities varargs-min-arity]
@@ -254,10 +263,10 @@
                                  (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
                                                                    (if call?
                                                                      (assoc call
-                                                                       :row name-row
-                                                                       :col name-col
-                                                                       :end-row (:end-row name-meta)
-                                                                       :end-col (:end-col name-meta))
+                                                                            :row name-row
+                                                                            :col name-col
+                                                                            :end-row (:end-row name-meta)
+                                                                            :end-col (:end-col name-meta))
                                                                      call)))
                              row (:row call)
                              col (:col call)
@@ -275,9 +284,9 @@
                                  (analysis/reg-usage! ctx
                                                       filename
                                                       (if call? name-row
-                                                        row)
+                                                          row)
                                                       (if call? name-col
-                                                        col)
+                                                          col)
                                                       caller-ns-sym
                                                       resolved-ns fn-name arity
                                                       (when (= :cljc base-lang)

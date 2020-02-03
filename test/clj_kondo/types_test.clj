@@ -445,6 +445,21 @@
         :message "Expected: number, received: symbol or nil."})
      (lint! "(inc (when :foo 'baz))"
             {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 11, :col 6, :level :error,
+        :message "Expected: number, received: symbol or keyword."})
+     (lint! "
+(defn foo1 []
+  :bar)
+
+(defn foo2 []
+  'baz)
+
+(defn foo [x]
+  (if (< x 5) (foo1) (foo2)))
+
+(inc (foo 1))
+" {:linters {:type-mismatch {:level :error}}}))
     ;; avoiding false positives:
     (is (empty?
          (lint! "(cons [nil] (list 1 2 3))
