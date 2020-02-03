@@ -435,6 +435,11 @@
      '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: string."})
      (lint! "(inc \"fooo\nbar\")"
             {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 6, :level :error,
+        :message "Expected: number, received: symbol or keyword."})
+     (lint! "(inc (if :foo :bar 'baz))"
+                {:linters {:type-mismatch {:level :error}}}))
     ;; avoiding false positives:
     (is (empty?
          (lint! "(cons [nil] (list 1 2 3))
