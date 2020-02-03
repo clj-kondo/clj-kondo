@@ -4,61 +4,6 @@
    [clojure.java.io :as io]
    [clojure.test :as t :refer [deftest is testing]]))
 
-(deftest foo
-  (assert-submaps
-     '({:file "<stdin>",
-        :row 1,
-        :col 34,
-        :level :error,
-        :message "Missing required key: :b"}
-       {:file "<stdin>",
-        :row 1,
-        :col 38,
-        :level :error,
-        :message "Expected: string, received: positive integer."}
-       {:file "<stdin>",
-        :row 1,
-        :col 41,
-        :level :error,
-        :message "Expected: string, received: positive integer."}
-       {:file "<stdin>",
-        :row 2,
-        :col 45,
-        :level :error,
-        :message "Expected: string, received: positive integer."}
-       {:file "<stdin>",
-        :row 3,
-        :col 36,
-        :level :error,
-        :message "Expected: map, received: string."}
-       {:file "<stdin>",
-        :row 3,
-        :col 44,
-        :level :error,
-        :message "Expected: string, received: positive integer."}
-       {:file "<stdin>",
-        :row 4,
-        :col 37,
-        :level :error,
-        :message "Expected: string, received: positive integer."})
-     (lint! "(ns foo) (defn foo [_x _y]) (foo {:a 1} 1) ;; a should be a string, :b is missing
-             (defn bar [x] x) (foo (bar {}) 1) ;; no false positive for this one
-             (defn baz [x] x) (foo (baz 1) 1) ;; warning about baz not returning a map
-             (foo {:a \"foo\" :b 1 :c 1} \"foo\") ;; the optional key :c has the wrong type
-             "
-            {:linters {:type-mismatch
-                       {:level :error
-                        :namespaces '{foo {foo {:arities {2 {:args [{:op :keys
-                                                                     :req {:a :string
-                                                                           :b :any}
-                                                                     :opt {:c :string}}
-                                                                    :string]
-                                                             :ret :map}}}
-                                           bar {:arities {1 {:args [:map]
-                                                             :ret :map}}}
-                                           baz {:arities {1 {:args [:int]
-                                                             :ret :string}}}}}}}})))
-
 (deftest type-mismatch-test
   (assert-submaps
    '({:row 1,
@@ -428,8 +373,7 @@
         :message "Expected: number, received: map."})
      (lint! "(inc (assoc {} :a 1))"
             {:linters {:type-mismatch {:level :error}}})))
-  (testing "printing human readable label of alternative
-"
+  (testing "printing human readable label of alternative"
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
