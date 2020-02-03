@@ -170,6 +170,8 @@
               (set? arg-type) (into #{} (map #(resolve-arg-type idacs %) arg-type))
               (map? arg-type)
               (or (when-let [t (:tag arg-type)] (resolve-arg-type idacs t))
+                  (when-let [t (:type arg-type)]
+                    (when (identical? t :map) arg-type))
                   (if-let [call (:call arg-type)]
                     (let [arity (:arity call)]
                       (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
