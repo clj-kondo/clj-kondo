@@ -149,8 +149,9 @@
    ;; 493 'when
    'when {:fn (fn [args]
                 (let [t (:tag (last args))]
-                  (when t
-                    #{:nil t})))}
+                  (if (identical? t :nil)
+                    :nil
+                    (when t #{:nil t}))))}
    ;; 499 'when-not
    ;; 505
    'false? any->boolean
