@@ -406,6 +406,69 @@
       :message #"Expected: seqable collection, received: symbol"})
    (lint! "(list* 'foo)"
           {:linters {:type-mismatch {:level :error}}}))
+  (testing "avoiding false positives"
+    (is (empty?
+         (lint! "(cons [nil] (list 1 2 3))
+               (defn foo [] (:foo x))
+               (let [x (atom 1)] (swap! x identity))
+               (assoc {} :a `(dude))
+               (reduce #(%1 %2) 1 [1 2 3])
+               (map :tag [{:tag 1}])
+               (map 'foo ['{foo 1}])
+               (for [i [1 2 3]] (inc i))
+               (let [i (inc 1)] (subs \"foo\" i))
+               (assoc (into {} {}) :a 1)
+               (into (map inc [1 2 3]) (remove odd? [1 2 3]))
+               (cons 1 nil)
+               (require '[clojure.string :as str])
+               (str/starts-with? (str/join [1 2 3]) \"f\")
+               (str/includes? (str/join [1 2 3]) \"f\")
+               (remove #{1 2 3} [1 2 3])
+               (require '[clojure.set :as set])
+               (set/difference (into #{} [1 2 3]) #{1 2 3})
+               (reduce conj () [1 2 3])
+               (hash-set 1)
+               (str/includes? (re-find #\"foo\" \"foo\") \"foo\")
+               (keyword (when-not false \"foo\") \"bar\")"
+                {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(require '[clojure.string :as str])
+                      (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(require '[clojure.string :as str])
+                      (let [xs ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(doto (atom []) (swap! identity))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(defn foo [^Long x] (foo nil))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(defn foo ^Long [x] x) (defn bar [^long x]) (bar (foo 1)) (bar (foo nil))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(assoc {} :key1 2 :key2 (java.util.Date.))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(keyword \"widget\" 'foo)"
+                       {:linters {:type-mismatch {:level :error}}}
+                       "--lang" "cljs")))
+    (testing "no warning, despite string able to be nil"
+      (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
+                         {:linters {:type-mismatch {:level :error}}})))
+      (is (empty? (lint! "(defn foo [^Long x] (subs \"foo\" x))"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "set spec (multiple keywords)"
+      (is (empty? (lint! "(re-pattern #\"foo\")"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "associative is an ifn"
+      (is (empty? (lint! "(remove (assoc x :b 2) [:a :a :b :b])"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "sequential is a coll"
+      (is (empty? (lint! "(conj (flatten []) {})"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "collection could be a function"
+      (is (empty? (lint! "(filter (conj #{} 1) [1])"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "nilable types"
+      (is (empty? (lint! "(conj nil) (conj nil 1 2 3) (dissoc nil) (dissoc nil 1 2 3) (find nil 1) (select-keys nil [1 2 3])"))))))
+
+(deftest return-type-inference-test
   (testing "Function return types"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 26, :level :error, :message "Expected: number, received: string."})
@@ -458,68 +521,7 @@
   (if (< x 5) (foo1) (foo2)))
 
 (inc (foo 1))
-" {:linters {:type-mismatch {:level :error}}}))
-    ;; avoiding false positives:
-    (is (empty?
-         (lint! "(cons [nil] (list 1 2 3))
-               (defn foo [] (:foo x))
-               (let [x (atom 1)] (swap! x identity))
-               (assoc {} :a `(dude))
-               (reduce #(%1 %2) 1 [1 2 3])
-               (map :tag [{:tag 1}])
-               (map 'foo ['{foo 1}])
-               (for [i [1 2 3]] (inc i))
-               (let [i (inc 1)] (subs \"foo\" i))
-               (assoc (into {} {}) :a 1)
-               (into (map inc [1 2 3]) (remove odd? [1 2 3]))
-               (cons 1 nil)
-               (require '[clojure.string :as str])
-               (str/starts-with? (str/join [1 2 3]) \"f\")
-               (str/includes? (str/join [1 2 3]) \"f\")
-               (remove #{1 2 3} [1 2 3])
-               (require '[clojure.set :as set])
-               (set/difference (into #{} [1 2 3]) #{1 2 3})
-               (reduce conj () [1 2 3])
-               (hash-set 1)
-               (str/includes? (re-find #\"foo\" \"foo\") \"foo\")
-               (keyword (when-not false \"foo\") \"bar\")"
-                {:linters {:type-mismatch {:level :error}}}))))
-  (is (empty? (lint! "(require '[clojure.string :as str])
-                      (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(require '[clojure.string :as str])
-                      (let [xs ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(doto (atom []) (swap! identity))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(defn foo [^Long x] (foo nil))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(defn foo ^Long [x] x) (defn bar [^long x]) (bar (foo 1)) (bar (foo nil))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(assoc {} :key1 2 :key2 (java.util.Date.))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(keyword \"widget\" 'foo)"
-                     {:linters {:type-mismatch {:level :error}}}
-                     "--lang" "cljs")))
-  (testing "no warning, despite string able to be nil"
-    (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
-                       {:linters {:type-mismatch {:level :error}}})))
-    (is (empty? (lint! "(defn foo [^Long x] (subs \"foo\" x))"
-                       {:linters {:type-mismatch {:level :error}}}))))
-  (testing "set spec (multiple keywords)"
-    (is (empty? (lint! "(re-pattern #\"foo\")"
-                       {:linters {:type-mismatch {:level :error}}}))))
-  (testing "associative is an ifn"
-    (is (empty? (lint! "(remove (assoc x :b 2) [:a :a :b :b])"
-                       {:linters {:type-mismatch {:level :error}}}))))
-  (testing "sequential is a coll"
-    (is (empty? (lint! "(conj (flatten []) {})"
-                       {:linters {:type-mismatch {:level :error}}}))))
-  (testing "collection could be a function"
-    (is (empty? (lint! "(filter (conj #{} 1) [1])"
-                       {:linters {:type-mismatch {:level :error}}}))))
-  (testing "nilable types"
-    (is (empty? (lint! "(conj nil) (conj nil 1 2 3) (dissoc nil) (dissoc nil 1 2 3) (find nil 1) (select-keys nil [1 2 3])")))))
+" {:linters {:type-mismatch {:level :error}}}))))
 
 ;;;; Scratch
 
