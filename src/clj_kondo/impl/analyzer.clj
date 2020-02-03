@@ -1063,7 +1063,7 @@
             ;; avoid redundant do check for condition
             (update ctx :callstack conj nil)
             condition))
-    (analyze-children ctx body)))
+    (analyze-children ctx body false)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}

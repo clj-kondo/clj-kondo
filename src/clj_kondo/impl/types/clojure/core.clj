@@ -147,6 +147,10 @@
    'nil? any->boolean
    ;; 444 'defmacro
    ;; 493 'when
+   'when {:fn (fn [args]
+                (let [t (:tag (last args))]
+                  (when t
+                    #{:nil t})))}
    ;; 499 'when-not
    ;; 505
    'false? any->boolean
