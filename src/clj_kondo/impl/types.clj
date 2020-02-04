@@ -105,16 +105,6 @@
     (str (get labels (unnil k)) " or nil")
     :else (get labels k)))
 
-(defn sub? [k target]
-  (or (identical? k target)
-      (when-let [targets (get is-a-relations k)]
-        (some #(sub? % target) targets))))
-
-(defn super? [k target]
-  (or (identical? k target)
-      (when-let [targets (get could-be-relations k)]
-        (some #(super? % target) targets))))
-
 (defn match? [k target]
   ;; (prn 'match? k '-> target)
   (cond
