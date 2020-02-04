@@ -334,9 +334,9 @@
    ;; 1374
    'integer? any->boolean
    ;; 1386
-   'even? any->boolean
+   'even? number->boolean
    ;; 1394
-   'odd? any->boolean
+   'odd? number->boolean
    ;; 1400
    'int? any->boolean
    ;; 1408
