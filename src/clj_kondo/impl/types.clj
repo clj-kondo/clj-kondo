@@ -180,8 +180,10 @@
         ks (map #(map-key ctx %) (take-nth 2 children))
         mvals (take-nth 2 (rest children))
         vtags (map (fn [e]
-                     (assoc (meta e)
-                            :tag (expr->tag ctx e))) mvals)]
+                     (let [t (expr->tag ctx e)
+                           m (meta e)
+                           m (if t (assoc m :tag t) m)]
+                       m)) mvals)]
     {:type :map
      :val (zipmap ks vtags)}))
 
@@ -202,19 +204,18 @@
                    (when-let [t (:ret called-arity)]
                      {:tag t})))
                (if-let [fn-spec (:fn spec)]
-                 {:tag (fn-spec @arg-types)}
-                 {:tag (:ret spec)}))
+                 (when-let [t (fn-spec @arg-types)]
+                   {:tag t})
+                 (when-let [t (:ret spec)]
+                   {:tag t})))
               ;; we delay resolving this call, because we might find the spec for by linting other code
               ;; see linters.clj
               {:call (select-keys call [:type :lang :base-lang :resolved-ns :ns :name :arity])}))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
-  (or (if-let [id (:id expr)]
-        (if-let [call (get @calls-by-id id)]
-          (or (ret-tag-from-call ctx call expr)
-              {:tag :any})
-          {:tag :any})
-        {:tag :any})))
+  (when-let [id (:id expr)]
+    (when-let [call (get @calls-by-id id)]
+      (ret-tag-from-call ctx call expr))))
 
 (defn expr->tag [{:keys [:bindings :lang :quoted] :as ctx} expr]
   (let [t (tag expr)
@@ -231,38 +232,36 @@
                (cond
                  (nil? v) :nil
                  (symbol? v) (if quoted? :symbol
-                                 (if-let [b (get bindings v)]
-                                   (or (:tag b) :any)
-                                   :any))
+                                 (when-let [b (get bindings v)]
+                                   (:tag b)))
                  (boolean? v) :boolean
                  (string? v) :string
                  (keyword? v) :keyword
-                 (number? v) (number->tag v)
-                 :else :any))
+                 (number? v) (number->tag v)))
       :regex :regex
       :quote (expr->tag (assoc ctx :quoted true) (first (:children expr)))
-      :any)))
+      nil)))
 
 (defn add-arg-type-from-expr
   ([ctx expr] (add-arg-type-from-expr ctx expr (expr->tag ctx expr)))
   ([ctx expr tag]
    (when-let [arg-types (:arg-types ctx)]
      (let [m (meta expr)]
-       (swap! arg-types conj {:tag tag
-                              :row (:row m)
-                              :col (:col m)
-                              :end-row (:end-row m)
-                              :end-col (:end-col m)})))))
+       (swap! arg-types conj (when tag
+                               {:tag tag
+                                :row (:row m)
+                                :col (:col m)
+                                :end-row (:end-row m)
+                                :end-col (:end-col m)}))))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]
-    (swap! arg-types conj (if-let [r (ret-tag-from-call ctx call _expr)]
+    (swap! arg-types conj (when-let [r (ret-tag-from-call ctx call _expr)]
                             (assoc r
                                    :row (:row call)
                                    :col (:col call)
                                    :end-row (:end-row call)
-                                   :end-col (:end-col call))
-                            {:tag :any}))))
+                                   :end-col (:end-col call))))))
 
 (defn args-spec-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity)

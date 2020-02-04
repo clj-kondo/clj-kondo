@@ -324,19 +324,21 @@
                                                    :warning
                                                    :misplaced-docstring
                                                    "Misplaced docstring."))))
-        [parsed return-tag] (if (or macro? return-tag)
-                              [(analyze-children ctx children) return-tag]
-                              (let [last-expr (last children)
-                                    ret-expr-id (gensym)
-                                    last-expr (when last-expr (assoc last-expr :id ret-expr-id))
-                                    body-exprs (concat (butlast children) [last-expr])
-                                    parsed (doall (analyze-children ctx body-exprs))
-                                    ret-tag (or return-tag
-                                                (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
-                                                      tag (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
-                                                                last-expr (types/expr->tag ctx last-expr))]
-                                                  tag))]
-                                [parsed ret-tag]))]
+        [parsed return-tag]
+        (if (or macro? return-tag)
+          [(analyze-children ctx children) return-tag]
+          (let [last-expr (last children)
+                ret-expr-id (gensym)
+                last-expr (when last-expr (assoc last-expr :id ret-expr-id))
+                body-exprs (concat (butlast children) [last-expr])
+                parsed (doall (analyze-children ctx body-exprs))
+                ret-tag (or
+                         return-tag
+                         (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
+                               tag (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
+                                         last-expr (types/expr->tag ctx last-expr))]
+                           tag))]
+            [parsed ret-tag]))]
     (assoc arity
            :parsed
            (concat analyzed-arg-vec parsed)
