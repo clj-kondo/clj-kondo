@@ -335,7 +335,7 @@
                 ret-tag (or
                          return-tag
                          (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
-                               tag (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
+                               tag (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
                                          last-expr (types/expr->tag ctx last-expr))]
                            tag))]
             [parsed ret-tag]))]
