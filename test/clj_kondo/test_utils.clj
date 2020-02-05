@@ -91,6 +91,8 @@
                            (apply main "--cache" "false" "--lint" "-"  "--config" config args)))
                  (catch Throwable e
                    (.printStackTrace e))))]
+     ;; (println input)
+     ;; (println res)
      (parse-output res))))
 
 (def windows? (-> (System/getProperty "os.name")

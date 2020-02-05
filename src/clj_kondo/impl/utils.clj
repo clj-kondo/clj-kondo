@@ -294,31 +294,33 @@
       (and (map? t) (when-let [t (:type t)]
                       (identical? t :map)))))
 
-(defn resolve-arg-type [idacs arg-type]
-  ;; (prn arg-type)
-  (if (resolved-type? arg-type) arg-type
-      (let [ret
-            (cond (set? arg-type) (into #{} (map #(resolve-arg-type idacs %) arg-type))
-                  (map? arg-type)
-                  (or (when-let [t (:tag arg-type)] (resolve-arg-type idacs t))
-                      (when-let [t (:type arg-type)]
-                        (when (identical? t :map) arg-type))
-                      (if-let [call (:call arg-type)]
-                        (let [arity (:arity call)]
-                          (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
-                            (let [arities (:arities called-fn)
-                                  tag (or (when-let [v (get arities arity)]
-                                            (:ret v))
-                                          (when-let [v (get arities :varargs)]
-                                            (when (>= arity (:min-arity v))
-                                              (:ret v))))]
-                              ;; (prn arg-type '-> tag)
-                              (resolve-arg-type idacs tag))))
-                        :any)
-                      :any)
-                  (nil? arg-type) :any)]
-        ;; (prn arg-type '-> ret)
-        ret)))
+(defn resolve-arg-type
+  ([idacs arg-type] (resolve-arg-type idacs arg-type #{}))
+  ([idacs arg-type seen-calls]
+   (if (resolved-type? arg-type) arg-type
+       (let [ret
+             (cond (set? arg-type) (into #{} (map #(resolve-arg-type idacs % seen-calls) arg-type))
+                   (map? arg-type)
+                   (or (when-let [t (:tag arg-type)] (resolve-arg-type idacs t seen-calls))
+                       (when-let [t (:type arg-type)]
+                         (when (identical? t :map) arg-type))
+                       (if-let [call (:call arg-type)]
+                         (when-not (contains? seen-calls call)
+                           (let [arity (:arity call)]
+                             (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
+                               (let [arities (:arities called-fn)
+                                     tag (or (when-let [v (get arities arity)]
+                                               (:ret v))
+                                             (when-let [v (get arities :varargs)]
+                                               (when (>= arity (:min-arity v))
+                                                 (:ret v))))]
+                                 ;; (prn arg-type '-> tag)
+                                 (resolve-arg-type idacs tag (conj seen-calls call))))))
+                         :any)
+                       :any)
+                   (nil? arg-type) :any)]
+         ;; (prn arg-type '-> ret)
+         ret))))
 
 ;;;; Scratch
 
