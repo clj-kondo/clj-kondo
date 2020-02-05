@@ -17,7 +17,7 @@
 
 5) Configuration should live in one place as much as possible. The `.clj-kondo/config.edn` is the preferred location for configuration. This has the following reasons:
 
-   1. Configuration should be able to live in a project's source repository, so team members can work out the style which they agree on for this project. Supporting external configuration leads to contradicting styles among team members. By committing to one project single configuration team members also benefit from each other's work.
+   1. Configuration should be able to live in a project's source repository, so team members can work out the style which they agree on for this project. Supporting external configuration leads to contradicting styles. By committing to a single project configuration team members also benefit from each other's work.
    2. Configuration spread across multiple files is harder to debug.
    3. Single-file mode should be able to find the configuration it needs in a predicable location. Scattering configuration in metadata across libraries does not work well for this.
 
