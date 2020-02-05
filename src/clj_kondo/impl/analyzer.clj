@@ -334,18 +334,9 @@
                 parsed (doall (analyze-children ctx body-exprs))
                 ret-tag (or
                          return-tag
-                         (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
-                               fn-ns (-> ctx :ns :name)
-                               fn-name (:fn-name ctx)
-                               recursive? (and
-                                           (= fn-ns (:resolved-ns maybe-call))
-                                           (= fn-name (:name maybe-call))
-                                           (let [called-arity (:arity maybe-call)]
-                                             (or (= (:fixed-arity arity) called-arity)
-                                                 (when (:varargs? arity)
-                                                   (>= called-arity (:min-arity arity))))))
-                               tag (cond maybe-call (when-not recursive?
-                                                      (types/ret-tag-from-call ctx maybe-call last-expr))
+                         (let [ctx (assoc ctx :fn-arity arity)
+                               maybe-call (get @(:calls-by-id ctx) ret-expr-id)
+                               tag (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
                                          last-expr (types/expr->tag ctx last-expr))]
                            tag))]
             [parsed ret-tag]))]

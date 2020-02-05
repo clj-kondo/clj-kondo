@@ -177,8 +177,22 @@
     {:type :map
      :val (zipmap ks vtags)}))
 
-(defn ret-tag-from-call [{:keys [:config]} call _expr]
-  (when-not (:unresolved? call)
+(defn recursive-call? [ctx call]
+  (let [fn-ns (-> ctx :ns :name)
+        fn-name (:fn-name ctx)
+        fn-arity (:fn-arity ctx)]
+    (and
+     (= fn-ns (:resolved-ns call))
+     (= fn-name (:name call))
+     (let [called-arity (:arity call)]
+       (or (= (:fixed-arity fn-arity) called-arity)
+           (when (:varargs? fn-arity)
+             (>= called-arity (:min-arity fn-arity))))))))
+
+;; TODO: can we prevent return a call that is recursive right here in stead of elsewhere??
+(defn ret-tag-from-call [ctx call _expr]
+  (when-not (or (:unresolved? call)
+                (recursive-call? ctx call))
     (or (when-let [ret (:ret call)]
           {:tag ret})
         (when-let [arg-types (:arg-types call)]
@@ -186,7 +200,7 @@
                 called-name (:name call)]
             (if-let [spec
                      (or
-                      (config/type-mismatch-config config called-ns called-name)
+                      (config/type-mismatch-config (:config ctx) called-ns called-name)
                       (get-in built-in-specs [called-ns called-name]))]
               (or
                (when-let [a (:arities spec)]
@@ -200,7 +214,7 @@
                    {:tag t})))
               ;; we delay resolving this call, because we might find the spec for by linting other code
               ;; see linters.clj
-              {:call (select-keys call [:type :lang :base-lang :resolved-ns :ns :name :arity])}))))))
+              {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])}))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
   (when-let [id (:id expr)]

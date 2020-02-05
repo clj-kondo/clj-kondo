@@ -172,6 +172,7 @@
                       (identical? t :map)))))
 
 (defn resolve-arg-type [idacs arg-type]
+  ;;(prn arg-type)
   (if (resolved-type? arg-type) arg-type
       (let [ret
             (cond (set? arg-type) (into #{} (map #(resolve-arg-type idacs %) arg-type))
