@@ -2,7 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.utils :refer [one-of]]
+   [clj-kondo.impl.utils :refer [one-of resolve-arg-type]]
    [clojure.java.io :as io]
    [cognitect.transit :as transit])
   (:import [java.io RandomAccessFile]))
@@ -87,6 +87,19 @@
           idacs)
         idacs))))
 
+
+(defn resolve-arity-return-types [idacs arities]
+  (reduce-kv (fn [m k v]
+               (assoc m k (if-let [ret (:ret v)]
+                            (assoc v :ret (resolve-arg-type idacs ret))
+                            v))) {} arities))
+
+(defn resolve-return-types [idacs ns-data]
+  (reduce-kv (fn [m k v]
+               (assoc m k (if-let [arities (:arities v)]
+                            (assoc v :arities (resolve-arity-return-types idacs arities))
+                            v))) {} ns-data))
+
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]
             (let [required-namespaces (get-in idacs [lang :used-namespaces])
@@ -94,10 +107,11 @@
                   (set (keys (get-in idacs [lang :defs])))]
               (when cache-dir
                 (doseq [ns-name analyzed-namespaces
-                        :let [{:keys [:source] :as ns-data}
-                              (get-in idacs [lang :defs ns-name])]
+                        :let [ns-data (get-in idacs [lang :defs ns-name])
+                              source (:source ns-data)]
                         :when (and (not (one-of source [:disk :built-in]))
-                                   (seq ns-data))]
+                                   (seq ns-data))
+                        :let [ns-data (resolve-return-types idacs ns-data)]]
                   (to-cache cache-dir lang ns-name ns-data)))
               (reduce (fn [idacs lang]
                         (reduce #(load-when-missing %1 cache-dir lang %2)

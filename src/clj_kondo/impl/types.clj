@@ -196,7 +196,6 @@
       ;; when fn-name isn't there, we assume this was an external call
       true)))
 
-;; TODO: can we prevent return a call that is recursive right here in stead of elsewhere??
 (defn ret-tag-from-call [ctx call _expr]
   (when (not (:unresolved? call))
     (or (when-let [ret (:ret call)]
