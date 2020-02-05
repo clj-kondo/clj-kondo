@@ -65,15 +65,7 @@
 
 (def clojure-core
   {'if {:fn (fn [[_ then else]]
-              (let [t1 (or (:tag then) (call then))
-                    t2 (or (:tag else) (call else))]
-                (if t1
-                  (if t2
-                    (if (= t1 t2)
-                      t1
-                      #{t1 t2})
-                    t1)
-                  t2)))}
+              (hash-set then else))}
    ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22

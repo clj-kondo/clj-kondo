@@ -524,7 +524,9 @@
   (foo 1))
 
 (inc (bar))
-" {:linters {:type-mismatch {:level :error}}}))))
+" {:linters {:type-mismatch {:level :error}}}))
+    (is (empty? (lint! "(defn foo [] (foo)) (inc (foo))"
+                       {:linters {:type-mismatch {:level :error}}})))))
 
 ;;;; Scratch
 

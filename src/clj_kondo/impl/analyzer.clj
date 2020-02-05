@@ -335,7 +335,17 @@
                 ret-tag (or
                          return-tag
                          (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
-                               tag (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
+                               fn-ns (-> ctx :ns :name)
+                               fn-name (:fn-name ctx)
+                               recursive? (and
+                                           (= fn-ns (:resolved-ns maybe-call))
+                                           (= fn-name (:name maybe-call))
+                                           (let [called-arity (:arity maybe-call)]
+                                             (or (= (:fixed-arity arity) called-arity)
+                                                 (when (:varargs? arity)
+                                                   (>= called-arity (:min-arity arity))))))
+                               tag (cond maybe-call (when-not recursive?
+                                                      (types/ret-tag-from-call ctx maybe-call last-expr))
                                          last-expr (types/expr->tag ctx last-expr))]
                            tag))]
             [parsed ret-tag]))]
@@ -355,8 +365,8 @@
           :list exprs
           (recur rest-exprs))))))
 
-(defn analyze-defn [{:keys [:ns] :as ctx} expr]
-  (let [ns-name (:name ns)
+(defn analyze-defn [ctx expr]
+  (let [ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
@@ -402,7 +412,9 @@
                              (-> ctx
                                  (assoc :docstring docstring
                                         :in-def fn-name
-                                        :macro? macro?)) %)
+                                        :macro? macro?
+                                        :fn-name fn-name))
+                             %)
                            bodies)
         arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
                                 (let [arg-tags (when (some identity args)
@@ -657,7 +669,7 @@
         parsed-bodies
         (map #(analyze-fn-body
                (if ?fn-name
-                 (-> ctx
+                 (-> (assoc ctx :fn-name ?fn-name)
                      (update :bindings conj [?fn-name
                                              (assoc (meta (second children))
                                                     :name ?fn-name
