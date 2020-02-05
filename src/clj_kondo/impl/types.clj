@@ -182,15 +182,17 @@
         fn-name (:fn-name ctx)
         fn-arity (:fn-arity ctx)]
     (if fn-name
-      (if fn-arity ;; only if fn-arity is there, we can reliably know this is non-recursive
-        (or
-         (not= fn-ns (:resolved-ns call))
-         (not= fn-name (:name call))
-         (let [called-arity (:arity call)]
-           (or (not= (:fixed-arity fn-arity) called-arity)
-               (when (:varargs? fn-arity)
-                 (not (>= called-arity (:min-arity fn-arity)))))))
-        false)
+      (or (not= fn-ns (:resolved-ns call))
+          (not= fn-name (:name call))
+          (if fn-arity
+            ;; only if fn-arity is there, we can reliably know this is non-recursive
+            (or
+             (let [called-arity (:arity call)]
+               (or (not= (:fixed-arity fn-arity) called-arity)
+                   (when (:varargs? fn-arity)
+                     (not (>= called-arity (:min-arity fn-arity)))))))
+            ;; else we just assume it's not safe to continue
+            false))
       ;; when fn-name isn't there, we assume this was an external call
       true)))
 
