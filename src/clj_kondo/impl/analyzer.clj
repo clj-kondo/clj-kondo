@@ -573,8 +573,9 @@
                                    (assoc :maybe-redundant-let? single-child?))
                                let-body)))
             maybe-call (when ret-expr-id (get @(:calls-by-id ctx) ret-expr-id))
+            ;;_ (prn "maybe call" maybe-call)
             ret (when ret-expr-id
-                  (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
+                  (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
                         last-expr (types/expr->tag ctx last-expr)))]
         (if ret (with-meta analyzed
                   {:ret ret})

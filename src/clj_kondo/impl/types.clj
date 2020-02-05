@@ -177,22 +177,26 @@
     {:type :map
      :val (zipmap ks vtags)}))
 
-(defn recursive-call? [ctx call]
+(defn non-recursive-call? [ctx call]
   (let [fn-ns (-> ctx :ns :name)
         fn-name (:fn-name ctx)
         fn-arity (:fn-arity ctx)]
-    (and
-     (= fn-ns (:resolved-ns call))
-     (= fn-name (:name call))
-     (let [called-arity (:arity call)]
-       (or (= (:fixed-arity fn-arity) called-arity)
-           (when (:varargs? fn-arity)
-             (>= called-arity (:min-arity fn-arity))))))))
+    (if fn-name
+      (if fn-arity ;; only if fn-arity is there, we can reliably know this is non-recursive
+        (or
+         (not= fn-ns (:resolved-ns call))
+         (not= fn-name (:name call))
+         (let [called-arity (:arity call)]
+           (or (not= (:fixed-arity fn-arity) called-arity)
+               (when (:varargs? fn-arity)
+                 (not (>= called-arity (:min-arity fn-arity)))))))
+        false)
+      ;; when fn-name isn't there, we assume this was an external call
+      true)))
 
 ;; TODO: can we prevent return a call that is recursive right here in stead of elsewhere??
 (defn ret-tag-from-call [ctx call _expr]
-  (when-not (or (:unresolved? call)
-                (recursive-call? ctx call))
+  (when (not (:unresolved? call))
     (or (when-let [ret (:ret call)]
           {:tag ret})
         (when-let [arg-types (:arg-types call)]
@@ -214,7 +218,8 @@
                    {:tag t})))
               ;; we delay resolving this call, because we might find the spec for by linting other code
               ;; see linters.clj
-              {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])}))))))
+              (when (non-recursive-call? ctx call)
+                {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])})))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
   (when-let [id (:id expr)]

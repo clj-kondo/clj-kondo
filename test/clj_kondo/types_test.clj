@@ -526,7 +526,10 @@
 (inc (bar))
 " {:linters {:type-mismatch {:level :error}}}))
     (is (empty? (lint! "(defn foo [] (foo)) (inc (foo))"
-                       {:linters {:type-mismatch {:level :error}}})))))
+                       {:linters {:type-mismatch {:level :error}}})))
+    (testing "recursive call doesn't call type checking loop"
+      (is (empty? (lint! "(defn macroexpand* [_form] (macroexpand* 1)) (inc (macroexpand* 1)) (macroexpand* (macroexpand* 1))"
+                         {:linters {:type-mismatch {:level :error}}}))))))
 
 ;;;; Scratch
 
