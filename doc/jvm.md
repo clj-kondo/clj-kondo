@@ -10,7 +10,7 @@ You can add clj-kondo to `~/.lein/profiles.clj` to make it available as a `lein`
 
 ``` clojure
 {:user {:dependencies [[clj-kondo "RELEASE"]]
-        :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main"]}
+        :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main"]}}}
 ```
 
 ``` shellsession
