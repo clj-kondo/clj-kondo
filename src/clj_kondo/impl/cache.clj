@@ -2,8 +2,8 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.utils :refer [one-of]]
    [clj-kondo.impl.types.utils :as tu]
+   [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
    [cognitect.transit :as transit])
   (:import [java.io RandomAccessFile]))
@@ -88,35 +88,6 @@
           idacs)
         idacs))))
 
-(defn resolve-arity-return-types [idacs arities]
-  (persistent!
-   (reduce-kv
-    (fn [m k v]
-      (let [new-v (if-let [ret (:ret v)]
-                    (let [t (tu/resolve-arg-type idacs ret)]
-                      (if (identical? t :any)
-                        (not-empty (dissoc v :ret))
-                        (assoc v :ret t)))
-                    (not-empty v))]
-        (if new-v
-          (assoc! m k new-v)
-          (dissoc! m k))))
-    (transient {})
-    arities)))
-
-(defn resolve-return-types [idacs ns-data]
-  (persistent!
-   (reduce-kv
-    (fn [m k v]
-      (assoc! m k (if-let [arities (:arities v)]
-                    (let [new-arities (not-empty (resolve-arity-return-types idacs arities))]
-                      (if new-arities
-                        (assoc v :arities new-arities)
-                        (dissoc v :arities)))
-                    v))) (transient {})
-    ns-data)))
-
-
 (defn update-defs [idacs cache-dir lang defs]
   (persistent! (reduce-kv (fn [m ns-name ns-data]
                             (let [source (:source ns-data)
@@ -124,15 +95,13 @@
                                                 (seq ns-data))
                                   ns-data
                                   (if resolve?
-                                    (resolve-return-types idacs ns-data)
+                                    (tu/resolve-return-types idacs ns-data)
                                     ns-data)]
                               (when (and cache-dir resolve?)
                                 (to-cache cache-dir lang ns-name ns-data))
                               (assoc! m ns-name ns-data)))
                           (transient {}) defs)))
 
-;; TODO: we should first load the required namespaces from disk, then resolve
-;; the types and then store the files
 (defn sync-cache* [idacs cache-dir]
   ;; first load all idacs so we can resolve types
   (let [idacs

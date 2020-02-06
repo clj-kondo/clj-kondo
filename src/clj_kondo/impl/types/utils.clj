@@ -55,3 +55,31 @@
                    (nil? arg-type) :any)]
          ;; (prn arg-type '-> ret)
          ret))))
+
+(defn resolve-arity-return-types [idacs arities]
+  (persistent!
+   (reduce-kv
+    (fn [m k v]
+      (let [new-v (if-let [ret (:ret v)]
+                    (let [t (resolve-arg-type idacs ret)]
+                      (if (identical? t :any)
+                        (not-empty (dissoc v :ret))
+                        (assoc v :ret t)))
+                    (not-empty v))]
+        (if new-v
+          (assoc! m k new-v)
+          (dissoc! m k))))
+    (transient {})
+    arities)))
+
+(defn resolve-return-types [idacs ns-data]
+  (persistent!
+   (reduce-kv
+    (fn [m k v]
+      (assoc! m k (if-let [arities (:arities v)]
+                    (let [new-arities (not-empty (resolve-arity-return-types idacs arities))]
+                      (if new-arities
+                        (assoc v :arities new-arities)
+                        (dissoc v :arities)))
+                    v))) (transient {})
+    ns-data)))
