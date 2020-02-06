@@ -106,6 +106,21 @@
                     v))) (transient {})
     ns-data)))
 
+
+(defn update-defs [idacs cache-dir lang defs]
+  (persistent! (reduce-kv (fn [m ns-name ns-data]
+                            (let [source (:source ns-data)
+                                  resolve? (and (not (one-of source [:disk :built-in]))
+                                                (seq ns-data))
+                                  ns-data
+                                  (if resolve?
+                                    (resolve-return-types idacs ns-data)
+                                    ns-data)]
+                              (when resolve?
+                                (to-cache cache-dir lang ns-name ns-data))
+                              (assoc! m ns-name ns-data)))
+                          (transient {}) defs)))
+
 ;; TODO: we should first load the required namespaces from disk, then resolve
 ;; the types and then store the files
 (defn sync-cache* [idacs cache-dir]
@@ -124,17 +139,9 @@
                 idacs
                 [:clj :cljs :cljc])]
     (reduce (fn [idacs lang]
-              (let [analyzed-namespaces
-                    (set (keys (get-in idacs [lang :defs])))]
-                (when cache-dir
-                  (doseq [ns-name analyzed-namespaces
-                          :let [ns-data (get-in idacs [lang :defs ns-name])
-                                source (:source ns-data)]
-                          :when (and (not (one-of source [:disk :built-in]))
-                                     (seq ns-data))
-                          :let [ns-data (resolve-return-types idacs ns-data)]]
-                    (to-cache cache-dir lang ns-name ns-data)))
-                idacs))
+              (update-in idacs [lang :defs]
+                         #(update-defs idacs cache-dir lang %))
+              idacs)
             idacs
             [:clj :cljs :cljc])))
 
