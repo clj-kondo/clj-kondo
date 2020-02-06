@@ -89,16 +89,23 @@
 
 
 (defn resolve-arity-return-types [idacs arities]
-  (reduce-kv (fn [m k v]
-               (assoc m k (if-let [ret (:ret v)]
-                            (assoc v :ret (resolve-arg-type idacs ret))
-                            v))) {} arities))
+  (persistent!
+   (reduce-kv
+    (fn [m k v]
+      (assoc! m k (if-let [ret (:ret v)]
+                    (assoc v :ret (resolve-arg-type idacs ret))
+                    v)))
+    (transient {})
+    arities)))
 
 (defn resolve-return-types [idacs ns-data]
-  (reduce-kv (fn [m k v]
-               (assoc m k (if-let [arities (:arities v)]
-                            (assoc v :arities (resolve-arity-return-types idacs arities))
-                            v))) {} ns-data))
+  (persistent!
+   (reduce-kv
+    (fn [m k v]
+      (assoc! m k (if-let [arities (:arities v)]
+                    (assoc v :arities (resolve-arity-return-types idacs arities))
+                    v))) (transient {})
+    ns-data)))
 
 (defn sync-cache* [idacs cache-dir]
   (reduce (fn [idacs lang]

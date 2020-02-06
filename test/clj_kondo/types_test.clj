@@ -534,10 +534,6 @@
                          {:linters {:type-mismatch {:level :error}}}
                          "--cache" "true"))))))
 
-(deftest foo-test
-  (is (empty? (lint! "(declare bar) (defn foo [] (bar)) (defn bar [] (foo))"
-                     {:linters {:type-mismatch {:level :error}}}
-                     "--cache" "true"))))
 
 ;;;; Scratch
 
