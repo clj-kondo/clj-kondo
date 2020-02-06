@@ -406,6 +406,21 @@
       :message #"Expected: seqable collection, received: symbol"})
    (lint! "(list* 'foo)"
           {:linters {:type-mismatch {:level :error}}}))
+  (testing "resolve types via cache"
+    (lint! "(ns cached-ns1) (defn foo [] :keyword)"
+           {:linters {:type-mismatch {:level :error}}}
+           "--cache" "true")
+    (assert-submaps
+     '({:file "<stdin>", :row 3, :col 6, :level :error, :message "Expected: number, received: keyword."}
+       {:file "<stdin>", :row 5, :col 6, :level :error, :message "Expected: number, received: keyword."})
+     (lint! "
+(ns cached-ns2 (:require [cached-ns1]))
+(inc (cached-ns1/foo)) ;; this should give warning
+(defn bar [] (cached-ns1/foo))
+(inc (bar)) ;; this should also give a warning
+"
+                {:linters {:type-mismatch {:level :error}}}
+                "--cache" "true")))
   (testing "avoiding false positives"
     (is (empty?
          (lint! "(cons [nil] (list 1 2 3))
