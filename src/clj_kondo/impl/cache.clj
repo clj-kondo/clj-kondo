@@ -87,7 +87,6 @@
           idacs)
         idacs))))
 
-
 (defn resolve-arity-return-types [idacs arities]
   (persistent!
    (reduce-kv
@@ -107,29 +106,37 @@
                     v))) (transient {})
     ns-data)))
 
+;; TODO: we should first load the required namespaces from disk, then resolve
+;; the types and then store the files
 (defn sync-cache* [idacs cache-dir]
-  (reduce (fn [idacs lang]
-            (let [required-namespaces (get-in idacs [lang :used-namespaces])
-                  analyzed-namespaces
-                  (set (keys (get-in idacs [lang :defs])))]
-              (when cache-dir
-                (doseq [ns-name analyzed-namespaces
-                        :let [ns-data (get-in idacs [lang :defs ns-name])
-                              source (:source ns-data)]
-                        :when (and (not (one-of source [:disk :built-in]))
-                                   (seq ns-data))
-                        :let [ns-data (resolve-return-types idacs ns-data)]]
-                  (to-cache cache-dir lang ns-name ns-data)))
-              (reduce (fn [idacs lang]
-                        (reduce #(load-when-missing %1 cache-dir lang %2)
-                                idacs
-                                required-namespaces))
-                      idacs
-                      (case lang
-                        (:cljs :cljc) [:clj :cljs :cljc]
-                        :clj [:clj :cljc]))))
-          idacs
-          [:clj :cljs :cljc]))
+  ;; first load all idacs so we can resolve types
+  (let [idacs
+        (reduce (fn [idacs lang]
+                  (let [required-namespaces (get-in idacs [lang :used-namespaces])]
+                    (reduce (fn [idacs lang]
+                              (reduce #(load-when-missing %1 cache-dir lang %2)
+                                      idacs
+                                      required-namespaces))
+                            idacs
+                            (case lang
+                              (:cljs :cljc) [:clj :cljs :cljc]
+                              :clj [:clj :cljc]))))
+                idacs
+                [:clj :cljs :cljc])]
+    (reduce (fn [idacs lang]
+              (let [analyzed-namespaces
+                    (set (keys (get-in idacs [lang :defs])))]
+                (when cache-dir
+                  (doseq [ns-name analyzed-namespaces
+                          :let [ns-data (get-in idacs [lang :defs ns-name])
+                                source (:source ns-data)]
+                          :when (and (not (one-of source [:disk :built-in]))
+                                     (seq ns-data))
+                          :let [ns-data (resolve-return-types idacs ns-data)]]
+                    (to-cache cache-dir lang ns-name ns-data)))
+                idacs))
+            idacs
+            [:clj :cljs :cljc])))
 
 (defn sync-cache [idacs cache-dir]
   (profiler/profile
