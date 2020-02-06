@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.types.clojure.core
-  {:no-doc true})
+  {:no-doc true}
+  (:require [clj-kondo.impl.types.utils :as tu]))
 
 ;; sorted in order of appearance in
 ;; https://github.com/clojure/clojure/blob/master/src/clj/clojure/core.clj
@@ -59,13 +60,9 @@
                   :associative
                   t)))}
 
-(defn call [x]
-  (when (:call x)
-    x))
-
 (def clojure-core
   {'if {:fn (fn [[_ then else]]
-              (hash-set then else))}
+              (tu/union-type then else))}
    ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
