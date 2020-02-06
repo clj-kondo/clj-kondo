@@ -6,6 +6,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
+   [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
@@ -116,7 +117,7 @@
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
-          tags (map #(utils/resolve-arg-type idacs %) arg-types)]
+          tags (map #(tu/resolve-arg-type idacs %) arg-types)]
       ;; (prn "tags" tags)
       (types/lint-arg-types ctx called-fn arg-types tags call))))
 

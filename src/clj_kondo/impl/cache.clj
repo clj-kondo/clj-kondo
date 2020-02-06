@@ -2,7 +2,8 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.utils :refer [one-of resolve-arg-type]]
+   [clj-kondo.impl.utils :refer [one-of]]
+   [clj-kondo.impl.types.utils :as tu]
    [clojure.java.io :as io]
    [cognitect.transit :as transit])
   (:import [java.io RandomAccessFile]))
@@ -91,9 +92,15 @@
   (persistent!
    (reduce-kv
     (fn [m k v]
-      (assoc! m k (if-let [ret (:ret v)]
-                    (assoc v :ret (resolve-arg-type idacs ret))
-                    v)))
+      (let [new-v (if-let [ret (:ret v)]
+                    (let [t (tu/resolve-arg-type idacs ret)]
+                      (if (identical? t :any)
+                        (not-empty (dissoc v :ret))
+                        (assoc v :ret t)))
+                    (not-empty v))]
+        (if new-v
+          (assoc! m k new-v)
+          (dissoc! m k))))
     (transient {})
     arities)))
 
@@ -102,7 +109,10 @@
    (reduce-kv
     (fn [m k v]
       (assoc! m k (if-let [arities (:arities v)]
-                    (assoc v :arities (resolve-arity-return-types idacs arities))
+                    (let [new-arities (not-empty (resolve-arity-return-types idacs arities))]
+                      (if new-arities
+                        (assoc v :arities new-arities)
+                        (dissoc v :arities)))
                     v))) (transient {})
     ns-data)))
 
