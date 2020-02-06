@@ -88,7 +88,10 @@
           idacs)
         idacs))))
 
-(defn update-defs [idacs cache-dir lang defs]
+(defn update-defs
+  "Resolve types of defs. Optionally store to cache. Return defs with
+  resolved types for linting.."
+  [idacs cache-dir lang defs]
   (persistent! (reduce-kv (fn [m ns-name ns-data]
                             (let [source (:source ns-data)
                                   resolve? (and (not (one-of source [:disk :built-in]))
@@ -102,7 +105,10 @@
                               (assoc! m ns-name ns-data)))
                           (transient {}) defs)))
 
-(defn sync-cache* [idacs cache-dir]
+(defn sync-cache*
+  "Reads required namespaces from cache and combines them with the
+  namespaces we linted in this run."
+  [idacs cache-dir]
   ;; first load all idacs so we can resolve types
   (let [idacs
         (reduce (fn [idacs lang]

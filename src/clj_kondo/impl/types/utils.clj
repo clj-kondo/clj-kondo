@@ -2,10 +2,6 @@
   {:no-doc true}
   (:require [clj-kondo.impl.utils :refer [resolve-call*]]))
 
-(defn call [x]
-  (when (:call x)
-    x))
-
 (defn union-type
   [x y]
   (let [ret (cond (or (identical? x :any)
@@ -29,6 +25,7 @@
                       (identical? t :map)))))
 
 (defn resolve-arg-type
+  "Resolves arg-type to something which is not a call anymore, i.e. a resolved type or :any."
   ([idacs arg-type] (resolve-arg-type idacs arg-type #{}))
   ([idacs arg-type seen-calls]
    (if (resolved-type? arg-type) arg-type
