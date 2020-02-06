@@ -116,7 +116,7 @@
                                   (if resolve?
                                     (resolve-return-types idacs ns-data)
                                     ns-data)]
-                              (when resolve?
+                              (when (and cache-dir resolve?)
                                 (to-cache cache-dir lang ns-name ns-data))
                               (assoc! m ns-name ns-data)))
                           (transient {}) defs)))
