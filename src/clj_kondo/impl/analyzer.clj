@@ -454,7 +454,9 @@
         for-like? (one-of resolved-as-clojure-var-name [for doseq])
         callstack (:callstack ctx)
         call (-> callstack second second)
-        let? (= 'let call)]
+        let? (= 'let call)
+        ;; don't register arg types on the same level
+        ctx (assoc ctx :arg-types (atom []))]
     (loop [[binding value & rest-bindings] (-> binding-vector :children)
            bindings (:bindings ctx)
            arities (:arities ctx)
@@ -556,13 +558,6 @@
             let-body (nnext (:children expr))
             single-child? (and let? (= 1 (count let-body)))
             _ (lint-even-forms-bindings! ctx call valid-bv-node)
-            [let-body ret-expr-id last-expr] (if let?
-                                               (let [last-expr (last let-body)
-                                                     ret-expr-id (gensym)
-                                                     last-expr (when last-expr (assoc last-expr :id ret-expr-id))
-                                                     let-body (concat (butlast let-body) [last-expr])]
-                                                 [let-body ret-expr-id last-expr])
-                                               [let-body nil])
             analyzed (concat analyzed
                              (doall
                               (analyze-children
@@ -570,15 +565,9 @@
                                    (ctx-with-bindings analyzed-bindings)
                                    (update :arities merge arities)
                                    (assoc :maybe-redundant-let? single-child?))
-                               let-body)))
-            maybe-call (when ret-expr-id (get @(:calls-by-id ctx) ret-expr-id))
-            ;;_ (prn "maybe call" maybe-call)
-            ret (when ret-expr-id
-                  (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
-                        last-expr (types/expr->tag ctx last-expr)))]
-        (if ret (with-meta analyzed
-                  {:ret ret})
-            analyzed)))))
+                               let-body
+                               false)))]
+        analyzed))))
 
 (defn analyze-do [{:keys [:filename :callstack] :as ctx} expr]
   (let [parent-call (second callstack)

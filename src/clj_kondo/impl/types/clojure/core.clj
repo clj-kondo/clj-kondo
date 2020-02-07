@@ -63,6 +63,9 @@
 (def clojure-core
   {'if {:fn (fn [[_ then else]]
               (tu/union-type then else))}
+
+   'let {:fn (fn [args]
+               (last args))}
    ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
