@@ -98,10 +98,12 @@
                                                 (seq ns-data))
                                   ns-data
                                   (if resolve?
-                                    (tu/resolve-return-types idacs ns-data)
+                                    (tu/resolve-return-types idacs ns-data (= ns-name 'cljs.analyzer))
                                     ns-data)]
                               (when (and cache-dir resolve?)
                                 (to-cache cache-dir lang ns-name ns-data))
+                              (when (= ns-name 'cljs.analyzer)
+                                (throw (Exception. (str "CLJS ANALYZER" "-" (boolean resolve?)))))
                               (assoc! m ns-name ns-data)))
                           (transient {}) defs)))
 
