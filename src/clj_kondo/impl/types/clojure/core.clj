@@ -411,6 +411,8 @@
    'if-let {:fn (fn [[_ then else]]
                   (tu/union-type then else))}
    ;; 1861 'when-let
+   'when-let {:fn (fn [args]
+                    (tu/union-type :nil (last args)))}
    ;; 1876 'if-some
    ;; 1896 'when-some
    ;; 1913 'push-thread-bindings

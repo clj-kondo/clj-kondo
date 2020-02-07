@@ -489,6 +489,12 @@
    (lint! "(inc (if-let [_x 1] :foo 'symbol))"
           {:linters {:type-mismatch {:level :error}}})))
 
+(deftest when-let-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or nil."})
+   (lint! "(inc (when-let [_x 1] 'symbol))"
+              {:linters {:type-mismatch {:level :error}}})))
+
 (deftest return-type-inference-test
   (testing "Function return types"
     (assert-submaps
