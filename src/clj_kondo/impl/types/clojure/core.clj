@@ -49,17 +49,6 @@
 (def int->int->int {:arities {2 {:args [:int :int]
                                  :ret :int}}})
 
-'assoc {:arities {3 {:args [:nilable/associative :any :any]}
-                  :varargs {:min-arity 3
-                            :args '[:nilable/associative :any :any
-                                    {:op :rest
-                                     :spec [:any :any]}]}}
-        :fn (fn [args]
-              (let [t (:tag (first args))]
-                (if (identical? :any t)
-                  :associative
-                  t)))}
-
 (def clojure-core
   {'if {:fn (fn [[_ then else]]
               (tu/union-type then else))}
