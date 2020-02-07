@@ -92,22 +92,25 @@
   "Resolve types of defs. Optionally store to cache. Return defs with
   resolved types for linting.."
   [idacs cache-dir lang defs]
-  (persistent! (reduce-kv (fn [m ns-name ns-data]
-                            (prn ns-name)
-                            (let [source (:source ns-data)
-                                  resolve? (and (not (one-of source [:disk :built-in]))
-                                                (seq ns-data))
-                                  ns-data
-                                  (if resolve?
-                                    (tu/resolve-return-types idacs ns-data (= ns-name 'cljs.analyzer))
-                                    ns-data)]
-                              (when (and cache-dir resolve?)
-                                (to-cache cache-dir lang ns-name ns-data))
-                              #_(when true #_(= ns-name 'cljs.analyzer)
-                                (throw (Exception. (str "CLJS ANALYZER" "-" (boolean resolve?)))))
-                              (assoc! m ns-name ns-data)))
-                          (transient {})
-                          defs)))
+  (persistent!
+   (reduce-kv (fn [m ns-name ns-data]
+                (let [source (:source ns-data)
+                      resolve? (and (not (one-of source [:disk :built-in]))
+                                    (seq ns-data))
+                      ns-data
+                      (if resolve?
+                        (if (identical? lang :cljc)
+                          (-> ns-data
+                              (update :clj #(tu/resolve-return-types idacs %))
+                              (update :cljs #(tu/resolve-return-types idacs %)))
+                          (tu/resolve-return-types idacs ns-data))
+                        ns-data)]
+                  ;; (when resolve? (prn ns-data))
+                  (when (and cache-dir resolve?)
+                    (to-cache cache-dir lang ns-name ns-data))
+                  (assoc! m ns-name ns-data)))
+              (transient {})
+              defs)))
 
 (defn sync-cache*
   "Reads required namespaces from cache and combines them with the
@@ -128,24 +131,12 @@
                 idacs
                 [:clj :cljs :cljc])]
     (reduce (fn [idacs lang]
-              (case lang
-                (:clj :cljs)
-                (update-in idacs [lang :defs]
-                           (fn [defs]
-                             (update-defs idacs cache-dir lang defs)))
-                (:cljc)
-                (-> idacs
-                    (update-in [lang :defs :clj]
-                               (fn [defs]
-                                 (prn "ks" (keys defs))
-                                 (update-defs idacs cache-dir lang defs)))
-                    (update-in [lang :defs :cljs]
-                               (fn [defs]
-                                 (update-defs idacs cache-dir lang defs)))))
+              (update-in idacs [lang :defs]
+                         (fn [defs]
+                           (update-defs idacs cache-dir lang defs)))
               idacs)
             idacs
-            [:clj :cljs :cljc])
-    (throw (Exception. "end"))))
+            [:clj :cljs :cljc])))
 
 (defn sync-cache [idacs cache-dir]
   (profiler/profile
