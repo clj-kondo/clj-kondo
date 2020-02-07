@@ -21,6 +21,11 @@ rm -rf clj-kondo
 git clone https://github.com/borkdude/clj-kondo.git
 cd clj-kondo
 
+if [ -n "$1" ]; then
+    echo "git reset $1 --hard"
+    git reset $1 --hard
+fi
+
 out="/tmp/clj-kondo-diff/master.txt"
 
 echo "Linting and writing output to $out"
