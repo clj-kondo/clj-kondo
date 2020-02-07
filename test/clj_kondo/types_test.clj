@@ -497,9 +497,19 @@
 
 (deftest or-test
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword or nil."})
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword."})
    (lint! "(inc (or :foo 'bar))"
           {:linters {:type-mismatch {:level :error}}})))
+
+(deftest cond-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 46, :level :error, :message "Expected: number, received: symbol or keyword."})
+   (lint! "(defn foo [x] (cond x :foo :else 'bar)) (inc (foo 1))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+      '({:file "<stdin>", :row 1, :col 45, :level :error, :message "Expected: number, received: symbol or keyword or nil."})
+      (lint! "(defn foo [x] (cond x :foo x 'symbol)) (inc (foo 1))"
+             {:linters {:type-mismatch {:level :error}}})))
 
 (deftest return-type-inference-test
   (testing "Function return types"

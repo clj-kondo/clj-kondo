@@ -157,6 +157,19 @@
    ;; 568
    'keyword? any->boolean
    ;; 574 'cond
+   'cond {:fn (fn [args]
+                (loop [args (seq args)
+                       last-cond nil
+                       rets []]
+                  (if args
+                    (let [next-cond (first args)
+                          args (rest args)
+                          next-ret (first args)
+                          args (next args)]
+                      (recur args next-cond (conj rets next-ret)))
+                    (if (identical? :keyword (:tag last-cond))
+                      (reduce tu/union-type rets)
+                      (reduce tu/union-type :nil rets)))))}
    ;; 589
    'symbol {:arities {1 {:args [#{:symbol :string :keyword}]
                          :ret :symbol}
@@ -209,7 +222,7 @@
    ;; 842 'and
    ;; 854 'or
    'or {:fn (fn [args]
-              (reduce tu/union-type :nil args))}
+              (reduce tu/union-type args))}
    ;; 867
    'zero? any->boolean
    ;; 874
