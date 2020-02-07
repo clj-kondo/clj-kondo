@@ -511,6 +511,12 @@
       (lint! "(defn foo [x] (cond x :foo x 'symbol)) (inc (foo 1))"
              {:linters {:type-mismatch {:level :error}}})))
 
+(deftest and-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 44, :level :error, :message "Expected: number, received: keyword or nil or boolean."})
+   (lint! "(defn foo [_] true) (defn bar [_] :k) (inc (and (foo 1) (bar 2)))"
+              {:linters {:type-mismatch {:level :error}}})))
+
 (deftest return-type-inference-test
   (testing "Function return types"
     (assert-submaps

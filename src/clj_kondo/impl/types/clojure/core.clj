@@ -220,6 +220,8 @@
    ;; 831 'compare
    'compare {:arities {2 {:ret :number}}}
    ;; 842 'and
+   'and {:fn (fn [args]
+               (reduce tu/union-type :nil args))}
    ;; 854 'or
    'or {:fn (fn [args]
               (reduce tu/union-type args))}
