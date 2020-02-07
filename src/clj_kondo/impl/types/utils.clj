@@ -14,6 +14,8 @@
                   (if (set? y)
                     (into x y)
                     (conj x y))
+                  (set? y)
+                  (conj y x)
                   :else (hash-set x y))]
     ;; (prn x '+ y '= ret)
     ret))
