@@ -105,17 +105,8 @@
     (str (get labels (unnil k)) " or nil")
     :else (get labels k)))
 
-(defn sub? [k target]
-  (or (identical? k target)
-      (when-let [targets (get is-a-relations k)]
-        (some #(sub? % target) targets))))
-
-(defn super? [k target]
-  (or (identical? k target)
-      (when-let [targets (get could-be-relations k)]
-        (some #(super? % target) targets))))
-
 (defn match? [k target]
+  ;; (prn 'match? k '-> target)
   (cond
     (or (identical? k target)
         (identical? k :any)
@@ -179,13 +170,15 @@
         ks (map #(map-key ctx %) (take-nth 2 children))
         mvals (take-nth 2 (rest children))
         vtags (map (fn [e]
-                     (assoc (meta e)
-                            :tag (expr->tag ctx e))) mvals)]
+                     (let [t (expr->tag ctx e)
+                           m (meta e)
+                           m (if t (assoc m :tag t) m)]
+                       m)) mvals)]
     {:type :map
      :val (zipmap ks vtags)}))
 
-(defn ret-tag-from-call [{:keys [:config]} call _expr]
-  (when-not (:unresolved? call)
+(defn ret-tag-from-call [ctx call _expr]
+  (when (not (:unresolved? call))
     (or (when-let [ret (:ret call)]
           {:tag ret})
         (when-let [arg-types (:arg-types call)]
@@ -193,7 +186,7 @@
                 called-name (:name call)]
             (if-let [spec
                      (or
-                      (config/type-mismatch-config config called-ns called-name)
+                      (config/type-mismatch-config (:config ctx) called-ns called-name)
                       (get-in built-in-specs [called-ns called-name]))]
               (or
                (when-let [a (:arities spec)]
@@ -201,23 +194,22 @@
                    (when-let [t (:ret called-arity)]
                      {:tag t})))
                (if-let [fn-spec (:fn spec)]
-                 {:tag (fn-spec @arg-types)}
-                 {:tag (:ret spec)}))
+                 (when-let [t (fn-spec @arg-types)]
+                   {:tag t})
+                 (when-let [t (:ret spec)]
+                   {:tag t})))
               ;; we delay resolving this call, because we might find the spec for by linting other code
               ;; see linters.clj
-              {:call (select-keys call [:type :lang :base-lang :resolved-ns :ns :name :arity])}))))))
+              {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])}))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
-  (or (if-let [id (:id expr)]
-        (if-let [call (get @calls-by-id id)]
-          (or (ret-tag-from-call ctx call expr)
-              {:tag :any})
-          {:tag :any})
-        {:tag :any})))
+  (when-let [id (:id expr)]
+    (when-let [call (get @calls-by-id id)]
+      (ret-tag-from-call ctx call expr))))
 
 (defn expr->tag [{:keys [:bindings :lang :quoted] :as ctx} expr]
   (let [t (tag expr)
-        quoted? (or quoted (= :edn lang))]
+        quoted? (or quoted (identical? :edn lang))]
     (case t
       :map (map->tag ctx expr)
       :vector :vector
@@ -230,37 +222,36 @@
                (cond
                  (nil? v) :nil
                  (symbol? v) (if quoted? :symbol
-                                 (if-let [b (get bindings v)]
-                                   (or (:tag b) :any)
-                                   :any))
+                                 (when-let [b (get bindings v)]
+                                   (:tag b)))
                  (boolean? v) :boolean
                  (string? v) :string
                  (keyword? v) :keyword
-                 (number? v) (number->tag v)
-                 :else :any))
+                 (number? v) (number->tag v)))
       :regex :regex
-      :any)))
+      :quote (expr->tag (assoc ctx :quoted true) (first (:children expr)))
+      nil)))
 
 (defn add-arg-type-from-expr
   ([ctx expr] (add-arg-type-from-expr ctx expr (expr->tag ctx expr)))
   ([ctx expr tag]
    (when-let [arg-types (:arg-types ctx)]
      (let [m (meta expr)]
-       (swap! arg-types conj {:tag tag
-                              :row (:row m)
-                              :col (:col m)
-                              :end-row (:end-row m)
-                              :end-col (:end-col m)})))))
+       (swap! arg-types conj (when tag
+                               {:tag tag
+                                :row (:row m)
+                                :col (:col m)
+                                :end-row (:end-row m)
+                                :end-col (:end-col m)}))))))
 
 (defn add-arg-type-from-call [ctx call _expr]
   (when-let [arg-types (:arg-types ctx)]
-    (swap! arg-types conj (if-let [r (ret-tag-from-call ctx call _expr)]
+    (swap! arg-types conj (when-let [r (ret-tag-from-call ctx call _expr)]
                             (assoc r
                                    :row (:row call)
                                    :col (:col call)
                                    :end-row (:end-row call)
-                                   :end-col (:end-col call))
-                            {:tag :any}))))
+                                   :end-col (:end-col call))))))
 
 (defn args-spec-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity)
@@ -268,11 +259,17 @@
     (when-let [s (:args called-arity)]
       (vec s))))
 
+(defn tag->label [x]
+  (let [label-fn #(or (label %) (name %))
+        l (cond (keyword? x) (label-fn x)
+                (set? x) (str/join " or " (map label-fn x))
+                ;; TODO:
+                (map? x) "map")]
+    l))
+
 (defn emit-non-match! [{:keys [:findings :filename]} s arg t]
-  (let [expected-label-1-fn #(or (label %) (name %))
-        expected-label (cond (keyword? s) (expected-label-1-fn s)
-                             (set? s) (str/join " or " (map expected-label-1-fn s)))
-        offending-tag-label (or (label t) (name t))]
+  (let [expected-label (tag->label s)
+        offending-tag-label (tag->label t)]
     (findings/reg-finding! findings
                            {:filename filename
                             :row (:row arg)

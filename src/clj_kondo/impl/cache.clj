@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
    [cognitect.transit :as transit])
@@ -87,28 +88,55 @@
           idacs)
         idacs))))
 
-(defn sync-cache* [idacs cache-dir]
-  (reduce (fn [idacs lang]
-            (let [required-namespaces (get-in idacs [lang :used-namespaces])
-                  analyzed-namespaces
-                  (set (keys (get-in idacs [lang :defs])))]
-              (when cache-dir
-                (doseq [ns-name analyzed-namespaces
-                        :let [{:keys [:source] :as ns-data}
-                              (get-in idacs [lang :defs ns-name])]
-                        :when (and (not (one-of source [:disk :built-in]))
-                                   (seq ns-data))]
-                  (to-cache cache-dir lang ns-name ns-data)))
-              (reduce (fn [idacs lang]
-                        (reduce #(load-when-missing %1 cache-dir lang %2)
-                                idacs
-                                required-namespaces))
-                      idacs
-                      (case lang
-                        (:cljs :cljc) [:clj :cljs :cljc]
-                        :clj [:clj :cljc]))))
-          idacs
-          [:clj :cljs :cljc]))
+(defn update-defs
+  "Resolve types of defs. Optionally store to cache. Return defs with
+  resolved types for linting.."
+  [idacs cache-dir lang defs]
+  (persistent!
+   (reduce-kv (fn [m ns-name ns-data]
+                (let [source (:source ns-data)
+                      resolve? (and (not (one-of source [:disk :built-in]))
+                                    (seq ns-data))
+                      ns-data
+                      (if resolve?
+                        (if (identical? lang :cljc)
+                          (-> ns-data
+                              (update :clj #(tu/resolve-return-types idacs %))
+                              (update :cljs #(tu/resolve-return-types idacs %)))
+                          (tu/resolve-return-types idacs ns-data))
+                        ns-data)]
+                  ;; (when resolve? (prn ns-data))
+                  (when (and cache-dir resolve?)
+                    (to-cache cache-dir lang ns-name ns-data))
+                  (assoc! m ns-name ns-data)))
+              (transient {})
+              defs)))
+
+(defn sync-cache*
+  "Reads required namespaces from cache and combines them with the
+  namespaces we linted in this run."
+  [idacs cache-dir]
+  ;; first load all idacs so we can resolve types
+  (let [idacs
+        (reduce (fn [idacs lang]
+                  (let [required-namespaces (get-in idacs [lang :used-namespaces])]
+                    (reduce (fn [idacs lang]
+                              (reduce #(load-when-missing %1 cache-dir lang %2)
+                                      idacs
+                                      required-namespaces))
+                            idacs
+                            (case lang
+                              (:cljs :cljc) [:clj :cljs :cljc]
+                              :clj [:clj :cljc]))))
+                idacs
+                [:clj :cljs :cljc])]
+    (reduce (fn [idacs lang]
+              (update-in idacs [lang :defs]
+                         (fn [defs]
+                           (update-defs idacs cache-dir lang defs)))
+              idacs)
+            idacs
+            [:clj :cljs :cljc])))
 
 (defn sync-cache [idacs cache-dir]
   (profiler/profile

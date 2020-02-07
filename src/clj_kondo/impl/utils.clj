@@ -237,6 +237,57 @@
                             (recur (next xs) filtered (conj! removed x))))
       [(persistent! filtered) (persistent! removed)])))
 
+(defn resolve-call* [idacs call fn-ns fn-name]
+  ;; (prn "RES" fn-ns fn-name)
+  (let [call-lang (:lang call)
+        base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
+        unresolved? (:unresolved? call)
+        unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
+        fn-ns (if unknown-ns? (:ns call) fn-ns)]
+    ;; (prn "FN NS" fn-ns fn-name (keys (get (:defs (:clj idacs)) 'clojure.core)))
+    (case [base-lang call-lang]
+      [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
+                      (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+                        ;; when calling a function in the same ns, it must be in another file
+                        ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
+                        (when (not (and unknown-ns? unresolved?))
+                          (or
+                           ;; cljs func in another cljc file
+                           (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                           ;; maybe a macro?
+                           (get-in idacs [:clj :defs fn-ns fn-name])
+                           (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
+      ;; calling a clojure function from cljc
+      [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
+                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      ;; calling function in a CLJS conditional from a CLJC file
+      [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+                        (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                        ;; could be a macro
+                        (get-in idacs [:clj :defs fn-ns fn-name])
+                        (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
+
+(defn resolve-call [idacs call call-lang fn-ns fn-name unresolved? refer-alls]
+  (when-let [called-fn
+             (or (resolve-call* idacs call fn-ns fn-name)
+                 (when unresolved?
+                   (some #(resolve-call* idacs call % fn-name)
+                         (into (vec
+                                (keep (fn [[ns {:keys [:excluded]}]]
+                                        (when-not (contains? excluded fn-name)
+                                          ns))
+                                      refer-alls))
+                               (when (not (:clojure-excluded? call))
+                                 [(case call-lang #_base-lang
+                                        :clj 'clojure.core
+                                        :cljs 'cljs.core
+                                        :clj1c 'clojure.core)])))))]
+    (if-let [imported-ns (:imported-ns called-fn)]
+      (recur idacs call call-lang imported-ns
+             (:imported-var called-fn) unresolved? refer-alls)
+      called-fn)))
+
 ;;;; Scratch
 
 (comment

@@ -324,19 +324,21 @@
                                                    :warning
                                                    :misplaced-docstring
                                                    "Misplaced docstring."))))
-        [parsed return-tag] (if (or macro? return-tag)
-                              [(analyze-children ctx children) return-tag]
-                              (let [last-expr (last children)
-                                    ret-expr-id (gensym)
-                                    last-expr (when last-expr (assoc last-expr :id ret-expr-id))
-                                    body-exprs (concat (butlast children) [last-expr])
-                                    parsed (doall (analyze-children ctx body-exprs))
-                                    ret-tag (or return-tag
-                                                (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
-                                                      tag (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
-                                                                last-expr (types/expr->tag ctx last-expr))]
-                                                  tag))]
-                                [parsed ret-tag]))]
+        [parsed return-tag]
+        (if (or macro? return-tag)
+          [(analyze-children ctx children) return-tag]
+          (let [last-expr (last children)
+                ret-expr-id (gensym)
+                last-expr (when last-expr (assoc last-expr :id ret-expr-id))
+                body-exprs (concat (butlast children) [last-expr])
+                parsed (doall (analyze-children ctx body-exprs))
+                ret-tag (or
+                         return-tag
+                         (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
+                               tag (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
+                                         last-expr (types/expr->tag ctx last-expr))]
+                           tag))]
+            [parsed ret-tag]))]
     (assoc arity
            :parsed
            (concat analyzed-arg-vec parsed)
@@ -353,8 +355,8 @@
           :list exprs
           (recur rest-exprs))))))
 
-(defn analyze-defn [{:keys [:ns] :as ctx} expr]
-  (let [ns-name (:name ns)
+(defn analyze-defn [ctx expr]
+  (let [ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
@@ -400,7 +402,8 @@
                              (-> ctx
                                  (assoc :docstring docstring
                                         :in-def fn-name
-                                        :macro? macro?)) %)
+                                        :macro? macro?))
+                             %)
                            bodies)
         arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
                                 (let [arg-tags (when (some identity args)
@@ -450,7 +453,9 @@
         for-like? (one-of resolved-as-clojure-var-name [for doseq])
         callstack (:callstack ctx)
         call (-> callstack second second)
-        let? (= 'let call)]
+        let? (= 'let call)
+        ;; don't register arg types on the same level
+        ctx (assoc ctx :arg-types (atom []))]
     (loop [[binding value & rest-bindings] (-> binding-vector :children)
            bindings (:bindings ctx)
            arities (:arities ctx)
@@ -552,13 +557,6 @@
             let-body (nnext (:children expr))
             single-child? (and let? (= 1 (count let-body)))
             _ (lint-even-forms-bindings! ctx call valid-bv-node)
-            [let-body ret-expr-id last-expr] (if let?
-                                               (let [last-expr (last let-body)
-                                                     ret-expr-id (gensym)
-                                                     last-expr (when last-expr (assoc last-expr :id ret-expr-id))
-                                                     let-body (concat (butlast let-body) [last-expr])]
-                                                 [let-body ret-expr-id last-expr])
-                                               [let-body nil])
             analyzed (concat analyzed
                              (doall
                               (analyze-children
@@ -566,14 +564,9 @@
                                    (ctx-with-bindings analyzed-bindings)
                                    (update :arities merge arities)
                                    (assoc :maybe-redundant-let? single-child?))
-                               let-body)))
-            maybe-call (when ret-expr-id (get @(:calls-by-id ctx) ret-expr-id))
-            ret (when ret-expr-id
-                  (cond maybe-call (:tag (types/ret-tag-from-call ctx maybe-call last-expr))
-                        last-expr (types/expr->tag ctx last-expr)))]
-        (if ret (with-meta analyzed
-                  {:ret ret})
-            analyzed)))))
+                               let-body
+                               false)))]
+        analyzed))))
 
 (defn analyze-do [{:keys [:filename :callstack] :as ctx} expr]
   (let [parent-call (second callstack)
@@ -632,7 +625,7 @@
                 (analyze-children (ctx-with-bindings ctx
                                                      (dissoc bindings
                                                              :analyzed))
-                                  body-exprs))))))
+                                  body-exprs false))))))
 
 (defn fn-arity [ctx bodies]
   (let [arities (map #(analyze-fn-arity ctx %) bodies)
@@ -1000,7 +993,7 @@
        (node->line (:filename ctx) expr
                    :warning linter
                    msg)))
-    (analyze-children ctx children)))
+    (analyze-children ctx children false)))
 
 (defn reg-call [{:keys [:calls-by-id]} call id]
   (swap! calls-by-id assoc id call)
@@ -1063,7 +1056,7 @@
             ;; avoid redundant do check for condition
             (update ctx :callstack conj nil)
             condition))
-    (analyze-children ctx body)))
+    (analyze-children ctx body false)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}

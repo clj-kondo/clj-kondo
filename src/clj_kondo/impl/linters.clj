@@ -6,6 +6,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
+   [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
@@ -95,11 +96,11 @@
                                        :missing-test-assertion "missing test assertion"))))
 
 #_(defn lint-test-is [ctx expr]
-  (let [children (next (:children expr))]
-    (when (every? constant? children)
-      (findings/reg-finding! (:findings ctx)
-                             (node->line (:filename ctx) expr :warning
-                                         :constant-test-assertion "Test assertion with only constants.")))))
+    (let [children (next (:children expr))]
+      (when (every? constant? children)
+        (findings/reg-finding! (:findings ctx)
+                               (node->line (:filename ctx) expr :warning
+                                           :constant-test-assertion "Test assertion with only constants.")))))
 
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
@@ -113,76 +114,11 @@
     (when (get-in var-info/predicates [called-ns called-name])
       (lint-missing-test-assertion ctx call))))
 
-(defn resolve-call* [idacs call fn-ns fn-name]
-  ;; (prn "RES" fn-ns fn-name)
-  (let [call-lang (:lang call)
-        base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
-        unresolved? (:unresolved? call)
-        unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
-        fn-ns (if unknown-ns? (:ns call) fn-ns)]
-    ;; (prn "FN NS" fn-ns fn-name (keys (get (:defs (:clj idacs)) 'clojure.core)))
-    (case [base-lang call-lang]
-      [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
-                      (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
-      [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
-                        ;; when calling a function in the same ns, it must be in another file
-                        ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
-                        (when (not (and unknown-ns? unresolved?))
-                          (or
-                           ;; cljs func in another cljc file
-                           (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
-                           ;; maybe a macro?
-                           (get-in idacs [:clj :defs fn-ns fn-name])
-                           (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
-      ;; calling a clojure function from cljc
-      [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
-                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
-      ;; calling function in a CLJS conditional from a CLJC file
-      [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
-                        (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
-                        ;; could be a macro
-                        (get-in idacs [:clj :defs fn-ns fn-name])
-                        (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
-
-(defn resolve-call [idacs call call-lang fn-ns fn-name unresolved? refer-alls]
-  (when-let [called-fn
-             (or (resolve-call* idacs call fn-ns fn-name)
-                 (when unresolved?
-                   (some #(resolve-call* idacs call % fn-name)
-                         (into (vec
-                                (keep (fn [[ns {:keys [:excluded]}]]
-                                        (when-not (contains? excluded fn-name)
-                                          ns))
-                                      refer-alls))
-                               (when (not (:clojure-excluded? call))
-                                 [(case call-lang #_base-lang
-                                        :clj 'clojure.core
-                                        :cljs 'cljs.core
-                                        :clj1c 'clojure.core)])))))]
-    (if-let [imported-ns (:imported-ns called-fn)]
-      (recur idacs call call-lang imported-ns
-             (:imported-var called-fn) unresolved? refer-alls)
-      called-fn)))
-
-(defn resolve-arg-type [idacs arg-type]
-  (or (:tag arg-type)
-      (if-let [call (:call arg-type)]
-        (let [arity (:arity call)]
-          (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
-            (let [arities (:arities called-fn)
-                  tag (or (when-let [v (get arities arity)]
-                            (:ret v))
-                          (when-let [v (get arities :varargs)]
-                            (when (>= arity (:min-arity v))
-                              (:ret v))))]
-              tag)))
-        :any)
-      :any))
-
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
-          tags (map #(resolve-arg-type idacs %) arg-types)]
+          tags (map #(tu/resolve-arg-type idacs %) arg-types)]
+      ;; (prn "tags" tags)
       (types/lint-arg-types ctx called-fn arg-types tags call))))
 
 (defn show-arities [fixed-arities varargs-min-arity]
@@ -225,8 +161,8 @@
                                                [base-lang call-lang caller-ns-sym])
                              resolved-ns (:resolved-ns call)
                              refer-alls (:refer-alls caller-ns)
-                             called-fn (resolve-call idacs call call-lang
-                                                     resolved-ns fn-name unresolved? refer-alls)
+                             called-fn (utils/resolve-call idacs call call-lang
+                                                           resolved-ns fn-name unresolved? refer-alls)
                              unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
                              ;; we can determine if the call was made to another
                              ;; file by looking at the base-lang (in case of
@@ -254,10 +190,10 @@
                                  (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
                                                                    (if call?
                                                                      (assoc call
-                                                                       :row name-row
-                                                                       :col name-col
-                                                                       :end-row (:end-row name-meta)
-                                                                       :end-col (:end-col name-meta))
+                                                                            :row name-row
+                                                                            :col name-col
+                                                                            :end-row (:end-row name-meta)
+                                                                            :end-col (:end-col name-meta))
                                                                      call)))
                              row (:row call)
                              col (:col call)
@@ -275,9 +211,9 @@
                                  (analysis/reg-usage! ctx
                                                       filename
                                                       (if call? name-row
-                                                        row)
+                                                          row)
                                                       (if call? name-col
-                                                        col)
+                                                          col)
                                                       caller-ns-sym
                                                       resolved-ns fn-name arity
                                                       (when (= :cljc base-lang)

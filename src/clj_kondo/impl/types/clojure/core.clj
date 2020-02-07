@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.types.clojure.core
-  {:no-doc true})
+  {:no-doc true}
+  (:require [clj-kondo.impl.types.utils :as tu]))
 
 ;; sorted in order of appearance in
 ;; https://github.com/clojure/clojure/blob/master/src/clj/clojure/core.clj
@@ -49,7 +50,12 @@
                                  :ret :int}}})
 
 (def clojure-core
-  {;; 16
+  {'if {:fn (fn [[_ then else]]
+              (tu/union-type then else))}
+
+   'let {:fn (fn [args]
+               (last args))}
+   ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
    'cons {:arities {2 {:args [:any :seqable]}}}
@@ -126,7 +132,11 @@
    'nil? any->boolean
    ;; 444 'defmacro
    ;; 493 'when
+   'when {:fn (fn [args]
+                (tu/union-type :nil (last args)))}
    ;; 499 'when-not
+   'when-not {:fn (fn [args]
+                    (tu/union-type :nil (last args)))}
    ;; 505
    'false? any->boolean
    ;; 512
@@ -304,9 +314,9 @@
    ;; 1374
    'integer? any->boolean
    ;; 1386
-   'even? any->boolean
+   'even? number->boolean
    ;; 1394
-   'odd? any->boolean
+   'odd? number->boolean
    ;; 1400
    'int? any->boolean
    ;; 1408
@@ -387,7 +397,11 @@
    ;; 1817 'get-method
    ;; 1824 'prefers
    ;; 1841 'if-let
+   'if-let {:fn (fn [[_ then else]]
+                  (tu/union-type then else))}
    ;; 1861 'when-let
+   'when-let {:fn (fn [args]
+                    (tu/union-type :nil (last args)))}
    ;; 1876 'if-some
    ;; 1896 'when-some
    ;; 1913 'push-thread-bindings
