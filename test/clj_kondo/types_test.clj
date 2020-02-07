@@ -493,7 +493,13 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or nil."})
    (lint! "(inc (when-let [_x 1] 'symbol))"
-              {:linters {:type-mismatch {:level :error}}})))
+          {:linters {:type-mismatch {:level :error}}})))
+
+(deftest or-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword or nil."})
+   (lint! "(inc (or :foo 'bar))"
+          {:linters {:type-mismatch {:level :error}}})))
 
 (deftest return-type-inference-test
   (testing "Function return types"

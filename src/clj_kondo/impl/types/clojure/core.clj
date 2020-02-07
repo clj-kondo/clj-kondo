@@ -52,7 +52,6 @@
 (def clojure-core
   {'if {:fn (fn [[_ then else]]
               (tu/union-type then else))}
-
    'let {:fn (fn [args]
                (last args))}
    ;; 16
@@ -209,6 +208,8 @@
    'compare {:arities {2 {:ret :number}}}
    ;; 842 'and
    ;; 854 'or
+   'or {:fn (fn [args]
+              (reduce tu/union-type :nil args))}
    ;; 867
    'zero? any->boolean
    ;; 874

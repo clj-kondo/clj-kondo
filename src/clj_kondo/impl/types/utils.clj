@@ -55,6 +55,12 @@
          ;; (prn arg-type '-> ret)
          ret))))
 
+(defn not-empty-arity [m]
+  (when (and m
+             (or (:args m)
+                 (:ret m)))
+    m))
+
 (defn resolve-arity-return-types [idacs arities]
   (persistent!
    (reduce-kv
@@ -62,9 +68,9 @@
       (let [new-v (if-let [ret (:ret v)]
                     (let [t (resolve-arg-type idacs ret)]
                       (if (identical? t :any)
-                        (not-empty (dissoc v :ret))
+                        (not-empty-arity (dissoc v :ret))
                         (assoc v :ret t)))
-                    (not-empty v))]
+                    (not-empty-arity v))]
         (if new-v
           (assoc! m k new-v)
           (dissoc! m k))))
