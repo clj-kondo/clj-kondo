@@ -483,6 +483,12 @@
     (testing "nilable types"
       (is (empty? (lint! "(conj nil) (conj nil 1 2 3) (dissoc nil) (dissoc nil 1 2 3) (find nil 1) (select-keys nil [1 2 3])"))))))
 
+(deftest if-let-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword."})
+   (lint! "(inc (if-let [_x 1] :foo 'symbol))"
+          {:linters {:type-mismatch {:level :error}}})))
+
 (deftest return-type-inference-test
   (testing "Function return types"
     (assert-submaps

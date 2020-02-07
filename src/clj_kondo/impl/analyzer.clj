@@ -626,7 +626,7 @@
                 (analyze-children (ctx-with-bindings ctx
                                                      (dissoc bindings
                                                              :analyzed))
-                                  body-exprs))))))
+                                  body-exprs false))))))
 
 (defn fn-arity [ctx bodies]
   (let [arities (map #(analyze-fn-arity ctx %) bodies)
