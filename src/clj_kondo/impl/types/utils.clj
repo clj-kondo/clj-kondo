@@ -69,16 +69,16 @@
     (transient {})
     arities)))
 
-(defn resolve-return-types [idacs ns-data log?]
+(defn resolve-return-types [idacs ns-data _log?]
   (persistent!
    (reduce-kv
     (fn [m k v]
-      (when log? (prn "k" k))
+      #_(when log? (prn "k" k))
       (assoc! m k (if-let [arities (:arities v)]
                     (do
-                      (when log? (prn "arr" arities))
+                      #_(when log? (prn "arr" arities))
                       (let [new-arities (not-empty (resolve-arity-return-types idacs arities))]
-                        (when log? (prn "new arr" new-arities))
+                        #_(when log? (prn "new arr" new-arities))
                         (if new-arities
                           (assoc v :arities new-arities)
                           (dissoc v :arities))))

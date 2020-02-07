@@ -93,6 +93,7 @@
   resolved types for linting.."
   [idacs cache-dir lang defs]
   (persistent! (reduce-kv (fn [m ns-name ns-data]
+                            (prn ns-name)
                             (let [source (:source ns-data)
                                   resolve? (and (not (one-of source [:disk :built-in]))
                                                 (seq ns-data))
@@ -102,10 +103,11 @@
                                     ns-data)]
                               (when (and cache-dir resolve?)
                                 (to-cache cache-dir lang ns-name ns-data))
-                              (when (= ns-name 'cljs.analyzer)
+                              #_(when true #_(= ns-name 'cljs.analyzer)
                                 (throw (Exception. (str "CLJS ANALYZER" "-" (boolean resolve?)))))
                               (assoc! m ns-name ns-data)))
-                          (transient {}) defs)))
+                          (transient {})
+                          defs)))
 
 (defn sync-cache*
   "Reads required namespaces from cache and combines them with the
@@ -126,11 +128,24 @@
                 idacs
                 [:clj :cljs :cljc])]
     (reduce (fn [idacs lang]
-              (update-in idacs [lang :defs]
-                         #(update-defs idacs cache-dir lang %))
+              (case lang
+                (:clj :cljs)
+                (update-in idacs [lang :defs]
+                           (fn [defs]
+                             (update-defs idacs cache-dir lang defs)))
+                (:cljc)
+                (-> idacs
+                    (update-in [lang :defs :clj]
+                               (fn [defs]
+                                 (prn "ks" (keys defs))
+                                 (update-defs idacs cache-dir lang defs)))
+                    (update-in [lang :defs :cljs]
+                               (fn [defs]
+                                 (update-defs idacs cache-dir lang defs)))))
               idacs)
             idacs
-            [:clj :cljs :cljc])))
+            [:clj :cljs :cljc])
+    (throw (Exception. "end"))))
 
 (defn sync-cache [idacs cache-dir]
   (profiler/profile
