@@ -177,25 +177,6 @@
     {:type :map
      :val (zipmap ks vtags)}))
 
-(defn non-recursive-call? [ctx call]
-  (let [fn-ns (-> ctx :ns :name)
-        fn-name (:fn-name ctx)
-        fn-arity (:fn-arity ctx)]
-    (if fn-name
-      (or (not= fn-ns (:resolved-ns call))
-          (not= fn-name (:name call))
-          (if fn-arity
-            ;; only if fn-arity is there, we can reliably know this is non-recursive
-            (or
-             (let [called-arity (:arity call)]
-               (or (not= (:fixed-arity fn-arity) called-arity)
-                   (when (:varargs? fn-arity)
-                     (not (>= called-arity (:min-arity fn-arity)))))))
-            ;; else we just assume it's not safe to continue
-            false))
-      ;; when fn-name isn't there, we assume this was an external call
-      true)))
-
 (defn ret-tag-from-call [ctx call _expr]
   (when (not (:unresolved? call))
     (or (when-let [ret (:ret call)]
@@ -219,8 +200,7 @@
                    {:tag t})))
               ;; we delay resolving this call, because we might find the spec for by linting other code
               ;; see linters.clj
-              (when (non-recursive-call? ctx call)
-                {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])})))))))
+              {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])}))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
   (when-let [id (:id expr)]

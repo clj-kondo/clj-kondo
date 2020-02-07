@@ -403,8 +403,7 @@
                              (-> ctx
                                  (assoc :docstring docstring
                                         :in-def fn-name
-                                        :macro? macro?
-                                        :fn-name fn-name))
+                                        :macro? macro?))
                              %)
                            bodies)
         arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
@@ -661,7 +660,7 @@
         parsed-bodies
         (map #(analyze-fn-body
                (if ?fn-name
-                 (-> (assoc ctx :fn-name ?fn-name)
+                 (-> ctx
                      (update :bindings conj [?fn-name
                                              (assoc (meta (second children))
                                                     :name ?fn-name
