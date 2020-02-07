@@ -334,8 +334,7 @@
                 parsed (doall (analyze-children ctx body-exprs))
                 ret-tag (or
                          return-tag
-                         (let [ctx (assoc ctx :fn-arity arity)
-                               maybe-call (get @(:calls-by-id ctx) ret-expr-id)
+                         (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
                                tag (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
                                          last-expr (types/expr->tag ctx last-expr))]
                            tag))]
