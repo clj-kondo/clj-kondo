@@ -313,7 +313,9 @@
                   used-referred-vars (:used-referred-vars ns)
                   refer-alls (:refer-alls ns)
                   filename (:filename ns)
-                  config (config/merge-config! config (:config ns))]]
+                  ns-config (:config ns)
+                  config (or ns-config config)
+                  ctx (if ns-config (assoc ctx :config config) ctx)]]
       (doseq [ns-sym unused]
         (when-not (config/unused-namespace-excluded config ns-sym)
           (let [m (meta ns-sym)
