@@ -17,14 +17,16 @@
      (lint! "(not= 1)" "--lang" "cljs")))
 
   (testing "test linting comparison operators with single arity"
-    (doseq [lang ["clojure" "cljs"]
+    (doseq [lang ["clj" "cljs"]
             op ["=" ">" "<" ">=" "<=" "=="]
             :let [errors (lint! (str "(" op " 1)") "--lang" lang)]]
       (is (= (count errors) 1))
-      (is (= (str "single arity use of " lang ".core/" op " is constantly true"
-              (-> errors
-                  (first)
-                  :message))))))
+      (is (= (format "single arity use of %s.core/%s is constantly true"
+                     (get {"clj" "clojure"} lang "cljs")
+                     op)
+             (-> errors
+                 (first)
+                 :message)))))
 
   (testing "test linting single arity comparison in threading macros"
     (is (seq (lint! "(-> 10 (>))")))
