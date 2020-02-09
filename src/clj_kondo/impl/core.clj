@@ -276,8 +276,7 @@
     (for [f findings
           :let [filename (:filename f)
                 type (:type f)
-                level (:level f)
-                level (or #_level (when type (-> config :linters type :level)))]
+                level (:level f)]
           :when (and level (not= :off level))
           :when (if (= :debug type)
                   print-debug?
@@ -290,7 +289,7 @@
           :when (not-any? (fn [pattern]
                             (re-find (re-pattern pattern) filename))
                           remove-output)]
-      (assoc f :level level))))
+      f)))
 
 ;;;; Scratch
 

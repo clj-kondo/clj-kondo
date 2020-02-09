@@ -686,7 +686,7 @@
       :level :error,
       :message "if-let binding vector requires exactly 2 forms"})
    (lint! "(if-let [x 1 y 2])"))
-  (assert-submap
+  (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 1,
@@ -776,10 +776,8 @@
                                                      ".*\\.spex$"]}}}))))
 
 (deftest replace-config-test
-  (let [res (lint! (io/file "corpus") "--config" "^:replace {:linters {:redundant-let {:level :info}}}")]
-    (is (pos? (count res)))
-    (doseq [f res]
-      (is (= :info (:level f))))))
+  (let [res (lint! "(let [x 1] (let [y 2]))" "--config" "^:replace {:linters {:redundant-let {:level :info}}}")]
+    (is (every? #(identical? :info (:level %)) res))))
 
 (deftest map-duplicate-keys
   (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}

@@ -7,7 +7,8 @@
         type (:type m)
         level (-> config :linters type :level)]
     (when-not (identical? :off m)
-      (let [m (assoc m :level level)]
+      (let [m (if level (assoc m :level level)
+                  m)]
         (swap! findings conj m))))
   nil)
 

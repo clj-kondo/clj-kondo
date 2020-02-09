@@ -1592,15 +1592,13 @@
       ;; {:type :reader-exception, :ex-kind :reader-error, :file nil, :line 1, :col 4}
       (= :reader-exception type)
       [{:type :syntax
-        :level :error
         :filename filename
         :row line
         :col col
         :message (.getMessage ex)}]
 
       :else
-      [{:level :error
-        :filename filename
+      [{:filename filename
         :col 0
         :row 0
         :type :syntax

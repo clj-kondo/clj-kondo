@@ -254,7 +254,6 @@
                                  :end-row end-row
                                  :col col
                                  :end-col end-col
-                                 :level :error
                                  :type :invalid-arity
                                  :message (arity-error fn-ns fn-name arity fixed-arities varargs-min-arity)})
                               (when (and (:private called-fn)
@@ -265,7 +264,6 @@
                                 {:filename filename
                                  :row row
                                  :col col
-                                 :level :error
                                  :type :private-call
                                  :message (format "#'%s is private"
                                                   (str (:ns called-fn) "/" (:name called-fn)))})
@@ -282,7 +280,6 @@
                                   {:filename filename
                                    :row row
                                    :col col
-                                   :level :error
                                    :type :deprecated-var
                                    :message (str
                                              (format "#'%s is deprecated"
@@ -302,7 +299,7 @@
                        e errors
                        :when e]
                    e)]
-    findings))
+    (run! #(findings/reg-finding! ctx %) findings)))
 
 (defn lint-unused-namespaces!
   [ctx]
@@ -363,8 +360,7 @@
       (when-not (str/starts-with? (str name) "_")
         (findings/reg-finding!
          ctx
-         {:level :warning
-          :type :unused-binding
+         {:type :unused-binding
           :filename (:filename binding)
           :message (str "unused binding " name)
           :row (:row binding)
@@ -388,8 +384,7 @@
             :when (not (config/unused-private-var-excluded config ns-name var-name))]
       (findings/reg-finding!
        ctx
-       {:level :warning
-        :type :unused-private-var
+       {:type :unused-private-var
         :filename filename
         :row (:name-row v)
         :col (:name-col v)
@@ -406,8 +401,7 @@
           name (:name v)]
       (findings/reg-finding!
        ctx
-       {:level :error
-        :type :unresolved-symbol
+       {:type :unresolved-symbol
         :filename filename
         :message (str "unresolved symbol " name)
         :row (:row v)
@@ -435,8 +429,7 @@
                 filename (:filename m)]]
     (findings/reg-finding!
      ctx
-     {:level :warning
-      :type :unresolved-namespace
+     {:type :unresolved-namespace
       :filename filename
       :message (str "Unresolved namespace " un ". Are you missing a require?")
       :row (:row m)

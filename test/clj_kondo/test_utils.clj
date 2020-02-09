@@ -41,9 +41,8 @@
          res# ~result]
      (and
       (is (= (count maps#) (count res#)))
-      (every? identity
-              (for [[m# r#] (map vector maps# res#)]
-                (assert-submap m# r#))))))
+      (doseq [m# maps#]
+        (is (some #(submap? m# %) res#))))))
 
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the
