@@ -1584,7 +1584,6 @@
       (seq findings)
       (for [finding findings]
         (merge {:type :syntax
-                :level :error
                 :filename filename}
                finding))
 
@@ -1629,7 +1628,7 @@
     (catch Exception e
       (if dev?
         (throw e)
-        {:findings (->findings e filename)}))
+        (run! #(findings/reg-finding! ctx %) (->findings e filename))))
     (finally
       (let [output-cfg (:output config)]
         (when (and (= :text (:format output-cfg))
