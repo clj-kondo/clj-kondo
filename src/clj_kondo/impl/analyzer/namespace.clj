@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
@@ -199,8 +200,9 @@
              {imported java-package})
     nil))
 
-(defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
-  (let [analyzed
+(defn analyze-require-clauses [ctx ns-name kw+libspecs]
+  (let [lang (:lang ctx)
+        analyzed
         (map (fn [[require-kw libspecs]]
                (for [libspec-expr libspecs
                      normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
@@ -286,7 +288,13 @@
                   (merge metadata
                          (sexpr meta-node))
                   metadata)
+        global-config (:config ctx)
         local-config (-> ns-meta :clj-kondo/config second)
+        merged-config (if local-config (config/merge-config! global-config local-config)
+                          global-config)
+        ctx (if local-config
+              (assoc ctx :config merged-config)
+              ctx)
         ns-name (or
                  (when-let [?name (sexpr ns-name-expr)]
                    (if (symbol? ?name) ?name

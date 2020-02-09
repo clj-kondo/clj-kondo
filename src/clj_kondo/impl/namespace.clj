@@ -32,21 +32,22 @@
    nil))
 
 (defn lint-unsorted-namespaces! [{:keys [config filename findings] :as _ctx} namespaces]
-  (when-not (= :off (-> config :linters :unsorted-namespaces :level))
-    (loop [last-processed-ns (first namespaces)
-           ns-list (next namespaces)]
-      (when ns-list
-        (let [ns (first ns-list)]
-          (if (pos? (compare last-processed-ns ns))
-            (findings/reg-finding!
-              findings
-              (node->line filename
-                          ns
-                          :warning
-                          :unsorted-namespaces
-                          (str "Unsorted namespace: " ns)))
-            (recur ns
-                   (next ns-list))))))))
+  (let [level (-> config :linters :unsorted-namespaces :level)]
+    (when-not (= :off level)
+      (loop [last-processed-ns (first namespaces)
+             ns-list (next namespaces)]
+        (when ns-list
+          (let [ns (first ns-list)]
+            (if (pos? (compare last-processed-ns ns))
+              (findings/reg-finding!
+               findings
+               (node->line filename
+                           ns
+                           level
+                           :unsorted-namespaces
+                           (str "Unsorted namespace: " ns)))
+              (recur ns
+                     (next ns-list)))))))))
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces

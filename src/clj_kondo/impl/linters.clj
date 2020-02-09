@@ -144,7 +144,7 @@
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
   [ctx idacs]
-  (let [{:keys [:config]} ctx
+  (let [config (:config ctx)
         output-analysis? (-> config :output :analysis)
         ;; findings* (:findings ctx)
         findings (for [ns (namespace/list-namespaces ctx)

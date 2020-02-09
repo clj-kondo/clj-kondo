@@ -261,8 +261,9 @@
 (def zinc (fnil inc 0))
 
 (defn summarize [findings]
-  (reduce (fn [acc {:keys [:level]}]
-            (update acc level zinc))
+  (reduce (fn [acc finding]
+            (let [level (:level finding)]
+              (update acc level zinc)))
           {:error 0 :warning 0 :info 0 :type :summary}
           findings))
 
@@ -272,8 +273,11 @@
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
         remove-output (not-empty (-> config :output :exclude-files))]
-    (for [{:keys [:filename :type] :as f} findings
-          :let [level (when type (-> config :linters type :level))
+    (for [f findings
+          :let [filename (:filename f)
+                type (:type f)
+                level (:level f)]
+          :let [level (or level (when type (-> config :linters type :level)))
                 ;; _ (when-not level (println "warning: " type " has no level!"))
                 ]
           :when (and level (not= :off level))

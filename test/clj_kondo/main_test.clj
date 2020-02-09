@@ -2459,7 +2459,16 @@
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-namespaces {:level :warning}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]) (:import [java.lib JavaClass] [ajava.lib AnotherClass]))"
                      {:linters {:unsorted-namespaces {:level :warning}
-                                :unused-import {:level :off}}}))))
+                                :unused-import {:level :off}}})))
+  (testing "linter can be activated or deactivated via namespace metadata"
+    (assert-submaps
+     '({:file "<stdin>", :row 6, :col 5, :level :warning, :message "Unsorted namespace: bar.foo"})
+     (lint! "
+(ns foo
+  {:clj-kondo/config '{:linters {:unsorted-namespaces {:level :warning}}}}
+  (:require
+   [zoo.foo]
+   [bar.foo]))"))))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
