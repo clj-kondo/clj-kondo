@@ -140,6 +140,23 @@
           (if (= 1 called-with) "arg" "args")
           (show-arities fixed-arities varargs-min-arity)))
 
+(defn lint-constant-value
+  "Lints calls of logical operators and comparators for arity warnings."
+  [call]
+  (let [core-namespaces #{'clojure.core 'cljs.core}
+        operators #{'= '> '< '>= '<= 'and 'or 'not=}
+        op-full-name (str (:resolved-ns call) "/" (:name call))
+        min-operator-arity 2]
+    (when (and (contains? core-namespaces (:resolved-ns call))
+               (contains? operators (:name call))
+               (< (:arity call) min-operator-arity))
+      (node->line
+       (:filename call)
+       (:expr call)
+       :warning
+       :constant-value
+       (str "1-arity use of " op-full-name " always evaluates to the same value")))))
+
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
@@ -247,6 +264,10 @@
                                   varargs-min-arity)
                               (not (or (contains? fixed-arities arity)
                                        (and varargs-min-arity (>= arity varargs-min-arity)))))
+                             constant-value-error
+                             (and call?
+                                  (not (utils/linter-disabled? call :constant-value))
+                                  (lint-constant-value call))
                              errors
                              [(when arity-error?
                                 {:filename filename
@@ -257,6 +278,8 @@
                                  :level :error
                                  :type :invalid-arity
                                  :message (arity-error fn-ns fn-name arity fixed-arities varargs-min-arity)})
+                              (when constant-value-error
+                                constant-value-error)
                               (when (and (:private called-fn)
                                          (not= caller-ns-sym
                                                fn-ns)
