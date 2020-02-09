@@ -109,8 +109,7 @@
         _ (l/lint-unused-imports! ctx)
         _ (l/lint-unresolved-namespaces! ctx)
         ;; _ (namespace/reg-analysis-output! ctx)
-        all-findings (concat (mapcat :findings processed)
-                             @findings)
+        all-findings @findings
         all-findings (core-impl/filter-findings config all-findings)
         all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))
         summary (core-impl/summarize all-findings)

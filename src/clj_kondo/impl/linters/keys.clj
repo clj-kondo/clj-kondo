@@ -38,8 +38,7 @@
                            (str "unknown option " key-expr))))
             (update acc :seen conj k))
           acc))
-      {:seen #{}
-       :findings []}
+      {:seen #{}}
       (take-nth 2 children))
      (when (odd? (count children))
        (let [last-child (last children)]
@@ -64,8 +63,7 @@
                             (str "duplicate set element " k))))
              (update acc :seen conj k))
          acc))
-     {:seen #{}
-      :findings []}
+     {:seen #{}}
      children)))
 
 ;;;; end set linter

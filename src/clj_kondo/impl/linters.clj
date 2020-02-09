@@ -98,7 +98,7 @@
 #_(defn lint-test-is [ctx expr]
     (let [children (next (:children expr))]
       (when (every? constant? children)
-        (findings/reg-finding! (:findings ctx)
+        (findings/reg-finding! ctx
                                (node->line (:filename ctx) expr :warning
                                            :constant-test-assertion "Test assertion with only constants.")))))
 
@@ -146,7 +146,6 @@
   [ctx idacs]
   (let [config (:config ctx)
         output-analysis? (-> config :output :analysis)
-        ;; findings* (:findings ctx)
         findings (for [ns (namespace/list-namespaces ctx)
                        :let [base-lang (:base-lang ns)]
                        call (:used-vars ns)

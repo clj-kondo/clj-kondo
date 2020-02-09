@@ -6,7 +6,7 @@
         config (:config ctx)
         type (:type m)
         level (-> config :linters type :level)]
-    (when-not (identical? :off m)
+    (when (and level (not (identical? :off m)))
       (let [m (if level (assoc m :level level)
                   m)]
         (swap! findings conj m))))

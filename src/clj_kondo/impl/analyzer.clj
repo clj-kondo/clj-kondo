@@ -1547,8 +1547,7 @@
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To
   optimize cache lookups later on, calls are indexed by the namespace
-  they call to, not the ns where the call occurred. Also collects
-  other findings and passes them under the :findings key."
+  they call to, not the ns where the call occurred."
   [{:keys [:base-lang :lang :config] :as ctx}
    expressions]
   (profiler/profile
@@ -1566,7 +1565,6 @@
             [expression & rest-expressions] expressions
             results {:required (:required init-ns)
                      :used-namespaces (:used-namespaces init-ns)
-                     :findings []
                      :lang base-lang}]
        (if expression
          (let [[ctx results]

@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [one-of print-err! map-vals assoc-some]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
@@ -179,25 +180,25 @@
                 (str/split filename
                            (re-pattern path-separator)))
         :else
-        [{:findings [{:level :warning
-                      :filename (if canonical?
-                                  (.getCanonicalPath file)
-                                  filename)
-                      :type :file
-                      :col 0
-                      :row 0
-                      :message "file does not exist"}]}]))
+        (findings/reg-finding! ctx
+                               {:filename (if canonical?
+                                            (.getCanonicalPath file)
+                                            filename)
+                                :type :file
+                                :col 0
+                                :row 0
+                                :message "file does not exist"})))
     (catch Throwable e
       (if dev?
         (throw e)
-        [{:findings [{:level :warning
-                      :filename (if canonical?
-                                  (.getCanonicalPath (io/file filename))
-                                  filename)
-                      :type :file
-                      :col 0
-                      :row 0
-                      :message "Could not process file."}]}]))))
+        (findings/reg-finding! ctx {:level :warning
+                                    :filename (if canonical?
+                                                (.getCanonicalPath (io/file filename))
+                                                filename)
+                                    :type :file
+                                    :col 0
+                                    :row 0
+                                    :message "Could not process file."})))))
 
 (defn process-files [ctx files default-lang]
   (let [canonical? (-> ctx :config :output :canonical-paths)]

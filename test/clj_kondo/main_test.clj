@@ -821,9 +821,9 @@
             :level :error,
             :message "missing value for key :post"})
          (lint! "(fn [x] {:post} x)")))
-  (is (assert-submaps
-       '({:row 1, :col 22, :level :error, :message "missing value for key :c"})
-       (lint! "(let [{:keys [:a :b] :c} {}] [a b])"))))
+  (assert-submaps
+   '({:row 1, :col 22, :level :error, :message "missing value for key :c"})
+   (lint! "(let [{:keys [:a :b] :c} {}] [a b])")))
 
 (deftest set-duplicate-key
   (is (= '({:file "<stdin>",
@@ -1012,27 +1012,27 @@
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
                         (defn foo [x y] (go-loop [x nil] (recur 1)))")))
-  (is (assert-submaps
-       '({:file "<stdin>",
-          :row 1,
-          :col 74,
-          :level :error,
-          :message "recur argument count mismatch (expected 1, got 2)"})
-       (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
-  (is (assert-submaps
-       '({:file "<stdin>",
-          :row 1,
-          :col 85,
-          :level :error,
-          :message "recur argument count mismatch (expected 1, got 2)"})
-       (lint! "(ns foo (:require-macros [cljs.core.async.macros :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
-  (is (assert-submaps
-       '({:file "<stdin>",
-          :row 1,
-          :col 78,
-          :level :error,
-          :message "recur argument count mismatch (expected 1, got 2)"})
-       (lint! "(ns foo (:require-macros [cljs.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 74,
+      :level :error,
+      :message "recur argument count mismatch (expected 1, got 2)"})
+   (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 85,
+      :level :error,
+      :message "recur argument count mismatch (expected 1, got 2)"})
+   (lint! "(ns foo (:require-macros [cljs.core.async.macros :refer [go-loop]])) (go-loop [x 1] (recur 1 2))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 78,
+      :level :error,
+      :message "recur argument count mismatch (expected 1, got 2)"})
+   (lint! "(ns foo (:require-macros [cljs.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))"))
   (is (empty? (lint! "#(recur)")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [thread]])) (thread (recur))")))
   (is (empty? (lint! "(ns clojure.core.async) (defmacro thread [& body]) (thread (when true (recur)))")))
