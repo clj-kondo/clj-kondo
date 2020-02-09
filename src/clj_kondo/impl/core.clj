@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [one-of print-err! map-vals assoc-some]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
@@ -179,25 +180,25 @@
                 (str/split filename
                            (re-pattern path-separator)))
         :else
-        [{:findings [{:level :warning
-                      :filename (if canonical?
-                                  (.getCanonicalPath file)
-                                  filename)
-                      :type :file
-                      :col 0
-                      :row 0
-                      :message "file does not exist"}]}]))
+        (findings/reg-finding! ctx
+                               {:filename (if canonical?
+                                            (.getCanonicalPath file)
+                                            filename)
+                                :type :file
+                                :col 0
+                                :row 0
+                                :message "file does not exist"})))
     (catch Throwable e
       (if dev?
         (throw e)
-        [{:findings [{:level :warning
-                      :filename (if canonical?
-                                  (.getCanonicalPath (io/file filename))
-                                  filename)
-                      :type :file
-                      :col 0
-                      :row 0
-                      :message "Could not process file."}]}]))))
+        (findings/reg-finding! ctx {:level :warning
+                                    :filename (if canonical?
+                                                (.getCanonicalPath (io/file filename))
+                                                filename)
+                                    :type :file
+                                    :col 0
+                                    :row 0
+                                    :message "Could not process file."})))))
 
 (defn process-files [ctx files default-lang]
   (let [canonical? (-> ctx :config :output :canonical-paths)]
@@ -261,8 +262,9 @@
 (def zinc (fnil inc 0))
 
 (defn summarize [findings]
-  (reduce (fn [acc {:keys [:level]}]
-            (update acc level zinc))
+  (reduce (fn [acc finding]
+            (let [level (:level finding)]
+              (update acc level zinc)))
           {:error 0 :warning 0 :info 0 :type :summary}
           findings))
 
@@ -272,10 +274,10 @@
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
         remove-output (not-empty (-> config :output :exclude-files))]
-    (for [{:keys [:filename :type] :as f} findings
-          :let [level (when type (-> config :linters type :level))
-                ;; _ (when-not level (println "warning: " type " has no level!"))
-                ]
+    (for [f findings
+          :let [filename (:filename f)
+                type (:type f)
+                level (:level f)]
           :when (and level (not= :off level))
           :when (if (= :debug type)
                   print-debug?
@@ -288,7 +290,7 @@
           :when (not-any? (fn [pattern]
                             (re-find (re-pattern pattern) filename))
                           remove-output)]
-      (assoc f :level level))))
+      f)))
 
 ;;;; Scratch
 

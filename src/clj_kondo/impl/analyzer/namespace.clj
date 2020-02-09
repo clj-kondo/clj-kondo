@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
@@ -61,20 +62,22 @@
                           {:reason ::unparsable-ns-form
                            :form form})))))
 
-(defn lint-alias-consistency [{:keys [:findings :config
-                                      :filename]} ns-name alias]
-  (when-let [expected-alias (get-in config [:linters :consistent-alias :aliases ns-name])]
-    (when-not (= expected-alias alias)
-      (findings/reg-finding!
-       findings
-       (node->line filename alias :warning
-                   :consistent-alias
-                   (str "Inconsistent alias. Expected " expected-alias " instead of " alias "."))))))
+(defn lint-alias-consistency [ctx ns-name alias]
+  (let [config (:config ctx)]
+    (when-let [expected-alias (get-in config [:linters :consistent-alias :aliases ns-name])]
+      (when-not (= expected-alias alias)
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) alias :warning
+                     :consistent-alias
+                     (str "Inconsistent alias. Expected " expected-alias " instead of " alias ".")))))))
 
 (defn analyze-libspec
-  [{:keys [:base-lang :lang
-           :filename :findings] :as ctx} current-ns-name require-kw-expr libspec-expr]
-  (let [require-sym (:value require-kw-expr)
+  [ctx current-ns-name require-kw-expr libspec-expr]
+  (let [lang (:lang ctx)
+        base-lang (:base-lang ctx)
+        filename (:filename ctx)
+        require-sym (:value require-kw-expr)
         require-kw (or (:k require-kw-expr)
                        (when require-sym
                          (keyword require-sym)))
@@ -121,7 +124,7 @@
                        (let [;; undo referred-all when using :only with :use
                              m (if (and use? (= :only child-k))
                                  (do (findings/reg-finding!
-                                      findings
+                                      ctx
                                       (node->line
                                        filename
                                        (:referred-all m)
@@ -199,8 +202,9 @@
              {imported java-package})
     nil))
 
-(defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
-  (let [analyzed
+(defn analyze-require-clauses [ctx ns-name kw+libspecs]
+  (let [lang (:lang ctx)
+        analyzed
         (map (fn [[require-kw libspecs]]
                (for [libspec-expr libspecs
                      normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
@@ -264,8 +268,13 @@
    :col col})
 
 (defn analyze-ns-decl
-  [{:keys [:base-lang :lang :findings :filename] :as ctx} expr]
-  (let [{:keys [row col]} (meta expr)
+  [ctx expr]
+  (let [lang (:lang ctx)
+        base-lang (:base-lang ctx)
+        filename (:filename ctx)
+        m (meta expr)
+        row (:row m)
+        col (:col m)
         children (next (:children expr))
         ns-name-expr (first children)
         ns-name-expr  (meta/lift-meta-content2 ctx ns-name-expr)
@@ -286,12 +295,18 @@
                   (merge metadata
                          (sexpr meta-node))
                   metadata)
+        global-config (:config ctx)
         local-config (-> ns-meta :clj-kondo/config second)
+        merged-config (if local-config (config/merge-config! global-config local-config)
+                          global-config)
+        ctx (if local-config
+              (assoc ctx :config merged-config)
+              ctx)
         ns-name (or
                  (when-let [?name (sexpr ns-name-expr)]
                    (if (symbol? ?name) ?name
                        (findings/reg-finding!
-                        findings
+                        ctx
                         (node->line (:filename ctx)
                                     ns-name-expr
                                     :error

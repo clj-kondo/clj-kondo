@@ -686,7 +686,7 @@
       :level :error,
       :message "if-let binding vector requires exactly 2 forms"})
    (lint! "(if-let [x 1 y 2])"))
-  (assert-submap
+  (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 1,
@@ -776,10 +776,8 @@
                                                      ".*\\.spex$"]}}}))))
 
 (deftest replace-config-test
-  (let [res (lint! (io/file "corpus") "--config" "^:replace {:linters {:redundant-let {:level :info}}}")]
-    (is (pos? (count res)))
-    (doseq [f res]
-      (is (= :info (:level f))))))
+  (let [res (lint! "(let [x 1] (let [y 2]))" "--config" "^:replace {:linters {:redundant-let {:level :info}}}")]
+    (is (every? #(identical? :info (:level %)) res))))
 
 (deftest map-duplicate-keys
   (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}
@@ -823,9 +821,9 @@
             :level :error,
             :message "missing value for key :post"})
          (lint! "(fn [x] {:post} x)")))
-  (is (assert-submaps
-       '({:row 1, :col 22, :level :error, :message "missing value for key :c"})
-       (lint! "(let [{:keys [:a :b] :c} {}] [a b])"))))
+  (assert-submaps
+   '({:row 1, :col 22, :level :error, :message "missing value for key :c"})
+   (lint! "(let [{:keys [:a :b] :c} {}] [a b])")))
 
 (deftest set-duplicate-key
   (is (= '({:file "<stdin>",
@@ -1014,27 +1012,27 @@
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
                         (defn foo [x y] (go-loop [x nil] (recur 1)))")))
-  (is (assert-submaps
-       '({:file "<stdin>",
-          :row 1,
-          :col 74,
-          :level :error,
-          :message "recur argument count mismatch (expected 1, got 2)"})
-       (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
-  (is (assert-submaps
-       '({:file "<stdin>",
-          :row 1,
-          :col 85,
-          :level :error,
-          :message "recur argument count mismatch (expected 1, got 2)"})
-       (lint! "(ns foo (:require-macros [cljs.core.async.macros :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
-  (is (assert-submaps
-       '({:file "<stdin>",
-          :row 1,
-          :col 78,
-          :level :error,
-          :message "recur argument count mismatch (expected 1, got 2)"})
-       (lint! "(ns foo (:require-macros [cljs.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))")))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 74,
+      :level :error,
+      :message "recur argument count mismatch (expected 1, got 2)"})
+   (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 85,
+      :level :error,
+      :message "recur argument count mismatch (expected 1, got 2)"})
+   (lint! "(ns foo (:require-macros [cljs.core.async.macros :refer [go-loop]])) (go-loop [x 1] (recur 1 2))"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 78,
+      :level :error,
+      :message "recur argument count mismatch (expected 1, got 2)"})
+   (lint! "(ns foo (:require-macros [cljs.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1 2))"))
   (is (empty? (lint! "#(recur)")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [thread]])) (thread (recur))")))
   (is (empty? (lint! "(ns clojure.core.async) (defmacro thread [& body]) (thread (when true (recur)))")))
@@ -1218,7 +1216,12 @@
                             '{:linters {:unused-namespace {:exclude [bar]}}}}
                           foo
                         (:require [bar :as b]))")))
-  (is (empty? (lint! (io/file "corpus" "cljs_ns_as_as_object.cljs")))))
+  (is (empty? (lint! (io/file "corpus" "cljs_ns_as_as_object.cljs"))))
+  (testing "disable linter via ns config"
+    (is (empty? (lint! "
+(ns ^{:clj-kondo/config '{:linters {:unused-namespace {:level :off}}}}
+  foo
+  (:require [bar :as b]))")))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
@@ -2459,7 +2462,16 @@
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-namespaces {:level :warning}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]) (:import [java.lib JavaClass] [ajava.lib AnotherClass]))"
                      {:linters {:unsorted-namespaces {:level :warning}
-                                :unused-import {:level :off}}}))))
+                                :unused-import {:level :off}}})))
+  (testing "linter can be activated or deactivated via namespace metadata"
+    (assert-submaps
+     '({:file "<stdin>", :row 6, :col 5, :level :warning, :message "Unsorted namespace: bar.foo"})
+     (lint! "
+(ns foo
+  {:clj-kondo/config '{:linters {:unsorted-namespaces {:level :warning}}}}
+  (:require
+   [zoo.foo]
+   [bar.foo]))"))))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]

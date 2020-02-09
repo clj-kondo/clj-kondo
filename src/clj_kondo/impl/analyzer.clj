@@ -62,7 +62,7 @@
     (doseq [[k v] defaults]
       (when-not (contains? m k)
         (findings/reg-finding!
-         (:findings ctx)
+         ctx
          {:message (str k " is not bound in this destructuring form") :level :warning
           :row (:row v)
           :col (:col v)
@@ -102,7 +102,6 @@
     {:keys [:keys-destructuring? :fn-args?] :as opts}]
    (let [expr (lift-meta-content* ctx expr)
          t (tag expr)
-         findings (:findings ctx)
          skip-reg-binding? (or skip-reg-binding?
                                (when (and keys-destructuring? fn-args?)
                                  (-> ctx :config :linters :unused-binding
@@ -132,7 +131,7 @@
                                              v))
                    (with-meta {s v} (when t {:tag t})))
                  (findings/reg-finding!
-                  findings
+                  ctx
                   (node->line (:filename ctx)
                               expr
                               :error
@@ -157,7 +156,7 @@
              ;; context, e.g. seq-destructuring?
              (when (not= :as k)
                (findings/reg-finding!
-                findings
+                ctx
                 (node->line (:filename ctx)
                             expr
                             :error
@@ -165,7 +164,7 @@
                             (str "unsupported binding form " k))))))
          :else
          (findings/reg-finding!
-          findings
+          ctx
           (node->line (:filename ctx)
                       expr
                       :error
@@ -215,7 +214,7 @@
                                               {:analyzed (analyze-expression** ctx v)}))))
                res)))
        (findings/reg-finding!
-        findings
+        ctx
         (node->line (:filename ctx)
                     expr
                     :error
@@ -255,7 +254,7 @@
     (let [arg-vec (first children)
           arg-vec-t (tag arg-vec)]
       (if (not= :vector arg-vec-t)
-        (findings/reg-finding! (:findings ctx)
+        (findings/reg-finding! ctx
                                (node->line (:filename ctx)
                                            body
                                            :warning
@@ -272,7 +271,7 @@
                    :args arg-tags
                    :ret return-tag}]
           ret)))
-    (findings/reg-finding! (:findings ctx)
+    (findings/reg-finding! ctx
                            (node->line (:filename ctx)
                                        body
                                        :warning
@@ -318,7 +317,7 @@
                      (not one-child?)
                      (one-of t [:token :multi-line])
                      (string-from-token first-child))
-                (findings/reg-finding! (:findings ctx)
+                (findings/reg-finding! ctx
                                        (node->line (:filename ctx)
                                                    first-child
                                                    :warning
@@ -388,7 +387,7 @@
         docstring (string-from-token (first children))
         bodies (fn-bodies ctx children)
         _ (when (empty? bodies)
-            (findings/reg-finding! (:findings ctx)
+            (findings/reg-finding! ctx
                                    (node->line (:filename ctx)
                                                expr
                                                :warning
@@ -515,17 +514,17 @@
   (let [num-children (count (:children bv))]
     (when (odd? num-children)
       (findings/reg-finding!
-       (:findings ctx)
+       ctx
        (node->line (:filename ctx) bv :error :syntax
                    (format "%s binding vector requires even number of forms" form-name))))))
 
-(defn assert-vector [{:keys [:filename :findings]} call expr]
+(defn assert-vector [ctx call expr]
   (when expr
     (let [vector? (and expr (= :vector (tag expr)))]
       (if-not vector?
         (do (findings/reg-finding!
-             findings
-             (node->line filename expr :error :syntax
+             ctx
+             (node->line (:filename ctx) expr :error :syntax
                          ;; cf. error in clojure
                          (format "%s requires a vector for its binding" call)))
             nil)
@@ -544,7 +543,7 @@
     (when (and let? (or (and let-parent? maybe-redundant-let?)
                         (and valid-bv-node (empty? (:children valid-bv-node)))))
       (findings/reg-finding!
-       (:findings ctx)
+       ctx
        (node->line filename expr :warning :redundant-let "Redundant let expression.")))
     (when bv-node
       (let [{analyzed-bindings :bindings
@@ -589,7 +588,7 @@
                                       doseq try when when-not])))))]
     (when redundant?
       (findings/reg-finding!
-       (:findings ctx)
+       ctx
        (node->line filename expr :warning :redundant-do "redundant do"))))
   (analyze-children ctx (next (:children expr))))
 
@@ -597,7 +596,7 @@
   (let [num-children (count (:children expr))]
     (when (not= 2 num-children)
       (findings/reg-finding!
-       (:findings ctx)
+       ctx
        (node->line (:filename ctx) expr :error :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
 (defn lint-one-or-two-forms-body! [ctx form-name main-expr body-exprs]
@@ -605,7 +604,7 @@
     (when-not (or (= 1 num-children)
                   (= 2 num-children))
       (findings/reg-finding!
-       (:findings ctx)
+       ctx
        (node->line (:filename ctx) main-expr :error :syntax (format "%s body requires one or two forms" form-name))))))
 
 (defn analyze-conditional-let [ctx call expr]
@@ -688,33 +687,35 @@
         (analyze-like-let (assoc ctx
                                  :recur-arity {:fixed-arity arg-count}) expr)))))
 
-(defn analyze-recur [{:keys [:findings :filename :recur-arity] :as ctx} expr]
-  (when-not (linter-disabled? ctx :invalid-arity)
-    (let [arg-count (count (rest (:children expr)))
-          expected-arity
-          (or (:fixed-arity recur-arity)
-              ;; varargs must be passed as a seq or nil in recur
-              (when-let [min-arity (:min-arity recur-arity)]
-                (inc min-arity)))]
-      (cond
-        (not expected-arity)
-        (findings/reg-finding!
-         findings
-         (node->line
-          filename
-          expr
-          :warning
-          :unexpected-recur "unexpected recur"))
-        (not= expected-arity arg-count)
-        (findings/reg-finding!
-         findings
-         (node->line
-          filename
-          expr
-          :error
-          :invalid-arity
-          (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
-        :else nil)))
+(defn analyze-recur [ctx expr]
+  (let [filename (:filename ctx)
+        recur-arity (:recur-arity ctx)]
+    (when-not (linter-disabled? ctx :invalid-arity)
+      (let [arg-count (count (rest (:children expr)))
+            expected-arity
+            (or (:fixed-arity recur-arity)
+                ;; varargs must be passed as a seq or nil in recur
+                (when-let [min-arity (:min-arity recur-arity)]
+                  (inc min-arity)))]
+        (cond
+          (not expected-arity)
+          (findings/reg-finding!
+           ctx
+           (node->line
+            filename
+            expr
+            :warning
+            :unexpected-recur "unexpected recur"))
+          (not= expected-arity arg-count)
+          (findings/reg-finding!
+           ctx
+           (node->line
+            filename
+            expr
+            :error
+            :invalid-arity
+            (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
+          :else nil))))
   (analyze-children ctx (:children expr)))
 
 (defn analyze-letfn [ctx expr]
@@ -778,8 +779,10 @@
        defrecord (analyze-defrecord ctx expr 'defrecord))
      (analyze-children ctx schemas))))
 
-(defn analyze-binding-call [{:keys [:callstack :config :findings] :as ctx} fn-name expr]
-  (let [ns-name (-> ctx :ns :name)]
+(defn analyze-binding-call [ctx fn-name expr]
+  (let [callstack (:callstack ctx)
+        config (:config ctx)
+        ns-name (-> ctx :ns :name)]
     (namespace/reg-used-binding! ctx
                                  ns-name
                                  (get (:bindings ctx) fn-name))
@@ -792,17 +795,17 @@
             (let [arg-count (count (rest children))]
               (when-not (or (contains? fixed-arities arg-count)
                             (and varargs-min-arity (>= arg-count varargs-min-arity)))
-                (findings/reg-finding! findings
+                (findings/reg-finding! ctx
                                        (node->line filename expr :error
                                                    :invalid-arity
                                                    (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))
         (analyze-children ctx (rest children))))))
 
-(defn lint-inline-def! [{:keys [:in-def :findings :filename]} expr]
-  (when in-def
+(defn lint-inline-def! [ctx expr]
+  (when (:in-def ctx)
     (findings/reg-finding!
-     findings
-     (node->line filename expr :warning :inline-def "inline def"))))
+     ctx
+     (node->line (:filename ctx) expr :warning :inline-def "inline def"))))
 
 (defn analyze-declare [ctx expr]
   (let [ns-name (-> ctx :ns :name)
@@ -951,7 +954,7 @@
         not-expr (one-of (second cs) [[clojure.core not] [cljs.core not]])]
     (when not-expr
       (findings/reg-finding!
-       (:findings ctx)
+       ctx
        (node->line (:filename ctx) not-expr
                    :warning :not-empty?
                    "use the idiom (seq x) rather than (not (empty? x))")))
@@ -997,7 +1000,7 @@
                  3 nil
                  [expr "Too many arguments to if." :syntax])]
       (findings/reg-finding!
-       (:findings ctx)
+       ctx
        (node->line (:filename ctx) expr
                    :warning linter
                    msg)))
@@ -1299,56 +1302,62 @@
                     m)
                   (cons call analyzed))))))))
 
-(defn lint-keyword-call! [{:keys [:callstack :config :findings] :as ctx} kw namespaced? arg-count expr]
-  (when-not (config/skip? config :invalid-arity callstack)
-    (let [ns (:ns ctx)
-          ?resolved-ns (if namespaced?
-                         (if-let [kw-ns (namespace kw)]
-                           (or (get (:qualify-ns ns) (symbol kw-ns))
-                               ;; because we couldn't resolve the namespaced
-                               ;; keyword, we print it as is
-                               (str ":" (namespace kw)))
-                           ;; if the keyword is namespace, but there is no
-                           ;; namespace, it's the current ns
-                           (:name ns))
-                         (namespace kw))
-          kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
-                     (str (name kw)))]
+(defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
+  (let [callstack (:callstack ctx)
+        config (:config ctx)]
+    (when-not (config/skip? config :invalid-arity callstack)
+      (let [ns (:ns ctx)
+            ?resolved-ns (if namespaced?
+                           (if-let [kw-ns (namespace kw)]
+                             (or (get (:qualify-ns ns) (symbol kw-ns))
+                                 ;; because we couldn't resolve the namespaced
+                                 ;; keyword, we print it as is
+                                 (str ":" (namespace kw)))
+                             ;; if the keyword is namespace, but there is no
+                             ;; namespace, it's the current ns
+                             (:name ns))
+                           (namespace kw))
+            kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
+                       (str (name kw)))]
+        (when (or (zero? arg-count)
+                  (> arg-count 2))
+          (findings/reg-finding! ctx
+                                 (node->line (:filename ctx) expr :error :invalid-arity
+                                             (format "keyword :%s is called with %s args but expects 1 or 2"
+                                                     kw-str
+                                                     arg-count))))))))
+
+(defn lint-map-call! [ctx _the-map arg-count expr]
+  (let [callstack (:callstack ctx)
+        config (:config ctx)]
+    (when-not (config/skip? config :invalid-arity callstack)
       (when (or (zero? arg-count)
                 (> arg-count 2))
-        (findings/reg-finding! findings
-                               (node->line (:filename ctx) expr :error :invalid-arity
-                                           (format "keyword :%s is called with %s args but expects 1 or 2"
-                                                   kw-str
-                                                   arg-count)))))))
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) expr :error :invalid-arity
+                     (format "map is called with %s args but expects 1 or 2"
+                             arg-count)))))))
 
-(defn lint-map-call! [{:keys [:callstack :config
-                              :findings] :as ctx} _the-map arg-count expr]
-  (when-not (config/skip? config :invalid-arity callstack)
-    (when (or (zero? arg-count)
-              (> arg-count 2))
+(defn lint-symbol-call! [ctx _the-symbol arg-count expr]
+  (let [callstack (:callstack ctx)
+        config (:config ctx)]
+    (when-not (config/skip? config :invalid-arity callstack)
+      (when (or (zero? arg-count)
+                (> arg-count 2))
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) expr :error :invalid-arity
+                     (format "symbol is called with %s args but expects 1 or 2"
+                             arg-count)))))))
+
+(defn reg-not-a-function! [ctx expr type]
+  (let [callstack (:callstack ctx)
+        config (:config ctx)]
+    (when-not (config/skip? config :not-a-function callstack)
       (findings/reg-finding!
-       findings
-       (node->line (:filename ctx) expr :error :invalid-arity
-                   (format "map is called with %s args but expects 1 or 2"
-                           arg-count))))))
-
-(defn lint-symbol-call! [{:keys [:callstack :config :findings] :as ctx} _the-symbol arg-count expr]
-  (when-not (config/skip? config :invalid-arity callstack)
-    (when (or (zero? arg-count)
-              (> arg-count 2))
-      (findings/reg-finding!
-       findings
-       (node->line (:filename ctx) expr :error :invalid-arity
-                   (format "symbol is called with %s args but expects 1 or 2"
-                           arg-count))))))
-
-(defn reg-not-a-function! [{:keys [:filename :callstack
-                                   :config :findings]} expr type]
-  (when-not (config/skip? config :not-a-function callstack)
-    (findings/reg-finding!
-     findings
-     (node->line filename expr :error :not-a-function (str "a " type " is not a function")))))
+       ctx
+       (node->line (:filename ctx) expr :error :not-a-function (str "a " type " is not a function"))))))
 
 (defn analyze-reader-macro [ctx expr]
   (analyze-children ctx (rest (:children expr))))
@@ -1538,8 +1547,7 @@
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To
   optimize cache lookups later on, calls are indexed by the namespace
-  they call to, not the ns where the call occurred. Also collects
-  other findings and passes them under the :findings key."
+  they call to, not the ns where the call occurred."
   [{:keys [:base-lang :lang :config] :as ctx}
    expressions]
   (profiler/profile
@@ -1557,7 +1565,6 @@
             [expression & rest-expressions] expressions
             results {:required (:required init-ns)
                      :used-namespaces (:used-namespaces init-ns)
-                     :findings []
                      :lang base-lang}]
        (if expression
          (let [[ctx results]
@@ -1575,7 +1582,6 @@
       (seq findings)
       (for [finding findings]
         (merge {:type :syntax
-                :level :error
                 :filename filename}
                finding))
 
@@ -1583,15 +1589,13 @@
       ;; {:type :reader-exception, :ex-kind :reader-error, :file nil, :line 1, :col 4}
       (= :reader-exception type)
       [{:type :syntax
-        :level :error
         :filename filename
         :row line
         :col col
         :message (.getMessage ex)}]
 
       :else
-      [{:level :error
-        :filename filename
+      [{:filename filename
         :col 0
         :row 0
         :type :syntax
@@ -1622,7 +1626,7 @@
     (catch Exception e
       (if dev?
         (throw e)
-        {:findings (->findings e filename)}))
+        (run! #(findings/reg-finding! ctx %) (->findings e filename))))
     (finally
       (let [output-cfg (:output config)]
         (when (and (= :text (:format output-cfg))
