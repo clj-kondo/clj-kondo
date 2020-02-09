@@ -609,23 +609,31 @@
        (node->line (:filename ctx) main-expr :error :syntax (format "%s body requires one or two forms" form-name))))))
 
 (defn analyze-conditional-let [ctx call expr]
-  ;; TODO: add check for number of children. I.e. when the first child is
-  ;; `if-let`, then the number of childs in the body should be exactly two.
-  (let [bv (-> expr :children second)
+  (let [children (next (:children expr))
+        bv (first children)
         vector? (when bv (= :vector (tag bv)))]
     (when vector?
       (let [bindings (expr-bindings ctx bv)
-            eval-expr (-> bv :children second)
-            body-exprs (-> expr :children nnext)]
+            condition (-> bv :children second)
+            body-exprs (next children)
+            ctx-with-binding (ctx-with-bindings ctx
+                                                (dissoc bindings
+                                                        :analyzed))
+            if? (one-of call [if-let if-some])]
         (lint-two-forms-binding-vector! ctx call bv)
-        (when (one-of call [if-let if-some])
+        (when if?
           (lint-one-or-two-forms-body! ctx call expr body-exprs))
         (concat (:analyzed bindings)
-                (analyze-expression** ctx eval-expr)
-                (analyze-children (ctx-with-bindings ctx
-                                                     (dissoc bindings
-                                                             :analyzed))
-                                  body-exprs false))))))
+                (analyze-expression** ctx condition)
+                (if if?
+                  ;; in the case of if, the binding is only valid in the first expression
+                  (concat
+                   (analyze-expression** (ctx-with-bindings ctx
+                                                            (dissoc bindings
+                                                                    :analyzed))
+                                         (first body-exprs))
+                   (analyze-children ctx (rest body-exprs) false))
+                  (analyze-children ctx-with-binding body-exprs false)))))))
 
 (defn fn-arity [ctx bodies]
   (let [arities (map #(analyze-fn-arity ctx %) bodies)

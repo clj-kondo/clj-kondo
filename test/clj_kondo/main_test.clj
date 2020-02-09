@@ -1852,7 +1852,12 @@
   ;^String (str \"a\" \"b\")
   `(let [test# ^String (str \"a\" \"b\")]
      test#))"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(when-let [x 1] x x x)"
+                       {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(defn foo [x] (if-let [x 1] x x))"
+                     {:linters {:unused-binding {:level :warning}
+                                :unresolved-symbol {:level :error}}}))))
 
 (deftest with-redefs-test
   (assert-submaps '({:file "<stdin>", :row 1, :col 14,
