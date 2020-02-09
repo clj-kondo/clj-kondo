@@ -14,7 +14,7 @@
 
 (set! *warn-on-reflection* true)
 
-(defn lint-cond-constants! [{:keys [:findings :filename]} conditions]
+(defn lint-cond-constants! [ctx conditions]
   (loop [[condition & rest-conditions] conditions]
     (when condition
       (let [v (sexpr condition)]
@@ -23,13 +23,13 @@
                      (not (or (nil? v) (false? v))))
             (when (not= :else v)
               (findings/reg-finding!
-               findings
-               (node->line filename condition :warning :cond-else
+               ctx
+               (node->line (:filename ctx) condition :warning :cond-else
                            "use :else as the catch-all test expression in cond")))
             (when (and (seq rest-conditions))
               (findings/reg-finding!
-               findings
-               (node->line filename (first rest-conditions) :warning
+               ctx
+               (node->line (:filename ctx) (first rest-conditions) :warning
                            :unreachable-code "unreachable code"))))))
       (recur rest-conditions))))
 
@@ -62,11 +62,11 @@
                                (str (node/sexpr case-expr)))))))))
 
 (defn lint-cond-even-number-of-forms!
-  [{:keys [:findings :filename]} expr]
+  [ctx expr]
   (when-not (even? (count (rest (:children expr))))
     (findings/reg-finding!
-     findings
-     (node->line filename expr :error :syntax
+     ctx
+     (node->line (:filename ctx) expr :error :syntax
                  (format "cond requires even number of forms")))
     true))
 
@@ -89,10 +89,10 @@
         ([clojure.test deftest] [cljs.test deftest]) true
         false))))
 
-(defn lint-missing-test-assertion [{:keys [:findings :filename]} call]
+(defn lint-missing-test-assertion [ctx call]
   (when (expected-test-assertion? (next (:callstack call)))
-    (findings/reg-finding! findings
-                           (node->line filename (:expr call) :warning
+    (findings/reg-finding! ctx
+                           (node->line (:filename ctx) (:expr call) :warning
                                        :missing-test-assertion "missing test assertion"))))
 
 #_(defn lint-test-is [ctx expr]
@@ -305,54 +305,55 @@
     findings))
 
 (defn lint-unused-namespaces!
-  [{:keys [:config :findings] :as ctx}]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [required (:required ns)
-                used-namespaces (:used-namespaces ns)
-                unused (set/difference
-                        (set required)
-                        (set used-namespaces))
-                referred-vars (:referred-vars ns)
-                used-referred-vars (:used-referred-vars ns)
-                refer-alls (:refer-alls ns)
-                filename (:filename ns)
-                config (config/merge-config! config (:config ns))]]
-    (doseq [ns-sym unused]
-      (when-not (config/unused-namespace-excluded config ns-sym)
-        (let [m (meta ns-sym)
-              filename (:filename m)]
+  [ctx]
+  (let [config (:config ctx)]
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [required (:required ns)
+                  used-namespaces (:used-namespaces ns)
+                  unused (set/difference
+                          (set required)
+                          (set used-namespaces))
+                  referred-vars (:referred-vars ns)
+                  used-referred-vars (:used-referred-vars ns)
+                  refer-alls (:refer-alls ns)
+                  filename (:filename ns)
+                  config (config/merge-config! config (:config ns))]]
+      (doseq [ns-sym unused]
+        (when-not (config/unused-namespace-excluded config ns-sym)
+          (let [m (meta ns-sym)
+                filename (:filename m)]
+            (findings/reg-finding!
+             ctx
+             (node->line filename ns-sym :warning :unused-namespace
+                         (format "namespace %s is required but never used" ns-sym))))))
+      (doseq [[k v] referred-vars]
+        (let [var-ns (:ns v)]
+          (when-not
+              (or (contains? used-referred-vars k)
+                  (config/unused-referred-var-excluded config var-ns k))
+            (findings/reg-finding!
+             ctx
+             (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))))))
+      (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
+              :when (not (config/refer-all-excluded? config referred-all-ns))]
+        (let [{:keys [:k :value]} node
+              use? (or (= :use k)
+                       (= 'use value))
+              finding-type (if use? :use :refer-all)
+              msg (str (format "use %salias or :refer"
+                               (if use?
+                                 (str (when k ":") "require with ")
+                                 ""))
+                       (when (seq referred)
+                         (format " [%s]"
+                                 (str/join " " (sort referred)))))]
           (findings/reg-finding!
-           findings
-           (node->line filename ns-sym :warning :unused-namespace
-                       (format "namespace %s is required but never used" ns-sym))))))
-    (doseq [[k v] referred-vars]
-      (let [var-ns (:ns v)]
-        (when-not
-            (or (contains? used-referred-vars k)
-                (config/unused-referred-var-excluded config var-ns k))
-          (findings/reg-finding!
-           findings
-           (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))))))
-    (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
-            :when (not (config/refer-all-excluded? config referred-all-ns))]
-      (let [{:keys [:k :value]} node
-            use? (or (= :use k)
-                     (= 'use value))
-            finding-type (if use? :use :refer-all)
-            msg (str (format "use %salias or :refer"
-                             (if use?
-                               (str (when k ":") "require with ")
-                               ""))
-                     (when (seq referred)
-                       (format " [%s]"
-                               (str/join " " (sort referred)))))]
-        (findings/reg-finding!
-         findings
-         (node->line filename node
-                     :warning finding-type msg))))))
+           ctx
+           (node->line filename node
+                       :warning finding-type msg)))))))
 
 (defn lint-unused-bindings!
-  [{:keys [:findings] :as ctx}]
+  [ctx]
   (doseq [ns (namespace/list-namespaces ctx)
           :let [bindings (:bindings ns)
                 used-bindings (:used-bindings ns)
@@ -361,7 +362,7 @@
     (let [name (:name binding)]
       (when-not (str/starts-with? (str name) "_")
         (findings/reg-finding!
-         findings
+         ctx
          {:level :warning
           :type :unused-binding
           :filename (:filename binding)
@@ -372,38 +373,39 @@
           :end-col (:end-col binding)})))))
 
 (defn lint-unused-private-vars!
-  [{:keys [:findings :config] :as ctx}]
-  (doseq [{:keys [:filename :vars :used-vars]
-           ns-name :name} (namespace/list-namespaces ctx)
-          :let [vars (vals vars)
-                used-vars (into #{} (comp (filter #(= (:ns %) ns-name))
-                                          (map :name))
-                                used-vars)]
-          v vars
-          :let [var-name (:name v)]
-          :when (:private v)
-          :when (not (contains? used-vars var-name))
-          :when (not (config/unused-private-var-excluded config ns-name var-name))]
-    (findings/reg-finding!
-     findings
-     {:level :warning
-      :type :unused-private-var
-      :filename filename
-      :row (:name-row v)
-      :col (:name-col v)
-      :end-row (:name-end-row v)
-      :end-col (:name-end-col v)
-      :message (str "Unused private var " ns-name "/" var-name)})))
+  [ctx]
+  (let [config (:config ctx)]
+    (doseq [{:keys [:filename :vars :used-vars]
+             ns-name :name} (namespace/list-namespaces ctx)
+            :let [vars (vals vars)
+                  used-vars (into #{} (comp (filter #(= (:ns %) ns-name))
+                                            (map :name))
+                                  used-vars)]
+            v vars
+            :let [var-name (:name v)]
+            :when (:private v)
+            :when (not (contains? used-vars var-name))
+            :when (not (config/unused-private-var-excluded config ns-name var-name))]
+      (findings/reg-finding!
+       ctx
+       {:level :warning
+        :type :unused-private-var
+        :filename filename
+        :row (:name-row v)
+        :col (:name-col v)
+        :end-row (:name-end-row v)
+        :end-col (:name-end-col v)
+        :message (str "Unused private var " ns-name "/" var-name)}))))
 
 (defn lint-unresolved-symbols!
-  [{:keys [:findings] :as ctx}]
+  [ctx]
   (doseq [ns (namespace/list-namespaces ctx)
           [_ v] (:unresolved-symbols ns)]
     (let [
           filename (:filename v)
           name (:name v)]
       (findings/reg-finding!
-       findings
+       ctx
        {:level :error
         :type :unresolved-symbol
         :filename filename
@@ -414,7 +416,7 @@
         :end-col (:end-col v)}))))
 
 (defn lint-unused-imports!
-  [{:keys [:findings] :as ctx}]
+  [ctx]
   (doseq [ns (namespace/list-namespaces ctx)
           :let [filename (:filename ns)
                 imports (:imports ns)
@@ -422,17 +424,17 @@
           [import _] imports
           :when (not (contains? used-imports import))]
     (findings/reg-finding!
-     findings
+     ctx
      (node->line filename import :warning :unused-import (str "Unused import " import)))))
 
 (defn lint-unresolved-namespaces!
-  [{:keys [:findings] :as ctx}]
+  [ctx]
   (doseq [ns (namespace/list-namespaces ctx)
           un (:unresolved-namespaces ns)
           :let [m (meta un)
                 filename (:filename m)]]
     (findings/reg-finding!
-     findings
+     ctx
      {:level :warning
       :type :unresolved-namespace
       :filename filename

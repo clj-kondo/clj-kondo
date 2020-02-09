@@ -276,10 +276,8 @@
     (for [f findings
           :let [filename (:filename f)
                 type (:type f)
-                level (:level f)]
-          :let [level (or level (when type (-> config :linters type :level)))
-                ;; _ (when-not level (println "warning: " type " has no level!"))
-                ]
+                level (:level f)
+                level (or #_level (when type (-> config :linters type :level)))]
           :when (and level (not= :off level))
           :when (if (= :debug type)
                   print-debug?

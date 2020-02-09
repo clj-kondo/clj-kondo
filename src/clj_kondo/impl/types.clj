@@ -267,11 +267,11 @@
                 (map? x) "map")]
     l))
 
-(defn emit-non-match! [{:keys [:findings :filename]} s arg t]
+(defn emit-non-match! [ctx s arg t]
   (let [expected-label (tag->label s)
         offending-tag-label (tag->label t)]
-    (findings/reg-finding! findings
-                           {:filename filename
+    (findings/reg-finding! ctx
+                           {:filename (:filename ctx)
                             :row (:row arg)
                             :col (:col arg)
                             :end-row (:end-row arg)
@@ -285,10 +285,10 @@
                                             (format " (%s)" t))
                                           ".")})))
 
-(defn emit-more-input-expected! [{:keys [:findings :filename]} call arg]
+(defn emit-more-input-expected! [ctx call arg]
   (let [expr (or arg call)]
-    (findings/reg-finding! findings
-                           {:filename filename
+    (findings/reg-finding! ctx
+                           {:filename (:filename ctx)
                             :row (:row expr)
                             :col (:col expr)
                             :end-row (:end-row expr)
@@ -296,9 +296,9 @@
                             :type :type-mismatch
                             :message (str "Insufficient input.")})))
 
-(defn emit-missing-required-key! [{:keys [:findings :filename]} arg k]
-  (findings/reg-finding! findings
-                         {:filename filename
+(defn emit-missing-required-key! [ctx arg k]
+  (findings/reg-finding! ctx
+                         {:filename (:filename ctx)
                           :row (:row arg)
                           :col (:col arg)
                           :end-row (:end-row arg)

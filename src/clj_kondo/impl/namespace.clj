@@ -19,7 +19,7 @@
              (if (contains? required ns)
                (do
                  (findings/reg-finding!
-                  (:findings ctx)
+                  ctx
                   (node->line (:filename ctx)
                               ns
                               :warning
@@ -31,17 +31,18 @@
            namespaces)
    nil))
 
-(defn lint-unsorted-namespaces! [{:keys [config filename findings] :as _ctx} namespaces]
-  (let [level (-> config :linters :unsorted-namespaces :level)]
-    (when-not (= :off level)
+(defn lint-unsorted-namespaces! [ctx namespaces]
+  (let [config (:config ctx)
+        level (-> config :linters :unsorted-namespaces :level)]
+    (when-not (identical? :off level)
       (loop [last-processed-ns (first namespaces)
              ns-list (next namespaces)]
         (when ns-list
           (let [ns (first ns-list)]
             (if (pos? (compare last-processed-ns ns))
               (findings/reg-finding!
-               findings
-               (node->line filename
+               ctx
+               (node->line (:filename ctx)
                            ns
                            level
                            :unsorted-namespaces
@@ -62,7 +63,7 @@
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
-  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns] :as ctx}
+  ([{:keys [:base-lang :lang :filename :namespaces :top-level? :top-ns] :as ctx}
     ns-sym var-sym expr metadata]
    (let [m (meta expr)
          expr-row (:row m)
@@ -111,7 +112,7 @@
                                               (var-info/core-sym? lang var-sym))
                                      core-ns)))]
                     (findings/reg-finding!
-                     findings
+                     ctx
                      (node->line filename
                                  expr :warning
                                  :redefined-var
@@ -123,7 +124,7 @@
                              (not (:doc metadata))
                              (not temp?))
                     (findings/reg-finding!
-                     findings
+                     ctx
                      (node->line filename
                                  expr :warning
                                  :missing-docstring

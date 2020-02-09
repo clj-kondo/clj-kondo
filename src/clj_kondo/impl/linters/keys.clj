@@ -14,8 +14,9 @@
 (defn lint-map-keys
   ([ctx expr]
    (lint-map-keys ctx expr nil))
-  ([{:keys [:findings :filename]} expr {:keys [:known-key?] :or {known-key? (constantly true)}}]
-   (let [t (tag expr)
+  ([ctx expr {:keys [:known-key?] :or {known-key? (constantly true)}}]
+   (let [filename (:filename ctx)
+         t (tag expr)
          children (if (= :namespaced-map t)
                     (-> expr :children first :children)
                     (:children expr))]
@@ -25,13 +26,13 @@
           (do
             (when (contains? seen k)
               (findings/reg-finding!
-               findings
+               ctx
                (node->line filename
                            key-expr :error :duplicate-map-key
                            (str "duplicate key " key-expr))))
             (when-not (known-key? k)
               (findings/reg-finding!
-               findings
+               ctx
                (node->line filename
                            key-expr :error :syntax
                            (str "unknown option " key-expr))))
@@ -43,7 +44,7 @@
      (when (odd? (count children))
        (let [last-child (last children)]
          (findings/reg-finding!
-          findings
+          ctx
           (node->line filename last-child :error :missing-map-value
                       (str "missing value for key " last-child))))))))
 
@@ -51,15 +52,15 @@
 
 ;;;; set linter
 
-(defn lint-set [{:keys [:findings :filename]} expr]
+(defn lint-set [ctx expr]
   (let [children (:children expr)]
     (reduce
      (fn [{:keys [:seen] :as acc} set-element]
        (if-let [k (key-value set-element)]
          (do (when (contains? seen k)
                (findings/reg-finding!
-                findings
-                (node->line filename set-element :error :duplicate-set-key
+                ctx
+                (node->line (:filename ctx) set-element :error :duplicate-set-key
                             (str "duplicate set element " k))))
              (update acc :seen conj k))
          acc))
