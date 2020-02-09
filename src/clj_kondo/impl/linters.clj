@@ -26,7 +26,7 @@
                ctx
                (node->line (:filename ctx) condition :warning :cond-else
                            "use :else as the catch-all test expression in cond")))
-            (when (and (seq rest-conditions))
+            (when (seq rest-conditions)
               (findings/reg-finding!
                ctx
                (node->line (:filename ctx) (first rest-conditions) :warning
