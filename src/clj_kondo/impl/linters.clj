@@ -143,23 +143,22 @@
 (defn lint-single-arity-comparison
   "Lints calls of single arity comparisons with constant vlaue."
   [call]
-  (let [core-namespaces #{'clojure.core 'cljs.core}
-        const-true #{'= '> '< '>= '<= '==}
-        const-false #{'not=}
-        operators (set/union const-true const-false)
-        ns-name (:resolved-ns call)
-        fn-name (:name call)]
-    (when (and (contains? core-namespaces ns-name)
-               (contains? operators fn-name)
-               (= (:arity call) 1))
-      (node->line
-       (:filename call)
-       (:expr call)
-       :warning
-       :single-arity-comparison
-       (format "single arity use of %s is constantly %s"
-               (str ns-name "/" fn-name)
-               (contains? const-true fn-name))))))
+  (let [ns-name (:resolved-ns call)
+        core-ns (utils/one-of ns-name [clojure.core cljs.core])]
+    (when core-ns
+      (let [fn-name (:name call)
+            const-true (utils/one-of fn-name [= > < >= <= ==])
+            const-false (= 'not= fn-name)]
+        (when (and (or const-true const-false)
+                   (= 1 (:arity call)))
+          (node->line
+           (:filename call)
+           (:expr call)
+           :warning
+           :single-arity-comparison
+           (format "Single arity use of %s is always %s"
+                   (str ns-name "/" fn-name)
+                   (some? const-true))))))))
 
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches

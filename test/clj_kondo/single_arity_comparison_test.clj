@@ -7,13 +7,13 @@
   (testing "test full linting error for single arity comparison in clojure"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 1, :level :warning,
-        :message "single arity use of clojure.core/= is constantly true"})
+        :message "Single arity use of clojure.core/= is always true"})
      (lint! "(= 1)")))
 
   (testing "test full linting error for single arity comparison in cljs"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 1, :level :warning,
-        :message "single arity use of cljs.core/not= is constantly false"})
+        :message "Single arity use of cljs.core/not= is always false"})
      (lint! "(not= 1)" "--lang" "cljs")))
 
   (testing "test linting comparison operators with single arity"
@@ -21,7 +21,7 @@
             op ["=" ">" "<" ">=" "<=" "=="]
             :let [errors (lint! (str "(" op " 1)") "--lang" lang)]]
       (is (= 1 (count errors)))
-      (is (= (format "single arity use of %s.core/%s is constantly true"
+      (is (= (format "Single arity use of %s.core/%s is always true"
                      (get {"clj" "clojure"} lang "cljs")
                      op)
              (-> errors
