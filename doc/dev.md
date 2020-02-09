@@ -48,6 +48,14 @@ reasons:
   doesn't exist anymore.
 - Your PR will be squashed anyway.
 
+## Invoking clj-kondo from the command line
+
+```
+$ clojure -A:clj-kondo --lint - <<< "(defn foo [x] (if-let [x 1] x x x))"
+<stdin>:1:15: error: if-let body requires one or two forms
+linting took 73ms, errors: 1, warnings: 0
+```
+
 ## REPL
 
 ### lein
