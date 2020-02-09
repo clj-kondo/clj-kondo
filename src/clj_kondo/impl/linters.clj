@@ -140,22 +140,26 @@
           (if (= 1 called-with) "arg" "args")
           (show-arities fixed-arities varargs-min-arity)))
 
-(defn lint-constant-value
-  "Lints calls of logical operators and comparators for arity warnings."
+(defn lint-single-arity-comparison
+  "Lints calls of single arity comparisons with constant vlaue."
   [call]
   (let [core-namespaces #{'clojure.core 'cljs.core}
-        operators #{'= '> '< '>= '<= 'and 'or 'not=}
-        op-full-name (str (:resolved-ns call) "/" (:name call))
-        min-operator-arity 2]
-    (when (and (contains? core-namespaces (:resolved-ns call))
-               (contains? operators (:name call))
-               (< (:arity call) min-operator-arity))
+        const-true #{'= '> '< '>= '<= '==}
+        const-false #{'not=}
+        operators (set/union const-true const-false)
+        ns-name (:resolved-ns call)
+        fn-name (:name call)]
+    (when (and (contains? core-namespaces ns-name)
+               (contains? operators fn-name)
+               (= (:arity call) 1))
       (node->line
        (:filename call)
        (:expr call)
        :warning
-       :constant-value
-       (str "1-arity use of " op-full-name " always evaluates to the same value")))))
+       :single-arity-comparison
+       (format "single arity use of %s is constantly %s"
+               (str ns-name "/" fn-name)
+               (contains? const-true fn-name))))))
 
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
@@ -264,10 +268,10 @@
                                   varargs-min-arity)
                               (not (or (contains? fixed-arities arity)
                                        (and varargs-min-arity (>= arity varargs-min-arity)))))
-                             constant-value-error
+                             single-arity-comparison-error
                              (and call?
-                                  (not (utils/linter-disabled? call :constant-value))
-                                  (lint-constant-value call))
+                                  (not (utils/linter-disabled? call :single-arity-comparison))
+                                  (lint-single-arity-comparison call))
                              errors
                              [(when arity-error?
                                 {:filename filename
@@ -278,8 +282,8 @@
                                  :level :error
                                  :type :invalid-arity
                                  :message (arity-error fn-ns fn-name arity fixed-arities varargs-min-arity)})
-                              (when constant-value-error
-                                constant-value-error)
+                              (when single-arity-comparison-error
+                                single-arity-comparison-error)
                               (when (and (:private called-fn)
                                          (not= caller-ns-sym
                                                fn-ns)
