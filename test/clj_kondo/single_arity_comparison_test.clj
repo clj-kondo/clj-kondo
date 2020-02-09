@@ -20,7 +20,7 @@
     (doseq [lang ["clj" "cljs"]
             op ["=" ">" "<" ">=" "<=" "=="]
             :let [errors (lint! (str "(" op " 1)") "--lang" lang)]]
-      (is (= (count errors) 1))
+      (is (= 1 (count errors)))
       (is (= (format "single arity use of %s.core/%s is constantly true"
                      (get {"clj" "clojure"} lang "cljs")
                      op)
