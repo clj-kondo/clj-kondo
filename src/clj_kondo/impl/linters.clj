@@ -121,6 +121,21 @@
       ;; (prn "tags" tags)
       (types/lint-arg-types ctx called-fn arg-types tags call))))
 
+(defn lint-bangs!
+  [ctx filename fn-name in-def]
+  (when in-def
+    (let [has-bang? (-> fn-name str (str/ends-with? "!"))]
+      (when has-bang?
+        (let [defn-lacks-bang? (not (-> in-def str (str/ends-with? "!")))]
+          (when defn-lacks-bang?
+            (findings/reg-finding!
+             ctx
+             (node->line filename
+                         in-def
+                         :warning
+                         :bang-suffix-consistency
+                         "Functions using !-suffixed code should also be !-suffixed"))))))))
+
 (defn show-arities [fixed-arities varargs-min-arity]
   (let [fas (vec (sort fixed-arities))
         max-fixed (peek fas)
@@ -218,7 +233,8 @@
                                                       (when (= :cljc base-lang)
                                                         call-lang)
                                                       in-def
-                                                      called-fn))]
+                                                      called-fn))
+                             _ (lint-bangs! ctx filename fn-name in-def)]
                        :when valid-call?
                        :let [fn-name (:name called-fn)
                              _ (when (and unresolved?
@@ -275,7 +291,7 @@
                                       config
                                       (symbol (str fn-ns)
                                               (str fn-name))
-                                      caller-ns-sym (:in-def call)))
+                                      caller-ns-sym in-def))
                                   {:filename filename
                                    :row row
                                    :col col
