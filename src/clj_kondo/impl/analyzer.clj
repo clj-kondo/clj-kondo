@@ -360,11 +360,6 @@
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
-        fn-name (when name-node
-                  (when-let [fn-name (:value name-node)]
-                    (with-meta
-                      fn-name
-                      (meta name-node))))
         call (name (symbol-call expr))
         var-meta (meta name-node)
         meta-node (when-let [fc (first children)]
@@ -399,6 +394,13 @@
                                                :syntax
                                                "Invalid function body.")))
         ;; var is known when making recursive call
+        fn-name (when name-node
+                  (when-let [fn-name (:value name-node)]
+                    (with-meta
+                      fn-name
+                      (assoc (meta name-node)
+                             :test (:test ctx)
+                             :macro macro?))))
         _ (when fn-name
             (namespace/reg-var!
              ctx ns-name fn-name expr {:temp true}))
@@ -432,7 +434,8 @@
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
-                   :added (:added var-meta))))
+                   :added (:added var-meta)
+                   :test (:test ctx))))
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]

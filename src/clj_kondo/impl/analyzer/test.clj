@@ -6,7 +6,7 @@
 
 (defn analyze-deftest [ctx deftest-ns expr]
   (common/analyze-defn
-   ctx
+   (assoc ctx :test true)
    (-> expr
        (update
         :children

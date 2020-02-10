@@ -234,7 +234,10 @@
                                                         call-lang)
                                                       in-def
                                                       called-fn))
-                             _ (lint-bangs! ctx filename fn-name in-def)]
+                             _ (when (not (utils/linter-disabled? call :bang-suffix-consistency))
+                                 (let [m (meta in-def)]
+                                   (when-not (:test m)
+                                     (lint-bangs! ctx filename fn-name in-def))))]
                        :when valid-call?
                        :let [fn-name (:name called-fn)
                              _ (when (and unresolved?
