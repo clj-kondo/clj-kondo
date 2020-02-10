@@ -93,6 +93,11 @@ The alias `cider-nrepl` is defined in his `~/.clojure/deps.edn`:
              "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"]}
 ```
 
+## Coding guidelines
+
+- Avoid calling rewrite-clj `sexpr` when you can. This often results in exceptions when the code is not representable as a sexpr, e.g.: `{:a}`. This becomes noticable when you use clj-kondo in an editor and you stop typ
+- Avoid traversing the AST multiple times if possible. 
+
 ## Tests
 
 To test clj-kondo on the JVM, run:
