@@ -26,7 +26,8 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.walk :as walk]))
 
 (set! *warn-on-reflection* true)
 
@@ -354,8 +355,29 @@
           :list exprs
           (recur rest-exprs))))))
 
+(defn lint-bangs!
+  [ctx fn-name expr]
+  (let [fn-body (sexpr expr)
+        lacks-bang? (not (-> fn-name str (str/ends-with? "!")))]
+    (when (and lacks-bang?
+               (let [found-bang? (atom false)]
+                 (->> fn-body
+                      (walk/postwalk (fn [x]
+                                       (when (and (symbol? x)
+                                                  (-> x str (str/ends-with? "!")))
+                                         (reset! found-bang? true))
+                                       x)))
+                 @found-bang?))
+      (findings/reg-finding! ctx
+                             (node->line (:filename ctx)
+                                         expr
+                                         :warning
+                                         :bang-suffix-consistency
+                                         "Functions using !-suffixed code should also be !-suffixed")))))
+
 (defn analyze-defn [ctx expr]
   (let [ns-name (-> ctx :ns :name)
+        {:keys [config callstack]} ctx
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
@@ -404,6 +426,15 @@
                                         :macro? macro?))
                              %)
                            bodies)
+        _ (when-not (config/skip? config :bang-suffix-consistency callstack)
+            (doall
+             (mapcat (fn [{:keys [parsed]}]
+                       (map (fn [{:keys [in-def expr]}]
+                              (lint-bangs! ctx
+                                           in-def
+                                           expr))
+                            parsed))
+                     parsed-bodies)))
         arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
                                 (let [arg-tags (when (some identity args)
                                                  args)

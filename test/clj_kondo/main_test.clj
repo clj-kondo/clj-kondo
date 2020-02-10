@@ -8,7 +8,7 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing]]
+   [clojure.test :as t :refer [deftest is testing are]]
    [missing.test.assertions]))
 
 (deftest inline-def-test
@@ -2482,6 +2482,32 @@
 (deftest absolute-path-namespace
   (is (empty? (lint! "(ns main.core (:require [\"/vendors/daterangepicker\"]))"
                      "--lang" "cljc" "--cache" "true"))))
+
+(deftest lint-bangs!
+  (are [input expected] (testing input
+                          (let [result (lint! input
+                                               "--config" "{:linters {:bang-suffix-consistency {:level :warning}}}")]
+                            (is (= expected
+                                   (get {0 :valid}
+                                        (->> result
+                                             (filter (comp #{"Functions using !-suffixed code should also be !-suffixed"}
+                                                           :message))
+                                             (count))
+                                        :invalid))
+                                (pr-str result)))
+                          true)
+    "(defn a [] (b!))"                                           :invalid
+    "(defn a ([] (b!)))"                                         :invalid
+    "(defn a ([] (a 42)) ([x] (c!)))"                            :invalid
+    "(defn a ([] (a (c!))) ([x] 42))"                            :invalid
+    "(defn a ([] (b)) ([x] (c!)))"                               :invalid
+    "(defn a ([] (b)) ([x] (((((((([[[1 1 1 1 (c!)]]]))))))))))" :invalid
+    "(defn a [] (((((((([[[1 1 1 1 (b!)]]])))))))))"             :invalid
+    "(defn a [] (b))"                                            :valid
+    "(defn a ([] (b)))"                                          :valid
+    "(defn a ([] (b)) ([x] (c)))"                                :valid
+    "(defn a! [] (b!))"                                          :valid
+    "(defn a! [] (b))"                                           :valid))
 
 ;;;; Scratch
 
