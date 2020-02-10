@@ -140,8 +140,8 @@
           (if (= 1 called-with) "arg" "args")
           (show-arities fixed-arities varargs-min-arity)))
 
-(defn lint-single-arity-comparison
-  "Lints calls of single arity comparisons with constant vlaue."
+(defn lint-single-operand-comparison
+  "Lints calls of single operand comparisons with always the same vlaue."
   [call]
   (let [ns-name (:resolved-ns call)
         core-ns (utils/one-of ns-name [clojure.core cljs.core])]
@@ -155,8 +155,8 @@
            (:filename call)
            (:expr call)
            :warning
-           :single-arity-comparison
-           (format "Single arity use of %s is always %s"
+           :single-operand-comparison
+           (format "Single operand use of %s is always %s"
                    (str ns-name "/" fn-name)
                    (some? const-true))))))))
 
@@ -266,10 +266,10 @@
                                   varargs-min-arity)
                               (not (or (contains? fixed-arities arity)
                                        (and varargs-min-arity (>= arity varargs-min-arity)))))
-                             single-arity-comparison-error
+                             single-operand-comparison-error
                              (and call?
-                                  (not (utils/linter-disabled? call :single-arity-comparison))
-                                  (lint-single-arity-comparison call))
+                                  (not (utils/linter-disabled? call :single-operand-comparison))
+                                  (lint-single-operand-comparison call))
                              errors
                              [(when arity-error?
                                 {:filename filename
@@ -279,8 +279,8 @@
                                  :end-col end-col
                                  :type :invalid-arity
                                  :message (arity-error fn-ns fn-name arity fixed-arities varargs-min-arity)})
-                              (when single-arity-comparison-error
-                                single-arity-comparison-error)
+                              (when single-operand-comparison-error
+                                single-operand-comparison-error)
                               (when (and (:private called-fn)
                                          (not= caller-ns-sym
                                                fn-ns)
