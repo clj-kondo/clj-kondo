@@ -2497,6 +2497,12 @@
                                 (pr-str result)))
                           true)
     "(defn a [] (b!))"                                           :invalid
+    "(defn a [] (.invoke b!))"                                   :invalid
+    "(defn a [] (.invoke b! 1))"                                 :invalid
+    "(defn a [] (.invoke c))"                                    :valid
+    "(defn a [] (apply b!))"                                     :invalid
+    "(defn a [] [[[[1 1 1 (apply b!)]]]])"                       :invalid
+    "(defn a [] (apply c 'b!))"                                  :valid
     "(defn a ([] (b!)))"                                         :invalid
     "(defn a ([] (a 42)) ([x] (c!)))"                            :invalid
     "(defn a ([] (a (c!))) ([x] 42))"                            :invalid
@@ -2504,6 +2510,14 @@
     "(defn a ([] (b)) ([x] (((((((([[[1 1 1 1 (c!)]]]))))))))))" :invalid
     "(defn a [] (((((((([[[1 1 1 1 (b!)]]])))))))))"             :invalid
     "(defn a [] (b))"                                            :valid
+    "(defn a [] \"b!\")"                                         :valid
+    "(defn a [] :c!)"                                            :valid
+    "(defn a [] [b!])"                                           :valid
+    "(defn a [] '(\"b!\"))"                                      :valid
+    "(defn a [] 'b!)"                                            :valid
+    "(defn a [] ^b! c)"                                          :valid
+    "(defn a [] ^:b! c)"                                         :valid
+    "(defn a [] ^{:b! true} c)"                                  :valid
     "(defn a ([] (b)))"                                          :valid
     "(defn a ([] (b)) ([x] (c)))"                                :valid
     "(defn a! [] (b!))"                                          :valid
