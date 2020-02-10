@@ -1,5 +1,9 @@
 # Developer documentation
 
+## Project board
+
+All issues are categorized in a column on the [project board](https://github.com/borkdude/clj-kondo/projects/1).
+
 ## Design principles
 
 1) Linters should be designed to add value in both of these modes:
@@ -30,6 +34,10 @@ If you wish to add a new linter, do not forget to add the appropriate keyword in
 This is necessary because only the linters with a keyword in the default config appear in the report.  
 
 ## PR
+
+### Issue
+
+Before creating a code PR, please create an issue first that describes the problem you are trying to solve, alternatives that you have considered, etc. A little bit of prior communication can save a lot of time on coding.
 
 ### Linting diff
 
@@ -84,6 +92,11 @@ The alias `cider-nrepl` is defined in his `~/.clojure/deps.edn`:
  :main-opts ["-m" "nrepl.cmdline" "--middleware"
              "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"]}
 ```
+
+## Coding guidelines
+
+- Avoid calling rewrite-clj `sexpr` when you can. This often results in exceptions when the code is not representable as a sexpr, e.g.: `{:a}`. This becomes noticable when you use clj-kondo in an editor and you stop typ
+- Avoid traversing the AST multiple times if possible. 
 
 ## Tests
 

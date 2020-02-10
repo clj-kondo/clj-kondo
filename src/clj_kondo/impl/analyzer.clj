@@ -355,33 +355,11 @@
           :list exprs
           (recur rest-exprs))))))
 
-(defn lint-bangs!
-  [ctx fn-name expr]
-  (let [fn-body (sexpr expr)
-        lacks-bang? (not (-> fn-name str (str/ends-with? "!")))]
-    (when (and lacks-bang?
-               (let [found-bang? (atom false)]
-                 (->> fn-body
-                      (walk/postwalk (fn [x]
-                                       (when (and (symbol? x)
-                                                  (-> x str (str/ends-with? "!")))
-                                         (reset! found-bang? true))
-                                       x)))
-                 @found-bang?))
-      (findings/reg-finding! ctx
-                             (node->line (:filename ctx)
-                                         expr
-                                         :warning
-                                         :bang-suffix-consistency
-                                         "Functions using !-suffixed code should also be !-suffixed")))))
-
 (defn analyze-defn [ctx expr]
   (let [ns-name (-> ctx :ns :name)
-        {:keys [config]} ctx
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
-        fn-name (:value name-node)
         call (name (symbol-call expr))
         var-meta (meta name-node)
         meta-node (when-let [fc (first children)]
@@ -416,6 +394,13 @@
                                                :syntax
                                                "Invalid function body.")))
         ;; var is known when making recursive call
+        fn-name (when name-node
+                  (when-let [fn-name (:value name-node)]
+                    (with-meta
+                      fn-name
+                      (assoc (meta name-node)
+                             :test (:test ctx)
+                             :macro macro?))))
         _ (when fn-name
             (namespace/reg-var!
              ctx ns-name fn-name expr {:temp true}))
@@ -426,15 +411,6 @@
                                         :macro? macro?))
                              %)
                            bodies)
-        _ (when (some-> config :linters :bang-suffix-consistency :level #{:error :warning}) 
-            (doall
-             (mapcat (fn [{:keys [parsed]}]
-                       (map (fn [{:keys [in-def expr]}]
-                              (lint-bangs! ctx
-                                           in-def
-                                           expr))
-                            parsed))
-                     parsed-bodies)))
         arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
                                 (let [arg-tags (when (some identity args)
                                                  args)
@@ -458,7 +434,8 @@
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
-                   :added (:added var-meta))))
+                   :added (:added var-meta)
+                   :test (:test ctx))))
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]

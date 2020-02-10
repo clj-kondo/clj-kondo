@@ -2507,7 +2507,16 @@
     "(defn a ([] (b)))"                                          :valid
     "(defn a ([] (b)) ([x] (c)))"                                :valid
     "(defn a! [] (b!))"                                          :valid
-    "(defn a! [] (b))"                                           :valid))
+    "(defn a! [] (b))"                                           :valid)
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message #"should also be !-suffixed"})
+   (lint! "(defn b! []) (defn a [] (b!))"
+          {:linters {:bang-suffix-consistency {:level :warning}}}))
+  (testing "Linter is disabled by default"
+    (is (empty? (lint! "(defn b! []) (defn a [] (b!))"))))
+  (testing "Tests are excluded from this linter"
+    (is (empty? (lint! "(require '[clojure.test :as t]) (t/deftest foo (swap! (atom nil) identity))"
+                       '{:linters {:bang-suffix-consistency {:level :warning}}})))))
 
 ;;;; Scratch
 
