@@ -155,6 +155,26 @@
           (if (= 1 called-with) "arg" "args")
           (show-arities fixed-arities varargs-min-arity)))
 
+(defn lint-single-operand-comparison
+  "Lints calls of single operand comparisons with always the same vlaue."
+  [call]
+  (let [ns-name (:resolved-ns call)
+        core-ns (utils/one-of ns-name [clojure.core cljs.core])]
+    (when core-ns
+      (let [fn-name (:name call)
+            const-true (utils/one-of fn-name [= > < >= <= ==])
+            const-false (= 'not= fn-name)]
+        (when (and (or const-true const-false)
+                   (= 1 (:arity call)))
+          (node->line
+           (:filename call)
+           (:expr call)
+           :warning
+           :single-operand-comparison
+           (format "Single operand use of %s is always %s"
+                   (str ns-name "/" fn-name)
+                   (some? const-true))))))))
+
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
@@ -265,6 +285,10 @@
                                   varargs-min-arity)
                               (not (or (contains? fixed-arities arity)
                                        (and varargs-min-arity (>= arity varargs-min-arity)))))
+                             single-operand-comparison-error
+                             (and call?
+                                  (not (utils/linter-disabled? call :single-operand-comparison))
+                                  (lint-single-operand-comparison call))
                              errors
                              [(when arity-error?
                                 {:filename filename
@@ -274,6 +298,8 @@
                                  :end-col end-col
                                  :type :invalid-arity
                                  :message (arity-error fn-ns fn-name arity fixed-arities varargs-min-arity)})
+                              (when single-operand-comparison-error
+                                single-operand-comparison-error)
                               (when (and (:private called-fn)
                                          (not= caller-ns-sym
                                                fn-ns)

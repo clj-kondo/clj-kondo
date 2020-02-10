@@ -76,7 +76,8 @@
                                  ;; different from str
                                  :aliases {#_clojure.string #_str}}
               :unused-import {:level :warning}
-              :bang-suffix-consistency {:level :off}}
+              :bang-suffix-consistency {:level :off}
+              :single-operand-comparison {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
