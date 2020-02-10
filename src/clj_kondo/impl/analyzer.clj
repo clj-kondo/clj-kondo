@@ -377,7 +377,7 @@
 
 (defn analyze-defn [ctx expr]
   (let [ns-name (-> ctx :ns :name)
-        {:keys [config callstack]} ctx
+        {:keys [config]} ctx
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
@@ -426,7 +426,7 @@
                                         :macro? macro?))
                              %)
                            bodies)
-        _ (when-not (config/skip? config :bang-suffix-consistency callstack)
+        _ (when (some-> config :linters :bang-suffix-consistency :level #{:error :warning}) 
             (doall
              (mapcat (fn [{:keys [parsed]}]
                        (map (fn [{:keys [in-def expr]}]
