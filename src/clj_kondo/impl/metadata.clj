@@ -21,17 +21,18 @@
   ([ctx node] (lift-meta-content2 ctx node false))
   ([{:keys [:lang] :as ctx} node only-usage?]
    (if-let [meta-list (:meta node)]
-     (let [ctx-with-type-hint-bindings
-           (utils/ctx-with-bindings ctx
-                                    (cond->
-                                        type-hint-bindings
-                                      (identical? :cljs lang)
-                                      (assoc 'js {})))
+     (let [meta-ctx
+           (-> ctx
+            (update :callstack conj [nil :metadata])
+            (utils/ctx-with-bindings (cond->
+                                         type-hint-bindings
+                                       (identical? :cljs lang)
+                                       (assoc 'js {}))))
            ;; use dorun to force analysis, we don't use the end result!
            _ (if only-usage?
-               (run! #(dorun (common/analyze-usages2 ctx-with-type-hint-bindings %))
+               (run! #(dorun (common/analyze-usages2 meta-ctx %))
                      meta-list)
-               (run! #(dorun (common/analyze-expression** ctx-with-type-hint-bindings %))
+               (run! #(dorun (common/analyze-expression** meta-ctx %))
                      meta-list))
            meta-maps (map #(meta-node->map ctx %) meta-list)
            meta-map (apply merge meta-maps)
