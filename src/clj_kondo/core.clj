@@ -85,10 +85,12 @@
         config (core-impl/resolve-config cfg-dir config)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
         findings (atom [])
-        analysis (atom {:namespace-definitions []
-                        :namespace-usages []
-                        :var-definitions []
-                        :var-usages []})
+        analysis? (get-in config [:output :analysis])
+        analysis (when analysis?
+                   (atom {:namespace-definitions []
+                          :namespace-usages []
+                          :var-definitions []
+                          :var-usages []}))
         ctx {:config config
              :findings findings
              :namespaces (atom {})
@@ -119,7 +121,7 @@
         {:findings all-findings
          :config config
          :summary summary}
-      (-> config :output :analysis)
+      analysis?
       (assoc :analysis @analysis))))
 
 ;;;; Scratch
