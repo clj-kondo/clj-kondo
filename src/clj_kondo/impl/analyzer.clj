@@ -334,7 +334,7 @@
                 ret-tag (or
                          return-tag
                          (let [maybe-call (get @(:calls-by-id ctx) ret-expr-id)
-                               tag (cond maybe-call (types/ret-tag-from-call ctx maybe-call last-expr)
+                               tag (cond maybe-call (:ret maybe-call)
                                          last-expr (types/expr->tag ctx last-expr))]
                            tag))]
             [parsed ret-tag]))]
@@ -493,7 +493,7 @@
                                    (analyze-expression** ctx* (assoc value :id value-id)))
                   tag (when (and let? binding (= :token (tag binding)))
                         (let [maybe-call (get @(:calls-by-id ctx) value-id)]
-                          (cond maybe-call (types/ret-tag-from-call ctx maybe-call value)
+                          (cond maybe-call (:ret maybe-call)
                                 value {:tag (types/expr->tag ctx* value)})))
                   new-bindings (when binding (extract-bindings ctx* binding tag))
                   analyzed-binding (:analyzed new-bindings)
@@ -1265,8 +1265,7 @@
               (let [in-def (:in-def ctx)
                     id (:id expr)
                     m (meta analyzed)
-                    ret-tag (when m (:ret m))
-                    call (cond-> {:type :call
+                    proto-call {:type :call
                                   :resolved-ns resolved-namespace
                                   :ns ns-name
                                   :name (with-meta
@@ -1288,6 +1287,9 @@
                                   :config (:config ctx)
                                   :top-ns (:top-ns ctx)
                                   :arg-types (:arg-types ctx)}
+                    ret-tag (or (:ret m)
+                                (types/ret-tag-from-call ctx proto-call expr))
+                    call (cond-> proto-call
                            id (assoc :id id)
                            in-def (assoc :in-def in-def)
                            ret-tag (assoc :ret ret-tag))]
