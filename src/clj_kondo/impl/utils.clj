@@ -70,7 +70,7 @@
                           (when (= :default kw)
                             v))]
           (if (= lang kw)
-            v
+            (vary-meta  v assoc :branch lang)
             (if (seq ts)
               (recur ts default)
               default)))))

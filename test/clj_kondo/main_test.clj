@@ -2471,7 +2471,16 @@
   {:clj-kondo/config '{:linters {:unsorted-namespaces {:level :warning}}}}
   (:require
    [zoo.foo]
-   [bar.foo]))"))))
+   [bar.foo]))")))
+  (testing "For now CLJC branches are ignored"
+    (is (empty? (lint! "
+(ns foo
+  (:require
+    #?(:clj [foo.bar])
+    [bar.foo]))"
+                      {:linters {:unsorted-namespaces {:level :warning}
+                                 :unused-import {:level :off}}}
+                      "--lang" "cljc")))))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
