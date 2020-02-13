@@ -81,12 +81,13 @@
         require-kw (or (:k require-kw-expr)
                        (when require-sym
                          (keyword require-sym)))
-        use? (= :use require-kw)]
+        use? (= :use require-kw)
+        libspec-meta (meta libspec-expr)]
     (if-let [s (symbol-from-token libspec-expr)]
       [{:type :require
         :referred-all (when use? require-kw-expr)
         :ns (with-meta s
-              (assoc (meta libspec-expr)
+              (assoc libspec-meta
                      :filename filename))}]
       (let [[ns-name-expr & option-exprs] (:children libspec-expr)
             ns-name (:value ns-name-expr)
@@ -99,7 +100,8 @@
             ns-name (with-meta ns-name
                       (assoc (meta (first (:children libspec-expr)))
                              :filename filename
-                             :raw-name (-> (meta ns-name-expr) :raw-name)))
+                             :raw-name (-> (meta ns-name-expr) :raw-name)
+                             :branch (:branch libspec-meta)))
             self-require? (and
                            (= :cljc base-lang)
                            (= :cljs lang)

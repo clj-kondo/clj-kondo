@@ -35,20 +35,24 @@
   (let [config (:config ctx)
         level (-> config :linters :unsorted-namespaces :level)]
     (when-not (identical? :off level)
-      (loop [last-processed-ns (first namespaces)
-             ns-list (next namespaces)]
+      (loop [last-processed-ns nil
+             ns-list namespaces]
         (when ns-list
-          (let [ns (first ns-list)]
-            (if (pos? (compare last-processed-ns ns))
-              (findings/reg-finding!
-               ctx
-               (node->line (:filename ctx)
-                           ns
-                           level
-                           :unsorted-namespaces
-                           (str "Unsorted namespace: " ns)))
-              (recur ns
-                     (next ns-list)))))))))
+          (let [ns (first ns-list)
+                m (meta ns)
+                branch (:branch m)]
+            (cond branch
+                  (recur last-processed-ns (next ns-list))
+                  (pos? (compare last-processed-ns ns))
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx)
+                               ns
+                               level
+                               :unsorted-namespaces
+                               (str "Unsorted namespace: " ns)))
+                  :else (recur ns
+                               (next ns-list)))))))))
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
