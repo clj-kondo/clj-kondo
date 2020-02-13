@@ -8,9 +8,16 @@ if [ -z "$project" ]; then
 fi
 
 cd /tmp
-git clone "https://github.com/$user/$project"
+git clone "https://github.com/$user/$project" || true
 cd "$project"
+git pull
 
-lein_classpath="$(lein with-profile -user classpath)"
+if [ -f project.clj ]; then
+    lein_classpath="$(lein classpath)"
+fi
 clj_classpath="$(clojure -Spath)"
-clj-kondo --lint "$lein_classpath:$clj_classpath" src test resources
+
+classpath="$lein_classpath:$clj_classpath"
+# echo "Linting $classpath"
+
+clj-kondo --lint "$classpath" src test resources
