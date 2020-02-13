@@ -1265,8 +1265,7 @@
               (let [in-def (:in-def ctx)
                     id (:id expr)
                     m (meta analyzed)
-                    ret-tag (when m (:ret m))
-                    call (cond-> {:type :call
+                    proto-call {:type :call
                                   :resolved-ns resolved-namespace
                                   :ns ns-name
                                   :name (with-meta
@@ -1288,6 +1287,9 @@
                                   :config (:config ctx)
                                   :top-ns (:top-ns ctx)
                                   :arg-types (:arg-types ctx)}
+                    ret-tag (or (:ret m)
+                                (types/ret-tag-from-call ctx proto-call expr))
+                    call (cond-> proto-call
                            id (assoc :id id)
                            in-def (assoc :in-def in-def)
                            ret-tag (assoc :ret ret-tag))]
