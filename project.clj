@@ -2,7 +2,7 @@
 ;; To change dependencies, update deps.edn and run script/update-project.clj.
 ;; To change other things, edit project.template.clj and run script/update-project.clj.
 
-(defproject clj-kondo "2020.01.28-SNAPSHOT"
+(defproject clj-kondo "2020.02.15"
   :description "Tidy your code with clj-kondo."
   :url "https://github.com/borkdude/clj-kondo"
   :scm {:name "git"
