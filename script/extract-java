@@ -5,7 +5,7 @@
 JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -f 3 -d " ")
 
 if [ -z "$JAVA_HOME" ] || [ "$JAVA_VERSION" != "\"12.0.2\"" ]; then
-    echo "Set JAVA_HOME to Adopt OpenJDK 12.0.2."
+    echo "Set JAVA_HOME to Adopt OpenJDK 12.0.2. Download from https://adoptopenjdk.net/archive.html?variant=openjdk12&jvmVariant=hotspot."
     exit 1
 fi
 
