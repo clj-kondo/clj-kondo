@@ -215,7 +215,7 @@
              kw+libspecs)
         _ (doseq [analyzed analyzed]
             (let [namespaces (map :ns analyzed)]
-              (namespace/lint-unsorted-namespaces! ctx namespaces)
+              (namespace/lint-unsorted-required-namespaces! ctx namespaces)
               (namespace/lint-duplicate-requires! ctx namespaces)))
         analyzed (apply concat analyzed)
         refer-alls (reduce (fn [acc clause]

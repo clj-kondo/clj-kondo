@@ -31,9 +31,9 @@
            namespaces)
    nil))
 
-(defn lint-unsorted-namespaces! [ctx namespaces]
+(defn lint-unsorted-required-namespaces! [ctx namespaces]
   (let [config (:config ctx)
-        level (-> config :linters :unsorted-namespaces :level)]
+        level (-> config :linters :unsorted-required-namespaces :level)]
     (when-not (identical? :off level)
       (loop [last-processed-ns nil
              ns-list namespaces]
@@ -49,7 +49,7 @@
                    (node->line (:filename ctx)
                                ns
                                level
-                               :unsorted-namespaces
+                               :unsorted-required-namespaces
                                (str "Unsorted namespace: " ns)))
                   :else (recur ns
                                (next ns-list)))))))))
@@ -189,7 +189,7 @@
   [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
-           (lint-unsorted-namespaces! ctx (:required analyzed-require-clauses))
+           (lint-unsorted-required-namespaces! ctx (:required analyzed-require-clauses))
            (lint-duplicate-requires! ctx (:required ns) (:required analyzed-require-clauses))
            (merge-with into ns analyzed-require-clauses)))
   nil)

@@ -2436,39 +2436,39 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string])) clojure.string/join"
                      {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))))
 
-(deftest unsorted-namespaces-test
+(deftest unsorted-required-namespaces-test
   (assert-submaps
     [{:file "<stdin>"
       :row 1
       :col 31
       :level :warning
       :message "Unsorted namespace: abar.core"}]
-    (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-namespaces {:level :warning}}}))
+    (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-required-namespaces {:level :warning}}}))
   (assert-submaps
     [{:file "<stdin>"
       :row 1
       :col 21
       :level :warning
       :message "Unsorted namespace: abar.core"}]
-    (lint! "(require 'bar.core 'abar.core)" {:linters {:unsorted-namespaces {:level :warning}}}))
+    (lint! "(require 'bar.core 'abar.core)" {:linters {:unsorted-required-namespaces {:level :warning}}}))
   (testing "Duplicate requires are not reported as unsorted."
     (is (empty? (lint! "(ns foo (:require [cljs.core.async] [cljs.core.async]))"
-                       {:linters {:unsorted-namespaces {:level :warning}
+                       {:linters {:unsorted-required-namespaces {:level :warning}
                                   :duplicate-require {:level :off}}}))))
   (testing "Duplicate requires are not reported when occurring in different clauses"
     (is (empty? (lint! "(ns foo (:require-macros [cljs.core.async.macros]) (:require [cljs.core.async]))"
-                       {:linters {:unsorted-namespaces {:level :warning}}}))))
-  (is (empty? (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-namespaces {:level :off}}})))
-  (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-namespaces {:level :warning}}})))
+                       {:linters {:unsorted-required-namespaces {:level :warning}}}))))
+  (is (empty? (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-required-namespaces {:level :off}}})))
+  (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-required-namespaces {:level :warning}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]) (:import [java.lib JavaClass] [ajava.lib AnotherClass]))"
-                     {:linters {:unsorted-namespaces {:level :warning}
+                     {:linters {:unsorted-required-namespaces {:level :warning}
                                 :unused-import {:level :off}}})))
   (testing "linter can be activated or deactivated via namespace metadata"
     (assert-submaps
      '({:file "<stdin>", :row 6, :col 5, :level :warning, :message "Unsorted namespace: bar.foo"})
      (lint! "
 (ns foo
-  {:clj-kondo/config '{:linters {:unsorted-namespaces {:level :warning}}}}
+  {:clj-kondo/config '{:linters {:unsorted-required-namespaces {:level :warning}}}}
   (:require
    [zoo.foo]
    [bar.foo]))")))
@@ -2478,7 +2478,7 @@
   (:require
     #?(:clj [foo.bar])
     [bar.foo]))"
-                      {:linters {:unsorted-namespaces {:level :warning}
+                      {:linters {:unsorted-required-namespaces {:level :warning}
                                  :unused-import {:level :off}}}
                       "--lang" "cljc")))))
 
