@@ -1,0 +1,645 @@
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.zip.transit.json  ===
+insert-child {2 {:ret :vector}}
+left {1 {:ret #{:vector :nil}}}
+append-child {2 {:ret :vector}}
+down {1 {:ret #{:vector :nil}}}
+replace {2 {:ret :vector}}
+zipper {4 {:ret :vector}}
+end? {1 {:ret :boolean}}
+edit {:varargs {:ret :vector, :min-arity 2}}
+vector-zip {1 {:ret :vector}}
+up {1 {:ret #{:vector :nil}}}
+seq-zip {1 {:ret :vector}}
+right {1 {:ret #{:vector :nil}}}
+lefts {1 {:ret :seq}}
+xml-zip {1 {:ret :vector}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.server.transit.json  ===
+thread {:varargs {:min-arity 2, :args (:nilable/string nil nil nil)}}
+remote-prepl {:varargs {:min-arity 4, :args (:nilable/string nil nil nil nil nil)}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.gen.alpha.transit.json  ===
+qualified? {1 {:ret :boolean}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.transit.json  ===
+file-position {1 {:ret :vector}}
+file-and-line {2 {:ret #{{:type :map, :val {:file {:row 341, :col 16, :end-row 341, :end-col 32}, :line {:row 341, :col 39, :end-row 341, :end-col 57}}} {:type :map, :val {:file {:row 342, :col 14, :end-row 342, :end-col 17, :tag :nil}, :line {:row 342, :col 24, :end-row 342, :end-col 27, :tag :nil}}}}}}
+stacktrace-file-and-line {1 {:ret #{{:type :map, :val {:file {:row 349, :col 12, :end-row 349, :end-col 15, :tag :nil}, :line {:row 349, :col 22, :end-row 349, :end-col 25, :tag :nil}}} {:type :map, :val {:file {:row 348, :col 14, :end-row 348, :end-col 30}, :line {:row 348, :col 37, :end-row 348, :end-col 55}}}}}}
+function? {1 {:ret #{:nil :boolean}}}
+successful? {1 {:ret #{:nil :boolean}}}
+testing-vars-str {1 {:ret :string}}
+run-tests {0 {:ret :associative}, :varargs {:ret :associative, :min-arity 0}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.math.BigInteger.transit.json  ===
+probablePrime {2 {}}
+valueOf {1 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Math.transit.json  ===
+floorDiv {2 {}}
+log {1 {}}
+acos {1 {}}
+floor {1 {}}
+atan2 {2 {}}
+addExact {2 {}}
+hypot {2 {}}
+toRadians {1 {}}
+tanh {1 {}}
+decrementExact {1 {}}
+ceil {1 {}}
+IEEEremainder {2 {}}
+subtractExact {2 {}}
+min {2 {}}
+atan {1 {}}
+expm1 {1 {}}
+multiplyFull {2 {}}
+cos {1 {}}
+log10 {1 {}}
+tan {1 {}}
+cbrt {1 {}}
+multiplyExact {2 {}}
+sqrt {1 {}}
+incrementExact {1 {}}
+nextUp {1 {}}
+toDegrees {1 {}}
+toIntExact {1 {}}
+pow {2 {}}
+exp {1 {}}
+multiplyHigh {2 {}}
+cosh {1 {}}
+negateExact {1 {}}
+nextAfter {2 {}}
+scalb {2 {}}
+log1p {1 {}}
+asin {1 {}}
+round {1 {}}
+nextDown {1 {}}
+abs {1 {}}
+sinh {1 {}}
+rint {1 {}}
+fma {3 {}}
+max {2 {}}
+floorMod {2 {}}
+ulp {1 {}}
+sin {1 {}}
+copySign {2 {}}
+getExponent {1 {}}
+random {0 {}}
+signum {1 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.CharSequence.transit.json  ===
+compare {2 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.datafy.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.shell.transit.json  ===
+parse-args {1 {:ret :vector}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Double.transit.json  ===
+isInfinite {1 {}}
+isFinite {1 {}}
+parseDouble {1 {}}
+sum {2 {}}
+doubleToRawLongBits {1 {}}
+doubleToLongBits {1 {}}
+min {2 {}}
+isNaN {1 {}}
+toString {1 {}}
+valueOf {1 {}}
+hashCode {1 {}}
+toHexString {1 {}}
+longBitsToDouble {1 {}}
+max {2 {}}
+compare {2 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Thread.transit.json  ===
+enumerate {1 {}}
+sleep {1 {}, 2 {}}
+onSpinWait {0 {}}
+getDefaultUncaughtExceptionHandler {0 {}}
+yield {0 {}}
+getAllStackTraces {0 {}}
+dumpStack {0 {}}
+holdsLock {1 {}}
+activeCount {0 {}}
+currentThread {0 {}}
+interrupted {0 {}}
+setDefaultUncaughtExceptionHandler {1 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.specs.alpha.transit.json  ===
+even-number-of-forms? {1 {:ret :boolean}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.protocols.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.junit.transit.json  ===
+suite-attrs {2 {:ret #{{:type :map, :val {:name {:row 99, :col 22, :end-row 99, :end-col 31}}}}}}
+package-class {1 {:ret #{:vector}}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.pprint.transit.json  ===
+toks {1 {:ret :seq}}
+brackets {1 {:ret #{:vector}}}
+get-section {1 {:ret :vector}}
+buffer-length {1 {:ret #{:number :nat-int}}}
+integral? {1 {:ret #{:nil :boolean}}}
+write-initial-lines {2 {:args (nil :nilable/string)}}
+insert-scaled-decimal {2 {:ret #{:string}}}
+round-str {4 {:ret #{:vector}}}
+float-parts-base {1 {:ret #{:vector}}}
+set-max-column {2 {:ret :nil}}
+realize-parameter-list {2 {:ret :vector}}
+get-format-arg {1 {:ret :vector}}
+split-at-newline {1 {:ret :vector}}
+group-by* {2 {:ret :seq}}
+insert-decimal {2 {:ret #{:string}}}
+realize-parameter {2 {:ret :vector}}
+get-sub-section {1 {:ret :seq}}
+execute-format {2 {:ret :nil}}
+inc-s {1 {:args (:nilable/string)}}
+unzip-map {1 {:ret :vector}}
+next-arg-or-nil {1 {:ret #{:vector}}}
+format-simple-ordinal {1 {:ret :string}}
+start-block {4 {:args (nil :nilable/string :nilable/string :nilable/string)}}
+process-directive-table-element {1 {:ret :vector}}
+set-pprint-dispatch {1 {:ret :nil}}
+remainders {2 {:ret :seq}}
+process-bracket {2 {:ret :vector}}
+translate-param {1 {:ret :vector}}
+pprint-reader-macro {1 {:ret #{:nil :boolean}}}
+compile-directive {2 {:ret :vector}}
+two-forms {1 {:ret {:type :map, :val {}}}}
+add-core-ns {1 {:ret {:type :map, :val {}}}}
+format-simple-cardinal {1 {:ret :string}}
+float-parts {1 {:ret #{:vector}}}
+get-fixed {3 {:ret #{:string}}}
+abort? {1 {:ret #{:boolean}}}
+map-params {4 {:ret :nilable/map}}
+tokens-fit? {2 {:ret #{:boolean}}}
+tuple-map {2 {:ret {:type :map, :val {}}}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.alpha.transit.json  ===
+pvalid? {2 {:ret :boolean}, 3 {:ret :boolean}}
+explain-data* {5 {:ret #{:nil {:type :map, :val {:user/problems {:row 214, :col 19, :end-row 214, :end-col 24}, :user/spec {:row 215, :col 15, :end-row 215, :end-col 19}, :user/value {:row 216, :col 16, :end-row 216, :end-col 17}}}}}}
+fn-sym {1 {:ret #{:symbol :nil}}}
+inst-in-range? {3 {:ret #{:nil :boolean}}}
+accept? {1 {:ret :boolean}}
+accept {1 {:ret {:type :map, :val {:user/op {:row 1375, :col 25, :end-row 1375, :end-col 33, :tag :keyword}, :ret {:row 1375, :col 39, :end-row 1375, :end-col 40}}}}}
+valid? {2 {:ret :boolean}, 3 {:ret :boolean}}
+int-in-range? {3 {:ret #{:nil :boolean}}}
+exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq}}
+explain-data {2 {:ret #{:nil {:type :map, :val {:user/problems {:row 214, :col 19, :end-row 214, :end-col 24}, :user/spec {:row 215, :col 15, :end-row 215, :end-col 19}, :user/value {:row 216, :col 16, :end-row 216, :end-col 17}}}}}}
+invalid? {1 {:ret :boolean}}
+amp-impl {4 {:ret {:type :map, :val {:user/op {:row 1416, :col 9, :end-row 1416, :end-col 14, :tag :keyword}, :p1 {:row 1416, :col 19, :end-row 1416, :end-col 21}, :amp {:row 1416, :col 27, :end-row 1416, :end-col 34}, :ps {:row 1416, :col 39, :end-row 1416, :end-col 44}, :forms {:row 1416, :col 52, :end-row 1416, :end-col 62}}}}}
+rep-impl {2 {:ret #{{:type :map, :val {:user/op {:row 1399, :col 19, :end-row 1399, :end-col 24, :tag :keyword}, :p2 {:row 1399, :col 30, :end-row 1399, :end-col 32}, :splice {:row 1399, :col 42, :end-row 1399, :end-col 48}, :forms {:row 1399, :col 57, :end-row 1399, :end-col 61}, :id {:row 1399, :col 66, :end-row 1399, :end-col 93}}} :nil}}}
+filter-alt {4 {:ret #{:vector}}}
+call-valid? {3 {:ret #{:nil :boolean}}}
+rep* {5 {:ret #{{:type :map, :val {:user/op {:row 1399, :col 19, :end-row 1399, :end-col 24, :tag :keyword}, :p2 {:row 1399, :col 30, :end-row 1399, :end-col 32}, :splice {:row 1399, :col 42, :end-row 1399, :end-col 48}, :forms {:row 1399, :col 57, :end-row 1399, :end-col 61}, :id {:row 1399, :col 66, :end-row 1399, :end-col 93}}} :nil}}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.stacktrace.transit.json  ===
+print-throwable {1 {:ret #{:nil}}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.System.transit.json  ===
+console {0 {}}
+identityHashCode {1 {}}
+setProperty {2 {}}
+runFinalization {0 {}}
+inheritedChannel {0 {}}
+load {1 {}}
+lineSeparator {0 {}}
+getProperties {0 {}}
+getSecurityManager {0 {}}
+setErr {1 {}}
+clearProperty {1 {}}
+exit {1 {}}
+getenv {1 {}, 0 {}}
+setSecurityManager {1 {}}
+mapLibraryName {1 {}}
+getLogger {1 {}, 2 {}}
+arraycopy {5 {}}
+loadLibrary {1 {}}
+setProperties {1 {}}
+gc {0 {}}
+getProperty {1 {}, 2 {}}
+setIn {1 {}}
+currentTimeMillis {0 {}}
+setOut {1 {}}
+nanoTime {0 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.string.transit.json  ===
+ends-with? {2 {:args (:nilable/char-sequence :nilable/string)}}
+replace-first-char {3 {:args (:nilable/char-sequence :nilable/char nil)}}
+capitalize {1 {:args (:nilable/char-sequence)}}
+reverse {1 {:args (:nilable/char-sequence)}}
+replace-first {3 {:args (:nilable/char-sequence nil nil)}}
+replace-first-str {3 {:ret #{:nilable/string :string}, :args (:nilable/char-sequence :nilable/string :nilable/string)}}
+starts-with? {2 {:args (:nilable/char-sequence :nilable/string)}}
+escape {2 {:args (:nilable/char-sequence nil)}}
+last-index-of {2 {:args (:nilable/char-sequence nil)}, 3 {:args (:nilable/char-sequence nil :int)}}
+re-quote-replacement {1 {:args (:nilable/char-sequence)}}
+includes? {2 {:args (:nilable/char-sequence :nilable/char-sequence)}}
+replace {3 {:args (:nilable/char-sequence nil nil)}}
+split-lines {1 {:args (:nilable/char-sequence)}}
+lower-case {1 {:args (:nilable/char-sequence)}}
+trim-newline {1 {:args (:nilable/char-sequence)}}
+replace-by {3 {:args (:nilable/char-sequence nil nil)}}
+replace-first-by {3 {:ret #{:nilable/char-sequence :string}, :args (:nilable/char-sequence nil nil)}}
+upper-case {1 {:args (:nilable/char-sequence)}}
+split {2 {:args (:nilable/char-sequence nil)}, 3 {:args (:nilable/char-sequence nil nil)}}
+trimr {1 {:args (:nilable/char-sequence)}}
+index-of {2 {:args (:nilable/char-sequence nil)}, 3 {:args (:nilable/char-sequence nil :int)}}
+trim {1 {:args (:nilable/char-sequence)}}
+triml {1 {:args (:nilable/char-sequence)}}
+blank? {1 {:args (:nilable/char-sequence)}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.set.transit.json  ===
+union {0 {:ret :set}}
+superset? {2 {:ret #{:nil :boolean}}}
+subset? {2 {:ret #{:nil :boolean}}}
+rename {2 {:ret :set}}
+project {2 {:ret :set}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Boolean.transit.json  ===
+getBoolean {1 {}}
+logicalAnd {2 {}}
+logicalOr {2 {}}
+toString {1 {}}
+valueOf {1 {}}
+hashCode {1 {}}
+parseBoolean {1 {}}
+logicalXor {2 {}}
+compare {2 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.io.transit.json  ===
+append? {1 {:ret :boolean}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.browse-ui.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.repl.transit.json  ===
+namespace-doc {1 {:ret :nilable/map}}
+stack-element-str {1 {:ret :string}}
+dir-fn {1 {:ret #{:list :seq}}}
+apropos {1 {:ret #{:list :seq}}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.inspector.transit.json  ===
+atom? {1 {:ret :boolean}}
+collection-tag {1 {:ret #{:keyword :nil}}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.instant.transit.json  ===
+zero-fill-right {2 {:args (:nilable/string nil)}}
+leap-year? {1 {:ret #{:nil :boolean}}}
+divisible? {2 {:ret :boolean}}
+read-instant-timestamp {1 {:args (:nilable/char-sequence)}}
+indivisible? {2 {:ret :boolean}}
+parse-int {1 {:args (:nilable/string)}}
+read-instant-calendar {1 {:args (:nilable/char-sequence)}}
+read-instant-date {1 {:args (:nilable/char-sequence)}}
+parse-timestamp {2 {:args (nil :nilable/char-sequence)}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Long.transit.json  ===
+parseLong {2 {}, 4 {}, 1 {}}
+reverseBytes {1 {}}
+reverse {1 {}}
+sum {2 {}}
+decode {1 {}}
+toOctalString {1 {}}
+min {2 {}}
+bitCount {1 {}}
+toUnsignedString {2 {}, 1 {}}
+rotateLeft {2 {}}
+numberOfLeadingZeros {1 {}}
+numberOfTrailingZeros {1 {}}
+highestOneBit {1 {}}
+remainderUnsigned {2 {}}
+toString {2 {}, 1 {}}
+parseUnsignedLong {2 {}, 4 {}, 1 {}}
+valueOf {2 {}, 1 {}}
+divideUnsigned {2 {}}
+toBinaryString {1 {}}
+hashCode {1 {}}
+rotateRight {2 {}}
+compareUnsigned {2 {}}
+toHexString {1 {}}
+getLong {1 {}, 2 {}}
+max {2 {}}
+lowestOneBit {1 {}}
+compare {2 {}}
+signum {1 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.tools.reader.transit.json  ===
+unquote-splicing? {1 {:ret #{:nil :boolean}}}
+starting-line-col-info {1 {:ret #{:vector :nil}}}
+read+string {0 {:ret :vector}, :varargs {:ret :vector, :min-arity 1}}
+read-unicode-char {4 {:args (:nilable/string :int :int :int)}}
+unquote? {1 {:ret #{:nil :boolean}}}
+syntax-quote-coll {2 {:ret #{:list}}}
+check-eof-error {3 {:args (nil nil :int)}}
+check-invalid-read-cond {3 {:args (nil nil :int)}}
+map-func {1 {:ret #{:symbol}}}
+ending-line-col-info {1 {:ret #{:vector :nil}}}
+garg {1 {:ret :symbol, :args (:int)}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.parallel.transit.json  ===
+pdistinct {1 {:ret :vector}}
+pvec {1 {:ret :vector}}
+pa-to-vec {1 {:ret :vector}}
+psummary {1 {:ret {:type :map, :val {:min {:row 156, :col 9, :end-row 156, :end-col 17}, :max {:row 156, :col 23, :end-row 156, :end-col 31}, :size {:row 156, :col 38, :end-row 156, :end-col 47}, :min-index {:row 156, :col 59, :end-row 156, :end-col 74}, :max-index {:row 156, :col 86, :end-row 156, :end-col 101}}}}, 2 {:ret {:type :map, :val {:min {:row 156, :col 9, :end-row 156, :end-col 17}, :max {:row 156, :col 23, :end-row 156, :end-col 31}, :size {:row 156, :col 38, :end-row 156, :end-col 47}, :min-index {:row 156, :col 59, :end-row 156, :end-col 74}, :max-index {:row 156, :col 86, :end-row 156, :end-col 101}}}}}
+pfilter-nils {1 {:ret :vector}}
+summary-map {1 {:ret {:type :map, :val {:min {:row 156, :col 9, :end-row 156, :end-col 17}, :max {:row 156, :col 23, :end-row 156, :end-col 31}, :size {:row 156, :col 38, :end-row 156, :end-col 47}, :min-index {:row 156, :col 59, :end-row 156, :end-col 74}, :max-index {:row 156, :col 86, :end-row 156, :end-col 101}}}}}
+psort {1 {:ret :vector}, 2 {:ret :vector}}
+pfilter-dupes {1 {:ret :vector}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.main.transit.json  ===
+stack-element-str {1 {:ret :string}}
+core-class? {1 {:args (:nilable/string)}}
+java-loc->source {2 {:ret #{:symbol}}}
+load-script {1 {:args (:nilable/string)}}
+skip-if-eol {1 {:ret #{:keyword :nil}}}
+file-name {1 {:args (:nilable/string)}}
+file-path {1 {:args (:nilable/string)}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.walk.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.template.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.data.json.transit.json  ===
+codepoint-clause {1 {:ret #{:vector :nil}}}
+write-double {2 {:args (:nilable/double nil)}}
+read-integer {1 {:args (:nilable/string)}}
+write-string {2 {:args (:nilable/char-sequence nil)}}
+write-float {2 {:args (:nilable/double nil)}}
+read-decimal {1 {:args (:nilable/string)}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.xml.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.reducers.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.String.transit.json  ===
+join {2 {}}
+format {2 {}, 3 {}}
+valueOf {1 {}, 3 {}}
+copyValueOf {3 {}, 1 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.math.BigDecimal.transit.json  ===
+valueOf {2 {}, 1 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Character.transit.json  ===
+isISOControl {1 {}}
+isDefined {1 {}}
+getType {1 {}}
+isBmpCodePoint {1 {}}
+reverseBytes {1 {}}
+digit {2 {}}
+codePointBefore {2 {}, 3 {}}
+isUnicodeIdentifierPart {1 {}}
+getName {1 {}}
+isUnicodeIdentifierStart {1 {}}
+isLowerCase {1 {}}
+isTitleCase {1 {}}
+isLetterOrDigit {1 {}}
+isSurrogate {1 {}}
+toUpperCase {1 {}}
+isIdentifierIgnorable {1 {}}
+isSpace {1 {}}
+getNumericValue {1 {}}
+isLowSurrogate {1 {}}
+offsetByCodePoints {3 {}, 5 {}}
+codePointCount {3 {}}
+isDigit {1 {}}
+charCount {1 {}}
+isSupplementaryCodePoint {1 {}}
+isValidCodePoint {1 {}}
+isSurrogatePair {2 {}}
+codePointAt {2 {}, 3 {}}
+getDirectionality {1 {}}
+lowSurrogate {1 {}}
+isLetter {1 {}}
+isJavaLetter {1 {}}
+isJavaIdentifierStart {1 {}}
+toTitleCase {1 {}}
+toString {1 {}}
+isAlphabetic {1 {}}
+isJavaIdentifierPart {1 {}}
+valueOf {1 {}}
+isHighSurrogate {1 {}}
+toChars {3 {}, 1 {}}
+isSpaceChar {1 {}}
+isJavaLetterOrDigit {1 {}}
+hashCode {1 {}}
+highSurrogate {1 {}}
+toLowerCase {1 {}}
+forDigit {2 {}}
+isMirrored {1 {}}
+isIdeographic {1 {}}
+toCodePoint {2 {}}
+codePointOf {1 {}}
+compare {2 {}}
+isUpperCase {1 {}}
+isWhitespace {1 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.reflect.transit.json  ===
+access-flag {1 {:ret {:type :map, :val {:name {:row 57, :col 10, :end-row 57, :end-col 14}, :flag {:row 57, :col 21, :end-row 57, :end-col 25}, :contexts {:row 57, :col 36, :end-row 57, :end-col 64}}}}}
+declared-constructors {1 {:ret :set}}
+parse-method-descriptor {1 {:ret {:type :map, :val {:parameter-types {:row 193, :col 21, :end-row 193, :end-col 67}, :return-type {:row 194, :col 17, :end-row 194, :end-col 50}}}, :args (:nilable/string)}}
+field-descriptor->class-symbol {1 {:args (:nilable/string)}}
+declared-fields {1 {:ret :set}}
+declared-methods {1 {:ret :set}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Integer.transit.json  ===
+reverseBytes {1 {}}
+reverse {1 {}}
+sum {2 {}}
+decode {1 {}}
+toOctalString {1 {}}
+min {2 {}}
+parseUnsignedInt {2 {}, 4 {}, 1 {}}
+bitCount {1 {}}
+parseInt {2 {}, 4 {}, 1 {}}
+toUnsignedString {2 {}, 1 {}}
+rotateLeft {2 {}}
+numberOfLeadingZeros {1 {}}
+numberOfTrailingZeros {1 {}}
+highestOneBit {1 {}}
+remainderUnsigned {2 {}}
+toString {2 {}, 1 {}}
+toUnsignedLong {1 {}}
+valueOf {2 {}, 1 {}}
+divideUnsigned {2 {}}
+toBinaryString {1 {}}
+hashCode {1 {}}
+rotateRight {2 {}}
+compareUnsigned {2 {}}
+toHexString {1 {}}
+max {2 {}}
+lowestOneBit {1 {}}
+compare {2 {}}
+signum {1 {}}
+getInteger {1 {}, 2 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.edn.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.browse.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.uuid.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.transit.json  ===
++' {0 {:ret :nat-int}}
+sort-by {2 {:ret #{:list :seq}}, 3 {:ret #{:list :seq}}}
+is-runtime-annotation? {1 {:ret :boolean}}
+subs {2 {:ret :nilable/string, :args (:nilable/string nil)}, 3 {:ret :nilable/string, :args (:nilable/string nil nil)}}
+reader-conditional {2 {:args (nil :nilable/boolean)}}
+qualified-keyword? {1 {:ret :boolean}}
+satisfies? {2 {:ret :boolean}}
+take-nth {2 {:ret :seq}}
+newline {0 {:ret :nil}}
+pr-on {2 {:ret :nil}}
+pr {0 {:ret :nil}, 1 {:ret :nil}}
+= {1 {:ret :boolean}}
+take {2 {:ret :seq}}
+thread-bound? {:varargs {:ret :boolean, :min-arity 0}}
+any? {1 {:ret :boolean}}
+rand-int {1 {:ret :int}}
+map {2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}, :varargs {:ret :seq, :min-arity 4}}
+< {1 {:ret :boolean}}
+make-hierarchy {0 {:ret {:type :map, :val {:parents {:row 5532, :col 16, :end-row 5532, :end-col 18, :tag {:type :map, :val {}}}, :descendants {:row 5532, :col 32, :end-row 5532, :end-col 34, :tag {:type :map, :val {}}}, :ancestors {:row 5532, :col 46, :end-row 5532, :end-col 48, :tag {:type :map, :val {}}}}}}}
+keep {2 {:ret :seq}}
+unchecked-long {1 {:args (:nilable/number)}}
+some? {1 {:ret :boolean}}
+get-super-and-interfaces {1 {:ret #{:vector}}}
+remove-tap {1 {:ret :nil}}
+inst? {1 {:ret :boolean}}
+range {0 {:ret :seq}}
+sort {1 {:ret #{:list :seq}}, 2 {:ret #{:list :seq}}}
+generate-class {1 {:ret :vector}}
+simple-symbol? {1 {:ret #{:nil :boolean}}}
+unchecked-float {1 {:args (:nilable/number)}}
+StackTraceElement->vec {1 {:ret :vector}}
+flush {0 {:ret :nil}}
+take-while {2 {:ret :seq}}
+<= {1 {:ret :boolean}}
+repeatedly {1 {:ret :seq}, 2 {:ret :seq}}
+remove {1 {:ret :transducer}, 2 {:ret :seq}}
+* {0 {:ret :pos-int}}
+format {:varargs {:ret :nilable/string, :min-arity 1}}
+bound? {:varargs {:ret :boolean, :min-arity 0}}
+parse-opts+specs {1 {:ret :vector}}
+interleave {1 {:ret :seq}, 2 {:ret :seq}, :varargs {:ret :seq, :min-arity 2}}
+protocol? {1 {:ret :boolean}}
+into {0 {:ret :vector}}
+long {1 {:args (:nilable/number)}}
+double {1 {:args (:nilable/number)}}
+method-sig {1 {:ret :vector}}
+hash-ordered-coll {1 {:ret :int}}
+deref-as-map {1 {:ret {:type :map, :val {:status {:row 445, :col 6, :end-row 455, :end-col 14, :tag #{{:tag :keyword, :row 452, :col 7, :end-row 452, :end-col 15} {:tag :keyword, :row 449, :col 7, :end-row 449, :end-col 14} :nil}}, :val {:row 457, :col 11, :end-row 457, :end-col 14}}}}}
+empty? {1 {:ret :boolean}}
+short {1 {:args (:nilable/number)}}
+pref {0 {:ret :nil}}
+add-tap {1 {:ret :nil}}
+unchecked-double {1 {:args (:nilable/number)}}
+not= {1 {:ret :boolean}, 2 {:ret :boolean}, :varargs {:ret :boolean, :min-arity 2}}
+fits-table? {1 {:ret :boolean}}
+rand {1 {:ret :number}}
+> {1 {:ret :boolean}}
+replace {1 {:ret :transducer}}
+unchecked-int {1 {:args (:nilable/number)}}
+prn {:varargs {:ret #{:nil}, :min-arity 0}}
+extends? {2 {:ret :boolean}}
+spread {1 {:ret #{:nil :seq}}}
+agent-errors {1 {:ret #{:list :nil}}}
+float {1 {:args (:nilable/number)}}
+concat {0 {:ret :seq}, 1 {:ret :seq}, 2 {:ret :seq}}
+valid-java-method-name {1 {:ret :boolean, :args (:nilable/string)}}
+mod {2 {:ret #{:number}}}
+reductions {2 {:ret :seq}}
+hash-set {0 {:ret :set}}
+emit-hinted-impl {2 {:ret :vector}}
+strip-ns {1 {:ret #{:symbol :keyword}}}
+simple-keyword? {1 {:ret #{:nil :boolean}}}
+neg-int? {1 {:ret #{:nil :boolean}}}
+drop {2 {:ret :seq}}
+split-at {2 {:ret :vector}}
+random-sample {1 {:ret :transducer}, 2 {:ret :seq}}
+group-by-sig {1 {:ret :seq}}
+list* {1 {:ret :seq}}
+*' {0 {:ret :pos-int}}
+mix-collection-hash {2 {:ret :int, :args (:int :int)}}
+re-find {2 {:ret :seq}}
+run! {2 {:ret :nil}}
+print-sequential {6 {:args (:nilable/string nil :nilable/string :nilable/string nil nil)}}
+not {1 {:ret #{:boolean}}}
+ident? {1 {:ret #{:boolean}}}
+qualified-ident? {1 {:ret :boolean}}
+/ {1 {:ret :number}}
+vector {0 {:ret :vector}, 1 {:ret :vector}, 2 {:ret :vector}, 3 {:ret :vector}, 4 {:ret :vector}, 5 {:ret :vector}, 6 {:ret :vector}}
+>= {1 {:ret :boolean}}
+drop-last {1 {:ret :seq}, 2 {:ret :seq}}
+root-directory {1 {:ret :string}}
+partition {2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}}
+data-reader-urls {0 {:ret :seq}}
+mapv {3 {:ret :vector}, 4 {:ret :vector}, :varargs {:ret :vector, :min-arity 4}}
+partition-all {1 {:args (:int)}, 2 {:ret :seq}, 3 {:ret :seq}}
+partition-by {2 {:ret :seq}}
+derive {2 {:ret :nil}}
+prep-hashes {4 {:ret #{:vector}}}
+subseq {5 {:ret #{:nil :seq}}}
+flatten {1 {:ret :seq}}
+nat-int? {1 {:ret #{:nil :boolean}}}
+subvec {2 {:ret :vector}}
+replicate {2 {:ret :seq}}
+unchecked-byte {1 {:args (:nilable/number)}}
+distinct? {1 {:ret :boolean}, 2 {:ret :boolean}}
+pos-int? {1 {:ret #{:nil :boolean}}}
+prep-ints {2 {:ret #{:vector}}}
+extenders {1 {:ret :seq}}
+unchecked-short {1 {:args (:nilable/number)}}
+odd? {1 {:ret :boolean}}
+rsubseq {5 {:ret #{:nil :seq}}}
+filter {2 {:ret :seq}}
++ {0 {:ret :nat-int}}
+split-with {2 {:ret :vector}}
+ctor-sigs {1 {:ret :seq}}
+str {0 {:ret :nilable/string}, 1 {:ret :nilable/string}, :varargs {:ret :nilable/string, :min-arity 1}}
+hash-map {0 {:ret {:type :map, :val {}}}}
+underive {2 {:ret :nil}}
+Throwable->map {1 {:ret :nilable/map}}
+simple-ident? {1 {:ret #{:nil :boolean}}}
+generate-interface {1 {:ret :vector}}
+byte {1 {:args (:nilable/number)}}
+== {1 {:ret :boolean}}
+root-resource {1 {:ret :string}}
+generate-proxy {2 {:ret :vector}}
+interpose {2 {:ret :seq}}
+emit-impl {1 {:ret :vector}}
+rational? {1 {:ret #{:boolean}}}
+clojure-version {0 {:ret :string}}
+merge-hash-collisions {4 {:ret :vector}}
+drop-while {2 {:ret :seq}}
+hash-unordered-coll {1 {:ret :int}}
+preserving-reduced {1 {:ret :fn}}
+qualified-symbol? {1 {:ret :boolean}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.data.transit.json  ===
+atom-diff {2 {:ret #{:vector}}}
+diff-associative-key {3 {:ret :vector}}
+diff-sequential {2 {:ret :vector}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Byte.transit.json  ===
+decode {1 {}}
+toString {1 {}}
+toUnsignedLong {1 {}}
+valueOf {1 {}, 2 {}}
+toUnsignedInt {1 {}}
+hashCode {1 {}}
+compareUnsigned {2 {}}
+parseByte {2 {}, 1 {}}
+compare {2 {}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.tap.transit.json  ===
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.javadoc.transit.json  ===
+javadoc-url {1 {:args (:nilable/string)}}
+
+===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.test.alpha.transit.json  ===
+interpret-stack-trace-element {1 {:ret :nilable/map}}
+fn-spec-name? {1 {:ret #{:nil :boolean}}}
+make-check-result {3 {:ret :nilable/map}}
+enumerate-namespace {1 {:ret :set}}
+sym->check-map {1 {:ret {:type :map, :val {:s {:row 348, :col 9, :end-row 348, :end-col 10}, :v {:row 349, :col 9, :end-row 349, :end-col 10}, :spec {:row 350, :col 12, :end-row 350, :end-col 35}}}}}
+
