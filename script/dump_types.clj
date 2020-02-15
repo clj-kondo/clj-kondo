@@ -20,9 +20,12 @@
           :when ar]
       [k ar])))
 
-(doseq [f clj-files]
-  (println "=== " (.getPath f) " ===")
-  (doseq [[k v] (types f)]
-    (println k v))
-  (println))
+(let [output
+      (with-out-str
+        (doseq [f clj-files]
+          (println "=== " (.getPath f) " ===")
+          (doseq [[k v] (types f)]
+            (println k v))
+          (println)))]
+  (spit (io/file "doc" "types.txt") output))
 

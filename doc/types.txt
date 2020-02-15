@@ -31,63 +31,10 @@ testing-vars-str {1 {:ret :string}}
 run-tests {0 {:ret :associative}, :varargs {:ret :associative, :min-arity 0}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.math.BigInteger.transit.json  ===
-probablePrime {2 {}}
-valueOf {1 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Math.transit.json  ===
-floorDiv {2 {}}
-log {1 {}}
-acos {1 {}}
-floor {1 {}}
-atan2 {2 {}}
-addExact {2 {}}
-hypot {2 {}}
-toRadians {1 {}}
-tanh {1 {}}
-decrementExact {1 {}}
-ceil {1 {}}
-IEEEremainder {2 {}}
-subtractExact {2 {}}
-min {2 {}}
-atan {1 {}}
-expm1 {1 {}}
-multiplyFull {2 {}}
-cos {1 {}}
-log10 {1 {}}
-tan {1 {}}
-cbrt {1 {}}
-multiplyExact {2 {}}
-sqrt {1 {}}
-incrementExact {1 {}}
-nextUp {1 {}}
-toDegrees {1 {}}
-toIntExact {1 {}}
-pow {2 {}}
-exp {1 {}}
-multiplyHigh {2 {}}
-cosh {1 {}}
-negateExact {1 {}}
-nextAfter {2 {}}
-scalb {2 {}}
-log1p {1 {}}
-asin {1 {}}
-round {1 {}}
-nextDown {1 {}}
-abs {1 {}}
-sinh {1 {}}
-rint {1 {}}
-fma {3 {}}
-max {2 {}}
-floorMod {2 {}}
-ulp {1 {}}
-sin {1 {}}
-copySign {2 {}}
-getExponent {1 {}}
-random {0 {}}
-signum {1 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.CharSequence.transit.json  ===
-compare {2 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.datafy.transit.json  ===
 
@@ -95,35 +42,8 @@ compare {2 {}}
 parse-args {1 {:ret :vector}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Double.transit.json  ===
-isInfinite {1 {}}
-isFinite {1 {}}
-parseDouble {1 {}}
-sum {2 {}}
-doubleToRawLongBits {1 {}}
-doubleToLongBits {1 {}}
-min {2 {}}
-isNaN {1 {}}
-toString {1 {}}
-valueOf {1 {}}
-hashCode {1 {}}
-toHexString {1 {}}
-longBitsToDouble {1 {}}
-max {2 {}}
-compare {2 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Thread.transit.json  ===
-enumerate {1 {}}
-sleep {1 {}, 2 {}}
-onSpinWait {0 {}}
-getDefaultUncaughtExceptionHandler {0 {}}
-yield {0 {}}
-getAllStackTraces {0 {}}
-dumpStack {0 {}}
-holdsLock {1 {}}
-activeCount {0 {}}
-currentThread {0 {}}
-interrupted {0 {}}
-setDefaultUncaughtExceptionHandler {1 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.specs.alpha.transit.json  ===
 even-number-of-forms? {1 {:ret :boolean}}
@@ -197,31 +117,6 @@ rep* {5 {:ret #{{:type :map, :val {:user/op {:row 1399, :col 19, :end-row 1399, 
 print-throwable {1 {:ret #{:nil}}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.System.transit.json  ===
-console {0 {}}
-identityHashCode {1 {}}
-setProperty {2 {}}
-runFinalization {0 {}}
-inheritedChannel {0 {}}
-load {1 {}}
-lineSeparator {0 {}}
-getProperties {0 {}}
-getSecurityManager {0 {}}
-setErr {1 {}}
-clearProperty {1 {}}
-exit {1 {}}
-getenv {1 {}, 0 {}}
-setSecurityManager {1 {}}
-mapLibraryName {1 {}}
-getLogger {1 {}, 2 {}}
-arraycopy {5 {}}
-loadLibrary {1 {}}
-setProperties {1 {}}
-gc {0 {}}
-getProperty {1 {}, 2 {}}
-setIn {1 {}}
-currentTimeMillis {0 {}}
-setOut {1 {}}
-nanoTime {0 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.string.transit.json  ===
 ends-with? {2 {:args (:nilable/char-sequence :nilable/string)}}
@@ -257,15 +152,6 @@ rename {2 {:ret :set}}
 project {2 {:ret :set}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Boolean.transit.json  ===
-getBoolean {1 {}}
-logicalAnd {2 {}}
-logicalOr {2 {}}
-toString {1 {}}
-valueOf {1 {}}
-hashCode {1 {}}
-parseBoolean {1 {}}
-logicalXor {2 {}}
-compare {2 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.io.transit.json  ===
 append? {1 {:ret :boolean}}
@@ -294,34 +180,6 @@ read-instant-date {1 {:args (:nilable/char-sequence)}}
 parse-timestamp {2 {:args (nil :nilable/char-sequence)}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Long.transit.json  ===
-parseLong {2 {}, 4 {}, 1 {}}
-reverseBytes {1 {}}
-reverse {1 {}}
-sum {2 {}}
-decode {1 {}}
-toOctalString {1 {}}
-min {2 {}}
-bitCount {1 {}}
-toUnsignedString {2 {}, 1 {}}
-rotateLeft {2 {}}
-numberOfLeadingZeros {1 {}}
-numberOfTrailingZeros {1 {}}
-highestOneBit {1 {}}
-remainderUnsigned {2 {}}
-toString {2 {}, 1 {}}
-parseUnsignedLong {2 {}, 4 {}, 1 {}}
-valueOf {2 {}, 1 {}}
-divideUnsigned {2 {}}
-toBinaryString {1 {}}
-hashCode {1 {}}
-rotateRight {2 {}}
-compareUnsigned {2 {}}
-toHexString {1 {}}
-getLong {1 {}, 2 {}}
-max {2 {}}
-lowestOneBit {1 {}}
-compare {2 {}}
-signum {1 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.tools.reader.transit.json  ===
 unquote-splicing? {1 {:ret #{:nil :boolean}}}
@@ -372,67 +230,10 @@ read-decimal {1 {:args (:nilable/string)}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.reducers.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.String.transit.json  ===
-join {2 {}}
-format {2 {}, 3 {}}
-valueOf {1 {}, 3 {}}
-copyValueOf {3 {}, 1 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.math.BigDecimal.transit.json  ===
-valueOf {2 {}, 1 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Character.transit.json  ===
-isISOControl {1 {}}
-isDefined {1 {}}
-getType {1 {}}
-isBmpCodePoint {1 {}}
-reverseBytes {1 {}}
-digit {2 {}}
-codePointBefore {2 {}, 3 {}}
-isUnicodeIdentifierPart {1 {}}
-getName {1 {}}
-isUnicodeIdentifierStart {1 {}}
-isLowerCase {1 {}}
-isTitleCase {1 {}}
-isLetterOrDigit {1 {}}
-isSurrogate {1 {}}
-toUpperCase {1 {}}
-isIdentifierIgnorable {1 {}}
-isSpace {1 {}}
-getNumericValue {1 {}}
-isLowSurrogate {1 {}}
-offsetByCodePoints {3 {}, 5 {}}
-codePointCount {3 {}}
-isDigit {1 {}}
-charCount {1 {}}
-isSupplementaryCodePoint {1 {}}
-isValidCodePoint {1 {}}
-isSurrogatePair {2 {}}
-codePointAt {2 {}, 3 {}}
-getDirectionality {1 {}}
-lowSurrogate {1 {}}
-isLetter {1 {}}
-isJavaLetter {1 {}}
-isJavaIdentifierStart {1 {}}
-toTitleCase {1 {}}
-toString {1 {}}
-isAlphabetic {1 {}}
-isJavaIdentifierPart {1 {}}
-valueOf {1 {}}
-isHighSurrogate {1 {}}
-toChars {3 {}, 1 {}}
-isSpaceChar {1 {}}
-isJavaLetterOrDigit {1 {}}
-hashCode {1 {}}
-highSurrogate {1 {}}
-toLowerCase {1 {}}
-forDigit {2 {}}
-isMirrored {1 {}}
-isIdeographic {1 {}}
-toCodePoint {2 {}}
-codePointOf {1 {}}
-compare {2 {}}
-isUpperCase {1 {}}
-isWhitespace {1 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.reflect.transit.json  ===
 access-flag {1 {:ret {:type :map, :val {:name {:row 57, :col 10, :end-row 57, :end-col 14}, :flag {:row 57, :col 21, :end-row 57, :end-col 25}, :contexts {:row 57, :col 36, :end-row 57, :end-col 64}}}}}
@@ -443,35 +244,6 @@ declared-fields {1 {:ret :set}}
 declared-methods {1 {:ret :set}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Integer.transit.json  ===
-reverseBytes {1 {}}
-reverse {1 {}}
-sum {2 {}}
-decode {1 {}}
-toOctalString {1 {}}
-min {2 {}}
-parseUnsignedInt {2 {}, 4 {}, 1 {}}
-bitCount {1 {}}
-parseInt {2 {}, 4 {}, 1 {}}
-toUnsignedString {2 {}, 1 {}}
-rotateLeft {2 {}}
-numberOfLeadingZeros {1 {}}
-numberOfTrailingZeros {1 {}}
-highestOneBit {1 {}}
-remainderUnsigned {2 {}}
-toString {2 {}, 1 {}}
-toUnsignedLong {1 {}}
-valueOf {2 {}, 1 {}}
-divideUnsigned {2 {}}
-toBinaryString {1 {}}
-hashCode {1 {}}
-rotateRight {2 {}}
-compareUnsigned {2 {}}
-toHexString {1 {}}
-max {2 {}}
-lowestOneBit {1 {}}
-compare {2 {}}
-signum {1 {}}
-getInteger {1 {}, 2 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.edn.transit.json  ===
 
@@ -621,15 +393,6 @@ diff-associative-key {3 {:ret :vector}}
 diff-sequential {2 {:ret :vector}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Byte.transit.json  ===
-decode {1 {}}
-toString {1 {}}
-toUnsignedLong {1 {}}
-valueOf {1 {}, 2 {}}
-toUnsignedInt {1 {}}
-hashCode {1 {}}
-compareUnsigned {2 {}}
-parseByte {2 {}, 1 {}}
-compare {2 {}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.tap.transit.json  ===
 
