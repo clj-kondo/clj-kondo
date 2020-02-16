@@ -16,6 +16,7 @@ xml-zip {1 {:ret :vector}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.server.transit.json  ===
 thread {:varargs {:min-arity 2, :args (:nilable/string nil nil nil)}}
+ex->data {2 {:ret :associative}}
 remote-prepl {:varargs {:min-arity 4, :args (:nilable/string nil nil nil nil nil)}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.gen.alpha.transit.json  ===
@@ -96,6 +97,7 @@ tokens-fit? {2 {:ret #{:boolean}}}
 tuple-map {2 {:ret {:type :map, :val {}}}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.alpha.transit.json  ===
+alt-impl {3 {:ret :associative}}
 pvalid? {2 {:ret :boolean}, 3 {:ret :boolean}}
 explain-data* {5 {:ret #{:nil {:type :map, :val {:user/problems {:row 214, :col 19, :end-row 214, :end-col 24}, :user/spec {:row 215, :col 15, :end-row 215, :end-col 19}, :user/value {:row 216, :col 16, :end-row 216, :end-col 17}}}}}}
 fn-sym {1 {:ret #{:symbol :nil}}}
@@ -106,12 +108,14 @@ valid? {2 {:ret :boolean}, 3 {:ret :boolean}}
 int-in-range? {3 {:ret #{:nil :boolean}}}
 exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq}}
 explain-data {2 {:ret #{:nil {:type :map, :val {:user/problems {:row 214, :col 19, :end-row 214, :end-col 24}, :user/spec {:row 215, :col 15, :end-row 215, :end-col 19}, :user/value {:row 216, :col 16, :end-row 216, :end-col 17}}}}}}
+inck {2 {:ret :associative}}
 invalid? {1 {:ret :boolean}}
 amp-impl {4 {:ret {:type :map, :val {:user/op {:row 1416, :col 9, :end-row 1416, :end-col 14, :tag :keyword}, :p1 {:row 1416, :col 19, :end-row 1416, :end-col 21}, :amp {:row 1416, :col 27, :end-row 1416, :end-col 34}, :ps {:row 1416, :col 39, :end-row 1416, :end-col 44}, :forms {:row 1416, :col 52, :end-row 1416, :end-col 62}}}}}
 rep-impl {2 {:ret #{{:type :map, :val {:user/op {:row 1399, :col 19, :end-row 1399, :end-col 24, :tag :keyword}, :p2 {:row 1399, :col 30, :end-row 1399, :end-col 32}, :splice {:row 1399, :col 42, :end-row 1399, :end-col 48}, :forms {:row 1399, :col 57, :end-row 1399, :end-col 61}, :id {:row 1399, :col 66, :end-row 1399, :end-col 93}}} :nil}}}
 filter-alt {4 {:ret #{:vector}}}
 call-valid? {3 {:ret #{:nil :boolean}}}
 rep* {5 {:ret #{{:type :map, :val {:user/op {:row 1399, :col 19, :end-row 1399, :end-col 24, :tag :keyword}, :p2 {:row 1399, :col 30, :end-row 1399, :end-col 32}, :splice {:row 1399, :col 42, :end-row 1399, :end-col 48}, :forms {:row 1399, :col 57, :end-row 1399, :end-col 61}, :id {:row 1399, :col 66, :end-row 1399, :end-col 93}}} :nil}}}
+maybe-impl {2 {:ret :associative}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.stacktrace.transit.json  ===
 print-throwable {1 {:ret #{:nil}}}
@@ -159,7 +163,8 @@ append? {1 {:ret :boolean}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.browse-ui.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.repl.transit.json  ===
-namespace-doc {1 {:ret :nilable/map}}
+namespace-doc {1 {:ret :associative}}
+special-doc {1 {:ret :associative}}
 stack-element-str {1 {:ret :string}}
 dir-fn {1 {:ret #{:list :seq}}}
 apropos {1 {:ret #{:list :seq}}}
@@ -212,6 +217,7 @@ load-script {1 {:args (:nilable/string)}}
 skip-if-eol {1 {:ret #{:keyword :nil}}}
 file-name {1 {:args (:nilable/string)}}
 file-path {1 {:args (:nilable/string)}}
+ex-triage {1 {:ret :associative}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.walk.transit.json  ===
 
@@ -323,11 +329,13 @@ reductions {2 {:ret :seq}}
 hash-set {0 {:ret :set}}
 emit-hinted-impl {2 {:ret :vector}}
 strip-ns {1 {:ret #{:symbol :keyword}}}
+assoc-in {3 {:ret #{:associative}}}
 simple-keyword? {1 {:ret #{:nil :boolean}}}
 neg-int? {1 {:ret #{:nil :boolean}}}
 drop {2 {:ret :seq}}
 split-at {2 {:ret :vector}}
 random-sample {1 {:ret :transducer}, 2 {:ret :seq}}
+update {3 {:ret :associative}, 4 {:ret :associative}, 5 {:ret :associative}, 6 {:ret :associative}, :varargs {:ret :associative, :min-arity 6}}
 group-by-sig {1 {:ret :seq}}
 list* {1 {:ret :seq}}
 *' {0 {:ret :pos-int}}

@@ -99,10 +99,16 @@
                                        {:op :rest
                                         :spec [:any :any]}]}}
            :fn (fn [args]
-                 (let [t (:tag (first args))]
-                   (if (identical? :any t)
-                     :associative
-                     t)))}
+                 (let [farg (first args)]
+                   (if-let [t (:tag farg)]
+                     (case t
+                       :map :map
+                       :vector :vector
+                       (if (and (map? t)
+                                (identical? :map (:type t)))
+                         t
+                         :associative))
+                     :associative)))}
    ;; 202
    'meta {:arities {1 {:ret :nilable/map}}}
    ;; 211

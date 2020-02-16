@@ -421,6 +421,15 @@
 "
                 {:linters {:type-mismatch {:level :error}}}
                 "--cache" "true")))
+  (testing "return type of assoc"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 42, :level :error, :message "Expected: number, received: map."})
+     (lint! "(defn foo [_] (assoc {} :foo true)) (inc (foo {}))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 41, :level :error, :message "Expected: number, received: associative collection."})
+     (lint! "(defn foo [x] (assoc x :foo true)) (inc (foo {}))"
+            {:linters {:type-mismatch {:level :error}}})))
   (testing "avoiding false positives"
     (is (empty?
          (lint! "(cons [nil] (list 1 2 3))
