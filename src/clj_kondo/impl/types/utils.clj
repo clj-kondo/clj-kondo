@@ -64,7 +64,7 @@
 (defn resolve-arity-return-types [idacs arities]
   (persistent!
    (reduce-kv
-    (fn [m k v]
+    (fn [m arity v]
       (let [new-v (if-let [ret (:ret v)]
                     (let [t (resolve-arg-type idacs ret)]
                       (if (identical? t :any)
@@ -72,8 +72,8 @@
                         (assoc v :ret t)))
                     (not-empty-arity v))]
         (if new-v
-          (assoc! m k new-v)
-          (dissoc! m k))))
+          (assoc! m arity new-v)
+          (dissoc! m arity))))
     (transient {})
     arities)))
 

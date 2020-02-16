@@ -34,6 +34,7 @@ Clj-kondo detects:
 * unused private vars
 * private and deprecated var usage
 * required but unused namespaces
+* unsorted required namespaces
 * referred but unused vars
 * duplicate requires
 * unused function arguments and let bindings

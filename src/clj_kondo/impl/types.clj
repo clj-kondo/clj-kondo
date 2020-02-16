@@ -178,29 +178,30 @@
      :val (zipmap ks vtags)}))
 
 (defn ret-tag-from-call [ctx call _expr]
-  (when (not (:unresolved? call))
-    (or (when-let [ret (:ret call)]
-          {:tag ret})
-        (when-let [arg-types (:arg-types call)]
-          (let [called-ns (:resolved-ns call)
-                called-name (:name call)]
-            (if-let [spec
-                     (or
-                      (config/type-mismatch-config (:config ctx) called-ns called-name)
-                      (get-in built-in-specs [called-ns called-name]))]
-              (or
-               (when-let [a (:arities spec)]
-                 (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
-                   (when-let [t (:ret called-arity)]
-                     {:tag t})))
-               (if-let [fn-spec (:fn spec)]
-                 (when-let [t (fn-spec @arg-types)]
-                   {:tag t})
-                 (when-let [t (:ret spec)]
-                   {:tag t})))
-              ;; we delay resolving this call, because we might find the spec for by linting other code
-              ;; see linters.clj
-              {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])}))))))
+  (or (:ret call)
+      (when (not (:unresolved? call))
+        (or (when-let [ret (:ret call)]
+              {:tag ret})
+            (when-let [arg-types (:arg-types call)]
+              (let [called-ns (:resolved-ns call)
+                    called-name (:name call)]
+                (if-let [spec
+                         (or
+                          (config/type-mismatch-config (:config ctx) called-ns called-name)
+                          (get-in built-in-specs [called-ns called-name]))]
+                  (or
+                   (when-let [a (:arities spec)]
+                     (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
+                       (when-let [t (:ret called-arity)]
+                         {:tag t})))
+                   (if-let [fn-spec (:fn spec)]
+                     (when-let [t (fn-spec @arg-types)]
+                       {:tag t})
+                     (when-let [t (:ret spec)]
+                       {:tag t})))
+                  ;; we delay resolving this call, because we might find the spec for by linting other code
+                  ;; see linters.clj
+                  {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])})))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
   (when-let [id (:id expr)]
