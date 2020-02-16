@@ -301,7 +301,7 @@
                                       config
                                       (symbol (str fn-ns)
                                               (str fn-name))
-                                      caller-ns-sym (:in-def call)))
+                                      caller-ns-sym in-def))
                                   {:filename filename
                                    :row row
                                    :col col
