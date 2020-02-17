@@ -8,3 +8,4 @@
 (when (do 1 2 3)) ;; no mention of redundant do
 (when :foo (do 1 2 3))
 (when-not :foo (do 1 2 3))
+(future (do 1 2))
