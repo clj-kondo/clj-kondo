@@ -63,7 +63,8 @@
      {:row 7, :col 16, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 9, :col 12, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 10, :col 16, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 11, :col 9, :file "corpus/redundant_do.clj" :message "redundant do"})
+     {:row 11, :col 9, :file "corpus/redundant_do.clj" :message "redundant do"}
+     {:row 12, :col 17, :file "corpus/redundant_do.clj" :message "redundant do"})
    (lint! (io/file "corpus" "redundant_do.clj")))
   (is (empty? (lint! "(do 1 `(do 1 2 3))")))
   (is (empty? (lint! "(do 1 '(do 1 2 3))")))
