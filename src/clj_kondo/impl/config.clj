@@ -8,7 +8,7 @@
   '{;; no linting inside calls to these functions/macros
     ;; note that you will still get an arity error when calling the fn/macro itself incorrectly
     :skip-args [#_clojure.core/comment #_cljs.core/comment]
-    :skip-comments false ;; convient shorthand for :skip-args [clojure.core/comment cljs.core/comment]
+    :skip-comments false ;; convenient shorthand for :skip-args [clojure.core/comment cljs.core/comment]
     ;; linter level can be tweaked by setting :level to :error, :warn or :info (or any other keyword)
     ;; all linters are enabled by default, but can be turned off by setting :level to :off.
     :linters {:invalid-arity {:level :error
