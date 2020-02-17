@@ -856,6 +856,8 @@
    ;; 5721 'iterator-seq
    ;; 5731 'enumeration-seq
    ;; 5738 'format
+   'format {:arities {:varargs {:args [:string {:op :rest :spec :any}]
+                                :ret :string}}}
    ;; 5746 'printf
    ;; 5753 'gen-class
    ;; 5755 'with-loading-context
