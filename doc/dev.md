@@ -27,11 +27,11 @@ All issues are categorized in a column on the [project board](https://github.com
 
 
  6) Clj-kondo should be unobtrusive. Users of clj-kondo should not have to change their code only to make the linter happy. Team members who do not wish to use clj-kondo should not be confronted with clj-kondo-related annotations in their code.
- 
+
 ## Adding a new linter
 If you wish to add a new linter, do not forget to add the appropriate keyword in `clj-kondo.impl.config/default-config`, the map that defines the default configuration.
 
-This is necessary because only the linters with a keyword in the default config appear in the report.  
+This is necessary because only the linters with a keyword in the default config appear in the report.
 
 ## PR
 
@@ -95,8 +95,8 @@ The alias `cider-nrepl` is defined in his `~/.clojure/deps.edn`:
 
 ## Coding guidelines
 
-- Avoid calling rewrite-clj `sexpr` when you can. This often results in exceptions when the code is not representable as a sexpr, e.g.: `{:a}`. This becomes noticable when you use clj-kondo in an editor and you stop typ
-- Avoid traversing the AST multiple times if possible. 
+- Avoid calling rewrite-clj `sexpr` when you can. This often results in exceptions when the code is not representable as a sexpr, e.g.: `{:a}`. This becomes noticeable when you use clj-kondo in an editor and you stop typ
+- Avoid traversing the AST multiple times if possible.
 
 ## Tests
 

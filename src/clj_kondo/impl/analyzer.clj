@@ -584,7 +584,7 @@
                     (= 'do core-sym)
                     ;; implicit do
                     (one-of core-sym [fn defn defn-
-                                      let loop binding with-open
+                                      let when-let loop binding with-open
                                       doseq try when when-not future])))))]
     (when redundant?
       (findings/reg-finding!
