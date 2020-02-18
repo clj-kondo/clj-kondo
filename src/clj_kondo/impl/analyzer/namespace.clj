@@ -188,12 +188,17 @@
   (with-meta (:value node)
     (meta node)))
 
-(defn analyze-import [_ctx _ns-name libspec-expr]
+(defn analyze-import [ctx _ns-name libspec-expr]
   (case (tag libspec-expr)
     (:vector :list) (let [children (:children libspec-expr)
                           java-package-name-node (first children)
                           java-package (:value java-package-name-node)
-                          imported (map class-with-location (rest children))]
+                          imported-nodes (rest children)
+                          imported (map class-with-location imported-nodes)]
+                      (when (empty? imported-nodes)
+                        (findings/reg-finding! ctx (node->line
+                                                    (:filename ctx) libspec-expr
+                                                    :error :syntax "Expected: imported classes.")))
                       (into {} (for [i imported]
                                  [i java-package])))
     :token (let [package+class (:value libspec-expr)
