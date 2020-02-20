@@ -196,9 +196,11 @@
                           imported-nodes (rest children)
                           imported (map class-with-location imported-nodes)]
                       (when (empty? imported-nodes)
-                        (findings/reg-finding! ctx (node->line
-                                                    (:filename ctx) libspec-expr
-                                                    :error :syntax "Expected: imported classes.")))
+                        (findings/reg-finding!
+                         ctx
+                         (node->line
+                          (:filename ctx) java-package-name-node
+                          :error :syntax "Expected: package name followed by classes.")))
                       (into {} (for [i imported]
                                  [i java-package])))
     :token (let [package+class (:value libspec-expr)

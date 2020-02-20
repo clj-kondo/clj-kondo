@@ -2494,6 +2494,11 @@
   (is (empty? (lint! "(ns main.core (:require [\"/vendors/daterangepicker\"]))"
                      "--lang" "cljc" "--cache" "true"))))
 
+(deftest import-syntax
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 19, :level :error, :message "Expected: package name followed by classes."})
+   (lint! "(ns foo (:import [foo.bar]))")))
+
 ;;;; Scratch
 
 (comment
