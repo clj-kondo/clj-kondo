@@ -2482,7 +2482,10 @@
     [bar.foo]))"
                       {:linters {:unsorted-required-namespaces {:level :warning}
                                  :unused-import {:level :off}}}
-                      "--lang" "cljc")))))
+                      "--lang" "cljc"))))
+  (is (empty? (lint! "(ns foo (:require [clojure.string] [clojure.test]))"
+                     {:linters {:unsorted-required-namespaces {:level :warning}}}
+                     "--lang" "cljs"))))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
