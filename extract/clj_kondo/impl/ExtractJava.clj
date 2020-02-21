@@ -3,11 +3,11 @@
   (:gen-class
    :methods [#^{:static true} [start [com.sun.javadoc.RootDoc] boolean]])
   (:require
+   [clojure.edn :as edn]
    [clojure.java.io :as io]
-   [cognitect.transit :as transit]
-   [clojure.edn :as edn])
-  (:import [javax.tools ToolProvider DocumentationTool]
-           [clj_kondo.impl ExtractJava]))
+   [cognitect.transit :as transit])
+  (:import [clj_kondo.impl ExtractJava]
+           [javax.tools ToolProvider]))
 
 (set! *warn-on-reflection* true)
 
@@ -45,7 +45,7 @@
                                  (assoc-in [name :name] name)
                                  (update-in [name :fixed-arities] sconj (:arity entry))
                                  ;; TODO: add return type
-                                 (assoc-in [name :arities (:arity entry)] {})))))
+                                 #_(assoc-in [name :arities (:arity entry)] {})))))
                 {}
                 (apply concat (vals @extracted)))]
     (println "Writing cache files to" out)

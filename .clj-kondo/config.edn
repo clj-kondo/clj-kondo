@@ -17,7 +17,8 @@
                                                 :ret :map}}}}
              clj-kondo.impl.config #include "../src/clj_kondo/impl/config.types.edn"
              clj-kondo.impl.findings #include "../src/clj_kondo/impl/findings.types.edn"}}
-           :missing-docstring {:level :off}}
+           :missing-docstring {:level :off}
+           :unsorted-required-namespaces {:level :warning}}
  :lint-as {me.raynes.conch/programs clojure.core/declare
            me.raynes.conch/let-programs clojure.core/let}
  :output {:exclude-files ["src/clj_kondo/impl/rewrite_clj_patch.clj"]}}

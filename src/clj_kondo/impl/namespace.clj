@@ -5,13 +5,56 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
-   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled?]]
+   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled? one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
   (:import [java.util StringTokenizer]))
 
 (set! *warn-on-reflection* true)
+
+(defn lint-duplicate-requires!
+  ([ctx namespaces] (lint-duplicate-requires! ctx #{} namespaces))
+  ([ctx init namespaces]
+   (reduce (fn [required ns]
+             (if (contains? required ns)
+               (do
+                 (findings/reg-finding!
+                  ctx
+                  (node->line (:filename ctx)
+                              ns
+                              :warning
+                              :duplicate-require
+                              (str "duplicate require of " ns)))
+                 required)
+               (conj required ns)))
+           (set init)
+           namespaces)
+   nil))
+
+(defn lint-unsorted-required-namespaces! [ctx namespaces]
+  (let [config (:config ctx)
+        level (-> config :linters :unsorted-required-namespaces :level)]
+    (when-not (identical? :off level)
+      (loop [last-processed-ns nil
+             ns-list namespaces]
+        (when ns-list
+          (let [ns (first ns-list)
+                m (meta ns)
+                raw-ns (:raw-name m)
+                ns-str (str (or raw-ns ns))
+                branch (:branch m)]
+            (cond branch
+                  (recur last-processed-ns (next ns-list))
+                  (pos? (compare last-processed-ns ns-str))
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx)
+                               ns
+                               level
+                               :unsorted-required-namespaces
+                               (str "Unsorted namespace: " ns)))
+                  :else (recur ns-str
+                               (next ns-list)))))))))
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
@@ -26,14 +69,24 @@
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
-  ([{:keys [:base-lang :lang :filename :findings :namespaces :top-level? :top-ns] :as ctx}
+  ([{:keys [:base-lang :lang :filename :namespaces :top-level? :top-ns] :as ctx}
     ns-sym var-sym expr metadata]
-   (let [{expr-row :row expr-col :col} (meta expr)
+   (let [m (meta expr)
+         expr-row (:row m)
+         expr-col (:col m)
+         expr-end-row (:end-row m)
+         expr-end-col (:end-col m)
          metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym
+                         :name-row (:row metadata)
+                         :name-col (:col metadata)
+                         :name-end-row (:end-row metadata)
+                         :name-end-col (:end-col metadata)
                          :row expr-row
-                         :col expr-col)
+                         :col expr-col
+                         :end-row expr-end-row
+                         :end-col expr-end-col)
          path [base-lang lang ns-sym]
          temp? (:temp metadata)
          config (:config ctx)]
@@ -65,7 +118,7 @@
                                               (var-info/core-sym? lang var-sym))
                                      core-ns)))]
                     (findings/reg-finding!
-                     findings
+                     ctx
                      (node->line filename
                                  expr :warning
                                  :redefined-var
@@ -77,7 +130,7 @@
                              (not (:doc metadata))
                              (not temp?))
                     (findings/reg-finding!
-                     findings
+                     ctx
                      (node->line filename
                                  expr :warning
                                  :missing-docstring
@@ -85,7 +138,9 @@
                 (update ns :vars assoc
                         var-sym
                         (assoc
-                         (merge metadata (select-keys prev-var [:row :col]))
+                         (merge metadata (select-keys
+                                          prev-var
+                                          [:row :col :end-row :end-col]))
                          :top-ns top-ns))))))))
 
 (defn reg-var-usage!
@@ -136,6 +191,7 @@
   [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
+           (lint-unsorted-required-namespaces! ctx (:required analyzed-require-clauses))
            (lint-duplicate-requires! ctx (:required ns) (:required analyzed-require-clauses))
            (merge-with into ns analyzed-require-clauses)))
   nil)
@@ -149,7 +205,7 @@
            (update ns :imports merge imports)))
   nil)
 
-(defn java-class? [s]
+(defn class-name? [s]
   (let [splits (str/split s #"\.")]
     (and (> (count splits) 2)
          (Character/isUpperCase ^char (first (last splits))))))
@@ -163,7 +219,7 @@
                                                    callstack symbol)
                 (let [symbol-name (name symbol)]
                   (or (str/starts-with? symbol-name ".")
-                      (java-class? symbol-name))))
+                      (class-name? symbol-name))))
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-symbols symbol]
            (fn [old-sym-info]
              (if (nil? old-sym-info)
@@ -196,6 +252,21 @@
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj import))
 
+(defn reg-unresolved-namespace!
+  [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as _ctx} ns-sym unresolved-ns]
+  ;; NOTE: we check the unresolved-symbol config to exclude certain macros, most
+  ;; notably user/defproject, but this is not documented yet. We might have to
+  ;; come up with a separate config for unresolved-namespace, but it's not yet
+  ;; clear what it should look like.
+  (when-not (config/unresolved-symbol-excluded config
+                                               callstack symbol)
+    (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces]
+           conj (vary-meta unresolved-ns
+                           ;; since the user namespaces is present in each file
+                           ;; we must include the filename here
+                           ;; see #73
+                           assoc :filename filename))))
+
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
 
@@ -215,25 +286,40 @@
   [ctx ns-name name-sym]
   ;; (prn "NAME" name-sym)
   (let [lang (:lang ctx)
-        ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
+        ns (get-namespace ctx (:base-lang ctx) lang ns-name)
+        cljs? (identical? :cljs lang)]
     (if-let [ns* (namespace name-sym)]
-      (let [ns-sym (symbol ns*)]
-        (or (if-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                             ;; referring to the namespace we're in
-                             (when (= (:name ns) ns-sym)
-                               ns-sym))]
+      (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
+                    ns*)
+            ns-sym (symbol ns*)]
+        (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
+                               ;; referring to the namespace we're in
+                               (when (= (:name ns) ns-sym)
+                                 ns-sym))]
+
               {:ns ns*
-               :name (symbol (name name-sym))}
-              (when-let [[class-name package]
-                         (or (when (identical? :clj lang)
-                               (or (find var-info/default-import->qname ns-sym)
-                                   (when-let [v (get var-info/default-fq-imports ns-sym)]
-                                     [v v])))
-                             (find (:imports ns) ns-sym))]
-                (reg-used-import! ctx ns-name class-name)
-                {:interop? true
-                 :ns package
-                 :name (symbol (name name-sym))}))))
+               :name (symbol (name name-sym))})
+            (when-let [[class-name package]
+                       (or (when (identical? :clj lang)
+                             (or (find var-info/default-import->qname ns-sym)
+                                 (when-let [v (get var-info/default-fq-imports ns-sym)]
+                                   [v v])))
+                           (find (:imports ns) ns-sym))]
+              (reg-used-import! ctx ns-name class-name)
+              {:interop? true
+               :ns package
+               :name (symbol (name name-sym))})
+            (when-not (if (identical? :clj lang)
+                        (or (one-of ns* ["clojure.core"])
+                            (class-name? ns*))
+                        (when cljs?
+                          ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
+                          (one-of ns* ["js" "goog" "cljs.core"
+                                       "Math" "String" "goog.object" "goog.string"
+                                       "goog.array"])))
+              {:name (symbol (name name-sym))
+               :unresolved? true
+               :unresolved-ns ns-sym})))
       (or
        (when-let [[k v] (find (:referred-vars ns)
                               name-sym)]
@@ -247,7 +333,7 @@
                       (when-let [v (get var-info/default-fq-imports name-sym)]
                         [v v])
                       ;; (find (:imports ns) name-sym)
-                      (if (identical? :cljs lang)
+                      (if cljs?
                         ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
                         ;; hmm, this causes the extractor to fuck up
                         (let [fs (first-segment name-sym)]
@@ -258,7 +344,7 @@
          {:ns package
           :interop? true
           :name name-sym*})
-       (when (= :cljs lang)
+       (when cljs?
          (when-let [ns* (get (:qualify-ns ns) name-sym)]
            (when (some-> (meta ns*) :raw-name string?)
              {:ns ns*

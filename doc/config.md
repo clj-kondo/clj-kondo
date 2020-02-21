@@ -11,7 +11,7 @@ Clj-kondo can be configured in four ways, by providing:
 
 Config takes precedence in the order of namespace, command line,
 `.clj-kondo/config.edn`. Note that not all linters are currently supported in
-namespace local configuration.
+namespace local configuration. Also note that namespace local config must always be quoted.
 
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
@@ -37,6 +37,7 @@ linting took 10ms, errors: 0, warnings: 0
 Some linters are not enabled by default. Right now these linters are:
 
 - `:missing-docstring`: warn when public var doesn't have a docstring.
+- `:unsorted-required-namespaces`: warn when namespaces in `:require` are not sorted.
 
 You can enable these linters by setting the `:level`:
 
@@ -77,6 +78,12 @@ we might have just linted it like that. That is what the following configuration
 
 ``` clojure
 {:lint-as {foo/my-defn clojure.core/defn}}
+```
+
+When you have custom `def` or `defn`-like macros and you can't find a supported macro that is like it, you can use:
+
+``` clojure
+{:lint-as {foo/my-defn clj-kondo.lint-as/def-catch-all}}
 ```
 
 ### Exclude unresolved symbols from being reported
@@ -301,6 +308,20 @@ will give this warning:
 
 ``` clojure
 Inconsistent alias. Expected old-api instead of api.
+```
+
+### Ignore the contents of comment forms
+
+If you prefer not to lint the contents of `(comment ...)` forms, use this configuration:
+
+```clojure
+{:skip-comments true}
+```
+
+### Exclude namespace in `:refer-all` linter
+
+```clojure
+{:linters {:refer-all {:exclude [alda.core]}}}
 ```
 
 ## Output

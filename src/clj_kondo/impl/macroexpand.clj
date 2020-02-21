@@ -1,9 +1,8 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node
-                                 token-node]]
-   [clj-kondo.impl.profiler :as profiler]))
+    [clj-kondo.impl.profiler :as profiler]
+    [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]))
 
 (defn expand-> [_ctx expr]
   (profiler/profile

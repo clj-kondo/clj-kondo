@@ -1,0 +1,3 @@
+clj-kondo.main/-main
+clj-kondo.impl.types/misc-types
+clj-kondo.profile/-main

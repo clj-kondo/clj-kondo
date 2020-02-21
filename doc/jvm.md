@@ -10,7 +10,7 @@ You can add clj-kondo to `~/.lein/profiles.clj` to make it available as a `lein`
 
 ``` clojure
 {:user {:dependencies [[clj-kondo "RELEASE"]]
-        :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main"]}
+        :aliases {"clj-kondo" ["run" "-m" "clj-kondo.main"]}}}
 ```
 
 ``` shellsession
@@ -37,6 +37,20 @@ Or add it as an alias to `~/.clojure/deps.edn`:
 ``` shellsession
 $ clj -A:clj-kondo --lint src
 ```
+
+## shadow-cljs
+
+Run `clj-kondo.main` directly:
+
+``` clojure
+{:dependencies [[clj-kondo "RELEASE"]]}
+```
+
+``` shellsession
+$ shadow-cljs run clj-kondo.main --lint src
+```
+
+Execution will be much faster if there's a background server (either `shadow-cljs server` or `shadow-cljs watch`) running.
 
 ## API
 

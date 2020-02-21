@@ -9,9 +9,32 @@ a `.clj-kondo` directory in the root of your project.
 For integrating with Emacs, see
 [flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo).
 
-For Spacemacs, check [here](#spacemacs).
+For Spacemacs, check [here](#spacemacs) or get [flymake-kondor](https://github.com/turbo-cafe/flymake-kondor) if you are using flymake.
 
-or get [flymake-kondor](https://github.com/turbo-cafe/flymake-kondor) if you flymake user.
+### LSP server
+
+Emacs has the [lsp-mode](https://github.com/emacs-lsp/lsp-mode) where you can configure multiple LSP servers for different programming languages. 
+To use `clj-kondo` as an LSP server, you can configure the `lsp-mode` server command to point to the `clj-kondo` lsp-server jar. Note that the LSP server does not provide features other than diagnostics.
+
+1. Download the latest clj-kondo LSP server jar to your system. Go to the
+   [Github releases](https://github.com/borkdude/clj-kondo/releases) and look
+   for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided
+   since version `2019.11.23`.
+
+2. Configure your `lsp-mode` pointing to the clj-kondo lsp server jar that you downloaded, like the example below:
+
+```lisp
+(use-package lsp-mode
+  :ensure t
+  :hook ((clojure-mode . lsp))
+  :commands lsp
+  :custom
+  ((lsp-clojure-server-command '("java" "-jar" "/home/user/clj-kondo/clj-kondo-lsp-server.jar")))
+  :config
+  (dolist (m '(clojure-mode
+               clojurescript-mode))
+    (add-to-list 'lsp-language-id-configuration `(,m . "clojure"))))
+```
 
 ## Visual Studio Code
 
@@ -110,6 +133,38 @@ If you have [vim-dispatch](https://github.com/tpope/vim-dispatch/) installed, yo
 
 ## IntelliJ IDEA
 
+Currently there are two ways to get clj-kondo integration in IntelliJ: via the
+clj-kondo LSP server or via the File Watchers plugin.
+
+### LSP server
+
+Note that the LSP server does not provide features other than diagnostics.
+
+1. Download the latest clj-kondo LSP server jar to your system. Go to the
+   [Github releases](https://github.com/borkdude/clj-kondo/releases) and look
+   for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided
+   since version `2019.11.23`.
+
+2. Install the LSP Support plugin by gtache, either from the marketplace of via
+   a zipfile downloaded from the a [Github
+   release](https://github.com/gtache/intellij-lsp/releases). Version 1.6.0 or
+   later is required.
+
+<img src="../screenshots/intellij-lsp.png" width="50%" align="right">
+
+3. Configure the LSP Support plugin.
+   - Go to Preferences / Languages & Frameworks / Language Server Protocol / Server definitions. Select
+     `Raw command`.
+   - In the `Extension` field enter `clj;cljs;cljc;edn`.
+   -  In the command field enter `java -jar
+      <path>` where `<path>` matches the downloaded
+      jar file,
+      e.g. `/Users/borkdude/clj-kondo-lsp-server-2019.11.23-standalone.jar`.
+
+Now, when editing a Clojure file, you should get linting feedback.
+
+### File Watchers + installed binary
+
 <img src="../screenshots/intellij-let.png" width="50%" align="right">
 
 This section assumes that you are already using
@@ -117,25 +172,25 @@ This section assumes that you are already using
 
 1. Install the [File
 Watchers](https://www.jetbrains.com/help/idea/settings-tools-file-watchers.html)
-plugin.
+plugin
 
 Repeat the below steps for the file types Clojure (`.clj`), ClojureScript (`.cljs`)
 and CLJC (`.cljc`).
 
 2. Under Preferences / Tools / File Watchers click `+` and choose the `<custom>`
-   template.
+   template
 3. Choose a name. E.g. `clj-kondo <filetype>` (where `<filetype>` is one of
-   Clojure, ClojureScript or CLJC).
-4. In the File type field, choose the correct filetype.
+   Clojure, ClojureScript or CLJC)
+4. In the File type field, choose the correct filetype
 5. Scope: `Current file`
-6. In the Program field, type `clj-kondo`.
-7. In the Arguments field, type `--lint $FilePath$ --cache`.<br>
-You may use a custom config E.g `--lint $FilePath$ --cache --config "{:lint-as {manifold.deferred/let-flow clojure.core/let}}"`.
-8. In the Working directory field, type `$FileDir$`.
+6. In the Program field, type `clj-kondo`
+7. In the Arguments field, type `--lint $FilePath$`<br>
+You may use a custom config E.g `--lint $FilePath$ --config "{:lint-as {manifold.deferred/let-flow clojure.core/let}}"`.
+8. In the Working directory field, type `$FileDir$`
 9. Enable `Create output file from stdout`
 10. Show console: `Never`
-11. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`.
-12. Click `ok` and under the newly created file-watcher, change level to `Global` - this will enable the watcher in all future projects.
+11. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`
+12. Click `ok` and under the newly created file-watcher, change level to `Global` - this will enable the watcher in all future projects
 
 <img src="../screenshots/intellij-fw-config.png">
 

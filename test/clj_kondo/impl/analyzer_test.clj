@@ -8,11 +8,11 @@
 
 (deftest lift-meta-test
   (is (:private (meta (meta/lift-meta-content2 {:lang :clj
-                                               :namespaces (atom {})}
-                                              (parse-string "^:private [x]")))))
+                                                :namespaces (atom {})}
+                                               (parse-string "^:private [x]")))))
   (is (:private (meta (meta/lift-meta-content2 {:lang :clj
-                                               :namespaces (atom {})}
-                                              (parse-string "#^ :private [x]")))))
+                                                :namespaces (atom {})}
+                                               (parse-string "#^ :private [x]")))))
   (is (= "[B" (:tag (meta (meta/lift-meta-content2 {:lang :clj
                                                     :namespaces (atom {})}
                                                    (parse-string "^\"[B\" body")))))))
@@ -42,74 +42,80 @@
 
 (deftest ->findings-test
   (testing "unexpected exceptions"
-    (is (= [{:level :error
-             :filename "file.clj"
+    (is (= [{:filename "file.clj"
              :col 0
              :row 0
              :type :syntax
-             :message "can't parse file.clj, this is unexpected"}]
+             :message "Can't parse file.clj, this is unexpected"}]
            (#'ana/->findings (Exception. "this is unexpected") "file.clj")))
     (testing "parse errors"
-      (is (= [{:level :error
-               :filename "core.clj"
+      (is (= [{:filename "core.clj"
                :col 0
                :row 0
                :type :syntax
-               :message "can't parse core.clj, expected failure"}]
+               :message "Can't parse core.clj, expected failure"}]
              (#'ana/->findings (ex-info "expected failure" {:row 7
                                                             :col 9
                                                             :type :syntax})
                                "core.clj"))))))
 
 (deftest analyze-input-test
-  (let [analyze (fn [^String source]
-                  (ana/analyze-input {:config nil} "test.clj" source :clj false))]
+  (let [findings (atom [])
+        analyze (fn [^String source]
+                  (ana/analyze-input {:config {:linters {:syntax {:level :error}}}
+                                      :findings findings} "test.clj" source :clj false))]
     (testing "unmatched delimiters"
-      (is (= {:findings [{:type :syntax
-                          :level :error
-                          :filename "test.clj"
-                          :row 1
-                          :col 1
-                          :message "Mismatched bracket: found an opening ( and a closing } on line 1"}
-                         {:type :syntax
-                          :level :error
-                          :filename "test.clj"
-                          :row 1
-                          :col 2
-                          :message "Mismatched bracket: found an opening ( on line 1 and a closing }"}]}
-             (analyze "(}"))))
+      (is (= [{:type :syntax
+               :level :error
+               :filename "test.clj"
+               :row 1
+               :col 1
+               :message "Mismatched bracket: found an opening ( and a closing } on line 1"}
+              {:type :syntax
+               :level :error
+               :filename "test.clj"
+               :row 1
+               :col 2
+               :message "Mismatched bracket: found an opening ( on line 1 and a closing }"}]
+             (do
+               (reset! findings [])
+               (analyze "(}")
+               @findings))))
     (testing "unclosed delimiter"
-      (is (= {:findings [{:type :syntax
-                          :level :error
-                          :filename "test.clj"
-                          :row 1
-                          :col 1
-                          :message "Found an opening ( with no matching )"}
-                         {:type :syntax, :level :error, :filename "test.clj"
-                          :row 1
-                          :col 9
-                          :message "Expected a ) to match ( from line 1"}]}
-             (analyze "(defn []"))))
+      (is (= [{:type :syntax
+               :level :error
+               :filename "test.clj"
+               :row 1
+               :col 1
+               :message "Found an opening ( with no matching )"}
+              {:type :syntax, :level :error, :filename "test.clj"
+               :row 1
+               :col 9
+               :message "Expected a ) to match ( from line 1"}]
+             (do
+               (reset! findings [])
+               (analyze "(defn []")
+               @findings))))
 
     (testing "invalid tokens"
-      (is (= {:findings [{:type :syntax
-                          :level :error
-                          :filename "test.clj"
-                          :row 1
-                          :col 4
-                          :message "Invalid number: 1..1."}]}
-             (analyze "1..1"))))
-
-    ))
+      (is (= [{:type :syntax
+               :level :error
+               :filename "test.clj"
+               :row 1
+               :col 4
+               :message "Invalid number: 1..1."}]
+             (do
+               (reset! findings [])
+               (analyze "1..1")
+               @findings))))))
 
 
 
 
 
 (comment
-  (t/run-tests) 
+  (t/run-tests)
   (analyze-ns-decl
    :clj
-   (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))")) 
+   (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))
   )
-

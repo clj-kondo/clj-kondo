@@ -1,5 +1,9 @@
 # Developer documentation
 
+## Project board
+
+All issues are categorized in a column on the [project board](https://github.com/borkdude/clj-kondo/projects/1).
+
 ## Design principles
 
 1) Linters should be designed to add value in both of these modes:
@@ -17,11 +21,48 @@
 
 5) Configuration should live in one place as much as possible. The `.clj-kondo/config.edn` is the preferred location for configuration. This has the following reasons:
 
-   1. Single-file mode should be able to find the configuration it needs in a predicable location. Scattering configuration in metadata across libraries does not work well for this.
-   2. Configuration should be able to live in a project's source repository, so team members can profit from each other's additions.
-   3. Configuration spread across multiple files is harder to debug.
- 
+   1. Configuration should be able to live in a project's source repository, so team members can work out the style which they agree on for this project. Supporting external configuration leads to contradicting styles. By committing to a single project configuration team members also benefit from each other's work.
+   2. Configuration spread across multiple files is harder to debug.
+   3. Single-file mode should be able to find the configuration it needs in a predicable location. Scattering configuration in metadata across libraries does not work well for this.
+
+
  6) Clj-kondo should be unobtrusive. Users of clj-kondo should not have to change their code only to make the linter happy. Team members who do not wish to use clj-kondo should not be confronted with clj-kondo-related annotations in their code.
+
+## Adding a new linter
+If you wish to add a new linter, do not forget to add the appropriate keyword in `clj-kondo.impl.config/default-config`, the map that defines the default configuration.
+
+This is necessary because only the linters with a keyword in the default config appear in the report.
+
+## PR
+
+### Issue
+
+Before creating a code PR, please create an issue first that describes the problem you are trying to solve, alternatives that you have considered, etc. A little bit of prior communication can save a lot of time on coding.
+
+### Linting diff
+
+When implementing a new linter or changing an existing one, run the
+`script/diff` to view changed linting output between your branch and the master
+branch on Github. Please include the output in a PR. This step may be automated
+in the future using a Github action.
+
+### Force-push
+
+Please do not use `git push --force` on your PR branch for the following
+reasons:
+
+- It makes it more difficult for others to contribute to your branch if needed.
+- CircleCI doesn't play well with it: it might try to fetch a commit which
+  doesn't exist anymore.
+- Your PR will be squashed anyway.
+
+## Invoking clj-kondo from the command line
+
+```
+$ clojure -A:clj-kondo --lint - <<< "(defn foo [x] (if-let [x 1] x x x))"
+<stdin>:1:15: error: if-let body requires one or two forms
+linting took 73ms, errors: 1, warnings: 0
+```
 
 ## REPL
 
@@ -51,6 +92,11 @@ The alias `cider-nrepl` is defined in his `~/.clojure/deps.edn`:
  :main-opts ["-m" "nrepl.cmdline" "--middleware"
              "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"]}
 ```
+
+## Coding guidelines
+
+- Avoid calling rewrite-clj `sexpr` when you can. This often results in exceptions when the code is not representable as a sexpr, e.g.: `{:a}`. This becomes noticeable when you use clj-kondo in an editor and you stop typ
+- Avoid traversing the AST multiple times if possible.
 
 ## Tests
 

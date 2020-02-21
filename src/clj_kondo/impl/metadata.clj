@@ -1,9 +1,9 @@
 (ns clj-kondo.impl.metadata
   {:no-doc true}
   (:require
-   [clj-kondo.impl.linters.keys :as key-linter]
-   [clj-kondo.impl.utils :as utils]
-   [clj-kondo.impl.analyzer.common :as common]))
+    [clj-kondo.impl.analyzer.common :as common]
+    [clj-kondo.impl.linters.keys :as key-linter]
+    [clj-kondo.impl.utils :as utils]))
 
 (defn meta-node->map [ctx node]
   (let [s (utils/sexpr node)]
@@ -17,20 +17,31 @@
 (def type-hint-bindings
   '{void {} objects {}})
 
-(defn lift-meta-content2 [ctx node]
-  (if-let [meta-list (:meta node)]
-    (let [ctx-with-type-hint-bindings
-          (utils/ctx-with-bindings ctx type-hint-bindings)
-          ;; use dorun to force analysis, we don't use the end result!
-          _ (run! #(dorun (common/analyze-expression** ctx-with-type-hint-bindings %))
-                  meta-list)
-          meta-maps (map #(meta-node->map ctx %) meta-list)
-          meta-map (apply merge meta-maps)
-          node (-> node
-                   (dissoc :meta)
-                   (with-meta (merge (meta node) meta-map)))]
-      node)
-    node))
+(defn lift-meta-content2
+  ([ctx node] (lift-meta-content2 ctx node false))
+  ([{:keys [:lang] :as ctx} node only-usage?]
+   (if-let [meta-list (:meta node)]
+     (let [meta-ctx
+           (-> ctx
+               (update :callstack conj [nil :metadata])
+               (utils/ctx-with-bindings
+                (cond->
+                    type-hint-bindings
+                  (identical? :cljs lang)
+                  (assoc 'js {}))))
+           ;; use dorun to force analysis, we don't use the end result!
+           _ (if only-usage?
+               (run! #(dorun (common/analyze-usages2 meta-ctx %))
+                     meta-list)
+               (run! #(dorun (common/analyze-expression** meta-ctx %))
+                     meta-list))
+           meta-maps (map #(meta-node->map ctx %) meta-list)
+           meta-map (apply merge meta-maps)
+           node (-> node
+                    (dissoc :meta)
+                    (with-meta (merge (meta node) meta-map)))]
+       node)
+     node)))
 
 ;;;; Scratch
 

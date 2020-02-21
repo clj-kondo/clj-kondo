@@ -2,10 +2,22 @@
 
 user="$1"
 project="$2"
-cd /tmp
-git clone "https://github.com/$user/$project"
-cd "$project"
+if [ -z "$project" ]; then
+    echo "Usage: username project"
+    exit 1
+fi
 
-lein_classpath="$(lein with-profile -user classpath)"
+cd /tmp
+git clone "https://github.com/$user/$project" || true
+cd "$project"
+git pull
+
+if [ -f project.clj ]; then
+    lein_classpath="$(lein classpath)"
+fi
 clj_classpath="$(clojure -Spath)"
-clj-kondo --lint "$lein_classpath $clj_classpath" src test resources
+
+classpath="$lein_classpath:$clj_classpath"
+# echo "Linting $classpath"
+
+clj-kondo --lint "$classpath" src test resources

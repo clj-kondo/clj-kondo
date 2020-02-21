@@ -4,8 +4,8 @@
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.linters.misc :refer [lint-duplicate-requires!]]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :refer [node->line one-of tag sexpr vector-node
@@ -62,29 +62,32 @@
                           {:reason ::unparsable-ns-form
                            :form form})))))
 
-(defn lint-alias-consistency [{:keys [:findings :config
-                                      :filename]} ns-name alias]
-  (when-let [expected-alias (get-in config [:linters :consistent-alias :aliases ns-name])]
-    (when-not (= expected-alias alias)
-      (findings/reg-finding!
-       findings
-       (node->line filename alias :warning
-                   :consistent-alias
-                   (str "Inconsistent alias. Expected " expected-alias " instead of " alias "."))))))
+(defn lint-alias-consistency [ctx ns-name alias]
+  (let [config (:config ctx)]
+    (when-let [expected-alias (get-in config [:linters :consistent-alias :aliases ns-name])]
+      (when-not (= expected-alias alias)
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) alias :warning
+                     :consistent-alias
+                     (str "Inconsistent alias. Expected " expected-alias " instead of " alias ".")))))))
 
 (defn analyze-libspec
-  [{:keys [:base-lang :lang
-           :filename :findings] :as ctx} current-ns-name require-kw-expr libspec-expr]
-  (let [require-sym (:value require-kw-expr)
+  [ctx current-ns-name require-kw-expr libspec-expr]
+  (let [lang (:lang ctx)
+        base-lang (:base-lang ctx)
+        filename (:filename ctx)
+        require-sym (:value require-kw-expr)
         require-kw (or (:k require-kw-expr)
                        (when require-sym
                          (keyword require-sym)))
-        use? (= :use require-kw)]
+        use? (= :use require-kw)
+        libspec-meta (meta libspec-expr)]
     (if-let [s (symbol-from-token libspec-expr)]
       [{:type :require
         :referred-all (when use? require-kw-expr)
         :ns (with-meta s
-              (assoc (meta libspec-expr)
+              (assoc libspec-meta
                      :filename filename))}]
       (let [[ns-name-expr & option-exprs] (:children libspec-expr)
             ns-name (:value ns-name-expr)
@@ -97,7 +100,8 @@
             ns-name (with-meta ns-name
                       (assoc (meta (first (:children libspec-expr)))
                              :filename filename
-                             :raw-name (-> (meta ns-name-expr) :raw-name)))
+                             :raw-name (-> (meta ns-name-expr) :raw-name)
+                             :branch (:branch libspec-meta)))
             self-require? (and
                            (= :cljc base-lang)
                            (= :cljs lang)
@@ -122,7 +126,7 @@
                        (let [;; undo referred-all when using :only with :use
                              m (if (and use? (= :only child-k))
                                  (do (findings/reg-finding!
-                                      findings
+                                      ctx
                                       (node->line
                                        filename
                                        (:referred-all m)
@@ -164,7 +168,7 @@
                 (recur (nnext children)
                        m)))
             (let [{:keys [:as :referred :excluded :referred-all :renamed]} m]
-              (lint-alias-consistency ctx ns-name as)
+              (when as (lint-alias-consistency ctx ns-name as))
               [{:type :require
                 :ns ns-name
                 :as as
@@ -184,12 +188,19 @@
   (with-meta (:value node)
     (meta node)))
 
-(defn analyze-import [_ctx _ns-name libspec-expr]
+(defn analyze-import [ctx _ns-name libspec-expr]
   (case (tag libspec-expr)
     (:vector :list) (let [children (:children libspec-expr)
                           java-package-name-node (first children)
                           java-package (:value java-package-name-node)
-                          imported (map class-with-location (rest children))]
+                          imported-nodes (rest children)
+                          imported (map class-with-location imported-nodes)]
+                      (when (empty? imported-nodes)
+                        (findings/reg-finding!
+                         ctx
+                         (node->line
+                          (:filename ctx) java-package-name-node
+                          :error :syntax "Expected: package name followed by classes.")))
                       (into {} (for [i imported]
                                  [i java-package])))
     :token (let [package+class (:value libspec-expr)
@@ -200,12 +211,20 @@
              {imported java-package})
     nil))
 
-(defn analyze-require-clauses [{:keys [:lang] :as ctx} ns-name kw+libspecs]
-  (let [analyzed (for [[require-kw libspecs] kw+libspecs
-                       libspec-expr libspecs
-                       normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
-                       analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
-                   analyzed)
+(defn analyze-require-clauses [ctx ns-name kw+libspecs]
+  (let [lang (:lang ctx)
+        analyzed
+        (map (fn [[require-kw libspecs]]
+               (for [libspec-expr libspecs
+                     normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
+                     analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
+                 analyzed))
+             kw+libspecs)
+        _ (doseq [analyzed analyzed]
+            (let [namespaces (map :ns analyzed)]
+              (namespace/lint-unsorted-required-namespaces! ctx namespaces)
+              (namespace/lint-duplicate-requires! ctx namespaces)))
+        analyzed (apply concat analyzed)
         refer-alls (reduce (fn [acc clause]
                              (if-let [m (:referred-all clause)]
                                (assoc acc (:ns clause)
@@ -214,11 +233,11 @@
                                        :referred #{}})
                                acc))
                            {}
-                           analyzed)]
-    (lint-duplicate-requires! ctx (map (juxt :require-kw :ns) analyzed))
-    {:required (map (fn [req]
-                      (vary-meta (:ns req)
-                                 #(assoc % :alias (:as req)))) analyzed)
+                           analyzed)
+        required-namespaces (map (fn [req]
+                                   (vary-meta (:ns req)
+                                              #(assoc % :alias (:as req)))) analyzed)]
+    {:required required-namespaces
      :qualify-ns (reduce (fn [acc sc]
                            (cond-> (assoc acc (:ns sc) (:ns sc))
                              (:as sc)
@@ -252,13 +271,19 @@
    :used-referred-vars #{}
    :used-imports #{}
    :used-vars []
+   :unresolved-namespaces #{}
    :vars {}
    :row row
    :col col})
 
 (defn analyze-ns-decl
-  [{:keys [:base-lang :lang :findings :filename] :as ctx} expr]
-  (let [{:keys [row col]} (meta expr)
+  [ctx expr]
+  (let [lang (:lang ctx)
+        base-lang (:base-lang ctx)
+        filename (:filename ctx)
+        m (meta expr)
+        row (:row m)
+        col (:col m)
         children (next (:children expr))
         ns-name-expr (first children)
         ns-name-expr  (meta/lift-meta-content2 ctx ns-name-expr)
@@ -279,12 +304,21 @@
                   (merge metadata
                          (sexpr meta-node))
                   metadata)
-        local-config (-> ns-meta :clj-kondo/config second)
+        global-config (:config ctx)
+        local-config (-> ns-meta :clj-kondo/config)
+        local-config (if (and (seq? local-config) (= 'quote (first local-config)))
+                       (second local-config)
+                       local-config)
+        merged-config (if local-config (config/merge-config! global-config local-config)
+                          global-config)
+        ctx (if local-config
+              (assoc ctx :config merged-config)
+              ctx)
         ns-name (or
                  (when-let [?name (sexpr ns-name-expr)]
                    (if (symbol? ?name) ?name
                        (findings/reg-finding!
-                        findings
+                        ctx
                         (node->line (:filename ctx)
                                     ns-name-expr
                                     :error

@@ -8,7 +8,7 @@
   '{;; no linting inside calls to these functions/macros
     ;; note that you will still get an arity error when calling the fn/macro itself incorrectly
     :skip-args [#_clojure.core/comment #_cljs.core/comment]
-    :skip-comments false ;; convient shorthand for :skip-args [clojure.core/comment cljs.core/comment]
+    :skip-comments false ;; convenient shorthand for :skip-args [clojure.core/comment cljs.core/comment]
     ;; linter level can be tweaked by setting :level to :error, :warn or :info (or any other keyword)
     ;; all linters are enabled by default, but can be turned off by setting :level to :off.
     :linters {:invalid-arity {:level :error
@@ -23,6 +23,7 @@
               :syntax {:level :error}
               :file {:level :error}
               :missing-test-assertion {:level :warning}
+              :constant-test-assertion {:level :warning}
               :duplicate-map-key {:level :error}
               :duplicate-set-key {:level :error}
               :missing-map-value {:level :error}
@@ -32,6 +33,7 @@
               :unbound-destructuring-default {:level :warning}
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false}
+              :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
                                  :exclude [#_clj-kondo.impl.var-info-gen]
@@ -49,6 +51,7 @@
                                             (cljs.test/are [thrown? thrown-with-msg?])
                                             (clojure.test/is [thrown? thrown-with-msg?])
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
+              :unresolved-namespace {:level :warning}
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}
               :deprecated-var {:level :warning
@@ -62,7 +65,8 @@
                                     :exclude {#_#_taoensso.timbre [debug]}}
               :unused-private-var {:level :warning}
               :duplicate-require {:level :warning}
-              :refer-all {:level :warning}
+              :refer-all {:level :warning
+                          :exclude #{}}
               :use {:level :warning}
               :if {:level :warning}
               :type-mismatch {:level :error}
@@ -71,7 +75,8 @@
                                  ;; warn when alias for clojure.string is
                                  ;; different from str
                                  :aliases {#_clojure.string #_str}}
-              :unused-import {:level :warning}}
+              :unused-import {:level :warning}
+              :single-operand-comparison {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -108,7 +113,10 @@
 
 (defn fq-syms->vecs [fq-syms]
   (map (fn [fq-sym]
-         [(symbol (namespace fq-sym)) (symbol (name fq-sym))])
+         (if-let [ns* (namespace fq-sym)]
+           [(symbol ns*) (symbol (name fq-sym))]
+           (throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                           {:type :clj-kondo/config}))))
        fq-syms))
 
 (defn skip-args*
@@ -135,13 +143,6 @@
       (some (fn [disabled-sym]
               (some #(= disabled-sym %) callstack))
             disabled)))))
-
-#_(comment
-  (inc (merge-config! "foo" nil))
-  (inc (fq-syms->vecs 1))
-  (inc (skip-args "foo"))
-  (inc (skip? nil nil)) 
-  )
 
 (defn lint-as-config* [config]
   (let [m (get config :lint-as)]
@@ -187,9 +188,17 @@
              (reduce (fn [acc [fq-name excluded]]
                        (let [ns-name (symbol (namespace fq-name))
                              var-name (symbol (name fq-name))]
-                         (assoc acc [ns-name var-name] (if excluded
-                                                         (set excluded)
-                                                         identity))))
+                         (update acc [ns-name var-name]
+                                 (fn [old]
+                                   (cond (nil? old)
+                                         (if excluded
+                                           (set excluded)
+                                           identity)
+                                         (set? old)
+                                         (if excluded
+                                           (into old excluded)
+                                           old)
+                                         :else identity)))))
                      {} calls)}))
         delayed-cfg (memoize delayed-cfg)]
     (fn [config callstack sym]
@@ -242,6 +251,15 @@
         delayed-cfg (memoize delayed-cfg)]
     (fn [config ns-name var-name]
       (contains? (delayed-cfg config) [ns-name var-name]))))
+
+(def refer-all-excluded?
+  (let [delayed-cfg (fn [config]
+                      (let [syms (get-in config [:linters :refer-all :exclude])]
+                        (set syms)))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config referred-all-ns]
+      (let [excluded (delayed-cfg config)]
+        (contains? excluded referred-all-ns)))))
 
 ;;;; Scratch
 

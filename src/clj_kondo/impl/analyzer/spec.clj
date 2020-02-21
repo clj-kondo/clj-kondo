@@ -1,10 +1,10 @@
 (ns clj-kondo.impl.analyzer.spec
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :as utils]
-   [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.namespace :as namespace]
-   [clj-kondo.impl.linters.keys :as keys]))
+     [clj-kondo.impl.findings :as findings]
+     [clj-kondo.impl.linters.keys :as keys]
+     [clj-kondo.impl.namespace :as namespace]
+     [clj-kondo.impl.utils :as utils]))
 
 (defn analyze-fdef [{:keys [:analyze-children :ns] :as ctx} expr]
   (let [[sym-expr & body] (next (:children expr))
@@ -12,7 +12,7 @@
     (keys/lint-map-keys ctx {:children body} {:known-key? #{:args :ret :fn}})
     (let [sym (:value sym-expr)]
       (if-not (and sym (symbol? sym))
-        (findings/reg-finding! (:findings ctx)
+        (findings/reg-finding! ctx
                                (utils/node->line (:filename ctx)
                                                  sym-expr
                                                  :error
@@ -23,7 +23,7 @@
                                       sym)]
           (if resolved-ns
             (namespace/reg-used-namespace! ctx ns-name resolved-ns)
-            (findings/reg-finding! (:findings ctx)
+            (findings/reg-finding! ctx
                                    (utils/node->line (:filename ctx)
                                                      sym-expr
                                                      :error

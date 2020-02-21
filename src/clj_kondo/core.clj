@@ -81,14 +81,16 @@
            :config]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
-        cfg-dir (core-impl/config-dir lint)
+        cfg-dir (core-impl/config-dir (io/file (System/getProperty "user.dir")))
         config (core-impl/resolve-config cfg-dir config)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
         findings (atom [])
-        analysis (atom {:namespace-definitions []
-                        :namespace-usages []
-                        :var-definitions []
-                        :var-usages []})
+        analysis? (get-in config [:output :analysis])
+        analysis (when analysis?
+                   (atom {:namespace-definitions []
+                          :namespace-usages []
+                          :var-definitions []
+                          :var-usages []}))
         ctx {:config config
              :findings findings
              :namespaces (atom {})
@@ -101,15 +103,15 @@
         idacs (core-impl/index-defs-and-calls ctx processed)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
-        linted-calls (doall (l/lint-var-usage ctx idacs))
+        _ (l/lint-var-usage ctx idacs)
         _ (l/lint-unused-namespaces! ctx)
         _ (l/lint-unused-private-vars! ctx)
         _ (l/lint-unused-bindings! ctx)
         _ (l/lint-unresolved-symbols! ctx)
         _ (l/lint-unused-imports! ctx)
+        _ (l/lint-unresolved-namespaces! ctx)
         ;; _ (namespace/reg-analysis-output! ctx)
-        all-findings (concat linted-calls (mapcat :findings processed)
-                             @findings)
+        all-findings @findings
         all-findings (core-impl/filter-findings config all-findings)
         all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))
         summary (core-impl/summarize all-findings)
@@ -119,7 +121,7 @@
         {:findings all-findings
          :config config
          :summary summary}
-      (-> config :output :analysis)
+      analysis?
       (assoc :analysis @analysis))))
 
 ;;;; Scratch

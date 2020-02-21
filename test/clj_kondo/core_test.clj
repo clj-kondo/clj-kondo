@@ -1,7 +1,8 @@
 (ns clj-kondo.core-test
   (:require
    [clj-kondo.core :as clj-kondo]
-   [clj-kondo.test-utils :refer [file-path]]
+   [clj-kondo.impl.core :refer [path-separator]]
+   [clj-kondo.test-utils :refer [file-path file-separator assert-submaps]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -16,7 +17,7 @@
             findings (:findings res)
             filenames (->> findings
                            (map :filename)
-                           (map #(str/split % #"/"))
+                           (map #(str/split % (re-pattern (java.util.regex.Pattern/quote file-separator))))
                            (map #(take 2 %))
                            set)]
         (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
@@ -37,12 +38,13 @@
                                                  ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
                                                  "spec.alpha-0.2.176.jar")]}))))))
     (testing "classpath 'file' arg"
-      ;; TODO: use the classpath separator here
       (let [findings (:findings (clj-kondo/run!
-                                 {:lint ["corpus/invalid_arity:corpus/private"]}))
+                                 {:lint [(str/join
+                                          path-separator
+                                          ["corpus/invalid_arity" "corpus/private"])]}))
             filenames (->> findings
                            (map :filename)
-                           (map #(str/split % #"/"))
+                           (map #(str/split % (re-pattern (java.util.regex.Pattern/quote file-separator))))
                            (map #(take 2 %))
                            set)]
         (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
@@ -52,7 +54,23 @@
       (is s)
       (is (nat-int? (:error s)))
       (is (nat-int? (:warning s)))
-      (is (nat-int? (:duration s))))))
+      (is (nat-int? (:duration s)))))
+  (testing "end locations are reported correctly"
+    (let [{:keys [:findings]}
+          (with-in-str
+            "(x  )" (clj-kondo/run! {:lint ["-"]}))]
+      (assert-submaps
+       [{:level :error, :type :unresolved-symbol, :message "unresolved symbol x",
+         :row 1, :col 2, :end-row 1, :end-col 3}]
+       findings)))
+  (testing "passing file as config arg"
+    (let [{{:keys [error warning info]} :summary}
+          (clj-kondo/run!
+            {:lint   [(file-path "corpus" "invalid_arity")]
+             :config (file-path "corpus" "config" "invalid_arity.edn")})]
+      (is (zero? error))
+      (is (zero? warning))
+      (is (zero? info)))))
 
 ;;;; Scratch
 

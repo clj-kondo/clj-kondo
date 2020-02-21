@@ -2,10 +2,11 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
-   [clj-kondo.impl.namespace :as namespace]
-   [clj-kondo.impl.utils :as utils :refer
-    [tag one-of symbol-from-token tag kw->sym]]
-   [clojure.string :as str])
+    [clj-kondo.impl.analyzer.common :as common]
+    [clj-kondo.impl.metadata :as meta]
+    [clj-kondo.impl.namespace :as namespace]
+    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token tag kw->sym]]
+    [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)
@@ -43,24 +44,35 @@
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
+         syntax-quote-level (or (:syntax-quote-level ctx) 0)
          ns-name (:name ns)
          t (tag expr)
-         quote? (or quote? (= :quote t))]
-     (if (one-of t [:unquote :unquote-splicing])
-       (when-let [f (:analyze-expression** ctx)]
-         (f ctx expr))
+         quote? (or quote?
+                    (= :quote t))
+         ;; nested syntax quotes are treated as normal quoted expressions by clj-kondo
+         syntax-quote-tag? (= :syntax-quote t)
+         unquote-tag? (one-of t [:unquote :unquote-splicing])
+         new-syntax-quote-level (cond syntax-quote-tag? (inc syntax-quote-level)
+                                      unquote-tag? (dec syntax-quote-level)
+                                      :else syntax-quote-level)
+         syntax-quote? (or syntax-quote? syntax-quote-tag?)
+         ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)]
+     (if (and (= 1 syntax-quote-level) unquote-tag?)
+       (common/analyze-expression** ctx expr)
        (when (or (not quote?)
                  ;; when we're in syntax-quote, we should still look for
-                 ;; unquotes, since these will be evaluated first
+                 ;; unquotes, since these will be evaluated first, unless we're
+                 ;; in a nested syntax-quote
                  syntax-quote?)
          (let [syntax-quote?
                (or syntax-quote?
                    (= :syntax-quote t))]
+           (meta/lift-meta-content2 ctx expr true)
            (case t
              :token
              (if-let [symbol-val (symbol-from-token expr)]
-               (let [simple-symbol? (empty? (namespace symbol-val))]
-                 (if-let [b (when (and simple-symbol? (not syntax-quote?))
+               (let [simple? (simple-symbol? symbol-val)]
+                 (if-let [b (when (and simple? (not syntax-quote?))
                               (get (:bindings ctx) symbol-val))]
                    (namespace/reg-used-binding! ctx
                                                 (-> ns :name)
@@ -71,6 +83,12 @@
                           clojure-excluded? :clojure-excluded?
                           :as _m}
                          (let [v (namespace/resolve-name ctx ns-name symbol-val)]
+                           (when-not syntax-quote?
+                             (when-let [n (:unresolved-ns v)]
+                               (namespace/reg-unresolved-namespace!
+                                ctx ns-name
+                                (with-meta n
+                                  (meta expr)))))
                            (if (:unresolved? v)
                              (let [symbol-str (str symbol-val)]
                                (if (str/ends-with? (str symbol-val) ".")
@@ -80,7 +98,10 @@
                                  v))
                              v))
                          m (meta expr)
-                         {:keys [:row :col]} m]
+                         row (:row m)
+                         col (:col m)
+                         end-row (:end-row m)
+                         end-col (:end-col m)]
                      (when resolved-ns
                        (namespace/reg-used-namespace! ctx
                                                       ns-name
@@ -93,7 +114,9 @@
                                                   :unresolved? unresolved?
                                                   :clojure-excluded? clojure-excluded?
                                                   :row row
+                                                  :end-row end-row
                                                   :col col
+                                                  :end-col end-col
                                                   :base-lang (:base-lang ctx)
                                                   :lang (:lang ctx)
                                                   :top-ns (:top-ns ctx)
@@ -104,7 +127,8 @@
                                                       (= symbol-val (get (:qualify-ns ns) symbol-val)))
                                                   :private-access? (:private-access? ctx)
                                                   :callstack (:callstack ctx)
-                                                  :config (:config ctx)})))))
+                                                  :config (:config ctx)
+                                                  :in-def (:in-def ctx)})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              :reader-macro

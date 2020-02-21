@@ -5,7 +5,7 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [is]]
-   [me.raynes.conch :refer [let-programs] :as sh]))
+   [me.raynes.conch :refer [let-programs programs] :as sh]))
 
 (set! *warn-on-reflection* true)
 
@@ -19,7 +19,8 @@
   (cond
     (and (map? m1) (map? m2))
     (every? (fn [[k v]] (and (contains? m2 k)
-                             (if (identical? k :filename)
+                             (if (or (identical? k :filename)
+                                     (identical? k :file))
                                (= (normalize-filename v)
                                   (normalize-filename (get m2 k)))
                                (submap? v (get m2 k)))))
@@ -31,9 +32,6 @@
 (defmacro assert-submap [m r]
   `(is (submap? ~m ~r)))
 
-(defmacro assert-some-submap [m r]
-  `(is (some #(submap? ~m %) ~r)))
-
 (defmacro assert-submaps
   "Asserts that maps are submaps of result in corresponding order and
   that the number of maps corresponds to the number of
@@ -43,9 +41,8 @@
          res# ~result]
      (and
       (is (= (count maps#) (count res#)))
-      (every? identity
-              (for [[m# r#] (map vector maps# res#)]
-                (assert-submap m# r#))))))
+      (doseq [m# maps#]
+        (is (some #(submap? m# %) res#))))))
 
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the
@@ -68,7 +65,8 @@
   '{:linters {:unused-binding {:level :off}
               :unresolved-symbol {:level :off}
               :refer-all {:level :off}
-              :type-mismatch {:level :off}}})
+              :type-mismatch {:level :off}
+              :unsorted-required-namespaces {:level :off}}})
 
 (defn lint-jvm!
   ([input]
@@ -87,12 +85,18 @@
                    (apply main "--cache" "false" "--lint" (.getPath ^java.io.File input) "--config" config args)
                    (vector? input)
                    (apply main "--cache" "false" "--lint" (concat (map #(.getPath ^java.io.File %) input)
-                                                ["--config" config] args))
+                                                                  ["--config" config] args))
                    :else (with-in-str input
                            (apply main "--cache" "false" "--lint" "-"  "--config" config args)))
                  (catch Throwable e
                    (.printStackTrace e))))]
+     ;; (println input)
+     ;; (println res)
      (parse-output res))))
+
+(def windows? (-> (System/getProperty "os.name")
+                  (str/lower-case)
+                  (str/includes? "win")))
 
 (defn lint-native!
   ([input] (lint-native! input "--lang" "clj"))
@@ -103,6 +107,8 @@
              [m (rest args)]
              [nil args]))
          config (str (deep-merge base-config config))
+         config (if windows? (str/replace config "\"" "\\\"")
+                    config)
          res (let-programs [clj-kondo "./clj-kondo"]
                (binding [sh/*throw* false]
                  (cond
@@ -114,7 +120,7 @@
                    (apply clj-kondo
                           "--cache" "false"
                           "--lint" (concat (map #(.getPath ^java.io.File %) input)
-                                                     ["--config" config] args))
+                                           ["--config" config] args))
                    :else
                    (apply clj-kondo
                           "--cache" "false"
@@ -131,13 +137,49 @@
     #'lint-jvm!))
 
 (if (= lint! #'lint-jvm!)
-  (println "==== Testing JVM version")
+  (println "==== Testing JVM version" (clojure-version))
   (println "==== Testing native version"))
 
 (defn file-path
   "returns a file-path with platform specific file separator"
   [& more]
   (.getPath ^java.io.File (apply io/file more)))
+
+(def file-separator java.io.File/separator)
+
+(programs rm mkdir mv)
+
+;; https://gist.github.com/olieidel/c551a911a4798312e4ef42a584677397
+(defn delete-directory-recursive
+  "Recursively delete a directory."
+  [^java.io.File file]
+  ;; when `file` is a directory, list its entries and call this
+  ;; function with each entry. can't `recur` here as it's not a tail
+  ;; position, sadly. could cause a stack overflow for many entries?
+  (when (.isDirectory file)
+    (doseq [file-in-dir (.listFiles file)]
+      (delete-directory-recursive file-in-dir)))
+  ;; delete the file or directory. if it it's a file, it's easily
+  ;; deletable. if it's a directory, we already have deleted all its
+  ;; contents with the code above (remember?)
+  (.delete file))
+
+(defn remove-dir [dir]
+  (let [f (io/file dir)]
+    (when (.exists f)
+      (if windows?
+        (delete-directory-recursive f)
+        (rm "-rf" dir)))))
+
+(defn make-dirs [dir]
+  (if windows?
+    (.mkdirs (io/file dir))
+    (mkdir "-p" dir)))
+
+(defn rename-path [old new]
+  (if windows?
+    (.renameTo (io/file old) (io/file new))
+    (mv old new)))
 
 ;;;; Scratch
 

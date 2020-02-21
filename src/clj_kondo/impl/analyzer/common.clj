@@ -17,3 +17,6 @@
 
 (defn analyze-defn [ctx expr]
   ((get @common 'analyze-defn) ctx expr))
+
+(defn analyze-usages2 [ctx expr]
+  ((get @common 'analyze-usages2) ctx expr))

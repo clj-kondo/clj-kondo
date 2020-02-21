@@ -6,7 +6,7 @@
     [node->line tag one-of tag sexpr]]
    [datalog.parser :as datalog]))
 
-(defn analyze-datalog [{:keys [:findings] :as ctx} expr]
+(defn analyze-datalog [ctx expr]
   (let [children (next (:children expr))
         query-raw (first children)
         quoted? (when query-raw
@@ -20,7 +20,7 @@
         (datalog/parse (sexpr datalog-node))
         nil
         (catch Exception e
-          (findings/reg-finding! findings
+          (findings/reg-finding! ctx
                                  (node->line (:filename ctx) query-raw
                                              :error :datalog-syntax
                                              (.getMessage e))))))))

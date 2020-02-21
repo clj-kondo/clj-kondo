@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.rewrite-clj.node.keyword]
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
@@ -27,12 +28,6 @@
     (apply println strs))
   nil)
 
-(defn uneval? [node]
-  (= :uneval (node/tag node)))
-
-(defn comment? [node]
-  (= :comment (node/tag node)))
-
 (defn symbol-call
   "Returns symbol of call"
   [expr]
@@ -46,23 +41,6 @@
   "Returns keyword from node, if it contains any."
   [node]
   (:k node))
-
-(defn keyword-call
-  "Returns keyword of call"
-  [expr]
-  (when (= :list (node/tag expr))
-    (let [first-child (-> expr :children first)
-          ?k (:k first-child)]
-      (when (keyword? ?k)
-        {:k ?k
-         :namespaced? (:namespaced? first-child)}))))
-
-(defmacro some-call
-  "Determines if expr is a call to some symbol. Returns symbol if so."
-  [expr & syms]
-  (let [syms (set syms)]
-    `(and (= :list (tag ~expr))
-          ((quote ~syms) (:value (first (:children ~expr)))))))
 
 ;; this zipper version is much slower than the above
 #_(defn remove-noise
@@ -92,7 +70,7 @@
                           (when (= :default kw)
                             v))]
           (if (= lang kw)
-            v
+            (vary-meta  v assoc :branch lang)
             (if (seq ts)
               (recur ts default)
               default)))))
@@ -124,11 +102,16 @@
                     (select-lang* expr lang)))
 
 (defn node->line [filename node level type message]
+  #_(when (and (= type :missing-docstring)
+             (not (:row (meta node))))
+    (prn node))
   (let [m (meta node)]
     {:type type
      :message message
      :level level
      :row (:row m)
+     :end-row (:end-row m)
+     :end-col (:end-col m)
      :col (:col m)
      :filename filename}))
 
@@ -157,22 +140,19 @@
   ([a b & more]
    (apply merge-with deep-merge a b more)))
 
-(defn- constant-val?
-  [v]
-  (or (boolean? v)
-      (string? v)
-      (char? v)
-      (number? v)
-      (keyword? v)
-      (and (list? v) (= 'quote (first v)))
-      (and (or (vector? v) (set? v) (map? v))
-           (every? constant-val? v))))
-
 (defn constant?
   "returns true of expr represents a compile time constant"
   [expr]
-  (let [v (node/sexpr expr)]
-    (constant-val? v)))
+  (let [t (node/tag expr)]
+    (case t
+      ;; boolean, single-line string, char, number, keyword
+      :token
+      (not (symbol? (:value expr)))
+      ;; multi-line string and quoted values
+      (:multi-line :quote) true
+      (:vector :set :map) (every? constant? (:children expr))
+      :namespaced-map (every? constant? (-> expr :children first :children))
+      false)))
 
 (defn boolean-token? [node]
   (boolean? (:value node)))
@@ -181,9 +161,7 @@
   (char? (:value node)))
 
 (defn string-from-token [node]
-  (when-let [lines
-             (or (:lines node)
-                 (:multi-line node))]
+  (when-let [lines (:lines node)]
     (str/join "\n" lines)))
 
 (defn number-token? [node]
@@ -247,6 +225,68 @@
                 acc))
             (transient {})
             ks))))
+
+(defn filter-remove [p xs]
+  (loop [xs xs
+         filtered (transient [])
+         removed (transient [])]
+    (if xs
+      (let [x (first xs)] (if (p x)
+                            (recur (next xs)
+                                   (conj! filtered x) removed)
+                            (recur (next xs) filtered (conj! removed x))))
+      [(persistent! filtered) (persistent! removed)])))
+
+(defn resolve-call* [idacs call fn-ns fn-name]
+  ;; (prn "RES" fn-ns fn-name)
+  (let [call-lang (:lang call)
+        base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
+        unresolved? (:unresolved? call)
+        unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
+        fn-ns (if unknown-ns? (:ns call) fn-ns)]
+    ;; (prn "FN NS" fn-ns fn-name (keys (get (:defs (:clj idacs)) 'clojure.core)))
+    (case [base-lang call-lang]
+      [:clj :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
+                      (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      [:cljs :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+                        ;; when calling a function in the same ns, it must be in another file
+                        ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
+                        (when (not (and unknown-ns? unresolved?))
+                          (or
+                           ;; cljs func in another cljc file
+                           (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                           ;; maybe a macro?
+                           (get-in idacs [:clj :defs fn-ns fn-name])
+                           (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
+      ;; calling a clojure function from cljc
+      [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
+                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      ;; calling function in a CLJS conditional from a CLJC file
+      [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+                        (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                        ;; could be a macro
+                        (get-in idacs [:clj :defs fn-ns fn-name])
+                        (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
+
+(defn resolve-call [idacs call call-lang fn-ns fn-name unresolved? refer-alls]
+  (when-let [called-fn
+             (or (resolve-call* idacs call fn-ns fn-name)
+                 (when unresolved?
+                   (some #(resolve-call* idacs call % fn-name)
+                         (into (vec
+                                (keep (fn [[ns {:keys [:excluded]}]]
+                                        (when-not (contains? excluded fn-name)
+                                          ns))
+                                      refer-alls))
+                               (when (not (:clojure-excluded? call))
+                                 [(case call-lang #_base-lang
+                                        :clj 'clojure.core
+                                        :cljs 'cljs.core
+                                        :clj1c 'clojure.core)])))))]
+    (if-let [imported-ns (:imported-ns called-fn)]
+      (recur idacs call call-lang imported-ns
+             (:imported-var called-fn) unresolved? refer-alls)
+      called-fn)))
 
 ;;;; Scratch
 

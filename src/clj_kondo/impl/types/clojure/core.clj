@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.types.clojure.core
-  {:no-doc true})
+  {:no-doc true}
+  (:require [clj-kondo.impl.types.utils :as tu]))
 
 ;; sorted in order of appearance in
 ;; https://github.com/clojure/clojure/blob/master/src/clj/clojure/core.clj
@@ -7,14 +8,17 @@
 ;; a lot of this work was already figured out here:
 ;; https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc
 
-(def seqable->seqable {:arities {1 {:args [:seqable]
-                                    :ret :seqable-out}}})
+(def seqable->seq {:arities {1 {:args [:seqable]
+                                :ret :seq}}})
+
+(def seqable->boolean {:arities {1 {:args [:seqable]
+                                :ret :boolean}}})
 
 (def seqable->any {:arities {1 {:args [:seqable]
                                 :ret :any}}})
 
-(def any->boolean {:arities {1 {:args [:any]
-                                :ret :boolean}}})
+(def any->boolean {:arities {1 {:ret :boolean}}})
+
 
 ;; arity-1 function that returns the same type
 (def a->a {:arities {1 {:args [:any]}}
@@ -46,18 +50,22 @@
                                  :ret :int}}})
 
 (def clojure-core
-  {;; 16
+  {'if {:fn (fn [[_ then else]]
+              (tu/union-type then else))}
+   'let {:fn (fn [args]
+               (last args))}
+   ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
    'cons {:arities {2 {:args [:any :seqable]}}}
    ;; 49
    'first seqable->any
    ;; 57
-   'next seqable->seqable
+   'next seqable->seq
    ;; 66
-   'rest seqable->seqable
+   'rest seqable->seq
    ;; 75
-   'conj {:arities {0 {:args [:coll]
+   'conj {:arities {0 {:args [:nilable/coll]
                        :ret :coll}
                     :varargs {:args [:coll {:op :rest :spec :any}]
                               :ret :coll}}}
@@ -66,11 +74,11 @@
    ;; 98
    'ffirst seqable->any
    ;; 105
-   'nfirst seqable->seqable
+   'nfirst seqable->seq
    ;; 112
    'fnext seqable->any
    ;; 119
-   'nnext seqable->seqable
+   'nnext seqable->seq
    ;; 126
    'seq {:arities {1 {:args [:seqable]
                       :ret :seq}}}
@@ -91,10 +99,16 @@
                                        {:op :rest
                                         :spec [:any :any]}]}}
            :fn (fn [args]
-                 (let [t (:tag (first args))]
-                   (if (identical? :any t)
-                     :associative
-                     t)))}
+                 (let [farg (first args)]
+                   (if-let [t (:tag farg)]
+                     (case t
+                       :map :map
+                       :vector :vector
+                       (if (and (map? t)
+                                (identical? :map (:type t)))
+                         t
+                         :associative))
+                     :associative)))}
    ;; 202
    'meta {:arities {1 {:ret :nilable/map}}}
    ;; 211
@@ -102,7 +116,7 @@
    ;; 262
    'last seqable->any
    ;; 272
-   'butlast seqable->seqable
+   'butlast seqable->seq
    ;; 283 'defn
    ;; 338 'to-array
    ;; 346 'cast
@@ -123,7 +137,11 @@
    'nil? any->boolean
    ;; 444 'defmacro
    ;; 493 'when
+   'when {:fn (fn [args]
+                (tu/union-type :nil (last args)))}
    ;; 499 'when-not
+   'when-not {:fn (fn [args]
+                    (tu/union-type :nil (last args)))}
    ;; 505
    'false? any->boolean
    ;; 512
@@ -145,6 +163,19 @@
    ;; 568
    'keyword? any->boolean
    ;; 574 'cond
+   'cond {:fn (fn [args]
+                (loop [args (seq args)
+                       last-cond nil
+                       rets []]
+                  (if args
+                    (let [next-cond (first args)
+                          args (rest args)
+                          next-ret (first args)
+                          args (next args)]
+                      (recur args next-cond (conj rets next-ret)))
+                    (if (identical? :keyword (:tag last-cond))
+                      (reduce tu/union-type rets)
+                      (reduce tu/union-type :nil rets)))))}
    ;; 589
    'symbol {:arities {1 {:args [#{:symbol :string :keyword}]
                          :ret :symbol}
@@ -152,6 +183,10 @@
                          :ret :symbol}}}
    ;; 604 'gensym
    ;; 614 'keyword
+   'keyword {:arities {1 {:args [#{:symbol :string :keyword}]
+                          :ret :keyword}
+                       2 {:args [:nilable/string :string]
+                          :ret :keyword}}}
    ;; 625 'find-keyword
    ;; 648
    'list* {:arities {:varargs {:args [{:op :rest
@@ -164,7 +199,7 @@
                                             :last :seqable}]
                                :ret :any}}}
    ;; 675 'vary-meta
-   ;; 683 'lazy-seq
+   'lazy-seq {:arities {:varargs {:ret :seq}}}
    ;; 692 'chunk-buffer
    ;; 695 'chunk-append
    ;; 698 'chunk
@@ -172,22 +207,30 @@
    ;; 704 'chunk-rest
    ;; 707 'chunk-next
    ;; 710 'chunk-cons
-   ;; 715 'chunked-seq?
+   ;; 715
+   'chunked-seq? any->boolean
    ;; 718
    'concat {:arities {:varargs {:args [{:op :rest :spec :seqable}]
-                                :ret :seqable}}}
+                                :ret :seq}}}
    ;; 746 'delay
-   ;; 755 'delay?
+   ;; 755
+   'delay? any->boolean
    ;; 761 'force
    ;; 767 'if-not
-   ;; 775 'identical?
+   ;; 775
+   'identical? {:arities {2 {:ret :boolean}}}
    ;; 783
-   '= {:arities {:varargs {:args [:any {:op :rest :spec :any}]
-                           :ret :boolean}}}
-   ;; 819 'not=
+   '= {:arities {:varargs {:ret :boolean}}}
+   ;; 819
+   'not= {:arities {:varargs {:ret :boolean}}}
    ;; 831 'compare
+   'compare {:arities {2 {:ret :number}}}
    ;; 842 'and
+   'and {:fn (fn [args]
+               (reduce tu/union-type :nil args))}
    ;; 854 'or
+   'or {:fn (fn [args]
+              (reduce tu/union-type args))}
    ;; 867
    'zero? any->boolean
    ;; 874
@@ -209,7 +252,7 @@
    'inc number->number
    ;; 947
    'reverse {:arities {1 {:args [:seqable]}}
-             :ret :seqable-out}
+             :ret :seq}
    ;; 972
    '+' number*->number
    ;; 984
@@ -293,9 +336,9 @@
    ;; 1374
    'integer? any->boolean
    ;; 1386
-   'even? any->boolean
+   'even? number->boolean
    ;; 1394
-   'odd? any->boolean
+   'odd? number->boolean
    ;; 1400
    'int? any->boolean
    ;; 1408
@@ -314,47 +357,58 @@
    ;; 1451
    'identity a->a
    ;; 1459
-   'peek {:arities {1 {:args [:vector]
+   'peek {:arities {1 {:args [:stack]
                        :ret :any}}}
    ;; 1467
-   'pop {:arities {1 {:args [:vector]
-                      :ret :vector}}}
-   ;; 1478 'map-entry?
+   'pop {:arities {1 {:args [:stack]
+                      :ret :stack}}}
+   ;; 1478
+   'map-entry? any->boolean
    ;; 1484 'contains?
+   ;; NOTE: get is an any->any function on any object that implements ILookup.
    ;; 1494 'get
    ;; 1504
-   'dissoc {:arities {:varargs {:args [:map {:op :rest :spec :any}]
-                                :ret :map}}}
+   'dissoc {:arities {:varargs {:args [:nilable/map {:op :rest :spec :any}]
+                                :ret :nilable/map}}}
    ;; 1518 'disj
    ;; 1534
-   'find {:arities {2 {:args [:associative :any]}}}
+   'find {:arities {2 {:args [:nilable/associative :any]}}}
    ;; 1540
-   'select-keys {:arities {2 {:args [:associative :seqable]
+   'select-keys {:arities {2 {:args [:nilable/associative :seqable]
                               :ret :map}}}
    ;; 1555
+   ;; NOTE: keys and vals can be called on seqs of MapEntry's, hence not :associative.
    'keys {:arities {1 {:args [:seqable]
-                       :ret :seqable}}}
+                       :ret :seq}}}
    ;; 1561
    'vals {:arities {1 {:args [:seqable]
-                       :ret :seqable}}}
+                       :ret :seq}}}
    ;; 1567 'key
    ;; 1574 'val
    ;; 1581 'rseq
    ;; 1589 'name
-   ;; 1597 'namespace
-   ;; 1605 'boolean
-   ;; 1612 'ident?
-   ;; 1617 'simple-ident?
-   ;; 1622 'qualified-ident?
-   ;; 1627 'simple-symbol?
-   ;; 1632 'qualified-symbol?
-   ;; 1637 'simple-keyword?
-   ;; 1642 'qualified-keyword?
+   ;; 1597
+   'namespace {:arities {1 {:ret :string}}}
+   ;; 1605
+   'boolean any->boolean
+   ;; 1612
+   'ident? any->boolean
+   ;; 1617
+   'simple-ident? any->boolean
+   ;; 1622
+   'qualified-ident? any->boolean
+   ;; 1627
+   'simple-symbol? any->boolean
+   ;; 1632
+   'qualified-symbol? any->boolean
+   ;; 1637
+   'simple-keyword? any->boolean
+   ;; 1642
+   'qualified-keyword? any->boolean
    ;; 1647 'locking
    ;; 1659 '..
    ;; 1677 '->
    ;; 1693 '->>
-   ;; 1709 'map
    ;; 1723 'global-hierarchy
    ;; 1725 'defmulti
    ;; 1783 'defmethod
@@ -365,7 +419,11 @@
    ;; 1817 'get-method
    ;; 1824 'prefers
    ;; 1841 'if-let
+   'if-let {:fn (fn [[_ then else]]
+                  (tu/union-type then else))}
    ;; 1861 'when-let
+   'when-let {:fn (fn [args]
+                    (tu/union-type :nil (last args)))}
    ;; 1876 'if-some
    ;; 1896 'when-some
    ;; 1913 'push-thread-bindings
@@ -425,7 +483,8 @@
    ;; 2525 'volatile!
    ;; 2532 'vreset!
    ;; 2539 'vswap!
-   ;; 2548 'volatile?
+   ;; 2548
+   'volatile? any->boolean
    ;; 2557
    'comp {:arities {:varargs [{:op :rest
                                :spec :ifn}]
@@ -456,44 +515,82 @@
                       :ret :transducer}
                    :varargs {:args '[:ifn :seqable [{:op :rest
                                                      :spec :seqable}]]
-                             :ret :seqable-out}}}
+                             :ret :seq}}}
    ;; 2776 'declare
    ;; 2781 'cat
-   ;; 2783 'mapcat
+   ;; 2783
+   'mapcat {:arities {1 {:args [:ifn]
+                         :ret :transducer}
+                      :varargs {:args '[:ifn :seqable [{:op :rest
+                                                        :spec :seqable}]]
+                                :ret :seq}}}
    ;; 2793
    'filter {:arities {1 {:args [:ifn]
                          :ret :transducer}
                       2 {:args [:ifn :seqable]
-                         :ret :seqable-out}}}
+                         :ret :seq}}}
    ;; 2826
    'remove {:arities {1 {:args [:ifn]
                          :ret :transducer}
                       2 {:args [:ifn :seqable]
-                         :ret :seqable-out}}}
+                         :ret :seq}}}
    ;; 2836 'reduced
-   ;; 2842 'reduced?
+   ;; 2842
+   'reduced? any->boolean
    ;; 2849 'ensure-reduced
    ;; 2855 'unreduced
-   ;; 2861 'take
-   ;; 2888 'take-while
-   ;; 2909 'drop
-   ;; 2934 'drop-last
-   ;; 2941 'take-last
-   ;; 2952 'drop-while
-   ;; 2979 'cycle
-   ;; 2985 'split-at
-   ;; 2992 'split-with
-   ;; 2999 'repeat
-   ;; 3006 'replicate
-   ;; 3013 'iterate
+   ;; 2861
+   'take {:arities {1 {:args [:nat-int]
+                       :ret :transducer}
+                    2 {:args [:nat-int :seqable]
+                       :ret :seq}}}
+   ;; 2888
+   'take-while {:arities {1 {:args [:ifn]
+                             :ret :transducer}
+                          2 {:args [:ifn :seqable]
+                             :ret :seq}}}
+   ;; 2909
+   'drop {:arities {1 {:args [:nat-int]
+                       :ret :transducer}
+                    2 {:args [:nat-int :seqable]
+                       :ret :seq}}}
+   ;; 2934
+   'drop-last {:arities {1 {:args [:seqable]
+                            :ret :seq}
+                         2 {:args [:nat-int :seqable]
+                            :ret :seq}}}
+   ;; 2941
+   'take-last {:arities {2 {:args [:nat-int :seqable]
+                            :ret :seq}}}
+   ;; 2952
+   'drop-while {:arities {1 {:args [:ifn]
+                             :ret :transducer}
+                          2 {:args [:ifn :seqable]
+                             :ret :seq}}}
+   ;; 2979
+   'cycle seqable->seq
+   ;; 2985
+   'split-at {:arities {2 {:args [:nat-int :seqable]
+                           :ret :vector}}}
+   ;; 2992
+   'split-with {:arities {2 {:args [:ifn :seqable]
+                             :ret :vector}}}
+   ;; 2999
+   'repeat {:arities {1 {:args [:any]
+                         :ret :seq}
+                      2 {:args [:nat-int :any]}}}
+   ;; 3006 'replicate (deprecated)
+   ;; 3013
+   'iterate {:arities {2 {:args [:ifn :any]
+                          :ret :seq}}}
    ;; 3019
-   'range {:arities {0 {:ret :seqable}
+   'range {:arities {0 {:ret :seq}
                      1 {:args [:number]
-                        :ret :seqable}
+                        :ret :seq}
                      2 {:args [:number :number]
-                        :ret :seqable}
+                        :ret :seq}
                      3 {:args [:number :number :number]
-                        :ret :seqable}}}
+                        :ret :seq}}}
    ;; 3041
    'merge {:arities {:varargs {:args [{:op :rest
                                        :spec :seqable}]
@@ -515,11 +612,11 @@
    ;; 3174 'nthrest
    ;; 3184
    'partition {:arities {2 {:args [:int :seqable]
-                            :ret :seqable}
+                            :ret :seq}
                          3 {:args [:int :int :seqable]
-                            :ret :seqable}
+                            :ret :seq}
                          4 {:args [:int :int :seqable :seqable]
-                            :ret :seqable}}}
+                            :ret :seq}}}
    ;; 3210 'eval
    ;; 3216 'doseq
    ;; 3274 'await
@@ -551,14 +648,19 @@
    ;; 3540 'unchecked-long
    ;; 3546 'unchecked-float
    ;; 3552 'unchecked-double
-   ;; 3559 'number?
+   ;; 3559
+   'number? any->boolean
    ;; 3566 'mod
-   ;; 3576 'ratio?
+   ;; 3576
+   'ratio? any->boolean
    ;; 3582 'numerator
    ;; 3590 'denominator
-   ;; 3598 'decimal?
-   ;; 3604 'float?
-   ;; 3612 'rational?
+   ;; 3598
+   'decimal? any->boolean
+   ;; 3604
+   'float? any->boolean
+   ;; 3612
+   'rational? any->boolean
    ;; 3619 'bigint
    ;; 3633 'biginteger
    ;; 3647 'bigdec
@@ -574,7 +676,11 @@
    ;; 3770 'read+string
    ;; 3796 'read-line
    ;; 3805 'read-string
-   ;; 3818 'subvec
+   ;; 3818
+   'subvec {:arities {2 {:args [:vector :nat-int]
+                         :ret :vector}
+                      3 {:args [:vector :nat-int :nat-int]
+                         :ret :vector}}}
    ;; 3831 'with-open
    ;; 3852 'doto
    ;; 3871 'memfn
@@ -594,7 +700,8 @@
    ;; 4071 'accessor
    ;; 4082 'load-reader
    ;; 4089 'load-string
-   ;; 4099 'set?
+   ;; 4099
+   'set? any->boolean
    ;; 4105
    'set {:ret :set}
    ;; 4126 'find-ns
@@ -617,7 +724,7 @@
    'take-nth {:arities {1 {:args [:int]
                            :ret :transducer}
                         2 {:args [:int :seqable]
-                           :ret :seqable}}}
+                           :ret :seq}}}
    ;; 4309 'interleave
    ;; 4327 'var-get
    ;; 4333 'var-set
@@ -632,6 +739,7 @@
    ;; 4600 'when-first
    ;; 4614 'lazy-cat
    ;; 4624 'for
+   'for {:arities {2 {:ret :seq}}}
    ;; 4711 'comment
    ;; 4716 'with-out-str
    ;; 4727 'with-in-str
@@ -652,23 +760,25 @@
    ;; 4858 're-groups
    ;; 4874
    're-seq {:arities {2 {:args [:regex :string]
-                         :ret :seqable}}}
+                         :ret :seq}}}
    ;; 4886
    're-matches {:arities {2 {:args [:regex :string]
-                             :ret :seqable}}}
+                             :ret #{:vector :string}}}}
    ;; 4898
    're-find {:arities {1 {:args [:any] ;; matcher
-                          :ret :seqable}
+                          :ret :seq}
                        2 {:args [:regex :string]
-                          :ret :seqable}}}
+                          :ret #{:vector :string}}}}
    ;; 4911 'rand
    ;; 4919 'rand-int
    ;; 4925 'defn-
    ;; 4931 'tree-seq
    ;; 4948 'file-seq
    ;; 4958 'xml-seq
-   ;; 4968 'special-symbol?
-   ;; 4975 'var?
+   ;; 4968
+   'special-symbol? any->boolean
+   ;; 4975
+   'var? any->boolean
    ;; 4981
    'subs {:arities {2 {:args [:string :nat-int]
                        :ret :string}
@@ -684,7 +794,7 @@
    'distinct {:arities {0 {:args []
                            :ret :transducer}
                         1 {:args [:seqable]
-                           :ret :seqable}}}
+                           :ret :seq}}}
    ;; 5058 'replace
    ;; 5076 'dosync
    ;; 5086 'with-precision
@@ -700,7 +810,7 @@
    'interpose {:arities {1 {:args [:any]
                             :ret :transducer}
                          2 {:args [:any :seqable]
-                            :ret :seqable}}}
+                            :ret :seq}}}
    ;; 5229 'definline
    ;; 5241 'empty
    ;; 5249 'amap
@@ -722,9 +832,11 @@
    ;; 5373 'ints
    ;; 5378 'doubles
    ;; 5383 'longs
-   ;; 5388 'bytes?
+   ;; 5388
+   'bytes? any->boolean
    ;; 5397 'seque
-   ;; 5443 'class?
+   ;; 5443
+   'class? any->boolean
    ;; 5505 'alter-var-root
    ;; 5512 'bound?
    ;; 5520 'thread-bound?
@@ -744,6 +856,8 @@
    ;; 5721 'iterator-seq
    ;; 5731 'enumeration-seq
    ;; 5738 'format
+   'format {:arities {:varargs {:args [:string {:op :rest :spec :any}]
+                                :ret :string}}}
    ;; 5746 'printf
    ;; 5753 'gen-class
    ;; 5755 'with-loading-context
@@ -771,17 +885,29 @@
    'update {:arities {:varargs {:args [:nilable/associative :any :ifn {:op :rest :spec :any}]
                                 :ret :associative}}}
    ;; 6206 'empty?
-   ;; 6213 'coll?
-   ;; 6219 'list?
-   ;; 6225 'seqable?
-   ;; 6230 'ifn?
-   ;; 6237 'fn?
-   ;; 6244 'associative?
-   ;; 6250 'sequential?
-   ;; 6256 'sorted?
-   ;; 6262 'counted?
-   ;; 6268 'reversible?
-   ;; 6274 'indexed?
+   'empty? seqable->boolean
+   ;; 6213
+   'coll? any->boolean
+   ;; 6219
+   'list? any->boolean
+   ;; 6225
+   'seqable? any->boolean
+   ;; 6230
+   'ifn? any->boolean
+   ;; 6237
+   'fn? any->boolean
+   ;; 6244
+   'associative? any->boolean
+   ;; 6250
+   'sequential? any->boolean
+   ;; 6256
+   'sorted? any->boolean
+   ;; 6262
+   'counted? any->boolean
+   ;; 6268
+   'reversible? any->boolean
+   ;; 6274
+   'indexed? any->boolean
    ;; 6279 '*1
    ;; 6284 '*2
    ;; 6289 '*3
@@ -791,7 +917,8 @@
    ;; 6333 'while
    ;; 6343 'memoize
    ;; 6359 'condp
-   ;; 6530 'future?
+   ;; 6530
+   'future? any->boolean
    ;; 6536 'future-done?
    ;; 6543 'letfn
    ;; 6556
@@ -805,8 +932,10 @@
    ;; 6780 'Inst
    ;; 6780 'inst-ms*
    ;; 6787 'inst-ms
-   ;; 6793 'inst?
-   ;; 6805 'uuid?
+   ;; 6793
+   'inst? any->boolean
+   ;; 6805
+   'uuid? any->boolean
    ;; 6810
    'reduce {:arities {2 {:args [:ifn :seqable]
                          :ret :any}
@@ -858,7 +987,7 @@
    'partition-by {:arities {1 {:args [:ifn]
                                :ret :transducer}
                             2 {:args [:ifn :seqable]
-                               :ret :seqable}}}
+                               :ret :seq}}}
    ;; 7203
    'frequencies {:arities {1 {:args [:seqable]
                               :ret :map}}}
@@ -868,9 +997,9 @@
    'partition-all {:arities {1 {:args [:int]
                                 :ret :transducer}
                              2 {:args [:int :seqable]
-                                :ret :seqable}
+                                :ret :seq}
                              3 {:args [:int :int :seqable]
-                                :ret :seqable}}}
+                                :ret :seq}}}
    ;; 7274
    'shuffle {:arities {1 {:args [:coll]
                           :ret :coll}}}
@@ -878,17 +1007,17 @@
    'map-indexed {:arities {1 {:args [:ifn]
                               :ret :transducer}
                            2 {:args [:ifn :seqable]
-                              :ret :seqable}}}
+                              :ret :seq}}}
    ;; 7313
    'keep {:arities {1 {:args [:ifn]
                        :ret :transducer}
                     2 {:args [:ifn :seqable]
-                       :ret :seqable-out}}}
+                       :ret :seq}}}
    ;; 7283
    'keep-indexed {:arities {1 {:args [:ifn]
                                :ret :transducer}
                             2 {:args [:ifn :seqable]
-                               :ret :seqable}}}
+                               :ret :seq}}}
    ;; 7384 'bounded-count
    ;; 7396
    'every-pred {:arities {:varargs {:args [:ifn {:op :rest
@@ -912,20 +1041,32 @@
    'dedupe {:arities {0 {:args []
                          :ret :transducer}
                       1 {:args [:seqable]
-                         :ret :seqable}}}})
+                         :ret :seq}}}
    ;; 7673 'random-sample
    ;; 7682 'Eduction
    ;; 7682 '->Eduction
    ;; 7694 'eduction
    ;; 7710 'run!
-   ;; 7719 'tagged-literal?
+   ;; 7719
+   'tagged-literal? any->boolean
    ;; 7725 'tagged-literal
-   ;; 7732 'reader-conditional?
+   ;; 7732
+   'reader-conditional? any->boolean
    ;; 7738 'reader-conditional
    ;; 7750 'default-data-readers
    ;; 7758 '*data-readers*
    ;; 7787 '*default-data-reader-fn*
-   ;; 7845 'uri?
+   ;; 7845
+   'uri? any->boolean
    ;; 7868 'add-tap
    ;; 7879 'remove-tap
    ;; 7886 'tap>
+   })
+
+(def cljs-core
+  (assoc clojure-core
+         'keyword {:arities {1 {:args [#{:string :keyword :symbol}]
+                                :ret :keyword}
+                             2 {:args [#{:nilable/string :keyword :symbol}
+                                       #{:string :keyword :symbol}]
+                                :ret :keyword}}}))

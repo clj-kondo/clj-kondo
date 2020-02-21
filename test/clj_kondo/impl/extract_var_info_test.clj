@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.extract-var-info-test
   (:require
-   [clojure.test :as t :refer [deftest is]]
-   [clj-kondo.impl.extract-var-info :as extract-var-info]))
+    [clj-kondo.impl.extract-var-info :as extract-var-info]
+    [clojure.test :refer [deftest is]]))
 
 (deftest eastwood-var-info-test
   (let [var-info (extract-var-info/eastwood-var-info)]

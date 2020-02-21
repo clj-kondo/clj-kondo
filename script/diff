@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+mkdir -p /tmp/clj-kondo-diff
+
+cp="$(clojure -R:cljs -Spath)"
+read -r -d '' config <<'EOF' || true
+{:linters
+  {:not-a-function
+    {:skip-args [clojure.pprint/defdirectives
+                 cljs.pprint/defdirectives
+                 clojure.data.json/codepoint-case]}}}
+EOF
+
+out="/tmp/clj-kondo-diff/branch.txt"
+
+echo "Linting and writing output to $out"
+clojure -A:clj-kondo --lint "$cp" --cache --config "$config" > "$out"
+
+cd /tmp
+rm -rf clj-kondo
+git clone https://github.com/borkdude/clj-kondo.git
+cd clj-kondo
+
+if [ -n "$1" ]; then
+    echo "git reset $1 --hard"
+    git reset $1 --hard
+fi
+
+out="/tmp/clj-kondo-diff/master.txt"
+
+echo "Linting and writing output to $out"
+clojure -A:clj-kondo --lint "$cp" --cache --config "$config" > "$out"
+
+diff /tmp/clj-kondo-diff/branch.txt /tmp/clj-kondo-diff/master.txt

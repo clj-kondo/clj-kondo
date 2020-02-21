@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [one-of print-err! map-vals assoc-some]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
@@ -64,11 +65,9 @@
                        (str/starts-with? config "^"))
                    (edn/read-string config)
                    ;; config is a string that represents a file
-                   :else (read-edn-file config)))]))
+                   :else (read-edn-file (io/file config))))]))
 
 ;;;; process cache
-
-(def empty-cache-opt-warning "WARNING: --cache option didn't specify directory, but no .clj-kondo directory found. Continuing without cache. See https://github.com/borkdude/clj-kondo/blob/master/README.md#project-setup.")
 
 (defn resolve-cache-dir [cfg-dir cache cache-dir]
   (when-let [cache-dir (or cache-dir
@@ -80,37 +79,23 @@
 
 ;;;; find cache/config dir
 
-(defn- lineage [^java.io.File file]
-  (lazy-seq
-   (when file
-     (cons file (lineage (.getParentFile file))))))
-
 (defn source-file? [filename]
   (when-let [[_ ext] (re-find #"\.(\w+)$" filename)]
     (one-of (keyword ext) [:clj :cljs :cljc :edn])))
 
-(defn- single-file-lint? [lint]
-  (and (= 1 (count lint))
-       (.isFile (io/file (first lint)))
-       (source-file? (str (first lint)))))
-
-(defn- possible-config-dir-locations [lint]
-  (concat
-   (when (single-file-lint? lint)
-     (lineage (.getParentFile (io/file (first lint)))))
-   (lineage (io/file (System/getProperty "user.dir")))))
-
-(defn config-dir [lint]
-  (transduce (comp (map #(io/file % ".clj-kondo"))
-                   (filter #(.exists ^java.io.File %)))
-             (fn
-               ([] nil)
-               ([result] result)
-               ([_ ^java.io.File cfg-dir]
-                (if (.isDirectory cfg-dir)
-                  (reduced cfg-dir)
-                  (throw (Exception. (str cfg-dir " must be a directory"))))))
-             (possible-config-dir-locations lint)))
+(defn config-dir
+  ([] (config-dir
+       (io/file
+        (System/getProperty "user.dir"))))
+  ([cwd]
+   (loop [dir (io/file cwd)]
+     (let [cfg-dir (io/file dir ".clj-kondo")]
+       (if (.exists cfg-dir)
+         (if (.isDirectory cfg-dir)
+           cfg-dir
+           (throw (Exception. (str cfg-dir " must be a directory"))))
+         (when-let [parent (.getParentFile dir)]
+           (recur parent)))))))
 
 ;;;; jar processing
 
@@ -160,10 +145,10 @@
           default-language))
     default-language))
 
-(def cp-sep (System/getProperty "path.separator"))
+(def path-separator (System/getProperty "path.separator"))
 
 (defn classpath? [f]
-  (str/includes? f cp-sep))
+  (str/includes? f path-separator))
 
 (defn process-file [ctx filename default-language canonical?]
   (try
@@ -193,26 +178,27 @@
         (classpath? filename)
         (mapcat identity (pmap #(process-file ctx % default-language canonical?)
                                (str/split filename
-                                          (re-pattern cp-sep))))
+                                          (re-pattern path-separator))))
         :else
-        [{:findings [{:level :warning
-                      :filename (if canonical?
-                                  (.getCanonicalPath file)
-                                  filename)
-                      :type :file
-                      :col 0
-                      :row 0
-                      :message "file does not exist"}]}]))
+        (findings/reg-finding! ctx
+                               {:filename (if canonical?
+                                            (.getCanonicalPath file)
+                                            filename)
+                                :type :file
+                                :col 0
+                                :row 0
+                                :message "file does not exist"})))
     (catch Throwable e
-      (if dev? (throw e)
-          [{:findings [{:level :warning
-                        :filename (if canonical?
-                                    (.getCanonicalPath (io/file filename))
-                                    filename)
-                        :type :file
-                        :col 0
-                        :row 0
-                        :message "could not process file"}]}]))))
+      (if dev?
+        (throw e)
+        (findings/reg-finding! ctx {:level :warning
+                                    :filename (if canonical?
+                                                (.getCanonicalPath (io/file filename))
+                                                filename)
+                                    :type :file
+                                    :col 0
+                                    :row 0
+                                    :message "Could not process file."})))))
 
 (defn process-files [ctx files default-lang]
   (let [canonical? (-> ctx :config :output :canonical-paths)]
@@ -276,8 +262,9 @@
 (def zinc (fnil inc 0))
 
 (defn summarize [findings]
-  (reduce (fn [acc {:keys [:level]}]
-            (update acc level zinc))
+  (reduce (fn [acc finding]
+            (let [level (:level finding)]
+              (update acc level zinc)))
           {:error 0 :warning 0 :info 0 :type :summary}
           findings))
 
@@ -287,10 +274,10 @@
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
         remove-output (not-empty (-> config :output :exclude-files))]
-    (for [{:keys [:filename :type] :as f} findings
-          :let [level (when type (-> config :linters type :level))
-                ;; _ (when-not level (println "warning: " type " has no level!"))
-                ]
+    (for [f findings
+          :let [filename (:filename f)
+                type (:type f)
+                level (:level f)]
           :when (and level (not= :off level))
           :when (if (= :debug type)
                   print-debug?
@@ -303,7 +290,7 @@
           :when (not-any? (fn [pattern]
                             (re-find (re-pattern pattern) filename))
                           remove-output)]
-      (assoc f :level level))))
+      f)))
 
 ;;;; Scratch
 

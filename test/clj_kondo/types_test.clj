@@ -59,7 +59,7 @@
       :row 2,
       :col 28,
       :level :error,
-      :message "Expected: set or nil, received: seqable collection."}
+      :message "Expected: set or nil, received: seq."}
      {:file "<stdin>",
       :row 3,
       :col 28,
@@ -83,6 +83,23 @@
    (lint! "(require '[clojure.string :as str])
            (str/starts-with? 1 \"s\")
            (str/includes? (str/join [1 2 3]) 1)"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 9,
+      :level :error,
+      :message "Expected: vector, received: seq."})
+   (lint! "(subvec (map inc [1 2 3]) 10 20)"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :error,
+      :message
+      "Expected: stack (list, vector, etc.), received: set."})
+   (lint! "(peek #{:a :b :c})"
           {:linters {:type-mismatch {:level :error}}}))
   (testing "No type checking if invalid-arity is disabled"
     (assert-submaps
@@ -202,6 +219,10 @@
       :level :error,
       :message "Expected: number, received: list."})
    (lint! "(inc ())"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '[{:file "<stdin>", :row 1, :col 9, :level :error, :message "Expected: seqable collection, received: positive integer."}]
+   (lint! "(empty? 1)"
           {:linters {:type-mismatch {:level :error}}}))
   (testing "Insufficient input"
     (assert-submaps
@@ -352,8 +373,7 @@
         :message "Expected: number, received: map."})
      (lint! "(inc (assoc {} :a 1))"
             {:linters {:type-mismatch {:level :error}}})))
-  (testing "printing human readable label of alternative
-"
+  (testing "printing human readable label of alternative"
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
@@ -386,10 +406,33 @@
       :message #"Expected: seqable collection, received: symbol"})
    (lint! "(list* 'foo)"
           {:linters {:type-mismatch {:level :error}}}))
-
-  ;; avoiding false positives:
-  (is (empty?
-       (lint! "(cons [nil] (list 1 2 3))
+  (testing "resolve types via cache"
+    (lint! "(ns cached-ns1) (defn foo [] :keyword)"
+           {:linters {:type-mismatch {:level :error}}}
+           "--cache" "true")
+    (assert-submaps
+     '({:file "<stdin>", :row 3, :col 6, :level :error, :message "Expected: number, received: keyword."}
+       {:file "<stdin>", :row 5, :col 6, :level :error, :message "Expected: number, received: keyword."})
+     (lint! "
+(ns cached-ns2 (:require [cached-ns1]))
+(inc (cached-ns1/foo)) ;; this should give warning
+(defn bar [] (cached-ns1/foo))
+(inc (bar)) ;; this should also give a warning
+"
+                {:linters {:type-mismatch {:level :error}}}
+                "--cache" "true")))
+  (testing "return type of assoc"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 42, :level :error, :message "Expected: number, received: map."})
+     (lint! "(defn foo [_] (assoc {} :foo true)) (inc (foo {}))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 41, :level :error, :message "Expected: number, received: associative collection."})
+     (lint! "(defn foo [x] (assoc x :foo true)) (inc (foo {}))"
+            {:linters {:type-mismatch {:level :error}}})))
+  (testing "avoiding false positives"
+    (is (empty?
+         (lint! "(cons [nil] (list 1 2 3))
                (defn foo [] (:foo x))
                (let [x (atom 1)] (swap! x identity))
                (assoc {} :a `(dude))
@@ -405,39 +448,150 @@
                (str/starts-with? (str/join [1 2 3]) \"f\")
                (str/includes? (str/join [1 2 3]) \"f\")
                (remove #{1 2 3} [1 2 3])
+               (require '[clojure.set :as set])
                (set/difference (into #{} [1 2 3]) #{1 2 3})
                (reduce conj () [1 2 3])
-               (hash-set 1)"
-              {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(require '[clojure.string :as str])
+               (hash-set 1)
+               (str/includes? (re-find #\"foo\" \"foo\") \"foo\")
+               (keyword (when-not false \"foo\") \"bar\")"
+                {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(require '[clojure.string :as str])
                       (let [[xs] ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(require '[clojure.string :as str])
-                      (let [xs ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(doto (atom []) (swap! identity))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(defn foo [^Long x] (foo nil))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(defn foo ^Long [x] x) (defn bar [^long x]) (bar (foo 1)) (bar (foo nil))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  (testing "no warning, despite string able to be nil"
-    (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
                        {:linters {:type-mismatch {:level :error}}})))
-    (is (empty? (lint! "(defn foo [^Long x] (subs \"foo\" x))"
-                       {:linters {:type-mismatch {:level :error}}}))))
-  (testing "set spec (multiple keywords)"
-    (is (empty? (lint! "(re-pattern #\"foo\")"
-                       {:linters {:type-mismatch {:level :error}}}))))
-  (testing "associative is an ifn"
-    (is (empty? (lint! "(remove (assoc x :b 2) [:a :a :b :b])"
-                       {:linters {:type-mismatch {:level :error}}}))))
-  (testing "sequential is a coll"
-    (is (empty? (lint! "(conj (flatten []) {})"
-                       {:linters {:type-mismatch {:level :error}}}))))
-  (testing "collection could be a function"
-    (is (empty? (lint! "(filter (conj #{} 1) [1])"
-                       {:linters {:type-mismatch {:level :error}}})))))
+    (is (empty? (lint! "(require '[clojure.string :as str])
+                      (let [xs ((juxt butlast last))] (symbol (str (str/join \".\" xs))))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(doto (atom []) (swap! identity))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(defn foo [^Long x] (foo nil))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(defn foo ^Long [x] x) (defn bar [^long x]) (bar (foo 1)) (bar (foo nil))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(assoc {} :key1 2 :key2 (java.util.Date.))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (is (empty? (lint! "(keyword \"widget\" 'foo)"
+                       {:linters {:type-mismatch {:level :error}}}
+                       "--lang" "cljs")))
+    (testing "no warning, despite string able to be nil"
+      (is (empty? (lint! "(let [^String x \"foo\"] (subs x 1 1))"
+                         {:linters {:type-mismatch {:level :error}}})))
+      (is (empty? (lint! "(defn foo [^Long x] (subs \"foo\" x))"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "set spec (multiple keywords)"
+      (is (empty? (lint! "(re-pattern #\"foo\")"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "associative is an ifn"
+      (is (empty? (lint! "(remove (assoc x :b 2) [:a :a :b :b])"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "sequential is a coll"
+      (is (empty? (lint! "(conj (flatten []) {})"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "collection could be a function"
+      (is (empty? (lint! "(filter (conj #{} 1) [1])"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "nilable types"
+      (is (empty? (lint! "(conj nil) (conj nil 1 2 3) (dissoc nil) (dissoc nil 1 2 3) (find nil 1) (select-keys nil [1 2 3])"))))))
+
+(deftest if-let-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword."})
+   (lint! "(inc (if-let [_x 1] :foo 'symbol))"
+          {:linters {:type-mismatch {:level :error}}})))
+
+(deftest when-let-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or nil."})
+   (lint! "(inc (when-let [_x 1] 'symbol))"
+          {:linters {:type-mismatch {:level :error}}})))
+
+(deftest or-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword."})
+   (lint! "(inc (or :foo 'bar))"
+          {:linters {:type-mismatch {:level :error}}})))
+
+(deftest cond-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 46, :level :error, :message "Expected: number, received: symbol or keyword."})
+   (lint! "(defn foo [x] (cond x :foo :else 'bar)) (inc (foo 1))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+      '({:file "<stdin>", :row 1, :col 45, :level :error, :message "Expected: number, received: symbol or keyword or nil."})
+      (lint! "(defn foo [x] (cond x :foo x 'symbol)) (inc (foo 1))"
+             {:linters {:type-mismatch {:level :error}}})))
+
+(deftest and-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 44, :level :error, :message "Expected: number, received: keyword or nil or boolean."})
+   (lint! "(defn foo [_] true) (defn bar [_] :k) (inc (and (foo 1) (bar 2)))"
+              {:linters {:type-mismatch {:level :error}}})))
+
+(deftest return-type-inference-test
+  (testing "Function return types"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 26, :level :error, :message "Expected: number, received: string."})
+     (lint! "(defn foo [] \"foo\") (inc (foo))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps '({:file "<stdin>", :row 1, :col 36, :level :error, :message "Expected: number, received: map."})
+                    (lint! "(defn foo [] (assoc {} :a 1)) (inc (foo))"
+                           {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 53, :level :error, :message "Expected: number, received: string."})
+     (lint! "(defn foo ([_] 1) ([_ _] \"foo\")) (inc (foo 1)) (inc (foo 1 1))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: number, received: string."})
+     (lint! "(defn foo [_] (let [_x 1] \"foo\")) (inc (foo 1))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:level :error, :message "Expected: number, received: seq."})
+     (lint! "(defn foo [_] (let [_x 1] (for [_x [1 2 3]] \"foo\"))) (inc (foo 1))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 30, :level :error, :message "Expected: string or nil, received: boolean."})
+     (lint! "(defn foo [^String _x]) (foo true)"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: string."})
+     (lint! "(inc \"fooo\nbar\")"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 6, :level :error,
+        :message "Expected: number, received: symbol or keyword."})
+     (lint! "(inc (if :foo :bar 'baz))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 6, :level :error,
+        :message "Expected: number, received: symbol or nil."})
+     (lint! "(inc (when :foo 'baz))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :level :error,
+        :message "Expected: number, received: symbol or keyword."})
+     (lint! "
+(defn foo1 []
+  :bar)
+
+(defn foo2 []
+  'baz)
+
+(defn foo [x]
+  (if (< x 5) (foo1) (foo2)))
+
+(defn bar []
+  (foo 1))
+
+(inc (bar))
+" {:linters {:type-mismatch {:level :error}}}))
+    (is (empty? (lint! "(defn foo [] (foo)) (inc (foo))"
+                       {:linters {:type-mismatch {:level :error}}})))
+    (testing "recursive call doesn't call type checking loop"
+      (is (empty? (lint! "(defn macroexpand* [_form] (macroexpand* 1)) (inc (macroexpand* 1)) (macroexpand* (macroexpand* 1))"
+                         {:linters {:type-mismatch {:level :error}}})))
+      (is (empty? (lint! "(declare bar) (defn foo [] (bar)) (defn bar [] (foo))"
+                         {:linters {:type-mismatch {:level :error}}}
+                         "--cache" "true"))))))
+
 
 ;;;; Scratch
 

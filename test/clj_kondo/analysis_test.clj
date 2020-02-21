@@ -151,6 +151,31 @@
         :arity 3,
         :row 2,
         :to cljs.core}]
+     var-usages))
+  (let [{:keys [:var-usages]}
+        (analyze "(ns foo)
+                  (fn [x] x)
+                  (fn* [x] x)
+                  (bound-fn [x] x)")]
+    (assert-submaps
+     '[{:filename "<stdin>",
+        :row 2,
+        :col 20,
+        :name fn,
+        :from foo,
+        :to clojure.core}
+       {:filename "<stdin>",
+        :row 3,
+        :col 20,
+        :name fn*,
+        :from foo,
+        :to clojure.core}
+       {:filename "<stdin>",
+        :row 4,
+        :col 20,
+        :name bound-fn,
+        :from foo,
+        :to clojure.core}]
      var-usages)))
 
 (deftest analysis-is-valid-edn-test
@@ -158,3 +183,33 @@
     (let [analysis (analyze "(ns foo (:require [\"@dude\" :as d])) (d/fn-call)")
           analysis-edn (pr-str analysis)]
       (is (edn/read-string analysis-edn)))))
+
+(deftest test-var-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo (:require [clojure.test :as t]))
+                  (t/deftest foo)")]
+    (assert-submaps
+     '[{:filename "<stdin>", :row 2, :col 19, :ns foo, :name foo, :fixed-arities #{0},
+        :test true :defined-by clojure.test/deftest}]
+     var-definitions)))
+
+(deftest deftype-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo)
+                  (deftype Foo [])")]
+    (assert-submaps
+     '[{:filename "<stdin>", :row 2, :col 19, :ns foo, :name Foo, :defined-by clojure.core/deftype}
+       {:filename "<stdin>", :row 2, :col 19, :ns foo, :name ->Foo, :fixed-arities #{0}, :defined-by clojure.core/deftype}]
+     var-definitions)))
+
+(deftest defprotocol-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo)
+                  (defprotocol Foo (foo [_]))")]
+    (is (= '#{clojure.core/defprotocol} (set (map :defined-by var-definitions))))))
+
+(deftest export-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo)
+                  (defn ^:export foo [])")]
+    (is (true? (:export (first var-definitions))))))
