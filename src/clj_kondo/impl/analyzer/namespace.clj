@@ -305,7 +305,10 @@
                          (sexpr meta-node))
                   metadata)
         global-config (:config ctx)
-        local-config (-> ns-meta :clj-kondo/config second)
+        local-config (-> ns-meta :clj-kondo/config)
+        local-config (if (and (seq? local-config) (= 'quote (first local-config)))
+                       (second local-config)
+                       local-config)
         merged-config (if local-config (config/merge-config! global-config local-config)
                           global-config)
         ctx (if local-config
