@@ -2502,6 +2502,18 @@
    '({:file "<stdin>", :row 1, :col 19, :level :error, :message "Expected: package name followed by classes."})
    (lint! "(ns foo (:import [foo.bar]))")))
 
+(deftest unquoted-namespace-config-test
+  (assert-submaps '({:file "<stdin>", :row 4, :col 14, :level :warning, :message "Unsorted namespace: bar.foo"})
+                  (lint! "
+(ns foo {:clj-kondo/config {:linters {:unsorted-required-namespaces {:level :warning}}}}
+  (:require [foo.bar]
+            [bar.foo]))"))
+  (assert-submaps '({:file "<stdin>", :row 4, :col 14, :level :warning, :message "Unsorted namespace: bar.foo"})
+                  (lint! "
+(ns ^{:clj-kondo/config {:linters {:unsorted-required-namespaces {:level :warning}}}} foo
+  (:require [foo.bar]
+            [bar.foo]))")))
+
 ;;;; Scratch
 
 (comment
