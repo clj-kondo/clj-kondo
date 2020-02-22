@@ -773,6 +773,8 @@
    ;; 4919 'rand-int
    ;; 4925 'defn-
    ;; 4931 'tree-seq
+   'tree-seq {:arities {3 {:args [:ifn :ifn :any]
+                           :ret :seq}}}
    ;; 4948 'file-seq
    ;; 4958 'xml-seq
    ;; 4968
