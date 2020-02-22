@@ -1073,30 +1073,33 @@
   (let [children (next (:children expr))
         arg-types (:arg-types ctx)]
     (dorun (analyze-children ctx children false))
-    (let [types @arg-types
-          types (rest (map :tag types))
-          match-type (first types)
-          matcher-type (second types)]
-      (case match-type
-        :string (when (and matcher-type (not (identical? matcher-type :string)))
-                  (findings/reg-finding!
-                   ctx
-                   (node->line (:filename ctx) (last children)
-                               :warning :type-mismatch
-                               "String match arg requires string replacement arg.")))
-        :char (when (and matcher-type (not (identical? matcher-type :char)))
-                (findings/reg-finding!
-                 ctx
-                 (node->line (:filename ctx) (last children)
-                             :warning :type-mismatch
-                             "Char match arg requires char replacement arg.")))
-        :regex (when (and matcher-type (not (or (identical? matcher-type :string)
-                                                (identical? matcher-type :fn))))
-                 (findings/reg-finding!
-                  ctx
-                  (node->line (:filename ctx) (last children)
-                              :warning :type-mismatch
-                              "Regex match arg requires string or function replacement arg.")))))))
+    (when arg-types
+      (let [types @arg-types
+            types (rest (map :tag types))
+            match-type (first types)
+            matcher-type (second types)]
+        (when matcher-type
+          (case match-type
+            :string (when (not (identical? matcher-type :string))
+                      (findings/reg-finding!
+                       ctx
+                       (node->line (:filename ctx) (last children)
+                                   :warning :type-mismatch
+                                   "String match arg requires string replacement arg.")))
+            :char (when (not (identical? matcher-type :char))
+                    (findings/reg-finding!
+                     ctx
+                     (node->line (:filename ctx) (last children)
+                                 :warning :type-mismatch
+                                 "Char match arg requires char replacement arg.")))
+            :regex (when (not (or (identical? matcher-type :string)
+                                  (identical? matcher-type :fn)))
+                     (findings/reg-finding!
+                      ctx
+                      (node->line (:filename ctx) (last children)
+                                  :warning :type-mismatch
+                                  "Regex match arg requires string or function replacement arg.")))
+            nil))))))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
@@ -1297,27 +1300,27 @@
                     id (:id expr)
                     m (meta analyzed)
                     proto-call {:type :call
-                                  :resolved-ns resolved-namespace
-                                  :ns ns-name
-                                  :name (with-meta
-                                          (or resolved-name full-fn-name)
-                                          (meta full-fn-name))
-                                  :unresolved? unresolved?
-                                  :unresolved-ns unresolved-ns
-                                  :clojure-excluded? clojure-excluded?
-                                  :arity arg-count
-                                  :row row
-                                  :end-row (:end-row expr-meta)
-                                  :col col
-                                  :end-col (:end-col expr-meta)
-                                  :base-lang base-lang
-                                  :lang lang
-                                  :filename (:filename ctx)
-                                  :expr expr
-                                  :callstack (:callstack ctx)
-                                  :config (:config ctx)
-                                  :top-ns (:top-ns ctx)
-                                  :arg-types (:arg-types ctx)}
+                                :resolved-ns resolved-namespace
+                                :ns ns-name
+                                :name (with-meta
+                                        (or resolved-name full-fn-name)
+                                        (meta full-fn-name))
+                                :unresolved? unresolved?
+                                :unresolved-ns unresolved-ns
+                                :clojure-excluded? clojure-excluded?
+                                :arity arg-count
+                                :row row
+                                :end-row (:end-row expr-meta)
+                                :col col
+                                :end-col (:end-col expr-meta)
+                                :base-lang base-lang
+                                :lang lang
+                                :filename (:filename ctx)
+                                :expr expr
+                                :callstack (:callstack ctx)
+                                :config (:config ctx)
+                                :top-ns (:top-ns ctx)
+                                :arg-types (:arg-types ctx)}
                     ret-tag (or (:ret m)
                                 (types/ret-tag-from-call ctx proto-call expr))
                     call (cond-> proto-call

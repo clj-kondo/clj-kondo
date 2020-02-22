@@ -592,6 +592,11 @@
                          {:linters {:type-mismatch {:level :error}}}
                          "--cache" "true"))))))
 
+(deftest clojure_string_replace-test
+  (prn (lint! "
+(ns foo (:require [clojure.string :as str]))
+(str/replace \"foo\" #\"foo\" :foo)")))
+
 
 ;;;; Scratch
 

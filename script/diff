@@ -13,6 +13,8 @@ EOF
 
 out="/tmp/clj-kondo-diff/branch.txt"
 
+export CLJ_KONDO_DEV=true
+
 echo "Linting and writing output to $out"
 clojure -A:clj-kondo --lint "$cp" --cache --config "$config" > "$out"
 
