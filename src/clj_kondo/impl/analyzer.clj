@@ -1069,6 +1069,38 @@
             condition))
     (analyze-children ctx body false)))
 
+(defn analyze-clojure-string-replace [ctx expr]
+  (let [children (next (:children expr))
+        arg-types (:arg-types ctx)]
+    (dorun (analyze-children ctx children false))
+    (when arg-types
+      (let [types @arg-types
+            types (rest (map :tag types))
+            match-type (first types)
+            matcher-type (second types)]
+        (when matcher-type
+          (case match-type
+            :string (when (not (identical? matcher-type :string))
+                      (findings/reg-finding!
+                       ctx
+                       (node->line (:filename ctx) (last children)
+                                   :warning :type-mismatch
+                                   "String match arg requires string replacement arg.")))
+            :char (when (not (identical? matcher-type :char))
+                    (findings/reg-finding!
+                     ctx
+                     (node->line (:filename ctx) (last children)
+                                 :warning :type-mismatch
+                                 "Char match arg requires char replacement arg.")))
+            :regex (when (not (or (identical? matcher-type :string)
+                                  (identical? matcher-type :fn)))
+                     (findings/reg-finding!
+                      ctx
+                      (node->line (:filename ctx) (last children)
+                                  :warning :type-mismatch
+                                  "Regex match arg requires string or function replacement arg.")))
+            nil))))))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1221,6 +1253,8 @@
                      #_[:clj-kondo/unknown-namespace deftest])
                     (do (lint-inline-def! ctx expr)
                         (test/analyze-deftest ctx resolved-namespace expr))
+                    [clojure.string replace]
+                    (analyze-clojure-string-replace ctx expr)
                     [cljs.test async]
                     (test/analyze-cljs-test-async ctx expr)
                     ([clojure.test are] [cljs.test are] #_[clojure.template do-template])
@@ -1266,27 +1300,27 @@
                     id (:id expr)
                     m (meta analyzed)
                     proto-call {:type :call
-                                  :resolved-ns resolved-namespace
-                                  :ns ns-name
-                                  :name (with-meta
-                                          (or resolved-name full-fn-name)
-                                          (meta full-fn-name))
-                                  :unresolved? unresolved?
-                                  :unresolved-ns unresolved-ns
-                                  :clojure-excluded? clojure-excluded?
-                                  :arity arg-count
-                                  :row row
-                                  :end-row (:end-row expr-meta)
-                                  :col col
-                                  :end-col (:end-col expr-meta)
-                                  :base-lang base-lang
-                                  :lang lang
-                                  :filename (:filename ctx)
-                                  :expr expr
-                                  :callstack (:callstack ctx)
-                                  :config (:config ctx)
-                                  :top-ns (:top-ns ctx)
-                                  :arg-types (:arg-types ctx)}
+                                :resolved-ns resolved-namespace
+                                :ns ns-name
+                                :name (with-meta
+                                        (or resolved-name full-fn-name)
+                                        (meta full-fn-name))
+                                :unresolved? unresolved?
+                                :unresolved-ns unresolved-ns
+                                :clojure-excluded? clojure-excluded?
+                                :arity arg-count
+                                :row row
+                                :end-row (:end-row expr-meta)
+                                :col col
+                                :end-col (:end-col expr-meta)
+                                :base-lang base-lang
+                                :lang lang
+                                :filename (:filename ctx)
+                                :expr expr
+                                :callstack (:callstack ctx)
+                                :config (:config ctx)
+                                :top-ns (:top-ns ctx)
+                                :arg-types (:arg-types ctx)}
                     ret-tag (or (:ret m)
                                 (types/ret-tag-from-call ctx proto-call expr))
                     call (cond-> proto-call

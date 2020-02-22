@@ -592,6 +592,22 @@
                          {:linters {:type-mismatch {:level :error}}}
                          "--cache" "true"))))))
 
+(deftest clojure_string_replace-test
+  (assert-submaps
+   '({:file "<stdin>", :row 3, :col 27, :level :error,
+      :message "Regex match arg requires string or function replacement arg."})
+   (lint! "
+(ns foo (:require [clojure.string :as str]))
+(str/replace \"foo\" #\"foo\" :foo)"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 3, :col 23, :level :error,
+      :message "Char match arg requires char replacement arg."})
+   (lint! "
+(ns foo (:require [clojure.string :as str]))
+(str/replace \"foo\" \\a \"foo\")"
+          {:linters {:type-mismatch {:level :error}}})))
+
 
 ;;;; Scratch
 
