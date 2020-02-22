@@ -1069,6 +1069,35 @@
             condition))
     (analyze-children ctx body false)))
 
+(defn analyze-clojure-string-replace [ctx expr]
+  (let [children (next (:children expr))
+        arg-types (:arg-types ctx)]
+    (dorun (analyze-children ctx children false))
+    (let [types @arg-types
+          types (rest (map :tag types))
+          match-type (first types)
+          matcher-type (second types)]
+      (case match-type
+        :string (when (and matcher-type (not (identical? matcher-type :string)))
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx) (last children)
+                               :warning :type-mismatch
+                               "String match arg requires string replacement arg.")))
+        :char (when (and matcher-type (not (identical? matcher-type :char)))
+                (findings/reg-finding!
+                 ctx
+                 (node->line (:filename ctx) (last children)
+                             :warning :type-mismatch
+                             "Char match arg requires char replacement arg.")))
+        :regex (when (and matcher-type (not (or (identical? matcher-type :string)
+                                                (identical? matcher-type :fn))))
+                 (findings/reg-finding!
+                  ctx
+                  (node->line (:filename ctx) (last children)
+                              :warning :type-mismatch
+                              "Regex match arg requires string or function replacement arg.")))))))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1221,6 +1250,8 @@
                      #_[:clj-kondo/unknown-namespace deftest])
                     (do (lint-inline-def! ctx expr)
                         (test/analyze-deftest ctx resolved-namespace expr))
+                    [clojure.string replace]
+                    (analyze-clojure-string-replace ctx expr)
                     [cljs.test async]
                     (test/analyze-cljs-test-async ctx expr)
                     ([clojure.test are] [cljs.test are] #_[clojure.template do-template])
