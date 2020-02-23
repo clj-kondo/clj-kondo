@@ -5,6 +5,8 @@ if [ -z "$GRAALVM_HOME" ]; then
     exit 1
 fi
 
+"$GRAALVM_HOME/bin/gu" install native-image || true
+
 CLJ_KONDO_VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
 lein with-profiles +clojure-1.10.1 do clean, uberjar
