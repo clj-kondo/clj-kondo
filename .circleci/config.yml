@@ -60,6 +60,7 @@ jobs:
       GRAALVM_HOME: /home/circleci/graalvm-ce-java8-19.3.0
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_TEST_ENV: native
+      CLJ_KONDO_STATIC: true
     steps:
       - checkout
       - restore_cache:

@@ -1,37 +1,30 @@
 #!/usr/bin/env bash
 
-NATIVE_IMAGE=`which native-image`
-
-if [ -z "$NATIVE_IMAGE" ]; then
-    if [ -z "$GRAALVM_HOME" ]; then
-        echo "Please set GRAALVM_HOME"
-        exit 1
-    fi
-
-    # mkdir -p target/classes
-    # javac java-src/clj_kondo/LockFix.java \
-        #       -cp ~/.m2/repository/org/clojure/clojure/1.10.0/clojure-1.10.0.jar \
-        #       -d target/classes
-
-    "$GRAALVM_HOME/bin/gu" install native-image
-
-    NATIVE_IMAGE="$GRAALVM_HOME/bin/native-image"
+if [ -z "$GRAALVM_HOME" ]; then
+    echo "Please set GRAALVM_HOME"
+    exit 1
 fi
 
 CLJ_KONDO_VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
 lein with-profiles +clojure-1.10.1 do clean, uberjar
-$NATIVE_IMAGE \
-    "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar" \
-    "-H:Name=clj-kondo" \
-    "-H:+ReportExceptionStackTraces" \
-    "-J-Dclojure.spec.skip-macros=true" \
-    "-J-Dclojure.compiler.direct-linking=true" \
-    "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*" \
-    "-H:ReflectionConfigurationFiles=reflection.json" \
-    "--initialize-at-build-time"  \
-    "-H:Log=registerResource:" \
-    "--verbose" \
-    "--no-fallback" \
-    "--no-server" \
-    "-J-Xmx3g"
+
+args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar" \
+              "-H:Name=clj-kondo" \
+              "-H:+ReportExceptionStackTraces" \
+              "-J-Dclojure.spec.skip-macros=true" \
+              "-J-Dclojure.compiler.direct-linking=true" \
+              "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*" \
+              "-H:ReflectionConfigurationFiles=reflection.json" \
+              "--initialize-at-build-time"  \
+              "-H:Log=registerResource:" \
+              "--verbose" \
+              "--no-fallback" \
+              "--no-server" \
+              "-J-Xmx3g" )
+
+if [ "$CLJ_KONDO_STATIC" = "true" ]; then
+    args+=("--static")
+fi
+
+$GRAALVM_HOME/bin/native-image "${args[@]}"
