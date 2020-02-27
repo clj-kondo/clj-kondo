@@ -173,9 +173,7 @@ This section assumes that you are already using
 1. Install the [File Watchers](https://www.jetbrains.com/help/idea/settings-tools-file-watchers.html) plugin
 
 Repeat the below steps for the file types Clojure (`.clj`), ClojureScript (`.cljs`)
-and CLJC (`.cljc`)
-(for information on the meaning of these file formats, see [Reader Conditionals](https://clojure.org/guides/reader_conditionals),
-CLJX (`.cljx`) is an extension that was used prior to CLJC but is no longer in wide use)
+and CLJC (`.cljc`)<sup>1</sup>.
 
 2. Under Preferences / Tools / File Watchers click `+` and choose the `<custom>`
    template
@@ -193,6 +191,9 @@ You may use a custom config E.g `--lint $FilePath$ --config "{:lint-as {manifold
 12. Click `ok` and under the newly created file-watcher, change level to `Global` - this will enable the watcher in all future projects
 
 <img src="../screenshots/intellij-fw-config.png">
+
+<sup>1</sup> See [Reader Conditionals](https://clojure.org/guides/reader_conditionals) for more information on the `.cljc` extension.
+CLJX (`.cljx`) is an extension that was used prior to CLJC but is no longer in wide use.
 
 ## Spacemacs
 
