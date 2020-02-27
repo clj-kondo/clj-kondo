@@ -170,12 +170,12 @@ Now, when editing a Clojure file, you should get linting feedback.
 This section assumes that you are already using
 [Cursive](https://cursive-ide.com).
 
-1. Install the [File
-Watchers](https://www.jetbrains.com/help/idea/settings-tools-file-watchers.html)
-plugin
+1. Install the [File Watchers](https://www.jetbrains.com/help/idea/settings-tools-file-watchers.html) plugin
 
 Repeat the below steps for the file types Clojure (`.clj`), ClojureScript (`.cljs`)
-and CLJC (`.cljc`).
+and CLJC (`.cljc`)
+(for information on the meaning of these file formats, see [Reader Conditionals](https://clojure.org/guides/reader_conditionals),
+CLJX (`.cljx`) is an extension that was used prior to CLJC but is no longer in wide use)
 
 2. Under Preferences / Tools / File Watchers click `+` and choose the `<custom>`
    template
