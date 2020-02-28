@@ -494,8 +494,8 @@
                   tag (when (and let? binding (= :token (tag binding)))
                         (let [maybe-call (get @(:calls-by-id ctx) value-id)]
                           (cond maybe-call (:ret maybe-call)
-                                value {:tag (types/expr->tag ctx* value)})))
-                  new-bindings (when binding (extract-bindings ctx* binding tag))
+                                value (types/expr->tag ctx* value))))
+                  new-bindings (when binding (extract-bindings ctx* binding {:tag tag}))
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
                   next-arities (if-let [arity (:arity (meta analyzed-value))]
