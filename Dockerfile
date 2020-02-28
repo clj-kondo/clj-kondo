@@ -13,7 +13,8 @@ COPY . .
 RUN ./script/compile
 
 
-FROM scratch
+FROM busybox:musl
 
-COPY --from=BASE /opt/clj-kondo /bin/clj-kondo
+RUN mkdir -p /usr/local/bin
+COPY --from=BASE /opt/clj-kondo /usr/local/bin/clj-kondo
 CMD ["clj-kondo"]
