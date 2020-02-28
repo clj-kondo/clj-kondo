@@ -99,7 +99,7 @@ tuple-map {2 {:ret {:type :map, :val {}}}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.alpha.transit.json  ===
 alt-impl {3 {:ret :associative}}
 pvalid? {2 {:ret :boolean}, 3 {:ret :boolean}}
-explain-data* {5 {:ret #{:nil {:type :map, :val {:user/problems {:row 214, :col 19, :end-row 214, :end-col 24}, :user/spec {:row 215, :col 15, :end-row 215, :end-col 19}, :user/value {:row 216, :col 16, :end-row 216, :end-col 17}}}}}}
+explain-data* {5 {:ret #{{:type :map, :val {:user/problems {:row 214, :col 19, :end-row 214, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :user/spec {:row 215, :col 15, :end-row 215, :end-col 19}, :user/value {:row 216, :col 16, :end-row 216, :end-col 17}}} :nil}}}
 fn-sym {1 {:ret #{:symbol :nil}}}
 inst-in-range? {3 {:ret #{:nil :boolean}}}
 accept? {1 {:ret :boolean}}
@@ -107,7 +107,7 @@ accept {1 {:ret {:type :map, :val {:user/op {:row 1375, :col 25, :end-row 1375, 
 valid? {2 {:ret :boolean}, 3 {:ret :boolean}}
 int-in-range? {3 {:ret #{:nil :boolean}}}
 exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq}}
-explain-data {2 {:ret #{:nil {:type :map, :val {:user/problems {:row 214, :col 19, :end-row 214, :end-col 24}, :user/spec {:row 215, :col 15, :end-row 215, :end-col 19}, :user/value {:row 216, :col 16, :end-row 216, :end-col 17}}}}}}
+explain-data {2 {:ret #{{:type :map, :val {:user/problems {:row 214, :col 19, :end-row 214, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :user/spec {:row 215, :col 15, :end-row 215, :end-col 19}, :user/value {:row 216, :col 16, :end-row 216, :end-col 17}}} :nil}}}
 inck {2 {:ret :associative}}
 invalid? {1 {:ret :boolean}}
 amp-impl {4 {:ret {:type :map, :val {:user/op {:row 1416, :col 9, :end-row 1416, :end-col 14, :tag :keyword}, :p1 {:row 1416, :col 19, :end-row 1416, :end-col 21}, :amp {:row 1416, :col 27, :end-row 1416, :end-col 34}, :ps {:row 1416, :col 39, :end-row 1416, :end-col 44}, :forms {:row 1416, :col 52, :end-row 1416, :end-col 62}}}}}
@@ -344,6 +344,7 @@ re-find {2 {:ret :seq}}
 run! {2 {:ret :nil}}
 print-sequential {6 {:args (:nilable/string nil :nilable/string :nilable/string nil nil)}}
 not {1 {:ret #{:boolean}}}
+file-seq {1 {:ret :seq}}
 ident? {1 {:ret #{:boolean}}}
 qualified-ident? {1 {:ret :boolean}}
 / {1 {:ret :number}}
@@ -381,6 +382,7 @@ underive {2 {:ret :nil}}
 Throwable->map {1 {:ret :nilable/map}}
 simple-ident? {1 {:ret #{:nil :boolean}}}
 generate-interface {1 {:ret :vector}}
+xml-seq {1 {:ret :seq}}
 byte {1 {:args (:nilable/number)}}
 == {1 {:ret :boolean}}
 root-resource {1 {:ret :string}}
@@ -412,5 +414,5 @@ interpret-stack-trace-element {1 {:ret :nilable/map}}
 fn-spec-name? {1 {:ret #{:nil :boolean}}}
 make-check-result {3 {:ret :nilable/map}}
 enumerate-namespace {1 {:ret :set}}
-sym->check-map {1 {:ret {:type :map, :val {:s {:row 348, :col 9, :end-row 348, :end-col 10}, :v {:row 349, :col 9, :end-row 349, :end-col 10}, :spec {:row 350, :col 12, :end-row 350, :end-col 35}}}}}
+sym->check-map {1 {:ret {:type :map, :val {:s {:row 348, :col 9, :end-row 348, :end-col 10}, :v {:row 349, :col 9, :end-row 349, :end-col 10, :tag {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.core, :ns clojure.spec.test.alpha, :name resolve, :arity 1}}}, :spec {:row 350, :col 12, :end-row 350, :end-col 35}}}}}
 

@@ -583,6 +583,10 @@
 
 (inc (bar))
 " {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: number, received: keyword."})
+     (lint! "(defn foo [] :foo) (let [a (foo)] (inc a))"
+            {:linters {:type-mismatch {:level :error}}}))
     (is (empty? (lint! "(defn foo [] (foo)) (inc (foo))"
                        {:linters {:type-mismatch {:level :error}}})))
     (testing "recursive call doesn't call type checking loop"
