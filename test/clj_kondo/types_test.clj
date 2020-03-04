@@ -490,7 +490,11 @@
       (is (empty? (lint! "(filter (conj #{} 1) [1])"
                          {:linters {:type-mismatch {:level :error}}}))))
     (testing "nilable types"
-      (is (empty? (lint! "(conj nil) (conj nil 1 2 3) (dissoc nil) (dissoc nil 1 2 3) (find nil 1) (select-keys nil [1 2 3])"))))))
+      (is (empty? (lint! "(conj nil) (conj nil 1 2 3) (dissoc nil) (dissoc nil 1 2 3) (find nil 1) (select-keys nil [1 2 3])"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "byte also takes chars"
+      (is (empty? (lint! "(byte \\a)"
+                         {:linters {:type-mismatch {:level :error}}}))))))
 
 (deftest if-let-test
   (assert-submaps

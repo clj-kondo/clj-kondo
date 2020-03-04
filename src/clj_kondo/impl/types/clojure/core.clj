@@ -67,7 +67,7 @@
    ;; 75
    'conj {:arities {0 {:args [:nilable/coll]
                        :ret :coll}
-                    :varargs {:args [:coll {:op :rest :spec :any}]
+                    :varargs {:args [:nilable/coll {:op :rest :spec :any}]
                               :ret :coll}}}
    ;; 91
    'second seqable->any
@@ -640,6 +640,8 @@
    ;; 3492 'double
    ;; 3498 'short
    ;; 3504 'byte
+   'byte {:arities {1 {:args [#{:byte :number :char}]
+                       :ret :byte}}}
    ;; 3510 'char
    ;; 3516 'unchecked-byte
    ;; 3522 'unchecked-short
