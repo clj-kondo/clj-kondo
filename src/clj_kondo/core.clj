@@ -3,10 +3,10 @@
   (:require
    [cheshire.core :as cheshire]
    [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.config :refer [merge-config!]]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
-   [clj-kondo.impl.config :refer [merge-config!]]
    [clojure.java.io :as io]))
 
 ;;;; Public API
