@@ -15,7 +15,7 @@
                  [io.lambdaforge/datalog-parser "0.1.1"]
                  [cheshire "5.8.1"]]
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
-             :clojure-1.10.1 {:dependencies [[org.clojure/clojure "1.10.1"]]}
+             :clojure-1.10.2-alpha1 {:dependencies [[org.clojure/clojure "1.10.2-alpha1"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.10.520"]
                                    [clj-commons/conch "0.9.2"]
                                    [jonase/eastwood "0.3.6"]
