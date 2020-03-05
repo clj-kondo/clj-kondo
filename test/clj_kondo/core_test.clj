@@ -29,14 +29,14 @@
       (let [findings (:findings
                       (clj-kondo/run! {:lint [(file-path
                                                (System/getProperty "user.home")
-                                               ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
-                                               "spec.alpha-0.2.176.jar")]}))]
+                                               ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.187"
+                                               "spec.alpha-0.2.187.jar")]}))]
         (is (seq findings))
         (is (= findings
                (:findings
                 (clj-kondo/run! {:lint [(io/file (System/getProperty "user.home")
-                                                 ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.176"
-                                                 "spec.alpha-0.2.176.jar")]}))))))
+                                                 ".m2" "repository" "org" "clojure" "spec.alpha" "0.2.187"
+                                                 "spec.alpha-0.2.187.jar")]}))))))
     (testing "classpath 'file' arg"
       (let [findings (:findings (clj-kondo/run!
                                  {:lint [(str/join
