@@ -184,10 +184,17 @@ All other error codes indicate an unexpected error.
   other users posting issues with bug reports and ideas
 - [Nikita Prokopov](https://github.com/tonsky) for the logo
 
-## Support this project
+## [Companies](doc/companies.md) using clj-kondo
 
-Do you enjoy this project? Consider buying me a [hot
-beverage](https://ko-fi.com/borkdude).
+## Support
+
+If clj-kondo provides value to your Clojure development, consider supporting
+clj-kondo via one of the sponsoring options. If your company is interested in
+getting anything into clj-kondo that is not yet on the [project
+board](https://github.com/borkdude/clj-kondo/projects/1) or wants to give it
+higher priority, we can sort out a reasonable hourly rate or fixed fee. I am
+able to send you a proper invoice with VAT number, etc. Get into contact with me
+via e-mail, Twitter DM, Slack, etc.
 
 ## License
 
