@@ -50,7 +50,7 @@ Clj-kondo detects:
 * [type checking](doc/types.md)
 * Datalog syntax checking
 
-before your REPL knows it.
+before your form hits the REPL.
 
 It suggests several style guide recommendations, such as:
 
@@ -73,6 +73,10 @@ This linter is:
 * compiled to native code using GraalVM
 
 Try clj-kondo at the [interactive playground](https://clj-kondo.michielborkent.nl).
+
+Watch the talk:
+
+[![Clj-kondo at ClojuTRE 2019](https://img.youtube.com/vi/MB3vVREkI7s/0.jpg)](https://www.youtube.com/watch?v=MB3vVREkI7s)
 
 ## [Installation](doc/install.md)
 
