@@ -175,15 +175,6 @@ All other error codes indicate an unexpected error.
 
 ## [Developer documentation](doc/dev.md)
 
-## Thanks to:
-
-- [joker](https://github.com/candid82/joker) for inspiration
-- [rewrite-clj](https://github.com/xsc/rewrite-clj) for the Clojure parser code
-- [eastwood](https://github.com/jonase/eastwood) for `var-info.edn` and inspiration
-- [contributors](https://github.com/borkdude/clj-kondo/graphs/contributors) and
-  other users posting issues with bug reports and ideas
-- [Nikita Prokopov](https://github.com/tonsky) for the logo
-
 ## [Companies](doc/companies.md) using clj-kondo
 
 ## Support
@@ -195,6 +186,15 @@ board](https://github.com/borkdude/clj-kondo/projects/1) or wants to give it
 higher priority, we can sort out a reasonable hourly rate or fixed fee. I am
 able to send you a proper invoice with VAT number, etc. Get into contact with me
 via e-mail, Twitter DM, Slack, etc.
+
+## Thanks to:
+
+- [joker](https://github.com/candid82/joker) for inspiration
+- [rewrite-clj](https://github.com/xsc/rewrite-clj) for the Clojure parser code
+- [eastwood](https://github.com/jonase/eastwood) for `var-info.edn` and inspiration
+- [contributors](https://github.com/borkdude/clj-kondo/graphs/contributors) and
+  other users posting issues with bug reports and ideas
+- [Nikita Prokopov](https://github.com/tonsky) for the logo
 
 ## License
 
