@@ -192,6 +192,10 @@ You may use a custom config E.g `--lint $FilePath$ --config "{:lint-as {manifold
 
 <img src="../screenshots/intellij-fw-config.png">
 
+The "level" defaults to "Project". Change it to "Global" so that `clj-kondo` is active for all projects.
+
+<img src="../screenshots/intellij-fw-global.png">
+
 <sup>1</sup> See [Reader Conditionals](https://clojure.org/guides/reader_conditionals) for more information on the `.cljc` extension.
 CLJX (`.cljx`) is an extension that was used prior to CLJC but is no longer in wide use.
 
