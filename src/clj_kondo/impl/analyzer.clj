@@ -1077,7 +1077,10 @@
       (let [types @arg-types
             types (rest (map :tag types))
             match-type (first types)
-            matcher-type (second types)]
+            matcher-type (second types)
+            matcher-type (if (map? matcher-type)
+                           (:tag matcher-type)
+                           matcher-type)]
         (when matcher-type
           (case match-type
             :string (when (not (identical? matcher-type :string))
@@ -1093,6 +1096,7 @@
                                  :warning :type-mismatch
                                  "Char match arg requires char replacement arg.")))
             :regex (when (not (or (identical? matcher-type :string)
+                                  ;; TODO: maps are ifns and are valid.
                                   (identical? matcher-type :fn)))
                      (findings/reg-finding!
                       ctx
