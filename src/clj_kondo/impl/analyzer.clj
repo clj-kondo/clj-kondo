@@ -1079,7 +1079,9 @@
             match-type (first types)
             matcher-type (second types)
             matcher-type (if (map? matcher-type)
-                           (:tag matcher-type)
+                           (or (:tag matcher-type)
+                               (when (identical? :map (:type matcher-type))
+                                 :map))
                            matcher-type)]
         (when matcher-type
           (case match-type
@@ -1096,8 +1098,11 @@
                                  :warning :type-mismatch
                                  "Char match arg requires char replacement arg.")))
             :regex (when (not (or (identical? matcher-type :string)
-                                  ;; TODO: maps are ifns and are valid.
-                                  (identical? matcher-type :fn)))
+                                  ;; we could allow :ifn here, but keywords are
+                                  ;; not valid in this position, so we do an
+                                  ;; additional check for :map
+                                  (identical? matcher-type :fn)
+                                  (identical? matcher-type :map)))
                      (findings/reg-finding!
                       ctx
                       (node->line (:filename ctx) (last children)

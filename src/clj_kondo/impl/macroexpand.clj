@@ -16,7 +16,8 @@
                threaded (if (= :list (tag form))
                           (with-meta (list-node (list* (first (:children form))
                                                        x
-                                                       (next (:children form)))) (meta form))
+                                                       (next (:children form))))
+                            (meta form))
                           (with-meta (list-node (list form x))
                             (meta form)))]
            (recur threaded (next forms)))
