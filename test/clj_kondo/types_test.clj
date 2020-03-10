@@ -614,7 +614,12 @@
    (lint! "
 (ns foo (:require [clojure.string :as str]))
 (str/replace \"foo\" \\a \"foo\")"
-          {:linters {:type-mismatch {:level :error}}})))
+          {:linters {:type-mismatch {:level :error}}}))
+  (is (empty? (lint! "
+(require '[clojure.string :as str])
+(let [x (identity \"foo\")]
+  (str/replace \"foo\" \"bar\" x))"
+                     {:linters {:type-mismatch {:level :error}}}))))
 
 
 ;;;; Scratch
