@@ -68,4 +68,5 @@
     (is (empty? (lint! "(import '[java.util Foo Bar]) Foo/CONSTANT (Bar/static_fn)"
                        "--lang" "cljs")))
     (is (empty? (lint! "(import '[java.util Foo]) (defn foo [^Foo x] x)")))
-    (is (empty? (lint! "(import '[java.util Foo]) (try 1 (catch Foo _e nil))")))))
+    (is (empty? (lint! "(import '[java.util Foo]) (try 1 (catch Foo _e nil))")))
+    (is (empty? (lint! "(ns foo (:import [foo Bar])) (defn foo [x] x) (defn bar [x] (-> x ^Bar (.execute)))")))))
