@@ -138,7 +138,8 @@ clj-kondo LSP server or via the File Watchers plugin.
 
 ### LSP server
 
-Note that the LSP server does not provide features other than diagnostics.
+The LSP server does not provide features other than diagnostics,
+so if you are unsure, prefer the File Watchers approach.
 
 1. Download the latest clj-kondo LSP server jar to your system. Go to the
    [Github releases](https://github.com/borkdude/clj-kondo/releases) and look
@@ -167,13 +168,15 @@ Now, when editing a Clojure file, you should get linting feedback.
 
 <img src="../screenshots/intellij-let.png" width="50%" align="right">
 
-This section assumes that you are already using
-[Cursive](https://cursive-ide.com).
+You do not need any other Clojure plugins like [Cursive](https://cursive-ide.com).
+If you have them, they will work fine together.
 
-1. Install the [File Watchers](https://www.jetbrains.com/help/idea/settings-tools-file-watchers.html) plugin
+1. Install the [File Watchers](https://www.jetbrains.com/help/idea/settings-tools-file-watchers.html) plugin. This plugin is available for installation in the Community Edition, even though it is bundled in Ultimate, you don't need Ultimate to install it.
 
 Repeat the below steps for the file types Clojure (`.clj`), ClojureScript (`.cljs`)
 and CLJC (`.cljc`)<sup>1</sup>.
+Cursive automatically creates these file types,
+but if you don't use Cursive, you can still [register clj filetypes](https://www.jetbrains.com/help/idea/creating-and-registering-file-types.html#)<sup>2</sup>.
 
 2. Under Preferences / Tools / File Watchers click `+` and choose the `<custom>`
    template
@@ -198,6 +201,8 @@ The "level" defaults to "Project". Change it to "Global" so that `clj-kondo` is 
 
 <sup>1</sup> See [Reader Conditionals](https://clojure.org/guides/reader_conditionals) for more information on the `.cljc` extension.
 CLJX (`.cljx`) is an extension that was used prior to CLJC but is no longer in wide use.
+
+<sup>2</sup> See [File Watchers user guide](https://www.jetbrains.com/help/idea/using-file-watchers.html) for generic usage information for file watcher setup.
 
 ## Spacemacs
 
