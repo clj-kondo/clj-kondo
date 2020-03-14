@@ -133,12 +133,16 @@ If you have [vim-dispatch](https://github.com/tpope/vim-dispatch/) installed, yo
 
 ## IntelliJ IDEA
 
-Currently there are two ways to get clj-kondo integration in IntelliJ: via the
-clj-kondo LSP server or via the File Watchers plugin.
+Currently there are two ways to get clj-kondo integration in IntelliJ.
+Both methods work well and have equivalent features.
+Select your preferred plugin/version management preference between:
+* LSP (Language Server Protocol) plugin to run clj-kondo from a jar
+* Cursive or ClojureKit + File Watchers plugin to run an installed binary clj-kondo
+
 
 ### LSP server
 
-Note that the LSP server does not provide features other than diagnostics.
+The LSP server does not provide features other than diagnostics.
 
 1. Download the latest clj-kondo LSP server jar to your system. Go to the
    [Github releases](https://github.com/borkdude/clj-kondo/releases) and look
@@ -150,7 +154,7 @@ Note that the LSP server does not provide features other than diagnostics.
    release](https://github.com/gtache/intellij-lsp/releases). Version 1.6.0 or
    later is required.
 
-<img src="../screenshots/intellij-lsp.png" width="50%" align="right">
+   <img src="../screenshots/intellij-lsp.png" width="50%" align="right">
 
 3. Configure the LSP Support plugin.
    - Go to Preferences / Languages & Frameworks / Language Server Protocol / Server definitions. Select
@@ -167,34 +171,29 @@ Now, when editing a Clojure file, you should get linting feedback.
 
 <img src="../screenshots/intellij-let.png" width="50%" align="right">
 
-This section assumes that you are already using
-[Cursive](https://cursive-ide.com).
+Requires a syntax aware plugin such as [Cursive](https://cursive-ide.com) or [ClojureKit](https://github.com/gregsh/Clojure-Kit) installed for best results.
 
-1. Install the [File Watchers](https://www.jetbrains.com/help/idea/settings-tools-file-watchers.html) plugin
+Install the [File Watchers](https://www.jetbrains.com/help/idea/settings-tools-file-watchers.html) plugin. This plugin is available for installation in the Community Edition, even though it is bundled in Ultimate, you don't need Ultimate to install it.
 
 Repeat the below steps for the file types Clojure (`.clj`), ClojureScript (`.cljs`)
 and CLJC (`.cljc`)<sup>1</sup>.
 
-2. Under Preferences / Tools / File Watchers click `+` and choose the `<custom>`
+1. Under Preferences / Tools / File Watchers click `+` and choose the `<custom>`
    template
-3. Choose a name. E.g. `clj-kondo <filetype>` (where `<filetype>` is one of
+2. Choose a name. E.g. `clj-kondo <filetype>` (where `<filetype>` is one of
    Clojure, ClojureScript or CLJC)
-4. In the File type field, choose the correct filetype
-5. Scope: `Current file`
-6. In the Program field, type `clj-kondo`
-7. In the Arguments field, type `--lint $FilePath$`<br>
-You may use a custom config E.g `--lint $FilePath$ --config "{:lint-as {manifold.deferred/let-flow clojure.core/let}}"`.
-8. In the Working directory field, type `$FileDir$`
-9. Enable `Create output file from stdout`
-10. Show console: `Never`
-11. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`
-12. Click `ok` and under the newly created file-watcher, change level to `Global` - this will enable the watcher in all future projects
-
-<img src="../screenshots/intellij-fw-config.png">
-
-The "level" defaults to "Project". Change it to "Global" so that `clj-kondo` is active for all projects.
-
-<img src="../screenshots/intellij-fw-global.png">
+3. In the File type field, choose the correct filetype
+4. Scope: `Current file`
+5. In the Program field, type `clj-kondo`
+6. In the Arguments field, type `--lint $FilePath$`<br>
+You may use a custom config E.g `--lint $FilePath$ --config "{:lint-as {manifold.deferred/let-flow clojure.core/let}}"`
+7. In the Working directory field, type `$FileDir$`
+8. Enable `Create output file from stdout`
+9. Show console: `Never`
+10. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`
+    <img src="../screenshots/intellij-fw-config.png">
+11. The newly created file-watcher "level" defaults to "Project". Change it to "Global" so that `clj-kondo` is active for all future projects
+  <img src="../screenshots/intellij-fw-global.png">
 
 <sup>1</sup> See [Reader Conditionals](https://clojure.org/guides/reader_conditionals) for more information on the `.cljc` extension.
 CLJX (`.cljx`) is an extension that was used prior to CLJC but is no longer in wide use.
