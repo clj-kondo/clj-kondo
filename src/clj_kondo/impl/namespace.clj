@@ -128,7 +128,15 @@
                   (when (and (not= :off (-> config :linters :missing-docstring :level))
                              (not (:private metadata))
                              (not (:doc metadata))
-                             (not temp?))
+                             (not temp?)
+                             (not
+                              (when-let [defined-by (:defined-by metadata)]
+                                (or
+                                 (= 'clojure.test/deftest defined-by)
+                                 (= 'clojure.core/deftype defined-by)
+                                 (= 'clojure.core/defrecord defined-by)
+                                 (= 'clojure.core/defprotocol defined-by)
+                                 (= 'clojure.core/definterface defined-by)))))
                     (findings/reg-finding!
                      ctx
                      (node->line filename

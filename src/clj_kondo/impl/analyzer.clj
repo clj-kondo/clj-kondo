@@ -1047,16 +1047,15 @@
   (let [ns-name (-> ctx :ns :name)
         children (next (:children expr))
         name-expr (->> (first children)
-                       (meta/lift-meta-content2 ctx)
-                       :value)
+                       (meta/lift-meta-content2 ctx))
+        name-sym (:value name-expr)
         body (next children)
         ctx (ctx-with-linters-disabled ctx [:invalid-arity
                                             :unresolved-symbol
                                             :type-mismatch
-                                            :private-call])]
-    (namespace/reg-var! ctx ns-name
-                        (meta/lift-meta-content2 ctx name-expr)
-                        (meta expr))
+                                            :private-call
+                                            :missing-docstring])]
+    (namespace/reg-var! ctx ns-name name-sym (meta expr))
     (run! #(analyze-usages2 ctx %) body)))
 
 (defn analyze-when [ctx expr]
