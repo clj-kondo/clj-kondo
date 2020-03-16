@@ -737,6 +737,7 @@
    ;; 4389 'destructure
    ;; 4481 'let
    ;; 4513 'fn
+   'fn {:arities {:varargs {:ret :fn}}}
    ;; 4575 'loop
    ;; 4600 'when-first
    ;; 4614 'lazy-cat
