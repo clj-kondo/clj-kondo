@@ -2489,7 +2489,11 @@
 (deftest import-syntax
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 19, :level :error, :message "Expected: package name followed by classes."})
-   (lint! "(ns foo (:import [foo.bar]))")))
+   (lint! "(ns foo (:import [foo.bar]))"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 61, :level :error, :message "Expected: class symbol"}
+     {:file "<stdin>", :row 1, :col 68, :level :error, :message "Expected: class symbol"})
+   (lint! "(ns circle.http.api.v2.context (:import [circle.http.defapi :refer [defapi-with-auth]]))")))
 
 (deftest unquoted-namespace-config-test
   (assert-submaps '({:file "<stdin>", :row 4, :col 14, :level :warning, :message "Unsorted namespace: bar.foo"})
