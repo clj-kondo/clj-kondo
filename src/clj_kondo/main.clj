@@ -50,28 +50,28 @@ Options:
                (if-let [opt (first options)]
                  (if (starts-with? opt "--")
                    (recur (rest options)
-                          (assoc opts-map opt [])
+                          (update opts-map opt (fnil identity []))
                           opt)
                    (recur (rest options)
                           (update opts-map current-opt conj opt)
                           current-opt))
                  opts-map))
-        default-lang (when-let [lang-opt (first (get opts "--lang"))]
+        default-lang (when-let [lang-opt (last (get opts "--lang"))]
                        (keyword lang-opt))
         cache-opt (get opts "--cache")]
     #_(binding [*out* *err*]
       (prn "cache opt" cache-opt))
     {:lint (get opts "--lint")
      :cache (if cache-opt
-              (if-let [f (first cache-opt)]
+              (if-let [f (last cache-opt)]
                 (cond (= "false" f) false
                       (= "true" f) true
                       :else f)
                 true)
               true)
-     :cache-dir (first (get opts "--cache-dir"))
+     :cache-dir (last (get opts "--cache-dir"))
      :lang default-lang
-     :config (first (get opts "--config"))
+     :config (last (get opts "--config"))
      :version (get opts "--version")
      :help (get opts "--help")}))
 

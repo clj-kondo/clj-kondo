@@ -2082,16 +2082,16 @@
     (when (.exists (io/file ".clj-kondo"))
       (rename-path ".clj-kondo" ".clj-kondo.bak"))
     (make-dirs ".clj-kondo")
-    (lint! "(ns app.core) (defn foo [])" "--cache")
+    (lint! "(ns app.core) (defn foo [])" "--cache" "true")
     (lint! "(ns app.api (:require [potemkin :refer [import-vars]]))
             (import-vars [app.core foo])"
-           "--cache")
+           "--cache" "true")
     (assert-submaps '({:file "<stdin>",
                        :row 1,
                        :col 49,
                        :level :error,
                        :message "app.core/foo is called with 1 arg but expects 0"})
-                    (lint! "(ns consumer (:require [app.api :refer [foo]])) (foo 1)" "--cache"))
+                    (lint! "(ns consumer (:require [app.api :refer [foo]])) (foo 1)" "--cache" "true"))
     (remove-dir ".clj-kondo")
     (when (.exists (io/file ".clj-kondo.bak"))
       (rename-path ".clj-kondo.bak" ".clj-kondo"))))
@@ -2425,6 +2425,13 @@
   (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}})))
   (testing "don't throw exception when args are missing"
     (is (some? (lint! "(assoc-in)")))))
+
+(deftest multiple-lint-options
+  (let [out-str (with-out-str
+                  (main "--lint" "corpus/case.clj"
+                        "--lint" "corpus/defmulti.clj"))]
+    (is (str/includes? out-str "corpus/case.clj"))
+    (is (str/includes? out-str "corpus/defmulti.clj"))))
 
 ;;;; Scratch
 
