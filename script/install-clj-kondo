@@ -5,26 +5,47 @@
 
 set -euo pipefail
 
+default_install_dir="/usr/local/bin"
+install_dir=$default_install_dir
+default_download_dir="/tmp"
+download_dir=$default_download_dir
+
 print_help() {
-    echo "Installs latest version of clj-kondo. Installation directory defaults to /usr/local/bin."
+    echo "Installs latest version of clj-kondo."
     echo -e
     echo "Usage:"
-    echo "install [--dir <dir>]"
+    echo "install [--dir <dir>] [--download-dir <download-dir>]"
+    echo -e
+    echo "Defaults:"
+    echo " * Installation directory: ${default_install_dir}"
+    echo " * Download directory: ${default_download_dir}"
     exit 1
 }
 
-default_install_dir="/usr/local/bin"
-install_dir=$default_install_dir
-install_flag=${1:-}
-install_dir_opt=${2:-}
-if [[ "$install_flag" = "--dir" ]]; then
-    if [[ -z "$install_dir_opt" ]]; then
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+    if [[ -z "${2:-}" ]]; then
         print_help
-    else
-        install_dir="$install_dir_opt"
     fi
-fi
-download_dir=/tmp
+
+    case $key in
+        --dir)
+            install_dir="$2"
+            shift
+            shift
+            ;;
+        --download-dir)
+            download_dir="$2"
+            shift
+            shift
+            ;;
+        *)    # unknown option
+            print_help
+            shift
+            ;;
+    esac
+done
 
 latest_release="$(curl -s https://raw.githubusercontent.com/borkdude/clj-kondo/master/resources/CLJ_KONDO_RELEASED_VERSION)"
 
@@ -36,7 +57,7 @@ esac
 download_url="https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.zip"
 
 cd "$download_dir"
-echo -e "Downloading $download_url"
+echo -e "Downloading $download_url to $download_dir"
 curl -o "clj-kondo-$latest_release-$platform-amd64.zip" -sL "https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.zip"
 unzip -qqo "clj-kondo-$latest_release-$platform-amd64.zip"
 rm "clj-kondo-$latest_release-$platform-amd64.zip"
