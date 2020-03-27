@@ -4,7 +4,6 @@ set -eo pipefail
 
 # populate mvn cache for extract tests
 clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.9.0"}}}' -Spath > /dev/null
-clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.10.1"}}}' -Spath > /dev/null
 clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.10.2-alpha1"}}}' -Spath > /dev/null
 clojure -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.10.520"}}}' -Spath > /dev/null
 
