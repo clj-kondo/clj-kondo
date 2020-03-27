@@ -6,6 +6,7 @@
    [clj-kondo.impl.analyzer.compojure :as compojure]
    [clj-kondo.impl.analyzer.core-async :as core-async]
    [clj-kondo.impl.analyzer.datalog :as datalog]
+   [clj-kondo.impl.analyzer.jdbc :as jdbc]
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.potemkin :as potemkin]
@@ -1296,6 +1297,11 @@
                      [compojure.core context]
                      [compojure.core rfn])
                     (compojure/analyze-compojure-macro ctx expr resolved-as-name)
+                    ([clojure.java.jdbc with-db-transaction]
+                     [clojure.java.jdbc with-db-connection]
+                     [clojure.java.jdbc with-db-metadata]
+                     [next.jdbc with-transaction])
+                    (jdbc/analyze-like-jdbc-with ctx expr)
                     ;; catch-all
                     (let [next-ctx (cond-> ctx
                                      (= '[clojure.core.async thread]
@@ -1537,6 +1543,7 @@
 ;; with GraalVM
 (vreset! common {'analyze-expression** analyze-expression**
                  'analyze-children analyze-children
+                 'analyze-like-let analyze-like-let
                  'ctx-with-bindings ctx-with-bindings
                  'extract-bindings extract-bindings
                  'analyze-defn analyze-defn
