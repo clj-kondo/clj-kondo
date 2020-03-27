@@ -24,6 +24,7 @@
    :nat-int #{:int :number}
    :neg-int #{:int :number}
    :double #{:number}
+   :byte #{:number}
    :vector #{:seqable :sequential :associative :coll :ifn :stack}
    :map #{:seqable :associative :coll :ifn}
    :nil #{:seqable}
@@ -41,7 +42,7 @@
 (def could-be-relations
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
-   :number #{:neg-int :pos-int :nat-int :int :double}
+   :number #{:neg-int :pos-int :nat-int :int :double :byte}
    :coll #{:map :vector :set :list  :associative :seq :sequential :ifn :stack}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil

@@ -26,6 +26,7 @@ qualified? {1 {:ret :boolean}}
 file-position {1 {:ret :vector}}
 file-and-line {2 {:ret #{{:type :map, :val {:file {:row 341, :col 16, :end-row 341, :end-col 32}, :line {:row 341, :col 39, :end-row 341, :end-col 57}}} {:type :map, :val {:file {:row 342, :col 14, :end-row 342, :end-col 17, :tag :nil}, :line {:row 342, :col 24, :end-row 342, :end-col 27, :tag :nil}}}}}}
 stacktrace-file-and-line {1 {:ret #{{:type :map, :val {:file {:row 349, :col 12, :end-row 349, :end-col 15, :tag :nil}, :line {:row 349, :col 22, :end-row 349, :end-col 25, :tag :nil}}} {:type :map, :val {:file {:row 348, :col 14, :end-row 348, :end-col 30}, :line {:row 348, :col 37, :end-row 348, :end-col 55}}}}}}
+compose-fixtures {2 {:ret :fn}}
 function? {1 {:ret #{:nil :boolean}}}
 successful? {1 {:ret #{:nil :boolean}}}
 testing-vars-str {1 {:ret :string}}
@@ -167,6 +168,7 @@ namespace-doc {1 {:ret :associative}}
 special-doc {1 {:ret :associative}}
 stack-element-str {1 {:ret :string}}
 dir-fn {1 {:ret #{:list :seq}}}
+thread-stopper {0 {:ret :fn}, 1 {:ret :fn}}
 apropos {1 {:ret #{:list :seq}}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.inspector.transit.json  ===
@@ -174,6 +176,7 @@ atom? {1 {:ret :boolean}}
 collection-tag {1 {:ret #{:keyword :nil}}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.instant.transit.json  ===
+validated {1 {:ret :fn}}
 zero-fill-right {2 {:args (:nilable/string nil)}}
 leap-year? {1 {:ret #{:nil :boolean}}}
 divisible? {2 {:ret :boolean}}
@@ -189,6 +192,7 @@ parse-timestamp {2 {:args (nil :nilable/char-sequence)}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.tools.reader.transit.json  ===
 unquote-splicing? {1 {:ret #{:nil :boolean}}}
 starting-line-col-info {1 {:ret #{:vector :nil}}}
+wrapping-reader {1 {:ret :fn}}
 read+string {0 {:ret :vector}, :varargs {:ret :vector, :min-arity 1}}
 read-unicode-char {4 {:args (:nilable/string :int :int :int)}}
 unquote? {1 {:ret #{:nil :boolean}}}
@@ -234,6 +238,8 @@ read-decimal {1 {:args (:nilable/string)}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.xml.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.reducers.transit.json  ===
+cat {1 {:ret :fn}}
+monoid {2 {:ret :fn}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.String.transit.json  ===
 
@@ -261,23 +267,27 @@ declared-methods {1 {:ret :set}}
 +' {0 {:ret :nat-int}}
 sort-by {2 {:ret #{:list :seq}}, 3 {:ret #{:list :seq}}}
 is-runtime-annotation? {1 {:ret :boolean}}
+keep-indexed {1 {:ret :fn}}
 subs {2 {:ret :nilable/string, :args (:nilable/string nil)}, 3 {:ret :nilable/string, :args (:nilable/string nil nil)}}
 reader-conditional {2 {:args (nil :nilable/boolean)}}
 qualified-keyword? {1 {:ret :boolean}}
 satisfies? {2 {:ret :boolean}}
-take-nth {2 {:ret :seq}}
+take-nth {1 {:ret :fn}, 2 {:ret :seq}}
 newline {0 {:ret :nil}}
+dedupe {0 {:ret :fn}}
 pr-on {2 {:ret :nil}}
+mk-bound-fn {3 {:ret :fn}}
 pr {0 {:ret :nil}, 1 {:ret :nil}}
 = {1 {:ret :boolean}}
-take {2 {:ret :seq}}
+take {1 {:ret :fn}, 2 {:ret :seq}}
 thread-bound? {:varargs {:ret :boolean, :min-arity 0}}
 any? {1 {:ret :boolean}}
 rand-int {1 {:ret :int}}
-map {2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}, :varargs {:ret :seq, :min-arity 4}}
+map {1 {:ret :fn}, 2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}, :varargs {:ret :seq, :min-arity 4}}
+juxt {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 < {1 {:ret :boolean}}
 make-hierarchy {0 {:ret {:type :map, :val {:parents {:row 5532, :col 16, :end-row 5532, :end-col 18, :tag {:type :map, :val {}}}, :descendants {:row 5532, :col 32, :end-row 5532, :end-col 34, :tag {:type :map, :val {}}}, :ancestors {:row 5532, :col 46, :end-row 5532, :end-col 48, :tag {:type :map, :val {}}}}}}}
-keep {2 {:ret :seq}}
+keep {1 {:ret :fn}, 2 {:ret :seq}}
 unchecked-long {1 {:args (:nilable/number)}}
 some? {1 {:ret :boolean}}
 get-super-and-interfaces {1 {:ret #{:vector}}}
@@ -286,15 +296,20 @@ inst? {1 {:ret :boolean}}
 range {0 {:ret :seq}}
 sort {1 {:ret #{:list :seq}}, 2 {:ret #{:list :seq}}}
 generate-class {1 {:ret :vector}}
+map-indexed {1 {:ret :fn}}
+comp {2 {:ret :fn}}
 simple-symbol? {1 {:ret #{:nil :boolean}}}
+fnil {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}}
 unchecked-float {1 {:args (:nilable/number)}}
+cat {1 {:ret :fn}}
 StackTraceElement->vec {1 {:ret :vector}}
 flush {0 {:ret :nil}}
-take-while {2 {:ret :seq}}
+take-while {1 {:ret :fn}, 2 {:ret :seq}}
 <= {1 {:ret :boolean}}
 repeatedly {1 {:ret :seq}, 2 {:ret :seq}}
 remove {1 {:ret :transducer}, 2 {:ret :seq}}
 * {0 {:ret :pos-int}}
+nary-inline {1 {:ret :fn}, 2 {:ret :fn}}
 format {:varargs {:ret :nilable/string, :min-arity 1}}
 bound? {:varargs {:ret :boolean, :min-arity 0}}
 parse-opts+specs {1 {:ret :vector}}
@@ -317,6 +332,7 @@ rand {1 {:ret :number}}
 > {1 {:ret :boolean}}
 replace {1 {:ret :transducer}}
 unchecked-int {1 {:args (:nilable/number)}}
+bound-fn* {1 {:ret :fn}}
 prn {:varargs {:ret #{:nil}, :min-arity 0}}
 extends? {2 {:ret :boolean}}
 spread {1 {:ret #{:nil :seq}}}
@@ -330,9 +346,10 @@ hash-set {0 {:ret :set}}
 emit-hinted-impl {2 {:ret :vector}}
 strip-ns {1 {:ret #{:symbol :keyword}}}
 assoc-in {3 {:ret #{:associative}}}
+memoize {1 {:ret :fn}}
 simple-keyword? {1 {:ret #{:nil :boolean}}}
 neg-int? {1 {:ret #{:nil :boolean}}}
-drop {2 {:ret :seq}}
+drop {1 {:ret :fn}, 2 {:ret :seq}}
 split-at {2 {:ret :vector}}
 random-sample {1 {:ret :transducer}, 2 {:ret :seq}}
 update {3 {:ret :associative}, 4 {:ret :associative}, 5 {:ret :associative}, 6 {:ret :associative}, :varargs {:ret :associative, :min-arity 6}}
@@ -348,23 +365,28 @@ file-seq {1 {:ret :seq}}
 ident? {1 {:ret #{:boolean}}}
 qualified-ident? {1 {:ret :boolean}}
 / {1 {:ret :number}}
+binding-conveyor-fn {1 {:ret :fn}}
 vector {0 {:ret :vector}, 1 {:ret :vector}, 2 {:ret :vector}, 3 {:ret :vector}, 4 {:ret :vector}, 5 {:ret :vector}, 6 {:ret :vector}}
 >= {1 {:ret :boolean}}
 drop-last {1 {:ret :seq}, 2 {:ret :seq}}
 root-directory {1 {:ret :string}}
+distinct {0 {:ret :fn}}
 partition {2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}}
 data-reader-urls {0 {:ret :seq}}
 mapv {3 {:ret :vector}, 4 {:ret :vector}, :varargs {:ret :vector, :min-arity 4}}
-partition-all {1 {:args (:int)}, 2 {:ret :seq}, 3 {:ret :seq}}
-partition-by {2 {:ret :seq}}
+partition-all {1 {:ret :fn, :args (:int)}, 2 {:ret :seq}, 3 {:ret :seq}}
+partition-by {1 {:ret :fn}, 2 {:ret :seq}}
 derive {2 {:ret :nil}}
 prep-hashes {4 {:ret #{:vector}}}
 subseq {5 {:ret #{:nil :seq}}}
 flatten {1 {:ret :seq}}
+halt-when {1 {:ret :fn}, 2 {:ret :fn}}
 nat-int? {1 {:ret #{:nil :boolean}}}
 subvec {2 {:ret :vector}}
+partial {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}, :varargs {:ret :fn, :min-arity 4}}
 replicate {2 {:ret :seq}}
 unchecked-byte {1 {:args (:nilable/number)}}
+every-pred {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 distinct? {1 {:ret :boolean}, 2 {:ret :boolean}}
 pos-int? {1 {:ret #{:nil :boolean}}}
 prep-ints {2 {:ret #{:vector}}}
@@ -372,7 +394,7 @@ extenders {1 {:ret :seq}}
 unchecked-short {1 {:args (:nilable/number)}}
 odd? {1 {:ret :boolean}}
 rsubseq {5 {:ret #{:nil :seq}}}
-filter {2 {:ret :seq}}
+filter {1 {:ret :fn}, 2 {:ret :seq}}
 + {0 {:ret :nat-int}}
 split-with {2 {:ret :vector}}
 ctor-sigs {1 {:ret :seq}}
@@ -380,6 +402,7 @@ str {0 {:ret :nilable/string}, 1 {:ret :nilable/string}, :varargs {:ret :nilable
 hash-map {0 {:ret {:type :map, :val {}}}}
 underive {2 {:ret :nil}}
 Throwable->map {1 {:ret :nilable/map}}
+some-fn {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 simple-ident? {1 {:ret #{:nil :boolean}}}
 generate-interface {1 {:ret :vector}}
 xml-seq {1 {:ret :seq}}
@@ -387,12 +410,16 @@ byte {1 {:args (:nilable/number)}}
 == {1 {:ret :boolean}}
 root-resource {1 {:ret :string}}
 generate-proxy {2 {:ret :vector}}
-interpose {2 {:ret :seq}}
+interpose {1 {:ret :fn}, 2 {:ret :seq}}
 emit-impl {1 {:ret :vector}}
 rational? {1 {:ret #{:boolean}}}
 clojure-version {0 {:ret :string}}
 merge-hash-collisions {4 {:ret :vector}}
-drop-while {2 {:ret :seq}}
+comparator {1 {:ret :fn}}
+drop-while {1 {:ret :fn}, 2 {:ret :seq}}
+complement {1 {:ret :fn}}
+constantly {1 {:ret :fn}}
+completing {1 {:ret :fn}, 2 {:ret :fn}}
 hash-unordered-coll {1 {:ret :int}}
 preserving-reduced {1 {:ret :fn}}
 qualified-symbol? {1 {:ret :boolean}}
@@ -411,6 +438,7 @@ javadoc-url {1 {:args (:nilable/string)}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.test.alpha.transit.json  ===
 interpret-stack-trace-element {1 {:ret :nilable/map}}
+spec-checking-fn {3 {:ret :fn}}
 fn-spec-name? {1 {:ret #{:nil :boolean}}}
 make-check-result {3 {:ret :nilable/map}}
 enumerate-namespace {1 {:ret :set}}

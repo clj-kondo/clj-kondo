@@ -494,6 +494,9 @@
                          {:linters {:type-mismatch {:level :error}}}))))
     (testing "byte also takes chars"
       (is (empty? (lint! "(byte \\a)"
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing "byte returns number"
+      (is (empty? (lint! "(+ (byte 32) 1)"
                          {:linters {:type-mismatch {:level :error}}}))))))
 
 (deftest if-let-test
