@@ -77,6 +77,7 @@
    :pos-int "positive integer"
    :nat-int "natural integer"
    :neg-int "negative integer"
+   :byte "byte"
    :seqable "seqable collection"
    :seq "seq"
    :vector "vector"
