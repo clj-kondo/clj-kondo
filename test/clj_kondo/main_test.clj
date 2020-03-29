@@ -2507,6 +2507,18 @@
   (:require [foo.bar]
             [bar.foo]))")))
 
+
+(deftest conflicting-aliases-test
+  (assert-submaps
+    [{:file "<stdin>", :row 1, :col 38,
+      :level :warning, :message #"Conflicting alias for "}]
+    (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
+           {:linters {:conflicting-alias {:level :warning}
+                      :unused-namespace {:level :off}}}))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar :as baz]))"
+                     {:linters {:conflicting-alias {:level :warning}
+                                :unused-namespace {:level :off}}}))))
+
 ;;;; Scratch
 
 (comment
