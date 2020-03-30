@@ -36,7 +36,7 @@
         level (-> config :linters :conflicting-alias :level)]
     (when-not (identical? :off level)
       (loop [aliases #{}
-             ns-maps namespaces]
+             ns-maps (filter :as namespaces)]
         (let [{:keys [ns as]} (first ns-maps)]
           (when (contains? aliases as)
             (findings/reg-finding!

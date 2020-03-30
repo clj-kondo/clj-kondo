@@ -2517,6 +2517,10 @@
                       :unused-namespace {:level :off}}}))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar :as baz]))"
                      {:linters {:conflicting-alias {:level :warning}
+                                :unused-namespace {:level :off}}})))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar] [foo.baz :refer [fun muchfun]]))"
+                     {:linters {:conflicting-alias {:level :warning}
+                                :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}}))))
 
 ;;;; Scratch
