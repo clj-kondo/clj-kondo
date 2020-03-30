@@ -19,17 +19,36 @@
              (if (contains? required ns)
                (do
                  (findings/reg-finding!
-                  ctx
-                  (node->line (:filename ctx)
-                              ns
-                              :warning
-                              :duplicate-require
-                              (str "duplicate require of " ns)))
+                   ctx
+                   (node->line (:filename ctx)
+                               ns
+                               :warning
+                               :duplicate-require
+                               (str "duplicate require of " ns)))
                  required)
                (conj required ns)))
            (set init)
            namespaces)
    nil))
+
+(defn lint-conflicting-aliases! [ctx namespaces]
+  (let [config (:config ctx)
+        level (-> config :linters :conflicting-alias :level)]
+    (when-not (identical? :off level)
+      (loop [aliases #{}
+             ns-maps (filter :as namespaces)]
+        (let [{:keys [ns as]} (first ns-maps)]
+          (when (contains? aliases as)
+            (findings/reg-finding!
+              ctx
+              (node->line (:filename ctx)
+                          as
+                          :warning
+                          :conflicting-alias
+                          (str "Conflicting alias for " ns))))
+          (when (seq (rest ns-maps))
+            (recur (conj aliases as)
+                   (rest ns-maps))))))))
 
 (defn lint-unsorted-required-namespaces! [ctx namespaces]
   (let [config (:config ctx)
@@ -199,6 +218,7 @@
   [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
+           (lint-conflicting-aliases! ctx (:required analyzed-require-clauses))
            (lint-unsorted-required-namespaces! ctx (:required analyzed-require-clauses))
            (lint-duplicate-requires! ctx (:required ns) (:required analyzed-require-clauses))
            (merge-with into ns analyzed-require-clauses)))
