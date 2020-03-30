@@ -2511,15 +2511,15 @@
 (deftest conflicting-aliases-test
   (assert-submaps
     [{:file "<stdin>", :row 1, :col 50,
-      :level :warning, :message #"Conflicting alias for "}]
+      :level :error, :message #"Conflicting alias for "}]
     (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
-           {:linters {:conflicting-alias {:level :warning}
+           {:linters {:conflicting-alias {:level :error}
                       :unused-namespace {:level :off}}}))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar :as baz]))"
-                     {:linters {:conflicting-alias {:level :warning}
+                     {:linters {:conflicting-alias {:level :error}
                                 :unused-namespace {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar] [foo.baz :refer [fun muchfun]]))"
-                     {:linters {:conflicting-alias {:level :warning}
+                     {:linters {:conflicting-alias {:level :error}
                                 :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}}))))
 

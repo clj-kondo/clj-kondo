@@ -23,7 +23,7 @@
               :syntax {:level :error}
               :file {:level :error}
               :missing-test-assertion {:level :warning}
-              :conflicting-alias {:level :warning}
+              :conflicting-alias {:level :error}
               :constant-test-assertion {:level :warning}
               :duplicate-map-key {:level :error}
               :duplicate-set-key {:level :error}
