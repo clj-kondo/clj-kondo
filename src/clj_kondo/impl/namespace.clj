@@ -42,7 +42,7 @@
             (findings/reg-finding!
               ctx
               (node->line (:filename ctx)
-                          ns
+                          as
                           :warning
                           :conflicting-alias
                           (str "Conflicting alias for " ns))))

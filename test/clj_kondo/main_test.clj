@@ -2510,7 +2510,7 @@
 
 (deftest conflicting-aliases-test
   (assert-submaps
-    [{:file "<stdin>", :row 1, :col 38,
+    [{:file "<stdin>", :row 1, :col 50,
       :level :warning, :message #"Conflicting alias for "}]
     (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
            {:linters {:conflicting-alias {:level :warning}
