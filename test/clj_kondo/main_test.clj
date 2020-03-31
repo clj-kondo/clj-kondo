@@ -2507,7 +2507,6 @@
   (:require [foo.bar]
             [bar.foo]))")))
 
-
 (deftest conflicting-aliases-test
   (assert-submaps
     [{:file "<stdin>", :row 1, :col 50,
@@ -2522,6 +2521,17 @@
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}}))))
+
+(deftest get-in-test
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "get-in with single key"})
+    (lint! "(get-in {} [:k])"))
+
+  (is (empty? (lint! "(get-in {} [:k1 :k2])"))))
 
 ;;;; Scratch
 

@@ -77,7 +77,8 @@
                                  ;; different from str
                                  :aliases {#_clojure.string #_str}}
               :unused-import {:level :warning}
-              :single-operand-comparison {:level :warning}}
+              :single-operand-comparison {:level :warning}
+              :get-in {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
