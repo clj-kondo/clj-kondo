@@ -38,6 +38,7 @@ Some linters are not enabled by default. Right now these linters are:
 
 - `:missing-docstring`: warn when public var doesn't have a docstring.
 - `:unsorted-required-namespaces`: warn when namespaces in `:require` are not sorted.
+- `:single-key-in`: warn when using assoc-in, update-in or get-in with single key
 
 You can enable these linters by setting the `:level`:
 

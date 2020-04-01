@@ -5,10 +5,9 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.namespace :as namespace]
-   [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
-   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr]]
+   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr tag]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -104,16 +103,17 @@
                                            :constant-test-assertion "Test assertion with only constants.")))))
 
 (defn lint-single-key-in [ctx called-name call]
-  (let [keys (-> (:children call)
-                 (nth 2))
-        keys-count (-> keys
-                       (:children)
-                       (count))]
-    (when (and (= :vector (node/tag keys)) (= 1 keys-count))
-      (findings/reg-finding!
-        ctx
-        (node->line (:filename ctx) call :warning :single-key-in
-                    (format "%s with single key" called-name))))))
+  (when-not (utils/linter-disabled? ctx :single-key-in)
+    (let [keys (-> (:children call)
+                   (nth 2))
+          keys-count (-> keys
+                         (:children)
+                         (count))]
+      (when (and (= :vector (tag keys)) (= 1 keys-count))
+        (findings/reg-finding!
+          ctx
+          (node->line (:filename ctx) call :warning :single-key-in
+                      (format "%s with single key" called-name)))))))
 
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
