@@ -1213,7 +1213,7 @@
                   (analyze-like-let ctx expr)
                   letfn
                   (analyze-letfn ctx expr)
-                  (if-some if-let when-let when-some when-first)
+                  (if-let if-some when-let when-some when-first)
                   (analyze-conditional-let ctx resolved-as-clojure-var-name expr)
                   do
                   (analyze-do ctx expr)
