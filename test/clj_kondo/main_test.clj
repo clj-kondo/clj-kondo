@@ -2585,7 +2585,6 @@
   (:require [foo.bar]
             [bar.foo]))")))
 
-
 (deftest conflicting-aliases-test
   (assert-submaps
     [{:file "<stdin>", :row 1, :col 50,
@@ -2600,6 +2599,32 @@
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}}))))
+
+(deftest missing-else-branch-test
+  (assert-submaps
+    [{:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "Missing else branch."}
+     {:file "<stdin>",
+      :row 1,
+      :col 13,
+      :level :warning,
+      :message "Missing else branch."}
+     {:file "<stdin>",
+      :row 1,
+      :col 29,
+      :level :warning,
+      :message "Missing else branch."}
+     {:file "<stdin>",
+      :row 1,
+      :col 46,
+      :level :warning,
+      :message "Missing else branch."}]
+    (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"))
+  (empty? (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
+                 {:linters {:if {:level :off}}})))
 
 ;;;; Scratch
 

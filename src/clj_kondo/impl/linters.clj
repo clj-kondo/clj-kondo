@@ -98,12 +98,15 @@
 (defn lint-missing-else-branch
   "Lint missing :else branch on if-like expressions"
   [ctx expr]
-  (let [children (:children expr)
-        args (rest children)]
-    (when (= (count args) 2)
-      (findings/reg-finding! ctx
-                             (node->line (:filename ctx) expr :warning :if
-                                             (format "Missing else branch."))))))
+  (let [config (:config ctx)
+        level (-> config :linters :if :level)]
+    (when-not (identical? :off level)
+      (let [children (:children expr)
+            args (rest children)]
+        (when (= (count args) 2)
+          (findings/reg-finding! ctx
+                                 (node->line (:filename ctx) expr level :if
+                                             (format "Missing else branch."))))))))
 
 #_(defn lint-test-is [ctx expr]
     (let [children (next (:children expr))]
