@@ -103,7 +103,7 @@
                                (node->line (:filename ctx) expr :warning
                                            :constant-test-assertion "Test assertion with only constants.")))))
 
-(defn lint-get-in [ctx call]
+(defn lint-single-key-in [ctx called-name call]
   (let [keys (-> (:children call)
                  (nth 2))
         keys-count (-> keys
@@ -112,8 +112,8 @@
     (when (and (= :vector (node/tag keys)) (= 1 keys-count))
       (findings/reg-finding!
         ctx
-        (node->line (:filename ctx) call :warning :get-in
-                    "get-in with single key")))))
+        (node->line (:filename ctx) call :warning :single-key-in
+                    (format "%s with single key" called-name))))))
 
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
@@ -121,8 +121,8 @@
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
-      ([clojure.core get-in])
-      (lint-get-in ctx (:expr call))
+      ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in])
+      (lint-single-key-in ctx called-name (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)

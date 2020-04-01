@@ -2522,17 +2522,33 @@
                                 :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}}))))
 
-(deftest get-in-test
+(deftest single-key-in-test
   (assert-submaps
     '({:file "<stdin>",
        :row 1,
        :col 1,
        :level :warning,
        :message "get-in with single key"})
-    (lint! "(get-in {} [:k])"))
+    (lint! "(get-in {} [:k])" {:linters {:single-key-in {:level :warning}}}))
 
-  (is (empty? (lint! "(get-in {} [:k1 :k2])")))
-  (is (empty? (lint! "(get-in {} (keys-fn))"))))
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "assoc-in with single key"})
+    (lint! "(assoc-in {} [:k] :v)" {:linters {:single-key-in {:level :warning}}}))
+
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "update-in with single key"})
+    (lint! "(update-in {} [:k] inc)" {:linters {:single-key-in {:level :warning}}}))
+
+  (is (empty? (lint! "(get-in {} [:k1 :k2])" {:linters {:single-key-in {:level :warning}}})))
+  (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}}))))
 
 ;;;; Scratch
 
