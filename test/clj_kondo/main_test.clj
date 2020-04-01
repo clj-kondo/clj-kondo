@@ -679,11 +679,6 @@
        :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
        {:file "<stdin>",
         :row 1,
-        :col 1,
-        :level :error,
-        :message "if-let body requires one or two forms"}
-       {:file "<stdin>",
-        :row 1,
         :col 9,
         :level :error,
         :message "if-let binding vector requires exactly 2 forms"})
@@ -694,11 +689,6 @@
        :col 1,
        :level :error,
        :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
-       {:file "<stdin>",
-        :row 1,
-        :col 1,
-        :level :error,
-        :message "if-let body requires one or two forms"}
        {:file "<stdin>",
         :row 1,
         :col 9,
@@ -720,11 +710,6 @@
        :row 1,
        :col 1,
        :level :error,
-       :message "if-some body requires one or two forms"}
-       {:file "<stdin>",
-       :row 1,
-       :col 1,
-       :level :error,
        :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
        {:file "<stdin>",
         :row 1,
@@ -738,11 +723,6 @@
        :col 1,
        :level :error,
        :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
-       {:file "<stdin>",
-        :row 1,
-        :col 1,
-        :level :error,
-        :message "if-some body requires one or two forms"}
        {:file "<stdin>",
         :row 1,
         :col 10,

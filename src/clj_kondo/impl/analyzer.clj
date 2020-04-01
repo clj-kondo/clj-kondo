@@ -600,14 +600,6 @@
        ctx
        (node->line (:filename ctx) expr :error :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
-(defn lint-one-or-two-forms-body! [ctx form-name main-expr body-exprs]
-  (let [num-children (count body-exprs)]
-    (when-not (or (= 1 num-children)
-                  (= 2 num-children))
-      (findings/reg-finding!
-       ctx
-       (node->line (:filename ctx) main-expr :error :syntax (format "%s body requires one or two forms" form-name))))))
-
 (defn analyze-conditional-let [ctx call expr]
   (let [children (next (:children expr))
         bv (first children)
@@ -621,8 +613,6 @@
                                                         :analyzed))
             if? (one-of call [if-let if-some])]
         (lint-two-forms-binding-vector! ctx call bv)
-        (when if?
-          (lint-one-or-two-forms-body! ctx call expr body-exprs))
         (concat (:analyzed bindings)
                 (analyze-expression** ctx condition)
                 (if if?
