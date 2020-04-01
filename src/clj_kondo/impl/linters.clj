@@ -5,6 +5,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr]]
@@ -103,11 +104,12 @@
                                            :constant-test-assertion "Test assertion with only constants.")))))
 
 (defn lint-get-in [ctx call]
-  (let [keys-count (-> (:children call)
-                       (nth 2)
+  (let [keys (-> (:children call)
+                 (nth 2))
+        keys-count (-> keys
                        (:children)
                        (count))]
-    (when (= 1 keys-count)
+    (when (and (= :vector (node/tag keys)) (= 1 keys-count))
       (findings/reg-finding!
         ctx
         (node->line (:filename ctx) call :warning :get-in

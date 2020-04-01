@@ -2531,7 +2531,8 @@
        :message "get-in with single key"})
     (lint! "(get-in {} [:k])"))
 
-  (is (empty? (lint! "(get-in {} [:k1 :k2])"))))
+  (is (empty? (lint! "(get-in {} [:k1 :k2])")))
+  (is (empty? (lint! "(get-in {} (keys-fn))"))))
 
 ;;;; Scratch
 
