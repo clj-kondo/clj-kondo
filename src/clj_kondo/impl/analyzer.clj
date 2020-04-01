@@ -992,17 +992,14 @@
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
 (defn analyze-if
+  "Analyzes if special form for arity errors"
   [ctx expr]
-  (let [children (:children expr)
-        call (first children)
-        args (rest children)
-        if? (= (:value call) 'if)]
+  (let [args (rest (:children expr))]
     (when-let [[expr msg linter]
                (case (count args)
-                 (0 1) (when if? [expr "Too few arguments to if." :syntax])
-                 2 [expr "Missing else branch." :if]
-                 3 nil
-                 (when if? [expr "Too many arguments to if." :syntax]))]
+                 (0 1) [expr "Too few arguments to if." :syntax]
+                 (2 3) nil
+                 [expr "Too many arguments to if." :syntax])]
       (findings/reg-finding!
         ctx
         (node->line (:filename ctx) expr
@@ -1216,11 +1213,8 @@
                   (analyze-like-let ctx expr)
                   letfn
                   (analyze-letfn ctx expr)
-                  (when-let when-some when-first)
+                  (if-some if-let when-let when-some when-first)
                   (analyze-conditional-let ctx resolved-as-clojure-var-name expr)
-                  (if-some if-let)
-                  (do (analyze-conditional-let  ctx resolved-as-clojure-var-name expr)
-                      (analyze-if ctx expr))
                   do
                   (analyze-do ctx expr)
                   (fn fn* bound-fn)
@@ -1244,7 +1238,7 @@
                   import
                   (if top-level? (analyze-import ctx expr)
                       (analyze-children ctx children))
-                  (if if-not) (analyze-if ctx expr)
+                  if (analyze-if ctx expr)
                   new (analyze-constructor ctx expr)
                   set! (analyze-set! ctx expr)
                   (with-redefs binding) (analyze-with-redefs ctx expr)
