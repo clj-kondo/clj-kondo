@@ -1,8 +1,9 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
   (:require
-   [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
+    [clj-kondo.impl.profiler :as profiler]
+    [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]
+    [clojure.set :as set]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
@@ -69,7 +70,7 @@
               :refer-all {:level :warning
                           :exclude #{}}
               :use {:level :warning}
-              :if {:level :warning}
+              :missing-else-branch {:level :warning}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
               :consistent-alias {:level :warning
@@ -106,8 +107,10 @@
 (defn merge-config! [cfg* cfg]
   (if (empty? cfg) cfg*
       (let [cfg (cond-> cfg
-                  (:skip-comments cfg)
-                  (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment)))]
+                        (:skip-comments cfg)
+                        (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment))
+
+                        (contains? (:linters cfg) :if) (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
         (if (:replace (meta cfg))
           cfg
           (deep-merge cfg* cfg)))))
