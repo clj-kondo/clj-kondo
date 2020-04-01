@@ -95,6 +95,19 @@
                            (node->line (:filename ctx) (:expr call) :warning
                                        :missing-test-assertion "missing test assertion"))))
 
+(defn lint-missing-else-branch
+  "Lint missing :else branch on if-like expressions"
+  [ctx expr]
+  (let [config (:config ctx)
+        level (-> config :linters :missing-else-branch :level)]
+    (when-not (identical? :off level)
+      (let [children (:children expr)
+            args (rest children)]
+        (when (= (count args) 2)
+          (findings/reg-finding! ctx
+                                 (node->line (:filename ctx) expr level :missing-else-branch
+                                             (format "Missing else branch."))))))))
+
 #_(defn lint-test-is [ctx expr]
     (let [children (next (:children expr))]
       (when (every? constant? children)
@@ -121,11 +134,18 @@
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
+      ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some])
+      (lint-missing-else-branch ctx (:expr call))
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)
+
+    ;; special forms which are not fns
+    (when (= 'if (:name call))
+      (lint-missing-else-branch ctx (:expr call)))
+
     (when (get-in var-info/predicates [called-ns called-name])
       (lint-missing-test-assertion ctx call))))
 
@@ -174,6 +194,7 @@
            (format "Single operand use of %s is always %s"
                    (str ns-name "/" fn-name)
                    (some? const-true))))))))
+
 
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches

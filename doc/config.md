@@ -378,6 +378,12 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 (rest of the output omitted)
 ```
 
+## Deprecated config keys
+
+Some configuration keys have been renamed over time. The default configuration is always up-to-date and we strive to mantain backwards compatibility. However, for completeness, you can find a list of the renamed keys here. 
+
+- `:if -> :missing-else-branch`
+
 ## Example configurations
 
 These are some example configurations used in real projects. Feel free to create a PR with yours too.
