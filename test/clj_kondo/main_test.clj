@@ -1901,7 +1901,10 @@
                        {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defn foo [x] (if-let [x 1] x x))"
                      {:linters {:unused-binding {:level :warning}
-                                :unresolved-symbol {:level :error}}}))))
+                                :unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "goog.global"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 (deftest with-redefs-test
   (assert-submaps '({:file "<stdin>", :row 1, :col 14,
