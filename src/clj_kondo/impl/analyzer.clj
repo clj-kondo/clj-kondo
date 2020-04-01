@@ -993,19 +993,22 @@
 
 (defn analyze-if
   [ctx expr]
-  (let [children (rest (:children expr))]
+  (let [children (:children expr)
+        call (first children)
+        args (rest children)
+        if? (= (:value call) 'if)]
     (when-let [[expr msg linter]
-               (case (count children)
-                 (0 1) [expr "Too few arguments to if." :syntax]
+               (case (count args)
+                 (0 1) (when if? [expr "Too few arguments to if." :syntax])
                  2 [expr "Missing else branch." :if]
                  3 nil
-                 [expr "Too many arguments to if." :syntax])]
+                 (when if? [expr "Too many arguments to if." :syntax]))]
       (findings/reg-finding!
-       ctx
-       (node->line (:filename ctx) expr
-                   :warning linter
-                   msg)))
-    (analyze-children ctx children false)))
+        ctx
+        (node->line (:filename ctx) expr
+                    :warning linter
+                    msg)))
+    (analyze-children ctx args false)))
 
 (defn reg-call [{:keys [:calls-by-id]} call id]
   (swap! calls-by-id assoc id call)
@@ -1238,7 +1241,7 @@
                   import
                   (if top-level? (analyze-import ctx expr)
                       (analyze-children ctx children))
-                  if (analyze-if ctx expr)
+                  (if if-not) (analyze-if ctx expr)
                   new (analyze-constructor ctx expr)
                   set! (analyze-set! ctx expr)
                   (with-redefs binding) (analyze-with-redefs ctx expr)

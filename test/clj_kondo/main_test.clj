@@ -672,40 +672,77 @@
 
 (deftest if-let-test
   (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
-     {:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "if-let body requires one or two forms"}
-     {:file "<stdin>",
-      :row 1,
-      :col 9,
-      :level :error,
-      :message "if-let binding vector requires exactly 2 forms"})
-   (lint! "(if-let [x 1 y 2])"))
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
+       {:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message "if-let body requires one or two forms"}
+       {:file "<stdin>",
+        :row 1,
+        :col 9,
+        :level :error,
+        :message "if-let binding vector requires exactly 2 forms"})
+    (lint! "(if-let [x 1 y 2])"))
   (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
-     {:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "if-let body requires one or two forms"}
-     {:file "<stdin>",
-      :row 1,
-      :col 9,
-      :level :error,
-      :message "if-let binding vector requires exactly 2 forms"})
-   (lint! "(if-let [x 1 y])"))
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
+       {:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message "if-let body requires one or two forms"}
+       {:file "<stdin>",
+        :row 1,
+        :col 9,
+        :level :error,
+        :message "if-let binding vector requires exactly 2 forms"})
+    (lint! "(if-let [x 1 y])"))
   (is (empty? (lint! "(if-let [{:keys [:row :col]} {:row 1 :col 2}] row)"))))
+
+(deftest if-some-test
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
+       {:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message "if-some body requires one or two forms"}
+       {:file "<stdin>",
+        :row 1,
+        :col 9,
+        :level :error,
+        :message "if-some binding vector requires exactly 2 forms"})
+    (lint! "(if-some [x 1 y 2])"))
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
+       {:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message "if-some body requires one or two forms"}
+       {:file "<stdin>",
+        :row 1,
+        :col 9,
+        :level :error,
+        :message "if-some binding vector requires exactly 2 forms"})
+    (lint! "(if-some [x 1 y])"))
+  (is (empty? (lint! "(if-some [{:keys [:row :col]} {:row 1 :col 2}] row)"))))
 
 (deftest when-let-test
   (assert-submap
@@ -2318,22 +2355,41 @@
 
 (deftest if-test
   (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "Too few arguments to if."}
-     {:file "<stdin>",
-      :row 1,
-      :col 6,
-      :level :warning,
-      :message "Missing else branch."}
-     {:file "<stdin>",
-      :row 1,
-      :col 15,
-      :level :error,
-      :message "Too many arguments to if."})
-   (lint! "(if) (if 1 1) (if 1 1 1 1)")))
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "Too few arguments to if."}
+       {:file "<stdin>",
+        :row 1,
+        :col 6,
+        :level :warning,
+        :message "Missing else branch."}
+       {:file "<stdin>",
+        :row 1,
+        :col 15,
+        :level :error,
+        :message "Too many arguments to if."})
+    (lint! "(if) (if 1 1) (if 1 1 1 1)")))
+
+(deftest if-not-test
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-not is called with 0 args but expects 2 or 3"}
+       {:file "<stdin>",
+        :row 1,
+        :col 10,
+        :level :warning,
+        :message "Missing else branch."}
+       {:file "<stdin>",
+        :row 1,
+        :col 23,
+        :level :error,
+        :message "clojure.core/if-not is called with 4 args but expects 2 or 3"})
+    (lint! "(if-not) (if-not 1 1) (if-not 1 1 1 1)")))
 
 (deftest unused-private-var-test
   (assert-submaps
