@@ -104,17 +104,13 @@
              :canonical-paths false ;; set to true to see absolute file paths and jar files
              }})
 
-(def renamed-config-keys
-  {:if :missing-else-branch})
-
 (defn merge-config! [cfg* cfg]
   (if (empty? cfg) cfg*
       (let [cfg (cond-> cfg
                         (:skip-comments cfg)
                         (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment))
 
-                        :always
-                        (update-in [:linters] set/rename-keys renamed-config-keys))]
+                        (contains? (:linters cfg) :if) (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
         (if (:replace (meta cfg))
           cfg
           (deep-merge cfg* cfg)))))
