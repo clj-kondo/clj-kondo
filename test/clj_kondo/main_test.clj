@@ -2611,6 +2611,34 @@
   (is (empty? (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
                      {:linters {:if {:level :off}}}))))
 
+(deftest single-key-in-test
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "get-in with single key"})
+    (lint! "(get-in {} [:k])" {:linters {:single-key-in {:level :warning}}}))
+
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "assoc-in with single key"})
+    (lint! "(assoc-in {} [:k] :v)" {:linters {:single-key-in {:level :warning}}}))
+
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "update-in with single key"})
+    (lint! "(update-in {} [:k] inc)" {:linters {:single-key-in {:level :warning}}}))
+
+  (is (empty? (lint! "(get-in {} [:k1 :k2])" {:linters {:single-key-in {:level :warning}}})))
+  (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}}))))
+
 ;;;; Scratch
 
 (comment
