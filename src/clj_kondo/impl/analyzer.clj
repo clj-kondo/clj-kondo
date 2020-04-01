@@ -1216,8 +1216,11 @@
                   (analyze-like-let ctx expr)
                   letfn
                   (analyze-letfn ctx expr)
-                  (if-let if-some when-let when-some when-first)
+                  (when-let when-some when-first)
                   (analyze-conditional-let ctx resolved-as-clojure-var-name expr)
+                  (if-some if-let)
+                  (do (analyze-conditional-let  ctx resolved-as-clojure-var-name expr)
+                      (analyze-if ctx expr))
                   do
                   (analyze-do ctx expr)
                   (fn fn* bound-fn)

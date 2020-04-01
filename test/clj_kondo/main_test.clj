@@ -705,7 +705,14 @@
         :level :error,
         :message "if-let binding vector requires exactly 2 forms"})
     (lint! "(if-let [x 1 y])"))
-  (is (empty? (lint! "(if-let [{:keys [:row :col]} {:row 1 :col 2}] row)"))))
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "Missing else branch."})
+    (lint! "(if-let [x 1] true)"))
+  (is (empty? (lint! "(if-let [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
 
 (deftest if-some-test
   (assert-submaps
@@ -742,7 +749,14 @@
         :level :error,
         :message "if-some binding vector requires exactly 2 forms"})
     (lint! "(if-some [x 1 y])"))
-  (is (empty? (lint! "(if-some [{:keys [:row :col]} {:row 1 :col 2}] row)"))))
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "Missing else branch."})
+    (lint! "(if-let [x 1] true)"))
+  (is (empty? (lint! "(if-some [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
 
 (deftest when-let-test
   (assert-submap
