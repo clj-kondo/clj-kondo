@@ -2623,8 +2623,8 @@
       :level :warning,
       :message "Missing else branch."}]
     (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"))
-  (empty? (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
-                 {:linters {:if {:level :off}}})))
+  (is (empty? (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
+                     {:linters {:if {:level :off}}}))))
 
 ;;;; Scratch
 
