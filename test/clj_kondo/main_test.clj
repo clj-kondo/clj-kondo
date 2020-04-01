@@ -585,7 +585,7 @@
   (is (empty? (lint! "(defn foo [{:keys [select-keys :b]}]
     (let [x 1] (select-keys)))")))
   (is (seq (lint! "(defn foo ([select-keys]) ([x y] (select-keys)))")))
-  (is (empty? (lint! "(if-let [select-keys (fn [])] (select-keys))")))
+  (is (empty? (lint! "(if-let [select-keys (fn [])] (select-keys) :bar)")))
   (is (empty? (lint! "(when-let [select-keys (fn [])] (select-keys))")))
   (is (empty? (lint! "(fn foo [x] (foo x))")))
   (is (empty? (lint! "(fn select-keys [x] (select-keys 1))")))
@@ -672,40 +672,71 @@
 
 (deftest if-let-test
   (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
-     {:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "if-let body requires one or two forms"}
-     {:file "<stdin>",
-      :row 1,
-      :col 9,
-      :level :error,
-      :message "if-let binding vector requires exactly 2 forms"})
-   (lint! "(if-let [x 1 y 2])"))
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
+       {:file "<stdin>",
+        :row 1,
+        :col 9,
+        :level :error,
+        :message "if-let binding vector requires exactly 2 forms"})
+    (lint! "(if-let [x 1 y 2])"))
   (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
-     {:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "if-let body requires one or two forms"}
-     {:file "<stdin>",
-      :row 1,
-      :col 9,
-      :level :error,
-      :message "if-let binding vector requires exactly 2 forms"})
-   (lint! "(if-let [x 1 y])"))
-  (is (empty? (lint! "(if-let [{:keys [:row :col]} {:row 1 :col 2}] row)"))))
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
+       {:file "<stdin>",
+        :row 1,
+        :col 9,
+        :level :error,
+        :message "if-let binding vector requires exactly 2 forms"})
+    (lint! "(if-let [x 1 y])"))
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "Missing else branch."})
+    (lint! "(if-let [x 1] true)"))
+  (is (empty? (lint! "(if-let [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
+
+(deftest if-some-test
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
+       {:file "<stdin>",
+        :row 1,
+        :col 10,
+        :level :error,
+        :message "if-some binding vector requires exactly 2 forms"})
+    (lint! "(if-some [x 1 y 2])"))
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
+       {:file "<stdin>",
+        :row 1,
+        :col 10,
+        :level :error,
+        :message "if-some binding vector requires exactly 2 forms"})
+    (lint! "(if-some [x 1 y])"))
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "Missing else branch."})
+    (lint! "(if-let [x 1] true)"))
+  (is (empty? (lint! "(if-some [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
 
 (deftest when-let-test
   (assert-submap
@@ -1205,7 +1236,7 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
+                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id :bar)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])")))
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "default.cljs"))))
@@ -1459,13 +1490,21 @@
    (lint! "(loop [x 1 y 2])"
           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 10,
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(if-let [x 1] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
+    '({:file "<stdin>",
+       :row 1,
+       :col 10,
+       :level :warning,
+       :message "unused binding x"})
+    (lint! "(if-let [x 1] 1 2)"
+           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 11,
+       :level :warning,
+       :message "unused binding x"})
+    (lint! "(if-some [x 1] 1 2)"
+           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
@@ -2318,22 +2357,41 @@
 
 (deftest if-test
   (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "Too few arguments to if."}
-     {:file "<stdin>",
-      :row 1,
-      :col 6,
-      :level :warning,
-      :message "Missing else branch."}
-     {:file "<stdin>",
-      :row 1,
-      :col 15,
-      :level :error,
-      :message "Too many arguments to if."})
-   (lint! "(if) (if 1 1) (if 1 1 1 1)")))
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "Too few arguments to if."}
+       {:file "<stdin>",
+        :row 1,
+        :col 6,
+        :level :warning,
+        :message "Missing else branch."}
+       {:file "<stdin>",
+        :row 1,
+        :col 15,
+        :level :error,
+        :message "Too many arguments to if."})
+    (lint! "(if) (if 1 1) (if 1 1 1 1)")))
+
+(deftest if-not-test
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
+       :message "clojure.core/if-not is called with 0 args but expects 2 or 3"}
+       {:file "<stdin>",
+        :row 1,
+        :col 10,
+        :level :warning,
+        :message "Missing else branch."}
+       {:file "<stdin>",
+        :row 1,
+        :col 23,
+        :level :error,
+        :message "clojure.core/if-not is called with 4 args but expects 2 or 3"})
+    (lint! "(if-not) (if-not 1 1) (if-not 1 1 1 1)")))
 
 (deftest unused-private-var-test
   (assert-submaps
@@ -2507,7 +2565,6 @@
   (:require [foo.bar]
             [bar.foo]))")))
 
-
 (deftest conflicting-aliases-test
   (assert-submaps
     [{:file "<stdin>", :row 1, :col 50,
@@ -2522,6 +2579,32 @@
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}}))))
+
+(deftest missing-else-branch-test
+  (assert-submaps
+    [{:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "Missing else branch."}
+     {:file "<stdin>",
+      :row 1,
+      :col 13,
+      :level :warning,
+      :message "Missing else branch."}
+     {:file "<stdin>",
+      :row 1,
+      :col 29,
+      :level :warning,
+      :message "Missing else branch."}
+     {:file "<stdin>",
+      :row 1,
+      :col 46,
+      :level :warning,
+      :message "Missing else branch."}]
+    (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"))
+  (is (empty? (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
+                     {:linters {:if {:level :off}}}))))
 
 ;;;; Scratch
 

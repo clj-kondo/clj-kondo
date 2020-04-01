@@ -600,14 +600,6 @@
        ctx
        (node->line (:filename ctx) expr :error :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
-(defn lint-one-or-two-forms-body! [ctx form-name main-expr body-exprs]
-  (let [num-children (count body-exprs)]
-    (when-not (or (= 1 num-children)
-                  (= 2 num-children))
-      (findings/reg-finding!
-       ctx
-       (node->line (:filename ctx) main-expr :error :syntax (format "%s body requires one or two forms" form-name))))))
-
 (defn analyze-conditional-let [ctx call expr]
   (let [children (next (:children expr))
         bv (first children)
@@ -621,8 +613,6 @@
                                                         :analyzed))
             if? (one-of call [if-let if-some])]
         (lint-two-forms-binding-vector! ctx call bv)
-        (when if?
-          (lint-one-or-two-forms-body! ctx call expr body-exprs))
         (concat (:analyzed bindings)
                 (analyze-expression** ctx condition)
                 (if if?
@@ -992,20 +982,20 @@
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
 (defn analyze-if
+  "Analyzes if special form for arity errors"
   [ctx expr]
-  (let [children (rest (:children expr))]
+  (let [args (rest (:children expr))]
     (when-let [[expr msg linter]
-               (case (count children)
+               (case (count args)
                  (0 1) [expr "Too few arguments to if." :syntax]
-                 2 [expr "Missing else branch." :if]
-                 3 nil
+                 (2 3) nil
                  [expr "Too many arguments to if." :syntax])]
       (findings/reg-finding!
-       ctx
-       (node->line (:filename ctx) expr
-                   :warning linter
-                   msg)))
-    (analyze-children ctx children false)))
+        ctx
+        (node->line (:filename ctx) expr
+                    :warning linter
+                    msg)))
+    (analyze-children ctx args false)))
 
 (defn reg-call [{:keys [:calls-by-id]} call id]
   (swap! calls-by-id assoc id call)
