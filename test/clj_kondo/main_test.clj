@@ -585,7 +585,7 @@
   (is (empty? (lint! "(defn foo [{:keys [select-keys :b]}]
     (let [x 1] (select-keys)))")))
   (is (seq (lint! "(defn foo ([select-keys]) ([x y] (select-keys)))")))
-  (is (empty? (lint! "(if-let [select-keys (fn [])] (select-keys))")))
+  (is (empty? (lint! "(if-let [select-keys (fn [])] (select-keys) :bar)")))
   (is (empty? (lint! "(when-let [select-keys (fn [])] (select-keys))")))
   (is (empty? (lint! "(fn foo [x] (foo x))")))
   (is (empty? (lint! "(fn select-keys [x] (select-keys 1))")))
@@ -720,15 +720,15 @@
        :row 1,
        :col 1,
        :level :error,
+       :message "if-some body requires one or two forms"}
+       {:file "<stdin>",
+       :row 1,
+       :col 1,
+       :level :error,
        :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
        {:file "<stdin>",
         :row 1,
-        :col 1,
-        :level :error,
-        :message "if-some body requires one or two forms"}
-       {:file "<stdin>",
-        :row 1,
-        :col 9,
+        :col 10,
         :level :error,
         :message "if-some binding vector requires exactly 2 forms"})
     (lint! "(if-some [x 1 y 2])"))
@@ -745,7 +745,7 @@
         :message "if-some body requires one or two forms"}
        {:file "<stdin>",
         :row 1,
-        :col 9,
+        :col 10,
         :level :error,
         :message "if-some binding vector requires exactly 2 forms"})
     (lint! "(if-some [x 1 y])"))
@@ -1510,13 +1510,21 @@
    (lint! "(loop [x 1 y 2])"
           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 10,
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(if-let [x 1] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
+    '({:file "<stdin>",
+       :row 1,
+       :col 10,
+       :level :warning,
+       :message "unused binding x"})
+    (lint! "(if-let [x 1] 1 2)"
+           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+    '({:file "<stdin>",
+       :row 1,
+       :col 11,
+       :level :warning,
+       :message "unused binding x"})
+    (lint! "(if-some [x 1] 1 2)"
+           '{:linters {:unused-binding {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
