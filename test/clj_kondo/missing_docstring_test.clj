@@ -21,3 +21,9 @@
   \"foo\")"
                      '{:linters {:missing-docstring {:level :warning}}
                        :lint-as {rum.core/defcs clj-kondo.lint-as/def-catch-all}}))))
+
+(defn -main []
+  (empty? (lint! "(require '[expectations.clojure.test :refer [defexpect]])"
+                 "(defexpect foo even? 42)"
+                 '{:linters {:missing-docstring {:level :warning}}
+                   :lint-as {expectations.clojure.test/defexpect clojure.test/deftest}})))
