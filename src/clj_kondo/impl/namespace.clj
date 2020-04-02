@@ -144,9 +144,10 @@
                                  (if (= ns-sym redefined-ns)
                                    (str "redefined var #'" redefined-ns "/" var-sym)
                                    (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))
-                  (when (and (not= :off (-> config :linters :missing-docstring :level))
+                  (when (and (not (identical? :off (-> config :linters :missing-docstring :level)))
                              (not (:private metadata))
                              (not (:doc metadata))
+                             (not (:test metadata))
                              (not temp?)
                              (not
                               (when-let [defined-by (:defined-by metadata)]
