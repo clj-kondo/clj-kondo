@@ -20,10 +20,8 @@
   [state name]
   \"foo\")"
                      '{:linters {:missing-docstring {:level :warning}}
-                       :lint-as {rum.core/defcs clj-kondo.lint-as/def-catch-all}}))))
-
-(defn -main []
-  (empty? (lint! "(require '[expectations.clojure.test :refer [defexpect]])"
-                 "(defexpect foo even? 42)"
-                 '{:linters {:missing-docstring {:level :warning}}
-                   :lint-as {expectations.clojure.test/defexpect clojure.test/deftest}})))
+                       :lint-as {rum.core/defcs clj-kondo.lint-as/def-catch-all}})))
+  (is (empty? (lint! (str "(require '[expectations.clojure.test :refer [defexpect]])"
+                          "(defexpect foo even? 42)")
+                     '{:linters {:missing-docstring {:level :warning}}
+                       :lint-as {expectations.clojure.test/defexpect clojure.test/deftest}}))))
