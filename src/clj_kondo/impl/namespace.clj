@@ -208,6 +208,13 @@
            conj binding))
   nil)
 
+(defn reg-destructuring-default!
+  [{:keys [:base-lang :lang :namespaces :ns]} default binding]
+  (swap! namespaces
+         update-in [base-lang lang (:name ns) :destructuring-defaults]
+         conj (assoc default :binding binding))
+  nil)
+
 (defn reg-used-binding!
   [{:keys [:base-lang :lang :namespaces]} ns-sym binding]
   (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]

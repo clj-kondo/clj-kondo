@@ -1624,6 +1624,34 @@
                                   :exclude-destructured-keys-in-fn-args true}
                                  :unresolved-symbol {:level :error}}}))))
 
+(deftest unused-destructuring-default-test
+  (doseq [input ["(let [{:keys [:i] :or {i 2}} {}])"
+                 "(let [{:or {i 2} :keys [:i]} {}])"
+                 "(let [{:keys [:i :j] :or {i 2 j 3}} {}] j)"]]
+    (assert-submaps '({:file "<stdin>"
+                       :row 1
+                       :level :warning
+                       :message "default for unused binding i"})
+                    (lint! input
+                           '{:linters
+                             {:unused-destructuring-default
+                              {:level :warning}}})))
+  (testing "finding points at the symbol of the default"
+    (assert-submaps '({:file "<stdin>"
+                       :row 1
+                       :col 24
+                       :level :warning
+                       :message "default for unused binding i"})
+                    (lint! "(let [{:keys [:i] :or {i 2}} {}] nil)"
+                           '{:linters
+                             {:unused-destructuring-default {:level :warning}}})))
+  (testing "respects the :exclude-destructured-keys-in-fn-args setting from the "
+    (is (empty? (lint! "(defn f [{:keys [:a] :or {a 1}}] nil)"
+                       '{:linters {:unused-binding
+                                   {:exclude-destructured-keys-in-fn-args true}
+                                   :unused-destructuring-default
+                                   {:level :warning}}})))))
+
 (deftest unsupported-binding-form-test
   (assert-submaps
    '({:file "<stdin>",

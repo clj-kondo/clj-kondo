@@ -395,6 +395,22 @@
           :end-row (:end-row binding)
           :end-col (:end-col binding)})))))
 
+(defn lint-unused-destructuring-defaults!
+  [ctx]
+  (doseq [ns (namespace/list-namespaces ctx)
+          {:keys [:binding] :as default} (:destructuring-defaults ns)
+          :when (and (contains? (:bindings ns) binding)
+                     (not (contains? (:used-bindings ns) binding)))]
+    (findings/reg-finding!
+     ctx
+     {:type :unused-destructuring-default
+      :filename (:filename binding)
+      :message (str "default for unused binding " (:name binding))
+      :row (:row default)
+      :col (:col default)
+      :end-row (:end-row default)
+      :end-col (:end-col default)})))
+
 (defn lint-unused-private-vars!
   [ctx]
   (let [config (:config ctx)]

@@ -273,6 +273,7 @@
    :name ns-name
    :bindings #{}
    :used-bindings #{}
+   :destructuring-defaults #{}
    :used-referred-vars #{}
    :used-imports #{}
    :used-vars []
