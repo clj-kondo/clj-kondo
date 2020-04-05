@@ -61,6 +61,8 @@
                              :when sym]
                          [(:value k) (meta k)]))]
     (doseq [[k v] defaults]
+      (when-some [binding (get-in ctx [:bindings k])]
+        (namespace/reg-destructuring-default! ctx v binding))
       (when-not (contains? m k)
         (findings/reg-finding!
          ctx

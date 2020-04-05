@@ -108,6 +108,7 @@
         _ (l/lint-unused-namespaces! ctx)
         _ (l/lint-unused-private-vars! ctx)
         _ (l/lint-unused-bindings! ctx)
+        _ (l/lint-unused-destructuring-defaults! ctx)
         _ (l/lint-unresolved-symbols! ctx)
         _ (l/lint-unused-imports! ctx)
         _ (l/lint-unresolved-namespaces! ctx)
