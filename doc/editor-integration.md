@@ -42,10 +42,15 @@ To use `clj-kondo` as an LSP server, you can configure the `lsp-mode` server com
 
 Install the
 [clj-kondo](https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo)
-extension. It requires no additional installation.
+extension. It requires no additional installation (except Java).
 
-This extension will also be installed together with
+The clj-kondo extension will also be installed together with
 [Calva](https://github.com/BetterThanTomorrow/calva).
+
+### clojure-lint extension
+
+If you do not have Java installed you can still get clj-kondo linting using the [Clojure Lint](https://github.com/marcomorain/clojure-lint) extension, by
+@marcomorain, which uses the [clj-kondo standalone executable](https://github.com/borkdude/clj-kondo/blob/master/doc/install.md).
 
 ## Atom
 
