@@ -31,9 +31,9 @@
               :redefined-var {:level :warning}
               :unreachable-code {:level :warning}
               :datalog-syntax {:level :error}
+              :unbound-destructuring-default {:level :warning}
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false}
-              :unused-destructuring-default {:level :warning}
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
