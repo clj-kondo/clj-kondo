@@ -38,6 +38,7 @@ Some linters are not enabled by default. Right now these linters are:
 
 - `:missing-docstring`: warn when public var doesn't have a docstring.
 - `:unsorted-required-namespaces`: warn when namespaces in `:require` are not sorted.
+- `:single-key-in`: warn when using assoc-in, update-in or get-in with single key
 
 You can enable these linters by setting the `:level`:
 
@@ -376,6 +377,12 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 /Users/borkdude/dev/clj-kondo/corpus/cljc/datascript.cljc:8:1: error: datascript.db/seqable? is called with 2 args but expects 1
 (rest of the output omitted)
 ```
+
+## Deprecated config keys
+
+Some configuration keys have been renamed over time. The default configuration is always up-to-date and we strive to mantain backwards compatibility. However, for completeness, you can find a list of the renamed keys here. 
+
+- `:if -> :missing-else-branch`
 
 ## Example configurations
 

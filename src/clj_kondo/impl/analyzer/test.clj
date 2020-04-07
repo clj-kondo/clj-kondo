@@ -4,7 +4,7 @@
     [clj-kondo.impl.analyzer.common :as common]
     [clj-kondo.impl.utils :as utils]))
 
-(defn analyze-deftest [ctx deftest-ns expr]
+(defn analyze-deftest [ctx expr resolved-ns resolved-name resolved-as-ns resolved-as-name]
   (common/analyze-defn
    ctx
    (-> expr
@@ -13,8 +13,10 @@
         (fn [[_ name-expr & body]]
           (list*
            (utils/token-node 'clojure.core/defn)
-           (when name-expr (vary-meta name-expr assoc
-                                      :defined-by (symbol (str deftest-ns) "deftest")
+           (when name-expr (vary-meta name-expr
+                                      assoc
+                                      :linted-as (symbol (str resolved-as-ns) (str resolved-as-name))
+                                      :defined-by (symbol (str resolved-ns) (str resolved-name))
                                       :test true))
            (utils/vector-node [])
            body))))))

@@ -7,7 +7,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
-   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr]]
+   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr tag]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -95,6 +95,19 @@
                            (node->line (:filename ctx) (:expr call) :warning
                                        :missing-test-assertion "missing test assertion"))))
 
+(defn lint-missing-else-branch
+  "Lint missing :else branch on if-like expressions"
+  [ctx expr]
+  (let [config (:config ctx)
+        level (-> config :linters :missing-else-branch :level)]
+    (when-not (identical? :off level)
+      (let [children (:children expr)
+            args (rest children)]
+        (when (= (count args) 2)
+          (findings/reg-finding! ctx
+                                 (node->line (:filename ctx) expr level :missing-else-branch
+                                             (format "Missing else branch."))))))))
+
 #_(defn lint-test-is [ctx expr]
     (let [children (next (:children expr))]
       (when (every? constant? children)
@@ -102,15 +115,33 @@
                                (node->line (:filename ctx) expr :warning
                                            :constant-test-assertion "Test assertion with only constants.")))))
 
+(defn lint-single-key-in [ctx called-name call]
+  (when-not (utils/linter-disabled? ctx :single-key-in)
+    (let [[_ _ keyvec] (:children call)]
+      (when (and keyvec (= :vector (tag keyvec)) (= 1 (count (:children keyvec))))
+        (findings/reg-finding!
+          ctx
+          (node->line (:filename ctx) keyvec :warning :single-key-in
+                      (format "%s with single key" called-name)))))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)]
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
+      ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some])
+      (lint-missing-else-branch ctx (:expr call))
+      ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in])
+      (lint-single-key-in ctx called-name (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)
+
+    ;; special forms which are not fns
+    (when (= 'if (:name call))
+      (lint-missing-else-branch ctx (:expr call)))
+
     (when (get-in var-info/predicates [called-ns called-name])
       (lint-missing-test-assertion ctx call))))
 
@@ -159,6 +190,7 @@
            (format "Single operand use of %s is always %s"
                    (str ns-name "/" fn-name)
                    (some? const-true))))))))
+
 
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
@@ -378,38 +410,35 @@
 
 (defn lint-unused-bindings!
   [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [bindings (:bindings ns)
-                used-bindings (:used-bindings ns)
-                diff (set/difference bindings used-bindings)]
-          binding diff]
-    (let [name (:name binding)]
-      (when-not (str/starts-with? (str name) "_")
+  (doseq [ns (namespace/list-namespaces ctx)]
+    (let [bindings (:bindings ns)
+          used-bindings (:used-bindings ns)
+          diff (set/difference bindings used-bindings)
+          defaults (:destructuring-defaults ns)]
+      (doseq [binding diff]
+        (let [name (:name binding)]
+          (when-not (str/starts-with? (str name) "_")
+            (findings/reg-finding!
+             ctx
+             {:type :unused-binding
+              :filename (:filename binding)
+              :message (str "unused binding " name)
+              :row (:row binding)
+              :col (:col binding)
+              :end-row (:end-row binding)
+              :end-col (:end-col binding)}))))
+      (doseq [default defaults
+              :let [binding (:binding default)]
+              :when (not (contains? (:used-bindings ns) binding))]
         (findings/reg-finding!
          ctx
          {:type :unused-binding
           :filename (:filename binding)
-          :message (str "unused binding " name)
-          :row (:row binding)
-          :col (:col binding)
-          :end-row (:end-row binding)
-          :end-col (:end-col binding)})))))
-
-(defn lint-unused-destructuring-defaults!
-  [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)
-          {:keys [:binding] :as default} (:destructuring-defaults ns)
-          :when (and (contains? (:bindings ns) binding)
-                     (not (contains? (:used-bindings ns) binding)))]
-    (findings/reg-finding!
-     ctx
-     {:type :unused-destructuring-default
-      :filename (:filename binding)
-      :message (str "default for unused binding " (:name binding))
-      :row (:row default)
-      :col (:col default)
-      :end-row (:end-row default)
-      :end-col (:end-col default)})))
+          :message (str "unused default for binding " (:name binding))
+          :row (:row default)
+          :col (:col default)
+          :end-row (:end-row default)
+          :end-col (:end-col default)})))))
 
 (defn lint-unused-private-vars!
   [ctx]

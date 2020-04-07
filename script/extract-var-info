@@ -3,4 +3,4 @@
 rm -rf /tmp/var-info
 mkdir -p /tmp/var-info
 
-clojure -A:clojure-1.10.1:extract -m clj-kondo.impl.extract-var-info
+clojure -A:clojure-1.10.2-alpha1:extract -m clj-kondo.impl.extract-var-info

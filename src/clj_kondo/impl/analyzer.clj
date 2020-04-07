@@ -54,25 +54,29 @@
                                      (:arg-types ctx)))]
          (mapcat #(analyze-expression** ctx %) children))))))
 
-(defn analyze-keys-destructuring-defaults [ctx m defaults]
-  (let [defaults (into {}
-                       (for [[k _v] (partition 2 (:children defaults))
-                             :let [sym (:value k)]
-                             :when sym]
-                         [(:value k) (meta k)]))]
-    (doseq [[k v] defaults]
-      (when-some [binding (get-in ctx [:bindings k])]
-        (namespace/reg-destructuring-default! ctx v binding))
-      (when-not (contains? m k)
-        (findings/reg-finding!
-         ctx
-         {:message (str k " is not bound in this destructuring form") :level :warning
-          :row (:row v)
-          :col (:col v)
-          :end-row (:end-row v)
-          :end-col (:end-col v)
-          :filename (:filename ctx)
-          :type :unbound-destructuring-default}))))
+(defn analyze-keys-destructuring-defaults [ctx m defaults opts]
+  (let [skip-reg-binding? (when (:fn-args? opts)
+                            (-> ctx :config :linters :unused-binding
+                                :exclude-destructured-keys-in-fn-args))]
+    (when-not skip-reg-binding?
+      (let [defaults (into {}
+                           (for [[k _v] (partition 2 (:children defaults))
+                                 :let [sym (:value k)]
+                                 :when sym]
+                             [(:value k) (meta k)]))]
+        (doseq [[k v] defaults]
+          (let [binding (get m k)]
+            (if-not binding
+              (findings/reg-finding!
+               ctx
+               {:message (str k " is not bound in this destructuring form") :level :warning
+                :row (:row v)
+                :col (:col v)
+                :end-row (:end-row v)
+                :end-col (:end-col v)
+                :filename (:filename ctx)
+                :type :unbound-destructuring-default})
+              (namespace/reg-destructuring-default! ctx v binding)))))))
   (analyze-children ctx (utils/map-node-vals defaults)))
 
 (defn ctx-with-linter-disabled [ctx linter]
@@ -101,10 +105,12 @@
 (defn extract-bindings
   ([ctx expr] (when expr
                 (extract-bindings ctx expr {})))
-  ([{:keys [:skip-reg-binding?] :as ctx} expr
-    {:keys [:keys-destructuring? :fn-args?] :as opts}]
-   (let [expr (lift-meta-content* ctx expr)
+  ([ctx expr opts]
+   (let [fn-args? (:fn-args? opts)
+         keys-destructuring? (:keys-destructuring? opts)
+         expr (lift-meta-content* ctx expr)
          t (tag expr)
+         skip-reg-binding? (:skip-reg-binding? ctx)
          skip-reg-binding? (or skip-reg-binding?
                                (when (and keys-destructuring? fn-args?)
                                  (-> ctx :config :linters :unused-binding
@@ -206,8 +212,9 @@
                            (if (empty? rest-kvs)
                              ;; or can refer to a binding introduced by what we extracted
                              (let [ctx (ctx-with-bindings ctx res)]
-                               (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
-                                                                      ctx res v)})))
+                               (recur rest-kvs (merge res {:analyzed
+                                                           (analyze-keys-destructuring-defaults
+                                                            ctx res v opts)})))
                              ;; analyze or after the rest
                              (recur (concat rest-kvs [k v]) res))
                            :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
@@ -602,14 +609,6 @@
        ctx
        (node->line (:filename ctx) expr :error :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
-(defn lint-one-or-two-forms-body! [ctx form-name main-expr body-exprs]
-  (let [num-children (count body-exprs)]
-    (when-not (or (= 1 num-children)
-                  (= 2 num-children))
-      (findings/reg-finding!
-       ctx
-       (node->line (:filename ctx) main-expr :error :syntax (format "%s body requires one or two forms" form-name))))))
-
 (defn analyze-conditional-let [ctx call expr]
   (let [children (next (:children expr))
         bv (first children)
@@ -623,8 +622,6 @@
                                                         :analyzed))
             if? (one-of call [if-let if-some])]
         (lint-two-forms-binding-vector! ctx call bv)
-        (when if?
-          (lint-one-or-two-forms-body! ctx call expr body-exprs))
         (concat (:analyzed bindings)
                 (analyze-expression** ctx condition)
                 (if if?
@@ -994,20 +991,20 @@
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
 (defn analyze-if
+  "Analyzes if special form for arity errors"
   [ctx expr]
-  (let [children (rest (:children expr))]
+  (let [args (rest (:children expr))]
     (when-let [[expr msg linter]
-               (case (count children)
+               (case (count args)
                  (0 1) [expr "Too few arguments to if." :syntax]
-                 2 [expr "Missing else branch." :if]
-                 3 nil
+                 (2 3) nil
                  [expr "Too many arguments to if." :syntax])]
       (findings/reg-finding!
        ctx
        (node->line (:filename ctx) expr
                    :warning linter
                    msg)))
-    (analyze-children ctx children false)))
+    (analyze-children ctx args false)))
 
 (defn reg-call [{:keys [:calls-by-id]} call id]
   (swap! calls-by-id assoc id call)
@@ -1263,7 +1260,9 @@
                      [cljs.test deftest]
                      #_[:clj-kondo/unknown-namespace deftest])
                     (do (lint-inline-def! ctx expr)
-                        (test/analyze-deftest ctx resolved-namespace expr))
+                        (test/analyze-deftest ctx expr
+                                              resolved-namespace resolved-name
+                                              resolved-as-namespace resolved-as-name))
                     [clojure.string replace]
                     (analyze-clojure-string-replace ctx expr)
                     [cljs.test async]
@@ -1501,9 +1500,6 @@
                                                      :col col
                                                      :expr expr})
                               maybe-call (first ret)]
-                          #_(when maybe-call
-                              (prn (:ns maybe-call) (:name maybe-call) (:resolved-ns maybe-call)
-                                   (:type maybe-call)))
                           (if (identical? :call (:type maybe-call))
                             (types/add-arg-type-from-call ctx maybe-call expr)
                             (types/add-arg-type-from-expr ctx expr))
