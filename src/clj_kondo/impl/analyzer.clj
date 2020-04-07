@@ -61,18 +61,18 @@
                              :when sym]
                          [(:value k) (meta k)]))]
     (doseq [[k v] defaults]
-      (when-some [binding (get-in ctx [:bindings k])]
-        (namespace/reg-destructuring-default! ctx v binding))
-      (when-not (contains? m k)
-        (findings/reg-finding!
-         ctx
-         {:message (str k " is not bound in this destructuring form") :level :warning
-          :row (:row v)
-          :col (:col v)
-          :end-row (:end-row v)
-          :end-col (:end-col v)
-          :filename (:filename ctx)
-          :type :unbound-destructuring-default}))))
+      (let [binding (get m k)]
+        (if-not binding
+          (findings/reg-finding!
+           ctx
+           {:message (str k " is not bound in this destructuring form") :level :warning
+            :row (:row v)
+            :col (:col v)
+            :end-row (:end-row v)
+            :end-col (:end-col v)
+            :filename (:filename ctx)
+            :type :unbound-destructuring-default})
+          (namespace/reg-destructuring-default! ctx v binding)))))
   (analyze-children ctx (utils/map-node-vals defaults)))
 
 (defn ctx-with-linter-disabled [ctx linter]
