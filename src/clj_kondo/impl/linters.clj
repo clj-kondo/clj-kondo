@@ -117,15 +117,11 @@
 
 (defn lint-single-key-in [ctx called-name call]
   (when-not (utils/linter-disabled? ctx :single-key-in)
-    (let [keys (-> (:children call)
-                   (nth 2))
-          keys-count (-> keys
-                         (:children)
-                         (count))]
-      (when (and (= :vector (tag keys)) (= 1 keys-count))
+    (let [[_ _ keyvec] (:children call)]
+      (when (and keyvec (= :vector (tag keyvec)) (= 1 (count (:children keyvec))))
         (findings/reg-finding!
           ctx
-          (node->line (:filename ctx) call :warning :single-key-in
+          (node->line (:filename ctx) keyvec :warning :single-key-in
                       (format "%s with single key" called-name)))))))
 
 (defn lint-specific-calls! [ctx call called-fn]

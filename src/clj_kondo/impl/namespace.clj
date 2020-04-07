@@ -150,13 +150,14 @@
                              (not (:test metadata))
                              (not temp?)
                              (not
-                              (when-let [linted-as (:linted-as metadata)]
+                              (when-let [defined-by (or (:linted-as metadata)
+                                                        (:defined-by metadata))]
                                 (or
-                                 (= 'clojure.test/deftest linted-as)
-                                 (= 'clojure.core/deftype linted-as)
-                                 (= 'clojure.core/defrecord linted-as)
-                                 (= 'clojure.core/defprotocol linted-as)
-                                 (= 'clojure.core/definterface linted-as)))))
+                                 (= 'clojure.test/deftest defined-by)
+                                 (= 'clojure.core/deftype defined-by)
+                                 (= 'clojure.core/defrecord defined-by)
+                                 (= 'clojure.core/defprotocol defined-by)
+                                 (= 'clojure.core/definterface defined-by)))))
                     (findings/reg-finding!
                      ctx
                      (node->line filename

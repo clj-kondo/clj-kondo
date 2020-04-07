@@ -2643,7 +2643,7 @@
   (assert-submaps
     '({:file "<stdin>",
        :row 1,
-       :col 1,
+       :col 12,
        :level :warning,
        :message "get-in with single key"})
     (lint! "(get-in {} [:k])" {:linters {:single-key-in {:level :warning}}}))
@@ -2651,7 +2651,7 @@
   (assert-submaps
     '({:file "<stdin>",
        :row 1,
-       :col 1,
+       :col 14,
        :level :warning,
        :message "assoc-in with single key"})
     (lint! "(assoc-in {} [:k] :v)" {:linters {:single-key-in {:level :warning}}}))
@@ -2659,13 +2659,15 @@
   (assert-submaps
     '({:file "<stdin>",
        :row 1,
-       :col 1,
+       :col 15,
        :level :warning,
        :message "update-in with single key"})
     (lint! "(update-in {} [:k] inc)" {:linters {:single-key-in {:level :warning}}}))
 
   (is (empty? (lint! "(get-in {} [:k1 :k2])" {:linters {:single-key-in {:level :warning}}})))
-  (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}}))))
+  (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}})))
+  (testing "don't throw exception when args are missing"
+    (is (some? (lint! "(assoc-in)")))))
 
 ;;;; Scratch
 

@@ -24,4 +24,6 @@
   (is (empty? (lint! (str "(require '[expectations.clojure.test :refer [defexpect]])"
                           "(defexpect foo even? 42)")
                      '{:linters {:missing-docstring {:level :warning}}
-                       :lint-as {expectations.clojure.test/defexpect clojure.test/deftest}}))))
+                       :lint-as {expectations.clojure.test/defexpect clojure.test/deftest}})))
+  (is (empty? (lint! (str "(defprotocol Foo)")
+                     '{:linters {:missing-docstring {:level :warning}}}))))

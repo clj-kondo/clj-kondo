@@ -13,7 +13,7 @@ For Spacemacs, check [here](#spacemacs) or get [flymake-kondor](https://github.c
 
 ### LSP server
 
-Emacs has the [lsp-mode](https://github.com/emacs-lsp/lsp-mode) where you can configure multiple LSP servers for different programming languages. 
+Emacs has the [lsp-mode](https://github.com/emacs-lsp/lsp-mode) where you can configure multiple LSP servers for different programming languages.
 To use `clj-kondo` as an LSP server, you can configure the `lsp-mode` server command to point to the `clj-kondo` lsp-server jar. Note that the LSP server does not provide features other than diagnostics.
 
 1. Download the latest clj-kondo LSP server jar to your system. Go to the
@@ -38,29 +38,19 @@ To use `clj-kondo` as an LSP server, you can configure the `lsp-mode` server com
 
 ## Visual Studio Code
 
-### clojure-lint extension
-
-Like most editor plugins, the 'Clojure Lint' extension by
-[@marcomorain](https://github.com/marcomorain/clojure-lint) uses the installed
-version of clj-kondo.  In Visual Studio Code, go to Preferences >
-Extensions. Search for 'clojure lint' and select the Click 'install'. That's it.
-
-<img src="../screenshots/vscode.png" width="75%">
-
 ### clj-kondo extension
 
-The native version of clj-kondo is not well supported yet for Windows
-environments due to limitations of GraalVM. If you're using Windows, you can
-install the
+Install the
 [clj-kondo](https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo)
-extension instead. It bundles clj-kondo and requires no additional
-installation. Note that this extension is part of
-[Calva](https://github.com/BetterThanTomorrow/calva) since v2.0.54.
+extension. It requires no additional installation (except Java).
 
-Despite the native not working well on Windows, users can still have
-command-line version of clj-kondo by installing the
-[NPM](https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows)
-package. This invokes the clj-kondo standalone jar.
+The clj-kondo extension will also be installed together with
+[Calva](https://github.com/BetterThanTomorrow/calva).
+
+### clojure-lint extension
+
+If you do not have Java installed you can still get clj-kondo linting using the [Clojure Lint](https://github.com/marcomorain/clojure-lint) extension, by
+@marcomorain, which uses the [clj-kondo standalone executable](https://github.com/borkdude/clj-kondo/blob/master/doc/install.md).
 
 ## Atom
 
