@@ -63,7 +63,6 @@
 
 (def base-config
   '{:linters {:unused-binding {:level :off}
-              :unused-destructuring-default {:level :off}
               :unresolved-symbol {:level :off}
               :refer-all {:level :off}
               :type-mismatch {:level :off}
