@@ -54,23 +54,26 @@
                                      (:arg-types ctx)))]
          (mapcat #(analyze-expression** ctx %) children))))))
 
-(defn analyze-keys-destructuring-defaults [ctx m defaults]
-  (let [defaults (into {}
-                       (for [[k _v] (partition 2 (:children defaults))
-                             :let [sym (:value k)]
-                             :when sym]
-                         [(:value k) (meta k)]))]
-    (doseq [[k v] defaults]
-      (when-not (contains? m k)
-        (findings/reg-finding!
-         ctx
-         {:message (str k " is not bound in this destructuring form") :level :warning
-          :row (:row v)
-          :col (:col v)
-          :end-row (:end-row v)
-          :end-col (:end-col v)
-          :filename (:filename ctx)
-          :type :unbound-destructuring-default}))))
+(defn analyze-keys-destructuring-defaults [ctx m defaults opts]
+  (let [skip-reg-binding? (when (:fn-args? opts)
+                            (-> ctx :config :linters :unused-binding
+                                :exclude-destructured-keys-in-fn-args))]
+    (when-not skip-reg-binding?
+      (doseq [[k _v] (partition 2 (:children defaults))
+              :let [sym (:value k)
+                    mta (meta k)]
+              :when sym]
+        (if-some [binding (get m sym)]
+          (namespace/reg-destructuring-default! ctx mta binding)
+          (findings/reg-finding!
+           ctx
+           {:message (str sym " is not bound in this destructuring form") :level :warning
+            :row (:row mta)
+            :col (:col mta)
+            :end-row (:end-row mta)
+            :end-col (:end-col mta)
+            :filename (:filename ctx)
+            :type :unbound-destructuring-default})))))
   (analyze-children ctx (utils/map-node-vals defaults)))
 
 (defn ctx-with-linter-disabled [ctx linter]
@@ -99,10 +102,12 @@
 (defn extract-bindings
   ([ctx expr] (when expr
                 (extract-bindings ctx expr {})))
-  ([{:keys [:skip-reg-binding?] :as ctx} expr
-    {:keys [:keys-destructuring? :fn-args?] :as opts}]
-   (let [expr (lift-meta-content* ctx expr)
+  ([ctx expr opts]
+   (let [fn-args? (:fn-args? opts)
+         keys-destructuring? (:keys-destructuring? opts)
+         expr (lift-meta-content* ctx expr)
          t (tag expr)
+         skip-reg-binding? (:skip-reg-binding? ctx)
          skip-reg-binding? (or skip-reg-binding?
                                (when (and keys-destructuring? fn-args?)
                                  (-> ctx :config :linters :unused-binding
@@ -204,8 +209,9 @@
                            (if (empty? rest-kvs)
                              ;; or can refer to a binding introduced by what we extracted
                              (let [ctx (ctx-with-bindings ctx res)]
-                               (recur rest-kvs (merge res {:analyzed (analyze-keys-destructuring-defaults
-                                                                      ctx res v)})))
+                               (recur rest-kvs (merge res {:analyzed
+                                                           (analyze-keys-destructuring-defaults
+                                                            ctx res v opts)})))
                              ;; analyze or after the rest
                              (recur (concat rest-kvs [k v]) res))
                            :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
@@ -991,10 +997,10 @@
                  (2 3) nil
                  [expr "Too many arguments to if." :syntax])]
       (findings/reg-finding!
-        ctx
-        (node->line (:filename ctx) expr
-                    :warning linter
-                    msg)))
+       ctx
+       (node->line (:filename ctx) expr
+                   :warning linter
+                   msg)))
     (analyze-children ctx args false)))
 
 (defn reg-call [{:keys [:calls-by-id]} call id]
@@ -1491,9 +1497,6 @@
                                                      :col col
                                                      :expr expr})
                               maybe-call (first ret)]
-                          #_(when maybe-call
-                              (prn (:ns maybe-call) (:name maybe-call) (:resolved-ns maybe-call)
-                                   (:type maybe-call)))
                           (if (identical? :call (:type maybe-call))
                             (types/add-arg-type-from-call ctx maybe-call expr)
                             (types/add-arg-type-from-expr ctx expr))

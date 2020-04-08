@@ -410,22 +410,35 @@
 
 (defn lint-unused-bindings!
   [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [bindings (:bindings ns)
-                used-bindings (:used-bindings ns)
-                diff (set/difference bindings used-bindings)]
-          binding diff]
-    (let [name (:name binding)]
-      (when-not (str/starts-with? (str name) "_")
+  (doseq [ns (namespace/list-namespaces ctx)]
+    (let [bindings (:bindings ns)
+          used-bindings (:used-bindings ns)
+          diff (set/difference bindings used-bindings)
+          defaults (:destructuring-defaults ns)]
+      (doseq [binding diff]
+        (let [name (:name binding)]
+          (when-not (str/starts-with? (str name) "_")
+            (findings/reg-finding!
+             ctx
+             {:type :unused-binding
+              :filename (:filename binding)
+              :message (str "unused binding " name)
+              :row (:row binding)
+              :col (:col binding)
+              :end-row (:end-row binding)
+              :end-col (:end-col binding)}))))
+      (doseq [default defaults
+              :let [binding (:binding default)]
+              :when (not (contains? (:used-bindings ns) binding))]
         (findings/reg-finding!
          ctx
          {:type :unused-binding
           :filename (:filename binding)
-          :message (str "unused binding " name)
-          :row (:row binding)
-          :col (:col binding)
-          :end-row (:end-row binding)
-          :end-col (:end-col binding)})))))
+          :message (str "unused default for binding " (:name binding))
+          :row (:row default)
+          :col (:col default)
+          :end-row (:end-row default)
+          :end-col (:end-col default)})))))
 
 (defn lint-unused-private-vars!
   [ctx]
