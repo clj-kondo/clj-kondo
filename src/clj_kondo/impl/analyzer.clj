@@ -59,24 +59,21 @@
                             (-> ctx :config :linters :unused-binding
                                 :exclude-destructured-keys-in-fn-args))]
     (when-not skip-reg-binding?
-      (let [defaults (into {}
-                           (for [[k _v] (partition 2 (:children defaults))
-                                 :let [sym (:value k)]
-                                 :when sym]
-                             [(:value k) (meta k)]))]
-        (doseq [[k v] defaults]
-          (let [binding (get m k)]
-            (if-not binding
-              (findings/reg-finding!
-               ctx
-               {:message (str k " is not bound in this destructuring form") :level :warning
-                :row (:row v)
-                :col (:col v)
-                :end-row (:end-row v)
-                :end-col (:end-col v)
-                :filename (:filename ctx)
-                :type :unbound-destructuring-default})
-              (namespace/reg-destructuring-default! ctx v binding)))))))
+      (doseq [[k _v] (partition 2 (:children defaults))
+              :let [sym (:value k)
+                    mta (meta k)]
+              :when sym]
+        (if-some [binding (get m sym)]
+          (namespace/reg-destructuring-default! ctx mta binding)
+          (findings/reg-finding!
+           ctx
+           {:message (str sym " is not bound in this destructuring form") :level :warning
+            :row (:row mta)
+            :col (:col mta)
+            :end-row (:end-row mta)
+            :end-col (:end-col mta)
+            :filename (:filename ctx)
+            :type :unbound-destructuring-default})))))
   (analyze-children ctx (utils/map-node-vals defaults)))
 
 (defn ctx-with-linter-disabled [ctx linter]
