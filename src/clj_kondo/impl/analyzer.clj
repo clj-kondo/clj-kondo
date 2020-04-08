@@ -63,7 +63,7 @@
               :let [sym (:value k)
                     mta (meta k)]
               :when sym]
-        (if-some [binding (get m sym)]
+        (if-let [binding (get m sym)]
           (namespace/reg-destructuring-default! ctx mta binding)
           (findings/reg-finding!
            ctx
