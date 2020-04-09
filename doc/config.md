@@ -344,6 +344,24 @@ $ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0
 
 Printing in EDN format is also supported.
 
+### Print results with a custom format
+
+``` shell
+$ clj-kondo --lint corpus --config '{:output {:pattern "::{{level}} file={{filename}},line={{row}},col={{col}}::{{message}}"}}'
+::warning file=corpus/compojure/core.clj,line=2,col=19::Unsorted namespace: foo
+```
+
+The custom pattern supports these template values:
+
+| Template Variable | Notes                                                     |
+|-------------------|-----------------------------------------------------------|
+| `{{filename}}`    | File name                                                 |
+| `{{row}}`         | Row where linter violation starts                         |
+| `{{col}}`         | Column where linter violation starts                      |
+| `{{level}}`       | Lowercase level of linter warning, one of info,warn,error |
+| `{{LEVEL}}`       | Uppercase variant of `{{level}}`                          |
+| `{{message}}`     | Linter message                                            |
+
 ### Include and exclude files from the output
 
 ``` shellsession
