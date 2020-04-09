@@ -70,7 +70,6 @@
               :refer-all {:level :warning
                           :exclude #{}}
               :use {:level :warning}
-
               :missing-else-branch {:level :warning}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
