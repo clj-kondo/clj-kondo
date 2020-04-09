@@ -225,6 +225,7 @@
                  analyzed))
              kw+libspecs)
         _ (doseq [analyzed analyzed]
+            (namespace/lint-refers! ctx analyzed)
             (namespace/lint-conflicting-aliases! ctx analyzed)
             (let [namespaces (map :ns analyzed)]
               (namespace/lint-unsorted-required-namespaces! ctx namespaces)

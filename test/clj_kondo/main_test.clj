@@ -2355,11 +2355,11 @@
 
 (deftest conflicting-aliases-test
   (assert-submaps
-   [{:file "<stdin>", :row 1, :col 50,
-     :level :error, :message #"Conflicting alias for "}]
-   (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
-          {:linters {:conflicting-alias {:level :error}
-                     :unused-namespace {:level :off}}}))
+    [{:file "<stdin>", :row 1, :col 50,
+      :level :error, :message #"Conflicting alias for "}]
+    (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
+           {:linters {:conflicting-alias {:level :error}
+                      :unused-namespace {:level :off}}}))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar :as baz]))"
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-namespace {:level :off}}})))
@@ -2367,6 +2367,25 @@
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}}))))
+
+
+(deftest refer-test
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)")))
+  (assert-submaps
+    [{:file "<stdin>", :row 1, :col 38,
+      :level :warning, :message #":require with :refer"}]
+    (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)"
+           {:linters {:refer {:level :warning}}}))
+  (assert-submaps
+    [{:file "<stdin>", :row 1, :col 38,
+      :level :warning, :message #":require with :refer"}]
+    (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer :all])) (foo/bazbar) (asd)"
+           {:linters {:refer {:level :warning}
+                      :refer-all {:level :off}}}))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo])) (foo/bazbar)"
+                     {:linters {:refer {:level :warning}}}))))
+
+
 
 (deftest missing-else-branch-test
   (assert-submaps
@@ -2425,6 +2444,9 @@
   (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}})))
   (testing "don't throw exception when args are missing"
     (is (some? (lint! "(assoc-in)")))))
+
+
+
 
 ;;;; Scratch
 
