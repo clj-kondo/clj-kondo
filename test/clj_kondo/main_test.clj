@@ -2431,7 +2431,9 @@
    '({:file "<stdin>",
       :row 1, :col 6,
       :level :error, :message "Can't take value of a macro: #'clojure.core/when"})
-   (lint! "(map when [1 2 3])")))
+   (lint! "(map when [1 2 3])"))
+  (is (empty? (lint! "(defmacro foo [x]) (#'foo 1)")))
+  #_(is (empty? (lint! "(defmacro foo [x]) (foo comment)"))))
 
 ;;;; Scratch
 

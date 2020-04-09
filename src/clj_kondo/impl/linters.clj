@@ -345,7 +345,9 @@
                                                nil
                                                (str " since " deprecated)))}))
                               (when (and (not call?)
-                                         (:macro called-fn))
+                                         (:macro called-fn)
+                                         #_(not unresolved-symbol-disabled?)
+                                         (not (:private-access? call)))
                                 {:filename filename
                                  :row row
                                  :col col
