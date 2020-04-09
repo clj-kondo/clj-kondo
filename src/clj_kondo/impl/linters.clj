@@ -343,7 +343,16 @@
                                                      (str fn-ns "/" fn-name))
                                              (if (true? deprecated)
                                                nil
-                                               (str " since " deprecated)))}))]
+                                               (str " since " deprecated)))}))
+                              (when (and (not call?)
+                                         (:macro called-fn))
+                                {:filename filename
+                                 :row row
+                                 :col col
+                                 :type :macro-as-value
+                                 :message (str
+                                           (str "Can't take value of a macro: #'"
+                                                (str fn-ns "/" fn-name)))})]
                              ctx (assoc ctx
                                         :filename filename)
                              _ (when call?

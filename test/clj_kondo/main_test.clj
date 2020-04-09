@@ -2426,6 +2426,13 @@
   (testing "don't throw exception when args are missing"
     (is (some? (lint! "(assoc-in)")))))
 
+(deftest macro-as-value-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1, :col 6,
+      :level :error, :message "Can't take value of a macro: #'clojure.core/when"})
+   (lint! "(map when [1 2 3])")))
+
 ;;;; Scratch
 
 (comment
