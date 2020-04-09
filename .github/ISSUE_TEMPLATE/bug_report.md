@@ -11,6 +11,17 @@ assignees: ''
 
 [ Please specify which version of clj-kondo you're using. You can find this with `clj-kondo --version`.]
 
+**macro usage**
+
+[ Is your bug related to macro usage? Consider using a configuration. If not, ignore this section. ]
+
+See [config.md](https://github.com/borkdude/clj-kondo/blob/master/doc/config.md) for all configuration options.
+
+Common options to deal with macros:
+
+- https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#exclude-unresolved-symbols-from-being-reported
+- https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#lint-a-custom-macro-like-a-built-in-macro
+
 **platform**
 
 [ Please specify which platform you are using clj-kondo on. Are you using the native version of clj-kondo, or are you running it on the JVM? ]
@@ -25,7 +36,13 @@ assignees: ''
 
 **repro**
 
-[ Please provide a minimal and complete reproduction of the problem, including a namespace form, which can be pasted in a repro.clj file. Please include the output of the invocation of `clj-kondo --lint repro.clj` (or .cljs/.cljc) from the command line. If relevant, also include your .clj-kondo/config.edn. ]
+[ Please provide a minimal and complete reproduction of the problem, including a namespace form, which can be pasted in a repro.clj file. Please include the output of the invocation of `clj-kondo --lint repro.clj` (or `.cljs/.cljc`) from the command line. ]
+
+**config**
+
+[ Is your bug related to `.clj-kondo/config.edn`? Paste your entire
+configuration here. Also check if the bug still occurs without using a
+configuration, as the bug may be a result of malformed configuration. ]
 
 **expected behavior**
 

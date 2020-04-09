@@ -585,7 +585,7 @@
   (is (empty? (lint! "(defn foo [{:keys [select-keys :b]}]
     (let [x 1] (select-keys)))")))
   (is (seq (lint! "(defn foo ([select-keys]) ([x y] (select-keys)))")))
-  (is (empty? (lint! "(if-let [select-keys (fn [])] (select-keys))")))
+  (is (empty? (lint! "(if-let [select-keys (fn [])] (select-keys) :bar)")))
   (is (empty? (lint! "(when-let [select-keys (fn [])] (select-keys))")))
   (is (empty? (lint! "(fn foo [x] (foo x))")))
   (is (empty? (lint! "(fn select-keys [x] (select-keys 1))")))
@@ -679,11 +679,6 @@
       :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
      {:file "<stdin>",
       :row 1,
-      :col 1,
-      :level :error,
-      :message "if-let body requires one or two forms"}
-     {:file "<stdin>",
-      :row 1,
       :col 9,
       :level :error,
       :message "if-let binding vector requires exactly 2 forms"})
@@ -696,16 +691,52 @@
       :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
      {:file "<stdin>",
       :row 1,
-      :col 1,
-      :level :error,
-      :message "if-let body requires one or two forms"}
-     {:file "<stdin>",
-      :row 1,
       :col 9,
       :level :error,
       :message "if-let binding vector requires exactly 2 forms"})
    (lint! "(if-let [x 1 y])"))
-  (is (empty? (lint! "(if-let [{:keys [:row :col]} {:row 1 :col 2}] row)"))))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "Missing else branch."})
+   (lint! "(if-let [x 1] true)"))
+  (is (empty? (lint! "(if-let [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
+
+(deftest if-some-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
+     {:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :error,
+      :message "if-some binding vector requires exactly 2 forms"})
+   (lint! "(if-some [x 1 y 2])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
+     {:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :error,
+      :message "if-some binding vector requires exactly 2 forms"})
+   (lint! "(if-some [x 1 y])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "Missing else branch."})
+   (lint! "(if-let [x 1] true)"))
+  (is (empty? (lint! "(if-some [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
 
 (deftest when-let-test
   (assert-submap
@@ -1205,7 +1236,7 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
+                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id :bar)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])")))
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "default.cljs"))))
@@ -1416,213 +1447,6 @@
 
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))
-
-(deftest unused-binding-test
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 7, :level :warning, :message "unused binding x"})
-   (lint! "(let [x 1])" '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 12,
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(defn foo [x])"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 15,
-      :level :warning,
-      :message "unused binding id"})
-   (lint! "(let [{:keys [patient/id order/id]} {}] id)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 14,
-      :level :warning,
-      :message "unused binding a"})
-   (lint! "(fn [{:keys [:a] :or {a 1}}])"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 8,
-      :level :warning,
-      :message "unused binding x"}
-     {:file "<stdin>",
-      :row 1,
-      :col 12,
-      :level :warning,
-      :message "unused binding y"})
-   (lint! "(loop [x 1 y 2])"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 10,
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(if-let [x 1] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 12,
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(when-let [x 1] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 13,
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(when-some [x 1] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(for [x []] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(doseq [x []] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:level :warning,
-      :message "unused binding x"}
-     {:level :warning,
-      :message "unused binding y"})
-   (lint! "(with-open [x ? y ?] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:level :warning,
-      :message "unused binding x"})
-   (lint! "(with-local-vars [x 1] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 7,
-      :level :warning,
-      :message "unused binding x"}
-     {:file "<stdin>",
-      :row 1,
-      :col 22,
-      :level :warning,
-      :message "unused binding y"}
-     {:file "<stdin>",
-      :row 1,
-      :col 33,
-      :level :error,
-      :message "clojure.core/inc is called with 0 args but expects 1"}
-     {:file "<stdin>",
-      :row 1,
-      :col 46,
-      :level :error,
-      :message "clojure.core/pos? is called with 0 args but expects 1"})
-   (lint! "(for [x [] :let [x 1 y x] :when (inc) :while (pos?)] 1)"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 48,
-      :level :warning,
-      :message "unused binding a"}
-     {:file "<stdin>",
-      :row 1,
-      :col 52,
-      :level :warning,
-      :message "unused binding b"})
-   (lint! "(ns foo (:require [cats.core :as c])) (c/mlet [a 1 b 2])"
-          '{:linters {:unused-binding {:level :warning}}
-            :lint-as {cats.core/mlet clojure.core/let}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 24,
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(defmacro foo [] (let [x 1] `(inc x)))"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 12,
-      :level :warning,
-      :message "unused binding x"})
-   (lint! "(defn foo [x] (quote x))"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 17,
-      :level :warning,
-      :message "unused binding variadic"})
-   (lint! "(let [{^boolean variadic :variadic?} {}] [])"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 8,
-      :level :warning,
-      :message "unused binding a"})
-   (lint! "#(let [a %])"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 7,
-      :level :warning,
-      :message "unused binding a"})
-   (lint! "(let [a 1] `{:a 'a})"
-          '{:linters {:unused-binding {:level :warning}}}))
-  (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(defn foo [x] x)"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(defn foo [_x])"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(fn [{:keys [x] :or {x 1}}] x)"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "#(inc %1)"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(let [exprs []] (loop [exprs exprs] exprs))"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(for [f fns :let [children (:children f)]] children)"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(deftype Foo [] (doseq [[key f] []] (f key)))"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~x)))"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(let [[_ _ name] nil]
-                        `(cljs.core/let [~name ~e] ~@cb))"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(defmacro foo [] (let [x 1] `(inc ~@[x])))"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(defn false-positive-metadata [a b] ^{:key (str a b)} [:other])"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(doseq [{ts :tests {:keys [then]} :then} nodes]
-                        (doseq [test (map :test ts)] test)
-                        then)"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(let [a 1] (cond-> (.getFoo a) x))"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(defmacro foo [] (let [sym 'my-symbol] `(do '~sym)))"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(let [s 'clojure.string] (require s))"
-                     '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(defn f [{:keys [:a :b :c]}] a)"
-                     '{:linters {:unused-binding
-                                 {:level :warning
-                                  :exclude-destructured-keys-in-fn-args true}
-                                 :unresolved-symbol {:level :error}}}))))
 
 (deftest unsupported-binding-form-test
   (assert-submaps
@@ -1859,10 +1683,13 @@
      test#))"
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(when-let [x 1] x x x)"
-                       {:linters {:unresolved-symbol {:level :error}}})))
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defn foo [x] (if-let [x 1] x x))"
                      {:linters {:unused-binding {:level :warning}
-                                :unresolved-symbol {:level :error}}}))))
+                                :unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "goog.global"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 (deftest with-redefs-test
   (assert-submaps '({:file "<stdin>", :row 1, :col 14,
@@ -2335,6 +2162,25 @@
       :message "Too many arguments to if."})
    (lint! "(if) (if 1 1) (if 1 1 1 1)")))
 
+(deftest if-not-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :error,
+      :message "clojure.core/if-not is called with 0 args but expects 2 or 3"}
+     {:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :warning,
+      :message "Missing else branch."}
+     {:file "<stdin>",
+      :row 1,
+      :col 23,
+      :level :error,
+      :message "clojure.core/if-not is called with 4 args but expects 2 or 3"})
+   (lint! "(if-not) (if-not 1 1) (if-not 1 1 1 1)")))
+
 (deftest unused-private-var-test
   (assert-submaps
    '({:file "<stdin>",
@@ -2402,17 +2248,6 @@
   (is (empty? (lint! "(doto (java.util.ArrayList. [1 2 3]) (as-> a (.addAll a a)))"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
-(deftest missing-docstring-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :warning,
-      :message "Missing docstring."})
-   (lint! "(defn foo [])" {:linters {:missing-docstring {:level :warning}}}))
-  (is (empty? (lint! "(defn foo \"dude\" [])" {:linters {:missing-docstring {:level :warning}}})))
-  (is (empty? (lint! "(defn- foo []) (foo)" {:linters {:missing-docstring {:level :warning}}}))))
-
 (deftest var-test
   (assert-submaps
    '({:file "<stdin>",
@@ -2431,28 +2266,28 @@
 
 (deftest consistent-alias-test
   (assert-submaps
-    [{:file "<stdin>", :row 1, :col 39,
-      :level :warning, :message #"Inconsistent.*str.*x"}]
-    (lint! "(ns foo (:require [clojure.string :as x])) x/join"
-           {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))
+   [{:file "<stdin>", :row 1, :col 39,
+     :level :warning, :message #"Inconsistent.*str.*x"}]
+   (lint! "(ns foo (:require [clojure.string :as x])) x/join"
+          {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))
   (is (empty? (lint! "(ns foo (:require [clojure.string])) clojure.string/join"
                      {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))))
 
 (deftest unsorted-required-namespaces-test
   (assert-submaps
-    [{:file "<stdin>"
-      :row 1
-      :col 31
-      :level :warning
-      :message "Unsorted namespace: abar.core"}]
-    (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-required-namespaces {:level :warning}}}))
+   [{:file "<stdin>"
+     :row 1
+     :col 31
+     :level :warning
+     :message "Unsorted namespace: abar.core"}]
+   (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-required-namespaces {:level :warning}}}))
   (assert-submaps
-    [{:file "<stdin>"
-      :row 1
-      :col 21
-      :level :warning
-      :message "Unsorted namespace: abar.core"}]
-    (lint! "(require 'bar.core 'abar.core)" {:linters {:unsorted-required-namespaces {:level :warning}}}))
+   [{:file "<stdin>"
+     :row 1
+     :col 21
+     :level :warning
+     :message "Unsorted namespace: abar.core"}]
+   (lint! "(require 'bar.core 'abar.core)" {:linters {:unsorted-required-namespaces {:level :warning}}}))
   (testing "Duplicate requires are not reported as unsorted."
     (is (empty? (lint! "(ns foo (:require [cljs.core.async] [cljs.core.async]))"
                        {:linters {:unsorted-required-namespaces {:level :warning}
@@ -2480,9 +2315,9 @@
   (:require
     #?(:clj [foo.bar])
     [bar.foo]))"
-                      {:linters {:unsorted-required-namespaces {:level :warning}
-                                 :unused-import {:level :off}}}
-                      "--lang" "cljc"))))
+                       {:linters {:unsorted-required-namespaces {:level :warning}
+                                  :unused-import {:level :off}}}
+                       "--lang" "cljc"))))
   (is (empty? (lint! "(ns foo (:require [clojure.string] [clojure.test]))"
                      {:linters {:unsorted-required-namespaces {:level :warning}}}
                      "--lang" "cljs"))))
@@ -2500,7 +2335,11 @@
 (deftest import-syntax
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 19, :level :error, :message "Expected: package name followed by classes."})
-   (lint! "(ns foo (:import [foo.bar]))")))
+   (lint! "(ns foo (:import [foo.bar]))"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 61, :level :error, :message "Expected: class symbol"}
+     {:file "<stdin>", :row 1, :col 68, :level :error, :message "Expected: class symbol"})
+   (lint! "(ns circle.http.api.v2.context (:import [circle.http.defapi :refer [defapi-with-auth]]))")))
 
 (deftest unquoted-namespace-config-test
   (assert-submaps '({:file "<stdin>", :row 4, :col 14, :level :warning, :message "Unsorted namespace: bar.foo"})
@@ -2513,6 +2352,79 @@
 (ns ^{:clj-kondo/config {:linters {:unsorted-required-namespaces {:level :warning}}}} foo
   (:require [foo.bar]
             [bar.foo]))")))
+
+(deftest conflicting-aliases-test
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 50,
+     :level :error, :message #"Conflicting alias for "}]
+   (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
+          {:linters {:conflicting-alias {:level :error}
+                     :unused-namespace {:level :off}}}))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar :as baz]))"
+                     {:linters {:conflicting-alias {:level :error}
+                                :unused-namespace {:level :off}}})))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar] [foo.baz :refer [fun muchfun]]))"
+                     {:linters {:conflicting-alias {:level :error}
+                                :unused-referred-var {:level :off}
+                                :unused-namespace {:level :off}}}))))
+
+(deftest missing-else-branch-test
+  (assert-submaps
+   [{:file "<stdin>",
+     :row 1,
+     :col 1,
+     :level :warning,
+     :message "Missing else branch."}
+    {:file "<stdin>",
+     :row 1,
+     :col 13,
+     :level :warning,
+     :message "Missing else branch."}
+    {:file "<stdin>",
+     :row 1,
+     :col 29,
+     :level :warning,
+     :message "Missing else branch."}
+    {:file "<stdin>",
+     :row 1,
+     :col 46,
+     :level :warning,
+     :message "Missing else branch."}]
+   (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"))
+  (is (empty? (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
+                     {:linters {:missing-else-branch {:level :off}}})))
+  (is (empty? (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
+                     {:linters {:if {:level :off}}}))))
+
+(deftest single-key-in-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 12,
+      :level :warning,
+      :message "get-in with single key"})
+   (lint! "(get-in {} [:k])" {:linters {:single-key-in {:level :warning}}}))
+
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 14,
+      :level :warning,
+      :message "assoc-in with single key"})
+   (lint! "(assoc-in {} [:k] :v)" {:linters {:single-key-in {:level :warning}}}))
+
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 15,
+      :level :warning,
+      :message "update-in with single key"})
+   (lint! "(update-in {} [:k] inc)" {:linters {:single-key-in {:level :warning}}}))
+
+  (is (empty? (lint! "(get-in {} [:k1 :k2])" {:linters {:single-key-in {:level :warning}}})))
+  (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}})))
+  (testing "don't throw exception when args are missing"
+    (is (some? (lint! "(assoc-in)")))))
 
 ;;;; Scratch
 

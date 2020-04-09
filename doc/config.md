@@ -38,6 +38,7 @@ Some linters are not enabled by default. Right now these linters are:
 
 - `:missing-docstring`: warn when public var doesn't have a docstring.
 - `:unsorted-required-namespaces`: warn when namespaces in `:require` are not sorted.
+- `:single-key-in`: warn when using assoc-in, update-in or get-in with single key
 
 You can enable these linters by setting the `:level`:
 
@@ -343,6 +344,24 @@ $ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0
 
 Printing in EDN format is also supported.
 
+### Print results with a custom format
+
+``` shell
+$ clj-kondo --lint corpus --config '{:output {:pattern "::{{level}} file={{filename}},line={{row}},col={{col}}::{{message}}"}}'
+::warning file=corpus/compojure/core.clj,line=2,col=19::Unsorted namespace: foo
+```
+
+The custom pattern supports these template values:
+
+| Template Variable | Notes                                                     |
+|-------------------|-----------------------------------------------------------|
+| `{{filename}}`    | File name                                                 |
+| `{{row}}`         | Row where linter violation starts                         |
+| `{{col}}`         | Column where linter violation starts                      |
+| `{{level}}`       | Lowercase level of linter warning, one of info,warn,error |
+| `{{LEVEL}}`       | Uppercase variant of `{{level}}`                          |
+| `{{message}}`     | Linter message                                            |
+
 ### Include and exclude files from the output
 
 ``` shellsession
@@ -376,6 +395,12 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 /Users/borkdude/dev/clj-kondo/corpus/cljc/datascript.cljc:8:1: error: datascript.db/seqable? is called with 2 args but expects 1
 (rest of the output omitted)
 ```
+
+## Deprecated config keys
+
+Some configuration keys have been renamed over time. The default configuration is always up-to-date and we strive to mantain backwards compatibility. However, for completeness, you can find a list of the renamed keys here. 
+
+- `:if -> :missing-else-branch`
 
 ## Example configurations
 

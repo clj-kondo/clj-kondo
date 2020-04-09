@@ -26,7 +26,7 @@
             :extra-paths ["test" "extract"]
             :main-opts ["-m" "cognitect.test-runner"]}
            :clojure-1.9.0 {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}
-           :clojure-1.10.1 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.1"}}}
+           :clojure-1.10.2-alpha1 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.2-alpha1"}}}
            :profiler
            {:extra-deps
             {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.3.1"}}

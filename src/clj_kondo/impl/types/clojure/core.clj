@@ -67,7 +67,7 @@
    ;; 75
    'conj {:arities {0 {:args [:nilable/coll]
                        :ret :coll}
-                    :varargs {:args [:coll {:op :rest :spec :any}]
+                    :varargs {:args [:nilable/coll {:op :rest :spec :any}]
                               :ret :coll}}}
    ;; 91
    'second seqable->any
@@ -640,6 +640,8 @@
    ;; 3492 'double
    ;; 3498 'short
    ;; 3504 'byte
+   'byte {:arities {1 {:args [#{:byte :number :char}]
+                       :ret :byte}}}
    ;; 3510 'char
    ;; 3516 'unchecked-byte
    ;; 3522 'unchecked-short
@@ -735,6 +737,7 @@
    ;; 4389 'destructure
    ;; 4481 'let
    ;; 4513 'fn
+   'fn {:arities {:varargs {:ret :fn}}}
    ;; 4575 'loop
    ;; 4600 'when-first
    ;; 4614 'lazy-cat
@@ -773,6 +776,8 @@
    ;; 4919 'rand-int
    ;; 4925 'defn-
    ;; 4931 'tree-seq
+   'tree-seq {:arities {3 {:args [:ifn :ifn :any]
+                           :ret :seq}}}
    ;; 4948 'file-seq
    ;; 4958 'xml-seq
    ;; 4968

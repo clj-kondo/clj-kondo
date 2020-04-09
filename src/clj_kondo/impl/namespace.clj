@@ -19,17 +19,36 @@
              (if (contains? required ns)
                (do
                  (findings/reg-finding!
-                  ctx
-                  (node->line (:filename ctx)
-                              ns
-                              :warning
-                              :duplicate-require
-                              (str "duplicate require of " ns)))
+                   ctx
+                   (node->line (:filename ctx)
+                               ns
+                               :warning
+                               :duplicate-require
+                               (str "duplicate require of " ns)))
                  required)
                (conj required ns)))
            (set init)
            namespaces)
    nil))
+
+(defn lint-conflicting-aliases! [ctx namespaces]
+  (let [config (:config ctx)
+        level (-> config :linters :conflicting-alias :level)]
+    (when-not (identical? :off level)
+      (loop [aliases #{}
+             ns-maps (filter :as namespaces)]
+        (let [{:keys [ns as]} (first ns-maps)]
+          (when (contains? aliases as)
+            (findings/reg-finding!
+              ctx
+              (node->line (:filename ctx)
+                          as
+                          :warning
+                          :conflicting-alias
+                          (str "Conflicting alias for " ns))))
+          (when (seq (rest ns-maps))
+            (recur (conj aliases as)
+                   (rest ns-maps))))))))
 
 (defn lint-unsorted-required-namespaces! [ctx namespaces]
   (let [config (:config ctx)
@@ -125,10 +144,20 @@
                                  (if (= ns-sym redefined-ns)
                                    (str "redefined var #'" redefined-ns "/" var-sym)
                                    (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))
-                  (when (and (not= :off (-> config :linters :missing-docstring :level))
+                  (when (and (not (identical? :off (-> config :linters :missing-docstring :level)))
                              (not (:private metadata))
                              (not (:doc metadata))
-                             (not temp?))
+                             (not (:test metadata))
+                             (not temp?)
+                             (not
+                              (when-let [defined-by (or (:linted-as metadata)
+                                                        (:defined-by metadata))]
+                                (or
+                                 (= 'clojure.test/deftest defined-by)
+                                 (= 'clojure.core/deftype defined-by)
+                                 (= 'clojure.core/defrecord defined-by)
+                                 (= 'clojure.core/defprotocol defined-by)
+                                 (= 'clojure.core/definterface defined-by)))))
                     (findings/reg-finding!
                      ctx
                      (node->line filename
@@ -181,6 +210,13 @@
            conj binding))
   nil)
 
+(defn reg-destructuring-default!
+  [{:keys [:base-lang :lang :namespaces :ns]} default binding]
+  (swap! namespaces
+         update-in [base-lang lang (:name ns) :destructuring-defaults]
+         conj (assoc default :binding binding))
+  nil)
+
 (defn reg-used-binding!
   [{:keys [:base-lang :lang :namespaces]} ns-sym binding]
   (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
@@ -191,6 +227,7 @@
   [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
+           (lint-conflicting-aliases! ctx (:required analyzed-require-clauses))
            (lint-unsorted-required-namespaces! ctx (:required analyzed-require-clauses))
            (lint-duplicate-requires! ctx (:required ns) (:required analyzed-require-clauses))
            (merge-with into ns analyzed-require-clauses)))

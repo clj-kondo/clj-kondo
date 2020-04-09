@@ -1,26 +1,33 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-    [clj-kondo.impl.profiler :as profiler]
-    [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]))
+   [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]))
+
+(defn with-meta-of [x y]
+  (let [m (meta y)
+        m* (:meta y)
+        x (if m* (assoc x :meta m*) x)]
+    (with-meta x m)))
 
 (defn expand-> [_ctx expr]
-  (profiler/profile
-   :expand->
-   (let [expr expr
-         children (:children expr)
-         [c & cforms] (rest children)]
-     (loop [x c, forms cforms]
-       (if forms
-         (let [form (first forms)
-               threaded (if (= :list (tag form))
-                          (with-meta (list-node (list* (first (:children form))
-                                                       x
-                                                       (next (:children form)))) (meta form))
-                          (with-meta (list-node (list form x))
-                            (meta form)))]
-           (recur threaded (next forms)))
-         x)))))
+  (let [expr expr
+        children (:children expr)
+        [c & cforms] (rest children)
+        ret (loop [x c, forms cforms]
+              (if forms
+                (let [form (first forms)
+                      threaded (if (= :list (tag form))
+                                 (with-meta-of
+                                   (list-node (list* (first (:children form))
+                                                     x
+                                                     (next (:children form))))
+                                   form)
+                                 (with-meta-of (list-node (list form x))
+                                   form))]
+                  (recur threaded (next forms)))
+                x))]
+    ret))
 
 (defn expand->> [_ctx expr]
   (let [expr expr
@@ -31,15 +38,15 @@
         (let [form (first forms)
               threaded
               (if (= :list (tag form))
-                (with-meta
+                (with-meta-of
                   (list-node
                    (concat
                     (cons (first (:children form))
                           (next (:children form)))
                     (list x)))
-                  (meta form))
-                (with-meta (list-node (list form x))
-                  (meta form)))]
+                  form)
+                (with-meta-of (list-node (list form x))
+                  form))]
           (recur threaded (next forms)))
         x))))
 
@@ -50,8 +57,8 @@
         thread-sym (case (name (:value cond->-sym))
                      "cond->" '->
                      "cond->>" '->>)
-        g (with-meta (token-node (gensym))
-            (meta start-expr))
+        g (with-meta-of (token-node (gensym))
+            start-expr)
         steps (map (fn [[test step]]
                      (list-node [(token-node 'if)
                                  test
@@ -70,18 +77,17 @@
 
 (defn expand-doto [_ctx expr]
   (let [[_doto x & forms] (:children expr)
-        gx (with-meta (token-node (gensym))
-             (meta x))
+        gx (with-meta-of (token-node (gensym)) x)
         ret (list-node
              (list* (token-node 'let) (vector-node [gx x])
                     (map (fn [f]
-                           (with-meta
+                           (with-meta-of
                              (let [t (tag f)]
                                (if (= :list t)
                                  (let [fc (:children f)]
                                    (list-node (list* (first fc) gx (next fc))))
                                  (list-node [f gx])))
-                             (meta f))) forms)))]
+                             f)) forms)))]
     ret))
 
 (defn expand-dot-constructor
@@ -92,8 +98,8 @@
         ctor-name (-> ctor-name
                       (subs 0 (dec (count ctor-name)))
                       symbol)
-        ctor-node (with-meta (token-node ctor-name)
-                    (meta ctor-node))]
+        ctor-node (with-meta-of (token-node ctor-name)
+                    ctor-node)]
     (list-node (list* (token-node 'new) ctor-node children))))
 
 (defn find-children

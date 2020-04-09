@@ -3,6 +3,7 @@
   (:require
    [cheshire.core :as cheshire]
    [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.config :refer [merge-config!]]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
@@ -123,6 +124,11 @@
          :summary summary}
       analysis?
       (assoc :analysis @analysis))))
+
+(defn merge-configs
+  "Returns the merged configuration of c1 with c2."
+  ([& configs]
+   (reduce merge-config! configs)))
 
 ;;;; Scratch
 

@@ -24,6 +24,7 @@
    :nat-int #{:int :number}
    :neg-int #{:int :number}
    :double #{:number}
+   :byte #{:number}
    :vector #{:seqable :sequential :associative :coll :ifn :stack}
    :map #{:seqable :associative :coll :ifn}
    :nil #{:seqable}
@@ -41,7 +42,7 @@
 (def could-be-relations
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
-   :number #{:neg-int :pos-int :nat-int :int :double}
+   :number #{:neg-int :pos-int :nat-int :int :double :byte}
    :coll #{:map :vector :set :list  :associative :seq :sequential :ifn :stack}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil
@@ -76,6 +77,7 @@
    :pos-int "positive integer"
    :nat-int "natural integer"
    :neg-int "negative integer"
+   :byte "byte"
    :seqable "seqable collection"
    :seq "seq"
    :vector "vector"
@@ -228,7 +230,8 @@
                  (boolean? v) :boolean
                  (string? v) :string
                  (keyword? v) :keyword
-                 (number? v) (number->tag v)))
+                 (number? v) (number->tag v)
+                 (char? v) :char))
       :regex :regex
       :quote (expr->tag (assoc ctx :quoted true) (first (:children expr)))
       nil)))
@@ -330,10 +333,10 @@
           (lint-map-types! ctx a mval s :opt false))))
 
 (defn lint-arg-types
-  [{:keys [:config] :as ctx}
-   {called-ns :ns called-name :name arities :arities :as _called-fn}
+  [ctx {called-ns :ns called-name :name arities :arities :as _called-fn}
    args tags call]
-  (let [called-ns (or called-ns (:resolved-ns call))
+  (let [config (:config ctx)
+        called-ns (or called-ns (:resolved-ns call))
         called-name (or called-name (:name call))
         arity (:arity call)]
     (when-let [args-spec

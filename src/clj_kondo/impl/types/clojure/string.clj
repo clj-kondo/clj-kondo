@@ -2,7 +2,11 @@
   {:no-doc true})
 
 (def clojure-string
-  {;; 180
+  {;; 75
+   'replace
+   {:arities {3 {:args [:char-sequence #{:string :char :regex} #{:string :char :ifn}]
+                 :ret :string}}}
+   ;; 180
    'join
    {:arities {1 {:args [:seqable]
                  :ret :string}

@@ -3,6 +3,9 @@
 
 (defonce common (volatile! {}))
 
+(defn analyze-like-let [ctx expr]
+  ((get @common 'analyze-like-let) ctx expr))
+
 (defn analyze-expression** [ctx expr]
   ((get @common 'analyze-expression**) ctx expr))
 

@@ -184,9 +184,13 @@
                                        renamed))
                 :referred-all referred-all}])))))))
 
-(defn class-with-location [node]
-  (with-meta (:value node)
-    (meta node)))
+(defn coerce-class-symbol [ctx node]
+  (if-let [v (:value node)]
+    (with-meta v
+      (meta node))
+    (findings/reg-finding!
+     ctx
+     (node->line (:filename ctx) node :error :syntax "Expected: class symbol"))))
 
 (defn analyze-import [ctx _ns-name libspec-expr]
   (case (tag libspec-expr)
@@ -194,7 +198,7 @@
                           java-package-name-node (first children)
                           java-package (:value java-package-name-node)
                           imported-nodes (rest children)
-                          imported (map class-with-location imported-nodes)]
+                          imported (keep #(coerce-class-symbol ctx %) imported-nodes)]
                       (when (empty? imported-nodes)
                         (findings/reg-finding!
                          ctx
@@ -221,6 +225,7 @@
                  analyzed))
              kw+libspecs)
         _ (doseq [analyzed analyzed]
+            (namespace/lint-conflicting-aliases! ctx analyzed)
             (let [namespaces (map :ns analyzed)]
               (namespace/lint-unsorted-required-namespaces! ctx namespaces)
               (namespace/lint-duplicate-requires! ctx namespaces)))
@@ -268,6 +273,7 @@
    :name ns-name
    :bindings #{}
    :used-bindings #{}
+   :destructuring-defaults #{}
    :used-referred-vars #{}
    :used-imports #{}
    :used-vars []

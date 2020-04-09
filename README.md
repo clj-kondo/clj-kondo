@@ -50,7 +50,7 @@ Clj-kondo detects:
 * [type checking](doc/types.md)
 * Datalog syntax checking
 
-before your REPL knows it.
+before your form hits the REPL.
 
 It suggests several style guide recommendations, such as:
 
@@ -73,6 +73,10 @@ This linter is:
 * compiled to native code using GraalVM
 
 Try clj-kondo at the [interactive playground](https://clj-kondo.michielborkent.nl).
+
+Watch the talk:
+
+[![Clj-kondo at ClojuTRE 2019](https://img.youtube.com/vi/MB3vVREkI7s/0.jpg)](https://www.youtube.com/watch?v=MB3vVREkI7s)
 
 ## [Installation](doc/install.md)
 
@@ -171,6 +175,18 @@ All other error codes indicate an unexpected error.
 
 ## [Developer documentation](doc/dev.md)
 
+## [Companies](doc/companies.md) using clj-kondo
+
+## Support
+
+If clj-kondo provides value to your Clojure development, consider supporting
+development on it via one of the sponsoring options. If your company is
+interested in getting anything done that is not yet on the [project
+board](https://github.com/borkdude/clj-kondo/projects/1) or wants to give it
+higher priority, we can sort out a reasonable hourly rate or fixed fee. I am
+able to send you a proper invoice with VAT number, etc. Get into contact with me
+via e-mail, Twitter DM, Slack, etc.
+
 ## Thanks to:
 
 - [joker](https://github.com/candid82/joker) for inspiration
@@ -179,11 +195,6 @@ All other error codes indicate an unexpected error.
 - [contributors](https://github.com/borkdude/clj-kondo/graphs/contributors) and
   other users posting issues with bug reports and ideas
 - [Nikita Prokopov](https://github.com/tonsky) for the logo
-
-## Support this project
-
-Do you enjoy this project? Consider buying me a [hot
-beverage](https://ko-fi.com/borkdude).
 
 ## License
 
