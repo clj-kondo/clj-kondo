@@ -191,6 +191,11 @@
                    (str ns-name "/" fn-name)
                    (some? const-true))))))))
 
+(defn higher-order-fn-arg? [callstack]
+  (let [elt (first callstack)
+        elt-ns (first elt)]
+    (when (= 'clojure.core elt-ns)
+      (utils/one-of (second elt) [map filter reduce]))))
 
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
@@ -286,10 +291,11 @@
                              varargs-min-arity (or (:varargs-min-arity called-fn) (-> arities :varargs :min-arity))
                              ;; varargs-min-arity (:varargs-min-arity called-fn)
                              ;; _ (prn ">>" (:name called-fn) arities (keys called-fn))
+                             callstack (:callstack call)
                              skip-arity-check?
                              (and call?
                                   (or (utils/linter-disabled? call :invalid-arity)
-                                      (config/skip? config :invalid-arity (rest (:callstack call)))))
+                                      (config/skip? config :invalid-arity (rest callstack))))
                              arity-error?
                              (and
                               call?
@@ -346,8 +352,7 @@
                                                (str " since " deprecated)))}))
                               (when (and (not call?)
                                          (:macro called-fn)
-                                         #_(not unresolved-symbol-disabled?)
-                                         (not (:private-access? call)))
+                                         (higher-order-fn-arg? callstack))
                                 {:filename filename
                                  :row row
                                  :col col
