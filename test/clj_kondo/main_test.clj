@@ -2445,9 +2445,6 @@
   (testing "don't throw exception when args are missing"
     (is (some? (lint! "(assoc-in)")))))
 
-
-
-
 ;;;; Scratch
 
 (comment
