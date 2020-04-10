@@ -191,7 +191,6 @@
                    (str ns-name "/" fn-name)
                    (some? const-true))))))))
 
-
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
@@ -238,14 +237,19 @@
                              name-col (:col name-meta)
                              _ (when (and (not valid-call?)
                                           (not unresolved-symbol-disabled?))
-                                 (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
-                                                                   (if call?
-                                                                     (assoc call
-                                                                            :row name-row
-                                                                            :col name-col
-                                                                            :end-row (:end-row name-meta)
-                                                                            :end-col (:end-col name-meta))
-                                                                     call)))
+                                 (let [config (:config call)
+                                       exclude-macro? (-> config :linters :unresolved-symbol :exclude-macros)]
+                                   (prn exclude-macro? (:in-macro call))
+                                   (when-not (and exclude-macro?
+                                                  (:in-macro call))
+                                     (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
+                                                                       (if call?
+                                                                         (assoc call
+                                                                                :row name-row
+                                                                                :col name-col
+                                                                                :end-row (:end-row name-meta)
+                                                                                :end-col (:end-col name-meta))
+                                                                         call)))))
                              row (:row call)
                              col (:col call)
                              end-row (:end-row call)

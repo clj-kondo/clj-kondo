@@ -92,9 +92,12 @@
                           :namespace-usages []
                           :var-definitions []
                           :var-usages []}))
+        macros* (cache/read-macros cache-dir)
+        macros (atom macros*)
         ctx {:config config
              :findings findings
              :namespaces (atom {})
+             :macros macros
              :analysis analysis
              :cache-dir cache-dir}
         lang (or lang :clj)
@@ -102,7 +105,7 @@
         ;; this is needed to force the namespace atom state
         (doall (core-impl/process-files ctx lint lang))
         idacs (core-impl/index-defs-and-calls ctx processed)
-        idacs (cache/sync-cache idacs cache-dir)
+        idacs (cache/sync-cache cache-dir idacs macros* @macros)
         idacs (overrides idacs)
         _ (l/lint-var-usage ctx idacs)
         _ (l/lint-unused-namespaces! ctx)

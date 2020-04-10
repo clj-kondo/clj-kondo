@@ -1119,8 +1119,10 @@
          unresolved? :unresolved?
          unresolved-ns :unresolved-ns
          clojure-excluded? :clojure-excluded?
+         macro? :macro
          :as _m}
-        (resolve-name ctx ns-name full-fn-name)]
+        (resolve-name ctx ns-name full-fn-name)
+        ctx (cond-> ctx macro? (assoc :in-macro true))]
     (cond (and unresolved?
                (str/ends-with? full-fn-name "."))
           (recur ctx
@@ -1335,10 +1337,12 @@
                                 :arg-types (:arg-types ctx)}
                     ret-tag (or (:ret m)
                                 (types/ret-tag-from-call ctx proto-call expr))
+                    in-macro (:in-macro ctx)
                     call (cond-> proto-call
                            id (assoc :id id)
                            in-def (assoc :in-def in-def)
-                           ret-tag (assoc :ret ret-tag))]
+                           ret-tag (assoc :ret ret-tag)
+                           in-macro (assoc :in-macro true))]
                 (when id (reg-call ctx call id))
                 (namespace/reg-var-usage! ctx ns-name call)
                 (when-not unresolved?

@@ -138,13 +138,37 @@
             idacs
             [:clj :cljs :cljc])))
 
-(defn sync-cache [idacs cache-dir]
-  (profiler/profile
-   :sync-cache
-   (if cache-dir
-     (with-cache cache-dir 6
-       (sync-cache* idacs cache-dir))
-     (sync-cache* idacs cache-dir))))
+(defn write-macros* [cache-dir macros]
+  (let [f (io/file cache-dir "macros.transit.json")]
+    (with-open [;; first we write to a baos as a workaround for transit-clj #43
+                bos (java.io.ByteArrayOutputStream. 1024)
+                os (io/output-stream bos)]
+      (let [writer (transit/writer os :json)]
+        (io/make-parents f)
+        (transit/write writer macros)
+        (io/copy (.toByteArray bos) f)))))
+
+(defn sync-cache [cache-dir idacs old-macros new-macros]
+  :sync-cache
+  (if cache-dir
+    (with-cache cache-dir 6
+      (when (not= old-macros new-macros)
+        (write-macros* cache-dir new-macros))
+      (sync-cache* idacs cache-dir))
+    (sync-cache* idacs cache-dir)))
+
+(defn read-macros* [cache-dir]
+  (let [f (io/file cache-dir "macros.transit.json")]
+    (if (.exists f)
+      (with-open [is (io/input-stream f)]
+        (transit/read (transit/reader is :json)))
+      {})))
+
+(defn read-macros [cache-dir]
+  (if cache-dir
+    (with-cache cache-dir 6
+      (read-macros* cache-dir))
+    {}))
 
 ;;;; Scratch
 

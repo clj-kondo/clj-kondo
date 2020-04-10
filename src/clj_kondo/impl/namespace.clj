@@ -114,6 +114,8 @@
        (analysis/reg-var! ctx filename expr-row expr-col
                           ns-sym var-sym
                           metadata))
+     (when (:macro metadata)
+       (swap! (:macros ctx) update ns-sym (fnil conj #{}) var-sym))
      (swap! namespaces update-in path
             (fn [ns]
               (let [vars (:vars ns)
@@ -335,7 +337,8 @@
                                  ns-sym))]
 
               {:ns ns*
-               :name (symbol (name name-sym))})
+               :name (symbol (name name-sym))
+               :macro (get-in @(:macros ctx) [ns-name name-sym])})
             (when-let [[class-name package]
                        (or (when (identical? :clj lang)
                              (or (find var-info/default-import->qname ns-sym)
@@ -354,7 +357,8 @@
                           (one-of ns* ["js" "goog" "cljs.core"
                                        "Math" "String" "goog.object" "goog.string"
                                        "goog.array"])))
-              {:name (symbol (name name-sym))
+              {:macro (get-in @(:macros ctx) [ns-name name-sym])
+               :name (symbol (name name-sym))
                :unresolved? true
                :unresolved-ns ns-sym})))
       (or
@@ -364,7 +368,8 @@
          v)
        (when (contains? (:vars ns) name-sym)
          {:ns (:name ns)
-          :name name-sym})
+          :name name-sym
+          :macro (get-in @(:macros ctx) [ns-name name-sym])})
        (when-let [[name-sym* package]
                   (or (find var-info/default-import->qname name-sym)
                       (when-let [v (get var-info/default-fq-imports name-sym)]
@@ -385,7 +390,8 @@
          (when-let [ns* (get (:qualify-ns ns) name-sym)]
            (when (some-> (meta ns*) :raw-name string?)
              {:ns ns*
-              :name name-sym})))
+              :name name-sym
+              :macro (get-in @(:macros ctx) [ns-name name-sym])})))
        (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                           name-sym)
              core-sym? (when-not clojure-excluded?
@@ -396,7 +402,8 @@
            {:ns (case lang
                   :clj 'clojure.core
                   :cljs 'cljs.core)
-            :name name-sym}
+            :name name-sym
+            :macro (get-in @(:macros ctx) [ns-name name-sym])}
            (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
                                          (when-not (contains? excluded name-sym)
                                            k))
@@ -404,6 +411,7 @@
              {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
               :name name-sym
               :unresolved? true
+              :macro (get-in @(:macros ctx) [ns-name name-sym])
               :clojure-excluded? clojure-excluded?})))))))
 
 ;;;; Scratch
