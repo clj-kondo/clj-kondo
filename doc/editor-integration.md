@@ -16,6 +16,10 @@ For Spacemacs, check [here](#spacemacs) or get [flymake-kondor](https://github.c
 Emacs has the [lsp-mode](https://github.com/emacs-lsp/lsp-mode) where you can configure multiple LSP servers for different programming languages.
 To use `clj-kondo` as an LSP server, you can configure the `lsp-mode` server command to point to the `clj-kondo` lsp-server jar. Note that the LSP server does not provide features other than diagnostics.
 
+For Spacemacs, see the [clj-kondo via LSP](https://practicalli.github.io/spacemacs/install-spacemacs/clj-kondo-via-lsp.html) article, which includes the use of an external script as the custom lsp command.
+
+For Emacs, use the instructions below.
+
 1. Download the latest clj-kondo LSP server jar to your system. Go to the
    [Github releases](https://github.com/borkdude/clj-kondo/releases) and look
    for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided
