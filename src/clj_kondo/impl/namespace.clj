@@ -31,21 +31,6 @@
            namespaces)
    nil))
 
-(defn lint-refers! [ctx namespaces]
-  (let [config (:config ctx)
-        level (-> config :linters :refer :level)]
-    (when-not (identical? :off level)
-      (doseq [n namespaces]
-        (when (or (seq (:referred n))
-                  (seq (:referred-all n)))
-          (findings/reg-finding!
-              ctx
-              (node->line (:filename ctx)
-                          (:ns n)
-                          :warning
-                          :refer
-                          (str ":require with :refer"))))))))
-
 (defn lint-conflicting-aliases! [ctx namespaces]
   (let [config (:config ctx)
         level (-> config :linters :conflicting-alias :level)]
@@ -242,7 +227,6 @@
   [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
-           (lint-refers! ctx (:required analyzed-require-clauses))
            (lint-conflicting-aliases! ctx (:required analyzed-require-clauses))
            (lint-unsorted-required-namespaces! ctx (:required analyzed-require-clauses))
            (lint-duplicate-requires! ctx (:required ns) (:required analyzed-require-clauses))

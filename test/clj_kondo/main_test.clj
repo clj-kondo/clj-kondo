@@ -2372,16 +2372,42 @@
 (deftest refer-test
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)")))
   (assert-submaps
-    [{:file "<stdin>", :row 1, :col 38,
-      :level :warning, :message #":require with :refer"}]
+    [{:file "<stdin>", :row 1, :col 46,
+      :level :warning, :message #"require with :refer"}]
     (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)"
            {:linters {:refer {:level :warning}}}))
   (assert-submaps
-    [{:file "<stdin>", :row 1, :col 38,
-      :level :warning, :message #":require with :refer"}]
+    [{:file "<stdin>", :row 1, :col 46,
+      :level :warning, :message #"require with :refer"}]
     (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer :all])) (foo/bazbar) (asd)"
            {:linters {:refer {:level :warning}
                       :refer-all {:level :off}}}))
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 35,
+     :level :warning, :message #"require with :refer"}]
+   (lint! "(ns foo (:require-macros [foo.bar :refer [macro]])) (macro) "
+          {:linters {:refer {:level :warning}
+                     :refer-all {:level :off}}}
+          "--lang" "cljs"))
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 28,
+     :level :warning, :message #"require with :refer-macros"}]
+   (lint! "(ns foo (:require [foo.bar :refer-macros [macro]])) (macro) "
+          {:linters {:refer {:level :warning}
+                     :refer-all {:level :off}}}
+          "--lang" "cljs"))
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 20,
+     :level :warning, :message #"require with :refer"}]
+   (lint! "(require '[foo.bar :refer [macro]]) (macro) "
+          {:linters {:refer {:level :warning}
+                     :refer-all {:level :off}}}))
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 16,
+     :level :warning, :message #"use with :only"}]
+   (lint! "(use '[foo.bar :only [macro]]) (macro) "
+          {:linters {:use {:level :off}
+                     :refer {:level :warning}}}))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo])) (foo/bazbar)"
                      {:linters {:refer {:level :warning}}}))))
 
