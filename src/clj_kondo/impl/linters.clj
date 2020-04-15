@@ -239,7 +239,6 @@
                                           (not unresolved-symbol-disabled?))
                                  (let [config (:config call)
                                        exclude-macro? (-> config :linters :unresolved-symbol :exclude-macros)]
-                                   (prn exclude-macro? (:in-macro call))
                                    (when-not (and exclude-macro?
                                                   (:in-macro call))
                                      (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
