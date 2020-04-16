@@ -82,7 +82,8 @@
                        (when require-sym
                          (keyword require-sym)))
         use? (= :use require-kw)
-        libspec-meta (meta libspec-expr)]
+        libspec-meta (meta libspec-expr)
+        lint-refers? (not (identical? :off (-> ctx :config :linters :refer :level)))]
     (if-let [s (symbol-from-token libspec-expr)]
       [{:type :require
         :referred-all (when use? require-kw-expr)
@@ -120,30 +121,39 @@
                   child-k (:k child-expr)]
               (case child-k
                 (:refer :refer-macros :only)
-                (recur
-                 (nnext children)
-                 (cond (and (not self-require?) (sequential? opt))
-                       (let [;; undo referred-all when using :only with :use
-                             m (if (and use? (= :only child-k))
-                                 (do (findings/reg-finding!
-                                      ctx
-                                      (node->line
-                                       filename
-                                       (:referred-all m)
-                                       :warning
-                                       :use
-                                       (format "use %srequire with alias or :refer with [%s]"
-                                               (if require-sym
-                                                 "" ":")
-                                               (str/join " " (sort opt)))))
-                                     (dissoc m :referred-all))
-                                 m)]
-                         (update m :referred into
-                                 (map #(with-meta (sexpr %)
-                                         (meta %))) (:children opt-expr)))
-                       (= :all opt)
-                       (assoc m :referred-all opt-expr)
-                       :else m))
+                (do
+                  (when (and lint-refers? (not use?))
+                    (findings/reg-finding!
+                     ctx
+                     (node->line (:filename ctx)
+                                 child-expr
+                                 :warning
+                                 :refer
+                                 (str "require with " (str child-k)))))
+                  (recur
+                   (nnext children)
+                   (cond (and (not self-require?) (sequential? opt))
+                         (let [;; undo referred-all when using :only with :use
+                               m (if (and use? (= :only child-k))
+                                   (do (findings/reg-finding!
+                                        ctx
+                                        (node->line
+                                         filename
+                                         (:referred-all m)
+                                         :warning
+                                         :use
+                                         (format "use %srequire with alias or :refer with [%s]"
+                                                 (if require-sym
+                                                   "" ":")
+                                                 (str/join " " (sort opt)))))
+                                       (dissoc m :referred-all))
+                                   m)]
+                           (update m :referred into
+                                   (map #(with-meta (sexpr %)
+                                           (meta %))) (:children opt-expr)))
+                         (= :all opt)
+                         (assoc m :referred-all opt-expr)
+                         :else m)))
                 :as (recur
                      (nnext children)
                      (assoc m :as (with-meta opt

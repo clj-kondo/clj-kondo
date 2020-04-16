@@ -2355,11 +2355,11 @@
 
 (deftest conflicting-aliases-test
   (assert-submaps
-   [{:file "<stdin>", :row 1, :col 50,
-     :level :error, :message #"Conflicting alias for "}]
-   (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
-          {:linters {:conflicting-alias {:level :error}
-                     :unused-namespace {:level :off}}}))
+    [{:file "<stdin>", :row 1, :col 50,
+      :level :error, :message #"Conflicting alias for "}]
+    (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
+           {:linters {:conflicting-alias {:level :error}
+                      :unused-namespace {:level :off}}}))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar :as baz]))"
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-namespace {:level :off}}})))
@@ -2367,6 +2367,45 @@
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}}))))
+
+
+(deftest refer-test
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)")))
+  (assert-submaps
+    [{:file "<stdin>", :row 1, :col 46,
+      :level :warning, :message #"require with :refer"}]
+    (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)"
+           {:linters {:refer {:level :warning}}}))
+  (assert-submaps
+    [{:file "<stdin>", :row 1, :col 46,
+      :level :warning, :message #"require with :refer"}]
+    (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer :all])) (foo/bazbar) (asd)"
+           {:linters {:refer {:level :warning}
+                      :refer-all {:level :off}}}))
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 35,
+     :level :warning, :message #"require with :refer"}]
+   (lint! "(ns foo (:require-macros [foo.bar :refer [macro]])) (macro) "
+          {:linters {:refer {:level :warning}
+                     :refer-all {:level :off}}}
+          "--lang" "cljs"))
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 28,
+     :level :warning, :message #"require with :refer-macros"}]
+   (lint! "(ns foo (:require [foo.bar :refer-macros [macro]])) (macro) "
+          {:linters {:refer {:level :warning}
+                     :refer-all {:level :off}}}
+          "--lang" "cljs"))
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 20,
+     :level :warning, :message #"require with :refer"}]
+   (lint! "(require '[foo.bar :refer [macro]]) (macro) "
+          {:linters {:refer {:level :warning}
+                     :refer-all {:level :off}}}))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo])) (foo/bazbar)"
+                     {:linters {:refer {:level :warning}}}))))
+
+
 
 (deftest missing-else-branch-test
   (assert-submaps

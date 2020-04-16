@@ -66,6 +66,7 @@
                                     :exclude {#_#_taoensso.timbre [debug]}}
               :unused-private-var {:level :warning}
               :duplicate-require {:level :warning}
+              :refer {:level :off}
               :refer-all {:level :warning
                           :exclude #{}}
               :use {:level :warning}
