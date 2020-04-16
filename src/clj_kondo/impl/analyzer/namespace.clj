@@ -122,15 +122,14 @@
               (case child-k
                 (:refer :refer-macros :only)
                 (do
-                  (when lint-refers?
+                  (when (and lint-refers? (not use?))
                     (findings/reg-finding!
                      ctx
                      (node->line (:filename ctx)
                                  child-expr
                                  :warning
                                  :refer
-                                 (str (if use? "use" "require")
-                                      " with " (str child-k)))))
+                                 (str "require with " (str child-k)))))
                   (recur
                    (nnext children)
                    (cond (and (not self-require?) (sequential? opt))

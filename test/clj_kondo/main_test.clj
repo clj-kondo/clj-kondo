@@ -2402,12 +2402,6 @@
    (lint! "(require '[foo.bar :refer [macro]]) (macro) "
           {:linters {:refer {:level :warning}
                      :refer-all {:level :off}}}))
-  (assert-submaps
-   [{:file "<stdin>", :row 1, :col 16,
-     :level :warning, :message #"use with :only"}]
-   (lint! "(use '[foo.bar :only [macro]]) (macro) "
-          {:linters {:use {:level :off}
-                     :refer {:level :warning}}}))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo])) (foo/bazbar)"
                      {:linters {:refer {:level :warning}}}))))
 
