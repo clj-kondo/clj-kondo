@@ -5,6 +5,7 @@
 [![Clojars Project](https://img.shields.io/clojars/v/clj-kondo.svg)](https://clojars.org/clj-kondo)
 [![cljdoc badge](https://cljdoc.org/badge/clj-kondo/clj-kondo)](https://cljdoc.org/d/clj-kondo/clj-kondo/CURRENT)
 [![project chat](https://img.shields.io/badge/slack-join_chat-brightgreen.svg)](https://clojurians.slack.com/messages/CHY97NXE2)
+[![Financial Contributors on Open Collective](https://opencollective.com/clj-kondo/all/badge.svg?label=financial+contributors)](https://opencollective.com/clj-kondo) 
 
 A linter for Clojure code that sparks joy.
 
@@ -195,6 +196,30 @@ via e-mail, Twitter DM, Slack, etc.
 - [contributors](https://github.com/borkdude/clj-kondo/graphs/contributors) and
   other users posting issues with bug reports and ideas
 - [Nikita Prokopov](https://github.com/tonsky) for the logo
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+
+<a href="https://github.com/borkdude/clj-kondo/graphs/contributors"><img src="https://opencollective.com/clj-kondo/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/clj-kondo/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/clj-kondo"><img src="https://opencollective.com/clj-kondo/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/clj-kondo/contribute)]
+
+<a href="https://opencollective.com/clj-kondo/organization/0/website"><img src="https://opencollective.com/clj-kondo/organization/0/avatar.svg"></a>
+
+
 
 ## License
 
