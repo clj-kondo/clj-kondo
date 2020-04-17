@@ -201,7 +201,7 @@ via e-mail, Twitter DM, Slack, etc.
 
 ### Code Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+This project exists thanks to all the people who contribute. [[Contribute](doc/dev.md)].
 
 <a href="https://github.com/borkdude/clj-kondo/graphs/contributors"><img src="https://opencollective.com/clj-kondo/contributors.svg?width=890&button=false" /></a>
 
@@ -218,8 +218,6 @@ Become a financial contributor and help us sustain our community. [[Contribute](
 Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/clj-kondo/contribute)]
 
 <a href="https://opencollective.com/clj-kondo/organization/0/website"><img src="https://opencollective.com/clj-kondo/organization/0/avatar.svg"></a>
-
-
 
 ## License
 
