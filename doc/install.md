@@ -13,9 +13,13 @@ will install to `/usr/local/bin` by default.
 
 To download and execute the script:
 
-    bash <(curl -s https://raw.githubusercontent.com/borkdude/clj-kondo/master/script/install-clj-kondo)
+    curl -sLO https://raw.githubusercontent.com/borkdude/clj-kondo/master/script/install-clj-kondo
+    chmod +x install-clj-kondo
+    ./install-clj-kondo
 
-To install to a different directory, append the option `--dir <other-dir>` to the above command.
+To install to a different directory, append the option `--dir <dir>` to the
+above command.  To download to a different directory, append the option
+`--download-dir <dir>`.
 
 To upgrade, just run the script again.
 
