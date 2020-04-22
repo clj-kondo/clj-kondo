@@ -60,7 +60,7 @@ Options:
                  (if (starts-with? opt "--")
                    (recur (rest options)
                           ;; assoc nil value to indicate opt as explicitly added via cli args
-                          (case (opt-type opt)
+                          (case (opt-type opt :scalar)
                             :scalar (assoc opts-map opt nil)
                             :coll (update opts-map opt identity))
                           opt)
