@@ -64,8 +64,8 @@
   using `:cache-dir`. If `:cache-dir` is not set, cache is resolved using the
   nearest `.clj-kondo` directory in the current and parent directories.
 
-  - `:config`: optional. A sequable of map or string representing the config as EDN,
-  or a config file.
+  - `:config`: optional. A seqable of maps, a map or string
+  representing the config as EDN, or a config file.
 
   In places where a file-like value is expected, either a path as string or a
   `java.io.File` may be passed, except for a classpath which must always be a string.
