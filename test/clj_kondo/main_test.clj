@@ -2475,7 +2475,7 @@
                        "--config" "{:output {:format :edn}}")))]
 
       (is (= #{"corpus/case.clj" "corpus/defmulti.clj"}
-             (sequence (comp (map :filename) (distinct)) (:findings out))))
+             (into #{} (comp (map :filename) (distinct)) (:findings out))))
 
       (is (= {:error 6 :warning 2 :info 0}
              (select-keys (:summary out) [:error :warning :info])))))
@@ -2486,7 +2486,7 @@
                  (main "--lint" "corpus/case.clj"
                        "--lint" "corpus/defmulti.clj"
                        "--config" "{:output {:format :edn}}"
-                       "--config" "{:inters {:invalid-arity {:level :warning}}}")))]
+                       "--config" "{:linters {:invalid-arity {:level :warning}}}")))]
 
       (is (= {:error 1 :warning 7 :info 0}
              (select-keys (:summary out) [:error :warning :info]))))))

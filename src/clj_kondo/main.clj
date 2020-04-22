@@ -59,12 +59,12 @@ Options:
                  opts-map))
         default-lang (when-let [lang-opt (last (get opts "--lang"))]
                        (keyword lang-opt))
-        cache-opt (get opts "--cache")]
+        cache-opt? (contains? opts "--cache")]
     #_(binding [*out* *err*]
       (prn "cache opt" cache-opt))
     {:lint (distinct (get opts "--lint"))
-     :cache (if cache-opt
-              (if-let [f (last cache-opt)]
+     :cache (if cache-opt?
+              (if-let [f (last (get opts "--cache"))]
                 (cond (= "false" f) false
                       (= "true" f) true
                       :else f)
