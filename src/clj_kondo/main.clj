@@ -18,7 +18,7 @@
 (defn- print-help []
   (print-version)
   (println (format "
-Usage: [ --help ] [ --version ] [ --lint <files> ] [ --lang (clj|cljs) ] [ --cache [ true | false ] ] [ --cache-dir <dir> ] [ --config <config> ]
+Usage: [ --help ] [ --version ] [ --lint <files> ... ] [ --lang (clj|cljs) ] [ --cache [ true | false ] ] [ --cache-dir <dir> ] [ --config <config> ... ]
 
 Options:
 
@@ -50,30 +50,31 @@ Options:
                (if-let [opt (first options)]
                  (if (starts-with? opt "--")
                    (recur (rest options)
-                          (assoc opts-map opt [])
+                          ;; assoc nil value to indicate opt as explicitly added via cli args
+                          (update opts-map opt identity)
                           opt)
                    (recur (rest options)
-                          (update opts-map current-opt conj opt)
+                          (update opts-map current-opt (fnil conj []) opt)
                           current-opt))
                  opts-map))
-        default-lang (when-let [lang-opt (first (get opts "--lang"))]
+        default-lang (when-let [lang-opt (last (get opts "--lang"))]
                        (keyword lang-opt))
         cache-opt (get opts "--cache")]
     #_(binding [*out* *err*]
       (prn "cache opt" cache-opt))
-    {:lint (get opts "--lint")
+    {:lint (distinct (get opts "--lint"))
      :cache (if cache-opt
-              (if-let [f (first cache-opt)]
+              (if-let [f (last cache-opt)]
                 (cond (= "false" f) false
                       (= "true" f) true
                       :else f)
                 true)
               true)
-     :cache-dir (first (get opts "--cache-dir"))
+     :cache-dir (last (get opts "--cache-dir"))
      :lang default-lang
-     :config (first (get opts "--config"))
-     :version (get opts "--version")
-     :help (get opts "--help")}))
+     :config (get opts "--config")
+     :version (contains? opts "--version")
+     :help (contains? opts "--help")}))
 
 (defn main
   [& options]
@@ -118,4 +119,15 @@ Options:
 ;;;; Scratch
 
 (comment
+
+  (into #{}
+   (comp
+    (map :filename)
+    (distinct))
+   (:findings (read-string (with-out-str
+                             (main "--lint" "corpus/case.clj"
+                                   "--lint" "corpus/defmulti.clj"
+                                   "--config" "{:output {:format :edn}}"
+                                   "--config" "{:linters {:invalid-arity {:level :warning}}}")))))
+
   )

@@ -64,7 +64,7 @@
   using `:cache-dir`. If `:cache-dir` is not set, cache is resolved using the
   nearest `.clj-kondo` directory in the current and parent directories.
 
-  - `:config`: optional. Map or string representing the config as EDN,
+  - `:config`: optional. A sequable of map or string representing the config as EDN,
   or a config file.
 
   In places where a file-like value is expected, either a path as string or a
@@ -83,7 +83,8 @@
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir (core-impl/config-dir (io/file (System/getProperty "user.dir")))
-        config (core-impl/resolve-config cfg-dir config)
+        ;; for backward compatibility non-sequential config should be wrapped into collection
+        config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]))
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
         findings (atom [])
         analysis? (get-in config [:output :analysis])
@@ -143,4 +144,18 @@
              :lang :clj}))
   (first (:findings res))
   (print! res)
+
+  (-> (run!
+       {;; seq of string or file
+        :files ["corpus" (io/file "test")]
+        :config [{:linters {:invalid-arity {:level :off}}}
+                 {:linters {:invalid-arity {:level :warning}}}]
+        ;; :cache takes a string, file or boolean
+        :cache (io/file "/tmp/clj-kondo-cache")
+        ;; only relevant when linting stdin
+        :lang :clj})
+      :config
+      :linters
+      :invalid-arity)
+
   )

@@ -53,19 +53,24 @@
            (println "WARNING: error while reading"
                     (.getCanonicalPath f) (format "(%s)" (.getMessage e)))))))
 
-(defn resolve-config [cfg-dir config]
+(defn- read-config [config]
+  (cond (map? config)
+        config
+
+        (string? config)
+        (if (or (str/starts-with? config "{")
+                (str/starts-with? config "^"))
+          (edn/read-string config)
+          ;; config is a string that represents a file
+          (read-edn-file (io/file config)))))
+
+(defn resolve-config [cfg-dir configs]
   (reduce config/merge-config! config/default-config
-          [(when cfg-dir
-             (let [f (io/file cfg-dir "config.edn")]
-               (when (.exists f)
-                 (read-edn-file f))))
-           (when config
-             (cond (map? config) config
-                   (or (str/starts-with? config "{")
-                       (str/starts-with? config "^"))
-                   (edn/read-string config)
-                   ;; config is a string that represents a file
-                   :else (read-edn-file (io/file config))))]))
+          (into [(when cfg-dir
+                   (let [f (io/file cfg-dir "config.edn")]
+                     (when (.exists f)
+                       (read-edn-file f))))]
+                (map read-config configs))))
 
 ;;;; process cache
 

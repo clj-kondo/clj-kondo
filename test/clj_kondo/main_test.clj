@@ -2465,6 +2465,32 @@
   (testing "don't throw exception when args are missing"
     (is (some? (lint! "(assoc-in)")))))
 
+(deftest multiple-options-test
+
+  (testing "multiple --lint option"
+    (let [out (read-string
+               (with-out-str
+                 (main "--lint" "corpus/case.clj"
+                       "--lint" "corpus/defmulti.clj"
+                       "--config" "{:output {:format :edn}}")))]
+
+      (is (= #{"corpus/case.clj" "corpus/defmulti.clj"}
+             (sequence (comp (map :filename) (distinct)) (:findings out))))
+
+      (is (= {:error 6 :warning 2 :info 0}
+             (select-keys (:summary out) [:error :warning :info])))))
+
+  (testing "multiple --config option"
+    (let [out (read-string
+               (with-out-str
+                 (main "--lint" "corpus/case.clj"
+                       "--lint" "corpus/defmulti.clj"
+                       "--config" "{:output {:format :edn}}"
+                       "--config" "{:inters {:invalid-arity {:level :warning}}}")))]
+
+      (is (= {:error 1 :warning 7 :info 0}
+             (select-keys (:summary out) [:error :warning :info]))))))
+
 ;;;; Scratch
 
 (comment
