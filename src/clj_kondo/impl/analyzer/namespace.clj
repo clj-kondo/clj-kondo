@@ -254,9 +254,18 @@
                                               #(assoc % :alias (:as req)))) analyzed)]
     {:required required-namespaces
      :qualify-ns (reduce (fn [acc sc]
-                           (cond-> (assoc acc (:ns sc) (:ns sc))
-                             (:as sc)
-                             (assoc (:as sc) (:ns sc))))
+                           (let [n (:ns sc)
+                                 as (:as sc)
+                                 new? (not (contains? acc n))
+                                 ;; if alias foo exists and there is a
+                                 ;; namespaces fully written as foo, the alias
+                                 ;; wins, see #864
+                                 acc (if new? (assoc acc n n) acc)
+                                 ;; For the same reason, if there is an alias,
+                                 ;; assoc it regardless of whether there was
+                                 ;; already a namespace name here
+                                 acc (if as (assoc acc as n) acc)]
+                             acc))
                          {}
                          analyzed)
      :referred-vars (into {} (mapcat :referred analyzed))
