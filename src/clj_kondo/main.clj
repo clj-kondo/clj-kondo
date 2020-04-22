@@ -43,6 +43,15 @@ Options:
 
 ;;;; parse command line options
 
+(def opt-type
+  {"--help"      :scalar
+   "--version"   :scalar
+   "--lang"      :scalar
+   "--cache"     :scalar
+   "--cache-dir" :scalar
+   "--lint"      :coll
+   "--config"    :coll})
+
 (defn- parse-opts [options]
   (let [opts (loop [options options
                     opts-map {}
@@ -51,7 +60,9 @@ Options:
                  (if (starts-with? opt "--")
                    (recur (rest options)
                           ;; assoc nil value to indicate opt as explicitly added via cli args
-                          (update opts-map opt identity)
+                          (case (opt-type opt)
+                            :scalar (assoc opts-map opt nil)
+                            :coll (update opts-map opt identity))
                           opt)
                    (recur (rest options)
                           (update opts-map current-opt (fnil conj []) opt)
