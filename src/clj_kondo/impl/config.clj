@@ -79,7 +79,8 @@
                                  :aliases {#_clojure.string #_str}}
               :unused-import {:level :warning}
               :single-operand-comparison {:level :warning}
-              :single-key-in {:level :off}}
+              :single-key-in {:level :off}
+              :missing-clause-in-try {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
