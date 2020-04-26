@@ -193,7 +193,7 @@
 
 (defn- lint-missing-clause-in-try
   [call]
-  (when (utils/one-of (:name call) [try try+])
+  (when (= (:name call) 'try)
     (let [clauses #{'catch 'finally}
           tokens (->> (get-in call [:expr :children])
                    rest
