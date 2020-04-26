@@ -191,7 +191,6 @@
                    (str ns-name "/" fn-name)
                    (some? const-true))))))))
 
-
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
