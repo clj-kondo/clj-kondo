@@ -1074,7 +1074,16 @@
             ;; avoid redundant do check for condition
             (update ctx :callstack conj nil)
             condition))
-    (analyze-children ctx body false)))
+    (if-not (seq body)
+      (findings/reg-finding!
+        ctx
+        (node->line
+          (:filename ctx)
+          expr
+          :warning
+          :missing-body-in-when
+          "Missing body in when"))
+      (analyze-children ctx body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]
   (let [children (next (:children expr))
