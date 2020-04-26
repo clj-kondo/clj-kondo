@@ -61,6 +61,7 @@
      {:row 5, :col 14, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 6, :col 8, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 7, :col 16, :file "corpus/redundant_do.clj" :message "redundant do"}
+     {:row 8, :col 1, :file "corpus/redundant_do.clj" :message "Missing body in when"}
      {:row 9, :col 12, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 10, :col 16, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 11, :col 9, :file "corpus/redundant_do.clj" :message "redundant do"}
