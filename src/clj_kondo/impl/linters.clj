@@ -191,22 +191,6 @@
                    (str ns-name "/" fn-name)
                    (some? const-true))))))))
 
-(defn- lint-missing-clause-in-try
-  [call]
-  (when (= (:name call) 'try)
-    (let [clauses #{'catch 'finally}
-          tokens (->> (get-in call [:expr :children])
-                   rest
-                   (map utils/symbol-call)
-                   (set))]
-      (when-not (seq (set/intersection tokens clauses))
-        (node->line
-          (:filename call)
-          (:expr call)
-          :warning
-          :missing-clause-in-try
-          "Missing catch or finally in try")))))
-
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
@@ -317,10 +301,6 @@
                              (and call?
                                   (not (utils/linter-disabled? call :single-operand-comparison))
                                   (lint-single-operand-comparison call))
-                             missing-clause-in-try-error
-                             (and call?
-                                  (not (utils/linter-disabled? call :missing-clause-in-try))
-                                  (lint-missing-clause-in-try call))
                              errors
                              [(when arity-error?
                                 {:filename filename
@@ -332,8 +312,6 @@
                                  :message (arity-error fn-ns fn-name arity fixed-arities varargs-min-arity)})
                               (when single-operand-comparison-error
                                 single-operand-comparison-error)
-                              (when missing-clause-in-try-error
-                                missing-clause-in-try-error)
                               (when (and (:private called-fn)
                                          (not= caller-ns-sym
                                                fn-ns)
