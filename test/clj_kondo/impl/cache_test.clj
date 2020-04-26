@@ -133,9 +133,8 @@
         (Thread/sleep 10)
         (is (thrown-with-msg? Exception
                               #"cache is locked"
-                              (try
-                                (cache/with-cache test-cache-dir-path 0
-                                  (+ 1 2 3)))))
+                              (cache/with-cache test-cache-dir-path 0
+                                (+ 1 2 3))))
         (is (= 6 @fut))))
     (testing "retries"
       (let [fut (future
