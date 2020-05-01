@@ -15,7 +15,7 @@
           :else {:tag s})))
 
 (def type-hint-bindings
-  '{void {} objects {}})
+  '{void {} objects {} number {}})
 
 (defn lift-meta-content2
   ([ctx node] (lift-meta-content2 ctx node false))

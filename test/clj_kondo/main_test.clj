@@ -1691,6 +1691,9 @@
                                 :unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "goog.global"
                      {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(fn [x] (* ^number x 1))"
+                     {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs"))))
 
 (deftest with-redefs-test
