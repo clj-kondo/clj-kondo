@@ -15,7 +15,7 @@
           :else {:tag s})))
 
 (def type-hint-bindings
-  '{void {} objects {} number {}})
+  '{void {} objects {}})
 
 (defn lift-meta-content2
   ([ctx node] (lift-meta-content2 ctx node false))
@@ -28,7 +28,8 @@
                 (cond->
                     type-hint-bindings
                   (identical? :cljs lang)
-                  (assoc 'js {}))))
+                  (assoc 'js {}
+                         'number {}))))
            ;; use dorun to force analysis, we don't use the end result!
            _ (if only-usage?
                (run! #(dorun (common/analyze-usages2 meta-ctx %))
