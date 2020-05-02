@@ -26,4 +26,9 @@
 (ns foo
   {:clj-kondo/config {:linters {:unresolved-namespace {:level :off}}}})
 
-x/bar ;; <- no warning"))))
+x/bar ;; <- no warning")))
+  (is (empty? (lint! "
+(ns foo
+  {:clj-kondo/config '{:linters {:unresolved-namespace {:exclude [criterium.core]}}}})
+(criterium.core/quick-bench nil)
+"))))

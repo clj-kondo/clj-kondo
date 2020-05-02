@@ -1,8 +1,8 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
   (:require
-    [clj-kondo.impl.profiler :as profiler]
-    [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
+   [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
@@ -52,7 +52,10 @@
                                             (cljs.test/are [thrown? thrown-with-msg?])
                                             (clojure.test/is [thrown? thrown-with-msg?])
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
-              :unresolved-namespace {:level :warning}
+              :unresolved-namespace {:level :warning
+                                     :exclude [#_foo.bar
+                                               ;; for example: foo.bar is always loaded in a user profile
+                                               ]}
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}
               :deprecated-var {:level :warning
@@ -110,10 +113,10 @@
 (defn merge-config! [cfg* cfg]
   (if (empty? cfg) cfg*
       (let [cfg (cond-> cfg
-                        (:skip-comments cfg)
-                        (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment))
+                  (:skip-comments cfg)
+                  (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment))
 
-                        (contains? (:linters cfg) :if) (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
+                  (contains? (:linters cfg) :if) (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
         (if (:replace (meta cfg))
           cfg
           (deep-merge cfg* cfg)))))
@@ -184,6 +187,14 @@
         (when-let [vars (get excluded ns-sym )]
           (contains? vars var-sym))))))
 
+(def unresolved-namespace-excluded
+  (let [delayed-cfg (fn [config]
+                      (set (get-in config [:linters :unresolved-namespace :exclude])))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config ns-sym]
+      (let [excluded (delayed-cfg config)]
+        (contains? excluded ns-sym)))))
+
 (def unresolved-symbol-excluded
   (let [delayed-cfg
         (fn [config]
@@ -212,6 +223,8 @@
       (let [{:keys [:excluded :excluded-in]} (delayed-cfg config)]
         (or (contains? excluded sym)
             (some #(when-let [check-fn (get excluded-in %)]
+                     ;; e.g. for user/defproject, check-fn is identity, so any
+                     ;; truthy value will be excluded inside of that
                      (check-fn sym))
                   callstack))))))
 
