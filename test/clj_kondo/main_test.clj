@@ -1256,7 +1256,20 @@
     (is (empty? (lint! "
 (ns ^{:clj-kondo/config '{:linters {:unused-namespace {:level :off}}}}
   foo
-  (:require [bar :as b]))")))))
+  (:require [bar :as b]))"))))
+  (is (empty? (lint! "
+(ns kondo
+  (:require [df :as df]
+            [fulcro :as fulcro]
+            [ui.gift-list :as ui.gift-list]))
+
+(fulcro/defsc Home1 [_this _]
+  {:will-enter (fn [app _]
+                 (df/load! app [:component/id :created-gift-lists]
+                           ui.gift-list/CreatedGiftLists))}
+  :foo)"
+                     '{:linters {:unresolved-symbol {:level :error}}
+                       :lint-as {fulcro/defsc clojure.core/defn}}))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",

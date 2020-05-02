@@ -315,8 +315,8 @@
                        (when (and first-child
                                   (identical? :map (tag first-child)))
                          first-child))
-        _ (when pre-post-map
-            (analyze-pre-post-map ctx first-child))
+        analyze-pre-post (when pre-post-map
+                           (analyze-pre-post-map ctx first-child))
         children (if pre-post-map (next children) children)
         _
         (let [t (when first-child (tag first-child))]
@@ -347,7 +347,7 @@
             [parsed ret-tag]))]
     (assoc arity
            :parsed
-           (concat analyzed-arg-vec parsed)
+           (concat analyzed-arg-vec analyze-pre-post parsed)
            :ret return-tag
            :args arg-tags)))
 
