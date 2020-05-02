@@ -295,8 +295,10 @@
   ;; notably user/defproject, but this is not documented yet. We might have to
   ;; come up with a separate config for unresolved-namespace, but it's not yet
   ;; clear what it should look like.
-  (when-not (config/unresolved-symbol-excluded config
-                                               callstack symbol)
+  (when-not
+      (or
+       (identical? :off (-> config :linters :unresolved-namespace :level))
+       (config/unresolved-symbol-excluded config callstack symbol))
     (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces]
            conj (vary-meta unresolved-ns
                            ;; since the user namespaces is present in each file
