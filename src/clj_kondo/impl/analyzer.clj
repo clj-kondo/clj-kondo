@@ -846,13 +846,13 @@
       (do
         (when-not has-catch-or-finally?
           (findings/reg-finding!
-            ctx
-            (node->line
-              (:filename ctx)
-              expr
-              :warning
-              :missing-clause-in-try
-              "Missing catch or finally in try")))
+           ctx
+           (node->line
+            (:filename ctx)
+            expr
+            :warning
+            :missing-clause-in-try
+            "Missing catch or finally in try")))
         analyzed))))
 
 (defn analyze-defprotocol [{:keys [:ns] :as ctx} expr]
@@ -1076,13 +1076,13 @@
             condition))
     (if-not (seq body)
       (findings/reg-finding!
-        ctx
-        (node->line
-          (:filename ctx)
-          expr
-          :warning
-          :missing-body-in-when
-          "Missing body in when"))
+       ctx
+       (node->line
+        (:filename ctx)
+        expr
+        :warning
+        :missing-body-in-when
+        "Missing body in when"))
       (analyze-children ctx body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]
@@ -1125,6 +1125,15 @@
                                   :warning :type-mismatch
                                   "Regex match arg requires string or function replacement arg.")))
             nil))))))
+
+(defn analyze-proxy-super [ctx expr]
+  (let [bindings (:bindings ctx)]
+    (when-let [this-binding (get bindings 'this)]
+      (let [ns-name (-> ctx :ns :name)]
+        (namespace/reg-used-binding! ctx
+                                     ns-name
+                                     this-binding))))
+  (analyze-children ctx expr false))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
@@ -1223,6 +1232,8 @@
                                                                     :unresolved-symbol
                                                                     :type-mismatch])
                                     children)
+                  (proxy-super)
+                  (analyze-proxy-super ctx expr)
                   (cond-> cond->>)
                   (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
                   (let let* for doseq dotimes with-open with-local-vars)
