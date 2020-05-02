@@ -9,6 +9,10 @@
    '({:file "<stdin>", :row 1, :col 2, :level :warning,
       :message "Unresolved namespace clojure.string. Are you missing a require?"})
    (lint! "(clojure.string/includes? \"foo\" \"o\")"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :warning,
+      :message "Unresolved namespace foo. Are you missing a require?"})
+   (lint! "::foo/x"))
   ;; avoiding false positives
   (is (empty? (lint! (io/file "project.clj"))))
   (is (empty? (lint! "js/foo" "--lang" "cljs")))

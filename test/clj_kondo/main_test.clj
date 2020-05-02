@@ -1372,13 +1372,6 @@
       :row 1,
       :col 10,
       :level :error,
-      :message "keyword ::b/x is called with 3 args but expects 1 or 2"})
-   (lint! "(ns foo) (::b/x {:bar/x 1} 1 2)"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 10,
-      :level :error,
       :message "keyword :foo/x is called with 3 args but expects 1 or 2"})
    (lint! "(ns foo) (::x {::x 1} 2 3)"))
   (is (empty?
