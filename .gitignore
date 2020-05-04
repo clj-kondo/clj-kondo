@@ -64,6 +64,8 @@ flycheck_*.el
 # directory configuration
 .dir-locals.el
 
+# JSON - temporary
+node_modules
 
 # End of https://www.gitignore.io/api/emacs,clojure
 clj-kondo
@@ -75,3 +77,4 @@ clj-kondo*.snap
 .DS_Store
 !corpus/*jar
 lsp
+run();
