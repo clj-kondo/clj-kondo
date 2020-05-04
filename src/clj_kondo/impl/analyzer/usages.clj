@@ -21,10 +21,13 @@
              _resolved-name :name
              _unresolved? :unresolved? :as _m}
             (namespace/resolve-name ctx ns-name symbol-val)]
-        (when resolved-ns
+        (if resolved-ns
           (namespace/reg-used-namespace! ctx
                                          (-> ns :name)
-                                         resolved-ns))))))
+                                         resolved-ns)
+          (namespace/reg-unresolved-namespace! ctx ns-name
+                                               (with-meta (symbol (namespace symbol-val))
+                                                 (meta expr))))))))
 
 (defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)

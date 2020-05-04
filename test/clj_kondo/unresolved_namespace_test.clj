@@ -9,6 +9,10 @@
    '({:file "<stdin>", :row 1, :col 2, :level :warning,
       :message "Unresolved namespace clojure.string. Are you missing a require?"})
    (lint! "(clojure.string/includes? \"foo\" \"o\")"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :warning,
+      :message "Unresolved namespace foo. Are you missing a require?"})
+   (lint! "::foo/x"))
   ;; avoiding false positives
   (is (empty? (lint! (io/file "project.clj"))))
   (is (empty? (lint! "js/foo" "--lang" "cljs")))
@@ -21,4 +25,14 @@
   (is (empty? (lint! "(require '[foo.bar] '[clojure.string :as str]) (str/starts-with? \"foo\" \"bar\")")))
   (is (empty? (lint! "(ns foo (:import java.util.regex.Pattern)) (Pattern/compile \"foo\")")))
   (is (empty? (lint! "(ns foo (:require [foo.bar])) (foo.bar$macros/x)"
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "
+(ns foo
+  {:clj-kondo/config {:linters {:unresolved-namespace {:level :off}}}})
+
+x/bar ;; <- no warning")))
+  (is (empty? (lint! "
+(ns foo
+  {:clj-kondo/config '{:linters {:unresolved-namespace {:exclude [criterium.core]}}}})
+(criterium.core/quick-bench nil)
+"))))

@@ -1256,7 +1256,20 @@
     (is (empty? (lint! "
 (ns ^{:clj-kondo/config '{:linters {:unused-namespace {:level :off}}}}
   foo
-  (:require [bar :as b]))")))))
+  (:require [bar :as b]))"))))
+  (is (empty? (lint! "
+(ns kondo
+  (:require [df :as df]
+            [fulcro :as fulcro]
+            [ui.gift-list :as ui.gift-list]))
+
+(fulcro/defsc Home1 [_this _]
+  {:will-enter (fn [app _]
+                 (df/load! app [:component/id :created-gift-lists]
+                           ui.gift-list/CreatedGiftLists))}
+  :foo)"
+                     '{:linters {:unresolved-symbol {:level :error}}
+                       :lint-as {fulcro/defsc clojure.core/defn}}))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
@@ -1367,13 +1380,6 @@
       :level :error,
       :message "keyword :bar/x is called with 3 args but expects 1 or 2"})
    (lint! "(ns foo (:require [bar :as b])) (::b/x {:bar/x 1} 1 2)"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 10,
-      :level :error,
-      :message "keyword ::b/x is called with 3 args but expects 1 or 2"})
-   (lint! "(ns foo) (::b/x {:bar/x 1} 1 2)"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
@@ -1694,7 +1700,12 @@
                      "--lang" "cljs")))
   (is (empty? (lint! "(fn [x] (* ^number x 1))"
                      {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "
+(proxy [java.util.ArrayList] []
+  (add [x]
+    (let [^ArrayList this this] (proxy-super add x))))
+" {:linters {:unused-binding {:level :warning}}}))))
 
 (deftest with-redefs-test
   (assert-submaps '({:file "<stdin>", :row 1, :col 14,

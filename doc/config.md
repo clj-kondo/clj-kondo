@@ -131,7 +131,14 @@ Sometimes vars are introduced by executing macros, e.g. when using [HugSQL](http
   (select-things conn params))
 ```
 
-Furthermore, the `:lint-as` option can help treating certain macros like built-in ones. This is in clj-kondo's own config:
+If the amount of symbols introduced by HugSQL becomes too unwieldy, consider
+introducing a separate namespace in which HugSQL generates the vars:
+`foo.db.hugsql`. You can then refer to this namespace from `foo.db` with
+`(require '[foo.db.hugsql :as sql]) (sql/insert! ...)` and clj-kondo will not
+complain about this.
+
+Furthermore, the `:lint-as` option can help treating certain macros like
+built-in ones. This is in clj-kondo's own config:
 
 ``` clojure
 :lint-as {me.raynes.conch/programs clojure.core/declare
@@ -146,6 +153,15 @@ and helps preventing false positive unresolved symbols in this code:
 (programs rm mkdir echo mv)
 (let-programs [clj-kondo "./clj-kondo"]
   ,,,)
+```
+
+### Exclude unresolved namespaces from being reported
+
+``` clojure
+(ns foo
+  {:clj-kondo/config '{:linters {:unresolved-namespace {:exclude [criterium.core]}}}})
+
+(criterium.core/quick-bench [])
 ```
 
 ### Exclude arity linting inside a specific macro call
