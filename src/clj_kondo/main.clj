@@ -18,7 +18,7 @@
 (defn- print-help []
   (print-version)
   (println (format "
-Usage: [ --help ] [ --version ] [ --lint <files> ... ] [ --lang (clj|cljs) ] [ --cache [ true | false ] ] [ --cache-dir <dir> ] [ --config <config> ... ]
+Usage: [ --help ] [ --version ] [ --lint <files> ... ] [ --lang (clj|cljs|cljc) ] [ --cache [ true | false ] ] [ --cache-dir <dir> ] [ --config <config> ... ]
 
 Options:
 
