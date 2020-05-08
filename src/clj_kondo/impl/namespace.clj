@@ -60,6 +60,9 @@
           (let [ns (first ns-list)
                 m (meta ns)
                 raw-ns (:raw-name m)
+                raw-ns (if (string? raw-ns)
+                         (pr-str raw-ns)
+                         raw-ns)
                 ns-str (str (or raw-ns ns))
                 branch (:branch m)]
             (cond branch

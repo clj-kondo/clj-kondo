@@ -2311,6 +2311,12 @@
   (testing "Duplicate requires are not reported when occurring in different clauses"
     (is (empty? (lint! "(ns foo (:require-macros [cljs.core.async.macros]) (:require [cljs.core.async]))"
                        {:linters {:unsorted-required-namespaces {:level :warning}}}))))
+
+  (testing "string requires go on top"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 29, :level :warning, :message "Unsorted namespace: b.core"})
+     (lint! "(ns foo (:require [a.core] [\"b.core\"]))" {:linters {:unsorted-required-namespaces {:level :warning}}}))
+    (is (empty? (lint! "(ns foo (:require [\"b.core\"] [a.core]))" {:linters {:unsorted-required-namespaces {:level :warning}}}))))
   (is (empty? (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-required-namespaces {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-required-namespaces {:level :warning}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]) (:import [java.lib JavaClass] [ajava.lib AnotherClass]))"
