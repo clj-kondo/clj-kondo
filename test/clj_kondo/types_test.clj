@@ -631,6 +631,13 @@
 (require '[clojure.string :as str])
 (str/replace \" \" #\" \" {\" \" \"-\"})
 "
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "
+(require '[clojure.string :as str])
+(let [replacement (if (odd? (rand-int 100))
+                    (str \"a\")
+                    (str \"b\"))]
+  (str/replace \"foo\" \"bar\" replacement))"
                      {:linters {:type-mismatch {:level :error}}}))))
 
 

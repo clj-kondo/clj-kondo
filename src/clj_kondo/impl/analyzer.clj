@@ -1099,7 +1099,8 @@
                                (when (identical? :map (:type matcher-type))
                                  :map))
                            matcher-type)]
-        (when matcher-type
+        (when (and match-type (keyword? matcher-type)
+                   matcher-type (keyword? matcher-type))
           (case match-type
             :string (when (not (identical? matcher-type :string))
                       (findings/reg-finding!
