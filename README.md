@@ -194,7 +194,11 @@ pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
 (clj-kondo/merge-configs
  '{:linters {:unresolved-symbol {:exclude [(foo1.bar)]}}}
  '{:linters {:unresolved-symbol {:exclude [(foo2.bar)]}}})
-;; => {:linters {:unresolved-symbol {:exclude [(foo1.bar) (foo2.bar)]}}}
+;;=> {:linters {:unresolved-symbol {:exclude [(foo1.bar) (foo2.bar)]}}}
+
+(-> (clj-kondo/run! {:lint ["src"]})
+    :summary)
+;;=> {:error 0, :warning 0, :info 0, :type :summary, :duration 779}
 ```
 
 ## Support
