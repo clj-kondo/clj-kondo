@@ -1706,12 +1706,19 @@
                      "--lang" "cljs")))
   (is (empty? (lint! "(fn [x] (* ^number x 1))"
                      {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs")))
+                     "--lang" "cljs"))))
+
+(deftest proxy-super-test
   (is (empty? (lint! "
 (proxy [java.util.ArrayList] []
   (add [x]
     (let [^ArrayList this this] (proxy-super add x))))
-" {:linters {:unused-binding {:level :warning}}}))))
+" {:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "
+(proxy [ArrayList] []
+  (let [xx x] (proxy-super add xx)))"
+                     {:linters {:unused-binding {:level :warning}
+                                :unresolved-symbol {:level :error}}}))))
 
 (deftest with-redefs-test
   (assert-submaps '({:file "<stdin>", :row 1, :col 14,

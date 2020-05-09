@@ -1134,7 +1134,7 @@
         (namespace/reg-used-binding! ctx
                                      ns-name
                                      this-binding))))
-  (analyze-children ctx expr false))
+  (analyze-children ctx (nnext (:children expr)) false))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
