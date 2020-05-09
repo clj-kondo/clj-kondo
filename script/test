@@ -12,10 +12,11 @@ if [ "$CLJ_KONDO_TEST_ENV" = "native" ]; then
 else
     echo "Testing with Clojure 1.9.0"
     clojure -A:clojure-1.9.0:test
-    lein with-profiles +clojure-1.9.0 do clean, test
+    lein with-profiles +clojure-1.9.0 "do" clean, test
 
     echo "Testing with Clojure 1.10.2-alpha1"
     clojure -A:test:clojure-1.10.2-alpha1
-    lein with-profiles +clojure-1.10.2-alpha1 do clean, test
+    lein with-profiles +clojure-1.10.2-alpha1 "do" clean, test
 fi
-# sexit "$err"
+
+clojure -A:test:pod-test -d pod-test
