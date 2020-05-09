@@ -828,7 +828,13 @@
             :col 18,
             :level :error,
             :message "duplicate key \"foo\""})
-         (lint! "{1 1 1 1 \"foo\" 1 \"foo\" 2}"))))
+         (lint! "{1 1 1 1 \"foo\" 1 \"foo\" 2}")))
+  (is (empty? (lint! "
+(ns foo
+  (:require [foo.bar :as bar]))
+
+(def foo {:bar/id \"asdf\"
+          ::bar/id \"lkj\"})"))))
 
 (deftest map-missing-value
   (is (= '({:file "<stdin>",
