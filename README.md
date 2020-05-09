@@ -185,7 +185,6 @@ pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
 
 ``` clojure
 #!/usr/bin/env bb
-
 (ns script
   (:require [babashka.pods :as pods]))
 
