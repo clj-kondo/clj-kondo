@@ -1706,7 +1706,14 @@
                      "--lang" "cljs")))
   (is (empty? (lint! "(fn [x] (* ^number x 1))"
                      {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "
+(def an-array (int-array 25000 (int 0)))
+
+(amap ^ints an-array idx ret
+      (+ (int 1)
+         (aget ^ints an-array idx)))"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest proxy-super-test
   (is (empty? (lint! "

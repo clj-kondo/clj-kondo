@@ -1136,6 +1136,11 @@
                                      this-binding))))
   (analyze-children ctx (nnext (:children expr)) false))
 
+(defn analyze-amap [ctx expr]
+  (let [[_ array idx-binding ret-binding body] (:chilren expr)
+        ctx (ctx-with-bindings ctx (into {} (map #(extract-bindings ctx %) [idx-binding ret-binding])))]
+    (analyze-children ctx [array body] false)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1235,6 +1240,8 @@
                                     children)
                   (proxy-super)
                   (analyze-proxy-super ctx expr)
+                  (amap)
+                  (analyze-amap ctx expr)
                   (cond-> cond->>)
                   (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
                   (let let* for doseq dotimes with-open with-local-vars)
