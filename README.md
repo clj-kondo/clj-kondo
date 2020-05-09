@@ -185,15 +185,16 @@ pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md). Start it
 with the `--run-as-pod` command line option:
 
 ``` clojure
+#!/usr/bin/env bb
 (ns script
-  (:require [babashka.pods :as pods]]))
+  (:require [babashka.pods :as pods]))
 
 (pods/load-pod ["clj-kondo" "--run-as-pod"])
 (require '[pod.borkdude.clj-kondo :as clj-kondo])
 
 (clj-kondo/merge-configs
-          '{:linters {:unresolved-symbol {:exclude [(foo1.bar)]}}}
-          '{:linters {:unresolved-symbol {:exclude [(foo2.bar)]}}})
+ '{:linters {:unresolved-symbol {:exclude [(foo1.bar)]}}}
+ '{:linters {:unresolved-symbol {:exclude [(foo2.bar)]}}})
 ;; => {:linters {:unresolved-symbol {:exclude [(foo1.bar) (foo2.bar)]}}}
 ```
 
