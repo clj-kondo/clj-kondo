@@ -41,4 +41,4 @@
            {:extra-paths ["pod-test"]
             :extra-deps
             {babashka/pods {:git/url "https://github.com/babashka/babashka.pods"
-                            :sha "7fea4149c98b2660611c4a7e4508fd3745838a66"}}}}}
+                            :sha "f5652b97494fbbb468cca9d0a5f5d4c4fc359f3b"}}}}}

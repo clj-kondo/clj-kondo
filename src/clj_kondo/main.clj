@@ -88,7 +88,7 @@ Options:
      :config (get opts "--config")
      :version (contains? opts "--version")
      :help (contains? opts "--help")
-     :pod (= "true" (System/getenv "RUN_AS_BABASHKA_POD"))}))
+     :pod (= "true" (System/getenv "BABASHKA_POD"))}))
 
 (defn main
   [& options]
