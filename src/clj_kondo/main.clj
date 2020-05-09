@@ -51,7 +51,6 @@ Options:
     "--version"    :scalar
     "--lang"       :scalar
     "--cache"      :scalar
-    "--run-as-pod" :scalar
     "--cache-dir"  :scalar
     "--lint"       :coll
     "--config"     :coll
@@ -89,7 +88,7 @@ Options:
      :config (get opts "--config")
      :version (contains? opts "--version")
      :help (contains? opts "--help")
-     :pod (contains? opts "--run-as-pod")}))
+     :pod (= "true" (System/getenv "RUN_AS_BABASHKA_POD"))}))
 
 (defn main
   [& options]

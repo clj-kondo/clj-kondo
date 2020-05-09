@@ -3,8 +3,8 @@
             [clojure.test :refer [deftest is]]))
 
 (def pod-spec (if (= "native" (System/getenv "CLJ_KONDO_TEST_ENV"))
-                ["./clj-kondo" "--run-as-pod"]
-                ["clojure" "-A:clj-kondo" "--run-as-pod"]))
+                ["./clj-kondo"]
+                ["clojure" "-A:clj-kondo"]))
 
 (pods/load-pod pod-spec)
 (require '[pod.borkdude.clj-kondo :as clj-kondo])
