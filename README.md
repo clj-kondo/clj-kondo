@@ -180,16 +180,16 @@ All other error codes indicate an unexpected error.
 
 ## Babashka pod
 
-Clj-kondo can be invoked as a [bababashka
-pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md). Start it
-with the `--run-as-pod` command line option:
+Clj-kondo can be invoked as a [babashka
+pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
 
 ``` clojure
 #!/usr/bin/env bb
+
 (ns script
   (:require [babashka.pods :as pods]))
 
-(pods/load-pod ["clj-kondo" "--run-as-pod"])
+(pods/load-pod "clj-kondo")
 (require '[pod.borkdude.clj-kondo :as clj-kondo])
 
 (clj-kondo/merge-configs
