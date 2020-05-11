@@ -592,7 +592,8 @@
                     ;; implicit do
                     (one-of core-sym [fn defn defn-
                                       let when-let loop binding with-open
-                                      doseq try when when-not future])))))]
+                                      doseq try when when-not when-first
+                                      when-some future])))))]
     (when redundant?
       (findings/reg-finding!
        ctx
