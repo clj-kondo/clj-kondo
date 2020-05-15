@@ -29,6 +29,7 @@ listed!
 - [Metosin](https://www.metosin.fi)
 - [NextJournal](https://nextjournal.com)
 - [Nubank](https://www.nubank.com.br)
+- [Sharetribe](https://www.sharetribe.com)
 - [Solita](https://www.solita.fi/en/)
 - [SUPREMATIC](https://suprematic.de/company/)
 - [Systematic](https://systematic-app.com)
