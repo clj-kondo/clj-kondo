@@ -12,7 +12,7 @@
   :source-paths ["src" "parser" "inlined"]
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [com.cognitect/transit-clj "0.8.313"]
-                 [io.lambdaforge/datalog-parser "0.1.1"]
+                 [io.lambdaforge/datalog-parser "0.1.3"]
                  [cheshire "5.8.1"]
                  [nrepl/bencode "1.1.0"]]
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
