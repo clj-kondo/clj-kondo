@@ -10,3 +10,5 @@
 (when-not :foo (do 1 2 3))
 (future (do 1 2))
 (when-let [x 1] (do x 2))
+(when-first [a [1 2 3]] (do 1 a))
+(when-some [a 1] (do 2 a))

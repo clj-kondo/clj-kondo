@@ -592,7 +592,8 @@
                     ;; implicit do
                     (one-of core-sym [fn defn defn-
                                       let when-let loop binding with-open
-                                      doseq try when when-not future])))))]
+                                      doseq try when when-not when-first
+                                      when-some future])))))]
     (when redundant?
       (findings/reg-finding!
        ctx
@@ -1099,7 +1100,8 @@
                                (when (identical? :map (:type matcher-type))
                                  :map))
                            matcher-type)]
-        (when matcher-type
+        (when (and match-type (keyword? match-type)
+                   matcher-type (keyword? matcher-type))
           (case match-type
             :string (when (not (identical? matcher-type :string))
                       (findings/reg-finding!
@@ -1133,7 +1135,12 @@
         (namespace/reg-used-binding! ctx
                                      ns-name
                                      this-binding))))
-  (analyze-children ctx expr false))
+  (analyze-children ctx (nnext (:children expr)) false))
+
+(defn analyze-amap [ctx expr]
+  (let [[_ array idx-binding ret-binding body] (:chilren expr)
+        ctx (ctx-with-bindings ctx (into {} (map #(extract-bindings ctx %) [idx-binding ret-binding])))]
+    (analyze-children ctx [array body] false)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
@@ -1234,6 +1241,8 @@
                                     children)
                   (proxy-super)
                   (analyze-proxy-super ctx expr)
+                  (amap)
+                  (analyze-amap ctx expr)
                   (cond-> cond->>)
                   (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
                   (let let* for doseq dotimes with-open with-local-vars)

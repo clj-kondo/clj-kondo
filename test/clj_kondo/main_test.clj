@@ -65,7 +65,9 @@
      {:row 9, :col 12, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 10, :col 16, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 11, :col 9, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 12, :col 17, :file "corpus/redundant_do.clj" :message "redundant do"})
+     {:row 12, :col 17, :file "corpus/redundant_do.clj" :message "redundant do"}
+     {:row 13, :col 25, :file "corpus/redundant_do.clj" :message "redundant do"}
+     {:row 14, :col 18, :file "corpus/redundant_do.clj" :message "redundant do"})
    (lint! (io/file "corpus" "redundant_do.clj")))
   (is (empty? (lint! "(do 1 `(do 1 2 3))")))
   (is (empty? (lint! "(do 1 '(do 1 2 3))")))
@@ -828,7 +830,13 @@
             :col 18,
             :level :error,
             :message "duplicate key \"foo\""})
-         (lint! "{1 1 1 1 \"foo\" 1 \"foo\" 2}"))))
+         (lint! "{1 1 1 1 \"foo\" 1 \"foo\" 2}")))
+  (is (empty? (lint! "
+(ns foo
+  (:require [foo.bar :as bar]))
+
+(def foo {:bar/id \"asdf\"
+          ::bar/id \"lkj\"})"))))
 
 (deftest map-missing-value
   (is (= '({:file "<stdin>",
@@ -1702,10 +1710,24 @@
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "
+(def an-array (int-array 25000 (int 0)))
+
+(amap ^ints an-array idx ret
+      (+ (int 1)
+         (aget ^ints an-array idx)))"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest proxy-super-test
+  (is (empty? (lint! "
 (proxy [java.util.ArrayList] []
   (add [x]
     (let [^ArrayList this this] (proxy-super add x))))
-" {:linters {:unused-binding {:level :warning}}}))))
+" {:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "
+(proxy [ArrayList] []
+  (let [xx x] (proxy-super add xx)))"
+                     {:linters {:unused-binding {:level :warning}
+                                :unresolved-symbol {:level :error}}}))))
 
 (deftest with-redefs-test
   (assert-submaps '({:file "<stdin>", :row 1, :col 14,
@@ -2311,6 +2333,12 @@
   (testing "Duplicate requires are not reported when occurring in different clauses"
     (is (empty? (lint! "(ns foo (:require-macros [cljs.core.async.macros]) (:require [cljs.core.async]))"
                        {:linters {:unsorted-required-namespaces {:level :warning}}}))))
+
+  (testing "string requires go on top"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 29, :level :warning, :message "Unsorted namespace: b.core"})
+     (lint! "(ns foo (:require [a.core] [\"b.core\"]))" {:linters {:unsorted-required-namespaces {:level :warning}}}))
+    (is (empty? (lint! "(ns foo (:require [\"b.core\"] [a.core]))" {:linters {:unsorted-required-namespaces {:level :warning}}}))))
   (is (empty? (lint! "(ns foo (:require [bar.core] [abar.core]))" {:linters {:unsorted-required-namespaces {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]))" {:linters {:unsorted-required-namespaces {:level :warning}}})))
   (is (empty? (lint! "(ns foo (:require [abar.core] [bar.core]) (:import [java.lib JavaClass] [ajava.lib AnotherClass]))"

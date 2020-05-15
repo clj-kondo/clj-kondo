@@ -2,13 +2,16 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [node->line tag sexpr]]))
+   [clj-kondo.impl.utils :refer [node->line tag]]))
 
 (defn key-value
   "We only support tokens as key values for now."
   [node]
   (case (tag node)
-    :token (sexpr node)
+    :token (or (when-let [v (:k node)]
+                 (if (:namespaced? node)
+                   (str v) v))
+               (str node))
     nil))
 
 (defn lint-map-keys

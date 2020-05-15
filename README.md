@@ -178,6 +178,29 @@ All other error codes indicate an unexpected error.
 
 ## [Companies](doc/companies.md) using clj-kondo
 
+## Babashka pod
+
+Clj-kondo can be invoked as a [babashka
+pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
+
+``` clojure
+#!/usr/bin/env bb
+(ns script
+  (:require [babashka.pods :as pods]))
+
+(pods/load-pod "clj-kondo")
+(require '[pod.borkdude.clj-kondo :as clj-kondo])
+
+(clj-kondo/merge-configs
+ '{:linters {:unresolved-symbol {:exclude [(foo1.bar)]}}}
+ '{:linters {:unresolved-symbol {:exclude [(foo2.bar)]}}})
+;;=> {:linters {:unresolved-symbol {:exclude [(foo1.bar) (foo2.bar)]}}}
+
+(-> (clj-kondo/run! {:lint ["src"]})
+    :summary)
+;;=> {:error 0, :warning 0, :info 0, :type :summary, :duration 779}
+```
+
 ## Support
 
 If clj-kondo provides value to your Clojure development, consider supporting

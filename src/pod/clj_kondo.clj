@@ -1,0 +1,2 @@
+(ns pod.clj-kondo)
+

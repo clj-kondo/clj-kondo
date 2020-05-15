@@ -1,7 +1,8 @@
 {:paths ["src" "parser" "resources" "inlined"]
  :deps {com.cognitect/transit-clj {:mvn/version "0.8.313"}
-        io.lambdaforge/datalog-parser {:mvn/version "0.1.1"}
-        cheshire {:mvn/version "5.8.1"}}
+        io.lambdaforge/datalog-parser {:mvn/version "0.1.3"}
+        cheshire {:mvn/version "5.8.1"}
+        nrepl/bencode {:mvn/version "1.1.0"}}
  :aliases {:clj-kondo
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
@@ -35,4 +36,9 @@
             :main-opts ["-m" "clj-kondo.profile"]}
            :cljs ;; for performance and regression testing
            {:extra-deps
-            {org.clojure/clojurescript {:mvn/version "1.10.520"}}}}}
+            {org.clojure/clojurescript {:mvn/version "1.10.520"}}}
+           :pod-test
+           {:extra-paths ["pod-test"]
+            :extra-deps
+            {babashka/pods {:git/url "https://github.com/babashka/babashka.pods"
+                            :sha "f5652b97494fbbb468cca9d0a5f5d4c4fc359f3b"}}}}}

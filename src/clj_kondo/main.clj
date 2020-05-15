@@ -6,7 +6,8 @@
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.profiler :as profiler]
    [clojure.string :as str
-    :refer [starts-with?]]))
+    :refer [starts-with?]]
+   [pod.borkdude.clj-kondo :as pod]))
 
 (set! *warn-on-reflection* true)
 
@@ -18,16 +19,15 @@
 (defn- print-help []
   (print-version)
   (println (format "
-Usage: [ --help ] [ --version ] [ --lint <files> ... ] [ --lang (clj|cljs) ] [ --cache [ true | false ] ] [ --cache-dir <dir> ] [ --config <config> ... ]
 
 Options:
 
-  --lint: a file can either be a normal file, directory or classpath. In the
+  --lint <file>: a file can either be a normal file, directory or classpath. In the
     case of a directory or classpath, only .clj, .cljs and .cljc will be
     processed. Use - as filename for reading from stdin.
 
-  --lang: if lang cannot be derived from the file extension this option will be
-    used.
+  --lang <lang>: if lang cannot be derived from the file extension this option will be
+    used. Supported values: clj, cljs, cljc.
 
   --cache-dir: when this option is provided, the cache will be resolved to this
     directory. If --cache is false, this option will be ignored.
@@ -36,21 +36,25 @@ Options:
   using `--cache-dir`. If `--cache-dir` is not set, cache is resolved using the
   nearest `.clj-kondo` directory in the current and parent directories.
 
-  --config: config may be a file or an EDN expression. See
+  --config <config>: config may be a file or an EDN expression. See
     https://cljdoc.org/d/clj-kondo/clj-kondo/%s/doc/configuration.
+
+  --run-as-pod: run clj-kondo as a babashka pod
 " core-impl/version))
   nil)
 
 ;;;; parse command line options
 
-(def opt-type
-  {"--help"      :scalar
-   "--version"   :scalar
-   "--lang"      :scalar
-   "--cache"     :scalar
-   "--cache-dir" :scalar
-   "--lint"      :coll
-   "--config"    :coll})
+(defn opt-type [opt]
+  (case opt
+    "--help"       :scalar
+    "--version"    :scalar
+    "--lang"       :scalar
+    "--cache"      :scalar
+    "--cache-dir"  :scalar
+    "--lint"       :coll
+    "--config"     :coll
+    :scalar))
 
 (defn- parse-opts [options]
   (let [opts (loop [options options
@@ -60,7 +64,7 @@ Options:
                  (if (starts-with? opt "--")
                    (recur (rest options)
                           ;; assoc nil value to indicate opt as explicitly added via cli args
-                          (case (opt-type opt :scalar)
+                          (case (opt-type opt)
                             :scalar (assoc opts-map opt nil)
                             :coll (update opts-map opt identity))
                           opt)
@@ -71,8 +75,6 @@ Options:
         default-lang (when-let [lang-opt (last (get opts "--lang"))]
                        (keyword lang-opt))
         cache-opt? (contains? opts "--cache")]
-    #_(binding [*out* *err*]
-      (prn "cache opt" cache-opt))
     {:lint (distinct (get opts "--lint"))
      :cache (if cache-opt?
               (if-let [f (last (get opts "--cache"))]
@@ -85,19 +87,21 @@ Options:
      :lang default-lang
      :config (get opts "--config")
      :version (contains? opts "--version")
-     :help (contains? opts "--help")}))
+     :help (contains? opts "--help")
+     :pod (= "true" (System/getenv "BABASHKA_POD"))}))
 
 (defn main
   [& options]
   (try
     (profiler/profile
      :main
-     (let [{:keys [:help :lint :version] :as parsed}
+     (let [{:keys [:help :lint :version :pod] :as parsed}
            (parse-opts options)]
        (or (cond version
                  (print-version)
                  help
                  (print-help)
+                 pod (pod/run-pod)
                  (empty? lint)
                  (print-help)
                  :else (let [{:keys [:summary]
