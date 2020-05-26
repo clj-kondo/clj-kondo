@@ -30,7 +30,9 @@
 
 (def lookup
   {'pod.borkdude.clj-kondo/merge-configs clj-kondo/merge-configs
-   'pod.borkdude.clj-kondo/print! clj-kondo/print!
+   'pod.borkdude.clj-kondo/print* (fn [& args]
+                                    (with-out-str
+                                      (apply clj-kondo/print! args)))
    'pod.borkdude.clj-kondo/run! clj-kondo/run!})
 
 (defn run-pod []
@@ -49,7 +51,12 @@
             :describe (do (write {"format" "edn"
                                   "namespaces" [{"name" "pod.borkdude.clj-kondo"
                                                  "vars" [{"name" "merge-configs"}
-                                                         {"name" "print!"}
+                                                         {"name" "print*"}
+                                                         {"name" "print!"
+                                                          "code" "
+(defn print! [run-output]
+  (print (print* run-output))
+  (flush))"}
                                                          {"name" "run!"}]}]
                                   "id" id})
                           (recur))
