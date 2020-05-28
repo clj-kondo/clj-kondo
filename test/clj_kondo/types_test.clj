@@ -638,7 +638,11 @@
                     (str \"a\")
                     (str \"b\"))]
   (str/replace \"foo\" \"bar\" replacement))"
-                     {:linters {:type-mismatch {:level :error}}}))))
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "
+(require 'clojure.string)
+(clojure.string/replace \"hallo\" \"a\" (first [\"e\"]))
+" {:linters {:type-mismatch {:level :error}}}))))
 
 
 ;;;; Scratch

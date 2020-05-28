@@ -1101,7 +1101,8 @@
                                  :map))
                            matcher-type)]
         (when (and match-type (keyword? match-type)
-                   matcher-type (keyword? matcher-type))
+                   matcher-type (keyword? matcher-type)
+                   (not (identical? matcher-type :any)))
           (case match-type
             :string (when (not (identical? matcher-type :string))
                       (findings/reg-finding!
