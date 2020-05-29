@@ -201,16 +201,6 @@ pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
 ;;=> {:error 0, :warning 0, :info 0, :type :summary, :duration 779}
 ```
 
-## Support
-
-If clj-kondo provides value to your Clojure development, consider supporting
-development on it via one of the sponsoring options. If your company is
-interested in getting anything done that is not yet on the [project
-board](https://github.com/borkdude/clj-kondo/projects/1) or wants to give it
-higher priority, we can sort out a reasonable hourly rate or fixed fee. I am
-able to send you a proper invoice with VAT number, etc. Get into contact with me
-via e-mail, Twitter DM, Slack, etc.
-
 ## Thanks to:
 
 - [joker](https://github.com/candid82/joker) for inspiration
