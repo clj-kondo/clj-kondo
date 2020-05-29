@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "docs": "jsdoc es3.js -t templates/haruki -d console > es3-docs.json"
+    "gendoc": "jsdoc -c jsdoc-config.json es3.js -t templates/haruki -d console > es3-docs.json"
   },
   "author": "",
   "license": "ISC",
