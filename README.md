@@ -201,6 +201,11 @@ pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
 ;;=> {:error 0, :warning 0, :info 0, :type :summary, :duration 779}
 ```
 
+## Podcast
+
++ [defnpodcast](https://soundcloud.com/defn-771544745)
++ [ClojureScript Podcast](https://clojurescriptpodcast.com/)
+
 ## Thanks to:
 
 - [joker](https://github.com/candid82/joker) for inspiration
