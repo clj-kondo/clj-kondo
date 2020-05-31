@@ -11,7 +11,7 @@
   (let [[[sym val opts] & body] (rest sexpr)]
     (when-not (and sym val)
       (throw (ex-info \"No sym and val provided\" {})))
-    `(let [~sym ~val] ~@(cons opts body))))
+    {:sexpr `(let [~sym ~val] ~@(cons opts body))}))
 "}}}
   (:require [foo]))
 
@@ -51,10 +51,11 @@
                        (conj body-exprs f)
                        catches)))
             [body-exprs catches]))]
-    `(let [~'throw+ (fn [])
+    {:sexpr
+      `(let [~'throw+ (fn [])
            ~'&throw-context nil]
        ~(with-meta `(try ~@body ~@catches)
-          (meta sexpr)))))
+          (meta sexpr)))}))
 "}}}
   (:require [log :as log]
             [slingshot.slingshot :refer [try+]]))
