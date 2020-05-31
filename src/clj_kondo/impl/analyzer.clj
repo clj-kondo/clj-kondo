@@ -28,8 +28,7 @@
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
    [clojure.string :as str]
-   [sci.core :as sci]
-   [clojure.walk :as walk]))
+   [sci.core :as sci]))
 
 (set! *warn-on-reflection* true)
 
@@ -1145,17 +1144,38 @@
         ctx (ctx-with-bindings ctx (into {} (map #(extract-bindings ctx %) [idx-binding ret-binding])))]
     (analyze-children ctx [array body] false)))
 
+(defn walk
+  [node]
+  (cond
+    (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+    (let [children (:children node)
+          node (assoc node :children (map walk children))
+          sexp (sexpr node)]
+      (if (instance? clojure.lang.IObj sexp)
+        (let [{:keys [:row :col]} (meta node)]
+          (vary-meta sexp assoc :row row :col col))
+        sexp))
+    :else node))
+
+#_(defn node->sexpr [node]
+    (walk/postwalk
+     (fn [node]
+       (if (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+         (let [sexp (sexpr node)]
+           (if (instance? clojure.lang.IObj sexp)
+             (let [{:keys [:row :col]} (meta node)]
+               (vary-meta sexp assoc :row row :col col))
+             sexp))
+         node))
+     node))
+
 (defn node->sexpr [node]
-  (walk/postwalk
-   (fn [node]
-     (if (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-       (let [sexp (sexpr node)]
-         (if (instance? clojure.lang.IObj sexp)
-           (let [{:keys [:row :col]} (meta node)]
-             (vary-meta sexp assoc :row row :col col))
-           sexp))
-       node))
-   node))
+  (walk node))
+
+(defmacro time* [body]
+  `(if (= "true" (System/getenv "CLJ_KONDO_DEV"))
+     (time ~body)
+     ~body))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
@@ -1196,13 +1216,14 @@
                     [resolved-namespace resolved-name false])]
             (if-let [f (get-in config [:macroexpand (symbol (str resolved-namespace)
                                                             (str resolved-name))])]
-              (try (let [f (sci/eval-string f)
-                        args (map node->sexpr children)
-                         expanded (apply f args)
-                        expanded-string (binding [*print-meta* true]
-                                          (pr-str expanded))
-                        parsed (p/parse-string expanded-string)]
-                     (analyze-expression** ctx parsed))
+              (try (let [sexp (node->sexpr expr)
+                         expanded (sci/binding [sci/out *out*]
+                                    (let [f (time* (sci/eval-string f))]
+                                      (time* (f {:sexpr sexp}))))
+                         expanded-string (time* (binding [*print-meta* true]
+                                                  (pr-str expanded)))
+                         parsed (time* (p/parse-string expanded-string))]
+                     (time* (analyze-expression** ctx parsed)))
                    (catch Exception e
                      (findings/reg-finding! ctx {:filename (:filename ctx)
                                                  :row row
@@ -1529,7 +1550,9 @@
                    (macroexpand/expand-fn expr))
         :token (when-not (or (:quoted ctx) (= :edn (:lang ctx))) (analyze-usages2 ctx expr))
         :list
-        (if-let [function (first children)]
+        (if-let [function (some->>
+                           (first children)
+                           (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
           (if (or (:quoted ctx) (= :edn (:lang ctx)))
             (analyze-children ctx children)
             (let [t (tag function)]
