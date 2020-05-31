@@ -212,29 +212,31 @@
 
 (defn expr->tag [{:keys [:bindings :lang :quoted] :as ctx} expr]
   (let [t (tag expr)
-        quoted? (or quoted (identical? :edn lang))]
-    (case t
-      :map (map->tag ctx expr)
-      :vector :vector
-      :set :set
-      :list (if quoted? :list
-                (:tag (spec-from-list-expr ctx expr))) ;; a call we know nothing about
-      :fn :fn
-      :multi-line :string
-      :token (let [v (sexpr expr)]
-               (cond
-                 (nil? v) :nil
-                 (symbol? v) (if quoted? :symbol
-                                 (when-let [b (get bindings v)]
-                                   (:tag b)))
-                 (boolean? v) :boolean
-                 (string? v) :string
-                 (keyword? v) :keyword
-                 (number? v) (number->tag v)
-                 (char? v) :char))
-      :regex :regex
-      :quote (expr->tag (assoc ctx :quoted true) (first (:children expr)))
-      nil)))
+        quoted? (or quoted (identical? :edn lang))
+        ret (case t
+              :map (map->tag ctx expr)
+              :vector :vector
+              :set :set
+              :list (if quoted? :list
+                        (:tag (spec-from-list-expr ctx expr))) ;; a call we know nothing about
+              :fn :fn
+              :multi-line :string
+              :token (let [v (sexpr expr)]
+                       (cond
+                         (nil? v) :nil
+                         (symbol? v) (if quoted? :symbol
+                                         (when-let [b (get bindings v)]
+                                           (:tag b)))
+                         (boolean? v) :boolean
+                         (string? v) :string
+                         (keyword? v) :keyword
+                         (number? v) (number->tag v)
+                         (char? v) :char))
+              :regex :regex
+              :quote (expr->tag (assoc ctx :quoted true) (first (:children expr)))
+              nil)]
+    ;; (prn (sexpr expr) '-> ret)
+    ret))
 
 (defn add-arg-type-from-expr
   ([ctx expr] (add-arg-type-from-expr ctx expr (expr->tag ctx expr)))
