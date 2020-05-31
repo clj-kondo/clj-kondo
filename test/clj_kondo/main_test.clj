@@ -1715,7 +1715,10 @@
 (amap ^ints an-array idx ret
       (+ (int 1)
          (aget ^ints an-array idx)))"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(clojure.core/let ^{:row 15, :col 2, :line 1} [^{:row 15, :col 3} x 1] ^{:row 16, :col 2} (^{:row 16, :col 3} inc ^{:row 16, :col 7} x))"
+                     {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest proxy-super-test
   (is (empty? (lint! "

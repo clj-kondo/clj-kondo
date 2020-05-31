@@ -1457,7 +1457,7 @@
   (when expr
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
-                 (meta/lift-meta-content2 ctx expr)
+                 (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
                  expr)
           t (tag expr)
           {:keys [:row :col]} (meta expr)
