@@ -1196,14 +1196,19 @@
                     [resolved-namespace resolved-name false])]
             (if-let [f (get-in config [:macroexpand (symbol (str resolved-namespace)
                                                             (str resolved-name))])]
-              (let [f (sci/eval-string f)
-                    args (map node->sexpr children)
-                    expanded (apply f args)
-                    expanded-string (binding [*print-meta* true]
-                                      (pr-str expanded))
-                    parsed (p/parse-string expanded-string)]
-                (println expanded-string)
-                (analyze-expression** ctx parsed))
+              (try (let [f (sci/eval-string f)
+                        args (map node->sexpr children)
+                         expanded (apply f args)
+                        expanded-string (binding [*print-meta* true]
+                                          (pr-str expanded))
+                        parsed (p/parse-string expanded-string)]
+                     (analyze-expression** ctx parsed))
+                   (catch Exception e
+                     (findings/reg-finding! ctx {:filename (:filename ctx)
+                                                 :row row
+                                                 :col col
+                                                 :type :macroexpand
+                                                 :message (.getMessage e)})))
               (let [fq-sym (when (and resolved-namespace
                                       resolved-name)
                              (symbol (str resolved-namespace)
