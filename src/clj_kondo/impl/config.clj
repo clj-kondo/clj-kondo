@@ -95,6 +95,7 @@
               schema.core/defschema clojure.core/def
               compojure.core/defroutes clojure.core/def
               compojure.core/let-routes clojure.core/let}
+    :macroexpand {}
     :output {:format :text ;; or :edn
              :summary true ;; outputs summary at end, only applicable to output :text
              ;; outputs analyzed var definitions and usages of them

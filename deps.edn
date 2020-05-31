@@ -2,7 +2,8 @@
  :deps {com.cognitect/transit-clj {:mvn/version "0.8.313"}
         io.lambdaforge/datalog-parser {:mvn/version "0.1.3"}
         cheshire {:mvn/version "5.8.1"}
-        nrepl/bencode {:mvn/version "1.1.0"}}
+        nrepl/bencode {:mvn/version "1.1.0"}
+        borkdude/sci {:mvn/version "0.0.13-alpha.27"}}
  :aliases {:clj-kondo
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
