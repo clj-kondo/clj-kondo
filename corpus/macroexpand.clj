@@ -6,6 +6,7 @@
 (ns bar
   {:clj-kondo/config
    '{:macroexpand
+     ;; the macro can be found in .clj-kondo/macroexpand/weird_macro.clj
      {foo/weird-macro "macroexpand/weird_macro.clj"}}}
   (:require [foo]))
 
