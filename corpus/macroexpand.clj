@@ -35,3 +35,35 @@
    (throw+)))
 
 (try+) ;; try without catch
+
+(ns baz
+  {:clj-kondo/config '{:macroexpand {better.cond/cond
+                                     "
+(defn process-pairs [pairs]
+  (loop [[[lhs rhs :as pair] & pairs] pairs
+         new-body ['cond]]
+    (if pair
+      (cond
+        (= 1 (count pair)) (seq (conj new-body lhs))
+        (not (keyword? lhs))
+        (recur pairs
+               (conj new-body lhs rhs))
+        (= :let lhs)
+        (seq (conj new-body :else (list 'let rhs
+                                       (process-pairs pairs)))))
+      (seq new-body))))
+
+(def f
+  (fn [{:keys [:sexpr]}]
+    (let [expr (let [args (rest sexpr)
+                     pairs (partition-all 2 args)]
+                 (process-pairs pairs))]
+      {:sexpr (with-meta expr
+                (meta sexpr))})))"}}}
+  (:require [better.cond :as b]))
+
+(let [x 10]
+  (b/cond
+    (= x 1) true
+    :let [y (inc x)]      ;; binding is recognized
+    (= 11 y) (subs y 0))) ;; yay, type error because y is not a string
