@@ -56,7 +56,6 @@
 (defn- read-config [config]
   (cond (map? config)
         config
-
         (string? config)
         (if (or (str/starts-with? config "{")
                 (str/starts-with? config "^"))
@@ -65,12 +64,14 @@
           (read-edn-file (io/file config)))))
 
 (defn resolve-config [cfg-dir configs]
-  (reduce config/merge-config! config/default-config
-          (into [(when cfg-dir
-                   (let [f (io/file cfg-dir "config.edn")]
-                     (when (.exists f)
-                       (read-edn-file f))))]
-                (map read-config configs))))
+  (let [config
+        (reduce config/merge-config! config/default-config
+                (into [(when cfg-dir
+                         (let [f (io/file cfg-dir "config.edn")]
+                           (when (.exists f)
+                             (read-edn-file f))))]
+                      (map read-config configs)))]
+    (assoc config :cfg-dir cfg-dir)))
 
 ;;;; process cache
 

@@ -4,7 +4,8 @@
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]
    [clojure.java.io :as io]
-   [sci.core :as sci]))
+   [sci.core :as sci]
+   [clojure.string :as str]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
@@ -301,10 +302,15 @@
           (let [sym (symbol (str ns-sym)
                             (str var-sym))]
             (when-let [code (get-in config [:macroexpand sym])]
-              ;; (prn ns-sym var-sym)
-              (sci/eval-string code {:aliases {'io 'clojure.java.io}
-                                     :namespaces {'clojure.java.io {'file io/file}
-                                                  'clojure.core {'load-file load-file*}}}))))
+              (let [code (str/triml code)
+                    code (if (and (not (str/starts-with? code "("))
+                                  (not (str/index-of code \newline)))
+                           (let [cfg-dir (:cfg-dir config)]
+                             (slurp (io/file cfg-dir code)))
+                           code)]
+                (sci/eval-string code {:aliases {'io 'clojure.java.io}
+                                       :namespaces {'clojure.java.io {'file io/file}
+                                                    'clojure.core {'load-file load-file*}}})))))
         delayed-cfg (memoize delayed-cfg)]
     delayed-cfg))
 

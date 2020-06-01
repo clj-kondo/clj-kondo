@@ -6,8 +6,7 @@
 (ns bar
   {:clj-kondo/config
    '{:macroexpand
-     {foo/weird-macro
-      "(load-file (io/file \"corpus\" \"macroexpand\" \"weird_macro.clj\"))"}}}
+     {foo/weird-macro "macroexpand/weird_macro.clj"}}}
   (:require [foo]))
 
 (foo/weird-macro
@@ -19,8 +18,7 @@
 (ns slingshot
   {:clj-kondo/config
    '{:macroexpand
-     {slingshot.slingshot/try+
-      "(load-file (io/file \"corpus\" \"macroexpand\" \"try_plus.clj\"))"}}}
+     {slingshot.slingshot/try+ "macroexpand/try_plus.clj"}}}
   (:require [log :as log]
             [slingshot.slingshot :refer [try+]]))
 
