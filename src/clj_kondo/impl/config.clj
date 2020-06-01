@@ -4,8 +4,8 @@
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]
    [clojure.java.io :as io]
-   [sci.core :as sci]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [sci.core :as sci]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros

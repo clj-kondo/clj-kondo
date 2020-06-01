@@ -36,15 +36,18 @@
 
 (declare read-edn-file)
 
+(defn read-fn
+  [^java.io.File cfg-file process-fn file-to-read]
+  (let [f (io/file (.getParent cfg-file) file-to-read)]
+    (if (.exists f)
+      (process-fn f)
+      (binding [*out* *err*]
+        (println "WARNING: included file" (.getCanonicalPath f) "does not exist.")))))
+
 (defn opts [^java.io.File cfg-file]
   {:readers
-   {'include
-    (fn [file]
-      (let [f (io/file (.getParent cfg-file) file)]
-        (if (.exists f)
-          (read-edn-file f)
-          (binding [*out* *err*]
-            (println "WARNING: included file" (.getCanonicalPath f) "does not exist.")))))}})
+   {'include-edn #(read-fn cfg-file read-edn-file %)
+    'include-string #(read-fn cfg-file slurp %)}})
 
 (defn read-edn-file [^java.io.File f]
   (try (edn/read-string (opts f) (slurp f))

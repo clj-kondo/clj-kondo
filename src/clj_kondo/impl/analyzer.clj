@@ -1184,7 +1184,9 @@
            :row :col
            :expr] :as m}]
   (let [ns-name (:name ns)
-        children (next(:children expr))
+        children (:children expr)
+        fn-sym-node (first children)
+        children (next children)
         {resolved-namespace :ns
          resolved-name :name
          unresolved? :unresolved?
@@ -1214,21 +1216,23 @@
                                          [resolved-namespace resolved-name])]
                       [ns n true])
                     [resolved-namespace resolved-name false])]
-            (if-let [f (config/macroexpand-fn config resolved-namespace resolved-name)]
-              (try (let [sexp (node->sexpr expr)
-                         {expanded :sexpr}
-                         (sci/binding [sci/out *out*]
-                           (time* (f {:sexpr sexp})))
-                         expanded-string (time* (binding [*print-meta* true]
-                                                  (pr-str expanded)))
-                         parsed (time* (p/parse-string expanded-string))]
-                     (time* (analyze-expression** ctx parsed)))
-                   (catch Exception e
-                     (findings/reg-finding! ctx {:filename (:filename ctx)
-                                                 :row row
-                                                 :col col
-                                                 :type :macroexpand
-                                                 :message (.getMessage e)})))
+            (if-let [;; TODO: handle error when eval goes wrong
+                     f (config/macroexpand-fn config resolved-namespace resolved-name)]
+              (do (usages/analyze-usages2 ctx fn-sym-node)
+                  (try (let [sexp (node->sexpr expr)
+                             {expanded :sexpr}
+                             (sci/binding [sci/out *out*]
+                               (time* (f {:sexpr sexp})))
+                             expanded-string (time* (binding [*print-meta* true]
+                                                      (pr-str expanded)))
+                             parsed (time* (p/parse-string expanded-string))]
+                         (time* (analyze-expression** ctx parsed)))
+                       (catch Exception e
+                         (findings/reg-finding! ctx {:filename (:filename ctx)
+                                                     :row row
+                                                     :col col
+                                                     :type :macroexpand
+                                                     :message (.getMessage e)}))))
               (let [fq-sym (when (and resolved-namespace
                                       resolved-name)
                              (symbol (str resolved-namespace)
