@@ -74,7 +74,8 @@
                            (when (.exists f)
                              (read-edn-file f))))]
                       (map read-config configs)))]
-    (assoc config :cfg-dir (.getCanonicalPath cfg-dir))))
+    (cond-> config
+      cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
 
 ;;;; process cache
 
