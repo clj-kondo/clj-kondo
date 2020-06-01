@@ -1214,13 +1214,11 @@
                                          [resolved-namespace resolved-name])]
                       [ns n true])
                     [resolved-namespace resolved-name false])]
-            (if-let [f (get-in config [:macroexpand (symbol (str resolved-namespace)
-                                                            (str resolved-name))])]
+            (if-let [f (config/macroexpand-fn config resolved-namespace resolved-name)]
               (try (let [sexp (node->sexpr expr)
                          {expanded :sexpr}
                          (sci/binding [sci/out *out*]
-                           (let [f (time* (sci/eval-string f))]
-                             (time* (f {:sexpr sexp}))))
+                           (time* (f {:sexpr sexp})))
                          expanded-string (time* (binding [*print-meta* true]
                                                   (pr-str expanded)))
                          parsed (time* (p/parse-string expanded-string))]

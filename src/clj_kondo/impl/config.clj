@@ -2,7 +2,9 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.profiler :as profiler]
-   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
+   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]
+   [clojure.java.io :as io]
+   [sci.core :as sci]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
@@ -282,6 +284,29 @@
     (fn [config referred-all-ns]
       (let [excluded (delayed-cfg config)]
         (contains? excluded referred-all-ns)))))
+
+(def load-file*
+  (with-meta
+    (fn [sci-ctx f]
+      (let [f (io/file f)
+            s (slurp f)]
+        (sci/with-bindings {sci/ns @sci/ns
+                            sci/file (.getCanonicalPath f)}
+          (sci/eval-string* sci-ctx s))))
+    {:sci.impl/op :needs-ctx}))
+
+(def macroexpand-fn
+  (let [delayed-cfg
+        (fn [config ns-sym var-sym]
+          (let [sym (symbol (str ns-sym)
+                            (str var-sym))]
+            (when-let [code (get-in config [:macroexpand sym])]
+              ;; (prn ns-sym var-sym)
+              (sci/eval-string code {:aliases {'io 'clojure.java.io}
+                                     :namespaces {'clojure.java.io {'file io/file}
+                                                  'clojure.core {'load-file load-file*}}}))))
+        delayed-cfg (memoize delayed-cfg)]
+    delayed-cfg))
 
 ;;;; Scratch
 
