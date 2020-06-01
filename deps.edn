@@ -41,5 +41,6 @@
            :pod-test
            {:extra-paths ["pod-test"]
             :extra-deps
-            {babashka/pods {:git/url "https://github.com/babashka/babashka.pods"
+            {babashka/pods {#_#_:local/root "/Users/borkdude/Dropbox/dev/clojure/babashka/babashka.pods"
+                            :git/url "https://github.com/babashka/babashka.pods"
                             :sha "57cc95a2e2193a4bfb8505d44acaca900279369a"}}}}}

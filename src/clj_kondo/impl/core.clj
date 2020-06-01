@@ -66,7 +66,7 @@
           ;; config is a string that represents a file
           (read-edn-file (io/file config)))))
 
-(defn resolve-config [cfg-dir configs]
+(defn resolve-config [^java.io.File cfg-dir configs]
   (let [config
         (reduce config/merge-config! config/default-config
                 (into [(when cfg-dir
@@ -74,7 +74,7 @@
                            (when (.exists f)
                              (read-edn-file f))))]
                       (map read-config configs)))]
-    (assoc config :cfg-dir cfg-dir)))
+    (assoc config :cfg-dir (.getCanonicalPath cfg-dir))))
 
 ;;;; process cache
 
