@@ -67,3 +67,34 @@
     (= x 1) true
     :let [y (inc x)]      ;; binding is recognized
     (= 11 y) (subs y 0))) ;; yay, type error because y is not a string
+
+(ns quux
+  {:clj-kondo/config '{:macroexpand {rum/defc "
+(def f (fn [{:keys [:sexpr]}]
+         (let [args (rest sexpr)
+               component-name (first args)
+               args (next args)
+               body
+               (loop [args* args
+                      mixins []]
+                 (if (seq args*)
+                   (let [a (first args*)]
+                     (if (vector? a)
+                       (cons a (concat mixins (rest args*)))
+                       (recur (rest args*)
+                              (conj mixins a))))
+                   args))]
+           {:sexpr (with-meta (list* 'defn component-name body)
+                     (meta sexpr))})))
+"}}}
+  (:require [rum]))
+
+(rum/defc with-mixin
+  < rum/static
+  [context]
+  [:div
+   [:h1 "result"]
+   [:pre (pr-str context)]])
+
+(with-mixin 1) ;; no unresolved symbol
+(with-mixin a a a a) ;; unresolved symbol and arity error for with-mixin

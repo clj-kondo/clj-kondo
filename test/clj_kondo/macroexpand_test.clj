@@ -10,7 +10,10 @@
      {:file "corpus/macroexpand.clj", :row 18, :col 1, :level :error, :message "No sym and val provided [at line 4, column 7]"}
      {:file "corpus/macroexpand.clj", :row 29, :col 48, :level :warning, :message "unused binding tree"}
      {:file "corpus/macroexpand.clj", :row 37, :col 1, :level :warning, :message "Missing catch or finally in try"}
-     {:file "corpus/macroexpand.clj", :row 69, :col 20, :level :error, :message "Expected: string, received: number."})
+     {:file "corpus/macroexpand.clj", :row 69, :col 20, :level :error, :message "Expected: string, received: number."}
+     {:file "corpus/macroexpand.clj", :row 100, :col 1, :level :error, :message "quux/with-mixin is called with 4 args but expects 1"}
+     {:file "corpus/macroexpand.clj", :row 100, :col 13, :level :error, :message "unresolved symbol a"})
    (lint! (io/file "corpus" "macroexpand.clj")
-          {:linters {:unused-binding {:level :warning}
+          {:linters {:unresolved-symbol {:level :error}
+                     :unused-binding {:level :warning}
                      :type-mismatch {:level :error}}})))
