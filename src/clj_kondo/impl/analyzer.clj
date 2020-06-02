@@ -1226,7 +1226,8 @@
                              expanded-string (time* (binding [*print-meta* true]
                                                       (pr-str expanded)))
                              parsed (time* (p/parse-string expanded-string))]
-                         (time* (analyze-expression** ctx parsed)))
+                         ;; TODO: should we return the result of this?
+                         (analyze-expression** ctx (-> parsed :children first)))
                        (catch Exception e
                          (findings/reg-finding! ctx {:filename (:filename ctx)
                                                      :row row

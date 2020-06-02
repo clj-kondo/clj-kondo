@@ -83,9 +83,14 @@
                        (cons a (concat mixins (rest args*)))
                        (recur (rest args*)
                               (conj mixins a))))
-                   args))]
-           {:sexpr (with-meta (list* 'defn component-name body)
-                     (meta sexpr))})))
+                   args))
+              expr (with-meta (list* (with-meta 'defn
+                                       (meta sexpr))
+                       component-name body)
+                     (meta sexpr))]
+           ;; (prn (meta sexpr))
+           ;; (prn expr)
+           {:sexpr expr})))
 "}}}
   (:require [rum]))
 
@@ -98,3 +103,7 @@
 
 (with-mixin 1) ;; no unresolved symbol
 (with-mixin a a a a) ;; unresolved symbol and arity error for with-mixin
+
+(rum/defc with-mixin ;; TODO: why no redefined var?
+  [_])
+
