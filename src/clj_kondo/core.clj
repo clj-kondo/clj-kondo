@@ -79,10 +79,13 @@
            :lang
            :cache
            :cache-dir
-           :config]
+           :config
+           :config-dir]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
-        cfg-dir (core-impl/config-dir (io/file (System/getProperty "user.dir")))
+        cfg-dir (or (when config-dir
+                      (io/file config-dir))
+                    (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
         ;; for backward compatibility non-sequential config should be wrapped into collection
         config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]))
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))

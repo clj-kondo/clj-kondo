@@ -2538,6 +2538,13 @@
       (is (= {:error 1 :warning 7 :info 0}
              (select-keys (:summary out) [:error :warning :info]))))))
 
+(deftest config-dir-test
+  (is (seq (lint! (io/file "corpus" "config_dir" "foo.clj")
+                  {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty (lint! (io/file "corpus" "config_dir" "foo.clj")
+                    {:linters {:unresolved-symbol {:level :error}}}
+                    "--config-dir" (.getPath (io/file "corpus" "config_dir"))))))
+
 ;;;; Scratch
 
 (comment
