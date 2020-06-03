@@ -52,7 +52,17 @@
   (is (empty? (lint! "(let [x 1] [x (let [y (+ x 1)] y)])")))
   (is (empty? (lint! "(let [x 1] #{(let [y 1] y)})")))
   (is (empty? (lint! "(let [x 1] #:a{:a (let [y 1] y)})")))
-  (is (empty? (lint! "(let [x 1] {:a (let [y 1] y)})"))))
+  (is (empty? (lint! "(let [x 1] {:a (let [y 1] y)})")))
+  (is (empty? (lint! "
+(ns foo
+  {:clj-kondo/config '{:lint-as {clojure.test.check.generators/let clojure.core/let}}}
+  (:require [clojure.test.check.generators :as gen]))
+
+(let [_init-link-events 1]
+  (gen/let [_chain-size 2
+            _command-chain 2]
+    1))
+"))))
 
 (deftest redundant-do-test
   (assert-submaps
