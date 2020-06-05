@@ -1728,7 +1728,8 @@
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "
 (clojure.core/let ^{:row 15, :col 2, :line 1} [^{:row 15, :col 3} x 1] ^{:row 16, :col 2} (^{:row 16, :col 3} inc ^{:row 16, :col 7} x))"
-                     {:linters {:type-mismatch {:level :error}}}))))
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(def x) (doto x)"))))
 
 (deftest proxy-super-test
   (is (empty? (lint! "
