@@ -483,13 +483,15 @@
 (defn lint-unused-imports!
   [ctx]
   (doseq [ns (namespace/list-namespaces ctx)
+          :let [ns-config (:config ns)]
+          :when (not (identical? :off (-> ns-config :linters :unused-import :level)))
           :let [filename (:filename ns)
                 imports (:imports ns)
                 used-imports (:used-imports ns)]
           [import _] imports
           :when (not (contains? used-imports import))]
     (findings/reg-finding!
-     ctx
+     (if ns-config (assoc ctx :config ns-config) ctx)
      (node->line filename import :warning :unused-import (str "Unused import " import)))))
 
 (defn lint-unresolved-namespaces!
