@@ -4,11 +4,11 @@
 
 To build the `clj-kondo` binary from source:
 
-* Download [GraalVM](https://github.com/oracle/graal/releases) 19 or newer.
+* Download [GraalVM](https://github.com/graalvm/graalvm-ce-builds/releases) java8 19 or newer.
 
 * Set the `GRAALVM_HOME` variable. E.g.:
 
-        export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-19.2.1/Contents/Home
+        export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-java8-19.3.1/Contents/Home
 
 * git clone this repo and `cd clj-kondo`
 

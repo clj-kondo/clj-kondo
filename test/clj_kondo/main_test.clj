@@ -52,7 +52,17 @@
   (is (empty? (lint! "(let [x 1] [x (let [y (+ x 1)] y)])")))
   (is (empty? (lint! "(let [x 1] #{(let [y 1] y)})")))
   (is (empty? (lint! "(let [x 1] #:a{:a (let [y 1] y)})")))
-  (is (empty? (lint! "(let [x 1] {:a (let [y 1] y)})"))))
+  (is (empty? (lint! "(let [x 1] {:a (let [y 1] y)})")))
+  (is (empty? (lint! "
+(ns foo
+  {:clj-kondo/config '{:lint-as {clojure.test.check.generators/let clojure.core/let}}}
+  (:require [clojure.test.check.generators :as gen]))
+
+(let [_init-link-events 1]
+  (gen/let [_chain-size 2
+            _command-chain 2]
+    1))
+"))))
 
 (deftest redundant-do-test
   (assert-submaps
@@ -1718,7 +1728,8 @@
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "
 (clojure.core/let ^{:row 15, :col 2, :line 1} [^{:row 15, :col 3} x 1] ^{:row 16, :col 2} (^{:row 16, :col 3} inc ^{:row 16, :col 7} x))"
-                     {:linters {:type-mismatch {:level :error}}}))))
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(def x) (doto x)"))))
 
 (deftest proxy-super-test
   (is (empty? (lint! "
@@ -2537,6 +2548,13 @@
 
       (is (= {:error 1 :warning 7 :info 0}
              (select-keys (:summary out) [:error :warning :info]))))))
+
+(deftest config-dir-test
+  (is (seq (lint! (io/file "corpus" "config_dir" "foo.clj")
+                  {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty (lint! (io/file "corpus" "config_dir" "foo.clj")
+                    {:linters {:unresolved-symbol {:level :error}}}
+                    "--config-dir" (.getPath (io/file "corpus" "config_dir"))))))
 
 ;;;; Scratch
 

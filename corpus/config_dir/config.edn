@@ -1,0 +1,1 @@
+{:linters {:unresolved-symbol {:exclude [(bar/weird-macro)]}}}

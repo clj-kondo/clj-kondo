@@ -540,16 +540,20 @@
 
 (defn analyze-like-let
   [{:keys [:filename :callstack
-           :maybe-redundant-let?] :as ctx} expr]
+           :let-parent] :as ctx} expr]
   (let [call (-> callstack first second)
-        let? (= 'let call)
-        let-parent? (one-of (second callstack)
+        [current-call parent-call] callstack
+        parent-let (one-of parent-call
+                           [[clojure.core let]
+                            [cljs.core let]])
+        current-let (one-of current-call
                             [[clojure.core let]
                              [cljs.core let]])
         bv-node (-> expr :children second)
         valid-bv-node (assert-vector ctx call bv-node)]
-    (when (and let? (or (and let-parent? maybe-redundant-let?)
-                        (and valid-bv-node (empty? (:children valid-bv-node)))))
+    (when (and current-let
+               (or (and parent-let (= parent-let let-parent))
+                   (and valid-bv-node (empty? (:children valid-bv-node)))))
       (findings/reg-finding!
        ctx
        (node->line filename expr :warning :redundant-let "Redundant let expression.")))
@@ -562,7 +566,8 @@
                  ;; prevent linting redundant let when using let in bindings
                  (update :callstack #(cons [nil :let-bindings] %))) valid-bv-node)
             let-body (nnext (:children expr))
-            single-child? (and let? (= 1 (count let-body)))
+            let-parent (when (and current-let (= 1 (count let-body)))
+                         current-let)
             _ (lint-even-forms-bindings! ctx call valid-bv-node)
             analyzed (concat analyzed
                              (doall
@@ -570,7 +575,7 @@
                                (-> ctx
                                    (ctx-with-bindings analyzed-bindings)
                                    (update :arities merge arities)
-                                   (assoc :maybe-redundant-let? single-child?))
+                                   (assoc :let-parent let-parent))
                                let-body
                                false)))]
         analyzed))))

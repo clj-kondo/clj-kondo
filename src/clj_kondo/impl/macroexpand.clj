@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]))
 
 (defn with-meta-of [x y]
@@ -77,7 +76,7 @@
 
 (defn expand-doto [_ctx expr]
   (let [[_doto x & forms] (:children expr)
-        gx (with-meta-of (token-node (gensym)) x)
+        gx (with-meta-of (token-node (gensym "_")) x)
         ret (list-node
              (list* (token-node 'let) (vector-node [gx x])
                     (map (fn [f]

@@ -39,6 +39,9 @@ Options:
   --config <config>: config may be a file or an EDN expression. See
     https://cljdoc.org/d/clj-kondo/clj-kondo/%s/doc/configuration.
 
+  --config-dir <config-dir>: use this config directory instead of auto-detected
+    .clj-kondo dir.
+
   --run-as-pod: run clj-kondo as a babashka pod
 " core-impl/version))
   nil)
@@ -52,6 +55,7 @@ Options:
     "--lang"       :scalar
     "--cache"      :scalar
     "--cache-dir"  :scalar
+    "--config-dir" :scalar
     "--lint"       :coll
     "--config"     :coll
     :scalar))
@@ -86,6 +90,7 @@ Options:
      :cache-dir (last (get opts "--cache-dir"))
      :lang default-lang
      :config (get opts "--config")
+     :config-dir (last (get opts "--config-dir"))
      :version (contains? opts "--version")
      :help (contains? opts "--help")
      :pod (= "true" (System/getenv "BABASHKA_POD"))}))
