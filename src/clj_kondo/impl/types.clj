@@ -139,7 +139,7 @@
     (Byte java.lang.Byte) :nilable/byte
     (Number java.lang.Number) :nilable/number
     (int long) :int
-    (Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
+    (Integer java.lang.Integer Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
     (float double) :double
     (Float Double java.lang.Float java.lang.Double) :nilable/double
     (CharSequence java.lang.CharSequence) :nilable/char-sequence
