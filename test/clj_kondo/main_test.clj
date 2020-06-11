@@ -1617,7 +1617,14 @@
       :col 1,
       :level :error,
       :message "defprotocol/-foo is called with 4 args but expects 1, 2 or 3"})
-   (lint! (io/file "corpus" "defprotocol.clj"))))
+   (lint! (io/file "corpus" "defprotocol.clj")))
+  (is (empty? (lint! "
+(ns repro
+  (:import
+    [clojure.lang IReduceInit]))
+
+(defprotocol Db
+  (-list-resources ^IReduceInit [db type start-id]))"))))
 
 (deftest defrecord-test
   (assert-submaps
