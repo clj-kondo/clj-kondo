@@ -591,6 +591,10 @@
 (inc (bar))
 " {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps
+     '({:file "<stdin>", :row 1, :col 28, :level :error, :message "Expected: string, received: integer or nil."})
+     (lint! "(defn f [^Integer x] (subs x 1 10))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
      '({:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: number, received: keyword."})
      (lint! "(defn foo [] :foo) (let [a (foo)] (inc a))"
             {:linters {:type-mismatch {:level :error}}}))
