@@ -24,3 +24,18 @@
                                    :type-mismatch {:level :error}}})]
      #_(prn-seq results)
      results)))
+
+(deftest preserve-arity-linting-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :error, :message "clojure.core/inc is called with 3 args but expects 1"} {:file "<stdin>", :row 9, :col 1, :level :error, :message "foo/fixed-arity is called with 3 args but expects 2"})
+   (lint! "
+(ns foo)
+(defmacro fixed-arity [x y] ::TODO)
+
+(ns bar
+  {:clj-kondo/config {:macroexpand {foo/fixed-arity \"(fn [{:keys [:sexpr]}] {:sexpr `(inc ~@(rest sexpr))})\"}}}
+  (:require [foo :refer [fixed-arity]]))
+
+(fixed-arity 1 2 3)"
+              {:linters {:unresolved-symbol {:level :error}
+                         :invalid-arity {:level :error}}})))

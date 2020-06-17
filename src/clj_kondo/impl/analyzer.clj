@@ -1179,11 +1179,6 @@
 (defn node->sexpr [node]
   (walk node))
 
-(defmacro time* [body]
-  `(if (= "true" (System/getenv "CLJ_KONDO_DEV"))
-     (time ~body)
-     ~body))
-
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1200,7 +1195,8 @@
          unresolved-ns :unresolved-ns
          clojure-excluded? :clojure-excluded?
          :as _m}
-        (resolve-name ctx ns-name full-fn-name)]
+        (resolve-name ctx ns-name full-fn-name)
+        expr-meta (meta expr)]
     (cond (and unresolved?
                (str/ends-with? full-fn-name "."))
           (recur ctx
@@ -1229,11 +1225,32 @@
                   (try (let [sexp (node->sexpr expr)
                              {expanded :sexpr}
                              (sci/binding [sci/out *out*]
-                               (time* (f {:sexpr sexp})))
-                             expanded-string (time* (binding [*print-meta* true]
-                                                      (pr-str expanded)))
-                             parsed (time* (p/parse-string expanded-string))]
-                         ;; TODO: should we return the result of this?
+                               (f {:sexpr sexp}))
+                             expanded-string (binding [*print-meta* true]
+                                               (pr-str expanded))
+                             parsed (p/parse-string expanded-string)]
+                         (namespace/reg-var-usage! ctx ns-name {:type :call
+                                                                :resolved-ns resolved-namespace
+                                                                :ns ns-name
+                                                                :name (with-meta
+                                                                        (or resolved-name full-fn-name)
+                                                                        (meta full-fn-name))
+                                                                :unresolved? unresolved?
+                                                                :unresolved-ns unresolved-ns
+                                                                :clojure-excluded? clojure-excluded?
+                                                                :arity arg-count
+                                                                :row row
+                                                                :end-row (:end-row expr-meta)
+                                                                :col col
+                                                                :end-col (:end-col expr-meta)
+                                                                :base-lang base-lang
+                                                                :lang lang
+                                                                :filename (:filename ctx)
+                                                                :expr expr
+                                                                :callstack (:callstack ctx)
+                                                                :config (:config ctx)
+                                                                :top-ns (:top-ns ctx)
+                                                                :arg-types (:arg-types ctx)})
                          (analyze-expression** ctx (-> parsed :children first)))
                        (catch Exception e
                          (findings/reg-finding! ctx {:filename (:filename ctx)
@@ -1248,7 +1265,6 @@
                     unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
                     resolved-namespace* (if unknown-ns?
                                           ns-name resolved-namespace)
-                    expr-meta (meta expr)
                     ctx (if fq-sym
                           (update ctx :callstack
                                   (fn [cs]
