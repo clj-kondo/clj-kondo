@@ -130,15 +130,15 @@
                                 {:in input})))))]
      (parse-output res))))
 
-(def lint!
-  (case (System/getenv "CLJ_KONDO_TEST_ENV")
-    "jvm" #'lint-jvm!
-    "native" #'lint-native!
-    #'lint-jvm!))
+(def native?
+  (= "native" (System/getenv "CLJ_KONDO_TEST_ENV")))
 
-(if (= lint! #'lint-jvm!)
-  (println "==== Testing JVM version" (clojure-version))
-  (println "==== Testing native version"))
+(def lint!
+  (if native? #'lint-native! #'lint-jvm!))
+
+(if native?
+  (println "==== Testing native version")
+  (println "==== Testing JVM version" (clojure-version)))
 
 (defn file-path
   "returns a file-path with platform specific file separator"

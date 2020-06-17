@@ -1,6 +1,6 @@
 (ns clj-kondo.hooks-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps native?]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [deftest testing is]]))
@@ -42,16 +42,17 @@
                          :invalid-arity {:level :error}}})))
 
 (deftest error-in-macro-fn-test
-  (let [err (java.io.StringWriter.)]
-    (binding [*err* err] (lint! "
+  (when-not native?
+    (let [err (java.io.StringWriter.)]
+      (binding [*err* err] (lint! "
 (ns bar
   {:clj-kondo/config '{:hooks {foo/fixed-arity \"(fn [{:keys [:sexpr]}] {:a :sexpr 1})\"}}}
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
-                             {:linters {:unresolved-symbol {:level :error}
-                                        :invalid-arity {:level :error}}}))
-    (is (str/includes? (str err) "WARNING: error while trying to read hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s)."))))
+                                  {:linters {:unresolved-symbol {:level :error}
+                                             :invalid-arity {:level :error}}}))
+      (is (str/includes? (str err) "WARNING: error while trying to read hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
 
 (deftest hook-test
   (assert-submaps
