@@ -296,12 +296,12 @@
           (sci/eval-string* sci-ctx s))))
     {:sci.impl/op :needs-ctx}))
 
-(def macroexpand-fn
+(def hook-fn
   (let [delayed-cfg
         (fn [config ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
-                 (when-let [code (get-in config [:macroexpand sym])]
+                 (when-let [code (get-in config [:hooks sym])]
                    (let [code (str/triml code)
                          code (if (and (not (str/starts-with? code "("))
                                        (not (str/index-of code \newline)))
@@ -313,7 +313,7 @@
                                                          'clojure.core {'load-file load-file*}}}))))
                (catch Exception e
                  (binding [*out* *err*]
-                   (println "WARNING: error while trying to read macroexpand config for"
+                   (println "WARNING: error while trying to read hook for"
                             (str ns-sym "/" var-sym ":")
                             (.getMessage e))
                    (when (= "true" (System/getenv "CLJ_KONDO_DEV"))

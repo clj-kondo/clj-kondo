@@ -1217,7 +1217,7 @@
                                          [resolved-namespace resolved-name])]
                       [ns n true])
                     [resolved-namespace resolved-name false])]
-            (if-let [f (config/macroexpand-fn config resolved-namespace resolved-name)]
+            (if-let [f (config/hook-fn config resolved-namespace resolved-name)]
               ;;;; Expand macro using user-provided function
               (try (let [sexp (node->sexpr expr)
                          {expanded :sexpr}

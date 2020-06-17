@@ -5,7 +5,7 @@
 
 (ns bar
   {:clj-kondo/config
-   '{:macroexpand
+   '{:hooks
      ;; the macro expansion code can be found in
      ;; .clj-kondo/macroexpand/weird_macro.clj
      {foo/weird-macro "macroexpand/weird_macro.clj"}}}
@@ -19,7 +19,7 @@
 
 (ns slingshot
   {:clj-kondo/config
-   '{:macroexpand
+   '{:hooks
      {slingshot.slingshot/try+ "macroexpand/try_plus.clj"}}}
   (:require [log :as log]
             [slingshot.slingshot :refer [try+]]))
@@ -37,7 +37,7 @@
 (try+) ;; try without catch
 
 (ns baz
-  {:clj-kondo/config '{:macroexpand {better.cond/cond
+  {:clj-kondo/config '{:hooks {better.cond/cond
                                      "
 (defn process-pairs [pairs]
   (loop [[[lhs rhs :as pair] & pairs] pairs
@@ -69,7 +69,7 @@
     (= 11 y) (subs y 0))) ;; yay, type error because y is not a string
 
 (ns quux
-  {:clj-kondo/config '{:macroexpand {rum/defc "
+  {:clj-kondo/config '{:hooks {rum/defc "
 (def f (fn [{:keys [:sexpr]}]
          (let [args (rest sexpr)
                component-name (first args)

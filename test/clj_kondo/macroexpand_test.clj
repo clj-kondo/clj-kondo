@@ -2,8 +2,8 @@
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.java.io :as io]
-   [clojure.test :refer [deftest testing is]]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.test :refer [deftest testing is]]))
 
 (defn prn-seq [coll]
   (doseq [i coll]
@@ -34,7 +34,7 @@
 (defmacro fixed-arity [x y] ::TODO)
 
 (ns bar
-  {:clj-kondo/config '{:macroexpand {foo/fixed-arity \"(fn [{:keys [:sexpr]}] {:sexpr `(inc ~@(rest sexpr))})\"}}}
+  {:clj-kondo/config '{:hooks {foo/fixed-arity \"(fn [{:keys [:sexpr]}] {:sexpr `(inc ~@(rest sexpr))})\"}}}
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
@@ -45,10 +45,10 @@
   (let [err (java.io.StringWriter.)]
     (binding [*err* err] (lint! "
 (ns bar
-  {:clj-kondo/config '{:macroexpand {foo/fixed-arity \"(fn [{:keys [:sexpr]}] {:a :sexpr 1})\"}}}
+  {:clj-kondo/config '{:hooks {foo/fixed-arity \"(fn [{:keys [:sexpr]}] {:a :sexpr 1})\"}}}
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
                              {:linters {:unresolved-symbol {:level :error}
                                         :invalid-arity {:level :error}}}))
-    (is (str/includes? (str err) "WARNING: error while trying to read macroexpand config for foo/fixed-arity: The map literal starting with :a contains 3 form(s)."))))
+    (is (str/includes? (str err) "WARNING: error while trying to read hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s)."))))
