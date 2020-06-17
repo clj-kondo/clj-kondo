@@ -1219,45 +1219,43 @@
                                          [resolved-namespace resolved-name])]
                       [ns n true])
                     [resolved-namespace resolved-name false])]
-            (if-let [;; TODO: handle error when eval goes wrong
-                     f (config/macroexpand-fn config resolved-namespace resolved-name)]
-              (do #_(usages/analyze-usages2 ctx fn-sym-node)
-                  (try (let [sexp (node->sexpr expr)
-                             {expanded :sexpr}
-                             (sci/binding [sci/out *out*]
-                               (f {:sexpr sexp}))
-                             expanded-string (binding [*print-meta* true]
-                                               (pr-str expanded))
-                             parsed (p/parse-string expanded-string)]
-                         (namespace/reg-var-usage! ctx ns-name {:type :call
-                                                                :resolved-ns resolved-namespace
-                                                                :ns ns-name
-                                                                :name (with-meta
-                                                                        (or resolved-name full-fn-name)
-                                                                        (meta full-fn-name))
-                                                                :unresolved? unresolved?
-                                                                :unresolved-ns unresolved-ns
-                                                                :clojure-excluded? clojure-excluded?
-                                                                :arity arg-count
-                                                                :row row
-                                                                :end-row (:end-row expr-meta)
-                                                                :col col
-                                                                :end-col (:end-col expr-meta)
-                                                                :base-lang base-lang
-                                                                :lang lang
-                                                                :filename (:filename ctx)
-                                                                :expr expr
-                                                                :callstack (:callstack ctx)
-                                                                :config (:config ctx)
-                                                                :top-ns (:top-ns ctx)
-                                                                :arg-types (:arg-types ctx)})
-                         (analyze-expression** ctx (-> parsed :children first)))
-                       (catch Exception e
-                         (findings/reg-finding! ctx {:filename (:filename ctx)
-                                                     :row row
-                                                     :col col
-                                                     :type :macroexpand
-                                                     :message (.getMessage e)}))))
+            (if-let [f (config/macroexpand-fn config resolved-namespace resolved-name)]
+              (try (let [sexp (node->sexpr expr)
+                         {expanded :sexpr}
+                         (sci/binding [sci/out *out*]
+                           (f {:sexpr sexp}))
+                         expanded-string (binding [*print-meta* true]
+                                           (pr-str expanded))
+                         parsed (p/parse-string expanded-string)]
+                     (namespace/reg-var-usage! ctx ns-name {:type :call
+                                                            :resolved-ns resolved-namespace
+                                                            :ns ns-name
+                                                            :name (with-meta
+                                                                    (or resolved-name full-fn-name)
+                                                                    (meta full-fn-name))
+                                                            :unresolved? unresolved?
+                                                            :unresolved-ns unresolved-ns
+                                                            :clojure-excluded? clojure-excluded?
+                                                            :arity arg-count
+                                                            :row row
+                                                            :end-row (:end-row expr-meta)
+                                                            :col col
+                                                            :end-col (:end-col expr-meta)
+                                                            :base-lang base-lang
+                                                            :lang lang
+                                                            :filename (:filename ctx)
+                                                            :expr expr
+                                                            :callstack (:callstack ctx)
+                                                            :config (:config ctx)
+                                                            :top-ns (:top-ns ctx)
+                                                            :arg-types (:arg-types ctx)})
+                     (analyze-expression** ctx (-> parsed :children first)))
+                   (catch Exception e
+                     (findings/reg-finding! ctx {:filename (:filename ctx)
+                                                 :row row
+                                                 :col col
+                                                 :type :macroexpand
+                                                 :message (.getMessage e)})))
               (let [fq-sym (when (and resolved-namespace
                                       resolved-name)
                              (symbol (str resolved-namespace)

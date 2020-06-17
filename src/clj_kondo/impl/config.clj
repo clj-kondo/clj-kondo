@@ -299,18 +299,26 @@
 (def macroexpand-fn
   (let [delayed-cfg
         (fn [config ns-sym var-sym]
-          (let [sym (symbol (str ns-sym)
-                            (str var-sym))]
-            (when-let [code (get-in config [:macroexpand sym])]
-              (let [code (str/triml code)
-                    code (if (and (not (str/starts-with? code "("))
-                                  (not (str/index-of code \newline)))
-                           (let [cfg-dir (:cfg-dir config)]
-                             (slurp (io/file cfg-dir code)))
-                           code)]
-                (sci/eval-string code {:aliases {'io 'clojure.java.io}
-                                       :namespaces {'clojure.java.io {'file io/file}
-                                                    'clojure.core {'load-file load-file*}}})))))
+          (try (let [sym (symbol (str ns-sym)
+                                 (str var-sym))]
+                 (when-let [code (get-in config [:macroexpand sym])]
+                   (let [code (str/triml code)
+                         code (if (and (not (str/starts-with? code "("))
+                                       (not (str/index-of code \newline)))
+                                (let [cfg-dir (:cfg-dir config)]
+                                  (slurp (io/file cfg-dir code)))
+                                code)]
+                     (sci/eval-string code {:aliases {'io 'clojure.java.io}
+                                            :namespaces {'clojure.java.io {'file io/file}
+                                                         'clojure.core {'load-file load-file*}}}))))
+               (catch Exception e
+                 (binding [*out* *err*]
+                   (println "WARNING: error while trying to read macroexpand config for"
+                            (str ns-sym "/" var-sym ":")
+                            (.getMessage e))
+                   (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                     (println e)))
+                 nil)))
         delayed-cfg (memoize delayed-cfg)]
     delayed-cfg))
 
