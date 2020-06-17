@@ -881,6 +881,8 @@
                   fixed-arities (set (keep #(when (= :vector (tag %))
                                               ;; skip last docstring
                                               (count (:children %))) arity-vecs))]]
+      (let [ctx (ctx-with-linter-disabled ctx :unresolved-symbol)]
+        (run! #(analyze-usages2 ctx %) arity-vecs))
       (when fn-name
         (namespace/reg-var!
          ctx ns-name fn-name expr (assoc (meta c)
