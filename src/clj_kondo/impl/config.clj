@@ -286,18 +286,22 @@
       (let [excluded (delayed-cfg config)]
         (contains? excluded referred-all-ns)))))
 
-(def load-file*
-  (with-meta
-    (fn [sci-ctx f]
-      (let [f (io/file f)
-            s (slurp f)]
-        (sci/with-bindings {sci/ns @sci/ns
-                            sci/file (.getCanonicalPath f)}
-          (sci/eval-string* sci-ctx s))))
-    {:sci.impl/op :needs-ctx}))
-
 (def hook-fn
-  (let [delayed-cfg
+  (let [delayed-sci-ctx-state (volatile! nil)
+        load-file* (fn [f]
+                     (let [f (io/file f)
+                           s (slurp f)]
+                       (sci/with-bindings {sci/ns @sci/ns
+                                           sci/file (.getCanonicalPath f)}
+                         (sci/eval-string* @@delayed-sci-ctx-state s))))
+        ;; we're not using this until it's actually needed
+        delayed-sci-ctx (delay (sci/init {:aliases {'io 'clojure.java.io}
+                                          :namespaces {'clojure.java.io {'file io/file}
+                                                       'clojure.core {'load-file load-file*}}
+                                          :classes {'java.io.Exception Exception}
+                                          :imports {'Exception 'java.io.Exception}}))
+        _ (vreset! delayed-sci-ctx-state delayed-sci-ctx)
+        delayed-cfg
         (fn [config ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
@@ -308,9 +312,7 @@
                                 (let [cfg-dir (:cfg-dir config)]
                                   (slurp (io/file cfg-dir code)))
                                 code)]
-                     (sci/eval-string code {:aliases {'io 'clojure.java.io}
-                                            :namespaces {'clojure.java.io {'file io/file}
-                                                         'clojure.core {'load-file load-file*}}}))))
+                     (sci/eval-string* @delayed-sci-ctx code))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"

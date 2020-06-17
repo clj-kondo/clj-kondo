@@ -1216,46 +1216,48 @@
                          (config/lint-as config
                                          [resolved-namespace resolved-name])]
                       [ns n true])
-                    [resolved-namespace resolved-name false])]
-            (if-let [f (config/hook-fn config resolved-namespace resolved-name)]
-              ;;;; Expand macro using user-provided function
-              (try (let [sexp (node->sexpr expr)
-                         {expanded :sexpr}
-                         (sci/binding [sci/out *out*]
-                           (f {:sexpr sexp}))
-                         expanded-string (binding [*print-meta* true]
-                                           (pr-str expanded))
-                         parsed (p/parse-string expanded-string)]
+                    [resolved-namespace resolved-name false])
+                hook-fn (config/hook-fn config resolved-namespace resolved-name)
+                transformed (when hook-fn
+                              (let [sexp (node->sexpr expr)]
+                                (sci/binding [sci/out *out*]
+                                  (try (hook-fn {:sexpr sexp})
+                                       (catch Exception e
+                                         (findings/reg-finding! ctx {:filename (:filename ctx)
+                                                                     :row row
+                                                                     :col col
+                                                                     :type :macroexpand
+                                                                     :message (.getMessage e)}))))))]
+            (if-let [expanded (and transformed
+                                   (:sexpr transformed))]
+                            ;;;; Expand macro using user-provided function
+              (let [expanded-string (binding [*print-meta* true]
+                                      (pr-str expanded))
+                    parsed (p/parse-string expanded-string)]
                      ;;;; This registers the macro call, so we still get arity linting
-                     (namespace/reg-var-usage! ctx ns-name {:type :call
-                                                            :resolved-ns resolved-namespace
-                                                            :ns ns-name
-                                                            :name (with-meta
-                                                                    (or resolved-name full-fn-name)
-                                                                    (meta full-fn-name))
-                                                            :unresolved? unresolved?
-                                                            :unresolved-ns unresolved-ns
-                                                            :clojure-excluded? clojure-excluded?
-                                                            :arity arg-count
-                                                            :row row
-                                                            :end-row (:end-row expr-meta)
-                                                            :col col
-                                                            :end-col (:end-col expr-meta)
-                                                            :base-lang base-lang
-                                                            :lang lang
-                                                            :filename (:filename ctx)
-                                                            :expr expr
-                                                            :callstack (:callstack ctx)
-                                                            :config (:config ctx)
-                                                            :top-ns (:top-ns ctx)
-                                                            :arg-types (:arg-types ctx)})
-                     (analyze-expression** ctx (-> parsed :children first)))
-                   (catch Exception e
-                     (findings/reg-finding! ctx {:filename (:filename ctx)
-                                                 :row row
-                                                 :col col
-                                                 :type :macroexpand
-                                                 :message (.getMessage e)})))
+                (namespace/reg-var-usage! ctx ns-name {:type :call
+                                                       :resolved-ns resolved-namespace
+                                                       :ns ns-name
+                                                       :name (with-meta
+                                                               (or resolved-name full-fn-name)
+                                                               (meta full-fn-name))
+                                                       :unresolved? unresolved?
+                                                       :unresolved-ns unresolved-ns
+                                                       :clojure-excluded? clojure-excluded?
+                                                       :arity arg-count
+                                                       :row row
+                                                       :end-row (:end-row expr-meta)
+                                                       :col col
+                                                       :end-col (:end-col expr-meta)
+                                                       :base-lang base-lang
+                                                       :lang lang
+                                                       :filename (:filename ctx)
+                                                       :expr expr
+                                                       :callstack (:callstack ctx)
+                                                       :config (:config ctx)
+                                                       :top-ns (:top-ns ctx)
+                                                       :arg-types (:arg-types ctx)})
+                (analyze-expression** ctx (-> parsed :children first)))
               ;;;; End macroexpansion
               (let [fq-sym (when (and resolved-namespace
                                       resolved-name)
