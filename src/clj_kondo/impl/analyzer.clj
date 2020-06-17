@@ -1221,7 +1221,7 @@
                     [resolved-namespace resolved-name false])]
             (if-let [;; TODO: handle error when eval goes wrong
                      f (config/macroexpand-fn config resolved-namespace resolved-name)]
-              (do (usages/analyze-usages2 ctx fn-sym-node)
+              (do #_(usages/analyze-usages2 ctx fn-sym-node)
                   (try (let [sexp (node->sexpr expr)
                              {expanded :sexpr}
                              (sci/binding [sci/out *out*]
