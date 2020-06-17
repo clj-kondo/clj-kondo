@@ -1186,9 +1186,7 @@
            :row :col
            :expr] :as m}]
   (let [ns-name (:name ns)
-        children (:children expr)
-        fn-sym-node (first children)
-        children (next children)
+        children (next (:children expr))
         {resolved-namespace :ns
          resolved-name :name
          unresolved? :unresolved?
@@ -1220,6 +1218,7 @@
                       [ns n true])
                     [resolved-namespace resolved-name false])]
             (if-let [f (config/macroexpand-fn config resolved-namespace resolved-name)]
+              ;;;; Expand macro using user-provided function
               (try (let [sexp (node->sexpr expr)
                          {expanded :sexpr}
                          (sci/binding [sci/out *out*]
@@ -1227,6 +1226,7 @@
                          expanded-string (binding [*print-meta* true]
                                            (pr-str expanded))
                          parsed (p/parse-string expanded-string)]
+                     ;;;; This registers the macro call, so we still get arity linting
                      (namespace/reg-var-usage! ctx ns-name {:type :call
                                                             :resolved-ns resolved-namespace
                                                             :ns ns-name
@@ -1256,6 +1256,7 @@
                                                  :col col
                                                  :type :macroexpand
                                                  :message (.getMessage e)})))
+              ;;;; End macroexpansion
               (let [fq-sym (when (and resolved-namespace
                                       resolved-name)
                              (symbol (str resolved-namespace)
