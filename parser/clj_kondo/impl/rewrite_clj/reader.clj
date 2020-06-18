@@ -115,6 +115,9 @@
   {row-k (r/get-line-number reader)
    col-k (r/get-column-number reader)})
 
+(def ^:dynamic *with-loc* true)
+(def last-loc (volatile! nil))
+
 (defn read-with-meta
   "Use the given function to read value, then attach row/col metadata."
   [reader read-fn]
@@ -123,7 +126,14 @@
       (if (identical? reader entry)
         (recur (position reader :row :col))
         (let [end-position (position reader :end-row :end-col)
-              new-meta (merge start-position end-position (meta entry))]
+              m (meta entry)
+              loc? (:row m)
+              new-meta (merge (when *with-loc* start-position)
+                              (when *with-loc* end-position)
+                              (if loc? m @last-loc))]
+          (when-not *with-loc*
+            (when loc?
+              (vswap! last-loc m)))
           (with-meta entry new-meta))))))
 
 (defn read-repeatedly

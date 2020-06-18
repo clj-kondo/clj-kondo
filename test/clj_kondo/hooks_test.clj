@@ -63,7 +63,7 @@
                      :invalid-arity {:level :error}}})))
 
 ;; TODO: fix
-#_(deftest location-test
+(deftest location-test
   (testing "Sexprs that are numbers, strings or keywords cannot carry metadata. Hence their location is lost when converting a rewrite-clj node into a sexpr."
     (assert-submaps
      '({:file "corpus/hooks/location.clj", :row 7, :col 9, :level :error, :message "Expected: number, received: string."})

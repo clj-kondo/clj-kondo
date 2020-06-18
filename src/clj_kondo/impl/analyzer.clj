@@ -22,6 +22,7 @@
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.profiler :as profiler]
+   [clj-kondo.impl.rewrite-clj.reader :refer [*with-loc* last-loc]]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
@@ -1240,7 +1241,9 @@
                             ;;;; Expand macro using user-provided function
               (let [expanded-string (binding [*print-meta* true]
                                       (pr-str expanded))
-                    parsed (p/parse-string expanded-string)]
+                    parsed (binding [*with-loc* true #_false]
+                             (vreset! last-loc (meta expr))
+                             (p/parse-string expanded-string))]
                      ;;;; This registers the macro call, so we still get arity linting
                 (namespace/reg-var-usage! ctx ns-name {:type :call
                                                        :resolved-ns resolved-namespace
