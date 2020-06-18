@@ -42,7 +42,7 @@
      (and
       (is (= (count maps#) (count res#)))
       (doseq [m# maps#]
-        (is (some #(submap? m# %) res#))))))
+        (is (some #(submap? m# %) res#) (str "No superset of " m# " found"))))))
 
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the

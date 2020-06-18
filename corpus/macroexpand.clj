@@ -13,7 +13,9 @@
 
 (foo/weird-macro
  [x :foo {:weird-macro/setting true}]
- (inc x)) ;; type error
+ (inc x) ;; type error
+ (inc "foo") ;; this works although strings can't carry metadata. this is why we're using the rewrite api now!
+ )
 
 (foo/weird-macro) ;; wrong number of args is still reported
 
