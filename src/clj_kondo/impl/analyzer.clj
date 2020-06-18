@@ -1221,13 +1221,20 @@
                 transformed (when hook-fn
                               (let [sexp (node->sexpr expr)]
                                 (sci/binding [sci/out *out*]
-                                  (try (hook-fn {:sexpr sexp})
+                                  (try (hook-fn {:sexpr sexp
+                                                 :node expr})
                                        (catch Exception e
-                                         (findings/reg-finding! ctx {:filename (:filename ctx)
-                                                                     :row row
-                                                                     :col col
-                                                                     :type :macroexpand
-                                                                     :message (.getMessage e)}))))))]
+                                         (findings/reg-finding!
+                                          ctx
+                                          (merge
+                                           {:filename (:filename ctx)
+                                            :row row
+                                            :col col
+                                            :type :macroexpand
+                                            :message (.getMessage e)}
+                                           (select-keys (ex-data e)
+                                                        [:row :col])))
+                                         nil)))))]
             (if-let [expanded (and transformed
                                    (:sexpr transformed))]
                             ;;;; Expand macro using user-provided function

@@ -56,20 +56,16 @@
 
 (deftest hook-test
   (assert-submaps
-   '({:file "<stdin>", :row 12, :col 1, :level :error, :message "dispatch arg should be vector! [at line 4, column 7]"}
-     {:file "<stdin>", :row 13, :col 1, :level :error, :message "keyword should be fully qualified! [at line 6, column 7]"})
-   (lint! "
-(ns bar
-  {:clj-kondo/config '{:hooks {re-frame.core/dispatch \"
-(fn [{:keys [:sexpr]}]
-  (let [event (second sexpr)]
-    (when-not (vector? event)
-      (throw (Exception. \\\"dispatch arg should be vector!\\\")))
-    (when-not (qualified-keyword? (first event))
-      (throw (Exception. \\\"keyword should be fully qualified!\\\")))))\"}}}
-  (:require [re-frame.core :refer [dispatch]]))
+   '({:file "corpus/hook.clj", :row 13, :col 11, :level :error, :message "dispatch arg should be vector! [at line 4, column 38]"}
+     {:file "corpus/hook.clj", :row 14, :col 12, :level :error, :message "keyword should be fully qualified! [at line 7, column 38]"})
+   (lint! (io/file "corpus" "hook.clj")
+          {:linters {:unresolved-symbol {:level :error}
+                     :invalid-arity {:level :error}}})))
 
-(dispatch 1)
-(dispatch [:foo 1])"
-             {:linters {:unresolved-symbol {:level :error}
-                        :invalid-arity {:level :error}}})))
+;; TODO: fix
+#_(deftest location-test
+  (testing "Sexprs that are numbers, strings or keywords cannot carry metadata. Hence their location is lost when converting a rewrite-clj node into a sexpr."
+    (assert-submaps
+     '({:file "corpus/hooks/location.clj", :row 7, :col 9, :level :error, :message "Expected: number, received: string."})
+     (lint! (io/file "corpus" "hooks" "location.clj")
+            {:linters {:type-mismatch {:level :error}}}))))
