@@ -2,7 +2,8 @@
   (:require [clj-kondo.impl.rewrite-clj.parser.core :as p]
             [clj-kondo.impl.rewrite-clj
              [node :as node]
-             [reader :as reader]]))
+             [reader :as reader]]
+            [clojure.walk :as w]))
 
 ;; ## Parser Core
 
