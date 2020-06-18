@@ -1236,35 +1236,37 @@
                                                         [:row :col])))
                                          nil)))))]
             (if-let [expanded (and transformed
-                                   (:sexpr transformed))]
+                                   (or (:sexpr transformed)
+                                       (:node transformed)))]
                             ;;;; Expand macro using user-provided function
-              (let [expanded-string (binding [*print-meta* true]
-                                      (pr-str expanded))
-                    parsed (p/parse-string expanded-string)]
+              (do (namespace/reg-var-usage! ctx ns-name {:type :call
+                                                         :resolved-ns resolved-namespace
+                                                         :ns ns-name
+                                                         :name (with-meta
+                                                                 (or resolved-name full-fn-name)
+                                                                 (meta full-fn-name))
+                                                         :unresolved? unresolved?
+                                                         :unresolved-ns unresolved-ns
+                                                         :clojure-excluded? clojure-excluded?
+                                                         :arity arg-count
+                                                         :row row
+                                                         :end-row (:end-row expr-meta)
+                                                         :col col
+                                                         :end-col (:end-col expr-meta)
+                                                         :base-lang base-lang
+                                                         :lang lang
+                                                         :filename (:filename ctx)
+                                                         :expr expr
+                                                         :callstack (:callstack ctx)
+                                                         :config (:config ctx)
+                                                         :top-ns (:top-ns ctx)
+                                                         :arg-types (:arg-types ctx)})
+                  (let [node (if (record? expanded) expanded
+                                 (-> (p/parse-string (binding [*print-meta* true]
+                                                       (pr-str expanded)))
+                                     :children first))]
                      ;;;; This registers the macro call, so we still get arity linting
-                (namespace/reg-var-usage! ctx ns-name {:type :call
-                                                       :resolved-ns resolved-namespace
-                                                       :ns ns-name
-                                                       :name (with-meta
-                                                               (or resolved-name full-fn-name)
-                                                               (meta full-fn-name))
-                                                       :unresolved? unresolved?
-                                                       :unresolved-ns unresolved-ns
-                                                       :clojure-excluded? clojure-excluded?
-                                                       :arity arg-count
-                                                       :row row
-                                                       :end-row (:end-row expr-meta)
-                                                       :col col
-                                                       :end-col (:end-col expr-meta)
-                                                       :base-lang base-lang
-                                                       :lang lang
-                                                       :filename (:filename ctx)
-                                                       :expr expr
-                                                       :callstack (:callstack ctx)
-                                                       :config (:config ctx)
-                                                       :top-ns (:top-ns ctx)
-                                                       :arg-types (:arg-types ctx)})
-                (analyze-expression** ctx (-> parsed :children first)))
+                    (analyze-expression** ctx node)))
               ;;;; End macroexpansion
               (let [fq-sym (when (and resolved-namespace
                                       resolved-name)
