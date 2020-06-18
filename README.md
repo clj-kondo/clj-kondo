@@ -181,7 +181,7 @@ All other error codes indicate an unexpected error.
 ## Babashka pod
 
 Clj-kondo can be invoked as a [babashka
-pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
+pod](https://github.com/babashka/babashka.pods).
 
 ``` clojure
 #!/usr/bin/env bb
