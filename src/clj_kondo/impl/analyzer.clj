@@ -1219,6 +1219,7 @@
                     [resolved-namespace resolved-name false])
                 hook-fn (config/hook-fn config resolved-namespace resolved-name)
                 transformed (when hook-fn
+                              ;;;; Expand macro using user-provided function
                               (let [sexp (node->sexpr expr)]
                                 (sci/binding [sci/out *out*]
                                   (try (hook-fn {:sexpr sexp
@@ -1238,8 +1239,8 @@
             (if-let [expanded (and transformed
                                    (or (:sexpr transformed)
                                        (:node transformed)))]
-                            ;;;; Expand macro using user-provided function
-              (do (namespace/reg-var-usage! ctx ns-name {:type :call
+              (do ;;;; This registers the macro call, so we still get arity linting
+                  (namespace/reg-var-usage! ctx ns-name {:type :call
                                                          :resolved-ns resolved-namespace
                                                          :ns ns-name
                                                          :name (with-meta
@@ -1261,11 +1262,14 @@
                                                          :config (:config ctx)
                                                          :top-ns (:top-ns ctx)
                                                          :arg-types (:arg-types ctx)})
+                  ;;;; This registers the namespace as used, to prevent unused warnings
+                  (namespace/reg-used-namespace! ctx
+                                                 ns-name
+                                                 resolved-namespace)
                   (let [node (if (record? expanded) expanded
                                  (-> (p/parse-string (binding [*print-meta* true]
                                                        (pr-str expanded)))
                                      :children first))]
-                     ;;;; This registers the macro call, so we still get arity linting
                     (analyze-expression** ctx node)))
               ;;;; End macroexpansion
               (let [fq-sym (when (and resolved-namespace
