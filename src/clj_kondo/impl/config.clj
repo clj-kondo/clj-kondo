@@ -3,7 +3,8 @@
   (:require
    [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :refer [vconj deep-merge map-vals
-                                 vector-node list-node token-node]]
+                                 vector-node list-node token-node
+                                 sexpr]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [sci.core :as sci]))
@@ -302,7 +303,7 @@
                                                        'clj-kondo.hooks-api {'token-node token-node
                                                                              'vector-node vector-node
                                                                              'list-node list-node
-                                                                             ;; TODO: add sexpr
+                                                                             'sexpr sexpr
                                                                              }}
                                           :classes {'java.io.Exception Exception}
                                           :imports {'Exception 'java.io.Exception}}))

@@ -1,31 +1,43 @@
-(defn expand-catch [[_catch catchee & exprs :as expr]]
-  (cond (vector? catchee)
-        (let [[selector & exprs] exprs]
-           ;; (debug \"meta\" (map (juxt identity (comp meta first)) exprs))
-            `(catch Exception _e#
-                        (let [~selector nil]
-                          ~@exprs)))
-        :else expr))
+(require '[clj-kondo.hooks-api :as api])
 
-(fn try+ [{:keys [sexpr]}]
-  ;; (prn \"expr\" sexpr)
-  (let [body (rest sexpr)
+(defn expand-catch [catch-node]
+  (let [[catch catchee & exprs] (:children catch-node)
+        catchee-sexpr (api/sexpr catchee)]
+    (cond (vector? catchee-sexpr)
+          (let [[selector & exprs] exprs]
+            (api/list-node
+             [catch (api/token-node 'Exception) (api/token-node '_e#)
+              (api/list-node
+               (list* (api/token-node 'let)
+                      (api/vector-node [selector (api/token-node nil)])
+                      exprs))]))
+          :else catch-node)))
+
+(fn try+ [{:keys [node]}]
+  (let [children (rest (:children node))
         [body catches]
-        (loop [body body
+        (loop [body children
                body-exprs []
                catches []]
           (if (seq body)
-            (let [f (first body)]
-              (if (and (seq? f) (= 'catch (first f)))
+            (let [f (first body)
+                  f-sexpr (api/sexpr f)]
+              (if (and (seq? f-sexpr) (= 'catch (first f-sexpr)))
                 (recur (rest body)
                        body-exprs
                        (conj catches (expand-catch f)))
                 (recur (rest body)
                        (conj body-exprs f)
                        catches)))
-            [body-exprs catches]))]
-    {:sexpr
-      `(let [~'throw+ (fn [])
-           ~'&throw-context nil]
-       ~(with-meta `(try ~@body ~@catches)
-          (meta sexpr)))}))
+            [body-exprs catches]))
+        new-node (api/list-node
+                  [(api/token-node 'let)
+                   (api/vector-node
+                    [(api/token-node 'throw+) (api/list-node [(api/token-node 'fn)
+                                                              (api/vector-node [])])
+                     (api/token-node '&throw-context) (api/token-node nil)])
+                   (with-meta (api/list-node (list* (api/token-node 'try)
+                                                    (concat body catches)))
+                     (meta node))])]
+    ;; (prn (api/sexpr new-node))
+    {:node new-node}))
