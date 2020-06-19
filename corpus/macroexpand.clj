@@ -99,12 +99,12 @@
 
 (rum/defc with-mixin
   < rum/static
-  [context]
+  [context] ;; no unresolved symbol
   [:div
    [:h1 "result"]
    [:pre (pr-str context)]])
 
-(with-mixin 1) ;; no unresolved symbol
+(with-mixin 1)
 (with-mixin a a a a) ;; unresolved symbol and arity error for with-mixin
 
 (rum/defc with-mixin ;; TODO: why no redefined var?
