@@ -17,16 +17,16 @@
      {:file "corpus/macroexpand.clj", :row 20, :col 1, :level :error, :message "foo/weird-macro is called with 0 args but expects 1 or more"}
      {:file "corpus/macroexpand.clj", :row 31, :col 48, :level :warning, :message "unused binding tree"}
      {:file "corpus/macroexpand.clj", :row 39, :col 1, :level :warning, :message "Missing catch or finally in try"}
-     {:file "corpus/macroexpand.clj", :row 71, :col 20, :level :error, :message "Expected: string, received: number."}
-     {:file "corpus/macroexpand.clj", :row 107, :col 1, :level :error, :message "quux/with-mixin is called with 4 args but expects 1"}
-     {:file "corpus/macroexpand.clj", :row 107, :col 13, :level :error, :message "unresolved symbol a"}
-     {:file "corpus/macroexpand.clj", :row 109, :col 1, :level :warning, :message "redefined var #'quux/with-mixin"})
+     {:file "corpus/macroexpand.clj", :row 72, :col 20, :level :error, :message "Expected: string, received: number."}
+     {:file "corpus/macroexpand.clj", :row 108, :col 1, :level :error, :message "quux/with-mixin is called with 4 args but expects 1"}
+     {:file "corpus/macroexpand.clj", :row 108, :col 13, :level :error, :message "unresolved symbol a"}
+     {:file "corpus/macroexpand.clj", :row 110, :col 1, :level :warning, :message "redefined var #'quux/with-mixin"})
    (let [results (lint! (io/file "corpus" "macroexpand.clj")
                         {:linters {:unresolved-symbol {:level :error}
                                    :unused-binding {:level :warning}
                                    :type-mismatch {:level :error}}}
                         "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))]
-     #_(prn-seq results)
+     ;;(prn-seq results)
      results)))
 
 (deftest preserve-arity-linting-test

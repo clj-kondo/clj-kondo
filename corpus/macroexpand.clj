@@ -40,28 +40,29 @@
 
 (ns baz
   {:clj-kondo/config '{:hooks {better.cond/cond
-                                     "
+                               "
+(require '[clj-kondo.hooks-api :as api])
 (defn process-pairs [pairs]
   (loop [[[lhs rhs :as pair] & pairs] pairs
-         new-body ['cond]]
+         new-body [(api/token-node 'cond)]]
     (if pair
+      (let [lhs-sexpr (api/sexpr lhs)]
       (cond
-        (= 1 (count pair)) (seq (conj new-body lhs))
-        (not (keyword? lhs))
+        (= 1 (count pair)) (api/list-node (conj new-body lhs))
+        (not (keyword? lhs-sexpr))
         (recur pairs
                (conj new-body lhs rhs))
-        (= :let lhs)
-        (seq (conj new-body :else (list 'let rhs
-                                       (process-pairs pairs)))))
-      (seq new-body))))
+        (= :let lhs-sexpr)
+        (api/list-node (conj new-body (api/token-node :else) (api/list-node [(api/token-node 'let) rhs (process-pairs pairs)])))))
+      (api/list-node new-body))))
 
 (def f
-  (fn [{:keys [:sexpr]}]
-    (let [expr (let [args (rest sexpr)
+  (fn [{:keys [:node]}]
+    (let [expr (let [args (rest (:children node))
                      pairs (partition-all 2 args)]
                  (process-pairs pairs))]
-      {:sexpr (with-meta expr
-                (meta sexpr))})))"}}}
+      {:node (with-meta expr
+                (meta node))})))"}}}
   (:require [better.cond :as b]))
 
 (let [x 10]
@@ -72,8 +73,9 @@
 
 (ns quux
   {:clj-kondo/config '{:hooks {rum/defc "
-(def f (fn [{:keys [:sexpr]}]
-         (let [args (rest sexpr)
+(require '[clj-kondo.hooks-api :as api])
+(def f (fn [{:keys [:node]}]
+         (let [args (rest (:children node))
                component-name (first args)
                args (next args)
                body
@@ -81,18 +83,17 @@
                       mixins []]
                  (if (seq args*)
                    (let [a (first args*)]
-                     (if (vector? a)
+                     (if (vector? (api/sexpr a))
                        (cons a (concat mixins (rest args*)))
                        (recur (rest args*)
                               (conj mixins a))))
                    args))
-              expr (with-meta (list* (with-meta 'defn
-                                       (meta sexpr))
-                       component-name body)
-                     (meta sexpr))]
+              new-node (with-meta
+                         (api/list-node (list* (api/token-node 'defn) component-name body))
+                          (meta node))]
            ;; (prn (meta sexpr))
            ;; (prn expr)
-           {:sexpr expr})))
+           {:node new-node})))
 "}}}
   (:require [rum]))
 

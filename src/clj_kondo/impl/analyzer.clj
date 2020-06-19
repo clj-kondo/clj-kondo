@@ -1237,8 +1237,7 @@
                                                         [:row :col])))
                                          nil)))))]
             (if-let [expanded (and transformed
-                                   (or (:sexpr transformed)
-                                       (:node transformed)))]
+                                   (:node transformed))]
               (do ;;;; This registers the macro call, so we still get arity linting
                   (namespace/reg-var-usage! ctx ns-name {:type :call
                                                          :resolved-ns resolved-namespace
@@ -1266,10 +1265,7 @@
                   (namespace/reg-used-namespace! ctx
                                                  ns-name
                                                  resolved-namespace)
-                  (let [node (if (record? expanded) expanded
-                                 (-> (p/parse-string (binding [*print-meta* true]
-                                                       (pr-str expanded)))
-                                     :children first))]
+                  (let [node expanded]
                     (analyze-expression** ctx node)))
               ;;;; End macroexpansion
               (let [fq-sym (when (and resolved-namespace
