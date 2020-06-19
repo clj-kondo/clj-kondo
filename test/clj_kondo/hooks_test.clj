@@ -67,8 +67,8 @@
 
 (deftest hook-test
   (assert-submaps
-   '({:file "corpus/hook.clj", :row 13, :col 11, :level :error, :message "dispatch arg should be vector! [at line 4, column 38]"}
-     {:file "corpus/hook.clj", :row 14, :col 12, :level :error, :message "keyword should be fully qualified! [at line 7, column 38]"})
+   '({:file "corpus/hook.clj", :row 17, :col 11, :level :error, :message #"dispatch arg should be vector!"}
+     {:file "corpus/hook.clj", :row 18, :col 12, :level :error, :message #"keyword should be fully qualified!"})
    (lint! (io/file "corpus" "hook.clj")
           {:linters {:unresolved-symbol {:level :error}
                      :invalid-arity {:level :error}}})))
