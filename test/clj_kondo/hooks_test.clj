@@ -31,25 +31,33 @@
 
 (deftest preserve-arity-linting-test
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 1, :level :error, :message "clojure.core/inc is called with 3 args but expects 1"} {:file "<stdin>", :row 9, :col 1, :level :error, :message "foo/fixed-arity is called with 3 args but expects 2"})
+   '({:file "<stdin>", :row 16, :col 1, :level :error, :message "foo/fixed-arity is called with 3 args but expects 2"}
+     {:file "<stdin>", :row 16, :col 1, :level :error, :message "clojure.core/inc is called with 3 args but expects 1"})
    (lint! "
 (ns foo)
 (defmacro fixed-arity [x y] ::TODO)
 
 (ns bar
-  {:clj-kondo/config '{:hooks {foo/fixed-arity \"(fn [{:keys [:sexpr]}] {:sexpr `(inc ~@(rest sexpr))})\"}}}
+  {:clj-kondo/config '{:hooks {foo/fixed-arity \"
+
+(require '[clj-kondo.hooks-api :as api])
+(fn [{:keys [:node]}]
+  {:node (with-meta (api/list-node (list* (api/token-node 'inc) (rest (:children node))))
+           (meta node))})
+
+\"}}}
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
-              {:linters {:unresolved-symbol {:level :error}
-                         :invalid-arity {:level :error}}})))
+          {:linters {:unresolved-symbol {:level :error}
+                     :invalid-arity {:level :error}}})))
 
 (deftest error-in-macro-fn-test
   (when-not native?
     (let [err (java.io.StringWriter.)]
       (binding [*err* err] (lint! "
 (ns bar
-  {:clj-kondo/config '{:hooks {foo/fixed-arity \"(fn [{:keys [:sexpr]}] {:a :sexpr 1})\"}}}
+  {:clj-kondo/config '{:hooks {foo/fixed-arity \"(fn [{:keys [:node]}] {:a :sexpr 1})\"}}}
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
