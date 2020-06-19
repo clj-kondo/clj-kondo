@@ -65,6 +65,7 @@
                                              :invalid-arity {:level :error}}}))
       (is (str/includes? (str err) "WARNING: error while trying to read hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
 
+;; TODO: move to hooks dir and rename to finding-test or something
 (deftest hook-test
   (assert-submaps
    '({:file "corpus/hook.clj", :row 17, :col 11, :level :error, :message #"dispatch arg should be vector!"}
@@ -73,10 +74,20 @@
           {:linters {:unresolved-symbol {:level :error}
                      :invalid-arity {:level :error}}})))
 
-;; TODO: fix
-#_(deftest location-test
-  (testing "Sexprs that are numbers, strings or keywords cannot carry metadata. Hence their location is lost when converting a rewrite-clj node into a sexpr."
+(deftest location-test
+  (testing "Sexprs that are numbers, strings or keywords cannot carry
+  metadata. Hence their location is lost when converting a rewrite-clj node into
+  a sexpr. This is why we started using rewrite-clj directly."
     (assert-submaps
-     '({:file "corpus/hooks/location.clj", :row 7, :col 9, :level :error, :message "Expected: number, received: string."})
+     '({:file "corpus/hooks/location.clj", :row 12, :col 10, :level :error, :message "Expected: number, received: string."})
      (lint! (io/file "corpus" "hooks" "location.clj")
             {:linters {:type-mismatch {:level :error}}}))))
+
+(deftest expectations-test
+  (assert-submaps
+   '({:file "corpus/hooks/expectations.clj", :row 25, :col 45, :level :warning, :message "unused binding b"}
+     {:file "corpus/hooks/expectations.clj", :row 27, :col 41, :level :error, :message "unresolved symbol b'"})
+   (lint! (io/file "corpus" "hooks" "expectations.clj")
+          {:linters {:unused-binding {:level :warning}
+                     :unresolved-symbol {:level :error}
+                     :invalid-arity {:level :error}}})))
