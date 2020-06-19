@@ -24,7 +24,8 @@
    (let [results (lint! (io/file "corpus" "macroexpand.clj")
                         {:linters {:unresolved-symbol {:level :error}
                                    :unused-binding {:level :warning}
-                                   :type-mismatch {:level :error}}})]
+                                   :type-mismatch {:level :error}}}
+                        "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))]
      #_(prn-seq results)
      results)))
 
