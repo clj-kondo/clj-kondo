@@ -107,6 +107,6 @@
 (with-mixin 1)
 (with-mixin a a a a) ;; unresolved symbol and arity error for with-mixin
 
-(rum/defc with-mixin ;; TODO: why no redefined var?
+(rum/defc with-mixin ;; redefined var
   [_])
 
