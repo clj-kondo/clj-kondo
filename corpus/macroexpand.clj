@@ -72,7 +72,7 @@
     (= 11 y) (subs y 0))) ;; yay, type error because y is not a string
 
 (ns quux
-  {:clj-kondo/config '{:hooks {rum/defc "
+  {:clj-kondo/config '{:hooks {rum.core/defc "
 (require '[clj-kondo.hooks-api :as api])
 (def f (fn [{:keys [:node]}]
          (let [args (rest (:children node))
@@ -94,8 +94,9 @@
            ;; (prn (meta sexpr))
            ;; (prn expr)
            {:node new-node})))
-"}}}
-  (:require [rum]))
+"}
+                       :lint-as {rum.core/defcs rum.core/defc}}}
+  (:require [rum.core :as rum]))
 
 (rum/defc with-mixin
   < rum/static
@@ -110,3 +111,10 @@
 (rum/defc with-mixin ;; redefined var
   [_])
 
+(rum/defcs stateful < (rum/local 0 ::key)
+  [state label]
+  (let [local-atom (::key state)]
+    [:div { :on-click (fn [_] (swap! local-atom inc)) }
+     label ": " @local-atom]))
+
+(stateful {} 1) ;; no warning

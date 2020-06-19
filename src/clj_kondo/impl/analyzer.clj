@@ -1217,7 +1217,7 @@
                                          [resolved-namespace resolved-name])]
                       [ns n true])
                     [resolved-namespace resolved-name false])
-                hook-fn (config/hook-fn config resolved-namespace resolved-name)
+                hook-fn (config/hook-fn config resolved-as-namespace resolved-as-name)
                 transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
                               (let [sexp (node->sexpr expr)]
