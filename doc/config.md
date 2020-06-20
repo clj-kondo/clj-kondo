@@ -464,7 +464,7 @@ Now clj-kondo fully understands the `my-lib/with-bound` macro and you will no
 longer get false positives when using it. Moreover, it will report unused
 bindings and will give warnings customized to this macro.
 
-<img src="../screenshots/hooks-with-bound.png"/>
+<img src="../screenshots/hooks-with-bound.png" width="50%"/>
 
 #### Custom lint warnings
 
