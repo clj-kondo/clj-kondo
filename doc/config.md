@@ -464,6 +464,8 @@ Now clj-kondo fully understands the `my-lib/with-bound` macro and you will no
 longer get false positives when using it. Moreover, it will report unused
 bindings and will give warnings customized to this macro.
 
+<img src="../screenshots/hooks-with-bound.png"/>
+
 #### Custom lint warnings
 
 Analyze-call hooks can also be used to create custom lint warnings, without
@@ -498,8 +500,21 @@ the hooks throws an exception with a message and the metadata of the relevant
 node. The metadata of a rewrite-clj node contains `:row` and `:col` which is
 used by clj-kondo to emit the finding at the correct location.
 
-In case of an unqualified keyword we register a finding with `api/reg-finding!`. 
+In case of an unqualified keyword we register a finding with `api/reg-finding!`
+which has a `:message`, and `:type`. The `:type` should also occur in the
+clj-kondo configuration with a level set to `:info`, `:warning` or `:error` in
+order to appear in the output:
 
+``` clojure
+{:linters {:re-frame/keyword {:level :warning}}
+ :hooks {:analyze-call {re-frame.core/dispatch hooks.re-frame/dispatch}}}
+```
+
+Additionally, the finding has `:row` and `:col`,
+derived from the node's metadata to show the finding at the appropriate
+location.
+
+<img src="../screenshots/re-frame-hook.png"/>
 
 ## Output
 
