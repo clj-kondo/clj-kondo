@@ -8,6 +8,7 @@
 - [Hooks](#hooks)
 - [Output](#output)
 - [Example configurations](#example-configurations)
+- [Library configurations](#library-configurations)
 - [Deprecations](#deprecations)
 
 ## Introduction
@@ -591,6 +592,16 @@ These are some example configurations used in real projects. Feel free to create
 - [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
 
 [Back](#table-of-contents) to table of contents
+
+## Library configurations
+
+Here are some library-specific configurations.
+
+### HugSQL
+
+### Slingshot
+
+### Rum
 
 ## Deprecations
 
