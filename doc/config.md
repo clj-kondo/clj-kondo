@@ -446,7 +446,7 @@ The symbol `hooks.with-bound/with-bound` corresponds to the file
 it. Note that the file has to declare a namespace corresponding to its directory
 structure and file name, just like in normal Clojure.
 
-A analyze-call hook function receives a node in its argument map. It will use
+An analyze-call hook function receives a node in its argument map. It will use
 the `clj-kondo.hooks-api` namespace to rewrite this node into a new node.  The
 node data structures and related functions are based on the
 [rewrite-clj](https://github.com/xsc/rewrite-clj) library. Clj-kondo has a
