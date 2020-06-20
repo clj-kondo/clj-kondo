@@ -85,7 +85,7 @@
               :single-key-in {:level :off}
               :missing-clause-in-try {:level :warning}
               :missing-body-in-when {:level :warning}
-              :macroexpand {:level :error}}
+              :hook {:level :error}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn

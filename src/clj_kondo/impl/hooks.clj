@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.hooks
-  (:require [clj-kondo.impl.utils :refer [vector-node list-node token-node
+  (:require [clj-kondo.impl.findings :as findings]
+            [clj-kondo.impl.utils :refer [vector-node list-node token-node
                                           sexpr]]
             [clojure.java.io :as io]
             [clojure.string :as str]
@@ -8,11 +9,18 @@
 (set! *warn-on-reflection* true)
 
 (def ^:dynamic *cfg-dir* nil)
+(def ^:dynamic *ctx* nil)
+
+(defn reg-finding! [m]
+  (let [ctx *ctx*
+        filename (:filename ctx)]
+    (findings/reg-finding! ctx (assoc m :filename filename))))
 
 (def sci-ctx (sci/init {:namespaces {'clj-kondo.hooks-api {'token-node token-node
                                                            'vector-node vector-node
                                                            'list-node list-node
-                                                           'sexpr sexpr}}
+                                                           'sexpr sexpr
+                                                           'reg-finding! reg-finding!}}
                         :classes {'java.io.Exception Exception}
                         :imports {'Exception 'java.io.Exception}
                         :load-fn (fn [{:keys [:namespace]}]

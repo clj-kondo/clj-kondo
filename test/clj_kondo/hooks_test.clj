@@ -65,12 +65,11 @@
                                              :invalid-arity {:level :error}}}))
       (is (str/includes? (str err) "WARNING: error while trying to read hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
 
-;; TODO: move to hooks dir and rename to finding-test or something
-(deftest hook-test
+(deftest re-frame-test
   (assert-submaps
-   '({:file "corpus/hook.clj", :row 17, :col 11, :level :error, :message #"dispatch arg should be vector!"}
-     {:file "corpus/hook.clj", :row 18, :col 12, :level :error, :message #"keyword should be fully qualified!"})
-   (lint! (io/file "corpus" "hook.clj")
+   '({:file "corpus/hooks/re_frame.clj", :row 22, :col 11, :level :error, :message #"dispatch arg should be vector!"}
+     {:file "corpus/hooks/re_frame.clj", :row 23, :col 12, :level :warning, :message #"keyword should be fully qualified!"})
+   (lint! (io/file "corpus" "hooks" "re_frame.clj")
           {:linters {:unresolved-symbol {:level :error}
                      :invalid-arity {:level :error}}})))
 

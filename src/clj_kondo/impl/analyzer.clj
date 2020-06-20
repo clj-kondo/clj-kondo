@@ -1222,21 +1222,22 @@
                 transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
                               (let [sexp (node->sexpr expr)]
-                                (sci/binding [sci/out *out*]
-                                  (try (hook-fn {:sexpr sexp
-                                                 :node expr})
-                                       (catch Exception e
-                                         (findings/reg-finding!
-                                          ctx
-                                          (merge
-                                           {:filename (:filename ctx)
-                                            :row row
-                                            :col col
-                                            :type :macroexpand
-                                            :message (.getMessage e)}
-                                           (select-keys (ex-data e)
-                                                        [:row :col])))
-                                         nil)))))]
+                                (binding [hooks/*ctx* ctx]
+                                  (sci/binding [sci/out *out*]
+                                    (try (hook-fn {:sexpr sexp
+                                                   :node expr})
+                                         (catch Exception e
+                                           (findings/reg-finding!
+                                            ctx
+                                            (merge
+                                             {:filename (:filename ctx)
+                                              :row row
+                                              :col col
+                                              :type :hook
+                                              :message (.getMessage e)}
+                                             (select-keys (ex-data e)
+                                                          [:level :row :col])))
+                                           nil))))))]
             (if-let [expanded (and transformed
                                    (:node transformed))]
               (do ;;;; This registers the macro call, so we still get arity linting
