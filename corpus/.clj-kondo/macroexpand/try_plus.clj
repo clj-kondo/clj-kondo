@@ -1,4 +1,5 @@
-(require '[clj-kondo.hooks-api :as api])
+(ns macroexpand.try-plus
+  (:require [clj-kondo.hooks-api :as api]))
 
 (defn expand-catch [catch-node]
   (let [[catch catchee & exprs] (:children catch-node)
@@ -13,7 +14,7 @@
                       exprs))]))
           :else catch-node)))
 
-(fn try+ [{:keys [node]}]
+(defn try+ [{:keys [node]}]
   (let [children (rest (:children node))
         [body catches]
         (loop [body children

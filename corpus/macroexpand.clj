@@ -22,7 +22,7 @@
 (ns slingshot
   {:clj-kondo/config
    '{:hooks
-     {slingshot.slingshot/try+ "macroexpand/try_plus.clj"}}}
+     {slingshot.slingshot/try+ macroexpand.try-plus/try+}}}
   (:require [log :as log]
             [slingshot.slingshot :refer [try+]]))
 
