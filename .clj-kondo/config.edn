@@ -4,7 +4,8 @@
                       clj-kondo.impl.var-info-gen
                       clj-kondo.impl.node.seq
                       clj-kondo.impl.profiler]}
-           #_#_:unresolved-symbol
+           ;; this isn't necessary anymore since we use an analyze-call hook for one-of now
+           :unresolved-symbol
            {:exclude [(clj-kondo.impl.utils/one-of)]}
            :unused-referred-var
            {:exclude {clojure.test [is deftest testing]}}
