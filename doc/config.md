@@ -386,14 +386,14 @@ The `analyze-call` hook can be used for:
 
 As an example, let's take this macro:
 
-``` shellsession
+``` clojure
 (ns mylib)
 (defmacro with-bound [binding-vector & body] ,,,)
 ```
 
 Users can call this macro like:
 
-``` shellsession
+``` clojure
 (require '[my-lib])
 (my-lib/with-bound [a 1 {:with-bound/setting true}] (inc a))
 ```
@@ -404,7 +404,7 @@ the binding vector, we could have used `:lint-as {my-lib.with-bound
 clojure.core/let}`, but unfortunately that doesn't work for this macro. We will
 now write a hook that transforms the call into:
 
-``` shellsession
+``` clojure
 (let [a 1] {:with-bound/setting true} (inc a))
 ```
 
