@@ -408,9 +408,9 @@ now write a hook that transforms the call into:
 (let [a 1] {:with-bound/setting true} (inc a))
 ```
 
-This is code clj-kondo fully understands. It is not important that the code is
-rewritten exactly like the macroexpansion. What counts is that the
-transformation rewrites into code that clj-kondo can understand.
+It is not important that the code is rewritten exactly like the
+macroexpansion. What counts is that the transformation rewrites into code that
+clj-kondo can understand.
 
 This is the code for the hook:
 
