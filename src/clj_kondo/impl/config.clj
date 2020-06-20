@@ -84,7 +84,8 @@
               :single-operand-comparison {:level :warning}
               :single-key-in {:level :off}
               :missing-clause-in-try {:level :warning}
-              :missing-body-in-when {:level :warning}}
+              :missing-body-in-when {:level :warning}
+              :hook {:level :error}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -95,6 +96,7 @@
               schema.core/defschema clojure.core/def
               compojure.core/defroutes clojure.core/def
               compojure.core/let-routes clojure.core/let}
+    :macroexpand {}
     :output {:format :text ;; or :edn
              :summary true ;; outputs summary at end, only applicable to output :text
              ;; outputs analyzed var definitions and usages of them

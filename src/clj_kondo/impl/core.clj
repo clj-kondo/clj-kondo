@@ -36,15 +36,21 @@
 
 (declare read-edn-file)
 
+(defn read-fn
+  [^java.io.File cfg-file process-fn file-to-read]
+  (let [f (io/file (.getParent cfg-file) file-to-read)]
+    (if (.exists f)
+      (process-fn f)
+      (binding [*out* *err*]
+        (println "WARNING: included file" (.getCanonicalPath f) "does not exist.")))))
+
 (defn opts [^java.io.File cfg-file]
-  {:readers
-   {'include
-    (fn [file]
-      (let [f (io/file (.getParent cfg-file) file)]
-        (if (.exists f)
-          (read-edn-file f)
-          (binding [*out* *err*]
-            (println "WARNING: included file" (.getCanonicalPath f) "does not exist.")))))}})
+  (let [include #(read-fn cfg-file read-edn-file %)]
+    {:readers
+     {'include include
+      ;;'include-edn include
+      ;;'include-string #(read-fn cfg-file slurp %)
+      }}))
 
 (defn read-edn-file [^java.io.File f]
   (try (edn/read-string (opts f) (slurp f))
@@ -56,7 +62,6 @@
 (defn- read-config [config]
   (cond (map? config)
         config
-
         (string? config)
         (if (or (str/starts-with? config "{")
                 (str/starts-with? config "^"))
@@ -64,13 +69,16 @@
           ;; config is a string that represents a file
           (read-edn-file (io/file config)))))
 
-(defn resolve-config [cfg-dir configs]
-  (reduce config/merge-config! config/default-config
-          (into [(when cfg-dir
-                   (let [f (io/file cfg-dir "config.edn")]
-                     (when (.exists f)
-                       (read-edn-file f))))]
-                (map read-config configs))))
+(defn resolve-config [^java.io.File cfg-dir configs]
+  (let [config
+        (reduce config/merge-config! config/default-config
+                (into [(when cfg-dir
+                         (let [f (io/file cfg-dir "config.edn")]
+                           (when (.exists f)
+                             (read-edn-file f))))]
+                      (map read-config configs)))]
+    (cond-> config
+      cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
 
 ;;;; process cache
 

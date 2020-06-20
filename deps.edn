@@ -2,7 +2,8 @@
  :deps {com.cognitect/transit-clj {:mvn/version "1.0.324"}
         io.lambdaforge/datalog-parser {:mvn/version "0.1.7"}
         cheshire {:mvn/version "5.10.0"}
-        nrepl/bencode {:mvn/version "1.1.0"}}
+        nrepl/bencode {:mvn/version "1.1.0"}
+        borkdude/sci {:mvn/version "0.1.0"}}
  :aliases {:clj-kondo
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
@@ -40,5 +41,6 @@
            :pod-test
            {:extra-paths ["pod-test"]
             :extra-deps
-            {babashka/pods {:git/url "https://github.com/babashka/babashka.pods"
+            {babashka/pods {#_#_:local/root "/Users/borkdude/Dropbox/dev/clojure/babashka/babashka.pods"
+                            :git/url "https://github.com/babashka/babashka.pods"
                             :sha "57cc95a2e2193a4bfb8505d44acaca900279369a"}}}}}

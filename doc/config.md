@@ -1,5 +1,17 @@
 # Configuration
 
+Table of contents:
+
+- [Introduction](#introduction)
+- [Unrecognized macros](#unrecognized-macros)
+- [Example configurations](#example-configurations)
+- [Linters](#linters)
+- [Hooks](#hooks)
+- [Output](#output)
+- [Deprecations](#deprecations)
+
+## Introduction
+
 Clj-kondo can be configured in four ways, by providing:
 
 - a `config.edn` file in the `.clj-kondo` directory (see [project setup](../README.md#project-setup))
@@ -16,8 +28,22 @@ namespace local configuration. Also note that namespace local config must always
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
 
-- [Linters](#linters)
-- [Output](#output)
+## Unrecognized macros
+
+Clj-kondo only expands a selected set of macros from clojure.core and some
+popular community libraries. For unrecognized macros you can use these
+configurations:
+
+- [`:lint-as`](#lint-a-custom-macro-like-a-built-in-macro)
+- [`:unresolved-symbol`](#exclude-unresolved-symbols-from-being-reported)
+- [`:hooks`](#hooks)
+
+## Example configurations
+
+These are some example configurations used in real projects. Feel free to create a PR with yours too.
+
+- [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
+- [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
 
 ## Linters
 
@@ -342,6 +368,156 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 {:linters {:refer-all {:exclude [alda.core]}}}
 ```
 
+## Hooks
+
+Hooks are a way to enhance linting with user provided code. The following hooks are available:
+
+- [`:analyze-call`](#analyze-call)
+
+### analyze-call
+
+The `analyze-call` hook can be used for:
+
+- Transforming a node that represents a macro or function call. This is useful
+  for teaching clj-kondo about custom macros.
+- Inspecting arguments and emitting findings about them.
+
+#### Transformation
+
+As an example, let's take this macro:
+
+``` clojure
+(ns mylib)
+(defmacro with-bound [binding-vector & body] ,,,)
+```
+
+Users can call this macro like:
+
+``` clojure
+(require '[my-lib])
+(my-lib/with-bound [a 1 {:with-bound/setting true}] (inc a))
+```
+
+Clj-kondo does not recognize this syntax and will report the symbol `a` as
+unresolved. If the macro didn't expect an option map in the third position of
+the binding vector, we could have used `:lint-as {my-lib.with-bound
+clojure.core/let}`, but unfortunately that doesn't work for this macro. We will
+now write a hook that transforms the call into:
+
+``` clojure
+(let [a 1] {:with-bound/setting true} (inc a))
+```
+
+It is not important that the code is rewritten exactly according to the
+macroexpansion. What counts is that the transformation rewrites into code that
+clj-kondo can understand.
+
+This is the code for the hook:
+
+``` clojure
+(ns hooks.with-bound
+  (:require [clj-kondo.hooks-api :as api]))
+
+(defn with-bound [{:keys [:node]}]
+  (let [[binding-vec & body] (rest (:children node))
+        [sym val opts] (:children binding-vec)]
+    (when-not (and sym val)
+      (throw (ex-info "No sym and val provided" {})))
+    (let [new-node (api/list-node
+                    (list*
+                     (api/token-node 'let)
+                     (api/vector-node [sym val])
+                     opts
+                     body))]
+      {:node new-node})))
+```
+
+This code will be placed in a file `hooks/with_bound.clj` in your `.clj-kondo`
+directory.
+
+To register the hook, use this configuration:
+
+``` clojure
+{:hooks {:analyze-call {my-lib/with-bound hooks.with-bound/with-bound}}}
+```
+
+The symbol `hooks.with-bound/with-bound` corresponds to the file
+`.clj-kondo/hooks/with-bound.clj` and the `with-bound` function defined in
+it. Note that the file has to declare a namespace corresponding to its directory
+structure and file name, just like in normal Clojure.
+
+An analyze-call hook function receives a node in its argument map. It will use
+the `clj-kondo.hooks-api` namespace to rewrite this node into a new node.  The
+node data structures and related functions are based on the
+[rewrite-clj](https://github.com/xsc/rewrite-clj) library. Clj-kondo has a
+slightly modified version of rewrite-clj which strips away all whitespace,
+because whitespace is not something clj-kondo looks at.
+
+The `with-bound` hook function checks if the call has at least a `sym` and `val`
+node. If not, it will throw an exception, which will result into a clj-kondo warning.
+
+As a last step, the hook function constructs a new node using `api/list-node`,
+`api/token-node` and `api/vector-node`. This new node is returned in a map under
+the `:node` key.
+
+Now clj-kondo fully understands the `my-lib/with-bound` macro and you will no
+longer get false positives when using it. Moreover, it will report unused
+bindings and will give warnings customized to this macro.
+
+<p align="center">
+  <img src="../screenshots/hooks-with-bound.png"/>
+</p>
+
+#### Custom lint warnings
+
+Analyze-call hooks can also be used to create custom lint warnings, without
+transforming the original node.
+
+This is an example for re-frame's `dispatch` function which checks if the first
+argument to `dispatch` is a vector with a fully qualified keyword:
+
+``` clojure
+(ns hooks.re-frame
+  (:require [clj-kondo.hooks-api :as api]))
+
+(defn dispatch [{:keys [:node]}]
+  (let [sexpr (api/sexpr node)
+        event (second sexpr)]
+
+    (when-not (vector? event)
+      (throw (ex-info "dispatch arg should be vector!"
+                      (or (meta (second (:children node))) {}))))
+
+    (when-not (qualified-keyword? (first event))
+      (let [{:keys [:row :col]} (some-> node :children second :children first meta)]
+        (api/reg-finding! {:message "keyword should be fully qualified!"
+                           :type :re-frame/keyword
+                           :row row
+                           :col col})))))
+```
+
+The hook uses the `api/sexpr` function to convert the rewrite-clj node into a
+Clojure s-expression, which is easier to analyze. If the event is not a vector,
+the hooks throws an exception with a message and the metadata of the relevant
+node. The metadata of a rewrite-clj node contains `:row` and `:col` which is
+used by clj-kondo to emit the finding at the correct location.
+
+In case of an unqualified keyword we register a finding with `api/reg-finding!`
+which has a `:message`, and `:type`. The `:type` should also occur in the
+clj-kondo configuration with a level set to `:info`, `:warning` or `:error` in
+order to appear in the output:
+
+``` clojure
+{:linters {:re-frame/keyword {:level :warning}}
+ :hooks {:analyze-call {re-frame.core/dispatch hooks.re-frame/dispatch}}}
+```
+
+Additionally, the finding has `:row` and `:col`,
+derived from the node's metadata to show the finding at the appropriate
+location.
+
+<img src="../screenshots/re-frame-hook.png"/>
+
 ## Output
 
 ### Print results in JSON format
@@ -413,15 +589,8 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 (rest of the output omitted)
 ```
 
-## Deprecated config keys
+## Deprecations
 
 Some configuration keys have been renamed over time. The default configuration is always up-to-date and we strive to mantain backwards compatibility. However, for completeness, you can find a list of the renamed keys here. 
 
 - `:if -> :missing-else-branch`
-
-## Example configurations
-
-These are some example configurations used in real projects. Feel free to create a PR with yours too.
-
-- [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
-- [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
