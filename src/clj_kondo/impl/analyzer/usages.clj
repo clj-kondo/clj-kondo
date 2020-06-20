@@ -128,7 +128,7 @@
                                                   (or syntax-quote?
                                                       ;; e.g.: clojure.core, clojure.string, etc.
                                                       (= symbol-val (get (:qualify-ns ns) symbol-val)))
-                                                  :private-access? (:private-access? ctx)
+                                                  :private-access? (or syntax-quote? (:private-access? ctx))
                                                   :callstack (:callstack ctx)
                                                   :config (:config ctx)
                                                   :in-def (:in-def ctx)})))))

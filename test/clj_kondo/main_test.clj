@@ -254,7 +254,16 @@
                      :col 6,
                      :level :error,
                      :message "#'private.private-defs/private is private"})
-                  (lint! (io/file "corpus" "private"))))
+                  (lint! (io/file "corpus" "private")))
+  (assert-submaps
+   '({:file "<stdin>", :row 6, :col 1, :level :error, :message "#'foo/foo is private"})
+   (lint! "(ns foo) (defn- foo [])
+(defmacro blah [] `foo) ;; using it in syntax quote should mark private var as used
+
+(ns bar (:require [foo]))
+`foo/foo ;; this doesn't use the private var, it only uses the ns alias
+foo/foo ;; this does use the private var
+")))
 
 (deftest read-error-test
   (testing "when an error happens in one file, the other file is still linted"
