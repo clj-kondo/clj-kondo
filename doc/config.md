@@ -508,6 +508,8 @@ location.
 
 <img src="../screenshots/re-frame-hook.png"/>
 
+[Back](#table-of-contents) to table of contents
+
 ## Output
 
 ### Print results in JSON format
