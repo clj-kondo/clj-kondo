@@ -22,4 +22,4 @@
  :lint-as {me.raynes.conch/programs clojure.core/declare
            me.raynes.conch/let-programs clojure.core/let}
  :output {:exclude-files ["src/clj_kondo/impl/rewrite_clj_patch.clj"]}
- :hooks {clj-kondo.impl.utils/one-of macroexpand.one-of/one-of}}
+ :hooks {:analyze-call {clj-kondo.impl.utils/one-of macroexpand.one-of/one-of}}}
