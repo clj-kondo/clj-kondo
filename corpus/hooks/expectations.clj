@@ -1,5 +1,5 @@
 (ns hooks.expectations
-  {:clj-kondo/config '{:hooks {expectations.clojure.test/more-of "
+  {:clj-kondo/config '{:hooks {:analyze-call {expectations.clojure.test/more-of "
 
 (require '[clj-kondo.hooks-api :as api])
 
@@ -10,7 +10,7 @@
                                   [(first children) (api/token-node nil)])
                                  (rest children)))}))
 
-"}}}
+"}}}}
   (:require [clojure.string :as str]
             [expectations.clojure.test :as t]))
 

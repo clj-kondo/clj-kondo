@@ -1,5 +1,5 @@
 (ns bar
-  {:clj-kondo/config '{:hooks {re-frame.core/dispatch "
+  {:clj-kondo/config '{:hooks {:analyze-call {re-frame.core/dispatch "
 
 (require '[clj-kondo.hooks-api :as api])
 
@@ -11,7 +11,7 @@
                (or (meta (second (:children node))) {}))))
     (when-not (qualified-keyword? (first event))
       (throw (ex-info \"keyword should be fully qualified!\"
-               (or (some-> node :children second :children first meta) {}))))))"}}}
+               (or (some-> node :children second :children first meta) {}))))))"}}}}
   (:require [re-frame.core :as r :refer [dispatch]]))
 
 (dispatch 1)

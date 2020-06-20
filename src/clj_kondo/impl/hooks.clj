@@ -30,10 +30,10 @@
 
 (def hook-fn
   (let [delayed-cfg
-        (fn [config ns-sym var-sym]
+        (fn [config key ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
-                 (when-let [code (get-in config [:hooks sym])]
+                 (when-let [code (get-in config [:hooks key sym])]
                    (let [cfg-dir (:cfg-dir config)]
                      (binding [*cfg-dir* cfg-dir]
                        (sci/binding [sci/out *out*

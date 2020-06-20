@@ -8,7 +8,7 @@
    '{:hooks
      ;; the macro expansion code can be found in
      ;; .clj-kondo/macroexpand/weird_macro.clj
-     {foo/weird-macro macroexpand.weird-macro/weird-macro}}}
+     {:analyze-call {foo/weird-macro macroexpand.weird-macro/weird-macro}}}}
   (:require [foo]))
 
 (foo/weird-macro
@@ -22,7 +22,7 @@
 (ns slingshot
   {:clj-kondo/config
    '{:hooks
-     {slingshot.slingshot/try+ macroexpand.try-plus/try+}}}
+     {:analyze-call {slingshot.slingshot/try+ macroexpand.try-plus/try+}}}}
   (:require [log :as log]
             [slingshot.slingshot :refer [try+]]))
 
@@ -39,8 +39,8 @@
 (try+) ;; try without catch
 
 (ns baz
-  {:clj-kondo/config '{:hooks {better.cond/cond
-                               "
+  {:clj-kondo/config '{:hooks {:analyze-call {better.cond/cond
+                                              "
 (require '[clj-kondo.hooks-api :as api])
 (defn process-pairs [pairs]
   (loop [[[lhs rhs :as pair] & pairs] pairs
@@ -62,7 +62,7 @@
                      pairs (partition-all 2 args)]
                  (process-pairs pairs))]
       {:node (with-meta expr
-                (meta node))})))"}}}
+                (meta node))})))"}}}}
   (:require [better.cond :as b]))
 
 (let [x 10]
@@ -72,7 +72,7 @@
     (= 11 y) (subs y 0))) ;; yay, type error because y is not a string
 
 (ns quux
-  {:clj-kondo/config '{:hooks {rum.core/defc "
+  {:clj-kondo/config '{:hooks {:analyze-call {rum.core/defc "
 (require '[clj-kondo.hooks-api :as api])
 (def f (fn [{:keys [:node]}]
          (let [args (rest (:children node))
@@ -94,7 +94,7 @@
            ;; (prn (meta sexpr))
            ;; (prn expr)
            {:node new-node})))
-"}
+"}}
                        :lint-as {rum.core/defcs rum.core/defc}}}
   (:require [rum.core :as rum]))
 

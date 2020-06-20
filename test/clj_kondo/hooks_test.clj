@@ -38,14 +38,14 @@
 (defmacro fixed-arity [x y] ::TODO)
 
 (ns bar
-  {:clj-kondo/config '{:hooks {foo/fixed-arity \"
+  {:clj-kondo/config '{:hooks {:analyze-call {foo/fixed-arity \"
 
 (require '[clj-kondo.hooks-api :as api])
 (fn [{:keys [:node]}]
   {:node (with-meta (api/list-node (list* (api/token-node 'inc) (rest (:children node))))
            (meta node))})
 
-\"}}}
+\"}}}}
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
@@ -57,7 +57,7 @@
     (let [err (java.io.StringWriter.)]
       (binding [*err* err] (lint! "
 (ns bar
-  {:clj-kondo/config '{:hooks {foo/fixed-arity \"(fn [{:keys [:node]}] {:a :sexpr 1})\"}}}
+  {:clj-kondo/config '{:hooks {:analyze-call {foo/fixed-arity \"(fn [{:keys [:node]}] {:a :sexpr 1})\"}}}}
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
