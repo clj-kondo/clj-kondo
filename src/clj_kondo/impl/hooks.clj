@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.hooks
   (:require [clj-kondo.impl.utils :refer [vector-node list-node token-node
                                           sexpr]]
-            [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [sci.core :as sci]))
@@ -39,17 +38,19 @@
                      (binding [*cfg-dir* cfg-dir]
                        (sci/binding [sci/out *out*
                                      sci/err *err*]
-                         (let [code (str/triml code)
-                               code (if (and (not (str/starts-with? code "("))
-                                             (not (str/index-of code \newline)))
-                                      (if (str/ends-with? code ".clj")
+                         (if (string? code)
+                           (let [code (str/triml code)
+                                 code (if (and (not (str/starts-with? code "("))
+                                               (not (str/index-of code \newline))
+                                               (str/ends-with? code ".clj"))
                                         (slurp (io/file cfg-dir code))
-                                        (let [sym (edn/read-string code)
-                                              ns (namespace sym)
-                                              code (format "(require '%s)\n%s" ns sym)]
-                                          code))
-                                      code)]
-                           (sci/eval-string* sci-ctx code)))))))
+                                        code)]
+                             (sci/eval-string* sci-ctx code))
+                           ;; assume symbol
+                           (let [sym code
+                                 ns (namespace sym)
+                                 code (format "(require '%s)\n%s" ns sym)]
+                             (sci/eval-string* sci-ctx code))))))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"
