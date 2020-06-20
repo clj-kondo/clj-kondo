@@ -1,5 +1,17 @@
 # Configuration
 
+Table of contents:
+
+- [Introduction](#introduction)
+- [Unrecognized macros](#unrecognized-macros)
+- [Example configurations](#example-configurations)
+- [Linters](#linters)
+- [Hooks](#hooks)
+- [Output](#output)
+- [Deprecations](#deprecations)
+
+## Introduction
+
 Clj-kondo can be configured in four ways, by providing:
 
 - a `config.edn` file in the `.clj-kondo` directory (see [project setup](../README.md#project-setup))
@@ -16,8 +28,22 @@ namespace local configuration. Also note that namespace local config must always
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
 
-- [Linters](#linters)
-- [Output](#output)
+## Unrecognized macros
+
+Clj-kondo only expands a selected set of macros from clojure.core and some
+popular community libraries. For unrecognized macros you can use these
+configurations:
+
+- [`:lint-as`](#lint-a-custom-macro-like-a-built-in-macro)
+- [`:unresolved-symbol`](#exclude-unresolved-symbols-from-being-reported)
+- [`:hooks`](#hooks)
+
+## Example configurations
+
+These are some example configurations used in real projects. Feel free to create a PR with yours too.
+
+- [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
+- [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
 
 ## Linters
 
@@ -342,6 +368,8 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 {:linters {:refer-all {:exclude [alda.core]}}}
 ```
 
+## Hooks
+
 ## Output
 
 ### Print results in JSON format
@@ -413,15 +441,8 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 (rest of the output omitted)
 ```
 
-## Deprecated config keys
+## Deprecations
 
 Some configuration keys have been renamed over time. The default configuration is always up-to-date and we strive to mantain backwards compatibility. However, for completeness, you can find a list of the renamed keys here. 
 
 - `:if -> :missing-else-branch`
-
-## Example configurations
-
-These are some example configurations used in real projects. Feel free to create a PR with yours too.
-
-- [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
-- [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
