@@ -45,9 +45,12 @@
         (println "WARNING: included file" (.getCanonicalPath f) "does not exist.")))))
 
 (defn opts [^java.io.File cfg-file]
-  {:readers
-   {'include-edn #(read-fn cfg-file read-edn-file %)
-    'include-string #(read-fn cfg-file slurp %)}})
+  (let [include #(read-fn cfg-file read-edn-file %)]
+    {:readers
+     {'include include
+      ;;'include-edn include
+      ;;'include-string #(read-fn cfg-file slurp %)
+      }}))
 
 (defn read-edn-file [^java.io.File f]
   (try (edn/read-string (opts f) (slurp f))

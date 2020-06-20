@@ -16,9 +16,8 @@
                                                   :ret :nil}}}
                              run! {:arities {1 {:args [:map]
                                                 :ret :map}}}}
-             ;; TODO: re-introduce after release
-             ;;clj-kondo.impl.config #include-edn "../src/clj_kondo/impl/config.types.edn"
-             ;;clj-kondo.impl.findings #include-edn "../src/clj_kondo/impl/findings.types.edn"
+             clj-kondo.impl.config #include "../src/clj_kondo/impl/config.types.edn"
+             clj-kondo.impl.findings #include "../src/clj_kondo/impl/findings.types.edn"
              }}
            :missing-docstring {:level :off}
            :unsorted-required-namespaces {:level :warning}}
