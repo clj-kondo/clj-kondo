@@ -16,8 +16,10 @@
                                                   :ret :nil}}}
                              run! {:arities {1 {:args [:map]
                                                 :ret :map}}}}
-             clj-kondo.impl.config #include-edn "../src/clj_kondo/impl/config.types.edn"
-             clj-kondo.impl.findings #include-edn "../src/clj_kondo/impl/findings.types.edn"}}
+             ;; TODO: re-introduce after release
+             ;;clj-kondo.impl.config #include-edn "../src/clj_kondo/impl/config.types.edn"
+             ;;clj-kondo.impl.findings #include-edn "../src/clj_kondo/impl/findings.types.edn"
+             }}
            :missing-docstring {:level :off}
            :unsorted-required-namespaces {:level :warning}}
  :lint-as {me.raynes.conch/programs clojure.core/declare
