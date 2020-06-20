@@ -67,8 +67,7 @@
 
 (deftest re-frame-test
   (assert-submaps
-   '({:file "corpus/hooks/re_frame.clj", :row 6, :col 11, :level :error, :message #"dispatch arg should be vector!"}
-     {:file "corpus/hooks/re_frame.clj", :row 7, :col 12, :level :warning, :message #"keyword should be fully qualified!"})
+   '({:file "corpus/hooks/re_frame.clj", :row 6, :col 12, :level :warning, :message #"keyword should be fully qualified!"})
    (lint! (io/file "corpus" "hooks" "re_frame.clj")
           {:linters {:unresolved-symbol {:level :error}
                      :invalid-arity {:level :error}}})))

@@ -4,10 +4,10 @@ Table of contents:
 
 - [Introduction](#introduction)
 - [Unrecognized macros](#unrecognized-macros)
-- [Example configurations](#example-configurations)
 - [Linters](#linters)
 - [Hooks](#hooks)
 - [Output](#output)
+- [Example configurations](#example-configurations)
 - [Deprecations](#deprecations)
 
 ## Introduction
@@ -37,13 +37,6 @@ configurations:
 - [`:lint-as`](#lint-a-custom-macro-like-a-built-in-macro)
 - [`:unresolved-symbol`](#exclude-unresolved-symbols-from-being-reported)
 - [`:hooks`](#hooks)
-
-## Example configurations
-
-These are some example configurations used in real projects. Feel free to create a PR with yours too.
-
-- [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
-- [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
 
 ## Linters
 
@@ -482,13 +475,11 @@ argument to `dispatch` is a vector with a fully qualified keyword:
 
 (defn dispatch [{:keys [:node]}]
   (let [sexpr (api/sexpr node)
-        event (second sexpr)]
-
-    (when-not (vector? event)
-      (throw (ex-info "dispatch arg should be vector!"
-                      (or (meta (second (:children node))) {}))))
-
-    (when-not (qualified-keyword? (first event))
+        event (second sexpr)
+        kw (first event)]
+    (when (and (vector? event)
+               (keyword? kw)
+               (not (qualified-keyword? kw)))
       (let [{:keys [:row :col]} (some-> node :children second :children first meta)]
         (api/reg-finding! {:message "keyword should be fully qualified!"
                            :type :re-frame/keyword
@@ -497,15 +488,10 @@ argument to `dispatch` is a vector with a fully qualified keyword:
 ```
 
 The hook uses the `api/sexpr` function to convert the rewrite-clj node into a
-Clojure s-expression, which is easier to analyze. If the event is not a vector,
-the hooks throws an exception with a message and the metadata of the relevant
-node. The metadata of a rewrite-clj node contains `:row` and `:col` which is
-used by clj-kondo to emit the finding at the correct location.
-
-In case of an unqualified keyword we register a finding with `api/reg-finding!`
-which has a `:message`, and `:type`. The `:type` should also occur in the
-clj-kondo configuration with a level set to `:info`, `:warning` or `:error` in
-order to appear in the output:
+Clojure s-expression, which is easier to analyze. In case of an unqualified
+keyword we register a finding with `api/reg-finding!` which has a `:message`,
+and `:type`. The `:type` should also occur in the clj-kondo configuration with a
+level set to `:info`, `:warning` or `:error` in order to appear in the output:
 
 ``` clojure
 {:linters {:re-frame/keyword {:level :warning}}
@@ -588,6 +574,13 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 /Users/borkdude/dev/clj-kondo/corpus/cljc/datascript.cljc:8:1: error: datascript.db/seqable? is called with 2 args but expects 1
 (rest of the output omitted)
 ```
+
+## Example configurations
+
+These are some example configurations used in real projects. Feel free to create a PR with yours too.
+
+- [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
+- [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
 
 ## Deprecations
 

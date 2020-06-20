@@ -3,13 +3,11 @@
 
 (defn dispatch [{:keys [:node]}]
   (let [sexpr (api/sexpr node)
-        event (second sexpr)]
-
-    (when-not (vector? event)
-      (throw (ex-info "dispatch arg should be vector!"
-                      (or (meta (second (:children node))) {}))))
-
-    (when-not (qualified-keyword? (first event))
+        event (second sexpr)
+        kw (first event)]
+    (when (and (vector? event)
+               (keyword? kw)
+               (not (qualified-keyword? kw)))
       (let [{:keys [:row :col]} (some-> node :children second :children first meta)]
         (api/reg-finding! {:message "keyword should be fully qualified!"
                            :type :re-frame/keyword
