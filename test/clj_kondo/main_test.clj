@@ -1740,7 +1740,9 @@
   (is (empty? (lint! "
 (clojure.core/let ^{:row 15, :col 2, :line 1} [^{:row 15, :col 3} x 1] ^{:row 16, :col 2} (^{:row 16, :col 3} inc ^{:row 16, :col 7} x))"
                      {:linters {:type-mismatch {:level :error}}})))
-  (is (empty? (lint! "(def x) (doto x)"))))
+  (is (empty? (lint! "(def x) (doto x)")))
+  (is (empty? (lint! "(def ^:private a 1) (let [{:keys [a] :or {a a}} {}] a)"
+                     {:linters {:unused-binding {:level :warning}}}))))
 
 (deftest proxy-super-test
   (is (empty? (lint! "

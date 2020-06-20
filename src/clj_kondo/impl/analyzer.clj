@@ -56,7 +56,7 @@
                                      (:arg-types ctx)))]
          (mapcat #(analyze-expression** ctx %) children))))))
 
-(defn analyze-keys-destructuring-defaults [ctx m defaults opts]
+(defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
   (let [skip-reg-binding? (when (:fn-args? opts)
                             (-> ctx :config :linters :unused-binding
                                 :exclude-destructured-keys-in-fn-args))]
@@ -76,7 +76,11 @@
             :end-col (:end-col mta)
             :filename (:filename ctx)
             :type :unbound-destructuring-default})))))
-  (analyze-children ctx (utils/map-node-vals defaults)))
+  (doseq [[k v] (partition 2 (:children defaults))]
+    (if (= k v)
+      ;; see #915
+      (analyze-expression** prev-ctx v)
+      (analyze-expression** ctx v))))
 
 (defn ctx-with-linter-disabled [ctx linter]
   (assoc-in ctx [:config :linters linter :level] :off))
@@ -210,10 +214,10 @@
                            :or
                            (if (empty? rest-kvs)
                              ;; or can refer to a binding introduced by what we extracted
-                             (let [ctx (ctx-with-bindings ctx res)]
-                               (recur rest-kvs (merge res {:analyzed
-                                                           (analyze-keys-destructuring-defaults
-                                                            ctx res v opts)})))
+                             (let [prev-ctx ctx
+                                   ctx (ctx-with-bindings ctx res)]
+                               (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
+                               (recur rest-kvs res))
                              ;; analyze or after the rest
                              (recur (concat rest-kvs [k v]) res))
                            :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
