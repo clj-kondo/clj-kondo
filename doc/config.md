@@ -1,6 +1,6 @@
 # Configuration
 
-Table of contents:
+## Table of contents
 
 - [Introduction](#introduction)
 - [Unrecognized macros](#unrecognized-macros)
@@ -28,6 +28,8 @@ namespace local configuration. Also note that namespace local config must always
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
 
+[Back](#table-of-contents) to table of contents
+
 ## Unrecognized macros
 
 Clj-kondo only expands a selected set of macros from clojure.core and some
@@ -37,6 +39,8 @@ configurations:
 - [`:lint-as`](#lint-a-custom-macro-like-a-built-in-macro)
 - [`:unresolved-symbol`](#exclude-unresolved-symbols-from-being-reported)
 - [`:hooks`](#hooks)
+
+[Back](#table-of-contents) to table of contents
 
 ## Linters
 
@@ -575,6 +579,8 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 (rest of the output omitted)
 ```
 
+[Back](#table-of-contents) to table of contents
+
 ## Example configurations
 
 These are some example configurations used in real projects. Feel free to create a PR with yours too.
@@ -582,8 +588,12 @@ These are some example configurations used in real projects. Feel free to create
 - [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
 - [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
 
+[Back](#table-of-contents) to table of contents
+
 ## Deprecations
 
 Some configuration keys have been renamed over time. The default configuration is always up-to-date and we strive to mantain backwards compatibility. However, for completeness, you can find a list of the renamed keys here. 
 
 - `:if -> :missing-else-branch`
+
+[Back](#table-of-contents) to table of contents
