@@ -8,7 +8,7 @@
    '{:hooks
      ;; the macro expansion code can be found in
      ;; .clj-kondo/macroexpand/weird_macro.clj
-     {foo/weird-macro "macroexpand/weird_macro.clj"}}}
+     {foo/weird-macro "macroexpand.weird-macro/weird-macro"}}}
   (:require [foo]))
 
 (foo/weird-macro

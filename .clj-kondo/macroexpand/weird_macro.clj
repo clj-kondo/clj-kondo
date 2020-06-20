@@ -1,6 +1,7 @@
-(require '[clj-kondo.hooks-api :as api])
+(ns macroexpand.weird-macro
+  (:require [clj-kondo.hooks-api :as api]))
 
-(fn weird-macro [{:keys [:node]}]
+(defn weird-macro [{:keys [:node]}]
   (let [[binding-vec & body] (rest (:children node))
         [sym val opts] (:children binding-vec)]
     (when-not (and sym val)

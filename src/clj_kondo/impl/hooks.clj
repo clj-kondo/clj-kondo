@@ -1,42 +1,55 @@
 (ns clj-kondo.impl.hooks
   (:require [clj-kondo.impl.utils :refer [vector-node list-node token-node
                                           sexpr]]
+            [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [sci.core :as sci]))
 
+(set! *warn-on-reflection* true)
+
+(def ^:dynamic *cfg-dir* nil)
+
+(def sci-ctx (sci/init {:namespaces {'clj-kondo.hooks-api {'token-node token-node
+                                                           'vector-node vector-node
+                                                           'list-node list-node
+                                                           'sexpr sexpr}}
+                        :classes {'java.io.Exception Exception}
+                        :imports {'Exception 'java.io.Exception}
+                        :load-fn (fn [{:keys [:namespace]}]
+                                   (let [^String ns-str (munge (name namespace))
+                                         base-path (.replace ns-str "." "/")
+                                         base-path (str base-path ".clj")
+                                         f (io/file *cfg-dir* base-path)
+                                         path (.getCanonicalPath f)]
+                                     (if (.exists f)
+                                       {:file path
+                                        :source (slurp f)}
+                                       (binding [*out* *err*]
+                                         (println "WARNING: file" path "not found while loading hook")
+                                         nil))))}))
+
 (def hook-fn
-  (let [delayed-sci-ctx-state (volatile! nil)
-        load-file* (fn [f]
-                     (let [f (io/file f)
-                           s (slurp f)]
-                       (sci/with-bindings {sci/ns @sci/ns
-                                           sci/file (.getCanonicalPath f)}
-                         (sci/eval-string* @@delayed-sci-ctx-state s))))
-        ;; we're not using this until it's actually needed
-        delayed-sci-ctx (delay (sci/init {:aliases {'io 'clojure.java.io}
-                                          :namespaces {'clojure.java.io {'file io/file}
-                                                       'clojure.core {'load-file load-file*}
-                                                       'clj-kondo.hooks-api {'token-node token-node
-                                                                             'vector-node vector-node
-                                                                             'list-node list-node
-                                                                             'sexpr sexpr
-                                                                             }}
-                                          :classes {'java.io.Exception Exception}
-                                          :imports {'Exception 'java.io.Exception}}))
-        _ (vreset! delayed-sci-ctx-state delayed-sci-ctx)
-        delayed-cfg
+  (let [delayed-cfg
         (fn [config ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
                  (when-let [code (get-in config [:hooks sym])]
-                   (let [code (str/triml code)
-                         code (if (and (not (str/starts-with? code "("))
-                                       (not (str/index-of code \newline)))
-                                (let [cfg-dir (:cfg-dir config)]
-                                  (slurp (io/file cfg-dir code)))
-                                code)]
-                     (sci/eval-string* @delayed-sci-ctx code))))
+                   (let [cfg-dir (:cfg-dir config)]
+                     (binding [*cfg-dir* cfg-dir]
+                       (sci/binding [sci/out *out*
+                                     sci/err *err*]
+                         (let [code (str/triml code)
+                               code (if (and (not (str/starts-with? code "("))
+                                             (not (str/index-of code \newline)))
+                                      (if (str/ends-with? code ".clj")
+                                        (slurp (io/file cfg-dir code))
+                                        (let [sym (edn/read-string code)
+                                              ns (namespace sym)
+                                              code (format "(require '%s)\n%s" ns sym)]
+                                          code))
+                                      code)]
+                           (sci/eval-string* sci-ctx code)))))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"
