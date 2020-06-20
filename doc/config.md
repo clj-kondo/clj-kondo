@@ -465,7 +465,7 @@ longer get false positives when using it. Moreover, it will report unused
 bindings and will give warnings customized to this macro.
 
 <p align="center">
-  <img src="../screenshots/hooks-with-bound.png" width="50%"/>
+  <img src="../screenshots/hooks-with-bound.png"/>
 </p>
 
 #### Custom lint warnings
