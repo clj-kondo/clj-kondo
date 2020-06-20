@@ -1152,34 +1152,6 @@
         ctx (ctx-with-bindings ctx (into {} (map #(extract-bindings ctx %) [idx-binding ret-binding])))]
     (analyze-children ctx [array body] false)))
 
-(defn walk
-  [node]
-  (cond
-    (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-    (let [children (:children node)
-          node (assoc node :children (map walk children))
-          sexp (sexpr node)]
-      (if (instance? clojure.lang.IObj sexp)
-        (let [{:keys [:row :col]} (meta node)]
-          (vary-meta sexp assoc :row row :col col))
-        sexp))
-    :else node))
-
-#_(defn node->sexpr [node]
-    (walk/postwalk
-     (fn [node]
-       (if (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-         (let [sexp (sexpr node)]
-           (if (instance? clojure.lang.IObj sexp)
-             (let [{:keys [:row :col]} (meta node)]
-               (vary-meta sexp assoc :row row :col col))
-             sexp))
-         node))
-     node))
-
-(defn node->sexpr [node]
-  (walk node))
-
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1221,23 +1193,21 @@
                 hook-fn (hooks/hook-fn config :analyze-call resolved-as-namespace resolved-as-name)
                 transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
-                              (let [sexp (node->sexpr expr)]
-                                (binding [hooks/*ctx* ctx]
-                                  (sci/binding [sci/out *out*]
-                                    (try (hook-fn {:sexpr sexp
-                                                   :node expr})
-                                         (catch Exception e
-                                           (findings/reg-finding!
-                                            ctx
-                                            (merge
-                                             {:filename (:filename ctx)
-                                              :row row
-                                              :col col
-                                              :type :hook
-                                              :message (.getMessage e)}
-                                             (select-keys (ex-data e)
-                                                          [:level :row :col])))
-                                           nil))))))]
+                              (binding [hooks/*ctx* ctx]
+                                (sci/binding [sci/out *out*]
+                                  (try (hook-fn {:node expr})
+                                       (catch Exception e
+                                         (findings/reg-finding!
+                                          ctx
+                                          (merge
+                                           {:filename (:filename ctx)
+                                            :row row
+                                            :col col
+                                            :type :hook
+                                            :message (.getMessage e)}
+                                           (select-keys (ex-data e)
+                                                        [:level :row :col])))
+                                         nil)))))]
             (if-let [expanded (and transformed
                                    (:node transformed))]
               (do ;;;; This registers the macro call, so we still get arity linting
