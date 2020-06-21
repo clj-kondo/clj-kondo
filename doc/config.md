@@ -517,6 +517,23 @@ Together](https://www.clojuriststogether.org/) as part of their [Summer of
 Bugs](https://www.clojuriststogether.org/news/announcing-summer-of-bugs/)
 program.
 
+### Tips and tricks
+
+Here are some tips and tricks for developing hooks.
+
+#### Debugging
+
+For debugging the output of a hook function, you can use `println` or
+`prn`. E.g. to get a sense of what a newly generated node looks like, you can
+use `(prn (api/sexprs node))`.
+
+#### Performance
+
+Less code to process will result in faster linting. If only one hook is used in
+certain files and another hook is used in other files, divide them up into
+multiple files and namespaces. If the hooks use common code, you can put that in
+a library namespace and use `require` to load it from each hook's namespace.
+
 ## Output
 
 ### Print results in JSON format
