@@ -3,6 +3,7 @@
 Table of contents:
 
 - [Introduction](#introduction)
+- [Libraries](#libraries)
 - [Unrecognized macros](#unrecognized-macros)
 - [Linters](#linters)
 - [Hooks](#hooks)
