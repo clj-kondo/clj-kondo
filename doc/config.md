@@ -523,9 +523,9 @@ Here are some tips and tricks for developing hooks.
 
 #### Debugging
 
-For debugging the output of a hook function, you can use `println` or
-`prn`. E.g. to get a sense of what a newly generated node looks like, you can
-use `(prn (api/sexprs node))`.
+For debugging the output of a hook function, you can use `println` or `prn`. To
+get a sense of what a newly generated node looks like, you can use `(prn
+(api/sexprs node))`.
 
 #### Performance
 
