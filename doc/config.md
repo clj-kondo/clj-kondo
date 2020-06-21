@@ -512,6 +512,11 @@ location.
 More examples of hooks can be found in the [libraries](../libraries)
 directory. Take a look at the [Rum](../libraries/rum) and [Slingshot](../libraries/slingshot) configuration.
 
+The initial work on hooks was sponsored by [Clojurists
+Together](https://www.clojuriststogether.org/) as part of their [Summer of
+Bug](https://www.clojuriststogether.org/news/announcing-summer-of-bugs/)
+program.
+
 ## Output
 
 ### Print results in JSON format

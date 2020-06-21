@@ -214,6 +214,9 @@ pod](https://github.com/babashka/babashka.pods).
 - [contributors](https://github.com/borkdude/clj-kondo/graphs/contributors) and
   other users posting issues with bug reports and ideas
 - [Nikita Prokopov](https://github.com/tonsky) for the logo
+- [adgoji](https://www.adgoji.com/) for financial support
+- [Clojurists Together](https://www.clojuriststogether.org/) for sponsoring work
+  on hooks
 
 ## Contributors
 
