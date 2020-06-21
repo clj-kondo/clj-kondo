@@ -49,26 +49,39 @@
    'end?         (copy-var zip/end? zip-ns)
    'remove       (copy-var zip/remove zip-ns)})
 
-(def sci-ctx (sci/init {:namespaces {'clojure.zip zip-namespace
-                                     'clj-kondo.hooks-api {'token-node token-node
-                                                           'vector-node vector-node
-                                                           'list-node list-node
-                                                           'sexpr sexpr
-                                                           'reg-finding! reg-finding!}}
-                        :classes {'java.io.Exception Exception}
-                        :imports {'Exception 'java.io.Exception}
-                        :load-fn (fn [{:keys [:namespace]}]
-                                   (let [^String ns-str (munge (name namespace))
-                                         base-path (.replace ns-str "." "/")
-                                         base-path (str base-path ".clj")
-                                         f (io/file *cfg-dir* base-path)
-                                         path (.getCanonicalPath f)]
-                                     (if (.exists f)
-                                       {:file path
-                                        :source (slurp f)}
-                                       (binding [*out* *err*]
-                                         (println "WARNING: file" path "not found while loading hook")
-                                         nil))))}))
+(defn time*
+  "Evaluates expr and prints the time it took.  Returns the value of
+  expr."
+  [_ _ expr]
+  `(let [start# (. System (nanoTime))
+         ret# ~expr]
+     (prn (str "Elapsed time: " (/ (double (- (. System (nanoTime)) start#)) 1000000.0) " msecs"))
+     ret#))
+
+(def sci-ctx
+  (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
+                          'clojure.zip zip-namespace
+                          'clj-kondo.hooks-api {'token-node token-node
+                                                'vector-node vector-node
+                                                'list-node list-node
+                                                'sexpr sexpr
+                                                'reg-finding! reg-finding!}}
+             :classes {'java.io.Exception Exception
+                       'java.lang.System System}
+             :imports {'Exception 'java.io.Exception
+                       'System java.lang.System}
+             :load-fn (fn [{:keys [:namespace]}]
+                        (let [^String ns-str (munge (name namespace))
+                              base-path (.replace ns-str "." "/")
+                              base-path (str base-path ".clj")
+                              f (io/file *cfg-dir* base-path)
+                              path (.getCanonicalPath f)]
+                          (if (.exists f)
+                            {:file path
+                             :source (slurp f)}
+                            (binding [*out* *err*]
+                              (println "WARNING: file" path "not found while loading hook")
+                              nil))))}))
 
 (def hook-fn
   (let [delayed-cfg

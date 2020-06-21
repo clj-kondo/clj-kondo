@@ -11,5 +11,10 @@
     "allPublicConstructors": true,
     "allPublicFields": true,
     "allPublicMethods": true
+  },
+  {
+    "name": "java.lang.System",
+    "methods": [{"name": "nanoTime"}
+    ]
   }
 ]
