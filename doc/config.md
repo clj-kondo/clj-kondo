@@ -28,6 +28,10 @@ namespace local configuration. Also note that namespace local config must always
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
 
+## Libraries
+
+See [libraries](../libraries) for library-specific configurations.
+
 ## Unrecognized macros
 
 Clj-kondo only expands a selected set of macros from clojure.core and some
