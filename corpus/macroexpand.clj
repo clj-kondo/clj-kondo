@@ -24,7 +24,7 @@
    '{:hooks
      {:analyze-call {slingshot.slingshot/try+ macroexpand.try-plus/try+}}}}
   (:require [log :as log]
-            [slingshot.slingshot :refer [try+]]))
+            [slingshot.slingshot :refer [try+ throw+]]))
 
 (try+
  (inc 1)

@@ -34,9 +34,8 @@
         new-node (api/list-node
                   [(api/token-node 'let)
                    (api/vector-node
-                    [(api/token-node 'throw+) (api/list-node [(api/token-node 'fn)
-                                                              (api/vector-node [])])
-                     (api/token-node '&throw-context) (api/token-node nil)])
+                    [(api/token-node '&throw-context) (api/token-node nil)])
+                   (api/token-node '&throw-context) ;; use throw-context to avoid warning
                    (with-meta (api/list-node (list* (api/token-node 'try)
                                                     (concat body catches)))
                      (meta node))])]

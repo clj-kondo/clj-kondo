@@ -1,4 +1,4 @@
-(ns macroexpand.try-plus
+(ns hooks.slingshot.try-plus
   (:require [clj-kondo.hooks-api :as api]))
 
 (defn expand-catch [catch-node]
@@ -41,3 +41,4 @@
                      (meta node))])]
     ;; (prn (api/sexpr new-node))
     {:node new-node}))
+

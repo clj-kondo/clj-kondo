@@ -4,7 +4,8 @@
                                           sexpr]]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [sci.core :as sci]))
+            [clojure.zip :as zip]
+            [sci.core :as sci :refer [copy-var]]))
 
 (set! *warn-on-reflection* true)
 
@@ -16,7 +17,40 @@
         filename (:filename ctx)]
     (findings/reg-finding! ctx (assoc m :filename filename))))
 
-(def sci-ctx (sci/init {:namespaces {'clj-kondo.hooks-api {'token-node token-node
+(def zip-ns (sci/create-ns 'clojure.zip nil))
+
+(def zip-namespace
+  {'zipper       (copy-var zip/zipper zip-ns)
+   'seq-zip      (copy-var zip/seq-zip zip-ns)
+   'vector-zip   (copy-var zip/vector-zip zip-ns)
+   'xml-zip      (copy-var zip/xml-zip zip-ns)
+   'node         (copy-var zip/node zip-ns)
+   'branch?      (copy-var zip/branch? zip-ns)
+   'children     (copy-var zip/children zip-ns)
+   'make-node    (copy-var zip/make-node zip-ns)
+   'path         (copy-var zip/path zip-ns)
+   'lefts        (copy-var zip/lefts zip-ns)
+   'rights       (copy-var zip/rights zip-ns)
+   'down         (copy-var zip/down zip-ns)
+   'up           (copy-var zip/up zip-ns)
+   'root         (copy-var zip/root zip-ns)
+   'right        (copy-var zip/right zip-ns)
+   'rightmost    (copy-var zip/rightmost zip-ns)
+   'left         (copy-var zip/left zip-ns)
+   'leftmost     (copy-var zip/leftmost zip-ns)
+   'insert-left  (copy-var zip/insert-left zip-ns)
+   'insert-right (copy-var zip/insert-right zip-ns)
+   'replace      (copy-var zip/replace zip-ns)
+   'edit         (copy-var zip/edit zip-ns)
+   'insert-child (copy-var zip/insert-child zip-ns)
+   'append-child (copy-var zip/append-child zip-ns)
+   'next         (copy-var zip/next zip-ns)
+   'prev         (copy-var zip/prev zip-ns)
+   'end?         (copy-var zip/end? zip-ns)
+   'remove       (copy-var zip/remove zip-ns)})
+
+(def sci-ctx (sci/init {:namespaces {'clojure.zip zip-namespace
+                                     'clj-kondo.hooks-api {'token-node token-node
                                                            'vector-node vector-node
                                                            'list-node list-node
                                                            'sexpr sexpr
