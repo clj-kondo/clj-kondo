@@ -471,8 +471,8 @@ bindings and will give warnings customized to this macro.
 Analyze-call hooks can also be used to create custom lint warnings, without
 transforming the original node.
 
-This is an example for re-frame's `dispatch` function which checks if the first
-argument to `dispatch` is a vector with a fully qualified keyword:
+This is an example for re-frame's `dispatch` function which checks if the
+dispatched event used a qualified keyword.
 
 ``` clojure
 (ns hooks.re-frame
@@ -508,6 +508,9 @@ derived from the node's metadata to show the finding at the appropriate
 location.
 
 <img src="../screenshots/re-frame-hook.png"/>
+
+More examples of hooks can be found in the [libraries](../libraries)
+directory. Take a look at the [Rum](../libraries/rum) and [Slingshot](../libraries/slingshot) configuration.
 
 ## Output
 
