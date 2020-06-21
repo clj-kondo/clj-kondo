@@ -20,7 +20,7 @@ these vars by using `declare`. Example:
 If the amount of symbols introduced by HugSQL becomes too unwieldy, consider
 introducing a separate namespace in which HugSQL generates the vars:
 
-```
+``` clojure
 (ns foo.db.hugsql
   (:require [hugsql.core :as hugsql]))
 
@@ -29,7 +29,7 @@ introducing a separate namespace in which HugSQL generates the vars:
 
 You can then use this namespace like:
 
-```
+``` clojure
 (ns foo.db
   (:require [foo.db.hugsql :as sql]))
 
