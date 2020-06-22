@@ -533,13 +533,20 @@ location.
 
 <img src="../screenshots/re-frame-hook.png"/>
 
+### Examples
+
+- rewrite-cljc-playground: [import-vars-with-mod](https://github.com/lread/rewrite-cljc-playground/commit/09882e1244a8c12879ef8c1e6872724748e7914b)
+
 More examples of hooks can be found in the [libraries](../libraries)
-directory. Take a look at the [Rum](../libraries/rum) and [Slingshot](../libraries/slingshot) configuration.
+directory. Take a look at the [Rum](../libraries/rum) and
+[Slingshot](../libraries/slingshot) configuration.
 
 The initial work on hooks was sponsored by [Clojurists
 Together](https://www.clojuriststogether.org/) as part of their [Summer of
 Bugs](https://www.clojuriststogether.org/news/announcing-summer-of-bugs/)
 program.
+
+
 
 ### Tips and tricks
 
