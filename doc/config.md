@@ -390,7 +390,7 @@ These functions are part of the `clj-kondo.hooks-api` namespace:
 In hooks the namespaces `clojure.core`, `clojure.set` and `clojure.string` are
 available.
 
-Hooks must be configured in clj-kondo's `config.edn` under `:hooks`, e.g.:
+    Hooks must be configured in clj-kondo's `config.edn` under `:hooks`, e.g.:
 
 ``` shellsession
 {:hooks {:analyze-call {foo.weird-macro hooks.foo/weird-macro}}}
