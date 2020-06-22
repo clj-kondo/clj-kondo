@@ -541,13 +541,6 @@ More examples of hooks can be found in the [libraries](../libraries)
 directory. Take a look at the [Rum](../libraries/rum) and
 [Slingshot](../libraries/slingshot) configuration.
 
-The initial work on hooks was sponsored by [Clojurists
-Together](https://www.clojuriststogether.org/) as part of their [Summer of
-Bugs](https://www.clojuriststogether.org/news/announcing-summer-of-bugs/)
-program.
-
-
-
 ### Tips and tricks
 
 Here are some tips and tricks for developing hooks.
@@ -569,6 +562,13 @@ To test performance of a hook, you can write code which triggers the hook and
 repeat that expression `n` times (where `n` is a large number like
 1000000). Then lint the file with `clj-kondo --lint` and measure
 timing.
+
+### Clojurists Together
+
+The initial work on hooks was sponsored by [Clojurists
+Together](https://www.clojuriststogether.org/) as part of their [Summer of
+Bugs](https://www.clojuriststogether.org/news/announcing-summer-of-bugs/)
+program.
 
 ## Output
 
