@@ -368,9 +368,33 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 
 ## Hooks
 
-Hooks are a way to enhance linting with user provided code. The following hooks are available:
+Hooks are a way to enhance linting with user provided code.
 
-- [`:analyze-call`](#analyze-call)
+### API
+
+Hooks can leverage the `clj-kondo.hooks-api` namespace for transformation and analysis of nodes.
+
+These functions are part of the `clj-kondo.hooks-api` namespace:
+
+- `list-node`: produce a new list node from a seqable of list nodes.
+- `vector-node`: produce a new vector node from a seqable of list nodes.
+- `token-node`: produce a new token node (symbol, keyword, etc) of a given token.
+- `sexpr`: turns a node into a Clojure s-expression. Useful for analyzing or debugging.
+- `reg-finding!`: registers a finding. Expects a map with:
+  - `:message`: the lint message
+  - `:row` and `:col`: the location of the finding. These values can be derived from the metadata of a node.
+  - `:type`: the type of lint warning. A level must be set for this type in the
+    clj-kondo config under `:linters`. If the level is not set, the lint warning
+    is ignored.
+
+In hooks the namespaces `clojure.core`, `clojure.set` and `clojure.string` are
+available.
+
+Hooks must be configured in clj-kondo's `config.edn` under `:hooks`, e.g.:
+
+``` shellsession
+{:hooks {:analyze-call {foo.weird-macro hooks.foo/weird-macro}}}
+```
 
 ### analyze-call
 
@@ -533,6 +557,11 @@ Less code to process will result in faster linting. If only one hook is used in
 certain files and another hook is used in other files, divide them up into
 multiple files and namespaces. If the hooks use common code, you can put that in
 a library namespace and use `require` to load it from each hook's namespace.
+
+To test performance of a hook, you can write code which triggers the hook and
+repeat that expression `n` times (where `n` is a large number like
+1000000). Then lint the file with `clj-kondo --lint` and measure
+timing.
 
 ## Output
 
