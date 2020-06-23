@@ -368,13 +368,20 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 
 ## Hooks
 
-Hooks are a way to enhance linting with user provided code.
+Hooks are a way to enhance linting via user provided code.
 
 ### API
 
-Hooks can leverage the `clj-kondo.hooks-api` namespace for transformation and analysis of nodes.
+Hooks are interpreted using the [Small Clojure Interpreter](https://github.com/borkdude/sci).
 
-These functions are part of the `clj-kondo.hooks-api` namespace:
+Hooks receive Clojure code as rewrite-clj nodes, not only for performance reasons, but
+also because rewrite-clj nodes carry the line and row numbers for every Clojure element.
+Note that when we refer to a "rewrite-clj node", we are referring to clj-kondo's version of rewrite-clj node.
+Clj-kondo's version of [rewrite-clj](https://github.com/xsc/rewrite-clj) is catered to its use case,
+includes some bug fixes, but most notably: strips away all whitespace.
+
+A hook can leverage the `clj-kondo.hooks-api` namespace for transformation and analysis of rewrite-clj nodes,
+functions include:
 
 - `list-node`: produce a new list node from a seqable of list nodes.
 - `vector-node`: produce a new vector node from a seqable of list nodes.
@@ -387,22 +394,23 @@ These functions are part of the `clj-kondo.hooks-api` namespace:
     clj-kondo config under `:linters`. If the level is not set, the lint warning
     is ignored.
 
-In hooks the namespaces `clojure.core`, `clojure.set` and `clojure.string` are
-available.
+The namespaces `clojure.core`, `clojure.set` and `clojure.string` are also available.
 
-    Hooks must be configured in clj-kondo's `config.edn` under `:hooks`, e.g.:
+Hooks must be configured in clj-kondo's `config.edn` under `:hooks`, e.g.:
 
-``` shellsession
+``` Clojure
 {:hooks {:analyze-call {foo.weird-macro hooks.foo/weird-macro}}}
 ```
 
 ### analyze-call
 
-The `analyze-call` hook can be used for:
+The `analyze-call` hook offers a way to lint macros that are unrecognized by clj-kondo and cannot
+be supported by [`:list-as`](#lint-a-custom-macro-like-a-built-in-macro).
 
-- Transforming a node that represents a macro or function call. This is useful
-  for teaching clj-kondo about custom macros.
-- Inspecting arguments and emitting findings about them.
+It receives Clojure macro (or function) call code as input in the form of a rewrite-clj node, and can:
+
+- Transform the code to teach clj-kondo about its effect.
+- Inspect call arguments and emit findings about them.
 
 #### Transformation
 
@@ -413,7 +421,7 @@ As an example, let's take this macro:
 (defmacro with-bound [binding-vector & body] ,,,)
 ```
 
-Users can call this macro like:
+Users can call this macro like so:
 
 ``` clojure
 (require '[my-lib])
@@ -468,17 +476,16 @@ The symbol `hooks.with-bound/with-bound` corresponds to the file
 it. Note that the file has to declare a namespace corresponding to its directory
 structure and file name, just like in normal Clojure.
 
-An analyze-call hook function receives a node in its argument map. It will use
-the `clj-kondo.hooks-api` namespace to rewrite this node into a new node.  The
-node data structures and related functions are based on the
-[rewrite-clj](https://github.com/xsc/rewrite-clj) library. Clj-kondo has a
-slightly modified version of rewrite-clj which strips away all whitespace,
-because whitespace is not something clj-kondo looks at.
+An analyze-call hook function receives a `:node` in its argument map. This is a
+rewrite-clj node representing the hooked Clojure macro (or function) call code
+clj-kondo has found in the source code it is linting. The hook uses the
+`clj-kondo.hooks-api` namespace to validate then rewrite this node into a new
+rewrite-clj node:
 
-The `with-bound` hook function checks if the call has at least a `sym` and `val`
-node. If not, it will throw an exception, which will result into a clj-kondo warning.
+1. The `with-bound` hook function checks if the call has at least a `sym` and `val`
+node. If not, it will throw an exception, which will result in a clj-kondo warning.
 
-As a last step, the hook function constructs a new node using `api/list-node`,
+2. As a last step, the hook function constructs a new node using `api/list-node`,
 `api/token-node` and `api/vector-node`. This new node is returned in a map under
 the `:node` key.
 
@@ -493,7 +500,7 @@ bindings and will give warnings customized to this macro.
 #### Custom lint warnings
 
 Analyze-call hooks can also be used to create custom lint warnings, without
-transforming the original node.
+transforming the original rewrite-clj node.
 
 This is an example for re-frame's `dispatch` function which checks if the
 dispatched event used a qualified keyword.
@@ -533,7 +540,35 @@ location.
 
 <img src="../screenshots/re-frame-hook.png"/>
 
-### Examples
+### Clojure Code as rewrite-clj nodes
+
+If you develop a hook you will likely need some familiarity with rewrite-clj node structure.
+A couple of examples might help:
+
+`(my-macro 1 2 3)` becomes:
+
+- a list node with `:children`:
+  - token node `my-macro`
+  - token node `1`
+  - token node `2`
+  - token node `3`
+
+`(my-lib/with-bound [a 1 {:with-bound/setting true}] (inc a))` becomes:
+
+- a list node with `:children`
+  - token node `my-lib/with-bound`
+  - vector node with `:children`
+    - token-node `a`
+    - token-node `1`
+    - map node with `:children`
+      - keyword node `:with-bound/setting`
+      - token node `true`
+  - list node
+    - token node `inc`
+    - token node `a`
+
+
+### Example Hooks
 
 - rewrite-cljc-playground: [import-vars-with-mod](https://github.com/lread/rewrite-cljc-playground/commit/09882e1244a8c12879ef8c1e6872724748e7914b)
 
