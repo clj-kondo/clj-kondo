@@ -52,6 +52,7 @@ The analysis output consists of a map with:
   - `:name`: the name of the used var
   - `:from`: the namespace from which the var was used
   - `:to`: the namespace of the used var
+  - `:from-var`: the function name from which the var was used
 
   Optional:
   - `:arity`: if the usage was a function call, the amount of arguments passed
@@ -109,45 +110,47 @@ $ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}
                    {:added "1.2",
                     :ns foo,
                     :name g,
-                    :varargs-min-arity 1,
                     :filename "/tmp/foo.clj",
                     :macro true,
                     :col 1,
                     :deprecated "1.3",
+                    :varargs-min-arity 1,
                     :doc "No longer used.",
                     :row 11}],
- :var-usages [{:filename "/tmp/foo.clj",
-               :row 9,
-               :col 3,
-               :from foo,
-               :to clojure.core,
+ :var-usages [{:fixed-arities #{1},
                :name inc,
-               :fixed-arities #{1},
-               :arity 1}
+               :filename "/tmp/foo.clj",
+               :from foo,
+               :col 4,
+               :from-var f,
+               :arity 1,
+               :row 9,
+               :to clojure.core}
               {:name defn-,
-               :varargs-min-arity 2,
                :filename "/tmp/foo.clj",
                :from foo,
                :macro true,
-               :col 1,
+               :col 2,
                :arity 3,
+               :varargs-min-arity 2,
                :row 8,
                :to clojure.core}
-              {:filename "/tmp/foo.clj",
-               :row 16,
-               :col 5,
-               :from foo,
-               :to clojure.core,
-               :name comment,
-               :macro true,
-               :varargs-min-arity 0}
-              {:name defmacro,
-               :varargs-min-arity 2,
+              {:name comment,
                :filename "/tmp/foo.clj",
                :from foo,
                :macro true,
-               :col 1,
+               :col 5,
+               :from-var g,
+               :varargs-min-arity 0,
+               :row 16,
+               :to clojure.core}
+              {:name defmacro,
+               :filename "/tmp/foo.clj",
+               :from foo,
+               :macro true,
+               :col 2,
                :arity 5,
+               :varargs-min-arity 2,
                :row 11,
                :to clojure.core}]}
 ```
