@@ -1197,21 +1197,25 @@
                 hook-fn (hooks/hook-fn config :analyze-call resolved-as-namespace resolved-as-name)
                 transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
-                              (binding [hooks/*ctx* ctx]
-                                (sci/binding [sci/out *out*]
-                                  (try (hook-fn {:node expr})
-                                       (catch Exception e
-                                         (findings/reg-finding!
-                                          ctx
-                                          (merge
-                                           {:filename (:filename ctx)
-                                            :row row
-                                            :col col
-                                            :type :hook
-                                            :message (.getMessage e)}
-                                           (select-keys (ex-data e)
-                                                        [:level :row :col])))
-                                         nil)))))]
+                              (let [filename (:filename ctx)]
+                                (binding [hooks/*ctx* ctx]
+                                  (sci/binding [sci/out *out*]
+                                    (try (hook-fn {:node expr
+                                                   :cljc (identical? :cljc base-lang)
+                                                   :lang lang
+                                                   :filename filename})
+                                         (catch Exception e
+                                           (findings/reg-finding!
+                                            ctx
+                                            (merge
+                                             {:filename filename
+                                              :row row
+                                              :col col
+                                              :type :hook
+                                              :message (.getMessage e)}
+                                             (select-keys (ex-data e)
+                                                          [:level :row :col])))
+                                           nil))))))]
             (if-let [expanded (and transformed
                                    (:node transformed))]
               (do ;;;; This registers the macro call, so we still get arity linting

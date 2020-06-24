@@ -89,3 +89,22 @@
           {:linters {:unused-binding {:level :warning}
                      :unresolved-symbol {:level :error}
                      :invalid-arity {:level :error}}})))
+
+(deftest keys-test
+  (when-not native?
+    (let [s (with-out-str (lint! "
+(ns bar
+  {:clj-kondo/config
+    '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename]}] (prn cljc lang filename))\"}}}}
+  (:require [foo :refer [hook]]))
+
+(hook 1 2 3)"))]
+      (is (= s "false :clj \"<stdin>\"\n")))
+    (let [s (with-out-str (lint! "
+(ns bar
+  {:clj-kondo/config
+    '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename]}] (prn cljc lang filename))\"}}}}
+  (:require [foo :refer [hook]]))
+
+(hook 1 2 3)" "--lang" "cljc"))]
+      (is (= s "true :clj \"<stdin>\"\ntrue :cljs \"<stdin>\"\n")))))
