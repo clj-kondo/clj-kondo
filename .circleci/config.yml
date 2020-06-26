@@ -81,8 +81,8 @@ jobs:
           command: |
             cd ~
             if ! [ -d graalvm-ce-java11-20.1.0 ]; then
-              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-linux-amd64-19.3.0.tar.gz
-              tar xzf graalvm-ce-java8-linux-amd64-19.3.0.tar.gz
+              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
+              tar xzf graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
             fi
       - run:
           name: Build binary
@@ -140,8 +140,8 @@ jobs:
           command: |
             cd ~
             if ! [ -d graalvm-ce-java11-20.1.0 ]; then
-              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-linux-amd64-19.3.0.tar.gz
-              tar xzf graalvm-ce-java8-linux-amd64-19.3.0.tar.gz
+              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
+              tar xzf graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
             fi
       - run:
           name: Build binary
@@ -195,8 +195,8 @@ jobs:
             cd ~
             ls -la
             if ! [ -d graalvm-ce-java11-20.1.0 ]; then
-              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java8-darwin-amd64-19.3.0.tar.gz
-              tar xzf graalvm-ce-java8-darwin-amd64-19.3.0.tar.gz
+              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-darwin-amd64-20.1.0.tar.gz
+              tar xzf graalvm-ce-java11-darwin-amd64-20.1.0.tar.gz
             fi
       - run:
           name: Build binary
