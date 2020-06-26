@@ -106,5 +106,7 @@
     '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename]}] (prn cljc lang filename))\"}}}}
   (:require [foo :refer [hook]]))
 
-(hook 1 2 3)" "--lang" "cljc"))]
+(hook 1 2 3)" "--lang" "cljc"))
+          ;; Windows...
+          s (str/replace s "\r\n" "\n")]
       (is (= s "true :clj \"<stdin>\"\ntrue :cljs \"<stdin>\"\n")))))
