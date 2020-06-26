@@ -9,7 +9,9 @@ if "%GRAALVM_HOME%"=="" (
 )
 
 set JAVA_HOME=%GRAALVM_HOME%\bin
-set PATH=%PATH%;%GRAALVM_HOME%\bin
+set PATH=%GRAALVM_HOME%\bin;%PATH%
+
+dir %GRAALVM_HOME%\bin
 
 set /P CLJ_KONDO_VERSION=< resources\CLJ_KONDO_VERSION
 echo Building clj-kondo %CLJ_KONDO_VERSION%
