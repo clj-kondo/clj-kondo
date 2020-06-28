@@ -4,7 +4,6 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :as core-impl]
-   [clj-kondo.impl.profiler :as profiler]
    [clojure.string :as str
     :refer [starts-with?]]
    [pod.borkdude.clj-kondo :as pod]))
@@ -97,28 +96,23 @@ Options:
 
 (defn main
   [& options]
-  (try
-    (profiler/profile
-     :main
-     (let [{:keys [:help :lint :version :pod] :as parsed}
-           (parse-opts options)]
-       (or (cond version
-                 (print-version)
-                 help
-                 (print-help)
-                 pod (pod/run-pod)
-                 (empty? lint)
-                 (print-help)
-                 :else (let [{:keys [:summary]
-                              :as results} (clj-kondo/run! parsed)
-                             {:keys [:error :warning]} summary]
-                         (clj-kondo/print! results)
-                         (cond (pos? error) 3
-                               (pos? warning) 2
-                               :else 0)))
-           0)))
-    (finally
-      (profiler/print-profile :main))))
+  (let [{:keys [:help :lint :version :pod] :as parsed}
+        (parse-opts options)]
+    (or (cond version
+              (print-version)
+              help
+              (print-help)
+              pod (pod/run-pod)
+              (empty? lint)
+              (print-help)
+              :else (let [{:keys [:summary]
+                           :as results} (clj-kondo/run! parsed)
+                          {:keys [:error :warning]} summary]
+                      (clj-kondo/print! results)
+                      (cond (pos? error) 3
+                            (pos? warning) 2
+                            :else 0)))
+        0)))
 
 (defn -main [& options]
   (let [exit-code
