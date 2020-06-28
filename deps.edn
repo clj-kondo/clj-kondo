@@ -31,8 +31,8 @@
            :clojure-1.10.2-alpha1 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.2-alpha1"}}}
            :profiler
            {:extra-deps
-            {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.3.1"}}
-            :extra-paths ["test"]
+            {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.4.1"}}
+            :extra-paths ["src-profile"]
             :jvm-opts ["-Djdk.attach.allowAttachSelf"]
             :main-opts ["-m" "clj-kondo.profile"]}
            :cljs ;; for performance and regression testing
