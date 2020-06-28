@@ -22,7 +22,6 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.parser :as p]
-   [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
@@ -1706,27 +1705,25 @@
   they call to, not the ns where the call occurred."
   [{:keys [:base-lang :lang :config] :as ctx}
    expressions]
-  (profiler/profile
-   :analyze-expressions
-   (let [init-ns (when-not (= :edn lang)
-                   (analyze-ns-decl (assoc-in ctx
-                                              [:config :output :analysis] false)
-                                    (parse-string "(ns user)")))
-         init-ctx (assoc ctx
-                         :ns init-ns
-                         :calls-by-id (atom {})
-                         :top-ns nil
-                         :global-config config)]
-     (loop [ctx init-ctx
-            [expression & rest-expressions] expressions
-            results {:required (:required init-ns)
-                     :used-namespaces (:used-namespaces init-ns)
-                     :lang base-lang}]
-       (if expression
-         (let [[ctx results]
-               (analyze-expression* ctx results expression)]
-           (recur ctx rest-expressions results))
-         results)))))
+  (let [init-ns (when-not (= :edn lang)
+                  (analyze-ns-decl (assoc-in ctx
+                                             [:config :output :analysis] false)
+                                   (parse-string "(ns user)")))
+        init-ctx (assoc ctx
+                        :ns init-ns
+                        :calls-by-id (atom {})
+                        :top-ns nil
+                        :global-config config)]
+    (loop [ctx init-ctx
+           [expression & rest-expressions] expressions
+           results {:required (:required init-ns)
+                    :used-namespaces (:used-namespaces init-ns)
+                    :lang base-lang}]
+      (if expression
+        (let [[ctx results]
+              (analyze-expression* ctx results expression)]
+          (recur ctx rest-expressions results))
+        results))))
 
 ;;;; processing of string input
 
@@ -1773,8 +1770,7 @@
                                            (:children (select-lang parsed :clj)))
                   cljs (analyze-expressions (assoc ctx :base-lang :cljc :lang :cljs :filename filename)
                                             (:children (select-lang parsed :cljs)))]
-              (profiler/profile :deep-merge
-                                (deep-merge clj cljs)))
+              (deep-merge clj cljs))
             (:clj :cljs :edn)
             (analyze-expressions (assoc ctx :base-lang lang :lang lang :filename filename)
                                  (:children parsed)))]
