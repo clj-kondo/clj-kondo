@@ -126,6 +126,16 @@ or:
 
 In case of an exception, you may want to prefix the above lines with `CLJ_KONDO_DEV=true` to see the entire stacktrace.
 
+## Profiling
+
+Profiling using [clj-async-profiler](https://github.com/clojure-goes-fast/clj-async-profiler) can be done as follows:
+
+``` shell
+$ clojure -A:profiler --lint src test
+```
+
+A flamegraph will be produced in `/tmp/clj-async-profiler/results`.
+
 ## Build
 
 ### Uberjar

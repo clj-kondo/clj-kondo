@@ -1,12 +1,10 @@
 (ns clj-kondo.impl.parser
   {:no-doc true}
   (:require
-    [clj-kondo.impl.profiler :refer [profile]]
-    [clj-kondo.impl.utils :as utils :refer [parse-string-all]]))
+   [clj-kondo.impl.utils :as utils :refer [parse-string-all]]))
 
 (defn parse-string [s]
-  (let [parsed (profile :parse-string-all (parse-string-all s))]
-    parsed))
+  (parse-string-all s))
 
 ;;;; Scratch
 

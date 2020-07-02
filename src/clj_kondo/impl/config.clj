@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
   (:require
-   [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
 
 (def default-config
@@ -142,19 +141,15 @@
 (defn skip?
   "we optimize for the case that disable-within returns an empty sequence"
   ([config callstack]
-   (profiler/profile
-    :disabled?
-    (when-let [disabled (seq (skip-args config))]
-      (some (fn [disabled-sym]
-              (some #(= disabled-sym %) callstack))
-            disabled))))
+   (when-let [disabled (seq (skip-args config))]
+     (some (fn [disabled-sym]
+             (some #(= disabled-sym %) callstack))
+           disabled)))
   ([config linter callstack]
-   (profiler/profile
-    :disabled?
-    (when-let [disabled (seq (skip-args config linter))]
-      (some (fn [disabled-sym]
-              (some #(= disabled-sym %) callstack))
-            disabled)))))
+   (when-let [disabled (seq (skip-args config linter))]
+     (some (fn [disabled-sym]
+             (some #(= disabled-sym %) callstack))
+           disabled))))
 
 (defn lint-as-config* [config]
   (let [m (get config :lint-as)]
