@@ -2270,6 +2270,9 @@ foo/foo ;; this does use the private var
       :level :warning,
       :message "Unused private var foo/f"})
    (lint! "(ns foo) (defn- f [])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 103, :level :warning, :message "Unused private var foo/g"})
+   (lint! "(ns foo {:clj-kondo/config '{:linters {:unused-private-var {:exclude [foo/f]}}}}) (defn- f []) (defn- g [])"))
   (is (empty? (lint! "(ns foo) (defn- f []) (f)")))
   (is (empty? (lint! "(ns foo) (defn- f [])"
                      '{:linters {:unused-private-var {:exclude [foo/f]}}}))))

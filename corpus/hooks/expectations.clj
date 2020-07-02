@@ -11,8 +11,7 @@
                                  (rest children)))}))
 
 "}}}}
-  (:require [clojure.string :as str]
-            [expectations.clojure.test :as t]))
+  (:require [expectations.clojure.test :as t]))
 
 (t/expecting "numeric behavior"
              (t/expect (t/more-of {:keys [a b]} ;; bindings are recognized

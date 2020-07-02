@@ -97,6 +97,7 @@
                           :var-definitions []
                           :var-usages []}))
         ctx {:config config
+             :global-config config
              :findings findings
              :namespaces (atom {})
              :analysis analysis

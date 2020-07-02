@@ -83,8 +83,8 @@
 
 (deftest expectations-test
   (assert-submaps
-   '({:file "corpus/hooks/expectations.clj", :row 25, :col 45, :level :warning, :message "unused binding b"}
-     {:file "corpus/hooks/expectations.clj", :row 27, :col 41, :level :error, :message "unresolved symbol b'"})
+   '({:file "corpus/hooks/expectations.clj", :row 24, :col 45, :level :warning, :message "unused binding b"}
+     {:file "corpus/hooks/expectations.clj", :row 26, :col 41, :level :error, :message "unresolved symbol b'"})
    (lint! (io/file "corpus" "hooks" "expectations.clj")
           {:linters {:unused-binding {:level :warning}
                      :unresolved-symbol {:level :error}

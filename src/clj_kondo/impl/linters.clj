@@ -443,8 +443,12 @@
   [ctx]
   (let [config (:config ctx)]
     (doseq [{:keys [:filename :vars :used-vars]
-             ns-name :name} (namespace/list-namespaces ctx)
-            :let [vars (vals vars)
+             ns-name :name
+             ns-config :config} (namespace/list-namespaces ctx)
+            :let [config (or ns-config config)
+                  ctx (if ns-config (assoc ctx :config config) ctx)
+                  ;;_ (prn (-> config :linters :unused-private-var))
+                  vars (vals vars)
                   used-vars (into #{} (comp (filter #(= (:ns %) ns-name))
                                             (map :name))
                                   used-vars)]
