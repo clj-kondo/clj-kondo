@@ -221,7 +221,10 @@
                      '{:linters {:unused-binding
                                  {:level :warning
                                   :exclude-destructured-keys-in-fn-args true}
-                                 :unresolved-symbol {:level :error}}}))))
+                                 :unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns problem {:clj-kondo/config {:linters {:unused-binding {:level :off}}}})
+(defn f [x] (println))"
+                     '{:linters {:unused-binding {:level :warning}}}))))
 
 (deftest unused-destructuring-default-test
   (doseq [input ["(let [{:keys [:i] :or {i 2}} {}])"
