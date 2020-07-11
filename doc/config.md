@@ -567,7 +567,7 @@ A couple of examples might help:
     - token node `inc`
     - token node `a`
 
-Clj-kondo uses a different approach to metadata as the original rewrite-clj
+Clj-kondo uses a different approach to metadata than the original rewrite-clj
 library. Metadata nodes are stored in the `:meta` key on nodes correponding to
 the values carrying the metadata:
 
