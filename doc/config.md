@@ -540,7 +540,7 @@ location.
 
 <img src="../screenshots/re-frame-hook.png"/>
 
-### Clojure Code as rewrite-clj nodes
+### Clojure code as rewrite-clj nodes
 
 If you develop a hook you will likely need some familiarity with rewrite-clj node structure.
 A couple of examples might help:
@@ -567,6 +567,16 @@ A couple of examples might help:
     - token node `inc`
     - token node `a`
 
+Clj-kondo uses a different approach to metadata as the original rewrite-clj
+library. Metadata nodes are stored in the `:meta` key on nodes correponding to
+the values carrying the metadata:
+
+`^:foo ^:bar []` becomes:
+
+- a vector node with `:meta`
+  - a seq of nodes with:
+    - keyword node `:foo`
+    - keyword node `:bar`
 
 ### Example Hooks
 
