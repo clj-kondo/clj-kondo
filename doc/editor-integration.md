@@ -90,6 +90,43 @@ This section is for Vim 8+ or Neovim.
 
 <img src="../screenshots/vim.png">
 
+### COC.NVIM
+
+Follow instructions to install **COC.NVIM** https://github.com/neoclide/coc.nvim
+
+Follow instructions to install **coc diagnostic**
+https://github.com/iamcco/coc-diagnostic
+
+Add the `diagnostic-languageserver.linter` and the
+`diagnostic-languageserver.filetypes` to the `coc-settings.json`.  `CocConfig`
+command can be used to open the `coc-settings.json` file.
+
+```json
+{
+    "diagnostic-languageserver.linters": {
+        "clj_kondo_lint": {
+            "command": "clj-kondo",
+            "debounce": 100,
+            "args": [ "--lint", "%filepath"],
+            "offsetLine": 0,
+            "offsetColumn": 0,
+            "sourceName": "clj-kondo",
+            "formatLines": 1,
+            "formatPattern": [
+                "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",
+                {
+                    "line": 1,
+                    "column": 2,
+                    "message": 4,
+                    "security": 3
+                }
+            ]
+        }
+    },
+    "diagnostic-languageserver.filetypes": {"clojure":"clj_kondo_lint"}
+}
+```
+
 ### Vanilla way
 
 Create this file in `~/.config/nvim/compiler/clj-kondo.vim` or `~/.vim/compiler/clj-kondo.vim`.

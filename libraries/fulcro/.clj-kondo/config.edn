@@ -1,0 +1,1 @@
+{:lint-as {com.fulcrologic.fulcro.components/defsc clojure.core/defn}}

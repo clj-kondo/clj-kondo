@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
   (:require
-   [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
 
 (def default-config
@@ -84,7 +83,8 @@
               :single-operand-comparison {:level :warning}
               :single-key-in {:level :off}
               :missing-clause-in-try {:level :warning}
-              :missing-body-in-when {:level :warning}}
+              :missing-body-in-when {:level :warning}
+              :hook {:level :error}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -95,6 +95,7 @@
               schema.core/defschema clojure.core/def
               compojure.core/defroutes clojure.core/def
               compojure.core/let-routes clojure.core/let}
+    :macroexpand {}
     :output {:format :text ;; or :edn
              :summary true ;; outputs summary at end, only applicable to output :text
              ;; outputs analyzed var definitions and usages of them
@@ -140,19 +141,15 @@
 (defn skip?
   "we optimize for the case that disable-within returns an empty sequence"
   ([config callstack]
-   (profiler/profile
-    :disabled?
-    (when-let [disabled (seq (skip-args config))]
-      (some (fn [disabled-sym]
-              (some #(= disabled-sym %) callstack))
-            disabled))))
+   (when-let [disabled (seq (skip-args config))]
+     (some (fn [disabled-sym]
+             (some #(= disabled-sym %) callstack))
+           disabled)))
   ([config linter callstack]
-   (profiler/profile
-    :disabled?
-    (when-let [disabled (seq (skip-args config linter))]
-      (some (fn [disabled-sym]
-              (some #(= disabled-sym %) callstack))
-            disabled)))))
+   (when-let [disabled (seq (skip-args config linter))]
+     (some (fn [disabled-sym]
+             (some #(= disabled-sym %) callstack))
+           disabled))))
 
 (defn lint-as-config* [config]
   (let [m (get config :lint-as)]

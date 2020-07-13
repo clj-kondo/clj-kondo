@@ -1,0 +1,13 @@
+;; (one-of x [foo bar]), foo bar are literal symbols
+
+(ns macroexpand.one-of
+  (:require [clj-kondo.hooks-api :as api]))
+
+(defn one-of [{:keys [:node]}]
+  (let [[matchee matches] (rest (:children node))
+        new-node (api/list-node
+                  [(api/token-node 'case)
+                   matchee
+                   (api/list-node matches)
+                   matchee])]
+    {:node new-node}))

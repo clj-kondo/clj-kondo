@@ -11,6 +11,10 @@
    [clojure.test :as t :refer [deftest is testing]]
    [missing.test.assertions]))
 
+(defmethod clojure.test/report :begin-test-var [m]
+  (println "===" (-> m :var meta :name))
+  (println))
+
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
         row-col-files (map #(select-keys % [:row :col :file])
@@ -52,7 +56,17 @@
   (is (empty? (lint! "(let [x 1] [x (let [y (+ x 1)] y)])")))
   (is (empty? (lint! "(let [x 1] #{(let [y 1] y)})")))
   (is (empty? (lint! "(let [x 1] #:a{:a (let [y 1] y)})")))
-  (is (empty? (lint! "(let [x 1] {:a (let [y 1] y)})"))))
+  (is (empty? (lint! "(let [x 1] {:a (let [y 1] y)})")))
+  (is (empty? (lint! "
+(ns foo
+  {:clj-kondo/config '{:lint-as {clojure.test.check.generators/let clojure.core/let}}}
+  (:require [clojure.test.check.generators :as gen]))
+
+(let [_init-link-events 1]
+  (gen/let [_chain-size 2
+            _command-chain 2]
+    1))
+"))))
 
 (deftest redundant-do-test
   (assert-submaps
@@ -240,7 +254,16 @@
                      :col 6,
                      :level :error,
                      :message "#'private.private-defs/private is private"})
-                  (lint! (io/file "corpus" "private"))))
+                  (lint! (io/file "corpus" "private")))
+  (assert-submaps
+   '({:file "<stdin>", :row 6, :col 1, :level :error, :message "#'foo/foo is private"})
+   (lint! "(ns foo) (defn- foo [])
+(defmacro blah [] `foo) ;; using it in syntax quote should mark private var as used
+
+(ns bar (:require [foo]))
+`foo/foo ;; this doesn't use the private var, it only uses the ns alias
+foo/foo ;; this does use the private var
+")))
 
 (deftest read-error-test
   (testing "when an error happens in one file, the other file is still linted"
@@ -1607,7 +1630,14 @@
       :col 1,
       :level :error,
       :message "defprotocol/-foo is called with 4 args but expects 1, 2 or 3"})
-   (lint! (io/file "corpus" "defprotocol.clj"))))
+   (lint! (io/file "corpus" "defprotocol.clj")))
+  (is (empty? (lint! "
+(ns repro
+  (:import
+    [clojure.lang IReduceInit]))
+
+(defprotocol Db
+  (-list-resources ^IReduceInit [db type start-id]))"))))
 
 (deftest defrecord-test
   (assert-submaps
@@ -1715,7 +1745,13 @@
 (amap ^ints an-array idx ret
       (+ (int 1)
          (aget ^ints an-array idx)))"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(clojure.core/let ^{:row 15, :col 2, :line 1} [^{:row 15, :col 3} x 1] ^{:row 16, :col 2} (^{:row 16, :col 3} inc ^{:row 16, :col 7} x))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "(def x) (doto x)")))
+  (is (empty? (lint! "(def ^:private a 1) (let [{:keys [a] :or {a a}} {}] a)"
+                     {:linters {:unused-binding {:level :warning}}}))))
 
 (deftest proxy-super-test
   (is (empty? (lint! "
@@ -2234,6 +2270,9 @@
       :level :warning,
       :message "Unused private var foo/f"})
    (lint! "(ns foo) (defn- f [])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 103, :level :warning, :message "Unused private var foo/g"})
+   (lint! "(ns foo {:clj-kondo/config '{:linters {:unused-private-var {:exclude [foo/f]}}}}) (defn- f []) (defn- g [])"))
   (is (empty? (lint! "(ns foo) (defn- f []) (f)")))
   (is (empty? (lint! "(ns foo) (defn- f [])"
                      '{:linters {:unused-private-var {:exclude [foo/f]}}}))))
@@ -2534,6 +2573,13 @@
 
       (is (= {:error 1 :warning 7 :info 0}
              (select-keys (:summary out) [:error :warning :info]))))))
+
+(deftest config-dir-test
+  (is (seq (lint! (io/file "corpus" "config_dir" "foo.clj")
+                  {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty (lint! (io/file "corpus" "config_dir" "foo.clj")
+                    {:linters {:unresolved-symbol {:level :error}}}
+                    "--config-dir" (.getPath (io/file "corpus" "config_dir"))))))
 
 ;;;; Scratch
 

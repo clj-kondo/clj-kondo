@@ -4,7 +4,6 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :as core-impl]
-   [clj-kondo.impl.profiler :as profiler]
    [clojure.string :as str
     :refer [starts-with?]]
    [pod.borkdude.clj-kondo :as pod]))
@@ -39,6 +38,9 @@ Options:
   --config <config>: config may be a file or an EDN expression. See
     https://cljdoc.org/d/clj-kondo/clj-kondo/%s/doc/configuration.
 
+  --config-dir <config-dir>: use this config directory instead of auto-detected
+    .clj-kondo dir.
+
   --run-as-pod: run clj-kondo as a babashka pod
 " core-impl/version))
   nil)
@@ -52,6 +54,7 @@ Options:
     "--lang"       :scalar
     "--cache"      :scalar
     "--cache-dir"  :scalar
+    "--config-dir" :scalar
     "--lint"       :coll
     "--config"     :coll
     :scalar))
@@ -86,34 +89,30 @@ Options:
      :cache-dir (last (get opts "--cache-dir"))
      :lang default-lang
      :config (get opts "--config")
+     :config-dir (last (get opts "--config-dir"))
      :version (contains? opts "--version")
      :help (contains? opts "--help")
      :pod (= "true" (System/getenv "BABASHKA_POD"))}))
 
 (defn main
   [& options]
-  (try
-    (profiler/profile
-     :main
-     (let [{:keys [:help :lint :version :pod] :as parsed}
-           (parse-opts options)]
-       (or (cond version
-                 (print-version)
-                 help
-                 (print-help)
-                 pod (pod/run-pod)
-                 (empty? lint)
-                 (print-help)
-                 :else (let [{:keys [:summary]
-                              :as results} (clj-kondo/run! parsed)
-                             {:keys [:error :warning]} summary]
-                         (clj-kondo/print! results)
-                         (cond (pos? error) 3
-                               (pos? warning) 2
-                               :else 0)))
-           0)))
-    (finally
-      (profiler/print-profile :main))))
+  (let [{:keys [:help :lint :version :pod] :as parsed}
+        (parse-opts options)]
+    (or (cond version
+              (print-version)
+              help
+              (print-help)
+              pod (pod/run-pod)
+              (empty? lint)
+              (print-help)
+              :else (let [{:keys [:summary]
+                           :as results} (clj-kondo/run! parsed)
+                          {:keys [:error :warning]} summary]
+                      (clj-kondo/print! results)
+                      (cond (pos? error) 3
+                            (pos? warning) 2
+                            :else 0)))
+        0)))
 
 (defn -main [& options]
   (let [exit-code

@@ -1,11 +1,11 @@
 <img src="logo/logo-300dpi.png" width="400px">
 
+[![Clojars Project](https://img.shields.io/clojars/v/clj-kondo.svg)](https://clojars.org/clj-kondo)
+[![Financial Contributors on Open Collective](https://opencollective.com/clj-kondo/all/badge.svg?label=financial+contributors)](https://opencollective.com/clj-kondo) 
 [![CircleCI](https://circleci.com/gh/borkdude/clj-kondo/tree/master.svg?style=shield)](https://circleci.com/gh/borkdude/clj-kondo/tree/master)
 [![Build status](https://ci.appveyor.com/api/projects/status/3jdro7mu17nv3rb3/branch/master?svg=true)](https://ci.appveyor.com/project/borkdude/clj-kondo/branch/master)
-[![Clojars Project](https://img.shields.io/clojars/v/clj-kondo.svg)](https://clojars.org/clj-kondo)
 [![cljdoc badge](https://cljdoc.org/badge/clj-kondo/clj-kondo)](https://cljdoc.org/d/clj-kondo/clj-kondo/CURRENT)
 [![project chat](https://img.shields.io/badge/slack-join_chat-brightgreen.svg)](https://clojurians.slack.com/messages/CHY97NXE2)
-[![Financial Contributors on Open Collective](https://opencollective.com/clj-kondo/all/badge.svg?label=financial+contributors)](https://opencollective.com/clj-kondo) 
 
 A linter for Clojure code that sparks joy.
 
@@ -181,7 +181,7 @@ All other error codes indicate an unexpected error.
 ## Babashka pod
 
 Clj-kondo can be invoked as a [babashka
-pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
+pod](https://github.com/babashka/babashka.pods).
 
 ``` clojure
 #!/usr/bin/env bb
@@ -201,6 +201,11 @@ pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
 ;;=> {:error 0, :warning 0, :info 0, :type :summary, :duration 779}
 ```
 
+## Podcast
+
++ [defnpodcast](https://soundcloud.com/defn-771544745)
++ [ClojureScript Podcast](https://clojurescriptpodcast.com/)
+
 ## Thanks to:
 
 - [joker](https://github.com/candid82/joker) for inspiration
@@ -209,6 +214,9 @@ pod](https://github.com/borkdude/babashka/blob/master/doc/pods.md).
 - [contributors](https://github.com/borkdude/clj-kondo/graphs/contributors) and
   other users posting issues with bug reports and ideas
 - [Nikita Prokopov](https://github.com/tonsky) for the logo
+- [adgoji](https://www.adgoji.com/) for financial support
+- [Clojurists Together](https://www.clojuriststogether.org/) for sponsoring work
+  on hooks
 
 ## Contributors
 

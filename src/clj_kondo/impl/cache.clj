@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.cache
   {:no-doc true}
   (:require
-   [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
@@ -139,12 +138,10 @@
             [:clj :cljs :cljc])))
 
 (defn sync-cache [idacs cache-dir]
-  (profiler/profile
-   :sync-cache
-   (if cache-dir
-     (with-cache cache-dir 6
-       (sync-cache* idacs cache-dir))
-     (sync-cache* idacs cache-dir))))
+  (if cache-dir
+    (with-cache cache-dir 6
+      (sync-cache* idacs cache-dir))
+    (sync-cache* idacs cache-dir)))
 
 ;;;; Scratch
 

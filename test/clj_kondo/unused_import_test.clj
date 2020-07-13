@@ -58,6 +58,17 @@
         :level :warning,
         :message "Unused import Integer"})
      (lint! "(import 'goog.math.Long '[goog.math Vec2 Vec3] [goog.math Integer])")))
+  (testing "Namespace local config"
+    (assert-submaps
+     '({:file "<stdin>", :row 4, :col 21, :level :error, :message "Unused import Baz"})
+     (lint! "
+(ns foo
+  {:clj-kondo/config {:linters {:unused-import {:level :error}}}}
+  (:import [foo.bar Baz]))"))
+    (is (empty? (lint! "
+(ns foo
+  {:clj-kondo/config {:linters {:unused-import {:level :off}}}}
+  (:import [foo.bar Baz]))"))))
   (testing "Preventing false positives"
     (is (empty? (lint! "(import '[java.util Foo Bar]) Foo Bar")))
     (is (empty? (lint! "(import '[java.util Foo]) (Foo.)")))
@@ -69,4 +80,5 @@
                        "--lang" "cljs")))
     (is (empty? (lint! "(import '[java.util Foo]) (defn foo [^Foo x] x)")))
     (is (empty? (lint! "(import '[java.util Foo]) (try 1 (catch Foo _e nil))")))
-    (is (empty? (lint! "(ns foo (:import [foo Bar])) (defn foo [x] x) (defn bar [x] (-> x ^Bar (.execute)))")))))
+    (is (empty? (lint! "(ns foo (:import [foo Bar])) (defn foo [x] x) (defn bar [x] (-> x ^Bar (.execute)))"))))
+)

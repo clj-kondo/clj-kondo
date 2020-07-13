@@ -329,7 +329,7 @@
                   (merge metadata
                          (sexpr meta-node))
                   metadata)
-        global-config (:config ctx)
+        global-config (:global-config ctx)
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))
                        (second local-config)
@@ -391,7 +391,7 @@
                       (merge-with into
                                   analyzed-require-clauses
                                   refer-clojure))
-             local-config (assoc :config local-config)
+             local-config (assoc :config merged-config)
              (= :clj lang) (update :qualify-ns
                                    #(assoc % 'clojure.core 'clojure.core))
              (= :cljs lang) (update :qualify-ns

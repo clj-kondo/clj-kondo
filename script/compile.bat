@@ -7,14 +7,19 @@ if "%GRAALVM_HOME%"=="" (
     echo Please set GRAALVM_HOME
     exit /b
 )
+
 set JAVA_HOME=%GRAALVM_HOME%\bin
-set PATH=%PATH%;%GRAALVM_HOME%\bin
+set PATH=%GRAALVM_HOME%\bin;%PATH%
+
+dir %GRAALVM_HOME%\bin
 
 set /P CLJ_KONDO_VERSION=< resources\CLJ_KONDO_VERSION
 echo Building clj-kondo %CLJ_KONDO_VERSION%
 
-call lein with-profiles +clojure-1.10.1 do clean, uberjar
+call lein with-profiles +clojure-1.10.2-alpha1,+native-image do clean, uberjar
 if %errorlevel% neq 0 exit /b %errorlevel%
+
+call %GRAALVM_HOME%\bin\gu.cmd install native-image
 
 Rem the --no-server option is not supported in GraalVM Windows.
 call %GRAALVM_HOME%\bin\native-image.cmd ^

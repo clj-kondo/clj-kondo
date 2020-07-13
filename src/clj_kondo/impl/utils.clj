@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
   (:require
-   [clj-kondo.impl.profiler :as profiler]
    [clj-kondo.impl.rewrite-clj.node.keyword]
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
@@ -76,13 +75,13 @@
               default)))))
     node))
 
-(declare select-lang*)
+(declare select-lang)
 
 (defn select-lang-children [node lang]
   (if-let [children (:children node)]
     (let [new-children (reduce
                         (fn [acc node]
-                          (if-let [processed (select-lang* node lang)]
+                          (if-let [processed (select-lang node lang)]
                             (if (= "?@" (some-> node :children first :string-value))
                               (into acc (:children processed))
                               (conj acc processed))
@@ -93,13 +92,9 @@
              new-children))
     node))
 
-(defn select-lang* [node lang]
+(defn select-lang [node lang]
   (when-let [processed (process-reader-conditional node lang)]
     (select-lang-children processed lang)))
-
-(defn select-lang [expr lang]
-  (profiler/profile :select-lang
-                    (select-lang* expr lang)))
 
 (defn node->line [filename node level type message]
   #_(when (and (= type :missing-docstring)

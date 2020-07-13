@@ -410,41 +410,50 @@
 (defn lint-unused-bindings!
   [ctx]
   (doseq [ns (namespace/list-namespaces ctx)]
-    (let [bindings (:bindings ns)
-          used-bindings (:used-bindings ns)
-          diff (set/difference bindings used-bindings)
-          defaults (:destructuring-defaults ns)]
-      (doseq [binding diff]
-        (let [name (:name binding)]
-          (when-not (str/starts-with? (str name) "_")
+    (let [ns-config (:config ns)
+          ctx (if ns-config
+                (assoc ctx :config ns-config)
+                ctx)]
+      (when-not (identical? :off (-> ctx :config :linters :unused-binding :level))
+        (let [bindings (:bindings ns)
+              used-bindings (:used-bindings ns)
+              diff (set/difference bindings used-bindings)
+              defaults (:destructuring-defaults ns)]
+          (doseq [binding diff]
+            (let [name (:name binding)]
+              (when-not (str/starts-with? (str name) "_")
+                (findings/reg-finding!
+                 ctx
+                 {:type :unused-binding
+                  :filename (:filename binding)
+                  :message (str "unused binding " name)
+                  :row (:row binding)
+                  :col (:col binding)
+                  :end-row (:end-row binding)
+                  :end-col (:end-col binding)}))))
+          (doseq [default defaults
+                  :let [binding (:binding default)]
+                  :when (not (contains? (:used-bindings ns) binding))]
             (findings/reg-finding!
              ctx
              {:type :unused-binding
               :filename (:filename binding)
-              :message (str "unused binding " name)
-              :row (:row binding)
-              :col (:col binding)
-              :end-row (:end-row binding)
-              :end-col (:end-col binding)}))))
-      (doseq [default defaults
-              :let [binding (:binding default)]
-              :when (not (contains? (:used-bindings ns) binding))]
-        (findings/reg-finding!
-         ctx
-         {:type :unused-binding
-          :filename (:filename binding)
-          :message (str "unused default for binding " (:name binding))
-          :row (:row default)
-          :col (:col default)
-          :end-row (:end-row default)
-          :end-col (:end-col default)})))))
+              :message (str "unused default for binding " (:name binding))
+              :row (:row default)
+              :col (:col default)
+              :end-row (:end-row default)
+              :end-col (:end-col default)})))))))
 
 (defn lint-unused-private-vars!
   [ctx]
   (let [config (:config ctx)]
     (doseq [{:keys [:filename :vars :used-vars]
-             ns-name :name} (namespace/list-namespaces ctx)
-            :let [vars (vals vars)
+             ns-name :name
+             ns-config :config} (namespace/list-namespaces ctx)
+            :let [config (or ns-config config)
+                  ctx (if ns-config (assoc ctx :config config) ctx)
+                  ;;_ (prn (-> config :linters :unused-private-var))
+                  vars (vals vars)
                   used-vars (into #{} (comp (filter #(= (:ns %) ns-name))
                                             (map :name))
                                   used-vars)]
@@ -483,13 +492,15 @@
 (defn lint-unused-imports!
   [ctx]
   (doseq [ns (namespace/list-namespaces ctx)
+          :let [ns-config (:config ns)]
+          :when (not (identical? :off (-> ns-config :linters :unused-import :level)))
           :let [filename (:filename ns)
                 imports (:imports ns)
                 used-imports (:used-imports ns)]
           [import _] imports
           :when (not (contains? used-imports import))]
     (findings/reg-finding!
-     ctx
+     (if ns-config (assoc ctx :config ns-config) ctx)
      (node->line filename import :warning :unused-import (str "Unused import " import)))))
 
 (defn lint-unresolved-namespaces!

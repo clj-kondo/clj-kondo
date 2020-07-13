@@ -6,9 +6,8 @@
         config (:config ctx)
         type (:type m)
         level (-> config :linters type :level)]
-    (when (and level (not (identical? :off m)))
-      (let [m (if level (assoc m :level level)
-                  m)]
+    (when (and level (not (identical? :off level)))
+      (let [m (assoc m :level level)]
         (swap! findings conj m))))
   nil)
 

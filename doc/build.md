@@ -4,11 +4,13 @@
 
 To build the `clj-kondo` binary from source:
 
-* Download [GraalVM](https://github.com/oracle/graal/releases) 19 or newer.
+* Download [GraalVM](https://github.com/graalvm/graalvm-ce-builds/releases) java8 19 or newer.
+  Currently `clj-kondo` can only be built with java11 based graal VMs, so using JDK 8 builds will
+  not work.
 
 * Set the `GRAALVM_HOME` variable. E.g.:
 
-        export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-19.2.1/Contents/Home
+        export GRAALVM_HOME=$HOME/Downloads/graalvm-ce-java8-19.3.1/Contents/Home
 
 * git clone this repo and `cd clj-kondo`
 
@@ -20,7 +22,7 @@ Place the binary somewhere on your path.
 
 ### Optional steps
 
-These steps are only necessary to update resources that are shipped with clj-kondo. 
+These steps are only necessary to update resources that are shipped with clj-kondo.
 
 * To update the built-in cache for Clojure and ClojureScript:
 
