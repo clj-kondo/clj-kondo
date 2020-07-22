@@ -1155,6 +1155,21 @@
         ctx (ctx-with-bindings ctx (into {} (map #(extract-bindings ctx %) [idx-binding ret-binding])))]
     (analyze-children ctx [array body] false)))
 
+(defn analyze-format [ctx expr]
+  (let [children (next (:children expr))
+        format-str (first children)
+        format-str (utils/string-from-token format-str)
+        percents (re-seq #"%[^%\s]+" format-str)
+        percent-count (count percents)
+        args (rest children)
+        arg-count (count args)]
+    (when-not (= percent-count
+                 arg-count)
+      (findings/reg-finding! ctx (node->line (:filename ctx) expr :error :format
+                                             (format "Format string expects %s arguments instead of %s."
+                                                     percent-count arg-count))))
+    (analyze-children ctx children false)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1335,6 +1350,7 @@
                       this-as (analyze-this-as ctx expr)
                       memfn (analyze-memfn ctx expr)
                       empty? (analyze-empty? ctx expr)
+                      format (analyze-format ctx expr)
                       (use require)
                       (if top-level? (analyze-require ctx expr)
                           (analyze-children ctx children))
