@@ -1158,16 +1158,17 @@
 (defn analyze-format [ctx expr]
   (let [children (next (:children expr))
         format-str (first children)
-        format-str (utils/string-from-token format-str)
-        percents (re-seq #"%[^%\s]+" format-str)
-        percent-count (count percents)
-        args (rest children)
-        arg-count (count args)]
-    (when-not (= percent-count
-                 arg-count)
-      (findings/reg-finding! ctx (node->line (:filename ctx) expr :error :format
-                                             (format "Format string expects %s arguments instead of %s."
-                                                     percent-count arg-count))))
+        format-str (utils/string-from-token format-str)]
+    (when format-str
+      (let [percents (re-seq #"%[^%\s]+" format-str)
+            percent-count (count percents)
+            args (rest children)
+            arg-count (count args)]
+        (when-not (= percent-count
+                     arg-count)
+          (findings/reg-finding! ctx (node->line (:filename ctx) expr :error :format
+                                                 (format "Format string expects %s arguments instead of %s."
+                                                         percent-count arg-count))))))
     (analyze-children ctx children false)))
 
 (defn analyze-call
@@ -1233,34 +1234,34 @@
             (if-let [expanded (and transformed
                                    (:node transformed))]
               (do ;;;; This registers the macro call, so we still get arity linting
-                  (namespace/reg-var-usage! ctx ns-name {:type :call
-                                                         :resolved-ns resolved-namespace
-                                                         :ns ns-name
-                                                         :name (with-meta
-                                                                 (or resolved-name full-fn-name)
-                                                                 (meta full-fn-name))
-                                                         :unresolved? unresolved?
-                                                         :unresolved-ns unresolved-ns
-                                                         :clojure-excluded? clojure-excluded?
-                                                         :arity arg-count
-                                                         :row row
-                                                         :end-row (:end-row expr-meta)
-                                                         :col col
-                                                         :end-col (:end-col expr-meta)
-                                                         :base-lang base-lang
-                                                         :lang lang
-                                                         :filename (:filename ctx)
-                                                         :expr expr
-                                                         :callstack (:callstack ctx)
-                                                         :config (:config ctx)
-                                                         :top-ns (:top-ns ctx)
-                                                         :arg-types (:arg-types ctx)})
+                (namespace/reg-var-usage! ctx ns-name {:type :call
+                                                       :resolved-ns resolved-namespace
+                                                       :ns ns-name
+                                                       :name (with-meta
+                                                               (or resolved-name full-fn-name)
+                                                               (meta full-fn-name))
+                                                       :unresolved? unresolved?
+                                                       :unresolved-ns unresolved-ns
+                                                       :clojure-excluded? clojure-excluded?
+                                                       :arity arg-count
+                                                       :row row
+                                                       :end-row (:end-row expr-meta)
+                                                       :col col
+                                                       :end-col (:end-col expr-meta)
+                                                       :base-lang base-lang
+                                                       :lang lang
+                                                       :filename (:filename ctx)
+                                                       :expr expr
+                                                       :callstack (:callstack ctx)
+                                                       :config (:config ctx)
+                                                       :top-ns (:top-ns ctx)
+                                                       :arg-types (:arg-types ctx)})
                   ;;;; This registers the namespace as used, to prevent unused warnings
-                  (namespace/reg-used-namespace! ctx
-                                                 ns-name
-                                                 resolved-namespace)
-                  (let [node expanded]
-                    (analyze-expression** ctx node)))
+                (namespace/reg-used-namespace! ctx
+                                               ns-name
+                                               resolved-namespace)
+                (let [node expanded]
+                  (analyze-expression** ctx node)))
               ;;;; End macroexpansion
               (let [fq-sym (when (and resolved-namespace
                                       resolved-name)
