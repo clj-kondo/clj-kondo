@@ -1161,7 +1161,12 @@
         format-str (utils/string-from-token format-str)]
     (when format-str
       (let [percents (re-seq #"%[^%\s]+" format-str)
-            percent-count (count percents)
+            [indexed unindexed]
+            (reduce (fn [[indexed unindexed] percent]
+                      (if-let [[_ pos] (re-matches #"%(\d+)\$.*" percent)]
+                        [(max indexed (Integer/parseInt pos)) unindexed]
+                        [indexed (inc unindexed)])) [0 0] percents)
+            percent-count (max indexed unindexed)
             args (rest children)
             arg-count (count args)]
         (when-not (= percent-count
