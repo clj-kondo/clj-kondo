@@ -1155,6 +1155,30 @@
         ctx (ctx-with-bindings ctx (into {} (map #(extract-bindings ctx %) [idx-binding ret-binding])))]
     (analyze-children ctx [array body] false)))
 
+(defn analyze-format [ctx expr]
+  (let [children (next (:children expr))
+        format-str (first children)
+        format-str (utils/string-from-token format-str)]
+    (when format-str
+      (let [percents (re-seq #"%[^%n\s]+" format-str)
+            [indexed unindexed]
+            (reduce (fn [[indexed unindexed :as acc] percent]
+                      (if false #_(or (= "%n" percent)
+                              (= "%%" percent))
+                        acc
+                        (if-let [[_ pos] (re-matches #"%(\d+)\$.*" percent)]
+                          [(max indexed (Integer/parseInt pos)) unindexed]
+                          [indexed (inc unindexed)]))) [0 0] percents)
+            percent-count (max indexed unindexed)
+            args (rest children)
+            arg-count (count args)]
+        (when-not (= percent-count
+                     arg-count)
+          (findings/reg-finding! ctx (node->line (:filename ctx) expr :error :format
+                                                 (format "Format string expects %s arguments instead of %s."
+                                                         percent-count arg-count))))))
+    (analyze-children ctx children false)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
    {:keys [:arg-count
@@ -1218,34 +1242,34 @@
             (if-let [expanded (and transformed
                                    (:node transformed))]
               (do ;;;; This registers the macro call, so we still get arity linting
-                  (namespace/reg-var-usage! ctx ns-name {:type :call
-                                                         :resolved-ns resolved-namespace
-                                                         :ns ns-name
-                                                         :name (with-meta
-                                                                 (or resolved-name full-fn-name)
-                                                                 (meta full-fn-name))
-                                                         :unresolved? unresolved?
-                                                         :unresolved-ns unresolved-ns
-                                                         :clojure-excluded? clojure-excluded?
-                                                         :arity arg-count
-                                                         :row row
-                                                         :end-row (:end-row expr-meta)
-                                                         :col col
-                                                         :end-col (:end-col expr-meta)
-                                                         :base-lang base-lang
-                                                         :lang lang
-                                                         :filename (:filename ctx)
-                                                         :expr expr
-                                                         :callstack (:callstack ctx)
-                                                         :config (:config ctx)
-                                                         :top-ns (:top-ns ctx)
-                                                         :arg-types (:arg-types ctx)})
+                (namespace/reg-var-usage! ctx ns-name {:type :call
+                                                       :resolved-ns resolved-namespace
+                                                       :ns ns-name
+                                                       :name (with-meta
+                                                               (or resolved-name full-fn-name)
+                                                               (meta full-fn-name))
+                                                       :unresolved? unresolved?
+                                                       :unresolved-ns unresolved-ns
+                                                       :clojure-excluded? clojure-excluded?
+                                                       :arity arg-count
+                                                       :row row
+                                                       :end-row (:end-row expr-meta)
+                                                       :col col
+                                                       :end-col (:end-col expr-meta)
+                                                       :base-lang base-lang
+                                                       :lang lang
+                                                       :filename (:filename ctx)
+                                                       :expr expr
+                                                       :callstack (:callstack ctx)
+                                                       :config (:config ctx)
+                                                       :top-ns (:top-ns ctx)
+                                                       :arg-types (:arg-types ctx)})
                   ;;;; This registers the namespace as used, to prevent unused warnings
-                  (namespace/reg-used-namespace! ctx
-                                                 ns-name
-                                                 resolved-namespace)
-                  (let [node expanded]
-                    (analyze-expression** ctx node)))
+                (namespace/reg-used-namespace! ctx
+                                               ns-name
+                                               resolved-namespace)
+                (let [node expanded]
+                  (analyze-expression** ctx node)))
               ;;;; End macroexpansion
               (let [fq-sym (when (and resolved-namespace
                                       resolved-name)
@@ -1335,6 +1359,7 @@
                       this-as (analyze-this-as ctx expr)
                       memfn (analyze-memfn ctx expr)
                       empty? (analyze-empty? ctx expr)
+                      format (analyze-format ctx expr)
                       (use require)
                       (if top-level? (analyze-require ctx expr)
                           (analyze-children ctx children))
