@@ -152,6 +152,7 @@
                              (not (:doc metadata))
                              (not (:test metadata))
                              (not temp?)
+                             (not (:imported-var metadata))
                              (not
                               (when-let [defined-by (or (:linted-as metadata)
                                                         (:defined-by metadata))]
