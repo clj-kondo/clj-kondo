@@ -50,6 +50,7 @@ Clj-kondo detects:
 * alias consistency
 * [type checking](doc/types.md)
 * Datalog syntax checking
+* format string argument mismatches
 
 before your form hits the REPL.
 
