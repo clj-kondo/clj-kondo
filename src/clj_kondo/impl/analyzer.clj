@@ -1155,10 +1155,30 @@
         ctx (ctx-with-bindings ctx (into {} (map #(extract-bindings ctx %) [idx-binding ret-binding])))]
     (analyze-children ctx [array body] false)))
 
+(defn analyze-format-string [ctx format-str-node args]
+  (let [format-str (utils/string-from-token format-str-node)]
+    (when format-str
+      (let [percents (re-seq #"%[^%n\s]+" format-str)
+            [indexed unindexed]
+            (reduce (fn [[indexed unindexed :as acc] percent]
+                      (if false #_(or (= "%n" percent)
+                                      (= "%%" percent))
+                          acc
+                          (if-let [[_ pos] (re-matches #"%(\d+)\$.*" percent)]
+                            [(max indexed (Integer/parseInt pos)) unindexed]
+                            [indexed (inc unindexed)]))) [0 0] percents)
+            percent-count (max indexed unindexed)
+            arg-count (count args)]
+        (when-not (= percent-count
+                     arg-count)
+          (findings/reg-finding! ctx (node->line (:filename ctx) format-str-node :error :format
+                                                 (format "Format string expects %s arguments instead of %s."
+                                                         percent-count arg-count))))))))
+
 (defn analyze-format [ctx expr]
   (let [children (next (:children expr))
-        format-str (first children)
-        format-str (utils/string-from-token format-str)]
+        format-str-node (first children)
+        format-str (utils/string-from-token format-str-node)]
     (when format-str
       (let [percents (re-seq #"%[^%n\s]+" format-str)
             [indexed unindexed]
@@ -1174,7 +1194,7 @@
             arg-count (count args)]
         (when-not (= percent-count
                      arg-count)
-          (findings/reg-finding! ctx (node->line (:filename ctx) expr :error :format
+          (findings/reg-finding! ctx (node->line (:filename ctx) format-str-node :error :format
                                                  (format "Format string expects %s arguments instead of %s."
                                                          percent-count arg-count))))))
     (analyze-children ctx children false)))

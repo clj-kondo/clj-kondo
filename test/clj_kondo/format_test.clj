@@ -6,10 +6,10 @@
 
 (deftest format-test
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Format string expects 2 arguments instead of 1."})
+   '({:file "<stdin>", :row 1, :col 9, :level :error, :message "Format string expects 2 arguments instead of 1."})
    (lint! "(format \"%s %s\" 1)"))
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Format string expects 2 arguments instead of 1."})
+   '({:file "<stdin>", :row 1, :col 9, :level :error, :message "Format string expects 2 arguments instead of 1."})
    (lint! "(format \"%2$s\" 1)"))
   (is (empty? (lint! "(format \"%3$s\" 1 2 3)")))
   (is (empty? (lint! "(format \"%3$s %s %s %s\" 1 2 3)")))
