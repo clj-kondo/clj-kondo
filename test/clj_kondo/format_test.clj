@@ -11,6 +11,9 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 9, :level :error, :message "Format string expects 2 arguments instead of 1."})
    (lint! "(format \"%2$s\" 1)"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 68, :level :error, :message "Format string expects 1 arguments instead of 2."})
+   (lint! "(require '[clojure.tools.logging :as l]) (l/errorf (ex-info \"\" {}) \"%s\" 1 2)"))
   (is (empty? (lint! "(format \"%3$s\" 1 2 3)")))
   (is (empty? (lint! "(format \"%3$s %s %s %s\" 1 2 3)")))
   (is (empty? (lint! "(format \"%3$s %s %s %s %s\" 1 2 3 4)")))

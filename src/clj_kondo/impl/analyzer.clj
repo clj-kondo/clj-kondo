@@ -1155,48 +1155,39 @@
         ctx (ctx-with-bindings ctx (into {} (map #(extract-bindings ctx %) [idx-binding ret-binding])))]
     (analyze-children ctx [array body] false)))
 
-(defn analyze-format-string [ctx format-str-node args]
-  (let [format-str (utils/string-from-token format-str-node)]
-    (when format-str
-      (let [percents (re-seq #"%[^%n\s]+" format-str)
-            [indexed unindexed]
-            (reduce (fn [[indexed unindexed :as acc] percent]
-                      (if false #_(or (= "%n" percent)
-                                      (= "%%" percent))
-                          acc
-                          (if-let [[_ pos] (re-matches #"%(\d+)\$.*" percent)]
-                            [(max indexed (Integer/parseInt pos)) unindexed]
-                            [indexed (inc unindexed)]))) [0 0] percents)
-            percent-count (max indexed unindexed)
-            arg-count (count args)]
-        (when-not (= percent-count
-                     arg-count)
-          (findings/reg-finding! ctx (node->line (:filename ctx) format-str-node :error :format
-                                                 (format "Format string expects %s arguments instead of %s."
-                                                         percent-count arg-count))))))))
+(defn analyze-format-string [ctx format-str-node format-str args]
+  (let [percents (re-seq #"%[^%n\s]+" format-str)
+        [indexed unindexed]
+        (reduce (fn [[indexed unindexed :as acc] percent]
+                  (if false #_(or (= "%n" percent)
+                                  (= "%%" percent))
+                      acc
+                      (if-let [[_ pos] (re-matches #"%(\d+)\$.*" percent)]
+                        [(max indexed (Integer/parseInt pos)) unindexed]
+                        [indexed (inc unindexed)]))) [0 0] percents)
+        percent-count (max indexed unindexed)
+        arg-count (count args)]
+    (when-not (= percent-count
+                 arg-count)
+      (findings/reg-finding! ctx (node->line (:filename ctx) format-str-node :error :format
+                                             (format "Format string expects %s arguments instead of %s."
+                                                     percent-count arg-count))))))
 
 (defn analyze-format [ctx expr]
   (let [children (next (:children expr))
         format-str-node (first children)
         format-str (utils/string-from-token format-str-node)]
     (when format-str
-      (let [percents (re-seq #"%[^%n\s]+" format-str)
-            [indexed unindexed]
-            (reduce (fn [[indexed unindexed :as acc] percent]
-                      (if false #_(or (= "%n" percent)
-                              (= "%%" percent))
-                        acc
-                        (if-let [[_ pos] (re-matches #"%(\d+)\$.*" percent)]
-                          [(max indexed (Integer/parseInt pos)) unindexed]
-                          [indexed (inc unindexed)]))) [0 0] percents)
-            percent-count (max indexed unindexed)
-            args (rest children)
-            arg-count (count args)]
-        (when-not (= percent-count
-                     arg-count)
-          (findings/reg-finding! ctx (node->line (:filename ctx) format-str-node :error :format
-                                                 (format "Format string expects %s arguments instead of %s."
-                                                         percent-count arg-count))))))
+      (analyze-format-string ctx format-str-node format-str (rest children)))
+    (analyze-children ctx children false)))
+
+(defn analyze-formatted-logging [ctx expr]
+  (let [children (next (:children expr))]
+    (loop [args (seq children)]
+      (when-first [a args]
+        (if-let [format-str (utils/string-from-token a)]
+          (analyze-format-string ctx a format-str (rest args))
+          (recur (rest args)))))
     (analyze-children ctx children false)))
 
 (defn analyze-call
@@ -1452,6 +1443,14 @@
                          [clojure.java.jdbc with-db-metadata]
                          [next.jdbc with-transaction])
                         (jdbc/analyze-like-jdbc-with ctx expr)
+                        ([clojure.tools.logging debugf]
+                         [clojure.tools.logging infof]
+                         [clojure.tools.logging errorf]
+                         [clojure.tools.logging logf]
+                         [clojure.tools.logging spyf]
+                         [clojure.tools.logging tracef]
+                         [clojure.tools.logging warnf])
+                        (analyze-formatted-logging ctx expr)
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
                                          (= '[clojure.core.async thread]
