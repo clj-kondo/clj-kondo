@@ -9,16 +9,18 @@ default_install_dir="/usr/local/bin"
 install_dir=$default_install_dir
 default_download_dir="/tmp"
 download_dir=$default_download_dir
+release_version=""
 
 print_help() {
     echo "Installs latest version of clj-kondo."
     echo -e
     echo "Usage:"
-    echo "install [--dir <dir>] [--download-dir <download-dir>]"
+    echo "install [--dir <dir>] [--download-dir <download-dir>] [--release-version <version>]"
     echo -e
     echo "Defaults:"
     echo " * Installation directory: ${default_install_dir}"
     echo " * Download directory: ${default_download_dir}"
+    echo " * Release version: <Latest release on github>"
     exit 1
 }
 
@@ -40,6 +42,11 @@ do
             shift
             shift
             ;;
+        --release-version)
+            release_version="$2"
+            shift
+            shift
+            ;;
         *)    # unknown option
             print_help
             shift
@@ -47,20 +54,22 @@ do
     esac
 done
 
-latest_release="$(curl -s https://raw.githubusercontent.com/borkdude/clj-kondo/master/resources/CLJ_KONDO_RELEASED_VERSION)"
+if [[ "$release_version" == "" ]]; then
+  release_version="$(curl -s https://raw.githubusercontent.com/borkdude/clj-kondo/master/resources/CLJ_KONDO_RELEASED_VERSION)"
+fi
 
 case "$(uname -s)" in
     Linux*)     platform=linux;;
     Darwin*)    platform=macos;;
 esac
 
-download_url="https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.zip"
+download_url="https://github.com/borkdude/clj-kondo/releases/download/v$release_version/clj-kondo-$release_version-$platform-amd64.zip"
 
 cd "$download_dir"
 echo -e "Downloading $download_url to $download_dir"
-curl -o "clj-kondo-$latest_release-$platform-amd64.zip" -sL "https://github.com/borkdude/clj-kondo/releases/download/v$latest_release/clj-kondo-$latest_release-$platform-amd64.zip"
-unzip -qqo "clj-kondo-$latest_release-$platform-amd64.zip"
-rm "clj-kondo-$latest_release-$platform-amd64.zip"
+curl -o "clj-kondo-$release_version-$platform-amd64.zip" -sL "https://github.com/borkdude/clj-kondo/releases/download/v$release_version/clj-kondo-$release_version-$platform-amd64.zip"
+unzip -qqo "clj-kondo-$release_version-$platform-amd64.zip"
+rm "clj-kondo-$release_version-$platform-amd64.zip"
 
 cd "$install_dir"
 if [ -f clj-kondo ]; then
