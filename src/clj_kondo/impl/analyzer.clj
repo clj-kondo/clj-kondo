@@ -1156,7 +1156,6 @@
     (analyze-children ctx [array body] false)))
 
 (defn analyze-format-string [ctx format-str-node format-str args]
-  ;; TODO: implement with loop and charAt, etc?
   (let [percents (re-seq #"%%?[^%]+" format-str)
         [indexed unindexed]
         (reduce (fn [[indexed unindexed :as acc] percent]
@@ -1184,11 +1183,14 @@
 
 (defn analyze-formatted-logging [ctx expr]
   (let [children (next (:children expr))]
-    (loop [args (seq children)]
+    (loop [attempt 0
+           args (seq children)]
       (when-first [a args]
         (if-let [format-str (utils/string-from-token a)]
           (analyze-format-string ctx a format-str (rest args))
-          (recur (rest args)))))
+          (when (zero? attempt)
+            ;; format string can be either the first or second argument
+            (recur (inc attempt) (rest args))))))
     (analyze-children ctx children false)))
 
 (defn analyze-call
