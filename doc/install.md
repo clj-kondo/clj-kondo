@@ -19,7 +19,8 @@ To download and execute the script:
 
 To install to a different directory, append the option `--dir <dir>` to the
 above command.  To download to a different directory, append the option
-`--download-dir <dir>`.
+`--download-dir <dir>`. To install a specific release version, append the option
+`--release-version <version>`.
 
 To upgrade, just run the script again.
 
@@ -36,7 +37,7 @@ To upgrade:
 
     brew upgrade clj-kondo
 
-<!-- 
+<!--
 ## Snap (Linux)
 
 NOTE: using the Snap package, clj-kondo only has access to your home directory.
