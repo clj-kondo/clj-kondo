@@ -1156,15 +1156,16 @@
     (analyze-children ctx [array body] false)))
 
 (defn analyze-format-string [ctx format-str-node format-str args]
-  (let [percents (re-seq #"%[^%n\s]+" format-str)
+  ;; TODO: implement with loop and charAt, etc?
+  (let [percents (re-seq #"%%?[^%]+" format-str)
         [indexed unindexed]
         (reduce (fn [[indexed unindexed :as acc] percent]
-                  (if false #_(or (= "%n" percent)
-                                  (= "%%" percent))
-                      acc
-                      (if-let [[_ pos] (re-matches #"%(\d+)\$.*" percent)]
-                        [(max indexed (Integer/parseInt pos)) unindexed]
-                        [indexed (inc unindexed)]))) [0 0] percents)
+                  (if (or (str/starts-with? percent "%%")
+                          (str/starts-with? percent "%n"))
+                    acc
+                    (if-let [[_ pos] (re-matches #"%(\d+)\$.*" percent)]
+                      [(max indexed (Integer/parseInt pos)) unindexed]
+                      [indexed (inc unindexed)]))) [0 0] percents)
         percent-count (max indexed unindexed)
         arg-count (count args)]
     (when-not (= percent-count

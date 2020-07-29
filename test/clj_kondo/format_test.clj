@@ -25,4 +25,5 @@
 (ns foo {:clj-kondo/config '{:linters {:format {:level :off}}}})
 (format \"%s\" 1 2)")))
   (is (empty? (lint! "(format \"%n %n %% %s\" 1)")))
-  (is (empty? (lint! "(format \"Syntax error reading source at (%s).%n%s%n\" 1 2)"))))
+  (is (empty? (lint! "(format \"Syntax error reading source at (%s).%n%s%n\" 1 2)")))
+  (is (empty? (lint! "(format \"/blah/%s/blah?query=Luke%%20Skywalker\" 1)"))))
