@@ -19,8 +19,7 @@ To download and execute the script:
 
 To install to a different directory, append the option `--dir <dir>` to the
 above command.  To download to a different directory, append the option
-`--download-dir <dir>`. To install a specific release version, append the option
-`--release-version <version>`.
+`--download-dir <dir>`. To install a specific version, use `--version <yyyy.mm.dd>`.
 
 To upgrade, just run the script again.
 
