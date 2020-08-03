@@ -787,13 +787,13 @@
        defrecord (analyze-defrecord ctx expr 'defrecord))
      (analyze-children ctx schemas))))
 
-(defn analyze-binding-call [ctx fn-name expr]
+(defn analyze-binding-call [ctx fn-name binding expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)
         ns-name (-> ctx :ns :name)]
     (namespace/reg-used-binding! ctx
                                  ns-name
-                                 (get (:bindings ctx) fn-name))
+                                 binding)
     (when-not (config/skip? config :invalid-arity callstack)
       (let [filename (:filename ctx)
             children (:children expr)]
@@ -1641,12 +1641,12 @@
                                             s))]
                     (let [full-fn-name (with-meta full-fn-name (meta function))
                           unresolved? (nil? (namespace full-fn-name))
-                          binding-call? (and unresolved?
-                                             (contains? bindings full-fn-name))]
-                      (if binding-call?
+                          binding (and unresolved?
+                                             (get bindings full-fn-name))]
+                      (if binding
                         (do
                           (types/add-arg-type-from-expr ctx expr)
-                          (analyze-binding-call ctx full-fn-name expr))
+                          (analyze-binding-call ctx full-fn-name binding expr))
                         (let [ret (analyze-call ctx {:arg-count arg-count
                                                      :full-fn-name full-fn-name
                                                      :row row
