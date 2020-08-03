@@ -648,6 +648,11 @@
 (clojure.string/replace \"hallo\" \"a\" (first [\"e\"]))
 " {:linters {:type-mismatch {:level :error}}}))))
 
+(deftest binding-call-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 19, :level :error, :message "String cannot be called as a function."})
+   (lint! "(let [name \"foo\"] (name :foo))"
+          {:linters {:type-mismatch {:level :error}}})))
 
 ;;;; Scratch
 
