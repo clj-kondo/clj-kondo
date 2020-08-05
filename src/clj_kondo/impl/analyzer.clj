@@ -1561,6 +1561,7 @@
                      (format "symbol is called with %s args but expects 1 or 2"
                              arg-count)))))))
 
+;; TODO: this should just be a case of :type-mismatch
 (defn reg-not-a-function! [ctx expr type]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
