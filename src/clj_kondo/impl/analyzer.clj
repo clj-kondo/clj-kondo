@@ -1162,7 +1162,7 @@
                   (if (or (str/starts-with? percent "%%")
                           (str/starts-with? percent "%n"))
                     acc
-                    (if-let [[_ pos] (re-matches #"%(\d+)\$.*" percent)]
+                    (if-let [[_ pos] (re-find #"^%(\d+)\$" percent)]
                       [(max indexed (Integer/parseInt pos)) unindexed]
                       [indexed (inc unindexed)]))) [0 0] percents)
         percent-count (max indexed unindexed)
