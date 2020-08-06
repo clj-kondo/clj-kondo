@@ -1751,7 +1751,8 @@ foo/foo ;; this does use the private var
                      {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(def x) (doto x)")))
   (is (empty? (lint! "(def ^:private a 1) (let [{:keys [a] :or {a a}} {}] a)"
-                     {:linters {:unused-binding {:level :warning}}}))))
+                     {:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(scala.Int/MinValue)" {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest proxy-super-test
   (is (empty? (lint! "
