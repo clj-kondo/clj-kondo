@@ -1,3 +1,4 @@
-{:hooks {:analyze-call {rum.core/defc hooks.rum.defc/defc}}
+{:hooks {:analyze-call {rum.core/defc hooks.rum.defc/defc
+                        rum.core/defcs hooks.rum.defc/defcs}}
  :lint-as {rum.core/defcs rum.core/defc
            rum.core/defcc rum.core/defc}}
