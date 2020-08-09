@@ -1,0 +1,6 @@
+- id: clj-kondo
+  name: clj-kondo
+  description: A linter for Clojure code that sparks joy
+  entry: --entrypoint clj-kondo borkdude/clj-kondo:2020.07.26 --lint
+  language: docker_image
+  files: \.(clj[sc]|edn)?$
