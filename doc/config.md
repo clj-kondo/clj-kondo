@@ -582,9 +582,9 @@ the values carrying the metadata:
 
 - rewrite-cljc-playground: [import-vars-with-mod](https://github.com/lread/rewrite-cljc-playground/commit/09882e1244a8c12879ef8c1e6872724748e7914b)
 
-More examples of hooks can be found in the [libraries](../libraries)
-directory. Take a look at the [Rum](../libraries/rum) and
-[Slingshot](../libraries/slingshot) configuration.
+More examples of hooks can be found in the [examples](../examples)
+directory. Take a look at the [Rum](../examples/rum) and
+[Slingshot](../examples/slingshot) configuration.
 
 ### Tips and tricks
 
