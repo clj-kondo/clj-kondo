@@ -18,6 +18,7 @@ listed!
 - [Ekata](https://ekata.com)
 - [Flexport](https://www.flexport.com)
 - [Helpshift](https://www.helpshift.com)
+- [Icebreaker](https://icebreaker.video)
 - [Imatic](https://www.imatic.cz/)
 - [Juxt](https://juxt.pro)
 - [Klarna](https://klarna.com)
