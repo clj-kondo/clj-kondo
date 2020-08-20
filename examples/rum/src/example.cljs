@@ -8,6 +8,12 @@
   [text] ;; unused binding
   [:div {:class "label"} text']) ;; unresolved binding text'
 
+(rum/defc with-docstring
+  "docstring" ;; docstring is placed correctly
+  < { :will-mount (fn [x] ;; mixin is parsed correctly
+                    (assoc x ::time (js/Date.))) }
+  [_text])
+
 (rum/defcs time-label ;; defcs is linted as defc
   < { :will-mount (fn [x] ;; mixin is parsed correctly
                     (assoc x ::time (js/Date.))) }
@@ -24,3 +30,9 @@
 
 (SomeComponent "hello") ;; amount of args is invalid
 (SomeComponent "hello" "there") ;; amount of args is correct
+
+(rum/defcs ComponentWithDocString
+  "docstring" ;; docstring is placed correctly
+  < {:did-mount (fn [state] state)}
+  [state input]
+  input)

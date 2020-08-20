@@ -4,14 +4,20 @@
 (defn defc [{:keys [:node]}]
   (let [args (rest (:children node))
         component-name (first args)
-        args (next args)
+        ?docstring (when (string? (api/sexpr (second args)))
+                     (second args))
+        args (if ?docstring
+               (nnext args)
+               (next args))
         body
         (loop [args* args
                mixins []]
           (if (seq args*)
             (let [a (first args*)]
               (if (vector? (api/sexpr a))
-                (cons a (concat mixins (rest args*)))
+                (concat (when ?docstring [?docstring])
+                        [a]
+                        (concat mixins (rest args*)))
                 (recur (rest args*)
                        (conj mixins a))))
             args))
@@ -25,7 +31,11 @@
 (defn defcs [{:keys [:node]}]
   (let [args (rest (:children node))
         component-name (first args)
-        args (next args)
+        ?docstring (when (string? (api/sexpr (second args)))
+                     (second args))
+        args (if ?docstring
+               (nnext args)
+               (next args))
         body
         (loop [args* args
                mixins []]
@@ -41,7 +51,10 @@
                                    (api/vector-node [state-arg (api/token-node nil)])
                                    state-arg
                                    body))]
-                  (cons fn-args (conj mixins body)))
+                  (concat (when ?docstring
+                            [?docstring])
+                          [fn-args]
+                          (conj mixins body)))
                 (recur (rest args*)
                        (conj mixins a))))
             args))
@@ -49,4 +62,3 @@
                    (api/list-node (list* (api/token-node 'defn) component-name body))
                    (meta node))]
     {:node new-node}))
-
