@@ -1726,7 +1726,7 @@
            rest-parsed
            (do
              (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
-             (update results :used-namespaces into (:used-namespaces first-parsed)))))
+             nil #_(update results :used-namespaces into (:used-namespaces first-parsed)))))
         :import-vars
         (do
           (namespace/reg-proxied-namespaces! ctx (:name ns) (:used-namespaces first-parsed))
@@ -1735,7 +1735,7 @@
                  rest-parsed
                  (do
                    (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
-                   (update results :used-namespaces into (:used-namespaces first-parsed)))))
+                   nil #_(update results :used-namespaces into (:used-namespaces first-parsed)))))
         ;; catch-all
         (recur
          ctx
@@ -1745,7 +1745,7 @@
            :call
            (do
              (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed))
-             (update results :used-namespaces conj (:resolved-ns first-parsed)))
+             nil #_(update results :used-namespaces conj (:resolved-ns first-parsed)))
            results)))
       [(assoc ctx :ns ns) results])))
 
