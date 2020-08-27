@@ -171,27 +171,27 @@
         (if (.isFile file)
           (if (str/ends-with? (.getPath file) ".jar")
             ;; process jar file
-            (mapv #(ana/analyze-input ctx (:filename %) (:source %)
+            (run! #(ana/analyze-input ctx (:filename %) (:source %)
                                       (lang-from-file (:filename %) default-language)
                                       dev?)
                   (sources-from-jar file canonical?))
             ;; assume normal source file
-            [(ana/analyze-input ctx (if canonical?
-                                      (.getCanonicalPath file)
-                                      filename) (slurp file)
-                                (lang-from-file filename default-language)
-                                dev?)])
+            (ana/analyze-input ctx (if canonical?
+                                     (.getCanonicalPath file)
+                                     filename) (slurp file)
+                               (lang-from-file filename default-language)
+                               dev?))
           ;; assume directory
-          (mapv #(ana/analyze-input ctx (:filename %) (:source %)
+          (run! #(ana/analyze-input ctx (:filename %) (:source %)
                                     (lang-from-file (:filename %) default-language)
                                     dev?)
                 (sources-from-dir file canonical?)))
         (= "-" filename)
-        [(ana/analyze-input ctx "<stdin>" (slurp *in*) default-language dev?)]
+        (ana/analyze-input ctx "<stdin>" (slurp *in*) default-language dev?)
         (classpath? filename)
-        (vec (mapcat #(process-file ctx % default-language canonical?)
-                     (str/split filename
-                                (re-pattern path-separator))))
+        (run! #(process-file ctx % default-language canonical?)
+              (str/split filename
+                         (re-pattern path-separator)))
         :else
         (findings/reg-finding! ctx
                                {:filename (if canonical?
@@ -215,7 +215,7 @@
 
 (defn process-files [ctx files default-lang]
   (let [canonical? (-> ctx :config :output :canonical-paths)]
-    (vec (mapcat #(process-file ctx % default-lang canonical?) files))))
+    (run! #(process-file ctx % default-lang canonical?) files)))
 
 ;;;; index defs and calls by language and namespace
 
@@ -260,15 +260,9 @@
      :cljs {:defs cljs}
      :cljc {:defs (mmerge cljc-clj cljc-cljs)}}))
 
-(defn index-defs-and-calls [ctx defs-and-calls]
-  ;; (prn ">" defs-and-calls)
+(defn index-defs-and-calls [ctx]
   (let [indexed-defs (namespaces->indexed-defs ctx)]
-    (reduce
-     (fn [acc {:keys [:used-namespaces :lang] :as _m}]
-       (-> acc
-           (update-in [lang :used-namespaces] into used-namespaces)))
-     indexed-defs
-     defs-and-calls)))
+    (assoc indexed-defs :used-namespaces @(:used-namespaces ctx))))
 
 ;;;; summary
 
