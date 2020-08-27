@@ -1737,7 +1737,7 @@
              ctx
              ns
              rest-parsed)))
-      [(assoc ctx :ns ns) nil])))
+      (assoc ctx :ns ns))))
 
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To
@@ -1759,8 +1759,7 @@
     (loop [ctx init-ctx
            [expression & rest-expressions] expressions]
       (if expression
-        (let [[ctx _]
-              (analyze-expression* ctx expression)]
+        (let [ctx (analyze-expression* ctx expression)]
           (recur ctx rest-expressions))
         nil))))
 
@@ -1801,19 +1800,17 @@
   [{:keys [:config] :as ctx} filename input lang dev?]
   ;; (prn "FILENAME" filename)
   (try
-    (let [parsed (p/parse-string input)
-          analyzed-expressions
-          (case lang
-            :cljc
-            (let [clj (analyze-expressions (assoc ctx :base-lang :cljc :lang :clj :filename filename)
-                                           (:children (select-lang parsed :clj)))
-                  cljs (analyze-expressions (assoc ctx :base-lang :cljc :lang :cljs :filename filename)
-                                            (:children (select-lang parsed :cljs)))]
-              (deep-merge clj cljs))
-            (:clj :cljs :edn)
-            (analyze-expressions (assoc ctx :base-lang lang :lang lang :filename filename)
-                                 (:children parsed)))]
-      (select-keys analyzed-expressions [:used-namespaces :lang]))
+    (let [parsed (p/parse-string input)]
+      (case lang
+        :cljc
+        (do
+          (analyze-expressions (assoc ctx :base-lang :cljc :lang :clj :filename filename)
+                               (:children (select-lang parsed :clj)))
+          (analyze-expressions (assoc ctx :base-lang :cljc :lang :cljs :filename filename)
+                               (:children (select-lang parsed :cljs))))
+        (:clj :cljs :edn)
+        (analyze-expressions (assoc ctx :base-lang lang :lang lang :filename filename)
+                             (:children parsed))))
     (catch Exception e
       (if dev?
         (throw e)

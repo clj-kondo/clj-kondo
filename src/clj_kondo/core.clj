@@ -106,10 +106,8 @@
                                      :cljs #{}
                                      :cljc #{}})}
         lang (or lang :clj)
-        _processed
-        ;; this is needed to force the namespace atom state
-        (doall (core-impl/process-files ctx lint lang))
-        idacs (core-impl/index-defs-and-calls ctx _processed)
+        _ (core-impl/process-files ctx lint lang)
+        idacs (core-impl/index-defs-and-calls ctx nil)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
         _ (l/lint-var-usage ctx idacs)

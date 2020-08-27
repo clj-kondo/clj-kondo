@@ -118,8 +118,7 @@
   ;; first load all idacs so we can resolve types
   (let [idacs
         (reduce (fn [idacs lang]
-                  ;;(prn ::used (get-in idacs [#_lang :used-namespaces lang]))
-                  (let [required-namespaces (get-in idacs [#_lang :used-namespaces lang])]
+                  (let [required-namespaces (get-in idacs [:used-namespaces lang])]
                     (reduce (fn [idacs lang]
                               (reduce #(load-when-missing %1 cache-dir lang %2)
                                       idacs
