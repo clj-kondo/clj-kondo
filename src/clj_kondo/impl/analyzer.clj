@@ -1725,7 +1725,7 @@
            first-parsed
            rest-parsed
            (do
-             #_(swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
+             (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
              (update results :used-namespaces into (:used-namespaces first-parsed)))))
         :import-vars
         (do
@@ -1734,7 +1734,7 @@
                  ns
                  rest-parsed
                  (do
-                   #_(swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
+                   (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
                    (update results :used-namespaces into (:used-namespaces first-parsed)))))
         ;; catch-all
         (recur
@@ -1744,7 +1744,7 @@
          (case (:type first-parsed)
            :call
            (do
-             #_(swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed))
+             (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed))
              (update results :used-namespaces conj (:resolved-ns first-parsed)))
            results)))
       [(assoc ctx :ns ns) results])))
@@ -1767,7 +1767,10 @@
     (loop [ctx init-ctx
            [expression & rest-expressions] expressions
            results {:required (:required init-ns)
-                    :used-namespaces (:used-namespaces init-ns)
+                    :used-namespaces (do
+                                       (swap! (:used-namespaces ctx)
+                                              update base-lang into (:used-namespaces init-ns))
+                                       (:used-namespaces init-ns))
                     :lang base-lang}]
       (if expression
         (let [[ctx results]
