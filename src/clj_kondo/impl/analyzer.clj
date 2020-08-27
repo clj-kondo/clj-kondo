@@ -1702,52 +1702,42 @@
 
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
-  [ctx results expression]
+  [ctx expression]
   (loop [ctx (assoc ctx
                     :bindings {}
                     :top-level? true)
          ns (:ns ctx)
-         [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)
-         results results]
+         [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)]
     (if (seq all)
       (case (:type first-parsed)
-        nil (recur ctx ns rest-parsed results)
+        nil (recur ctx ns rest-parsed)
         (:ns :in-ns)
         (let [ns-name (:name first-parsed)
               local-config (:config first-parsed)
               global-config (:global-config ctx)
               new-config (config/merge-config! global-config local-config)]
+          (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
           (recur
            (-> ctx
                (assoc :config new-config)
                (update :top-ns (fn [n]
                                  (or n ns-name))))
            first-parsed
-           rest-parsed
-           (do
-             (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
-             nil #_(update results :used-namespaces into (:used-namespaces first-parsed)))))
+           rest-parsed))
         :import-vars
         (do
           (namespace/reg-proxied-namespaces! ctx (:name ns) (:used-namespaces first-parsed))
+          (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
           (recur ctx
                  ns
-                 rest-parsed
-                 (do
-                   (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
-                   nil #_(update results :used-namespaces into (:used-namespaces first-parsed)))))
+                 rest-parsed))
         ;; catch-all
-        (recur
-         ctx
-         ns
-         rest-parsed
-         (case (:type first-parsed)
-           :call
-           (do
-             (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed))
-             nil #_(update results :used-namespaces conj (:resolved-ns first-parsed)))
-           results)))
-      [(assoc ctx :ns ns) results])))
+        (do (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed))
+            (recur
+             ctx
+             ns
+             rest-parsed)))
+      [(assoc ctx :ns ns) nil])))
 
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To
@@ -1764,19 +1754,15 @@
                         :calls-by-id (atom {})
                         :top-ns nil
                         :global-config config)]
+    (swap! (:used-namespaces ctx)
+           update base-lang into (:used-namespaces init-ns))
     (loop [ctx init-ctx
-           [expression & rest-expressions] expressions
-           results {:required (:required init-ns)
-                    :used-namespaces (do
-                                       (swap! (:used-namespaces ctx)
-                                              update base-lang into (:used-namespaces init-ns))
-                                       (:used-namespaces init-ns))
-                    :lang base-lang}]
+           [expression & rest-expressions] expressions]
       (if expression
-        (let [[ctx results]
-              (analyze-expression* ctx results expression)]
-          (recur ctx rest-expressions results))
-        results))))
+        (let [[ctx _]
+              (analyze-expression* ctx expression)]
+          (recur ctx rest-expressions))
+        nil))))
 
 ;;;; processing of string input
 
