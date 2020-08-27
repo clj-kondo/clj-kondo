@@ -1821,7 +1821,7 @@
             (:clj :cljs :edn)
             (analyze-expressions (assoc ctx :base-lang lang :lang lang :filename filename)
                                  (:children parsed)))]
-      analyzed-expressions)
+      (select-keys analyzed-expressions [:used-namespaces :lang]))
     (catch Exception e
       (if dev?
         (throw e)
