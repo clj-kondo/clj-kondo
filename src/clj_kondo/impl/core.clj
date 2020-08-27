@@ -260,19 +260,9 @@
      :cljs {:defs cljs}
      :cljc {:defs (mmerge cljc-clj cljc-cljs)}}))
 
-(defn index-defs-and-calls [ctx defs-and-calls]
+(defn index-defs-and-calls [ctx]
   (let [indexed-defs (namespaces->indexed-defs ctx)]
-    (assoc indexed-defs :used-namespaces @(:used-namespaces ctx)))
-  #_(let [indexed-defs (namespaces->indexed-defs ctx)
-        indexed-defs (reduce
-                      (fn [acc {:keys [:used-namespaces :lang] :as _m}]
-                        (-> acc
-                            (update-in [lang :used-namespaces] into used-namespaces)))
-                      indexed-defs
-                      defs-and-calls)]
-    #_(prn (get-in indexed-defs [:clj :used-namespaces]))
-    indexed-defs
-    ))
+    (assoc indexed-defs :used-namespaces @(:used-namespaces ctx))))
 
 ;;;; summary
 
