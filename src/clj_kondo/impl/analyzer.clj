@@ -1724,17 +1724,18 @@
                                  (or n ns-name))))
            first-parsed
            rest-parsed
-           (-> results
-               (assoc :ns first-parsed)
-               (update :used-namespaces into (:used-namespaces first-parsed))
-               (update :required into (:required first-parsed)))))
+           (do
+             #_(swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
+             (update results :used-namespaces into (:used-namespaces first-parsed)))))
         :import-vars
         (do
           (namespace/reg-proxied-namespaces! ctx (:name ns) (:used-namespaces first-parsed))
           (recur ctx
                  ns
                  rest-parsed
-                 (update results :used-namespaces into (:used-namespaces first-parsed))))
+                 (do
+                   #_(swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
+                   (update results :used-namespaces into (:used-namespaces first-parsed)))))
         ;; catch-all
         (recur
          ctx
@@ -1742,7 +1743,9 @@
          rest-parsed
          (case (:type first-parsed)
            :call
-           (update results :used-namespaces conj (:resolved-ns first-parsed))
+           (do
+             #_(swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed))
+             (update results :used-namespaces conj (:resolved-ns first-parsed)))
            results)))
       [(assoc ctx :ns ns) results])))
 

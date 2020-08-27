@@ -101,7 +101,10 @@
              :findings findings
              :namespaces (atom {})
              :analysis analysis
-             :cache-dir cache-dir}
+             :cache-dir cache-dir
+             :used-namespaces (atom {:clj #{}
+                                     :cljs #{}
+                                     :cljc #{}})}
         lang (or lang :clj)
         processed
         ;; this is needed to force the namespace atom state
