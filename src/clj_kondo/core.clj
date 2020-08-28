@@ -96,8 +96,10 @@
                           :namespace-usages []
                           :var-definitions []
                           :var-usages []}))
-        ctx {:config config
+        ctx {:parallel true
+             :config config
              :global-config config
+             :sources (atom [])
              :findings findings
              :namespaces (atom {})
              :analysis analysis

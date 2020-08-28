@@ -149,6 +149,36 @@
                 :else nil)))
           files)))
 
+;;;; threadpool
+
+(defn lint-task [ctx ^java.util.concurrent.LinkedBlockingDeque deque dev?]
+  (loop [{:keys [:file :source :lang] :as l} (.pollFirst deque)]
+    (when l
+      (ana/analyze-input ctx file source lang dev?)
+      (recur (.pollFirst deque)))))
+
+(comment
+
+  x)
+
+(defn parallel-lint [ctx sources dev?]
+  (let [deque     (java.util.concurrent.LinkedBlockingDeque. ^java.util.List sources)
+        cnt       (+ 2 (int (* 0.6 (.. Runtime getRuntime availableProcessors))))
+        latch     (java.util.concurrent.CountDownLatch. cnt)
+        es        (java.util.concurrent.Executors/newFixedThreadPool cnt)
+        compiled  (atom [])
+        failed    (atom false)]
+    (dotimes [_ cnt]
+      (.execute es
+                (bound-fn []
+                  (lint-task ctx deque dev?)
+                  (.countDown latch))))
+    (.await latch)
+    (.shutdown es)
+    (when @failed
+      (throw @failed))
+    @compiled))
+
 ;;;; file processing
 
 (defn lang-from-file [file default-language]
@@ -163,6 +193,11 @@
 (defn classpath? [f]
   (str/includes? f path-separator))
 
+(defn schedule [ctx file source lang dev?]
+  (if (:parallel ctx)
+    (swap! (:sources ctx) conj {:file file :source source :lang lang})
+    (ana/analyze-input ctx file source lang dev?)))
+
 (defn process-file [ctx filename default-language canonical?]
   (try
     (let [file (io/file filename)]
@@ -171,23 +206,23 @@
         (if (.isFile file)
           (if (str/ends-with? (.getPath file) ".jar")
             ;; process jar file
-            (run! #(ana/analyze-input ctx (:filename %) (:source %)
+            (run! #(schedule ctx (:filename %) (:source %)
                                       (lang-from-file (:filename %) default-language)
                                       dev?)
                   (sources-from-jar file canonical?))
             ;; assume normal source file
-            (ana/analyze-input ctx (if canonical?
+            (schedule ctx (if canonical?
                                      (.getCanonicalPath file)
                                      filename) (slurp file)
                                (lang-from-file filename default-language)
                                dev?))
           ;; assume directory
-          (run! #(ana/analyze-input ctx (:filename %) (:source %)
+          (run! #(schedule ctx (:filename %) (:source %)
                                     (lang-from-file (:filename %) default-language)
                                     dev?)
                 (sources-from-dir file canonical?)))
         (= "-" filename)
-        (ana/analyze-input ctx "<stdin>" (slurp *in*) default-language dev?)
+        (schedule ctx "<stdin>" (slurp *in*) default-language dev?)
         (classpath? filename)
         (run! #(process-file ctx % default-language canonical?)
               (str/split filename
@@ -215,7 +250,9 @@
 
 (defn process-files [ctx files default-lang]
   (let [canonical? (-> ctx :config :output :canonical-paths)]
-    (run! #(process-file ctx % default-lang canonical?) files)))
+    (run! #(process-file ctx % default-lang canonical?) files)
+    (when (:parallel ctx)
+      (parallel-lint ctx @(:sources ctx) dev?))))
 
 ;;;; index defs and calls by language and namespace
 
