@@ -80,7 +80,8 @@
            :cache
            :cache-dir
            :config
-           :config-dir]
+           :config-dir
+           :parallel]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir (or (when config-dir
@@ -96,8 +97,7 @@
                           :namespace-usages []
                           :var-definitions []
                           :var-usages []}))
-        ctx {:parallel true
-             :config config
+        ctx {:config config
              :global-config config
              :sources (atom [])
              :findings findings
@@ -108,7 +108,9 @@
                                      :cljs #{}
                                      :cljc #{}})}
         lang (or lang :clj)
-        _ (core-impl/process-files ctx lint lang)
+        _ (core-impl/process-files (if parallel
+                                     (assoc ctx :parallel parallel)
+                                     ctx) lint lang)
         idacs (core-impl/index-defs-and-calls ctx)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
