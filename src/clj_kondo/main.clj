@@ -42,6 +42,8 @@ Options:
     .clj-kondo dir.
 
   --run-as-pod: run clj-kondo as a babashka pod
+
+  --parallel: lint sources in parallel.
 " core-impl/version))
   nil)
 
@@ -57,6 +59,7 @@ Options:
     "--config-dir" :scalar
     "--lint"       :coll
     "--config"     :coll
+    "--parallel"   :scalar
     :scalar))
 
 (defn- parse-opts [options]
@@ -92,7 +95,11 @@ Options:
      :config-dir (last (get opts "--config-dir"))
      :version (contains? opts "--version")
      :help (contains? opts "--help")
-     :pod (= "true" (System/getenv "BABASHKA_POD"))}))
+     :pod (= "true" (System/getenv "BABASHKA_POD"))
+     :parallel (let [[k v] (find opts "--parallel")]
+                 (when k
+                   (or (nil? v)
+                       (= "true" v))))}))
 
 (defn main
   [& options]

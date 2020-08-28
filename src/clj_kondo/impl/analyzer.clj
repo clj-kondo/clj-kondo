@@ -1707,7 +1707,8 @@
                     :bindings {}
                     :top-level? true)
          ns (:ns ctx)
-         [first-parsed & rest-parsed :as all] (analyze-expression** ctx expression)]
+         [first-parsed & rest-parsed :as all]
+         (analyze-expression** ctx expression)]
     (if (seq all)
       (case (:type first-parsed)
         nil (recur ctx ns rest-parsed)
