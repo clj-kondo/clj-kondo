@@ -42,6 +42,8 @@ Options:
     .clj-kondo dir.
 
   --run-as-pod: run clj-kondo as a babashka pod
+
+  --parallel: lint sources in parallel.
 " core-impl/version))
   nil)
 

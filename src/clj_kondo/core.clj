@@ -70,6 +70,8 @@
   In places where a file-like value is expected, either a path as string or a
   `java.io.File` may be passed, except for a classpath which must always be a string.
 
+  - `:parallel`: optional. A boolean indicating if sources should be linted in parallel.
+
   Returns a map with `:findings`, a seqable of finding maps, a
   `:summary` of the findings and the `:config` that was used to
   produce those findings. This map can be passed to `print!` to print
