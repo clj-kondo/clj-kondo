@@ -127,7 +127,8 @@
               {:filename (str (when canonical?
                                 (str (.getCanonicalPath jar-file) ":"))
                               (.getName entry))
-               :source (slurp (.getInputStream jar entry))}) entries))))
+               :source (slurp (.getInputStream jar entry))
+               :group-id jar-file}) entries))))
 
 ;;;; dir processing
 
@@ -143,7 +144,8 @@
               (cond
                 (and can-read? source?)
                 {:filename nm
-                 :source (slurp file)}
+                 :source (slurp file)
+                 :group-id dir}
                 (and (not can-read?) source?)
                 (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
                 :else nil)))
@@ -152,32 +154,30 @@
 ;;;; threadpool
 
 (defn lint-task [ctx ^java.util.concurrent.LinkedBlockingDeque deque dev?]
-  (loop [{:keys [:file :source :lang] :as l} (.pollFirst deque)]
-    (when l
-      (ana/analyze-input ctx file source lang dev?)
-      (recur (.pollFirst deque)))))
-
-(comment
-
-  x)
+  (loop []
+    (when-let [group (.pollFirst deque)]
+      (try
+        (doseq [{:keys [:filename :source :lang]} group]
+          (ana/analyze-input ctx filename source lang dev?))
+        (catch Exception e (binding [*out* *err*]
+                             (prn e))))
+      (recur))))
 
 (defn parallel-lint [ctx sources dev?]
-  (let [deque     (java.util.concurrent.LinkedBlockingDeque. ^java.util.List sources)
+  (let [source-groups (group-by :group-id sources)
+        source-groups (filter seq (vals source-groups))
+        deque     (java.util.concurrent.LinkedBlockingDeque. ^java.util.List source-groups)
+        _ (reset! (:sources ctx) []) ;; clean up garbage
         cnt       (+ 2 (int (* 0.6 (.. Runtime getRuntime availableProcessors))))
         latch     (java.util.concurrent.CountDownLatch. cnt)
-        es        (java.util.concurrent.Executors/newFixedThreadPool cnt)
-        compiled  (atom [])
-        failed    (atom false)]
+        es        (java.util.concurrent.Executors/newFixedThreadPool cnt)]
     (dotimes [_ cnt]
       (.execute es
                 (bound-fn []
                   (lint-task ctx deque dev?)
                   (.countDown latch))))
     (.await latch)
-    (.shutdown es)
-    (when @failed
-      (throw @failed))
-    @compiled))
+    (.shutdown es)))
 
 ;;;; file processing
 
@@ -193,10 +193,10 @@
 (defn classpath? [f]
   (str/includes? f path-separator))
 
-(defn schedule [ctx file source lang dev?]
+(defn schedule [ctx {:keys [:filename :source :lang] :as m} dev?]
   (if (:parallel ctx)
-    (swap! (:sources ctx) conj {:file file :source source :lang lang})
-    (ana/analyze-input ctx file source lang dev?)))
+    (swap! (:sources ctx) conj m)
+    (ana/analyze-input ctx filename source lang dev?)))
 
 (defn process-file [ctx filename default-language canonical?]
   (try
@@ -206,23 +206,23 @@
         (if (.isFile file)
           (if (str/ends-with? (.getPath file) ".jar")
             ;; process jar file
-            (run! #(schedule ctx (:filename %) (:source %)
-                                      (lang-from-file (:filename %) default-language)
-                                      dev?)
+            (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
+                             dev?)
                   (sources-from-jar file canonical?))
             ;; assume normal source file
-            (schedule ctx (if canonical?
-                                     (.getCanonicalPath file)
-                                     filename) (slurp file)
-                               (lang-from-file filename default-language)
-                               dev?))
+            (schedule ctx {:filename (if canonical?
+                                       (.getCanonicalPath file)
+                                       filename)
+                           :source (slurp file)
+                           :lang (lang-from-file filename default-language)}
+                      dev?))
           ;; assume directory
-          (run! #(schedule ctx (:filename %) (:source %)
-                                    (lang-from-file (:filename %) default-language)
-                                    dev?)
+          (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
                 (sources-from-dir file canonical?)))
         (= "-" filename)
-        (schedule ctx "<stdin>" (slurp *in*) default-language dev?)
+        (schedule ctx {:filename "<stdin>"
+                       :source (slurp *in*)
+                       :lang default-language} dev?)
         (classpath? filename)
         (run! #(process-file ctx % default-language canonical?)
               (str/split filename
