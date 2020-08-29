@@ -246,10 +246,11 @@
            (update ns :imports merge imports)))
   nil)
 
-(defn class-name? [s]
-  (let [splits (str/split s #"\.")]
-    (and (> (count splits) 2)
-         (Character/isUpperCase ^char (first (last splits))))))
+(defn class-name? [^String s]
+  (when-let [i (str/last-index-of s \.)]
+    (let [should-be-capital-letter-idx (inc i)]
+      (and (> (.length s) should-be-capital-letter-idx)
+           (Character/isUpperCase ^char (.charAt s (inc i)))))))
 
 (defn reg-unresolved-symbol!
   [{:keys [:namespaces] :as _ctx}

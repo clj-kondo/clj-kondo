@@ -76,6 +76,7 @@ rm "clj-kondo-$version-$platform-amd64.zip"
 cd "$install_dir"
 if [ -f clj-kondo ]; then
     echo "Moving $install_dir/clj-kondo to $install_dir/clj-kondo.old"
+    mv -f "clj-kondo" "clj-kondo.old"
 fi
 
 mv -f "$download_dir/clj-kondo" "$PWD/clj-kondo"

@@ -27,4 +27,13 @@
   (is (empty? (lint! "(format \"%n %n %% %s\" 1)")))
   (is (empty? (lint! "(format \"Syntax error reading source at (%s).%n%s%n\" 1 2)")))
   (is (empty? (lint! "(format \"/blah/%s/blah?query=Luke%%20Skywalker\" 1)")))
-  (is (empty? (lint! "(require '[clojure.tools.logging :as l]) (defn foo [x] (l/errorf (ex-info \"\" {}) x \"x\" 1 2))"))))
+  (is (empty? (lint! "(require '[clojure.tools.logging :as l]) (defn foo [x] (l/errorf (ex-info \"\" {}) x \"x\" 1 2))")))
+  (is (empty? (lint! "
+
+(format \"
+Usage: `%1$s action [arg*]`
+
+Examples:
+`%1$s foo
+`%1$s bar abc
+`%1$s baz`\" 'cmd)"))))
