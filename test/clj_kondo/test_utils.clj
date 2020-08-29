@@ -40,7 +40,9 @@
   `(let [maps# ~maps
          res# ~result]
      (and
-      (is (= (count maps#) (count res#)))
+      (is (= (count maps#) (count res#))
+          (format "Expected %s results, but got: %s"
+                  (count maps#) (count res#)))
       (doseq [m# maps#]
         (is (some #(submap? m# %) res#) (str "No superset of " m# " found"))))))
 
