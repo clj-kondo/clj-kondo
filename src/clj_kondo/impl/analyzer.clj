@@ -793,7 +793,7 @@
         config (:config ctx)
         ns-name (-> ctx :ns :name)]
     ;;(prn (:tag binding))
-    (when-let [k (types/untag binding)]
+    (when-let [k (types/keyword binding)]
       (when-not (types/match? k :ifn)
         (findings/reg-finding! ctx (node->line (:filename ctx) expr :error
                                                :type-mismatch
@@ -1113,9 +1113,9 @@
     (when arg-types
       (let [types @arg-types
             types (rest (map :tag types))
-            match-type (types/untag (first types))
+            match-type (types/keyword (first types))
             matcher-type (second types)
-            matcher-type (types/untag matcher-type)]
+            matcher-type (types/keyword matcher-type)]
         (when (and match-type
                    matcher-type
                    (not (identical? matcher-type :any)))

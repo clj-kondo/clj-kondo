@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.types
   {:no-doc true}
+  (:refer-clojure :exclude [keyword])
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -65,7 +66,7 @@
   "Returns the non-nilable version of k when it's nilable. Returns k otherwise."
   [k]
   (if (nilable? k)
-    (keyword (name k))
+    (clojure.core/keyword (name k))
     k))
 
 (def labels
@@ -207,15 +208,15 @@
                   ;; see linters.clj
                   {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])})))))))
 
-(defn untag
-  "Converts tagged item into keyword, if possible."
+(defn keyword
+  "Converts tagged item into single keyword, if possible."
   [maybe-tag]
   (if (keyword? maybe-tag) maybe-tag
       (when (map? maybe-tag)
         (if (identical? :map (:type maybe-tag))
           :map
           (when-let [t (:tag maybe-tag)]
-            (untag t))))))
+            (keyword t))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
   (when-let [id (:id expr)]
