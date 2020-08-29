@@ -36,7 +36,7 @@ Options:
   nearest `.clj-kondo` directory in the current and parent directories.
 
   --config <config>: config may be a file or an EDN expression. See
-    https://cljdoc.org/d/clj-kondo/clj-kondo/%s/doc/configuration.
+    https://cljdoc.org/d/clj-kondo/clj-kondo/%s/doc/configuration
 
   --config-dir <config-dir>: use this config directory instead of auto-detected
     .clj-kondo dir.
