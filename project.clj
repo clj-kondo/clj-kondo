@@ -18,7 +18,7 @@
                  [borkdude/sci "0.1.0"]]
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2-alpha1 {:dependencies [[org.clojure/clojure "1.10.2-alpha1"]]}
-             :native-image {:dependencies [[borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.1.0"]
+             :native-image {:dependencies [[borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.2.0"]
                                            [borkdude/sci.impl.reflector "0.0.1-java11"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.10.520"]
                                    [clj-commons/conch "0.9.2"]
