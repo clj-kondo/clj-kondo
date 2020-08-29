@@ -207,6 +207,16 @@
                   ;; see linters.clj
                   {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])})))))))
 
+(defn untag
+  "Converts tagged item into keyword, if possible."
+  [maybe-tag]
+  (if (keyword? maybe-tag) maybe-tag
+      (when (map? maybe-tag)
+        (if (identical? :map (:type maybe-tag))
+          :map
+          (when-let [t (:tag maybe-tag)]
+            (untag t))))))
+
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
   (when-let [id (:id expr)]
     (when-let [call (get @calls-by-id id)]
