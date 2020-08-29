@@ -646,6 +646,17 @@
   (is (empty? (lint! "
 (require 'clojure.string)
 (clojure.string/replace \"hallo\" \"a\" (first [\"e\"]))
+" {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "
+(defn transducer []
+  (fn [rf]
+    (fn
+      ([] (rf))
+      ([result] (rf result))
+      ([result input]
+       (rf result input)))))
+
+(into [] (transducer) [1 2 3])
 " {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest binding-call-test
