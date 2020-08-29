@@ -179,7 +179,9 @@
     {:type :map
      :val (zipmap ks vtags)}))
 
-(defn ret-tag-from-call [ctx call _expr]
+(defn ret-tag-from-call
+  [ctx call _expr]
+  ;; Note, we need to return maps here because we are adding row and col later on.
   (or (:ret call)
       (when (not (:unresolved? call))
         (or (when-let [ret (:ret call)]

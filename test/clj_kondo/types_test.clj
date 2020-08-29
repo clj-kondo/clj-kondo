@@ -652,7 +652,11 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 19, :level :error, :message "String cannot be called as a function."})
    (lint! "(let [name \"foo\"] (name :foo))"
-          {:linters {:type-mismatch {:level :error}}})))
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+    '({:file "<stdin>", :row 1, :col 18, :level :error, :message "Number cannot be called as a function."})
+    (lint! "(let [x (inc 2)] (x 2))"
+           {:linters {:type-mismatch {:level :error}}})))
 
 ;;;; Scratch
 

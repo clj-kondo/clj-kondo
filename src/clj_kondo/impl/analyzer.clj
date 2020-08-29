@@ -787,18 +787,26 @@
        defrecord (analyze-defrecord ctx expr 'defrecord))
      (analyze-children ctx schemas))))
 
+(defn untag
+  "Converts tagged item into keyword, if possible."
+  [maybe-tag]
+  (if (keyword? maybe-tag)
+    maybe-tag
+    (when-let [t (:tag maybe-tag)]
+      (untag t))))
+
 (defn analyze-binding-call [ctx fn-name binding expr]
   ;; TODO: optimize getting the filename from the ctx etc in this function, for the happy path
   (let [callstack (:callstack ctx)
         config (:config ctx)
         ns-name (-> ctx :ns :name)]
-    (when-let [k (:tag binding)]
-      (when (keyword? k)
-        (when-not (types/match? k :ifn)
-          (findings/reg-finding! ctx (node->line (:filename ctx) expr :error
-                                                 :type-mismatch
-                                                 (format "%s cannot be called as a function."
-                                                         (str/capitalize (types/label k))))))))
+    ;;(prn (:tag binding))
+    (when-let [k (untag binding)]
+      (when-not (types/match? k :ifn)
+        (findings/reg-finding! ctx (node->line (:filename ctx) expr :error
+                                               :type-mismatch
+                                               (format "%s cannot be called as a function."
+                                                       (str/capitalize (types/label k)))))))
     (namespace/reg-used-binding! ctx
                                  ns-name
                                  binding)
