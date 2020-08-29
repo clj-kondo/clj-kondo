@@ -67,6 +67,7 @@ insert-scaled-decimal {2 {:ret #{:string}}}
 round-str {4 {:ret #{:vector}}}
 float-parts-base {1 {:ret #{:vector}}}
 set-max-column {2 {:ret :nil}}
+c-write-char {2 {:args (nil :nilable/int)}}
 realize-parameter-list {2 {:ret :vector}}
 get-format-arg {1 {:ret :vector}}
 split-at-newline {1 {:ret :vector}}
@@ -94,6 +95,7 @@ float-parts {1 {:ret #{:vector}}}
 get-fixed {3 {:ret #{:string}}}
 abort? {1 {:ret #{:boolean}}}
 map-params {4 {:ret :nilable/map}}
+p-write-char {2 {:args (nil :nilable/int)}}
 tokens-fit? {2 {:ret #{:boolean}}}
 tuple-map {2 {:ret {:type :map, :val {}}}}
 
@@ -193,7 +195,7 @@ parse-timestamp {2 {:args (nil :nilable/char-sequence)}}
 unquote-splicing? {1 {:ret #{:nil :boolean}}}
 starting-line-col-info {1 {:ret #{:vector :nil}}}
 wrapping-reader {1 {:ret :fn}}
-read+string {0 {:ret :vector}, :varargs {:ret :vector, :min-arity 1}}
+read+string {0 {:ret :vector}, 1 {:ret :vector}, 3 {:ret :vector}, 2 {:ret :vector}}
 read-unicode-char {4 {:args (:nilable/string :int :int :int)}}
 unquote? {1 {:ret #{:nil :boolean}}}
 syntax-quote-coll {2 {:ret #{:list}}}
