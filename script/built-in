@@ -16,3 +16,5 @@ cp "$base_path"/clj/clojure.*.transit.json resources/clj_kondo/impl/cache/built_
 cp "$base_path"/cljs/cljs.*.transit.json resources/clj_kondo/impl/cache/built_in/cljs
 cp "$base_path"/cljs/clojure.*.transit.json resources/clj_kondo/impl/cache/built_in/cljs
 cp "$base_path"/cljc/cljs.*.transit.json resources/clj_kondo/impl/cache/built_in/cljc
+
+script/dump_types.clj

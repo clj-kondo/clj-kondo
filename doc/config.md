@@ -29,9 +29,9 @@ namespace local configuration. Also note that namespace local config must always
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
 
-## Libraries
+## Examples
 
-See [libraries](../libraries) for library-specific configurations.
+See [examples](../examples) for library-specific configurations.
 
 ## Unrecognized macros
 
