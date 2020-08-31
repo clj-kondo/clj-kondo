@@ -120,7 +120,13 @@ command can be used to open the `coc-settings.json` file.
                     "message": 4,
                     "security": 3
                 }
-            ]
+            ],
+            "securities": {
+                    "error": "error",
+                    "warning": "warning",
+                    "note": "info"
+            } 
+
         }
     },
     "diagnostic-languageserver.filetypes": {"clojure":"clj_kondo_lint"}
