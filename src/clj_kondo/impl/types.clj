@@ -35,7 +35,7 @@
    :keyword #{:ifn}
    :symbol #{:ifn}
    :associative #{:seqable :coll :ifn}
-   :transducer #{:ifn}
+   :transducer #{:ifn :fn}
    :list #{:seq :sequential :seqable :coll :stack}
    :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}})
@@ -51,6 +51,7 @@
    :associative #{:map :vector :sequential :stack}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
           :sequential :stack}
+   :fn #{:transducer}
    :nat-int #{:pos-int}
    :seq #{:list :stack}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
