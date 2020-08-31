@@ -787,13 +787,21 @@
        defrecord (analyze-defrecord ctx expr 'defrecord))
      (analyze-children ctx schemas))))
 
-(defn analyze-binding-call [ctx fn-name expr]
+(defn analyze-binding-call [ctx fn-name binding expr]
+  ;; TODO: optimize getting the filename from the ctx etc in this function, for the happy path
   (let [callstack (:callstack ctx)
         config (:config ctx)
         ns-name (-> ctx :ns :name)]
+    ;;(prn (:tag binding))
+    (when-let [k (types/keyword binding)]
+      (when-not (types/match? k :ifn)
+        (findings/reg-finding! ctx (node->line (:filename ctx) expr :error
+                                               :type-mismatch
+                                               (format "%s cannot be called as a function."
+                                                       (str/capitalize (types/label k)))))))
     (namespace/reg-used-binding! ctx
                                  ns-name
-                                 (get (:bindings ctx) fn-name))
+                                 binding)
     (when-not (config/skip? config :invalid-arity callstack)
       (let [filename (:filename ctx)
             children (:children expr)]
@@ -1105,15 +1113,11 @@
     (when arg-types
       (let [types @arg-types
             types (rest (map :tag types))
-            match-type (first types)
+            match-type (types/keyword (first types))
             matcher-type (second types)
-            matcher-type (if (map? matcher-type)
-                           (or (:tag matcher-type)
-                               (when (identical? :map (:type matcher-type))
-                                 :map))
-                           matcher-type)]
-        (when (and match-type (keyword? match-type)
-                   matcher-type (keyword? matcher-type)
+            matcher-type (types/keyword matcher-type)]
+        (when (and match-type
+                   matcher-type
                    (not (identical? matcher-type :any)))
           (case match-type
             :string (when (not (identical? matcher-type :string))
@@ -1553,6 +1557,7 @@
                      (format "symbol is called with %s args but expects 1 or 2"
                              arg-count)))))))
 
+;; TODO: this should just be a case of :type-mismatch
 (defn reg-not-a-function! [ctx expr type]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
@@ -1641,12 +1646,12 @@
                                             s))]
                     (let [full-fn-name (with-meta full-fn-name (meta function))
                           unresolved? (nil? (namespace full-fn-name))
-                          binding-call? (and unresolved?
-                                             (contains? bindings full-fn-name))]
-                      (if binding-call?
+                          binding (and unresolved?
+                                             (get bindings full-fn-name))]
+                      (if binding
                         (do
                           (types/add-arg-type-from-expr ctx expr)
-                          (analyze-binding-call ctx full-fn-name expr))
+                          (analyze-binding-call ctx full-fn-name binding expr))
                         (let [ret (analyze-call ctx {:arg-count arg-count
                                                      :full-fn-name full-fn-name
                                                      :row row
