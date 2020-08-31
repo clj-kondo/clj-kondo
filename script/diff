@@ -4,8 +4,7 @@ mkdir -p /tmp/clj-kondo-diff
 
 cp="$(clojure -R:cljs -Spath)"
 read -r -d '' config <<'EOF' || true
-{:output {:canonical-paths true}
- :linters
+{:linters
   {:not-a-function
     {:skip-args [clojure.pprint/defdirectives
                  cljs.pprint/defdirectives
