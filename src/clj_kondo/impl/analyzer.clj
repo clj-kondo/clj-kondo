@@ -1616,7 +1616,12 @@
                                    children))
         :fn (recur (assoc ctx :arg-types nil)
                    (macroexpand/expand-fn expr))
-        :token (when-not (or (:quoted ctx) (= :edn (:lang ctx))) (analyze-usages2 ctx expr))
+        :token
+        (if (:quoted ctx)
+          (when (:k expr)
+            (usages/analyze-keyword ctx expr))
+          (when-not (= :edn (:lang ctx))
+            (analyze-usages2 ctx expr)))
         :list
         (if-let [function (some->>
                            (first children)
