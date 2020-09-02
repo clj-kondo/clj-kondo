@@ -31,6 +31,7 @@ listed!
 - [NextJournal](https://nextjournal.com)
 - [Nubank](https://www.nubank.com.br)
 - [Reify Health](https://www.reifyhealth.com/)
+- [Takeoff](https://www.takeoff.com)
 - [Sharetribe](https://www.sharetribe.com)
 - [Solita](https://www.solita.fi/en/)
 - [SUPREMATIC](https://suprematic.de/company/)
