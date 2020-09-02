@@ -8,6 +8,7 @@ listed!
 - [AppsFlyer](https://appsflyer.com)
 - [BrightIn](https://www.brightin.nl/)
 - [CircleCI](https://circleci.com)
+- [Clubhouse](https://clubhouse.io/)
 - [Codurance](https://www.codurance.com)
 - [Cognician](https://www.cognician.com)
 - [Cohesic](https://cohesic.com)
