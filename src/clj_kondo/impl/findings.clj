@@ -7,8 +7,10 @@
         type (:type m)
         level (-> config :linters type :level)]
     (when (and level (not (identical? :off level)))
-      (let [m (assoc m :level level)]
-        (swap! findings conj m))))
+      (let [ignore (:ignore ctx)]
+        (when-not ignore
+          (let [m (assoc m :level level)]
+            (swap! findings conj m))))))
   nil)
 
 ;;;; Scratch

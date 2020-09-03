@@ -1281,7 +1281,8 @@
                                                        :callstack (:callstack ctx)
                                                        :config (:config ctx)
                                                        :top-ns (:top-ns ctx)
-                                                       :arg-types (:arg-types ctx)})
+                                                       :arg-types (:arg-types ctx)
+                                                       :ignore (:ignore ctx)})
                   ;;;; This registers the namespace as used, to prevent unused warnings
                 (namespace/reg-used-namespace! ctx
                                                ns-name
@@ -1490,7 +1491,8 @@
                                     :callstack (:callstack ctx)
                                     :config (:config ctx)
                                     :top-ns (:top-ns ctx)
-                                    :arg-types (:arg-types ctx)}
+                                    :arg-types (:arg-types ctx)
+                                    :ignore (:ignore ctx)}
                         ret-tag (or (:ret m)
                                     (types/ret-tag-from-call ctx proto-call expr))
                         call (cond-> proto-call
@@ -1579,7 +1581,10 @@
                  expr)
           t (tag expr)
           {:keys [:row :col]} (meta expr)
-          arg-count (count (rest children))]
+          arg-count (count (rest children))
+          m (meta expr)
+          ignore (when m (:clj-kondo/ignore m))
+          ctx (if ignore (assoc ctx :ignore ignore) ctx)]
       (when-not (one-of t [:map :list :quote]) ;; list and quote are handled specially because of return types
         (types/add-arg-type-from-expr ctx expr))
       (case t

@@ -204,7 +204,8 @@
                              unresolved? (:unresolved? call)
                              unresolved-ns (:unresolved-ns call)]
                        :when (not unresolved-ns)
-                       :let [fn-name (:name call)
+                       :let [ctx (assoc ctx :ignore (:ignore call))
+                             fn-name (:name call)
                              caller-ns-sym (:ns call)
                              call-lang (:lang call)
                              caller-ns (get-in @(:namespaces ctx)
