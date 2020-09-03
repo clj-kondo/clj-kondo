@@ -255,10 +255,11 @@
            (Character/isUpperCase ^char (.charAt s (inc i)))))))
 
 (defn reg-unresolved-symbol!
-  [{:keys [:namespaces] :as _ctx}
+  [{:keys [:namespaces] :as ctx}
    ns-sym symbol {:keys [:base-lang :lang :config
                          :callstack] :as sym-info}]
   (when-not (or (:unresolved-symbol-disabled? sym-info)
+                (:ignore ctx)
                 (config/unresolved-symbol-excluded config
                                                    callstack symbol)
                 (let [symbol-name (name symbol)]

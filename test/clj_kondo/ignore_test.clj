@@ -8,7 +8,7 @@
   (is (empty? (lint! "#_:clj-kondo/ignore (inc 1 2 3)"
                      {:linters {:type-mismatch {:level :warning}}})))
   (is (empty? (lint! "#_:clj-kondo/ignore (defn foo [] (inc 1 2 3))"
-                     {:linters {:type-mismatch {:level :warning}}}))))
-
-;; TODO: #_:clj-kondo/ignore x
+                     {:linters {:type-mismatch {:level :warning}}})))
+  (is (empty? (lint! "#_:clj-kondo/ignore (defn foo [] x)"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 

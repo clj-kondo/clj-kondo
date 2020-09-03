@@ -214,7 +214,6 @@
                   refer-alls (:refer-alls caller-ns)
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns fn-name unresolved? refer-alls)
-                  unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
                   ;; we can determine if the call was made to another
                   ;; file by looking at the base-lang (in case of
                   ;; CLJS macro imports or the top-level namespace
@@ -236,16 +235,16 @@
                   name-meta (meta fn-name)
                   name-row (:row name-meta)
                   name-col (:col name-meta)
-                  _ (when (and (not valid-call?)
-                               (not unresolved-symbol-disabled?))
-                      (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
-                                                        (if call?
-                                                          (assoc call
-                                                                 :row name-row
-                                                                 :col name-col
-                                                                 :end-row (:end-row name-meta)
-                                                                 :end-col (:end-col name-meta))
-                                                          call)))
+                  _ (when (not valid-call?)
+                      (namespace/reg-unresolved-symbol!
+                       ctx caller-ns-sym fn-name
+                       (if call?
+                         (assoc call
+                                :row name-row
+                                :col name-col
+                                :end-row (:end-row name-meta)
+                                :end-col (:end-col name-meta))
+                         call)))
                   row (:row call)
                   col (:col call)
                   end-row (:end-row call)
