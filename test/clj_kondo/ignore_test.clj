@@ -12,3 +12,5 @@
   (is (empty? (lint! "#_:clj-kondo/ignore (defn foo [] x)"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
+;; TODO: (let [#_:clj-kondo/ignore x 1])
+
