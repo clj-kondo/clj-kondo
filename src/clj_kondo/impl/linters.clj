@@ -120,9 +120,9 @@
     (let [[_ _ keyvec] (:children call)]
       (when (and keyvec (= :vector (tag keyvec)) (= 1 (count (:children keyvec))))
         (findings/reg-finding!
-          ctx
-          (node->line (:filename ctx) keyvec :warning :single-key-in
-                      (format "%s with single key" called-name)))))))
+         ctx
+         (node->line (:filename ctx) keyvec :warning :single-key-in
+                     (format "%s with single key" called-name)))))))
 
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
@@ -196,167 +196,167 @@
   to call-specific linters."
   [ctx idacs]
   (let [config (:config ctx)
-        output-analysis? (-> config :output :analysis)
-        findings (for [ns (namespace/list-namespaces ctx)
-                       :let [base-lang (:base-lang ns)]
-                       call (:used-vars ns)
-                       :let [call? (= :call (:type call))
-                             unresolved? (:unresolved? call)
-                             unresolved-ns (:unresolved-ns call)]
-                       :when (not unresolved-ns)
-                       :let [ctx (assoc ctx :ignore (:ignore call))
-                             fn-name (:name call)
-                             caller-ns-sym (:ns call)
-                             call-lang (:lang call)
-                             caller-ns (get-in @(:namespaces ctx)
-                                               [base-lang call-lang caller-ns-sym])
-                             resolved-ns (:resolved-ns call)
-                             refer-alls (:refer-alls caller-ns)
-                             called-fn (utils/resolve-call idacs call call-lang
-                                                           resolved-ns fn-name unresolved? refer-alls)
-                             unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
-                             ;; we can determine if the call was made to another
-                             ;; file by looking at the base-lang (in case of
-                             ;; CLJS macro imports or the top-level namespace
-                             ;; name (in the case of CLJ in-ns)). Looking at the
-                             ;; filename proper isn't reliable since that may be
-                             ;; <stdin> in clj-kondo.
-                             different-file? (or
-                                              (not= (:base-lang call) base-lang)
-                                              (not= (:top-ns call) (:top-ns called-fn)))
-                             row-called-fn (:row called-fn)
-                             row-call (:row call)
-                             valid-call? (or (not unresolved?)
-                                             (when called-fn
-                                               (or different-file?
-                                                   (not row-called-fn)
-                                                   (or (> row-call row-called-fn)
-                                                       (and (= row-call row-called-fn)
-                                                            (> (:col call) (:col called-fn)))))))
-                             name-meta (meta fn-name)
-                             name-row (:row name-meta)
-                             name-col (:col name-meta)
-                             _ (when (and (not valid-call?)
-                                          (not unresolved-symbol-disabled?))
-                                 (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
-                                                                   (if call?
-                                                                     (assoc call
-                                                                            :row name-row
-                                                                            :col name-col
-                                                                            :end-row (:end-row name-meta)
-                                                                            :end-col (:end-col name-meta))
-                                                                     call)))
-                             row (:row call)
-                             col (:col call)
-                             end-row (:end-row call)
-                             end-col (:end-col call)
-                             filename (:filename call)
-                             fn-ns (:ns called-fn)
-                             resolved-ns (or fn-ns resolved-ns)
-                             arity (:arity call)
-                             in-def (:in-def call)
-                             recursive? (and
-                                         (= fn-ns caller-ns-sym)
-                                         (= fn-name in-def))
-                             _ (when output-analysis?
-                                 (analysis/reg-usage! ctx
-                                                      filename
-                                                      (if call? name-row
-                                                          row)
-                                                      (if call? name-col
-                                                          col)
-                                                      caller-ns-sym
-                                                      resolved-ns fn-name arity
-                                                      (when (= :cljc base-lang)
-                                                        call-lang)
-                                                      in-def
-                                                      called-fn))]
-                       :when valid-call?
-                       :let [fn-name (:name called-fn)
-                             _ (when (and unresolved?
-                                          (contains? refer-alls
-                                                     fn-ns))
-                                 (namespace/reg-referred-all-var! (assoc ctx
-                                                                         :base-lang base-lang
-                                                                         :lang call-lang)
-                                                                  caller-ns-sym fn-ns fn-name))
-                             arities (:arities called-fn)
-                             fixed-arities (or (:fixed-arities called-fn) (into #{} (filter number?) (keys arities)))
-                             ;; fixed-arities (:fixed-arities called-fn)
-                             varargs-min-arity (or (:varargs-min-arity called-fn) (-> arities :varargs :min-arity))
-                             ;; varargs-min-arity (:varargs-min-arity called-fn)
-                             ;; _ (prn ">>" (:name called-fn) arities (keys called-fn))
-                             skip-arity-check?
-                             (and call?
-                                  (or (utils/linter-disabled? call :invalid-arity)
-                                      (config/skip? config :invalid-arity (rest (:callstack call)))))
-                             arity-error?
-                             (and
-                              call?
-                              (not skip-arity-check?)
-                              (or (not-empty fixed-arities)
-                                  varargs-min-arity)
-                              (not (or (contains? fixed-arities arity)
-                                       (and varargs-min-arity (>= arity varargs-min-arity)))))
-                             single-operand-comparison-error
-                             (and call?
-                                  (not (utils/linter-disabled? call :single-operand-comparison))
-                                  (lint-single-operand-comparison call))
-                             errors
-                             [(when arity-error?
-                                {:filename filename
-                                 :row row
-                                 :end-row end-row
-                                 :col col
-                                 :end-col end-col
-                                 :type :invalid-arity
-                                 :message (arity-error fn-ns fn-name arity fixed-arities varargs-min-arity)})
-                              (when single-operand-comparison-error
-                                single-operand-comparison-error)
-                              (when (and (:private called-fn)
-                                         (not= caller-ns-sym
-                                               fn-ns)
-                                         (not (:private-access? call))
-                                         (not (utils/linter-disabled? call :private-call)))
-                                {:filename filename
-                                 :row row
-                                 :col col
-                                 :type :private-call
-                                 :message (format "#'%s is private"
-                                                  (str (:ns called-fn) "/" (:name called-fn)))})
-                              (when-let [deprecated (:deprecated called-fn)]
-                                (when-not
-                                    (or
-                                     ;; recursive call
-                                     recursive?
-                                     (config/deprecated-var-excluded
-                                      config
-                                      (symbol (str fn-ns)
-                                              (str fn-name))
-                                      caller-ns-sym in-def))
-                                  {:filename filename
-                                   :row row
-                                   :col col
-                                   :type :deprecated-var
-                                   :message (str
-                                             (format "#'%s is deprecated"
-                                                     (str fn-ns "/" fn-name))
-                                             (if (true? deprecated)
-                                               nil
-                                               (str " since " deprecated)))}))]
-                             ctx (assoc ctx
-                                        :filename filename)
-                             _ (when call?
-                                 (lint-specific-calls!
-                                  (assoc ctx
-                                         :filename filename)
-                                  call called-fn)
-                                 (when-not (or arity-error? skip-arity-check?)
-                                   (lint-arg-types! ctx idacs call called-fn)))]
-                       e errors
-                       :when e]
-                   e)]
-    (run! #(findings/reg-finding! ctx %) findings)))
+        output-analysis? (-> config :output :analysis)]
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [base-lang (:base-lang ns)]
+            call (:used-vars ns)
+            :let [call? (= :call (:type call))
+                  unresolved? (:unresolved? call)
+                  unresolved-ns (:unresolved-ns call)]
+            :when (not unresolved-ns)
+            :let [ctx (assoc ctx :ignore (:ignore call))
+                  fn-name (:name call)
+                  caller-ns-sym (:ns call)
+                  call-lang (:lang call)
+                  caller-ns (get-in @(:namespaces ctx)
+                                    [base-lang call-lang caller-ns-sym])
+                  resolved-ns (:resolved-ns call)
+                  refer-alls (:refer-alls caller-ns)
+                  called-fn (utils/resolve-call idacs call call-lang
+                                                resolved-ns fn-name unresolved? refer-alls)
+                  unresolved-symbol-disabled? (:unresolved-symbol-disabled? call)
+                  ;; we can determine if the call was made to another
+                  ;; file by looking at the base-lang (in case of
+                  ;; CLJS macro imports or the top-level namespace
+                  ;; name (in the case of CLJ in-ns)). Looking at the
+                  ;; filename proper isn't reliable since that may be
+                  ;; <stdin> in clj-kondo.
+                  different-file? (or
+                                   (not= (:base-lang call) base-lang)
+                                   (not= (:top-ns call) (:top-ns called-fn)))
+                  row-called-fn (:row called-fn)
+                  row-call (:row call)
+                  valid-call? (or (not unresolved?)
+                                  (when called-fn
+                                    (or different-file?
+                                        (not row-called-fn)
+                                        (or (> row-call row-called-fn)
+                                            (and (= row-call row-called-fn)
+                                                 (> (:col call) (:col called-fn)))))))
+                  name-meta (meta fn-name)
+                  name-row (:row name-meta)
+                  name-col (:col name-meta)
+                  _ (when (and (not valid-call?)
+                               (not unresolved-symbol-disabled?))
+                      (namespace/reg-unresolved-symbol! ctx caller-ns-sym fn-name
+                                                        (if call?
+                                                          (assoc call
+                                                                 :row name-row
+                                                                 :col name-col
+                                                                 :end-row (:end-row name-meta)
+                                                                 :end-col (:end-col name-meta))
+                                                          call)))
+                  row (:row call)
+                  col (:col call)
+                  end-row (:end-row call)
+                  end-col (:end-col call)
+                  filename (:filename call)
+                  fn-ns (:ns called-fn)
+                  resolved-ns (or fn-ns resolved-ns)
+                  arity (:arity call)
+                  in-def (:in-def call)
+                  recursive? (and
+                              (= fn-ns caller-ns-sym)
+                              (= fn-name in-def))
+                  _ (when output-analysis?
+                      (analysis/reg-usage! ctx
+                                           filename
+                                           (if call? name-row
+                                               row)
+                                           (if call? name-col
+                                               col)
+                                           caller-ns-sym
+                                           resolved-ns fn-name arity
+                                           (when (= :cljc base-lang)
+                                             call-lang)
+                                           in-def
+                                           called-fn))]
+            :when valid-call?
+            :let [fn-name (:name called-fn)
+                  _ (when (and unresolved?
+                               (contains? refer-alls
+                                          fn-ns))
+                      (namespace/reg-referred-all-var! (assoc ctx
+                                                              :base-lang base-lang
+                                                              :lang call-lang)
+                                                       caller-ns-sym fn-ns fn-name))
+                  arities (:arities called-fn)
+                  fixed-arities (or (:fixed-arities called-fn) (into #{} (filter number?) (keys arities)))
+                  ;; fixed-arities (:fixed-arities called-fn)
+                  varargs-min-arity (or (:varargs-min-arity called-fn) (-> arities :varargs :min-arity))
+                  ;; varargs-min-arity (:varargs-min-arity called-fn)
+                  ;; _ (prn ">>" (:name called-fn) arities (keys called-fn))
+                  skip-arity-check?
+                  (and call?
+                       (or (utils/linter-disabled? call :invalid-arity)
+                           (config/skip? config :invalid-arity (rest (:callstack call)))))
+                  arity-error?
+                  (and
+                   call?
+                   (not skip-arity-check?)
+                   (or (not-empty fixed-arities)
+                       varargs-min-arity)
+                   (not (or (contains? fixed-arities arity)
+                            (and varargs-min-arity (>= arity varargs-min-arity)))))
+                  single-operand-comparison-error
+                  (and call?
+                       (not (utils/linter-disabled? call :single-operand-comparison))
+                       (lint-single-operand-comparison call))]]
+      (when arity-error?
+        (findings/reg-finding!
+         ctx
+         {:filename filename
+          :row row
+          :end-row end-row
+          :col col
+          :end-col end-col
+          :type :invalid-arity
+          :message (arity-error fn-ns fn-name arity fixed-arities varargs-min-arity)}))
+      (when single-operand-comparison-error
+        (findings/reg-finding! ctx
+                               single-operand-comparison-error))
+      (when (and (:private called-fn)
+                 (not= caller-ns-sym
+                       fn-ns)
+                 (not (:private-access? call))
+                 (not (utils/linter-disabled? call :private-call)))
+        (findings/reg-finding! ctx
+                               {:filename filename
+                                :row row
+                                :col col
+                                :type :private-call
+                                :message (format "#'%s is private"
+                                                 (str (:ns called-fn) "/" (:name called-fn)))}))
+      (when-let [deprecated (:deprecated called-fn)]
+        (when-not
+            (or
+             ;; recursive call
+             recursive?
+             (config/deprecated-var-excluded
+              config
+              (symbol (str fn-ns)
+                      (str fn-name))
+              caller-ns-sym in-def))
+          (findings/reg-finding! ctx
+                                 {:filename filename
+                                  :row row
+                                  :col col
+                                  :type :deprecated-var
+                                  :message (str
+                                            (format "#'%s is deprecated"
+                                                    (str fn-ns "/" fn-name))
+                                            (if (true? deprecated)
+                                              nil
+                                              (str " since " deprecated)))})))
+
+      (let [ctx (assoc ctx :filename filename)]
+        (when call?
+          (lint-specific-calls!
+           (assoc ctx
+                  :filename filename)
+           call called-fn)
+          (when-not (or arity-error? skip-arity-check?)
+            (lint-arg-types! ctx idacs call called-fn)))))))
 
 (defn lint-unused-namespaces!
   [ctx]
