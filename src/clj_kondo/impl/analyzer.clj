@@ -1281,8 +1281,7 @@
                                                        :callstack (:callstack ctx)
                                                        :config (:config ctx)
                                                        :top-ns (:top-ns ctx)
-                                                       :arg-types (:arg-types ctx)
-                                                       :ignore (:ignore ctx)})
+                                                       :arg-types (:arg-types ctx)})
                   ;;;; This registers the namespace as used, to prevent unused warnings
                 (namespace/reg-used-namespace! ctx
                                                ns-name
@@ -1491,8 +1490,7 @@
                                     :callstack (:callstack ctx)
                                     :config (:config ctx)
                                     :top-ns (:top-ns ctx)
-                                    :arg-types (:arg-types ctx)
-                                    :ignore (:ignore ctx)}
+                                    :arg-types (:arg-types ctx)}
                         ret-tag (or (:ret m)
                                     (types/ret-tag-from-call ctx proto-call expr))
                         call (cond-> proto-call
@@ -1571,6 +1569,12 @@
 (defn analyze-reader-macro [ctx expr]
   (analyze-children ctx (rest (:children expr))))
 
+(defn handle-ignore [ctx expr]
+  (let [m (meta expr)
+        ignore (when m (:clj-kondo/ignore m))]
+    (when ignore (swap! (:ignores ctx) update (:filename ctx) conj
+                        (assoc (meta expr) :ignore ignore)))))
+
 (defn analyze-expression**
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
@@ -1581,10 +1585,8 @@
                  expr)
           t (tag expr)
           {:keys [:row :col]} (meta expr)
-          arg-count (count (rest children))
-          m (meta expr)
-          ignore (when m (:clj-kondo/ignore m))
-          ctx (if ignore (assoc ctx :ignore ignore) ctx)]
+          arg-count (count (rest children))]
+      (handle-ignore ctx expr)
       (when-not (one-of t [:map :list :quote]) ;; list and quote are handled specially because of return types
         (types/add-arg-type-from-expr ctx expr))
       (case t

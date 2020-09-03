@@ -108,7 +108,8 @@
              :cache-dir cache-dir
              :used-namespaces (atom {:clj #{}
                                      :cljs #{}
-                                     :cljc #{}})}
+                                     :cljc #{}})
+             :ignores (atom {})}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
