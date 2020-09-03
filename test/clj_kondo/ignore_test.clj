@@ -14,7 +14,23 @@
   (is (empty? (lint! "#_:clj-kondo/ignore (\"foo\")"
                      {:linters {:not-a-function {:level :error}}})))
   (is (empty? (lint! "#_:clj-kondo/ignore {:A}"
-                     {:syntax {:level :error}}))))
+                     {:linters {:syntax {:level :error}}})))
+  (is (empty? (lint! "(let [#_:clj-kondo/ignore x 1])"
+                     {:linters {:unused-binding {:level :warning}}}))))
+
+(deftest positional-checks
+  (is (seq (lint! "#_:clj-kondo/ignore (defn foo []) x"
+                  {:linters {:unresolved-symbol {:level :error}}})))
+  (is (seq (lint! "x #_:clj-kondo/ignore (defn foo [])"
+                  {:linters {:unresolved-symbol {:level :error}}})))
+  (is (seq (lint! "#_:clj-kondo/ignore
+(defn foo []
+) x"
+                  {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "#_:clj-kondo/ignore
+(defn foo []
+x)"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 ;; TODO: (let [#_:clj-kondo/ignore x 1])
 

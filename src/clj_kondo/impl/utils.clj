@@ -283,6 +283,13 @@
              (:imported-var called-fn) unresolved? refer-alls)
       called-fn)))
 
+(defn handle-ignore [ctx expr]
+  (let [m (meta expr)
+        ignore (when m (:clj-kondo/ignore m))]
+    (when ignore
+      (swap! (:ignores ctx) update (:filename ctx) conj
+             (assoc m :ignore ignore)))))
+
 ;;;; Scratch
 
 (comment

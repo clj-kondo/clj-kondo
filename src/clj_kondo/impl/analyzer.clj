@@ -471,6 +471,7 @@
            bindings (:bindings ctx)
            arities (:arities ctx)
            analyzed []]
+      (utils/handle-ignore ctx binding)
       (if binding
         (let [binding-tag (tag binding)
               binding-val (case binding-tag
@@ -1569,12 +1570,6 @@
 (defn analyze-reader-macro [ctx expr]
   (analyze-children ctx (rest (:children expr))))
 
-(defn handle-ignore [ctx expr]
-  (let [m (meta expr)
-        ignore (when m (:clj-kondo/ignore m))]
-    (when ignore (swap! (:ignores ctx) update (:filename ctx) conj
-                        (assoc (meta expr) :ignore ignore)))))
-
 (defn analyze-expression**
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
@@ -1586,7 +1581,7 @@
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
-      (handle-ignore ctx expr)
+      (utils/handle-ignore ctx expr)
       (when-not (one-of t [:map :list :quote]) ;; list and quote are handled specially because of return types
         (types/add-arg-type-from-expr ctx expr))
       (case t
