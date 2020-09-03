@@ -11,4 +11,4 @@
                      {:linters {:type-mismatch {:level :warning}}}))))
 
 ;; TODO: #_:clj-kondo/ignore x
-;; TODO: #_:clj-kondo/ignore (inc :foo 1 2 3)
+
