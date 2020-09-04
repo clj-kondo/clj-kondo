@@ -42,6 +42,7 @@
      (core-impl/process-files
       {:config config/default-config
        :findings (atom [])
+       :ignores (atom {})
        :namespaces namespaces
        :used-namespaces (atom {:clj #{}
                                :cljs #{}
@@ -63,6 +64,7 @@
      (core-impl/process-files
       {:config config/default-config
        :findings (atom [])
+       :ignores (atom {})
        :namespaces namespaces
        :used-namespaces (atom {:clj #{}
                                :cljs #{}

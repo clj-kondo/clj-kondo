@@ -21,6 +21,7 @@
   (let [ctx {:filename "-"
              :namespaces (atom {})
              :findings (atom [])
+             :ignores (atom {})
              :base-lang :clj
              :lang :clj
              :bindings {}}]
@@ -63,7 +64,8 @@
   (let [findings (atom [])
         analyze (fn [^String source]
                   (ana/analyze-input {:config {:linters {:syntax {:level :error}}}
-                                      :findings findings} "test.clj" source :clj false))]
+                                      :findings findings
+                                      :ignores (atom {})} "test.clj" source :clj false))]
     (testing "unmatched delimiters"
       (is (= [{:type :syntax
                :level :error

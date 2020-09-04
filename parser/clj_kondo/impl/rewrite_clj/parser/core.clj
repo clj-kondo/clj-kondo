@@ -155,6 +155,24 @@
   (reader/unread reader \#)
   (parse-token reader))
 
+(defn ignore-meta [uneval]
+  (let [node (first uneval)]
+    (if-let [k (:k node)]
+      (when (identical? :clj-kondo/ignore k)
+        {:clj-kondo/ignore true})
+      (when (identical? :map (node/tag node))
+        (let [m (node/sexpr node)]
+          (when-let [v (.get ^java.util.Map m :clj-kondo/ignore)]
+            {:clj-kondo/ignore (if (boolean? v) v (set v))}))))))
+
+(defn- read-with-ignore-hint [reader]
+  (let [hint (parse-printables reader :uneval 1 true)
+        im (ignore-meta hint)]
+    (if im
+      (vary-meta (parse-next reader)
+                 into im)
+      (parse-next reader))))
+
 (defmethod parse-next* :sharp
   [reader]
   (reader/ignore reader)
@@ -169,8 +187,7 @@
     \^ (parse-meta reader)
     \' (node/var-node (parse-printables reader :var 1 true))
     \= (node/eval-node (parse-printables reader :eval 1 true))
-    \_ (do (parse-printables reader :uneval 1 true)
-           reader)
+    \_ (read-with-ignore-hint reader)
     ;; begin patch patch
     \: (nm/parse-namespaced-map reader parse-next)
     ;; end patch

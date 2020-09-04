@@ -471,6 +471,7 @@
            bindings (:bindings ctx)
            arities (:arities ctx)
            analyzed []]
+      (utils/handle-ignore ctx binding)
       (if binding
         (let [binding-tag (tag binding)
               binding-val (case binding-tag
@@ -1580,6 +1581,7 @@
           t (tag expr)
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
+      (utils/handle-ignore ctx expr)
       (when-not (one-of t [:map :list :quote]) ;; list and quote are handled specially because of return types
         (types/add-arg-type-from-expr ctx expr))
       (case t
