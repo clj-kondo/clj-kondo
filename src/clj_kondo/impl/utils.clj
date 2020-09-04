@@ -287,7 +287,7 @@
   (let [m (meta expr)
         ignore (when m (:clj-kondo/ignore m))]
     (when ignore
-      (swap! (:ignores ctx) update (:filename ctx) (fnil conj [])
+      (swap! (:ignores ctx) update (:filename ctx) vconj
              (assoc m :ignore ignore)))))
 
 ;;;; Scratch
