@@ -161,9 +161,10 @@
       (when (identical? :clj-kondo/ignore k)
         {:clj-kondo/ignore true})
       (when (identical? :map (node/tag node))
-        (let [m (node/sexpr node)]
-          (when (contains? m :clj-kondo/ignore)
-            m))))))
+        (let [m (node/sexpr node)
+              v (.get ^java.util.Map m :clj-kondo/ignore)]
+          (when v
+            {:clj-kondo/ignore (if (boolean? v) v (set v))}))))))
 
 (defn- read-with-ignore-hint [reader]
   (let [hint (parse-printables reader :uneval 1 true)
