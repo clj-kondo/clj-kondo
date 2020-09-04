@@ -284,9 +284,8 @@
       called-fn)))
 
 (defn handle-ignore [ctx expr]
-  (let [m (meta expr)
-        ignore (when m (:clj-kondo/ignore m))]
-    (when ignore
+  (let [m (meta expr)]
+    (when-let [ignore (:clj-kondo/ignore m)]
       (swap! (:ignores ctx) update (:filename ctx) vconj
              (assoc m :ignore ignore)))))
 

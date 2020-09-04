@@ -12,28 +12,31 @@
   "Ignores are sorted in order of rows and cols. So if we are handling a node with a row before the "
   [ctx m type]
   (let [ignores @(:ignores ctx)
-        filename (:filename m)]
+        filename (:filename m)
+        row (:row m)]
     (when-let [ignores (get ignores filename)]
-      (let [row (:row m)]
-        (reduce (fn [_ ignore]
-                  (let [ignore-row (:row ignore)]
-                    (if (> ignore-row row)
-                      ;; since ignores are sorted on row (and col) we can skip the rest of the checking here
-                      (reduced false)
-                      ;; (>= row ignore row) is true from here
-                      (when (or
-                             (> row ignore-row)
-                             ;; row and ignore-row are equal, so the col of the
-                             ;; finding has to be before the col of the ignore
-                             (>= (:col m) (:col ignore)))
-                        (let [ignore-end-row (:end-row ignore)]
-                          (when (or (< row ignore-end-row)
-                                    (and (= row ignore-end-row)
-                                         (<= (:end-col m) (:end-col ignore))))
-                            (when (ignore-match? (:ignore ignore) type)
-                              (reduced true))))))))
-                nil
-                ignores)))))
+      (loop [ignores ignores]
+        (when ignores
+          (let [ignore (first ignores)
+                ignore-row (:row ignore)]
+            (if (> ignore-row row)
+              ;; since ignores are sorted on row (and col) we can skip the rest of the checking here
+              false
+              ;; (>= row ignore row) is true from here
+              (if (or
+                   (> row ignore-row)
+                   ;; row and ignore-row are equal, so the col of the
+                   ;; finding has to be before the col of the ignore
+                   (>= (:col m) (:col ignore)))
+                (let [ignore-end-row (:end-row ignore)]
+                  (if (or (< row ignore-end-row)
+                          (and (= row ignore-end-row)
+                               (<= (:end-col m) (:end-col ignore))))
+                    (if (ignore-match? (:ignore ignore) type)
+                      true
+                      (recur (next ignores)))
+                    (recur (next ignores))))
+                (recur (next ignores))))))))))
 
 (defn reg-finding! [ctx m]
   (let [findings (:findings ctx)
