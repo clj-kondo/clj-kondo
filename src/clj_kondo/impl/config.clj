@@ -139,6 +139,7 @@
 
 (def skip-args (memoize skip-args*))
 
+;; TODO MB 2020-09-05: revise this code, why do we need this again?
 (defn skip?
   "we optimize for the case that disable-within returns an empty sequence"
   ([config callstack]
