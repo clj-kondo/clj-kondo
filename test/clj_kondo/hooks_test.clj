@@ -70,7 +70,8 @@
    '({:file "corpus/hooks/re_frame.clj", :row 6, :col 12, :level :warning, :message #"keyword should be fully qualified!"})
    (lint! (io/file "corpus" "hooks" "re_frame.clj")
           {:linters {:unresolved-symbol {:level :error}
-                     :invalid-arity {:level :error}}})))
+                     :invalid-arity {:level :error}}}
+          "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))))
 
 (deftest location-test
   (testing "Sexprs that are numbers, strings or keywords cannot carry
@@ -79,7 +80,8 @@
     (assert-submaps
      '({:file "corpus/hooks/location.clj", :row 12, :col 10, :level :error, :message "Expected: number, received: string."})
      (lint! (io/file "corpus" "hooks" "location.clj")
-            {:linters {:type-mismatch {:level :error}}}))))
+            {:linters {:type-mismatch {:level :error}}}
+            "--config-dir" (.getPath (io/file "corpus" ".clj-kondo"))))))
 
 (deftest expectations-test
   (assert-submaps
@@ -88,7 +90,8 @@
    (lint! (io/file "corpus" "hooks" "expectations.clj")
           {:linters {:unused-binding {:level :warning}
                      :unresolved-symbol {:level :error}
-                     :invalid-arity {:level :error}}})))
+                     :invalid-arity {:level :error}}}
+          "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))))
 
 (deftest keys-test
   (when-not native?
