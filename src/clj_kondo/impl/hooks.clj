@@ -3,13 +3,11 @@
             [clj-kondo.impl.utils :refer [vector-node list-node token-node
                                           sexpr]]
             [clojure.java.io :as io]
-            [clojure.string :as str]
             [clojure.zip :as zip]
             [sci.core :as sci :refer [copy-var]]))
 
 (set! *warn-on-reflection* true)
 
-(def ^:dynamic *cfg-dir* nil)
 (def ^:dynamic *ctx* nil)
 
 (defn reg-finding! [m]
@@ -58,6 +56,13 @@
      (prn (str "Elapsed time: " (/ (double (- (. System (nanoTime)) start#)) 1000000.0) " msecs"))
      ret#))
 
+(defn find-file-on-classpath ^java.io.File
+  [base-path]
+  (some (fn [cp-entry]
+          (let [f (io/file cp-entry base-path)]
+            (when (.exists f) f)))
+        (:classpath *ctx*)))
+
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
                           'clojure.zip zip-namespace
@@ -73,39 +78,28 @@
              :load-fn (fn [{:keys [:namespace]}]
                         (let [^String ns-str (munge (name namespace))
                               base-path (.replace ns-str "." "/")
-                              base-path (str base-path ".clj")
-                              f (io/file *cfg-dir* base-path)
-                              path (.getCanonicalPath f)]
-                          (if (.exists f)
-                            {:file path
+                              base-path (str base-path ".clj")]
+                          (if-let [f (find-file-on-classpath base-path)]
+                            {:file (.getAbsolutePath f)
                              :source (slurp f)}
                             (binding [*out* *err*]
-                              (println "WARNING: file" path "not found while loading hook")
+                              (println "WARNING: file" base-path "not found while loading hook")
                               nil))))}))
 
 (def hook-fn
   (let [delayed-cfg
-        (fn [config key ns-sym var-sym]
+        (fn [ctx config key ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
-                 (when-let [code (get-in config [:hooks key sym])]
-                   (let [cfg-dir (:cfg-dir config)]
-                     (binding [*cfg-dir* cfg-dir]
-                       (sci/binding [sci/out *out*
-                                     sci/err *err*]
-                         (if (string? code)
-                           (let [code (str/triml code)
-                                 code (if (and (not (str/starts-with? code "("))
-                                               (not (str/index-of code \newline))
-                                               (str/ends-with? code ".clj"))
-                                        (slurp (io/file cfg-dir code))
-                                        code)]
-                             (sci/eval-string* sci-ctx code))
-                           ;; assume symbol
-                           (let [sym code
-                                 ns (namespace sym)
-                                 code (format "(require '%s)\n%s" ns sym)]
-                             (sci/eval-string* sci-ctx code))))))))
+                 (when-let [x (get-in config [:hooks key sym])]
+                   (sci/binding [sci/out *out*
+                                 sci/err *err*]
+                     (let [code (if (string? x) x
+                                    ;; x is a function symbol
+                                    (let [ns (namespace x)]
+                                      (format "(require '%s)\n%s" ns x)))]
+                       (binding [*ctx* ctx]
+                         (sci/eval-string* sci-ctx code))))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"

@@ -39,30 +39,7 @@
 (try+) ;; try without catch
 
 (ns baz
-  {:clj-kondo/config '{:hooks {:analyze-call {better.cond/cond
-                                              "
-(require '[clj-kondo.hooks-api :as api])
-(defn process-pairs [pairs]
-  (loop [[[lhs rhs :as pair] & pairs] pairs
-         new-body [(api/token-node 'cond)]]
-    (if pair
-      (let [lhs-sexpr (api/sexpr lhs)]
-      (cond
-        (= 1 (count pair)) (api/list-node (conj new-body lhs))
-        (not (keyword? lhs-sexpr))
-        (recur pairs
-               (conj new-body lhs rhs))
-        (= :let lhs-sexpr)
-        (api/list-node (conj new-body (api/token-node :else) (api/list-node [(api/token-node 'let) rhs (process-pairs pairs)])))))
-      (api/list-node new-body))))
-
-(def f
-  (fn [{:keys [:node]}]
-    (let [expr (let [args (rest (:children node))
-                     pairs (partition-all 2 args)]
-                 (process-pairs pairs))]
-      {:node (with-meta expr
-                (meta node))})))"}}}}
+  {:clj-kondo/config '{:hooks {:analyze-call {better.cond/cond hooks.better-cond/cond}}}}
   (:require [better.cond :as b]))
 
 (let [x 10]
@@ -72,29 +49,7 @@
     (= 11 y) (subs y 0))) ;; yay, type error because y is not a string
 
 (ns quux
-  {:clj-kondo/config '{:hooks {:analyze-call {rum.core/defc "
-(require '[clj-kondo.hooks-api :as api])
-(def f (fn [{:keys [:node]}]
-         (let [args (rest (:children node))
-               component-name (first args)
-               args (next args)
-               body
-               (loop [args* args
-                      mixins []]
-                 (if (seq args*)
-                   (let [a (first args*)]
-                     (if (vector? (api/sexpr a))
-                       (cons a (concat mixins (rest args*)))
-                       (recur (rest args*)
-                              (conj mixins a))))
-                   args))
-              new-node (with-meta
-                         (api/list-node (list* (api/token-node 'defn) component-name body))
-                          (meta node))]
-           ;; (prn (meta sexpr))
-           ;; (prn expr)
-           {:node new-node})))
-"}}
+  {:clj-kondo/config '{:hooks {:analyze-call {rum.core/defc hooks.rum/f}}
                        :lint-as {rum.core/defcs rum.core/defc}}}
   (:require [rum.core :as rum]))
 

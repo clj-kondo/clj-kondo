@@ -91,6 +91,8 @@
                     (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
         ;; for backward compatibility non-sequential config should be wrapped into collection
         config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]))
+        classpath (:classpath config)
+        config (dissoc config :classpath)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
         findings (atom [])
         analysis? (get-in config [:output :analysis])
@@ -100,6 +102,7 @@
                           :var-definitions []
                           :var-usages []}))
         ctx {:config config
+             :classpath classpath
              :global-config config
              :sources (atom [])
              :findings findings

@@ -17,10 +17,10 @@
      {:file "corpus/macroexpand.clj", :row 20, :col 1, :level :error, :message "foo/weird-macro is called with 0 args but expects 1 or more"}
      {:file "corpus/macroexpand.clj", :row 31, :col 48, :level :warning, :message "unused binding tree"}
      {:file "corpus/macroexpand.clj", :row 39, :col 1, :level :warning, :message "Missing catch or finally in try"}
-     {:file "corpus/macroexpand.clj", :row 72, :col 20, :level :error, :message "Expected: string, received: number."}
-     {:file "corpus/macroexpand.clj", :row 109, :col 1, :level :error, :message "quux/with-mixin is called with 4 args but expects 1"}
-     {:file "corpus/macroexpand.clj", :row 109, :col 13, :level :error, :message "unresolved symbol a"}
-     {:file "corpus/macroexpand.clj", :row 111, :col 1, :level :warning, :message "redefined var #'quux/with-mixin"})
+     {:file "corpus/macroexpand.clj", :row 49, :col 20, :level :error, :message "Expected: string, received: number."}
+     {:file "corpus/macroexpand.clj", :row 64, :col 1, :level :error, :message "quux/with-mixin is called with 4 args but expects 1"}
+     {:file "corpus/macroexpand.clj", :row 64, :col 13, :level :error, :message "unresolved symbol a"}
+     {:file "corpus/macroexpand.clj", :row 66, :col 1, :level :warning, :message "redefined var #'quux/with-mixin"})
    (let [results (lint! (io/file "corpus" "macroexpand.clj")
                         {:linters {:unresolved-symbol {:level :error}
                                    :unused-binding {:level :warning}
@@ -70,7 +70,8 @@
    '({:file "corpus/hooks/re_frame.clj", :row 6, :col 12, :level :warning, :message #"keyword should be fully qualified!"})
    (lint! (io/file "corpus" "hooks" "re_frame.clj")
           {:linters {:unresolved-symbol {:level :error}
-                     :invalid-arity {:level :error}}})))
+                     :invalid-arity {:level :error}}}
+          "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))))
 
 (deftest location-test
   (testing "Sexprs that are numbers, strings or keywords cannot carry
@@ -79,7 +80,8 @@
     (assert-submaps
      '({:file "corpus/hooks/location.clj", :row 12, :col 10, :level :error, :message "Expected: number, received: string."})
      (lint! (io/file "corpus" "hooks" "location.clj")
-            {:linters {:type-mismatch {:level :error}}}))))
+            {:linters {:type-mismatch {:level :error}}}
+            "--config-dir" (.getPath (io/file "corpus" ".clj-kondo"))))))
 
 (deftest expectations-test
   (assert-submaps
@@ -88,7 +90,8 @@
    (lint! (io/file "corpus" "hooks" "expectations.clj")
           {:linters {:unused-binding {:level :warning}
                      :unresolved-symbol {:level :error}
-                     :invalid-arity {:level :error}}})))
+                     :invalid-arity {:level :error}}}
+          "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))))
 
 (deftest keys-test
   (when-not native?

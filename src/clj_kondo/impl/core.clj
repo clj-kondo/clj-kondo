@@ -69,13 +69,46 @@
           ;; config is a string that represents a file
           (read-edn-file (io/file config)))))
 
+(defn read-config-from-dir [dir]
+  (let [f (io/file dir "config.edn")]
+    (when (.exists f)
+      (read-edn-file f))))
+
+(defn sanitize-path [cfg-dir path]
+  (let [f (io/file path)]
+    (if (.isAbsolute f)
+      (when (.exists f) f)
+      (let [f (io/file cfg-dir path)]
+        (when (.exists f)
+          f)))))
+
+(defn sanitize-paths [cfg-dir paths]
+  (keep #(sanitize-path cfg-dir %) paths))
+
+(defn resolve-config-paths
+  "Takes config from .clj-kondo/config.edn (or other cfg-dir),
+  inspects :config-paths, merges configs from left to right with cfg
+  last."
+  [cfg-dir cfg]
+  (if-let [config-paths (:config-paths cfg)]
+    (if-let [paths (sanitize-paths cfg-dir config-paths)]
+      (let [configs (map read-config-from-dir paths)]
+        (-> (reduce config/merge-config! configs)
+            (config/merge-config! cfg)
+            ;; keep only paths that exist for classpath
+            ;; our cfg-dir goes first on the classpath
+            (assoc :classpath (cons cfg-dir paths))))
+      (assoc cfg :classpath [cfg-dir]))
+    (assoc cfg :classpath [cfg-dir])))
+
 (defn resolve-config [^java.io.File cfg-dir configs]
   (let [config
         (reduce config/merge-config! config/default-config
-                (into [(when cfg-dir
-                         (let [f (io/file cfg-dir "config.edn")]
-                           (when (.exists f)
-                             (read-edn-file f))))]
+                (cons (when cfg-dir
+                        (if-let [cfg (read-config-from-dir cfg-dir)]
+                          (resolve-config-paths cfg-dir cfg)
+                          ;; you can still have hooks without a config.edn
+                          {:classpath [cfg-dir]}))
                       (map read-config configs)))]
     (cond-> config
       cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
