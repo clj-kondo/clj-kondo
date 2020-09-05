@@ -3,7 +3,6 @@
             [clj-kondo.impl.utils :refer [vector-node list-node token-node
                                           sexpr]]
             [clojure.java.io :as io]
-            [clojure.string :as str]
             [clojure.zip :as zip]
             [sci.core :as sci :refer [copy-var]]))
 
