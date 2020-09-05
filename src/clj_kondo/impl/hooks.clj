@@ -80,13 +80,12 @@
              :load-fn (fn [{:keys [:namespace]}]
                         (let [^String ns-str (munge (name namespace))
                               base-path (.replace ns-str "." "/")
-                              base-path (str base-path ".clj")
-                              f (find-file-on-classpath base-path)]
+                              base-path (str base-path ".clj")]
                           (if-let [f (find-file-on-classpath base-path)]
                             {:file (.getAbsolutePath f)
                              :source (slurp f)}
                             (binding [*out* *err*]
-                              (println "WARNING: file" (.getCanonicalPath f) "not found while loading hook")
+                              (println "WARNING: file" base-path "not found while loading hook")
                               nil))))}))
 
 (def hook-fn

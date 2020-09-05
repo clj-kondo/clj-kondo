@@ -98,15 +98,17 @@
             ;; keep only paths that exist for classpath
             ;; our cfg-dir goes first on the classpath
             (assoc :classpath (cons cfg-dir paths))))
-      cfg)
-    cfg))
+      (assoc cfg :classpath [cfg-dir]))
+    (assoc cfg :classpath [cfg-dir])))
 
 (defn resolve-config [^java.io.File cfg-dir configs]
   (let [config
         (reduce config/merge-config! config/default-config
-                (into [(when cfg-dir
-                         (when-let [cfg (read-config-from-dir cfg-dir)]
-                           (resolve-config-paths cfg-dir cfg)))]
+                (cons (when cfg-dir
+                        (if-let [cfg (read-config-from-dir cfg-dir)]
+                          (resolve-config-paths cfg-dir cfg)
+                          ;; you can still have hooks without a config.edn
+                          {:classpath [cfg-dir]}))
                       (map read-config configs)))]
     (cond-> config
       cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
