@@ -92,11 +92,13 @@
         (fn [ctx config key ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
-                 (when-let [sym (get-in config [:hooks key sym])]
+                 (when-let [x (get-in config [:hooks key sym])]
                    (sci/binding [sci/out *out*
                                  sci/err *err*]
-                     (let [ns (namespace sym)
-                           code (format "(require '%s)\n%s" ns sym)]
+                     (let [code (if (string? x) x
+                                    ;; x is a function symbol
+                                    (let [ns (namespace x)]
+                                      (format "(require '%s)\n%s" ns x)))]
                        (binding [*ctx* ctx]
                          (sci/eval-string* sci-ctx code))))))
                (catch Exception e
