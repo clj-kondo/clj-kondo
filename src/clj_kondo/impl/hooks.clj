@@ -9,7 +9,6 @@
 
 (set! *warn-on-reflection* true)
 
-(def ^:dynamic *classpath* [])
 (def ^:dynamic *ctx* nil)
 
 (defn reg-finding! [m]
@@ -63,7 +62,7 @@
   (some (fn [cp-entry]
           (let [f (io/file cp-entry base-path)]
             (when (.exists f) f)))
-        *classpath*))
+        (:classpath *ctx*)))
 
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
@@ -90,22 +89,16 @@
 
 (def hook-fn
   (let [delayed-cfg
-        (fn [config key ns-sym var-sym]
+        (fn [ctx config key ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
-                 (when-let [code (get-in config [:hooks key sym])]
-                   (let [classpath (:classpath config)]
-                     (binding [*classpath* classpath]
-                       (sci/binding [sci/out *out*
-                                     sci/err *err*]
-                         (if (string? code)
-                           (let [code (str/triml code)]
-                             (sci/eval-string* sci-ctx code))
-                           ;; assume symbol
-                           (let [sym code
-                                 ns (namespace sym)
-                                 code (format "(require '%s)\n%s" ns sym)]
-                             (sci/eval-string* sci-ctx code))))))))
+                 (when-let [sym (get-in config [:hooks key sym])]
+                   (sci/binding [sci/out *out*
+                                 sci/err *err*]
+                     (let [ns (namespace sym)
+                           code (format "(require '%s)\n%s" ns sym)]
+                       (binding [*ctx* ctx]
+                         (sci/eval-string* sci-ctx code))))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"
