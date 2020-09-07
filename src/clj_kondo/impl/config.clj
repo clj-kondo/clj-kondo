@@ -112,16 +112,19 @@
              :canonical-paths false ;; set to true to see absolute file paths and jar files
              }})
 
-(defn merge-config! [cfg* cfg]
-  (if (empty? cfg) cfg*
-      (let [cfg (cond-> cfg
-                  (:skip-comments cfg)
-                  (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment))
+(defn merge-config!
+  ([])
+  ([cfg] cfg)
+  ([cfg* cfg]
+   (if (empty? cfg) cfg*
+       (let [cfg (cond-> cfg
+                   (:skip-comments cfg)
+                   (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment))
 
-                  (contains? (:linters cfg) :if) (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
-        (if (:replace (meta cfg))
-          cfg
-          (deep-merge cfg* cfg)))))
+                   (contains? (:linters cfg) :if) (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
+         (if (:replace (meta cfg))
+           cfg
+           (deep-merge cfg* cfg))))))
 
 (defn fq-syms->vecs [fq-syms]
   (map (fn [fq-sym]
