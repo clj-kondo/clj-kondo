@@ -108,9 +108,10 @@
   [cfg-dir cfg]
   (if-let [config-paths (:config-paths cfg)]
     (if-let [paths (sanitize-paths cfg-dir config-paths)]
-      (let [configs (seq (map read-config-from-dir paths))
-            merged (when configs (reduce config/merge-config! configs))
-            cfg (if merged (config/merge-config! merged cfg) cfg)]
+      (let [configs (map read-config-from-dir paths)
+            merged (reduce config/merge-config! configs)
+            ;; cfg is merged last
+            cfg (config/merge-config! merged cfg)]
         cfg)
       cfg)
     cfg))
