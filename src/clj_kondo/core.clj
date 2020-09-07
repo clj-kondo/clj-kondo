@@ -90,7 +90,9 @@
                       (io/file config-dir))
                     (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
         ;; for backward compatibility non-sequential config should be wrapped into collection
-        config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]))
+        config (if (System/getenv "CLJ_KONDO_DEV")
+                 (time (core-impl/resolve-config cfg-dir (if (sequential? config) config [config])))
+                 (core-impl/resolve-config cfg-dir (if (sequential? config) config [config])))
         classpath (:classpath config)
         config (dissoc config :classpath)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
