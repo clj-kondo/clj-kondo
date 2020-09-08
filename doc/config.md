@@ -95,6 +95,26 @@ corpus/redundant_let.clj:8:3: info: redundant let
 corpus/redundant_let.clj:12:3: info: redundant let
 ```
 
+### Ignore warnings in an expression
+
+To ignore all warnings in an expression, place a hint before it. It uses reader
+comments, so they won't end up in your runtime.
+
+```
+#_:clj-kondo/ignore
+(inc 1 2 3)
+```
+
+To ignore warnings from just one or a few linters:
+
+```
+#_{:clj-kondo/ignore [:invalid-arity]}
+(inc 1 2 3)
+```
+
+### Enable optional linters
+
+
 ### Lint a custom macro like a built-in macro
 
 In the following code the `my-defn` macro is defined, but clj-kondo doesn't know how to interpret it:
