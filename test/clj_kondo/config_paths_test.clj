@@ -1,8 +1,9 @@
 (ns clj-kondo.config-paths-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps native?]]
    [clojure.java.io :as io]
-   [clojure.test :refer [deftest testing is]]))
+   [clojure.test :refer [deftest testing is]])
+  (:import [java.nio.file Files]))
 
 (deftest re-frame-test
   (assert-submaps
@@ -13,3 +14,29 @@
           ;; we are using the config dir .clj-kondo2 which refers to .clj-kondo as a config path
           ;; which contains the hook code needed to lint the above file
           "--config-dir" (.getPath (io/file "corpus" ".clj-kondo2")))))
+
+(deftest home-config-test
+  (when-not native?
+    (let [old-home (System/getProperty "user.home")
+          home-dir (str (Files/createTempDirectory "clj_kondo" (into-array java.nio.file.attribute.FileAttribute [])))
+          project-cfg-dir (str (Files/createTempDirectory "clj_kondo" (into-array java.nio.file.attribute.FileAttribute [])))
+          prog "
+(ns x {:clj-kondo/config '{:linters {:unused-binding {:level :warning}}}}
+  (:require foo.foo))
+
+(foo.foo/foo [x 1 y 2])"]
+      (try
+        (System/setProperty "user.home" home-dir)
+        (let [cfg-file (io/file home-dir ".config" "clj-kondo" "config.edn")]
+          (io/make-parents cfg-file)
+          (spit cfg-file "{:lint-as {foo.foo/foo clojure.core/let}}")
+          (testing "config from home dir is picked up"
+            (assert-submaps
+             '({:level :warning, :message "unused binding x"}
+               {:level :warning, :message "unused binding y"})
+             (lint! prog)))
+          (testing "ignoring home dir config"
+            (spit (io/file project-cfg-dir "config.edn") "{:config-paths ^:replace []}")
+            (is (empty? (lint! prog "--config-dir" project-cfg-dir)))))
+        (finally
+          (System/setProperty "user.home" old-home))))))
