@@ -19,22 +19,21 @@ Clj-kondo can be configured in five ways, by providing:
 - project config: a `config.edn` file in the `.clj-kondo` directory (see
   [project setup](../README.md#project-setup))
 - `:config-paths` in project `config.edn`: a list of directories that provide additional config
-- a command line `--config` file or EDN arguments
+- command line `--config` file or EDN arguments
 - namespace local config using `:clj-kondo/config` metadata in the namespace form
 
 The configurations are merged in the following order, where a later config overrides an earlier config:
 
 - home dir config
 - `:config-paths` in project config
-- project config: `config.edn`
-- command line `--config` args
+- project config
+- command line config
 - namespace local config
 
 The `^:replace` metadata hint can be used to replace parts or all of the
 configuration instead of merging with previous ones. The home dir config is
 implicitly part of `:config-paths`. To opt out of merging with home dir config
 use `:config-paths ^:replace []` in your project config.
-
 
 Note that namespace local config must always be quoted: `{:clj-kondo/config
 '{:linters ...}}` and quotes should not appear inside the config.
