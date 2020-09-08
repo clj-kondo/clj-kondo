@@ -100,14 +100,14 @@ corpus/redundant_let.clj:12:3: info: redundant let
 To ignore all warnings in an expression, place a hint before it. It uses reader
 comments, so they won't end up in your runtime.
 
-```
+``` clojure
 #_:clj-kondo/ignore
 (inc 1 2 3)
 ```
 
 To ignore warnings from just one or a few linters:
 
-```
+``` clojure
 #_{:clj-kondo/ignore [:invalid-arity]}
 (inc 1 2 3)
 ```
