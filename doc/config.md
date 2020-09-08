@@ -13,7 +13,7 @@ Table of contents:
 
 ## Introduction
 
-Clj-kondo can be configured in four ways, by providing:
+Clj-kondo can be configured in five ways, by providing:
 
 - home dir config in `~/.config/clj-kondo/config.edn` (respects `XDG_CONFIG_HOME`)
 - project config: a `config.edn` file in the `.clj-kondo` directory (see
