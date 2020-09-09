@@ -5,7 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes)
 ## v2020.09.09
 
 Thanks to [@cldwalker](https://github.com/cldwalker), [@bfontaine](https://github.com/bfontaine), [@snoe](https://github.com/snoe), [@andreyorst](https://github.com/andreyorst), [@jeroenvandijk](https://github.com/jeroenvandijk),
-[@jaihindhreddy](https://github.com/jaihindhreddy), [@sittim](https://github.com/sittim) and [@sogaiu](https://github.com/sogaiu) for contributing to this release. Thanks to [Clojurists Together](https://www.clojuriststogether.org/) for sponsoring this release.
+[@jaihindhreddy](https://github.com/jaihindhreddy), [@sittim](https://github.com/sittim) and [@sogaiu](https://github.com/sogaiu) for contributing to this release. Thanks to the people who helped designing the new features in Github issue conversations.  Thanks to [Clojurists Together](https://www.clojuriststogether.org/) for sponsoring this release.
 
 ### New
 
@@ -57,7 +57,11 @@ Thanks to [@cldwalker](https://github.com/cldwalker), [@bfontaine](https://githu
 - Alias usage not detected in keywords when in quoted form [#981](https://github.com/borkdude/clj-kondo/issues/981)
 - Fully qualified class name incorrectly assumed to be var [#950](https://github.com/borkdude/clj-kondo/issues/950)
 - Backup existing clj-kondo binary when installing [#963](https://github.com/borkdude/clj-kondo/issues/963) ([@bfontaine](https://github.com/bfontaine))
-- Various documentation fixes and improvements ([@jeroenvandijk](https://github.com/jeroenvandijk), [@jaihindhreddy](https://github.com/jaihindhreddy), [@sittim](https://github.com/sittim), [@sogaiu](https://github.com/sogaiu))
+- Various documentation fixes and improvements ([@jeroenvandijk](https://github.com/jeroenvandijk), [@sittim](https://github.com/sittim), [@sogaiu](https://github.com/sogaiu))
+
+## Misc
+
+- Update to GraalVM 20.2.0 for `native-image` build [@jaihindhreddy](https://github.com/jaihindhreddy)
 
 ## Prior to v2020.09.09
 
