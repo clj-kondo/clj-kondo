@@ -235,15 +235,23 @@
 
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
   (let [{:keys [:row :col]} expr
+        lang (:lang ctx)
         ns-name (-> children second :children first :value)
         ns (when ns-name
-             (namespace-analyzer/new-namespace
-              (:filename ctx)
-              (:base-lang ctx)
-              (:lang ctx)
-              ns-name
-              :in-ns
-              row col))]
+             (-> (namespace-analyzer/new-namespace
+                  (:filename ctx)
+                  (:base-lang ctx)
+                  (:lang ctx)
+                  ns-name
+                  :in-ns
+                  row col)
+                 ;; fix fully qualified core references
+                 (assoc :qualify-ns (cond-> {}
+                                      (identical? :clj lang)
+                                      (assoc 'clojure.core 'clojure.core)
+                                      (identical? :cljs lang)
+                                      (assoc 'cljs.core 'cljs.core
+                                             'clojure.core 'cljs.core)))))]
     (namespace/reg-namespace! ctx ns)
     (analyze-children ctx (next children))
     ns))

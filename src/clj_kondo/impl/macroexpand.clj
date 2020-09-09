@@ -153,6 +153,9 @@
                          {:clj-kondo/mark-used true})
                        (token-node '%1)])
                      fn-body]))]
+    (prn (list-node [(token-node 'fn*) arg-list
+                     (if has-first-arg?
+                       let-expr fn-body)]))
     (with-meta
       (list-node [(token-node 'fn*) arg-list
                   (if has-first-arg?

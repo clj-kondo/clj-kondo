@@ -1027,7 +1027,9 @@ foo/foo ;; this does use the private var
     :message "foo/foo-2 is called with 3 args but expects 0"}
    (first (lint! "(ns foo) (defn foo-1 [] (in-ns 'bar)) (defn foo-2 []) (foo-2 1 2 3)")))
   (is (empty? (lint! "(let [ns-name \"user\"] (in-ns ns-name))"
-                     '{:linters {:unused-binding {:level :warning}}}))))
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(in-ns 'foo) (clojure.core/let [x 1])"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest skip-args-test
   (is

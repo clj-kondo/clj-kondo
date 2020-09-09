@@ -392,11 +392,11 @@
                                   analyzed-require-clauses
                                   refer-clojure))
              local-config (assoc :config merged-config)
-             (= :clj lang) (update :qualify-ns
-                                   #(assoc % 'clojure.core 'clojure.core))
-             (= :cljs lang) (update :qualify-ns
-                                    #(assoc % 'cljs.core 'cljs.core
-                                            'clojure.core 'cljs.core)))]
+             (identical? :clj lang) (update :qualify-ns
+                                            #(assoc % 'clojure.core 'clojure.core))
+             (identical? :cljs lang) (update :qualify-ns
+                                             #(assoc % 'cljs.core 'cljs.core
+                                                     'clojure.core 'cljs.core)))]
     (when (-> ctx :config :output :analysis)
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some {}
