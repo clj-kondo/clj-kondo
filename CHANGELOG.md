@@ -47,6 +47,8 @@ Thanks to [@cldwalker](https://github.com/cldwalker), [@bfontaine](https://githu
   specific configurations that can be added via `:config-paths`. Contributions
   for libraries are welcome.
 
+- Experimental [spec inspection tool](https://github.com/clj-kondo/inspector) that attempts to extract type information for linting. Also uses the new `:config-paths` feature.
+
 - Allow pinned version in installation script [#946](https://github.com/borkdude/clj-kondo/issues/946) ([@cldwalker](https://github.com/cldwalker))
 
 ### Fixed
