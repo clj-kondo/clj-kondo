@@ -41,7 +41,7 @@ Thanks to [@cldwalker](https://github.com/cldwalker), [@bfontaine](https://githu
 
 - New `:config-paths` option in `<project>/.clj-kondo/config.edn`. This allows
   extra configuration directories to be merged in. See
-  [config.md](doc/config.md) for details.
+  [config.md](doc/config.md) for details. [#992](https://github.com/borkdude/clj-kondo/issues/992)
 
 - [Config tool](https://github.com/clj-kondo/config) that can spit out library
   specific configurations that can be added via `:config-paths`. Contributions
