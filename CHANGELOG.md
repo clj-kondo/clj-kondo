@@ -29,7 +29,7 @@ Thanks to [@cldwalker](https://github.com/cldwalker), [@bfontaine](https://githu
     (inc 1 2 3)
     ^--- arity warning ignored
 
-    #_:clj-kondo/ignore[:invalid-arity]
+    #_{:clj-kondo/ignore[:invalid-arity]}
     (do (inc 1 2 3))
     ^--- only redundant do is reported, but invalid arity is ignored
     ```
