@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.hooks
+  {:no-doc true}
   (:require [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.utils :refer [vector-node list-node token-node
                                           sexpr]]
