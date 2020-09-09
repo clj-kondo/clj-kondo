@@ -59,7 +59,7 @@ Thanks to [@cldwalker](https://github.com/cldwalker), [@bfontaine](https://githu
 - Backup existing clj-kondo binary when installing [#963](https://github.com/borkdude/clj-kondo/issues/963) ([@bfontaine](https://github.com/bfontaine))
 - Various documentation fixes and improvements ([@jeroenvandijk](https://github.com/jeroenvandijk), [@sittim](https://github.com/sittim), [@sogaiu](https://github.com/sogaiu))
 
-## Misc
+### Misc
 
 - Update to GraalVM 20.2.0 for `native-image` build [@jaihindhreddy](https://github.com/jaihindhreddy)
 
