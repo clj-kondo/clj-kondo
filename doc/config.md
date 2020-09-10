@@ -437,7 +437,7 @@ Hooks must be configured in clj-kondo's `config.edn` under `:hooks`, e.g.:
 ### analyze-call
 
 The `analyze-call` hook offers a way to lint macros that are unrecognized by clj-kondo and cannot
-be supported by [`:list-as`](#lint-a-custom-macro-like-a-built-in-macro).
+be supported by [`:lint-as`](#lint-a-custom-macro-like-a-built-in-macro).
 
 It receives Clojure macro (or function) call code as input in the form of a rewrite-clj node, and can:
 
