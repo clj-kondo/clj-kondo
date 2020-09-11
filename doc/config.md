@@ -643,7 +643,7 @@ a library namespace and use `require` to load it from each hook's namespace.
 To test performance of a hook, you can write code which triggers the hook and
 repeat that expression `n` times (where `n` is a large number like
 1000000). Then lint the file with `clj-kondo --lint` and measure
-timing.
+timing. The `time` macro is also available within hooks code.
 
 ### Clojurists Together
 
