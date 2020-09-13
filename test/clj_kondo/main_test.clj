@@ -2126,7 +2126,15 @@ foo/foo ;; this does use the private var
           {:linters {:refer-all {:level :warning}
                      :use {:level :warning}}}))
   (is (empty? (lint! "(require '[clojure.test :refer :all])"
-                     '{:linters {:refer-all {:level :warning :exclude [clojure.test]}}}))))
+                     '{:linters {:refer-all {:level :warning :exclude [clojure.test]}}})))
+  (is (empty? (lint! (io/file "corpus" "deftest_resolve_test_name_pass.clj")
+                     '{:linters {:unresolved-symbol {:level :error}
+                                 :refer-all {:level :warning
+                                             :exclude [clojure.test clojure.string]}}})))
+  (is (empty? (lint! (io/file "corpus" "deftest_resolve_test_name_fail.clj")
+                     '{:linters {:unresolved-symbol {:level :error}
+                                 :refer-all {:level :warning
+                                             :exclude [clojure.test clojure.string]}}}))))
 
 (deftest canonical-paths-test
   (testing "single file"

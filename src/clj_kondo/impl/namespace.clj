@@ -325,6 +325,30 @@
     (when-let [ft (next-token st)]
       (symbol ft))))
 
+(defn resolve-referred-all-ns
+  "Attempts to correctly resolve the namespace of an un-namespaced symbol
+  in the case where the symbol's namespace was required with :refer :all.
+
+  If `name-sym` isn't found in the common-symbols map below, then most likely
+  the first `refer-alls` namespace will be chosen because we don't have enough
+  information to be more accurate than that."
+  [name-sym refer-alls]
+  (let [common-symbols {'clojure.test ['is 'are 'deftest]}
+        common-ns (->> common-symbols
+                       (filter (comp #(contains? % name-sym)
+                                     set
+                                     second))
+                       (map first)
+                       (filter (partial contains? refer-alls))
+                       first)]
+    (or common-ns
+        ;; if `name-sym` isn't found in `common-symbols`, choose the first
+        ;; refer-all namespace that doesn't have the symbol marked excluded
+        (some (fn [[k {:keys [:excluded]}]]
+                (when-not (contains? excluded name-sym)
+                  k))
+              refer-alls))))
+
 (defn resolve-name
   [ctx ns-name name-sym]
   ;; (prn "NAME" name-sym)
@@ -403,14 +427,11 @@
                   :clj 'clojure.core
                   :cljs 'cljs.core)
             :name name-sym}
-           (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
-                                         (when-not (contains? excluded name-sym)
-                                           k))
-                                       (:refer-alls ns))]
-             {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-              :name name-sym
-              :unresolved? true
-              :clojure-excluded? clojure-excluded?})))))))
+           {:ns (or (resolve-referred-all-ns name-sym (:refer-alls ns))
+                    :clj-kondo/unknown-namespace)
+            :name name-sym
+            :unresolved? true
+            :clojure-excluded? clojure-excluded?}))))))
 
 ;;;; Scratch
 
