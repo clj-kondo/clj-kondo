@@ -6,7 +6,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/3jdro7mu17nv3rb3/branch/master?svg=true)](https://ci.appveyor.com/project/borkdude/clj-kondo/branch/master)
 [![cljdoc badge](https://cljdoc.org/badge/clj-kondo/clj-kondo)](https://cljdoc.org/d/clj-kondo/clj-kondo/CURRENT)
 [![project chat](https://img.shields.io/badge/slack-join_chat-brightgreen.svg)](https://clojurians.slack.com/messages/CHY97NXE2)
-[![twitter](https://img.shields.io/badge/twitter-%23clj__kondo-blue)](https://twitter.com/search?q=%23clj_kondo&src=typed_query&f=live)
+[![twitter](https://img.shields.io/badge/twitter-%23cljkondo-blue)](https://twitter.com/search?q=%23cljkondo&src=typed_query&f=live)
 
 A linter for Clojure code that sparks joy.
 
