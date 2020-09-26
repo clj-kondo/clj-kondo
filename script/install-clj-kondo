@@ -1,6 +1,4 @@
-#!/usr/bin/env sh
-
-# we're using sh so it can be used in alpine images without bash
+#!/usr/bin/env bash
 
 # install script inspired by scripts for clojure and CircleCI CLI tool
 # install latest version of clj-kondo or upgrades existing one
@@ -15,10 +13,10 @@ version=""
 
 print_help() {
     echo "Installs latest version of clj-kondo."
-    echo
+    echo -e
     echo "Usage:"
     echo "install [--dir <dir>] [--download-dir <download-dir>] [--version <version>]"
-    echo
+    echo -e
     echo "Defaults:"
     echo " * Installation directory: ${default_install_dir}"
     echo " * Download directory: ${default_download_dir}"
@@ -69,7 +67,7 @@ download_url="https://github.com/borkdude/clj-kondo/releases/download/v$version/
 
 mkdir -p "$download_dir"
 cd "$download_dir"
-echo "Downloading $download_url to $download_dir"
+echo -e "Downloading $download_url to $download_dir"
 rm -rf "clj-kondo-$version-$platform-amd64.zip"
 rm -rf "clj-kondo"
 curl -o "clj-kondo-$version-$platform-amd64.zip" -sL "https://github.com/borkdude/clj-kondo/releases/download/v$version/clj-kondo-$version-$platform-amd64.zip"
@@ -81,10 +79,10 @@ then
     mkdir -p "$install_dir"
     cd "$install_dir"
     if [ -f clj-kondo ]; then
-        echo "Moving $install_dir/clj-kondo to $install_dir/clj-kondo.old"
+        echo -e "Moving $install_dir/clj-kondo to $install_dir/clj-kondo.old"
         mv -f "clj-kondo" "clj-kondo.old"
     fi
     mv -f "$download_dir/clj-kondo" "$PWD/clj-kondo"
 fi
 
-echo "Successfully installed clj-kondo in $install_dir"
+echo -e "Successfully installed clj-kondo in $install_dir"
