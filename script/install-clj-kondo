@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# we're using sh so it can be used in alpine images without bash
+
 # install script inspired by scripts for clojure and CircleCI CLI tool
 # install latest version of clj-kondo or upgrades existing one
 
