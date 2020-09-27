@@ -36,4 +36,5 @@ Usage: `%1$s action [arg*]`
 Examples:
 `%1$s foo
 `%1$s bar abc
-`%1$s baz`\" 'cmd)"))))
+`%1$s baz`\" 'cmd)")))
+  (is (empty? (lint! "(format \"%%%s\" \"foo\")"))))

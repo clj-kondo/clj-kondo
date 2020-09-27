@@ -1,7 +1,7 @@
 {:paths ["src" "parser" "resources" "inlined"]
  :deps {com.cognitect/transit-clj {:mvn/version "1.0.324"}
         io.lambdaforge/datalog-parser {:mvn/version "0.1.7"}
-        cheshire {:mvn/version "5.10.0"}
+        cheshire/cheshire {:mvn/version "5.10.0"}
         nrepl/bencode {:mvn/version "1.1.0"}
         borkdude/sci {:mvn/version "0.1.0"}}
  :aliases {:clj-kondo
@@ -19,7 +19,7 @@
            {:extra-deps
             {org.clojure/clojure {:mvn/version "1.9.0"}
              org.clojure/clojurescript {:mvn/version "1.10.520"} ;; for extraction
-             test-runner
+             cognitect/test-runner
              {:git/url "https://github.com/cognitect-labs/test-runner"
               :sha "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}
              clj-commons/conch {:mvn/version "0.9.2"}
