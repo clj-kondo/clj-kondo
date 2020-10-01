@@ -348,6 +348,28 @@ $ echo '(defn f [{:keys [:a :b :c]} _d])' | clj-kondo --lint - --config \
 linting took 8ms, errors: 0, warnings: 0
 ```
 
+The exclude the `:as` binding from being reported (which can be useful for
+self-documenting some code), use:
+
+```clojure
+{:linters {:unused-binding {:exclude-unused-as true}}}
+```
+
+Examples:
+
+```clojure
+$ echo '(defn f [{:keys [a b c] :as g}] a b c)' | clj-kondo --lint - --config \
+  '{:linters {:unused-binding {:exclude-destructured-as false}}}'
+<stdin>:1:29: warning: unused binding g
+linting took 46ms, errors: 0, warnings: 1
+```
+
+```clojure
+$ echo '(defn f [{:keys [a b c] :as g}] a b c)' | clj-kondo --lint - --config \
+  '{:linters {:unused-binding {:exclude-destructured-as true}}}'
+linting took 56ms, errors: 0, warnings: 0
+```
+
 ### Exclude unused private vars from being reported
 
 Example code:
@@ -732,6 +754,6 @@ These are some example configurations used in real projects. Feel free to create
 
 ## Deprecations
 
-Some configuration keys have been renamed over time. The default configuration is always up-to-date and we strive to mantain backwards compatibility. However, for completeness, you can find a list of the renamed keys here. 
+Some configuration keys have been renamed over time. The default configuration is always up-to-date and we strive to mantain backwards compatibility. However, for completeness, you can find a list of the renamed keys here.
 
 - `:if -> :missing-else-branch`

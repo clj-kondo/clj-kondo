@@ -138,7 +138,7 @@
                                 :name s
                                 :filename (:filename ctx)
                                 :tag t)]
-                   (when-not (or skip-reg-binding? exclude-destructured-as?)
+                   (when-not (and skip-reg-binding? exclude-destructured-as?)
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
                                              v))
@@ -221,7 +221,9 @@
                                (recur rest-kvs res))
                              ;; analyze or after the rest
                              (recur (concat rest-kvs [k v]) res))
-                           :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
+                           :as (if exclude-destructured-as?
+                                (recur rest-kvs (merge res (extract-bindings (assoc ctx :skip-reg-binding? true) v opts)))
+                                (recur rest-kvs (merge res (extract-bindings ctx v opts))))
                            (recur rest-kvs res)))
                        :else
                        (recur rest-kvs (merge res (extract-bindings ctx k opts)

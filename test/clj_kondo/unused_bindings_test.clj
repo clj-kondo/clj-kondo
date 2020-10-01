@@ -283,6 +283,30 @@
                     (lint! "(defn f [{:keys [:a] :as config}] config)"
                        '{:linters {:unused-binding
                                    {:level :warning
+                                    :exclude-destructured-as true}}}))
+    (assert-submaps '({:file "<stdin>"
+                       :row 1
+                       :col 10
+                       :level :warning
+                       :message "unused binding x"}
+                      {:file "<stdin>"
+                       :row 1
+                       :col 12
+                       :level :warning
+                       :message "unused binding y"}
+                      {:file "<stdin>"
+                       :row 1
+                       :col 14
+                       :level :warning
+                       :message "unused binding z"}
+                      {:file "<stdin>"
+                       :row 1
+                       :col 24
+                       :level :warning
+                       :message "unused binding a"})
+                    (lint! "(defn f [x y z {:keys [:a] :as g}] g)"
+                       '{:linters {:unused-binding
+                                   {:level :warning
                                     :exclude-destructured-as true}}})))
   (testing "respects the :exclude-destructured-as as false setting from the "
     (assert-submaps '({:file "<stdin>"
