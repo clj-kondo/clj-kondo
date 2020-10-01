@@ -8,12 +8,10 @@ RUN tar -xzf graalvm-ce-java11-linux-amd64-20.2.0.tar.gz
 ENV GRAALVM_HOME="/opt/graalvm-ce-java11-20.2.0"
 ENV JAVA_HOME="/opt/graalvm-ce-java11-20.2.0/bin"
 ENV PATH="$JAVA_HOME:$PATH"
-ENV CLJ_KONDO_STATIC="true"
 COPY . .
 RUN ./script/compile
 
-FROM busybox:musl
-
+FROM ubuntu:latest
 RUN mkdir -p /usr/local/bin
 COPY --from=BASE /opt/clj-kondo /usr/local/bin/clj-kondo
 CMD ["clj-kondo"]
