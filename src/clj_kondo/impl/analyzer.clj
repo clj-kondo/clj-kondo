@@ -116,7 +116,9 @@
          skip-reg-binding? (or skip-reg-binding?
                                (when (and keys-destructuring? fn-args?)
                                  (-> ctx :config :linters :unused-binding
-                                     :exclude-destructured-keys-in-fn-args)))]
+                                     :exclude-destructured-keys-in-fn-args)))
+         exclude-unused-as? (-> ctx :config :linters :unused-binding
+                                    :exclude-unused-as)]
      (case t
        :token
        (cond
@@ -136,7 +138,7 @@
                                 :name s
                                 :filename (:filename ctx)
                                 :tag t)]
-                   (when-not skip-reg-binding?
+                   (when-not (or skip-reg-binding? exclude-unused-as?)
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
                                              v))
@@ -1844,5 +1846,4 @@
 ;;;; Scratch
 
 (comment
-  (parse-string "#js [1 2 3]")
-  )
+  (parse-string "#js [1 2 3]"))
