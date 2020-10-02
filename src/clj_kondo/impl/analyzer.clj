@@ -138,7 +138,7 @@
                                 :name s
                                 :filename (:filename ctx)
                                 :tag t)]
-                   (when-not (and skip-reg-binding? exclude-destructured-as?)
+                   (when-not (or skip-reg-binding? exclude-destructured-as?)
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
                                              v))
