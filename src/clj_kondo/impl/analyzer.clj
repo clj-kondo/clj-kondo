@@ -116,9 +116,7 @@
          skip-reg-binding? (or skip-reg-binding?
                                (when (and keys-destructuring? fn-args?)
                                  (-> ctx :config :linters :unused-binding
-                                     :exclude-destructured-keys-in-fn-args)))
-         exclude-destructured-as? (-> ctx :config :linters :unused-binding
-                                          :exclude-destructured-as)]
+                                     :exclude-destructured-keys-in-fn-args)))]
      (case t
        :token
        (cond
@@ -138,7 +136,7 @@
                                 :name s
                                 :filename (:filename ctx)
                                 :tag t)]
-                   (when-not (or skip-reg-binding? exclude-destructured-as?)
+                   (when-not skip-reg-binding?
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
                                              v))
@@ -221,7 +219,8 @@
                                (recur rest-kvs res))
                              ;; analyze or after the rest
                              (recur (concat rest-kvs [k v]) res))
-                           :as (if exclude-destructured-as?
+                           :as (if (-> ctx :config :linters :unused-binding
+                                       :exclude-destructured-as)
                                 (recur rest-kvs (merge res (extract-bindings (assoc ctx :skip-reg-binding? true) v opts)))
                                 (recur rest-kvs (merge res (extract-bindings ctx v opts))))
                            (recur rest-kvs res)))

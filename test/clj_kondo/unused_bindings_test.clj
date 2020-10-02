@@ -255,81 +255,56 @@
                     (lint! "(let [{:keys [:i] :or {i 2}} {}] nil)"
                            '{:linters
                              {:unused-binding {:level :warning}}})))
-  (testing "respects the :exclude-destructured-keys-in-fn-args setting from the "
+  (testing "respects :exclude-destructured-keys-in-fn-args setting "
     (is (empty? (lint! "(defn f [{:keys [:a] :or {a 1}}] nil)"
                        '{:linters {:unused-binding
                                    {:level :warning
                                     :exclude-destructured-keys-in-fn-args true}}}))))
-  (testing "respects the :exclude-destructured-as as true setting from the "
+  (testing "respects :exclude-destructured-as "
     (is (empty? (lint! "(defn f [{:keys [:a] :as config}] a)"
                        '{:linters {:unused-binding
                                    {:level :warning
-                                    :exclude-destructured-as true}}}))))
-  (testing "respects the :exclude-destructured-as as true and also shows unused other bindings setting from the "
-    (assert-submaps '({:file "<stdin>"
-                       :row 1
-                       :col 18
-                       :level :warning
-                       :message "unused binding a"})
-                    (lint! "(defn f [{:keys [:a] :as config}] nil)"
-                       '{:linters {:unused-binding
-                                   {:level :warning
-                                    :exclude-destructured-as true}}}))
-    (assert-submaps '({:file "<stdin>"
-                       :row 1
-                       :col 18
-                       :level :warning
-                       :message "unused binding a"})
-                    (lint! "(defn f [{:keys [:a] :as config}] config)"
-                       '{:linters {:unused-binding
-                                   {:level :warning
-                                    :exclude-destructured-as true}}}))
-    (assert-submaps '({:file "<stdin>"
-                       :row 1
-                       :col 10
-                       :level :warning
-                       :message "unused binding x"}
-                      {:file "<stdin>"
-                       :row 1
-                       :col 12
-                       :level :warning
-                       :message "unused binding y"}
-                      {:file "<stdin>"
-                       :row 1
-                       :col 14
-                       :level :warning
-                       :message "unused binding z"}
-                      {:file "<stdin>"
-                       :row 1
-                       :col 24
-                       :level :warning
-                       :message "unused binding a"})
-                    (lint! "(defn f [x y z {:keys [:a] :as g}] g)"
-                       '{:linters {:unused-binding
-                                   {:level :warning
                                     :exclude-destructured-as true}}})))
-  (testing "respects the :exclude-destructured-as as false setting from the "
-    (assert-submaps '({:file "<stdin>"
-                       :row 1
-                       :col 26
-                       :level :warning
-                       :message "unused binding config"})
-                    (lint! "(defn f [{:keys [:a] :as config}] a)"
-                           '{:linters {:unused-binding
-                                       {:level :warning
-                                        :exclude-destructured-as false}}})))
-  (testing "respects the :exclude-destructured-as as false setting and also shows all unused bindings from the "
-    (assert-submaps '({:file "<stdin>"
-                       :row 1
-                       :col 18
-                       :level :warning
-                       :message "unused binding a"}
-                      {:file "<stdin>"
-                       :row 1
-                       :col 26
-                       :level :warning
-                       :message "unused binding config"})
-                    (lint! "(defn f [{:keys [:a] :as config}] nil)"
-                           '{:linters {:unused-binding
-                                       {:level :warning
-                                        :exclude-destructured-as false}}}))))
+    (testing "still shows unused bindings not in as "
+      (assert-submaps '({:file "<stdin>"
+                         :row 1
+                         :col 18
+                         :level :warning
+                         :message "unused binding a"})
+                      (lint! "(defn f [{:keys [:a] :as config}] nil)"
+                             '{:linters {:unused-binding
+                                         {:level :warning
+                                          :exclude-destructured-as true}}}))
+      (assert-submaps '({:file "<stdin>"
+                         :row 1
+                         :col 18
+                         :level :warning
+                         :message "unused binding a"})
+                      (lint! "(defn f [{:keys [:a] :as config}] config)"
+                             '{:linters {:unused-binding
+                                         {:level :warning
+                                          :exclude-destructured-as true}}}))
+      (assert-submaps '({:file "<stdin>"
+                         :row 1
+                         :col 10
+                         :level :warning
+                         :message "unused binding x"}
+                        {:file "<stdin>"
+                         :row 1
+                         :col 12
+                         :level :warning
+                         :message "unused binding y"}
+                        {:file "<stdin>"
+                         :row 1
+                         :col 14
+                         :level :warning
+                         :message "unused binding z"}
+                        {:file "<stdin>"
+                         :row 1
+                         :col 24
+                         :level :warning
+                         :message "unused binding a"})
+                      (lint! "(defn f [x y z {:keys [:a] :as g}] g)"
+                             '{:linters {:unused-binding
+                                         {:level :warning
+                                          :exclude-destructured-as true}}})))))
