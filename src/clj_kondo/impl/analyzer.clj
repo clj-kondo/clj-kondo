@@ -219,7 +219,10 @@
                                (recur rest-kvs res))
                              ;; analyze or after the rest
                              (recur (concat rest-kvs [k v]) res))
-                           :as (recur rest-kvs (merge res (extract-bindings ctx v opts)))
+                           :as (if (-> ctx :config :linters :unused-binding
+                                       :exclude-destructured-as)
+                                (recur rest-kvs (merge res (extract-bindings (assoc ctx :skip-reg-binding? true) v opts)))
+                                (recur rest-kvs (merge res (extract-bindings ctx v opts))))
                            (recur rest-kvs res)))
                        :else
                        (recur rest-kvs (merge res (extract-bindings ctx k opts)
@@ -1844,5 +1847,4 @@
 ;;;; Scratch
 
 (comment
-  (parse-string "#js [1 2 3]")
-  )
+  (parse-string "#js [1 2 3]"))

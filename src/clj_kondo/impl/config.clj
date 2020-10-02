@@ -32,13 +32,15 @@
               :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}
               :unused-binding {:level :warning
-                               :exclude-destructured-keys-in-fn-args false}
+                               ;;:exclude-destructured-keys-in-fn-args false
+                               ;;:exclude-destructred-as false
+                               ,}
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
-                                 :exclude [#_clj-kondo.impl.var-info-gen]
+                                 :exclude [#_clj-kondo.impl.var-info-gen]}
                                  ;; :simple-libspec true
-                                 }
+
               :unresolved-symbol {:level :error
                                   :exclude [;; ignore globally:
                                             #_js*
@@ -52,9 +54,9 @@
                                             (clojure.test/is [thrown? thrown-with-msg?])
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
               :unresolved-namespace {:level :warning
-                                     :exclude [#_foo.bar
+                                     :exclude [#_foo.bar]}
                                                ;; for example: foo.bar is always loaded in a user profile
-                                               ]}
+
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}
               :deprecated-var {:level :warning
@@ -109,8 +111,8 @@
              ;; the output pattern can be altered using a template. use {{LEVEL}} to print the level in capitals.
              ;; the default template looks like this:
              ;; :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"
-             :canonical-paths false ;; set to true to see absolute file paths and jar files
-             }})
+             :canonical-paths false}}) ;; set to true to see absolute file paths and jar files
+
 
 (defn merge-config!
   ([])
@@ -186,7 +188,7 @@
         delayed-cfg (memoize delayed-cfg)]
     (fn [config ns-sym var-sym]
       (let [excluded (delayed-cfg config)]
-        (when-let [vars (get excluded ns-sym )]
+        (when-let [vars (get excluded ns-sym)]
           (contains? vars var-sym))))))
 
 (def unresolved-namespace-excluded
@@ -285,5 +287,4 @@
 
 ;;;; Scratch
 
-(comment
-  )
+(comment)
