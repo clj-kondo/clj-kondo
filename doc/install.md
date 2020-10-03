@@ -8,6 +8,8 @@ for various Linux distributions can be found
 [here](https://software.opensuse.org//download.html?project=home%3Azilti%3Aclojure&package=clj-kondo)
 and there is also an
 [updateable AppImage](https://download.opensuse.org/repositories/home:/zilti:/clojure/AppImage/clj-kondo-latest-x86_64.AppImage).
+If you use the AppImage, simply save the file as "clj-kondo" and make it executable.
+It is fully self-contained - without the overhead that comes with Docker!
 
 ## Installation script (MacOS and Linux)
 
