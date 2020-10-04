@@ -406,6 +406,11 @@
       :message #"Expected: seqable collection, received: symbol"})
    (lint! "(list* 'foo)"
           {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 12, :level :error,
+      :message "Expected: associative collection or string or set, received: seq."})
+   (lint! "(contains? (map inc [1 2 3]) 1)"
+              {:linters {:type-mismatch {:level :error}}}))
   (testing "resolve types via cache"
     (lint! "(ns cached-ns1) (defn foo [] :keyword)"
            {:linters {:type-mismatch {:level :error}}}

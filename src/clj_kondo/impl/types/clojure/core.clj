@@ -365,6 +365,8 @@
    ;; 1478
    'map-entry? any->boolean
    ;; 1484 'contains?
+   'contains? {:arities {2 {:args [#{:associative :set :string} :any]
+                            :ret :boolean}}}
    ;; NOTE: get is an any->any function on any object that implements ILookup.
    ;; 1494 'get
    ;; 1504
