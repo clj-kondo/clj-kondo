@@ -2,16 +2,19 @@
 
 ## Manual install
 
-Pre-built binaries are available for linux and MacOS <!-- and Windows -->on the
-[releases](https://github.com/borkdude/clj-kondo/releases) page. Repositories
+Pre-built binaries are available for linux, macOS and Windows on the
+[releases](https://github.com/borkdude/clj-kondo/releases) page.
+
+Repositories
 for various Linux distributions can be found
-[here](https://software.opensuse.org//download.html?project=home%3Azilti%3Aclojure&package=clj-kondo)
-and there is also an
+[here](https://software.opensuse.org//download.html?project=home%3Azilti%3Aclojure&package=clj-kondo).
+
+There is also an
 [updateable AppImage](https://download.opensuse.org/repositories/home:/zilti:/clojure/AppImage/clj-kondo-latest-x86_64.AppImage).
 If you use the AppImage, simply save the file as "clj-kondo" and make it executable.
 It is fully self-contained - without the overhead that comes with Docker!
 
-## Installation script (MacOS and Linux)
+## Installation script (macOS and Linux)
 
 This installation script works for linux and MacOS and can be used for quickly
 installing or upgrading to the newest clj-kondo without a package manager. It
