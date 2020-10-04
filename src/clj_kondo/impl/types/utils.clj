@@ -3,22 +3,23 @@
   (:require [clj-kondo.impl.utils :refer [resolve-call*]]))
 
 (defn union-type
-  [x y]
-  (let [ret (cond (or (identical? x :any)
-                      (identical? y :any)
-                      (identical? (:tag x) :any)
-                      (identical? (:tag y) :any)
-                      (not x)
-                      (not y)) nil
-                  (set? x)
-                  (if (set? y)
-                    (into x y)
-                    (conj x y))
-                  (set? y)
-                  (conj y x)
-                  :else (hash-set x y))]
-    ;; (prn x '+ y '= ret)
-    ret))
+  ([] #{})
+  ([x y]
+   (let [ret (cond (or (identical? x :any)
+                       (identical? y :any)
+                       (identical? (:tag x) :any)
+                       (identical? (:tag y) :any)
+                       (not x)
+                       (not y)) nil
+                   (set? x)
+                   (if (set? y)
+                     (into x y)
+                     (conj x y))
+                   (set? y)
+                   (conj y x)
+                   :else (hash-set x y))]
+     ;; (prn x '+ y '= ret)
+     ret)))
 
 (defn resolved-type? [t]
   (or (keyword? t)

@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.types-test
   (:require
    [clj-kondo.impl.types :as types]
+   [clj-kondo.impl.types.utils :as types-utils]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest x-is-y-and-y-is-z-implies-x-is-z
@@ -40,6 +41,10 @@
                           types/misc-types)]
     (doseq [t all-types]
       (is (types/label t)))))
+
+(deftest union-type-test
+  (testing "fix for #1023"
+    (is (= #{} (types-utils/union-type)))))
 
 ;;;; Scratch
 
