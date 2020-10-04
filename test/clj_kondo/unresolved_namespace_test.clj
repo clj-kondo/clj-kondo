@@ -35,4 +35,8 @@ x/bar ;; <- no warning")))
 (ns foo
   {:clj-kondo/config '{:linters {:unresolved-namespace {:exclude [criterium.core]}}}})
 (criterium.core/quick-bench nil)
+")))
+  (is (empty? (lint! "
+(do (require '[clojure.string :as str])
+    (str/join [1 2 3]))
 "))))

@@ -42,7 +42,9 @@
    (let [top-level? (and top-level?
                          (let [fst (first callstack)]
                            (one-of fst [[clojure.core comment]
-                                        [cljs.core comment]])))]
+                                        [cljs.core comment]
+                                        [clojure.core do]
+                                        [cljs.core do]])))]
      (when-not (config/skip? config callstack)
        (let [ctx (assoc ctx
                         :top-level? top-level?
