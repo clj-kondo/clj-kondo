@@ -108,6 +108,7 @@
   ([ctx expr] (when expr
                 (extract-bindings ctx expr {})))
   ([ctx expr opts]
+   (utils/handle-ignore ctx expr)
    (let [fn-args? (:fn-args? opts)
          keys-destructuring? (:keys-destructuring? opts)
          expr (lift-meta-content* ctx expr)
@@ -482,7 +483,6 @@
            bindings (:bindings ctx)
            arities (:arities ctx)
            analyzed []]
-      (utils/handle-ignore ctx binding)
       (if binding
         (let [binding-tag (tag binding)
               binding-val (case binding-tag
