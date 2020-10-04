@@ -8,9 +8,10 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
-   [clj-kondo.impl.utils :refer [node->line one-of tag sexpr vector-node
-                                 token-node string-from-token symbol-from-token
-                                 assoc-some]]
+   [clj-kondo.impl.utils :as utils
+    :refer [node->line one-of tag sexpr vector-node
+            token-node string-from-token symbol-from-token
+            assoc-some]]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -74,6 +75,7 @@
 
 (defn analyze-libspec
   [ctx current-ns-name require-kw-expr libspec-expr]
+  (utils/handle-ignore ctx libspec-expr)
   (let [lang (:lang ctx)
         base-lang (:base-lang ctx)
         filename (:filename ctx)
@@ -119,6 +121,7 @@
             (let [opt-expr (fnext children)
                   opt (when opt-expr (sexpr opt-expr))
                   child-k (:k child-expr)]
+              (utils/handle-ignore ctx opt-expr)
               (case child-k
                 (:refer :refer-macros :only)
                 (do
@@ -147,10 +150,12 @@
                                                    "" ":")
                                                  (str/join " " (sort opt)))))
                                        (dissoc m :referred-all))
-                                   m)]
+                                   m)
+                               opt-expr-children (:children opt-expr)]
+                           (run! #(utils/handle-ignore ctx %) opt-expr-children)
                            (update m :referred into
                                    (map #(with-meta (sexpr %)
-                                           (meta %))) (:children opt-expr)))
+                                           (meta %))) opt-expr-children))
                          (= :all opt)
                          (assoc m :referred-all opt-expr)
                          :else m)))
@@ -203,12 +208,14 @@
      (node->line (:filename ctx) node :error :syntax "Expected: class symbol"))))
 
 (defn analyze-import [ctx _ns-name libspec-expr]
+  (utils/handle-ignore ctx libspec-expr)
   (case (tag libspec-expr)
     (:vector :list) (let [children (:children libspec-expr)
                           java-package-name-node (first children)
                           java-package (:value java-package-name-node)
                           imported-nodes (rest children)
                           imported (keep #(coerce-class-symbol ctx %) imported-nodes)]
+                      (run! #(utils/handle-ignore ctx %) imported-nodes)
                       (when (empty? imported-nodes)
                         (findings/reg-finding!
                          ctx
@@ -351,6 +358,7 @@
                                     "namespace name expected"))))
                  'user)
         clauses children
+        _ (run! #(utils/handle-ignore ctx %) children)
         kw+libspecs (for [?require-clause clauses
                           :let [require-kw-node (-> ?require-clause :children first)
                                 require-kw (:k require-kw-node)
