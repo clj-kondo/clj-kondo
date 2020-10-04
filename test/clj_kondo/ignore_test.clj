@@ -50,7 +50,11 @@ x)"
                      (do (let [x 1] (let [y 2] [x y])) (inc))"
                   {:linters {:invalid-arity {:level :error}}}))))
 
-;; TODO: (let [#_:clj-kondo/ignore x 1])
+(deftest ignore-unused-bindings-test
+  (is (empty? (lint! "(let [#_:clj-kondo/ignore x 1])"
+                     {:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(let [{:keys [] :as #_:clj-kondo/ignore m} {}] 1)"
+                     {:linters {:unused-binding {:level :warning}}}))))
 
 
 

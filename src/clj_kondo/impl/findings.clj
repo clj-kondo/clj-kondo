@@ -43,7 +43,6 @@
         config (:config ctx)
         type (:type m)
         level (-> config :linters type :level)]
-    ;; (prn m)
     (when (and level (not (identical? :off level)))
       (when-not (ignored? ctx m type)
         (let [m (assoc m :level level)]
