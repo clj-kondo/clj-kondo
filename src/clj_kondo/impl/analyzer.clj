@@ -1010,10 +1010,16 @@
         children (:children expr)
         require-node (first children)
         children (next children)
-        [quoted-children non-quoted-children]
-        (utils/filter-remove #(= :quote (tag %))
-                             children)
-        libspecs (map #(first (:children %)) quoted-children)]
+        [libspecs non-quoted-children]
+        (utils/keep-remove #(let [t (tag %)]
+                              (or (when (= :quote t)
+                                    (first (:children %)))
+                                  (let [children (:children %)]
+                                    (when (and (= :list t)
+                                               (= 'quote (some-> children first
+                                                                 utils/symbol-from-token)))
+                                      (second children)))))
+                           children)]
     (let [analyzed
           (namespace-analyzer/analyze-require-clauses ctx ns-name [[require-node libspecs]])]
       (namespace/reg-required-namespaces! ctx ns-name analyzed))

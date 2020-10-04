@@ -221,16 +221,16 @@
             (transient {})
             ks))))
 
-(defn filter-remove [p xs]
+(defn keep-remove [p xs]
   (loop [xs xs
-         filtered (transient [])
+         kept (transient [])
          removed (transient [])]
     (if xs
-      (let [x (first xs)] (if (p x)
+      (let [x (first xs)] (if-let [v (p x)]
                             (recur (next xs)
-                                   (conj! filtered x) removed)
-                            (recur (next xs) filtered (conj! removed x))))
-      [(persistent! filtered) (persistent! removed)])))
+                                   (conj! kept v) removed)
+                            (recur (next xs) kept (conj! removed x))))
+      [(persistent! kept) (persistent! removed)])))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
