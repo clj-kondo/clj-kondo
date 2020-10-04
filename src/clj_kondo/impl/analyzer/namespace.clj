@@ -208,12 +208,14 @@
      (node->line (:filename ctx) node :error :syntax "Expected: class symbol"))))
 
 (defn analyze-import [ctx _ns-name libspec-expr]
+  (utils/handle-ignore ctx libspec-expr)
   (case (tag libspec-expr)
     (:vector :list) (let [children (:children libspec-expr)
                           java-package-name-node (first children)
                           java-package (:value java-package-name-node)
                           imported-nodes (rest children)
                           imported (keep #(coerce-class-symbol ctx %) imported-nodes)]
+                      (run! #(utils/handle-ignore ctx %) imported-nodes)
                       (when (empty? imported-nodes)
                         (findings/reg-finding!
                          ctx

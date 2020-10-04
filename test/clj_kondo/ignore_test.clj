@@ -77,4 +77,21 @@ x)"
 (ns foo
   (:require [foo.bar :refer [#_:clj-kondo/ignore x]]))"
                      {:linters {:unused-namespace {:level :off}
-                                :unused-referred-var {:level :warning}}}))))
+                                :unused-referred-var {:level :warning}}})))
+  (is (empty? (lint! "
+(ns foo
+  #_:clj-kondo/ignore
+  (:import [foo.bar Baz]))"
+                     {:linters {:unused-import {:level :warning}}})))
+  (is (empty? (lint! "
+(ns foo
+  (:import #_:clj-kondo/ignore [foo.bar Baz]))"
+                     {:linters {:unused-import {:level :warning}}})))
+  (is (empty? (lint! "
+(ns foo
+  (:import [foo.bar #_:clj-kondo/ignore Baz]))"
+                     {:linters {:unused-import {:level :warning}}})))
+  (is (empty? (lint! "
+(ns foo
+  (:import #_:clj-kondo/ignore foo.bar.Baz))"
+                     {:linters {:unused-import {:level :warning}}}))))
