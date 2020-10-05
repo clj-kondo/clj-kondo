@@ -1,9 +1,10 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
   (:require
-   [clj-kondo.impl.rewrite-clj.node.keyword]
+   [clj-kondo.impl.rewrite-clj.node.keyword :as k]
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
+   [clj-kondo.impl.rewrite-clj.node.string :as node-string]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.parser :as p]
    [clojure.string :as str]))
@@ -19,6 +20,8 @@
 (def vector-node seq/vector-node)
 (def list-node seq/list-node)
 (def token-node token/token-node)
+(def keyword-node k/keyword-node)
+(def string-node node-string/string-node)
 
 ;;; end export
 

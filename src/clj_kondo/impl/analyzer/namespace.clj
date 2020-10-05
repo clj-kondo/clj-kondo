@@ -116,7 +116,6 @@
                   :excluded #{}
                   :referred-all (when use? require-kw-expr)
                   :renamed {}}]
-          ;; (prn "children" children)
           (if-let [child-expr (first children)]
             (let [opt-expr (fnext children)
                   opt (when opt-expr (sexpr opt-expr))

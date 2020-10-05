@@ -1,8 +1,9 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
   (:require [clj-kondo.impl.findings :as findings]
-            [clj-kondo.impl.utils :refer [vector-node list-node token-node
-                                          sexpr]]
+            [clj-kondo.impl.utils :as utils :refer [vector-node list-node
+                                                    sexpr token-node keyword-node
+                                                    string-node]]
             [clojure.java.io :as io]
             [clojure.zip :as zip]
             [sci.core :as sci :refer [copy-var]]))
@@ -67,7 +68,9 @@
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
                           'clojure.zip zip-namespace
-                          'clj-kondo.hooks-api {'token-node token-node
+                          'clj-kondo.hooks-api {'keyword-node keyword-node
+                                                'string-node string-node
+                                                'token-node token-node
                                                 'vector-node vector-node
                                                 'list-node list-node
                                                 'sexpr sexpr

@@ -22,7 +22,7 @@
           (+ 1 c (count nspace))
           c))))
   (string [_]
-    (str (if namespaced? ":")
+    (str (when namespaced? ":")
          (pr-str k)))
 
   Object

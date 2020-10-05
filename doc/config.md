@@ -439,7 +439,11 @@ functions include:
 
 - `list-node`: produce a new list node from a seqable of list nodes.
 - `vector-node`: produce a new vector node from a seqable of list nodes.
-- `token-node`: produce a new token node (symbol, keyword, etc) of a given token.
+- `keyword-node`: produce a new keyword. Use `(api/keyword-node :foo)` for a
+  normal keyword and `(api/keyword-node :foo true)` to produce a node for
+  `::foo`.
+- `string-node`: produce a new node for a single string or multiple strings (passed as seq)
+- `token-node`: produce a new token node. Used for all remaining tokens (mainly used for symbols or nil).
 - `sexpr`: turns a node into a Clojure s-expression. Useful for analyzing or debugging.
 - `reg-finding!`: registers a finding. Expects a map with:
   - `:message`: the lint message
