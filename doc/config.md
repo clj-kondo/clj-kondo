@@ -43,7 +43,7 @@ available options.
 
 ## Examples
 
-See [examples](../examples) for library-specific configurations.
+See the [config](https://github.com/clj-kondo/config) project for library-specific configurations.
 
 ## Unrecognized macros
 
@@ -645,9 +645,7 @@ the values carrying the metadata:
 
 - rewrite-cljc-playground: [import-vars-with-mod](https://github.com/lread/rewrite-cljc-playground/commit/09882e1244a8c12879ef8c1e6872724748e7914b)
 
-More examples of hooks can be found in the [examples](../examples)
-directory. Take a look at the [Rum](../examples/rum) and
-[Slingshot](../examples/slingshot) configuration.
+More examples of hooks can be found in the [config](https://github.com/clj-kondo/config) project.
 
 ### Tips and tricks
 
@@ -755,6 +753,8 @@ These are some example configurations used in real projects. Feel free to create
 
 - [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
 - [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
+
+Also see the [config](https://github.com/clj-kondo/config) project.
 
 ## Deprecations
 
