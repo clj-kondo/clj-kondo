@@ -19,6 +19,7 @@
 
 (def vector-node seq/vector-node)
 (def list-node seq/list-node)
+(def map-node seq/map-node)
 (def token-node token/token-node)
 (def keyword-node k/keyword-node)
 (def string-node node-string/string-node)

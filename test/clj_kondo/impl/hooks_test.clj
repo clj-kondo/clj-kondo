@@ -14,4 +14,5 @@ there
   (is (hooks-api/token-node? (parse-string "nil")))
   (is (hooks-api/token-node? (parse-string "1")))
   (is (hooks-api/vector-node? (parse-string "[1]")))
-  (is (hooks-api/list-node? (parse-string "(+ 1 2 3)"))))
+  (is (hooks-api/list-node? (parse-string "(+ 1 2 3)")))
+  (is (hooks-api/map-node? (parse-string "{:a 1}"))))
