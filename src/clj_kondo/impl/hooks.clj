@@ -65,16 +65,41 @@
             (when (.exists f) f)))
         (:classpath *ctx*)))
 
+(defn keyword-node? [n]
+  (instance? clj_kondo.impl.rewrite_clj.node.keyword.KeywordNode n))
+
+(defn string-node? [n]
+  (instance? clj_kondo.impl.rewrite_clj.node.string.StringNode n))
+
+(defn token-node? [n]
+  (instance? clj_kondo.impl.rewrite_clj.node.token.TokenNode n))
+
+(defn vector-node? [n]
+  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
+       (identical? :vector (utils/tag n))))
+
+(defn list-node? [n]
+  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
+       (identical? :list (utils/tag n))))
+
+(def api-ns
+  {'keyword-node keyword-node
+   'keyword-node? keyword-node?
+   'string-node string-node
+   'string-node? string-node?
+   'token-node token-node
+   'token-node? token-node?
+   'vector-node vector-node
+   'vector-node? vector-node?
+   'list-node list-node
+   'list-node? list-node?
+   'sexpr sexpr
+   'reg-finding! reg-finding!})
+
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
                           'clojure.zip zip-namespace
-                          'clj-kondo.hooks-api {'keyword-node keyword-node
-                                                'string-node string-node
-                                                'token-node token-node
-                                                'vector-node vector-node
-                                                'list-node list-node
-                                                'sexpr sexpr
-                                                'reg-finding! reg-finding!}}
+                          'clj-kondo.hooks-api api-ns}
              :classes {'java.io.Exception Exception
                        'java.lang.System System}
              :imports {'Exception 'java.io.Exception
