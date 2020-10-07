@@ -68,7 +68,8 @@
               :unresolved-symbol {:level :off}
               :refer-all {:level :off}
               :type-mismatch {:level :off}
-              :unsorted-required-namespaces {:level :off}}})
+              :unsorted-required-namespaces {:level :off}
+              :shadowed-var {:level :off}}})
 
 (defn lint-jvm!
   ([input]
