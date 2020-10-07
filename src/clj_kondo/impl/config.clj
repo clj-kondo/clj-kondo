@@ -288,6 +288,15 @@
       (let [excluded (delayed-cfg config)]
         (contains? excluded referred-all-ns)))))
 
+(def shadowed-var-excluded?
+  (let [delayed-cfg (fn [config]
+                      (let [syms (get-in config [:linters :shadowed-var :exclude])]
+                        (set syms)))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config sym]
+      (let [excluded (delayed-cfg config)]
+        (contains? excluded sym)))))
+
 ;;;; Scratch
 
 (comment)

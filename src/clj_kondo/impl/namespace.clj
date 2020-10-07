@@ -356,18 +356,22 @@
                       :name name-sym
                       :unresolved? true
                       :clojure-excluded? clojure-excluded?}))))]
-    (let [suggestions (get-in ctx [:config :linters :shadowed-var :suggestions])
-          suggestion (when suggestions
-                       (get suggestions (symbol (str ns) (str name))))
-          message (str "Shadowing var: " ns "/" name)
-          message (if suggestion
-                    (str message ". Suggestion: " suggestion)
-                    message)]
-      (findings/reg-finding! ctx (node->line (:filename ctx)
-                                             expr
-                                             :warning
-                                             :shadowed-var
-                                             message)))))
+    (let [config (:config ctx)
+          level (-> config :linters :level)]
+      (when-not (identical? :off level)
+        (when-not (config/shadowed-var-excluded? config name)
+          (let [suggestions (get-in ctx [:config :linters :shadowed-var :suggest])
+                suggestion (when suggestions
+                             (get suggestions name))
+                message (str "Shadowing var: " ns "/" name)
+                message (if suggestion
+                          (str message ". Suggestion: " suggestion)
+                          message)]
+            (findings/reg-finding! ctx (node->line (:filename ctx)
+                                                   expr
+                                                   :warning
+                                                   :shadowed-var
+                                                   message))))))))
 
 (defn resolve-name
   [ctx ns-name name-sym]
