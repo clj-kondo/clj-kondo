@@ -121,12 +121,26 @@
                               (println "WARNING: file" base-path "not found while loading hook")
                               nil))))}))
 
+(defn memoize-without-ctx
+  [f]
+  (let [mem (atom {})]
+    (fn [ctx & args]
+      (if-let [e (find @mem args)]
+        (val e)
+        (let [ret (apply f ctx args)]
+          (swap! mem assoc args ret)
+          ret)))))
+
 (def hook-fn
   (let [delayed-cfg
         (fn [ctx config key ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
                  (when-let [x (get-in config [:hooks key sym])]
+                   ;; we return a function of ctx, so we will never memoize on
+                   ;; ctx, which will hold on to all the linting state and
+                   ;; creates memory leaks for long lives processes (LSP /
+                   ;; VSCode), see #1036
                    (sci/binding [sci/out *out*
                                  sci/err *err*]
                      (let [code (if (string? x) x
@@ -143,5 +157,5 @@
                    (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
                      (println e)))
                  nil)))
-        delayed-cfg (memoize delayed-cfg)]
+        delayed-cfg (memoize-without-ctx delayed-cfg)]
     delayed-cfg))
