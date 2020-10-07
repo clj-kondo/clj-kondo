@@ -325,6 +325,50 @@
     (when-let [ft (next-token st)]
       (symbol ft))))
 
+(defn check-shadowed-binding! [ctx name-sym expr]
+  (when-let [{:keys [:ns :name]}
+             (let [ns-name (:name (:ns ctx))
+                   lang (:lang ctx)
+                   ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
+               (when-let [[k v] (find (:referred-vars ns)
+                                      name-sym)]
+                 (reg-used-referred-var! ctx ns-name k)
+                 v)
+               (when (contains? (:vars ns) name-sym)
+                 {:ns (:name ns)
+                  :name name-sym})
+               (let [clojure-excluded? (contains? (:clojure-excluded ns)
+                                                  name-sym)
+                     core-sym? (when-not clojure-excluded?
+                                 (var-info/core-sym? lang name-sym))
+                     special-form? (or (special-symbol? name-sym)
+                                       (contains? var-info/special-forms name-sym))]
+                 (if (or core-sym? special-form?)
+                   {:ns (case lang
+                          :clj 'clojure.core
+                          :cljs 'cljs.core)
+                    :name name-sym}
+                   (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
+                                                 (when-not (contains? excluded name-sym)
+                                                   k))
+                                               (:refer-alls ns))]
+                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                      :name name-sym
+                      :unresolved? true
+                      :clojure-excluded? clojure-excluded?}))))]
+    (let [suggestions (get-in ctx [:config :linters :shadowed-var :suggestions])
+          suggestion (when suggestions
+                       (get suggestions (symbol (str ns) (str name))))
+          message (str "Shadowing var: " ns "/" name)
+          message (if suggestion
+                    (str message ". Suggestion: " suggestion)
+                    message)]
+      (findings/reg-finding! ctx (node->line (:filename ctx)
+                                             expr
+                                             :warning
+                                             :shadowed-var
+                                             message)))))
+
 (defn resolve-name
   [ctx ns-name name-sym]
   ;; (prn "NAME" name-sym)

@@ -143,6 +143,7 @@
                      (namespace/reg-binding! ctx
                                              (-> ctx :ns :name)
                                              v))
+                   (namespace/check-shadowed-binding! ctx s expr)
                    (with-meta {s v} (when t {:tag t})))
                  (findings/reg-finding!
                   ctx

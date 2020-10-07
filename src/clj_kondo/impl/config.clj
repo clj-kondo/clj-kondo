@@ -87,7 +87,10 @@
               :missing-clause-in-try {:level :warning}
               :missing-body-in-when {:level :warning}
               :hook {:level :error}
-              :format {:level :error}}
+              :format {:level :error}
+              :shadowed-var {:level :off
+                             #_#_:suggestions {clojure.core/type tajpu
+                                               clojure.core/name nomspaco}}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
