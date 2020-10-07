@@ -496,11 +496,11 @@
           :let [filename (:filename ns)
                 imports (:imports ns)
                 used-imports (:used-imports ns)]
-          [i _] imports
-          :when (not (contains? used-imports i))]
+          [imp _] imports
+          :when (not (contains? used-imports imp))]
     (findings/reg-finding!
      (if ns-config (assoc ctx :config ns-config) ctx)
-     (node->line filename import :warning :unused-import (str "Unused import " i)))))
+     (node->line filename imp :warning :unused-import (str "Unused import " imp)))))
 
 (defn lint-unresolved-namespaces!
   [ctx]
