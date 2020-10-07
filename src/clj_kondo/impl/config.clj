@@ -211,9 +211,9 @@
             {:excluded syms
              :excluded-in
              (reduce (fn [acc [fq-name excluded]]
-                       (let [ns-name (symbol (namespace fq-name))
+                       (let [ns-nm (symbol (namespace fq-name))
                              var-name (symbol (name fq-name))]
-                         (update acc [ns-name var-name]
+                         (update acc [ns-nm var-name]
                                  (fn [old]
                                    (cond (nil? old)
                                          (if excluded
@@ -276,8 +276,8 @@
                 vecs (fq-syms->vecs syms)]
             (set vecs)))
         delayed-cfg (memoize delayed-cfg)]
-    (fn [config ns-name var-name]
-      (contains? (delayed-cfg config) [ns-name var-name]))))
+    (fn [config ns-nm var-name]
+      (contains? (delayed-cfg config) [ns-nm var-name]))))
 
 (def refer-all-excluded?
   (let [delayed-cfg (fn [config]

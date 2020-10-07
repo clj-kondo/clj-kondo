@@ -164,9 +164,9 @@
           (= 1 (count fas)) (first fas)
           :else (str (str/join ", " (pop arities)) " or " (peek arities)))))
 
-(defn arity-error [ns-name fn-name called-with fixed-arities varargs-min-arity]
+(defn arity-error [ns-nm fn-name called-with fixed-arities varargs-min-arity]
   (format "%s is called with %s %s but expects %s"
-          (if ns-name (str ns-name "/" fn-name) fn-name)
+          (if ns-nm (str ns-nm "/" fn-name) fn-name)
           (str called-with)
           (if (= 1 called-with) "arg" "args")
           (show-arities fixed-arities varargs-min-arity)))
@@ -174,8 +174,8 @@
 (defn lint-single-operand-comparison
   "Lints calls of single operand comparisons with always the same vlaue."
   [call]
-  (let [ns-name (:resolved-ns call)
-        core-ns (utils/one-of ns-name [clojure.core cljs.core])]
+  (let [ns-nm (:resolved-ns call)
+        core-ns (utils/one-of ns-nm [clojure.core cljs.core])]
     (when core-ns
       (let [fn-name (:name call)
             const-true (utils/one-of fn-name [= > < >= <= ==])
@@ -188,7 +188,7 @@
            :warning
            :single-operand-comparison
            (format "Single operand use of %s is always %s"
-                   (str ns-name "/" fn-name)
+                   (str ns-nm "/" fn-name)
                    (some? const-true))))))))
 
 (defn lint-var-usage
@@ -419,13 +419,13 @@
               diff (set/difference bindings used-bindings)
               defaults (:destructuring-defaults ns)]
           (doseq [binding diff]
-            (let [name (:name binding)]
-              (when-not (str/starts-with? (str name) "_")
+            (let [nm (:name binding)]
+              (when-not (str/starts-with? (str nm) "_")
                 (findings/reg-finding!
                  ctx
                  {:type :unused-binding
                   :filename (:filename binding)
-                  :message (str "unused binding " name)
+                  :message (str "unused binding " nm)
                   :row (:row binding)
                   :col (:col binding)
                   :end-row (:end-row binding)
@@ -447,20 +447,20 @@
   [ctx]
   (let [config (:config ctx)]
     (doseq [{:keys [:filename :vars :used-vars]
-             ns-name :name
+             ns-nm :name
              ns-config :config} (namespace/list-namespaces ctx)
             :let [config (or ns-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
                   ;;_ (prn (-> config :linters :unused-private-var))
                   vars (vals vars)
-                  used-vars (into #{} (comp (filter #(= (:ns %) ns-name))
+                  used-vars (into #{} (comp (filter #(= (:ns %) ns-nm))
                                             (map :name))
                                   used-vars)]
             v vars
             :let [var-name (:name v)]
             :when (:private v)
             :when (not (contains? used-vars var-name))
-            :when (not (config/unused-private-var-excluded config ns-name var-name))]
+            :when (not (config/unused-private-var-excluded config ns-nm var-name))]
       (findings/reg-finding!
        ctx
        {:type :unused-private-var
@@ -469,7 +469,7 @@
         :col (:name-col v)
         :end-row (:name-end-row v)
         :end-col (:name-end-col v)
-        :message (str "Unused private var " ns-name "/" var-name)}))))
+        :message (str "Unused private var " ns-nm "/" var-name)}))))
 
 (defn lint-unresolved-symbols!
   [ctx]
@@ -477,12 +477,12 @@
           [_ v] (:unresolved-symbols ns)]
     (let [
           filename (:filename v)
-          name (:name v)]
+          n (:name v)]
       (findings/reg-finding!
        ctx
        {:type :unresolved-symbol
         :filename filename
-        :message (str "unresolved symbol " name)
+        :message (str "unresolved symbol " n)
         :row (:row v)
         :col (:col v)
         :end-row (:end-row v)
@@ -496,11 +496,11 @@
           :let [filename (:filename ns)
                 imports (:imports ns)
                 used-imports (:used-imports ns)]
-          [import _] imports
-          :when (not (contains? used-imports import))]
+          [i _] imports
+          :when (not (contains? used-imports i))]
     (findings/reg-finding!
      (if ns-config (assoc ctx :config ns-config) ctx)
-     (node->line filename import :warning :unused-import (str "Unused import " import)))))
+     (node->line filename import :warning :unused-import (str "Unused import " i)))))
 
 (defn lint-unresolved-namespaces!
   [ctx]

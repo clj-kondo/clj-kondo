@@ -255,15 +255,15 @@
            (Character/isUpperCase ^char (.charAt s (inc i)))))))
 
 (defn reg-unresolved-symbol!
-  [ctx ns-sym symbol {:keys [:base-lang :lang :config
+  [ctx ns-sym sym {:keys [:base-lang :lang :config
                              :callstack] :as sym-info}]
   (when-not (or (:unresolved-symbol-disabled? sym-info)
                 (config/unresolved-symbol-excluded config
-                                                   callstack symbol)
-                (let [symbol-name (name symbol)]
+                                                   callstack sym)
+                (let [symbol-name (name sym)]
                   (or (str/starts-with? symbol-name ".")
                       (class-name? symbol-name))))
-    (swap! (:namespaces ctx) update-in [base-lang lang ns-sym :unresolved-symbols symbol]
+    (swap! (:namespaces ctx) update-in [base-lang lang ns-sym :unresolved-symbols sym]
            (fn [old-sym-info]
              (if (nil? old-sym-info)
                sym-info
@@ -290,10 +290,10 @@
 
 (defn reg-used-import!
   [{:keys [:base-lang :lang :namespaces] :as _ctx}
-   ns-sym import]
+   ns-sym imp]
   ;; (prn "import" import)
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
-         conj import))
+         conj imp))
 
 (defn reg-unresolved-namespace!
   [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as _ctx} ns-sym unresolved-ns]
@@ -343,19 +343,11 @@
                                  (var-info/core-sym? lang name-sym))
                      special-form? (or (special-symbol? name-sym)
                                        (contains? var-info/special-forms name-sym))]
-                 (if (or core-sym? special-form?)
+                 (when (or core-sym? special-form?)
                    {:ns (case lang
                           :clj 'clojure.core
                           :cljs 'cljs.core)
-                    :name name-sym}
-                   (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
-                                                 (when-not (contains? excluded name-sym)
-                                                   k))
-                                               (:refer-alls ns))]
-                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                      :name name-sym
-                      :unresolved? true
-                      :clojure-excluded? clojure-excluded?}))))]
+                    :name name-sym})))]
     (let [config (:config ctx)
           level (-> config :linters :level)]
       (when-not (identical? :off level)

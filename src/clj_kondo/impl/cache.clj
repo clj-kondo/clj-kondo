@@ -92,7 +92,7 @@
   resolved types for linting.."
   [idacs cache-dir lang defs]
   (persistent!
-   (reduce-kv (fn [m ns-name ns-data]
+   (reduce-kv (fn [m ns-nm ns-data]
                 (let [source (:source ns-data)
                       resolve? (and (not (one-of source [:disk :built-in]))
                                     (seq ns-data))
@@ -106,8 +106,8 @@
                         ns-data)]
                   ;; (when resolve? (prn ns-data))
                   (when (and cache-dir resolve?)
-                    (to-cache cache-dir lang ns-name ns-data))
-                  (assoc! m ns-name ns-data)))
+                    (to-cache cache-dir lang ns-nm ns-data))
+                  (assoc! m ns-nm ns-data)))
               (transient {})
               defs)))
 

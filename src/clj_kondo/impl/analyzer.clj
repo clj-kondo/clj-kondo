@@ -547,8 +547,8 @@
 
 (defn assert-vector [ctx call expr]
   (when expr
-    (let [vector? (and expr (= :vector (tag expr)))]
-      (if-not vector?
+    (let [vec? (and expr (= :vector (tag expr)))]
+      (if-not vec?
         (do (findings/reg-finding!
              ctx
              (node->line (:filename ctx) expr :error :syntax
@@ -635,8 +635,8 @@
 (defn analyze-conditional-let [ctx call expr]
   (let [children (next (:children expr))
         bv (first children)
-        vector? (when bv (= :vector (tag bv)))]
-    (when vector?
+        vec? (when bv (= :vector (tag bv)))]
+    (when vec?
       (let [bindings (expr-bindings ctx bv)
             condition (-> bv :children second)
             body-exprs (next children)
@@ -1578,13 +1578,13 @@
                              arg-count)))))))
 
 ;; TODO: this should just be a case of :type-mismatch
-(defn reg-not-a-function! [ctx expr type]
+(defn reg-not-a-function! [ctx expr typ]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
     (when-not (config/skip? config :not-a-function callstack)
       (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) expr :error :not-a-function (str "a " type " is not a function"))))))
+       (node->line (:filename ctx) expr :error :not-a-function (str "a " typ " is not a function"))))))
 
 (defn analyze-reader-macro [ctx expr]
   (analyze-children ctx (rest (:children expr))))
@@ -1800,7 +1800,7 @@
 (defn- ->findings
   "Convert an exception thrown from rewrite-clj into a sequence clj-kondo :finding"
   [^Exception ex ^String filename]
-  (let [{:keys [findings line col type]} (ex-data ex)]
+  (let [{:keys [findings line col] :as d} (ex-data ex)]
     (cond
       (seq findings)
       (for [finding findings]
@@ -1810,7 +1810,7 @@
 
       ;; The edn parser in tools.reader throw ex-data with the following shape:
       ;; {:type :reader-exception, :ex-kind :reader-error, :file nil, :line 1, :col 4}
-      (= :reader-exception type)
+      (identical? :reader-exception (:type d))
       [{:type :syntax
         :filename filename
         :row line

@@ -805,11 +805,11 @@ foo/foo ;; this does use the private var
        (with-out-str
          (lint! (io/file "corpus") '{:output {:progress true}}))
        "...."))
-  (doseq [format [:json :edn]]
+  (doseq [fmt [:json :edn]]
     (is (not (str/starts-with?
               (with-out-str
                 (lint! (io/file "corpus")
-                       {:output {:progress true :format format}}))
+                       {:output {:progress true :format fmt}}))
               "...."))))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")

@@ -123,10 +123,10 @@
 
 (def hook-fn
   (let [delayed-cfg
-        (fn [ctx config key ns-sym var-sym]
+        (fn [ctx config k ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
-                 (when-let [x (get-in config [:hooks key sym])]
+                 (when-let [x (get-in config [:hooks k sym])]
                    (sci/binding [sci/out *out*
                                  sci/err *err*]
                      (let [code (if (string? x) x

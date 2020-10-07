@@ -8,7 +8,7 @@
 
 (defn analyze-fdef [{:keys [:analyze-children :ns] :as ctx} expr]
   (let [[sym-expr & body] (next (:children expr))
-        ns-name (-> ns :name)]
+        ns-nm (-> ns :name)]
     (keys/lint-map-keys ctx {:children body} {:known-key? #{:args :ret :fn}})
     (let [sym (:value sym-expr)]
       (if-not (and sym (symbol? sym))
@@ -19,10 +19,10 @@
                                                  :syntax
                                                  "expected symbol"))
         (let [{resolved-ns :ns}
-              (namespace/resolve-name ctx ns-name
+              (namespace/resolve-name ctx ns-nm
                                       sym)]
           (if resolved-ns
-            (namespace/reg-used-namespace! ctx ns-name resolved-ns)
+            (namespace/reg-used-namespace! ctx ns-nm resolved-ns)
             (findings/reg-finding! ctx
                                    (utils/node->line (:filename ctx)
                                                      sym-expr

@@ -27,7 +27,7 @@
                 :from-var in-def))))))
 
 (defn reg-var! [{:keys [:analysis :base-lang :lang] :as _ctx}
-                filename row col ns name attrs]
+                filename row col ns nom attrs]
   (when analysis
     (let [attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
                                     :doc :added :deprecated :test :export :defined-by])]
@@ -37,12 +37,12 @@
                       :row row
                       :col col
                       :ns ns
-                      :name name}
+                      :name nom}
                      attrs)
               :lang (when (= :cljc base-lang) lang))))))
 
 (defn reg-namespace! [{:keys [:analysis :base-lang :lang] :as _ctx}
-                      filename row col ns-name in-ns metadata]
+                      filename row col ns-name in-ns? metadata]
   (when analysis
     (swap! analysis update :namespace-definitions conj
            (assoc-some
@@ -51,7 +51,7 @@
                     :col col
                     :name ns-name}
                    metadata)
-            :in-ns (when in-ns in-ns) ;; don't include when false
+            :in-ns (when in-ns? in-ns?) ;; don't include when false
             :lang (when (= :cljc base-lang) lang)))))
 
 (defn reg-namespace-usage! [{:keys [:analysis :base-lang :lang] :as _ctx}

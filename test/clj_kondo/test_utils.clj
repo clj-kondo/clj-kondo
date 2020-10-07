@@ -178,10 +178,10 @@
     (.mkdirs (io/file dir))
     (mkdir "-p" dir)))
 
-(defn rename-path [old new]
+(defn rename-path [old-path new-path]
   (if windows?
-    (.renameTo (io/file old) (io/file new))
-    (mv old new)))
+    (.renameTo (io/file old-path) (io/file new-path))
+    (mv old-path new-path)))
 
 ;;;; Scratch
 

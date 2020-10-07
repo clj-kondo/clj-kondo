@@ -315,8 +315,8 @@
   (merge-with merge a b))
 
 (defn format-vars [vars]
-  (map-vals (fn [meta]
-              (-> meta
+  (map-vals (fn [md]
+              (-> md
                   (select-keys [:row :col
                                 :macro :private :deprecated
                                 :fixed-arities :varargs-min-arity
@@ -373,10 +373,10 @@
         remove-output (not-empty (-> config :output :exclude-files))]
     (for [f findings
           :let [filename (:filename f)
-                type (:type f)
+                tp (:type f)
                 level (:level f)]
           :when (and level (not= :off level))
-          :when (if (= :debug type)
+          :when (if (= :debug tp)
                   print-debug?
                   true)
           :when (if filter-output
