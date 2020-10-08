@@ -355,7 +355,7 @@
           (let [suggestions (get-in ctx [:config :linters :shadowed-var :suggest])
                 suggestion (when suggestions
                              (get suggestions name))
-                message (str "Shadowing var: " ns "/" name)
+                message (str "Shadowed var: " ns "/" name)
                 message (if suggestion
                           (str message ". Suggestion: " suggestion)
                           message)]
