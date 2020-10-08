@@ -58,9 +58,9 @@
                      "cond->>" '->>)
         g (with-meta-of (token-node (gensym))
             start-expr)
-        steps (map (fn [[test step]]
+        steps (map (fn [[t step]]
                      (list-node [(token-node 'if)
-                                 test
+                                 t
                                  (list-node
                                   [(token-node thread-sym)
                                    g

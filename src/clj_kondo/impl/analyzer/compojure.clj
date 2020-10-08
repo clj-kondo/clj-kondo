@@ -28,9 +28,9 @@
                                 (rest children))
                          children)
         destructuring-form (first children)
-        vector? (when destructuring-form
-                  (= :vector (tag destructuring-form)))
-        destructuring-form (if vector?
+        vec? (when destructuring-form
+               (= :vector (tag destructuring-form)))
+        destructuring-form (if vec?
                              (normalize-compojure-vector ctx destructuring-form)
                              destructuring-form)
         bindings (extract-bindings ctx destructuring-form)

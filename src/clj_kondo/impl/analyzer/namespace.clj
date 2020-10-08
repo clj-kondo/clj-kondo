@@ -188,9 +188,9 @@
                 :as as
                 :require-kw require-kw
                 :excluded excluded
-                :referred (concat (map (fn [refer]
-                                         [refer {:ns ns-name
-                                                 :name refer}])
+                :referred (concat (map (fn [r]
+                                         [r {:ns ns-name
+                                             :name r}])
                                        referred)
                                   (map (fn [[original-name new-name]]
                                          [new-name {:ns ns-name
@@ -290,8 +290,8 @@
                            (:ns req)))
                        analyzed))))}))
 
-(defn new-namespace [filename base-lang lang ns-name type row col]
-  {:type type
+(defn new-namespace [filename base-lang lang ns-name typ row col]
+  {:type typ
    :filename filename
    :base-lang base-lang
    :lang lang
@@ -386,18 +386,18 @@
                                {:renamed v
                                 :excluded (set (keys v))})]]
                  r))
-        refer-clojure {:referred-vars
-                       (into {} (map (fn [[original-name new-name]]
-                                       [new-name {:ns 'clojure.core
-                                                  :name original-name}])
-                                     (:renamed refer-clojure-clauses)))
-                       :clojure-excluded (:excluded refer-clojure-clauses)}
+        refer-clj {:referred-vars
+                   (into {} (map (fn [[original-name new-name]]
+                                   [new-name {:ns 'clojure.core
+                                              :name original-name}])
+                                 (:renamed refer-clojure-clauses)))
+                   :clojure-excluded (:excluded refer-clojure-clauses)}
         ns (cond->
                (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
                              :imports imports)
                       (merge-with into
                                   analyzed-require-clauses
-                                  refer-clojure))
+                                  refer-clj))
              local-config (assoc :config merged-config)
              (identical? :clj lang) (update :qualify-ns
                                             #(assoc % 'clojure.core 'clojure.core))

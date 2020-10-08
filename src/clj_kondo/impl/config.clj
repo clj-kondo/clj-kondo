@@ -87,7 +87,10 @@
               :missing-clause-in-try {:level :warning}
               :missing-body-in-when {:level :warning}
               :hook {:level :error}
-              :format {:level :error}}
+              :format {:level :error}
+              :shadowed-var {:level :off
+                             #_#_:suggestions {clojure.core/type tajpu
+                                               clojure.core/name nomspaco}}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -208,9 +211,9 @@
             {:excluded syms
              :excluded-in
              (reduce (fn [acc [fq-name excluded]]
-                       (let [ns-name (symbol (namespace fq-name))
+                       (let [ns-nm (symbol (namespace fq-name))
                              var-name (symbol (name fq-name))]
-                         (update acc [ns-name var-name]
+                         (update acc [ns-nm var-name]
                                  (fn [old]
                                    (cond (nil? old)
                                          (if excluded
@@ -273,8 +276,8 @@
                 vecs (fq-syms->vecs syms)]
             (set vecs)))
         delayed-cfg (memoize delayed-cfg)]
-    (fn [config ns-name var-name]
-      (contains? (delayed-cfg config) [ns-name var-name]))))
+    (fn [config ns-nm var-name]
+      (contains? (delayed-cfg config) [ns-nm var-name]))))
 
 (def refer-all-excluded?
   (let [delayed-cfg (fn [config]
@@ -284,6 +287,15 @@
     (fn [config referred-all-ns]
       (let [excluded (delayed-cfg config)]
         (contains? excluded referred-all-ns)))))
+
+(def shadowed-var-excluded?
+  (let [delayed-cfg (fn [config]
+                      (let [syms (get-in config [:linters :shadowed-var :exclude])]
+                        (set syms)))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config sym]
+      (let [excluded (delayed-cfg config)]
+        (contains? excluded sym)))))
 
 ;;;; Scratch
 

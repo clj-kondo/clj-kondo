@@ -133,10 +133,10 @@
 
 (def hook-fn
   (let [delayed-cfg
-        (fn [ctx config key ns-sym var-sym]
+        (fn [ctx config k ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))]
-                 (when-let [x (get-in config [:hooks key sym])]
+                 (when-let [x (get-in config [:hooks k sym])]
                    ;; we return a function of ctx, so we will never memoize on
                    ;; ctx, which will hold on to all the linting state and
                    ;; creates memory leaks for long lives processes (LSP /

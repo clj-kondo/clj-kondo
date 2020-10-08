@@ -4,13 +4,13 @@
 ;; ignore  row 1, col 21, end-row 1, end-col 31
 ;; finding row 1, col 26, end-row 1, end-col 30
 
-(defn ignore-match? [ignore type]
+(defn ignore-match? [ignore tp]
   (or (true? ignore)
-      (contains? ignore type)))
+      (contains? ignore tp)))
 
 (defn ignored?
   "Ignores are sorted in order of rows and cols. So if we are handling a node with a row before the "
-  [ctx m type]
+  [ctx m tp]
   (let [ignores @(:ignores ctx)
         filename (:filename m)
         row (:row m)]
@@ -32,7 +32,7 @@
                   (if (or (< row ignore-end-row)
                           (and (= row ignore-end-row)
                                (<= (:end-col m) (:end-col ignore))))
-                    (if (ignore-match? (:ignore ignore) type)
+                    (if (ignore-match? (:ignore ignore) tp)
                       true
                       (recur (next ignores)))
                     (recur (next ignores))))
@@ -41,10 +41,10 @@
 (defn reg-finding! [ctx m]
   (let [findings (:findings ctx)
         config (:config ctx)
-        type (:type m)
-        level (-> config :linters type :level)]
+        tp (:type m)
+        level (-> config :linters tp :level)]
     (when (and level (not (identical? :off level)))
-      (when-not (ignored? ctx m type)
+      (when-not (ignored? ctx m tp)
         (let [m (assoc m :level level)]
           (swap! findings conj m)))))
   nil)
