@@ -435,7 +435,7 @@ Example config:
 
 ``` clojure
 (fn [name] name)
-     ^--- Shadowing var: clojure.core/name. Suggestion: nom
+     ^--- Shadowed var: clojure.core/name. Suggestion: nom
 ```
 
 Use `:exclude` to suppress warnings for specific binding names. To avoid
