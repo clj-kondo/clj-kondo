@@ -75,7 +75,8 @@ Some linters are not enabled by default. Right now these linters are:
 - `:missing-docstring`: warn when public var doesn't have a docstring.
 - `:unsorted-required-namespaces`: warn when namespaces in `:require` are not sorted.
 - `:refer`: warn when there is **any** usage of `:refer` in your namespace requires.
-- `:single-key-in`: warn when using assoc-in, update-in or get-in with single key
+- `:single-key-in`: warn when using assoc-in, update-in or get-in with single key.
+- `:shadowed-var`: warn when a binding shadows a var.
 
 You can enable these linters by setting the `:level`:
 
@@ -419,6 +420,26 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 ```clojure
 {:linters {:refer-all {:exclude [alda.core]}}}
 ```
+
+### Shadowed var
+
+The `:shadowed-var` linter warns when a binding shadows a var.
+
+Example config:
+
+``` clojure
+{:linters {:shadowed-var {:level :warning
+                          :exclude [ns]
+                          :suggest {name nom}}}}
+```
+
+``` clojure
+(fn [name] name)
+     ^--- Shadowing var: clojure.core/name. Suggestion: nom
+```
+
+Use `:exclude` to suppress warnings for specific binding names. To avoid
+shadowing core vars use `:refer-clojure` + `:exclude` in the `ns` form.
 
 ## Hooks
 
