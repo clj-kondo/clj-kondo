@@ -172,7 +172,7 @@
           (show-arities fixed-arities varargs-min-arity)))
 
 (defn lint-single-operand-comparison
-  "Lints calls of single operand comparisons with always the same vlaue."
+  "Lints calls of single operand comparisons with always the same value."
   [call]
   (let [ns-nm (:resolved-ns call)
         core-ns (utils/one-of ns-nm [clojure.core cljs.core])]
@@ -207,6 +207,7 @@
             :let [fn-name (:name call)
                   caller-ns-sym (:ns call)
                   call-lang (:lang call)
+                  ctx (assoc ctx :lang call-lang)
                   caller-ns (get-in @(:namespaces ctx)
                                     [base-lang call-lang caller-ns-sym])
                   resolved-ns (:resolved-ns call)
@@ -371,7 +372,8 @@
                   filename (:filename ns)
                   ns-config (:config ns)
                   config (or ns-config config)
-                  ctx (if ns-config (assoc ctx :config config) ctx)]]
+                  ctx (if ns-config (assoc ctx :config config) ctx)
+                  ctx (assoc ctx :lang (:lang ns))]]
       (doseq [ns-sym unused]
         (when-not (config/unused-namespace-excluded config ns-sym)
           (let [m (meta ns-sym)
@@ -412,7 +414,8 @@
     (let [ns-config (:config ns)
           ctx (if ns-config
                 (assoc ctx :config ns-config)
-                ctx)]
+                ctx)
+          ctx (assoc ctx :lang (:lang ns))]
       (when-not (identical? :off (-> ctx :config :linters :unused-binding :level))
         (let [bindings (:bindings ns)
               used-bindings (:used-bindings ns)
@@ -446,11 +449,12 @@
 (defn lint-unused-private-vars!
   [ctx]
   (let [config (:config ctx)]
-    (doseq [{:keys [:filename :vars :used-vars]
+    (doseq [{:keys [:filename :vars :used-vars :lang]
              ns-nm :name
              ns-config :config} (namespace/list-namespaces ctx)
             :let [config (or ns-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
+                  ctx (assoc ctx :lang lang)
                   ;;_ (prn (-> config :linters :unused-private-var))
                   vars (vals vars)
                   used-vars (into #{} (comp (filter #(= (:ns %) ns-nm))
@@ -474,6 +478,8 @@
 (defn lint-unresolved-symbols!
   [ctx]
   (doseq [ns (namespace/list-namespaces ctx)
+          :let [lang (:lang ns)
+                ctx (assoc ctx :lang lang)]
           [_ v] (:unresolved-symbols ns)]
     (let [
           filename (:filename v)
@@ -491,7 +497,10 @@
 (defn lint-unused-imports!
   [ctx]
   (doseq [ns (namespace/list-namespaces ctx)
-          :let [ns-config (:config ns)]
+          :let [ns-config (:config ns)
+                ctx (if ns-config (assoc ctx :config ns-config)
+                        ctx)
+                ctx (assoc ctx :lang (:lang ns))]
           :when (not (identical? :off (-> ns-config :linters :unused-import :level)))
           :let [filename (:filename ns)
                 imports (:imports ns)
@@ -499,12 +508,13 @@
           [imp _] imports
           :when (not (contains? used-imports imp))]
     (findings/reg-finding!
-     (if ns-config (assoc ctx :config ns-config) ctx)
+     ctx
      (node->line filename imp :warning :unused-import (str "Unused import " imp)))))
 
 (defn lint-unresolved-namespaces!
   [ctx]
   (doseq [ns (namespace/list-namespaces ctx)
+          :let [ctx (assoc ctx :lang (:lang ns))]
           un (:unresolved-namespaces ns)
           :let [m (meta un)
                 filename (:filename m)]]

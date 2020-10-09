@@ -56,7 +56,7 @@ x)"
   (is (empty? (lint! "(let [{:keys [] :as #_:clj-kondo/ignore m} {}] 1)"
                      {:linters {:unused-binding {:level :warning}}}))))
 
-(deftest ignore-in-ns-form
+(deftest ignore-in-ns-form-test
   (is (empty? (lint! "
 (ns foo
   #_:clj-kondo/ignore
@@ -95,3 +95,12 @@ x)"
 (ns foo
   (:import #_:clj-kondo/ignore foo.bar.Baz))"
                      {:linters {:unused-import {:level :warning}}}))))
+
+(deftest cljc-test
+  (is (empty? (lint! "
+#_{:clj-kondo/ignore #?(:clj [:unused-binding] :cljs [])}
+(defn foo [x]
+  #?(:cljs x)) ;; x is only used in cljs, but unused is ignored for clj, so no warning
+"
+                     {:linters {:unused-binding {:level :warning}}}
+                     "--lang" "cljc"))))

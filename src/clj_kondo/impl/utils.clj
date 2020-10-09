@@ -288,11 +288,17 @@
       called-fn)))
 
 (defn handle-ignore [ctx expr]
-  (let [m (meta expr)]
+  (let [cljc? (identical? :cljc (:base-lang ctx))
+        lang (:lang ctx)
+        m (meta expr)]
     (when-let [ignore-node (:clj-kondo/ignore m)]
-      ;; TODO: processing!
-      (swap! (:ignores ctx) update (:filename ctx) vconj
-             (assoc m :ignore ignore)))))
+      (let [node (if cljc?
+                   (select-lang ignore-node (:lang ctx))
+                   ignore-node)
+            ignore (node/sexpr node)
+            ignore (if (boolean? ignore) ignore (set ignore))]
+        (swap! (:ignores ctx) update-in [(:filename ctx) lang]
+               vconj (assoc m :ignore ignore))))))
 
 ;;;; Scratch
 
