@@ -1,6 +1,5 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.parser.core
   (:require
-   [clj-kondo.impl.rewrite-clj.parser.namespaced-map :as nm]
    [clj-kondo.impl.rewrite-clj
     [node :as node]
     [reader :as reader]]
@@ -8,7 +7,9 @@
     [utils :as u]
     [keyword :refer [parse-keyword]]
     [string :refer [parse-string parse-regex]]
-    [token :refer [parse-token]]]))
+    [token :refer [parse-token]]]
+   [clj-kondo.impl.rewrite-clj.parser.namespaced-map :as nm]
+   [clojure.string :as str]))
 
 ;; ## Base Parser
 
@@ -161,9 +162,10 @@
       (when (identical? :clj-kondo/ignore k)
         {:clj-kondo/ignore true})
       (when (identical? :map (node/tag node))
-        (let [m (node/sexpr node)]
-          (when-let [v (.get ^java.util.Map m :clj-kondo/ignore)]
-            {:clj-kondo/ignore (if (boolean? v) v (set v))}))))))
+        (let [[k v] (:children node)]
+          (when (identical? :clj-kondo/ignore (:k k))
+            ;; attach raw node, might need further processing for cljc
+            {:clj-kondo/ignore v}))))))
 
 (defn- read-with-ignore-hint [reader]
   (let [hint (parse-printables reader :uneval 1 true)

@@ -289,7 +289,8 @@
 
 (defn handle-ignore [ctx expr]
   (let [m (meta expr)]
-    (when-let [ignore (:clj-kondo/ignore m)]
+    (when-let [ignore-node (:clj-kondo/ignore m)]
+      ;; TODO: processing!
       (swap! (:ignores ctx) update (:filename ctx) vconj
              (assoc m :ignore ignore)))))
 
