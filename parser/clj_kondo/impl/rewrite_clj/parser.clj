@@ -1,9 +1,7 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.parser
-  (:require [clj-kondo.impl.rewrite-clj.parser.core :as p]
-            [clj-kondo.impl.rewrite-clj
-             [node :as node]
-             [reader :as reader]]
-            [clojure.walk :as w]))
+  (:require [clj-kondo.impl.rewrite-clj.node :as node]
+            [clj-kondo.impl.rewrite-clj.parser.core :as p]
+            [clj-kondo.impl.rewrite-clj.reader :as reader]))
 
 ;; ## Parser Core
 
