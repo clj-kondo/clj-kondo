@@ -1,12 +1,11 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.parser.core
   (:require
-   [clj-kondo.impl.rewrite-clj]
    [clj-kondo.impl.rewrite-clj.node :as node]
+   [clj-kondo.impl.rewrite-clj.parser.keyword :refer [parse-keyword]]
    [clj-kondo.impl.rewrite-clj.parser.namespaced-map :as nm]
+   [clj-kondo.impl.rewrite-clj.parser.string :refer [parse-string parse-regex]]
+   [clj-kondo.impl.rewrite-clj.parser.token :refer [parse-token]]
    [clj-kondo.impl.rewrite-clj.parser.utils :as u]
-   [clj-kondo.impl.rewrite-clj.parser.utils.keyword :refer [parse-keyword]]
-   [clj-kondo.impl.rewrite-clj.parser.utils.string :refer [parse-string parse-regex]]
-   [clj-kondo.impl.rewrite-clj.parser.utils.token :refer [parse-token]]
    [clj-kondo.impl.rewrite-clj.reader :as reader]))
 
 ;; ## Base Parser
