@@ -13,8 +13,9 @@
   [ctx m tp]
   (let [ignores @(:ignores ctx)
         filename (:filename m)
+        lang (:lang ctx)
         row (:row m)]
-    (when-let [ignores (get ignores filename)]
+    (when-let [ignores (get-in ignores [filename lang])]
       (loop [ignores ignores]
         (when ignores
           (let [ignore (first ignores)

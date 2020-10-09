@@ -113,6 +113,14 @@ To ignore warnings from just one or a few linters:
 (inc 1 2 3)
 ```
 
+To ignore warnings for only one language in a reader conditional:
+
+``` clojure
+#_{:clj-kondo/ignore #?(:clj [:unused-binding] :cljs [])}
+(defn foo [x]
+  #?(:cljs x)) ;; x is only used in cljs, but unused is ignored for clj, so no warning
+```
+
 ### Enable optional linters
 
 
