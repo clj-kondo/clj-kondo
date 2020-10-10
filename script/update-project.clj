@@ -17,7 +17,7 @@
 
 (def deps-test-dependencies (-> deps-edn :aliases :test :extra-deps))
 (def lein-test-dependencies (keep (fn [[k v]]
-                                    (when-not (#{'test-runner 'org.clojure/clojure} k)
+                                    (when-not (#{'cognitect/test-runner 'org.clojure/clojure} k)
                                       [k (:mvn/version v)]))
                                  deps-test-dependencies))
 
