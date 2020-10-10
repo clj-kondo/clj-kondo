@@ -17,6 +17,7 @@ Thanks [@zilti](https://github.com/zilti), [@dharrigan](https://github.com/dharr
 - Support ignore hint on unused binding [#1017](https://github.com/borkdude/clj-kondo/issues/1017)
 - Support ignore hint in ns form [#1031](https://github.com/borkdude/clj-kondo/issues/1031)
 - Linux [packages](https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#linux-packages) [@zilti](https://github.com/zilti)
+- Base Docker image on Ubuntu latest [#1026](https://github.com/borkdude/clj-kondo/issues/1026)
 
 ### Fixed / enhanced
 
