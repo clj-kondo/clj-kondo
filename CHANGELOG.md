@@ -2,6 +2,32 @@
 
 For a list of breaking changes, check [here](#breaking-changes)
 
+## v2020.10.10
+
+Thanks [@zilti](https://github.com/zilti), [@dharrigan](https://github.com/dharrigan) and [@sogaiu](https://github.com/sogaiu) for contributing to this release. Thanks to [Clojurists Together](https://www.clojuriststogether.org/) for sponsoring this release.
+
+### New
+
+- Shadowed var linter [#646](https://github.com/borkdude/clj-kondo/issues/646). See [docs](https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#shadowed-var).
+- Config for ignoring unused `:as` binding
+  [clj-kondo#1016](https://github.com/borkdude/clj-kondo/issues/1016):
+- Type warning for `contains?` [#1021](https://github.com/borkdude/clj-kondo/issues/1021) [@dharrigan](https://github.com/dharrigan)
+- Predicate functions for hooks api [#1006](https://github.com/borkdude/clj-kondo/issues/1006)
+- Support reader conditionals in ignore hint [#1022](https://github.com/borkdude/clj-kondo/issues/1022). See [docs](https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#ignore-warnings-in-an-expression).
+- Support ignore hint on unused binding [#1017](https://github.com/borkdude/clj-kondo/issues/1017)
+- Support ignore hint in ns form [#1031](https://github.com/borkdude/clj-kondo/issues/1031)
+- Linux [packages](https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#linux-packages) [@zilti](https://github.com/zilti)
+
+### Fixed / enhanced
+
+- Fix memory leak in long running process [#1036](https://github.com/borkdude/clj-kondo/issues/1036)
+- Claypoole config enhancements [clj-kondo/config#7](https://github.com/clj-kondo/config/pull/7)
+- Don't warn about redundant `let` and `do` in hook-generated code [#1038](https://github.com/borkdude/clj-kondo/issues/1038)
+- Fix format string false positive [#1007](https://github.com/borkdude/clj-kondo/issues/1007)
+- Parse failure in `(or)` [#1023](https://github.com/borkdude/clj-kondo/issues/1023)
+- Analyze require in top-level do [#1018](https://github.com/borkdude/clj-kondo/issues/1018)
+- Analyze quote in require [#1019](https://github.com/borkdude/clj-kondo/issues/1019)
+
 ## v2020.09.09
 
 Thanks to [@cldwalker](https://github.com/cldwalker), [@bfontaine](https://github.com/bfontaine), [@snoe](https://github.com/snoe), [@andreyorst](https://github.com/andreyorst), [@jeroenvandijk](https://github.com/jeroenvandijk),
