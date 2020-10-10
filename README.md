@@ -52,6 +52,7 @@ Clj-kondo detects:
 * [type checking](doc/types.md)
 * Datalog syntax checking
 * format string argument mismatches
+* shadowed vars
 
 before your form hits the REPL.
 
