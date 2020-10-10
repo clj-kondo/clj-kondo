@@ -3,7 +3,7 @@
   (:require [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.utils :as utils :refer [vector-node list-node
                                                     sexpr token-node keyword-node
-                                                    string-node map-node]]
+                                                    string-node #_map-node]]
             [clojure.java.io :as io]
             [clojure.zip :as zip]
             [sci.core :as sci :refer [copy-var]]))
@@ -82,9 +82,9 @@
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :list (utils/tag n))))
 
-(defn map-node? [n]
-  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
-       (identical? :map (utils/tag n))))
+;; (defn map-node? [n]
+;;   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
+;;        (identical? :map (utils/tag n))))
 
 (def api-ns
   {'keyword-node keyword-node
@@ -95,8 +95,8 @@
    'token-node? token-node?
    'vector-node vector-node
    'vector-node? vector-node?
-   'map-node map-node
-   'map-node? map-node?
+   ;; 'map-node map-node
+   ;; 'map-node? map-node?
    'list-node list-node
    'list-node? list-node?
    'sexpr sexpr
