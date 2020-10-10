@@ -12,7 +12,7 @@ Thanks [@zilti](https://github.com/zilti), [@dharrigan](https://github.com/dharr
 - Config for ignoring unused `:as` binding
   [clj-kondo#1016](https://github.com/borkdude/clj-kondo/issues/1016) ([@dharrigan](https://github.com/dharrigan))
 - Type warning for `contains?` [#1021](https://github.com/borkdude/clj-kondo/issues/1021)
-- Predicate functions for hooks api [#1006](https://github.com/borkdude/clj-kondo/issues/1006)
+- Predicate functions for hooks api [#1006](https://github.com/borkdude/clj-kondo/issues/1006). See [docs](https://github.com/borkdude/clj-kondo/blob/master/doc/hooks.md#api).
 - Support reader conditionals in ignore hint [#1022](https://github.com/borkdude/clj-kondo/issues/1022). See [docs](https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#ignore-warnings-in-an-expression).
 - Support ignore hint on unused binding [#1017](https://github.com/borkdude/clj-kondo/issues/1017)
 - Support ignore hint in ns form [#1031](https://github.com/borkdude/clj-kondo/issues/1031)
