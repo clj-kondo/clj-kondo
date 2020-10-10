@@ -10,13 +10,13 @@ Thanks [@zilti](https://github.com/zilti), [@dharrigan](https://github.com/dharr
 
 - Shadowed var linter [#646](https://github.com/borkdude/clj-kondo/issues/646). See [docs](https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#shadowed-var).
 - Config for ignoring unused `:as` binding
-  [clj-kondo#1016](https://github.com/borkdude/clj-kondo/issues/1016):
-- Type warning for `contains?` [#1021](https://github.com/borkdude/clj-kondo/issues/1021) [@dharrigan](https://github.com/dharrigan)
+  [clj-kondo#1016](https://github.com/borkdude/clj-kondo/issues/1016) ([@dharrigan](https://github.com/dharrigan))
+- Type warning for `contains?` [#1021](https://github.com/borkdude/clj-kondo/issues/1021)
 - Predicate functions for hooks api [#1006](https://github.com/borkdude/clj-kondo/issues/1006)
 - Support reader conditionals in ignore hint [#1022](https://github.com/borkdude/clj-kondo/issues/1022). See [docs](https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#ignore-warnings-in-an-expression).
 - Support ignore hint on unused binding [#1017](https://github.com/borkdude/clj-kondo/issues/1017)
 - Support ignore hint in ns form [#1031](https://github.com/borkdude/clj-kondo/issues/1031)
-- Linux [packages](https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#linux-packages) [@zilti](https://github.com/zilti)
+- Linux [packages](https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#linux-packages) ([@zilti](https://github.com/zilti))
 - Base Docker image on Ubuntu latest [#1026](https://github.com/borkdude/clj-kondo/issues/1026)
 
 ### Fixed / enhanced
