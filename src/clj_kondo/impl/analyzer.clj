@@ -571,7 +571,10 @@
         bv-node (-> expr :children second)
         valid-bv-node (assert-vector ctx call bv-node)]
     (when (and current-let
-               (or (and parent-let (= parent-let let-parent))
+               (:row (meta expr)) ;; has location
+               (or (and parent-let (= parent-let let-parent)
+                        ;; has location
+                        (:row (meta parent-let)))
                    (and valid-bv-node (empty? (:children valid-bv-node)))))
       (findings/reg-finding!
        ctx
@@ -604,16 +607,20 @@
         core? (one-of (first parent-call) [clojure.core cljs.core])
         core-sym (when core?
                    (second parent-call))
+        ;; only report current do node has location, to avoid warnings from hook code
+        expr-loc? (:row (meta expr))
         redundant?
         (and (not= 'fn* core-sym)
              (not= 'let* core-sym)
+             expr-loc?
              (or
               ;; zero or one children
               (< (count (rest (:children expr))) 2)
               (and core?
+                   (:row (meta core-sym))
                    (or
                     ;; explicit do
-                    (= 'do core-sym)
+                    (and (= 'do core-sym))
                     ;; implicit do
                     (one-of core-sym [fn defn defn-
                                       let when-let loop binding with-open

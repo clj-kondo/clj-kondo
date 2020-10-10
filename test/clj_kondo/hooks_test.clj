@@ -114,3 +114,44 @@
           ;; Windows...
           s (str/replace s "\r\n" "\n")]
       (is (= s "true :clj \"<stdin>\"\ntrue :cljs \"<stdin>\"\n")))))
+
+#_(fn [{:keys [:node]}]
+  (let [children (next (:children node))
+        new-node (api/list-node (list* (api/token-node 'do) children))]
+    {:node new-node}))
+
+(deftest redundant-do-let-test
+  (testing "hook code generating do or let won't be reported as redundant"
+    (when-not native?
+      (let [res (lint! "
+(ns bar
+  {:clj-kondo/config
+    '{:hooks {:analyze-call {
+foo/hook-do \"
+
+(require '[clj-kondo.hooks-api :as api])
+(fn [{:keys [:node]}]
+  (let [children (next (:children node))
+        new-node (api/list-node (list*
+(api/token-node 'do) children))]
+    {:node new-node}))
+\"
+
+foo/hook-let \"
+
+(require '[clj-kondo.hooks-api :as api])
+(fn [{:keys [:node]}]
+  (let [children (next (:children node))
+        new-node (api/list-node (list*
+(api/token-node 'let)
+(api/vector-node [])
+children))]
+    {:node new-node}))
+\"
+
+}}}}
+  (:require [foo :refer [hook-do hook-let]]))
+
+(hook-do  (do 1 2))
+(hook-let (let [x 1] x))")]
+        (is (empty? res))))))
