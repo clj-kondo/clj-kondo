@@ -102,17 +102,12 @@ This is the code for the hook:
       (throw (ex-info "No sym and val provided" {})))
     (let [new-node (api/list-node
                     (list*
-                     (api/token-node 'let*)
+                     (api/token-node 'let)
                      (api/vector-node [sym val])
                      opts
                      body))]
       {:node new-node})))
 ```
-
-Note, in order to prevent false positive `redundant-let` warning, when using
-this macro within actual let block, instead of using `(api/token-node 'let)`
-we're using `(api/token-node 'let*)`. Clj-kondo will lint `let*` syntactically
-the same, but won't report it as a nested `let`.
 
 This code will be placed in a file `hooks/with_bound.clj` in your `.clj-kondo`
 directory.
