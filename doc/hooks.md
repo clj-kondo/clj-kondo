@@ -119,7 +119,7 @@ To register the hook, use this configuration:
 ```
 
 The symbol `hooks.with-bound/with-bound` corresponds to the file
-`.clj-kondo/hooks/with-bound.clj` and the `with-bound` function defined in
+`.clj-kondo/hooks/with_bound.clj` and the `with-bound` function defined in
 it. Note that the file has to declare a namespace corresponding to its directory
 structure and file name, just like in normal Clojure.
 
