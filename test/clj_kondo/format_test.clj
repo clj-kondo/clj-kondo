@@ -20,6 +20,9 @@
   (is (empty? (lint! "(format \"%3$s\" 1 2 3)")))
   (is (empty? (lint! "(format \"%3$s %s %s %s\" 1 2 3)")))
   (is (empty? (lint! "(format \"%3$s %s %s %s %s\" 1 2 3 4)")))
+  (is (empty? (lint! "(format \"%s %<s\" 1)")))
+  (is (empty? (lint! "(format \"%s %<s %s\" 1 2)")))
+  (is (empty? (lint! "(format \"%s %2$ %<s %s\" 1 2)")))
   (is (empty? (lint! "(defn foo [x] (format x 1))")))
   (is (empty? (lint! "
 (ns foo {:clj-kondo/config '{:linters {:format {:level :off}}}})
