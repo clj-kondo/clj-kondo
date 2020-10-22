@@ -247,6 +247,7 @@
   (str/includes? f path-separator))
 
 (defn schedule [ctx {:keys [:filename :source :lang] :as m} dev?]
+  (swap! (:files ctx) inc)
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
     (ana/analyze-input ctx filename source lang dev?)))
