@@ -54,7 +54,8 @@
       (is s)
       (is (nat-int? (:error s)))
       (is (nat-int? (:warning s)))
-      (is (nat-int? (:duration s)))))
+      (is (nat-int? (:duration s)))
+      (is (nat-int? (:files s)))))
   (testing "end locations are reported correctly"
     (let [{:keys [:findings]}
           (with-in-str
