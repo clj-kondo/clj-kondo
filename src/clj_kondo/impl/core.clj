@@ -365,6 +365,16 @@
           {:error 0 :warning 0 :info 0 :type :summary}
           findings))
 
+;;;; analysis
+
+(defn assoc-analysis
+  [result analysis]
+  (let [namespace-definitions (:namespace-definitions analysis)
+        filenames (into #{} (map :filename) namespace-definitions)]
+    (-> result
+        (assoc :analysis analysis)
+        (assoc-in [:summary :files] (count filenames)))))
+
 ;;;; filter/remove output
 
 (defn filter-findings [config findings]
