@@ -141,7 +141,7 @@
          :config config
          :summary summary}
       analysis?
-      (core-impl/assoc-analysis @analysis))))
+      (assoc :analysis @analysis))))
 
 (defn merge-configs
   "Returns the merged configuration of c1 with c2."
