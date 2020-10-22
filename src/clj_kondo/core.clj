@@ -96,6 +96,7 @@
         classpath (:classpath config)
         config (dissoc config :classpath)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
+        filenames (atom #{})
         findings (atom [])
         analysis? (get-in config [:output :analysis])
         analysis (when analysis?
@@ -107,6 +108,7 @@
              :classpath classpath
              :global-config config
              :sources (atom [])
+             :filenames filenames
              :findings findings
              :namespaces (atom {})
              :analysis analysis
@@ -135,7 +137,7 @@
         all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))
         summary (core-impl/summarize all-findings)
         duration (- (System/currentTimeMillis) start-time)
-        summary (assoc summary :duration duration)]
+        summary (assoc summary :duration duration :files (count @filenames))]
     (cond->
         {:findings all-findings
          :config config
