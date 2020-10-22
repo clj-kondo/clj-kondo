@@ -153,10 +153,6 @@
 ;;;; Scratch
 
 (comment
-  (do (-> (run! {:lint   ["/Users/pepijn.looije/dev/nu/itaipu/tourniquet/src"]
-                 :config {:output {:analysis false}}})
-          :summary))
-
   (def res (run!
             {;; seq of string or file
              :files ["corpus" (io/file "test")]
