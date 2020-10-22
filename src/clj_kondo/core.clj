@@ -96,7 +96,7 @@
         classpath (:classpath config)
         config (dissoc config :classpath)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
-        filenames (atom #{})
+        files (atom 0)
         findings (atom [])
         analysis? (get-in config [:output :analysis])
         analysis (when analysis?
@@ -108,7 +108,7 @@
              :classpath classpath
              :global-config config
              :sources (atom [])
-             :filenames filenames
+             :files files
              :findings findings
              :namespaces (atom {})
              :analysis analysis
@@ -137,7 +137,7 @@
         all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))
         summary (core-impl/summarize all-findings)
         duration (- (System/currentTimeMillis) start-time)
-        summary (assoc summary :duration duration :files (count @filenames))]
+        summary (assoc summary :duration duration :files @files)]
     (cond->
         {:findings all-findings
          :config config
@@ -153,6 +153,10 @@
 ;;;; Scratch
 
 (comment
+  (do (-> (run! {:lint   ["/Users/pepijn.looije/dev/nu/itaipu/tourniquet/src"]
+                 :config {:output {:analysis false}}})
+          :summary))
+
   (def res (run!
             {;; seq of string or file
              :files ["corpus" (io/file "test")]

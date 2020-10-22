@@ -41,7 +41,7 @@
     (doall
      (core-impl/process-files
       {:config config/default-config
-       :filenames (atom #{})
+       :files (atom 0)
        :findings (atom [])
        :ignores (atom {})
        :namespaces namespaces
@@ -64,7 +64,7 @@
     (doall
      (core-impl/process-files
       {:config config/default-config
-       :filenames (atom #{})
+       :files (atom 0)
        :findings (atom [])
        :ignores (atom {})
        :namespaces namespaces
