@@ -2,7 +2,8 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :refer [path-separator]]
-   [clj-kondo.test-utils :refer [file-path file-separator assert-submaps]]
+   [clj-kondo.test-utils :refer [file-path file-separator assert-submaps
+                                 assert-submap]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -71,7 +72,22 @@
              :config (file-path "corpus" "config" "invalid_arity.edn")})]
       (is (zero? error))
       (is (zero? warning))
-      (is (zero? info)))))
+      (is (zero? info))))
+
+  (testing "unused-referred-vars include :ns and :name keys"
+    (let [{:keys [:findings]}
+          (with-in-str
+            "(ns app (:require [clojure.string :refer [split]]))"
+            (clj-kondo/run! {:lint ["-"]}))
+          unused-ref-finding (some->> findings
+                                      (filter #(= :unused-referred-var (:type %)))
+                                      first)]
+      (assert-submap
+        {:level :warning, :type :unused-referred-var,
+         :message "#'clojure.string/split is referred but never used",
+         :ns 'clojure.string
+         :name 'split}
+        unused-ref-finding))))
 
 ;;;; Scratch
 
