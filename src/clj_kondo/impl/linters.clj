@@ -389,7 +389,9 @@
                   (config/unused-referred-var-excluded config var-ns k))
             (findings/reg-finding!
              ctx
-             (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))))))
+             (-> (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
+                 (assoc :ns var-ns
+                        :name (:name v)))))))
       (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
               :when (not (config/refer-all-excluded? config referred-all-ns))]
         (let [{:keys [:k :value]} node
