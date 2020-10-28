@@ -361,7 +361,7 @@ The exclude the `:as` binding from being reported (which can be useful for
 self-documenting some code), use:
 
 ```clojure
-{:linters {:unused-binding {:exclude-unused-as true}}}
+{:linters {:unused-binding {:exclude-destructured-as true}}}
 ```
 
 Examples:
