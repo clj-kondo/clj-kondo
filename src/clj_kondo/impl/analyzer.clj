@@ -1306,6 +1306,7 @@
                                                        :lang lang
                                                        :filename (:filename ctx)
                                                        :expr expr
+                                                       :simple? (simple-symbol? full-fn-name)
                                                        :callstack (:callstack ctx)
                                                        :config (:config ctx)
                                                        :top-ns (:top-ns ctx)
@@ -1518,7 +1519,8 @@
                                     :callstack (:callstack ctx)
                                     :config (:config ctx)
                                     :top-ns (:top-ns ctx)
-                                    :arg-types (:arg-types ctx)}
+                                    :arg-types (:arg-types ctx)
+                                    :simple? (simple-symbol? full-fn-name)}
                         ret-tag (or (:ret m)
                                     (types/ret-tag-from-call ctx proto-call expr))
                         call (cond-> proto-call

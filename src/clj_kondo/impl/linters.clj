@@ -272,9 +272,10 @@
                                            called-fn))]
             :when valid-call?
             :let [fn-name (:name called-fn)
-                  _ (when (and unresolved?
-                               (contains? refer-alls
-                                          fn-ns))
+                  _ (when (and  ;; unresolved?
+                           (:simple? call)
+                           (contains? refer-alls
+                                      fn-ns))
                       (namespace/reg-referred-all-var! (assoc ctx
                                                               :base-lang base-lang
                                                               :lang call-lang)
@@ -369,6 +370,7 @@
                   referred-vars (:referred-vars ns)
                   used-referred-vars (:used-referred-vars ns)
                   refer-alls (:refer-alls ns)
+                  refer-all-nss (set (keys refer-alls))
                   filename (:filename ns)
                   ns-config (:config ns)
                   config (or ns-config config)
@@ -386,7 +388,8 @@
         (let [var-ns (:ns v)]
           (when-not
               (or (contains? used-referred-vars k)
-                  (config/unused-referred-var-excluded config var-ns k))
+                  (config/unused-referred-var-excluded config var-ns k)
+                  (contains? refer-all-nss var-ns))
             (findings/reg-finding!
              ctx
              (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))))))

@@ -131,7 +131,8 @@
                                                   :private-access? (or syntax-quote? (:private-access? ctx))
                                                   :callstack (:callstack ctx)
                                                   :config (:config ctx)
-                                                  :in-def (:in-def ctx)})))))
+                                                  :in-def (:in-def ctx)
+                                                  :simple? simple?})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              :reader-macro
