@@ -24,6 +24,19 @@
           '{:linters {:shadowed-var {:level :warning
                                      :exclude [ns]
                                      :suggest {name nom}}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 8, :col 7, :level :warning,
+      :message "Shadowed var: clojure.core/name. Suggestion: dude"})
+   (lint! "
+(ns foo
+  {:clj-kondo/config '{:linters {:shadowed-var
+                                 {:level :warning
+                                  :include [name]
+                                  :suggest {name dude}}}}})
+
+(let [name 1
+      frequencies 2]
+  (+ name frequencies))"))
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [ns-name])) (defn foo [ns-name] ns-name)"
                      '{:linters {:shadowed-var {:level :warning
                                                 :exclude [ns]

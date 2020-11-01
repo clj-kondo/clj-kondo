@@ -446,8 +446,11 @@ Example config:
      ^--- Shadowed var: clojure.core/name. Suggestion: nom
 ```
 
-Use `:exclude` to suppress warnings for specific binding names. To avoid
-shadowing core vars use `:refer-clojure` + `:exclude` in the `ns` form.
+Use `:exclude` to suppress warnings for specific binding names. Use `:include`
+to warn only for specific names.
+
+To avoid shadowing core vars you can also use `:refer-clojure` + `:exclude` in
+the `ns` form.
 
 ## Hooks
 
