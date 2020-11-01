@@ -90,7 +90,9 @@
               :format {:level :error}
               :shadowed-var {:level :off
                              #_#_:suggestions {clojure.core/type tajpu
-                                               clojure.core/name nomspaco}}}
+                                               clojure.core/name nomspaco}
+                             #_#_:exclude [frequencies]
+                             #_#_:include [name]}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -290,12 +292,16 @@
 
 (def shadowed-var-excluded?
   (let [delayed-cfg (fn [config]
-                      (let [syms (get-in config [:linters :shadowed-var :exclude])]
-                        (set syms)))
+                      (let [cfg (get-in config [:linters :shadowed-var])]
+                        {:exclude (some-> (:exclude cfg) set)
+                         :include (some-> (:include cfg) set)}))
         delayed-cfg (memoize delayed-cfg)]
     (fn [config sym]
-      (let [excluded (delayed-cfg config)]
-        (contains? excluded sym)))))
+      (let [{:keys [:exclude :include]} (delayed-cfg config)]
+        (if include
+          (not (contains? include sym))
+          (or (not exclude)
+              (contains? exclude sym)))))))
 
 ;;;; Scratch
 
