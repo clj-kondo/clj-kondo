@@ -2062,7 +2062,7 @@ foo/foo ;; this does use the private var
       :row 1,
       :col 56,
       :level :warning,
-      :message "use alias or :refer [capitalize]"})
+      :message "use alias or :refer [capitalize join]"})
    (lint! "(ns foo (:require [clojure.string :refer [join] :refer :all]))
            (defn foo [strs] (join (map capitalize strs)))"
           {:linters {:refer-all {:level :warning}}}))
@@ -2126,7 +2126,17 @@ foo/foo ;; this does use the private var
           {:linters {:refer-all {:level :warning}
                      :use {:level :warning}}}))
   (is (empty? (lint! "(require '[clojure.test :refer :all])"
-                     '{:linters {:refer-all {:level :warning :exclude [clojure.test]}}}))))
+                     '{:linters {:refer-all {:level :warning :exclude [clojure.test]}}})))
+  (testing "vars from linted or built-in namespaces are known with :refer :all, see #1010"
+    (is (empty? (lint! "
+(ns deftest-resolve-test-name-fail
+  (:require [clojure.string :refer :all]
+            [clojure.test :refer :all]))
+
+(deftest my-test (is (blank? \"\")))
+"
+                       '{:linters {:refer-all {:level :off}
+                                   :unresolved-symbol {:level :error}}})))))
 
 (deftest canonical-paths-test
   (testing "single file"

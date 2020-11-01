@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
@@ -181,7 +182,12 @@
                      (update :referred set/difference (set (keys opt)))))
                 (recur (nnext children)
                        m)))
-            (let [{:keys [:as :referred :excluded :referred-all :renamed]} m]
+            (let [{:keys [:as :referred :excluded :referred-all :renamed]} m
+                  referred (if (and referred-all
+                                    (identical? :clj base-lang))
+                             (keys (cache/with-cache (:cache-dir ctx) 0
+                                     (cache/from-cache-1 (:cache-dir ctx) :clj ns-name)))
+                             referred)]
               (when as (lint-alias-consistency ctx ns-name as))
               [{:type :require
                 :ns ns-name
