@@ -92,7 +92,8 @@
                              #_#_:suggestions {clojure.core/type tajpu
                                                clojure.core/name nomspaco}
                              #_#_:exclude [frequencies]
-                             #_#_:include [name]}}
+                             #_#_:include [name]}
+              :deps.edn {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn

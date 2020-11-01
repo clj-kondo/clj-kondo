@@ -17,6 +17,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.linters :as linters]
+   [clj-kondo.impl.linters.deps-edn :as deps-edn]
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.metadata :as meta]
@@ -28,7 +29,8 @@
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
    [clojure.string :as str]
-   [sci.core :as sci]))
+   [sci.core :as sci]
+   [clojure.java.io :as io]))
 
 (set! *warn-on-reflection* true)
 
@@ -1840,7 +1842,6 @@
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
   [{:keys [:config] :as ctx} filename input lang dev?]
-  ;; (prn "FILENAME" filename)
   (try
     (let [parsed (p/parse-string input)]
       (case lang
@@ -1851,8 +1852,13 @@
           (analyze-expressions (assoc ctx :base-lang :cljc :lang :cljs :filename filename)
                                (:children (select-lang parsed :cljs))))
         (:clj :cljs :edn)
-        (analyze-expressions (assoc ctx :base-lang lang :lang lang :filename filename)
-                             (:children parsed))))
+        (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename)]
+          (when (identical? :edn lang)
+            (let [fn (.getName (io/file filename))]
+              (when (= fn "deps.edn")
+                (deps-edn/lint-deps-edn ctx (first (:children parsed))))))
+          (analyze-expressions ctx
+                               (:children parsed)))))
     (catch Exception e
       (if dev?
         (throw e)
