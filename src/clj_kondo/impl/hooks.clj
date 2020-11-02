@@ -86,18 +86,21 @@
 ;;   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
 ;;        (identical? :map (utils/tag n))))
 
+(defn mark-generate [node]
+  (assoc node :clj-kondo.impl/generated true))
+
 (def api-ns
-  {'keyword-node keyword-node
+  {'keyword-node (comp mark-generate keyword-node)
    'keyword-node? keyword-node?
-   'string-node string-node
+   'string-node (comp mark-generate string-node)
    'string-node? string-node?
-   'token-node token-node
+   'token-node (comp mark-generate token-node)
    'token-node? token-node?
-   'vector-node vector-node
+   'vector-node (comp mark-generate vector-node)
    'vector-node? vector-node?
    ;; 'map-node map-node
    ;; 'map-node? map-node?
-   'list-node list-node
+   'list-node (comp mark-generate list-node)
    'list-node? list-node?
    'sexpr sexpr
    'reg-finding! reg-finding!})

@@ -152,6 +152,6 @@ children))]
 }}}}
   (:require [foo :refer [hook-do hook-let]]))
 
-(hook-do  (do 1 2))
+(hook-do (do 1 2))
 (hook-let (let [x 1] x))")]
         (is (empty? res))))))
