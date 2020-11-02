@@ -26,6 +26,7 @@
                            node
                            :warning
                            :deps.edn
+                           #_{:clj-kondo/ignore[:format]} ;; fixed on master
                            (format "Libs must be qualified, change %s => %<s/%<s" form))))))
         nodes))
 
