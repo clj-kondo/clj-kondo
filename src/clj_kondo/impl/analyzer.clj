@@ -28,9 +28,9 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
+   [clojure.java.io :as io]
    [clojure.string :as str]
-   [sci.core :as sci]
-   [clojure.java.io :as io]))
+   [sci.core :as sci]))
 
 (set! *warn-on-reflection* true)
 
