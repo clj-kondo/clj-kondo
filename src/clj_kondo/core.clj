@@ -56,6 +56,9 @@
   - `:lang`: optional, defaults to `:clj`. Sets language for linting
   `*in*`. Supported values: `:clj`, `:cljs` and `:cljc`.
 
+  - `:filename`: optional. In case stdin is used for linting, use this
+  to set the reported filename.
+
   - `:cache-dir`: when this option is provided, the cache will be
   resolved to this directory. If `:cache` is `false` this option will
   be ignored.
@@ -79,6 +82,7 @@
   "
   [{:keys [:lint
            :lang
+           :filename
            :cache
            :cache-dir
            :config
@@ -120,7 +124,7 @@
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
-                                     ctx) lint lang)
+                                     ctx) lint lang filename)
         idacs (core-impl/index-defs-and-calls ctx)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
