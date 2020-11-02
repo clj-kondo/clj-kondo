@@ -276,7 +276,9 @@
         (= "-" path)
         (schedule ctx {:filename (or filename "<stdin>")
                        :source (slurp *in*)
-                       :lang default-language} dev?)
+                       :lang (if filename
+                               (lang-from-file filename default-language)
+                               default-language)} dev?)
         (classpath? path)
         (run! #(process-file ctx % default-language canonical? filename)
               (str/split path
