@@ -14,12 +14,24 @@
      (lint! deps-edn
             "--filename" "deps.edn"))))
 
-(deftest coordinate-test
+(deftest coordinate-map-test
   (let [deps-edn '{:deps {foobar/bar "2020.20"}
                    :aliases {:foo {:extra-deps {foobar/baz "2020.20"}}}}
         deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
     (assert-submaps
      '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Expected map, found: java.lang.String"}
        {:file "deps.edn", :row 1, :col 72, :level :warning, :message "Expected map, found: java.lang.String"})
+     (lint! (str deps-edn)
+            "--filename" "deps.edn"))))
+
+(deftest coordinate-required-key-test
+  (let [deps-edn '{:deps {foobar/bar {:mvn/release "2020.20"}}
+                   :aliases {:foo {:extra-deps {foo/bar1 {:git/url "..."
+                                                          :git/sha "..."}}}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
+    (assert-submaps
+     '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Missing required key: :mvn/version, :git/url or :local/root."}
+       {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Missing required key :sha."}
+       {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Missing required key: :mvn/version, :git/url or :local/root."})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))

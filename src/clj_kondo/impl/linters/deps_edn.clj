@@ -42,7 +42,24 @@
                            :warning
                            :deps.edn
                            (str "Expected map, found: " (.getName (class form)))))
-              (do nil nil))))
+              (or (:mvn/version form)
+                  (and (:git/url form)
+                       (when-not (:sha form)
+                         (findings/reg-finding!
+                          ctx
+                          (node->line (:filename ctx)
+                                      node
+                                      :warning
+                                      :deps.edn
+                                      (str "Missing required key :sha.")))))
+                  (:local/root form)
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx)
+                               node
+                               :warning
+                               :deps.edn
+                               (str "Missing required key: :mvn/version, :git/url or :local/root.")))))))
         nodes))
 
 (defn lint-deps-edn [ctx expr]
