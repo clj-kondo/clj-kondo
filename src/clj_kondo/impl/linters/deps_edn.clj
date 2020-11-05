@@ -83,7 +83,7 @@
                            :warning
                            :deps.edn
                            (str "Prefer keyword for alias.")))
-              (when (contains? #{:deps :extra-deps} form)
+              (when (contains? #{:deps :extra-deps :jvm-opts} form)
                 (findings/reg-finding!
                  ctx
                  (node->line (:filename ctx)
@@ -92,6 +92,21 @@
                              :deps.edn
                              (str "Suspicious alias name: " (name form))))))))
         nodes))
+
+(defn lint-aliases [ctx alias-nodes]
+  (run! (fn [alias-node]
+          (when-let [jvm-opts-node (:jvm-opts alias-node)]
+            (let [jvm-opts-form (sexpr jvm-opts-node)]
+              (when (not (and (sequential? jvm-opts-form)
+                              (every? string? jvm-opts-form)))
+                (findings/reg-finding!
+                 ctx
+                 (node->line (:filename ctx)
+                             jvm-opts-node
+                             :warning
+                             :deps.edn
+                             (str "JVM opts should be seqable of strings.")))))))
+        alias-nodes))
 
 (defn lint-deps-edn [ctx expr]
   (let [deps-edn (sexpr-keys expr)
@@ -103,6 +118,7 @@
         _ (lint-alias-keys ctx alias-keys)
         alias-maps (val-nodes aliases)
         alias-maps (map sexpr-keys alias-maps)
+        _ (lint-aliases ctx alias-maps)
         extra-dep-maps (map :extra-deps alias-maps)
         extra-dep-map-vals (mapcat val-nodes extra-dep-maps)
         _ (lint-dep-coordinates ctx extra-dep-map-vals)

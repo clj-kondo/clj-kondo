@@ -54,12 +54,20 @@
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
 
-(deftest suspicious-alias-name
+(deftest suspicious-alias-name-test
   (let [deps-edn '{:aliases {:deps {foo/bar1 {:mvn/version "..."}}
                              :extra-deps {foo/bar1 {:mvn/version "..."}}}}
         deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
     (assert-submaps
      '({:file "deps.edn", :row 1, :col 12, :level :warning, :message "Suspicious alias name: deps"}
        {:file "deps.edn", :row 1, :col 51, :level :warning, :message "Suspicious alias name: extra-deps"})
+     (lint! (str deps-edn)
+            "--filename" "deps.edn"))))
+
+(deftest jvm-opts-test
+  (let [deps-edn '{:aliases {:jvm {:jvm-opts "-Dfoobar"}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
+    (assert-submaps
+     '({:file "deps.edn", :row 1, :col 28, :level :warning, :message "JVM opts should be seqable of strings."})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
