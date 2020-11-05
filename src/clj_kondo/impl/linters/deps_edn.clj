@@ -108,6 +108,21 @@
                              (str "JVM opts should be seqable of strings.")))))))
         alias-nodes))
 
+(defn lint-mvn-repos [ctx mvn-repos]
+  (let [repo-map-nodes (val-nodes mvn-repos)]
+    (run! (fn [repo-map-node]
+            (let [form (sexpr repo-map-node)]
+              (when-not (and (map? form)
+                             (:url form))
+                (findings/reg-finding!
+                 ctx
+                 (node->line (:filename ctx)
+                             repo-map-node
+                             :warning
+                             :deps.edn
+                             (str "Expected: map with :url."))))))
+          repo-map-nodes)))
+
 (defn lint-deps-edn [ctx expr]
   (let [deps-edn (sexpr-keys expr)
         deps (:deps deps-edn)
@@ -123,7 +138,9 @@
         extra-dep-map-vals (mapcat val-nodes extra-dep-maps)
         _ (lint-dep-coordinates ctx extra-dep-map-vals)
         extra-dep-map-vals (map sexpr-keys extra-dep-map-vals)
-        exclusions (map (comp :children :exclusions) extra-dep-map-vals)]
+        exclusions (map (comp :children :exclusions) extra-dep-map-vals)
+        _ (when-let [mvn-repos (:mvn/repos deps-edn)]
+            (lint-mvn-repos ctx mvn-repos))]
     (run! #(lint-qualified-deps ctx (key-nodes %)) extra-dep-maps)
     (run! #(lint-qualified-deps ctx %) exclusions)
     nil))

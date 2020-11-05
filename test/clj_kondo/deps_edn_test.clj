@@ -71,3 +71,13 @@
      '({:file "deps.edn", :row 1, :col 28, :level :warning, :message "JVM opts should be seqable of strings."})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
+
+(deftest mvn-repos-test
+  (let [deps-edn '{:mvn/repos {"foo" "bar"
+                               "baz" {:link "..."}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
+    (assert-submaps
+     '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Expected: map with :url."}
+       {:file "deps.edn", :row 1, :col 33, :level :warning, :message "Expected: map with :url."})
+     (lint! (str deps-edn)
+            "--filename" "deps.edn"))))
