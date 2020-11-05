@@ -51,7 +51,8 @@
       [(io/file (System/getProperty "user.home")
                 ".m2" "repository" "org" "clojure" "clojure"
                 "1.10.2-alpha1" "clojure-1.10.2-alpha1.jar")]
-      :clj))
+      :clj
+      nil))
     (reduce into special
             [(keep public? (get-in @namespaces '[:clj :clj clojure.core :vars]))])))
 
@@ -74,7 +75,8 @@
       [(io/file (System/getProperty "user.home")
                 ".m2" "repository" "org" "clojure" "clojurescript"
                 "1.10.520" "clojurescript-1.10.520.jar")]
-      :clj))
+      :clj
+      nil))
     (reduce into special
             [(keep public? (get-in @namespaces '[:cljs :cljs cljs.core :vars]))
              (keep public? (get-in @namespaces '[:cljc :clj cljs.core :vars]))

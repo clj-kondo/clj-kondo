@@ -252,9 +252,9 @@
     (swap! (:sources ctx) conj m)
     (ana/analyze-input ctx filename source lang dev?)))
 
-(defn process-file [ctx filename default-language canonical?]
+(defn process-file [ctx path default-language canonical? filename]
   (try
-    (let [file (io/file filename)]
+    (let [file (io/file path)]
       (cond
         (.exists file)
         (if (.isFile file)
@@ -266,26 +266,28 @@
             ;; assume normal source file
             (schedule ctx {:filename (if canonical?
                                        (.getCanonicalPath file)
-                                       filename)
+                                       path)
                            :source (slurp file)
-                           :lang (lang-from-file filename default-language)}
+                           :lang (lang-from-file path default-language)}
                       dev?))
           ;; assume directory
           (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
                 (sources-from-dir file canonical?)))
-        (= "-" filename)
-        (schedule ctx {:filename "<stdin>"
+        (= "-" path)
+        (schedule ctx {:filename (or filename "<stdin>")
                        :source (slurp *in*)
-                       :lang default-language} dev?)
-        (classpath? filename)
-        (run! #(process-file ctx % default-language canonical?)
-              (str/split filename
+                       :lang (if filename
+                               (lang-from-file filename default-language)
+                               default-language)} dev?)
+        (classpath? path)
+        (run! #(process-file ctx % default-language canonical? filename)
+              (str/split path
                          (re-pattern path-separator)))
         :else
         (findings/reg-finding! ctx
                                {:filename (if canonical?
                                             (.getCanonicalPath file)
-                                            filename)
+                                            path)
                                 :type :file
                                 :col 0
                                 :row 0
@@ -295,16 +297,16 @@
         (throw e)
         (findings/reg-finding! ctx {:level :warning
                                     :filename (if canonical?
-                                                (.getCanonicalPath (io/file filename))
-                                                filename)
+                                                (.getCanonicalPath (io/file path))
+                                                path)
                                     :type :file
                                     :col 0
                                     :row 0
                                     :message "Could not process file."})))))
 
-(defn process-files [ctx files default-lang]
+(defn process-files [ctx files default-lang filename]
   (let [canonical? (-> ctx :config :output :canonical-paths)]
-    (run! #(process-file ctx % default-lang canonical?) files)
+    (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (:parallel ctx)
       (parallel-lint ctx @(:sources ctx) dev?))))
 

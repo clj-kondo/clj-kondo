@@ -28,6 +28,9 @@ Options:
   --lang <lang>: if lang cannot be derived from the file extension this option will be
     used. Supported values: clj, cljs, cljc.
 
+  --filename <file>: in case stdin is used for linting, use this to set the
+    reported filename.
+
   --cache-dir: when this option is provided, the cache will be resolved to this
     directory. If --cache is false, this option will be ignored.
 
@@ -60,6 +63,7 @@ Options:
     "--lint"       :coll
     "--config"     :coll
     "--parallel"   :scalar
+    "--filename"   :scalar
     :scalar))
 
 (defn- parse-opts [options]
@@ -82,6 +86,7 @@ Options:
                        (keyword lang-opt))
         cache-opt? (contains? opts "--cache")]
     {:lint (distinct (get opts "--lint"))
+     :filename (last (get opts "--filename"))
      :cache (if cache-opt?
               (if-let [f (last (get opts "--cache"))]
                 (cond (= "false" f) false
