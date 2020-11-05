@@ -42,7 +42,17 @@
                            :warning
                            :deps.edn
                            (str "Expected map, found: " (.getName (class form)))))
-              (or (:mvn/version form)
+              (or (when-let [version (:mvn/version form)]
+                    (when (or (= "RELEASE" version)
+                              (= "LATEST" version))
+                      (findings/reg-finding!
+                       ctx
+                       (node->line (:filename ctx)
+                                   node
+                                   :warning
+                                   :deps.edn
+                                   (str "Non-determistic version."))))
+                    true)
                   (and (:git/url form)
                        (when-not (:sha form)
                          (findings/reg-finding!

@@ -35,3 +35,13 @@
        {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Missing required key: :mvn/version, :git/url or :local/root."})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
+
+(deftest non-deterministic-version
+  (let [deps-edn '{:deps {foobar/bar {:mvn/version "RELEASE"}}
+                   :aliases {:foo {:extra-deps {foo/bar1 {:mvn/version "LATEST"}}}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
+    (assert-submaps
+     '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Non-determistic version."}
+       {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Non-determistic version."})
+     (lint! (str deps-edn)
+            "--filename" "deps.edn"))))
