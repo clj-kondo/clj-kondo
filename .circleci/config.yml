@@ -40,16 +40,6 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
-      - run:
-          name: Create uberjar
-          command: |
-            mkdir -p /tmp/release
-            lein do clean, uberjar
-            VERSION=$(cat resources/CLJ_KONDO_VERSION)
-            cp target/clj-kondo-$VERSION-standalone.jar /tmp/release
-      - store_artifacts:
-          path: /tmp/release
-          destination: release
 
   linux:
     docker:
