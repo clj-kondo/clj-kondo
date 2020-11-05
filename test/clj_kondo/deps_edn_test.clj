@@ -36,12 +36,30 @@
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
 
-(deftest non-deterministic-version
+(deftest non-deterministic-version-test
   (let [deps-edn '{:deps {foobar/bar {:mvn/version "RELEASE"}}
                    :aliases {:foo {:extra-deps {foo/bar1 {:mvn/version "LATEST"}}}}}
         deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
     (assert-submaps
      '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Non-determistic version."}
        {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Non-determistic version."})
+     (lint! (str deps-edn)
+            "--filename" "deps.edn"))))
+
+(deftest alias-keyword-names-test
+  (let [deps-edn '{:aliases {foo {:extra-deps {foo/bar1 {:mvn/version "..."}}}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
+    (assert-submaps
+     '({:file "deps.edn", :row 1, :col 12, :level :warning, :message "Prefer keyword for alias."})
+     (lint! (str deps-edn)
+            "--filename" "deps.edn"))))
+
+(deftest suspicious-alias-name
+  (let [deps-edn '{:aliases {:deps {foo/bar1 {:mvn/version "..."}}
+                             :extra-deps {foo/bar1 {:mvn/version "..."}}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
+    (assert-submaps
+     '({:file "deps.edn", :row 1, :col 12, :level :warning, :message "Suspicious alias name: deps"}
+       {:file "deps.edn", :row 1, :col 51, :level :warning, :message "Suspicious alias name: extra-deps"})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))

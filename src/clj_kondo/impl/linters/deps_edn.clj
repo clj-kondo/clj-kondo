@@ -72,12 +72,35 @@
                                (str "Missing required key: :mvn/version, :git/url or :local/root.")))))))
         nodes))
 
+(defn lint-alias-keys [ctx nodes]
+  (run! (fn [node]
+          (let [form (sexpr node)]
+            (if (not (keyword? form))
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx)
+                           node
+                           :warning
+                           :deps.edn
+                           (str "Prefer keyword for alias.")))
+              (when (contains? #{:deps :extra-deps} form)
+                (findings/reg-finding!
+                 ctx
+                 (node->line (:filename ctx)
+                             node
+                             :warning
+                             :deps.edn
+                             (str "Suspicious alias name: " (name form))))))))
+        nodes))
+
 (defn lint-deps-edn [ctx expr]
   (let [deps-edn (sexpr-keys expr)
         deps (:deps deps-edn)
         _ (lint-qualified-deps ctx (-> deps key-nodes))
         _ (lint-dep-coordinates ctx (-> deps val-nodes))
         aliases (:aliases deps-edn)
+        alias-keys (key-nodes aliases)
+        _ (lint-alias-keys ctx alias-keys)
         alias-maps (val-nodes aliases)
         alias-maps (map sexpr-keys alias-maps)
         extra-dep-maps (map :extra-deps alias-maps)
