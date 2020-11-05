@@ -5,13 +5,21 @@
 (deftest qualified-lib-test
   (let [deps-edn '{:deps {clj-kondo {:mvn/version "2020.10.10"}}
                    :aliases {:foo {:extra-deps {clj-kondo {:mvn/version "2020.10.10"
-                                                           :exclusions [cheshire]}}}}}]
+                                                           :exclusions [cheshire]}}}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
     (assert-submaps
-     '({:file "deps.edn", :row 1, :col 9,
-        :level :warning, :message "Libs must be qualified, change clj-kondo => clj-kondo/clj-kondo"}
-       {:file "deps.edn", :row 1, :col 79,
-        :level :warning, :message "Libs must be qualified, change clj-kondo => clj-kondo/clj-kondo"}
-       {:file "deps.edn", :row 1, :col 130,
-        :level :warning, :message "Libs must be qualified, change cheshire => cheshire/cheshire"})
+     '({:file "deps.edn", :row 1, :col 9, :level :warning, :message "Libs must be qualified, change clj-kondo => clj-kondo/clj-kondo"}
+       {:file "deps.edn", :row 1, :col 78, :level :warning, :message "Libs must be qualified, change clj-kondo => clj-kondo/clj-kondo"}
+       {:file "deps.edn", :row 1, :col 129, :level :warning, :message "Libs must be qualified, change cheshire => cheshire/cheshire"})
+     (lint! deps-edn
+            "--filename" "deps.edn"))))
+
+(deftest coordinate-test
+  (let [deps-edn '{:deps {foobar/bar "2020.20"}
+                   :aliases {:foo {:extra-deps {foobar/baz "2020.20"}}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
+    (assert-submaps
+     '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Expected map, found: java.lang.String"}
+       {:file "deps.edn", :row 1, :col 72, :level :warning, :message "Expected map, found: java.lang.String"})
      (lint! (str deps-edn)
-                "--filename" "deps.edn"))))
+            "--filename" "deps.edn"))))
