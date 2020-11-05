@@ -53,15 +53,16 @@
                                    :deps.edn
                                    (str "Non-determistic version."))))
                     true)
-                  (and (:git/url form)
-                       (when-not (:sha form)
-                         (findings/reg-finding!
-                          ctx
-                          (node->line (:filename ctx)
-                                      node
-                                      :warning
-                                      :deps.edn
-                                      (str "Missing required key :sha.")))))
+                  (when (:git/url form)
+                    (when-not (:sha form)
+                      (findings/reg-finding!
+                       ctx
+                       (node->line (:filename ctx)
+                                   node
+                                   :warning
+                                   :deps.edn
+                                   (str "Missing required key :sha."))))
+                       true)
                   (:local/root form)
                   (findings/reg-finding!
                    ctx

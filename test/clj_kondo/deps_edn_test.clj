@@ -31,8 +31,7 @@
         deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
     (assert-submaps
      '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Missing required key: :mvn/version, :git/url or :local/root."}
-       {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Missing required key :sha."}
-       {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Missing required key: :mvn/version, :git/url or :local/root."})
+       {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Missing required key :sha."})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
 
