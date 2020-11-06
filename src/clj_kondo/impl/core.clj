@@ -204,20 +204,18 @@
 
 ;;;; dir processing
 
+(def file-pat
+  (re-pattern (System/getProperty "file.separator")))
+
 (defn copy-config-file
   [ctx path cfg-dir]
   (try
-    (let [base-file (io/file path)
-          ^java.io.File dot-clj-kondo (loop [f base-file]
-                                        (when-let [parent (.getParentFile f)]
-                                          (if (= ".clj-kondo" (.getName parent))
-                                            parent
-                                            (recur parent))))
-          dot-clj-kondo-parent (.getParentFile dot-clj-kondo)
-          root (.getParentFile (.getParentFile dot-clj-kondo-parent))
-          relative-root (str (.relativize (.toPath root) (.toPath dot-clj-kondo-parent)))
-          dest (io/file cfg-dir relative-root (.getName base-file))]
-      (swap! (:detected-configs ctx) conj relative-root)
+    (let [base-file (str path)
+          dirs (str/split base-file file-pat)
+          root (rest (drop-while #(not= "clj_kondo.config" %) dirs))
+          copied-dir (apply io/file (take 2 root))
+          dest (apply io/file cfg-dir root)]
+      (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (io/copy base-file dest))
     (catch Exception e (prn (.getMessage e)))))
@@ -233,7 +231,7 @@
                        (.getPath file))
                   can-read? (.canRead file)
                   source? (and (.isFile file) (source-file? nm))]
-              (when (and cfg-dir source? (str/includes? path ".clj-kondo"))
+              (when (and cfg-dir source? (str/includes? path "clj_kondo.config"))
                 (copy-config-file ctx file cfg-dir))
               (cond
                 (and can-read? source?)
@@ -354,9 +352,9 @@
     (binding [*out* *err*]
       (when-let [detected-configs (distinct @(:detected-configs ctx))]
         (when-let [cfg-dir (io/file (:config-dir ctx))]
-          (let [rel-cfg-dir (if (.isAbsolute cfg-dir)
-                              (.relativize (.toPath (.getAbsoluteFile (io/file "."))) (.toPath cfg-dir))
-                              cfg-dir)]
+          (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
+                                   (.relativize (.toPath (.getAbsoluteFile (io/file "."))) (.toPath cfg-dir))
+                                   cfg-dir))]
             (doseq [detected-config detected-configs]
               (println "Copied configurations to"
                        (str (io/file rel-cfg-dir detected-config)
