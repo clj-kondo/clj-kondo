@@ -9,7 +9,7 @@ Table of contents:
 - [Hooks](#hooks)
 - [Output](#output)
 - [Example configurations](#example-configurations)
-- [Exporting configuration](#Exporting-configuration)
+- [Exporting and importing configuration](#Exporting-and-importing-configuration)
 - [Deprecations](#deprecations)
 
 ## Introduction
