@@ -169,7 +169,7 @@
   [ctx entry-name source cfg-dir]
   (try
     (let [dirs (str/split entry-name #"/")
-          root (rest (drop-while #(not= "clj_kondo.config" %) dirs))
+          root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
           copied-dir (apply io/file (take 2 root))
           dest (apply io/file cfg-dir root)]
       (swap! (:detected-configs ctx) conj (str copied-dir))
@@ -192,7 +192,7 @@
       (mapv (fn [^JarFile$JarFileEntry entry]
               (let [entry-name (.getName entry)
                     source (slurp (.getInputStream jar entry))]
-                (when (and cfg-dir (str/includes? entry-name "clj_kondo.config"))
+                (when (and cfg-dir (str/includes? entry-name "clj-kondo.exports"))
                   (copy-config-entry ctx entry-name source cfg-dir))
                 {:filename (str (when canonical?
                                   (str (.getCanonicalPath jar-file) ":"))
@@ -210,7 +210,7 @@
   (try
     (let [base-file (str path)
           dirs (str/split base-file file-pat)
-          root (rest (drop-while #(not= "clj_kondo.config" %) dirs))
+          root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
           copied-dir (apply io/file (take 2 root))
           dest (apply io/file cfg-dir root)]
       (swap! (:detected-configs ctx) conj (str copied-dir))
@@ -229,7 +229,7 @@
                        (.getPath file))
                   can-read? (.canRead file)
                   source? (and (.isFile file) (source-file? nm))]
-              (when (and cfg-dir source? (str/includes? path "clj_kondo.config"))
+              (when (and cfg-dir source? (str/includes? path "clj-kondo.exports"))
                 (copy-config-file ctx file cfg-dir))
               (cond
                 (and can-read? source?)
