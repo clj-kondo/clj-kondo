@@ -585,7 +585,7 @@ Copied configurations to .clj-kondo/clj_kondo/claypoole. Consider adding clj_kon
 ```
 
 When configurations are found, instructions are printed how to opt in to those,
-by adding the imported configs to their `:config-paths` in
+namely by adding the imported configs to `:config-paths` in
 `.clj-kondo/config.edn`, like so:
 
 ``` shellsession
