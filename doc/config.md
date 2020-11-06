@@ -579,8 +579,8 @@ Suppose you would have [clj-kondo/config](https://github.com/clj-kondo/config)
 on your classpath and linted like this:
 
 ``` shellsession
-$ clj-kondo --no-warnings --lint "$(clojure -Spath -Sdeps '{:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config" :sha "f1c3f4d07f331cf1721df236749f69dc14462c82"}}}')"
-Copied configurations to .clj-kondo/clj_kondo/claypoole. Consider adding clj_kondo/claypoole to :config-paths in .clj-kondo/config.edn.
+$ clj-kondo --no-warnings --lint "$(clojure -Spath -Sdeps '{:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config" :sha "e2e156c53c6c228fee7242629b41013f3e55051d"}}}')"
+Copied config to .clj-kondo/clj-kondo/claypoole. Consider adding clj-kondo/claypoole to :config-paths in .clj-kondo/config.edn.
 ...
 ```
 

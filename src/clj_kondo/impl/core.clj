@@ -354,7 +354,7 @@
                                    (.relativize (.toPath (.getAbsoluteFile (io/file "."))) (.toPath cfg-dir))
                                    cfg-dir))]
             (doseq [detected-config detected-configs]
-              (println "Copied configurations to"
+              (println "Copied config to"
                        (str (io/file rel-cfg-dir detected-config)
                             ".")
                        "Consider adding" detected-config "to :config-paths in"
