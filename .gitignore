@@ -76,4 +76,4 @@ clj-kondo*.snap
 !corpus/*jar
 lsp
 corpus/config_dir/.cache
-/.clj-kondo/clj_kondo
+/.clj-kondo/clj-kondo
