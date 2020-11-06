@@ -353,17 +353,17 @@
       (parallel-lint ctx @(:sources ctx) dev?))
     (binding [*out* *err*]
       (when-let [detected-configs (distinct @(:detected-configs ctx))]
-        (let [pwd (.toPath (.getAbsoluteFile (io/file ".")))
-              cfg-dir (.toPath (io/file (:config-dir ctx)))
-              rel-cfg-dir (.relativize pwd cfg-dir)]
-          (doseq [detected-config detected-configs]
-            (println "Copied configurations to"
-                     (str (io/file (str (.relativize pwd
-                                                     cfg-dir)) detected-config)
-                          ".")
-                     "Consider adding" detected-config "to :config-paths in"
-                     (.getPath (io/file (str rel-cfg-dir)
-                                        "config.edn.")))))))))
+        (when-let [cfg-dir (io/file (:config-dir ctx))]
+          (let [rel-cfg-dir (if (.isAbsolute cfg-dir)
+                              (.relativize (.toPath (.getAbsoluteFile (io/file "."))) (.toPath cfg-dir))
+                              cfg-dir)]
+            (doseq [detected-config detected-configs]
+              (println "Copied configurations to"
+                       (str (io/file rel-cfg-dir detected-config)
+                            ".")
+                       "Consider adding" detected-config "to :config-paths in"
+                       (.getPath (io/file (str rel-cfg-dir)
+                                          "config.edn."))))))))))
 
 ;;;; index defs and calls by language and namespace
 
