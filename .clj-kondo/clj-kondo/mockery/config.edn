@@ -1,3 +1,0 @@
-{:linters {:mockery {:level :warning}}
- :hooks {:analyze-call {mockery.core/with-mock  hooks.mockery.with-mock/with-mock
-                        mockery.core/with-mocks hooks.mockery.with-mocks/with-mocks}}}

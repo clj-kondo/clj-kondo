@@ -165,10 +165,25 @@
 
 ;;;; jar processing
 
+(defn copy-config-entry
+  [ctx entry-name source cfg-dir]
+  (try
+    (let [dirs (str/split entry-name #"/")
+          dot-clj-kondo-prefix (take-while #(not= ".clj-kondo" %) dirs)
+          dot-clj-kondo-suffix (rest (drop-while #(not= ".clj-kondo" %) dirs))
+          relative-root (str/join "/" dot-clj-kondo-prefix)
+          dest (io/file cfg-dir (str/join "/" (cons relative-root
+                                                    dot-clj-kondo-suffix)))]
+      (swap! (:detected-configs ctx) conj relative-root)
+      (io/make-parents dest)
+      (spit dest source))
+    (catch Exception e (prn (.getMessage e)))))
+
 (defn sources-from-jar
-  [^java.io.File jar-file canonical?]
+  [ctx ^java.io.File jar-file canonical?]
   (with-open [jar (JarFile. jar-file)]
-    (let [entries (enumeration-seq (.entries jar))
+    (let [cfg-dir (:config-dir ctx)
+          entries (enumeration-seq (.entries jar))
           entries (filter (fn [^JarFile$JarFileEntry x]
                             (let [nm (.getName x)]
                               (and (not (.isDirectory x)) (source-file? nm)))) entries)]
@@ -177,18 +192,20 @@
       ;; transducers so we don't have to load the entire source of a jar file in
       ;; memory at once?
       (mapv (fn [^JarFile$JarFileEntry entry]
-              (let [entry-name (.getName entry)]
-                (when (str/includes? entry-name "clj-kondo")
-                  (prn entry-name)) ;; clj-kondo.config/clj-kondo/fulcro/.clj-kondo
+              (let [entry-name (.getName entry)
+                    source (slurp (.getInputStream jar entry))]
+                (when (and cfg-dir (str/includes? entry-name ".clj-kondo"))
+                  (copy-config-entry ctx entry-name source cfg-dir))
                 {:filename (str (when canonical?
                                   (str (.getCanonicalPath jar-file) ":"))
                                 entry-name)
-                 :source (slurp (.getInputStream jar entry))
+                 :source source
                  :group-id jar-file})) entries))))
 
 ;;;; dir processing
 
-(defn copy-config [ctx path cfg-dir]
+(defn copy-config-file
+  [ctx path cfg-dir]
   (try
     (let [base-file (io/file path)
           ^java.io.File dot-clj-kondo (loop [f base-file]
@@ -217,7 +234,7 @@
                   can-read? (.canRead file)
                   source? (and (.isFile file) (source-file? nm))]
               (when (and cfg-dir source? (str/includes? path ".clj-kondo"))
-                (copy-config ctx file cfg-dir))
+                (copy-config-file ctx file cfg-dir))
               (cond
                 (and can-read? source?)
                 {:filename nm
@@ -286,7 +303,7 @@
             ;; process jar file
             (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                              dev?)
-                  (sources-from-jar file canonical?))
+                  (sources-from-jar ctx file canonical?))
             ;; assume normal source file
             (schedule ctx {:filename (if canonical?
                                        (.getCanonicalPath file)

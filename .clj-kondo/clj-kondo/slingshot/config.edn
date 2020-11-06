@@ -1,2 +1,0 @@
-{:hooks
- {:analyze-call {slingshot.slingshot/try+ hooks.slingshot.try-plus/try+}}}
