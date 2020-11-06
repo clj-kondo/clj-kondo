@@ -169,12 +169,10 @@
   [ctx entry-name source cfg-dir]
   (try
     (let [dirs (str/split entry-name #"/")
-          dot-clj-kondo-prefix (take-while #(not= ".clj-kondo" %) dirs)
-          dot-clj-kondo-suffix (rest (drop-while #(not= ".clj-kondo" %) dirs))
-          relative-root (str/join "/" dot-clj-kondo-prefix)
-          dest (io/file cfg-dir (str/join "/" (cons relative-root
-                                                    dot-clj-kondo-suffix)))]
-      (swap! (:detected-configs ctx) conj relative-root)
+          root (rest (drop-while #(not= "clj_kondo.config" %) dirs))
+          copied-dir (apply io/file (take 2 root))
+          dest (apply io/file cfg-dir root)]
+      (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (spit dest source))
     (catch Exception e (prn (.getMessage e)))))
@@ -194,7 +192,7 @@
       (mapv (fn [^JarFile$JarFileEntry entry]
               (let [entry-name (.getName entry)
                     source (slurp (.getInputStream jar entry))]
-                (when (and cfg-dir (str/includes? entry-name ".clj-kondo"))
+                (when (and cfg-dir (str/includes? entry-name "clj_kondo.config"))
                   (copy-config-entry ctx entry-name source cfg-dir))
                 {:filename (str (when canonical?
                                   (str (.getCanonicalPath jar-file) ":"))
