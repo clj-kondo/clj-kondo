@@ -203,7 +203,7 @@
 ;;;; dir processing
 
 (def file-pat
-  (re-pattern (System/getProperty "file.separator")))
+  (re-pattern (str/re-quote-replacement (System/getProperty "file.separator"))))
 
 (defn copy-config-file
   [ctx path cfg-dir]
