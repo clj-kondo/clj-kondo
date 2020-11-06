@@ -132,7 +132,7 @@ entire classpath to teach `clj-kondo` about all the libraries you are using,
 including Clojure and/or ClojureScript itself:
 
 ``` shellsession
-$ clj-kondo --parallel --lint "<classpath>"
+$ clj-kondo --no-warnings --parallel --lint "<classpath>"
 ```
 
 Build tool specific ways to get a classpath:

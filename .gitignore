@@ -66,7 +66,7 @@ flycheck_*.el
 
 
 # End of https://www.gitignore.io/api/emacs,clojure
-clj-kondo
+/clj-kondo
 **/.clj-kondo/.cache
 performance.txt
 clj-kondo*.snap
@@ -76,3 +76,4 @@ clj-kondo*.snap
 !corpus/*jar
 lsp
 corpus/config_dir/.cache
+/.clj-kondo/clj_kondo

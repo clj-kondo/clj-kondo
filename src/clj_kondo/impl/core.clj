@@ -165,10 +165,23 @@
 
 ;;;; jar processing
 
+(defn copy-config-entry
+  [ctx entry-name source cfg-dir]
+  (try
+    (let [dirs (str/split entry-name #"/")
+          root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
+          copied-dir (apply io/file (take 2 root))
+          dest (apply io/file cfg-dir root)]
+      (swap! (:detected-configs ctx) conj (str copied-dir))
+      (io/make-parents dest)
+      (spit dest source))
+    (catch Exception e (prn (.getMessage e)))))
+
 (defn sources-from-jar
-  [^java.io.File jar-file canonical?]
+  [ctx ^java.io.File jar-file canonical?]
   (with-open [jar (JarFile. jar-file)]
-    (let [entries (enumeration-seq (.entries jar))
+    (let [cfg-dir (:config-dir ctx)
+          entries (enumeration-seq (.entries jar))
           entries (filter (fn [^JarFile$JarFileEntry x]
                             (let [nm (.getName x)]
                               (and (not (.isDirectory x)) (source-file? nm)))) entries)]
@@ -177,23 +190,47 @@
       ;; transducers so we don't have to load the entire source of a jar file in
       ;; memory at once?
       (mapv (fn [^JarFile$JarFileEntry entry]
-              {:filename (str (when canonical?
-                                (str (.getCanonicalPath jar-file) ":"))
-                              (.getName entry))
-               :source (slurp (.getInputStream jar entry))
-               :group-id jar-file}) entries))))
+              (let [entry-name (.getName entry)
+                    source (slurp (.getInputStream jar entry))]
+                (when (and cfg-dir (str/includes? entry-name "clj-kondo.exports"))
+                  (copy-config-entry ctx entry-name source cfg-dir))
+                {:filename (str (when canonical?
+                                  (str (.getCanonicalPath jar-file) ":"))
+                                entry-name)
+                 :source source
+                 :group-id jar-file})) entries))))
 
 ;;;; dir processing
 
+(def file-pat
+  (re-pattern (str/re-quote-replacement (System/getProperty "file.separator"))))
+
+(defn copy-config-file
+  [ctx path cfg-dir]
+  (try
+    (let [base-file (str path)
+          dirs (str/split base-file file-pat)
+          root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
+          copied-dir (apply io/file (take 2 root))
+          dest (apply io/file cfg-dir root)]
+      (swap! (:detected-configs ctx) conj (str copied-dir))
+      (io/make-parents dest)
+      (io/copy base-file dest))
+    (catch Exception e (prn (.getMessage e)))))
+
 (defn sources-from-dir
-  [dir canonical?]
-  (let [files (file-seq dir)]
+  [ctx dir canonical?]
+  (let [cfg-dir (:config-dir ctx)
+        files (file-seq dir)]
     (keep (fn [^java.io.File file]
-            (let [nm (if canonical?
+            (let [path (.getPath file)
+                  nm (if canonical?
                        (.getCanonicalPath file)
                        (.getPath file))
                   can-read? (.canRead file)
                   source? (and (.isFile file) (source-file? nm))]
+              (when (and cfg-dir source? (str/includes? path "clj-kondo.exports"))
+                (copy-config-file ctx file cfg-dir))
               (cond
                 (and can-read? source?)
                 {:filename nm
@@ -262,7 +299,7 @@
             ;; process jar file
             (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                              dev?)
-                  (sources-from-jar file canonical?))
+                  (sources-from-jar ctx file canonical?))
             ;; assume normal source file
             (schedule ctx {:filename (if canonical?
                                        (.getCanonicalPath file)
@@ -272,7 +309,7 @@
                       dev?))
           ;; assume directory
           (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
-                (sources-from-dir file canonical?)))
+                (sources-from-dir ctx file canonical?)))
         (= "-" path)
         (schedule ctx {:filename (or filename "<stdin>")
                        :source (slurp *in*)
@@ -305,10 +342,24 @@
                                     :message "Could not process file."})))))
 
 (defn process-files [ctx files default-lang filename]
-  (let [canonical? (-> ctx :config :output :canonical-paths)]
+  (let [ctx (assoc ctx :detected-configs (atom []))
+        canonical? (-> ctx :config :output :canonical-paths)]
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (:parallel ctx)
-      (parallel-lint ctx @(:sources ctx) dev?))))
+      (parallel-lint ctx @(:sources ctx) dev?))
+    (binding [*out* *err*]
+      (when-let [detected-configs (distinct @(:detected-configs ctx))]
+        (when-let [cfg-dir (io/file (:config-dir ctx))]
+          (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
+                                   (.relativize (.toPath (.getAbsoluteFile (io/file "."))) (.toPath cfg-dir))
+                                   cfg-dir))]
+            (doseq [detected-config detected-configs]
+              (println "Copied configurations to"
+                       (str (io/file rel-cfg-dir detected-config)
+                            ".")
+                       "Consider adding" detected-config "to :config-paths in"
+                       (.getPath (io/file (str rel-cfg-dir)
+                                          "config.edn."))))))))))
 
 ;;;; index defs and calls by language and namespace
 

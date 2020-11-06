@@ -47,6 +47,8 @@ Options:
   --run-as-pod: run clj-kondo as a babashka pod
 
   --parallel: lint sources in parallel.
+
+  --no-warnings: don't report warnings. Useful for when populating cache.
 " core-impl/version))
   nil)
 
@@ -64,6 +66,7 @@ Options:
     "--config"     :coll
     "--parallel"   :scalar
     "--filename"   :scalar
+    "--no-warnings" :scalar
     :scalar))
 
 (defn- parse-opts [options]
@@ -104,11 +107,12 @@ Options:
      :parallel (let [[k v] (find opts "--parallel")]
                  (when k
                    (or (nil? v)
-                       (= "true" v))))}))
+                       (= "true" v))))
+     :no-warnings (contains? opts "--no-warnings")}))
 
 (defn main
   [& options]
-  (let [{:keys [:help :lint :version :pod] :as parsed}
+  (let [{:keys [:help :lint :version :pod :no-warnings] :as parsed}
         (parse-opts options)]
     (or (cond version
               (print-version)
@@ -120,7 +124,8 @@ Options:
               :else (let [{:keys [:summary]
                            :as results} (clj-kondo/run! parsed)
                           {:keys [:error :warning]} summary]
-                      (clj-kondo/print! results)
+                      (when-not no-warnings
+                        (clj-kondo/print! results))
                       (cond (pos? error) 3
                             (pos? warning) 2
                             :else 0)))

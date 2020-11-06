@@ -9,6 +9,7 @@ Table of contents:
 - [Hooks](#hooks)
 - [Output](#output)
 - [Example configurations](#example-configurations)
+- [Exporting configuration](#Exporting-configuration)
 - [Deprecations](#deprecations)
 
 ## Introduction
@@ -536,8 +537,67 @@ These are some example configurations used in real projects. Feel free to create
 
 Also see the [config](https://github.com/clj-kondo/config) project.
 
+## Exporting and importing configuration
+
+Libraries can export configuration on the classpath. When a users lints using a
+project classpath, these configurations are automatically detected and imported
+into the `.clj-kondo` directory. To export config, make sure there is a
+directory in your library with the following structure:
+
+``` shellsession
+clj-kondo.exports/<your-org>/<your-libname>
+```
+
+The [clj-kondo/config](https://github.com/clj-kondo/config) repo has
+configurations and hook code for several libraries:
+
+``` shellsession
+$ tree -d -L 3 resources
+resources
+└── clj-kondo.exports
+    └── clj_kondo
+        ├── claypoole
+        ├── fulcro
+        ├── mockery
+        ├── rum
+        └── slingshot
+```
+
+Note that this library uses the org `clj-kondo` to not conflict with
+configurations that the orgs of the libraries themselves might use for exporting
+configuration. If the `claypoole` library itself wanted to export config, the
+structure might have looked like:
+
+``` shellsession
+resources
+└── clj-kondo.exports
+    └── com.climate
+        └── claypoole
+```
+
+Suppose you would have [clj-kondo/config](https://github.com/clj-kondo/config)
+on your classpath and linted like this:
+
+``` shellsession
+$ clj-kondo --no-warnings --lint "$(clojure -Spath -Sdeps '{:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config" :sha "f1c3f4d07f331cf1721df236749f69dc14462c82"}}}')"
+Copied configurations to .clj-kondo/clj_kondo/claypoole. Consider adding clj_kondo/claypoole to :config-paths in .clj-kondo/config.edn.
+...
+```
+
+When configurations are found, instructions are printed how to opt in to those,
+by adding the imported configs to their `:config-paths` in
+`.clj-kondo/config.edn`, like so:
+
+``` shellsession
+{:config-paths ["clj-kondo/claypoole"]}
+```
+
+Imported configurations can be checked into source control, at your convenience.
+
 ## Deprecations
 
-Some configuration keys have been renamed over time. The default configuration is always up-to-date and we strive to mantain backwards compatibility. However, for completeness, you can find a list of the renamed keys here.
+Some configuration keys have been renamed over time. The default configuration
+is always up-to-date and we strive to mantain backwards compatibility. However,
+for completeness, you can find a list of the renamed keys here.
 
 - `:if -> :missing-else-branch`
