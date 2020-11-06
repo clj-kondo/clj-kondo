@@ -566,7 +566,7 @@ resources
 Note that this library uses the org `clj-kondo` to not conflict with
 configurations that the orgs of the libraries themselves might use for exporting
 configuration. If the `claypoole` library itself wanted to export config, the
-structure might have looked like:
+structure might look like:
 
 ``` shellsession
 resources
