@@ -73,7 +73,7 @@
   In places where a file-like value is expected, either a path as string or a
   `java.io.File` may be passed, except for a classpath which must always be a string.
 
-  - `:parallel`: optional. A boolean indicating if sources should be linted in parallel.
+  - `:parallel`: optional. A boolean indicating if sources should be linted in parallel.`
 
   Returns a map with `:findings`, a seqable of finding maps, a
   `:summary` of the findings and the `:config` that was used to
@@ -108,7 +108,8 @@
                           :namespace-usages []
                           :var-definitions []
                           :var-usages []}))
-        ctx {:config config
+        ctx {:config-dir cfg-dir
+             :config config
              :classpath classpath
              :global-config config
              :sources (atom [])

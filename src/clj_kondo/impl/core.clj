@@ -177,23 +177,47 @@
       ;; transducers so we don't have to load the entire source of a jar file in
       ;; memory at once?
       (mapv (fn [^JarFile$JarFileEntry entry]
-              {:filename (str (when canonical?
-                                (str (.getCanonicalPath jar-file) ":"))
-                              (.getName entry))
-               :source (slurp (.getInputStream jar entry))
-               :group-id jar-file}) entries))))
+              (let [entry-name (.getName entry)]
+                (when (str/includes? entry-name "clj-kondo")
+                  (prn entry-name)) ;; clj-kondo.config/clj-kondo/fulcro/.clj-kondo
+                {:filename (str (when canonical?
+                                  (str (.getCanonicalPath jar-file) ":"))
+                                entry-name)
+                 :source (slurp (.getInputStream jar entry))
+                 :group-id jar-file})) entries))))
 
 ;;;; dir processing
 
+(defn copy-config [ctx path cfg-dir]
+  (try
+    (let [base-file (io/file path)
+          ^java.io.File dot-clj-kondo (loop [f base-file]
+                                        (when-let [parent (.getParentFile f)]
+                                          (if (= ".clj-kondo" (.getName parent))
+                                            parent
+                                            (recur parent))))
+          dot-clj-kondo-parent (.getParentFile dot-clj-kondo)
+          root (.getParentFile (.getParentFile dot-clj-kondo-parent))
+          relative-root (str (.relativize (.toPath root) (.toPath dot-clj-kondo-parent)))
+          dest (io/file cfg-dir relative-root (.getName base-file))]
+      (swap! (:detected-configs ctx) conj relative-root)
+      (io/make-parents dest)
+      (io/copy base-file dest))
+    (catch Exception e (prn (.getMessage e)))))
+
 (defn sources-from-dir
-  [dir canonical?]
-  (let [files (file-seq dir)]
+  [ctx dir canonical?]
+  (let [cfg-dir (:config-dir ctx)
+        files (file-seq dir)]
     (keep (fn [^java.io.File file]
-            (let [nm (if canonical?
+            (let [path (.getPath file)
+                  nm (if canonical?
                        (.getCanonicalPath file)
                        (.getPath file))
                   can-read? (.canRead file)
                   source? (and (.isFile file) (source-file? nm))]
+              (when (and cfg-dir source? (str/includes? path ".clj-kondo"))
+                (copy-config ctx file cfg-dir))
               (cond
                 (and can-read? source?)
                 {:filename nm
@@ -272,7 +296,7 @@
                       dev?))
           ;; assume directory
           (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
-                (sources-from-dir file canonical?)))
+                (sources-from-dir ctx file canonical?)))
         (= "-" path)
         (schedule ctx {:filename (or filename "<stdin>")
                        :source (slurp *in*)
@@ -305,10 +329,24 @@
                                     :message "Could not process file."})))))
 
 (defn process-files [ctx files default-lang filename]
-  (let [canonical? (-> ctx :config :output :canonical-paths)]
+  (let [ctx (assoc ctx :detected-configs (atom []))
+        canonical? (-> ctx :config :output :canonical-paths)]
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (:parallel ctx)
-      (parallel-lint ctx @(:sources ctx) dev?))))
+      (parallel-lint ctx @(:sources ctx) dev?))
+    (binding [*out* *err*]
+      (when-let [detected-configs (distinct @(:detected-configs ctx))]
+        (let [pwd (.toPath (.getAbsoluteFile (io/file ".")))
+              cfg-dir (.toPath (io/file (:config-dir ctx)))
+              rel-cfg-dir (.relativize pwd cfg-dir)]
+          (doseq [detected-config detected-configs]
+            (println "Copied configurations to"
+                     (str (io/file (str (.relativize pwd
+                                                     cfg-dir)) detected-config)
+                          ".")
+                     "Consider adding" detected-config "to :config-paths in"
+                     (.getPath (io/file (str rel-cfg-dir)
+                                        "config.edn.")))))))))
 
 ;;;; index defs and calls by language and namespace
 
