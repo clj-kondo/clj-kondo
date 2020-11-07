@@ -15,8 +15,11 @@ for sponsoring this release.
 ### New
 
 - Lint deps.edn [#945](https://github.com/borkdude/clj-kondo/issues/945)
+- `--filename` option to set filename when linting from stdin. This should be
+  used for editor plugins to enable `deps.edn` linting.
 - Export and import config via classpath [#559](https://github.com/borkdude/clj-kondo/issues/559), [clj-kondo/confi
 g#1](https://github.com/clj-kondo/config/issues/1)
+- `--no-warnings` flag to indicate linting is used to populate cache.
 - Skip already linted jars [#705](https://github.com/borkdude/clj-kondo/issues/705)
 - Implement `:include` option for shadowed-var linter [#1040](https://github.com/borkdude/clj-kondo/issues/1040)
 - Return `:files` count in summary [#1046](https://github.com/borkdude/clj-kondo/issues/1046)
