@@ -135,6 +135,12 @@ including Clojure and/or ClojureScript itself:
 $ clj-kondo --no-warnings --parallel --lint "<classpath>"
 ```
 
+The `--no-warnings` flag indicates that clj-kondo is used to analyze sources to
+populate the cache. When enabled, clj-kondo will suppress warnings, skips over
+already linted `.jar` files and copies configuration from dependencies into the
+`.clj-kondo` directory (see
+[config.md](doc/config.md#exporting-and-importing-configuration)).
+
 Build tool specific ways to get a classpath:
 - `lein classpath`
 - `boot with-cp -w -f -`

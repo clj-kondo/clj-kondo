@@ -593,8 +593,11 @@ namely by adding the imported configs to `:config-paths` in
 ```
 
 Imported configurations can be checked into source control, at your convenience.
-Note that when there is no `.clj-kondo` directory, no configurations will be
-copied over.
+
+Note: configuration is only copied when all of these requirements are met:
+
+- There is a `.clj-kondo` directory that can be used as a target.
+- The `--no-warnings` flag is used to indicate that clj-kondo is used to populate the cache.
 
 ## Deprecations
 
