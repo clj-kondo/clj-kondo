@@ -87,7 +87,8 @@
            :cache-dir
            :config
            :config-dir
-           :parallel]
+           :parallel
+           :no-warnings]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir (or (when config-dir
@@ -108,7 +109,8 @@
                           :namespace-usages []
                           :var-definitions []
                           :var-usages []}))
-        ctx {:config-dir cfg-dir
+        ctx {:no-warnings no-warnings
+             :config-dir cfg-dir
              :config config
              :classpath classpath
              :global-config config

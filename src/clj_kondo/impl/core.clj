@@ -289,6 +289,10 @@
     (swap! (:sources ctx) conj m)
     (ana/analyze-input ctx filename source lang dev?)))
 
+(defn stderr [& msgs]
+  (binding [*out* *err*]
+    (apply println msgs)))
+
 (defn process-file [ctx path default-language canonical? filename]
   (try
     (let [file (io/file path)]
@@ -297,9 +301,15 @@
         (if (.isFile file)
           (if (str/ends-with? (.getPath file) ".jar")
             ;; process jar file
-            (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
-                             dev?)
-                  (sources-from-jar ctx file canonical?))
+            (let [jar-name (.getName file)
+                  cache-dir (:cache-dir ctx)]
+              (if-not (and cache-dir (:no-warnings ctx)
+                           (.exists (io/file cache-dir "skip" jar-name)))
+                (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
+                                     dev?)
+                          (sources-from-jar ctx file canonical?))
+                    (update ctx :mark-linted swap! conj jar-name))
+                (stderr jar-name "was already linted, skipping")))
             ;; assume normal source file
             (schedule ctx {:filename (if canonical?
                                        (.getCanonicalPath file)
@@ -342,11 +352,18 @@
                                     :message "Could not process file."})))))
 
 (defn process-files [ctx files default-lang filename]
-  (let [ctx (assoc ctx :detected-configs (atom []))
+  (let [cache-dir (:cache-dir ctx)
+        ctx (assoc ctx :detected-configs (atom [])
+                       :mark-linted (atom []))
         canonical? (-> ctx :config :output :canonical-paths)]
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (:parallel ctx)
       (parallel-lint ctx @(:sources ctx) dev?))
+    (when (and cache-dir (:no-warnings ctx))
+      (doseq [mark @(:mark-linted ctx)]
+        (let [skip-file (io/file cache-dir "skip" mark)]
+          (io/make-parents skip-file)
+          (spit skip-file ""))))
     (binding [*out* *err*]
       (when-let [detected-configs (distinct @(:detected-configs ctx))]
         (when-let [cfg-dir (io/file (:config-dir ctx))]
