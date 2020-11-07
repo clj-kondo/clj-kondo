@@ -53,6 +53,7 @@ Clj-kondo detects:
 * Datalog syntax checking
 * format string argument mismatches
 * shadowed vars
+* common deps.edn mistakes
 
 before your form hits the REPL.
 
