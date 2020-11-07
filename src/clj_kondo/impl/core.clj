@@ -302,14 +302,16 @@
           (if (str/ends-with? (.getPath file) ".jar")
             ;; process jar file
             (let [jar-name (.getName file)
-                  cache-dir (:cache-dir ctx)]
+                  cache-dir (:cache-dir ctx)
+                  skip-entry (when cache-dir (io/file cache-dir "skip" jar-name))]
               (if-not (and cache-dir (:no-warnings ctx)
                            (not (str/includes? jar-name "SNAPSHOT"))
-                           (.exists (io/file cache-dir "skip" jar-name)))
+                           (.exists skip-entry)
+                           (= path (slurp skip-entry)))
                 (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                                      dev?)
                           (sources-from-jar ctx file canonical?))
-                    (update ctx :mark-linted swap! conj jar-name))
+                    (update ctx :mark-linted swap! conj [jar-name path]))
                 (stderr jar-name "was already linted, skipping")))
             ;; assume normal source file
             (schedule ctx {:filename (if canonical?
@@ -361,10 +363,10 @@
     (when (:parallel ctx)
       (parallel-lint ctx @(:sources ctx) dev?))
     (when (and cache-dir (:no-warnings ctx))
-      (doseq [mark @(:mark-linted ctx)]
+      (doseq [[mark path] @(:mark-linted ctx)]
         (let [skip-file (io/file cache-dir "skip" mark)]
           (io/make-parents skip-file)
-          (spit skip-file ""))))
+          (spit skip-file path))))
     (binding [*out* *err*]
       (when-let [detected-configs (distinct @(:detected-configs ctx))]
         (when-let [cfg-dir (io/file (:config-dir ctx))]
