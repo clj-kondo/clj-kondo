@@ -73,7 +73,7 @@ clj-kondo*.snap
 .planck_cache
 
 .DS_Store
-!corpus/*jar
+!corpus/**/*.jar
 lsp
 corpus/config_dir/.cache
 /.clj-kondo/clj-kondo

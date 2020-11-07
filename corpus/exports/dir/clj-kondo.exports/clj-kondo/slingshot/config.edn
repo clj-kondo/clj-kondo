@@ -1,0 +1,2 @@
+{:hooks
+ {:analyze-call {slingshot.slingshot/try+ clj-kondo.slingshot.try-plus/try+}}}
