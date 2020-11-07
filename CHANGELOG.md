@@ -2,6 +2,35 @@
 
 For a list of breaking changes, check [here](#breaking-changes)
 
+## v2020.11.07
+
+Thanks [@bennyandresen](https://github.com/bennyandresen),
+[@jaihindhreddy](https://github.com/jaihindhreddy),
+[@mharju](https://github.com/mharju), [@pepijn](https://github.com/pepijn),
+[@slipset](https://github.com/slipset) and
+[@nvuillam](https://github.com/nvuillam) for contributing to this
+release. Thanks to [Clojurists Together](https://www.clojuriststogether.org/)
+for sponsoring this release.
+
+### New
+
+- Lint deps.edn [#945](https://github.com/borkdude/clj-kondo/issues/945)
+- Export and import config via classpath [#559](https://github.com/borkdude/clj-kondo/issues/559), [clj-kondo/confi
+g#1](https://github.com/clj-kondo/config/issues/1)
+- Skip already linted jars [#705](https://github.com/borkdude/clj-kondo/issues/705)
+- Implement `:include` option for shadowed-var linter [#1040](https://github.com/borkdude/clj-kondo/issues/1040)
+- Return `:files` count in summary [#1046](https://github.com/borkdude/clj-kondo/issues/1046)
+
+### Enhanced
+
+- Better resolving of vars referred with `:all`
+  [#1010](https://github.com/borkdude/clj-kondo/issues/1010)
+- Fix false positive with `format` [#1044](https://github.com/borkdude/clj-kondo/issues/1044)
+- Fix index out of bounds exception
+  [clj-kondo.lsp#11](https://github.com/borkdude/clj-kondo.lsp/issues/11)
+- More robust marking of generated nodes to avoid redundant dos and lets despite
+  location metadata [#1059](https://github.com/borkdude/clj-kondo/issues/1059)
+
 ## v2020.10.10
 
 Thanks [@zilti](https://github.com/zilti), [@dharrigan](https://github.com/dharrigan) and [@sogaiu](https://github.com/sogaiu) for contributing to this release. Thanks to [Clojurists Together](https://www.clojuriststogether.org/) for sponsoring this release.
