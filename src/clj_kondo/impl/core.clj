@@ -304,6 +304,7 @@
             (let [jar-name (.getName file)
                   cache-dir (:cache-dir ctx)]
               (if-not (and cache-dir (:no-warnings ctx)
+                           (not (str/includes? jar-name "SNAPSHOT"))
                            (.exists (io/file cache-dir "skip" jar-name)))
                 (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                                      dev?)
