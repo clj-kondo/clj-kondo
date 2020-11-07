@@ -10,7 +10,8 @@
                           (into-array java.nio.file.attribute.FileAttribute [])))]
     (binding [*err* (java.io.StringWriter.)]
       (clj-kondo/run! {:lint [(io/file "corpus" "exports" "clj-kondo.config.jar")]
-                       :config-dir tmp-dir}))
+                       :config-dir tmp-dir
+                       :no-warnings true}))
     (is (.exists (io/file tmp-dir "clj-kondo" "slingshot")))))
 
 (deftest copy-config-from-dir
@@ -19,5 +20,6 @@
                           (into-array java.nio.file.attribute.FileAttribute [])))]
     (binding [*err* (java.io.StringWriter.)]
       (clj-kondo/run! {:lint [(io/file "corpus" "exports" "dir")]
-                       :config-dir tmp-dir}))
+                       :config-dir tmp-dir
+                       :no-warnings true}))
     (is (.exists (io/file tmp-dir "clj-kondo" "slingshot")))))

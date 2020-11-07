@@ -192,7 +192,8 @@
       (mapv (fn [^JarFile$JarFileEntry entry]
               (let [entry-name (.getName entry)
                     source (slurp (.getInputStream jar entry))]
-                (when (and cfg-dir (str/includes? entry-name "clj-kondo.exports"))
+                (when (and cfg-dir (:no-warnings ctx)
+                           (str/includes? entry-name "clj-kondo.exports"))
                   (copy-config-entry ctx entry-name source cfg-dir))
                 {:filename (str (when canonical?
                                   (str (.getCanonicalPath jar-file) ":"))
@@ -229,7 +230,9 @@
                        (.getPath file))
                   can-read? (.canRead file)
                   source? (and (.isFile file) (source-file? nm))]
-              (when (and cfg-dir source? (str/includes? path "clj-kondo.exports"))
+              (when (and cfg-dir source?
+                         (:no-warnings ctx)
+                         (str/includes? path "clj-kondo.exports"))
                 (copy-config-file ctx file cfg-dir))
               (cond
                 (and can-read? source?)
