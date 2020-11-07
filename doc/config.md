@@ -593,6 +593,8 @@ namely by adding the imported configs to `:config-paths` in
 ```
 
 Imported configurations can be checked into source control, at your convenience.
+Note that when there is no `.clj-kondo` directory, no configurations will be
+copied over.
 
 ## Deprecations
 
