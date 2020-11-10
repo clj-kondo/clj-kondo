@@ -70,7 +70,8 @@
                  (throw (Exception.
                          (str "Clj-kondo cache is locked by other thread or process.")))
                  (do (Thread/sleep backoff#)
-                     (recur (inc retry# (* 2 backoff#))))))))))))
+                     (recur (inc retry#)
+                            (* 2 backoff#)))))))))))
 
 (defn load-when-missing [idacs cache-dir lang ns-sym]
   (if (string? (-> ns-sym meta :raw-name))
