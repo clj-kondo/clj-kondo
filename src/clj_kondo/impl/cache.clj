@@ -47,8 +47,8 @@
 
 (defmacro with-cache
   "Tries to lock cache in the scope of `body`. Retries `max-retries`
-  times while sleeping 250ms in between. If not succeeded after
-  retries, throws `Exception`."
+  times while sleeping (2^retry)*25 ms in between. If not succeeded
+  after retries, throws `Exception`."
   [cache-dir max-retries & body]
   `(let [cache-dir# ~cache-dir]
      (if-not cache-dir#
@@ -57,7 +57,8 @@
          (io/make-parents lock-file#)
          (with-open [raf# (RandomAccessFile. lock-file# "rw")
                      channel# (.getChannel raf#)]
-           (loop [retry# 0]
+           (loop [retry# 0
+                  backoff# 25]
              (if-let [lock#
                       (try (.tryLock channel#)
                            (catch java.nio.channels.OverlappingFileLockException _#
@@ -65,12 +66,11 @@
                (try
                  ~@body
                  (finally (.release ^java.nio.channels.FileLock lock#)))
-               (do
-                 (Thread/sleep 250)
-                 (if (= retry# ~max-retries)
-                   (throw (Exception.
-                           (str "Clj-kondo cache is locked by other process.")))
-                   (recur (inc retry#)))))))))))
+               (if (= retry# ~max-retries)
+                 (throw (Exception.
+                         (str "Clj-kondo cache is locked by other thread or process.")))
+                 (do (Thread/sleep backoff#)
+                     (recur (inc retry# (* 2 backoff#))))))))))))
 
 (defn load-when-missing [idacs cache-dir lang ns-sym]
   (if (string? (-> ns-sym meta :raw-name))
