@@ -278,6 +278,22 @@ Example trigger: `{:a 1 :a 2}`
 
 Example message: `duplicate key :a`.
 
+#### Duplicate require
+
+Keyword: `:duplicate-require`.
+
+Description: warns on namespace that has been required more than once within a namespace.
+
+Example trigger:
+
+``` clojure
+(ns foo
+  (:require [clojure.string :as str]
+            [clojure.string :as str]))
+```
+
+Example message: `duplicate require of clojure.string`
+
 #### Duplicate set key
 
 Keyword: `:duplicate-set-key`.
