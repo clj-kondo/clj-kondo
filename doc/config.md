@@ -171,6 +171,18 @@ Example trigger: `(cond (odd? (rand-int 10)) :foo :default :bar)`.
 
 Example message: use :else as the catch-all test expression in cond.
 
+#### File
+
+Keyword: `:file`.
+
+Description: warn on error while reading file.
+
+Default level: `:error`.
+
+Example trigger: `clj-kondo --lint foo.clje`.
+
+Example message: `file does not exist`.
+
 #### Inline def
 
 Keyword: `:inline-def`.
