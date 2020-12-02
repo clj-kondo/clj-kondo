@@ -341,8 +341,30 @@ Example trigger: `(inc)`.
 
 Example message: `clojure.core/inc is called with 0 args but expects 1`.
 
-Config: `:skip-args [my-dsl/foo]`. This will disable this linter inside calls to
-`my-dsl/foo` such as `(my-dsl/foo (inc) (dec))`.
+Config:
+
+Some macros rewrite their arguments and therefore can cause false positive arity
+errors. Imagine the following silly macro:
+
+``` clojure
+(ns silly-macros)
+
+(defmacro with-map [m [fn & args]]
+  `(~fn ~m ~@args))
+```
+
+which you can call like:
+
+``` clojure
+(silly-macros/with-map {:a 1 :d 2} (select-keys [:a :b :c])) ;;=> {:a 1}
+```
+
+Normally a call to this macro will give an invalid arity error for `(select-keys
+[:a :b :c])`, but not when you use the following configuration:
+
+``` clojure
+{:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
+```
 
 #### Misplaced docstring
 
@@ -772,31 +794,6 @@ Example message: `use :require with alias or :refer`.
   {:clj-kondo/config '{:linters {:unresolved-namespace {:exclude [criterium.core]}}}})
 
 (criterium.core/quick-bench [])
-```
-
-### Exclude arity linting inside a specific macro call
-
-Some macros rewrite their arguments and therefore can cause false positive arity
-errors. Imagine the following silly macro:
-
-``` clojure
-(ns silly-macros)
-
-(defmacro with-map [m [fn & args]]
-  `(~fn ~m ~@args))
-```
-
-which you can call like:
-
-``` clojure
-(silly-macros/with-map {:a 1 :d 2} (select-keys [:a :b :c])) ;;=> {:a 1}
-```
-
-Normally a call to this macro will give an invalid arity error for `(select-keys
-[:a :b :c])`, but not when you use the following configuration:
-
-``` clojure
-{:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
 
 ### Alias consistency
