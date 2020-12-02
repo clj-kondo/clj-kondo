@@ -159,6 +159,18 @@ When you have custom `def` or `defn`-like macros and you can't find a supported 
 
 ### Available linters
 
+#### Inline def
+
+Keyword: `:inline-def`.
+
+Description: warn on non-toplevel usage of `def` (and `defn`, etc.).
+
+Default level: `:warning`.
+
+Example trigger: `(defn foo [] (def x 1))`.
+
+Example message: inline def.
+
 #### Invalid arity
 
 Keyword: `:invalid-arity`.
@@ -168,7 +180,7 @@ arguments.
 
 Default level: `:error`.
 
-Example trigger: `(inc)`
+Example trigger: `(inc)`.
 
 Example message: clojure.core/inc is called with 0 args but expects 1.
 
