@@ -271,6 +271,18 @@ Example message: clojure.core/inc is called with 0 args but expects 1.
 Config: `:skip-args [my-dsl/foo]`. This will disable this linter inside calls to
 `my-dsl/foo` such as `(my-dsl/foo (inc) (dec))`.
 
+#### Misplaced docstring
+
+Keyword: `:misplaced-docstring`.
+
+Description: warn when docstring appears after argument vector instead of before.
+
+Default level: `:warning`.
+
+Example trigger: `(defn foo [] "cool fn" 1)`.
+
+Example message: `Misplaced docstring.`
+
 #### Missing map value
 
 Keyword: `:missing-map-value`.
