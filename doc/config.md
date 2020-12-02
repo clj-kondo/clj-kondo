@@ -200,6 +200,16 @@ Example trigger: `{:a 1 :a 2}`
 
 Example message: `duplicate key :a`.
 
+#### Duplicate set key
+
+Keyword: `:duplicate-set-key`.
+
+Description: similar to `:duplicate-map-key` but for sets.
+
+Example trigger: `#{:a :a}`
+
+Example message: `duplicate set element :a`.
+
 #### File
 
 Keyword: `:file`.
