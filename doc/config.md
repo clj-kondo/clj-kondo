@@ -188,6 +188,18 @@ Example trigger:
 
 Example message: `Conflicting alias for clojure.spec.alpha`.
 
+#### Duplicate map key
+
+Keyword: `:duplicate-map-key`.
+
+Description: warn on duplicate key in map.
+
+Default level: `:error`.
+
+Example trigger: `{:a 1 :a 2}`
+
+Example message: `duplicate key :a`.
+
 #### File
 
 Keyword: `:file`.
