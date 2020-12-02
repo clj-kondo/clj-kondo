@@ -658,6 +658,28 @@ A regex is also supported:
 
 This will exclude all namespaces ending with `.specs`.
 
+#### Unused referred var
+
+Keyword: `:unused-referred-var`.
+
+Description: warns about unused referred vars.
+
+Default level: `:warning`.
+
+Example trigger: `(ns foo (:require [clojure.set :refer [union]]))`.
+
+Example message: `#'clojure.set/union is referred but never used`.
+
+Config:
+
+Imagine you want to have `taoensso.timbre/debug` available in all of your
+namespaces. Even when you don't use it, you don't want to get a warning about
+it. That can be done as follows:
+
+``` clojure
+{:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
+```
+
 ### Exclude unresolved namespaces from being reported
 
 ``` clojure
@@ -690,16 +712,6 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 ``` clojure
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
-```
-
-### Exclude unused referred vars from being reported.
-
-Imagine you want to have `taoensso.timbre/debug` available in all of your
-namespaces. Even when you don't use it, you don't want to get a warning about
-it. That can be done as follows:
-
-``` clojure
-{:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
 ```
 
 ### Exclude unused private vars from being reported
