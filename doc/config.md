@@ -356,6 +356,18 @@ Example trigger: `(defn foo [] "cool fn" 1)`.
 
 Example message: `Misplaced docstring.`
 
+#### Missing else branch
+
+Keyword: `:missing-else-branch`.
+
+Description: warns about missing else branch in `if` expression.
+
+Default level: `:warning`.
+
+Example trigger: `(if :foo :bar)`.
+
+Example message: `Missing else branch..`
+
 #### Missing map value
 
 Keyword: `:missing-map-value`.
@@ -476,6 +488,18 @@ Default level: `:off`.
 Example trigger: `(ns foo (:require [clojure.set :refer [union]]))`.
 
 Example warning: `require with :refer`.
+
+#### Refer all
+
+Keyword: `:refer-all`
+
+Description: warns when `:refer :all` is used.
+
+Default level: `:warning`.
+
+Example trigger: `(ns foo (:require [clojure.set :refer :all]))`.
+
+Example warning: `use alias or :refer`.
 
 #### Syntax
 
@@ -728,6 +752,18 @@ it. That can be done as follows:
 ``` clojure
 {:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
 ```
+
+#### Use
+
+Keyword: `:use`.
+
+Description: warns about `:use` or `use`.
+
+Default level: `:warning`.
+
+Example trigger: `(ns foo (:use [clojure.set]))`.
+
+Example message: `use :require with alias or :refer`.
 
 ### Exclude unresolved namespaces from being reported
 
