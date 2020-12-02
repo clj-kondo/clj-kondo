@@ -363,6 +363,18 @@ Mismatched bracket: found an opening [ and a closing ) on line 1
 Mismatched bracket: found an opening [ on line 1 and a closing )
 ```
 
+#### Unreachable code
+
+Keyword: `:unreachable-code`.
+
+Description: warn on unreachable code.
+
+Default level: `:warning`.
+
+Example trigger: `(cond :else 1 (odd? 1) 2)`.
+
+Example message: `unreachabl code`.
+
 #### Unresolved symbol
 
 Keyword: `:unresolved-symbol`.
