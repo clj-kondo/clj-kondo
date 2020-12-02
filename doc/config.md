@@ -159,6 +159,18 @@ When you have custom `def` or `defn`-like macros and you can't find a supported 
 
 ### Available linters
 
+#### Cond-else
+
+Keyword: `:cond-else`.
+
+Description: warn on `cond` with a different constant for the else branch than `:else`.
+
+Default level: `:warning`.
+
+Example trigger: `(cond (odd? (rand-int 10)) :foo :default :bar)`.
+
+Example message: use :else as the catch-all test expression in cond.
+
 #### Inline def
 
 Keyword: `:inline-def`.
