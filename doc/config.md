@@ -445,7 +445,7 @@ Keyword: `:redundant-do`.
 Description: warn on usage of do that is redundant. The warning usually arises
 because of an explicit or implicit do as the direct parent s-expression.
 
-Default level: `warning`.
+Default level: `:warning`.
 
 Example trigger: `(defn foo [] (do 1))`.
 
@@ -458,13 +458,26 @@ Keyword: `:redundant-let`.
 Description: warn on usage of let that is redundant. The warning usually arises
 because directly nested lets.
 
-Default level: `warning`.
+Default level: `:warning`.
 
 Example trigger: `(let [x 1] (let [y 2] (+ x y)))`.
 
 Example message: Redundant let expression.
 
-### Syntax
+#### Refer
+
+Keyword: `:refer`
+
+Description: warns when `:refer` is used. This can be used when one wants to
+enforce usage of aliases.
+
+Default level: `:off`.
+
+Example trigger: `(ns foo (:require [clojure.set :refer [union]]))`.
+
+Example warning: `require with :refer`.
+
+#### Syntax
 
 Keyword: `:syntax`.
 
