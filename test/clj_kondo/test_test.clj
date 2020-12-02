@@ -67,15 +67,3 @@
    (lint! (io/file "corpus" "clojure.test.are.cljc")
           {:linters {:unresolved-symbol {:level :error}
                      :unused-binding {:level :warning}}})))
-
-#_(deftest constant-test-assertion-test
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 42, :level :warning, :message "Test assertion with only constants."})
-   (lint! "(ns foo (:require [clojure.test :as t])) (t/is 1 2)")))
-
-;; TODO: in different issue
-#_(deftest do-template-test
-  (is (empty? (lint! "(require '[clojure.template :as tmpl])
-                      (tmpl/do-template [a b] (def a b) d 1, e 2, f 3)"
-                     {:linters {:unresolved-symbol {:level :error}
-                                :unused-binding {:level :warning}}}))))

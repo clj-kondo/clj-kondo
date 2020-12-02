@@ -188,7 +188,6 @@ Example trigger:
 
 Example message: `Conflicting alias for clojure.spec.alpha`.
 
-
 #### File
 
 Keyword: `:file`.
