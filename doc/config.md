@@ -169,7 +169,7 @@ Default level: `:warning`.
 
 Example trigger: `(cond (odd? (rand-int 10)) :foo :default :bar)`.
 
-Example message: use :else as the catch-all test expression in cond.
+Example message: `use :else as the catch-all test expression in cond`.
 
 #### Conflicting-alias
 
@@ -326,7 +326,7 @@ Default level: `:warning`.
 
 Example trigger: `(defn foo [] (def x 1))`.
 
-Example message: inline def.
+Example message: `inline def`.
 
 #### Invalid arity
 
