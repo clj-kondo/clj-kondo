@@ -250,6 +250,19 @@ Example message: clojure.core/inc is called with 0 args but expects 1.
 Config: `:skip-args [my-dsl/foo]`. This will disable this linter inside calls to
 `my-dsl/foo` such as `(my-dsl/foo (inc) (dec))`.
 
+#### Missing map value
+
+Keyword: `:missing-map-value`.
+
+Description: warn on key with uneven amount of elements, i.e. one of the keys
+misses a value.
+
+Default level: `:error`.
+
+Example trigger: `{:a 1 :b}`
+
+Example message: `missing value for key :b`.
+
 #### Missing test assertion
 
 Keyword: `:missing-test-assertion`.
