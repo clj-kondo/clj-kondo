@@ -540,6 +540,43 @@ Example trigger: `(ns foo (:require b a))`.
 
 Example message: `Unsorted namespace: a`.
 
+#### Unused namespace
+
+Keyword: `:unused-namespace`.
+
+Description: warns on required but unused namespace.
+
+Default level: `:warning`.
+
+Example trigger: `(ns foo (:require [bar :as b]))`.
+
+Example message: `namespace bar is required but never used`.
+
+Config:
+
+Given this example:
+
+``` clojure
+(ns foo (:require [foo.specs :as specs]))
+```
+
+you will get a warning about `foo.specs` being unused.
+
+To suppress this, you can either leave out the alias `specs` if it isn't used
+anywhere in the namespace or use this config:
+
+``` clojure
+{:linters {:unused-namespace {:exclude [foo.specs]}}}
+```
+
+A regex is also supported:
+
+``` clojure
+{:linters {:unused-namespace {:exclude [".*\\.specs$"]}}}
+```
+
+This will exclude all namespaces ending with `.specs`.
+
 ### Exclude unresolved namespaces from being reported
 
 ``` clojure
@@ -573,29 +610,6 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 ``` clojure
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
-
-### Exclude required but unused namespace from being reported
-
-In the following code, the namespaces `foo.specs` and `bar.specs` are only loaded for the side effect of registering specs, so we don't like clj-kondo reporting those namespaces as required but unused.
-
-``` clojure
-(ns foo (:require [foo.specs] [bar.specs]))
-(defn my-fn [x] x)
-```
-
-That can be done using this config:
-
-``` clojure
-{:linters {:unused-namespace {:exclude [foo.specs bar.specs]}}}
-```
-
-A regex is also supported:
-
-``` clojure
-{:linters {:unused-namespace {:exclude [".*\\.specs$"]}}}
-```
-
-This will exclude all namespaces ending with `.specs`.
 
 ### Exclude unused referred vars from being reported.
 
