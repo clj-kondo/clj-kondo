@@ -211,6 +211,23 @@ Example message: clojure.core/inc is called with 0 args but expects 1.
 Config: `:skip-args [my-dsl/foo]`. This will disable this linter inside calls to
 `my-dsl/foo` such as `(my-dsl/foo (inc) (dec))`.
 
+#### Missing test assertion
+
+Keyword: `:missing-test-assertion`.
+
+Description: warn on `deftest` expression without test assertion.
+
+Default level: `:warning`.
+
+Example trigger:
+
+``` clojure
+(require '[clojure.test :as test])
+(test/deftest foo (pos? 1))
+```
+
+Example message: `missing test assertion`.
+
 #### Private call
 
 Keyword `:private-call`.
