@@ -215,6 +215,32 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 (foo/f)
 ```
 
+#### Redundant do
+
+Keyword: `:redundant-do`.
+
+Description: warn on usage of do that is redundant. The warning usually arises
+because of an explicit or implicit do as the direct parent s-expression.
+
+Default level: `warning`.
+
+Example trigger: `(defn foo [] (do 1))`.
+
+Example message: redundant do.
+
+#### Redundant let
+
+Keyword: `:redundant-let`.
+
+Description: warn on usage of let that is redundant. The warning usually arises
+because directly nested lets.
+
+Default level: `warning`.
+
+Example trigger: `(let [x 1] (let [y 2] (+ x y)))`.
+
+Example message: Redundant let expression.
+
 #### Unresolved symbol
 
 Keyword: `:unresolved-symbol`.
