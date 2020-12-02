@@ -313,6 +313,18 @@ Example trigger:
 
 Example message: `missing test assertion`.
 
+#### Not empty?
+
+Keyword: `:not-empty?`
+
+Description: warn on `(not (empty? ...))` idiom. According to the docstring of `empty?` `seq` is prefered.
+
+Default level: `:warning`.
+
+Example trigger: `(not (empty? []))`
+
+Example message: `use the idiom (seq x) rather than (not (empty? x))`.
+
 #### Private call
 
 Keyword `:private-call`.
