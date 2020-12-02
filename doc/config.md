@@ -592,7 +592,7 @@ Default level: `:error`.
 
 Example trigger: `x`.
 
-Example message: unresolved symbol x.
+Example message: `unresolved symbol x`.
 
 Config:
 
