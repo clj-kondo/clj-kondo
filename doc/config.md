@@ -448,7 +448,7 @@ Default level: `:warning`.
 
 Example trigger: `(cond :else 1 (odd? 1) 2)`.
 
-Example message: `unreachabl code`.
+Example message: `unreachable code`.
 
 #### Unresolved symbol
 
@@ -527,6 +527,18 @@ and helps preventing false positive unresolved symbols in this code:
 (let-programs [clj-kondo "./clj-kondo"]
   ,,,)
 ```
+
+#### Unsorted required namespace
+
+Keyword: `:unsorted-required-namespace`.
+
+Description: warns on non-alphabetically sorted libspecs in `ns` and `require` forms.
+
+Default level: `:off`.
+
+Example trigger: `(ns foo (:require b a))`.
+
+Example message: `Unsorted namespace: a`.
 
 ### Exclude unresolved namespaces from being reported
 
