@@ -339,7 +339,7 @@ Default level: `:error`.
 
 Example trigger: `(inc)`.
 
-Example message: clojure.core/inc is called with 0 args but expects 1.
+Example message: `clojure.core/inc is called with 0 args but expects 1`.
 
 Config: `:skip-args [my-dsl/foo]`. This will disable this linter inside calls to
 `my-dsl/foo` such as `(my-dsl/foo (inc) (dec))`.
