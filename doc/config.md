@@ -171,6 +171,24 @@ Example trigger: `(cond (odd? (rand-int 10)) :foo :default :bar)`.
 
 Example message: use :else as the catch-all test expression in cond.
 
+#### Conflicting-alias
+
+Keyword: `:conflicting-alias`.
+
+Description: warn on conflicting alias.
+
+Default level: `:error`.
+
+Example trigger:
+
+``` clojure
+(require '[clojure.string :as s]
+         '[clojure.spec.alpha :as s])
+```
+
+Example message: `Conflicting alias for clojure.spec.alpha`.
+
+
 #### File
 
 Keyword: `:file`.
