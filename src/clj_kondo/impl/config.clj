@@ -32,7 +32,7 @@
               :unbound-destructuring-default {:level :warning}
               :unused-binding {:level :warning
                                ;;:exclude-destructured-keys-in-fn-args false
-                               ;;:exclude-destructred-as false
+                               ;;:exclude-destructured-as false
                                ,}
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning

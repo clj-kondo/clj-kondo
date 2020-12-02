@@ -396,6 +396,48 @@ Example trigger: `(let [{:keys [:i] :or {i 2 j 3}} {}] i)`
 
 Example message: `j is not bound in this destructuring form`.
 
+#### Unused binding
+
+Keyword: `:unused-binding`.
+
+Description: warn on unused binding.
+
+Default level: `:warning`.
+
+Example trigger: `(let [x 1] (prn :foo))`
+
+Example message: `unused binding x`.
+
+Config:
+
+To exclude unused bindings from being reported, start their names with
+underscores: `_x`.
+
+To exclude warnings about key-destructured function arguments, use:
+
+``` clojure
+{:linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}
+```
+
+This will disable warnings for the following example:
+
+``` clojure
+(defn f [{:keys [:a :b :c]} d])
+```
+
+To disable warnings about `:as` bindings (which can be useful for
+documentation), use:
+
+```clojure
+{:linters {:unused-binding {:exclude-destructured-as true}}}
+```
+
+This will disable the warning in:
+
+``` clojure
+(defn f [{:keys [a b c] :as g}] a b c)
+```
+
 #### Unreachable code
 
 Keyword: `:unreachable-code`.
@@ -595,54 +637,6 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 
 ``` clojure
 {:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
-```
-
-### Exclude unused bindings from being reported
-
-To exclude unused bindings from being reported, start their names with
-underscores: `_x`. To exclude warnings about key-destructured function arguments, use:
-
-``` clojure
-{:linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}
-```
-
-Examples:
-
-``` clojure
-$ echo '(defn f [{:keys [:a :b :c]} d])' | clj-kondo --lint -
-<stdin>:1:18: warning: unused binding a
-<stdin>:1:21: warning: unused binding b
-<stdin>:1:24: warning: unused binding c
-<stdin>:1:29: warning: unused binding d
-linting took 8ms, errors: 0, warnings: 4
-```
-
-``` clojure
-$ echo '(defn f [{:keys [:a :b :c]} _d])' | clj-kondo --lint - --config \
-  '{:linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}'
-linting took 8ms, errors: 0, warnings: 0
-```
-
-The exclude the `:as` binding from being reported (which can be useful for
-self-documenting some code), use:
-
-```clojure
-{:linters {:unused-binding {:exclude-destructured-as true}}}
-```
-
-Examples:
-
-```clojure
-$ echo '(defn f [{:keys [a b c] :as g}] a b c)' | clj-kondo --lint - --config \
-  '{:linters {:unused-binding {:exclude-destructured-as false}}}'
-<stdin>:1:29: warning: unused binding g
-linting took 46ms, errors: 0, warnings: 1
-```
-
-```clojure
-$ echo '(defn f [{:keys [a b c] :as g}] a b c)' | clj-kondo --lint - --config \
-  '{:linters {:unused-binding {:exclude-destructured-as true}}}'
-linting took 56ms, errors: 0, warnings: 0
 ```
 
 ### Exclude unused private vars from being reported
