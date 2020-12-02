@@ -74,6 +74,7 @@
                           :exclude #{}}
               :use {:level :warning}
               :missing-else-branch {:level :warning}
+              ;; left here
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
               :consistent-alias {:level :warning
