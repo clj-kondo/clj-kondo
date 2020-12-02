@@ -253,6 +253,23 @@ Example trigger: `(let [x 1] (let [y 2] (+ x y)))`.
 
 Example message: Redundant let expression.
 
+### Syntax
+
+Keyword: `:syntax`.
+
+Description: warn on invalid syntax.
+
+Default level: `:warning`.
+
+Example trigger: `[)`.
+
+Example messages:
+
+```
+Mismatched bracket: found an opening [ and a closing ) on line 1
+Mismatched bracket: found an opening [ on line 1 and a closing )
+```
+
 #### Unresolved symbol
 
 Keyword: `:unresolved-symbol`.
