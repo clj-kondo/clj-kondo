@@ -658,6 +658,26 @@ A regex is also supported:
 
 This will exclude all namespaces ending with `.specs`.
 
+### Unused private var
+
+Keyword: `:unused-private-var`.
+
+Description: warns on unused private vars.
+
+Default level: `:warning`.
+
+Example trigger: `(ns foo) (defn- f [])`
+
+Example message: `Unused private var foo/f`
+
+Config:
+
+To suppress the above warning:
+
+``` clojure
+{:linters {:unused-private-var {:exclude [foo/f]}}}
+```
+
 #### Unused referred var
 
 Keyword: `:unused-referred-var`.
@@ -712,20 +732,6 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 ``` clojure
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
-```
-
-### Exclude unused private vars from being reported
-
-Example code:
-
-``` clojure
-(ns foo) (defn- f [])
-```
-
-Example config:
-
-``` clojure
-{:linters {:unused-private-var {:exclude [foo/f]}}}
 ```
 
 ### Alias consistency
