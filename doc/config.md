@@ -308,6 +308,18 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 (foo/f)
 ```
 
+#### Redefined var
+
+Keyword: `:redefined-var`.
+
+Description: warn on redefind var.
+
+Default level: `:warning`.
+
+Example trigger: `(def x 1) (def x 2)`
+
+Example message: `redefined var #'user/x`.
+
 #### Redundant do
 
 Keyword: `:redundant-do`.
@@ -319,7 +331,7 @@ Default level: `warning`.
 
 Example trigger: `(defn foo [] (do 1))`.
 
-Example message: redundant do.
+Example message: `redundant do`.
 
 #### Redundant let
 
