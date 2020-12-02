@@ -58,7 +58,13 @@ configurations:
 
 ## Linters
 
-### Disable a linter
+Each linter is identified by a keyword in the `:linters` config. We will start
+with general linter configutation and will then enumerate all available linters
+and corresponding config options.
+
+### Enabling and disabling
+
+#### Disable a linter
 
 ``` shellsession
 $ echo '(select-keys [:a])' | clj-kondo --lint -
@@ -69,7 +75,7 @@ $ echo '(select-keys [:a])' | clj-kondo --lint - --config '{:linters {:invalid-a
 linting took 10ms, errors: 0, warnings: 0
 ```
 
-### Enable optional linters
+#### Enable optional linters
 
 Some linters are not enabled by default. Right now these linters are:
 
@@ -85,7 +91,7 @@ You can enable these linters by setting the `:level`:
 {:linters {:missing-docstring {:level :warning}}}
 ```
 
-### Disable all linters but one
+#### Disable all linters but one
 
 You can accomplish this by using `^:replace` metadata, which will override
 instead of merge with other configurations:
@@ -122,9 +128,6 @@ To ignore warnings for only one language in a reader conditional:
   #?(:cljs x)) ;; x is only used in cljs, but unused is ignored for clj, so no warning
 ```
 
-### Enable optional linters
-
-
 ### Lint a custom macro like a built-in macro
 
 In the following code the `my-defn` macro is defined, but clj-kondo doesn't know how to interpret it:
@@ -154,9 +157,66 @@ When you have custom `def` or `defn`-like macros and you can't find a supported 
 {:lint-as {foo/my-defn clj-kondo.lint-as/def-catch-all}}
 ```
 
-### Exclude unresolved symbols from being reported
+### Available linters
 
-In the following code `streams` is a macro that assigns a special meaning to the symbol `where`, so it should not be reported as an unresolved symbol:
+#### Invalid arity
+
+Keyword: `:invalid-arity`.
+
+Description: warn when a function (or macro) is called with an invalid amount of
+arguments.
+
+Default level: `:error`.
+
+Example trigger: `(inc)`
+
+Example message: clojure.core/inc is called with 0 args but expects 1.
+
+Config: `:skip-args [my-dsl/foo]`. This will disable this linter inside calls to
+`my-dsl/foo` such as `(my-dsl/foo (inc) (dec))`.
+
+#### Private call
+
+Keyword `:private-call`.
+
+Description: warn when private var is used. The name of this linter should be
+renamed to "private usage" since it will warn on usage of private vars and not
+only inside calls.
+
+Default level: `:error`.
+
+Example trigger:
+
+``` clojure
+(ns foo) (defn- f [])
+
+(ns bar (:require [foo]))
+(foo/f)
+```
+
+Example message: #'foo/f is private
+
+To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write:
+
+``` shellsession
+#_{:clj-kondo/ignore [:private-call]}
+(foo/f)
+```
+
+#### Unresolved symbol
+
+Keyword: `:unresolved-symbol`.
+
+Default level: `:error`.
+
+Example trigger: `x`.
+
+Example message: unresolved symbol x.
+
+Config:
+
+In the following code `streams` is a macro that assigns a special meaning to the
+symbol `where`, so it should not be reported as an unresolved symbol:
 
 ``` clojure
 (ns foo
