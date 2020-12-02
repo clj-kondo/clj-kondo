@@ -209,6 +209,63 @@ Example trigger:
 
 Example message: `Query for unknown vars: [?a]`.
 
+#### Deprecated var
+
+Keyword: `:deprecated-var`.
+
+Description: warn on usage of var that is deprecated.
+
+Default level: `:warning`.
+
+Example trigger: `(def ^:deprecated x) x`
+
+Example warning: `#'user/x is deprecated`.
+
+Config:
+
+Say you have the following function:
+
+``` clojure
+(ns app.foo)
+(defn foo {:deprecated "1.9.0"} [])
+```
+
+and you still want to be able to call it without getting a warning, for example
+in function in the same namespace which is also deprecated:
+
+``` clojure
+(defn bar {:deprecated "1.9.0"} []
+  (foo))
+```
+
+or in test code:
+
+``` clojure
+(ns app.foo-test
+  (:require
+   [app.foo :refer [foo]]
+   [clojure.test :refer [deftest is]]))
+
+(deftest foo-test [] (is (nil? (foo))))
+```
+
+To achieve this, use this config:
+
+``` clojure
+{:linters
+ {:deprecated-var
+  {:exclude
+   {app.foo/foo
+    {:defs [app.foo/bar]
+     :namespaces [app.foo-test]}}}}}
+```
+
+A regex is also permitted, e.g. to exclude all test namespaces:
+
+``` clojure
+{:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
+```
+
 #### Duplicate map key
 
 Keyword: `:duplicate-map-key`.
@@ -643,50 +700,6 @@ it. That can be done as follows:
 
 ``` clojure
 {:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
-```
-
-### Exclude deprecated var usage from being reported
-
-Say you have the following function:
-
-``` clojure
-(ns app.foo)
-(defn foo {:deprecated "1.9.0"} [])
-```
-
-and you still want to be able to call it without getting a warning, for example in function in the same namespace which is also deprecated:
-
-``` clojure
-(defn bar {:deprecated "1.9.0"} []
-  (foo))
-```
-
-or in test code:
-
-``` clojure
-(ns app.foo-test
-  (:require
-   [app.foo :refer [foo]]
-   [clojure.test :refer [deftest is]]))
-
-(deftest foo-test [] (is (nil? (foo))))
-```
-
-To achieve this, use this config:
-
-``` clojure
-{:linters
- {:deprecated-var
-  {:exclude
-   {app.foo/foo
-    {:defs [app.foo/bar]
-     :namespaces [app.foo-test]}}}}}
-```
-
-A regex is also permitted, e.g. to exclude all test namespaces:
-
-``` clojure
-{:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
 ```
 
 ### Exclude unused private vars from being reported
