@@ -384,6 +384,18 @@ Mismatched bracket: found an opening [ and a closing ) on line 1
 Mismatched bracket: found an opening [ on line 1 and a closing )
 ```
 
+#### Unbound destructuring default
+
+Keyword: `:unbound-destructuring-default`.
+
+Description: warn on binding in `:or` which does not occur in destructuring.
+
+Default level: `:warning`.
+
+Example trigger: `(let [{:keys [:i] :or {i 2 j 3}} {}] i)`
+
+Example message: `j is not bound in this destructuring form`.
+
 #### Unreachable code
 
 Keyword: `:unreachable-code`.
