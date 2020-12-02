@@ -474,7 +474,7 @@ Default level: `:warning`.
 
 Example trigger: `(let [x 1] (let [y 2] (+ x y)))`.
 
-Example message: Redundant let expression.
+Example message: `Redundant let expression.`
 
 #### Refer
 
