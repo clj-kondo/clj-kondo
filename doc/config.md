@@ -429,7 +429,7 @@ Example trigger:
 (foo/f)
 ```
 
-Example message: #'foo/f is private
+Example message: `#'foo/f is private`.
 
 To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write:
 
