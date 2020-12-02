@@ -188,6 +188,27 @@ Example trigger:
 
 Example message: `Conflicting alias for clojure.spec.alpha`.
 
+#### Datalog syntax
+
+Keyword: `:datalog-syntax`.
+
+Description: warn on invalid datalog syntax. This linter is implemented using
+[io.lambdaforge/datalog-parser](https://github.com/lambdaforge/datalog-parser). Also
+see this [blog
+post](https://lambdaforge.io/2019/11/08/clj-kondo-datalog-support.html).
+
+Default level: `:error`.
+
+Example trigger:
+
+``` clojure
+(ns user (:require [datahike.api :refer [q]]))
+
+(q '[:find ?a :where [?b :foo _]] 42)
+```
+
+Example message: `Query for unknown vars: [?a]`.
+
 #### Duplicate map key
 
 Keyword: `:duplicate-map-key`.
