@@ -330,7 +330,7 @@ Example message: `inline def`.
 
 #### Invalid arity
 
-*Keyword:* `:invalid-arity`.
+**Keyword:** `:invalid-arity`.
 
 Description: warn when a function (or macro) is called with an invalid amount of
 arguments.
