@@ -188,6 +188,39 @@ When you have custom `def` or `defn`-like macros and you can't find a supported 
 
 *Example message:* `Conflicting alias for clojure.spec.alpha`.
 
+#### Consistent-alias
+
+*Keyword:* `:consistent-alias`
+
+*Description:* Sometimes it's desirable to have a consistent alias for certain
+namespaces in a project. E.g. in the below code it could be desirable if every
+alias for `old.api` was `old-api`:
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+``` clojure
+(ns foo (:require [new.api :as api]))
+(ns bar (:require [old.api :as old-api]))
+(ns baz (:require [old.api :as api]))
+```
+
+*Config:*
+
+The consistent alias linter needs pre-configured aliases for namespaces that
+should have a consistent alias. This configuration:
+
+``` clojure
+{:linters {:consistent-alias {:aliases {old.api old-api}}}}
+```
+
+will produce this warning:
+
+``` clojure
+Inconsistent alias. Expected old-api instead of api.
+```
+
 #### Datalog syntax
 
 *Keyword:* `:datalog-syntax`.
@@ -823,28 +856,6 @@ it. That can be done as follows:
   {:clj-kondo/config '{:linters {:unresolved-namespace {:exclude [criterium.core]}}}})
 
 (criterium.core/quick-bench [])
-```
-
-### Alias consistency
-
-Sometimes it's desirable to have a consistent alias for certain namespaces in a project. E.g. in the below code it could be desirable if every alias for `old.api` was `old-api`:
-
-``` clojure
-(ns foo (:require [new.api :as api]))
-(ns bar (:require [old.api :as old-api]))
-(ns baz (:require [old.api :as api]))
-```
-
-This configuration:
-
-``` clojure
-{:linters {:consistent-alias {:aliases {old.api old-api}}}}
-```
-
-will give this warning:
-
-``` clojure
-Inconsistent alias. Expected old-api instead of api.
 ```
 
 ### Ignore the contents of comment forms

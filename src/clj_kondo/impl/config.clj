@@ -76,11 +76,11 @@
               :missing-else-branch {:level :warning}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
-              ;; left here
               :consistent-alias {:level :warning
                                  ;; warn when alias for clojure.string is
                                  ;; different from str
                                  :aliases {#_clojure.string #_str}}
+              ;; left here
               :unused-import {:level :warning}
               :single-operand-comparison {:level :warning}
               :single-key-in {:level :off}
