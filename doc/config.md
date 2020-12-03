@@ -378,6 +378,18 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 *Example message:* `Misplaced docstring.`
 
+#### Missing docstring
+
+*Keyword:* `:missing-docstring`.
+
+*Description:* warn when public var misses docstring.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(defn foo [] 1)`.
+
+*Example message:* `Missing docstring.`
+
 #### Missing else branch
 
 *Keyword:* `:missing-else-branch`.
@@ -539,6 +551,23 @@ Example messages:
 Mismatched bracket: found an opening [ and a closing ) on line 1
 Mismatched bracket: found an opening [ on line 1 and a closing )
 ```
+
+#### Type mismatch
+
+*Keyword:* `:type-mismatch`.
+
+*Description:* warn on type mismatches, e.g. passing a keyword where a number is expected.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(inc :foo)`
+
+*Example message:* `Expected: number, received: keyword.`
+
+*Config:*
+
+You can add or override type annotations. See
+[types.md](https://github.com/borkdude/clj-kondo/blob/master/doc/types.md).
 
 #### Unbound destructuring default
 

@@ -74,9 +74,9 @@
                           :exclude #{}}
               :use {:level :warning}
               :missing-else-branch {:level :warning}
-              ;; left here
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
+              ;; left here
               :consistent-alias {:level :warning
                                  ;; warn when alias for clojure.string is
                                  ;; different from str
