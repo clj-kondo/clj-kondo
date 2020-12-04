@@ -1,4 +1,67 @@
-#### Cond-else
+## Linters
+
+This page contains an overview of all available linters and their corresponding
+configuration.
+
+Table of contents:
+
+- [Cond-else](#cond-else)
+- [Conflicting-alias](#conflicting-alias)
+- [Consistent-alias](#consistent-alias)
+- [Datalog syntax](#datalog-syntax)
+- [Deprecated var](#deprecated-var)
+- [Deps.edn](#deps.edn)
+### Duplicate map key
+### Duplicate require
+### Duplicate set key
+### File
+### Format
+### Inline def
+### Invalid arity
+### Misplaced docstring
+### Missing body in when
+### Missing clause in try
+### Missing docstring
+### Missing else branch
+### Missing map value
+### Missing test assertion
+### Not empty?
+### Private call
+### Redefined var
+### Redundant do
+### Redundant let
+### Refer
+### Refer all
+### Single key in
+### Single operand comparison
+### Shadowed var
+### Syntax
+### Type mismatch
+### Unbound destructuring default
+### Unused binding
+### Unreachable code
+### Unused import
+### Unresolved namespace
+### Unresolved symbol
+### Unsorted required namespace
+### Unused namespace
+### Unused private var
+### Unused referred var
+### Use
+
+
+- [Introduction](#introduction)
+- [Libraries](#libraries)
+- [Unrecognized macros](#unrecognized-macros)
+- [Linters](#linters)
+- [Hooks](#hooks)
+- [Output](#output)
+- [Example configurations](#example-configurations)
+- [Exporting and importing configuration](#exporting-and-importing-configuration)
+- [Deprecations](#deprecations)
+
+
+### Cond-else
 
 *Keyword:* `:cond-else`.
 
@@ -10,7 +73,7 @@
 
 *Example message:* `use :else as the catch-all test expression in cond`.
 
-#### Conflicting-alias
+### Conflicting-alias
 
 *Keyword:* `:conflicting-alias`.
 
@@ -27,7 +90,7 @@
 
 *Example message:* `Conflicting alias for clojure.spec.alpha`.
 
-#### Consistent-alias
+### Consistent-alias
 
 *Keyword:* `:consistent-alias`
 
@@ -60,7 +123,7 @@ will produce this warning:
 Inconsistent alias. Expected old-api instead of api.
 ```
 
-#### Datalog syntax
+### Datalog syntax
 
 *Keyword:* `:datalog-syntax`.
 
@@ -81,7 +144,7 @@ post](https://lambdaforge.io/2019/11/08/clj-kondo-datalog-support.html).
 
 *Example message:* `Query for unknown vars: [?a]`.
 
-#### Deprecated var
+### Deprecated var
 
 *Keyword:* `:deprecated-var`.
 
@@ -138,7 +201,7 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 {:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
 ```
 
-#### Deps.edn
+### Deps.edn
 
 *Keyword:* `:deps.edn`
 
@@ -160,7 +223,7 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 Expected map, found: java.lang.String
 ```
 
-#### Duplicate map key
+### Duplicate map key
 
 *Keyword:* `:duplicate-map-key`.
 
@@ -172,7 +235,7 @@ Expected map, found: java.lang.String
 
 *Example message:* `duplicate key :a`.
 
-#### Duplicate require
+### Duplicate require
 
 *Keyword:* `:duplicate-require`.
 
@@ -188,7 +251,7 @@ Expected map, found: java.lang.String
 
 *Example message:* `duplicate require of clojure.string`
 
-#### Duplicate set key
+### Duplicate set key
 
 *Keyword:* `:duplicate-set-key`.
 
@@ -198,7 +261,7 @@ Expected map, found: java.lang.String
 
 *Example message:* `duplicate set element :a`.
 
-#### File
+### File
 
 *Keyword:* `:file`.
 
@@ -210,7 +273,7 @@ Expected map, found: java.lang.String
 
 *Example message:* `file does not exist`.
 
-#### Format
+### Format
 
 *Keyword:* `:format`.
 
@@ -222,7 +285,7 @@ Expected map, found: java.lang.String
 
 *Example message:* `Format string expects 1 arguments instead of 2.`.
 
-#### Inline def
+### Inline def
 
 *Keyword:* `:inline-def`.
 
@@ -234,7 +297,7 @@ Expected map, found: java.lang.String
 
 *Example message:* `inline def`.
 
-#### Invalid arity
+### Invalid arity
 
 **Keyword:** `:invalid-arity`.
 
@@ -272,7 +335,7 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
 
-#### Misplaced docstring
+### Misplaced docstring
 
 *Keyword:* `:misplaced-docstring`.
 
@@ -284,7 +347,7 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 *Example message:* `Misplaced docstring.`
 
-#### Missing body in when
+### Missing body in when
 
 *Keyword:* `:missing-body-in-when`.
 
@@ -296,7 +359,7 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 *Example message:* `Missing body in when`.
 
-#### Missing clause in try
+### Missing clause in try
 
 *Keyword:* `:missing-clause-in-try`.
 
@@ -308,7 +371,7 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 *Example message:* `Missing catch or finally in try.`
 
-#### Missing docstring
+### Missing docstring
 
 *Keyword:* `:missing-docstring`.
 
@@ -320,7 +383,7 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 *Example message:* `Missing docstring.`
 
-#### Missing else branch
+### Missing else branch
 
 *Keyword:* `:missing-else-branch`.
 
@@ -332,7 +395,7 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 *Example message:* `Missing else branch..`
 
-#### Missing map value
+### Missing map value
 
 *Keyword:* `:missing-map-value`.
 
@@ -345,7 +408,7 @@ misses a value.
 
 *Example message:* `missing value for key :b`.
 
-#### Missing test assertion
+### Missing test assertion
 
 *Keyword:* `:missing-test-assertion`.
 
@@ -362,7 +425,7 @@ misses a value.
 
 *Example message:* `missing test assertion`.
 
-#### Not empty?
+### Not empty?
 
 *Keyword:* `:not-empty?`
 
@@ -374,7 +437,7 @@ misses a value.
 
 *Example message:* `use the idiom (seq x) rather than (not (empty? x))`.
 
-#### Private call
+### Private call
 
 Keyword `:private-call`.
 
@@ -402,7 +465,7 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 (foo/f)
 ```
 
-#### Redefined var
+### Redefined var
 
 *Keyword:* `:redefined-var`.
 
@@ -414,7 +477,7 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 
 *Example message:* `redefined var #'user/x`.
 
-#### Redundant do
+### Redundant do
 
 *Keyword:* `:redundant-do`.
 
@@ -427,7 +490,7 @@ because of an explicit or implicit do as the direct parent s-expression.
 
 *Example message:* `redundant do`.
 
-#### Redundant let
+### Redundant let
 
 *Keyword:* `:redundant-let`.
 
@@ -440,7 +503,7 @@ because directly nested lets.
 
 *Example message:* `Redundant let expression.`
 
-#### Refer
+### Refer
 
 *Keyword:* `:refer`
 
@@ -453,7 +516,7 @@ enforce usage of aliases.
 
 Example warning: `require with :refer`.
 
-#### Refer all
+### Refer all
 
 *Keyword:* `:refer-all`
 
@@ -471,7 +534,7 @@ Example warning: `require with :refer`.
 {:linters {:refer-all {:exclude [clojure.set]}}}
 ```
 
-#### Single key in
+### Single key in
 
 *Keyword:* `:single-key-in`.
 
@@ -483,7 +546,7 @@ Example warning: `require with :refer`.
 
 *Example message:* `get-in with single key.`
 
-#### Single operand comparison
+### Single operand comparison
 
 *Keyword:* `:single-operand-comparison`.
 
@@ -495,7 +558,7 @@ Example warning: `require with :refer`.
 
 *Example message:* `Single operand use of clojure.core/< is always true.`
 
-#### Shadowed var
+### Shadowed var
 
 *Keyword:* `:shadowed-var`.
 
@@ -526,7 +589,7 @@ to warn only for specific names.
 To avoid shadowing core vars you can also use `:refer-clojure` + `:exclude` in
 the `ns` form.
 
-#### Syntax
+### Syntax
 
 *Keyword:* `:syntax`.
 
@@ -543,7 +606,7 @@ Mismatched bracket: found an opening [ and a closing ) on line 1
 Mismatched bracket: found an opening [ on line 1 and a closing )
 ```
 
-#### Type mismatch
+### Type mismatch
 
 *Keyword:* `:type-mismatch`.
 
@@ -560,7 +623,7 @@ Mismatched bracket: found an opening [ on line 1 and a closing )
 You can add or override type annotations. See
 [types.md](https://github.com/borkdude/clj-kondo/blob/master/doc/types.md).
 
-#### Unbound destructuring default
+### Unbound destructuring default
 
 *Keyword:* `:unbound-destructuring-default`.
 
@@ -572,7 +635,7 @@ You can add or override type annotations. See
 
 *Example message:* `j is not bound in this destructuring form`.
 
-#### Unused binding
+### Unused binding
 
 *Keyword:* `:unused-binding`.
 
@@ -614,7 +677,7 @@ This will disable the warning in:
 (defn f [{:keys [a b c] :as g}] a b c)
 ```
 
-#### Unreachable code
+### Unreachable code
 
 *Keyword:* `:unreachable-code`.
 
@@ -626,7 +689,7 @@ This will disable the warning in:
 
 *Example message:* `unreachable code`.
 
-#### Unused import
+### Unused import
 
 *Keyword:* `:unused-import`.
 
@@ -638,7 +701,7 @@ This will disable the warning in:
 
 *Example message:* `Unused import UUID.`
 
-#### Unresolved namespace
+### Unresolved namespace
 
 *Keyword:* `:unresolved-namespace`.
 
@@ -650,7 +713,7 @@ This will disable the warning in:
 
 *Config:* use `:exclude [foo.bar]` to suppress the above warning.
 
-#### Unresolved symbol
+### Unresolved symbol
 
 *Keyword:* `:unresolved-symbol`.
 
@@ -728,7 +791,7 @@ and helps preventing false positive unresolved symbols in this code:
   ,,,)
 ```
 
-#### Unsorted required namespace
+### Unsorted required namespace
 
 *Keyword:* `:unsorted-required-namespace`.
 
@@ -740,7 +803,7 @@ and helps preventing false positive unresolved symbols in this code:
 
 *Example message:* `Unsorted namespace: a`.
 
-#### Unused namespace
+### Unused namespace
 
 *Keyword:* `:unused-namespace`.
 
@@ -777,7 +840,7 @@ A regex is also supported:
 
 This will exclude all namespaces ending with `.specs`.
 
-#### Unused private var
+### Unused private var
 
 *Keyword:* `:unused-private-var`.
 
@@ -797,7 +860,7 @@ To suppress the above warning:
 {:linters {:unused-private-var {:exclude [foo/f]}}}
 ```
 
-#### Unused referred var
+### Unused referred var
 
 *Keyword:* `:unused-referred-var`.
 
@@ -819,7 +882,7 @@ it. That can be done as follows:
 {:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
 ```
 
-#### Use
+### Use
 
 *Keyword:* `:use`.
 
