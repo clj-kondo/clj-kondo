@@ -1,11 +1,12 @@
 # Configuration
 
+For an overview of all available linters, go [here](linters.md).
+
 Table of contents:
 
 - [Introduction](#introduction)
 - [Libraries](#libraries)
 - [Unrecognized macros](#unrecognized-macros)
-- [Linters](#linters)
 - [Hooks](#hooks)
 - [Output](#output)
 - [Example configurations](#example-configurations)

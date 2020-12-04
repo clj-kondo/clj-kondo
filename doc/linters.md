@@ -1,7 +1,7 @@
 ## Linters
 
 This page contains an overview of all available linters and their corresponding
-configuration.
+configuration. For general configurations options, go [here](config.md).
 
 Table of contents:
 
