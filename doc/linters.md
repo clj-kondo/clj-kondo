@@ -51,9 +51,9 @@ Table of contents:
 
 ### Cond-else
 
-*Keyword:* `:cond-else`.
+Warn on `cond` with a different constant for the else branch than `:else`.
 
-*Description:* warn on `cond` with a different constant for the else branch than `:else`.
+*Keyword:* `:cond-else`.
 
 *Default level:* `:warning`.
 
