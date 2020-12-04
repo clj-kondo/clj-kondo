@@ -5,61 +5,49 @@ configuration.
 
 Table of contents:
 
-- [Cond-else](#cond-else)
-- [Conflicting-alias](#conflicting-alias)
-- [Consistent-alias](#consistent-alias)
-- [Datalog syntax](#datalog-syntax)
-- [Deprecated var](#deprecated-var)
-- [Deps.edn](#deps.edn)
-### Duplicate map key
-### Duplicate require
-### Duplicate set key
-### File
-### Format
-### Inline def
-### Invalid arity
-### Misplaced docstring
-### Missing body in when
-### Missing clause in try
-### Missing docstring
-### Missing else branch
-### Missing map value
-### Missing test assertion
-### Not empty?
-### Private call
-### Redefined var
-### Redundant do
-### Redundant let
-### Refer
-### Refer all
-### Single key in
-### Single operand comparison
-### Shadowed var
-### Syntax
-### Type mismatch
-### Unbound destructuring default
-### Unused binding
-### Unreachable code
-### Unused import
-### Unresolved namespace
-### Unresolved symbol
-### Unsorted required namespace
-### Unused namespace
-### Unused private var
-### Unused referred var
-### Use
-
-
-- [Introduction](#introduction)
-- [Libraries](#libraries)
-- [Unrecognized macros](#unrecognized-macros)
-- [Linters](#linters)
-- [Hooks](#hooks)
-- [Output](#output)
-- [Example configurations](#example-configurations)
-- [Exporting and importing configuration](#exporting-and-importing-configuration)
-- [Deprecations](#deprecations)
-
+  - [Cond-else](#cond-else)
+  - [Conflicting-alias](#conflicting-alias)
+  - [Consistent-alias](#consistent-alias)
+  - [Datalog syntax](#datalog-syntax)
+  - [Deprecated var](#deprecated-var)
+  - [Deps.edn](#depsedn)
+  - [Duplicate map key](#duplicate-map-key)
+  - [Duplicate require](#duplicate-require)
+  - [Duplicate set key](#duplicate-set-key)
+  - [File](#file)
+  - [Format](#format)
+  - [Inline def](#inline-def)
+  - [Invalid arity](#invalid-arity)
+  - [Misplaced docstring](#misplaced-docstring)
+  - [Missing body in when](#missing-body-in-when)
+  - [Missing clause in try](#missing-clause-in-try)
+  - [Missing docstring](#missing-docstring)
+  - [Missing else branch](#missing-else-branch)
+  - [Missing map value](#missing-map-value)
+  - [Missing test assertion](#missing-test-assertion)
+  - [Not empty?](#not-empty)
+  - [Private call](#private-call)
+  - [Redefined var](#redefined-var)
+  - [Redundant do](#redundant-do)
+  - [Redundant let](#redundant-let)
+  - [Refer](#refer)
+  - [Refer all](#refer-all)
+  - [Single key in](#single-key-in)
+  - [Single operand comparison](#single-operand-comparison)
+  - [Shadowed var](#shadowed-var)
+  - [Syntax](#syntax)
+  - [Type mismatch](#type-mismatch)
+  - [Unbound destructuring default](#unbound-destructuring-default)
+  - [Unused binding](#unused-binding)
+  - [Unreachable code](#unreachable-code)
+  - [Unused import](#unused-import)
+  - [Unresolved namespace](#unresolved-namespace)
+  - [Unresolved symbol](#unresolved-symbol)
+  - [Unsorted required namespace](#unsorted-required-namespace)
+  - [Unused namespace](#unused-namespace)
+  - [Unused private var](#unused-private-var)
+  - [Unused referred var](#unused-referred-var)
+  - [Use](#use)
 
 ### Cond-else
 
