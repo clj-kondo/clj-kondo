@@ -40,4 +40,8 @@
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [ns-name])) (defn foo [ns-name] ns-name)"
                      '{:linters {:shadowed-var {:level :warning
                                                 :exclude [ns]
-                                                :suggest {name nom}}}}))))
+                                                :suggest {name nom}}}})))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 17, :level :warning, :message "Shadowed var: user/x"})
+   (lint! "(def x 1) (let [x 2] x)"
+          '{:linters {:shadowed-var {:level :warning}}})))

@@ -349,6 +349,18 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 
 *Example message:* `file does not exist`.
 
+#### Format
+
+*Keyword:* `:format`.
+
+*Description:* warn on unexpected amount of arguments in `format`.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(format "%s" 1 2)`.
+
+*Example message:* `Format string expects 1 arguments instead of 2.`.
+
 #### Inline def
 
 *Keyword:* `:inline-def`.
@@ -615,6 +627,37 @@ Example warning: `require with :refer`.
 *Example trigger:* `(< 1)`.
 
 *Example message:* `Single operand use of clojure.core/< is always true.`
+
+#### Shadowed var
+
+*Keyword:* `:shadowed-var`.
+
+*Description:* warn on var that is shadowed by local.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(def x 1) (let [x 2] x)`.
+
+*Example message:* `Shadowed var: user/x.`
+
+*Config:*
+
+``` clojure
+{:linters {:shadowed-var {:level :warning
+                          :exclude [ns]
+                          :suggest {name nom}}}}
+```
+
+``` clojure
+(fn [name] name)
+     ^--- Shadowed var: clojure.core/name. Suggestion: nom
+```
+
+Use `:exclude` to suppress warnings for specific binding names. Use `:include`
+to warn only for specific names.
+
+To avoid shadowing core vars you can also use `:refer-clojure` + `:exclude` in
+the `ns` form.
 
 #### Syntax
 
@@ -931,29 +974,6 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 ```clojure
 {:linters {:refer-all {:exclude [alda.core]}}}
 ```
-
-### Shadowed var
-
-The `:shadowed-var` linter warns when a binding shadows a var.
-
-Example config:
-
-``` clojure
-{:linters {:shadowed-var {:level :warning
-                          :exclude [ns]
-                          :suggest {name nom}}}}
-```
-
-``` clojure
-(fn [name] name)
-     ^--- Shadowed var: clojure.core/name. Suggestion: nom
-```
-
-Use `:exclude` to suppress warnings for specific binding names. Use `:include`
-to warn only for specific names.
-
-To avoid shadowing core vars you can also use `:refer-clojure` + `:exclude` in
-the `ns` form.
 
 ## Hooks
 

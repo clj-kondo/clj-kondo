@@ -85,9 +85,9 @@
               :single-key-in {:level :off}
               :missing-clause-in-try {:level :warning}
               :missing-body-in-when {:level :warning}
-              ;; left here
               :hook {:level :error}
               :format {:level :error}
+              ;; left here
               :shadowed-var {:level :off
                              #_#_:suggestions {clojure.core/type tajpu
                                                clojure.core/name nomspaco}
@@ -293,16 +293,20 @@
 
 (def shadowed-var-excluded?
   (let [delayed-cfg (fn [config]
-                      (let [cfg (get-in config [:linters :shadowed-var])]
-                        {:exclude (some-> (:exclude cfg) set)
-                         :include (some-> (:include cfg) set)}))
+                      (let [cfg (get-in config [:linters :shadowed-var])
+                            exclude (some-> (:exclude cfg) set)
+                            include (some-> (:include cfg) set)]
+                        (cond-> nil
+                          exclude (assoc :exclude exclude)
+                          include (assoc :include include))))
         delayed-cfg (memoize delayed-cfg)]
     (fn [config sym]
-      (let [{:keys [:exclude :include]} (delayed-cfg config)]
-        (if include
-          (not (contains? include sym))
-          (or (not exclude)
-              (contains? exclude sym)))))))
+      (when-let [cfg (delayed-cfg config)]
+        (let [{:keys [:exclude :include]} cfg]
+          (if include
+            (not (contains? include sym))
+            (or (not exclude)
+                (contains? exclude sym))))))))
 
 ;;;; Scratch
 
