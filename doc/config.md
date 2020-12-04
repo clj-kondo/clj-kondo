@@ -299,6 +299,28 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 {:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
 ```
 
+#### Deps.edn
+
+*Keyword:* `:deps.edn`
+
+*Description:* warn on common errors in a `deps.edn`.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+`deps.edn`:
+
+``` clojure
+{:deps {foo/bar "2020.10.11"}}
+```
+
+*Example message:*
+
+```
+Expected map, found: java.lang.String
+```
+
 #### Duplicate map key
 
 *Keyword:* `:duplicate-map-key`.

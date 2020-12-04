@@ -87,12 +87,12 @@
               :missing-body-in-when {:level :warning}
               :hook {:level :error}
               :format {:level :error}
-              ;; left here
               :shadowed-var {:level :off
                              #_#_:suggestions {clojure.core/type tajpu
                                                clojure.core/name nomspaco}
                              #_#_:exclude [frequencies]
                              #_#_:include [name]}
+              ;; left here
               :deps.edn {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
