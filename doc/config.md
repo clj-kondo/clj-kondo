@@ -793,6 +793,27 @@ This will disable the warning in:
 
 *Example message:* `Unused import UUID.`
 
+#### Unresolved namespace
+
+### Exclude unresolved namespaces from being reported
+
+``` clojure
+(ns foo
+  {:clj-kondo/config '{:linters {:unresolved-namespace {:exclude [criterium.core]}}}})
+
+(criterium.core/quick-bench [])
+```
+
+### Ignore the contents of comment forms
+
+If you prefer not to lint the contents of `(comment ...)` forms, use this configuration:
+
+```clojure
+{:skip-comments true}
+```
+
+
+
 #### Unresolved symbol
 
 *Keyword:* `:unresolved-symbol`.
@@ -920,7 +941,7 @@ A regex is also supported:
 
 This will exclude all namespaces ending with `.specs`.
 
-### Unused private var
+#### Unused private var
 
 *Keyword:* `:unused-private-var`.
 
@@ -973,23 +994,6 @@ it. That can be done as follows:
 *Example trigger:* `(ns foo (:use [clojure.set]))`.
 
 *Example message:* `use :require with alias or :refer`.
-
-### Exclude unresolved namespaces from being reported
-
-``` clojure
-(ns foo
-  {:clj-kondo/config '{:linters {:unresolved-namespace {:exclude [criterium.core]}}}})
-
-(criterium.core/quick-bench [])
-```
-
-### Ignore the contents of comment forms
-
-If you prefer not to lint the contents of `(comment ...)` forms, use this configuration:
-
-```clojure
-{:skip-comments true}
-```
 
 ### Exclude namespace in `:refer-all` linter
 

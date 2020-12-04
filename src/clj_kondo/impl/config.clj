@@ -40,6 +40,7 @@
                                  :exclude [#_clj-kondo.impl.var-info-gen]}
                                  ;; :simple-libspec true
 
+              ;; TODO
               :unresolved-symbol {:level :error
                                   :exclude [;; ignore globally:
                                             #_js*
@@ -52,6 +53,7 @@
                                             (cljs.test/are [thrown? thrown-with-msg?])
                                             (clojure.test/is [thrown? thrown-with-msg?])
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
+              ;; TODO
               :unresolved-namespace {:level :warning
                                      :exclude [#_foo.bar]}
                                                ;; for example: foo.bar is always loaded in a user profile
@@ -92,7 +94,6 @@
                                                clojure.core/name nomspaco}
                              #_#_:exclude [frequencies]
                              #_#_:include [name]}
-              ;; left here
               :deps.edn {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
