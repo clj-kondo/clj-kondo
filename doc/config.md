@@ -795,6 +795,16 @@ This will disable the warning in:
 
 #### Unresolved namespace
 
+*Keyword:* `:unresolved-namespace`.
+
+*Default level:* `:error`.
+
+*Example trigger:* `foo.bar/baz`.
+
+*Example message:* `Unresolved namespace foo.bar. Are you missing a require?`
+
+*Config:* use `:exclude [foo.bar]` to suppress the above warning.
+
 ### Exclude unresolved namespaces from being reported
 
 ``` clojure
@@ -811,8 +821,6 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 ```clojure
 {:skip-comments true}
 ```
-
-
 
 #### Unresolved symbol
 

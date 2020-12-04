@@ -40,7 +40,6 @@
                                  :exclude [#_clj-kondo.impl.var-info-gen]}
                                  ;; :simple-libspec true
 
-              ;; TODO
               :unresolved-symbol {:level :error
                                   :exclude [;; ignore globally:
                                             #_js*
