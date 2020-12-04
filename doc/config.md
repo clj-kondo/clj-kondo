@@ -566,7 +566,31 @@ Example warning: `require with :refer`.
 
 *Example trigger:* `(ns foo (:require [clojure.set :refer :all]))`.
 
-Example warning: `use alias or :refer`.
+*Example message:* `use alias or :refer`.
+
+#### Single key in
+
+*Keyword:* `:single-key-in`.
+
+*Description:* warn on associative path function with a single value path.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(get-in {:a 1} [:a])`.
+
+*Example message:* `get-in with single key.`
+
+#### Single operand comparison
+
+*Keyword:* `:single-operand-comparison`.
+
+*Description:* warn on comparison with only one argument.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(< 1)`.
+
+*Example message:* `Single operand use of clojure.core/< is always true.`
 
 #### Syntax
 
@@ -667,6 +691,18 @@ This will disable the warning in:
 *Example trigger:* `(cond :else 1 (odd? 1) 2)`.
 
 *Example message:* `unreachable code`.
+
+#### Unused import
+
+*Keyword:* `:unused-import`.
+
+*Description:* warn on unused import.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(ns foo (:import [java.util UUID]))`.
+
+*Example message:* `Unused import UUID.`
 
 #### Unresolved symbol
 

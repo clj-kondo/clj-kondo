@@ -80,10 +80,10 @@
                                  ;; warn when alias for clojure.string is
                                  ;; different from str
                                  :aliases {#_clojure.string #_str}}
-              ;; left here
               :unused-import {:level :warning}
               :single-operand-comparison {:level :warning}
               :single-key-in {:level :off}
+              ;; left here
               :missing-clause-in-try {:level :warning}
               :missing-body-in-when {:level :warning}
               :hook {:level :error}
