@@ -52,7 +52,6 @@
                                             (cljs.test/are [thrown? thrown-with-msg?])
                                             (clojure.test/is [thrown? thrown-with-msg?])
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
-              ;; TODO
               :unresolved-namespace {:level :warning
                                      :exclude [#_foo.bar]}
                                                ;; for example: foo.bar is always loaded in a user profile

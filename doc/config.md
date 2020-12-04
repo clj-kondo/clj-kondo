@@ -157,6 +157,14 @@ When you have custom `def` or `defn`-like macros and you can't find a supported 
 {:lint-as {foo/my-defn clj-kondo.lint-as/def-catch-all}}
 ```
 
+### Ignore the contents of comment forms
+
+If you prefer not to lint the contents of `(comment ...)` forms, use this configuration:
+
+```clojure
+{:skip-comments true}
+```
+
 ### Available linters
 
 #### Cond-else
@@ -804,23 +812,6 @@ This will disable the warning in:
 *Example message:* `Unresolved namespace foo.bar. Are you missing a require?`
 
 *Config:* use `:exclude [foo.bar]` to suppress the above warning.
-
-### Exclude unresolved namespaces from being reported
-
-``` clojure
-(ns foo
-  {:clj-kondo/config '{:linters {:unresolved-namespace {:exclude [criterium.core]}}}})
-
-(criterium.core/quick-bench [])
-```
-
-### Ignore the contents of comment forms
-
-If you prefer not to lint the contents of `(comment ...)` forms, use this configuration:
-
-```clojure
-{:skip-comments true}
-```
 
 #### Unresolved symbol
 
