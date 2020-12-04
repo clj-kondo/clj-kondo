@@ -9,15 +9,23 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
-    - name: Setup Clojure
-      uses: DeLaGuardo/setup-clojure@2.0
+      uses: actions/checkout@v2
+
+    - name: "Prepare Java"
+      uses: "actions/setup-java@v1"
       with:
-        tools-deps: '1.10.1.469'
+        java-version: "8"
+
+    - name: Setup Clojure
+      uses: DeLaGuardo/setup-clojure@master
+      with:
+        tools-deps: '1.10.1.727'
+
     - name: Cache
       uses: actions/cache@v1
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-project-clj-${{ hashFiles('**/project.clj') }}
+
     - name: Diff
       run: ./script/diff || true
