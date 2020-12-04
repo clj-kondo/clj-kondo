@@ -83,9 +83,9 @@
               :unused-import {:level :warning}
               :single-operand-comparison {:level :warning}
               :single-key-in {:level :off}
-              ;; left here
               :missing-clause-in-try {:level :warning}
               :missing-body-in-when {:level :warning}
+              ;; left here
               :hook {:level :error}
               :format {:level :error}
               :shadowed-var {:level :off

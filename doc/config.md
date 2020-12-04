@@ -411,6 +411,30 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 *Example message:* `Misplaced docstring.`
 
+#### Missing body in when
+
+*Keyword:* `:missing-body-in-when`.
+
+*Description:* warn when `when` is called only with a condition.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(when true)`.
+
+*Example message:* `Missing body in when`.
+
+#### Missing clause in try
+
+*Keyword:* `:missing-clause-in-try`.
+
+*Description:* warn when `try` expression misses `catch` or `finally` clause.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(try 1)`.
+
+*Example message:* `Missing catch or finally in try.`
+
 #### Missing docstring
 
 *Keyword:* `:missing-docstring`.
