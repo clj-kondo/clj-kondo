@@ -23,7 +23,6 @@
               :file {:level :error}
               :missing-test-assertion {:level :warning}
               :conflicting-alias {:level :error}
-              :constant-test-assertion {:level :warning}
               :duplicate-map-key {:level :error}
               :duplicate-set-key {:level :error}
               :missing-map-value {:level :error}
@@ -33,7 +32,7 @@
               :unbound-destructuring-default {:level :warning}
               :unused-binding {:level :warning
                                ;;:exclude-destructured-keys-in-fn-args false
-                               ;;:exclude-destructred-as false
+                               ;;:exclude-destructured-as false
                                ,}
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
@@ -293,16 +292,20 @@
 
 (def shadowed-var-excluded?
   (let [delayed-cfg (fn [config]
-                      (let [cfg (get-in config [:linters :shadowed-var])]
-                        {:exclude (some-> (:exclude cfg) set)
-                         :include (some-> (:include cfg) set)}))
+                      (let [cfg (get-in config [:linters :shadowed-var])
+                            exclude (some-> (:exclude cfg) set)
+                            include (some-> (:include cfg) set)]
+                        (cond-> nil
+                          exclude (assoc :exclude exclude)
+                          include (assoc :include include))))
         delayed-cfg (memoize delayed-cfg)]
     (fn [config sym]
-      (let [{:keys [:exclude :include]} (delayed-cfg config)]
-        (if include
-          (not (contains? include sym))
-          (or (not exclude)
-              (contains? exclude sym)))))))
+      (when-let [cfg (delayed-cfg config)]
+        (let [{:keys [:exclude :include]} cfg]
+          (if include
+            (not (contains? include sym))
+            (or (not exclude)
+                (contains? exclude sym))))))))
 
 ;;;; Scratch
 

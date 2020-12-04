@@ -108,13 +108,6 @@
                                  (node->line (:filename ctx) expr level :missing-else-branch
                                              (format "Missing else branch."))))))))
 
-#_(defn lint-test-is [ctx expr]
-    (let [children (next (:children expr))]
-      (when (every? constant? children)
-        (findings/reg-finding! ctx
-                               (node->line (:filename ctx) expr :warning
-                                           :constant-test-assertion "Test assertion with only constants.")))))
-
 (defn lint-single-key-in [ctx called-name call]
   (when-not (utils/linter-disabled? ctx :single-key-in)
     (let [[_ _ keyvec] (:children call)]

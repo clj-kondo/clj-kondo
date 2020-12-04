@@ -53,7 +53,6 @@ Clj-kondo detects:
 * Datalog syntax checking
 * format string argument mismatches
 * shadowed vars
-* common deps.edn mistakes
 
 before your form hits the REPL.
 
@@ -68,7 +67,11 @@ It suggests several style guide recommendations, such as:
 It has support for syntax of commonly used macros like
 `clojure.core.async/alt!!`, `schema.core/defn` and `potemkin/import-vars`.
 
+It detects common errors in `deps.edn`
+
 It provides [analysis data](analysis) so you build your own custom linters.
+
+View all available linters [here](doc/linters.md).
 
 This linter is:
 

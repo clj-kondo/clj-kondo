@@ -327,29 +327,29 @@
 
 (defn check-shadowed-binding! [ctx name-sym expr]
   (let [config (:config ctx)
-        level (-> config :linters :level)]
+        level (-> config :linters :shadowed-var :level)]
     (when-not (identical? :off level)
       (when-let [{:keys [:ns :name]}
                  (let [ns-name (:name (:ns ctx))
                        lang (:lang ctx)
                        ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
-                   (when-let [v (get (:referred-vars ns)
-                                     name-sym)]
-                     v)
-                   (when (contains? (:vars ns) name-sym)
-                     {:ns (:name ns)
-                      :name name-sym})
-                   (let [clojure-excluded? (contains? (:clojure-excluded ns)
-                                                      name-sym)
-                         core-sym? (when-not clojure-excluded?
-                                     (var-info/core-sym? lang name-sym))
-                         special-form? (or (special-symbol? name-sym)
-                                           (contains? var-info/special-forms name-sym))]
-                     (when (or core-sym? special-form?)
-                       {:ns (case lang
-                              :clj 'clojure.core
-                              :cljs 'cljs.core)
-                        :name name-sym})))]
+                   (if-let [v (get (:referred-vars ns)
+                                   name-sym)]
+                     v
+                     (if (contains? (:vars ns) name-sym)
+                       {:ns (:name ns)
+                        :name name-sym}
+                       (let [clojure-excluded? (contains? (:clojure-excluded ns)
+                                                          name-sym)
+                             core-sym? (when-not clojure-excluded?
+                                         (var-info/core-sym? lang name-sym))
+                             special-form? (or (special-symbol? name-sym)
+                                               (contains? var-info/special-forms name-sym))]
+                         (when (or core-sym? special-form?)
+                           {:ns (case lang
+                                  :clj 'clojure.core
+                                  :cljs 'cljs.core)
+                            :name name-sym})))))]
         (when-not (config/shadowed-var-excluded? config name)
           (let [suggestions (get-in ctx [:config :linters :shadowed-var :suggest])
                 suggestion (when suggestions
