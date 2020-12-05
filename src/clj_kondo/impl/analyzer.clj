@@ -941,26 +941,31 @@
         field-count (when bindings? (count (:children binding-vector)))
         bindings (when bindings? (extract-bindings (assoc ctx
                                                           :skip-reg-binding? true)
-                                                   binding-vector))]
+                                                   binding-vector))
+        ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
     (when-not (= 'definterface resolved-as)
-      ;; TODO: it seems like we can abstract creating defn types into a function,
-      ;; so we can also call reg-var there
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
                           (assoc metadata
                                  :fixed-arities #{field-count})))
     (when (= 'defrecord resolved-as)
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                           expr (assoc metadata
-                                      :fixed-arities #{1}
-                                      #_#_:expr expr)))
-    (analyze-children (-> ctx
-                          (ctx-with-linters-disabled [:invalid-arity
-                                                      :unresolved-symbol
-                                                      :type-mismatch
-                                                      :private-call])
-                          (ctx-with-bindings bindings))
-                      (nnext children))))
+                                      :fixed-arities #{1})))
+    (loop [current-protocol nil
+           children (nnext children)]
+      (when-first [c children]
+        (if-let [sym (utils/symbol-from-token c)]
+          ;; we have encountered a protocol or interface name
+          (do (analyze-expression** ctx c)
+              (recur sym (rest children)))
+          ;; assume fn-call
+          (let [args (:children c)
+                args (rest args)]
+            ;; analyzing the fn sym can cause false positives, so we are
+            ;; skipping it
+            (analyze-expression** ctx (utils/list-node (list* (utils/token-node 'clojure.core/fn) args)))
+            (recur current-protocol (rest children))))))))
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
@@ -1687,7 +1692,7 @@
                     (let [full-fn-name (with-meta full-fn-name (meta function))
                           unresolved? (nil? (namespace full-fn-name))
                           binding (and unresolved?
-                                             (get bindings full-fn-name))]
+                                       (get bindings full-fn-name))]
                       (if binding
                         (do
                           (types/add-arg-type-from-expr ctx expr)

@@ -1651,6 +1651,11 @@ foo/foo ;; this does use the private var
 (deftest defrecord-test
   (assert-submaps
    '({:file "corpus/defrecord.clj",
+      :row 6,
+      :col 23,
+      :level :warning,
+      :message "unused binding this"}
+     {:file "corpus/defrecord.clj",
       :row 8,
       :col 1,
       :level :error,
@@ -1662,6 +1667,13 @@ foo/foo ;; this does use the private var
       :message "defrecord/map->Thing is called with 2 args but expects 1"})
    (lint! (io/file "corpus" "defrecord.clj")
           "--config" "{:linters {:unused-binding {:level :warning}}}")))
+
+(deftest deftype-test
+  (assert-submaps
+   '({:file "corpus/deftype.cljs", :row 9, :col 10, :level :warning, :message "unused binding coll"}
+     {:file "corpus/deftype.cljs", :row 17, :col 16, :level :warning, :message "unused binding coll"})
+   (lint! (io/file "corpus" "deftype.cljs")
+              "--config" "{:linters {:unused-binding {:level :warning}}}")))
 
 (deftest defmulti-test
   (assert-submaps
