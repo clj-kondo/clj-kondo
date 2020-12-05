@@ -432,12 +432,14 @@
              {:ns ns*
               :name name-sym})))
        (let [clojure-excluded? (contains? (:clojure-excluded ns)
-                                          name-sym)
-             core-sym? (when-not clojure-excluded?
-                         (var-info/core-sym? lang name-sym))
-             special-form? (or (special-symbol? name-sym)
-                               (contains? var-info/special-forms name-sym))]
-         (if (or core-sym? special-form?)
+                                          name-sym)]
+         (if (or
+              ;; check core-sym
+              (when-not clojure-excluded?
+                (var-info/core-sym? lang name-sym))
+              ;; check special form
+              (or (special-symbol? name-sym)
+                  (contains? var-info/special-forms name-sym)))
            {:ns (case lang
                   :clj 'clojure.core
                   :cljs 'cljs.core)

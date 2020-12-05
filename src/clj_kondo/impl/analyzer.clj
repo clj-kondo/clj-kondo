@@ -928,7 +928,8 @@
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
   [{:keys [:ns] :as ctx} expr resolved-as]
-  (let [ns-name (:name ns)
+  (analyze-children ctx (nnext (:children expr)))
+  #_(let [ns-name (:name ns)
         children (:children expr)
         children (next children)
         name-node (first children)
@@ -954,7 +955,27 @@
                           expr (assoc metadata
                                       :fixed-arities #{1}
                                       #_#_:expr expr)))
-    (analyze-children (-> ctx
+    (loop [current-protocol nil
+           children (nnext children)]
+      (when-first [c children]
+        (prn :c c)
+        (if-let [sym (utils/symbol-from-token c)]
+          ;; we have encountered a protocol name
+          ;; TODO: lint usage?
+          
+          (recur sym (rest children))
+          ;; assume fn-call
+          (let [args (:children c)
+                args (rest args)]
+            (prn :expr (utils/list-node (list* (utils/token-node 'fn) args)))
+            (analyze-expression** ctx (utils/list-node (list* (utils/token-node 'fn) args)))
+            (recur current-protocol (rest children)))
+          )))
+
+    #_(prn :children (nnext children))
+    ;; This lints all the usages of vars, but we don't check arities, unresolved
+    ;; symbols etc. This needs fixing.
+    #_(analyze-children (-> ctx
                           (ctx-with-linters-disabled [:invalid-arity
                                                       :unresolved-symbol
                                                       :type-mismatch
@@ -1242,7 +1263,8 @@
          clojure-excluded? :clojure-excluded?
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
-        expr-meta (meta expr)]
+        expr-meta (meta expr)
+        inc? (= 'inc full-fn-name)]
     (cond (and unresolved?
                (str/ends-with? full-fn-name "."))
           (recur ctx
@@ -1502,6 +1524,26 @@
                   (let [in-def (:in-def ctx)
                         id (:id expr)
                         m (meta analyzed)
+                        _ (when inc?
+                            (prn {:type :call
+                                  :resolved-ns resolved-namespace
+                                  :ns ns-name
+                                  :name (with-meta
+                                          (or resolved-name full-fn-name)
+                                          (meta full-fn-name))
+                                  :unresolved? unresolved?
+                                  :unresolved-ns unresolved-ns
+                                  :clojure-excluded? clojure-excluded?
+                                  :arity arg-count
+                                  :row row
+                                  :end-row (:end-row expr-meta)
+                                  :col col
+                                  :end-col (:end-col expr-meta)
+                                  :base-lang base-lang
+                                  :lang lang
+                                  :filename (:filename ctx)
+                                  :top-ns (:top-ns ctx)
+                                  :simple? (simple-symbol? full-fn-name)}))
                         proto-call {:type :call
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
@@ -1607,6 +1649,7 @@
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
   (when expr
+    (prn :ana-expr expr #_lang #_(-> ctx :config :linters :invalid-arity))
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
                  (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
