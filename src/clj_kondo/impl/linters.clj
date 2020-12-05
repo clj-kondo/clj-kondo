@@ -262,11 +262,9 @@
                                            (when (= :cljc base-lang)
                                              call-lang)
                                            in-def
-                                           called-fn))
-                  _ (prn :called-fn (:expr call) fn-name called-fn)]
+                                           called-fn))]
             :when valid-call?
             :let [fn-name (:name called-fn)
-                  _ (prn :fn-name fn-name)
                   _ (when (and  ;; unresolved?
                            (:simple? call)
                            (contains? refer-alls

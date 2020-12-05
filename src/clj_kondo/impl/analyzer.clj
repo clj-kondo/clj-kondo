@@ -928,8 +928,7 @@
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
   [{:keys [:ns] :as ctx} expr resolved-as]
-  (analyze-children ctx (nnext (:children expr)))
-  #_(let [ns-name (:name ns)
+  (let [ns-name (:name ns)
         children (:children expr)
         children (next children)
         name-node (first children)
@@ -967,7 +966,6 @@
           ;; assume fn-call
           (let [args (:children c)
                 args (rest args)]
-            (prn :expr (utils/list-node (list* (utils/token-node 'fn) args)))
             (analyze-expression** ctx (utils/list-node (list* (utils/token-node 'fn) args)))
             (recur current-protocol (rest children)))
           )))
@@ -1524,26 +1522,6 @@
                   (let [in-def (:in-def ctx)
                         id (:id expr)
                         m (meta analyzed)
-                        _ (when inc?
-                            (prn {:type :call
-                                  :resolved-ns resolved-namespace
-                                  :ns ns-name
-                                  :name (with-meta
-                                          (or resolved-name full-fn-name)
-                                          (meta full-fn-name))
-                                  :unresolved? unresolved?
-                                  :unresolved-ns unresolved-ns
-                                  :clojure-excluded? clojure-excluded?
-                                  :arity arg-count
-                                  :row row
-                                  :end-row (:end-row expr-meta)
-                                  :col col
-                                  :end-col (:end-col expr-meta)
-                                  :base-lang base-lang
-                                  :lang lang
-                                  :filename (:filename ctx)
-                                  :top-ns (:top-ns ctx)
-                                  :simple? (simple-symbol? full-fn-name)}))
                         proto-call {:type :call
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
@@ -1649,7 +1627,6 @@
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
   (when expr
-    (prn :ana-expr expr #_lang #_(-> ctx :config :linters :invalid-arity))
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
                  (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
