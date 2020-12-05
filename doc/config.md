@@ -5,7 +5,7 @@ For an overview of all available linters, go [here](linters.md).
 Table of contents:
 
 - [Introduction](#introduction)
-- [Libraries](#libraries)
+- [Examples](#examples)
 - [Unrecognized macros](#unrecognized-macros)
 - [Hooks](#hooks)
 - [Output](#output)
