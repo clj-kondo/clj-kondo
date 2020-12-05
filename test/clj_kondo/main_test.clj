@@ -1651,6 +1651,11 @@ foo/foo ;; this does use the private var
 (deftest defrecord-test
   (assert-submaps
    '({:file "corpus/defrecord.clj",
+      :row 6,
+      :col 23,
+      :level :warning,
+      :message "unused binding this"}
+     {:file "corpus/defrecord.clj",
       :row 8,
       :col 1,
       :level :error,

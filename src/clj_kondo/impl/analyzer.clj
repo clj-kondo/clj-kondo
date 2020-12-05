@@ -941,7 +941,8 @@
         field-count (when bindings? (count (:children binding-vector)))
         bindings (when bindings? (extract-bindings (assoc ctx
                                                           :skip-reg-binding? true)
-                                                   binding-vector))]
+                                                   binding-vector))
+        ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
     (when-not (= 'definterface resolved-as)
       ;; TODO: it seems like we can abstract creating defn types into a function,
@@ -958,9 +959,10 @@
            children (nnext children)]
       (when-first [c children]
         (if-let [sym (utils/symbol-from-token c)]
-          ;; we have encountered a protocol name
-          ;; TODO: lint usage?
-          (recur sym (rest children))
+          ;; we have encountered a protocol or interface name
+          (do
+            (analyze-usages2 ctx c)
+            (recur sym (rest children)))
           ;; assume fn-call
           (let [args (:children c)
                 args (rest args)]
