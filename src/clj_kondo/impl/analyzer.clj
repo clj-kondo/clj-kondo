@@ -678,9 +678,8 @@
 (defn analyze-fn [ctx expr]
   (let [children (:children expr)
         ?fn-name (when-let [?name-expr (second children)]
-                   (let [n (sexpr ?name-expr)]
-                     (when (symbol? n)
-                       n)))
+                   (when-let [n (utils/symbol-from-token ?name-expr)]
+                     n))
         bodies (fn-bodies ctx (next children))
         ;; we need the arity beforehand because this is valid in each body
         arity (fn-arity ctx bodies)
@@ -959,13 +958,11 @@
           ;; we have encountered a protocol or interface name
           (do (analyze-expression** ctx c)
               (recur sym (rest children)))
-          ;; assume fn-call
-          (let [args (:children c)
-                args (rest args)]
-            ;; analyzing the fn sym can cause false positives, so we are
-            ;; skipping it
-            (analyze-expression** ctx (utils/list-node (list* (utils/token-node 'clojure.core/fn) args)))
-            (recur current-protocol (rest children))))))))
+          ;; Assume protocol fn impl. Analyzing the fn sym can cause false
+          ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
+          ;; is linted as (fn [x y z])
+          (do (analyze-fn ctx c)
+              (recur current-protocol (rest children))))))))
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
