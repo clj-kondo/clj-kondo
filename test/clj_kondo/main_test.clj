@@ -1761,13 +1761,6 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "
-(def an-array (int-array 25000 (int 0)))
-
-(amap ^ints an-array idx ret
-      (+ (int 1)
-         (aget ^ints an-array idx)))"
-                     {:linters {:unresolved-symbol {:level :error}}})))
-  (is (empty? (lint! "
 (clojure.core/let ^{:row 15, :col 2, :line 1} [^{:row 15, :col 3} x 1] ^{:row 16, :col 2} (^{:row 16, :col 3} inc ^{:row 16, :col 7} x))"
                      {:linters {:type-mismatch {:level :error}}})))
   (is (empty? (lint! "(def x) (doto x)")))
@@ -1775,6 +1768,18 @@ foo/foo ;; this does use the private var
                      {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(scala.Int/MinValue)" {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(require '[clojure.string :as s]) '::s/foo"))))
+
+(deftest amap-test
+  (is (empty? (lint! "
+(def an-array (int-array 25000 (int 0)))
+
+(amap ^ints an-array idx ret
+      (+ (int 1)
+         (aget ^ints an-array idx)))"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(let [nodes (into-array [1 2 3]) nodes (amap nodes idx _ idx)] nodes)"
+                     {:linters {:unused-binding {:level :warning}
+                                :unresolved-symbol {:level :error}}}))))
 
 (deftest proxy-super-test
   (is (empty? (lint! "

@@ -1187,8 +1187,10 @@
   (analyze-children ctx (nnext (:children expr)) false))
 
 (defn analyze-amap [ctx expr]
-  (let [[_ array idx-binding ret-binding body] (:chilren expr)
-        ctx (ctx-with-bindings ctx (into {} (map #(extract-bindings ctx %) [idx-binding ret-binding])))]
+  (let [[_ array idx-binding ret-binding body] (:children expr)
+        ctx (ctx-with-bindings ctx
+                               (into {} (map #(extract-bindings ctx %)
+                                             [idx-binding ret-binding])))]
     (analyze-children ctx [array body] false)))
 
 (defn analyze-format-string [ctx format-str-node format-str args]
