@@ -960,13 +960,12 @@
       (when-first [c children]
         (if-let [sym (utils/symbol-from-token c)]
           ;; we have encountered a protocol or interface name
-          (do
-            (analyze-usages2 ctx c)
-            (recur sym (rest children)))
+          (do (analyze-usages2 ctx c)
+              (recur sym (rest children)))
           ;; assume fn-call
           (let [args (:children c)
                 args (rest args)]
-            (analyze-expression** ctx (utils/list-node (list* (utils/token-node 'fn) args)))
+            (analyze-expression** ctx (utils/list-node (list* (utils/token-node 'clojure.core/fn) args)))
             (recur current-protocol (rest children)))
           )))
 
@@ -1261,8 +1260,7 @@
          clojure-excluded? :clojure-excluded?
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
-        expr-meta (meta expr)
-        inc? (= 'inc full-fn-name)]
+        expr-meta (meta expr)]
     (cond (and unresolved?
                (str/ends-with? full-fn-name "."))
           (recur ctx
@@ -1707,7 +1705,7 @@
                     (let [full-fn-name (with-meta full-fn-name (meta function))
                           unresolved? (nil? (namespace full-fn-name))
                           binding (and unresolved?
-                                             (get bindings full-fn-name))]
+                                       (get bindings full-fn-name))]
                       (if binding
                         (do
                           (types/add-arg-type-from-expr ctx expr)

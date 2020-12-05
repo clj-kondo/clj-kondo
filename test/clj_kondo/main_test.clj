@@ -1668,6 +1668,13 @@ foo/foo ;; this does use the private var
    (lint! (io/file "corpus" "defrecord.clj")
           "--config" "{:linters {:unused-binding {:level :warning}}}")))
 
+(deftest deftype-test
+  (assert-submaps
+   '({:file "corpus/deftype.cljs", :row 9, :col 10, :level :warning, :message "unused binding coll"}
+     {:file "corpus/deftype.cljs", :row 17, :col 16, :level :warning, :message "unused binding coll"})
+   (lint! (io/file "corpus" "deftype.cljs")
+              "--config" "{:linters {:unused-binding {:level :warning}}}")))
+
 (deftest defmulti-test
   (assert-submaps
    '({:file "corpus/defmulti.clj",
