@@ -957,11 +957,9 @@
     (loop [current-protocol nil
            children (nnext children)]
       (when-first [c children]
-        (prn :c c)
         (if-let [sym (utils/symbol-from-token c)]
           ;; we have encountered a protocol name
           ;; TODO: lint usage?
-          
           (recur sym (rest children))
           ;; assume fn-call
           (let [args (:children c)
