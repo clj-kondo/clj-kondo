@@ -1770,7 +1770,8 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(require '[clojure.string :as s]) '::s/foo")))
   (is (empty? (lint! "(simple-benchmark [x 100] (+ 1 2 x) 10)"
                      {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(defn foo [_a _b] (dosync (recur)))"))))
 
 (deftest amap-test
   (is (empty? (lint! "

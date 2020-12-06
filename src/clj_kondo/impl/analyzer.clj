@@ -1502,8 +1502,9 @@
                         (babashka/analyze-$ ctx expr)
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
-                                         (= '[clojure.core.async thread]
-                                            [resolved-namespace resolved-name])
+                                         (one-of [resolved-namespace resolved-name]
+                                                 [[clojure.core.async thread]
+                                                  [clojure.core dosync]])
                                          (assoc-in [:recur-arity :fixed-arity] 0))]
                           (analyze-children next-ctx children false))))]
                 (if (= 'ns resolved-as-clojure-var-name)
