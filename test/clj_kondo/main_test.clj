@@ -582,7 +582,16 @@ foo/foo ;; this does use the private var
      :col 35,
      :level :error,
      :message "clojure.core/select-keys is called with 0 args but expects 2"}
-   (first (lint! "(ns foo) (alias 'c 'clojure.core) (c/select-keys)"))))
+   (first (lint! "(ns foo) (alias 'c 'clojure.core) (c/select-keys)")))
+  (is (empty? (lint! "
+(require 'bar 'foo)
+
+(alias (quote f) (quote foo))
+(alias (quote b) (quote bar))
+
+(f/inc)
+(b/inc)
+"))))
 
 (deftest case-test
   (testing "case dispatch values should not be linted as function calls"

@@ -701,10 +701,24 @@
 (defn analyze-alias [ctx expr]
   (let [ns (:ns ctx)
         [alias-expr ns-expr :as children] (rest (:children expr))
-        alias-sym (when (= :quote (tag alias-expr))
-                    (:value (first (:children alias-expr))))
-        ns-sym (when (= :quote (tag alias-expr))
-                 (:value (first (:children ns-expr))))]
+        alias-sym
+        (let [t (tag alias-expr)]
+          (or (when (identical? :quote t)
+                (:value (first (:children alias-expr))))
+              (when (identical? :list t)
+                (let [children (:children alias-expr)]
+                  (when (and (= 'quote (some-> children first
+                                               utils/symbol-from-token)))
+                    (utils/symbol-from-token (second children)))))))
+        ns-sym
+        (let [t (tag ns-expr)]
+          (or (when (identical? :quote t)
+                (:value (first (:children ns-expr))))
+              (when (identical? :list t)
+                (let [children (:children ns-expr)]
+                  (when (and (= 'quote (some-> children first
+                                               utils/symbol-from-token)))
+                    (utils/symbol-from-token (second children)))))))]
     (if (and alias-sym (symbol? alias-sym) ns-sym (symbol? ns-sym))
       (namespace/reg-alias! ctx (:name ns) alias-sym ns-sym)
       (analyze-children ctx children))
