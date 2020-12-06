@@ -1767,7 +1767,10 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(def ^:private a 1) (let [{:keys [a] :or {a a}} {}] a)"
                      {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(scala.Int/MinValue)" {:linters {:unresolved-symbol {:level :error}}})))
-  (is (empty? (lint! "(require '[clojure.string :as s]) '::s/foo"))))
+  (is (empty? (lint! "(require '[clojure.string :as s]) '::s/foo")))
+  (is (empty? (lint! "(simple-benchmark [x 100] (+ 1 2 x) 10)"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 (deftest amap-test
   (is (empty? (lint! "

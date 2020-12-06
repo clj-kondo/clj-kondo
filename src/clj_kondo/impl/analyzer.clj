@@ -1495,6 +1495,8 @@
                          [clojure.tools.logging tracef]
                          [clojure.tools.logging warnf])
                         (analyze-formatted-logging ctx expr)
+                        [cljs.core simple-benchmark]
+                        (analyze-like-let ctx expr)
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
                                          (= '[clojure.core.async thread]
