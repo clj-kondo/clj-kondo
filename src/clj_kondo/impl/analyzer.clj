@@ -2,6 +2,7 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+   [clj-kondo.impl.analyzer.babashka :as babashka]
    [clj-kondo.impl.analyzer.common :refer [common]]
    [clj-kondo.impl.analyzer.compojure :as compojure]
    [clj-kondo.impl.analyzer.core-async :as core-async]
@@ -1497,6 +1498,8 @@
                         (analyze-formatted-logging ctx expr)
                         [cljs.core simple-benchmark]
                         (analyze-like-let ctx expr)
+                        [babashka.process $]
+                        (babashka/analyze-$ ctx expr)
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
                                          (= '[clojure.core.async thread]
