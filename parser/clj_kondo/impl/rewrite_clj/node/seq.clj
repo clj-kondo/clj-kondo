@@ -46,21 +46,23 @@
     (assert (map? (second exs))
             "second form in namespaced map needs to be map.")))
 
-(defrecord NamespacedMapNode [ns aliased? children]
+(defrecord NamespacedMapNode [tag ns aliased? children]
   node/Node
   (tag [this]
-    :namespaced-map)
+    tag)
   (printable-only? [_] false)
   (sexpr [this]
     (let [nspace-k (:k ns)
           m (first (node/sexprs children))
-          nspace (name nspace-k)]
-      (->> (for [[k v] m
-                 :let [k' (cond (not (keyword? k)) k
-                                (namespace k)      k
-                                :else (keyword nspace (name k)))]]
-             [k' v])
-           (into {}))))
+          nspace (name nspace-k)
+          m (->> (for [[k v] m
+                       :let [k' (cond (qualified-ident? k) k
+                                      (keyword? k) (keyword nspace (name k))
+                                      (symbol? k) (symbol nspace (name k))
+                                      :else k)]]
+                   [k' v])
+                 (into {}))]
+      m))
   (length [_]
     (+ 1 (node/sum-lengths children)))
   (string [this]
@@ -104,5 +106,4 @@
   (->SeqNode :map "{%s}" 2 #(apply hash-map %) children))
 
 (defn namespaced-map-node [map-ns aliased? children]
-  (NamespacedMapNode. map-ns aliased? children))
-
+  (NamespacedMapNode. :namespaced-map map-ns aliased? children))

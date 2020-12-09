@@ -12,15 +12,26 @@
     (zipmap keys vals)))
 
 (defn key-nodes [map-node]
-  (take-nth 2 (:children map-node)))
+  (if (identical? :namespaced-map (:tag map-node))
+    (let [nspace-k (-> map-node :ns :k)
+          map-node (first (:children map-node))
+          knodes (take-nth 2 (:children map-node))]
+      (map #(assoc % :namespace nspace-k) knodes))
+    (take-nth 2 (:children map-node))))
 
 (defn val-nodes [map-node]
-  (take-nth 2 (rest (:children map-node))))
+  (if (identical? :namespaced-map (:tag map-node))
+    (let [map-node (first (:children map-node))
+          vnodes (take-nth 2 (rest (:children map-node)))]
+      vnodes)
+    (take-nth 2 (rest (:children map-node)))))
 
 (defn lint-qualified-deps [ctx nodes]
   (run! (fn [node]
           (let [form (sexpr node)]
-            (when-not (qualified-symbol? form)
+            (when-not (or (qualified-symbol? form)
+                           ;; fix for namespaced maps
+                          (:namespace node))
               (findings/reg-finding!
                ctx
                (node->line (:filename ctx)

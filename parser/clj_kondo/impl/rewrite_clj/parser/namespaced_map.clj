@@ -1,8 +1,8 @@
 (ns clj-kondo.impl.rewrite-clj.parser.namespaced-map
   {:no-doc true}
   (:require
-   [clj-kondo.impl.rewrite-clj.node.seq :refer [namespaced-map-node]]
    [clj-kondo.impl.rewrite-clj.node :as node]
+   [clj-kondo.impl.rewrite-clj.node.seq :refer [namespaced-map-node]]
    [clj-kondo.impl.rewrite-clj.reader :as reader]
    [clojure.string :as str]))
 
@@ -24,6 +24,7 @@
 (defn parse-namespaced-map
   [reader read-next]
   (let [map-ns (parse-map-ns reader)
-        aliased? (:namespaced? map-ns)]
+        aliased? (:namespaced? map-ns)
+        the-map (read-next reader)]
     (namespaced-map-node map-ns aliased?
-                         [(read-next reader)]))) 
+                         [the-map])))

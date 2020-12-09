@@ -80,3 +80,9 @@
        {:file "deps.edn", :row 1, :col 33, :level :warning, :message "Expected: map with :url."})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
+
+(deftest namespaced-map-test
+  (let [deps-edn "{:deps #:clj-kondo{clj-kondo {:mvn/version \"2020.11.07\"}}}"]
+    (is (empty?
+         (lint! (str deps-edn)
+                "--filename" "deps.edn")))))
