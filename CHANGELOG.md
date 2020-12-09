@@ -18,6 +18,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Alias linter doesn't recognize (quote alias) form [#1074](https://github.com/borkdude/clj-kondo/issues/1074)
 - Fix retries for `refer :all` when linting in parallel [#1068](https://github.com/borkdude/clj-kondo/issues/1068)
 - Improve analyzing syntax of `amap` [#1069](https://github.com/borkdude/clj-kondo/issues/1069)
+- Namespaced map in deps.edn causes false positive [#1093](https://github.com/borkdude/clj-kondo/issues/1093)
 
 ## v2020.11.07
 
