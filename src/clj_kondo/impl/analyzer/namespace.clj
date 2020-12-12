@@ -55,8 +55,10 @@
           (let [full-form (symbol (str (when prefix (str prefix "."))
                                        form))]
             [(with-meta (token-node full-form)
-               (assoc (meta libspec-expr)
-                      :raw-name form))])
+               (cond-> (assoc (meta libspec-expr)
+                              :raw-name form)
+                 prefix
+                 (assoc :prefix prefix)))])
           (keyword? form)  ; Some people write (:require ... :reload-all)
           nil
           :else

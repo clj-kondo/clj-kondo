@@ -60,14 +60,17 @@
           (let [ns (first ns-list)
                 m (meta ns)
                 raw-ns (:raw-name m)
-                raw-ns (if (string? raw-ns)
-                         (pr-str raw-ns)
-                         raw-ns)
-                ns-str (str (or raw-ns ns))
+                prefix (:prefix m)
+                raw-ns (cond prefix
+                         (str prefix "." ns)
+                         raw-ns (if (string? raw-ns)
+                                  (pr-str raw-ns)
+                                  (str raw-ns))
+                         :else (str ns))
                 branch (:branch m)]
             (cond branch
                   (recur last-processed-ns (next ns-list))
-                  (pos? (compare last-processed-ns ns-str))
+                  (pos? (compare last-processed-ns raw-ns))
                   (findings/reg-finding!
                    ctx
                    (node->line (:filename ctx)
@@ -75,7 +78,7 @@
                                level
                                :unsorted-required-namespaces
                                (str "Unsorted namespace: " ns)))
-                  :else (recur ns-str
+                  :else (recur raw-ns
                                (next ns-list)))))))))
 
 (defn reg-namespace!
