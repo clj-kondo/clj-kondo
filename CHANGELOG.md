@@ -21,6 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Namespaced map in `deps.edn` causes false positive [#1093](https://github.com/borkdude/clj-kondo/issues/1093)
 - Support ignore hints in `deps.edn` [#1094](https://github.com/borkdude/clj-kondo/issues/1094)
 - Fix unsorted namespaces linter for nested libspecs [#1097](https://github.com/borkdude/clj-kondo/issues/1097)
+- Fix reported ns name in analysis for nested libspecs [#1100](https://github.com/borkdude/clj-kondo/issues/1100)
 
 ## v2020.11.07
 

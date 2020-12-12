@@ -7,7 +7,10 @@
 (defn reg-usage! [ctx filename row col from-ns to-ns var-name arity lang in-def metadata]
   (let [analysis (:analysis ctx)]
     (when analysis
-      (let [to-ns (or (some-> to-ns meta :raw-name) to-ns)]
+      (let [m (meta to-ns)
+            to-raw (:raw-name m)
+            to-ns (if (and to-raw (string? to-raw))
+                    to-raw to-ns)]
         (swap! analysis update :var-usages conj
                (assoc-some
                 (merge
@@ -57,7 +60,10 @@
 (defn reg-namespace-usage! [{:keys [:analysis :base-lang :lang] :as _ctx}
                             filename row col from-ns to-ns alias]
   (when analysis
-    (let [to-ns (or (some-> to-ns meta :raw-name) to-ns)]
+    (let [m (meta to-ns)
+          to-raw (:raw-name m)
+          to-ns (if (and to-raw (string? to-raw))
+                  to-raw to-ns)]
       (swap! analysis update :namespace-usages conj
              (assoc-some
               {:filename filename
