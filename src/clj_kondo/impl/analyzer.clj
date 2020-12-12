@@ -1879,8 +1879,7 @@
                                (:children (select-lang parsed :cljs))))
         (:clj :cljs :edn)
         (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename)]
-          (analyze-expressions ctx
-                               (:children parsed))
+          (analyze-expressions ctx (:children parsed))
           ;; analyze-expressions should go first in order to process ignores
           (when (identical? :edn lang)
             (let [fn (.getName (io/file filename))]
