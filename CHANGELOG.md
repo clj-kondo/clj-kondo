@@ -2,7 +2,7 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## v2020.12.12
 
 ### New
 
