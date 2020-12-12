@@ -12,7 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Support `cljs.core/simple-benchmark` syntax [#1079](https://github.com/borkdude/clj-kondo/issues/1079)
 - Support `babashka.process/$` macro syntax [#1089](https://github.com/borkdude/clj-kondo/issues/1089)
 
-### Enhanced
+### Enhanced / fixed
 
 - Fix recur arity in doysync [#1081](https://github.com/borkdude/clj-kondo/issues/1081)
 - Alias linter doesn't recognize (quote alias) form [#1074](https://github.com/borkdude/clj-kondo/issues/1074)
@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Improve analyzing syntax of `amap` [#1069](https://github.com/borkdude/clj-kondo/issues/1069)
 - Namespaced map in `deps.edn` causes false positive [#1093](https://github.com/borkdude/clj-kondo/issues/1093)
 - Support ignore hints in `deps.edn` [#1094](https://github.com/borkdude/clj-kondo/issues/1094)
+- Fix unsorted namespaces linter for nested libspecs [#1097](https://github.com/borkdude/clj-kondo/issues/1097)
 
 ## v2020.11.07
 
