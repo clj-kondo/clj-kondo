@@ -7,7 +7,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ### New
 
 - Documentation: a list of all available [linters](https://github.com/borkdude/clj-kondo/blob/master/doc/linters.md) [#936](https://github.com/borkdude/clj-kondo/issues/936)
-- Lint protocol and interface implementations in `deftype` and `defrecord` [#140](https://github.com/borkdude/clj-kondo/issues/140)s
+- Lint protocol and interface implementations in `deftype` and `defrecord` [#140](https://github.com/borkdude/clj-kondo/issues/140)
 - Upgrade to GraalVM 20.3.0 [#1085](https://github.com/borkdude/clj-kondo/issues/1085)
 - Support `cljs.core/simple-benchmark` syntax [#1079](https://github.com/borkdude/clj-kondo/issues/1079)
 - Support `babashka.process/$` macro syntax [#1089](https://github.com/borkdude/clj-kondo/issues/1089)
