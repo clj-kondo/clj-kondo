@@ -215,7 +215,7 @@ Install the [File Watchers](https://www.jetbrains.com/help/idea/settings-tools-f
 Repeat the below steps for the file types Clojure (`.clj`), ClojureScript (`.cljs`)
 and CLJC (`.cljc`)<sup>1</sup>.
 
-1. Under Preferences / Tools / File Watchers click `+` and choose the `<custom>`
+1. Under Preferences (File/Settings... in GNU/Linux) / Tools / File Watchers click `+` and choose the `<custom>`
    template
 2. Choose a name. E.g. `clj-kondo <filetype>` (where `<filetype>` is one of
    Clojure, ClojureScript or CLJC)
