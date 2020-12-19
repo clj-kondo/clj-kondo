@@ -86,3 +86,8 @@
     (is (empty?
          (lint! (str deps-edn)
                 "--filename" "deps.edn")))))
+
+(deftest ignore-test
+  (let [deps-edn "{:deps #_:clj-kondo/ignore {clj-kondo {:mvn/version \"2020.11.07\"}}}"]
+    (is (empty? (lint! (str deps-edn)
+                       "--filename" "deps.edn")))))

@@ -213,3 +213,9 @@
         (analyze "(ns foo)
                   (defn ^:export foo [])")]
     (is (true? (:export (first var-definitions))))))
+
+(deftest nested-libspec-test
+  (let [{:keys [:namespace-usages :var-usages]}
+        (analyze "(ns foo (:require [clojure [set :refer [union]]])) (union #{1 2 3} #{3 4 5})")]
+    (is (= 'clojure.set (:to (first namespace-usages))))
+    (is (= 'clojure.set (:to (first var-usages))))))

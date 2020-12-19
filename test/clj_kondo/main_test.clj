@@ -2459,7 +2459,17 @@ foo/foo ;; this does use the private var
                        "--lang" "cljc"))))
   (is (empty? (lint! "(ns foo (:require [clojure.string] [clojure.test]))"
                      {:linters {:unsorted-required-namespaces {:level :warning}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (testing "nested libspecs"
+    (is (empty? (lint! "
+(ns foo
+  (:require [charlie]
+            [delta
+             [alpha]
+             [bravo]]
+            [echo]))
+
+" {:linters {:unsorted-required-namespaces {:level :warning}}})))))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]

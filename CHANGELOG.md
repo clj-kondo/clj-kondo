@@ -2,23 +2,26 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## v2020.12.12
 
 ### New
 
 - Documentation: a list of all available [linters](https://github.com/borkdude/clj-kondo/blob/master/doc/linters.md) [#936](https://github.com/borkdude/clj-kondo/issues/936)
-- Lint protocol and interface implementations in `deftype` and `defrecord` [#140](https://github.com/borkdude/clj-kondo/issues/140)s
+- Lint protocol and interface implementations in `deftype` and `defrecord` [#140](https://github.com/borkdude/clj-kondo/issues/140)
 - Upgrade to GraalVM 20.3.0 [#1085](https://github.com/borkdude/clj-kondo/issues/1085)
 - Support `cljs.core/simple-benchmark` syntax [#1079](https://github.com/borkdude/clj-kondo/issues/1079)
 - Support `babashka.process/$` macro syntax [#1089](https://github.com/borkdude/clj-kondo/issues/1089)
 
-### Enhanced
+### Enhanced / fixed
 
 - Fix recur arity in doysync [#1081](https://github.com/borkdude/clj-kondo/issues/1081)
 - Alias linter doesn't recognize (quote alias) form [#1074](https://github.com/borkdude/clj-kondo/issues/1074)
 - Fix retries for `refer :all` when linting in parallel [#1068](https://github.com/borkdude/clj-kondo/issues/1068)
 - Improve analyzing syntax of `amap` [#1069](https://github.com/borkdude/clj-kondo/issues/1069)
-- Namespaced map in deps.edn causes false positive [#1093](https://github.com/borkdude/clj-kondo/issues/1093)
+- Namespaced map in `deps.edn` causes false positive [#1093](https://github.com/borkdude/clj-kondo/issues/1093)
+- Support ignore hints in `deps.edn` [#1094](https://github.com/borkdude/clj-kondo/issues/1094)
+- Fix unsorted namespaces linter for nested libspecs [#1097](https://github.com/borkdude/clj-kondo/issues/1097)
+- Fix reported ns name in analysis for nested libspecs [#1100](https://github.com/borkdude/clj-kondo/issues/1100)
 
 ## v2020.11.07
 
