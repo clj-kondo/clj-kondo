@@ -133,6 +133,11 @@ command can be used to open the `coc-settings.json` file.
 }
 ```
 
+### Neomake
+
+Neomake has built-in support for clj-kondo.
+It will be enabled automatically when using neomake, no configuration required.
+
 ### Vanilla way
 
 Create this file in `~/.config/nvim/compiler/clj-kondo.vim` or `~/.vim/compiler/clj-kondo.vim`.
