@@ -211,10 +211,14 @@
          aliased-ns-sym))
 
 (defn reg-binding!
-  [{:keys [:base-lang :lang :namespaces]} ns-sym binding]
-  (when-not (:clj-kondo/mark-used binding)
-    (swap! namespaces update-in [base-lang lang ns-sym :bindings]
-           conj binding))
+  [{:keys [:base-lang :lang :namespaces :filename] :as ctx} ns-sym binding]
+  (let [config (:config ctx)
+        analyze-locals? (-> config :output :locals)]
+    (when-not (:clj-kondo/mark-used binding)
+      (when analyze-locals?
+        (analysis/reg-local! ctx filename binding))
+      (swap! namespaces update-in [base-lang lang ns-sym :bindings]
+             conj binding)))
   nil)
 
 (defn reg-destructuring-default!
@@ -225,10 +229,14 @@
   nil)
 
 (defn reg-used-binding!
-  [{:keys [:base-lang :lang :namespaces]} ns-sym binding]
-  (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
-         conj binding)
-  nil)
+  [{:keys [:base-lang :lang :namespaces :filename] :as ctx} ns-sym binding usage]
+  (let [config (:config ctx)
+        analyze-locals? (-> config :output :locals)]
+    (when (and usage analyze-locals? (not (:clj-kondo/mark-used binding)))
+      (analysis/reg-local-usage! ctx filename binding usage))
+    (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
+           conj binding)
+    nil))
 
 (defn reg-required-namespaces!
   [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]

@@ -73,3 +73,18 @@
                :to to-ns}
               :lang (when (= :cljc base-lang) lang)
               :alias alias)))))
+
+(defn reg-local! [{:keys [:analysis :base-lang :lang] :as _ctx} filename binding]
+  (when analysis
+    (swap! analysis update :locals conj
+           (assoc-some binding
+                       :filename filename
+                       :lang (when (= :cljc base-lang) lang)))))
+
+(defn reg-local-usage! [{:keys [:analysis :base-lang :lang] :as _ctx} filename binding usage]
+  (when analysis
+    (swap! analysis update :local-usages conj
+           (assoc-some usage
+                       :filename filename
+                       :lang (when (= :cljc base-lang) lang)
+                       :id (:id binding)))))

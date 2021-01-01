@@ -104,11 +104,14 @@
         files (atom 0)
         findings (atom [])
         analysis? (get-in config [:output :analysis])
+        analyze-locals? (get-in config [:output :locals])
         analysis (when analysis?
-                   (atom {:namespace-definitions []
-                          :namespace-usages []
-                          :var-definitions []
-                          :var-usages []}))
+                   (atom (cond-> {:namespace-definitions []
+                                  :namespace-usages []
+                                  :var-definitions []
+                                  :var-usages []}
+                           analyze-locals? (assoc :locals []
+                                                  :local-usages []))))
         ctx {:no-warnings no-warnings
              :config-dir cfg-dir
              :config config
