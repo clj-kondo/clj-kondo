@@ -262,7 +262,11 @@
                                            (when (= :cljc base-lang)
                                              call-lang)
                                            in-def
-                                           called-fn))]
+                                           (assoc called-fn
+                                                  :name-row name-row
+                                                  :name-col name-col
+                                                  :name-end-row (:end-row name-meta)
+                                                  :name-end-col (:end-col name-meta))))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?
