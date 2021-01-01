@@ -109,6 +109,9 @@
                           :namespace-usages []
                           :var-definitions []
                           :var-usages []}))
+        used-nss (atom {:clj #{}
+                        :cljs #{}
+                        :cljc #{}})
         ctx {:no-warnings no-warnings
              :config-dir cfg-dir
              :config config
@@ -120,14 +123,13 @@
              :namespaces (atom {})
              :analysis analysis
              :cache-dir cache-dir
-             :used-namespaces (atom {:clj #{}
-                                     :cljs #{}
-                                     :cljc #{}})
+             :used-namespaces used-nss
              :ignores (atom {})}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
                                      ctx) lint lang filename)
+        _ (prn :used-nss @used-nss)
         idacs (core-impl/index-defs-and-calls ctx)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)

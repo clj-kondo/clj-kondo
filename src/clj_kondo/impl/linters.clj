@@ -210,18 +210,23 @@
                   col (:col call)
                   end-row (:end-row call)
                   end-col (:end-col call)
+                  ;; _ (prn :used (:used-namespaces idacs))
+                  #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns fn-name unresolved? refer-alls)
                   _ (when-not called-fn
-                      (findings/reg-finding!
-                       ctx
-                       {:filename filename
-                        :row row
-                        :end-row end-row
-                        :col col
-                        :end-col end-col
-                        :type :unresolved-symbol
-                        :message (str "Unresolved symbol: " resolved-ns "/" fn-name)}))
+                      (when (and row col end-row end-col)
+                        (when-not (or (= 'clojure.core resolved-ns)
+                                      (identical? :clj-kondo/unknown-namespace resolved-ns))
+                          (findings/reg-finding!
+                           ctx
+                           {:filename filename
+                            :row row
+                            :end-row end-row
+                            :col col
+                            :end-col end-col
+                            :type :unresolved-symbol
+                            :message (str "Unresolved symbol: " resolved-ns "/" fn-name)}))))
                   ;; we can determine if the call was made to another
                   ;; file by looking at the base-lang (in case of
                   ;; CLJS macro imports or the top-level namespace
@@ -253,11 +258,11 @@
                                 :end-row (:end-row name-meta)
                                 :end-col (:end-col name-meta))
                          call)))
-                  row (:row call)
-                  col (:col call)
-                  end-row (:end-row call)
-                  end-col (:end-col call)
-                  filename (:filename call)
+                  ;; row (:row call)
+                  ;; col (:col call)
+                  ;; end-row (:end-row call)
+                  ;; end-col (:end-col call)
+                  ;; filename (:filename call)
                   fn-ns (:ns called-fn)
                   resolved-ns (or fn-ns resolved-ns)
                   arity (:arity call)
