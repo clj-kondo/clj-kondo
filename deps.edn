@@ -3,7 +3,7 @@
         io.lambdaforge/datalog-parser {:mvn/version "0.1.7"}
         cheshire/cheshire {:mvn/version "5.10.0"}
         nrepl/bencode {:mvn/version "1.1.0"}
-        borkdude/sci {:mvn/version "0.1.0"}}
+        borkdude/sci {:mvn/version "0.2.0"}}
  :aliases {:clj-kondo
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
