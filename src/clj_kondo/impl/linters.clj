@@ -205,8 +205,23 @@
                                     [base-lang call-lang caller-ns-sym])
                   resolved-ns (:resolved-ns call)
                   refer-alls (:refer-alls caller-ns)
+                  filename (:filename call)
+                  row (:row call)
+                  col (:col call)
+                  end-row (:end-row call)
+                  end-col (:end-col call)
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns fn-name unresolved? refer-alls)
+                  _ (when-not called-fn
+                      (findings/reg-finding!
+                       ctx
+                       {:filename filename
+                        :row row
+                        :end-row end-row
+                        :col col
+                        :end-col end-col
+                        :type :unresolved-symbol
+                        :message (str "Unresolved symbol: " resolved-ns "/" fn-name)}))
                   ;; we can determine if the call was made to another
                   ;; file by looking at the base-lang (in case of
                   ;; CLJS macro imports or the top-level namespace
