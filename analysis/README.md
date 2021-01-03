@@ -167,7 +167,7 @@ tool](https://clojure.org/guides/getting_started) version 1.10.1.466 or higher
 and then use this repo as a git dep:
 
 ``` clojure
-{:deps {clj-kondo/tools {:git/url "https://github.com/borkdude/clj-kondo"
+{:deps {clj-kondo/tools {:git/url "https://github.com/clj-kondo/clj-kondo"
                          :sha "1ed3b11025b7f3a582e6db099ba10a888fe0fc2c"
                          :deps/root "analysis"}}}
 ```
@@ -179,7 +179,7 @@ You can create an alias for a tool in your `~/.clojure/deps.edn`:
 ```
 {
  :aliases {:unused-vars
-           {:extra-deps {clj-kondo/tools {:git/url "https://github.com/borkdude/clj-kondo"
+           {:extra-deps {clj-kondo/tools {:git/url "https://github.com/clj-kondo/clj-kondo"
                                           :sha "1ed3b11025b7f3a582e6db099ba10a888fe0fc2c"
                                           :deps/root "analysis"}}
             :main-opts ["-m" "clj-kondo.tools.unused-vars"]}

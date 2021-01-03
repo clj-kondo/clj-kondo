@@ -6,7 +6,7 @@ CHANGES WILL HAPPEN.
 Clj-kondo provides rudimentary type checking using a few basic rules and type
 annotations. The linter for this is called `:type-mismatch` in the
 configuration. Clj-kondo knows the types of a selection of
-[clojure](https://github.com/borkdude/clj-kondo/tree/master/src/clj_kondo/impl/types/clojure)
+[clojure](https://github.com/clj-kondo/clj-kondo/tree/master/src/clj_kondo/impl/types/clojure)
 functions and is therefore able to warn about mismatches like:
 
 ``` clojure
@@ -68,7 +68,7 @@ The configuration is organized per namespace. Annotations are provided per arity
 ```
 
 Available types and relations can be found
-[here](https://github.com/borkdude/clj-kondo/blob/d9fca2705863e3e604e004ccb942e0b3d2e268ec/src/clj_kondo/impl/types.clj#L18-L51).
+[here](https://github.com/clj-kondo/clj-kondo/blob/d9fca2705863e3e604e004ccb942e0b3d2e268ec/src/clj_kondo/impl/types.clj#L18-L51).
 
 Special operators:
 
@@ -85,7 +85,7 @@ Special operators:
 ## How can I help?
 
 - Provide a PR for missing
-  [clojure](https://github.com/borkdude/clj-kondo/tree/master/src/clj_kondo/impl/types/clojure)
+  [clojure](https://github.com/clj-kondo/clj-kondo/tree/master/src/clj_kondo/impl/types/clojure)
   annotations.
 - Report false positives.
 - Try out the configuration and report feedback.

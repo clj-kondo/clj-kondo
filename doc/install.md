@@ -3,7 +3,7 @@
 ## Manual install
 
 Pre-built binaries are available for linux, macOS and Windows on the
-[releases](https://github.com/borkdude/clj-kondo/releases) page.
+[releases](https://github.com/clj-kondo/clj-kondo/releases) page.
 
 ## Installation script (macOS and Linux)
 
@@ -13,7 +13,7 @@ will install to `/usr/local/bin` by default.
 
 To download and execute the script:
 
-    curl -sLO https://raw.githubusercontent.com/borkdude/clj-kondo/master/script/install-clj-kondo
+    curl -sLO https://raw.githubusercontent.com/clj-kondo/clj-kondo/master/script/install-clj-kondo
     chmod +x install-clj-kondo
     ./install-clj-kondo
 
