@@ -11,6 +11,16 @@ data, use the following configuration:
 When using clj-kondo from the command line, the analysis data will be exported
 with `{:output {:format ...}}` set to `:json` or `:edn`.
 
+## Extra Analysis
+
+Further analysis can be returned by providing `:analysis` with a map of options:
+
+``` shellsession
+{:output {:analysis {... ...}}
+```
+
+- `:locals`: when truthy return `:locals` and `:local-usages` described below
+
 ## Data
 
 The analysis output consists of a map with:
@@ -60,6 +70,20 @@ The analysis output consists of a map with:
     was resolved: `:clj` or `:cljs`
   - several attributes of the used var: `:private`, `:macro`, `:fixed-arities`,
     `:varargs-min-arity`, `:deprecated`.
+
+- `:locals`, a list of maps with:
+  - `:filename`, `:row`, `:col`, `:end-row`, `:end-col`
+  - `:id`: an identification for this local, `:local-usages` will reference this
+  - `:name`: the name of the used local
+  - `:str`: the as written string of the local from the file and position
+  - `:scope-end-row`: the row in which this local will go out of scope
+  - `:scope-end-col`: the column in which this local will go out of scope
+
+- `:local-usages`, a list of maps with:
+  - `:filename`, `:row`, `:col`, `:end-row`, `:end-col`
+  - `:id`: an identification for this local, refers to the local declaration with the same `:id` in `:locals`
+  - `:name`: the name of the used local
+  - `:str`: the as written string of the local from the file and position
 
 Example output after linting this code:
 
