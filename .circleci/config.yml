@@ -267,4 +267,3 @@ workflows:
             - jvm
             - linux
             - linux-static
-            - mac

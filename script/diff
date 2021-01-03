@@ -20,7 +20,7 @@ clojure -A:clj-kondo --lint "$cp" --cache --config "$config" --parallel > "$out"
 
 cd /tmp
 rm -rf clj-kondo
-git clone https://github.com/borkdude/clj-kondo.git
+git clone https://github.com/clj-kondo/clj-kondo.git
 cd clj-kondo
 
 if [ -n "$1" ]; then

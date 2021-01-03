@@ -2,8 +2,8 @@
 
 [![Clojars Project](https://img.shields.io/clojars/v/clj-kondo.svg)](https://clojars.org/clj-kondo)
 [![Financial Contributors on Open Collective](https://opencollective.com/clj-kondo/all/badge.svg?label=financial+contributors)](https://opencollective.com/clj-kondo) 
-[![CircleCI](https://circleci.com/gh/borkdude/clj-kondo/tree/master.svg?style=shield)](https://circleci.com/gh/borkdude/clj-kondo/tree/master)
-[![Build status](https://ci.appveyor.com/api/projects/status/3jdro7mu17nv3rb3/branch/master?svg=true)](https://ci.appveyor.com/project/borkdude/clj-kondo/branch/master)
+[![CircleCI](https://circleci.com/gh/clj-kondo/clj-kondo/tree/master.svg?style=shield)](https://circleci.com/gh/clj-kondo/clj-kondo/tree/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/3jdro7mu17nv3rb3/branch/master?svg=true)](https://ci.appveyor.com/project/clj-kondo/clj-kondo/branch/master)
 [![cljdoc badge](https://cljdoc.org/badge/clj-kondo/clj-kondo)](https://cljdoc.org/d/clj-kondo/clj-kondo/CURRENT)
 [![project chat](https://img.shields.io/badge/slack-join_chat-brightgreen.svg)](https://clojurians.slack.com/messages/CHY97NXE2)
 [![twitter](https://img.shields.io/badge/twitter-%23cljkondo-blue)](https://twitter.com/search?q=%23cljkondo&src=typed_query&f=live)
@@ -232,7 +232,7 @@ pod](https://github.com/babashka/babashka.pods).
 - [joker](https://github.com/candid82/joker) for inspiration
 - [rewrite-clj](https://github.com/xsc/rewrite-clj) for the Clojure parser code
 - [eastwood](https://github.com/jonase/eastwood) for `var-info.edn` and inspiration
-- [contributors](https://github.com/borkdude/clj-kondo/graphs/contributors) and
+- [contributors](https://github.com/clj-kondo/clj-kondo/graphs/contributors) and
   other users posting issues with bug reports and ideas
 - [Nikita Prokopov](https://github.com/tonsky) for the logo
 - [adgoji](https://www.adgoji.com/) for financial support
@@ -245,7 +245,7 @@ pod](https://github.com/babashka/babashka.pods).
 
 This project exists thanks to all the people who contribute. [[Contribute](doc/dev.md)].
 
-<a href="https://github.com/borkdude/clj-kondo/graphs/contributors"><img src="https://opencollective.com/clj-kondo/contributors.svg?width=890&button=false" /></a>
+<a href="https://github.com/clj-kondo/clj-kondo/graphs/contributors"><img src="https://opencollective.com/clj-kondo/contributors.svg?width=890&button=false" /></a>
 
 ### Financial Contributors
 

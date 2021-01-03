@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-image_name="borkdude/clj-kondo"
+image_name="cljkondo/clj-kondo"
 image_tag=$(cat resources/CLJ_KONDO_VERSION)
 latest_tag="latest"
 

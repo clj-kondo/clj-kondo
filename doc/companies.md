@@ -1,7 +1,7 @@
 # Companies using clj-kondo
 
 Is your company using clj-kondo? Make a PR to this document or mention it in
-[this](https://github.com/borkdude/clj-kondo/issues/438) issue to get yours
+[this](https://github.com/clj-kondo/clj-kondo/issues/438) issue to get yours
 listed!
 
 - [Adgoji](https://www.adgoji.com/)

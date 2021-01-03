@@ -55,7 +55,7 @@ do
 done
 
 if [[ "$version" == "" ]]; then
-  version="$(curl -s https://raw.githubusercontent.com/borkdude/clj-kondo/master/resources/CLJ_KONDO_RELEASED_VERSION)"
+  version="$(curl -s https://raw.githubusercontent.com/clj-kondo/clj-kondo/master/resources/CLJ_KONDO_RELEASED_VERSION)"
 fi
 
 case "$(uname -s)" in
@@ -63,14 +63,14 @@ case "$(uname -s)" in
     Darwin*)    platform=macos;;
 esac
 
-download_url="https://github.com/borkdude/clj-kondo/releases/download/v$version/clj-kondo-$version-$platform-amd64.zip"
+download_url="https://github.com/clj-kondo/clj-kondo/releases/download/v$version/clj-kondo-$version-$platform-amd64.zip"
 
 mkdir -p "$download_dir"
 cd "$download_dir"
 echo -e "Downloading $download_url to $download_dir"
 rm -rf "clj-kondo-$version-$platform-amd64.zip"
 rm -rf "clj-kondo"
-curl -o "clj-kondo-$version-$platform-amd64.zip" -sL "https://github.com/borkdude/clj-kondo/releases/download/v$version/clj-kondo-$version-$platform-amd64.zip"
+curl -o "clj-kondo-$version-$platform-amd64.zip" -sL "https://github.com/clj-kondo/clj-kondo/releases/download/v$version/clj-kondo-$version-$platform-amd64.zip"
 unzip -qqo "clj-kondo-$version-$platform-amd64.zip"
 rm "clj-kondo-$version-$platform-amd64.zip"
 
