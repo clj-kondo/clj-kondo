@@ -175,6 +175,15 @@ jobs:
       CLJ_KONDO_TEST_ENV: native
     steps:
       - checkout
+      - run:
+          name: Short circuit on non-master branches
+          command: |
+            if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]
+              then
+                exit 0
+              else
+               circleci task halt
+            fi
       - restore_cache:
           keys:
             - mac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
@@ -257,10 +266,7 @@ workflows:
       - jvm
       - linux
       - linux-static
-      - mac:
-          filters:
-            branches:
-              only: master
+      - mac
       - deploy:
           filters:
             branches:
