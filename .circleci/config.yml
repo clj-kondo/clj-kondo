@@ -249,7 +249,10 @@ workflows:
       - jvm
       - linux
       - linux-static
-      - mac
+      - mac:
+          filters:
+            branches:
+              only: master
       - deploy:
           filters:
             branches:
@@ -257,8 +260,6 @@ workflows:
           requires:
             - jvm
             - linux
-            - linux-static
-            - mac
       - docker:
           filters:
             branches:
