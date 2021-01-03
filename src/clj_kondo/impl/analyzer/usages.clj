@@ -78,17 +78,14 @@
                (let [simple? (simple-symbol? symbol-val)]
                  (if-let [b (when (and simple? (not syntax-quote?))
                               (get (:bindings ctx) symbol-val))]
-                   (let [m (meta expr)
-                         v (assoc-some m
-                                       :name symbol-val
-                                       :filename (:filename ctx)
-                                       :str (:string-value expr)
-                                       :tag (or (types/tag-from-meta (:tag m))
-                                                (:tag opts)))]
-                     (namespace/reg-used-binding! ctx
-                                                  (-> ns :name)
-                                                  b
-                                                  v))
+                   (namespace/reg-used-binding! ctx
+                                                (-> ns :name)
+                                                b
+                                                (when (get-in ctx [:config :output :analysis :locals])
+                                                  (assoc-some (meta expr)
+                                                              :name symbol-val
+                                                              :filename (:filename ctx)
+                                                              :str (:string-value expr))))
                    (let [{resolved-ns :ns
                           resolved-name :name
                           unresolved? :unresolved?

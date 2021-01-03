@@ -132,8 +132,7 @@
            skip-reg-binding? (or skip-reg-binding?
                                  (when (and keys-destructuring? fn-args?)
                                    (-> ctx :config :linters :unused-binding
-                                       :exclude-destructured-keys-in-fn-args)))
-           analyze-locals? (get-in ctx [:config :output :locals])]
+                                       :exclude-destructured-keys-in-fn-args)))]
        (case t
          :token
          (cond
@@ -151,11 +150,12 @@
                                (:tag opts))
                          v (cond-> (assoc m
                                           :name s
-                                          :str (str expr)
                                           :filename (:filename ctx)
                                           :tag t)
-                             analyze-locals? (-> (assoc :id (gensym))
-                                                 (merge (scope-end scoped-expr))))]
+                             (get-in ctx [:config :output :analysis :locals])
+                             (-> (assoc :id (swap! (:id-gen ctx) inc)
+                                        :str (str expr))
+                                 (merge (scope-end scoped-expr))))]
                      (when-not skip-reg-binding?
                        (namespace/reg-binding! ctx
                                                (-> ctx :ns :name)
@@ -177,11 +177,12 @@
                (let [s (-> k name symbol)
                      m (meta expr)
                      v (cond-> (assoc m
-                                      :str (str expr)
                                       :name s
                                       :filename (:filename ctx))
-                         analyze-locals? (-> (assoc :id (gensym))
-                                             (merge (scope-end scoped-expr))))]
+                         (get-in ctx [:config :output :analysis :locals])
+                         (-> (assoc :id (swap! (:id-gen ctx) inc)
+                                    :str (str expr))
+                             (merge (scope-end scoped-expr))))]
                  (when-not skip-reg-binding?
                    (namespace/reg-binding! ctx
                                            (-> ctx :ns :name)
@@ -789,11 +790,13 @@
         name-exprs (map #(-> % :children first) fns)
         bindings (when (seq name-exprs)
                    (mapv (fn [name-expr]
-                           (let [v (-> (meta name-expr)
-                                       (assoc :id (gensym)
-                                              :name (:value name-expr)
-                                              :filename (:filename ctx))
-                                       (merge (scope-end expr)))]
+                           (let [v (cond-> (assoc (meta name-expr)
+                                                  :name (:value name-expr)
+                                                  :filename (:filename ctx))
+                                     (get-in ctx [:config :output :analysis :locals])
+                                     (-> (assoc :id (swap! (:id-gen ctx) inc)
+                                                :str (:str name-expr))
+                                         (merge (scope-end expr))))]
                              (namespace/reg-binding! ctx (-> ctx :ns :name) v)
                              [(:value name-expr) v]))
                         name-exprs))
@@ -853,8 +856,7 @@
   ;; TODO: optimize getting the filename from the ctx etc in this function, for the happy path
   (let [callstack (:callstack ctx)
         config (:config ctx)
-        ns-name (-> ctx :ns :name)
-        m (meta expr)]
+        ns-name (-> ctx :ns :name)]
     ;;(prn (:tag binding))
     (when-let [k (types/keyword binding)]
       (when-not (types/match? k :ifn)
@@ -865,11 +867,11 @@
     (namespace/reg-used-binding! ctx
                                  ns-name
                                  binding
-                                 (assoc-some m
-                                             :str (:string-value expr)
-                                             :name (:value expr)
-                                             :filename (:filename ctx)
-                                             :tag (types/tag-from-meta (:tag m))))
+                                 (when (get-in ctx [:config :output :analysis :locals])
+                                   (assoc-some (meta expr)
+                                               :str (:string-value expr)
+                                               :name (:value expr)
+                                               :filename (:filename ctx))))
     (when-not (config/skip? config :invalid-arity callstack)
       (let [filename (:filename ctx)
             children (:children expr)]
