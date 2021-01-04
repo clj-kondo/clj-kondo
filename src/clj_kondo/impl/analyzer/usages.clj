@@ -5,7 +5,8 @@
     [clj-kondo.impl.analyzer.common :as common]
     [clj-kondo.impl.metadata :as meta]
     [clj-kondo.impl.namespace :as namespace]
-    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token tag kw->sym]]
+    [clj-kondo.impl.types :as types]
+    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token tag kw->sym assoc-some]]
     [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
@@ -79,7 +80,12 @@
                               (get (:bindings ctx) symbol-val))]
                    (namespace/reg-used-binding! ctx
                                                 (-> ns :name)
-                                                b)
+                                                b
+                                                (when (get-in ctx [:config :output :analysis :locals])
+                                                  (assoc-some (meta expr)
+                                                              :name symbol-val
+                                                              :filename (:filename ctx)
+                                                              :str (:string-value expr))))
                    (let [{resolved-ns :ns
                           resolved-name :name
                           unresolved? :unresolved?
