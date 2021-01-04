@@ -24,7 +24,11 @@
                               [:private :macro
                                :fixed-arities
                                :varargs-min-arity
-                               :deprecated]))
+                               :deprecated
+                               :name-row
+                               :name-col
+                               :name-end-row
+                               :name-end-col]))
                 :arity arity
                 :lang lang
                 :from-var in-def))))))
@@ -33,7 +37,8 @@
                 filename row col ns nom attrs]
   (when analysis
     (let [attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
-                                    :doc :added :deprecated :test :export :defined-by])]
+                                    :doc :added :deprecated :test :export :defined-by
+                                    :name-row :name-col :name-end-col :name-end-row])]
       (swap! analysis update :var-definitions conj
              (assoc-some
               (merge {:filename filename
