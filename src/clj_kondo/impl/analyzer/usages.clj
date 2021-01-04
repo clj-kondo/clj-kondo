@@ -5,7 +5,6 @@
     [clj-kondo.impl.analyzer.common :as common]
     [clj-kondo.impl.metadata :as meta]
     [clj-kondo.impl.namespace :as namespace]
-    [clj-kondo.impl.types :as types]
     [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token tag kw->sym assoc-some]]
     [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
