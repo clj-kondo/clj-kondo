@@ -16,6 +16,80 @@
                         :config {:output {:analysis true}}}
                        config))))))
 
+(deftest locals-analysis-test
+  (let [a (analyze "#(inc %1 %&)" {:config {:output {:analysis {:locals true}}}})]
+    (is (= [] (:locals a) (:local-usages a))))
+  (let [a (analyze "(areduce [] i j 0 (+ i j))" {:config {:output {:analysis {:locals true}}}})
+        [first-a second-a] (:locals a)
+        [first-use second-use] (:local-usages a)]
+    (assert-submaps
+      [{:end-col 14 :scope-end-col 27}
+       {:end-col 16 :scope-end-col 27}]
+      (:locals a))
+    (is (= (:id first-a) (:id first-use)))
+    (is (= (:id second-a) (:id second-use))))
+  (let [a (analyze "(defn x [a] (let [a a] a) a)" {:config {:output {:analysis {:locals true}}}})
+        [first-a second-a] (:locals a)
+        [first-use second-use third-use] (:local-usages a)]
+    (assert-submaps
+      [{:end-col 11 :scope-end-col 29}
+       {:end-col 20 :scope-end-col 26}]
+      (:locals a))
+    (is (= (:id first-a) (:id first-use) (:id third-use)))
+    (is (= (:id second-a) (:id second-use))))
+  (let [a (analyze "(as-> {} $ $)" {:config {:output {:analysis {:locals true}}}})
+        [first-a] (:locals a)
+        [first-use] (:local-usages a)]
+    (assert-submaps
+      [{:end-col 11 :scope-end-col 14}]
+      (:locals a))
+    (is (= (:id first-a) (:id first-use))))
+  (let [a (analyze "(letfn [(a [b] b)] a)" {:config {:output {:analysis {:locals true}}}})
+         [first-a second-a] (:locals a)
+         [first-use second-use] (:local-usages a)]
+    (assert-submaps
+      [{:end-col 11 :scope-end-col 22}
+       {:end-col 14 :scope-end-col 18}]
+      (:locals a))
+    (is (= (:id first-a) (:id first-use)))
+    (is (= (:id second-a) (:id second-use))))
+  (let [a (analyze "(let [a 0] (let [a a] a))" {:config {:output {:analysis {:locals true}}}})
+        [first-a second-a] (:locals a)
+        [first-use second-use] (:local-usages a)]
+    (assert-submaps
+      [{:end-col 8 :scope-end-col 26}
+       {:end-col 19 :scope-end-col 25}]
+      (:locals a))
+    (is (= (:id first-a) (:id first-use)))
+    (is (= (:id second-a) (:id second-use))))
+  (let [a (analyze "(let [a 0 a a] a)" {:config {:output {:analysis {:locals true}}}})
+        [first-a second-a] (:locals a)
+        [first-use second-use] (:local-usages a)]
+    (assert-submaps
+      [{:end-col 8 :scope-end-col 18}
+       {:end-col 12 :scope-end-col 18}]
+      (:locals a))
+    (is (= (:id first-a) (:id first-use)))
+    (is (= (:id second-a) (:id second-use))))
+  (let [a (analyze "(if-let [a 0] a a)" {:config {:output {:analysis {:locals true}}}})
+        [first-a second-a] (:locals a)
+        [first-use second-use] (:local-usages a)]
+    (assert-submaps
+      [{:end-col 11 :scope-end-col 16}]
+      (:locals a))
+    (is (= (:id first-a) (:id first-use)))
+    (is (= nil second-a second-use)))
+  (let [a (analyze "(for [a [123] :let [a a] :when a] a)" {:config {:output {:analysis {:locals true}}}})
+        [first-a second-a] (:locals a)
+        [first-use second-use third-use] (:local-usages a)]
+    (assert-submaps
+      [{:end-col 8 :scope-end-col 37}
+       {:end-col 22 :scope-end-col 37}]
+      (:locals a))
+    (is (not= (:id first-a) (:id second-a)))
+    (is (= (:id first-a) (:id first-use)))
+    (is (= (:id second-a) (:id second-use) (:id third-use)))))
+
 (deftest analysis-test
   (let [{:keys [:var-definitions
                 :var-usages]} (analyze "(defn ^:deprecated foo \"docstring\" {:added \"1.2\"} [])")]

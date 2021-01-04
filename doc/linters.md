@@ -609,7 +609,7 @@ Mismatched bracket: found an opening [ on line 1 and a closing )
 *Config:*
 
 You can add or override type annotations. See
-[types.md](https://github.com/borkdude/clj-kondo/blob/master/doc/types.md).
+[types.md](https://github.com/clj-kondo/clj-kondo/blob/master/doc/types.md).
 
 ### Unbound destructuring default
 

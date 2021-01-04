@@ -2,7 +2,7 @@
 
 ## Project board
 
-All issues are categorized in a column on the [project board](https://github.com/borkdude/clj-kondo/projects/1).
+All issues are categorized in a column on the [project board](https://github.com/clj-kondo/clj-kondo/projects/1).
 
 ## Design principles
 

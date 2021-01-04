@@ -104,11 +104,14 @@
         files (atom 0)
         findings (atom [])
         analysis? (get-in config [:output :analysis])
+        analyze-locals? (get-in config [:output :analysis :locals])
         analysis (when analysis?
-                   (atom {:namespace-definitions []
-                          :namespace-usages []
-                          :var-definitions []
-                          :var-usages []}))
+                   (atom (cond-> {:namespace-definitions []
+                                  :namespace-usages []
+                                  :var-definitions []
+                                  :var-usages []}
+                           analyze-locals? (assoc :locals []
+                                                  :local-usages []))))
         ctx {:no-warnings no-warnings
              :config-dir cfg-dir
              :config config
@@ -123,7 +126,8 @@
              :used-namespaces (atom {:clj #{}
                                      :cljs #{}
                                      :cljc #{}})
-             :ignores (atom {})}
+             :ignores (atom {})
+             :id-gen (when analyze-locals? (atom 0))}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)

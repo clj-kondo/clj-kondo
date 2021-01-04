@@ -13,7 +13,7 @@ grade: stable
 parts:
   clj-kondo:
     plugin: dump
-    source: https://github.com/borkdude/clj-kondo/releases/download/v$SNAPCRAFT_PROJECT_VERSION/clj-kondo-$SNAPCRAFT_PROJECT_VERSION-linux-amd64.zip
+    source: https://github.com/clj-kondo/clj-kondo/releases/download/v$SNAPCRAFT_PROJECT_VERSION/clj-kondo-$SNAPCRAFT_PROJECT_VERSION-linux-amd64.zip
 
 apps:
   clj-kondo:
