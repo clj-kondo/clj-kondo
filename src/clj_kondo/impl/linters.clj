@@ -117,24 +117,32 @@
          (node->line (:filename ctx) keyvec :warning :single-key-in
                      (format "%s with single key" called-name)))))))
 
-(defn lint-when [ctx call]
-  (let [[_ test] (:children call)
-        [first-test-child & rest-test-children] (:children test)
+(defn lint-and-or [ctx called-name call]
+  (let [next-children (next (:children call))
         not-first-list? (fn [child]
-                          (when (= :list (:tag child))
-                            (= 'not (-> child :children first :value))))]
-    (case (:value first-test-child)
-      not (node->line (:filename ctx) call :warning :separate-when-and-not
-                      (format "When and not used instead of when-not"))
-      and (when (every? not-first-list? rest-test-children)
-            (node->line (:filename ctx) call :warning :separate-when-and-not
-                        (format "When, and & %s nots used instead of when-not with or"
-                                (count rest-test-children))))
-      or (when (every? not-first-list? rest-test-children)
-           (node->line (:filename ctx) call :warning :separate-when-and-not
-                       (format "When, or & %s nots used instead of when-not with and"
-                               (count rest-test-children))))
-      nil)))
+                          (and (= :list (:tag child))
+                               (= 'not (-> child :children first :value))))]
+    (when (and next-children
+               (every? not-first-list? next-children))
+      (findings/reg-finding!
+       ctx
+       (case called-name
+         and (node->line (:filename ctx) call :warning :redundant-nots
+                         (format "And & %s nots used instead of 1 not with or"
+                                 (count next-children)))
+         or (node->line (:filename ctx) call :warning :redundant-nots
+                        (format "Or & %s nots used instead of 1 not with and"
+                                 (count next-children))))))))
+
+(defn lint-if-when-not [ctx called-name call]
+  (let [[_ test] (:children call)
+        first-test-child-val (:value (first (:children test)))]
+    (when (= 'not first-test-child-val)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) call :warning :separate-if-when-not
+                   (format "%s and not used instead of %s-not"
+                           called-name called-name))))))
 
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
@@ -148,16 +156,18 @@
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
+      ([clojure.core and] [clojure.core or])
+      (lint-and-or ctx called-name (:expr call))
+      ([clojure.core when])
+      (lint-if-when-not ctx called-name (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)
 
     ;; special forms which are not fns
     (when (= 'if (:name call))
-      (lint-missing-else-branch ctx (:expr call)))
-
-    (when (= 'when (:name call))
-      (lint-when ctx (:expr call)))
+      (lint-missing-else-branch ctx (:expr call))
+      (lint-if-when-not ctx 'if (:expr call)))
 
     (when (get-in var-info/predicates [called-ns called-name])
       (lint-missing-test-assertion ctx call))))

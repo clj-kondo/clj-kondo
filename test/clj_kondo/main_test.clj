@@ -2622,6 +2622,28 @@ foo/foo ;; this does use the private var
   (testing "don't throw exception when args are missing"
     (is (some? (lint! "(assoc-in)")))))
 
+(deftest redundant-nots-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "And & 2 nots used instead of 1 not with or"})
+   (lint! "(and (not :foo) (not :bar))" {:linters {:redundant-nots {:level :warning}}}))
+
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "Or & 3 nots used instead of 1 not with and"})
+   (lint! "(or (not :foo) (not :bar) (not :baz))" {:linters {:redundant-nots {:level :warning}}}))
+
+  (is (empty? (lint! "(or) (and)" {:linters {:redundant-nots {:level :warning}}}))
+      "'Or' and 'and' without args isn't a problem")
+  (is (empty? (lint! "(and (not :foo) (not :bar) :baz)" {:linters {:redundant-nots {:level :warning}}}))
+      "If any arg supplied is not a list with first element 'not', then the call is fine"))
+
 (deftest multiple-options-test
 
   (testing "multiple --lint option"
