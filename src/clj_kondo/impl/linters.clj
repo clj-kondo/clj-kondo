@@ -117,6 +117,25 @@
          (node->line (:filename ctx) keyvec :warning :single-key-in
                      (format "%s with single key" called-name)))))))
 
+(defn lint-when [ctx call]
+  (let [[_ test] (:children call)
+        [first-test-child & rest-test-children] (:children test)
+        not-first-list? (fn [child]
+                          (when (= :list (:tag child))
+                            (= 'not (-> child :children first :value))))]
+    (case (:value first-test-child)
+      not (node->line (:filename ctx) call :warning :separate-when-and-not
+                      (format "When and not used instead of when-not"))
+      and (when (every? not-first-list? rest-test-children)
+            (node->line (:filename ctx) call :warning :separate-when-and-not
+                        (format "When, and & %s nots used instead of when-not with or"
+                                (count rest-test-children))))
+      or (when (every? not-first-list? rest-test-children)
+           (node->line (:filename ctx) call :warning :separate-when-and-not
+                       (format "When, or & %s nots used instead of when-not with and"
+                               (count rest-test-children))))
+      nil)))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)]
@@ -136,6 +155,9 @@
     ;; special forms which are not fns
     (when (= 'if (:name call))
       (lint-missing-else-branch ctx (:expr call)))
+
+    (when (= 'when (:name call))
+      (lint-when ctx (:expr call)))
 
     (when (get-in var-info/predicates [called-ns called-name])
       (lint-missing-test-assertion ctx call))))
