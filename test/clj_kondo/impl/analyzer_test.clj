@@ -66,9 +66,7 @@
                   (ana/analyze-input {:config {:linters {:syntax {:level :error}
                                                          :duplicate-map-key {:level :error}}}
                                       :findings findings
-                                      :ignores (atom {})
-                                      :namespaces (atom {})
-                                      :used-namespaces (atom {})} "test.clj" source :clj false))]
+                                      :ignores (atom {})} "test.clj" source :clj false))]
     (testing "unmatched delimiters"
       (is (= [{:type :syntax
                :level :error
