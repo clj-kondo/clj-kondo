@@ -63,8 +63,7 @@
 (deftest analyze-input-test
   (let [findings (atom [])
         analyze (fn [^String source]
-                  (ana/analyze-input {:config {:linters {:syntax {:level :error}
-                                                         :duplicate-map-key {:level :error}}}
+                  (ana/analyze-input {:config {:linters {:syntax {:level :error}}}
                                       :findings findings
                                       :ignores (atom {})} "test.clj" source :clj false))]
     (testing "unmatched delimiters"
