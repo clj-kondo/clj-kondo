@@ -88,7 +88,12 @@
       (:locals a))
     (is (not= (:id first-a) (:id second-a)))
     (is (= (:id first-a) (:id first-use)))
-    (is (= (:id second-a) (:id second-use) (:id third-use)))))
+    (is (= (:id second-a) (:id second-use) (:id third-use))))
+  (testing "Names are reported in binding usages when called as fn"
+    (let [ana (analyze "(let [x (set 1 2 3)] (x 1))" {:config {:output {:analysis {:locals true}}}})
+          [x] (:locals ana)
+          [x-used](:local-usages ana)]
+      (is (= 'x (:name x) (:name x-used))))))
 
 (deftest analysis-test
   (let [{:keys [:var-definitions

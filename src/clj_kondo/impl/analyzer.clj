@@ -867,11 +867,7 @@
     (namespace/reg-used-binding! ctx
                                  ns-name
                                  binding
-                                 (when (get-in ctx [:config :output :analysis :locals])
-                                   (assoc-some (meta expr)
-                                               :str (:string-value expr)
-                                               :name (:value expr)
-                                               :filename (:filename ctx))))
+                                 (meta expr))
     (when-not (config/skip? config :invalid-arity callstack)
       (let [filename (:filename ctx)
             children (:children expr)]
