@@ -5,7 +5,7 @@
    [clj-kondo.impl.utils :refer [node->line tag]]))
 
 (defn key-value
-  "We only support tokens as key values for now."
+  "We only support tokens, vectors and lists as key values for now."
   [node]
   (case (tag node)
     :token (or (when-let [v (:k node)]
