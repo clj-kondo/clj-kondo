@@ -875,7 +875,19 @@ foo/foo ;; this does use the private var
   (:require [foo.bar :as bar]))
 
 (def foo {:bar/id \"asdf\"
-          ::bar/id \"lkj\"})"))))
+          ::bar/id \"lkj\"})")))
+  (is (= '({:col 15
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key (12)"
+            :row 1})
+         (lint! "'{[1 2] \"bar\" (1 2) 12}")))
+  (is (= '({:col 22
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key (let[x2]x)"
+            :row 1})
+         (lint! "{(let [x 2] x) \"bar\" (let [x 2] x) 12}"))))
 
 (deftest map-missing-value
   (is (= '({:file "<stdin>",
