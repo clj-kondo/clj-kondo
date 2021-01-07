@@ -879,13 +879,13 @@ foo/foo ;; this does use the private var
   (is (= '({:col 15
             :file "<stdin>"
             :level :error
-            :message "duplicate key (12)"
+            :message "duplicate key (1 2)"
             :row 1})
          (lint! "'{[1 2] \"bar\" (1 2) 12}")))
   (is (= '({:col 22
             :file "<stdin>"
             :level :error
-            :message "duplicate key (let[x2]x)"
+            :message "duplicate key (let [x 2] x)"
             :row 1})
          (lint! "{(let [x 2] x) \"bar\" (let [x 2] x) 12}"))))
 
