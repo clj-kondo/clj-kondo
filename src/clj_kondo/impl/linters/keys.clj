@@ -12,6 +12,8 @@
                  (if (:namespaced? node)
                    (str v) v))
                (str node))
+    :vector (map key-value (:children node))
+    :list (map key-value (:children node))
     nil))
 
 (defn lint-map-keys

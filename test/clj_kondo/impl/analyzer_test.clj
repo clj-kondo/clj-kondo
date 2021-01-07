@@ -63,9 +63,12 @@
 (deftest analyze-input-test
   (let [findings (atom [])
         analyze (fn [^String source]
-                  (ana/analyze-input {:config {:linters {:syntax {:level :error}}}
+                  (ana/analyze-input {:config {:linters {:syntax {:level :error}
+                                                         :duplicate-map-key {:level :error}}}
                                       :findings findings
-                                      :ignores (atom {})} "test.clj" source :clj false))]
+                                      :ignores (atom {})
+                                      :namespaces (atom {})
+                                      :used-namespaces (atom {})} "test.clj" source :clj false))]
     (testing "unmatched delimiters"
       (is (= [{:type :syntax
                :level :error
@@ -109,7 +112,48 @@
              (do
                (reset! findings [])
                (analyze "1..1")
-               @findings))))))
+               @findings))))
+
+    (testing "duplicate map keys"
+      (testing "when the map keys are simple sequences"
+        (is (= [{:type :duplicate-map-key
+                 :level :error
+                 :filename "test.clj"
+                 :row 1
+                 :col 14
+                 :end-col 19
+                 :end-row 1
+                 :message "duplicate key (12)"}]
+               (do
+                 (reset! findings [])
+                 (analyze "{[1 2] \"bar\" (1 2) 12}")
+                 @findings))))
+      (testing "when the map keys are more complex forms"
+        (is (= [{:type :duplicate-map-key
+                 :level :error
+                 :filename "test.clj"
+                 :row 1
+                 :col 22
+                 :end-col 35
+                 :end-row 1
+                 :message "duplicate key (let[x2]x)"}]
+               (do
+                 (reset! findings [])
+                 (analyze "{(let [x 2] x) \"bar\" (let [x 2] x) 12}")
+                 @findings))))
+      (testing "when the map keys are simple tokens"
+        (is (= [{:type :duplicate-map-key
+                 :level :error
+                 :filename "test.clj"
+                 :row 1
+                 :col 12
+                 :end-col 15
+                 :end-row 1
+                 :message "duplicate key foo"}]
+               (do
+                 (reset! findings [])
+                 (analyze "{foo \"bar\" foo 12}")
+                 @findings)))))))
 
 
 
