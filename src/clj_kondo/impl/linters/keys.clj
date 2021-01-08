@@ -5,7 +5,7 @@
    [clj-kondo.impl.utils :refer [node->line tag]]))
 
 (defn key-value
-  "We only support tokens, vectors and lists as key values for now."
+  "We only support tokens, vectors, quoted forms and lists as key values for now."
   [node]
   (case (tag node)
     :token (or (when-let [v (:k node)]
@@ -14,6 +14,7 @@
                (str node))
     :vector (map key-value (:children node))
     :list (map key-value (:children node))
+    :quote (recur (first (:children node)))
     nil))
 
 (defn lint-map-keys
