@@ -39,9 +39,10 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     # we update the version tag, even if it's a SNAPSHOT version
     echo "Pushing image $image_name:$image_tag"
     docker push "$image_name:$image_tag"
-    if [[ $snapshot == "false" ]]; then
-        docker push "$image_name:$image_tag-alpine"
-    fi
+    docker push "$image_name:$image_tag-alpine"
+    # if [[ $snapshot == "false" ]]; then
+    #     docker push "$image_name:$image_tag-alpine"
+    # fi
 else
     echo "Not publishing Docker image"
 fi
