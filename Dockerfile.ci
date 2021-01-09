@@ -4,8 +4,8 @@ RUN apt-get update \
     && apt-get install -y curl \
     && mkdir -p /usr/local/bin
 
-COPY bb /usr/local/bin/bb
+COPY clj-kondo /usr/local/bin/clj-kondo
 
-RUN chmod +x /usr/local/bin/bb
+RUN chmod +x /usr/local/bin/clj-kondo
 
-CMD ["bb"]
+CMD ["clj-kondo"]
