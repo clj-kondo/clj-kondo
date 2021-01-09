@@ -21,11 +21,14 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     docker build -t "$image_name" -f Dockerfile.ci .
     docker tag "$image_name:$latest_tag" "$image_name:$image_tag"
     rm -f clj-kondo
-    if [[ $snapshot == "false" ]]; then
-        unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-amd64.zip"
-        docker build -t "$image_name:alpine" -f Dockerfile.alpine .
-        docker tag "$image_name:alpine" "$image_name:$image_tag-alpine"
-    fi
+    unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-amd64.zip"
+    docker build -t "$image_name:alpine" -f Dockerfile.alpine .
+    docker tag "$image_name:alpine" "$image_name:$image_tag-alpine"
+    # if [[ $snapshot == "false" ]]; then
+    #     unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-amd64.zip"
+    #     docker build -t "$image_name:alpine" -f Dockerfile.alpine .
+    #     docker tag "$image_name:alpine" "$image_name:$image_tag-alpine"
+    # fi
     # we only update latest when it's not a SNAPSHOT version
     if [ "false" = "$snapshot" ]; then
         echo "Pushing image $image_name:$latest_tag"

@@ -115,14 +115,14 @@ jobs:
       CLJ_KONDO_STATIC: true
     steps:
       - checkout
-      - run:
-          name: "Short circuit on SNAPSHOT"
-          command: |
-            VERSION=$(cat resources/CLJ_KONDO_VERSION)
-            if [[ "$VERSION" == *-SNAPSHOT ]]
-            then
-              circleci task halt
-            fi
+      # - run:
+      #     name: "Short circuit on SNAPSHOT"
+      #     command: |
+      #       VERSION=$(cat resources/CLJ_KONDO_VERSION)
+      #       if [[ "$VERSION" == *-SNAPSHOT ]]
+      #       then
+      #         circleci task halt
+      #       fi
       - restore_cache:
           keys:
             - linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
