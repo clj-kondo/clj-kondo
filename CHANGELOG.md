@@ -6,6 +6,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ### New
 
+- Alpine Docker build [#1111](https://github.com/clj-kondo/clj-kondo/issues/1111)
+
 ### Enhanced / fixed
 
 - Fix finding without location info [#1101](https://github.com/clj-kondo/clj-kondo/issues/1101)
