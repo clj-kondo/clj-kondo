@@ -7,7 +7,10 @@ mkdir -p /tmp/release
 cp clj-kondo /tmp/release
 cp performance.txt /tmp/release
 VERSION=$(cat resources/CLJ_KONDO_VERSION)
-cp target/clj-kondo-$VERSION-standalone.jar /tmp/release
+
+if [[ "$CLJ_KONDO_PLATFORM" = "linux" ]]; then
+    cp "target/clj-kondo-$VERSION-standalone.jar" /tmp/release
+fi
 
 cd /tmp/release
 
