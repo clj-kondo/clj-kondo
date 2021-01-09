@@ -2010,6 +2010,10 @@ foo/foo ;; this does use the private var
       :message "namespace bar is required but never used"})
    (lint! "(ns foo (:require [bar :refer [bar]]))"
           '{:linters {:unused-referred-var {:exclude {bar [bar]}}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 23, :level :warning, :message "namespace aws-sdk is required but never used"}
+     {:file "<stdin>", :row 1, :col 42, :level :warning, :message "#'aws-sdk/AWS is referred but never used"})
+   (lint! "(ns lambda (:require [\"aws-sdk\" :default AWS]))" "--lang" "cljs"))
   (is (empty? (lint! "(ns foo (:require [bar :refer [bar]]))
         (apply bar 1 2 [3 4])")))
   (is (empty? (lint! "(ns ^{:clj-kondo/config
