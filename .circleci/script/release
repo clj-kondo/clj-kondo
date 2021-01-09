@@ -5,7 +5,7 @@ set -eo pipefail
 rm -rf /tmp/release
 mkdir -p /tmp/release
 cp clj-kondo /tmp/release
-cp performance.txt /tmp/release
+
 VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
 if [[ "$CLJ_KONDO_PLATFORM" = "linux" ]]; then
