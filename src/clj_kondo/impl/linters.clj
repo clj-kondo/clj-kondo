@@ -134,6 +134,36 @@
                         (format "Or & %s nots used instead of 1 not with and"
                                  (count next-children))))))))
 
+(defn lint-not [ctx call]
+  (let [[_ x] (:children call)
+        first-x-child-val (:value (first (:children x)))]
+    (case first-x-child-val
+      nil? (findings/reg-finding!
+            ctx
+            (node->line (:filename ctx) call :warning :redundant-nots
+                        "not and nil? used instead of some?"))
+
+      = (findings/reg-finding!
+            ctx
+            (node->line (:filename ctx) call :warning :redundant-nots
+                        "not and = used instead of not="))
+
+      even? (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx) call :warning :redundant-nots
+                         "not and even? used instead of odd?"))
+
+      odd? (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx) call :warning :redundant-nots
+                         "not and odd? used instead of even?"))
+
+      seq (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx) call :warning :redundant-nots
+                       "not and seq used instead of empty?"))
+      nil)))
+
 (defn lint-if-when-not [ctx called-name call]
   (let [[_ test] (:children call)
         first-test-child-val (:value (first (:children test)))]
@@ -143,15 +173,6 @@
        (node->line (:filename ctx) call :warning :separate-if-when-not
                    (format "%s and not used instead of %s-not"
                            called-name called-name))))))
-
-(defn lint-not-nil [ctx call]
-  (let [[_ x] (:children call)
-        first-x-child-val (:value (first (:children x)))]
-    (when (= 'nil? first-x-child-val)
-      (findings/reg-finding!
-       ctx
-       (node->line (:filename ctx) call :warning :not-nil?-instead-of-some?
-                   "not and nil? used instead of some?")))))
 
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
@@ -170,7 +191,7 @@
       ([clojure.core when])
       (lint-if-when-not ctx called-name (:expr call))
       ([clojure.core not])
-      (lint-not-nil ctx (:expr call))
+      (lint-not ctx (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)

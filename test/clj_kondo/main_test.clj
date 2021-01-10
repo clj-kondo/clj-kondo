@@ -2623,26 +2623,73 @@ foo/foo ;; this does use the private var
     (is (some? (lint! "(assoc-in)")))))
 
 (deftest redundant-nots-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :warning,
-      :message "And & 2 nots used instead of 1 not with or"})
-   (lint! "(and (not :foo) (not :bar))" {:linters {:redundant-nots {:level :warning}}}))
+  (testing "`and` & `or` with `not`s can be simplified"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "And & 2 nots used instead of 1 not with or"})
+     (lint! "(and (not :foo) (not :bar))" {:linters {:redundant-nots {:level :warning}}}))
 
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :warning,
-      :message "Or & 3 nots used instead of 1 not with and"})
-   (lint! "(or (not :foo) (not :bar) (not :baz))" {:linters {:redundant-nots {:level :warning}}}))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "Or & 3 nots used instead of 1 not with and"})
+     (lint! "(or (not :foo) (not :bar) (not :baz))" {:linters {:redundant-nots {:level :warning}}}))
 
-  (is (empty? (lint! "(or) (and)" {:linters {:redundant-nots {:level :warning}}}))
-      "'Or' and 'and' without args isn't a problem")
-  (is (empty? (lint! "(and (not :foo) (not :bar) :baz)" {:linters {:redundant-nots {:level :warning}}}))
-      "If any arg supplied is not a list with first element 'not', then the call is fine"))
+    (is (empty? (lint! "(or) (and)" {:linters {:redundant-nots {:level :warning}}}))
+        "'Or' and 'and' without args isn't a problem")
+    (is (empty? (lint! "(and (not :foo) (not :bar) :baz)" {:linters {:redundant-nots {:level :warning}}}))
+        "If any arg supplied is not a list with first element 'not', then the call is fine"))
+
+  (testing "`not` & `nil?` can be simplified to `some?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and nil? used instead of some?"})
+     (lint! "(not (nil? :foo))" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "`not` & `=` can be simplified to `not=`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and = used instead of not="})
+     (lint! "(not (= :foo :bar))" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "`not` & `even?` can be simplified to `odd?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and even? used instead of odd?"})
+     (lint! "(not (even? 42))" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "`not` & `odd?` can be simplified to `even?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and odd? used instead of even?"})
+     (lint! "(not (odd? 42))" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "`not` & `seq` can be simplified to `empty?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and seq used instead of empty?"})
+     (lint! "(not (seq [:foo :bar :baz]))" {:linters {:redundant-nots {:level :warning}}}))))
+
 
 (deftest separate-if-when-not-test
   (assert-submaps
@@ -2665,15 +2712,6 @@ foo/foo ;; this does use the private var
       "If with any other call starting the test form is ok")
   (is (empty? (lint! "(when (or (not :foo) :bar) :foo :bar)" {:linters {:separate-if-when-not {:level :warning}}}))
       "When with any other call starting the test form is ok"))
-
-(deftest not-nil?-instead-of-some?-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :warning,
-      :message "not and nil? used instead of some?"})
-   (lint! "(not (nil? :foo))" {:linters {:not-nil?-instead-of-some? {:level :warning}}})))
 
 (deftest multiple-options-test
 
