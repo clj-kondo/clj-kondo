@@ -144,6 +144,15 @@
                    (format "%s and not used instead of %s-not"
                            called-name called-name))))))
 
+(defn lint-not-nil [ctx call]
+  (let [[_ x] (:children call)
+        first-x-child-val (:value (first (:children x)))]
+    (when (= 'nil? first-x-child-val)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) call :warning :not-nil?-instead-of-some?
+                   "not and nil? used instead of some?")))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)]
@@ -160,6 +169,8 @@
       (lint-and-or ctx called-name (:expr call))
       ([clojure.core when])
       (lint-if-when-not ctx called-name (:expr call))
+      ([clojure.core not])
+      (lint-not-nil ctx (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)

@@ -2666,6 +2666,15 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(when (or (not :foo) :bar) :foo :bar)" {:linters {:separate-if-when-not {:level :warning}}}))
       "When with any other call starting the test form is ok"))
 
+(deftest not-nil?-instead-of-some?-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "not and nil? used instead of some?"})
+   (lint! "(not (nil? :foo))" {:linters {:not-nil?-instead-of-some? {:level :warning}}})))
+
 (deftest multiple-options-test
 
   (testing "multiple --lint option"
