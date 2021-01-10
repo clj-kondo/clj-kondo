@@ -2644,6 +2644,28 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(and (not :foo) (not :bar) :baz)" {:linters {:redundant-nots {:level :warning}}}))
       "If any arg supplied is not a list with first element 'not', then the call is fine"))
 
+(deftest separate-if-when-not-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "if and not used instead of if-not"})
+   (lint! "(if (not :foo) :bar :baz)" {:linters {:separate-if-when-not {:level :warning}}}))
+
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :warning,
+      :message "when and not used instead of when-not"})
+   (lint! "(when (not :foo) :bar)" {:linters {:separate-if-when-not {:level :warning}}}))
+
+  (is (empty? (lint! "(if (not= 7 42) :foo :bar)" {:linters {:separate-if-when-not {:level :warning}}}))
+      "If with any other call starting the test form is ok")
+  (is (empty? (lint! "(when (or (not :foo) :bar) :foo :bar)" {:linters {:separate-if-when-not {:level :warning}}}))
+      "When with any other call starting the test form is ok"))
+
 (deftest multiple-options-test
 
   (testing "multiple --lint option"
