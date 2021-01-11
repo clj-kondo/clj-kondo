@@ -16,6 +16,7 @@
     :vector (map key-value (:children node))
     :list (map key-value (:children node))
     :set (set (map key-value (:children node)))
+    :map (apply hash-map (map key-value (:children node)))
     :quote (recur (first (:children node)))
     nil))
 
@@ -34,6 +35,10 @@
               (map stringify-key-expr)
               (string/join " ")
               (format "#{%s}"))
+    :map (->> (:children node)
+              (map stringify-key-expr)
+              (string/join " ")
+              (format "{%s}"))
     :quote (str (:prefix node)
                 (reduce str (map stringify-key-expr
                                  (:children node))))
