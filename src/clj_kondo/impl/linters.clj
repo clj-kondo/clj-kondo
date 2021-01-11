@@ -164,6 +164,29 @@
                        "not and seq used instead of empty?"))
       nil)))
 
+(defn lint-filter-remove [ctx called-name call]
+  (let [[_ pred] (:children call)
+        first-pred-child-val (:value (first (:children pred)))
+        alternative ({'filter "remove", 'remove "filter"} called-name)]
+    (cond
+      (= 'complement first-pred-child-val)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) call :warning :redundant-nots
+                   (format "%s and complement used instead of %s"
+                           called-name alternative)))
+
+      (or (and (= :fn (tag pred)) ; reader-literal anonymous fn
+               (= 'not first-pred-child-val))
+          (and (= :list (tag pred))
+               (= 'fn first-pred-child-val) ; long-form anonymous fn
+               (= 'not (-> pred :children last :children first :value))))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) call :warning :redundant-nots
+                   (format "%s and not used instead of %s"
+                           called-name alternative))))))
+
 (defn lint-if-when-not [ctx called-name call]
   (let [[_ test] (:children call)
         first-test-child-val (:value (first (:children test)))]
@@ -192,6 +215,8 @@
       (lint-if-when-not ctx called-name (:expr call))
       ([clojure.core not])
       (lint-not ctx (:expr call))
+      ([clojure.core filter] [clojure.core remove])
+      (lint-filter-remove ctx called-name (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)

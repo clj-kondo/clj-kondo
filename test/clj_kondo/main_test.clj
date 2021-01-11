@@ -2688,7 +2688,57 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and seq used instead of empty?"})
-     (lint! "(not (seq [:foo :bar :baz]))" {:linters {:redundant-nots {:level :warning}}}))))
+     (lint! "(not (seq [:foo :bar :baz]))" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "`filter` & `complement` used instead of `remove` or vice versa"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "filter and complement used instead of remove"})
+     (lint! "(filter (complement foo) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "remove and complement used instead of filter"})
+     (lint! "(remove (complement foo) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "`filter` & fn with `not` wrapping the rest of the body used instead of `remove` or vice versa"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "filter and not used instead of remove"})
+     (lint! "(filter #(not (:foo %)) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "filter and not used instead of remove"})
+     (lint! "(filter (fn [x] (not (:foo x))) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "remove and not used instead of filter"})
+     (lint! "(remove #(not (:foo %)) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "remove and not used instead of filter"})
+     (lint! "(remove (fn [x] (not (:foo x))) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))))
 
 
 (deftest separate-if-when-not-test
