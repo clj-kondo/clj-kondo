@@ -2311,14 +2311,22 @@ foo/foo ;; this does use the private var
      {:file "<stdin>",
       :row 1,
       :col 10,
+      :level :error,
+      :message "clojure.core/if-not is called with 4 args but expects 2 or 3"})
+   (lint! "(if-not) (if-not 1 1 1 1)"))
+
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 9,
       :level :warning,
       :message "Missing else branch."}
      {:file "<stdin>",
       :row 1,
-      :col 23,
-      :level :error,
-      :message "clojure.core/if-not is called with 4 args but expects 2 or 3"})
-   (lint! "(if-not) (if-not 1 1) (if-not 1 1 1 1)")))
+      :col 28,
+      :level :warning,
+      :message "Missing else branch."})
+   (lint! "#?(:clj (if-not 1 1) :cljs (if-not 1 1))" "--lang" "cljc")))
 
 (deftest unused-private-var-test
   (assert-submaps
