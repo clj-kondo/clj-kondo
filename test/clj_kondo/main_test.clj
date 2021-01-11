@@ -740,10 +740,15 @@ foo/foo ;; this does use the private var
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 1,
+      :col 9,
+      :level :warning,
+      :message "Missing else branch."}
+     {:file "<stdin>",
+      :row 1,
+      :col 35,
       :level :warning,
       :message "Missing else branch."})
-   (lint! "(if-let [x 1] true)"))
+   (lint! "#?(:clj (if-let [x 1] true) :cljs (if-let [x 1] true))" "--lang" "cljc"))
   (is (empty? (lint! "(if-let [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
 
 (deftest if-some-test
