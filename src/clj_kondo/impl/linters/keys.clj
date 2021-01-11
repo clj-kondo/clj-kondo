@@ -6,7 +6,7 @@
    [clojure.string :as string]))
 
 (defn key-value
-  "We only support tokens, vectors, quoted forms and lists as key values for now."
+  "We only support the following cases for now."
   [node]
   (case (tag node)
     :token (or (when-let [v (:k node)]
@@ -15,6 +15,7 @@
                (str node))
     :vector (map key-value (:children node))
     :list (map key-value (:children node))
+    :set (set (map key-value (:children node)))
     :quote (recur (first (:children node)))
     nil))
 
@@ -29,6 +30,10 @@
                (map stringify-key-expr)
                (string/join " ")
                (format "(%s)"))
+    :set (->> (:children node)
+              (map stringify-key-expr)
+              (string/join " ")
+              (format "#{%s}"))
     :quote (str (:prefix node)
                 (reduce str (map stringify-key-expr
                                  (:children node))))
