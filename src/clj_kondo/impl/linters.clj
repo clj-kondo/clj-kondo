@@ -193,7 +193,7 @@
     (when (= 'not first-test-child-val)
       (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) call :warning :separate-if-when-not
+       (node->line (:filename ctx) call :warning :redundant-nots
                    (format "%s and not used instead of %s-not"
                            called-name called-name))))))
 
