@@ -2610,26 +2610,44 @@ foo/foo ;; this does use the private var
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 12,
+      :col 20,
+      :level :warning,
+      :message "get-in with single key"}
+     {:file "<stdin>",
+      :row 1,
+      :col 43,
       :level :warning,
       :message "get-in with single key"})
-   (lint! "(get-in {} [:k])" {:linters {:single-key-in {:level :warning}}}))
+   (lint! "#?(:clj (get-in {} [:k]) :cljs (get-in {} [:k]))" "--lang" "cljc"
+          "--config" {:linters {:single-key-in {:level :warning}}}))
 
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 14,
+      :col 22,
+      :level :warning,
+      :message "assoc-in with single key"}
+     {:file "<stdin>",
+      :row 1,
+      :col 50,
       :level :warning,
       :message "assoc-in with single key"})
-   (lint! "(assoc-in {} [:k] :v)" {:linters {:single-key-in {:level :warning}}}))
+   (lint! "#?(:clj (assoc-in {} [:k] :v) :cljs (assoc-in {} [:k] :v))" "--lang" "cljc"
+          "--config" {:linters {:single-key-in {:level :warning}}}))
 
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 15,
+      :col 23,
+      :level :warning,
+      :message "update-in with single key"}
+     {:file "<stdin>",
+      :row 1,
+      :col 53,
       :level :warning,
       :message "update-in with single key"})
-   (lint! "(update-in {} [:k] inc)" {:linters {:single-key-in {:level :warning}}}))
+   (lint! "#?(:clj (update-in {} [:k] inc) :cljs (update-in {} [:k] inc))" "--lang" "cljc"
+          "--config" {:linters {:single-key-in {:level :warning}}}))
 
   (is (empty? (lint! "(get-in {} [:k1 :k2])" {:linters {:single-key-in {:level :warning}}})))
   (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}})))
