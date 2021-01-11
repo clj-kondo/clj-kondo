@@ -169,7 +169,8 @@
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default
                 (recur (nnext children)
-                       (update m :referred conj opt))
+                       (update m :referred conj (with-meta opt
+                                                  (meta opt-expr))))
                 :exclude
                 (recur
                  (nnext children)
