@@ -923,7 +923,13 @@ foo/foo ;; this does use the private var
             :level :error
             :message "duplicate key {1 2 'foo :bar}"
             :row 1})
-         (lint! "{'{1 2 foo :bar} \"bar\" {1 2 'foo :bar} 12}"))))
+         (lint! "{'{1 2 foo :bar} \"bar\" {1 2 'foo :bar} 12}")))
+  (is (= '({:col 37
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key '{1 {:foo #{3 4} bar (1 2)}}"
+            :row 1})
+         (lint! "{{1 {:foo #{3 4} 'bar [1 2]}} \"bar\" '{1 {:foo #{3 4} bar (1 2)}} 12}"))))
 
 (deftest map-missing-value
   (is (= '({:file "<stdin>",
