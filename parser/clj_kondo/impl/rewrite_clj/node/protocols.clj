@@ -43,7 +43,7 @@
 (defn ^:no-doc concat-strings
   "Convert nodes to strings and concatenate them."
   [nodes]
-  (string/join " " (map string nodes)))
+  (reduce str (map string nodes)))
 
 ;; ## Inner Node
 

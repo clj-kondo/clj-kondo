@@ -2,7 +2,8 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [node->line tag]]))
+   [clj-kondo.impl.utils :refer [node->line tag]]
+   [clojure.string :as string]))
 
 (defn key-value
   "We only support tokens, vectors, quoted forms and lists as key values for now."
@@ -16,6 +17,22 @@
     :list (map key-value (:children node))
     :quote (recur (first (:children node)))
     nil))
+
+(defn- stringify-key-expr
+  [node]
+  (case (tag node)
+    :vector (->> (:children node)
+                 (map stringify-key-expr)
+                 (string/join " ")
+                 (format "[%s]"))
+    :list (->> (:children node)
+               (map stringify-key-expr)
+               (string/join " ")
+               (format "(%s)"))
+    :quote (str (:prefix node)
+                (reduce str (map stringify-key-expr
+                                 (:children node))))
+    (str node)))
 
 (defn lint-map-keys
   ([ctx expr]
@@ -35,13 +52,13 @@
                ctx
                (node->line filename
                            key-expr :error :duplicate-map-key
-                           (str "duplicate key " key-expr))))
+                           (str "duplicate key " (stringify-key-expr key-expr)))))
             (when-not (known-key? k)
               (findings/reg-finding!
                ctx
                (node->line filename
                            key-expr :error :syntax
-                           (str "unknown option " key-expr))))
+                           (str "unknown option " (stringify-key-expr key-expr)))))
             (update acc :seen conj k))
           acc))
       {:seen #{}}
