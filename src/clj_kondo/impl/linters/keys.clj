@@ -5,21 +5,15 @@
    [clj-kondo.impl.utils :refer [node->line tag]]
    [clojure.string :as string]))
 
-(defn- ensure-no-nils
-  "Returns nil if the collection contains a nil, else returns coll.
-  Doesn't search for nested nils."
-  [coll]
-  (cond
-    (set? coll) (if (contains? coll nil)
-                  nil
-                  coll)
-    (sequential? coll) (if (contains? (set coll) nil)
-                         nil
-                         coll)
-    (map? coll) (if (contains? (set (flatten (seq coll))) nil)
-                  nil
-                  coll)
-    :else coll))
+(defn- map-without-nils
+  "Like map, but returns nil if any mapped value is nil."
+  [f coll]
+  (reduce (fn [acc v]
+            (if-let [new-v (f v)]
+              (conj acc new-v)
+              (reduced nil)))
+          []
+          coll))
 
 (defn key-value
   "We only support the following cases for now."
@@ -29,10 +23,12 @@
                  (if (:namespaced? node)
                    (str v) v))
                (str node))
-    :vector (ensure-no-nils (map key-value (:children node)))
-    :list (ensure-no-nils (map key-value (:children node)))
-    :set (ensure-no-nils (set (map key-value (:children node))))
-    :map (ensure-no-nils (apply hash-map (map key-value (:children node))))
+    :vector (map-without-nils key-value (:children node))
+    :list (map-without-nils key-value (:children node))
+    :set (some-> (map-without-nils key-value (:children node))
+                 (set))
+    :map (some->> (map-without-nils key-value (:children node))
+                  (apply hash-map))
     :quote (recur (first (:children node)))
     nil))
 
