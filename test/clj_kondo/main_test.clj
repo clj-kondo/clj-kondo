@@ -737,18 +737,14 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "if-let binding vector requires exactly 2 forms"})
    (lint! "(if-let [x 1 y])"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 9,
-      :level :warning,
-      :message "Missing else branch."}
-     {:file "<stdin>",
-      :row 1,
-      :col 35,
-      :level :warning,
-      :message "Missing else branch."})
-   (lint! "#?(:clj (if-let [x 1] true) :cljs (if-let [x 1] true))" "--lang" "cljc"))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "Missing else branch."})
+     (lint! "(if-let [x 1] true)" "--lang" lang)))
   (is (empty? (lint! "(if-let [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
 
 (deftest if-some-test
@@ -776,18 +772,14 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "if-some binding vector requires exactly 2 forms"})
    (lint! "(if-some [x 1 y])"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 9,
-      :level :warning,
-      :message "Missing else branch."}
-     {:file "<stdin>",
-      :row 1,
-      :col 35,
-      :level :warning,
-      :message "Missing else branch."})
-   (lint! "#?(:clj (if-let [x 1] true) :cljs (if-let [x 1] true))" "--lang" "cljc"))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "Missing else branch."})
+     (lint! "(if-some [x 1] true)" "--lang" lang)))
   (is (empty? (lint! "(if-some [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
 
 (deftest when-let-test
@@ -2320,18 +2312,14 @@ foo/foo ;; this does use the private var
       :message "clojure.core/if-not is called with 4 args but expects 2 or 3"})
    (lint! "(if-not) (if-not 1 1 1 1)"))
 
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 9,
-      :level :warning,
-      :message "Missing else branch."}
-     {:file "<stdin>",
-      :row 1,
-      :col 28,
-      :level :warning,
-      :message "Missing else branch."})
-   (lint! "#?(:clj (if-not 1 1) :cljs (if-not 1 1))" "--lang" "cljc")))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "Missing else branch."})
+     (lint! "(if-not 1 1)" "--lang" lang))))
 
 (deftest unused-private-var-test
   (assert-submaps
@@ -2607,47 +2595,35 @@ foo/foo ;; this does use the private var
                      {:linters {:if {:level :off}}}))))
 
 (deftest single-key-in-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 20,
-      :level :warning,
-      :message "get-in with single key"}
-     {:file "<stdin>",
-      :row 1,
-      :col 43,
-      :level :warning,
-      :message "get-in with single key"})
-   (lint! "#?(:clj (get-in {} [:k]) :cljs (get-in {} [:k]))" "--lang" "cljc"
-          "--config" {:linters {:single-key-in {:level :warning}}}))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 12,
+        :level :warning,
+        :message "get-in with single key"})
+     (lint! "(get-in {} [:k])" "--lang" lang
+            "--config" {:linters {:single-key-in {:level :warning}}})))
 
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 22,
-      :level :warning,
-      :message "assoc-in with single key"}
-     {:file "<stdin>",
-      :row 1,
-      :col 50,
-      :level :warning,
-      :message "assoc-in with single key"})
-   (lint! "#?(:clj (assoc-in {} [:k] :v) :cljs (assoc-in {} [:k] :v))" "--lang" "cljc"
-          "--config" {:linters {:single-key-in {:level :warning}}}))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 14,
+        :level :warning,
+        :message "assoc-in with single key"})
+     (lint! "(assoc-in {} [:k] :v)" "--lang" lang
+            "--config" {:linters {:single-key-in {:level :warning}}})))
 
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 23,
-      :level :warning,
-      :message "update-in with single key"}
-     {:file "<stdin>",
-      :row 1,
-      :col 53,
-      :level :warning,
-      :message "update-in with single key"})
-   (lint! "#?(:clj (update-in {} [:k] inc) :cljs (update-in {} [:k] inc))" "--lang" "cljc"
-          "--config" {:linters {:single-key-in {:level :warning}}}))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 15,
+        :level :warning,
+        :message "update-in with single key"})
+     (lint! "(update-in {} [:k] inc)" "--lang" lang
+            "--config" {:linters {:single-key-in {:level :warning}}})))
 
   (is (empty? (lint! "(get-in {} [:k1 :k2])" {:linters {:single-key-in {:level :warning}}})))
   (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}})))
