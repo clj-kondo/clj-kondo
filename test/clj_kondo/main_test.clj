@@ -2529,11 +2529,11 @@ foo/foo ;; this does use the private var
 
 " {:linters {:unsorted-required-namespaces {:level :warning}}})))))
 
-(deftest require-prefix-form-containing-periods-test
+(deftest prefix-libspec-containing-periods-test
   (is (= '({:col     32
             :file    "<stdin>"
             :level   :error
-            :message "Lib names inside prefix lists must not contain periods."
+            :message "found lib name 'foo.bar' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
             :row     4})
          (lint! "(ns baz
                    (:require [clj-kondo.impl.analyzer
@@ -2543,7 +2543,7 @@ foo/foo ;; this does use the private var
   (is (= '({:col     32
             :file    "<stdin>"
             :level   :error
-            :message "Lib names inside prefix lists must not contain periods."
+            :message "found lib name 'foo.bar' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
             :row     3})
          (lint! "(ns baz
                    (:require [clj-kondo.impl.analyzer
@@ -2552,7 +2552,7 @@ foo/foo ;; this does use the private var
   (is (= '({:col     31
             :file    "<stdin>"
             :level   :error
-            :message "Lib names inside prefix lists must not contain periods."
+            :message "found lib name 'foo.bar' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
             :row     3})
          (lint! "(ns baz
                    (:require [clj-kondo.impl.analyzer

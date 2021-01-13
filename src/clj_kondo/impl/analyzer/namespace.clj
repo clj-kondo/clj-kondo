@@ -61,7 +61,8 @@
                                                  libspec-expr
                                                  :error
                                                  :syntax
-                                                 "Lib names inside prefix lists must not contain periods.")))
+                                                 (format "found lib name '%s' containing period with prefix '%s'. lib names inside prefix lists must not contain periods."
+                                                         form prefix))))
             [(with-meta (token-node full-form)
                (cond-> (assoc (meta libspec-expr)
                               :raw-name form)
