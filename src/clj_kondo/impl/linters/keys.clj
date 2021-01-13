@@ -2,8 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [node->line tag]]
-   [clojure.string :as string]))
+   [clj-kondo.impl.utils :refer [node->line tag]]))
 
 (defn- map-without-nils
   "Like map, but returns nil if any mapped value is nil."
@@ -33,30 +32,6 @@
     :quote (recur (first (:children node)))
     nil))
 
-(defn- stringify-key-expr
-  [node]
-  (case (tag node)
-    :vector (->> (:children node)
-                 (map stringify-key-expr)
-                 (string/join " ")
-                 (format "[%s]"))
-    :list (->> (:children node)
-               (map stringify-key-expr)
-               (string/join " ")
-               (format "(%s)"))
-    :set (->> (:children node)
-              (map stringify-key-expr)
-              (string/join " ")
-              (format "#{%s}"))
-    :map (->> (:children node)
-              (map stringify-key-expr)
-              (string/join " ")
-              (format "{%s}"))
-    :quote (str (:prefix node)
-                (reduce str (map stringify-key-expr
-                                 (:children node))))
-    (str node)))
-
 (defn lint-map-keys
   ([ctx expr]
    (lint-map-keys ctx expr nil))
@@ -75,13 +50,13 @@
                ctx
                (node->line filename
                            key-expr :error :duplicate-map-key
-                           (str "duplicate key " (stringify-key-expr key-expr)))))
+                           (str "duplicate key " key-expr))))
             (when-not (known-key? k)
               (findings/reg-finding!
                ctx
                (node->line filename
                            key-expr :error :syntax
-                           (str "unknown option " (stringify-key-expr key-expr)))))
+                           (str "unknown option " key-expr))))
             (update acc :seen conj k))
           acc))
       {:seen #{}}
