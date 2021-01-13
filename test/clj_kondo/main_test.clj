@@ -877,7 +877,61 @@ foo/foo ;; this does use the private var
   (:require [foo.bar :as bar]))
 
 (def foo {:bar/id \"asdf\"
-          ::bar/id \"lkj\"})"))))
+          ::bar/id \"lkj\"})")))
+  (is (= '({:col 15
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key (1 2)"
+            :row 1})
+         (lint! "'{[1 2] \"bar\" (1 2) 12}")))
+  (is (= '({:col 22
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key (let [x 2] x)"
+            :row 1})
+         (lint! "{(let [x 2] x) \"bar\" (let [x 2] x) 12}")))
+  (is (= '({:col 14
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key '(1 2)"
+            :row 1})
+         (lint! "{[1 2] \"bar\" '(1 2) 12}")))
+  (is (= '({:col 20
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key #{1 3 :foo}"
+            :row 1})
+         (lint! "{#{1 :foo 3} \"bar\" #{1 3 :foo} 12}")))
+  (is (= '({:col 23
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key #{1 'baz :foo}"
+            :row 1})
+         (lint! "{#{1 :foo 'baz} \"bar\" #{1 'baz :foo} 12}")))
+  (is (= '({:col 23
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key #{1 'baz :foo}"
+            :row 1})
+         (lint! "{'#{1 :foo baz} \"bar\" #{1 'baz :foo} 12}")))
+  (is (= '({:col 14
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key {1 2}"
+            :row 1})
+         (lint! "{{1 2} \"bar\" {1 2} 12}")))
+  (is (= '({:col 24
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key {1 2 'foo :bar}"
+            :row 1})
+         (lint! "{'{1 2 foo :bar} \"bar\" {1 2 'foo :bar} 12}")))
+  (is (= '({:col 37
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key '{1 {:foo #{3 4} bar (1 2)}}"
+            :row 1})
+         (lint! "{{1 {:foo #{3 4} 'bar [1 2]}} \"bar\" '{1 {:foo #{3 4} bar (1 2)}} 12}"))))
 
 (deftest map-missing-value
   (is (= '({:file "<stdin>",
