@@ -2475,6 +2475,36 @@ foo/foo ;; this does use the private var
 
 " {:linters {:unsorted-required-namespaces {:level :warning}}})))))
 
+(deftest require-prefix-form-containing-periods-test
+  (is (= '({:col     32
+            :file    "<stdin>"
+            :level   :error
+            :message "Lib names inside prefix lists must not contain periods."
+            :row     4})
+         (lint! "(ns baz
+                   (:require [clj-kondo.impl.analyzer
+                              [babashka :as baz]
+                              [foo.bar :as quux]]))"
+                {:linters {:unused-namespace {:level :off}}})))
+  (is (= '({:col     32
+            :file    "<stdin>"
+            :level   :error
+            :message "Lib names inside prefix lists must not contain periods."
+            :row     3})
+         (lint! "(ns baz
+                   (:require [clj-kondo.impl.analyzer
+                              [foo.bar :as baz]]))"
+                {:linters {:unused-namespace {:level :off}}})))
+  (is (= '({:col     31
+            :file    "<stdin>"
+            :level   :error
+            :message "Lib names inside prefix lists must not contain periods."
+            :row     3})
+         (lint! "(ns baz
+                   (:require [clj-kondo.impl.analyzer
+                              foo.bar]))"
+                {:linters {:unused-namespace {:level :off}}}))))
+
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
                   (lint! "(declare x) (set! (.-foo x) 1 2 3)"))

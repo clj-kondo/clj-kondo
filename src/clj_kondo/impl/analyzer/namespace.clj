@@ -54,6 +54,14 @@
           (valid-ns-name? form)
           (let [full-form (symbol (str (when prefix (str prefix "."))
                                        form))]
+            (when (and prefix
+                       (str/includes? (str form) "."))
+              (findings/reg-finding! ctx
+                                     (node->line (:filename ctx)
+                                                 libspec-expr
+                                                 :error
+                                                 :syntax
+                                                 "Lib names inside prefix lists must not contain periods.")))
             [(with-meta (token-node full-form)
                (cond-> (assoc (meta libspec-expr)
                               :raw-name form)
