@@ -8,13 +8,13 @@
 (defn- map-without-nils
   "Like map, but returns nil if any mapped value is nil."
   [f coll]
-  (-> (reduce (fn [acc v]
-                (if-let [new-v (f v)]
-                  (conj! acc new-v)
-                  (reduced nil)))
-              (transient [])
-              coll)
-      persistent!))
+  (some-> (reduce (fn [acc v]
+                    (if-let [new-v (f v)]
+                      (conj! acc new-v)
+                      (reduced nil)))
+                  (transient [])
+                  coll)
+          persistent!))
 
 (defn key-value
   "We only support the following cases for now."
