@@ -134,7 +134,7 @@
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
                                      ctx) lint lang filename)
-        _ (prn :used-nss @used-nss)
+        ;; _ (prn :used-nss @used-nss)
         idacs (core-impl/index-defs-and-calls ctx)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
