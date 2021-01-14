@@ -1,4 +1,4 @@
-(ns clj-kondo.single-operand-comparison-test
+(ns clj-kondo.single-operand-test
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -40,3 +40,25 @@
                   "(->> 10 (< 20))"
                   "(def x 11)(->> x (+ 1) (> 2))"]]
       (is (empty? (lint! expr))))))
+
+(deftest single-operand-logical-operator-test
+  (testing "and called with one arg is a warning"
+    (doseq [lang ["clj" "cljs"]]
+      (assert-submaps
+       '({:file "<stdin>", :row 1, :col 1, :level :warning,
+          :message "Single arg use of and always returns the arg itself"})
+       (lint! "(and 1)" "--lang" lang))
+      (assert-submaps
+       '({:file "<stdin>", :row 1, :col 12, :level :warning,
+          :message "Single arg use of and always returns the arg itself"})
+       (lint! "(->> 1 foo and)" "--lang" lang))))
+  (testing "or called with one arg is a warning"
+    (doseq [lang ["clj" "cljs"]]
+      (assert-submaps
+       '({:file "<stdin>", :row 1, :col 1, :level :warning,
+          :message "Single arg use of or always returns the arg itself"})
+       (lint! "(or 1)" "--lang" lang))
+      (assert-submaps
+       '({:file "<stdin>", :row 1, :col 7, :level :warning,
+          :message "Single arg use of or always returns the arg itself"})
+       (lint! "(-> 1 (or))" "--lang" lang)))))

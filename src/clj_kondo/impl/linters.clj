@@ -186,6 +186,20 @@
                    (str ns-nm "/" fn-name)
                    (some? const-true))))))))
 
+(defn lint-single-operand-logical-operator
+  "Lints calls of single operand logical operators with always the same value."
+  [call]
+  (when (utils/one-of (:resolved-ns call) [clojure.core cljs.core])
+    (let [call-name (:name call)
+          const-true (utils/one-of call-name [and or])]
+      (when (and const-true (= 1 (:arity call)))
+        (node->line
+         (:filename call)
+         (:expr call)
+         :warning
+         :single-operand-logical
+         (format "Single arg use of %s always returns the arg itself" call-name))))))
+
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
@@ -300,7 +314,11 @@
                   single-operand-comparison-error
                   (and call?
                        (not (utils/linter-disabled? call :single-operand-comparison))
-                       (lint-single-operand-comparison call))]]
+                       (lint-single-operand-comparison call))
+                  single-operand-logical-operator-error
+                  (and call?
+                       (not (utils/linter-disabled? call :single-operand-logical))
+                       (lint-single-operand-logical-operator call))]]
       (when arity-error?
         (findings/reg-finding!
          ctx
@@ -314,6 +332,9 @@
       (when single-operand-comparison-error
         (findings/reg-finding! ctx
                                single-operand-comparison-error))
+      (when single-operand-logical-operator-error
+        (findings/reg-finding! ctx
+                               single-operand-logical-operator-error))
       (when (and (:private called-fn)
                  (not= caller-ns-sym
                        fn-ns)
