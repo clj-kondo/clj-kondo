@@ -427,8 +427,7 @@
                                                          :author (:author ns-meta)))
       (doseq [req (:required ns)]
         (let [{:keys [row col end-row end-col alias]} (meta req)
-              meta-alias (meta alias)
-              meta-name (meta ns-name)]
+              meta-alias (meta alias)]
           (analysis/reg-namespace-usage! ctx filename row col ns-name
                                          req alias {:name-row row
                                                     :name-col col

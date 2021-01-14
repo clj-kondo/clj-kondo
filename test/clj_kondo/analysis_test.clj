@@ -96,7 +96,7 @@
       (is (= 'x (:name x) (:name x-used))))))
 
 (deftest name-position-test
-  (let [{:keys [:var-definitions :var-usages :locals :local-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
+  (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
      '[{:name foo :name-row 1 :name-col 7 :name-end-row 1 :name-end-col 10}]
      var-definitions)
