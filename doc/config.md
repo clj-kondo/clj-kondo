@@ -249,7 +249,7 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 
 These are some example configurations used in real projects. Feel free to create a PR with yours too.
 
-- [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/.clj-kondo/config.edn)
+- [clj-kondo](https://github.com/clj-kondo/clj-kondo/blob/master/.clj-kondo/config.edn)
 - [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
 
 Also see the [config](https://github.com/clj-kondo/config) project.

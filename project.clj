@@ -4,9 +4,9 @@
 
 (defproject clj-kondo "2020.12.13-SNAPSHOT"
   :description "Tidy your code with clj-kondo."
-  :url "https://github.com/borkdude/clj-kondo"
+  :url "https://github.com/clj-kondo/clj-kondo"
   :scm {:name "git"
-        :url "https://github.com/borkdude/clj-kondo"}
+        :url "https://github.com/clj-kondo/clj-kondo"}
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src" "parser" "inlined"]

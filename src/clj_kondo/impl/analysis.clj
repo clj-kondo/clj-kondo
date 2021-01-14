@@ -24,7 +24,11 @@
                               [:private :macro
                                :fixed-arities
                                :varargs-min-arity
-                               :deprecated]))
+                               :deprecated
+                               :name-row
+                               :name-col
+                               :name-end-row
+                               :name-end-col]))
                 :arity arity
                 :lang lang
                 :from-var in-def))))))
@@ -33,7 +37,8 @@
                 filename row col ns nom attrs]
   (when analysis
     (let [attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
-                                    :doc :added :deprecated :test :export :defined-by])]
+                                    :doc :added :deprecated :test :export :defined-by
+                                    :name-row :name-col :name-end-col :name-end-row])]
       (swap! analysis update :var-definitions conj
              (assoc-some
               (merge {:filename filename
@@ -58,7 +63,7 @@
             :lang (when (= :cljc base-lang) lang)))))
 
 (defn reg-namespace-usage! [{:keys [:analysis :base-lang :lang] :as _ctx}
-                            filename row col from-ns to-ns alias]
+                            filename row col from-ns to-ns alias metadata]
   (when analysis
     (let [m (meta to-ns)
           to-raw (:raw-name m)
@@ -66,10 +71,27 @@
                   to-raw to-ns)]
       (swap! analysis update :namespace-usages conj
              (assoc-some
-              {:filename filename
-               :row row
-               :col col
-               :from from-ns
-               :to to-ns}
+               (merge {:filename filename
+                       :row row
+                       :col col
+                       :from from-ns
+                       :to to-ns}
+                      metadata)
               :lang (when (= :cljc base-lang) lang)
               :alias alias)))))
+
+(defn reg-local! [{:keys [:analysis] :as ctx} filename binding]
+  (when analysis
+    (swap! analysis update :locals conj
+           (assoc-some (select-keys binding [:name :str :id :row :col :end-row :end-col :scope-end-col :scope-end-row])
+                       :filename filename
+                       :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))))))
+
+(defn reg-local-usage! [{:keys [:analysis] :as ctx} filename binding usage]
+  (when analysis
+    (swap! analysis update :local-usages conj
+           (assoc-some (select-keys usage [:id :row :col :end-row :end-col])
+                       :name (:name binding)
+                       :filename filename
+                       :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
+                       :id (:id binding)))))

@@ -21,7 +21,7 @@ For Spacemacs, see the [clj-kondo via LSP](https://practicalli.github.io/spacema
 For Emacs, use the instructions below.
 
 1. Download the latest clj-kondo LSP server jar to your system. Go to the
-   [Github releases](https://github.com/borkdude/clj-kondo/releases) and look
+   [Github releases](https://github.com/clj-kondo/clj-kondo/releases) and look
    for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided
    since version `2019.11.23`.
 
@@ -54,7 +54,7 @@ The clj-kondo extension will also be installed together with
 ### clojure-lint extension
 
 If you do not have Java installed you can still get clj-kondo linting using the [Clojure Lint](https://github.com/marcomorain/clojure-lint) extension, by
-@marcomorain, which uses the [clj-kondo standalone executable](https://github.com/borkdude/clj-kondo/blob/master/doc/install.md).
+@marcomorain, which uses the [clj-kondo standalone executable](https://github.com/clj-kondo/clj-kondo/blob/master/doc/install.md).
 
 ## Atom
 
@@ -187,7 +187,7 @@ Select your preferred plugin/version management preference between:
 The LSP server does not provide features other than diagnostics.
 
 1. Download the latest clj-kondo LSP server jar to your system. Go to the
-   [Github releases](https://github.com/borkdude/clj-kondo/releases) and look
+   [Github releases](https://github.com/clj-kondo/clj-kondo/releases) and look
    for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided
    since version `2019.11.23`.
 
@@ -205,7 +205,7 @@ The LSP server does not provide features other than diagnostics.
    -  In the command field enter `java -jar
       <path>` where `<path>` matches the downloaded
       jar file,
-      e.g. `/Users/borkdude/clj-kondo-lsp-server-2019.11.23-standalone.jar`.
+      e.g. `/Users/clj-kondo/clj-kondo-lsp-server-2019.11.23-standalone.jar`.
 
 Now, when editing a Clojure file, you should get linting feedback.
 

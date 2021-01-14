@@ -91,6 +91,10 @@ jobs:
           name: Release
           command: |
             .circleci/script/release
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - release
       - save_cache:
           paths:
             - ~/.m2
@@ -111,6 +115,14 @@ jobs:
       CLJ_KONDO_STATIC: true
     steps:
       - checkout
+      - run:
+          name: "Short circuit on SNAPSHOT"
+          command: |
+            VERSION=$(cat resources/CLJ_KONDO_VERSION)
+            if [[ "$VERSION" == *-SNAPSHOT ]]
+            then
+              circleci task halt
+            fi
       - restore_cache:
           keys:
             - linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
@@ -150,6 +162,10 @@ jobs:
           name: Release
           command: |
             .circleci/script/release
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - release
       - save_cache:
           paths:
             - ~/.m2
@@ -167,6 +183,15 @@ jobs:
       CLJ_KONDO_TEST_ENV: native
     steps:
       - checkout
+      - run:
+          name: Short circuit on non-master branches
+          command: |
+            if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]
+              then
+                exit 0
+              else
+               circleci task halt
+            fi
       - restore_cache:
           keys:
             - mac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
@@ -236,6 +261,8 @@ jobs:
       - image: circleci/buildpack-deps:stretch
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp
       - setup_remote_docker:
           version: 19.03.12
       - run:
@@ -257,8 +284,6 @@ workflows:
           requires:
             - jvm
             - linux
-            - linux-static
-            - mac
       - docker:
           filters:
             branches:
@@ -267,4 +292,3 @@ workflows:
             - jvm
             - linux
             - linux-static
-            - mac

@@ -169,7 +169,8 @@
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default
                 (recur (nnext children)
-                       (update m :referred conj opt))
+                       (update m :referred conj (with-meta opt
+                                                  (meta opt-expr))))
                 :exclude
                 (recur
                  (nnext children)
@@ -415,15 +416,27 @@
     (when (-> ctx :config :output :analysis)
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some {}
+                                                         :name-row (:row metadata)
+                                                         :name-col (:col metadata)
+                                                         :name-end-row (:end-row metadata)
+                                                         :name-end-col (:end-col metadata)
                                                          :deprecated (:deprecated ns-meta)
                                                          :doc docstring
                                                          :added (:added ns-meta)
                                                          :no-doc (:no-doc ns-meta)
                                                          :author (:author ns-meta)))
       (doseq [req (:required ns)]
-        (let [{:keys [row col alias]} (meta req)]
+        (let [{:keys [row col end-row end-col alias]} (meta req)
+              meta-alias (meta alias)]
           (analysis/reg-namespace-usage! ctx filename row col ns-name
-                                         req alias))))
+                                         req alias {:name-row row
+                                                    :name-col col
+                                                    :name-end-row end-row
+                                                    :name-end-col end-col
+                                                    :alias-row (:row meta-alias)
+                                                    :alias-col (:col meta-alias)
+                                                    :alias-end-row (:end-row meta-alias)
+                                                    :alias-end-col (:end-col meta-alias)}))))
     (namespace/reg-namespace! ctx ns)
     ns))
 

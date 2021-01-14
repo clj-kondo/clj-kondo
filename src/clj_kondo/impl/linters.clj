@@ -123,9 +123,11 @@
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
-      ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some])
+      ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
+       [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (lint-missing-else-branch ctx (:expr call))
-      ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in])
+      ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
+       [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
@@ -282,7 +284,11 @@
                                            (when (= :cljc base-lang)
                                              call-lang)
                                            in-def
-                                           called-fn))]
+                                           (assoc called-fn
+                                                  :name-row name-row
+                                                  :name-col name-col
+                                                  :name-end-row (:end-row name-meta)
+                                                  :name-end-col (:end-col name-meta))))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?
