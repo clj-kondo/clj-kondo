@@ -498,6 +498,44 @@ foo/foo ;; this does use the private var
       :message "foo.baz/c is called with 0 args but expects 1"})
    (lint! (io/file "corpus" "prefixed_libspec.clj"))))
 
+(deftest prefix-libspec-containing-periods-test
+  (testing "when a lib name with a period is found"
+    (is (= '({:col 32
+              :file "<stdin>"
+              :level :error
+              :message "found lib name 'foo.bar' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
+              :row 3})
+           (lint! "(ns baz
+                   (:require [clj-kondo.impl.analyzer
+                              [foo.bar :as baz]]))"
+                  {:linters {:unused-namespace {:level :off}}}))))
+  (testing "when multiple lib names with periods are found"
+    (is (= '({:col 32
+              :file "<stdin>"
+              :level :error
+              :message "found lib name 'babashka.quux' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
+              :row 3}
+             {:col 32
+              :file "<stdin>"
+              :level :error
+              :message "found lib name 'foo.bar' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
+              :row 4})
+           (lint! "(ns baz
+                   (:require [clj-kondo.impl.analyzer
+                              [babashka.quux :as baz]
+                              [foo.bar :as quux]]))"
+                  {:linters {:unused-namespace {:level :off}}}))))
+  (testing "when a lib name with periods is a simple symbol"
+    (is (= '({:col 31
+              :file "<stdin>"
+              :level :error
+              :message "found lib name 'foo.bar' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
+              :row 3})
+           (lint! "(ns baz
+                   (:require [clj-kondo.impl.analyzer
+                              foo.bar]))"
+                  {:linters {:unused-namespace {:level :off}}})))))
+
 (deftest rename-test
   (testing "the renamed function isn't available under the referred name"
     (assert-submaps
@@ -2528,36 +2566,6 @@ foo/foo ;; this does use the private var
             [echo]))
 
 " {:linters {:unsorted-required-namespaces {:level :warning}}})))))
-
-(deftest prefix-libspec-containing-periods-test
-  (is (= '({:col     32
-            :file    "<stdin>"
-            :level   :error
-            :message "found lib name 'foo.bar' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
-            :row     4})
-         (lint! "(ns baz
-                   (:require [clj-kondo.impl.analyzer
-                              [babashka :as baz]
-                              [foo.bar :as quux]]))"
-                {:linters {:unused-namespace {:level :off}}})))
-  (is (= '({:col     32
-            :file    "<stdin>"
-            :level   :error
-            :message "found lib name 'foo.bar' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
-            :row     3})
-         (lint! "(ns baz
-                   (:require [clj-kondo.impl.analyzer
-                              [foo.bar :as baz]]))"
-                {:linters {:unused-namespace {:level :off}}})))
-  (is (= '({:col     31
-            :file    "<stdin>"
-            :level   :error
-            :message "found lib name 'foo.bar' containing period with prefix 'clj-kondo.impl.analyzer'. lib names inside prefix lists must not contain periods."
-            :row     3})
-         (lint! "(ns baz
-                   (:require [clj-kondo.impl.analyzer
-                              foo.bar]))"
-                {:linters {:unused-namespace {:level :off}}}))))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
