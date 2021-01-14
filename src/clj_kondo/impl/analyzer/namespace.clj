@@ -41,12 +41,18 @@
         children (:children libspec-expr)
         form (sexpr libspec-expr)]
     (cond (prefix-spec? form)
-          (mapcat (fn [f]
-                    (normalize-libspec ctx
-                                       (symbol (str (when prefix (str prefix "."))
-                                                    (first form)))
-                                       f))
-                  (rest children))
+          (do (when prefix
+                (findings/reg-finding! ctx (node->line (:filename ctx)
+                                                       libspec-expr
+                                                       :error
+                                                       :syntax
+                                                       "nested prefix lists are not allowed.")))
+              (mapcat (fn [f]
+                        (normalize-libspec ctx
+                                           (symbol (str (when prefix (str prefix "."))
+                                                        (first form)))
+                                           f))
+                      (rest children)))
           (option-spec? form)
           [(with-meta
              (vector-node (into (normalize-libspec ctx prefix (first children)) (rest children)))

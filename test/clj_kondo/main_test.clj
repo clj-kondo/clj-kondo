@@ -486,7 +486,12 @@ foo/foo ;; this does use the private var
 
 (deftest prefix-libspec-test []
   (assert-submaps
-   '({:file "corpus/prefixed_libspec.clj",
+   '({:col 14
+      :file "corpus/prefixed_libspec.clj"
+      :level :error
+      :message "nested prefix lists are not allowed."
+      :row 11}
+     {:file "corpus/prefixed_libspec.clj",
       :row 14,
       :col 1,
       :level :error,
