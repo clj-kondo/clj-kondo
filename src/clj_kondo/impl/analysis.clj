@@ -89,7 +89,8 @@
 (defn reg-local-usage! [{:keys [:analysis] :as ctx} filename binding usage]
   (when analysis
     (swap! analysis update :local-usages conj
-           (assoc-some (select-keys usage [:name :str :id :row :col :end-row :end-col])
+           (assoc-some (select-keys usage [:id :row :col :end-row :end-col])
+                       :name (:name binding)
                        :filename filename
                        :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
                        :id (:id binding)))))
