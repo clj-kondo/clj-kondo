@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: DeLaGuardo/clojure-lint-action@v1
+    - uses: DeLaGuardo/clojure-lint-action@master
       with:
         clj-kondo-args: --lint src test
         github_token: ${{ secrets.GITHUB_TOKEN }}
