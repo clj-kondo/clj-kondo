@@ -11,7 +11,7 @@ data, use the following configuration:
 When using clj-kondo from the command line, the analysis data will be exported
 with `{:output {:format ...}}` set to `:json` or `:edn`.
 
-## Extra Analysis
+## Extra analysis
 
 Further analysis can be returned by providing `:analysis` with a map of options:
 
@@ -83,7 +83,6 @@ The analysis output consists of a map with:
   - `:filename`, `:row`, `:col`, `:end-row`, `:end-col`
   - `:id`: an identification for this local, refers to the local declaration with the same `:id` in `:locals`
   - `:name`: the name of the used local
-  - `:str`: the as written string of the local from the file and position
 
 Example output after linting this code:
 
