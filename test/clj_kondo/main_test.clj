@@ -737,13 +737,14 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "if-let binding vector requires exactly 2 forms"})
    (lint! "(if-let [x 1 y])"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :warning,
-      :message "Missing else branch."})
-   (lint! "(if-let [x 1] true)"))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "Missing else branch."})
+     (lint! "(if-let [x 1] true)" "--lang" lang)))
   (is (empty? (lint! "(if-let [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
 
 (deftest if-some-test
@@ -771,13 +772,14 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "if-some binding vector requires exactly 2 forms"})
    (lint! "(if-some [x 1 y])"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :warning,
-      :message "Missing else branch."})
-   (lint! "(if-let [x 1] true)"))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "Missing else branch."})
+     (lint! "(if-some [x 1] true)" "--lang" lang)))
   (is (empty? (lint! "(if-some [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
 
 (deftest when-let-test
@@ -875,7 +877,61 @@ foo/foo ;; this does use the private var
   (:require [foo.bar :as bar]))
 
 (def foo {:bar/id \"asdf\"
-          ::bar/id \"lkj\"})"))))
+          ::bar/id \"lkj\"})")))
+  (is (= '({:col 15
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key (1 2)"
+            :row 1})
+         (lint! "'{[1 2] \"bar\" (1 2) 12}")))
+  (is (= '({:col 22
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key (let [x 2] x)"
+            :row 1})
+         (lint! "{(let [x 2] x) \"bar\" (let [x 2] x) 12}")))
+  (is (= '({:col 14
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key '(1 2)"
+            :row 1})
+         (lint! "{[1 2] \"bar\" '(1 2) 12}")))
+  (is (= '({:col 20
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key #{1 3 :foo}"
+            :row 1})
+         (lint! "{#{1 :foo 3} \"bar\" #{1 3 :foo} 12}")))
+  (is (= '({:col 23
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key #{1 'baz :foo}"
+            :row 1})
+         (lint! "{#{1 :foo 'baz} \"bar\" #{1 'baz :foo} 12}")))
+  (is (= '({:col 23
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key #{1 'baz :foo}"
+            :row 1})
+         (lint! "{'#{1 :foo baz} \"bar\" #{1 'baz :foo} 12}")))
+  (is (= '({:col 14
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key {1 2}"
+            :row 1})
+         (lint! "{{1 2} \"bar\" {1 2} 12}")))
+  (is (= '({:col 24
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key {1 2 'foo :bar}"
+            :row 1})
+         (lint! "{'{1 2 foo :bar} \"bar\" {1 2 'foo :bar} 12}")))
+  (is (= '({:col 37
+            :file "<stdin>"
+            :level :error
+            :message "duplicate key '{1 {:foo #{3 4} bar (1 2)}}"
+            :row 1})
+         (lint! "{{1 {:foo #{3 4} 'bar [1 2]}} \"bar\" '{1 {:foo #{3 4} bar (1 2)}} 12}"))))
 
 (deftest map-missing-value
   (is (= '({:file "<stdin>",
@@ -2306,14 +2362,18 @@ foo/foo ;; this does use the private var
      {:file "<stdin>",
       :row 1,
       :col 10,
-      :level :warning,
-      :message "Missing else branch."}
-     {:file "<stdin>",
-      :row 1,
-      :col 23,
       :level :error,
       :message "clojure.core/if-not is called with 4 args but expects 2 or 3"})
-   (lint! "(if-not) (if-not 1 1) (if-not 1 1 1 1)")))
+   (lint! "(if-not) (if-not 1 1 1 1)"))
+
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "Missing else branch."})
+     (lint! "(if-not 1 1)" "--lang" lang))))
 
 (deftest unused-private-var-test
   (assert-submaps
@@ -2589,29 +2649,35 @@ foo/foo ;; this does use the private var
                      {:linters {:if {:level :off}}}))))
 
 (deftest single-key-in-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 12,
-      :level :warning,
-      :message "get-in with single key"})
-   (lint! "(get-in {} [:k])" {:linters {:single-key-in {:level :warning}}}))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 12,
+        :level :warning,
+        :message "get-in with single key"})
+     (lint! "(get-in {} [:k])" "--lang" lang
+            "--config" {:linters {:single-key-in {:level :warning}}})))
 
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 14,
-      :level :warning,
-      :message "assoc-in with single key"})
-   (lint! "(assoc-in {} [:k] :v)" {:linters {:single-key-in {:level :warning}}}))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 14,
+        :level :warning,
+        :message "assoc-in with single key"})
+     (lint! "(assoc-in {} [:k] :v)" "--lang" lang
+            "--config" {:linters {:single-key-in {:level :warning}}})))
 
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 15,
-      :level :warning,
-      :message "update-in with single key"})
-   (lint! "(update-in {} [:k] inc)" {:linters {:single-key-in {:level :warning}}}))
+  (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 15,
+        :level :warning,
+        :message "update-in with single key"})
+     (lint! "(update-in {} [:k] inc)" "--lang" lang
+            "--config" {:linters {:single-key-in {:level :warning}}})))
 
   (is (empty? (lint! "(get-in {} [:k1 :k2])" {:linters {:single-key-in {:level :warning}}})))
   (is (empty? (lint! "(get-in {} (keys-fn))" {:linters {:single-key-in {:level :warning}}})))
