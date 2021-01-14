@@ -63,7 +63,7 @@
             :lang (when (= :cljc base-lang) lang)))))
 
 (defn reg-namespace-usage! [{:keys [:analysis :base-lang :lang] :as _ctx}
-                            filename row col from-ns to-ns alias]
+                            filename row col from-ns to-ns alias metadata]
   (when analysis
     (let [m (meta to-ns)
           to-raw (:raw-name m)
@@ -71,11 +71,12 @@
                   to-raw to-ns)]
       (swap! analysis update :namespace-usages conj
              (assoc-some
-              {:filename filename
-               :row row
-               :col col
-               :from from-ns
-               :to to-ns}
+               (merge {:filename filename
+                       :row row
+                       :col col
+                       :from from-ns
+                       :to to-ns}
+                      metadata)
               :lang (when (= :cljc base-lang) lang)
               :alias alias)))))
 

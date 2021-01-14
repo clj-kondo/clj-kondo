@@ -90,6 +90,75 @@
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use) (:id third-use)))))
 
+(deftest name-position-test
+  (let [{:keys [:var-definitions :var-usages :locals :local-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
+    (assert-submaps
+     '[{:name foo :name-row 1 :name-col 7 :name-end-row 1 :name-end-col 10}]
+     var-definitions)
+    (assert-submaps
+      '[{:name foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17} {}]
+      var-usages))
+  (let [{:keys [:var-definitions :var-usages]} (analyze "(defprotocol Foo (bar [])) Foo bar" {:config {:output {:analysis {:locals true}}}})]
+    (assert-submaps
+      '[{:name Foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17}
+        {:name bar :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22}]
+      var-definitions)
+    (assert-submaps
+      '[{}
+        {:name Foo
+         :name-end-col 31,
+         :name-end-row 1,
+         :name-row 1,
+         :name-col 28}
+        {:name bar
+         :name-end-col 35,
+         :name-end-row 1,
+         :name-row 1,
+         :name-col 32}]
+      var-usages))
+  (let [{:keys [:namespace-definitions :namespace-usages]} (analyze "(ns foo (:require [bar :as b :refer [x]] [clojure [string :as str]]))" {:config {:output {:analysis {:locals true}}}})]
+    (assert-submaps
+      '[{:name foo
+         :name-end-col 8,
+         :name-end-row 1,
+         :name-row 1,
+         :name-col 5}]
+      namespace-definitions)
+    (assert-submaps
+      '[{:alias b
+         :alias-end-col 29,
+         :alias-end-row 1,
+         :alias-row 1,
+         :alias-col 28
+         :name-row 1
+         :name-col 20
+         :name-end-row 1
+         :name-end-col 23}
+        {:alias str
+         :alias-end-col 66,
+         :alias-end-row 1,
+         :alias-row 1,
+         :alias-col 63
+         :name-row 1
+         :name-col 52
+         :name-end-row 1
+         :name-end-col 58}]
+      namespace-usages))
+  (let [{:keys [:var-definitions :var-usages]} (analyze "(try (catch Exception foo foo))" {:config {:output {:analysis {:locals true}}}})]
+    (assert-submaps
+      '[]
+      var-definitions)
+    (assert-submaps
+      '[{:name-row 1 :name-col 13 :name-end-row 1 :name-end-col 22} {}]
+      var-usages))
+  (let [{:keys [:var-definitions :var-usages]} (analyze "(def a (atom nil)) (:foo @a)" {:config {:output {:analysis {:locals true}}}})]
+    (assert-submaps
+      '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7}]
+      var-definitions)
+    (assert-submaps
+      '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
+      var-usages)))
+
 (deftest analysis-test
   (let [{:keys [:var-definitions
                 :var-usages]} (analyze "(defn ^:deprecated foo \"docstring\" {:added \"1.2\"} [])")]
