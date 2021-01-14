@@ -948,12 +948,14 @@
         ns-name (:name ns)]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr
-                          {:defined-by 'clojure.core/defprotocol}))
+                          (assoc (meta name-node)
+                                 :defined-by 'clojure.core/defprotocol)))
     (doseq [c (next children)
             :when (= :list (tag c)) ;; skip first docstring
             :let [children (:children c)
                   name-node (first children)
                   name-node (meta/lift-meta-content2 ctx name-node)
+                  name-meta (meta name-node)
                   fn-name (:value name-node)
                   arity-vecs (rest children)
                   fixed-arities (set (keep #(when (= :vector (tag %))
@@ -964,6 +966,10 @@
       (when fn-name
         (namespace/reg-var!
          ctx ns-name fn-name expr (assoc (meta c)
+                                         :name-row (:row name-meta)
+                                         :name-col (:col name-meta)
+                                         :name-end-row (:end-row name-meta)
+                                         :name-end-col (:end-col name-meta)
                                          :fixed-arities fixed-arities
                                          :defined-by 'clojure.core/defprotocol))))))
 

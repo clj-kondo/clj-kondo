@@ -116,7 +116,9 @@
                                                       resolved-ns)
                        (namespace/reg-var-usage! ctx ns-name
                                                  {:type :use
-                                                  :name resolved-name
+                                                  :name (with-meta
+                                                          resolved-name
+                                                          m)
                                                   :resolved-ns resolved-ns
                                                   :ns ns-name
                                                   :unresolved? unresolved?
