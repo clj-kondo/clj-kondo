@@ -4,14 +4,32 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [node->line tag]]))
 
+(defn- map-without-nils
+  "Like map, but returns nil if any mapped value is nil."
+  [f coll]
+  (some-> (reduce (fn [acc v]
+                    (if-let [new-v (f v)]
+                      (conj! acc new-v)
+                      (reduced nil)))
+                  (transient [])
+                  coll)
+          persistent!))
+
 (defn key-value
-  "We only support tokens as key values for now."
+  "We only support the following cases for now."
   [node]
   (case (tag node)
     :token (or (when-let [v (:k node)]
                  (if (:namespaced? node)
                    (str v) v))
                (str node))
+    :vector (map-without-nils key-value (:children node))
+    :list (map-without-nils key-value (:children node))
+    :set (some-> (map-without-nils key-value (:children node))
+                 (set))
+    :map (some->> (map-without-nils key-value (:children node))
+                  (apply hash-map))
+    :quote (recur (first (:children node)))
     nil))
 
 (defn lint-map-keys

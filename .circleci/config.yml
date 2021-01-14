@@ -91,6 +91,10 @@ jobs:
           name: Release
           command: |
             .circleci/script/release
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - release
       - save_cache:
           paths:
             - ~/.m2
@@ -158,6 +162,10 @@ jobs:
           name: Release
           command: |
             .circleci/script/release
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - release
       - save_cache:
           paths:
             - ~/.m2
@@ -253,6 +261,8 @@ jobs:
       - image: circleci/buildpack-deps:stretch
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp
       - setup_remote_docker:
           version: 19.03.12
       - run:

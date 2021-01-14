@@ -2,6 +2,16 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+### New
+
+- Alpine Docker build [#1111](https://github.com/clj-kondo/clj-kondo/issues/1111)
+
+### Enhanced / fixed
+
+- Fix finding without location info [#1101](https://github.com/clj-kondo/clj-kondo/issues/1101)
+
 ## v2020.12.12
 
 ### New
