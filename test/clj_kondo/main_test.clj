@@ -489,7 +489,7 @@ foo/foo ;; this does use the private var
    '({:col 14
       :file "corpus/prefixed_libspec.clj"
       :level :error
-      :message "nested prefix lists are not allowed."
+      :message "Prefix lists can only have two levels."
       :row 11}
      {:file "corpus/prefixed_libspec.clj",
       :row 14,

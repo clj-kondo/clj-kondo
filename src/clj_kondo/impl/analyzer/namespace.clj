@@ -46,7 +46,7 @@
                                                        libspec-expr
                                                        :error
                                                        :syntax
-                                                       "nested prefix lists are not allowed.")))
+                                                       "Prefix lists can only have two levels.")))
               (mapcat (fn [f]
                         (normalize-libspec ctx
                                            (symbol (str (when prefix (str prefix "."))
