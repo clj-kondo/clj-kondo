@@ -316,11 +316,12 @@
                arg-tags :tags} (meta arg-bindings)
               arg-list (sexpr arg-vec)
               arity (analyze-arity arg-list)
-              ret {:arg-bindings (dissoc arg-bindings :analyzed)
-                   :arity arity
-                   :analyzed-arg-vec (:analyzed arg-bindings)
-                   :args arg-tags
-                   :ret return-tag}]
+              ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
+                           :arity arity
+                           :analyzed-arg-vec (:analyzed arg-bindings)
+                           :args arg-tags
+                           :ret return-tag}
+                    (get-in ctx [:config :output :analysis :signatures]) (assoc :signature (str arg-vec)))]
           ret)))
     (findings/reg-finding! ctx
                            (node->line (:filename ctx)
@@ -345,7 +346,7 @@
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [:arg-bindings
-                :arity :analyzed-arg-vec]
+                :arity :analyzed-arg-vec :signature]
          return-tag :ret
          arg-tags :args} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
@@ -393,6 +394,7 @@
            :parsed
            (concat analyzed-arg-vec analyze-pre-post parsed)
            :ret return-tag
+           :signature signature
            :args arg-tags)))
 
 (defn fn-bodies [ctx children body]
@@ -466,7 +468,8 @@
                                     [fixed-arity v]))))
                       parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
-        varargs-min-arity (get-in arities [:varargs :min-arity])]
+        varargs-min-arity (get-in arities [:varargs :min-arity])
+        signatures (mapv :signature parsed-bodies)]
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -475,6 +478,7 @@
                    :private private?
                    :deprecated deprecated
                    :fixed-arities (not-empty fixed-arities)
+                   :signatures (not-empty signatures)
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
@@ -945,7 +949,10 @@
   (let [children (next (:children expr))
         name-node (first children)
         protocol-name (:value name-node)
-        ns-name (:name ns)]
+        ns-name (:name ns)
+        transduce-arity-vecs (filter
+                               ;; skip last docstring
+                               #(when (= :vector (tag %)) %))]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr
                           (assoc (meta name-node)
@@ -957,21 +964,27 @@
                   name-node (meta/lift-meta-content2 ctx name-node)
                   name-meta (meta name-node)
                   fn-name (:value name-node)
-                  arity-vecs (rest children)
-                  fixed-arities (set (keep #(when (= :vector (tag %))
-                                              ;; skip last docstring
-                                              (count (:children %))) arity-vecs))]]
+                  arities (rest children)]]
       (let [ctx (ctx-with-linter-disabled ctx :unresolved-symbol)]
-        (run! #(analyze-usages2 ctx %) arity-vecs))
+        (run! #(analyze-usages2 ctx %) arities))
       (when fn-name
-        (namespace/reg-var!
-         ctx ns-name fn-name expr (assoc (meta c)
-                                         :name-row (:row name-meta)
-                                         :name-col (:col name-meta)
-                                         :name-end-row (:end-row name-meta)
-                                         :name-end-col (:end-col name-meta)
-                                         :fixed-arities fixed-arities
-                                         :defined-by 'clojure.core/defprotocol))))))
+        (let [signatures (when (get-in ctx [:config :output :analysis :signatures])
+                           (->> arities
+                                (into [] (comp transduce-arity-vecs (map str)))
+                                (not-empty)))
+              fixed-arities (into #{}
+                                  (comp transduce-arity-vecs (map #(count (:children %))))
+                                  arities)]
+          (namespace/reg-var!
+            ctx ns-name fn-name expr
+            (assoc-some (meta c)
+                        :signatures signatures
+                        :name-row (:row name-meta)
+                        :name-col (:col name-meta)
+                        :name-end-row (:end-row name-meta)
+                        :name-end-col (:end-col name-meta)
+                        :fixed-arities fixed-arities
+                        :defined-by 'clojure.core/defprotocol)))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
@@ -992,16 +1005,21 @@
                                                    binding-vector
                                                    expr
                                                    {}))
+        signature? (and bindings? (get-in ctx [:config :output :analysis :signatures]))
         ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
     (when-not (= 'definterface resolved-as)
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
-                          (assoc metadata
-                                 :fixed-arities #{field-count})))
+                          (assoc-some metadata
+                                      :signatures (when signature?
+                                                    [(str binding-vector)])
+                                      :fixed-arities #{field-count})))
     (when (= 'defrecord resolved-as)
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
-                          expr (assoc metadata
-                                      :fixed-arities #{1})))
+                          expr (assoc-some metadata
+                                           :signatures (when signature?
+                                                         ["[m]"])
+                                           :fixed-arities #{1})))
     (loop [current-protocol nil
            children (nnext children)]
       (when-first [c children]
