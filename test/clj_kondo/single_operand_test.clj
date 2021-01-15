@@ -41,7 +41,7 @@
                   "(def x 11)(->> x (+ 1) (> 2))"]]
       (is (empty? (lint! expr))))))
 
-(deftest single-operand-logical-operator-test
+(deftest single-logical-operand-test
   (testing "and called with one arg is a warning"
     (doseq [lang ["clj" "cljs"]]
       (assert-submaps
@@ -52,6 +52,7 @@
        '({:file "<stdin>", :row 1, :col 12, :level :warning,
           :message "Single arg use of and always returns the arg itself"})
        (lint! "(->> 1 foo and)" "--lang" lang))))
+
   (testing "or called with one arg is a warning"
     (doseq [lang ["clj" "cljs"]]
       (assert-submaps
@@ -61,4 +62,8 @@
       (assert-submaps
        '({:file "<stdin>", :row 1, :col 7, :level :warning,
           :message "Single arg use of or always returns the arg itself"})
-       (lint! "(-> 1 (or))" "--lang" lang)))))
+       (lint! "(-> 1 (or))" "--lang" lang))))
+
+  (doseq [lang ["clj" "cljs"]]
+    (is (empty? (lint! "(and 1 2)" "--lang" lang)) "and with > 1 arg is ok")
+    (is (empty? (lint! "(or 1 2 3)" "--lang" lang)) "or with > 1 arg is ok")))
