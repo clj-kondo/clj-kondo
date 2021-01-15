@@ -104,10 +104,10 @@
          metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym
-                         :name-row (:row metadata)
-                         :name-col (:col metadata)
-                         :name-end-row (:end-row metadata)
-                         :name-end-col (:end-col metadata)
+                         :name-row (or (:name-row metadata) (:row metadata))
+                         :name-col (or (:name-col metadata) (:col metadata))
+                         :name-end-row (or (:name-end-row metadata) (:end-row metadata))
+                         :name-end-col (or (:name-end-col metadata) (:end-col metadata))
                          :row expr-row
                          :col expr-col
                          :end-row expr-end-row
