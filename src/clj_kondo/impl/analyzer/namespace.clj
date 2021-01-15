@@ -41,12 +41,18 @@
         children (:children libspec-expr)
         form (sexpr libspec-expr)]
     (cond (prefix-spec? form)
-          (mapcat (fn [f]
-                    (normalize-libspec ctx
-                                       (symbol (str (when prefix (str prefix "."))
-                                                    (first form)))
-                                       f))
-                  (rest children))
+          (do (when prefix
+                (findings/reg-finding! ctx (node->line (:filename ctx)
+                                                       libspec-expr
+                                                       :error
+                                                       :syntax
+                                                       "Prefix lists can only have two levels.")))
+              (mapcat (fn [f]
+                        (normalize-libspec ctx
+                                           (symbol (str (when prefix (str prefix "."))
+                                                        (first form)))
+                                           f))
+                      (rest children)))
           (option-spec? form)
           [(with-meta
              (vector-node (into (normalize-libspec ctx prefix (first children)) (rest children)))
@@ -54,6 +60,15 @@
           (valid-ns-name? form)
           (let [full-form (symbol (str (when prefix (str prefix "."))
                                        form))]
+            (when (and prefix
+                       (str/includes? (str form) "."))
+              (findings/reg-finding! ctx
+                                     (node->line (:filename ctx)
+                                                 libspec-expr
+                                                 :error
+                                                 :syntax
+                                                 (format "found lib name '%s' containing period with prefix '%s'. lib names inside prefix lists must not contain periods."
+                                                         form prefix))))
             [(with-meta (token-node full-form)
                (cond-> (assoc (meta libspec-expr)
                               :raw-name form)
