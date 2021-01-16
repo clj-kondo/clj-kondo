@@ -326,32 +326,32 @@
         :to clojure.core}]
      var-usages)))
 
-(deftest ^:test-refresh/focus analysis-signatures-test
-  (testing "signatures are present on definitions"
+(deftest analysis-arglists-test
+  (testing "arglists-str are present on definitions"
     (let [{:keys [:var-definitions]}
           (analyze "(defn f1 [d] d)
                     (defn f2 ([e] e) ([f f'] f))
                     (defprotocol A (f3 [g] \"doc\") (f4 [h] [i i']))
                     (defrecord A [j k])
                     (defmacro f5 [l m])"
-                   {:config {:output {:analysis {:signatures true}}}})]
+                   {:config {:output {:analysis {:arglists true}}}})]
       (assert-submaps
         '[{:name f1,
-           :signatures ["[d]"]}
+           :arglists-str ["[d]"]}
           {:name f2,
-           :signatures ["[e]" "[f f']"]}
+           :arglists-str ["[e]" "[f f']"]}
           {:name f3,
-           :signatures ["[g]"]}
+           :arglists-str ["[g]"]}
           {}
           {:name f4,
-           :signatures ["[h]" "[i i']"]}
+           :arglists-str ["[h]" "[i i']"]}
           {}
           {:name ->A
-           :signatures ["[j k]"]}
+           :arglists-str ["[j k]"]}
           {:name map->A
-           :signatures ["[m]"]}
+           :arglists-str ["[m]"]}
           {:name f5
-           :signatures ["[l m]"]}]
+           :arglists-str ["[l m]"]}]
         var-definitions))))
 
 (deftest analysis-is-valid-edn-test
