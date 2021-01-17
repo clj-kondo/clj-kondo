@@ -17,9 +17,7 @@
         keyword-val (:k expr)]
     (when (:namespaced? expr)
       (let [symbol-val (kw->sym keyword-val)
-            {resolved-ns :ns
-             _resolved-name :name
-             _unresolved? :unresolved? :as _m}
+            {resolved-ns :ns}
             (namespace/resolve-name ctx ns-name symbol-val)]
         (if resolved-ns
           (namespace/reg-used-namespace! ctx
@@ -89,6 +87,7 @@
                           resolved-name :name
                           unresolved? :unresolved?
                           clojure-excluded? :clojure-excluded?
+                          interop? :interop?
                           :as _m}
                          (let [v (namespace/resolve-name ctx ns-name symbol-val)]
                            (when-not syntax-quote?
@@ -139,7 +138,8 @@
                                                   :callstack (:callstack ctx)
                                                   :config (:config ctx)
                                                   :in-def (:in-def ctx)
-                                                  :simple? simple?})))))
+                                                  :simple? simple?
+                                                  :interop? interop?})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              :reader-macro

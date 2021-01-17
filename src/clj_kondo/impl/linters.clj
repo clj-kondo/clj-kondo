@@ -200,6 +200,8 @@
          :single-logical-operand
          (format "Single arg use of %s always returns the arg itself" call-name))))))
 
+;; (require 'clojure.pprint)
+
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
@@ -209,7 +211,8 @@
     (doseq [ns (namespace/list-namespaces ctx)
             :let [base-lang (:base-lang ns)]
             call (:used-vars ns)
-            :let [call? (= :call (:type call))
+            :let [;; _ (clojure.pprint/pprint (dissoc call :config))
+                  call? (= :call (:type call))
                   unresolved? (:unresolved? call)
                   unresolved-ns (:unresolved-ns call)]
             :when (not unresolved-ns)
@@ -230,19 +233,21 @@
                   #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns fn-name unresolved? refer-alls)
-                  _ (when-not called-fn
-                      (when (and row col end-row end-col)
-                        (when-not (or (= 'clojure.core resolved-ns)
-                                      (identical? :clj-kondo/unknown-namespace resolved-ns))
-                          (findings/reg-finding!
-                           ctx
-                           {:filename filename
-                            :row row
-                            :end-row end-row
-                            :col col
-                            :end-col end-col
-                            :type :unresolved-symbol
-                            :message (str "Unresolved symbol: " resolved-ns "/" fn-name)}))))
+                  _ (when (and (not called-fn)
+                               (not (:interop? call))
+                               row col end-row end-col)
+                      ;; (prn :call (dissoc call :config))
+                      (when-not (or (= 'clojure.core resolved-ns)
+                                    (identical? :clj-kondo/unknown-namespace resolved-ns))
+                        (findings/reg-finding!
+                         ctx
+                         {:filename filename
+                          :row row
+                          :end-row end-row
+                          :col col
+                          :end-col end-col
+                          :type :unresolved-symbol
+                          :message (str "Unresolved symbol: " resolved-ns "/" fn-name)})))
                   ;; we can determine if the call was made to another
                   ;; file by looking at the base-lang (in case of
                   ;; CLJS macro imports or the top-level namespace

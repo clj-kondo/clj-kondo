@@ -200,3 +200,11 @@
                      "--lang" "cljs")))
   (is (empty? (lint! "(import '[java.foo Bar Baz]) Bar Baz"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
+
+;; TODO: not sure if this should be merged with current linter, or split out to
+;; another one because of false positives
+(deftest unresolved-other-namespace-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 34, :level :error, :message "Unresolved symbol: clojure.set/onion"})
+   (lint! "(require '[clojure.set :as set]) (set/onion)"
+              '{:linters {:unresolved-symbol {:level :error}}})))
