@@ -207,7 +207,8 @@
   to call-specific linters."
   [ctx idacs]
   (let [config (:config ctx)
-        output-analysis? (-> config :output :analysis)]
+        output-analysis? (-> config :output :analysis)
+        from-cache (:from-cache idacs)]
     (doseq [ns (namespace/list-namespaces ctx)
             :let [base-lang (:base-lang ns)]
             call (:used-vars ns)
@@ -235,7 +236,8 @@
                                                 resolved-ns fn-name unresolved? refer-alls)
                   _ (when (and (not called-fn)
                                (not (:interop? call))
-                               row col end-row end-col)
+                               row col end-row end-col
+                               (contains? from-cache resolved-ns))
                       ;; (prn :call (dissoc call :config))
                       (when-not (or (= 'clojure.core resolved-ns)
                                     (identical? :clj-kondo/unknown-namespace resolved-ns))
