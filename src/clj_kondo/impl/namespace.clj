@@ -213,7 +213,7 @@
 (defn reg-binding!
   [{:keys [:base-lang :lang :namespaces :filename] :as ctx} ns-sym binding]
   (when-not (:clj-kondo/mark-used binding)
-    (when (-> ctx :config :output :analysis :locals)
+    (when (:analyze-locals? ctx)
       (analysis/reg-local! ctx filename binding))
     (swap! namespaces update-in [base-lang lang ns-sym :bindings]
            conj binding))
@@ -228,7 +228,7 @@
 
 (defn reg-used-binding!
   [{:keys [:base-lang :lang :namespaces :filename] :as ctx} ns-sym binding usage]
-  (when (and usage (-> ctx :config :output :analysis :locals) (not (:clj-kondo/mark-used binding)))
+  (when (and usage (:analyze-locals? ctx) (not (:clj-kondo/mark-used binding)))
     (analysis/reg-local-usage! ctx filename binding usage))
   (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
          conj binding)

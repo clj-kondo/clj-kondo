@@ -127,7 +127,8 @@
                                      :cljs #{}
                                      :cljc #{}})
              :ignores (atom {})
-             :id-gen (when analyze-locals? (atom 0))}
+             :id-gen (when analyze-locals? (atom 0))
+             :analyze-locals? analyze-locals?}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)

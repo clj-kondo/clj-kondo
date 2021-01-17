@@ -152,7 +152,7 @@
                                           :name s
                                           :filename (:filename ctx)
                                           :tag t)
-                             (get-in ctx [:config :output :analysis :locals])
+                             (:analyze-locals? ctx)
                              (-> (assoc :id (swap! (:id-gen ctx) inc)
                                         :str (str expr))
                                  (merge (scope-end scoped-expr))))]
@@ -179,7 +179,7 @@
                      v (cond-> (assoc m
                                       :name s
                                       :filename (:filename ctx))
-                         (get-in ctx [:config :output :analysis :locals])
+                         (:analyze-locals? ctx)
                          (-> (assoc :id (swap! (:id-gen ctx) inc)
                                     :str (str expr))
                              (merge (scope-end scoped-expr))))]
@@ -797,7 +797,7 @@
                            (let [v (cond-> (assoc (meta name-expr)
                                                   :name (:value name-expr)
                                                   :filename (:filename ctx))
-                                     (get-in ctx [:config :output :analysis :locals])
+                                     (:analyze-locals? ctx)
                                      (-> (assoc :id (swap! (:id-gen ctx) inc)
                                                 :str (:str name-expr))
                                          (merge (scope-end expr))))]
