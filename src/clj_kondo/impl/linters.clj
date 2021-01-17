@@ -209,6 +209,7 @@
   (let [config (:config ctx)
         output-analysis? (-> config :output :analysis)
         from-cache (:from-cache idacs)]
+    ;; (prn :from-cache from-cache)
     (doseq [ns (namespace/list-namespaces ctx)
             :let [base-lang (:base-lang ns)]
             call (:used-vars ns)
