@@ -152,7 +152,7 @@
                                           :name s
                                           :filename (:filename ctx)
                                           :tag t)
-                             (get-in ctx [:config :output :analysis :locals])
+                             (:analyze-locals? ctx)
                              (-> (assoc :id (swap! (:id-gen ctx) inc)
                                         :str (str expr))
                                  (merge (scope-end scoped-expr))))]
@@ -179,7 +179,7 @@
                      v (cond-> (assoc m
                                       :name s
                                       :filename (:filename ctx))
-                         (get-in ctx [:config :output :analysis :locals])
+                         (:analyze-locals? ctx)
                          (-> (assoc :id (swap! (:id-gen ctx) inc)
                                     :str (str expr))
                              (merge (scope-end scoped-expr))))]
@@ -316,11 +316,12 @@
                arg-tags :tags} (meta arg-bindings)
               arg-list (sexpr arg-vec)
               arity (analyze-arity arg-list)
-              ret {:arg-bindings (dissoc arg-bindings :analyzed)
-                   :arity arity
-                   :analyzed-arg-vec (:analyzed arg-bindings)
-                   :args arg-tags
-                   :ret return-tag}]
+              ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
+                           :arity arity
+                           :analyzed-arg-vec (:analyzed arg-bindings)
+                           :args arg-tags
+                           :ret return-tag}
+                    (:analyze-arglists? ctx) (assoc :arglist-str (str arg-vec)))]
           ret)))
     (findings/reg-finding! ctx
                            (node->line (:filename ctx)
@@ -345,7 +346,7 @@
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [:arg-bindings
-                :arity :analyzed-arg-vec]
+                :arity :analyzed-arg-vec :arglist-str]
          return-tag :ret
          arg-tags :args} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
@@ -393,6 +394,7 @@
            :parsed
            (concat analyzed-arg-vec analyze-pre-post parsed)
            :ret return-tag
+           :arglist-str arglist-str
            :args arg-tags)))
 
 (defn fn-bodies [ctx children body]
@@ -466,7 +468,8 @@
                                     [fixed-arity v]))))
                       parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
-        varargs-min-arity (get-in arities [:varargs :min-arity])]
+        varargs-min-arity (get-in arities [:varargs :min-arity])
+        arglist-strs (mapv :arglist-str parsed-bodies)]
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -475,6 +478,7 @@
                    :private private?
                    :deprecated deprecated
                    :fixed-arities (not-empty fixed-arities)
+                   :arglist-strs (not-empty arglist-strs)
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
@@ -644,7 +648,7 @@
                    (not (:clj-kondo.impl/generated (meta parent-call)))
                    (or
                     ;; explicit do
-                    (and (= 'do core-sym))
+                    (= 'do core-sym)
                     ;; implicit do
                     (one-of core-sym [fn defn defn-
                                       let when-let loop binding with-open
@@ -728,8 +732,8 @@
                 (:value (first (:children alias-expr))))
               (when (identical? :list t)
                 (let [children (:children alias-expr)]
-                  (when (and (= 'quote (some-> children first
-                                               utils/symbol-from-token)))
+                  (when (= 'quote (some-> children first
+                                          utils/symbol-from-token))
                     (utils/symbol-from-token (second children)))))))
         ns-sym
         (let [t (tag ns-expr)]
@@ -737,8 +741,8 @@
                 (:value (first (:children ns-expr))))
               (when (identical? :list t)
                 (let [children (:children ns-expr)]
-                  (when (and (= 'quote (some-> children first
-                                               utils/symbol-from-token)))
+                  (when (= 'quote (some-> children first
+                                          utils/symbol-from-token))
                     (utils/symbol-from-token (second children)))))))]
     (if (and alias-sym (symbol? alias-sym) ns-sym (symbol? ns-sym))
       (namespace/reg-alias! ctx (:name ns) alias-sym ns-sym)
@@ -793,7 +797,7 @@
                            (let [v (cond-> (assoc (meta name-expr)
                                                   :name (:value name-expr)
                                                   :filename (:filename ctx))
-                                     (get-in ctx [:config :output :analysis :locals])
+                                     (:analyze-locals? ctx)
                                      (-> (assoc :id (swap! (:id-gen ctx) inc)
                                                 :str (:str name-expr))
                                          (merge (scope-end expr))))]
@@ -945,7 +949,10 @@
   (let [children (next (:children expr))
         name-node (first children)
         protocol-name (:value name-node)
-        ns-name (:name ns)]
+        ns-name (:name ns)
+        transduce-arity-vecs (filter
+                               ;; skip last docstring
+                               #(when (= :vector (tag %)) %))]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr
                           (assoc (meta name-node)
@@ -957,21 +964,27 @@
                   name-node (meta/lift-meta-content2 ctx name-node)
                   name-meta (meta name-node)
                   fn-name (:value name-node)
-                  arity-vecs (rest children)
-                  fixed-arities (set (keep #(when (= :vector (tag %))
-                                              ;; skip last docstring
-                                              (count (:children %))) arity-vecs))]]
+                  arities (rest children)]]
       (let [ctx (ctx-with-linter-disabled ctx :unresolved-symbol)]
-        (run! #(analyze-usages2 ctx %) arity-vecs))
+        (run! #(analyze-usages2 ctx %) arities))
       (when fn-name
-        (namespace/reg-var!
-         ctx ns-name fn-name expr (assoc (meta c)
-                                         :name-row (:row name-meta)
-                                         :name-col (:col name-meta)
-                                         :name-end-row (:end-row name-meta)
-                                         :name-end-col (:end-col name-meta)
-                                         :fixed-arities fixed-arities
-                                         :defined-by 'clojure.core/defprotocol))))))
+        (let [arglist-strs (when (:analyze-arglists? ctx)
+                             (->> arities
+                                  (into [] (comp transduce-arity-vecs (map str)))
+                                  (not-empty)))
+              fixed-arities (into #{}
+                                  (comp transduce-arity-vecs (map #(count (:children %))))
+                                  arities)]
+          (namespace/reg-var!
+            ctx ns-name fn-name expr
+            (assoc-some (meta c)
+                        :arglist-strs arglist-strs
+                        :name-row (:row name-meta)
+                        :name-col (:col name-meta)
+                        :name-end-row (:end-row name-meta)
+                        :name-end-col (:end-col name-meta)
+                        :fixed-arities fixed-arities
+                        :defined-by 'clojure.core/defprotocol)))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
@@ -992,16 +1005,21 @@
                                                    binding-vector
                                                    expr
                                                    {}))
+        arglists? (and bindings? (:analyze-arglists? ctx))
         ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
     (when-not (= 'definterface resolved-as)
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
-                          (assoc metadata
-                                 :fixed-arities #{field-count})))
+                          (assoc-some metadata
+                                      :arglist-strs (when arglists?
+                                                      [(str binding-vector)])
+                                      :fixed-arities #{field-count})))
     (when (= 'defrecord resolved-as)
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
-                          expr (assoc metadata
-                                      :fixed-arities #{1})))
+                          expr (assoc-some metadata
+                                           :arglist-strs (when arglists?
+                                                           ["[m]"])
+                                           :fixed-arities #{1})))
     (loop [current-protocol nil
            children (nnext children)]
       (when-first [c children]

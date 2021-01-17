@@ -80,7 +80,7 @@
                    (namespace/reg-used-binding! ctx
                                                 (-> ns :name)
                                                 b
-                                                (when (get-in ctx [:config :output :analysis :locals])
+                                                (when (:analyze-locals? ctx)
                                                   (assoc-some (meta expr)
                                                               :name symbol-val
                                                               :filename (:filename ctx)
