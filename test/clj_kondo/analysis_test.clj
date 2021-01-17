@@ -327,7 +327,7 @@
      var-usages)))
 
 (deftest analysis-arglists-test
-  (testing "arglists-str are present on definitions"
+  (testing "arglist-strs are present on definitions"
     (let [{:keys [:var-definitions]}
           (analyze "(defn f1 [d] d)
                     (defn f2 ([e] e) ([f f'] f))
@@ -337,21 +337,21 @@
                    {:config {:output {:analysis {:arglists true}}}})]
       (assert-submaps
         '[{:name f1,
-           :arglists-str ["[d]"]}
+           :arglist-strs ["[d]"]}
           {:name f2,
-           :arglists-str ["[e]" "[f f']"]}
+           :arglist-strs ["[e]" "[f f']"]}
           {:name f3,
-           :arglists-str ["[g]"]}
+           :arglist-strs ["[g]"]}
           {}
           {:name f4,
-           :arglists-str ["[h]" "[i i']"]}
+           :arglist-strs ["[h]" "[i i']"]}
           {}
           {:name ->A
-           :arglists-str ["[j k]"]}
+           :arglist-strs ["[j k]"]}
           {:name map->A
-           :arglists-str ["[m]"]}
+           :arglist-strs ["[m]"]}
           {:name f5
-           :arglists-str ["[l m]"]}]
+           :arglist-strs ["[l m]"]}]
         var-definitions))))
 
 (deftest analysis-is-valid-edn-test

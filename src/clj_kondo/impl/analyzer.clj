@@ -469,7 +469,7 @@
                       parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])
-        arglists-str (mapv :arglist-str parsed-bodies)]
+        arglist-strs (mapv :arglist-str parsed-bodies)]
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -478,7 +478,7 @@
                    :private private?
                    :deprecated deprecated
                    :fixed-arities (not-empty fixed-arities)
-                   :arglists-str (not-empty arglists-str)
+                   :arglist-strs (not-empty arglist-strs)
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
@@ -968,7 +968,7 @@
       (let [ctx (ctx-with-linter-disabled ctx :unresolved-symbol)]
         (run! #(analyze-usages2 ctx %) arities))
       (when fn-name
-        (let [arglists-str (when (:analyze-arglists? ctx)
+        (let [arglist-strs (when (:analyze-arglists? ctx)
                              (->> arities
                                   (into [] (comp transduce-arity-vecs (map str)))
                                   (not-empty)))
@@ -978,7 +978,7 @@
           (namespace/reg-var!
             ctx ns-name fn-name expr
             (assoc-some (meta c)
-                        :arglists-str arglists-str
+                        :arglist-strs arglist-strs
                         :name-row (:row name-meta)
                         :name-col (:col name-meta)
                         :name-end-row (:end-row name-meta)
@@ -1011,13 +1011,13 @@
     (when-not (= 'definterface resolved-as)
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
                           (assoc-some metadata
-                                      :arglists-str (when arglists?
+                                      :arglist-strs (when arglists?
                                                       [(str binding-vector)])
                                       :fixed-arities #{field-count})))
     (when (= 'defrecord resolved-as)
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                           expr (assoc-some metadata
-                                           :arglists-str (when arglists?
+                                           :arglist-strs (when arglists?
                                                            ["[m]"])
                                            :fixed-arities #{1})))
     (loop [current-protocol nil
