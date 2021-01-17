@@ -20,7 +20,7 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 ```
 
 - `:locals`: when truthy return `:locals` and `:local-usages` described below
-- `:signatures`: when truthy return `:signatures` on `:var-definitions`
+- `:arglists`: when truthy return `:arglists` on `:var-definitions`
 
 ## Data
 
@@ -57,7 +57,7 @@ The analysis output consists of a map with:
   - several metadata values: `:private`, `:macro`, `:deprecated`, `:doc`, `:added`
   - `:lang`: if definition occurred in a `.cljc` file, the language in which the
     definition was done: `:clj` or `:cljs`
-  - `:signatures`: a list of each signature as written
+  - `:arglists-str`: a list of each set of args as written
 
 - `:var-usages`, a list of maps with:
   - `:filename`, `:row`, `:col`
