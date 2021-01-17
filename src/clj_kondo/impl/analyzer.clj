@@ -321,7 +321,7 @@
                            :analyzed-arg-vec (:analyzed arg-bindings)
                            :args arg-tags
                            :ret return-tag}
-                    (get-in ctx [:config :output :analysis :arglists]) (assoc :arglist-str (str arg-vec)))]
+                    (:analyze-arglists? ctx) (assoc :arglist-str (str arg-vec)))]
           ret)))
     (findings/reg-finding! ctx
                            (node->line (:filename ctx)
@@ -968,7 +968,7 @@
       (let [ctx (ctx-with-linter-disabled ctx :unresolved-symbol)]
         (run! #(analyze-usages2 ctx %) arities))
       (when fn-name
-        (let [arglists-str (when (get-in ctx [:config :output :analysis :arglists])
+        (let [arglists-str (when (:analyze-arglists? ctx)
                              (->> arities
                                   (into [] (comp transduce-arity-vecs (map str)))
                                   (not-empty)))
@@ -1005,7 +1005,7 @@
                                                    binding-vector
                                                    expr
                                                    {}))
-        arglists? (and bindings? (get-in ctx [:config :output :analysis :arglists]))
+        arglists? (and bindings? (:analyze-arglists? ctx))
         ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
     (when-not (= 'definterface resolved-as)

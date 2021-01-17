@@ -103,9 +103,9 @@
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
         files (atom 0)
         findings (atom [])
-        analysis? (get-in config [:output :analysis])
+        analysis-cfg (get-in config [:output :analysis])
         analyze-locals? (get-in config [:output :analysis :locals])
-        analysis (when analysis?
+        analysis (when analysis-cfg
                    (atom (cond-> {:namespace-definitions []
                                   :namespace-usages []
                                   :var-definitions []
@@ -128,7 +128,8 @@
                                      :cljc #{}})
              :ignores (atom {})
              :id-gen (when analyze-locals? (atom 0))
-             :analyze-locals? analyze-locals?}
+             :analyze-locals? analyze-locals?
+             :analyze-arglists? (get analysis-cfg :arglists)}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
@@ -154,7 +155,7 @@
         {:findings all-findings
          :config config
          :summary summary}
-      analysis?
+      analysis-cfg
       (assoc :analysis @analysis))))
 
 (defn merge-configs
