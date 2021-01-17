@@ -326,6 +326,34 @@
         :to clojure.core}]
      var-usages)))
 
+(deftest analysis-arglists-test
+  (testing "arglists-str are present on definitions"
+    (let [{:keys [:var-definitions]}
+          (analyze "(defn f1 [d] d)
+                    (defn f2 ([e] e) ([f f'] f))
+                    (defprotocol A (f3 [g] \"doc\") (f4 [h] [i i']))
+                    (defrecord A [j k])
+                    (defmacro f5 [l m])"
+                   {:config {:output {:analysis {:arglists true}}}})]
+      (assert-submaps
+        '[{:name f1,
+           :arglists-str ["[d]"]}
+          {:name f2,
+           :arglists-str ["[e]" "[f f']"]}
+          {:name f3,
+           :arglists-str ["[g]"]}
+          {}
+          {:name f4,
+           :arglists-str ["[h]" "[i i']"]}
+          {}
+          {:name ->A
+           :arglists-str ["[j k]"]}
+          {:name map->A
+           :arglists-str ["[m]"]}
+          {:name f5
+           :arglists-str ["[l m]"]}]
+        var-definitions))))
+
 (deftest analysis-is-valid-edn-test
   (testing "solution for GH-476, CLJS with string require"
     (let [analysis (analyze "(ns foo (:require [\"@dude\" :as d])) (d/fn-call)")

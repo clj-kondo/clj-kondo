@@ -38,7 +38,8 @@
   (when analysis
     (let [attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
                                     :doc :added :deprecated :test :export :defined-by
-                                    :name-row :name-col :name-end-col :name-end-row])]
+                                    :name-row :name-col :name-end-col :name-end-row
+                                    :arglists-str])]
       (swap! analysis update :var-definitions conj
              (assoc-some
               (merge {:filename filename
