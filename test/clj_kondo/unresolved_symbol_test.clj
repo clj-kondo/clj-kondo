@@ -200,17 +200,3 @@
                      "--lang" "cljs")))
   (is (empty? (lint! "(import '[java.foo Bar Baz]) Bar Baz"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
-
-(deftest no-such-var-test
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 35, :level :error, :message "No such var: set/onion"})
-   (lint! "(require '[clojure.set :as set]) (set/onion)"
-          '{:linters {:unresolved-symbol {:level :error}}}))
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 41, :level :error, :message "No such var: set/onion"})
-   (lint! "(require '[clojure.set :as set]) (apply set/onion 1 2 3)"
-          '{:linters {:unresolved-symbol {:level :error}}}))
-  (is (empty?
-       (lint! "(do 1 2) goog.global"
-              '{:linters {:unresolved-symbol {:level :error}}}
-              "--lang" "cljs"))))

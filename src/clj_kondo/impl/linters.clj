@@ -249,25 +249,15 @@
                       ;; (prn :call (dissoc call :config))
                       (when-not (or (utils/one-of resolved-ns [clojure.core cljs.core])
                                     (identical? :clj-kondo/unknown-namespace resolved-ns))
-                        (namespace/reg-unresolved-symbol!
+                        (namespace/reg-unresolved-var!
                          ctx caller-ns-sym fn-name
-                         (-> (if call?
-                               (assoc call
-                                      :row name-row
-                                      :col name-col
-                                      :end-row name-end-row
-                                      :end-col name-end-col)
-                               call)
-                             (assoc :other-ns true)))
-                        #_(findings/reg-finding!
-                         ctx
-                         {:filename filename
-                          :row row
-                          :end-row end-row
-                          :col col
-                          :end-col end-col
-                          :type :unresolved-symbol
-                          :message (str "Unresolved symbol: " resolved-ns "/" fn-name)})))
+                         (if call?
+                           (assoc call
+                                  :row name-row
+                                  :col name-col
+                                  :end-row name-end-row
+                                  :end-col name-end-col)
+                           call))))
                   ;; we can determine if the call was made to another
                   ;; file by looking at the base-lang (in case of
                   ;; CLJS macro imports or the top-level namespace
@@ -548,22 +538,33 @@
           [_ v] (:unresolved-symbols ns)]
     (let [
           filename (:filename v)
-          n (:name v)
-          other-ns (:other-ns v)
-          n (if other-ns
-              (if (identical? :call (:type v))
-                (str (first (:children (:expr v))))
-                (str (:expr v)))
-              n)]
+          n (:name v)]
       (findings/reg-finding!
        ctx
-       {:type (if other-ns
-                :no-such-var
-                :unresolved-symbol)
+       {:type :unresolved-symbol
         :filename filename
-        :message (if other-ns
-                   (str "No such var: " n)
-                   (str "Unresolved symbol: " n))
+        :message (str "Unresolved symbol: " n)
+        :row (:row v)
+        :col (:col v)
+        :end-row (:end-row v)
+        :end-col (:end-col v)}))))
+
+(defn lint-unresolved-vars!
+  [ctx]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [lang (:lang ns)
+                ctx (assoc ctx :lang lang)]
+          [_ v] (:unresolved-vars ns)]
+    (let [filename (:filename v)
+          expr (:expr v)
+          n (if-let [children (:children expr)]
+              (str (first children))
+              (str expr))]
+      (findings/reg-finding!
+       ctx
+       {:type :unresolved-var
+        :filename filename
+        :message (str "No such var: " n)
         :row (:row v)
         :col (:col v)
         :end-row (:end-row v)
