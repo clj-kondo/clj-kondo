@@ -97,8 +97,8 @@
                        :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
                        :id (:id binding)))))
 
-(defn reg-keyword-usage! [{:keys [:analysis] :as ctx} filename usage]
-  (when analysis
+(defn reg-keyword-usage! [ctx filename usage]
+  (when-let [analysis (:analysis ctx)]
     (swap! analysis update :keyword-usages conj
            (assoc-some (select-keys usage [:row :col :end-row :end-col :name :alias :ns :keys-destructuring])
                        :filename filename
