@@ -240,7 +240,7 @@
                                row col end-row end-col
                                (contains? from-cache resolved-ns))
                       ;; (prn :call (dissoc call :config))
-                      (when-not (or (= 'clojure.core resolved-ns)
+                      (when-not (or (utils/one-of resolved-ns [clojure.core cljs.core])
                                     (identical? :clj-kondo/unknown-namespace resolved-ns))
                         (findings/reg-finding!
                          ctx

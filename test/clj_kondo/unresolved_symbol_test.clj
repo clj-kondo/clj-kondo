@@ -207,4 +207,8 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 34, :level :error, :message "Unresolved symbol: clojure.set/onion"})
    (lint! "(require '[clojure.set :as set]) (set/onion)"
-              '{:linters {:unresolved-symbol {:level :error}}})))
+          '{:linters {:unresolved-symbol {:level :error}}}))
+  (is (empty?
+       (lint! "(do 1 2) goog.global"
+              '{:linters {:unresolved-symbol {:level :error}}}
+              "--lang" "cljs"))))
