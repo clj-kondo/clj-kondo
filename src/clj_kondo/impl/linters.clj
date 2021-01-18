@@ -235,6 +235,8 @@
                   #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns fn-name unresolved? refer-alls)
+                  #_#__(when (not call?)
+                      (clojure.pprint/pprint (dissoc call :config)))
                   _ (when (and (not called-fn)
                                (not (:interop? call))
                                row col end-row end-col

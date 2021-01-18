@@ -110,6 +110,8 @@
                          end-row (:end-row m)
                          end-col (:end-col m)]
                      (when resolved-ns
+                       ;; this causes the namespace data to be loaded from cache
+                       (swap! (:used-namespaces ctx) update (:base-lang ctx) conj resolved-ns)
                        (namespace/reg-used-namespace! ctx
                                                       ns-name
                                                       resolved-ns)
