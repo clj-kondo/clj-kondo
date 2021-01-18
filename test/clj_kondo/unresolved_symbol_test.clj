@@ -201,15 +201,13 @@
   (is (empty? (lint! "(import '[java.foo Bar Baz]) Bar Baz"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
-;; TODO: not sure if this should be merged with current linter, or split out to
-;; another one because of false positives
-(deftest unresolved-other-namespace-test
+(deftest no-such-var-test
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 34, :level :error, :message "Unresolved symbol: clojure.set/onion"})
+   '({:file "<stdin>", :row 1, :col 35, :level :error, :message "No such var: set/onion"})
    (lint! "(require '[clojure.set :as set]) (set/onion)"
           '{:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 41, :level :error, :message "Unresolved symbol: clojure.set/onion"})
+   '({:file "<stdin>", :row 1, :col 41, :level :error, :message "No such var: set/onion"})
    (lint! "(require '[clojure.set :as set]) (apply set/onion 1 2 3)"
           '{:linters {:unresolved-symbol {:level :error}}}))
   (is (empty?
