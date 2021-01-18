@@ -12,6 +12,7 @@
      :referred-vars {quux {:ns bar :name quux}}
      :qualify-ns {bar bar
                   baz bar}
+     :aliases {baz bar}
      :clojure-excluded #{get assoc time}}
    (analyze-ns-decl
     {:lang :clj
@@ -29,7 +30,8 @@
     (assert-submap
      '{:type :ns, :name foo
        :qualify-ns {bar bar
-                    baz bar}}
+                    baz bar}
+       :aliases {baz bar}}
      (analyze-ns-decl
       {:lang :clj
        :namespaces (atom {})}

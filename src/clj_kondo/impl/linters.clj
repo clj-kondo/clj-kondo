@@ -279,6 +279,7 @@
                                              call-lang)
                                            in-def
                                            (assoc called-fn
+                                                  :alias (:alias call)
                                                   :name-row name-row
                                                   :name-col name-col
                                                   :name-end-row (:end-row name-meta)

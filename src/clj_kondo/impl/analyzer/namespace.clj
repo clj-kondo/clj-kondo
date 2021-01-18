@@ -298,6 +298,7 @@
                              acc))
                          {}
                          analyzed)
+     :aliases (into {} (comp (filter :as) (map (juxt :as :ns))) analyzed)
      :referred-vars (into {} (mapcat :referred analyzed))
      :refer-alls refer-alls
      :used-namespaces

@@ -87,6 +87,7 @@
                                                               :str (:string-value expr))))
                    (let [{resolved-ns :ns
                           resolved-name :name
+                          resolved-alias :alias
                           unresolved? :unresolved?
                           clojure-excluded? :clojure-excluded?
                           :as _m}
@@ -121,6 +122,7 @@
                                                           m)
                                                   :resolved-ns resolved-ns
                                                   :ns ns-name
+                                                  :alias resolved-alias
                                                   :unresolved? unresolved?
                                                   :clojure-excluded? clojure-excluded?
                                                   :row row
