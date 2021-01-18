@@ -402,8 +402,9 @@
                 filename (:filename m)]
             (findings/reg-finding!
              ctx
-             (node->line filename ns-sym :warning :unused-namespace
-                         (format "namespace %s is required but never used" ns-sym))))))
+             (-> (node->line filename ns-sym :warning :unused-namespace
+                             (format "namespace %s is required but never used" ns-sym))
+                 (assoc :ns ns-sym))))))
       (doseq [[k v] referred-vars]
         (let [var-ns (:ns v)]
           (when-not
@@ -412,7 +413,8 @@
                   (contains? refer-all-nss var-ns))
             (findings/reg-finding!
              ctx
-             (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))))))
+             (-> (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
+                 (assoc :ns var-ns))))))
       (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
               :when (not (config/refer-all-excluded? config referred-all-ns))]
         (let [{:keys [:k :value]} node
