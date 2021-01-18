@@ -536,8 +536,7 @@
     (findings/reg-finding!
      ctx
      (-> (node->line filename import :warning :unused-import (str "Unused import " import))
-         (assoc :class import
-                :import (symbol (str package "." import)))))))
+         (assoc :class (symbol (str package "." import)))))))
 
 (defn lint-unresolved-namespaces!
   [ctx]

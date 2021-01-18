@@ -91,8 +91,7 @@
          :end-row 1,
          :end-col 33,
          :col 29,
-         :import java.util.Date
-         :class Date
+         :class java.util.Date
          :filename "<stdin>"})
       (-> (with-in-str
             "(ns foo (:import [java.util Date]))"
