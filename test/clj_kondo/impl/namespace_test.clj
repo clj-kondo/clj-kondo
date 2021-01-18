@@ -74,7 +74,7 @@
              ctx
              (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
-      (is (= '{:ns rewrite-clj.parser :name parse-string}
+      (is (= '{:ns rewrite-clj.parser :name parse-string :alias p}
              (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string))))
     (testing "referring to unknown namespace alias"
       (let [ctx {:namespaces (atom {})
