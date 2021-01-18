@@ -237,6 +237,11 @@
                                                 resolved-ns fn-name unresolved? refer-alls)
                   #_#__(when (not call?)
                       (clojure.pprint/pprint (dissoc call :config)))
+                  name-meta (meta fn-name)
+                  name-row (:row name-meta)
+                  name-col (:col name-meta)
+                  name-end-row (:end-row name-meta)
+                  name-end-col (:end-col name-meta)
                   _ (when (and (not called-fn)
                                (not (:interop? call))
                                row col end-row end-col
@@ -244,7 +249,17 @@
                       ;; (prn :call (dissoc call :config))
                       (when-not (or (utils/one-of resolved-ns [clojure.core cljs.core])
                                     (identical? :clj-kondo/unknown-namespace resolved-ns))
-                        (findings/reg-finding!
+                        (namespace/reg-unresolved-symbol!
+                         ctx caller-ns-sym fn-name
+                         (-> (if call?
+                               (assoc call
+                                      :row name-row
+                                      :col name-col
+                                      :end-row name-end-row
+                                      :end-col name-end-col)
+                               call)
+                             (assoc :other-ns true)))
+                        #_(findings/reg-finding!
                          ctx
                          {:filename filename
                           :row row
@@ -271,9 +286,6 @@
                                         (or (> row-call row-called-fn)
                                             (and (= row-call row-called-fn)
                                                  (> (:col call) (:col called-fn)))))))
-                  name-meta (meta fn-name)
-                  name-row (:row name-meta)
-                  name-col (:col name-meta)
                   _ (when (not valid-call?)
                       (namespace/reg-unresolved-symbol!
                        ctx caller-ns-sym fn-name
@@ -281,8 +293,8 @@
                          (assoc call
                                 :row name-row
                                 :col name-col
-                                :end-row (:end-row name-meta)
-                                :end-col (:end-col name-meta))
+                                :end-row name-end-row
+                                :end-col name-end-col)
                          call)))
                   ;; row (:row call)
                   ;; col (:col call)
@@ -311,8 +323,8 @@
                                            (assoc called-fn
                                                   :name-row name-row
                                                   :name-col name-col
-                                                  :name-end-row (:end-row name-meta)
-                                                  :name-end-col (:end-col name-meta))))]
+                                                  :name-end-row name-end-row
+                                                  :name-end-col name-end-col)))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?
@@ -536,12 +548,22 @@
           [_ v] (:unresolved-symbols ns)]
     (let [
           filename (:filename v)
-          n (:name v)]
+          n (:name v)
+          other-ns (:other-ns v)
+          n (if other-ns
+              (if (identical? :call (:type v))
+                (str (first (:children (:expr v))))
+                (str (:expr v)))
+              n)]
       (findings/reg-finding!
        ctx
-       {:type :unresolved-symbol
+       {:type (if other-ns
+                :no-such-var
+                :unresolved-symbol)
         :filename filename
-        :message (str "unresolved symbol " n)
+        :message (if other-ns
+                   (str "No such var: " n)
+                   (str "Unresolved symbol: " n))
         :row (:row v)
         :col (:col v)
         :end-row (:end-row v)

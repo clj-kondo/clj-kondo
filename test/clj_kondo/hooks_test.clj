@@ -15,7 +15,7 @@
      {:file "corpus/macroexpand.clj", :row 39, :col 1, :level :warning, :message "Missing catch or finally in try"}
      {:file "corpus/macroexpand.clj", :row 49, :col 20, :level :error, :message "Expected: string, received: number."}
      {:file "corpus/macroexpand.clj", :row 64, :col 1, :level :error, :message "quux/with-mixin is called with 4 args but expects 1"}
-     {:file "corpus/macroexpand.clj", :row 64, :col 13, :level :error, :message "unresolved symbol a"}
+     {:file "corpus/macroexpand.clj", :row 64, :col 13, :level :error, :message "Unresolved symbol: a"}
      {:file "corpus/macroexpand.clj", :row 66, :col 1, :level :warning, :message "redefined var #'quux/with-mixin"})
    (let [results (lint! (io/file "corpus" "macroexpand.clj")
                         {:linters {:unresolved-symbol {:level :error}
@@ -82,7 +82,7 @@
 (deftest expectations-test
   (assert-submaps
    '({:file "corpus/hooks/expectations.clj", :row 24, :col 45, :level :warning, :message "unused binding b"}
-     {:file "corpus/hooks/expectations.clj", :row 26, :col 41, :level :error, :message "unresolved symbol b'"})
+     {:file "corpus/hooks/expectations.clj", :row 26, :col 41, :level :error, :message "Unresolved symbol: b'"})
    (lint! (io/file "corpus" "hooks" "expectations.clj")
           {:linters {:unused-binding {:level :warning}
                      :unresolved-symbol {:level :error}

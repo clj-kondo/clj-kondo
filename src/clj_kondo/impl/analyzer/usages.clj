@@ -141,7 +141,8 @@
                                                   :config (:config ctx)
                                                   :in-def (:in-def ctx)
                                                   :simple? simple?
-                                                  :interop? interop?})))))
+                                                  :interop? interop?
+                                                  :expr expr})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              :reader-macro
