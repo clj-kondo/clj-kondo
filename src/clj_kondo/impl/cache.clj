@@ -81,7 +81,8 @@
     (let [path [lang :defs ns-sym]]
       (if-not (get-in idacs path)
         (if-let [data (from-cache-1 cache-dir lang ns-sym)]
-          (let [res (assoc-in idacs path data)]
+          (let [idacs (update idacs :from-cache conj ns-sym)
+                res (assoc-in idacs path data)]
             ;; proxied-namespaces are here because of potemkin/import-vars since
             ;; import-vars only supports clj and not cljs, we're fine with loading
             ;; these namespace only with the current language (which is :clj)
@@ -120,7 +121,8 @@
   namespaces we linted in this run."
   [idacs cache-dir]
   ;; first load all idacs so we can resolve types
-  (let [idacs
+  (let [idacs (assoc idacs :from-cache #{})
+        idacs
         (reduce (fn [idacs lang]
                   (let [required-namespaces (get-in idacs [:used-namespaces lang])]
                     (reduce (fn [idacs lang]

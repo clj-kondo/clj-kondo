@@ -10,7 +10,7 @@
                        (identical? (:tag x) :any)
                        (identical? (:tag y) :any)
                        (not x)
-                       (not y)) nil
+                       (not y)) :any
                    (set? x)
                    (if (set? y)
                      (into x y)

@@ -61,7 +61,7 @@
           (with-in-str
             "(x  )" (clj-kondo/run! {:lint ["-"]}))]
       (assert-submaps
-       [{:level :error, :type :unresolved-symbol, :message "unresolved symbol x",
+       [{:level :error, :type :unresolved-symbol, :message "Unresolved symbol: x",
          :row 1, :col 2, :end-row 1, :end-col 3}]
        findings)))
   (testing "passing file as config arg"

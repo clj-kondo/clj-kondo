@@ -569,22 +569,22 @@ foo/foo ;; this does use the private var
       :row 6,
       :col 9,
       :level :error,
-      :message "unresolved symbol conj"}
+      :message "Unresolved symbol: conj"}
      {:file "corpus/rename.cljc",
       :row 7,
       :col 10,
       :level :error,
-      :message "unresolved symbol conj"}
+      :message "Unresolved symbol: conj"}
      {:file "corpus/rename.cljc",
       :row 8,
       :col 10,
       :level :error,
-      :message "unresolved symbol join"}
+      :message "Unresolved symbol: join"}
      {:file "corpus/rename.cljc",
       :row 9,
       :col 11,
       :level :error,
-      :message "unresolved symbol join"}
+      :message "Unresolved symbol: join"}
      {:file "corpus/rename.cljc",
       :row 10,
       :col 9,
@@ -1671,7 +1671,7 @@ foo/foo ;; this does use the private var
       :row 7,
       :col 12,
       :level :error,
-      :message "unresolved symbol greetingx"}
+      :message "Unresolved symbol: greetingx"}
      {:file "corpus/defmulti.clj",
       :row 7,
       :col 35,
@@ -1841,7 +1841,7 @@ foo/foo ;; this does use the private var
       :row 20,
       :col 9,
       :level :error,
-      :message "unresolved symbol xstr/starts-with?"})
+      :message "Unresolved symbol: xstr/starts-with?"})
    (lint! (io/file "corpus" "spec_syntax.clj")
           '{:linters {:unresolved-symbol {:level :error}}})))
 
@@ -2043,7 +2043,7 @@ foo/foo ;; this does use the private var
       :row 14,
       :col 8,
       :level :error,
-      :message "unresolved symbol x"})
+      :message "Unresolved symbol: x"})
    (lint! (io/file "corpus" "compojure")
           {:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
@@ -2234,12 +2234,12 @@ foo/foo ;; this does use the private var
       :row 7,
       :col 9,
       :level :error,
-      :message "unresolved symbol x1"}
+      :message "Unresolved symbol: x1"}
      {:file "corpus/core_async/alt.clj",
       :row 7,
       :col 12,
       :level :error,
-      :message "unresolved symbol x2"}
+      :message "Unresolved symbol: x2"}
      {:file "corpus/core_async/alt.clj",
       :row 11,
       :col 24,
@@ -2249,12 +2249,12 @@ foo/foo ;; this does use the private var
       :row 12,
       :col 10,
       :level :error,
-      :message "unresolved symbol x3"}
+      :message "Unresolved symbol: x3"}
      {:file "corpus/core_async/alt.clj",
       :row 12,
       :col 13,
       :level :error,
-      :message "unresolved symbol x4"})
+      :message "Unresolved symbol: x4"})
    (lint! (io/file "corpus" "core_async" "alt.clj")
           {:linters {:unresolved-symbol {:level :error}}})))
 
@@ -2381,7 +2381,7 @@ foo/foo ;; this does use the private var
       :row 1,
       :col 30,
       :level :error,
-      :message "unresolved symbol y"})
+      :message "Unresolved symbol: y"})
    (lint! "(def x 1) (var x) (var) (var y)"
           {:linters {:unresolved-symbol {:level :error}}})))
 
