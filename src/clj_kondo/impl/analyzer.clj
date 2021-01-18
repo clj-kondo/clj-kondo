@@ -139,6 +139,8 @@
            ;; symbol
            (utils/symbol-token? expr)
            (let [sym (:value expr)]
+             (when (= (:destructuring-type opts) :keys)
+               (usages/analyze-keyword ctx expr opts))
              (when (not= '& sym)
                (let [ns (namespace sym)
                      valid? (or (not ns)
@@ -172,7 +174,7 @@
            ;; keyword
            (:k expr)
            (let [k (:k expr)]
-             (usages/analyze-keyword ctx expr)
+             (usages/analyze-keyword ctx expr opts)
              (if keys-destructuring?
                (let [s (-> k name symbol)
                      m (meta expr)
@@ -234,7 +236,10 @@
                                                       ctx
                                                       %
                                                       scoped-expr
-                                                      (assoc opts :keys-destructuring? true)))
+                                                      (assoc opts
+                                                             :keys-destructuring? true
+                                                             :destructuring-type (some-> k :k name keyword)
+                                                             :destructuring-str (str k))))
                                           (:children v)))
                              ;; or doesn't introduce new bindings, it only gives defaults
                              :or

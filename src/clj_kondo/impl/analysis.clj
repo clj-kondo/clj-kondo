@@ -96,3 +96,10 @@
                        :filename filename
                        :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
                        :id (:id binding)))))
+
+(defn reg-keyword-usage! [{:keys [:analysis] :as ctx} filename usage]
+  (when analysis
+    (swap! analysis update :keyword-usages conj
+           (assoc-some (select-keys usage [:row :col :end-row :end-col :name :alias :ns :keys-destructuring])
+                       :filename filename
+                       :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))))))

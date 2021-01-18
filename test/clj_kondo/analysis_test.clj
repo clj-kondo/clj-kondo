@@ -16,6 +16,58 @@
                         :config {:output {:analysis true}}}
                        config))))))
 
+(deftest keyword-analysis-test
+  (testing "standalone keywords"
+    (let [a (analyze "(ns foo (:require [bar :as b])) :kw :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
+                     {:config {:output {:analysis {:keywords true}}}})]
+      (assert-submaps
+        '[{:name kw}
+          {:name xkwa :ns x}
+          {:name xkwb :ns :clj-kondo/unknown-namespace}
+          {:name fookwa :ns foo}
+          {:name fookwb :ns foo}
+          {:name fookwc :ns :clj-kondo/unknown-namespace}
+          {:name barkwa :ns bar}
+          {:name barkwb :ns bar :alias b}
+          ;; TODO (:aliases ns)
+          {:name barkwc #_#_:ns :clj-kondo/unknown-namespace}]
+        (:keyword-usages a))))
+  (testing "destructuring keywords"
+    (let [a (analyze (str "(ns foo (:require [bar :as b]))\n"
+                          "(let [{::keys [a :b]\n"
+                          "       ::b/keys [c :d]\n"
+                          "       :bar/keys [e :f]\n"
+                          "       :keys [g :h ::i :foo/j :bar/k ::b/l ::bar/m :x/n ::y/o]\n"
+                          "       p :p q ::q r ::b/r s :bar/s t :x/t} {}])")
+                     {:config {:output {:analysis {:keywords true}}}})]
+      (assert-submaps
+        '[{:name keys :ns foo}
+          {:name a :ns foo :keys-destructuring true}
+          {:name b :ns foo :keys-destructuring true}
+          {:name keys :ns bar :alias b}
+          {:name c :ns bar :keys-destructuring true}
+          {:name d :ns bar :keys-destructuring true}
+          {:name keys :ns bar}
+          {:name e :ns bar :keys-destructuring true}
+          {:name f :ns bar :keys-destructuring true}
+          {:name keys}
+          {:name g :keys-destructuring true}
+          {:name h :keys-destructuring true}
+          {:name i :ns foo :keys-destructuring true}
+          {:name j :ns foo :keys-destructuring true}
+          {:name k :ns bar :keys-destructuring true}
+          {:name l :ns bar :alias b :keys-destructuring true}
+          ;; TODO (:aliases ns)
+          {:name m #_#_:ns :clj-kondo/unknown-namespace}
+          {:name n :ns x}
+          {:name o :ns :clj-kondo/unknown-namespace}
+          {:name p}
+          {:name q :ns foo}
+          {:name r :ns bar :alias b}
+          {:name s :ns bar}
+          {:name t :ns x}]
+        (:keyword-usages a)))))
+
 (deftest locals-analysis-test
   (let [a (analyze "#(inc %1 %&)" {:config {:output {:analysis {:locals true}}}})]
     (is (= [] (:locals a) (:local-usages a))))
