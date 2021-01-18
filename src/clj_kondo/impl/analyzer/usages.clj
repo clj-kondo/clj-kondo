@@ -17,9 +17,7 @@
         keyword-val (:k expr)]
     (when (:namespaced? expr)
       (let [symbol-val (kw->sym keyword-val)
-            {resolved-ns :ns
-             _resolved-name :name
-             _unresolved? :unresolved? :as _m}
+            {resolved-ns :ns}
             (namespace/resolve-name ctx ns-name symbol-val)]
         (if resolved-ns
           (namespace/reg-used-namespace! ctx
@@ -90,6 +88,7 @@
                           resolved-alias :alias
                           unresolved? :unresolved?
                           clojure-excluded? :clojure-excluded?
+                          interop? :interop?
                           :as _m}
                          (let [v (namespace/resolve-name ctx ns-name symbol-val)]
                            (when-not syntax-quote?
@@ -112,6 +111,8 @@
                          end-row (:end-row m)
                          end-col (:end-col m)]
                      (when resolved-ns
+                       ;; this causes the namespace data to be loaded from cache
+                       (swap! (:used-namespaces ctx) update (:base-lang ctx) conj resolved-ns)
                        (namespace/reg-used-namespace! ctx
                                                       ns-name
                                                       resolved-ns)
@@ -141,7 +142,9 @@
                                                   :callstack (:callstack ctx)
                                                   :config (:config ctx)
                                                   :in-def (:in-def ctx)
-                                                  :simple? simple?})))))
+                                                  :simple? simple?
+                                                  :interop? interop?
+                                                  :expr expr})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              :reader-macro

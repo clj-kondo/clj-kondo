@@ -200,16 +200,21 @@
          :single-logical-operand
          (format "Single arg use of %s always returns the arg itself" call-name))))))
 
+;; (require 'clojure.pprint)
+
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
   [ctx idacs]
   (let [config (:config ctx)
-        output-analysis? (-> config :output :analysis)]
+        output-analysis? (-> config :output :analysis)
+        from-cache (:from-cache idacs)]
+    ;; (prn :from-cache from-cache)
     (doseq [ns (namespace/list-namespaces ctx)
             :let [base-lang (:base-lang ns)]
             call (:used-vars ns)
-            :let [call? (= :call (:type call))
+            :let [;; _ (clojure.pprint/pprint (dissoc call :config))
+                  call? (= :call (:type call))
                   unresolved? (:unresolved? call)
                   unresolved-ns (:unresolved-ns call)]
             :when (not unresolved-ns)
@@ -221,8 +226,38 @@
                                     [base-lang call-lang caller-ns-sym])
                   resolved-ns (:resolved-ns call)
                   refer-alls (:refer-alls caller-ns)
+                  filename (:filename call)
+                  row (:row call)
+                  col (:col call)
+                  end-row (:end-row call)
+                  end-col (:end-col call)
+                  ;; _ (prn :used (:used-namespaces idacs))
+                  #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns fn-name unresolved? refer-alls)
+                  #_#__(when (not call?)
+                      (clojure.pprint/pprint (dissoc call :config)))
+                  name-meta (meta fn-name)
+                  name-row (:row name-meta)
+                  name-col (:col name-meta)
+                  name-end-row (:end-row name-meta)
+                  name-end-col (:end-col name-meta)
+                  _ (when (and (not called-fn)
+                               (not (:interop? call))
+                               row col end-row end-col
+                               (contains? from-cache resolved-ns))
+                      ;; (prn :call (dissoc call :config))
+                      (when-not (or (utils/one-of resolved-ns [clojure.core cljs.core])
+                                    (identical? :clj-kondo/unknown-namespace resolved-ns))
+                        (namespace/reg-unresolved-var!
+                         ctx caller-ns-sym fn-name
+                         (if call?
+                           (assoc call
+                                  :row name-row
+                                  :col name-col
+                                  :end-row name-end-row
+                                  :end-col name-end-col)
+                           call))))
                   ;; we can determine if the call was made to another
                   ;; file by looking at the base-lang (in case of
                   ;; CLJS macro imports or the top-level namespace
@@ -241,9 +276,6 @@
                                         (or (> row-call row-called-fn)
                                             (and (= row-call row-called-fn)
                                                  (> (:col call) (:col called-fn)))))))
-                  name-meta (meta fn-name)
-                  name-row (:row name-meta)
-                  name-col (:col name-meta)
                   _ (when (not valid-call?)
                       (namespace/reg-unresolved-symbol!
                        ctx caller-ns-sym fn-name
@@ -251,14 +283,14 @@
                          (assoc call
                                 :row name-row
                                 :col name-col
-                                :end-row (:end-row name-meta)
-                                :end-col (:end-col name-meta))
+                                :end-row name-end-row
+                                :end-col name-end-col)
                          call)))
-                  row (:row call)
-                  col (:col call)
-                  end-row (:end-row call)
-                  end-col (:end-col call)
-                  filename (:filename call)
+                  ;; row (:row call)
+                  ;; col (:col call)
+                  ;; end-row (:end-row call)
+                  ;; end-col (:end-col call)
+                  ;; filename (:filename call)
                   fn-ns (:ns called-fn)
                   resolved-ns (or fn-ns resolved-ns)
                   arity (:arity call)
@@ -282,8 +314,8 @@
                                                   :alias (:alias call)
                                                   :name-row name-row
                                                   :name-col name-col
-                                                  :name-end-row (:end-row name-meta)
-                                                  :name-end-col (:end-col name-meta))))]
+                                                  :name-end-row name-end-row
+                                                  :name-end-col name-end-col)))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?
@@ -515,7 +547,28 @@
        ctx
        {:type :unresolved-symbol
         :filename filename
-        :message (str "unresolved symbol " n)
+        :message (str "Unresolved symbol: " n)
+        :row (:row v)
+        :col (:col v)
+        :end-row (:end-row v)
+        :end-col (:end-col v)}))))
+
+(defn lint-unresolved-vars!
+  [ctx]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [lang (:lang ns)
+                ctx (assoc ctx :lang lang)]
+          [_ v] (:unresolved-vars ns)]
+    (let [filename (:filename v)
+          expr (:expr v)
+          n (if-let [children (:children expr)]
+              (str (first children))
+              (str expr))]
+      (findings/reg-finding!
+       ctx
+       {:type :unresolved-var
+        :filename filename
+        :message (str "No such var: " n)
         :row (:row v)
         :col (:col v)
         :end-row (:end-row v)

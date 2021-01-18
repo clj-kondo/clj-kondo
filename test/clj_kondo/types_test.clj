@@ -293,6 +293,8 @@
              (defn bar [x] x) (foo (bar {}) 1) ;; no false positive for this one
              (defn baz [x] x) (foo (baz 1) 1) ;; warning about baz not returning a map
              (foo {:a \"foo\" :b 1 :c 1} \"foo\") ;; the optional key :c has the wrong type
+             (foo {:a (or \"foo\" \"bar\") :b 1} \"foo\") ;; no warning
+             (foo {:a (if (odd? 2) \"foo\" \"bar\") :b 1} \"foo\") ;; no warning
              "
             {:linters {:type-mismatch
                        {:level :error

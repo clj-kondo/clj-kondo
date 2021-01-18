@@ -280,6 +280,22 @@
                old-sym-info))))
   nil)
 
+(defn reg-unresolved-var!
+  [ctx ns-sym sym {:keys [:base-lang :lang :config
+                          :callstack] :as sym-info}]
+  (when-not (or ;; TODO
+             (config/unresolved-symbol-excluded config
+                                                callstack sym)
+                (let [symbol-name (name sym)]
+                  (or (str/starts-with? symbol-name ".")
+                      (class-name? symbol-name))))
+    (swap! (:namespaces ctx) update-in [base-lang lang ns-sym :unresolved-vars sym]
+           (fn [old-sym-info]
+             (if (nil? old-sym-info)
+               sym-info
+               old-sym-info))))
+  nil)
+
 (defn reg-used-referred-var!
   [{:keys [:base-lang :lang :namespaces] :as _ctx}
    ns-sym var]

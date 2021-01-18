@@ -28,7 +28,7 @@
                                                      sym-expr
                                                      :error
                                                      :unresolved-symbol
-                                                     (str "unresolved symbol " sym)))))))
+                                                     (str "Unresolved symbol: " sym)))))))
     (analyze-children ctx body)))
 
 ;;;; Scratch
