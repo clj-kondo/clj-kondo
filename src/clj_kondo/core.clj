@@ -7,7 +7,8 @@
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
-   [clojure.java.io :as io]))
+   [clojure.java.io :as io]
+   [clojure.string :as str]))
 
 ;;;; Public API
 
@@ -91,13 +92,18 @@
            :no-warnings]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
-        cfg-dir (or (when config-dir
-                      (io/file config-dir))
-                    (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
+        cfg-dir
+        (let [only-file (when (= 1 (count lint))
+                          (let [fst (first lint)
+                                fst (io/file fst)]
+                            (when (.exists fst)
+                              fst)))]
+          (cond config-dir (io/file config-dir)
+                only-file (core-impl/config-dir only-file)
+                :else
+                (core-impl/config-dir (io/file (System/getProperty "user.dir")))))
         ;; for backward compatibility non-sequential config should be wrapped into collection
-        config (if (System/getenv "CLJ_KONDO_DEV")
-                 (time (core-impl/resolve-config cfg-dir (if (sequential? config) config [config])))
-                 (core-impl/resolve-config cfg-dir (if (sequential? config) config [config])))
+        config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]))
         classpath (:classpath config)
         config (dissoc config :classpath)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
