@@ -208,7 +208,7 @@
   [ctx idacs]
   (let [config (:config ctx)
         output-analysis? (-> config :output :analysis)
-        from-cache (:from-cache idacs)]
+        linted-namespaces (:linted-namespaces idacs)]
     ;; (prn :from-cache from-cache)
     (doseq [ns (namespace/list-namespaces ctx)
             :let [base-lang (:base-lang ns)]
@@ -245,7 +245,7 @@
                   _ (when (and (not called-fn)
                                (not (:interop? call))
                                row col end-row end-col
-                               (contains? from-cache resolved-ns))
+                               (contains? linted-namespaces resolved-ns))
                       ;; (prn :call (dissoc call :config))
                       (when-not (or (utils/one-of resolved-ns [clojure.core cljs.core])
                                     (identical? :clj-kondo/unknown-namespace resolved-ns))
