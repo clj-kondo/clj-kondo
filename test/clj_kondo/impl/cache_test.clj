@@ -158,7 +158,7 @@
       (make-dirs test-config-dir)
       (io/copy "(ns foo) (defn foo [x]) (foo)" foo)
       ;; populate cache
-      (is (seq (lint! foo "--cache" "true")))
+      (is (seq (lint! foo "--filename" (.getPath foo) "--cache" "true")))
       (is (.exists (io/file test-config-dir ".cache"))))))
 
 ;;;; Scratch

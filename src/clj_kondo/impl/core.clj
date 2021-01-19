@@ -155,6 +155,8 @@
         (System/getProperty "user.dir"))))
   ([start]
    (let [start (io/file start)
+         ;; NOTE: .getParentFile doesn't work on relative files
+         start (.getAbsoluteFile start)
          start (if (.isFile start)
                  (.getParentFile start)
                  start)]
