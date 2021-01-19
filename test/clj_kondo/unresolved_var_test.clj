@@ -12,6 +12,10 @@
    '({:file "<stdin>", :row 1, :col 41, :level :error, :message "No such var: set/onion"})
    (lint! "(require '[clojure.set :as set]) (apply set/onion 1 2 3)"
           '{:linters {:unresolved-var {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 48, :level :error, :message "No such var: foo/bar"})
+   (lint! "(ns foo) (defn foo []) (ns bar (:require foo)) foo/bar"
+          '{:linters {:unresolved-var {:level :error}}}))
   (is (empty?
        (lint! "(do 1 2) goog.global"
               '{:linters {:unresolved-var {:level :error}}}
