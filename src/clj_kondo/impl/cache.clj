@@ -89,8 +89,8 @@
             (if-let [proxied (:proxied-namespaces data)]
               (reduce #(load-when-missing %1 cache-dir lang %2) res proxied)
               res))
-          (update idacs :linted-namespaces conj ns-sym))
-        idacs))))
+          idacs)
+        (update idacs :linted-namespaces conj ns-sym)))))
 
 (defn update-defs
   "Resolve types of defs. Optionally store to cache. Return defs with
