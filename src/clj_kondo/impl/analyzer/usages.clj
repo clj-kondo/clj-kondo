@@ -88,6 +88,7 @@
                           unresolved? :unresolved?
                           clojure-excluded? :clojure-excluded?
                           interop? :interop?
+                          resolved-core? :resolved-core?
                           :as _m}
                          (let [v (namespace/resolve-name ctx ns-name symbol-val)]
                            (when-not syntax-quote?
@@ -134,7 +135,7 @@
                                                   :filename (:filename ctx)
                                                   :unresolved-symbol-disabled?
                                                   (or syntax-quote?
-                                                      ;; e.g.: clojure.core, clojure.string, etc.
+                                                      ;; e.g. usage of clojure.core, clojure.string, etc in (:require [...])
                                                       (= symbol-val (get (:qualify-ns ns) symbol-val)))
                                                   :private-access? (or syntax-quote? (:private-access? ctx))
                                                   :callstack (:callstack ctx)
@@ -142,7 +143,8 @@
                                                   :in-def (:in-def ctx)
                                                   :simple? simple?
                                                   :interop? interop?
-                                                  :expr expr})))))
+                                                  :expr expr
+                                                  :resolved-core? resolved-core?})))))
                (when (:k expr)
                  (analyze-keyword ctx expr)))
              :reader-macro

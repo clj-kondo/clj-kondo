@@ -280,7 +280,10 @@
 (defn reg-unresolved-var!
   [ctx ns-sym sym {:keys [:base-lang :lang :config
                           :callstack] :as sym-info}]
-  (when-not (or ;; TODO
+  (when-not (or
+             ;; this is set because of linting macro bodies
+             ;; before removing this, check script/diff
+             (:unresolved-symbol-disabled? sym-info)
              (config/unresolved-symbol-excluded config
                                                 callstack sym)
                 (let [symbol-name (name sym)]
@@ -401,9 +404,17 @@
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)
                                  ns-sym))]
-
-              {:ns ns*
-               :name (symbol (name name-sym))})
+              (let [core? (or (= 'clojure.core ns*)
+                              (= 'cljs.core ns*))
+                    var-name (symbol
+                              ;; account for interop
+                              (str/replace (str (name name-sym))
+                                           #"\.$" ""))]
+                (cond->
+                  {:ns ns*
+                   :name var-name}
+                  core?
+                  (assoc :resolved-core? (var-info/core-sym? lang var-name)))))
             (when-let [[class-name package]
                        (or (when (identical? :clj lang)
                              (or (find var-info/default-import->qname ns-sym)
@@ -466,7 +477,8 @@
            {:ns (case lang
                   :clj 'clojure.core
                   :cljs 'cljs.core)
-            :name name-sym}
+            :name name-sym
+            :resolved-core? true}
            (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
                                          (when-not (contains? excluded name-sym)
                                            k))
