@@ -239,6 +239,20 @@
                      (check-fn sym))
                   callstack))))))
 
+#_(def unresolved-var-excluded
+  (let [delayed-cfg
+        (fn [config]
+          (let [excluded (get-in config [:linters :unresolved-symbol :exclude])
+                vars (set (filter simple-symbol? excluded))
+                nss (set (filter qualified-symbol? excluded))]
+            {:excluded-vars vars
+             :excluded-nss nss}))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config ns-sym fn-sym]
+      (let [cfg (delayed-cfg config)]
+        (or (contains? (:excluded-nss cfg) ns-sym)
+            (contains? (:excluded-vars cfg) ns-sym))))))
+
 (def deprecated-var-excluded
   (let [delayed-cfg (fn [config var-sym]
                       (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])

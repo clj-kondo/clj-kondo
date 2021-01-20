@@ -570,7 +570,7 @@
        ctx
        {:type :unresolved-var
         :filename filename
-        :message (str "No such var: " n)
+        :message (str "Unresolved var: " n)
         :row (:row v)
         :col (:col v)
         :end-row (:end-row v)

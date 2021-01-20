@@ -5,22 +5,22 @@
 
 (deftest unresolved-var-test
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 35, :level :error, :message "No such var: set/onion"})
+   '({:file "<stdin>", :row 1, :col 35, :level :error, :message "Unresolved var: set/onion"})
    (lint! "(require '[clojure.set :as set]) (set/onion) set/union"
           '{:linters {:unresolved-symbol {:level :error}
                       :unresolved-var {:level :error}}}))
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 41, :level :error, :message "No such var: set/onion"})
+   '({:file "<stdin>", :row 1, :col 41, :level :error, :message "Unresolved var: set/onion"})
    (lint! "(require '[clojure.set :as set]) (apply set/onion 1 2 3)"
           '{:linters {:unresolved-symbol {:level :error}
                       :unresolved-var {:level :error}}}))
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 48, :level :error, :message "No such var: foo/bar"})
+   '({:file "<stdin>", :row 1, :col 48, :level :error, :message "Unresolved var: foo/bar"})
    (lint! "(ns foo) (defn foo []) (ns bar (:require foo)) foo/bar"
           '{:linters {:unresolved-symbol {:level :error}
                       :unresolved-var {:level :error}}}))
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 2, :level :error, :message "No such var: clojure.core/x"})
+   '({:file "<stdin>", :row 1, :col 2, :level :error, :message "Unresolved var: clojure.core/x"})
    (lint! "(clojure.core/x 1 2 3)"
           '{:linters {:unresolved-symbol {:level :error}
                       :unresolved-var {:level :error}}}))
