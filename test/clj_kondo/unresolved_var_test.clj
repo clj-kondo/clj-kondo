@@ -26,4 +26,8 @@
   (is (empty?
        (lint! "(do 1 2) goog.global"
               '{:linters {:unresolved-var {:level :error}}}
+              "--lang" "cljs")))
+  (is (empty?
+       (lint! "(cljs.core/PersistentVector. nil 10 5)"
+              '{:linters {:unresolved-var {:level :error}}}
               "--lang" "cljs"))))

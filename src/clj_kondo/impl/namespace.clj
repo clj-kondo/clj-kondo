@@ -403,7 +403,10 @@
                                  ns-sym))]
               (let [core? (or (= 'clojure.core ns*)
                               (= 'cljs.core ns*))
-                    var-name (symbol (name name-sym))]
+                    var-name (symbol
+                              ;; account for interop
+                              (str/replace (str (name name-sym))
+                                           #"\.$" ""))]
                 (cond->
                   {:ns ns*
                    :name var-name}
