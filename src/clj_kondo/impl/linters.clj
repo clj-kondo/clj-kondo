@@ -248,6 +248,7 @@
                              row col end-row end-col
                              (contains? linted-namespaces resolved-ns)
                              (not (:resolved-core? call))
+                             ;; the var could be :refer-all'ed, in this case unresolved? is true
                              (not unresolved?))
                     (namespace/reg-unresolved-var!
                      ctx caller-ns-sym fn-name
