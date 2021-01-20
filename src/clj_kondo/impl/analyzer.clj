@@ -1035,12 +1035,10 @@
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
-        [method-name-node dispatch-val-node & body-exprs] children
+        [method-name-node dispatch-val-node & fn-tail] children
         _ (analyze-usages2 ctx method-name-node)
-        bodies (fn-bodies ctx body-exprs expr)
-        analyzed-bodies (map #(analyze-fn-body ctx %) bodies)]
-    (concat (analyze-expression** ctx dispatch-val-node)
-            (mapcat :parsed analyzed-bodies))))
+        _ (analyze-expression** ctx dispatch-val-node)]
+    (analyze-fn ctx {:children (cons nil fn-tail)})))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))

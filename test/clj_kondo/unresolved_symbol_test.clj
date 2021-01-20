@@ -199,4 +199,13 @@
                      '{:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "(import '[java.foo Bar Baz]) Bar Baz"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(defmulti example first)
+
+(defmethod example :x
+  f
+  ([] :foo)
+  ([[_ v]]
+   [(f) :bar]))"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
