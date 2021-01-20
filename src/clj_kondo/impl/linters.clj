@@ -251,7 +251,7 @@
                              ;; the var could be :refer-all'ed, in this case unresolved? is true
                              (not unresolved?))
                     (namespace/reg-unresolved-var!
-                     ctx caller-ns-sym fn-name
+                     ctx caller-ns-sym resolved-ns fn-name
                      (if call?
                        (assoc call
                               :row name-row

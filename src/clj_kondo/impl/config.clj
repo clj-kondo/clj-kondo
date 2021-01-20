@@ -135,13 +135,21 @@
            cfg
            (deep-merge cfg* cfg))))))
 
-(defn fq-syms->vecs [fq-syms]
-  (map (fn [fq-sym]
-         (if-let [ns* (namespace fq-sym)]
-           [(symbol ns*) (symbol (name fq-sym))]
-           (throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
-                           {:type :clj-kondo/config}))))
-       fq-syms))
+
+(defn fq-sym->vec [fq-sym]
+  (if-let [ns* (namespace fq-sym)]
+    [(symbol ns*) (symbol (name fq-sym))]
+    (throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                    {:type :clj-kondo/config}))))
+
+(defn fq-syms->vecs
+  ([fq-syms]
+   (map (fn [fq-sym]
+          (if-let [ns* (namespace fq-sym)]
+            [(symbol ns*) (symbol (name fq-sym))]
+            (throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                            {:type :clj-kondo/config}))))
+        fq-syms)))
 
 (defn skip-args*
   ([config]
@@ -239,19 +247,22 @@
                      (check-fn sym))
                   callstack))))))
 
-#_(def unresolved-var-excluded
+(def unresolved-var-excluded
   (let [delayed-cfg
         (fn [config]
-          (let [excluded (get-in config [:linters :unresolved-symbol :exclude])
-                vars (set (filter simple-symbol? excluded))
-                nss (set (filter qualified-symbol? excluded))]
+          (let [excluded (get-in config [:linters :unresolved-var :exclude])
+                vars (into #{} (comp (filter qualified-symbol?)
+                                     (map fq-sym->vec))
+                           excluded)
+                nss (into #{} (filter simple-symbol?)
+                          excluded)]
             {:excluded-vars vars
              :excluded-nss nss}))
         delayed-cfg (memoize delayed-cfg)]
     (fn [config ns-sym fn-sym]
       (let [cfg (delayed-cfg config)]
         (or (contains? (:excluded-nss cfg) ns-sym)
-            (contains? (:excluded-vars cfg) ns-sym))))))
+            (contains? (:excluded-vars cfg) [ns-sym fn-sym]))))))
 
 (def deprecated-var-excluded
   (let [delayed-cfg (fn [config var-sym]

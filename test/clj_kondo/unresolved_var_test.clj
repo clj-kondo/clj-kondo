@@ -38,4 +38,28 @@
        (lint! "(cljs.core/PersistentVector. nil 10 5)"
               '{:linters {:unresolved-symbol {:level :error}
                           :unresolved-var {:level :error}}}
-              "--lang" "cljs"))))
+              "--lang" "cljs")))
+  (let [prog "
+(ns foo)
+(defmacro gen-vars [& names]) (gen-vars x y z)
+
+(ns bar)
+(defmacro gen-vars [& names]) (gen-vars x y z)
+
+(ns baz (:require foo bar))
+foo/x (foo/y)
+bar/x (bar/y)
+"
+        cfg '{:linters {:unresolved-symbol {:exclude [(foo/gen-vars)
+                                                      (bar/gen-vars)]
+                                            :level :error}
+                        :unresolved-var {:level :error}}}]
+    (assert-submaps
+     '({:file "<stdin>", :row 9, :col 1, :level :error, :message "Unresolved var: foo/x"}
+       {:file "<stdin>", :row 9, :col 8, :level :error, :message "Unresolved var: foo/y"}
+       {:file "<stdin>", :row 10, :col 1, :level :error, :message "Unresolved var: bar/x"}
+       {:file "<stdin>", :row 10, :col 8, :level :error, :message "Unresolved var: bar/y"})
+     (lint! prog cfg))
+    (assert-submaps
+     '({:file "<stdin>", :row 10, :col 8, :level :error, :message "Unresolved var: bar/y"})
+     (lint! prog (assoc-in cfg [:linters :unresolved-var :exclude] '[foo bar/x])))))

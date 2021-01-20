@@ -278,18 +278,18 @@
   nil)
 
 (defn reg-unresolved-var!
-  [ctx ns-sym sym {:keys [:base-lang :lang :config
-                          :callstack] :as sym-info}]
+  [ctx ns-sym resolved-ns sym {:keys [:base-lang :lang :config] :as sym-info}]
   (when-not (or
              ;; this is set because of linting macro bodies
              ;; before removing this, check script/diff
              (:unresolved-symbol-disabled? sym-info)
-             (config/unresolved-symbol-excluded config
-                                                callstack sym)
+             (config/unresolved-var-excluded config resolved-ns sym)
                 (let [symbol-name (name sym)]
                   (or (str/starts-with? symbol-name ".")
                       (class-name? symbol-name))))
-    (swap! (:namespaces ctx) update-in [base-lang lang ns-sym :unresolved-vars sym]
+    (swap! (:namespaces ctx) update-in
+           [base-lang lang ns-sym :unresolved-vars
+            [resolved-ns sym]]
            (fn [old-sym-info]
              (if (nil? old-sym-info)
                sym-info
