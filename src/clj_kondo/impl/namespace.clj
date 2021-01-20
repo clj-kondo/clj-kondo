@@ -280,7 +280,10 @@
 (defn reg-unresolved-var!
   [ctx ns-sym sym {:keys [:base-lang :lang :config
                           :callstack] :as sym-info}]
-  (when-not (or ;; TODO
+  (when-not (or
+             ;; this is set because of linting macro bodies
+             ;; before removing this, check script/diff
+             (:unresolved-symbol-disabled? sym-info)
              (config/unresolved-symbol-excluded config
                                                 callstack sym)
                 (let [symbol-name (name sym)]
