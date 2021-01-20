@@ -784,6 +784,8 @@ and helps preventing false positive unresolved symbols in this code:
 
 *Keyword:* `:unresolved-var`.
 
+*Description:* warns on unresolved var from other namespace.
+
 *Default level:* `:error`.
 
 *Example trigger:* `(require '[clojure.set :as set]) (set/onion)`.
