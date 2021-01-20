@@ -25,7 +25,7 @@ Thanks to [@SevereOverfl0w](https://github.com/SevereOverfl0w),
 - Add `:ns` to `:unused-namespace` findings ([@ericdallo](https://github.com/ericdallo))
 - Derive config dir from only file path linted [#1135](https://github.com/clj-kondo/clj-kondo/issues/1135)
 - Support name in defmethod fn-tail [#1115](https://github.com/clj-kondo/clj-kondo/issues/1115)
-- Avoid crash when using `:refer-clojure` + `:only`
+- Avoid crash when using `:refer-clojure` + `:only` [#957](https://github.com/clj-kondo/clj-kondo/issues/957)
 
 ## v2020.12.12
 
