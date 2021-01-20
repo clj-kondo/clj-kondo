@@ -1315,6 +1315,7 @@
          unresolved-ns :unresolved-ns
          clojure-excluded? :clojure-excluded?
          interop? :interop?
+         resolved-core? :resolved-core?
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
         expr-meta (meta expr)]
@@ -1388,7 +1389,8 @@
                                                        :config (:config ctx)
                                                        :top-ns (:top-ns ctx)
                                                        :arg-types (:arg-types ctx)
-                                                       :interop? interop?})
+                                                       :interop? interop?
+                                                       :resolved-core? resolved-core?})
                   ;;;; This registers the namespace as used, to prevent unused warnings
                 (namespace/reg-used-namespace! ctx
                                                ns-name
@@ -1606,7 +1608,8 @@
                                     :top-ns (:top-ns ctx)
                                     :arg-types (:arg-types ctx)
                                     :simple? (simple-symbol? full-fn-name)
-                                    :interop? interop?}
+                                    :interop? interop?
+                                    :resolved-core? resolved-core?}
                         ret-tag (or (:ret m)
                                     (types/ret-tag-from-call ctx proto-call expr))
                         call (cond-> proto-call

@@ -242,22 +242,23 @@
                   name-col (:col name-meta)
                   name-end-row (:end-row name-meta)
                   name-end-col (:end-col name-meta)
-                  _ (when (and (not called-fn)
-                               (not (:interop? call))
-                               row col end-row end-col
-                               (contains? linted-namespaces resolved-ns))
-                      ;; (prn :call (dissoc call :config))
-                      (when-not (or (utils/one-of resolved-ns [clojure.core cljs.core])
-                                    (identical? :clj-kondo/unknown-namespace resolved-ns))
-                        (namespace/reg-unresolved-var!
-                         ctx caller-ns-sym fn-name
-                         (if call?
-                           (assoc call
-                                  :row name-row
-                                  :col name-col
-                                  :end-row name-end-row
-                                  :end-col name-end-col)
-                           call))))
+                  unresolved-symbol
+                  (when (and (not called-fn)
+                             (not (:interop? call))
+                             row col end-row end-col
+                             (contains? linted-namespaces resolved-ns)
+                             (not (:resolved-core? call))
+                             (not unresolved?))
+                    (namespace/reg-unresolved-var!
+                     ctx caller-ns-sym fn-name
+                     (if call?
+                       (assoc call
+                              :row name-row
+                              :col name-col
+                                :end-row name-end-row
+                                :end-col name-end-col)
+                       call))
+                    true)
                   ;; we can determine if the call was made to another
                   ;; file by looking at the base-lang (in case of
                   ;; CLJS macro imports or the top-level namespace
@@ -276,7 +277,8 @@
                                         (or (> row-call row-called-fn)
                                             (and (= row-call row-called-fn)
                                                  (> (:col call) (:col called-fn)))))))
-                  _ (when (not valid-call?)
+                  _ (when (and (not unresolved-symbol)
+                               (not valid-call?))
                       (namespace/reg-unresolved-symbol!
                        ctx caller-ns-sym fn-name
                        (if call?
