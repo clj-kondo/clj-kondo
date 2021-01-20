@@ -408,7 +408,9 @@
                                {:excluded (set v)}
                                :rename
                                {:renamed v
-                                :excluded (set (keys v))})]]
+                                :excluded (set (keys v))}
+                               :only
+                               {:only (set v)})]]
                  r))
         refer-clj {:referred-vars
                    (into {} (map (fn [[original-name new-name]]

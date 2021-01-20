@@ -1762,7 +1762,8 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(simple-benchmark [x 100] (+ 1 2 x) 10)"
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
-  (is (empty? (lint! "(defn foo [_a _b] (dosync (recur)))"))))
+  (is (empty? (lint! "(defn foo [_a _b] (dosync (recur)))")))
+  (is (empty? (lint! "(ns foo (:refer-clojure :only [defn]))"))))
 
 (deftest amap-test
   (is (empty? (lint! "
