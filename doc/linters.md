@@ -805,13 +805,13 @@ foo/x
 (foo/y)
 ```
 
-you can exclude warnings for all vars in namespace `foo` using:
+you can exclude warnings for all unresolved vars from namespace `foo` using:
 
 ``` clojure
 {:linters {:unresolved-var {:exclude [foo]}}}
 ```
 
-or exclude a selection of vars using qualified symbols:
+or exclude a selection of unresolved vars using qualified symbols:
 
 ``` clojure
 {:linters {:unresolved-var {:exclude [foo/x]}}}
