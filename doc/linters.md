@@ -786,7 +786,7 @@ and helps preventing false positive unresolved symbols in this code:
 
 *Description:* warns on unresolved var from other namespace.
 
-*Default level:* `:error`.
+*Default level:* `:warning`.
 
 *Example trigger:* `(require '[clojure.set :as set]) (set/onion)`.
 
