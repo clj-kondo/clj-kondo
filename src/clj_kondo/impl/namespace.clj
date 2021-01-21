@@ -281,15 +281,18 @@
   nil)
 
 (defn reg-unresolved-var!
-  [ctx ns-sym sym {:keys [:base-lang :lang :config
-                          :callstack] :as sym-info}]
-  (when-not (or ;; TODO
-             (config/unresolved-symbol-excluded config
-                                                callstack sym)
+  [ctx ns-sym resolved-ns sym {:keys [:base-lang :lang :config] :as sym-info}]
+  (when-not (or
+             ;; this is set because of linting macro bodies
+             ;; before removing this, check script/diff
+             (:unresolved-symbol-disabled? sym-info)
+             (config/unresolved-var-excluded config resolved-ns sym)
                 (let [symbol-name (name sym)]
                   (or (str/starts-with? symbol-name ".")
                       (class-name? symbol-name))))
-    (swap! (:namespaces ctx) update-in [base-lang lang ns-sym :unresolved-vars sym]
+    (swap! (:namespaces ctx) update-in
+           [base-lang lang ns-sym :unresolved-vars
+            [resolved-ns sym]]
            (fn [old-sym-info]
              (if (nil? old-sym-info)
                sym-info
@@ -404,10 +407,21 @@
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)
                                  ns-sym))]
+              (let [core? (or (= 'clojure.core ns*)
+                              (= 'cljs.core ns*))
+                    var-name (symbol
+                              ;; account for interop
+                              (str/replace (str (name name-sym))
+                                           #"\.$" ""))]
+                (cond->
+                  {:ns ns*
+                   :name var-name}
 
-              (cond-> {:ns ns*
-                       :name (symbol (name name-sym))}
-                (contains? (:aliases ns) ns-sym) (assoc :alias ns-sym)))
+                  (contains? (:aliases ns) ns-sym)
+                  (assoc :alias ns-sym)
+
+                  core?
+                  (assoc :resolved-core? (var-info/core-sym? lang var-name)))))
             (when-let [[class-name package]
                        (or (when (identical? :clj lang)
                              (or (find var-info/default-import->qname ns-sym)
@@ -470,7 +484,8 @@
            {:ns (case lang
                   :clj 'clojure.core
                   :cljs 'cljs.core)
-            :name name-sym}
+            :name name-sym
+            :resolved-core? true}
            (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
                                          (when-not (contains? excluded name-sym)
                                            k))

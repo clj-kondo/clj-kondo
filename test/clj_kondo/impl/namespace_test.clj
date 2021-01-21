@@ -93,7 +93,7 @@
 (clojure.core/inc 1)
 "))]
         (is (=
-             '{:ns clojure.core :name inc}
+             '{:ns clojure.core :name inc :resolved-core? true}
              (resolve-name ctx 'clj-kondo.impl.utils 'clojure.core/inc)))))))
 
 (comment

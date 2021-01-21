@@ -2,15 +2,30 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2021.01.20
+
+Thanks to [@SevereOverfl0w](https://github.com/SevereOverfl0w),
+[@jysandy](https://github.com/jysandy), [@tomdl89](https://github.com/tomdl89),
+[@snoe](https://github.com/snoe), [@audriu](https://github.com/audriu), and
+[@ericdallo](https://github.com/ericdallo) for contributing to this release.
 
 ### New
 
+- New linter: `:unresolved-var`. This detects unresolved vars in other namespaces, like `set/onion`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unresolved-var). [#635](https://github.com/clj-kondo/clj-kondo/issues/635)
 - Alpine Docker build [#1111](https://github.com/clj-kondo/clj-kondo/issues/1111)
+- Add locals to analysis [#1109](https://github.com/clj-kondo/clj-kondo/issues/1109) ([@snoe](https://github.com/snoe))
+- Add analysis for arglists [#1123](https://github.com/clj-kondo/clj-kondo/issues/1123) ([@snoe](https://github.com/snoe))
 
 ### Enhanced / fixed
 
 - Fix finding without location info [#1101](https://github.com/clj-kondo/clj-kondo/issues/1101)
+- Detect duplicate key in '{[1 2] 3, (1 2) 4} [#1056](https://github.com/clj-kondo/clj-kondo/issues/1056) ([@jysandy](https://github.com/jysandy))
+- Add cljs.core cases in `lint-specific-calls!` [#1116](https://github.com/clj-kondo/clj-kondo/issues/1116) ([@tomdl89](https://github.com/tomdl89))
+- [#1099] Add :single-operand-logical linter for `and` and `or` [#1122](https://github.com/clj-kondo/clj-kondo/issues/1122) ([@tomdl89](https://github.com/tomdl89))
+- Add `:ns` to `:unused-namespace` findings ([@ericdallo](https://github.com/ericdallo))
+- Derive config dir from only file path linted [#1135](https://github.com/clj-kondo/clj-kondo/issues/1135)
+- Support name in defmethod fn-tail [#1115](https://github.com/clj-kondo/clj-kondo/issues/1115)
+- Avoid crash when using `:refer-clojure` + `:only` [#957](https://github.com/clj-kondo/clj-kondo/issues/957)
 
 ## v2020.12.12
 

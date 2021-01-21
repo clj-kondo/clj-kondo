@@ -610,7 +610,8 @@ foo/foo ;; this does use the private var
                        :col 1,
                        :level :error,
                        :message "funs/bar is called with 0 args but expects 1"})
-                    (lint! (io/file "corpus" "refer_all.clj")))
+                    (lint! (io/file "corpus" "refer_all.clj")
+                           {:linters {:unresolved-var {:level :off}}}))
     (assert-submaps '({:file "corpus/refer_all.cljs",
                        :row 8,
                        :col 1,
@@ -1761,7 +1762,8 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(simple-benchmark [x 100] (+ 1 2 x) 10)"
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
-  (is (empty? (lint! "(defn foo [_a _b] (dosync (recur)))"))))
+  (is (empty? (lint! "(defn foo [_a _b] (dosync (recur)))")))
+  (is (empty? (lint! "(ns foo (:refer-clojure :only [defn]))"))))
 
 (deftest amap-test
   (is (empty? (lint! "
@@ -1998,9 +2000,9 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(ns foo (:require [bar :refer [bar]]))
         (apply bar 1 2 [3 4])")))
   (is (empty? (lint! "(ns ^{:clj-kondo/config
-                            '{:linters {:unused-referred-var {:exclude {foo [bar]}}}}}
-                          foo (:require [foo :refer [bar] :as foo]))
-        (apply foo/x 1 2 [3 4])"))))
+                            '{:linters {:unused-referred-var {:exclude {bar [bar]}}}}}
+                          foo (:require [bar :refer [bar] :as b]))
+        (apply b/x 1 2 [3 4])"))))
 
 (deftest duplicate-require-test
   (assert-submaps
