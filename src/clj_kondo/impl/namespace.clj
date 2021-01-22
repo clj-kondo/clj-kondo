@@ -207,8 +207,11 @@
 
 (defn reg-alias!
   [{:keys [:base-lang :lang :namespaces]} ns-sym alias-sym aliased-ns-sym]
-  (swap! namespaces assoc-in [base-lang lang ns-sym :qualify-ns alias-sym]
-         aliased-ns-sym))
+  (swap! namespaces
+         (fn [n]
+           (-> n
+               (assoc-in [base-lang lang ns-sym :qualify-ns alias-sym] aliased-ns-sym)
+               (assoc-in [base-lang lang ns-sym :aliases alias-sym] aliased-ns-sym)))))
 
 (defn reg-binding!
   [{:keys [:base-lang :lang :namespaces :filename] :as ctx} ns-sym binding]
@@ -413,6 +416,10 @@
                 (cond->
                   {:ns ns*
                    :name var-name}
+
+                  (contains? (:aliases ns) ns-sym)
+                  (assoc :alias ns-sym)
+
                   core?
                   (assoc :resolved-core? (var-info/core-sym? lang var-name)))))
             (when-let [[class-name package]

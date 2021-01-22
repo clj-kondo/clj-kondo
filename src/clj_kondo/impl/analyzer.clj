@@ -1309,6 +1309,7 @@
         children (next (:children expr))
         {resolved-namespace :ns
          resolved-name :name
+         resolved-alias :alias
          unresolved? :unresolved?
          unresolved-ns :unresolved-ns
          clojure-excluded? :clojure-excluded?
@@ -1370,6 +1371,7 @@
                                                        :name (with-meta
                                                                (or resolved-name full-fn-name)
                                                                (meta full-fn-name))
+                                                       :alias resolved-alias
                                                        :unresolved? unresolved?
                                                        :unresolved-ns unresolved-ns
                                                        :clojure-excluded? clojure-excluded?
@@ -1589,6 +1591,7 @@
                                     :name (with-meta
                                             (or resolved-name full-fn-name)
                                             (meta full-fn-name))
+                                    :alias resolved-alias
                                     :unresolved? unresolved?
                                     :unresolved-ns unresolved-ns
                                     :clojure-excluded? clojure-excluded?
