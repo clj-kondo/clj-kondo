@@ -2,12 +2,12 @@
 
 To run with Docker:
 
-    docker run -v $PWD/src:/src --rm clj-kondo/clj-kondo clj-kondo --lint src
+    docker run -v $PWD/src:/src --rm cljkondo/clj-kondo clj-kondo --lint src
 
 To lint an entire project including dependencies, you can mount your Maven
 dependencies into the container:
 
-    docker run -v $PWD/src:/src -v $HOME/.m2:$HOME/.m2 --rm clj-kondo/clj-kondo \
+    docker run -v $PWD/src:/src -v $HOME/.m2:$HOME/.m2 --rm cljkondo/clj-kondo \
       clj-kondo --lint $(clj -Spath)
 
 To lint stdin:
