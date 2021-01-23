@@ -35,7 +35,7 @@ Or add it as an alias to `~/.clojure/deps.edn`:
 ```
 
 ``` shellsession
-$ clj -A:clj-kondo --lint src
+$ clj -M:clj-kondo --lint src
 ```
 
 ## shadow-cljs
