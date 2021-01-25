@@ -378,6 +378,20 @@
         :to clojure.core}]
      var-usages)))
 
+(deftest analysis-alias-test
+  (let [{:keys [:var-usages]}
+        (analyze "(ns foo (:require [bar :as b] baz))
+                  (b/w)
+                  (bar/x)
+                  b/y
+                  bar/z")]
+    (assert-submaps
+      '[{:to bar :alias b :name w}
+        {:to bar :name x}
+        {:to bar :alias b :name y}
+        {:to bar :name z}]
+      var-usages)))
+
 (deftest analysis-arglists-test
   (testing "arglist-strs are present on definitions"
     (let [{:keys [:var-definitions]}

@@ -15,7 +15,7 @@
        '({:file "<stdin>", :row 3, :col 22,
           :level :warning, :message "unused binding y"}
          {:file "<stdin>", :row 4, :col 23, :level :error,
-          :message "unresolved symbol db"})
+          :message "Unresolved symbol: db"})
        (lint! "(ns user (:require [datahike.api :refer [q]]))
                (let [x '[:find ?a :where [?a :foo _]]
                      y 42]

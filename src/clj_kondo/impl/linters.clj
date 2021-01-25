@@ -200,16 +200,21 @@
          :single-logical-operand
          (format "Single arg use of %s always returns the arg itself" call-name))))))
 
+;; (require 'clojure.pprint)
+
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
   [ctx idacs]
   (let [config (:config ctx)
-        output-analysis? (-> config :output :analysis)]
+        output-analysis? (-> config :output :analysis)
+        linted-namespaces (:linted-namespaces idacs)]
+    ;; (prn :from-cache from-cache)
     (doseq [ns (namespace/list-namespaces ctx)
             :let [base-lang (:base-lang ns)]
             call (:used-vars ns)
-            :let [call? (= :call (:type call))
+            :let [;; _ (clojure.pprint/pprint (dissoc call :config))
+                  call? (= :call (:type call))
                   unresolved? (:unresolved? call)
                   unresolved-ns (:unresolved-ns call)]
             :when (not unresolved-ns)
@@ -221,8 +226,40 @@
                                     [base-lang call-lang caller-ns-sym])
                   resolved-ns (:resolved-ns call)
                   refer-alls (:refer-alls caller-ns)
+                  filename (:filename call)
+                  row (:row call)
+                  col (:col call)
+                  end-row (:end-row call)
+                  end-col (:end-col call)
+                  ;; _ (prn :used (:used-namespaces idacs))
+                  #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns fn-name unresolved? refer-alls)
+                  #_#__(when (not call?)
+                      (clojure.pprint/pprint (dissoc call :config)))
+                  name-meta (meta fn-name)
+                  name-row (:row name-meta)
+                  name-col (:col name-meta)
+                  name-end-row (:end-row name-meta)
+                  name-end-col (:end-col name-meta)
+                  unresolved-symbol
+                  (when (and (not called-fn)
+                             (not (:interop? call))
+                             row col end-row end-col
+                             (contains? linted-namespaces resolved-ns)
+                             (not (:resolved-core? call))
+                             ;; the var could be :refer-all'ed, in this case unresolved? is true
+                             (not unresolved?))
+                    (namespace/reg-unresolved-var!
+                     ctx caller-ns-sym resolved-ns fn-name
+                     (if call?
+                       (assoc call
+                              :row name-row
+                              :col name-col
+                                :end-row name-end-row
+                                :end-col name-end-col)
+                       call))
+                    true)
                   ;; we can determine if the call was made to another
                   ;; file by looking at the base-lang (in case of
                   ;; CLJS macro imports or the top-level namespace
@@ -241,24 +278,22 @@
                                         (or (> row-call row-called-fn)
                                             (and (= row-call row-called-fn)
                                                  (> (:col call) (:col called-fn)))))))
-                  name-meta (meta fn-name)
-                  name-row (:row name-meta)
-                  name-col (:col name-meta)
-                  _ (when (not valid-call?)
+                  _ (when (and (not unresolved-symbol)
+                               (not valid-call?))
                       (namespace/reg-unresolved-symbol!
                        ctx caller-ns-sym fn-name
                        (if call?
                          (assoc call
                                 :row name-row
                                 :col name-col
-                                :end-row (:end-row name-meta)
-                                :end-col (:end-col name-meta))
+                                :end-row name-end-row
+                                :end-col name-end-col)
                          call)))
-                  row (:row call)
-                  col (:col call)
-                  end-row (:end-row call)
-                  end-col (:end-col call)
-                  filename (:filename call)
+                  ;; row (:row call)
+                  ;; col (:col call)
+                  ;; end-row (:end-row call)
+                  ;; end-col (:end-col call)
+                  ;; filename (:filename call)
                   fn-ns (:ns called-fn)
                   resolved-ns (or fn-ns resolved-ns)
                   arity (:arity call)
@@ -279,10 +314,11 @@
                                              call-lang)
                                            in-def
                                            (assoc called-fn
+                                                  :alias (:alias call)
                                                   :name-row name-row
                                                   :name-col name-col
-                                                  :name-end-row (:end-row name-meta)
-                                                  :name-end-col (:end-col name-meta))))]
+                                                  :name-end-row name-end-row
+                                                  :name-end-col name-end-col)))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?
@@ -402,8 +438,9 @@
                 filename (:filename m)]
             (findings/reg-finding!
              ctx
-             (node->line filename ns-sym :warning :unused-namespace
-                         (format "namespace %s is required but never used" ns-sym))))))
+             (-> (node->line filename ns-sym :warning :unused-namespace
+                             (format "namespace %s is required but never used" ns-sym))
+                 (assoc :ns ns-sym))))))
       (doseq [[k v] referred-vars]
         (let [var-ns (:ns v)]
           (when-not
@@ -412,7 +449,9 @@
                   (contains? refer-all-nss var-ns))
             (findings/reg-finding!
              ctx
-             (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))))))
+             (-> (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
+                 (assoc :ns var-ns
+                        :refer (:name v)))))))
       (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
               :when (not (config/refer-all-excluded? config referred-all-ns))]
         (let [{:keys [:k :value]} node
@@ -511,7 +550,28 @@
        ctx
        {:type :unresolved-symbol
         :filename filename
-        :message (str "unresolved symbol " n)
+        :message (str "Unresolved symbol: " n)
+        :row (:row v)
+        :col (:col v)
+        :end-row (:end-row v)
+        :end-col (:end-col v)}))))
+
+(defn lint-unresolved-vars!
+  [ctx]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [lang (:lang ns)
+                ctx (assoc ctx :lang lang)]
+          [_ v] (:unresolved-vars ns)]
+    (let [filename (:filename v)
+          expr (:expr v)
+          n (if-let [children (:children expr)]
+              (str (first children))
+              (str expr))]
+      (findings/reg-finding!
+       ctx
+       {:type :unresolved-var
+        :filename filename
+        :message (str "Unresolved var: " n)
         :row (:row v)
         :col (:col v)
         :end-row (:end-row v)
@@ -528,11 +588,12 @@
           :let [filename (:filename ns)
                 imports (:imports ns)
                 used-imports (:used-imports ns)]
-          [imp _] imports
-          :when (not (contains? used-imports imp))]
+          [import package] imports
+          :when (not (contains? used-imports import))]
     (findings/reg-finding!
      ctx
-     (node->line filename imp :warning :unused-import (str "Unused import " imp)))))
+     (-> (node->line filename import :warning :unused-import (str "Unused import " import))
+         (assoc :class (symbol (str package "." import)))))))
 
 (defn lint-unresolved-namespaces!
   [ctx]

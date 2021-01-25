@@ -153,15 +153,22 @@
   ([] (config-dir
        (io/file
         (System/getProperty "user.dir"))))
-  ([cwd]
-   (loop [dir (io/file cwd)]
-     (let [cfg-dir (io/file dir ".clj-kondo")]
-       (if (.exists cfg-dir)
-         (if (.isDirectory cfg-dir)
-           cfg-dir
-           (throw (Exception. (str cfg-dir " must be a directory"))))
-         (when-let [parent (.getParentFile dir)]
-           (recur parent)))))))
+  ([start]
+   (let [start (io/file start)
+         ;; NOTE: .getParentFile doesn't work on relative files
+         start (.getAbsoluteFile start)
+         start (if (.isFile start)
+                 (.getParentFile start)
+                 start)]
+     (when start
+       (loop [dir start]
+         (let [cfg-dir (io/file dir ".clj-kondo")]
+           (if (.exists cfg-dir)
+             (if (.isDirectory cfg-dir)
+               cfg-dir
+               (throw (Exception. (str cfg-dir " must be a directory"))))
+             (when-let [parent (.getParentFile dir)]
+               (recur parent)))))))))
 
 ;;;; jar processing
 

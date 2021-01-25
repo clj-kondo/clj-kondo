@@ -19,6 +19,8 @@
            :missing-docstring {:level :off}
            :unsorted-required-namespaces {:level :warning}}
  :lint-as {me.raynes.conch/programs clojure.core/declare
-           me.raynes.conch/let-programs clojure.core/let}
+           me.raynes.conch/let-programs clojure.core/let
+           datalog.parser.type/deftrecord clojure.core/defrecord
+           clj-kondo.impl.rewrite-clj.potemkin/defprotocol+ clojure.core/defprotocol}
  :output {:exclude-files ["src/clj_kondo/impl/rewrite_clj_patch.clj"]}
  :hooks {:analyze-call {clj-kondo.impl.utils/one-of macroexpand.one-of/one-of}}}

@@ -4,7 +4,7 @@ This page contains an overview of all available linters and their corresponding
 configuration. For general configurations options, go [here](config.md).
 
 Table of contents:
-
+- [Linters](#linters)
   - [Cond-else](#cond-else)
   - [Conflicting-alias](#conflicting-alias)
   - [Consistent-alias](#consistent-alias)
@@ -43,6 +43,7 @@ Table of contents:
   - [Unused import](#unused-import)
   - [Unresolved namespace](#unresolved-namespace)
   - [Unresolved symbol](#unresolved-symbol)
+  - [Unresolved var](#unresolved-var)
   - [Unsorted required namespace](#unsorted-required-namespace)
   - [Unused namespace](#unused-namespace)
   - [Unused private var](#unused-private-var)
@@ -709,7 +710,7 @@ This will disable the warning in:
 
 *Example trigger:* `x`.
 
-*Example message:* `unresolved symbol x`.
+*Example message:* `Unresolved symbol: x`.
 
 *Config:*
 
@@ -777,6 +778,43 @@ and helps preventing false positive unresolved symbols in this code:
 (programs rm mkdir echo mv)
 (let-programs [clj-kondo "./clj-kondo"]
   ,,,)
+```
+
+### Unresolved var
+
+*Keyword:* `:unresolved-var`.
+
+*Description:* warns on unresolved var from other namespace.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(require '[clojure.set :as set]) (set/onion)`.
+
+*Example message:* `Unresolved var: set/onion`.
+
+*Config:*
+
+Given this example:
+
+``` clojure
+(ns foo)
+(defmacro gen-vars [& names]) (gen-vars x y z)
+
+(ns bar (:require foo))
+foo/x
+(foo/y)
+```
+
+you can exclude warnings for all unresolved vars from namespace `foo` using:
+
+``` clojure
+{:linters {:unresolved-var {:exclude [foo]}}}
+```
+
+or exclude a selection of unresolved vars using qualified symbols:
+
+``` clojure
+{:linters {:unresolved-var {:exclude [foo/x]}}}
 ```
 
 ### Unsorted required namespace

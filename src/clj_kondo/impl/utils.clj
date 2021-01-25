@@ -240,7 +240,7 @@
   (let [call-lang (:lang call)
         base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
         unresolved? (:unresolved? call)
-        unknown-ns? (= fn-ns :clj-kondo/unknown-namespace)
+        unknown-ns? (identical? fn-ns :clj-kondo/unknown-namespace)
         fn-ns (if unknown-ns? (:ns call) fn-ns)]
     ;; (prn "FN NS" fn-ns fn-name (keys (get (:defs (:clj idacs)) 'clojure.core)))
     (case [base-lang call-lang]

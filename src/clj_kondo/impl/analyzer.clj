@@ -1040,12 +1040,10 @@
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
-        [method-name-node dispatch-val-node & body-exprs] children
+        [method-name-node dispatch-val-node & fn-tail] children
         _ (analyze-usages2 ctx method-name-node)
-        bodies (fn-bodies ctx body-exprs expr)
-        analyzed-bodies (map #(analyze-fn-body ctx %) bodies)]
-    (concat (analyze-expression** ctx dispatch-val-node)
-            (mapcat :parsed analyzed-bodies))))
+        _ (analyze-expression** ctx dispatch-val-node)]
+    (analyze-fn ctx {:children (cons nil fn-tail)})))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))
@@ -1316,9 +1314,12 @@
         children (next (:children expr))
         {resolved-namespace :ns
          resolved-name :name
+         resolved-alias :alias
          unresolved? :unresolved?
          unresolved-ns :unresolved-ns
          clojure-excluded? :clojure-excluded?
+         interop? :interop?
+         resolved-core? :resolved-core?
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
         expr-meta (meta expr)]
@@ -1375,6 +1376,7 @@
                                                        :name (with-meta
                                                                (or resolved-name full-fn-name)
                                                                (meta full-fn-name))
+                                                       :alias resolved-alias
                                                        :unresolved? unresolved?
                                                        :unresolved-ns unresolved-ns
                                                        :clojure-excluded? clojure-excluded?
@@ -1391,7 +1393,9 @@
                                                        :callstack (:callstack ctx)
                                                        :config (:config ctx)
                                                        :top-ns (:top-ns ctx)
-                                                       :arg-types (:arg-types ctx)})
+                                                       :arg-types (:arg-types ctx)
+                                                       :interop? interop?
+                                                       :resolved-core? resolved-core?})
                   ;;;; This registers the namespace as used, to prevent unused warnings
                 (namespace/reg-used-namespace! ctx
                                                ns-name
@@ -1592,6 +1596,7 @@
                                     :name (with-meta
                                             (or resolved-name full-fn-name)
                                             (meta full-fn-name))
+                                    :alias resolved-alias
                                     :unresolved? unresolved?
                                     :unresolved-ns unresolved-ns
                                     :clojure-excluded? clojure-excluded?
@@ -1608,7 +1613,9 @@
                                     :config (:config ctx)
                                     :top-ns (:top-ns ctx)
                                     :arg-types (:arg-types ctx)
-                                    :simple? (simple-symbol? full-fn-name)}
+                                    :simple? (simple-symbol? full-fn-name)
+                                    :interop? interop?
+                                    :resolved-core? resolved-core?}
                         ret-tag (or (:ret m)
                                     (types/ret-tag-from-call ctx proto-call expr))
                         call (cond-> proto-call

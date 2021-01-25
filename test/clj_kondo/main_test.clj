@@ -569,22 +569,22 @@ foo/foo ;; this does use the private var
       :row 6,
       :col 9,
       :level :error,
-      :message "unresolved symbol conj"}
+      :message "Unresolved symbol: conj"}
      {:file "corpus/rename.cljc",
       :row 7,
       :col 10,
       :level :error,
-      :message "unresolved symbol conj"}
+      :message "Unresolved symbol: conj"}
      {:file "corpus/rename.cljc",
       :row 8,
       :col 10,
       :level :error,
-      :message "unresolved symbol join"}
+      :message "Unresolved symbol: join"}
      {:file "corpus/rename.cljc",
       :row 9,
       :col 11,
       :level :error,
-      :message "unresolved symbol join"}
+      :message "Unresolved symbol: join"}
      {:file "corpus/rename.cljc",
       :row 10,
       :col 9,
@@ -610,7 +610,8 @@ foo/foo ;; this does use the private var
                        :col 1,
                        :level :error,
                        :message "funs/bar is called with 0 args but expects 1"})
-                    (lint! (io/file "corpus" "refer_all.clj")))
+                    (lint! (io/file "corpus" "refer_all.clj")
+                           {:linters {:unresolved-var {:level :off}}}))
     (assert-submaps '({:file "corpus/refer_all.cljs",
                        :row 8,
                        :col 1,
@@ -1301,124 +1302,6 @@ foo/foo ;; this does use the private var
       :message "f2 is called with 0 args but expects 1"})
    (lint! "(letfn [(f1 [_] (f2)) (f2 [_])])")))
 
-(deftest unused-namespace-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 20,
-      :level :warning,
-      :message "namespace clojure.core.async is required but never used"})
-   (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))"
-          "--config" "^:replace {:linters {:unused-namespace {:level :warning}}}"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 2,
-      :col 30,
-      :level :warning,
-      :message "namespace rewrite-clj.node is required but never used"}
-     {:file "<stdin>",
-      :row 2,
-      :col 46,
-      :level :warning,
-      :message "namespace rewrite-clj.reader is required but never used"})
-   (lint! "(ns rewrite-clj.parser
-     (:require [rewrite-clj [node :as node] [reader :as reader]]))"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 32,
-      :level :warning,
-      :message "namespace baz is required but never used"})
-   (lint! "(ns foo (:require [bar :as b] [baz :as baz])) #::{:a #::bar{:a 1}}"))
-  (assert-submap
-   '({:file "<stdin>",
-      :row 1,
-      :col 18,
-      :level :warning,
-      :message "namespace clojure.string is required but never used"})
-   (lint! "(ns f (:require [clojure.string :as s])) :s/foo"))
-  (assert-submap
-   '({:file "<stdin>",
-      :row 1,
-      :col 20,
-      :level :warning,
-      :message "namespace bar is required but never used"})
-   (lint! "(ns foo (:require [bar :as b])) #:b{:a 1}"))
-  (testing "simple libspecs (without as or refer) are not reported"
-    (is (empty? (lint! "(ns foo (:require [foo.specs]))")))
-    (is (empty? (lint! "(ns foo (:require foo.specs))")))
-    (is (seq (lint! "(ns foo (:require [foo.specs]))"
-                    '{:linters {:unused-namespace {:simple-libspec true}}}))))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 12,
-      :level :warning,
-      :message "namespace clojure.set is required but never used"})
-   (lint! "(require '[clojure.set :refer [join]])"
-          "--config" "^:replace {:linters {:unused-namespace {:level :warning}}}"))
-  (is (empty?
-       (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]]))
-         ,(ns bar)
-         ,(in-ns 'foo)
-         ,(go-loop [])")))
-  (is (empty? (lint! "(ns foo (:require [clojure.set :as set]))
-    (reduce! set/difference #{} [])")))
-  (is (empty? (lint! "(ns foo (:require [clojure.set :as set :refer [difference]]))
-    (reduce! difference #{} [])")))
-  (is (empty? (lint! "(ns foo (:require [clojure.set :as set]))
-    (defmacro foo [] `(set/difference #{} #{}))")))
-  (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [go-loop]])) (go-loop [x 1] (recur 1))")))
-  (is (empty? (lint! "(ns foo (:require bar)) ::bar/bar")))
-  (is (empty? (lint! "(ns foo (:require [bar :as b])) ::b/bar")))
-  (is (empty? (lint! "(ns foo (:require [bar :as b])) #::b{:a 1}")))
-  (is (empty? (lint! "(ns foo (:require [bar :as b] baz)) #::baz{:a #::bar{:a 1}}")))
-  (is (empty? (lint! "(ns foo (:require goog.math.Long)) (instance? goog.math.Long 1)")))
-  (is (empty? (lint! "(ns foo (:require [schema.core :as s] [bar :as bar])) (s/defn foo :- bar/Schema [])")))
-  (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) {str/join true}")))
-  (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) {true str/join}")))
-  (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) [str/join]")))
-  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (defn my-id [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)")))
-  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (fn [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)")))
-  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
-  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id :bar)")))
-  (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])")))
-  (is (empty? (lint! (io/file "corpus" "shadow_cljs" "default.cljs"))))
-  (is (empty? (lint! "(ns foo (:require [bar])) (:id bar/x)")))
-  (is (empty? (lint! (io/file "corpus" "no_unused_namespace.clj"))))
-  (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{::b/keys [:baz]} nil] baz)")))
-  (is (empty? (lint! "(require '[clojure.set :refer [join]]) join")))
-  (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{:keys [::b/x]} {}] x)")))
-  (is (empty? (lint! "(ns ^{:clj-kondo/config
-                            '{:linters {:unused-namespace {:exclude [bar]}}}}
-                          foo
-                        (:require [bar :as b]))")))
-  (is (empty? (lint! (io/file "corpus" "cljs_ns_as_as_object.cljs"))))
-  (is (empty? (lint! "(ns c (:require [a :as b] b)) b/x")))
-  (testing "disable linter via ns config"
-    (is (empty? (lint! "
-(ns ^{:clj-kondo/config '{:linters {:unused-namespace {:level :off}}}}
-  foo
-  (:require [bar :as b]))"))))
-  (is (empty? (lint! "
-(ns kondo
-  (:require [df :as df]
-            [fulcro :as fulcro]
-            [ui.gift-list :as ui.gift-list]))
-
-(fulcro/defsc Home1 [_this _]
-  {:will-enter (fn [app _]
-                 (df/load! app [:component/id :created-gift-lists]
-                           ui.gift-list/CreatedGiftLists))}
-  :foo)"
-                     '{:linters {:unresolved-symbol {:level :error}}
-                       :lint-as {fulcro/defsc clojure.core/defn}}))))
-
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
                      :row 1,
@@ -1789,7 +1672,7 @@ foo/foo ;; this does use the private var
       :row 7,
       :col 12,
       :level :error,
-      :message "unresolved symbol greetingx"}
+      :message "Unresolved symbol: greetingx"}
      {:file "corpus/defmulti.clj",
       :row 7,
       :col 35,
@@ -1879,7 +1762,8 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(simple-benchmark [x 100] (+ 1 2 x) 10)"
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
-  (is (empty? (lint! "(defn foo [_a _b] (dosync (recur)))"))))
+  (is (empty? (lint! "(defn foo [_a _b] (dosync (recur)))")))
+  (is (empty? (lint! "(ns foo (:refer-clojure :only [defn]))"))))
 
 (deftest amap-test
   (is (empty? (lint! "
@@ -1959,7 +1843,7 @@ foo/foo ;; this does use the private var
       :row 20,
       :col 9,
       :level :error,
-      :message "unresolved symbol xstr/starts-with?"})
+      :message "Unresolved symbol: xstr/starts-with?"})
    (lint! (io/file "corpus" "spec_syntax.clj")
           '{:linters {:unresolved-symbol {:level :error}}})))
 
@@ -2116,9 +2000,9 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(ns foo (:require [bar :refer [bar]]))
         (apply bar 1 2 [3 4])")))
   (is (empty? (lint! "(ns ^{:clj-kondo/config
-                            '{:linters {:unused-referred-var {:exclude {foo [bar]}}}}}
-                          foo (:require [foo :refer [bar] :as foo]))
-        (apply foo/x 1 2 [3 4])"))))
+                            '{:linters {:unused-referred-var {:exclude {bar [bar]}}}}}
+                          foo (:require [bar :refer [bar] :as b]))
+        (apply b/x 1 2 [3 4])"))))
 
 (deftest duplicate-require-test
   (assert-submaps
@@ -2161,7 +2045,7 @@ foo/foo ;; this does use the private var
       :row 14,
       :col 8,
       :level :error,
-      :message "unresolved symbol x"})
+      :message "Unresolved symbol: x"})
    (lint! (io/file "corpus" "compojure")
           {:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
@@ -2352,12 +2236,12 @@ foo/foo ;; this does use the private var
       :row 7,
       :col 9,
       :level :error,
-      :message "unresolved symbol x1"}
+      :message "Unresolved symbol: x1"}
      {:file "corpus/core_async/alt.clj",
       :row 7,
       :col 12,
       :level :error,
-      :message "unresolved symbol x2"}
+      :message "Unresolved symbol: x2"}
      {:file "corpus/core_async/alt.clj",
       :row 11,
       :col 24,
@@ -2367,12 +2251,12 @@ foo/foo ;; this does use the private var
       :row 12,
       :col 10,
       :level :error,
-      :message "unresolved symbol x3"}
+      :message "Unresolved symbol: x3"}
      {:file "corpus/core_async/alt.clj",
       :row 12,
       :col 13,
       :level :error,
-      :message "unresolved symbol x4"})
+      :message "Unresolved symbol: x4"})
    (lint! (io/file "corpus" "core_async" "alt.clj")
           {:linters {:unresolved-symbol {:level :error}}})))
 
@@ -2499,7 +2383,7 @@ foo/foo ;; this does use the private var
       :row 1,
       :col 30,
       :level :error,
-      :message "unresolved symbol y"})
+      :message "Unresolved symbol: y"})
    (lint! "(def x 1) (var x) (var) (var y)"
           {:linters {:unresolved-symbol {:level :error}}})))
 

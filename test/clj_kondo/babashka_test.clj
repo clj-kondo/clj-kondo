@@ -7,6 +7,6 @@
 
 (deftest format-test
   (assert-submaps
-   '({:file "corpus/babashka_script.clj", :row 16, :col 9, :level :error, :message "unresolved symbol x"})
+   '({:file "corpus/babashka_script.clj", :row 16, :col 9, :level :error, :message "Unresolved symbol: x"})
    (lint! (io/file "corpus" "babashka_script.clj")
           {:linters {:unresolved-symbol {:level :error}}})))
