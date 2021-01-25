@@ -46,6 +46,7 @@
            ctx
            (:filename ctx)
            (assoc-some (meta expr)
+                       :def (:def expr)
                        :keys-destructuring keys-destructuring?
                        :name (:name resolved)
                        :alias (when-not (:alias destructuring) (:alias resolved))

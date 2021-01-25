@@ -1532,6 +1532,11 @@
                         (test/analyze-cljs-test-async ctx expr)
                         ([clojure.test are] [cljs.test are] #_[clojure.template do-template])
                         (test/analyze-are ctx expr)
+                        ([clojure.spec.alpha def] [cljs.spec.alpha def])
+                        (spec/analyze-def (assoc ctx
+                                                 :resolved [resolved-as-namespace resolved-as-name]
+                                                 :analyze-children
+                                                 analyze-children) expr)
                         ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
                         (spec/analyze-fdef (assoc ctx
                                                   :analyze-children

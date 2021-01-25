@@ -30,7 +30,7 @@
           {:name barkwa :ns bar}
           {:name barkwb :ns bar :alias b}
           {:name barkwc :ns :clj-kondo/unknown-namespace}]
-        (:keyword-usages a))))
+        (:keywords a))))
   (testing "destructuring keywords"
     (let [a (analyze (str "(ns foo (:require [bar :as b]))\n"
                           "(let [{::keys [a :b]\n"
@@ -64,7 +64,28 @@
           {:name r :ns bar :alias b}
           {:name s :ns bar}
           {:name t :ns x}]
-        (:keyword-usages a)))))
+        (:keywords a))))
+  (testing "clojure.spec.alpha/def can add :def"
+    (let [a (analyze "(require '[clojure.spec.alpha :as s]) (clojure.spec.alpha/def ::kw (inc))"
+                     {:config {:output {:analysis {:keywords true}}}})]
+      (assert-submaps
+        '[{:name kw :def clojure.spec.alpha/def}]
+        (:keywords a))))
+  (testing "hooks can add :def"
+    (let [a (analyze "(user/mydef ::kw (inc))"
+                     {:config {:output {:analysis {:keywords true}}
+                               :hooks {:analyze-call
+                                       {'user/mydef
+                                        (str "(require '[clj-kondo.hooks-api :as a])"
+                                             "(fn [{n :node}]"
+                                             "  (let [c (:children n)]"
+                                             "    {:node (a/list-node "
+                                             "             (list* 'do"
+                                             "                    (a/reg-keyword! (second c) 'user/mydef)"
+                                             "                    (drop 2 c)))}))")}}}})]
+      (assert-submaps
+        '[{:name kw :def user/mydef}]
+        (:keywords a)))))
 
 (deftest locals-analysis-test
   (let [a (analyze "#(inc %1 %&)" {:config {:output {:analysis {:locals true}}}})]

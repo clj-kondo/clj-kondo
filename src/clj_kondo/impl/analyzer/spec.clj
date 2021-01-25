@@ -31,6 +31,11 @@
                                                      (str "Unresolved symbol: " sym)))))))
     (analyze-children ctx body)))
 
+(defn analyze-def [{:keys [analyze-children resolved] :as ctx} expr]
+  (let [[kw-expr & body] (next (:children expr))]
+    (let [fq-def (symbol (-> resolved first name) (-> resolved second name))]
+      (analyze-children ctx (cons (assoc kw-expr :def fq-def) body)))))
+
 ;;;; Scratch
 (require '[clj-kondo.impl.parser])
 

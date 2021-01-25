@@ -113,7 +113,7 @@
                                   :var-usages []}
                            analyze-locals? (assoc :locals []
                                                   :local-usages [])
-                           analyze-keywords? (assoc :keyword-usages []))))
+                           analyze-keywords? (assoc :keywords []))))
         used-nss (atom {:clj #{}
                         :cljs #{}
                         :cljc #{}})
