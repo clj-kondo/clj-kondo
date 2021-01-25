@@ -29,8 +29,7 @@
           {:name fookwc :ns :clj-kondo/unknown-namespace}
           {:name barkwa :ns bar}
           {:name barkwb :ns bar :alias b}
-          ;; TODO (:aliases ns)
-          {:name barkwc #_#_:ns :clj-kondo/unknown-namespace}]
+          {:name barkwc :ns :clj-kondo/unknown-namespace}]
         (:keyword-usages a))))
   (testing "destructuring keywords"
     (let [a (analyze (str "(ns foo (:require [bar :as b]))\n"
@@ -57,8 +56,7 @@
           {:name j :ns foo :keys-destructuring true}
           {:name k :ns bar :keys-destructuring true}
           {:name l :ns bar :alias b :keys-destructuring true}
-          ;; TODO (:aliases ns)
-          {:name m #_#_:ns :clj-kondo/unknown-namespace}
+          {:name m :ns :clj-kondo/unknown-namespace}
           {:name n :ns x}
           {:name o :ns :clj-kondo/unknown-namespace}
           {:name p}

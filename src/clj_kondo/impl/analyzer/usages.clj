@@ -20,8 +20,7 @@
         alias-or-ns (some-> ns-str symbol)
         ns-sym (cond
                  (and aliased? alias-or-ns)
-                 ;; TODO needs (:aliases ns) because ::clojure.core/inc is invalid unless it is an alias
-                 (get-in ctx [:ns :qualify-ns alias-or-ns] :clj-kondo/unknown-namespace)
+                 (get-in ctx [:ns :aliases alias-or-ns] :clj-kondo/unknown-namespace)
 
                  aliased?
                  current-ns
@@ -32,7 +31,7 @@
      :ns ns-sym
      :alias (when (and aliased? (not= :clj-kondo/unknown-namespace ns-sym)) alias-or-ns)}))
 
-(defn analyze-keyword 
+(defn analyze-keyword
   ([ctx expr] (analyze-keyword ctx expr {}))
   ([ctx expr opts]
    (let [ns (:ns ctx)
