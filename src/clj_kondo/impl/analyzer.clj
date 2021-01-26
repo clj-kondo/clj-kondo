@@ -8,6 +8,7 @@
    [clj-kondo.impl.analyzer.core-async :as core-async]
    [clj-kondo.impl.analyzer.datalog :as datalog]
    [clj-kondo.impl.analyzer.jdbc :as jdbc]
+   [clj-kondo.impl.analyzer.match :as match]
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.potemkin :as potemkin]
@@ -59,7 +60,7 @@
                                          (atom [])
                                          nil))
                                      (:arg-types ctx)))]
-         (mapcat #(analyze-expression** ctx %) children))))))
+         (run! #(analyze-expression** ctx %) children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
   (let [skip-reg-binding? (when (:fn-args? opts)
@@ -1514,16 +1515,13 @@
                         (analyze-schema ctx 'defmethod expr)
                         [schema.core defrecord]
                         (analyze-schema ctx 'defrecord expr)
-
-                        ([clojure.core.match match])
-                        ()
                         ([clojure.test deftest]
-                         [cljs.test deftest]
-                         #_[:clj-kondo/unknown-namespace deftest])
-                        (do #_(lint-inline-def! ctx expr)
-                            (test/analyze-deftest ctx expr
-                                                  resolved-namespace resolved-name
-                                                  resolved-as-namespace resolved-as-name))
+                         [cljs.test deftest])
+                        (test/analyze-deftest ctx expr
+                                              resolved-namespace resolved-name
+                                              resolved-as-namespace resolved-as-name)
+                        [clojure.core.match match]
+                        (match/analyze-match ctx expr)
                         [clojure.string replace]
                         (analyze-clojure-string-replace ctx expr)
                         [cljs.test async]
