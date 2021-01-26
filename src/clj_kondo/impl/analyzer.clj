@@ -1517,10 +1517,9 @@
                         ([clojure.test deftest]
                          [cljs.test deftest]
                          #_[:clj-kondo/unknown-namespace deftest])
-                        (do (lint-inline-def! ctx expr)
-                            (test/analyze-deftest ctx expr
-                                                  resolved-namespace resolved-name
-                                                  resolved-as-namespace resolved-as-name))
+                        (test/analyze-deftest ctx expr
+                                              resolved-namespace resolved-name
+                                              resolved-as-namespace resolved-as-name)
                         [clojure.string replace]
                         (analyze-clojure-string-replace ctx expr)
                         [cljs.test async]

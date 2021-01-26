@@ -67,3 +67,8 @@
    (lint! (io/file "corpus" "clojure.test.are.cljc")
           {:linters {:unresolved-symbol {:level :error}
                      :unused-binding {:level :warning}}})))
+
+(deftest inline-def-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 48, :level :warning, :message "inline def"})
+   (lint! "(require '[clojure.test :as t]) (t/deftest foo (def x 1))")))
