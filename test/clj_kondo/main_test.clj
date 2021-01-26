@@ -2645,50 +2645,130 @@ foo/foo ;; this does use the private var
     (is (empty? (lint! "(and (not :foo) (not :bar) :baz)" {:linters {:redundant-nots {:level :warning}}}))
         "If any arg supplied is not a list with first element 'not', then the call is fine"))
 
-  (testing "`not` & `nil?` can be simplified to `some?`"
+  (testing "negated `nil?` can be simplified to `some?`"
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
         :col 1,
         :level :warning,
         :message "not and nil? used instead of some?"})
-     (lint! "(not (nil? :foo))" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(not (nil? :foo))" {:linters {:redundant-nots {:level :warning}}}))
 
-  (testing "`not` & `=` can be simplified to `not=`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and nil? used instead of some?"})
+     (lint! "(comp not nil?)" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "complement and nil? used instead of some?"})
+     (lint! "(complement  nil?)" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "negated `=` can be simplified to `not=`"
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
         :col 1,
         :level :warning,
         :message "not and = used instead of not="})
-     (lint! "(not (= :foo :bar))" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(not (= :foo :bar))" {:linters {:redundant-nots {:level :warning}}}))
 
-  (testing "`not` & `even?` can be simplified to `odd?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and = used instead of not="})
+     (lint! "(comp not =)" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "complement and = used instead of not="})
+     (lint! "(complement =)" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "negated `even?` can be simplified to `odd?`"
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
         :col 1,
         :level :warning,
         :message "not and even? used instead of odd?"})
-     (lint! "(not (even? 42))" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(not (even? 42))" {:linters {:redundant-nots {:level :warning}}}))
 
-  (testing "`not` & `odd?` can be simplified to `even?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and even? used instead of odd?"})
+     (lint! "(comp not even?)" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "complement and even? used instead of odd?"})
+     (lint! "(complement even?)" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "negated `odd?` can be simplified to `even?`"
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
         :col 1,
         :level :warning,
         :message "not and odd? used instead of even?"})
-     (lint! "(not (odd? 42))" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(not (odd? 42))" {:linters {:redundant-nots {:level :warning}}}))
 
-  (testing "`not` & `seq` can be simplified to `empty?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and odd? used instead of even?"})
+     (lint! "(comp not odd?)" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "complement and odd? used instead of even?"})
+     (lint! "(complement odd?)" {:linters {:redundant-nots {:level :warning}}})))
+
+  (testing "negated `seq` can be simplified to `empty?`"
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
         :col 1,
         :level :warning,
         :message "not and seq used instead of empty?"})
-     (lint! "(not (seq [:foo :bar :baz]))" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(not (seq [:foo :bar :baz]))" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and seq used instead of empty?"})
+     (lint! "(comp not seq)" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "complement and seq used instead of empty?"})
+     (lint! "(complement seq)" {:linters {:redundant-nots {:level :warning}}})))
 
   (testing "`filter` & `complement` used instead of `remove` or vice versa"
     (assert-submaps
@@ -2707,6 +2787,23 @@ foo/foo ;; this does use the private var
         :message "remove and complement used instead of filter"})
      (lint! "(remove (complement foo) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}})))
 
+  (testing "`filter` & `comp` with `not` used instead of `remove` or vice versa"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "filter and comp with not used instead of remove"})
+     (lint! "(filter (comp not foo) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "remove and comp with not used instead of filter"})
+     (lint! "(remove (comp not foo) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}})))
+
   (testing "`filter` & fn with `not` wrapping the rest of the body used instead of `remove` or vice versa"
     (assert-submaps
      '({:file "<stdin>",
@@ -2723,6 +2820,14 @@ foo/foo ;; this does use the private var
         :level :warning,
         :message "filter and not used instead of remove"})
      (lint! "(filter (fn [x] (not (:foo x))) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 18,
+        :level :warning,
+        :message "filter and not used instead of remove"})
+     (lint! "(->> [:bar :baz] (filter (fn [x] (not (:foo x)))))" {:linters {:redundant-nots {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
