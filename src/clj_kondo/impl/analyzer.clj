@@ -1514,10 +1514,13 @@
                         (analyze-schema ctx 'defmethod expr)
                         [schema.core defrecord]
                         (analyze-schema ctx 'defrecord expr)
+
+                        ([clojure.core.match match])
+                        ()
                         ([clojure.test deftest]
                          [cljs.test deftest]
                          #_[:clj-kondo/unknown-namespace deftest])
-                        (do (lint-inline-def! ctx expr)
+                        (do #_(lint-inline-def! ctx expr)
                             (test/analyze-deftest ctx expr
                                                   resolved-namespace resolved-name
                                                   resolved-as-namespace resolved-as-name))
