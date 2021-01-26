@@ -42,7 +42,6 @@
   ([ctx children]
    (analyze-children ctx children true))
   ([{:keys [:callstack :config :top-level?] :as ctx} children add-new-arg-types?]
-   ;; (prn callstack)
    (let [top-level? (and top-level?
                          (let [fst (first callstack)]
                            (one-of fst [[clojure.core comment]
@@ -59,7 +58,8 @@
                                          (atom [])
                                          nil))
                                      (:arg-types ctx)))]
-         (mapcat #(analyze-expression** ctx %) children))))))
+         ;; TODO: can we get rid of return values here?
+         (into [] (mapcat #(analyze-expression** ctx %)) children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
   (let [skip-reg-binding? (when (:fn-args? opts)
