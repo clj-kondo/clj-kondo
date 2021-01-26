@@ -25,6 +25,7 @@
                                :fixed-arities
                                :varargs-min-arity
                                :deprecated
+                               :alias
                                :name-row
                                :name-col
                                :name-end-row

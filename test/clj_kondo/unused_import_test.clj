@@ -1,5 +1,6 @@
 (ns clj-kondo.unused-import-test
   (:require
+   [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.test :refer [deftest testing is]]))
 
@@ -81,4 +82,18 @@
     (is (empty? (lint! "(import '[java.util Foo]) (defn foo [^Foo x] x)")))
     (is (empty? (lint! "(import '[java.util Foo]) (try 1 (catch Foo _e nil))")))
     (is (empty? (lint! "(ns foo (:import [foo Bar])) (defn foo [x] x) (defn bar [x] (-> x ^Bar (.execute)))"))))
-)
+  (testing "return import info"
+    (assert-submaps
+      '({:type :unused-import,
+         :message "Unused import Date",
+         :level :warning,
+         :row 1,
+         :end-row 1,
+         :end-col 33,
+         :col 29,
+         :class java.util.Date
+         :filename "<stdin>"})
+      (-> (with-in-str
+            "(ns foo (:import [java.util Date]))"
+            (clj-kondo/run! {:lint ["-"]}))
+          :findings))))

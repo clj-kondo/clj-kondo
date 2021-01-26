@@ -11,7 +11,7 @@
       :row 1,
       :col 2,
       :level :error,
-      :message "unresolved symbol x"})
+      :message "Unresolved symbol: x"})
    (lint! "(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}"))
   (testing "unresolved symbol is reported only once"
     (assert-submaps
@@ -19,14 +19,14 @@
         :row 1,
         :col 2,
         :level :error,
-        :message "unresolved symbol x"})
+        :message "Unresolved symbol: x"})
      (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (assert-submaps
    '({:file "corpus/unresolved_symbol.clj",
       :row 11,
       :col 4,
       :level :error,
-      :message "unresolved symbol unresolved-fn1"}
+      :message "Unresolved symbol: unresolved-fn1"}
      {:file "corpus/unresolved_symbol.clj",
       :row 15,
       :col 1,
@@ -36,7 +36,7 @@
       :row 18,
       :col 2,
       :level :error,
-      :message "unresolved symbol foo"}
+      :message "Unresolved symbol: foo"}
      {:file "corpus/unresolved_symbol.clj",
       :row 22,
       :col 1,
@@ -49,7 +49,7 @@
       :row 1,
       :col 1,
       :level :error,
-      :message "unresolved symbol x"})
+      :message "Unresolved symbol: x"})
    (lint! "x"
           '{:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
@@ -62,7 +62,7 @@
       :row 1,
       :col 49,
       :level :error,
-      :message "unresolved symbol pprint"})
+      :message "Unresolved symbol: pprint"})
    (lint! "(ns foo (:require [clojure.pprint :as pprint])) pprint"
           '{:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
@@ -75,7 +75,7 @@
       :row 1,
       :col 50,
       :level :error,
-      :message "unresolved symbol pprint"})
+      :message "Unresolved symbol: pprint"})
    (lint! "(ns foo (:require [clojure.pprint :as pprint])) (pprint)"
           '{:linters {:unresolved-symbol {:level :error}}}))
   (testing "slurp is unresolved in the cljs part of cljc"
@@ -84,13 +84,13 @@
         :row 1,
         :col 1,
         :level :error,
-        :message "unresolved symbol slurp"})
+        :message "Unresolved symbol: slurp"})
      (lint! "slurp"
             '{:linters {:unresolved-symbol {:level :error}}}
             "--lang" "cljc")))
   (testing "metadata in ns macro is linted"
     (assert-submaps
-     '({:file "<stdin>", :row 1, :col 25, :level :error, :message "unresolved symbol a"}
+     '({:file "<stdin>", :row 1, :col 25, :level :error, :message "Unresolved symbol: a"}
        {:file "<stdin>", :row 1, :col 30, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
      (lint! "(ns foo \"docstring\" {:a a :b (inc)})"
             '{:linters {:unresolved-symbol {:level :error}}})))
@@ -199,4 +199,13 @@
                      '{:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "(import '[java.foo Bar Baz]) Bar Baz"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(defmulti example first)
+
+(defmethod example :x
+  f
+  ([] :foo)
+  ([[_ v]]
+   [(f) :bar]))"
                      '{:linters {:unresolved-symbol {:level :error}}}))))

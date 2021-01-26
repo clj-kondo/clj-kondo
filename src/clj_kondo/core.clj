@@ -91,13 +91,13 @@
            :no-warnings]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
-        cfg-dir (or (when config-dir
-                      (io/file config-dir))
-                    (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
+        cfg-dir
+        (cond config-dir (io/file config-dir)
+              filename (core-impl/config-dir filename)
+              :else
+              (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
         ;; for backward compatibility non-sequential config should be wrapped into collection
-        config (if (System/getenv "CLJ_KONDO_DEV")
-                 (time (core-impl/resolve-config cfg-dir (if (sequential? config) config [config])))
-                 (core-impl/resolve-config cfg-dir (if (sequential? config) config [config])))
+        config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]))
         classpath (:classpath config)
         config (dissoc config :classpath)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
@@ -106,12 +106,16 @@
         analysis-cfg (get-in config [:output :analysis])
         analyze-locals? (get-in config [:output :analysis :locals])
         analysis (when analysis-cfg
+
                    (atom (cond-> {:namespace-definitions []
                                   :namespace-usages []
                                   :var-definitions []
                                   :var-usages []}
                            analyze-locals? (assoc :locals []
                                                   :local-usages []))))
+        used-nss (atom {:clj #{}
+                        :cljs #{}
+                        :cljc #{}})
         ctx {:no-warnings no-warnings
              :config-dir cfg-dir
              :config config
@@ -123,9 +127,7 @@
              :namespaces (atom {})
              :analysis analysis
              :cache-dir cache-dir
-             :used-namespaces (atom {:clj #{}
-                                     :cljs #{}
-                                     :cljc #{}})
+             :used-namespaces used-nss
              :ignores (atom {})
              :id-gen (when analyze-locals? (atom 0))
              :analyze-locals? analyze-locals?
@@ -134,6 +136,7 @@
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
                                      ctx) lint lang filename)
+        ;; _ (prn :used-nss @used-nss)
         idacs (core-impl/index-defs-and-calls ctx)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
@@ -142,6 +145,7 @@
         _ (l/lint-unused-private-vars! ctx)
         _ (l/lint-unused-bindings! ctx)
         _ (l/lint-unresolved-symbols! ctx)
+        _ (l/lint-unresolved-vars! ctx)
         _ (l/lint-unused-imports! ctx)
         _ (l/lint-unresolved-namespaces! ctx)
         ;; _ (namespace/reg-analysis-output! ctx)

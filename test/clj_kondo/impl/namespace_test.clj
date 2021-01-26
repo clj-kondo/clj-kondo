@@ -12,6 +12,7 @@
      :referred-vars {quux {:ns bar :name quux}}
      :qualify-ns {bar bar
                   baz bar}
+     :aliases {baz bar}
      :clojure-excluded #{get assoc time}}
    (analyze-ns-decl
     {:lang :clj
@@ -29,7 +30,8 @@
     (assert-submap
      '{:type :ns, :name foo
        :qualify-ns {bar bar
-                    baz bar}}
+                    baz bar}
+       :aliases {baz bar}}
      (analyze-ns-decl
       {:lang :clj
        :namespaces (atom {})}
@@ -72,7 +74,7 @@
              ctx
              (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
-      (is (= '{:ns rewrite-clj.parser :name parse-string}
+      (is (= '{:ns rewrite-clj.parser :name parse-string :alias p}
              (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string))))
     (testing "referring to unknown namespace alias"
       (let [ctx {:namespaces (atom {})
@@ -91,7 +93,7 @@
 (clojure.core/inc 1)
 "))]
         (is (=
-             '{:ns clojure.core :name inc}
+             '{:ns clojure.core :name inc :resolved-core? true}
              (resolve-name ctx 'clj-kondo.impl.utils 'clojure.core/inc)))))))
 
 (comment

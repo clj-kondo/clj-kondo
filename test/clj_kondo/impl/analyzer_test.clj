@@ -4,6 +4,7 @@
    [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.utils :refer [parse-string]]
+   [clj-kondo.test-utils :refer [assert-submap]]
    [clojure.test :as t :refer [deftest testing is are]]))
 
 (deftest lift-meta-test
@@ -61,11 +62,18 @@
                                "core.clj"))))))
 
 (deftest analyze-input-test
-  (let [findings (atom [])
-        analyze (fn [^String source]
-                  (ana/analyze-input {:config {:linters {:syntax {:level :error}}}
-                                      :findings findings
-                                      :ignores (atom {})} "test.clj" source :clj false))]
+  (let [analyze (fn [^String source]
+                  (let [ctx {:config {:linters {:syntax {:level :error}} :output {:analysis true :format :edn}}
+                             :filename "-"
+                             :base-lang :clj
+                             :lang :clj
+                             :used-namespaces (atom {})
+                             :findings (atom [])
+                             :namespaces (atom {})
+                             :ignores (atom {})
+                             :bindings {}}]
+                    (ana/analyze-input ctx "test.clj" source :clj false)
+                    ctx))]
     (testing "unmatched delimiters"
       (is (= [{:type :syntax
                :level :error
@@ -79,10 +87,7 @@
                :row 1
                :col 2
                :message "Mismatched bracket: found an opening ( on line 1 and a closing }"}]
-             (do
-               (reset! findings [])
-               (analyze "(}")
-               @findings))))
+             @(:findings (analyze "(}")))))
     (testing "unclosed delimiter"
       (is (= [{:type :syntax
                :level :error
@@ -94,10 +99,7 @@
                :row 1
                :col 9
                :message "Expected a ) to match ( from line 1"}]
-             (do
-               (reset! findings [])
-               (analyze "(defn []")
-               @findings))))
+             @(:findings (analyze "(defn []")))))
 
     (testing "invalid tokens"
       (is (= [{:type :syntax
@@ -106,14 +108,22 @@
                :row 1
                :col 4
                :message "Invalid number: 1..1."}]
-             (do
-               (reset! findings [])
-               (analyze "1..1")
-               @findings))))))
-
-
-
-
+             @(:findings (analyze "1..1")))))
+    (testing "multiple :as aliases and alias fn"
+      (assert-submap
+        '{:type :ns
+          :name foo
+          :qualify-ns {baz bar
+                       bar bar
+                       quux qux
+                       qux qux
+                       snafu clojure.set
+                       clojure.core clojure.core}
+          :aliases {baz bar quux qux snafu clojure.set}}
+        (-> (analyze "(ns foo (:require [bar :as baz] [qux :as quux])) (alias 'snafu 'clojure.set)")
+            :namespaces
+            deref
+            (get-in [:clj :clj 'foo]))))))
 
 (comment
   (t/run-tests)

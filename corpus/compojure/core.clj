@@ -15,3 +15,5 @@
 (defmacro POST "Generate a `POST` route."
   [path args & body]
   (foo/compile-route :post path args body))
+
+(declare DELETE PUT ANY make-routes routes wrap-routes let-routes context make-route rfn routing)

@@ -146,6 +146,21 @@
                    (+ 1 2 3))))
         (is (= 6 @fut))))))
 
+(deftest resolve-config-dir
+  (testing "config dir should be resolved relative to the only file linted"
+    (let [tmp-dir (System/getProperty "java.io.tmpdir")
+          test-source-dir (io/file tmp-dir "test-source-dir")
+          test-config-dir (io/file test-source-dir ".clj-kondo")
+          foo (io/file test-source-dir "foo.clj")]
+      (remove-dir test-source-dir)
+      (make-dirs test-source-dir)
+      (remove-dir test-config-dir)
+      (make-dirs test-config-dir)
+      (io/copy "(ns foo) (defn foo [x]) (foo)" foo)
+      ;; populate cache
+      (is (seq (lint! foo "--filename" (.getPath foo) "--cache" "true")))
+      (is (.exists (io/file test-config-dir ".cache"))))))
+
 ;;;; Scratch
 
 (comment

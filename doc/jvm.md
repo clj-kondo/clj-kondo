@@ -22,7 +22,7 @@ $ lein clj-kondo --lint src
 Run clj-kondo as an ad-hoc command line dependency:
 
 ``` shellsession
-$ clj -Sdeps '{:deps {clj-kondo {:mvn/version "RELEASE"}}}' -m clj-kondo.main --lint src
+$ clj -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}}' -m clj-kondo.main --lint src
 ```
 
 Or add it as an alias to `~/.clojure/deps.edn`:
@@ -30,12 +30,12 @@ Or add it as an alias to `~/.clojure/deps.edn`:
 ``` clojure
 {:aliases
  {:clj-kondo
-  {:extra-deps {clj-kondo {:mvn/version "RELEASE"}}
+  {:extra-deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}
    :main-opts ["-m" "clj-kondo.main"]}}}
 ```
 
 ``` shellsession
-$ clj -A:clj-kondo --lint src
+$ clj -M:clj-kondo --lint src
 ```
 
 ## shadow-cljs

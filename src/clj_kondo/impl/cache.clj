@@ -81,7 +81,8 @@
     (let [path [lang :defs ns-sym]]
       (if-not (get-in idacs path)
         (if-let [data (from-cache-1 cache-dir lang ns-sym)]
-          (let [res (assoc-in idacs path data)]
+          (let [idacs (update idacs :linted-namespaces conj ns-sym)
+                res (assoc-in idacs path data)]
             ;; proxied-namespaces are here because of potemkin/import-vars since
             ;; import-vars only supports clj and not cljs, we're fine with loading
             ;; these namespace only with the current language (which is :clj)
@@ -89,7 +90,7 @@
               (reduce #(load-when-missing %1 cache-dir lang %2) res proxied)
               res))
           idacs)
-        idacs))))
+        (update idacs :linted-namespaces conj ns-sym)))))
 
 (defn update-defs
   "Resolve types of defs. Optionally store to cache. Return defs with
@@ -120,7 +121,8 @@
   namespaces we linted in this run."
   [idacs cache-dir]
   ;; first load all idacs so we can resolve types
-  (let [idacs
+  (let [idacs (assoc idacs :linted-namespaces #{})
+        idacs
         (reduce (fn [idacs lang]
                   (let [required-namespaces (get-in idacs [:used-namespaces lang])]
                     (reduce (fn [idacs lang]

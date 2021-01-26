@@ -42,7 +42,6 @@
   ([ctx children]
    (analyze-children ctx children true))
   ([{:keys [:callstack :config :top-level?] :as ctx} children add-new-arg-types?]
-   ;; (prn callstack)
    (let [top-level? (and top-level?
                          (let [fst (first callstack)]
                            (one-of fst [[clojure.core comment]
@@ -59,7 +58,8 @@
                                          (atom [])
                                          nil))
                                      (:arg-types ctx)))]
-         (mapcat #(analyze-expression** ctx %) children))))))
+         ;; TODO: can we get rid of return values here?
+         (into [] (mapcat #(analyze-expression** ctx %)) children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
   (let [skip-reg-binding? (when (:fn-args? opts)
@@ -1035,12 +1035,10 @@
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
-        [method-name-node dispatch-val-node & body-exprs] children
+        [method-name-node dispatch-val-node & fn-tail] children
         _ (analyze-usages2 ctx method-name-node)
-        bodies (fn-bodies ctx body-exprs expr)
-        analyzed-bodies (map #(analyze-fn-body ctx %) bodies)]
-    (concat (analyze-expression** ctx dispatch-val-node)
-            (mapcat :parsed analyzed-bodies))))
+        _ (analyze-expression** ctx dispatch-val-node)]
+    (analyze-fn ctx {:children (cons nil fn-tail)})))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))
@@ -1311,9 +1309,12 @@
         children (next (:children expr))
         {resolved-namespace :ns
          resolved-name :name
+         resolved-alias :alias
          unresolved? :unresolved?
          unresolved-ns :unresolved-ns
          clojure-excluded? :clojure-excluded?
+         interop? :interop?
+         resolved-core? :resolved-core?
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
         expr-meta (meta expr)]
@@ -1370,6 +1371,7 @@
                                                        :name (with-meta
                                                                (or resolved-name full-fn-name)
                                                                (meta full-fn-name))
+                                                       :alias resolved-alias
                                                        :unresolved? unresolved?
                                                        :unresolved-ns unresolved-ns
                                                        :clojure-excluded? clojure-excluded?
@@ -1386,7 +1388,9 @@
                                                        :callstack (:callstack ctx)
                                                        :config (:config ctx)
                                                        :top-ns (:top-ns ctx)
-                                                       :arg-types (:arg-types ctx)})
+                                                       :arg-types (:arg-types ctx)
+                                                       :interop? interop?
+                                                       :resolved-core? resolved-core?})
                   ;;;; This registers the namespace as used, to prevent unused warnings
                 (namespace/reg-used-namespace! ctx
                                                ns-name
@@ -1513,10 +1517,9 @@
                         ([clojure.test deftest]
                          [cljs.test deftest]
                          #_[:clj-kondo/unknown-namespace deftest])
-                        (do (lint-inline-def! ctx expr)
-                            (test/analyze-deftest ctx expr
-                                                  resolved-namespace resolved-name
-                                                  resolved-as-namespace resolved-as-name))
+                        (test/analyze-deftest ctx expr
+                                              resolved-namespace resolved-name
+                                              resolved-as-namespace resolved-as-name)
                         [clojure.string replace]
                         (analyze-clojure-string-replace ctx expr)
                         [cljs.test async]
@@ -1587,6 +1590,7 @@
                                     :name (with-meta
                                             (or resolved-name full-fn-name)
                                             (meta full-fn-name))
+                                    :alias resolved-alias
                                     :unresolved? unresolved?
                                     :unresolved-ns unresolved-ns
                                     :clojure-excluded? clojure-excluded?
@@ -1603,7 +1607,9 @@
                                     :config (:config ctx)
                                     :top-ns (:top-ns ctx)
                                     :arg-types (:arg-types ctx)
-                                    :simple? (simple-symbol? full-fn-name)}
+                                    :simple? (simple-symbol? full-fn-name)
+                                    :interop? interop?
+                                    :resolved-core? resolved-core?}
                         ret-tag (or (:ret m)
                                     (types/ret-tag-from-call ctx proto-call expr))
                         call (cond-> proto-call
