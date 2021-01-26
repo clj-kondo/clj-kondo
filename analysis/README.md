@@ -47,7 +47,7 @@ The analysis output consists of a map with:
      was resolved: `:clj` or `:cljs`
 
 - `:var-definitions`, a list of maps with:
-  - `:filename`, `:row`, `:col`
+  - `:filename`, `:row`, `:col`, `end-row`, `end-col`
   - `:ns`: the namespace of the var
   - `:name`: the name of the var
 
@@ -128,6 +128,8 @@ $ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}
  :var-definitions [{:filename "/tmp/foo.clj",
                     :row 8,
                     :col 1,
+                    :end-row 9,
+                    :end-col 11,
                     :ns foo,
                     :name f,
                     :private true,
@@ -137,11 +139,13 @@ $ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}
                     :name g,
                     :filename "/tmp/foo.clj",
                     :macro true,
+                    :row 11,
                     :col 1,
+                    :end-row 16,
+                    :end-col 22,
                     :deprecated "1.3",
                     :varargs-min-arity 1,
-                    :doc "No longer used.",
-                    :row 11}],
+                    :doc "No longer used."}],
  :var-usages [{:fixed-arities #{1},
                :name inc,
                :filename "/tmp/foo.clj",
