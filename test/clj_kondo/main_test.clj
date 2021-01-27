@@ -2630,7 +2630,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "And & 2 nots used instead of 1 not with or"})
-     (lint! "(and (not :foo) (not :bar))" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(and (not :foo) (not :bar))" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2638,11 +2638,11 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "Or & 3 nots used instead of 1 not with and"})
-     (lint! "(or (not :foo) (not :bar) (not :baz))" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(or (not :foo) (not :bar) (not :baz))" {:linters {:redundant-negation {:level :warning}}}))
 
-    (is (empty? (lint! "(or) (and)" {:linters {:redundant-nots {:level :warning}}}))
+    (is (empty? (lint! "(or) (and)" {:linters {:redundant-negation {:level :warning}}}))
         "'Or' and 'and' without args isn't a problem")
-    (is (empty? (lint! "(and (not :foo) (not :bar) :baz)" {:linters {:redundant-nots {:level :warning}}}))
+    (is (empty? (lint! "(and (not :foo) (not :bar) :baz)" {:linters {:redundant-negation {:level :warning}}}))
         "If any arg supplied is not a list with first element 'not', then the call is fine"))
 
   (testing "negated `nil?` can be simplified to `some?`"
@@ -2652,7 +2652,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and nil? used instead of some?"})
-     (lint! "(not (nil? :foo))" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(not (nil? :foo))" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2660,7 +2660,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and nil? used instead of some?"})
-     (lint! "(comp not nil?)" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(comp not nil?)" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2668,7 +2668,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "complement and nil? used instead of some?"})
-     (lint! "(complement  nil?)" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(complement  nil?)" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "negated `=` can be simplified to `not=`"
     (assert-submaps
@@ -2677,7 +2677,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and = used instead of not="})
-     (lint! "(not (= :foo :bar))" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(not (= :foo :bar))" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2685,7 +2685,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and = used instead of not="})
-     (lint! "(comp not =)" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(comp not =)" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2693,7 +2693,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "complement and = used instead of not="})
-     (lint! "(complement =)" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(complement =)" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "negated `even?` can be simplified to `odd?`"
     (assert-submaps
@@ -2702,7 +2702,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and even? used instead of odd?"})
-     (lint! "(not (even? 42))" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(not (even? 42))" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2710,7 +2710,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and even? used instead of odd?"})
-     (lint! "(comp not even?)" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(comp not even?)" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2718,7 +2718,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "complement and even? used instead of odd?"})
-     (lint! "(complement even?)" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(complement even?)" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "negated `odd?` can be simplified to `even?`"
     (assert-submaps
@@ -2727,7 +2727,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and odd? used instead of even?"})
-     (lint! "(not (odd? 42))" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(not (odd? 42))" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2735,7 +2735,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and odd? used instead of even?"})
-     (lint! "(comp not odd?)" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(comp not odd?)" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2743,7 +2743,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "complement and odd? used instead of even?"})
-     (lint! "(complement odd?)" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(complement odd?)" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "negated `seq` can be simplified to `empty?`"
     (assert-submaps
@@ -2752,7 +2752,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and seq used instead of empty?"})
-     (lint! "(not (seq [:foo :bar :baz]))" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(not (seq [:foo :bar :baz]))" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2760,7 +2760,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "not and seq used instead of empty?"})
-     (lint! "(comp not seq)" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(comp not seq)" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2768,7 +2768,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "complement and seq used instead of empty?"})
-     (lint! "(complement seq)" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(complement seq)" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "`filter` & `complement` used instead of `remove` or vice versa"
     (assert-submaps
@@ -2777,7 +2777,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "filter and complement used instead of remove"})
-     (lint! "(filter (complement foo) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(filter (complement foo) [:bar :baz])" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2785,7 +2785,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "remove and complement used instead of filter"})
-     (lint! "(remove (complement foo) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(remove (complement foo) [:bar :baz])" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "`filter` & `comp` with `not` used instead of `remove` or vice versa"
     (assert-submaps
@@ -2794,7 +2794,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "filter and comp with not used instead of remove"})
-     (lint! "(filter (comp not foo) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(filter (comp not foo) [:bar :baz])" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2802,7 +2802,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "remove and comp with not used instead of filter"})
-     (lint! "(remove (comp not foo) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(remove (comp not foo) [:bar :baz])" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "`filter` & fn with `not` wrapping the rest of the body used instead of `remove` or vice versa"
     (assert-submaps
@@ -2811,7 +2811,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "filter and not used instead of remove"})
-     (lint! "(filter #(not (:foo %)) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(filter #(not (:foo %)) [:bar :baz])" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2819,7 +2819,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "filter and not used instead of remove"})
-     (lint! "(filter (fn [x] (not (:foo x))) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(filter (fn [x] (not (:foo x))) [:bar :baz])" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2827,7 +2827,7 @@ foo/foo ;; this does use the private var
         :col 18,
         :level :warning,
         :message "filter and not used instead of remove"})
-     (lint! "(->> [:bar :baz] (filter (fn [x] (not (:foo x)))))" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(->> [:bar :baz] (filter (fn [x] (not (:foo x)))))" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2835,7 +2835,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "remove and not used instead of filter"})
-     (lint! "(remove #(not (:foo %)) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(remove #(not (:foo %)) [:bar :baz])" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2843,7 +2843,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "remove and not used instead of filter"})
-     (lint! "(remove (fn [x] (not (:foo x))) [:bar :baz])" {:linters {:redundant-nots {:level :warning}}})))
+     (lint! "(remove (fn [x] (not (:foo x))) [:bar :baz])" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "`if` or `when` with `not` used instead of `if-not` or `when-not` respectively"
     (assert-submaps
@@ -2852,7 +2852,7 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "if and not used instead of if-not"})
-     (lint! "(if (not :foo) :bar :baz)" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(if (not :foo) :bar :baz)" {:linters {:redundant-negation {:level :warning}}}))
 
     (assert-submaps
      '({:file "<stdin>",
@@ -2860,11 +2860,11 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "when and not used instead of when-not"})
-     (lint! "(when (not :foo) :bar)" {:linters {:redundant-nots {:level :warning}}}))
+     (lint! "(when (not :foo) :bar)" {:linters {:redundant-negation {:level :warning}}}))
 
-    (is (empty? (lint! "(if (not= 7 42) :foo :bar)" {:linters {:redundant-nots {:level :warning}}}))
+    (is (empty? (lint! "(if (not= 7 42) :foo :bar)" {:linters {:redundant-negation {:level :warning}}}))
         "If with any other call starting the test form is ok")
-    (is (empty? (lint! "(when (or (not :foo) :bar) :foo :bar)" {:linters {:redundant-nots {:level :warning}}}))
+    (is (empty? (lint! "(when (or (not :foo) :bar) :foo :bar)" {:linters {:redundant-negation {:level :warning}}}))
         "When with any other call starting the test form is ok")))
 
 

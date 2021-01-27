@@ -127,10 +127,10 @@
       (findings/reg-finding!
        ctx
        (case called-name
-         and (node->line (:filename ctx) call :warning :redundant-nots
+         and (node->line (:filename ctx) call :warning :redundant-negation
                          (format "And & %s nots used instead of 1 not with or"
                                  (count next-children)))
-         or (node->line (:filename ctx) call :warning :redundant-nots
+         or (node->line (:filename ctx) call :warning :redundant-negation
                         (format "Or & %s nots used instead of 1 not with and"
                                  (count next-children))))))))
 
@@ -138,27 +138,27 @@
   (case negated-child
     nil? (findings/reg-finding!
           ctx
-          (node->line (:filename ctx) call :warning :redundant-nots
+          (node->line (:filename ctx) call :warning :redundant-negation
                       (format "%s and nil? used instead of some?" negator-string)))
 
     = (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) call :warning :redundant-nots
+       (node->line (:filename ctx) call :warning :redundant-negation
                    (format "%s and = used instead of not=" negator-string)))
 
     even? (findings/reg-finding!
            ctx
-           (node->line (:filename ctx) call :warning :redundant-nots
+           (node->line (:filename ctx) call :warning :redundant-negation
                        (format "%s and even? used instead of odd?" negator-string)))
 
     odd? (findings/reg-finding!
           ctx
-          (node->line (:filename ctx) call :warning :redundant-nots
+          (node->line (:filename ctx) call :warning :redundant-negation
                       (format "%s and odd? used instead of even?" negator-string)))
 
     seq (findings/reg-finding!
          ctx
-         (node->line (:filename ctx) call :warning :redundant-nots
+         (node->line (:filename ctx) call :warning :redundant-negation
                      (format "%s and seq used instead of empty?" negator-string)))
     nil))
 
@@ -186,7 +186,7 @@
       (= 'complement first-pred-child-val)
       (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) call :warning :redundant-nots
+       (node->line (:filename ctx) call :warning :redundant-negation
                    (format "%s and complement used instead of %s"
                            called-name alternative)))
 
@@ -194,7 +194,7 @@
            (= 'not second-pred-child-val))
       (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) call :warning :redundant-nots
+       (node->line (:filename ctx) call :warning :redundant-negation
                    (format "%s and comp with not used instead of %s"
                            called-name alternative)))
 
@@ -205,7 +205,7 @@
                (= 'not (-> pred :children last :children first :value))))
       (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) call :warning :redundant-nots
+       (node->line (:filename ctx) call :warning :redundant-negation
                    (format "%s and not used instead of %s"
                            called-name alternative))))))
 
@@ -215,7 +215,7 @@
     (when (= 'not first-test-child-val)
       (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) call :warning :redundant-nots
+       (node->line (:filename ctx) call :warning :redundant-negation
                    (format "%s and not used instead of %s-not"
                            called-name called-name))))))
 
