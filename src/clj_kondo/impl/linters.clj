@@ -141,6 +141,11 @@
           (node->line (:filename ctx) call :warning :redundant-negation
                       (format "%s and nil? used instead of some?" negator-string)))
 
+    some? (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx) call :warning :redundant-negation
+                       (format "%s and some? used instead of nil?" negator-string)))
+
     = (findings/reg-finding!
        ctx
        (node->line (:filename ctx) call :warning :redundant-negation
@@ -160,6 +165,16 @@
          ctx
          (node->line (:filename ctx) call :warning :redundant-negation
                      (format "%s and seq used instead of empty?" negator-string)))
+
+    some (findings/reg-finding!
+          ctx
+          (node->line (:filename ctx) call :warning :redundant-negation
+                      (format "%s and some used instead of not-any?" negator-string)))
+
+    every? (findings/reg-finding!
+            ctx
+            (node->line (:filename ctx) call :warning :redundant-negation
+                        (format "%s and every? used instead of not-every?" negator-string)))
     nil))
 
 (defn lint-comp-not [ctx call]

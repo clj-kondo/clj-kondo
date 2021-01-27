@@ -2622,7 +2622,7 @@ foo/foo ;; this does use the private var
   (testing "don't throw exception when args are missing"
     (is (some? (lint! "(assoc-in)")))))
 
-(deftest redundant-nots-test
+(deftest redundant-negation-test
   (testing "`and` & `or` with `not`s can be simplified"
     (assert-submaps
      '({:file "<stdin>",
@@ -2668,7 +2668,32 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message "complement and nil? used instead of some?"})
-     (lint! "(complement  nil?)" {:linters {:redundant-negation {:level :warning}}})))
+     (lint! "(complement nil?)" {:linters {:redundant-negation {:level :warning}}})))
+
+  (testing "negated `some?` can be simplified to `nil?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and some? used instead of nil?"})
+     (lint! "(not (some? :foo))" {:linters {:redundant-negation {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and some? used instead of nil?"})
+     (lint! "(comp not some?)" {:linters {:redundant-negation {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "complement and some? used instead of nil?"})
+     (lint! "(complement some?)" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "negated `=` can be simplified to `not=`"
     (assert-submaps
@@ -2769,6 +2794,56 @@ foo/foo ;; this does use the private var
         :level :warning,
         :message "complement and seq used instead of empty?"})
      (lint! "(complement seq)" {:linters {:redundant-negation {:level :warning}}})))
+
+  (testing "negated `some` can be simplified to `not-any?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and some used instead of not-any?"})
+     (lint! "(not (some string? [:foo :bar :baz]))" {:linters {:redundant-negation {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and some used instead of not-any?"})
+     (lint! "(comp not some)" {:linters {:redundant-negation {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "complement and some used instead of not-any?"})
+     (lint! "(complement some)" {:linters {:redundant-negation {:level :warning}}})))
+
+  (testing "negated `every?` can be simplified to `not-every?`"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and every? used instead of not-every?"})
+     (lint! "(not (every? string? [:foo :bar :baz]))" {:linters {:redundant-negation {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "not and every? used instead of not-every?"})
+     (lint! "(comp not every?)" {:linters {:redundant-negation {:level :warning}}}))
+
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message "complement and every? used instead of not-every?"})
+     (lint! "(complement every?)" {:linters {:redundant-negation {:level :warning}}})))
 
   (testing "`filter` & `complement` used instead of `remove` or vice versa"
     (assert-submaps
