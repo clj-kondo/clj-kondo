@@ -5,6 +5,25 @@
    [missing.test.assertions]))
 
 (deftest core-match-test
+  (assert-submaps
+   '({:file "<stdin>", :row 3, :col 8, :level :warning, :message "unused binding a"})
+   (lint! "(require '[clojure.core.match :refer [match]])
+(match [1 2 3]
+  [1 2 a] :foo)
+" {:linters {:unused-binding {:level :warning}
+             :unresolved-symbol {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 4, :col 15, :level :warning, :message "unused binding b"}
+     {:file "<stdin>", :row 6, :col 20, :level :warning, :message "unused binding x"})
+   (lint! "(require '[clojure.core.match :refer [match]])
+(let [x {:a 1 :b 1}]
+  (match [x]
+         [{:a b :b 2}] :a0
+         [{:a 1 :b 1}] :a1
+         [{:c 3 :d x :e 4}] :a2
+         :else nil))
+" {:linters {:unused-binding {:level :warning}
+             :unresolved-symbol {:level :error}}}))
   (is (empty? (lint! "(require '[clojure.core.match :refer [match]])
 
 (match [1 2 3]
@@ -66,20 +85,13 @@
 " {:linters {:unused-binding {:level :warning}
              :unresolved-symbol {:level :error}}}))))
 
-  (assert-submaps
-   '({:file "<stdin>", :row 3, :col 8, :level :warning, :message "unused binding a"})
-   (lint! "(require '[clojure.core.match :refer [match]])
-(match [1 2 3]
-  [1 2 a] :foo)
+  (testing "map pattern"
+    (is (empty? (lint! "(require '[clojure.core.match :refer [match]])
+(let [x {:a 1 :b 1}]
+  (match [x]
+         [{:a _ :b 2}] :a0
+         [{:a 1 :b 1}] :a1
+         [{:c 3 :d _ :e 4}] :a2
+         :else nil))
 " {:linters {:unused-binding {:level :warning}
-             :unresolved-symbol {:level :error}}})))
-
-;; TODO:
-
-#_(let [x '(1 2 4)
-      y nil
-      z nil]
-  (match [x y z]
-         [([1 2 b] :seq) _ _] [:a0 b]
-         [([a 2 4] :seq) _ _] [:a1 a]
-         :else []))
+             :unresolved-symbol {:level :error}}})))))

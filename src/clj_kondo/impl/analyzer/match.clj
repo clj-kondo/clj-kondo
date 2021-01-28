@@ -27,7 +27,7 @@
     (case tag
       :token
       (analyze-token ctx expr)
-      (:list :vector)
+      (:list :vector :map)
       (analyze-children ctx expr)
       ;; default
       (do (common/analyze-expression** ctx expr)
