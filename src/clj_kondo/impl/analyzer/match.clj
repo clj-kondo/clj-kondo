@@ -8,11 +8,16 @@
            bindings {}]
       (if children
         (let [child (first children)]
-          (if (utils/symbol-token? child)
-            (recur (next children)
-                   (into bindings
-                         (common/extract-bindings ctx child)))
-            (do (common/analyze-expression** ctx child)
+          (cond (utils/symbol-token? child)
+                (recur (next children)
+                       (into bindings
+                             (common/extract-bindings ctx child)))
+                (identical? :vector (utils/tag child))
+                (let [nested (vector-bindings ctx child)]
+                  (recur (next children)
+                         (into bindings nested)))
+                :else
+                (do (common/analyze-expression** ctx child)
                 (recur (next children)
                        bindings))))
         bindings))))

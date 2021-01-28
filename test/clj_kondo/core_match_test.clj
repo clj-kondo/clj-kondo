@@ -11,6 +11,18 @@
   [1 2 _] :foo)
 "
                      {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(require '[clojure.core.match :refer [match]])
+
+(match [1 2 3]
+  [1 2 a] a)
+"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(require '[clojure.core.match :refer [match]])
+
+(match [1 2 [3 4]]
+  [1 2 [a b]] [a b])
+"
+                     {:linters {:unresolved-symbol {:level :error}}})))
   (assert-submaps
    '({:file "<stdin>", :row 3, :col 8, :level :warning, :message "unused binding a"})
    (lint! "(require '[clojure.core.match :refer [match]])
