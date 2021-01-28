@@ -31,3 +31,12 @@
 " {:linters {:unused-binding {:level :warning}
              :unresolved-symbol {:level :error}}})))
 
+;; TODO:
+
+#_(let [x '(1 2 4)
+      y nil
+      z nil]
+  (match [x y z]
+         [([1 2 b] :seq) _ _] [:a0 b]
+         [([a 2 4] :seq) _ _] [:a1 a]
+         :else []))
