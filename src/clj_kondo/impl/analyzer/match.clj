@@ -28,8 +28,7 @@
     (let [bindings (vector-bindings ctx clause)
           ctx (utils/ctx-with-bindings ctx bindings)]
       (common/analyze-expression** ctx ret))
-    :list
-    
+    ;; fallback
     (do
       (common/analyze-expression** ctx clause)
       (common/analyze-expression** ctx ret))))
