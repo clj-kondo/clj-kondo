@@ -37,6 +37,34 @@
 "
                        {:linters {:unused-binding {:level :warning}
                                   :unresolved-symbol {:level :error}}}))))
+  (testing "& rest pattern"
+    (is (empty? (lint! "(require '[clojure.core.match :refer [match]])
+(let [x [1 2 nil nil nil]]
+  (match [x]
+    [([1] :seq)] :a0
+    [([1 2] :seq)] :a1
+    [([1 2 nil nil nil] :seq)] :a2
+    :else nil))
+;=> :a2
+"
+                       {:linters {:unused-binding {:level :warning}
+                                  :unresolved-symbol {:level :error}}}))))
+  (testing "nested seqs"
+    (is (empty? (lint! "(require '[clojure.core.match :refer [match]])
+(let [x '((1 2))]
+  (match x
+         ([([1 & r] :seq)] :seq) [:a1 r]))
+"
+                       {:linters {:unused-binding {:level :warning}
+                                  :unresolved-symbol {:level :error}}}))))
+  (testing "symbolic clause"
+    (is (empty? (lint! "(require '[clojure.core.match :refer [match]])
+(let [x '((1 2))]
+  (match x
+         y y))
+
+" {:linters {:unused-binding {:level :warning}
+             :unresolved-symbol {:level :error}}}))))
 
   (assert-submaps
    '({:file "<stdin>", :row 3, :col 8, :level :warning, :message "unused binding a"})
