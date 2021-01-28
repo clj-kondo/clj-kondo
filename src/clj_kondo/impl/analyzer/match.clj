@@ -22,12 +22,17 @@
                        bindings))))
         bindings))))
 
+(defn analyze-list [ctx clause ret]
+  )
+
 (defn analyze-clause [ctx clause ret]
   (case (utils/tag clause)
     :vector
     (let [bindings (vector-bindings ctx clause)
           ctx (utils/ctx-with-bindings ctx bindings)]
       (common/analyze-expression** ctx ret))
+    :list
+    (analyze-list ctx clause ret)
     ;; fallback
     (do
       (common/analyze-expression** ctx clause)

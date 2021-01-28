@@ -23,6 +23,21 @@
   [1 2 [a b]] [a b])
 "
                      {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(require '[clojure.core.match :refer [match]])
+
+(match [1 2 [3 4]]
+  [1 2 [a b]] [a b])
+"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "& rest pattern"
+    (is (empty? (lint! "(require '[clojure.core.match :refer [match]])
+(let [x [1 2 3]]
+  (match x
+         [1 & rs] rs))
+"
+                       {:linters {:unused-binding {:level :warning}
+                                  :unresolved-symbol {:level :error}}}))))
+
   (assert-submaps
    '({:file "<stdin>", :row 3, :col 8, :level :warning, :message "unused binding a"})
    (lint! "(require '[clojure.core.match :refer [match]])
