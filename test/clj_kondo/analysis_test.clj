@@ -66,7 +66,7 @@
           {:name t :ns x}]
         (:keywords a))))
   (testing "clojure.spec.alpha/def can add :def"
-    (let [a (analyze "(require '[clojure.spec.alpha :as s]) (clojure.spec.alpha/def ::kw (inc))"
+    (let [a (analyze "(require '[clojure.spec.alpha :as s]) (s/def ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
         '[{:name kw :def clojure.spec.alpha/def}]

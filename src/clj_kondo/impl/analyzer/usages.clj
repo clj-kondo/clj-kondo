@@ -6,18 +6,19 @@
     [clj-kondo.impl.analyzer.common :as common]
     [clj-kondo.impl.metadata :as meta]
     [clj-kondo.impl.namespace :as namespace]
-    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some]]
+    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some symbol-token?]]
     [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)
 
-(def ^:private re-prefix-ns-name #"(::?)?(.*(?=/))?/?(.*)")
-
-(defn ^:private resolve-keyword [ctx kw-str current-ns]
-  (let [[_ prefix ns-str name-str] (when kw-str (re-matches re-prefix-ns-name kw-str))
-        aliased? (= "::" prefix)
-        alias-or-ns (some-> ns-str symbol)
+(defn ^:private resolve-keyword [ctx expr current-ns]
+  (let [aliased? (:namespaced? expr)
+        token (if (symbol-token? expr)
+                (symbol-from-token expr)
+                (:k expr))
+        name-sym (some-> token name symbol)
+        alias-or-ns (some-> token namespace symbol)
         ns-sym (cond
                  (and aliased? alias-or-ns)
                  (get-in ctx [:ns :aliases alias-or-ns] :clj-kondo/unknown-namespace)
@@ -27,7 +28,7 @@
 
                  :else
                  alias-or-ns)]
-    {:name (some-> name-str symbol)
+    {:name name-sym
      :ns ns-sym
      :alias (when (and aliased? (not= :clj-kondo/unknown-namespace ns-sym)) alias-or-ns)}))
 
@@ -38,10 +39,10 @@
          ns-name (:name ns)
          keyword-val (:k expr)]
      (when (:analyze-keywords? ctx)
-       (let [{:keys [:destructuring-str :keys-destructuring?]} opts
+       (let [{:keys [:destructuring-expr :keys-destructuring?]} opts
              current-ns (some-> ns-name symbol)
-             destructuring (when destructuring-str (resolve-keyword ctx destructuring-str current-ns))
-             resolved (resolve-keyword ctx (str expr) current-ns)]
+             destructuring (when destructuring-expr (resolve-keyword ctx destructuring-expr current-ns))
+             resolved (resolve-keyword ctx expr current-ns)]
          (analysis/reg-keyword-usage!
            ctx
            (:filename ctx)
@@ -51,7 +52,7 @@
                        :name (:name resolved)
                        :alias (when-not (:alias destructuring) (:alias resolved))
                        :ns (or (:ns destructuring) (:ns resolved))))))
-     (when (:namespaced? expr)
+     (when (and keyword-val (:namespaced? expr))
        (let [symbol-val (kw->sym keyword-val)
              {resolved-ns :ns}
              (namespace/resolve-name ctx ns-name symbol-val)]

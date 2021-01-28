@@ -239,7 +239,7 @@
                                                       (assoc opts
                                                              :keys-destructuring? true
                                                              :destructuring-type (some-> k :k name keyword)
-                                                             :destructuring-str (str k))))
+                                                             :destructuring-expr k)))
                                           (:children v)))
                              ;; or doesn't introduce new bindings, it only gives defaults
                              :or
@@ -1532,11 +1532,10 @@
                         (test/analyze-cljs-test-async ctx expr)
                         ([clojure.test are] [cljs.test are] #_[clojure.template do-template])
                         (test/analyze-are ctx expr)
-                        ([clojure.spec.alpha def] [cljs.spec.alpha def])
-                        (spec/analyze-def (assoc ctx
-                                                 :resolved [resolved-as-namespace resolved-as-name]
-                                                 :analyze-children
-                                                 analyze-children) expr)
+                        [cljs.spec.alpha def]
+                        (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
+                        [clojure.spec.alpha def]
+                        (spec/analyze-def ctx expr 'clojure.spec.alpha/def)
                         ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
                         (spec/analyze-fdef (assoc ctx
                                                   :analyze-children

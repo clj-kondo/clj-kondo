@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.analyzer.spec
   {:no-doc true}
   (:require
+     [clj-kondo.impl.analyzer.common :as common]
      [clj-kondo.impl.findings :as findings]
      [clj-kondo.impl.linters.keys :as keys]
      [clj-kondo.impl.namespace :as namespace]
@@ -31,10 +32,12 @@
                                                      (str "Unresolved symbol: " sym)))))))
     (analyze-children ctx body)))
 
-(defn analyze-def [{:keys [analyze-children resolved] :as ctx} expr]
-  (let [[kw-expr & body] (next (:children expr))]
-    (let [fq-def (symbol (-> resolved first name) (-> resolved second name))]
-      (analyze-children ctx (cons (assoc kw-expr :def fq-def) body)))))
+(defn analyze-def [ctx expr fq-def]
+  (let [[name-expr & body] (next (:children expr))
+        reg-val (if (:k name-expr)
+                  (assoc name-expr :def fq-def)
+                  name-expr)]
+    (common/analyze-children ctx (cons reg-val body))))
 
 ;;;; Scratch
 (require '[clj-kondo.impl.parser])
