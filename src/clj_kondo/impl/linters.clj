@@ -184,11 +184,11 @@
       (when (= 'not (:value f))
         (negated-cases ctx call "not" (:value g))))))
 
-(defn lint-not [ctx call]
+(defn lint-not [ctx called-name call]
   (when-not (utils/linter-disabled? ctx :redundant-negation)
     (let [[_ x] (:children call)
           first-x-child-val (:value (first (:children x)))]
-      (negated-cases ctx call "not" first-x-child-val))))
+      (negated-cases ctx call called-name first-x-child-val))))
 
 (defn lint-complement [ctx call]
   (when-not (utils/linter-disabled? ctx :redundant-negation)
@@ -246,8 +246,8 @@
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
-      ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
-       [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
+      ([clojure.core if-let] [clojure.core if-some]
+       [cljs.core if-let] [cljs.core if-some])
       (lint-missing-else-branch ctx (:expr call))
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
@@ -257,8 +257,12 @@
       (lint-and-or ctx called-name (:expr call))
       ([clojure.core when] [cljs.core when])
       (lint-if-when-not ctx called-name (:expr call))
-      ([clojure.core not] [cljs.core not])
-      (lint-not ctx (:expr call))
+      ([clojure.core not] [clojure.core when-not]
+       [cljs.core not] [cljs.core when-not])
+      (lint-not ctx called-name (:expr call))
+      ([clojure.core if-not] [cljs.core if-not])
+      (do (lint-missing-else-branch ctx (:expr call))
+          (lint-not ctx called-name (:expr call)))
       ([clojure.core comp] [cljs.core comp])
       (lint-comp-not ctx (:expr call))
       ([clojure.core complement] [cljs.core complement])

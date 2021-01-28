@@ -2897,6 +2897,27 @@ foo/foo ;; this does use the private var
        (lint! "(complement every?)" "--lang" lang
               "--config" {:linters {:redundant-negation {:level :warning}}}))))
 
+  (testing "`if-not` or `when-not` used when `if` or `when` can be used"
+    (doseq [lang ["clj" "cljs"]]
+      (assert-submaps
+       '({:file "<stdin>",
+          :row 1,
+          :col 1,
+          :level :warning,
+          :message "if-not and nil? used instead of some?"})
+       (lint! "(if-not (nil? :foo) :a :b)" "--lang" lang
+              "--config" {:linters {:redundant-negation {:level :warning}}})))
+
+    (doseq [lang ["clj" "cljs"]]
+      (assert-submaps
+       '({:file "<stdin>",
+          :row 1,
+          :col 1,
+          :level :warning,
+          :message "when-not and even? used instead of odd?"})
+       (lint! "(when-not (even? :foo) :a :b)" "--lang" lang
+              "--config" {:linters {:redundant-negation {:level :warning}}}))))
+
   (testing "`filter` & `complement` used instead of `remove` or vice versa"
     (doseq [lang ["clj" "cljs"]]
       (assert-submaps
