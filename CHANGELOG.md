@@ -2,6 +2,12 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+### Enhanced / fixed
+
+- Fix crash when linting kitchen-async [#1148](https://github.com/clj-kondo/clj-kondo/issues/1148)
+
 ## 2021.01.20
 
 Thanks to [@SevereOverfl0w](https://github.com/SevereOverfl0w),

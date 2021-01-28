@@ -169,15 +169,15 @@
 (deftest name-position-test
   (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
-     '[{:name foo :name-row 1 :name-col 7 :name-end-row 1 :name-end-col 10}]
+     '[{:name foo :name-row 1 :name-col 7 :name-end-row 1 :name-end-col 10 :end-row 1 :end-col 18}]
      var-definitions)
     (assert-submaps
       '[{:name foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17} {}]
       var-usages))
   (let [{:keys [:var-definitions :var-usages]} (analyze "(defprotocol Foo (bar [])) Foo bar" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
-      '[{:name Foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17}
-        {:name bar :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22}]
+      '[{:name Foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17 :end-row 1 :end-col 27}
+        {:name bar :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22 :end-row 1 :end-col 27}]
       var-definitions)
     (assert-submaps
       '[{}
@@ -229,7 +229,7 @@
       var-usages))
   (let [{:keys [:var-definitions :var-usages]} (analyze "(def a (atom nil)) (:foo @a)" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
-      '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7}]
+      '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7 :end-row 1 :end-col 19}]
       var-definitions)
     (assert-submaps
       '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
@@ -242,6 +242,8 @@
      '[{:filename "<stdin>",
         :row 1,
         :col 1,
+        :end-row 1,
+        :end-col 54,
         :ns user,
         :name foo,
         :fixed-arities #{0},
@@ -264,6 +266,8 @@
      '[{:filename "<stdin>",
         :row 1,
         :col 1,
+        :end-row 1,
+        :end-col 35,
         :ns user,
         :name x,
         :doc "docstring",
@@ -319,6 +323,8 @@
      '[{:filename "<stdin>",
         :row 2,
         :col 19,
+        :end-row 2,
+        :end-col 42,
         :ns foo,
         :name f,
         :fixed-arities #{0},
@@ -450,7 +456,7 @@
         (analyze "(ns foo (:require [clojure.test :as t]))
                   (t/deftest foo)")]
     (assert-submaps
-     '[{:filename "<stdin>", :row 2, :col 19, :ns foo, :name foo, :fixed-arities #{0},
+     '[{:filename "<stdin>", :row 2, :col 19, :end-row 2, :end-col 34, :ns foo, :name foo, :fixed-arities #{0},
         :test true :defined-by clojure.test/deftest}]
      var-definitions)))
 
@@ -459,8 +465,8 @@
         (analyze "(ns foo)
                   (deftype Foo [])")]
     (assert-submaps
-     '[{:filename "<stdin>", :row 2, :col 19, :ns foo, :name Foo, :defined-by clojure.core/deftype}
-       {:filename "<stdin>", :row 2, :col 19, :ns foo, :name ->Foo, :fixed-arities #{0}, :defined-by clojure.core/deftype}]
+     '[{:filename "<stdin>", :row 2, :col 19, :end-row 2, :end-col 35, :ns foo, :name Foo, :defined-by clojure.core/deftype}
+       {:filename "<stdin>", :row 2, :col 19, :end-row 2, :end-col 35, :ns foo, :name ->Foo, :fixed-arities #{0}, :defined-by clojure.core/deftype}]
      var-definitions)))
 
 (deftest defprotocol-test
