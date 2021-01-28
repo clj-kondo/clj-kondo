@@ -22,14 +22,20 @@
                        bindings))))
         bindings))))
 
+(defn analyze-clause [ctx clause ret]
+  (case (utils/tag clause)
+    :vector
+    (let [bindings (vector-bindings ctx clause)
+          ctx (utils/ctx-with-bindings ctx bindings)]
+      (common/analyze-expression** ctx ret))
+    :list
+    
+    (do
+      (common/analyze-expression** ctx clause)
+      (common/analyze-expression** ctx ret))))
+
 (defn analyze-match [ctx expr]
   (let [[_match pattern & clauses] (:children expr)]
     (common/analyze-expression** ctx pattern)
     (doseq [[clause ret] (partition 2 clauses)]
-      (if (identical? :vector (utils/tag clause))
-        (let [bindings (vector-bindings ctx clause)
-              ctx (utils/ctx-with-bindings ctx bindings)]
-          (common/analyze-expression** ctx ret))
-        (do
-          (common/analyze-expression** ctx clause)
-          (common/analyze-expression** ctx ret))))))
+      (analyze-clause ctx clause ret))))
