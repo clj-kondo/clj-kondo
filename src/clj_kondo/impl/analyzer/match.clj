@@ -42,3 +42,23 @@
                   (utils/ctx-with-bindings ctx bindings)
                   ctx)]
         (common/analyze-expression** ctx ret)))))
+
+;; TODO:
+;; or:
+#_(let [x 4 y 6 z 9]
+  (match [x y z]
+         [(:or 1 2 3) _ _] :a0
+         [4 (:or 5 6 7) _] :a1
+         :else []))
+;; defpred
+;; (defpred even?)
+;; (defpred odd?)
+;; (defpred div3?)
+
+;; (deftest guard-pattern-match-1
+;;   (is (= (let [y '(2 3 4 5)]
+;;            (match [y]
+;;                   [([_ (a :when even?) _ _] :seq)] :a0
+;;                   [([_ (b :when [odd? div3?]) _ _] :seq)] :a1
+;;                   :else []))
+;;          :a1)))
