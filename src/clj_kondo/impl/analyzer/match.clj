@@ -3,10 +3,12 @@
             [clj-kondo.impl.utils :as utils]))
 
 (defn analyze-token [ctx expr]
-  (if (utils/symbol-token? expr)
-    (common/extract-bindings ctx expr)
-    (do (common/analyze-expression** ctx expr)
-        nil)))
+  (let [sym (utils/symbol-from-token expr)]
+    (if (and sym
+             (not (contains? (:bindings ctx) sym)))
+      (common/extract-bindings ctx expr)
+      (do (common/analyze-expression** ctx expr)
+          nil))))
 
 (declare analyze-expr)
 

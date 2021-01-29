@@ -4,7 +4,6 @@
    [clojure.test :as t :refer [deftest is testing]]
    [missing.test.assertions]))
 
-
 (defn lint!! [s]
   (lint! (format "(require '[clojure.core.match :refer [match]])
 %s
@@ -20,8 +19,7 @@
   [1 2 a] :foo)
 "))
   (assert-submaps
-   '({:file "<stdin>", :row 5, :col 15, :level :warning, :message "unused binding b"}
-     {:file "<stdin>", :row 7, :col 20, :level :warning, :message "unused binding x"})
+   '({:file "<stdin>", :row 5, :col 15, :level :warning, :message "unused binding b"})
    (lint!! "
 (let [x {:a 1 :b 1}]
   (match [x]
@@ -97,6 +95,11 @@
 "))))
   (testing "a local isn't a pattern binding"
     (is (empty? (lint!! "
-(let [x 4]
-  (match x x x))
+(let [a 1 b 1]
+  (match [1 2]
+         [a 3] :a1
+         [1 2] :a2
+         [2 b] :a5
+         [_ 3] :a4
+         :else :a3))
 ")))))
