@@ -8,6 +8,7 @@
    [clj-kondo.impl.analyzer.core-async :as core-async]
    [clj-kondo.impl.analyzer.datalog :as datalog]
    [clj-kondo.impl.analyzer.jdbc :as jdbc]
+   [clj-kondo.impl.analyzer.match :as match]
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.potemkin :as potemkin]
@@ -58,7 +59,6 @@
                                          (atom [])
                                          nil))
                                      (:arg-types ctx)))]
-         ;; TODO: can we get rid of return values here?
          (into [] (mapcat #(analyze-expression** ctx %)) children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
@@ -1515,11 +1515,12 @@
                         [schema.core defrecord]
                         (analyze-schema ctx 'defrecord expr)
                         ([clojure.test deftest]
-                         [cljs.test deftest]
-                         #_[:clj-kondo/unknown-namespace deftest])
+                         [cljs.test deftest])
                         (test/analyze-deftest ctx expr
                                               resolved-namespace resolved-name
                                               resolved-as-namespace resolved-as-name)
+                        [clojure.core.match match]
+                        (match/analyze-match ctx expr)
                         [clojure.string replace]
                         (analyze-clojure-string-replace ctx expr)
                         [cljs.test async]
