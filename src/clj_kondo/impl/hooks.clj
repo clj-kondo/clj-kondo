@@ -21,9 +21,7 @@
   ([k]
    (reg-keyword! k true))
   ([k reg-by]
-   (assoc k :def (if (qualified-symbol? reg-by)
-                   reg-by
-                   true))))
+   (assoc k :def reg-by)))
 
 (def zip-ns (sci/create-ns 'clojure.zip nil))
 
