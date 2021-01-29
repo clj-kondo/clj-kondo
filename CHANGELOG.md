@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+### New
+
+- core.match support [#496](https://github.com/clj-kondo/clj-kondo/issues/496)
+
 ### Enhanced / fixed
 
 - Fix crash when linting kitchen-async [#1148](https://github.com/clj-kondo/clj-kondo/issues/1148)
