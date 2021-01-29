@@ -94,4 +94,9 @@
          [(:or 1 2 3) _ _] :a0
          [4 (:or 5 6 7) _] :a1
          :else []))
+"))))
+  (testing "a local isn't a pattern binding"
+    (is (empty? (lint!! "
+(let [x 4]
+  (match x x x))
 ")))))
