@@ -1763,7 +1763,18 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "(defn foo [_a _b] (dosync (recur)))")))
-  (is (empty? (lint! "(ns foo (:refer-clojure :only [defn]))"))))
+  (is (empty? (lint! "(ns foo (:refer-clojure :only [defn]))")))
+  (is (empty? (lint! "
+(ns kitchen-async.promise
+  (:refer-clojure :exclude [promise ->])
+  (:require [clojure.core :as cc]))
+
+(defmacro promise []
+  (cc/let [_ (cond-> []
+               true (conj 1))]))
+
+(defmacro -> [])"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest amap-test
   (is (empty? (lint! "

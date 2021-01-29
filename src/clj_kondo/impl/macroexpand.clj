@@ -54,8 +54,8 @@
   [_ctx expr]
   (let [[cond->-sym start-expr & clauses] (:children expr)
         thread-sym (case (name (:value cond->-sym))
-                     "cond->" '->
-                     "cond->>" '->>)
+                     "cond->" 'clojure.core/->
+                     "cond->>" 'clojure.core/->>)
         g (with-meta-of (token-node (gensym))
             start-expr)
         steps (map (fn [[t step]]
@@ -67,7 +67,7 @@
                                    step])
                                  g]))
                    (partition 2 clauses))
-        ret (list-node [(token-node 'let)
+        ret (list-node [(token-node 'clojure.core/let)
                         (vector-node
                          (list* g start-expr
                                 (interleave (repeat g) (butlast steps))))
@@ -78,7 +78,7 @@
   (let [[_doto x & forms] (:children expr)
         gx (with-meta-of (token-node (gensym "_")) x)
         ret (list-node
-             (list* (token-node 'let) (vector-node [gx x])
+             (list* (token-node 'clojure.core/let) (vector-node [gx x])
                     (map (fn [f]
                            (with-meta-of
                              (let [t (tag f)]
