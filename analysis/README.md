@@ -20,7 +20,7 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 ```
 
 - `:locals`: when truthy return `:locals` and `:local-usages` described below
-- `:keywords`: when truthy return `:keywords` described below
+<!-- - `:keywords`: when truthy return `:keywords` described below -->
 - `:arglists`: when truthy return `:arglists` on `:var-definitions`
 
 ## Data
@@ -87,6 +87,7 @@ The analysis output consists of a map with:
   - `:id`: an identification for this local, refers to the local declaration with the same `:id` in `:locals`
   - `:name`: the name of the used local
 
+<!--
 - `:keywords`, a list of maps with:
   - `:filename`, `:row`, `:col`, `:end-row`, `:end-col`
   - `:name`: the name of the used keyword
