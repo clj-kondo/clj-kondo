@@ -2660,8 +2660,7 @@ foo/foo ;; this does use the private var
                    {:linters {:unresolved-symbol {:level :error}}}
                    "--lang" "cljc")))
   (is (empty? (lint! "(set! *warn-on-reflection* true)"
-                     {:cljc {:features [:bb :clj]
-                             :lint-as {:bb :clj}}
+                     {:cljc {:features [:clj]}
                       :linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljc"))))
 

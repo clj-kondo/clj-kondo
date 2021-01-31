@@ -1945,12 +1945,10 @@
         :cljc
         (let [cljc-config (:cljc config)
               features (or (:features cljc-config)
-                           [:clj :cljs])
-              lint-as (:lint-as cljc-config)]
+                           [:clj :cljs])]
           (doseq [lang features]
-            (let [lang (get lint-as lang lang)]
-              (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
-                                   (:children (select-lang parsed lang))))))
+            (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
+                                 (:children (select-lang parsed lang)))))
         (:clj :cljs :edn)
         (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename)]
           (analyze-expressions ctx (:children parsed))
