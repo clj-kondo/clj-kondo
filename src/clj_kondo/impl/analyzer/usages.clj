@@ -21,7 +21,8 @@
         alias-or-ns (some-> token namespace symbol)
         ns-sym (cond
                  (and aliased? alias-or-ns)
-                 (get-in ctx [:ns :aliases alias-or-ns] :clj-kondo/unknown-namespace)
+                 (-> (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) current-ns)
+                     (get-in [:aliases alias-or-ns] :clj-kondo/unknown-namespace))
 
                  aliased?
                  current-ns
