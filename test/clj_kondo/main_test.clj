@@ -3073,6 +3073,15 @@ foo/foo ;; this does use the private var
                     {:linters {:unresolved-symbol {:level :error}}}
                     "--config-dir" (.getPath (io/file "corpus" "config_dir"))))))
 
+(deftest cljc-features-test
+  (is (seq  (lint! "(set! *warn-on-reflection* true)"
+                   {:linters {:unresolved-symbol {:level :error}}}
+                   "--lang" "cljc")))
+  (is (empty? (lint! "(set! *warn-on-reflection* true)"
+                     {:cljc {:features [:clj]}
+                      :linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljc"))))
+
 ;;;; Scratch
 
 (comment

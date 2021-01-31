@@ -20,6 +20,7 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 ```
 
 - `:locals`: when truthy return `:locals` and `:local-usages` described below
+<!-- - `:keywords`: when truthy return `:keywords` described below -->
 - `:arglists`: when truthy return `:arglists` on `:var-definitions`
 
 ## Data
@@ -85,6 +86,24 @@ The analysis output consists of a map with:
   - `:filename`, `:row`, `:col`, `:end-row`, `:end-col`
   - `:id`: an identification for this local, refers to the local declaration with the same `:id` in `:locals`
   - `:name`: the name of the used local
+
+<!--
+- `:keywords`, a list of maps with:
+  - `:filename`, `:row`, `:col`, `:end-row`, `:end-col`
+  - `:name`: the name of the used keyword
+  - `:ns`: the namespace of the keyword.
+    - `:kw` will have a `nil` ns.
+    - `::kw` will have the current ns.
+    - `:b/kw` will have `b` as a ns regardless of `require`ed namespaces.
+    - `::b/kw` will be the aliased ns of `b` or `:clj-kondo/unknown-namespace` if `b` is not an alias.
+  - `:alias`: the alias used by the keyword. Only present when a valid, external alias.
+    - `::a/kw` would have an alias of `a`.
+    - `::kw` does not have an alias.
+  - `:keys-destructuring` if the keyword is within a `:keys` vector.
+<!--
+  - `:def` can be added by `:hooks` using `clj-kondo.hook-api/reg-keyword!` to indicate a registered definition location for the keyword.
+    Can be truthy, either `true` or the fully qualified call that registered it.
+-->
 
 Example output after linting this code:
 

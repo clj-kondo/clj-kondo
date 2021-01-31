@@ -139,6 +139,8 @@
            ;; symbol
            (utils/symbol-token? expr)
            (let [sym (:value expr)]
+             (when (= (:destructuring-type opts) :keys)
+               (usages/analyze-keyword ctx expr opts))
              (when (not= '& sym)
                (let [ns (namespace sym)
                      valid? (or (not ns)
@@ -172,7 +174,7 @@
            ;; keyword
            (:k expr)
            (let [k (:k expr)]
-             (usages/analyze-keyword ctx expr)
+             (usages/analyze-keyword ctx expr opts)
              (if keys-destructuring?
                (let [s (-> k name symbol)
                      m (meta expr)
@@ -234,7 +236,10 @@
                                                       ctx
                                                       %
                                                       scoped-expr
-                                                      (assoc opts :keys-destructuring? true)))
+                                                      (assoc opts
+                                                             :keys-destructuring? true
+                                                             :destructuring-type (some-> k :k name keyword)
+                                                             :destructuring-expr k)))
                                           (:children v)))
                              ;; or doesn't introduce new bindings, it only gives defaults
                              :or
@@ -1527,6 +1532,10 @@
                         (test/analyze-cljs-test-async ctx expr)
                         ([clojure.test are] [cljs.test are] #_[clojure.template do-template])
                         (test/analyze-are ctx expr)
+                        [cljs.spec.alpha def]
+                        (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
+                        [clojure.spec.alpha def]
+                        (spec/analyze-def ctx expr 'clojure.spec.alpha/def)
                         ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
                         (spec/analyze-fdef (assoc ctx
                                                   :analyze-children
@@ -1934,11 +1943,12 @@
     (let [parsed (p/parse-string input)]
       (case lang
         :cljc
-        (do
-          (analyze-expressions (assoc ctx :base-lang :cljc :lang :clj :filename filename)
-                               (:children (select-lang parsed :clj)))
-          (analyze-expressions (assoc ctx :base-lang :cljc :lang :cljs :filename filename)
-                               (:children (select-lang parsed :cljs))))
+        (let [cljc-config (:cljc config)
+              features (or (:features cljc-config)
+                           [:clj :cljs])]
+          (doseq [lang features]
+            (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
+                                 (:children (select-lang parsed lang)))))
         (:clj :cljs :edn)
         (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename)]
           (analyze-expressions ctx (:children parsed))
