@@ -1943,11 +1943,14 @@
     (let [parsed (p/parse-string input)]
       (case lang
         :cljc
-        (do
-          (analyze-expressions (assoc ctx :base-lang :cljc :lang :clj :filename filename)
-                               (:children (select-lang parsed :clj)))
-          (analyze-expressions (assoc ctx :base-lang :cljc :lang :cljs :filename filename)
-                               (:children (select-lang parsed :cljs))))
+        (let [cljc-config (:cljc config)
+              features (or (:features cljc-config)
+                           [:clj :cljs])
+              lint-as (:lint-as cljc-config)]
+          (doseq [lang features]
+            (let [lang (get lint-as lang lang)]
+              (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
+                                   (:children (select-lang parsed lang))))))
         (:clj :cljs :edn)
         (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename)]
           (analyze-expressions ctx (:children parsed))
