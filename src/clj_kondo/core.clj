@@ -104,15 +104,16 @@
         files (atom 0)
         findings (atom [])
         analysis-cfg (get-in config [:output :analysis])
-        analyze-locals? (get-in config [:output :analysis :locals])
+        analyze-locals? (get analysis-cfg :locals)
+        analyze-keywords? (get analysis-cfg :keywords)
         analysis (when analysis-cfg
-
                    (atom (cond-> {:namespace-definitions []
                                   :namespace-usages []
                                   :var-definitions []
                                   :var-usages []}
                            analyze-locals? (assoc :locals []
-                                                  :local-usages []))))
+                                                  :local-usages [])
+                           analyze-keywords? (assoc :keywords []))))
         used-nss (atom {:clj #{}
                         :cljs #{}
                         :cljc #{}})
@@ -131,6 +132,7 @@
              :ignores (atom {})
              :id-gen (when analyze-locals? (atom 0))
              :analyze-locals? analyze-locals?
+             :analyze-keywords? analyze-keywords?
              :analyze-arglists? (get analysis-cfg :arglists)}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel

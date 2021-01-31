@@ -17,6 +17,12 @@
         filename (:filename ctx)]
     (findings/reg-finding! ctx (assoc m :filename filename))))
 
+(defn reg-keyword!
+  ([k]
+   (reg-keyword! k true))
+  ([k reg-by]
+   (assoc k :def reg-by)))
+
 (def zip-ns (sci/create-ns 'clojure.zip nil))
 
 (def zip-namespace
@@ -103,7 +109,8 @@
    'list-node (comp mark-generate list-node)
    'list-node? list-node?
    'sexpr sexpr
-   'reg-finding! reg-finding!})
+   'reg-finding! reg-finding!
+   'reg-keyword! reg-keyword!})
 
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}

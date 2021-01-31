@@ -2,30 +2,67 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+    [clj-kondo.impl.analysis :as analysis]
     [clj-kondo.impl.analyzer.common :as common]
     [clj-kondo.impl.metadata :as meta]
     [clj-kondo.impl.namespace :as namespace]
-    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token tag kw->sym assoc-some]]
+    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some symbol-token?]]
     [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)
 
-(defn analyze-keyword [ctx expr]
-  (let [ns (:ns ctx)
-        ns-name (:name ns)
-        keyword-val (:k expr)]
-    (when (:namespaced? expr)
-      (let [symbol-val (kw->sym keyword-val)
-            {resolved-ns :ns}
-            (namespace/resolve-name ctx ns-name symbol-val)]
-        (if resolved-ns
-          (namespace/reg-used-namespace! ctx
-                                         (-> ns :name)
-                                         resolved-ns)
-          (namespace/reg-unresolved-namespace! ctx ns-name
-                                               (with-meta (symbol (namespace symbol-val))
-                                                 (meta expr))))))))
+(defn ^:private resolve-keyword [ctx expr current-ns]
+  (let [aliased? (:namespaced? expr)
+        token (if (symbol-token? expr)
+                (symbol-from-token expr)
+                (:k expr))
+        name-sym (some-> token name symbol)
+        alias-or-ns (some-> token namespace symbol)
+        ns-sym (cond
+                 (and aliased? alias-or-ns)
+                 (get-in ctx [:ns :aliases alias-or-ns] :clj-kondo/unknown-namespace)
+
+                 aliased?
+                 current-ns
+
+                 :else
+                 alias-or-ns)]
+    {:name name-sym
+     :ns ns-sym
+     :alias (when (and aliased? (not= :clj-kondo/unknown-namespace ns-sym)) alias-or-ns)}))
+
+(defn analyze-keyword
+  ([ctx expr] (analyze-keyword ctx expr {}))
+  ([ctx expr opts]
+   (let [ns (:ns ctx)
+         ns-name (:name ns)
+         keyword-val (:k expr)]
+     (when (:analyze-keywords? ctx)
+       (let [{:keys [:destructuring-expr :keys-destructuring?]} opts
+             current-ns (some-> ns-name symbol)
+             destructuring (when destructuring-expr (resolve-keyword ctx destructuring-expr current-ns))
+             resolved (resolve-keyword ctx expr current-ns)]
+         (analysis/reg-keyword-usage!
+           ctx
+           (:filename ctx)
+           (assoc-some (meta expr)
+                       :def (:def expr)
+                       :keys-destructuring keys-destructuring?
+                       :name (:name resolved)
+                       :alias (when-not (:alias destructuring) (:alias resolved))
+                       :ns (or (:ns destructuring) (:ns resolved))))))
+     (when (and keyword-val (:namespaced? expr))
+       (let [symbol-val (kw->sym keyword-val)
+             {resolved-ns :ns}
+             (namespace/resolve-name ctx ns-name symbol-val)]
+         (if resolved-ns
+           (namespace/reg-used-namespace! ctx
+                                          (-> ns :name)
+                                          resolved-ns)
+           (namespace/reg-unresolved-namespace! ctx ns-name
+                                                (with-meta (symbol (namespace symbol-val))
+                                                           (meta expr)))))))))
 
 (defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)
@@ -148,7 +185,7 @@
                                                   :expr expr
                                                   :resolved-core? resolved-core?})))))
                (when (:k expr)
-                 (analyze-keyword ctx expr)))
+                 (analyze-keyword ctx expr opts)))
              :reader-macro
              (doall (mapcat
                      #(analyze-usages2 ctx %
