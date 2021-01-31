@@ -184,16 +184,45 @@
       (when (= 'not (:value f))
         (negated-cases ctx call "not" (:value g))))))
 
-(defn lint-not [ctx called-name call]
+(defn lint-not [ctx call]
   (when-not (utils/linter-disabled? ctx :redundant-negation)
     (let [[_ x] (:children call)
           first-x-child-val (:value (first (:children x)))]
-      (negated-cases ctx call called-name first-x-child-val))))
+      (negated-cases ctx call "not" first-x-child-val))))
 
 (defn lint-complement [ctx call]
   (when-not (utils/linter-disabled? ctx :redundant-negation)
     (let [[_ f] (:children call)]
       (negated-cases ctx call "complement" (:value f)))))
+
+(defn lint-if-not-when-not
+  "Unlike `negated-cases`, this linter only checks for double-negatives.
+  E.g. `(if-not (some? ...))` expands to `(if-not (not (nil? ...)))`."
+  [ctx called-name call]
+  (when-not (utils/linter-disabled? ctx :redundant-negation)
+    (let [[_ x] (:children call)
+          first-x-child-val (:value (first (:children x)))
+          alternative ({'if-not "if", 'when-not "when"} called-name)]
+      (case first-x-child-val
+        some? (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) call :warning :redundant-negation
+                           (format "%s and some? used instead of %s and nil?"
+                                   called-name alternative)))
+
+        odd? (findings/reg-finding!
+              ctx
+              (node->line (:filename ctx) call :warning :redundant-negation
+                          (format "%s and odd? used instead of %s and even?"
+                                  called-name alternative)))
+
+        empty? (findings/reg-finding!
+                ctx
+                (node->line (:filename ctx) call :warning :redundant-negation
+                            (format "%s and empty? used instead of %s and seq"
+                                    called-name alternative)))
+
+        nil))))
 
 (defn lint-filter-remove [ctx called-name call]
   (when-not (utils/linter-disabled? ctx :redundant-negation)
@@ -257,12 +286,13 @@
       (lint-and-or ctx called-name (:expr call))
       ([clojure.core when] [cljs.core when])
       (lint-if-when-not ctx called-name (:expr call))
-      ([clojure.core not] [clojure.core when-not]
-       [cljs.core not] [cljs.core when-not])
-      (lint-not ctx called-name (:expr call))
+      ([clojure.core not] [cljs.core not] )
+      (lint-not ctx (:expr call))
       ([clojure.core if-not] [cljs.core if-not])
       (do (lint-missing-else-branch ctx (:expr call))
-          (lint-not ctx called-name (:expr call)))
+          (lint-if-not-when-not ctx called-name (:expr call)))
+      ([clojure.core when-not] [cljs.core when-not])
+      (lint-if-not-when-not ctx called-name (:expr call))
       ([clojure.core comp] [cljs.core comp])
       (lint-comp-not ctx (:expr call))
       ([clojure.core complement] [cljs.core complement])

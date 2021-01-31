@@ -2904,8 +2904,8 @@ foo/foo ;; this does use the private var
           :row 1,
           :col 1,
           :level :warning,
-          :message "if-not and nil? used instead of some?"})
-       (lint! "(if-not (nil? :foo) :a :b)" "--lang" lang
+          :message "if-not and some? used instead of if and nil?"})
+       (lint! "(if-not (some? :foo) :a :b)" "--lang" lang
               "--config" {:linters {:redundant-negation {:level :warning}}})))
 
     (doseq [lang ["clj" "cljs"]]
@@ -2914,8 +2914,8 @@ foo/foo ;; this does use the private var
           :row 1,
           :col 1,
           :level :warning,
-          :message "when-not and even? used instead of odd?"})
-       (lint! "(when-not (even? :foo) :a :b)" "--lang" lang
+          :message "when-not and odd? used instead of when and even?"})
+       (lint! "(when-not (odd? :foo) :a :b)" "--lang" lang
               "--config" {:linters {:redundant-negation {:level :warning}}}))))
 
   (testing "`filter` & `complement` used instead of `remove` or vice versa"
