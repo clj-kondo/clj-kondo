@@ -17,6 +17,20 @@
                        config))))))
 
 (deftest keyword-analysis-test
+  (testing "standalone keywords with top-level require"
+    (let [a (analyze "(require '[bar :as b]) :kw :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
+                     {:config {:output {:analysis {:keywords true}}}})]
+      (assert-submaps
+        '[{:name kw}
+          {:name xkwa :ns x}
+          {:name xkwb :ns :clj-kondo/unknown-namespace}
+          {:name fookwa :ns user}
+          {:name fookwb :ns foo}
+          {:name fookwc :ns :clj-kondo/unknown-namespace}
+          {:name barkwa :ns bar}
+          {:name barkwb :ns bar :alias b}
+          {:name barkwc :ns :clj-kondo/unknown-namespace}]
+        (:keywords a))))
   (testing "standalone keywords"
     (let [a (analyze "(ns foo (:require [bar :as b])) :kw :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
                      {:config {:output {:analysis {:keywords true}}}})]
