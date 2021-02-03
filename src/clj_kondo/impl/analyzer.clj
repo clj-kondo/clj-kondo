@@ -1305,7 +1305,7 @@
     (analyze-children ctx children false)))
 
 (defn analyze-call
-  [{:keys [:top-level? :base-lang :lang :ns :config] :as ctx}
+  [{:keys [:top-level? :base-lang :lang :ns :config :no-warnings] :as ctx}
    {:keys [:arg-count
            :full-fn-name
            :row :col
@@ -1388,7 +1388,8 @@
                                                        :base-lang base-lang
                                                        :lang lang
                                                        :filename (:filename ctx)
-                                                       :expr expr
+                                                       ;; save some memory during no-warnings
+                                                       :expr (when-not no-warnings expr)
                                                        :simple? (simple-symbol? full-fn-name)
                                                        :callstack (:callstack ctx)
                                                        :config (:config ctx)
@@ -1612,7 +1613,7 @@
                                     :base-lang base-lang
                                     :lang lang
                                     :filename (:filename ctx)
-                                    :expr expr
+                                    :expr (when-not no-warnings expr)
                                     :callstack (:callstack ctx)
                                     :config (:config ctx)
                                     :top-ns (:top-ns ctx)

@@ -7,7 +7,8 @@
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
-   [clojure.java.io :as io]))
+   [clojure.java.io :as io]
+   [clojure.string :as str]))
 
 ;;;; Public API
 
@@ -142,15 +143,18 @@
         idacs (core-impl/index-defs-and-calls ctx)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
-        _ (l/lint-var-usage ctx idacs)
-        _ (l/lint-unused-namespaces! ctx)
-        _ (l/lint-unused-private-vars! ctx)
-        _ (l/lint-unused-bindings! ctx)
-        _ (l/lint-unresolved-symbols! ctx)
-        _ (l/lint-unresolved-vars! ctx)
-        _ (l/lint-unused-imports! ctx)
-        _ (l/lint-unresolved-namespaces! ctx)
-        ;; _ (namespace/reg-analysis-output! ctx)
+        _ (when (and no-warnings (not analysis))
+            ;; analysis is called from lint-var-usage, this can probably happen somewhere else
+            (l/lint-var-usage ctx idacs))
+        _ (when-not no-warnings
+            (l/lint-var-usage ctx idacs)
+            (l/lint-unused-namespaces! ctx)
+            (l/lint-unused-private-vars! ctx)
+            (l/lint-unused-bindings! ctx)
+            (l/lint-unresolved-symbols! ctx)
+            (l/lint-unresolved-vars! ctx)
+            (l/lint-unused-imports! ctx)
+            (l/lint-unresolved-namespaces! ctx))
         all-findings @findings
         all-findings (core-impl/filter-findings config all-findings)
         all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))

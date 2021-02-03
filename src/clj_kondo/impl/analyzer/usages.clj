@@ -83,6 +83,7 @@
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
+         no-warnings (:no-warnings ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
          ns-name (:name ns)
          t (tag expr)
@@ -183,7 +184,8 @@
                                                   :in-def (:in-def ctx)
                                                   :simple? simple?
                                                   :interop? interop?
-                                                  :expr expr
+                                                  ;; save some memory
+                                                  :expr (when-not no-warnings expr)
                                                   :resolved-core? resolved-core?})))))
                (when (:k expr)
                  (analyze-keyword ctx expr opts)))
