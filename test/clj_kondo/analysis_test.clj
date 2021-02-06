@@ -16,6 +16,14 @@
                         :config {:output {:analysis true}}}
                        config))))))
 
+(deftest keyword-analysis-generates-valid-symbols
+  (testing "keywords starting with a number translate to valid symbols"
+    (let [a (analyze ":2bad"
+                     {:config {:output {:analysis {:keywords true}}}})
+          serialized (pr-str a)
+          deserialized (edn/read-string serialized)]
+      (is (= a deserialized)))))
+
 (deftest keyword-analysis-test
   (testing "standalone keywords with top-level require"
     (let [a (analyze "(require '[bar :as b]) :kw :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
