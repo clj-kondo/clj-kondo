@@ -12,12 +12,15 @@
 
 (set! *warn-on-reflection* true)
 
+(defn ^:private safe-symbol-name [string]
+  (clojure.string/replace-first string #"^([0-9])" "_$1"))
+
 (defn ^:private resolve-keyword [ctx expr current-ns]
   (let [aliased? (:namespaced? expr)
         token (if (symbol-token? expr)
                 (symbol-from-token expr)
                 (:k expr))
-        name-sym (some-> token name symbol)
+        name-sym (some-> token name safe-symbol-name symbol)
         alias-or-ns (some-> token namespace symbol)
         ns-sym (cond
                  (and aliased? alias-or-ns)
