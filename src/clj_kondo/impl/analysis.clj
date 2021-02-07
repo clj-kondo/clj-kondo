@@ -102,6 +102,7 @@
   (when (:analyze-keywords? ctx)
     (when-let [analysis (:analysis ctx)]
       (swap! analysis update :keywords conj
-             (assoc-some (select-keys usage [:row :col :end-row :end-col :name :alias :ns :keys-destructuring :def])
+             (assoc-some (select-keys usage [:row :col :end-row :end-col :alias :ns :keys-destructuring :def])
+                         :name (name (:name usage))
                          :filename filename
                          :lang (when (= :cljc (:base-lang ctx)) (:lang ctx)))))))
