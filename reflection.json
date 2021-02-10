@@ -16,5 +16,9 @@
     "name": "java.lang.System",
     "methods": [{"name": "nanoTime"}
     ]
+  },
+  {
+    "name": "java.lang.reflect.AccessibleObject",
+    "methods" : [{"name":"canAccess"}]
   }
 ]

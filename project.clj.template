@@ -1,5 +1,5 @@
 (defproject clj-kondo "{{version}}"
-  :description "Tidy your code with clj-kondo."
+  :description "A linter for Clojure that sparks joy."
   :url "https://github.com/clj-kondo/clj-kondo"
   :scm {:name "git"
         :url "https://github.com/clj-kondo/clj-kondo"}
@@ -8,9 +8,7 @@
   :source-paths ["src" "parser" "inlined"]
   :dependencies {{dependencies|safe}}
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
-             :clojure-1.10.2-alpha1 {:dependencies [[org.clojure/clojure "1.10.2-alpha1"]]}
-             :native-image {:dependencies [[borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.3.0"]
-                                           [borkdude/sci.impl.reflector "0.0.1-java11"]]}
+             :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
              :test {:dependencies {{test-dependencies|safe}}
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:global-vars {*assert* false}
