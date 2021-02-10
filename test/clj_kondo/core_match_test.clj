@@ -102,4 +102,23 @@
          [2 b] :a5
          [_ 3] :a4
          :else :a3))
-")))))
+"))))
+  (testing ":<<"
+    (is (empty? (lint!! "
+(match [1]
+  [(1 :<< inc)] :one
+  [(2 :<< inc)] :two
+    :else :oops)"))))
+  (testing ":when"
+    (is (empty? (lint!! "
+(let [y '(2 3 4 5)]
+           (match [y]
+             [([_ (a :when even?) _ _] :seq)] a
+             [([_ (b :when [number? odd?]) _ _] :seq)] b
+             :else []))
+
+(let [y '(2 3 4 5)]
+  (match [y]
+    [([_ _ :when even? _ _] :seq)] :a0
+    [([_ _ :when [number? odd?] _ _] :seq)] :a1
+    :else []))")))))
