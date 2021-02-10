@@ -50,7 +50,7 @@
                                :cljc #{}})}
       [(io/file (System/getProperty "user.home")
                 ".m2" "repository" "org" "clojure" "clojure"
-                "1.10.2-alpha1" "clojure-1.10.2-alpha1.jar")]
+                "1.10.2" "clojure-1.10.2.jar")]
       :clj
       nil))
     (reduce into special
