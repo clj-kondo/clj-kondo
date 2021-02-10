@@ -31,8 +31,9 @@
       (if (or (identical? :<< k)
               (identical? :when k))
         ;; https://github.com/clojure/core.match/blob/fb3188934ab9b6df0249ba3092a888def3434eee/src/main/clojure/clojure/core/match.clj#L1835
-        (do (common/analyze-expression** ctx (last children))
-            (analyze-expr ctx (first children)))
+        (let [bnds (analyze-expr ctx (first children))]
+          (common/analyze-children ctx {:children (nnext children)})
+          bnds)
         (analyze-children ctx expr))
       (analyze-children ctx expr))))
 
