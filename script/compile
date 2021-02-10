@@ -14,17 +14,17 @@ CLJ_KONDO_VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
 lein with-profiles +clojure-1.10.2 "do" clean, uberjar
 
-args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar" \
-              "-H:Name=clj-kondo" \
-              "-H:+ReportExceptionStackTraces" \
-              "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*" \
-              "-H:ReflectionConfigurationFiles=reflection.json" \
-              "--initialize-at-build-time"  \
-              "-H:Log=registerResource:" \
-              "--verbose" \
-              "--no-fallback" \
-              "--no-server" \
-              "-J-Xmx3g" )
+args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar"
+       "-H:Name=clj-kondo"
+       "-H:+ReportExceptionStackTraces"
+       "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*"
+       "-H:ReflectionConfigurationFiles=reflection.json"
+       "--initialize-at-build-time"
+       "-H:Log=registerResource:"
+       "--verbose"
+       "--no-fallback"
+       "--no-server"
+       "-J-Xmx3g" )
 
 if [ "$CLJ_KONDO_STATIC" = "true" ]; then
     args+=("--static")
