@@ -16,7 +16,7 @@ dir %GRAALVM_HOME%\bin
 set /P CLJ_KONDO_VERSION=< resources\CLJ_KONDO_VERSION
 echo Building clj-kondo %CLJ_KONDO_VERSION%
 
-call lein with-profiles +clojure-1.10.2-alpha1,+native-image do clean, uberjar
+call lein with-profiles +clojure-1.10.2 do clean, uberjar
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 call %GRAALVM_HOME%\bin\gu.cmd install native-image
@@ -26,8 +26,6 @@ call %GRAALVM_HOME%\bin\native-image.cmd ^
   "-jar" "target/clj-kondo-%CLJ_KONDO_VERSION%-standalone.jar" ^
   "-H:Name=clj-kondo" ^
   "-H:+ReportExceptionStackTraces" ^
-  "-J-Dclojure.spec.skip-macros=true" ^
-  "-J-Dclojure.compiler.direct-linking=true" ^
   "-H:IncludeResources=clj_kondo/impl/cache/built_in/.{0,}" ^
   "-H:ReflectionConfigurationFiles=reflection.json" ^
   "--initialize-at-build-time"  ^
