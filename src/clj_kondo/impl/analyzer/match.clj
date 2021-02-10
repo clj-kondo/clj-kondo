@@ -32,10 +32,29 @@
               (identical? :when k))
         ;; https://github.com/clojure/core.match/blob/fb3188934ab9b6df0249ba3092a888def3434eee/src/main/clojure/clojure/core/match.clj#L1835
         (let [bnds (analyze-expr ctx (first children))]
+          ;; TODO: this is the grouped version, doesn't need all children
           (common/analyze-children ctx {:children (nnext children)})
           bnds)
         (analyze-children ctx expr))
       (analyze-children ctx expr))))
+
+(defn analyze-vector [ctx expr]
+  (let [children (:children expr)]
+    (loop [children (seq children)
+           bindings {}]
+      (if children
+        (let [[child maybe-op & rchildren] children
+              k (:k maybe-op)]
+          (if (and k (identical? :when k))
+            ;; flattened syntax
+            (let [bnds (analyze-expr ctx child)]
+              (common/analyze-expression** ctx (first rchildren))
+              (merge bnds (analyze-vector ctx {:children (rest rchildren)})))
+            (if-let [bnds (analyze-expr ctx child)]
+              (recur (next children)
+                     (into bindings bnds))
+              (recur (next children) bindings))))
+        bindings))))
 
 (defn analyze-expr [ctx expr]
   (let [tag (utils/tag expr)]
@@ -44,7 +63,9 @@
       (analyze-token ctx expr)
       (:list)
       (analyze-list ctx expr)
-      (:vector :map)
+      (:vector)
+      (analyze-vector ctx expr)
+      (:map)
       (analyze-children ctx expr)
       ;; default
       (do (common/analyze-expression** ctx expr)

@@ -117,8 +117,8 @@
              [([_ (b :when [number? odd?]) _ _] :seq)] b
              :else []))
 
-#_(let [y '(2 3 4 5)]
+(let [y '(2 3 4 5)]
   (match [y]
     [([_ _ :when even? _ _] :seq)] :a0
-    [([_ _ :when [odd? div3?] _ _] :seq)] :a1
+    [([_ _ :when [number? odd?] _ _] :seq)] :a1
     :else []))")))))
