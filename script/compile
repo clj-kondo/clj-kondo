@@ -30,4 +30,4 @@ if [ "$CLJ_KONDO_STATIC" = "true" ]; then
     args+=("--static")
 fi
 
-$GRAALVM_HOME/bin/native-image "${args[@]}"
+"$GRAALVM_HOME/bin/native-image" "${args[@]}"
