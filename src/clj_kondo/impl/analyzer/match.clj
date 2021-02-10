@@ -26,12 +26,12 @@
 
 (defn analyze-list [ctx expr]
   (let [children (:children expr)
-        rchildren (reverse children)
-        fnk? (second rchildren)]
-    (if-let [k (:k fnk?)]
+        snd (second children)]
+    (if-let [k (:k snd)]
       (if (identical? :<< k)
-        (do (common/analyze-expression** ctx (first rchildren))
-            (analyze-children ctx {:children (nnext rchildren)}))
+        (do ;; a function
+          (common/analyze-expression** ctx (last children))
+          (analyze-expr ctx (first children)))
         (analyze-children ctx expr))
       (analyze-children ctx expr))))
 
