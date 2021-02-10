@@ -24,12 +24,25 @@
             (recur (next children) bindings)))
         bindings))))
 
+(defn analyze-list [ctx expr]
+  (let [children (:children expr)
+        rchildren (reverse children)
+        fnk? (second rchildren)]
+    (if-let [k (:k fnk?)]
+      (if (identical? :<< k)
+        (do (common/analyze-expression** ctx (first rchildren))
+            (analyze-children ctx {:children (nnext rchildren)}))
+        (analyze-children ctx expr))
+      (analyze-children ctx expr))))
+
 (defn analyze-expr [ctx expr]
   (let [tag (utils/tag expr)]
     (case tag
       :token
       (analyze-token ctx expr)
-      (:list :vector :map)
+      (:list)
+      (analyze-list ctx expr)
+      (:vector :map)
       (analyze-children ctx expr)
       ;; default
       (do (common/analyze-expression** ctx expr)

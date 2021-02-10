@@ -102,4 +102,10 @@
          [2 b] :a5
          [_ 3] :a4
          :else :a3))
-")))))
+"))))
+  (testing ":<<"
+    (is (empty? (lint!! "
+(match [1]
+  [(1 :<< inc)] :one
+  [(2 :<< inc)] :two
+    :else :oops)")))))
