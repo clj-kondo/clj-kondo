@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Fix crash when linting kitchen-async [#1148](https://github.com/clj-kondo/clj-kondo/issues/1148)
 - Memory optimizations for clojure-lsp [commit](https://github.com/clj-kondo/clj-kondo/commit/175c48839299c445f6684fa15e5692b03c9bcb5a0)
 - Upgrade to GraalVM 21.0.0 [#1163](https://github.com/clj-kondo/clj-kondo/issues/1163)
+- Fix analysis of case dispatch vals [#1169](https://github.com/clj-kondo/clj-kondo/issues/1169)
 
 ## 2021.01.20
 
