@@ -133,7 +133,10 @@
              :id-gen (when analyze-locals? (atom 0))
              :analyze-locals? analyze-locals?
              :analyze-keywords? analyze-keywords?
-             :analyze-arglists? (get analysis-cfg :arglists)}
+             :analyze-arglists? (get analysis-cfg :arglists)
+             ;; NOTE: we don't allow this to be changed in namespace local
+             ;; config, for e.g. the clj-kondo playground
+             :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)

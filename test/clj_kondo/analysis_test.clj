@@ -89,7 +89,8 @@
   (testing "hooks can add :def"
     (let [a (analyze "(user/mydef ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}
-                               :hooks {:analyze-call
+                               :hooks {:__dangerously-allow-string-hooks__ true
+                                       :analyze-call
                                        {'user/mydef
                                         (str "(require '[clj-kondo.hooks-api :as a])"
                                              "(fn [{n :node}]"

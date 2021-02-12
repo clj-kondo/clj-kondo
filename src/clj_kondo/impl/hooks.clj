@@ -153,10 +153,12 @@
                    ;; VSCode), see #1036
                    (sci/binding [sci/out *out*
                                  sci/err *err*]
-                     (let [code (if (string? x) x
-                                    ;; x is a function symbol
-                                    (let [ns (namespace x)]
-                                      (format "(require '%s)\n%s" ns x)))]
+                     (let [code (if (string? x)
+                                  (when (:allow-string-hooks ctx)
+                                    x)
+                                  ;; x is a function symbol
+                                  (let [ns (namespace x)]
+                                    (format "(require '%s)\n%s" ns x)))]
                        (binding [*ctx* ctx]
                          (sci/eval-string* sci-ctx code))))))
                (catch Exception e
