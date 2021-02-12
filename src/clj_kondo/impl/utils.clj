@@ -282,8 +282,11 @@
                                         :cljs 'cljs.core
                                         :clj1c 'clojure.core)])))))]
     (if-let [imported-ns (:imported-ns called-fn)]
-      (recur idacs call call-lang imported-ns
-             (:imported-var called-fn) unresolved? refer-alls)
+      (or
+       (resolve-call idacs call call-lang imported-ns
+                     (:imported-var called-fn) unresolved? refer-alls)
+       ;; if we cannot find the imported var here, we fall back on called-fn
+       called-fn)
       called-fn)))
 
 (defn handle-ignore [ctx expr]

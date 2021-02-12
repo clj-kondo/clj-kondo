@@ -2221,11 +2221,26 @@ foo/foo ;; this does use the private var
     (remove-dir ".clj-kondo")
     (when (.exists (io/file ".clj-kondo.bak"))
       (rename-path ".clj-kondo.bak" ".clj-kondo")))
-  (testing "..."
-    (is (empty? (lint! "(ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
+  (is (empty? (lint! "(ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
   (:require [potemkin :refer [import-vars]]))
 
-(import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])")))))
+(import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])")))
+  (is (empty? (lint! "
+(ns foo.bar)
+
+(defn foo []) ;; non-empty to generated ns cache
+
+;; dynamically generated baz
+
+(ns foo (:require [potemkin :refer [import-vars]]))
+
+(import-vars [foo.bar baz])
+
+(ns bar (:require [foo]))
+foo/baz
+"
+                  {:linters {:unresolved-symbol {:level :error}
+                             :unresolved-var {:level :error}}}))))
 
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
