@@ -1351,7 +1351,10 @@
                                          [resolved-namespace resolved-name])]
                       [ns n true])
                     [resolved-namespace resolved-name false])
-                hook-fn (hooks/hook-fn ctx config :analyze-call resolved-as-namespace resolved-as-name)
+                ;; See #1170, we deliberaly use resolved and not resolved-as
+                ;; Users can get :lint-as like behavior for hooks by configuring
+                ;; multiple fns to target the same hook code
+                hook-fn (hooks/hook-fn ctx config :analyze-call resolved-namespace resolved-name)
                 transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
                               (let [filename (:filename ctx)]
