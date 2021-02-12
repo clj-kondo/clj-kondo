@@ -491,15 +491,21 @@
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
-  (let [exprs (-> expr :children)]
-    (loop [[constant expr :as exprs] exprs
-           parsed []]
-      (if-not expr
-        (into parsed (when constant
-                       (analyze-expression** ctx constant)))
-        (recur
-         (nnext exprs)
-         (into parsed (analyze-expression** ctx expr)))))))
+  (let [children (rest (:children expr))
+        matched-val (first children)]
+    (analyze-expression** ctx matched-val)
+    (loop [[constant expr & exprs] (rest children)]
+      (when constant
+        (if-not expr
+          ;; this is the default expression
+          (analyze-expression** ctx constant)
+          (do (let [t (tag constant)]
+                (if (identical? :list t)
+                  (analyze-children ctx (:children constant))
+                  (analyze-expression** ctx constant)))
+              (when expr
+                (analyze-expression** ctx expr)
+                (recur exprs))))))))
 
 (defn expr-bindings [ctx binding-vector scoped-expr]
   (->> binding-vector :children

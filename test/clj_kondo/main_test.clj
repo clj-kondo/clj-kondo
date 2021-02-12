@@ -662,7 +662,10 @@ foo/foo ;; this does use the private var
         :message "clojure.core/odd? is called with 2 args but expects 1"})
      (lint! (io/file "corpus" "case.clj"))))
   (testing "no false positive when using defn in case list dispatch"
-    (is (empty? (lint! "(case x (defn select-keys) 1 2)")))))
+    (is (empty? (lint! "(case x (defn select-keys) 1 2)"))))
+  (testing "case dispatch vals are analyzed"
+    (is (empty? (lint! "(require '[clojure.string :as str] (case 10 ::str/foo 11))"
+                       {:linters {:unused-namespace {:level :error}}})))))
 
 (deftest local-bindings-test
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))
