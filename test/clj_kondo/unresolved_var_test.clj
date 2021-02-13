@@ -63,3 +63,10 @@ bar/x (bar/y)
     (assert-submaps
      '({:file "<stdin>", :row 10, :col 8, :level :error, :message "Unresolved var: bar/y"})
      (lint! prog (assoc-in cfg [:linters :unresolved-var :exclude] '[foo bar/x])))))
+
+(deftest built-in-namespaces-test
+  (testing "fmap is not reported but xfmap is"
+    (assert-submaps '({:file "<stdin>", :row 1, :col 54, :level :error, :message "Unresolved var: gen/xfmap"})
+                    (lint! "(require '[clojure.spec.gen.alpha :as gen]) gen/fmap gen/xfmap"
+                           '{:linters {:unresolved-symbol {:level :error}
+                                       :unresolved-var {:level :error}}}))))
