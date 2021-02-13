@@ -22,6 +22,12 @@
       (println "=== Failing fast")
       (System/exit 1))))
 
+(deftest self-lint-test
+  (is (empty? (lint! (io/file "src")
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! (io/file "test")
+                     {:linters {:unresolved-symbol {:level :error}}}))))
+
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
         row-col-files (map #(select-keys % [:row :col :file])
@@ -660,12 +666,20 @@ foo/foo ;; this does use the private var
         :col 3,
         :level :error,
         :message "clojure.core/odd? is called with 2 args but expects 1"})
-     (lint! (io/file "corpus" "case.clj"))))
+     (lint! (io/file "corpus" "case.clj")
+            {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "no false positive when using unquoted symbols"
+    (is (empty? (lint! "
+(case 'str/join str/join :foo)
+(let [x 'y] (case x y 1 2))"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
   (testing "no false positive when using defn in case list dispatch"
-    (is (empty? (lint! "(case x (defn select-keys) 1 2)"))))
+    (is (empty? (lint! "(let [x 1] (case x (defn select-keys) 1 2))"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
   (testing "case dispatch vals are analyzed"
     (is (empty? (lint! "(require '[clojure.string :as str] (case 10 ::str/foo 11))"
-                       {:linters {:unused-namespace {:level :error}}})))))
+                       {:linters {:unresolved-symbol {:level :error}
+                                  :unused-namespace {:level :error}}})))))
 
 (deftest local-bindings-test
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))

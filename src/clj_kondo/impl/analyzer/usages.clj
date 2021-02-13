@@ -99,11 +99,13 @@
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)]
      (if (and (= 1 syntax-quote-level) unquote-tag?)
        (common/analyze-expression** ctx expr)
-       (when (or (not quote?)
-                 ;; when we're in syntax-quote, we should still look for
-                 ;; unquotes, since these will be evaluated first, unless we're
-                 ;; in a nested syntax-quote
-                 syntax-quote?)
+       (if quote?
+         (do (when (:k expr)
+               (analyze-keyword ctx expr opts))
+             (doall (mapcat
+                     #(analyze-usages2 ctx %
+                                       (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
+                     (:children expr))))
          (let [syntax-quote?
                (or syntax-quote?
                    (= :syntax-quote t))]

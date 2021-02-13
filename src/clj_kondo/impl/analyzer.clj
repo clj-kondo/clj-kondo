@@ -501,8 +501,8 @@
           (analyze-expression** ctx constant)
           (do (let [t (tag constant)]
                 (if (identical? :list t)
-                  (analyze-children ctx (:children constant))
-                  (analyze-expression** ctx constant)))
+                  (run! #(analyze-usages2 ctx % {:quote? true}) (:children constant))
+                  (analyze-usages2 ctx constant {:quote? true})))
               (when expr
                 (analyze-expression** ctx expr)
                 (recur exprs))))))))
