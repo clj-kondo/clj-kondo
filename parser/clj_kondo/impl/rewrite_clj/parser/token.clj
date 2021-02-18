@@ -1,7 +1,8 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.parser.token
   (:require [clj-kondo.impl.rewrite-clj
              [node :as node]
-             [reader :as r]]))
+             [reader :as r]]
+            [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as rt]))
 
 (def ^:dynamic *invalid-token-exceptions* nil)
 
@@ -48,4 +49,13 @@
       (if (symbol? v)
         (symbol-node reader v s)
         (node/token-node v s)))
-    (catch Exception e (swap! *invalid-token-exceptions* conj e) reader)))
+    (catch Exception e
+      (let [{:keys [:type :ex-kind]} (ex-data e)]
+        (when (and *invalid-token-exceptions*
+                   (= :reader-exception type)
+                   (= :reader-error ex-kind))
+          (let [f {:row (rt/get-line-number reader)
+                   :col (rt/get-column-number reader)
+                   :message (.getMessage e)}]
+            (swap! *invalid-token-exceptions* conj (ex-info "Syntax error" {:findings [f]})))))
+      reader)))

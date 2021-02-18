@@ -2698,9 +2698,17 @@ foo/baz
 
 (deftest continue-on-invalid-token-code-test
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 5, :level :error, :message "Invalid symbol: foo/."}
-     {:file "<stdin>", :row 1, :col 6, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
-   (lint! "foo/ (inc)")))
+   '({:file "<stdin>", :row 2, :col 5, :level :error, :message "Invalid symbol: foo/."}
+     {:file "<stdin>", :row 3, :col 1, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
+   (lint! "
+foo/
+(inc)"))
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 1, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"}
+     {:file "<stdin>", :row 3, :col 5, :level :error, :message "Invalid symbol: foo/."})
+   (lint! "
+(inc)
+foo/")))
 
 ;;;; Scratch
 
