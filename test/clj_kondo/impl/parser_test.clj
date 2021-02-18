@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.parser-test
   (:require [clj-kondo.impl.parser :as parser :refer [parse-string]]
+            [clj-kondo.impl.rewrite-clj.parser.token :refer [invalid-token-exceptions]]
             [clj-kondo.impl.utils :as utils]
             [clojure.test :as t :refer [deftest is are]]))
 
@@ -27,15 +28,17 @@
   sequence of error messages in the form [message line column] produced from
   rewrite-clj."
   [source]
-  (try
-    (parse-string source)
-    nil
-    (catch Exception e
-      (let [{:keys [findings line col]} (ex-data e)]
-        (if findings
-          (for [{:keys [row col message]} findings]
-            [message row col])
-          [[(.getMessage e) line col]])))))
+  (let [ex (atom nil)]
+    (try (parse-string source)
+         (catch Exception e (reset! ex e)))
+    (let [^Exception e (or @ex (first @invalid-token-exceptions))
+          _ (reset! invalid-token-exceptions [])
+          _ (reset! ex nil)
+          {:keys [findings line col]} (ex-data e)]
+      (if findings
+        (for [{:keys [row col message]} findings]
+          [message row col])
+        [[(.getMessage e) line col]]))))
 
 (deftest parse-string-test
   ;; This test has every syntax error that can cause rewrite-clj to throw using

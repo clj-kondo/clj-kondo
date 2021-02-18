@@ -3,6 +3,8 @@
              [node :as node]
              [reader :as r]]))
 
+(def invalid-token-exceptions (atom []))
+
 (defn- read-to-boundary
   [reader & [allowed]]
   (let [allowed? (set allowed)]
@@ -36,12 +38,14 @@
 (defn parse-token
   "Parse a single token."
   [reader]
-  (let [first-char (r/next reader)
-        s (->> (if (= first-char \\)
-                 (read-to-char-boundary reader)
-                 (read-to-boundary reader))
-               (str first-char))
-        v (r/string->edn s)]
-    (if (symbol? v)
-      (symbol-node reader v s)
-      (node/token-node v s))))
+  (try
+    (let [first-char (r/next reader)
+          s (->> (if (= first-char \\)
+                   (read-to-char-boundary reader)
+                   (read-to-boundary reader))
+                 (str first-char))
+          v (r/string->edn s)]
+      (if (symbol? v)
+        (symbol-node reader v s)
+        (node/token-node v s)))
+    (catch Exception e (swap! invalid-token-exceptions conj e) reader)))

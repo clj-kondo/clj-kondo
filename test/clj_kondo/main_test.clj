@@ -2696,6 +2696,12 @@ foo/baz
                       :linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljc"))))
 
+(deftest continue-on-invalid-token-code-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 5, :level :error, :message "Invalid symbol: foo/."}
+     {:file "<stdin>", :row 1, :col 6, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
+   (lint! "foo/ (inc)")))
+
 ;;;; Scratch
 
 (comment

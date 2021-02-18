@@ -25,6 +25,7 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.parser :as p]
+   [clj-kondo.impl.rewrite-clj.parser.token :refer [invalid-token-exceptions]]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
@@ -1952,7 +1953,14 @@
   linters and returns their findings."
   [{:keys [:config] :as ctx} filename input lang dev?]
   (try
-    (let [parsed (p/parse-string input)]
+    (let [parsed (p/parse-string input)
+          token-exceptions @invalid-token-exceptions
+          _ (when (seq token-exceptions)
+              (reset! invalid-token-exceptions []))]
+      (doseq [e token-exceptions]
+        (if dev?
+          (throw e)
+          (run! #(findings/reg-finding! ctx %) (->findings e filename))))
       (case lang
         :cljc
         (let [cljc-config (:cljc config)
