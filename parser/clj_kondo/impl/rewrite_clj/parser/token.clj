@@ -3,7 +3,7 @@
              [node :as node]
              [reader :as r]]))
 
-(def invalid-token-exceptions (atom []))
+(def ^:dynamic *invalid-token-exceptions* nil)
 
 (defn- read-to-boundary
   [reader & [allowed]]
@@ -48,4 +48,4 @@
       (if (symbol? v)
         (symbol-node reader v s)
         (node/token-node v s)))
-    (catch Exception e (swap! invalid-token-exceptions conj e) reader)))
+    (catch Exception e (swap! *invalid-token-exceptions* conj e) reader)))
