@@ -10,13 +10,23 @@
    {:keys [:config/env]} :- {:config/env sc/Keyword}]
   {:config/env env})
 
-;; Testing when dispatch-val is vector
+;; When dispatch-val is vector
 (sc/defmethod ig/init-key [:config1 :config2] :- {:config/env sc/Keyword}
   [_
    {:keys [:config/env]} :- {:config/env sc/Keyword}]
-  {:config/env env})
+  (let [a 1]
+    {:config/env env
+     :a          a}))
 
-;; Testing with multiple arities
+;; Missing return schema
+(sc/defmethod ig/init-key [:config1 :config2]
+  [_
+   {:keys [:config/env]} :- {:config/env sc/Keyword}]
+  (let [a 1]
+    {:config/env env
+     :a          a}))
+
+;; With multiple arities
 (sc/defmethod ig/init-key [:config1 :config2] :- {:config/env sc/Keyword}
   ([_
     {:keys [:config/env]} :- {:config/env sc/Keyword}]

@@ -26,12 +26,16 @@
     {:expr (assoc expr :children new-children)
      :schemas schemas}))
 
+(defn- defmethod-dispatch-val? [fn-sym index]
+  (and (= fn-sym 'defmethod) (= index 2)))
+
 (defn expand-schema
-  [_ctx expr]
+  [_ctx fn-sym expr]
   (let [children (:children expr)
         {:keys [:new-children
                 :schemas]}
         (loop [[fst-child & rest-children] children
+               index 0
                res {:new-children []
                     :schemas []}]
           (let [sexpr (when fst-child (utils/sexpr fst-child))]
@@ -39,17 +43,17 @@
                   res
                   (= ':- sexpr)
                   (recur (next rest-children)
+                         (inc index)
                          (update res :schemas conj (first rest-children)))
-                  (vector? sexpr)
+                  (and (vector? sexpr) (not (defmethod-dispatch-val? fn-sym index)))
                   (let [{:keys [:expr :schemas]} (remove-schemas-from-children fst-child)]
-                    (if (not (some (comp #{:vector :list} utils/tag) rest-children))
-                      (-> res
-                          (update :schemas into schemas)
-                          (update :new-children conj expr)
-                          (update :new-children into rest-children))
-                      (recur rest-children (update res :new-children conj expr))))
+                    (-> res
+                        (update :schemas into schemas)
+                        (update :new-children conj expr)
+                        (update :new-children into rest-children)))
                   (list? sexpr)
                   (recur rest-children
+                         (inc index)
                          (let [cchildren (:children fst-child)
                                {:keys [:expr :schemas]} (remove-schemas-from-children (first cchildren))
                                new-cchildren (cons expr (rest cchildren))
@@ -58,11 +62,11 @@
                                (update :schemas into schemas)
                                (update :new-children conj new-fst-child))))
                   :else (recur rest-children
+                               (inc index)
                                (update res :new-children conj fst-child)))))]
     {:expr (assoc expr :children new-children)
      :schemas schemas}))
 
 ;;;; Scratch
 
-(comment
-  )
+(comment)
