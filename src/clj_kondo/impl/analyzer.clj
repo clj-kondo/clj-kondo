@@ -858,6 +858,7 @@
 (defn analyze-schema [ctx fn-sym expr]
   (let [{:keys [:expr :schemas]}
         (schema/expand-schema ctx
+                              fn-sym
                               expr)]
     (concat
      (case fn-sym
