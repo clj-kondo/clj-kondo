@@ -42,10 +42,12 @@
                          (update res :schemas conj (first rest-children)))
                   (vector? sexpr)
                   (let [{:keys [:expr :schemas]} (remove-schemas-from-children fst-child)]
-                    (-> res
-                        (update :schemas into schemas)
-                        (update :new-children conj expr)
-                        (update :new-children into rest-children)))
+                    (if (not (some (comp #{:vector :list} utils/tag) rest-children))
+                      (-> res
+                          (update :schemas into schemas)
+                          (update :new-children conj expr)
+                          (update :new-children into rest-children))
+                      (recur rest-children (update res :new-children conj expr))))
                   (list? sexpr)
                   (recur rest-children
                          (let [cchildren (:children fst-child)
