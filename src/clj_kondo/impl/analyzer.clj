@@ -484,7 +484,8 @@
                    :private private?
                    :deprecated deprecated
                    :fixed-arities (not-empty fixed-arities)
-                   :arglist-strs (not-empty arglist-strs)
+                   :arglist-strs (when (:analyze-arglists? ctx)
+                                   arglist-strs)
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
