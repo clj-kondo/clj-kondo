@@ -51,7 +51,8 @@
                                         [clojure.core do]
                                         [cljs.core do]])))]
      (when-not (config/skip? config callstack)
-       (let [ctx (assoc ctx
+       (let [len (count children)
+             ctx (assoc ctx
                         :top-level? top-level?
                         :arg-types (if add-new-arg-types?
                                      (let [[k v] (first callstack)]
@@ -59,8 +60,13 @@
                                                 (symbol? v))
                                          (atom [])
                                          nil))
-                                     (:arg-types ctx)))]
-         (into [] (mapcat #(analyze-expression** ctx %)) children))))))
+                                     (:arg-types ctx))
+                        :len len)]
+         (into []
+               (comp (map-indexed (fn [i e]
+                                    (analyze-expression** (assoc ctx :idx i) e)))
+                     cat)
+               children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
   (let [skip-reg-binding? (when (:fn-args? opts)

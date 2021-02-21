@@ -94,7 +94,8 @@
                                                clojure.core/name nomspaco}
                              #_#_:exclude [frequencies]
                              #_#_:include [name]}
-              :deps.edn {:level :warning}}
+              :deps.edn {:level :warning}
+              :redundant-expression {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
