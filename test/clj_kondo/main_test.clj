@@ -2710,6 +2710,12 @@ foo/
 (inc)
 foo/")))
 
+(deftest nested-fn-literal-test
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 7, :level :error, :message "Nested #()s are not allowed"})
+   (lint! "
+#(inc #(inc %))")))
+
 ;;;; Scratch
 
 (comment

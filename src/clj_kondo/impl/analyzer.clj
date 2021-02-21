@@ -1759,8 +1759,15 @@
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
                                    children))
-        :fn (recur (assoc ctx :arg-types nil)
-                   (macroexpand/expand-fn expr))
+        :fn (do
+              (when (:in-fn-literal ctx)
+                (findings/reg-finding! ctx (assoc (meta expr)
+                                                  :filename (:filename ctx)
+                                                  :level :error
+                                                  :type :syntax
+                                                  :message "Nested #()s are not allowed")))
+              (recur (assoc ctx :arg-types nil :in-fn-literal true)
+                     (macroexpand/expand-fn expr)))
         :token
         (if (:quoted ctx)
           (when (:k expr)
