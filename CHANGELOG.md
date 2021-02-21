@@ -2,6 +2,17 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+### New
+
+- Lint nested function literal [#636](https://github.com/clj-kondo/clj-kondo/issues/636)
+
+### Enhanced / fixed
+
+- Fix schema.core/defmethod linting for vectors dispatch-values [#1175](https://github.com/clj-kondo/clj-kondo/pull/1175) ([@leoiacovini](https://github.com/leoiacovini))
+- Continue analyzing on invalid symbol [#1146](https://github.com/clj-kondo/clj-kondo/issues/1146)
+
 ## 2021.02.13
 
 Thanks to [@snoe](https://github.com/snoe) and [@ericdallo](https://github.com/ericdallo) for contributing to this release. Thanks to the
