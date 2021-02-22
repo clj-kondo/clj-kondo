@@ -1803,7 +1803,7 @@
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                       (types/add-arg-type-from-expr ctx expr)
-                      (analyze-children ctx children))
+                      (analyze-children (update ctx :callstack #(cons [nil k] %)) children))
                   (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
                                           (when-not (one-of s ['. '..])
                                             s))]

@@ -6,4 +6,6 @@
 (deftest shadowed-var-test
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 5, :level :warning, :message "Redundant expression: 1"})
-   (lint! "(do 1 2) ")))
+   (lint! "(do 1 2) "))
+  (is (empty?
+       (lint! "(fn [] (:foo {}))"))))
