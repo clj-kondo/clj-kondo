@@ -215,7 +215,9 @@
                          :error
                          :syntax
                          (str "unsupported binding form " expr))))
-         :vector (let [v (map #(extract-bindings ctx % scoped-expr opts) (:children expr))
+         :vector (let [v (map #(extract-bindings
+                                (update ctx :callstack cons '[nil :vector])
+                                % scoped-expr opts) (:children expr))
                        tags (map :tag (map meta v))
                        expr-meta (meta expr)
                        t (:tag expr-meta)
@@ -1850,12 +1852,9 @@
                   (analyze-children ctx children)))))
           (types/add-arg-type-from-expr ctx expr :list))
         ;; catch-all
-        (do
-          ;; (prn "--")
-          nil
-          (analyze-children (update ctx
-                                    :callstack #(cons [nil t] %))
-                            children))))))
+        (analyze-children (update ctx
+                                  :callstack #(cons [nil t] %))
+                          children)))))
 
 ;; Hack to make a few functions available in a common namespace without
 ;; introducing circular depending namespaces. NOTE: alter-var-root! didn't work

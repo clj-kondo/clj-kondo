@@ -8,4 +8,10 @@
    '({:file "<stdin>", :row 1, :col 5, :level :warning, :message "Redundant expression: 1"})
    (lint! "(do 1 2) "))
   (is (empty?
-       (lint! "(fn [] (:foo {}))"))))
+       (lint! "(fn [] (:foo {}))")))
+  (is (empty?
+       (lint! "(map
+ (fn [{:keys [:vars :proxied-namespaces]}]
+   (assoc {:vars vars}
+          :proxied-namespaces proxied-namespaces))
+ [])"))))

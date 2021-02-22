@@ -153,7 +153,7 @@
     (char) :char
     (Character java.lang.Character) :nilable/char
     (Seqable clojure.lang.Seqable) :seqable
-    (do #_(prn "did not catch tag:" meta-tag) nil nil)))
+    nil))
 
 (defn number->tag [v]
   (cond (int? v)
@@ -402,10 +402,7 @@
                   (keyword? s)
                   (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
                         :else
-                        (do (when-not (do
-                                        ;; (prn "match t s" t s)
-                                        nil
-                                        (match? t s))
+                        (do (when-not (match? t s)
                               (emit-non-match! ctx s a t))
                             (recur check-ctx rest-args-spec rest-args rest-tags))))))))))
 
