@@ -14,4 +14,6 @@
  (fn [{:keys [:vars :proxied-namespaces]}]
    (assoc {:vars vars}
           :proxied-namespaces proxied-namespaces))
- [])"))))
+ [])")))
+  (is (empty? (lint! "
+(let [f #(+ % %2)] (f 1 2))"))))

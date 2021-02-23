@@ -879,7 +879,6 @@
      (analyze-children ctx schemas))))
 
 (defn analyze-binding-call [ctx fn-name binding expr]
-  ;; TODO: optimize getting the filename from the ctx etc in this function, for the happy path
   (let [callstack (:callstack ctx)
         config (:config ctx)
         ns-name (-> ctx :ns :name)]
@@ -907,7 +906,7 @@
                                        (node->line filename expr :error
                                                    :invalid-arity
                                                    (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))
-        (analyze-children ctx (rest children))))))
+        (analyze-children (update ctx :callstack cons [nil fn-name]) (rest children))))))
 
 (defn lint-inline-def! [ctx expr]
   (when (:in-def ctx)
