@@ -16,4 +16,7 @@
           :proxied-namespaces proxied-namespaces))
  [])")))
   (is (empty? (lint! "
-(let [f #(+ % %2)] (f 1 2))"))))
+(let [f #(+ % %2)] (f 1 2))")))
+  (is (empty? (lint! "
+(binding [*print-level* false
+          *print-meta* false])"))))

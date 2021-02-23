@@ -1187,9 +1187,10 @@
         rhs (take-nth 2 (rest bindings))
         body (next children)]
     ;;  NOTE: because of lazy evaluation we need to use dorun!
-    (dorun (analyze-children (ctx-with-linter-disabled ctx :private-call)
-                             lhs))
-    (dorun (analyze-children ctx rhs))
+    (let [ctx (update ctx :callstack cons [nil :vector])]
+      (dorun (analyze-children (ctx-with-linter-disabled ctx :private-call)
+                               lhs))
+      (dorun (analyze-children ctx rhs)))
     (analyze-children ctx body)))
 
 (defn analyze-def-catch-all [ctx expr]
