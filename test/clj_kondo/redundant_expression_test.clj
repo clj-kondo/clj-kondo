@@ -23,4 +23,8 @@
   (is (empty? (lint! "
 (when-not (:protocol-symbol var)
   (cljs.analyzer/warning :invalid-protocol-symbol {}))"
-                     {:linters {:unresolved-namespace {:level :off}}}))))
+                     {:linters {:unresolved-namespace {:level :off}}})))
+  (is (empty? (lint! "
+(do
+  (let [_res (try nil (catch :default _))])
+  nil)"))))

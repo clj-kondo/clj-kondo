@@ -925,7 +925,8 @@
                                  :declared true)))))
 
 (defn analyze-catch [ctx expr]
-  (let [[class-expr binding-expr & exprs] (next (:children expr))
+  (let [ctx (update ctx :callstack cons [nil 'catch])
+        [class-expr binding-expr & exprs] (next (:children expr))
         _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
         binding (extract-bindings ctx binding-expr (last exprs) {})]
     (analyze-children (ctx-with-bindings ctx binding)
