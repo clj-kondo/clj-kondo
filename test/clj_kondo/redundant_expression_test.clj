@@ -30,4 +30,7 @@
   (is (empty? (lint! "
 (do
   (let [_res (try nil (catch :default _))])
-  nil)"))))
+  nil)")))
+  (is (empty? (lint! "
+(do ((fn [_ _]) true false) true)
+"))))

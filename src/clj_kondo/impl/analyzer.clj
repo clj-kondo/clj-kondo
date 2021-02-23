@@ -1803,11 +1803,13 @@
             (let [t (tag function)]
               (case t
                 :map
-                (do (lint-map-call! ctx function arg-count expr)
-                    (types/add-arg-type-from-expr ctx expr)
-                    (analyze-children ctx children))
+                (let [ctx (update ctx :callstack cons [nil t])]
+                  (lint-map-call! ctx function arg-count expr)
+                  (types/add-arg-type-from-expr ctx expr)
+                  (analyze-children ctx children))
                 :quote
-                (let [quoted-child (-> function :children first)]
+                (let [quoted-child (-> function :children first)
+                      ctx (update ctx :callstack cons [nil t])]
                   (if (utils/symbol-token? quoted-child)
                     (do (lint-symbol-call! ctx quoted-child arg-count expr)
                         (analyze-children ctx children))
@@ -1815,9 +1817,10 @@
                         (analyze-children ctx children))))
                 :token
                 (if-let [k (:k function)]
-                  (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
-                      (types/add-arg-type-from-expr ctx expr)
-                      (analyze-children (update ctx :callstack #(cons [nil k] %)) children))
+                  (let [ctx (update ctx :callstack cons [nil t])]
+                    (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+                    (types/add-arg-type-from-expr ctx expr)
+                    (analyze-children ctx children))
                   (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
                                           (when-not (one-of s ['. '..])
                                             s))]
@@ -1839,29 +1842,31 @@
                             (types/add-arg-type-from-call ctx maybe-call expr)
                             (types/add-arg-type-from-expr ctx expr))
                           ret)))
-                    (cond
-                      (utils/boolean-token? function)
-                      (do (reg-not-a-function! ctx expr "boolean")
-                          (analyze-children ctx (rest children)))
-                      (utils/string-from-token function)
-                      (do (reg-not-a-function! ctx expr "string")
-                          (analyze-children ctx (rest children)))
-                      (utils/char-token? function)
-                      (do (reg-not-a-function! ctx expr "character")
-                          (analyze-children ctx (rest children)))
-                      (utils/number-token? function)
-                      (do (reg-not-a-function! ctx expr "number")
-                          (analyze-children ctx (rest children)))
-                      :else
-                      (do
-                        ;; (prn "--")
-                        (types/add-arg-type-from-expr ctx expr)
-                        (analyze-children ctx children)))))
-                ;; catch-call
+                    (let [ctx (update ctx :callstack cons [nil t])]
+                      (cond
+                        (utils/boolean-token? function)
+                        (do (reg-not-a-function! ctx expr "boolean")
+                            (analyze-children ctx (rest children)))
+                        (utils/string-from-token function)
+                        (do (reg-not-a-function! ctx expr "string")
+                            (analyze-children ctx (rest children)))
+                        (utils/char-token? function)
+                        (do (reg-not-a-function! ctx expr "character")
+                            (analyze-children ctx (rest children)))
+                        (utils/number-token? function)
+                        (do (reg-not-a-function! ctx expr "number")
+                            (analyze-children ctx (rest children)))
+                        :else
+                        (do
+                          ;; (prn "--")
+                          (types/add-arg-type-from-expr ctx expr)
+                          (analyze-children ctx children))))))
+                ;; catch-all
                 (do
                   ;; (prn "--" expr (types/add-arg-type-from-expr ctx expr))
                   (types/add-arg-type-from-expr ctx expr)
-                  (analyze-children ctx children)))))
+                  (let [ctx (update ctx :callstack cons [nil t])]
+                    (analyze-children ctx children))))))
           (types/add-arg-type-from-expr ctx expr :list))
         ;; catch-all
         (analyze-children (update ctx
