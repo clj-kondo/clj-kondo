@@ -1353,7 +1353,9 @@
             (namespace/reg-unresolved-namespace! ctx ns-name
                                                  (with-meta unresolved-ns
                                                    (meta full-fn-name)))
-            (analyze-children ctx children))
+            (analyze-children (update ctx :callstack cons
+                                      [:clj-kondo/unknown-namespace
+                                       (symbol (name full-fn-name))]) children))
           :else
           (let [[resolved-as-namespace resolved-as-name _lint-as?]
                 (or (when-let

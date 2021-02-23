@@ -19,4 +19,8 @@
 (let [f #(+ % %2)] (f 1 2))")))
   (is (empty? (lint! "
 (binding [*print-level* false
-          *print-meta* false])"))))
+          *print-meta* false])")))
+  (is (empty? (lint! "
+(when-not (:protocol-symbol var)
+  (cljs.analyzer/warning :invalid-protocol-symbol {}))"
+                     {:linters {:unresolved-namespace {:level :off}}}))))
