@@ -933,38 +933,47 @@
                       exprs)))
 
 (defn analyze-try [ctx expr]
-  (loop [[fst-child & rst-children] (next (:children expr))
-         analyzed []
-         ;; TODO: lint syntax
-         _catch-phase false
-         _finally-phase false
-         has-catch-or-finally? false]
-    (if fst-child
-      (case (symbol-call fst-child)
-        catch
-        (let [analyzed-catch (analyze-catch ctx fst-child)]
-          (recur rst-children (into analyzed analyzed-catch)
-                 true false true))
-        finally
-        (recur
-         rst-children
-         (into analyzed (analyze-children ctx (next (:children fst-child))))
-         false false true)
-        (recur
-         rst-children
-         (into analyzed (analyze-expression** ctx fst-child))
-         false false has-catch-or-finally?))
-      (do
-        (when-not has-catch-or-finally?
-          (findings/reg-finding!
-           ctx
-           (node->line
-            (:filename ctx)
-            expr
-            :warning
-            :missing-clause-in-try
-            "Missing catch or finally in try")))
-        analyzed))))
+  (let [children (next (:children expr))
+        children-until-catch-or-finally
+        (take-while #(let [sc (symbol-call %)]
+                       (and (not= 'catch sc)
+                            (not= 'finally sc))) children)
+        cnt (count children-until-catch-or-finally)
+        children-after (drop cnt children)]
+    (analyze-children ctx children-until-catch-or-finally)
+    (loop [[fst-child & rst-children] children-after
+           analyzed []
+           ;; TODO: lint syntax
+           _catch-phase false
+           _finally-phase false
+           has-catch-or-finally? false]
+      (if fst-child
+        (case (symbol-call fst-child)
+          catch
+          (let [analyzed-catch (analyze-catch ctx fst-child)]
+            (recur rst-children (into analyzed analyzed-catch)
+                   true false true))
+          finally
+          (recur
+           rst-children
+           (into analyzed (analyze-children (update ctx :callstack cons [nil 'finally]) (next (:children fst-child))))
+           false false true)
+          ;; TODO: should never get here, probably syntax error
+          (recur
+           rst-children
+           (into analyzed (analyze-expression** ctx fst-child))
+           false false has-catch-or-finally?))
+        (do
+          (when-not has-catch-or-finally?
+            (findings/reg-finding!
+             ctx
+             (node->line
+              (:filename ctx)
+              expr
+              :warning
+              :missing-clause-in-try
+              "Missing catch or finally in try")))
+          analyzed)))))
 
 (defn analyze-defprotocol [{:keys [:ns] :as ctx} expr]
   ;; for syntax, see https://clojure.org/reference/protocols#_basics

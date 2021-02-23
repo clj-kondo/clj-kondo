@@ -7,6 +7,9 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 5, :level :warning, :message "Redundant expression: 1"})
    (lint! "(do 1 2) "))
+  (assert-submaps '({:file "<stdin>", :row 2, :col 6, :level :warning, :message "Redundant expression: 1"}
+                    {:file "<stdin>", :row 2, :col 8, :level :warning, :message "Redundant expression: 2"}) (lint! "
+(try 1 2 3 (catch Exception _))"))
   (is (empty?
        (lint! "(fn [] (:foo {}))")))
   (is (empty?
