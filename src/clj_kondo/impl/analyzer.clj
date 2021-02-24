@@ -1862,8 +1862,7 @@
                                             (rest children)))
                       :else
                       (do
-                        ;; (prn "--")
-                        (types/add-arg-type-from-expr ctx expr)
+                        (types/add-arg-type-from-expr (update ctx :callstack cons [nil t]) expr)
                         (analyze-children ctx children)))))
                 ;; catch-all
                 (do
