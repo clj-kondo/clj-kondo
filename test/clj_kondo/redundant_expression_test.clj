@@ -33,4 +33,11 @@
   nil)")))
   (is (empty? (lint! "
 (do ((fn [_ _]) true false) true)
-"))))
+")))
+  (is (empty? (lint! "
+(do (true 1 2) 1)
+(do (\"foo\" 1 2) 1)
+(do (\\a 1 2) 1)
+(do (1 1 2) 1)
+"
+                     {:linters {:not-a-function {:level :off}}}))))
