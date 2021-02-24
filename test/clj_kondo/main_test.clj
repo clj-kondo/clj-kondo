@@ -95,14 +95,19 @@
      {:row 12, :col 17, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 13, :col 25, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 14, :col 18, :file "corpus/redundant_do.clj" :message "redundant do"})
-   (lint! (io/file "corpus" "redundant_do.clj")))
-  (is (empty? (lint! "(do 1 `(do 1 2 3))")))
-  (is (empty? (lint! "(do 1 '(do 1 2 3))")))
-  (is (not-empty (lint! "(fn [] (do :foo :bar))")))
+   (lint! (io/file "corpus" "redundant_do.clj")
+          {:linters {:redundant-expression {:level :off}}}))
+  (is (empty? (lint! "(do 1 `(do 1 2 3))"
+                     {:linters {:redundant-expression {:level :off}}})))
+  (is (empty? (lint! "(do 1 '(do 1 2 3))"
+                     {:linters {:redundant-expression {:level :off}}})))
+  (is (not-empty (lint! "(fn [] (do :foo :bar))"
+                        {:linters {:redundant-expression {:level :off}}})))
   (is (empty? (lint! "#(do :foo)")))
   (is (empty? (lint! "#(do {:a %})")))
   (is (empty? (lint! "#(do)")))
-  (is (empty? (lint! "#(do :foo :bar)")))
+  (is (empty? (lint! "#(do :foo :bar)"
+                     {:linters {:redundant-expression {:level :off}}})))
   (is (empty? (lint! "#(do (prn %1 %2 true) %1)")))
   (is (empty? (lint! "(let [x (do (println 1) 1)] x)"))))
 
@@ -868,7 +873,8 @@ foo/foo ;; this does use the private var
   (is (empty?
        (lint! "(def (def x 1))" '{:linters {:inline-def {:level :off}}})))
   (is (empty?
-       (lint! "(do (do 1 2 3))" '{:linters {:redundant-do {:level :off}}})))
+       (lint! "(do (do 1 2 3))" '{:linters {:redundant-do {:level :off}
+                                            :redundant-expression {:level :off}}})))
   (is (empty?
        (lint! "(let [x 1] (let [y 2]))" '{:linters {:redundant-let {:level :off}}})))
   (is (empty?
@@ -1900,7 +1906,8 @@ foo/foo ;; this does use the private var
       :col 13,
       :level :warning,
       :message "Misplaced docstring."})
-   (lint! "(defn f [x] \"dude\" x)"))
+   (lint! "(defn f [x] \"dude\" x)"
+          {:linters {:redundant-expression {:level :off}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
@@ -1909,11 +1916,14 @@ foo/foo ;; this does use the private var
       :message "Misplaced docstring."})
    (lint! "(defn foo [x y] \"dude
 
-          \" [x y])"))
+          \" [x y])"
+          {:linters {:redundant-expression {:level :off}}}))
   (is (empty? (lint! "(defn f [x] \"dude\")")))
   ;; for now this is empty, but in the next version we might warn about the
   ;; string "dude" being a discarded value
-  (is (empty? (lint! "(defn f \"dude\" [x] \"dude\" x)"))))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Redundant expression: \"dude\""})
+   (lint! "(defn f \"dude\" [x] \"dude\" x)")))
 
 (deftest defn-syntax-test
   (assert-submaps '({:file "<stdin>",

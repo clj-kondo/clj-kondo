@@ -1803,24 +1803,25 @@
             (let [t (tag function)]
               (case t
                 :map
-                (let [ctx (update ctx :callstack cons [nil t])]
-                  (lint-map-call! ctx function arg-count expr)
-                  (types/add-arg-type-from-expr ctx expr)
-                  (analyze-children ctx children))
+                (do (lint-map-call! ctx function arg-count expr)
+                    (types/add-arg-type-from-expr ctx expr)
+                    (analyze-children (update ctx :callstack cons [nil t]) children))
                 :quote
-                (let [quoted-child (-> function :children first)
-                      ctx (update ctx :callstack cons [nil t])]
+                (let [quoted-child (-> function :children first)]
                   (if (utils/symbol-token? quoted-child)
                     (do (lint-symbol-call! ctx quoted-child arg-count expr)
-                        (analyze-children ctx children))
+                        (analyze-children (update ctx :callstack cons [nil t])
+                                          children))
                     (do (types/add-arg-type-from-expr ctx expr)
-                        (analyze-children ctx children))))
+                        (analyze-children ctx
+                                          (update ctx :callstack cons [nil t])
+                                          children))))
                 :token
                 (if-let [k (:k function)]
-                  (let [ctx (update ctx :callstack cons [nil t])]
+                  (do
                     (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                     (types/add-arg-type-from-expr ctx expr)
-                    (analyze-children ctx children))
+                    (analyze-children (update ctx :callstack cons [nil t]) children))
                   (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
                                           (when-not (one-of s ['. '..])
                                             s))]
@@ -1842,25 +1843,24 @@
                             (types/add-arg-type-from-call ctx maybe-call expr)
                             (types/add-arg-type-from-expr ctx expr))
                           ret)))
-                    (let [ctx (update ctx :callstack cons [nil t])]
-                      (cond
-                        (utils/boolean-token? function)
-                        (do (reg-not-a-function! ctx expr "boolean")
-                            (analyze-children ctx (rest children)))
-                        (utils/string-from-token function)
-                        (do (reg-not-a-function! ctx expr "string")
-                            (analyze-children ctx (rest children)))
-                        (utils/char-token? function)
-                        (do (reg-not-a-function! ctx expr "character")
-                            (analyze-children ctx (rest children)))
-                        (utils/number-token? function)
-                        (do (reg-not-a-function! ctx expr "number")
-                            (analyze-children ctx (rest children)))
-                        :else
-                        (do
-                          ;; (prn "--")
-                          (types/add-arg-type-from-expr ctx expr)
-                          (analyze-children ctx children))))))
+                    (cond
+                      (utils/boolean-token? function)
+                      (do (reg-not-a-function! ctx expr "boolean")
+                          (analyze-children ctx (rest children)))
+                      (utils/string-from-token function)
+                      (do (reg-not-a-function! ctx expr "string")
+                          (analyze-children ctx (rest children)))
+                      (utils/char-token? function)
+                      (do (reg-not-a-function! ctx expr "character")
+                          (analyze-children ctx (rest children)))
+                      (utils/number-token? function)
+                      (do (reg-not-a-function! ctx expr "number")
+                          (analyze-children ctx (rest children)))
+                      :else
+                      (do
+                        ;; (prn "--")
+                        (types/add-arg-type-from-expr ctx expr)
+                        (analyze-children ctx children)))))
                 ;; catch-all
                 (do
                   ;; (prn "--" expr (types/add-arg-type-from-expr ctx expr))

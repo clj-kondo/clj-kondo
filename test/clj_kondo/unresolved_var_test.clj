@@ -30,7 +30,7 @@
                 '{:linters {:unresolved-symbol {:level :error}
                             :unresolved-var {:level :error}}}))))
   (is (empty?
-       (lint! "(do 1 2) goog.global"
+       (lint! "(do (prn :foo) (prn :bar)) goog.global"
               '{:linters {:unresolved-symbol {:level :error}
                           :unresolved-var {:level :error}}}
               "--lang" "cljs")))

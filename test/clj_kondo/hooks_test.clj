@@ -155,7 +155,7 @@ children))]
 }}}}
   (:require [foo :refer [hook-do hook-let]]))
 
-(hook-do (do 1 2))
+(hook-do (do (prn :foo) (prn :bar)))
 (hook-let (let [x 1] x))"
                        {:hooks {:__dangerously-allow-string-hooks__ true}})]
         (is (empty? res))))))
