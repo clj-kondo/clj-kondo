@@ -7,6 +7,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ### New
 
 - Lint nested function literal [#636](https://github.com/clj-kondo/clj-kondo/issues/636)
+- Redundant expression linter [#298](https://github.com/clj-kondo/clj-kondo/issues/298)
 
 ### Enhanced / fixed
 
