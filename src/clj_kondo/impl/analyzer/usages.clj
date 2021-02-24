@@ -4,6 +4,7 @@
   (:require
     [clj-kondo.impl.analysis :as analysis]
     [clj-kondo.impl.analyzer.common :as common]
+    [clj-kondo.impl.findings :as findings]
     [clj-kondo.impl.metadata :as meta]
     [clj-kondo.impl.namespace :as namespace]
     [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some symbol-token?]]
@@ -189,8 +190,32 @@
                                                   ;; save some memory
                                                   :expr (when-not no-warnings expr)
                                                   :resolved-core? resolved-core?})))))
-               (when (:k expr)
-                 (analyze-keyword ctx expr opts)))
+               (do
+                 ;; (prn (type (utils/sexpr expr)) (:callstack ctx) (:len ctx) (:idx ctx))
+                 (when-let [idx (:idx ctx)]
+                   (let [len (:len ctx)]
+                     (when (< idx (dec len))
+                       (let [parent-call (first (:callstack ctx))
+                             core? (one-of (first parent-call) [clojure.core cljs.core])
+                             core-sym (when core?
+                                        (second parent-call))
+                             generated? (:clj-kondo.impl/generated expr)
+                             redundant?
+                             (and (not generated?)
+                                  core?
+                                  (not (:clj-kondo.impl/generated (meta parent-call)))
+                                  (one-of core-sym [do fn defn defn-
+                                                    let when-let loop binding with-open
+                                                    doseq try when when-not when-first
+                                                    when-some future]))]
+                         (when redundant?
+                           (findings/reg-finding! ctx (assoc (meta expr)
+                                                             :level :warning
+                                                             :type :redundant-expression
+                                                             :message (str "Redundant expression: " (str expr))
+                                                             :filename (:filename ctx))))))))
+                 (when (:k expr)
+                     (analyze-keyword ctx expr opts))))
              :reader-macro
              (doall (mapcat
                      #(analyze-usages2 ctx %

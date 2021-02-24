@@ -51,7 +51,8 @@
                                         [clojure.core do]
                                         [cljs.core do]])))]
      (when-not (config/skip? config callstack)
-       (let [ctx (assoc ctx
+       (let [len (count children)
+             ctx (assoc ctx
                         :top-level? top-level?
                         :arg-types (if add-new-arg-types?
                                      (let [[k v] (first callstack)]
@@ -59,8 +60,13 @@
                                                 (symbol? v))
                                          (atom [])
                                          nil))
-                                     (:arg-types ctx)))]
-         (into [] (mapcat #(analyze-expression** ctx %)) children))))))
+                                     (:arg-types ctx))
+                        :len len)]
+         (into []
+               (comp (map-indexed (fn [i e]
+                                    (analyze-expression** (assoc ctx :idx i) e)))
+                     cat)
+               children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
   (let [skip-reg-binding? (when (:fn-args? opts)
@@ -209,7 +215,9 @@
                          :error
                          :syntax
                          (str "unsupported binding form " expr))))
-         :vector (let [v (map #(extract-bindings ctx % scoped-expr opts) (:children expr))
+         :vector (let [v (map #(extract-bindings
+                                (update ctx :callstack cons '[nil :vector])
+                                % scoped-expr opts) (:children expr))
                        tags (map :tag (map meta v))
                        expr-meta (meta expr)
                        t (:tag expr-meta)
@@ -871,7 +879,6 @@
      (analyze-children ctx schemas))))
 
 (defn analyze-binding-call [ctx fn-name binding expr]
-  ;; TODO: optimize getting the filename from the ctx etc in this function, for the happy path
   (let [callstack (:callstack ctx)
         config (:config ctx)
         ns-name (-> ctx :ns :name)]
@@ -899,7 +906,7 @@
                                        (node->line filename expr :error
                                                    :invalid-arity
                                                    (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))
-        (analyze-children ctx (rest children))))))
+        (analyze-children (update ctx :callstack cons [nil fn-name]) (rest children))))))
 
 (defn lint-inline-def! [ctx expr]
   (when (:in-def ctx)
@@ -918,45 +925,55 @@
                                  :declared true)))))
 
 (defn analyze-catch [ctx expr]
-  (let [[class-expr binding-expr & exprs] (next (:children expr))
+  (let [ctx (update ctx :callstack cons [nil 'catch])
+        [class-expr binding-expr & exprs] (next (:children expr))
         _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
         binding (extract-bindings ctx binding-expr (last exprs) {})]
     (analyze-children (ctx-with-bindings ctx binding)
                       exprs)))
 
 (defn analyze-try [ctx expr]
-  (loop [[fst-child & rst-children] (next (:children expr))
-         analyzed []
-         ;; TODO: lint syntax
-         _catch-phase false
-         _finally-phase false
-         has-catch-or-finally? false]
-    (if fst-child
-      (case (symbol-call fst-child)
-        catch
-        (let [analyzed-catch (analyze-catch ctx fst-child)]
-          (recur rst-children (into analyzed analyzed-catch)
-                 true false true))
-        finally
-        (recur
-         rst-children
-         (into analyzed (analyze-children ctx (next (:children fst-child))))
-         false false true)
-        (recur
-         rst-children
-         (into analyzed (analyze-expression** ctx fst-child))
-         false false has-catch-or-finally?))
-      (do
-        (when-not has-catch-or-finally?
-          (findings/reg-finding!
-           ctx
-           (node->line
-            (:filename ctx)
-            expr
-            :warning
-            :missing-clause-in-try
-            "Missing catch or finally in try")))
-        analyzed))))
+  (let [children (next (:children expr))
+        children-until-catch-or-finally
+        (take-while #(let [sc (symbol-call %)]
+                       (and (not= 'catch sc)
+                            (not= 'finally sc))) children)
+        cnt (count children-until-catch-or-finally)
+        children-after (drop cnt children)]
+    (analyze-children ctx children-until-catch-or-finally)
+    (loop [[fst-child & rst-children] children-after
+           analyzed []
+           ;; TODO: lint syntax
+           _catch-phase false
+           _finally-phase false
+           has-catch-or-finally? false]
+      (if fst-child
+        (case (symbol-call fst-child)
+          catch
+          (let [analyzed-catch (analyze-catch ctx fst-child)]
+            (recur rst-children (into analyzed analyzed-catch)
+                   true false true))
+          finally
+          (recur
+           rst-children
+           (into analyzed (analyze-children (update ctx :callstack cons [nil 'finally]) (next (:children fst-child))))
+           false false true)
+          ;; TODO: should never get here, probably syntax error
+          (recur
+           rst-children
+           (into analyzed (analyze-expression** ctx fst-child))
+           false false has-catch-or-finally?))
+        (do
+          (when-not has-catch-or-finally?
+            (findings/reg-finding!
+             ctx
+             (node->line
+              (:filename ctx)
+              expr
+              :warning
+              :missing-clause-in-try
+              "Missing catch or finally in try")))
+          analyzed)))))
 
 (defn analyze-defprotocol [{:keys [:ns] :as ctx} expr]
   ;; for syntax, see https://clojure.org/reference/protocols#_basics
@@ -1180,9 +1197,10 @@
         rhs (take-nth 2 (rest bindings))
         body (next children)]
     ;;  NOTE: because of lazy evaluation we need to use dorun!
-    (dorun (analyze-children (ctx-with-linter-disabled ctx :private-call)
-                             lhs))
-    (dorun (analyze-children ctx rhs))
+    (let [ctx (update ctx :callstack cons [nil :vector])]
+      (dorun (analyze-children (ctx-with-linter-disabled ctx :private-call)
+                               lhs))
+      (dorun (analyze-children ctx rhs)))
     (analyze-children ctx body)))
 
 (defn analyze-def-catch-all [ctx expr]
@@ -1345,7 +1363,9 @@
             (namespace/reg-unresolved-namespace! ctx ns-name
                                                  (with-meta unresolved-ns
                                                    (meta full-fn-name)))
-            (analyze-children ctx children))
+            (analyze-children (update ctx :callstack cons
+                                      [:clj-kondo/unknown-namespace
+                                       (symbol (name full-fn-name))]) children))
           :else
           (let [[resolved-as-namespace resolved-as-name _lint-as?]
                 (or (when-let
@@ -1785,19 +1805,23 @@
                 :map
                 (do (lint-map-call! ctx function arg-count expr)
                     (types/add-arg-type-from-expr ctx expr)
-                    (analyze-children ctx children))
+                    (analyze-children (update ctx :callstack cons [nil t]) children))
                 :quote
                 (let [quoted-child (-> function :children first)]
                   (if (utils/symbol-token? quoted-child)
                     (do (lint-symbol-call! ctx quoted-child arg-count expr)
-                        (analyze-children ctx children))
+                        (analyze-children (update ctx :callstack cons [nil t])
+                                          children))
                     (do (types/add-arg-type-from-expr ctx expr)
-                        (analyze-children ctx children))))
+                        (analyze-children ctx
+                                          (update ctx :callstack cons [nil t])
+                                          children))))
                 :token
                 (if-let [k (:k function)]
-                  (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
-                      (types/add-arg-type-from-expr ctx expr)
-                      (analyze-children ctx children))
+                  (do
+                    (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+                    (types/add-arg-type-from-expr ctx expr)
+                    (analyze-children (update ctx :callstack cons [nil t]) children))
                   (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
                                           (when-not (one-of s ['. '..])
                                             s))]
@@ -1822,34 +1846,35 @@
                     (cond
                       (utils/boolean-token? function)
                       (do (reg-not-a-function! ctx expr "boolean")
-                          (analyze-children ctx (rest children)))
+                          (analyze-children (update ctx :callstack cons [nil t])
+                                            (rest children)))
                       (utils/string-from-token function)
                       (do (reg-not-a-function! ctx expr "string")
-                          (analyze-children ctx (rest children)))
+                          (analyze-children (update ctx :callstack cons [nil t])
+                                            (rest children)))
                       (utils/char-token? function)
                       (do (reg-not-a-function! ctx expr "character")
-                          (analyze-children ctx (rest children)))
+                          (analyze-children (update ctx :callstack cons [nil t])
+                                            (rest children)))
                       (utils/number-token? function)
                       (do (reg-not-a-function! ctx expr "number")
-                          (analyze-children ctx (rest children)))
+                          (analyze-children (update ctx :callstack cons [nil t])
+                                            (rest children)))
                       :else
                       (do
-                        ;; (prn "--")
-                        (types/add-arg-type-from-expr ctx expr)
+                        (types/add-arg-type-from-expr (update ctx :callstack cons [nil t]) expr)
                         (analyze-children ctx children)))))
-                ;; catch-call
+                ;; catch-all
                 (do
                   ;; (prn "--" expr (types/add-arg-type-from-expr ctx expr))
                   (types/add-arg-type-from-expr ctx expr)
-                  (analyze-children ctx children)))))
+                  (let [ctx (update ctx :callstack cons [nil t])]
+                    (analyze-children ctx children))))))
           (types/add-arg-type-from-expr ctx expr :list))
         ;; catch-all
-        (do
-          ;; (prn "--")
-          nil
-          (analyze-children (update ctx
-                                    :callstack #(cons [nil t] %))
-                            children))))))
+        (analyze-children (update ctx
+                                  :callstack #(cons [nil t] %))
+                          children)))))
 
 ;; Hack to make a few functions available in a common namespace without
 ;; introducing circular depending namespaces. NOTE: alter-var-root! didn't work
