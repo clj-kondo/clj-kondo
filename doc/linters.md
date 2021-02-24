@@ -3,52 +3,57 @@
 This page contains an overview of all available linters and their corresponding
 configuration. For general configurations options, go [here](config.md).
 
-Table of contents:
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
 - [Linters](#linters)
-  - [Cond-else](#cond-else)
-  - [Conflicting-alias](#conflicting-alias)
-  - [Consistent-alias](#consistent-alias)
-  - [Datalog syntax](#datalog-syntax)
-  - [Deprecated var](#deprecated-var)
-  - [Deps.edn](#depsedn)
-  - [Duplicate map key](#duplicate-map-key)
-  - [Duplicate require](#duplicate-require)
-  - [Duplicate set key](#duplicate-set-key)
-  - [File](#file)
-  - [Format](#format)
-  - [Inline def](#inline-def)
-  - [Invalid arity](#invalid-arity)
-  - [Misplaced docstring](#misplaced-docstring)
-  - [Missing body in when](#missing-body-in-when)
-  - [Missing clause in try](#missing-clause-in-try)
-  - [Missing docstring](#missing-docstring)
-  - [Missing else branch](#missing-else-branch)
-  - [Missing map value](#missing-map-value)
-  - [Missing test assertion](#missing-test-assertion)
-  - [Not empty?](#not-empty)
-  - [Private call](#private-call)
-  - [Redefined var](#redefined-var)
-  - [Redundant do](#redundant-do)
-  - [Redundant let](#redundant-let)
-  - [Refer](#refer)
-  - [Refer all](#refer-all)
-  - [Single key in](#single-key-in)
-  - [Single operand comparison](#single-operand-comparison)
-  - [Shadowed var](#shadowed-var)
-  - [Syntax](#syntax)
-  - [Type mismatch](#type-mismatch)
-  - [Unbound destructuring default](#unbound-destructuring-default)
-  - [Unused binding](#unused-binding)
-  - [Unreachable code](#unreachable-code)
-  - [Unused import](#unused-import)
-  - [Unresolved namespace](#unresolved-namespace)
-  - [Unresolved symbol](#unresolved-symbol)
-  - [Unresolved var](#unresolved-var)
-  - [Unsorted required namespace](#unsorted-required-namespace)
-  - [Unused namespace](#unused-namespace)
-  - [Unused private var](#unused-private-var)
-  - [Unused referred var](#unused-referred-var)
-  - [Use](#use)
+    - [Cond-else](#cond-else)
+    - [Conflicting-alias](#conflicting-alias)
+    - [Consistent-alias](#consistent-alias)
+    - [Datalog syntax](#datalog-syntax)
+    - [Deprecated var](#deprecated-var)
+    - [Deps.edn](#depsedn)
+    - [Duplicate map key](#duplicate-map-key)
+    - [Duplicate require](#duplicate-require)
+    - [Duplicate set key](#duplicate-set-key)
+    - [File](#file)
+    - [Format](#format)
+    - [Inline def](#inline-def)
+    - [Invalid arity](#invalid-arity)
+    - [Misplaced docstring](#misplaced-docstring)
+    - [Missing body in when](#missing-body-in-when)
+    - [Missing clause in try](#missing-clause-in-try)
+    - [Missing docstring](#missing-docstring)
+    - [Missing else branch](#missing-else-branch)
+    - [Missing map value](#missing-map-value)
+    - [Missing test assertion](#missing-test-assertion)
+    - [Not empty?](#not-empty)
+    - [Private call](#private-call)
+    - [Redefined var](#redefined-var)
+    - [Redundant do](#redundant-do)
+    - [Redundant expression](#redundant-expression)
+    - [Redundant let](#redundant-let)
+    - [Refer](#refer)
+    - [Refer all](#refer-all)
+    - [Single key in](#single-key-in)
+    - [Single operand comparison](#single-operand-comparison)
+    - [Shadowed var](#shadowed-var)
+    - [Syntax](#syntax)
+    - [Type mismatch](#type-mismatch)
+    - [Unbound destructuring default](#unbound-destructuring-default)
+    - [Unused binding](#unused-binding)
+    - [Unreachable code](#unreachable-code)
+    - [Unused import](#unused-import)
+    - [Unresolved namespace](#unresolved-namespace)
+    - [Unresolved symbol](#unresolved-symbol)
+    - [Unresolved var](#unresolved-var)
+    - [Unsorted required namespace](#unsorted-required-namespace)
+    - [Unused namespace](#unused-namespace)
+    - [Unused private var](#unused-private-var)
+    - [Unused referred var](#unused-referred-var)
+    - [Use](#use)
+
+<!-- markdown-toc end -->
 
 ### Cond-else
 
@@ -478,6 +483,16 @@ because of an explicit or implicit do as the direct parent s-expression.
 *Example trigger:* `(defn foo [] (do 1))`.
 
 *Example message:* `redundant do`.
+
+### Redundant expression
+
+*Keyword*: `:redundant-expression`
+
+*Description:* warn on redundant expression.
+
+*Example trigger:* `(do 1 2)`.
+
+*Example message:* `Redundant expression: 1`.
 
 ### Redundant let
 
