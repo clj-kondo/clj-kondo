@@ -1857,7 +1857,7 @@
                           (analyze-children (update ctx :callstack cons [nil t])
                                             (rest children)))
                       (utils/number-token? function)
-                      (do (reg-not-a-function! (update ctx :callstack cons [nil t]) expr "number")
+                      (do (reg-not-a-function! ctx expr "number")
                           (analyze-children (update ctx :callstack cons [nil t])
                                             (rest children)))
                       :else
