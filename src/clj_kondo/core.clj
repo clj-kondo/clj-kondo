@@ -133,7 +133,10 @@
              :id-gen (when analyze-locals? (atom 0))
              :analyze-locals? analyze-locals?
              :analyze-keywords? analyze-keywords?
-             :analyze-arglists? (get analysis-cfg :arglists)}
+             :analyze-arglists? (get analysis-cfg :arglists)
+             ;; NOTE: we don't allow this to be changed in namespace local
+             ;; config, for e.g. the clj-kondo playground
+             :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
@@ -142,15 +145,18 @@
         idacs (core-impl/index-defs-and-calls ctx)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
-        _ (l/lint-var-usage ctx idacs)
-        _ (l/lint-unused-namespaces! ctx)
-        _ (l/lint-unused-private-vars! ctx)
-        _ (l/lint-unused-bindings! ctx)
-        _ (l/lint-unresolved-symbols! ctx)
-        _ (l/lint-unresolved-vars! ctx)
-        _ (l/lint-unused-imports! ctx)
-        _ (l/lint-unresolved-namespaces! ctx)
-        ;; _ (namespace/reg-analysis-output! ctx)
+        _ (when (and no-warnings (not analysis))
+            ;; analysis is called from lint-var-usage, this can probably happen somewhere else
+            (l/lint-var-usage ctx idacs))
+        _ (when-not no-warnings
+            (l/lint-var-usage ctx idacs)
+            (l/lint-unused-namespaces! ctx)
+            (l/lint-unused-private-vars! ctx)
+            (l/lint-unused-bindings! ctx)
+            (l/lint-unresolved-symbols! ctx)
+            (l/lint-unresolved-vars! ctx)
+            (l/lint-unused-imports! ctx)
+            (l/lint-unresolved-namespaces! ctx))
         all-findings @findings
         all-findings (core-impl/filter-findings config all-findings)
         all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))

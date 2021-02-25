@@ -4,6 +4,7 @@
   (:require
     [clj-kondo.impl.analysis :as analysis]
     [clj-kondo.impl.analyzer.common :as common]
+    [clj-kondo.impl.findings :as findings]
     [clj-kondo.impl.metadata :as meta]
     [clj-kondo.impl.namespace :as namespace]
     [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some symbol-token?]]
@@ -21,7 +22,8 @@
         alias-or-ns (some-> token namespace symbol)
         ns-sym (cond
                  (and aliased? alias-or-ns)
-                 (get-in ctx [:ns :aliases alias-or-ns] :clj-kondo/unknown-namespace)
+                 (-> (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) current-ns)
+                     (get-in [:aliases alias-or-ns] :clj-kondo/unknown-namespace))
 
                  aliased?
                  current-ns
@@ -82,6 +84,7 @@
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
+         no-warnings (:no-warnings ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
          ns-name (:name ns)
          t (tag expr)
@@ -97,11 +100,13 @@
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)]
      (if (and (= 1 syntax-quote-level) unquote-tag?)
        (common/analyze-expression** ctx expr)
-       (when (or (not quote?)
-                 ;; when we're in syntax-quote, we should still look for
-                 ;; unquotes, since these will be evaluated first, unless we're
-                 ;; in a nested syntax-quote
-                 syntax-quote?)
+       (if quote?
+         (do (when (:k expr)
+               (analyze-keyword ctx expr opts))
+             (doall (mapcat
+                     #(analyze-usages2 ctx %
+                                       (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
+                     (:children expr))))
          (let [syntax-quote?
                (or syntax-quote?
                    (= :syntax-quote t))]
@@ -182,10 +187,35 @@
                                                   :in-def (:in-def ctx)
                                                   :simple? simple?
                                                   :interop? interop?
-                                                  :expr expr
+                                                  ;; save some memory
+                                                  :expr (when-not no-warnings expr)
                                                   :resolved-core? resolved-core?})))))
-               (when (:k expr)
-                 (analyze-keyword ctx expr opts)))
+               (do
+                 ;; (prn (type (utils/sexpr expr)) (:callstack ctx) (:len ctx) (:idx ctx))
+                 (when-let [idx (:idx ctx)]
+                   (let [len (:len ctx)]
+                     (when (< idx (dec len))
+                       (let [parent-call (first (:callstack ctx))
+                             core? (one-of (first parent-call) [clojure.core cljs.core])
+                             core-sym (when core?
+                                        (second parent-call))
+                             generated? (:clj-kondo.impl/generated expr)
+                             redundant?
+                             (and (not generated?)
+                                  core?
+                                  (not (:clj-kondo.impl/generated (meta parent-call)))
+                                  (one-of core-sym [do fn defn defn-
+                                                    let when-let loop binding with-open
+                                                    doseq try when when-not when-first
+                                                    when-some future]))]
+                         (when redundant?
+                           (findings/reg-finding! ctx (assoc (meta expr)
+                                                             :level :warning
+                                                             :type :redundant-expression
+                                                             :message (str "Redundant expression: " (str expr))
+                                                             :filename (:filename ctx))))))))
+                 (when (:k expr)
+                     (analyze-keyword ctx expr opts))))
              :reader-macro
              (doall (mapcat
                      #(analyze-usages2 ctx %

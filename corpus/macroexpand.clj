@@ -49,8 +49,8 @@
     (= 11 y) (subs y 0))) ;; yay, type error because y is not a string
 
 (ns quux
-  {:clj-kondo/config '{:hooks {:analyze-call {rum.core/defc hooks.rum/f}}
-                       :lint-as {rum.core/defcs rum.core/defc}}}
+  {:clj-kondo/config '{:hooks {:analyze-call {rum.core/defc hooks.rum/f
+                                              rum.core/defcs hooks.rum/f}}}}
   (:require [rum.core :as rum]))
 
 (rum/defc with-mixin

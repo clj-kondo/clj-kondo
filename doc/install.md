@@ -62,9 +62,9 @@ To upgrade:
 
     brew upgrade clj-kondo
 
-## NPM (Linux, MacOS, Windows)
+<!-- ## NPM (Linux, MacOS, Windows) -->
 
-    npm install -g clj-kondo
+<!--     npm install -g clj-kondo -->
 
 ## Scoop (Windows)
 

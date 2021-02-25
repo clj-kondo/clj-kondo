@@ -17,19 +17,34 @@
                        config))))))
 
 (deftest keyword-analysis-test
-  (testing "standalone keywords"
-    (let [a (analyze "(ns foo (:require [bar :as b])) :kw :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
+  (testing "standalone keywords with top-level require"
+    (let [a (analyze "(require '[bar :as b]) :kw :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name kw}
-          {:name xkwa :ns x}
-          {:name xkwb :ns :clj-kondo/unknown-namespace}
-          {:name fookwa :ns foo}
-          {:name fookwb :ns foo}
-          {:name fookwc :ns :clj-kondo/unknown-namespace}
-          {:name barkwa :ns bar}
-          {:name barkwb :ns bar :alias b}
-          {:name barkwc :ns :clj-kondo/unknown-namespace}]
+        '[{:name "kw"}
+          {:name "xkwa" :ns x}
+          {:name "xkwb" :ns :clj-kondo/unknown-namespace}
+          {:name "fookwa" :ns user}
+          {:name "fookwb" :ns foo}
+          {:name "fookwc" :ns :clj-kondo/unknown-namespace}
+          {:name "barkwa" :ns bar}
+          {:name "barkwb" :ns bar :alias b}
+          {:name "barkwc" :ns :clj-kondo/unknown-namespace}]
+        (:keywords a))))
+  (testing "standalone keywords"
+    (let [a (analyze "(ns foo (:require [bar :as b])) :kw :2foo :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
+                     {:config {:output {:analysis {:keywords true}}}})]
+      (assert-submaps
+        '[{:name "kw"}
+          {:name "2foo"}
+          {:name "xkwa" :ns x}
+          {:name "xkwb" :ns :clj-kondo/unknown-namespace}
+          {:name "fookwa" :ns foo}
+          {:name "fookwb" :ns foo}
+          {:name "fookwc" :ns :clj-kondo/unknown-namespace}
+          {:name "barkwa" :ns bar}
+          {:name "barkwb" :ns bar :alias b}
+          {:name "barkwc" :ns :clj-kondo/unknown-namespace}]
         (:keywords a))))
   (testing "destructuring keywords"
     (let [a (analyze (str "(ns foo (:require [bar :as b]))\n"
@@ -40,41 +55,42 @@
                           "       p :p q ::q r ::b/r s :bar/s t :x/t} {}])")
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name keys :ns foo}
-          {:name a :ns foo :keys-destructuring true}
-          {:name b :ns foo :keys-destructuring true}
-          {:name keys :ns bar :alias b}
-          {:name c :ns bar :keys-destructuring true}
-          {:name d :ns bar :keys-destructuring true}
-          {:name keys :ns bar}
-          {:name e :ns bar :keys-destructuring true}
-          {:name f :ns bar :keys-destructuring true}
-          {:name keys}
-          {:name g :keys-destructuring true}
-          {:name h :keys-destructuring true}
-          {:name i :ns foo :keys-destructuring true}
-          {:name j :ns foo :keys-destructuring true}
-          {:name k :ns bar :keys-destructuring true}
-          {:name l :ns bar :alias b :keys-destructuring true}
-          {:name m :ns :clj-kondo/unknown-namespace}
-          {:name n :ns x}
-          {:name o :ns :clj-kondo/unknown-namespace}
-          {:name p}
-          {:name q :ns foo}
-          {:name r :ns bar :alias b}
-          {:name s :ns bar}
-          {:name t :ns x}]
+        '[{:name "keys" :ns foo}
+          {:name "a" :ns foo :keys-destructuring true}
+          {:name "b" :ns foo :keys-destructuring true}
+          {:name "keys" :ns bar :alias b}
+          {:name "c" :ns bar :keys-destructuring true}
+          {:name "d" :ns bar :keys-destructuring true}
+          {:name "keys" :ns bar}
+          {:name "e" :ns bar :keys-destructuring true}
+          {:name "f" :ns bar :keys-destructuring true}
+          {:name "keys"}
+          {:name "g" :keys-destructuring true}
+          {:name "h" :keys-destructuring true}
+          {:name "i" :ns foo :keys-destructuring true}
+          {:name "j" :ns foo :keys-destructuring true}
+          {:name "k" :ns bar :keys-destructuring true}
+          {:name "l" :ns bar :alias b :keys-destructuring true}
+          {:name "m" :ns :clj-kondo/unknown-namespace}
+          {:name "n" :ns x}
+          {:name "o" :ns :clj-kondo/unknown-namespace}
+          {:name "p"}
+          {:name "q" :ns foo}
+          {:name "r" :ns bar :alias b}
+          {:name "s" :ns bar}
+          {:name "t" :ns x}]
         (:keywords a))))
   (testing "clojure.spec.alpha/def can add :def"
     (let [a (analyze "(require '[clojure.spec.alpha :as s]) (s/def ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name kw :def clojure.spec.alpha/def}]
+        '[{:name "kw" :def clojure.spec.alpha/def}]
         (:keywords a))))
   (testing "hooks can add :def"
     (let [a (analyze "(user/mydef ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}
-                               :hooks {:analyze-call
+                               :hooks {:__dangerously-allow-string-hooks__ true
+                                       :analyze-call
                                        {'user/mydef
                                         (str "(require '[clj-kondo.hooks-api :as a])"
                                              "(fn [{n :node}]"
@@ -84,7 +100,7 @@
                                              "                    (a/reg-keyword! (second c) 'user/mydef)"
                                              "                    (drop 2 c)))}))")}}}})]
       (assert-submaps
-        '[{:name kw :def user/mydef}]
+        '[{:name "kw" :def user/mydef}]
         (:keywords a)))))
 
 (deftest locals-analysis-test

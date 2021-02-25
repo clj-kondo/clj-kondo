@@ -15,12 +15,7 @@ assignees: ''
 
 [ Is your bug related to macro usage? Consider using a configuration. If not, ignore this section. ]
 
-See [config.md](https://github.com/borkdude/clj-kondo/blob/master/doc/config.md) for all configuration options.
-
-Common options to deal with macros:
-
-- https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#exclude-unresolved-symbols-from-being-reported
-- https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#lint-a-custom-macro-like-a-built-in-macro
+See [config.md](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#unrecognized-macros) for related configuration options.
 
 **platform**
 
@@ -50,3 +45,5 @@ configuration, as the bug may be a result of malformed configuration. ]
 
 
 [ Optional: if you are interested in doing a PR yourself, please leave a note. ]
+
+[ Optional: if you or your organization is sponsoring this project, please write "**Sponsor**" in this ticket for higher priority. ]

@@ -22,6 +22,12 @@
       (println "=== Failing fast")
       (System/exit 1))))
 
+(deftest self-lint-test
+  (is (empty? (lint! (io/file "src")
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! (io/file "test")
+                     {:linters {:unresolved-symbol {:level :error}}}))))
+
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
         row-col-files (map #(select-keys % [:row :col :file])
@@ -89,14 +95,19 @@
      {:row 12, :col 17, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 13, :col 25, :file "corpus/redundant_do.clj" :message "redundant do"}
      {:row 14, :col 18, :file "corpus/redundant_do.clj" :message "redundant do"})
-   (lint! (io/file "corpus" "redundant_do.clj")))
-  (is (empty? (lint! "(do 1 `(do 1 2 3))")))
-  (is (empty? (lint! "(do 1 '(do 1 2 3))")))
-  (is (not-empty (lint! "(fn [] (do :foo :bar))")))
+   (lint! (io/file "corpus" "redundant_do.clj")
+          {:linters {:redundant-expression {:level :off}}}))
+  (is (empty? (lint! "(do 1 `(do 1 2 3))"
+                     {:linters {:redundant-expression {:level :off}}})))
+  (is (empty? (lint! "(do 1 '(do 1 2 3))"
+                     {:linters {:redundant-expression {:level :off}}})))
+  (is (not-empty (lint! "(fn [] (do :foo :bar))"
+                        {:linters {:redundant-expression {:level :off}}})))
   (is (empty? (lint! "#(do :foo)")))
   (is (empty? (lint! "#(do {:a %})")))
   (is (empty? (lint! "#(do)")))
-  (is (empty? (lint! "#(do :foo :bar)")))
+  (is (empty? (lint! "#(do :foo :bar)"
+                     {:linters {:redundant-expression {:level :off}}})))
   (is (empty? (lint! "#(do (prn %1 %2 true) %1)")))
   (is (empty? (lint! "(let [x (do (println 1) 1)] x)"))))
 
@@ -660,9 +671,20 @@ foo/foo ;; this does use the private var
         :col 3,
         :level :error,
         :message "clojure.core/odd? is called with 2 args but expects 1"})
-     (lint! (io/file "corpus" "case.clj"))))
+     (lint! (io/file "corpus" "case.clj")
+            {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "no false positive when using unquoted symbols"
+    (is (empty? (lint! "
+(case 'str/join str/join :foo)
+(let [x 'y] (case x y 1 2))"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
   (testing "no false positive when using defn in case list dispatch"
-    (is (empty? (lint! "(case x (defn select-keys) 1 2)")))))
+    (is (empty? (lint! "(let [x 1] (case x (defn select-keys) 1 2))"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "case dispatch vals are analyzed"
+    (is (empty? (lint! "(require '[clojure.string :as str] (case 10 ::str/foo 11))"
+                       {:linters {:unresolved-symbol {:level :error}
+                                  :unused-namespace {:level :error}}})))))
 
 (deftest local-bindings-test
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))
@@ -851,7 +873,8 @@ foo/foo ;; this does use the private var
   (is (empty?
        (lint! "(def (def x 1))" '{:linters {:inline-def {:level :off}}})))
   (is (empty?
-       (lint! "(do (do 1 2 3))" '{:linters {:redundant-do {:level :off}}})))
+       (lint! "(do (do 1 2 3))" '{:linters {:redundant-do {:level :off}
+                                            :redundant-expression {:level :off}}})))
   (is (empty?
        (lint! "(let [x 1] (let [y 2]))" '{:linters {:redundant-let {:level :off}}})))
   (is (empty?
@@ -1883,7 +1906,8 @@ foo/foo ;; this does use the private var
       :col 13,
       :level :warning,
       :message "Misplaced docstring."})
-   (lint! "(defn f [x] \"dude\" x)"))
+   (lint! "(defn f [x] \"dude\" x)"
+          {:linters {:redundant-expression {:level :off}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
@@ -1892,11 +1916,14 @@ foo/foo ;; this does use the private var
       :message "Misplaced docstring."})
    (lint! "(defn foo [x y] \"dude
 
-          \" [x y])"))
+          \" [x y])"
+          {:linters {:redundant-expression {:level :off}}}))
   (is (empty? (lint! "(defn f [x] \"dude\")")))
   ;; for now this is empty, but in the next version we might warn about the
   ;; string "dude" being a discarded value
-  (is (empty? (lint! "(defn f \"dude\" [x] \"dude\" x)"))))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Redundant expression: \"dude\""})
+   (lint! "(defn f \"dude\" [x] \"dude\" x)")))
 
 (deftest defn-syntax-test
   (assert-submaps '({:file "<stdin>",
@@ -2218,11 +2245,26 @@ foo/foo ;; this does use the private var
     (remove-dir ".clj-kondo")
     (when (.exists (io/file ".clj-kondo.bak"))
       (rename-path ".clj-kondo.bak" ".clj-kondo")))
-  (testing "..."
-    (is (empty? (lint! "(ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
+  (is (empty? (lint! "(ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
   (:require [potemkin :refer [import-vars]]))
 
-(import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])")))))
+(import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])")))
+  (is (empty? (lint! "
+(ns foo.bar)
+
+(defn foo []) ;; non-empty to generated ns cache
+
+;; dynamically generated baz
+
+(ns foo (:require [potemkin :refer [import-vars]]))
+
+(import-vars [foo.bar baz])
+
+(ns bar (:require [foo]))
+foo/baz
+"
+                  {:linters {:unresolved-symbol {:level :error}
+                             :unresolved-var {:level :error}}}))))
 
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
@@ -3081,6 +3123,26 @@ foo/foo ;; this does use the private var
                      {:cljc {:features [:clj]}
                       :linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljc"))))
+
+(deftest continue-on-invalid-token-code-test
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 5, :level :error, :message "Invalid symbol: foo/."}
+     {:file "<stdin>", :row 3, :col 1, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
+   (lint! "
+foo/
+(inc)"))
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 1, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"}
+     {:file "<stdin>", :row 3, :col 5, :level :error, :message "Invalid symbol: foo/."})
+   (lint! "
+(inc)
+foo/")))
+
+(deftest nested-fn-literal-test
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 7, :level :error, :message "Nested #()s are not allowed"})
+   (lint! "
+#(inc #(inc %))")))
 
 ;;;; Scratch
 

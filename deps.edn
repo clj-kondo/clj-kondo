@@ -3,7 +3,7 @@
         io.lambdaforge/datalog-parser {:mvn/version "0.1.7"}
         cheshire/cheshire {:mvn/version "5.10.0"}
         nrepl/bencode {:mvn/version "1.1.0"}
-        borkdude/sci {:mvn/version "0.2.1"}}
+        borkdude/sci {:mvn/version "0.2.3"}}
  :aliases {:clj-kondo
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
@@ -28,7 +28,7 @@
             :extra-paths ["test" "extract"]
             :main-opts ["-m" "cognitect.test-runner"]}
            :clojure-1.9.0 {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}
-           :clojure-1.10.2-alpha1 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.2-alpha1"}}}
+           :clojure-1.10.2 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.2"}}}
            :profiler
            {:extra-deps
             {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.4.1"}}

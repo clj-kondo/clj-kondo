@@ -77,3 +77,4 @@ clj-kondo*.snap
 lsp
 corpus/config_dir/.cache
 /.clj-kondo/clj-kondo
+/.lsp/

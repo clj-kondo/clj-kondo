@@ -6,11 +6,38 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ### New
 
-- core.match support [#496](https://github.com/clj-kondo/clj-kondo/issues/496)
+- Lint nested function literal [#636](https://github.com/clj-kondo/clj-kondo/issues/636)
+- Redundant expression linter [#298](https://github.com/clj-kondo/clj-kondo/issues/298)
 
 ### Enhanced / fixed
 
+- Fix schema.core/defmethod linting for vectors dispatch-values [#1175](https://github.com/clj-kondo/clj-kondo/pull/1175) ([@leoiacovini](https://github.com/leoiacovini))
+- Continue analyzing on invalid symbol [#1146](https://github.com/clj-kondo/clj-kondo/issues/1146)
+
+## 2021.02.13
+
+Thanks to [@snoe](https://github.com/snoe) and [@ericdallo](https://github.com/ericdallo) for contributing to this release. Thanks to the
+sponsors on [Github](https://github.com/sponsors/borkdude),
+[OpenCollective](https://opencollective.com/clj-kondo) and [Clojurists
+Together](https://www.clojuriststogether.org/) for making this release possible.
+
+### New
+
+- Core.match support [#496](https://github.com/clj-kondo/clj-kondo/issues/496)
+- Keyword analysis [#1129](https://github.com/clj-kondo/clj-kondo/issues/1129) ([@snoe](https://github.com/snoe)). See [analysis docs](https://github.com/clj-kondo/clj-kondo/blob/master/analysis/README.md).
+
+### Enhanced / fixed
+
+- BREAKING: Don't use lint-as for hooks [#1170](https://github.com/clj-kondo/clj-kondo/issues/1170)
 - Fix crash when linting kitchen-async [#1148](https://github.com/clj-kondo/clj-kondo/issues/1148)
+- Memory optimizations for clojure-lsp [commit](https://github.com/clj-kondo/clj-kondo/commit/175c48839299c445f6684fa15e5692b03c9bcb5a0)
+- Upgrade to GraalVM 21.0.0 [#1163](https://github.com/clj-kondo/clj-kondo/issues/1163)
+- Fix analysis of case dispatch vals [#1169](https://github.com/clj-kondo/clj-kondo/issues/1169)
+- Potemkin improvement with regards to unresolved var [#1167](https://github.com/clj-kondo/clj-kondo/issues/1167)
+- Exported config fix for git deps [#1171](https://github.com/clj-kondo/clj-kondo/issues/1171)
+- Add `:aliases` to ns ctx and `:alias` to var-usages [#1133](https://github.com/clj-kondo/clj-kondo/issues/1133) ([@snoe](https://github.com/snoe))
+- Add `:end-row` and `:end-col` to var-definitions bucket on analysis [#1147](https://github.com/clj-kondo/clj-kondo/issues/1147) ([@ericdallo](https://github.com/ericdallo))
+- Fix unresolved var `clojure.spec.gen.alpha/fmap` [#1157](https://github.com/clj-kondo/clj-kondo/issues/1157)
 
 ## 2021.01.20
 
@@ -189,3 +216,4 @@ Details about releases prior to v2020.09.09 can be found
 ### 2020.10.10
 
 - Base Docker image on Ubuntu latest instead of Alpine [#1026](https://github.com/clj-kondo/clj-kondo/issues/1026)
+- Don't use lint-as for hooks [#1170](https://github.com/clj-kondo/clj-kondo/issues/1170)

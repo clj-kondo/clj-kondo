@@ -12,7 +12,10 @@
       (clj-kondo/run! {:lint [(io/file "corpus" "exports" "clj-kondo.config.jar")]
                        :config-dir tmp-dir
                        :no-warnings true}))
-    (is (.exists (io/file tmp-dir "clj-kondo" "slingshot")))))
+    (is (.exists (io/file tmp-dir "clj-kondo" "slingshot")))
+    (is (= "{:hooks
+ {:analyze-call {slingshot.slingshot/try+ clj-kondo.slingshot.try-plus/try+}}}
+" (slurp (io/file tmp-dir "clj-kondo" "slingshot" "config.edn"))))))
 
 (deftest copy-config-from-dir
   (let [tmp-dir (.toFile (Files/createTempDirectory
@@ -22,4 +25,7 @@
       (clj-kondo/run! {:lint [(io/file "corpus" "exports" "dir")]
                        :config-dir tmp-dir
                        :no-warnings true}))
-    (is (.exists (io/file tmp-dir "clj-kondo" "slingshot")))))
+    (is (.exists (io/file tmp-dir "clj-kondo" "slingshot")))
+    (is (= "{:hooks
+ {:analyze-call {slingshot.slingshot/try+ clj-kondo.slingshot.try-plus/try+}}}
+" (slurp (io/file tmp-dir "clj-kondo" "slingshot" "config.edn"))))))

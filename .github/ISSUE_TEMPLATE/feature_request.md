@@ -20,3 +20,5 @@ A clear and concise description of any alternative solutions or features you've 
 Add any other context or screenshots about the feature request here.
 
 [ Optional: if you are interested in doing a PR yourself, please leave a note. ]
+
+[ Optional: if you or your organization is sponsoring this project, please write "**Sponsor**" in this ticket for higher priority _after vetting_. ]

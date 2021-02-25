@@ -4,7 +4,7 @@ set -eo pipefail
 
 # populate mvn cache for extract tests
 clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.9.0"}}}' -Spath > /dev/null
-clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.10.2-alpha1"}}}' -Spath > /dev/null
+clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.10.2"}}}' -Spath > /dev/null
 clojure -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.10.520"}}}' -Spath > /dev/null
 
 if [ "$CLJ_KONDO_TEST_ENV" = "native" ]; then
@@ -14,9 +14,9 @@ else
     clojure -A:clojure-1.9.0:test
     lein with-profiles +clojure-1.9.0 "do" clean, test
 
-    echo "Testing with Clojure 1.10.2-alpha1"
-    clojure -A:test:clojure-1.10.2-alpha1
-    lein with-profiles +clojure-1.10.2-alpha1 "do" clean, test
+    echo "Testing with Clojure 1.10.2"
+    clojure -A:test:clojure-1.10.2
+    lein with-profiles +clojure-1.10.2 "do" clean, test
 fi
 
 clojure -A:test:pod-test -d pod-test

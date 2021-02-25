@@ -106,7 +106,7 @@
                :level :error
                :filename "test.clj"
                :row 1
-               :col 4
+               :col 5
                :message "Invalid number: 1..1."}]
              @(:findings (analyze "1..1")))))
     (testing "multiple :as aliases and alias fn"

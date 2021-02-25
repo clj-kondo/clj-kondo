@@ -223,7 +223,7 @@
           dest (apply io/file cfg-dir root)]
       (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
-      (io/copy base-file dest))
+      (io/copy (io/file base-file) dest))
     (catch Exception e (prn (.getMessage e)))))
 
 (defn sources-from-dir

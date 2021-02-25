@@ -4,7 +4,8 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.core :as core-impl]
    [clojure.edn :as edn]
-   [clojure.java.io :as io]))
+   [clojure.java.io :as io]
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -20,9 +21,10 @@
   (def cljs-core-syms '%s)
 
   (def default-import->qname '%s)
+
   (def default-fq-imports '%s)
 
-  ")
+")
 
 (defn eastwood-var-info
   "extracting information from eastwood's var-info.edn with permission
@@ -50,7 +52,7 @@
                                :cljc #{}})}
       [(io/file (System/getProperty "user.home")
                 ".m2" "repository" "org" "clojure" "clojure"
-                "1.10.2-alpha1" "clojure-1.10.2-alpha1.jar")]
+                "1.10.2" "clojure-1.10.2.jar")]
       :clj
       nil))
     (reduce into special
@@ -87,6 +89,17 @@
         (for [[k v] clojure.lang.RT/DEFAULT_IMPORTS]
           [k (symbol (.getName ^Class v))])))
 
+(defn print-set-sorted [s]
+  (format "#{%s}"
+          (str/join "\n" (sort s))))
+
+(defn print-map-sorted [s]
+  (format "{%s}"
+          (str/join "\n"
+                    (map (fn [[k v]]
+                           (str k " " v))
+                         (sort s)))))
+
 (defn -main [& _args]
   (let [var-info (eastwood-var-info)
         predicates (set (keep (fn [[k v]]
@@ -107,9 +120,10 @@
         cljs-core-vars (extract-cljs-core-vars)
         default-java-imports (extract-default-imports)
         code (format code-template predicates-by-ns
-                     clojure-core-syms cljs-core-vars
-                     default-java-imports
-                     (set (vals default-java-imports)))]
+                     (print-set-sorted clojure-core-syms)
+                     (print-set-sorted cljs-core-vars)
+                     (print-map-sorted default-java-imports)
+                     (print-set-sorted (vals default-java-imports)))]
     (spit "src/clj_kondo/impl/var_info_gen.clj" code)))
 
 ;;;; Scratch

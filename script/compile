@@ -12,24 +12,22 @@ export PATH=$GRAALVM_HOME/bin:$PATH
 
 CLJ_KONDO_VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
-lein with-profiles +clojure-1.10.2-alpha1,+native-image "do" clean, uberjar
+lein with-profiles +clojure-1.10.2 "do" clean, uberjar
 
-args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar" \
-              "-H:Name=clj-kondo" \
-              "-H:+ReportExceptionStackTraces" \
-              "-J-Dclojure.spec.skip-macros=true" \
-              "-J-Dclojure.compiler.direct-linking=true" \
-              "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*" \
-              "-H:ReflectionConfigurationFiles=reflection.json" \
-              "--initialize-at-build-time"  \
-              "-H:Log=registerResource:" \
-              "--verbose" \
-              "--no-fallback" \
-              "--no-server" \
-              "-J-Xmx3g" )
+args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar"
+       "-H:Name=clj-kondo"
+       "-H:+ReportExceptionStackTraces"
+       "-H:IncludeResources=clj_kondo/impl/cache/built_in/.*"
+       "-H:ReflectionConfigurationFiles=reflection.json"
+       "--initialize-at-build-time"
+       "-H:Log=registerResource:"
+       "--verbose"
+       "--no-fallback"
+       "--no-server"
+       "-J-Xmx3g" )
 
 if [ "$CLJ_KONDO_STATIC" = "true" ]; then
     args+=("--static")
 fi
 
-$GRAALVM_HOME/bin/native-image "${args[@]}"
+"$GRAALVM_HOME/bin/native-image" "${args[@]}"

@@ -45,7 +45,8 @@
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
-          {:linters {:unresolved-symbol {:level :error}
+          {:hooks {:__dangerously-allow-string-hooks__ true}
+           :linters {:unresolved-symbol {:level :error}
                      :invalid-arity {:level :error}}})))
 
 (deftest error-in-macro-fn-test
@@ -57,7 +58,8 @@
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
-                                  {:linters {:unresolved-symbol {:level :error}
+                                  {:hooks {:__dangerously-allow-string-hooks__ true}
+                                   :linters {:unresolved-symbol {:level :error}
                                              :invalid-arity {:level :error}}}))
       (is (str/includes? (str err) "WARNING: error while trying to read hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
 
@@ -76,7 +78,8 @@
     (assert-submaps
      '({:file "corpus/hooks/location.clj", :row 12, :col 10, :level :error, :message "Expected: number, received: string."})
      (lint! (io/file "corpus" "hooks" "location.clj")
-            {:linters {:type-mismatch {:level :error}}}
+            {:hooks {:__dangerously-allow-string-hooks__ true}
+             :linters {:type-mismatch {:level :error}}}
             "--config-dir" (.getPath (io/file "corpus" ".clj-kondo"))))))
 
 (deftest expectations-test
@@ -84,7 +87,8 @@
    '({:file "corpus/hooks/expectations.clj", :row 24, :col 45, :level :warning, :message "unused binding b"}
      {:file "corpus/hooks/expectations.clj", :row 26, :col 41, :level :error, :message "Unresolved symbol: b'"})
    (lint! (io/file "corpus" "hooks" "expectations.clj")
-          {:linters {:unused-binding {:level :warning}
+          {:hooks {:__dangerously-allow-string-hooks__ true}
+           :linters {:unused-binding {:level :warning}
                      :unresolved-symbol {:level :error}
                      :invalid-arity {:level :error}}}
           "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))))
@@ -97,7 +101,8 @@
     '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename]}] (prn cljc lang filename))\"}}}}
   (:require [foo :refer [hook]]))
 
-(hook 1 2 3)"))
+(hook 1 2 3)"
+                                 {:hooks {:__dangerously-allow-string-hooks__ true}}))
           s (str/replace s "\r\n" "\n")]
       (is (= s "false :clj \"<stdin>\"\n")))
     (let [s (with-out-str (lint! "
@@ -106,7 +111,9 @@
     '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename]}] (prn cljc lang filename))\"}}}}
   (:require [foo :refer [hook]]))
 
-(hook 1 2 3)" "--lang" "cljc"))
+(hook 1 2 3)"
+                                 {:hooks {:__dangerously-allow-string-hooks__ true}}
+                                 "--lang" "cljc"))
           ;; Windows...
           s (str/replace s "\r\n" "\n")]
       (is (= s "true :clj \"<stdin>\"\ntrue :cljs \"<stdin>\"\n")))))
@@ -148,6 +155,7 @@ children))]
 }}}}
   (:require [foo :refer [hook-do hook-let]]))
 
-(hook-do (do 1 2))
-(hook-let (let [x 1] x))")]
+(hook-do (do (prn :foo) (prn :bar)))
+(hook-let (let [x 1] x))"
+                       {:hooks {:__dangerously-allow-string-hooks__ true}})]
         (is (empty? res))))))

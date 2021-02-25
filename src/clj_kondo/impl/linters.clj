@@ -372,6 +372,8 @@
          :single-logical-operand
          (format "Single arg use of %s always returns the arg itself" call-name))))))
 
+;; (require 'clojure.pprint)
+
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
