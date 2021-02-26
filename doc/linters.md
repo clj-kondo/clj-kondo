@@ -520,6 +520,12 @@ enforce usage of aliases.
 
 Example warning: `require with :refer`.
 
+*Config:* to suppress the above warning:
+
+```clojure
+{:linters {:refer {:exclude [clojure.set]}}}
+```
+
 ### Refer all
 
 *Keyword:* `:refer-all`

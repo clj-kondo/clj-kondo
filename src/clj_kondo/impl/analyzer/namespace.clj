@@ -103,7 +103,8 @@
                          (keyword require-sym)))
         use? (= :use require-kw)
         libspec-meta (meta libspec-expr)
-        lint-refers? (not (identical? :off (-> ctx :config :linters :refer :level)))]
+        config (:config ctx)
+        lint-refers? (not (identical? :off (-> config :linters :refer :level)))]
     (if-let [s (symbol-from-token libspec-expr)]
       [{:type :require
         :referred-all (when use? require-kw-expr)
@@ -143,13 +144,14 @@
                 (:refer :refer-macros :only)
                 (do
                   (when (and lint-refers? (not use?))
-                    (findings/reg-finding!
-                     ctx
-                     (node->line (:filename ctx)
-                                 child-expr
-                                 :warning
-                                 :refer
-                                 (str "require with " (str child-k)))))
+                    (when-not(config/refer-excluded? config ns-name)
+                      (findings/reg-finding!
+                       ctx
+                       (node->line (:filename ctx)
+                                   child-expr
+                                   :warning
+                                   :refer
+                                   (str "require with " (str child-k))))))
                   (recur
                    (nnext children)
                    (cond (and (not self-require?) (sequential? opt))

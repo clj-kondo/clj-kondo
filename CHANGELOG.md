@@ -8,6 +8,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - Lint nested function literal [#636](https://github.com/clj-kondo/clj-kondo/issues/636)
 - Redundant expression linter [#298](https://github.com/clj-kondo/clj-kondo/issues/298)
+- Add `:exclude` config to :refer linter [#1172](https://github.com/clj-kondo/clj-kondo/issues/1172)
 
 ### Enhanced / fixed
 

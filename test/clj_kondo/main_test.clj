@@ -2596,9 +2596,10 @@ foo/baz
           {:linters {:refer {:level :warning}
                      :refer-all {:level :off}}}))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo])) (foo/bazbar)"
-                     {:linters {:refer {:level :warning}}}))))
-
-
+                     {:linters {:refer {:level :warning}}})))
+  (is (empty? (lint! "(ns foo (:require [clojure.test :refer [deftest]])) deftest"
+                     '{:linters {:refer {:level :warning
+                                         :exclude [clojure.test]}}}))))
 
 (deftest missing-else-branch-test
   (assert-submaps
