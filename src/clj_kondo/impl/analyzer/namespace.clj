@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.analyzer.usages :as usages]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -172,6 +173,7 @@
                                    m)
                                opt-expr-children (:children opt-expr)]
                            (run! #(utils/handle-ignore ctx %) opt-expr-children)
+                           (run! #(usages/analyze-usages2 (assoc ctx :ns {:name ns-name}) %) opt-expr-children)
                            (update m :referred into
                                    (map #(with-meta (sexpr %)
                                            (meta %))) opt-expr-children))
