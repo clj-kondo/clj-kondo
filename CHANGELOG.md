@@ -17,6 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Fix schema.core/defmethod linting for vectors dispatch-values [#1175](https://github.com/clj-kondo/clj-kondo/pull/1175) ([@leoiacovini](https://github.com/leoiacovini))
 - Continue analyzing on invalid symbol [#1146](https://github.com/clj-kondo/clj-kondo/issues/1146)
 - Standalone require should be emitted to analysis [#1177](https://github.com/clj-kondo/clj-kondo/issues/1177)
+- Upgrade sci to 0.2.4
 
 ## 2021.02.13
 
