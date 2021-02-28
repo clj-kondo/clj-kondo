@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.analyzer.babashka :as babashka]
+   [clj-kondo.impl.analyzer.clojure-data-xml :as xml]
    [clj-kondo.impl.analyzer.common :refer [common]]
    [clj-kondo.impl.analyzer.compojure :as compojure]
    [clj-kondo.impl.analyzer.core-async :as core-async]
@@ -1613,6 +1614,8 @@
                          [clojure.tools.logging tracef]
                          [clojure.tools.logging warnf])
                         (analyze-formatted-logging ctx expr)
+                        [clojure.data.xml alias-uri]
+                        (xml/analyze-alias-uri ctx expr)
                         [cljs.core simple-benchmark]
                         (analyze-like-let ctx expr)
                         [babashka.process $]
