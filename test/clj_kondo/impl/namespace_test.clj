@@ -16,7 +16,8 @@
      :clojure-excluded #{get assoc time}}
    (analyze-ns-decl
     {:lang :clj
-     :namespaces (atom {})}
+     :namespaces (atom {})
+     :used-namespaces (atom {})}
     (parse-string "(ns foo (:require [bar :as baz :refer [quux]])
                               (:refer-clojure :exclude [get assoc time]))")))
   (testing "namespace name with metadata is properly recognized"
@@ -24,7 +25,8 @@
      '{:type :ns, :name foo}
      (analyze-ns-decl
       {:lang :clj
-       :namespaces (atom {})}
+       :namespaces (atom {})
+       :used-namespaces (atom {})}
       (parse-string "(ns ^{:doc \"hello\"} foo)"))))
   (testing "string namespaces should be allowed in require"
     (assert-submap
@@ -34,7 +36,8 @@
        :aliases {baz bar}}
      (analyze-ns-decl
       {:lang :clj
-       :namespaces (atom {})}
+       :namespaces (atom {})
+       :used-namespaces (atom {})}
       (parse-string "(ns foo (:require [\"bar\" :as baz]))"))))
   (testing ":require with simple symbol"
     (assert-submap
@@ -42,7 +45,8 @@
        :qualify-ns {bar bar}}
      (analyze-ns-decl
       {:lang :clj
-       :namespaces (atom {})}
+       :namespaces (atom {})
+       :used-namespaces (atom {})}
       (parse-string "(ns foo (:require bar))"))))
   (testing ":require with :refer :all"
     (assert-submap
@@ -51,12 +55,14 @@
        :referred-vars {renamed-fn {:ns baz, :name baz-fn}}}
      (analyze-ns-decl {:lang :clj
                        :namespaces (atom {})
-                       :findings (atom [])}
+                       :findings (atom [])
+                       :used-namespaces (atom {})}
                       (parse-string "(ns foo (:require [bar :refer :all]
                                        [baz :refer :all :rename {baz-fn renamed-fn}]))")))))
 
 (deftest resolve-name-test
-  (let [ctx {:namespaces (atom {})
+  (let [ctx {:used-namespaces (atom {})
+             :namespaces (atom {})
              :findings (atom [])
              :base-lang :clj
              :lang :clj}
