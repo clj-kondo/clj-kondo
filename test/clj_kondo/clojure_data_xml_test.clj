@@ -12,6 +12,17 @@
 
 ::xh/location
 
+(alias-uri
+ :U \"uri-u:\"
+ :D \"DAV:\"
+ 'V \"uri-v:\"
+ \"W\" \"uri-w:\")
+
+::U/foo
+::D/foo
+::V/foo
+::W/foo
+
 "))))
 
 

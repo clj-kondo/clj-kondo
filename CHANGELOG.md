@@ -10,6 +10,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Redundant expression linter [#298](https://github.com/clj-kondo/clj-kondo/issues/298)
 - Add `:exclude` config to :refer linter [#1172](https://github.com/clj-kondo/clj-kondo/issues/1172)
 - Warn on non-existent var in `:refer` [#546](https://github.com/clj-kondo/clj-kondo/issues/546)
+- Support `clojure.data.xml/alias-uri`[#1180](https://github.com/clj-kondo/clj-kondo/issues/1180)
 
 ### Enhanced / fixed
 
