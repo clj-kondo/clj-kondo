@@ -4,7 +4,6 @@
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
-   [clj-kondo.impl.analyzer.usages :as usages]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -145,7 +144,7 @@
                 (:refer :refer-macros :only)
                 (do
                   (when (and lint-refers? (not use?))
-                    (when-not(config/refer-excluded? config ns-name)
+                    (when-not (config/refer-excluded? config ns-name)
                       (findings/reg-finding!
                        ctx
                        (node->line (:filename ctx)
@@ -173,7 +172,19 @@
                                    m)
                                opt-expr-children (:children opt-expr)]
                            (run! #(utils/handle-ignore ctx %) opt-expr-children)
-                           (run! #(usages/analyze-usages2 (assoc ctx :ns {:name ns-name}) %) opt-expr-children)
+                           (run! #(namespace/reg-var-usage! ctx current-ns-name
+                                                            (assoc (meta %)
+                                                                   :type :use
+                                                                   :name (sexpr %)
+                                                                   :resolved-ns ns-name
+                                                                   :ns current-ns-name
+                                                                   :lang lang
+                                                                   :base-lang base-lang
+                                                                   :filename filename
+                                                                   :config config
+                                                                   :expr %))
+                                 opt-expr-children)
+                           (swap! (:used-namespaces ctx) update (:base-lang ctx) conj ns-name)
                            (update m :referred into
                                    (map #(with-meta (sexpr %)
                                            (meta %))) opt-expr-children))

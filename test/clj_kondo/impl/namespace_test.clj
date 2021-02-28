@@ -56,7 +56,8 @@
                                        [baz :refer :all :rename {baz-fn renamed-fn}]))")))))
 
 (deftest resolve-name-test
-  (let [ctx {:namespaces (atom {})
+  (let [ctx {:used-namespaces (atom {})
+             :namespaces (atom {})
              :findings (atom [])
              :base-lang :clj
              :lang :clj}
