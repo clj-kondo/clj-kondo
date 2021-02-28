@@ -493,19 +493,20 @@
     (let [analyzed
           (analyze-require-clauses ctx ns-name [[require-node libspecs]])]
       (namespace/reg-required-namespaces! ctx ns-name analyzed)
-      (doseq [req (:required analyzed)]
-        (let [{:keys [row col end-row end-col alias]} (meta req)
-              meta-alias (meta alias)]
-          (analysis/reg-namespace-usage! ctx (:filename ctx)
-                                         row col ns-name
-                                         req alias {:name-row row
-                                                    :name-col col
-                                                    :name-end-row end-row
-                                                    :name-end-col end-col
-                                                    :alias-row (:row meta-alias)
-                                                    :alias-col (:col meta-alias)
-                                                    :alias-end-row (:end-row meta-alias)
-                                                    :alias-end-col (:end-col meta-alias)}))))
+      (when (-> ctx :config :output :analysis)
+        (doseq [req (:required analyzed)]
+          (let [{:keys [row col end-row end-col alias]} (meta req)
+                meta-alias (meta alias)]
+            (analysis/reg-namespace-usage! ctx (:filename ctx)
+                                           row col ns-name
+                                           req alias {:name-row row
+                                                      :name-col col
+                                                      :name-end-row end-row
+                                                      :name-end-col end-col
+                                                      :alias-row (:row meta-alias)
+                                                      :alias-col (:col meta-alias)
+                                                      :alias-end-row (:end-row meta-alias)
+                                                      :alias-end-col (:end-col meta-alias)})))))
     ;; also analyze children that weren't quoted
     (common/analyze-children ctx non-quoted-children)))
 
