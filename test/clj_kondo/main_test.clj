@@ -1991,11 +1991,8 @@ foo/foo ;; this does use the private var
    (lint! "replicate"))
   (testing "config"
     (assert-submaps
-     '({:file "corpus/deprecated_var.clj",
-        :row 10,
-        :col 1,
-        :level :warning,
-        :message "#'foo.foo/deprecated-fn is deprecated"})
+     '({:file "corpus/deprecated_var.clj", :row 9, :col 30, :level :warning, :message "#'foo.foo/deprecated-fn is deprecated"}
+       {:file "corpus/deprecated_var.clj", :row 10, :col 1, :level :warning, :message "#'foo.foo/deprecated-fn is deprecated"})
      (lint! (io/file "corpus" "deprecated_var.clj")
             '{:linters
               {:deprecated-var
