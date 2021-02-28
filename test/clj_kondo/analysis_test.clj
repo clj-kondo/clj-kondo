@@ -502,3 +502,8 @@
         (analyze "(ns foo (:require [clojure [set :refer [union]]])) (union #{1 2 3} #{3 4 5})")]
     (is (= 'clojure.set (:to (first namespace-usages))))
     (is (= 'clojure.set (:to (first var-usages))))))
+
+(deftest standalone-require-test
+  (let [{:keys [:namespace-usages]}
+        (analyze "(require '[clojure [set :refer [union]]])")]
+    (is (= 'clojure.set (:to (first namespace-usages))))))

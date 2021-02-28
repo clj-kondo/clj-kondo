@@ -1114,29 +1114,6 @@
                    "use the idiom (seq x) rather than (not (empty? x))")))
     (analyze-children ctx (rest (:children expr)) false)))
 
-(defn analyze-require
-  "For now we only support the form (require '[...])"
-  [ctx expr]
-  (let [ns-name (-> ctx :ns :name)
-        children (:children expr)
-        require-node (first children)
-        children (next children)
-        [libspecs non-quoted-children]
-        (utils/keep-remove #(let [t (tag %)]
-                              (or (when (= :quote t)
-                                    (first (:children %)))
-                                  (let [children (:children %)]
-                                    (when (and (= :list t)
-                                               (= 'quote (some-> children first
-                                                                 utils/symbol-from-token)))
-                                      (second children)))))
-                           children)]
-    (let [analyzed
-          (namespace-analyzer/analyze-require-clauses ctx ns-name [[require-node libspecs]])]
-      (namespace/reg-required-namespaces! ctx ns-name analyzed))
-    ;; also analyze children that weren't quoted
-    (analyze-children ctx non-quoted-children)))
-
 (defn analyze-import-libspec [ctx ns-name expr]
   (let [libspec-expr (if (= :quote (tag expr))
                        (first (:children expr))
@@ -1529,7 +1506,7 @@
                       empty? (analyze-empty? ctx expr)
                       format (analyze-format ctx expr)
                       (use require)
-                      (if top-level? (analyze-require ctx expr)
+                      (if top-level? (namespace-analyzer/analyze-require ctx expr)
                           (analyze-children ctx children))
                       import
                       (if top-level? (analyze-import ctx expr)

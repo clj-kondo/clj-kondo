@@ -473,6 +473,42 @@
     (namespace/reg-namespace! ctx ns)
     ns))
 
+(defn analyze-require
+  "For now we only support the form (require '[...])"
+  [ctx expr]
+  (let [ns-name (-> ctx :ns :name)
+        children (:children expr)
+        require-node (first children)
+        children (next children)
+        [libspecs non-quoted-children]
+        (utils/keep-remove #(let [t (tag %)]
+                              (or (when (= :quote t)
+                                    (first (:children %)))
+                                  (let [children (:children %)]
+                                    (when (and (= :list t)
+                                               (= 'quote (some-> children first
+                                                                 utils/symbol-from-token)))
+                                      (second children)))))
+                           children)]
+    (let [analyzed
+          (analyze-require-clauses ctx ns-name [[require-node libspecs]])]
+      (namespace/reg-required-namespaces! ctx ns-name analyzed)
+      (doseq [req (:required analyzed)]
+        (let [{:keys [row col end-row end-col alias]} (meta req)
+              meta-alias (meta alias)]
+          (analysis/reg-namespace-usage! ctx (:filename ctx)
+                                         row col ns-name
+                                         req alias {:name-row row
+                                                    :name-col col
+                                                    :name-end-row end-row
+                                                    :name-end-col end-col
+                                                    :alias-row (:row meta-alias)
+                                                    :alias-col (:col meta-alias)
+                                                    :alias-end-row (:end-row meta-alias)
+                                                    :alias-end-col (:end-col meta-alias)}))))
+    ;; also analyze children that weren't quoted
+    (common/analyze-children ctx non-quoted-children)))
+
 ;;;; Scratch
 
 (comment
