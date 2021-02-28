@@ -35,7 +35,7 @@
             :main-opts ["-m" "clj-kondo.profile"]}
            :cljs ;; for performance and regression testing
            {:extra-deps
-            {org.clojure/clojurescript {:mvn/version "1.10.520"}}}
+            {org.clojure/clojurescript {:mvn/version "1.10.773"}}}
            :pod-test
            {:extra-paths ["pod-test"]
             :extra-deps
