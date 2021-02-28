@@ -504,6 +504,10 @@
     (is (= 'clojure.set (:to (first var-usages))))))
 
 (deftest standalone-require-test
-  (let [{:keys [:namespace-usages]}
+  (let [{:keys [:namespace-usages :var-usages]}
         (analyze "(require '[clojure [set :refer [union]]])")]
-    (is (= 'clojure.set (:to (first namespace-usages))))))
+    (is (= 'clojure.set (:to (first namespace-usages))))
+    (assert-submaps
+      '[{:name union :name-row 1 :name-end-row 1 :name-col 33 :name-end-col 38}
+        {:name require :name-row 1 :name-end-row 1 :name-col 2 :name-end-col 9}]
+     var-usages)))
