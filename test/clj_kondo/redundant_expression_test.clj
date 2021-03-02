@@ -44,4 +44,10 @@
   (is (empty? (lint! "
 (do (js/download 1 \"data-sources.csv\" \"text/csv\")
     12)
-" "--lang" "cljs"))))
+" "--lang" "cljs")))
+  (is (empty? (lint! "
+(defn fun
+  [{:keys [a-key]}]
+  (when-let [{:keys [a-deep]} a-key] a-deep)
+  (println a-key))
+"))))

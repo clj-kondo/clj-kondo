@@ -521,10 +521,11 @@
                 (recur exprs))))))))
 
 (defn expr-bindings [ctx binding-vector scoped-expr]
-  (->> binding-vector :children
-       (take-nth 2)
-       (map #(extract-bindings ctx % scoped-expr {}))
-       (reduce deep-merge {})))
+  (let [ctx (update ctx :callstack conj [:nil :vector])]
+    (->> binding-vector :children
+         (take-nth 2)
+         (map #(extract-bindings ctx % scoped-expr {}))
+         (reduce deep-merge {}))))
 
 (defn analyze-let-like-bindings [ctx binding-vector scoped-expr]
   (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
