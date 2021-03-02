@@ -40,4 +40,8 @@
 (do (\\a 1 2) 1)
 (do (1 1 2) 1)
 "
-                     {:linters {:not-a-function {:level :off}}}))))
+                     {:linters {:not-a-function {:level :off}}})))
+  (is (empty? (lint! "
+(do (js/download 1 \"data-sources.csv\" \"text/csv\")
+    12)
+" "--lang" "cljs"))))

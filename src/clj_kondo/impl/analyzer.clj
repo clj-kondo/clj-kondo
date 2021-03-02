@@ -1601,7 +1601,7 @@
                         [babashka.process $]
                         (babashka/analyze-$ ctx expr)
                         ;; catch-all
-                        (let [next-ctx (cond-> ctx
+                        (let [next-ctx (cond-> (update ctx :callstack conj [nil nil])
                                          (one-of [resolved-namespace resolved-name]
                                                  [[clojure.core.async thread]
                                                   [clojure.core dosync]])
