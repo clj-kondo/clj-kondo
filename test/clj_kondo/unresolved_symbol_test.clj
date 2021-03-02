@@ -208,4 +208,13 @@
   ([] :foo)
   ([[_ v]]
    [(f) :bar]))"
-                     '{:linters {:unresolved-symbol {:level :error}}}))))
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(ns app.core
+  (:require [slingshot.slingshot]))
+
+(slingshot.slingshot/try+
+ x
+ (:foo x))
+
+" '{:linters {:unresolved-symbol {:exclude [(slingshot.slingshot/try+)]}}}))))
