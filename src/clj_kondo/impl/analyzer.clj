@@ -50,7 +50,9 @@
                            (one-of fst [[clojure.core comment]
                                         [cljs.core comment]
                                         [clojure.core do]
-                                        [cljs.core do]])))]
+                                        [cljs.core do]
+                                        [clojure.core let]
+                                        [cljs.core let]])))]
      (when-not (config/skip? config callstack)
        (let [len (count children)
              ctx (assoc ctx
