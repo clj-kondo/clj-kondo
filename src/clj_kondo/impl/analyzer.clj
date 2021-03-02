@@ -1431,7 +1431,7 @@
                                       (cons (with-meta [resolved-namespace* resolved-name]
                                               (cond-> expr-meta
                                                 generated? (assoc :clj-kondo.impl/generated true))) cs))))
-                          ctx)
+                          (update ctx :callstack conj [nil nil]))
                     resolved-as-clojure-var-name
                     (when (one-of resolved-as-namespace [clojure.core cljs.core])
                       resolved-as-name)
@@ -1601,7 +1601,7 @@
                         [babashka.process $]
                         (babashka/analyze-$ ctx expr)
                         ;; catch-all
-                        (let [next-ctx (cond-> (update ctx :callstack conj [nil nil])
+                        (let [next-ctx (cond-> ctx
                                          (one-of [resolved-namespace resolved-name]
                                                  [[clojure.core.async thread]
                                                   [clojure.core dosync]])
