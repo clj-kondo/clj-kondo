@@ -2,6 +2,14 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2021.03.03
+
+### Enhanced / fixed
+
+- Redundant expression false positive [#1183](https://github.com/clj-kondo/clj-kondo/issues/1183)
+- Redundant expression false positive [#1185](https://github.com/clj-kondo/clj-kondo/issues/1185)
+- Regression in unresolved symbol config [#1187](https://github.com/clj-kondo/clj-kondo/issues/1187)
+
 ## 2021.02.28
 
 ### New
