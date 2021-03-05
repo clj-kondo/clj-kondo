@@ -54,7 +54,7 @@ popular community libraries. For unrecognized macros you can use these
 configurations:
 
 - [`:lint-as`](#lint-a-custom-macro-like-a-built-in-macro)
-- [`:unresolved-symbol`](#exclude-unresolved-symbols-from-being-reported)
+- [`:unresolved-symbol`](./linters.md#unresolved-symbol)
 - [`:hooks`](#hooks)
 
 ## Linters
