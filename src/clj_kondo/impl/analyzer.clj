@@ -1368,7 +1368,8 @@
                                     (try (hook-fn {:node expr
                                                    :cljc (identical? :cljc base-lang)
                                                    :lang lang
-                                                   :filename filename})
+                                                   :filename filename
+                                                   :config config})
                                          (catch Exception e
                                            (findings/reg-finding!
                                             ctx
