@@ -29,10 +29,12 @@
                    ;; row and ignore-row are equal, so the col of the
                    ;; finding has to be before the col of the ignore
                    (>= (:col m) (:col ignore)))
-                (let [ignore-end-row (:end-row ignore)]
-                  (if (or (< row ignore-end-row)
-                          (and (= row ignore-end-row)
-                               (<= (:end-col m) (:end-col ignore))))
+                (let [ignore-end-row (:end-row ignore)
+                      end-col (:end-col m)]
+                  (if (and end-col ;; if there is no end-col our finding location is incomplete...
+                           (or (< row ignore-end-row)
+                               (and (= row ignore-end-row)
+                                    (<= (:end-col m) (:end-col ignore)))))
                     (if (ignore-match? (:ignore ignore) tp)
                       true
                       (recur (next ignores)))

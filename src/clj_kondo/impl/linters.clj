@@ -396,7 +396,9 @@
           (findings/reg-finding! ctx
                                  {:filename filename
                                   :row row
+                                  :end-row end-row
                                   :col col
+                                  :end-col end-col
                                   :type :deprecated-var
                                   :message (str
                                             (format "#'%s is deprecated"

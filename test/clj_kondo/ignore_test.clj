@@ -104,3 +104,17 @@ x)"
 "
                      {:linters {:unused-binding {:level :warning}}}
                      "--lang" "cljc"))))
+
+(deftest deprecated-var-ignore-test
+  (is (empty? (lint! "
+(ns repro)
+
+(defn ^{:deprecated \"2.0.0\"} f1
+  [value]
+  [value])
+
+(defn f2
+  [value]
+  #_:clj-kondo/ignore
+  (f1 value))
+"))))
