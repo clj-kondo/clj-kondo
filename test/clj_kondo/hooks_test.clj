@@ -99,7 +99,7 @@
 (ns bar
   {:clj-kondo/config
     '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename :config]}]
- (prn cljc lang filename (keys config)))\"}}}}
+ (prn cljc lang filename (some? (:linters config))))\"}}}}
   (:require [foo :refer [hook]]))
 
 (hook 1 2 3)"
@@ -109,12 +109,12 @@
                          ["false"
                           ":clj"
                           "\"<stdin>\""
-                          "(:skip-args :skip-comments :linters :lint-as :macroexpand :output :hooks :cfg-dir)\n"]))))
+                          "true\n"]))))
     (let [s (with-out-str (lint! "
 (ns bar
   {:clj-kondo/config
     '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename :config]}]
- (prn cljc lang filename (keys config)))\"}}}}
+ (prn cljc lang filename (some? (:linters config))))\"}}}}
   (:require [foo :refer [hook]]))
 
 (hook 1 2 3)"
@@ -126,12 +126,12 @@
                           ["true"
                            ":clj"
                            "\"<stdin>\""
-                           "(:skip-args :skip-comments :linters :lint-as :macroexpand :output :hooks :cfg-dir)\n"])
+                           "true\n"])
                     (str/join " "
                               ["true"
                                ":cljs"
                                "\"<stdin>\""
-                               "(:skip-args :skip-comments :linters :lint-as :macroexpand :output :hooks :cfg-dir)\n"])))))))
+                               "true\n"])))))))
 
 #_(fn [{:keys [:node]}]
   (let [children (next (:children node))
