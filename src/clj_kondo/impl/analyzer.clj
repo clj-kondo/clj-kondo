@@ -1484,7 +1484,9 @@
                       (amap)
                       (analyze-amap ctx expr)
                       (cond-> cond->>)
-                      (analyze-expression** ctx (macroexpand/expand-cond-> ctx expr))
+                      (analyze-expression** ctx (macroexpand/expand-cond->
+                                                 ctx expr
+                                                 resolved-as-namespace resolved-as-name))
                       (let let* for doseq dotimes with-open with-local-vars)
                       (analyze-like-let ctx expr)
                       letfn

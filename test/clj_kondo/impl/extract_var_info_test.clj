@@ -14,6 +14,7 @@
 
 (deftest extract-cljs-core-vars-test
   (let [vars (extract-var-info/extract-cljs-core-vars)]
+    (prn :vars (take 10 vars))
     (is (contains? vars 'clj->js))
     (is (contains? vars 'transduce))
     (is (contains? vars 'eval))
