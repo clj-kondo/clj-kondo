@@ -7,6 +7,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ### Enhanced / fixed
 
 - NullPointerException when ignoring :deprecated-var [#1195](https://github.com/clj-kondo/clj-kondo/issues/1195)
+- Fix `:lint-as` with `cond->` [#1205](https://github.com/clj-kondo/clj-kondo/issues/1205)
 
 ## 2021.03.03
 

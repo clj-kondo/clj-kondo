@@ -1286,7 +1286,15 @@ foo/foo ;; this does use the private var
 (stateful)
 "
               '{:linters {:unresolved-symbol {:level :warning}}
-                :lint-as {rum.core/defcs clj-kondo.lint-as/def-catch-all}}))))
+                :lint-as {rum.core/defcs clj-kondo.lint-as/def-catch-all}})))
+  (is (empty?
+       (lint! "(ns foo
+  (:require plumbing.core))
+
+(let [live? true]
+  (-> {}
+      (plumbing.core/?> live? (assoc :live live?))))
+" '{:lint-as {plumbing.core/?> clojure.core/cond->}}))))
 
 (deftest letfn-test
   (assert-submaps '({:file "<stdin>",
