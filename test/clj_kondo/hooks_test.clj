@@ -123,10 +123,10 @@
           ;; Windows...
           s (str/replace s "\r\n" "\n")]
       (is (= s (str (str/join " "
-                          ["true"
-                           ":clj"
-                           "\"<stdin>\""
-                           "true\n"])
+                              ["true"
+                               ":clj"
+                               "\"<stdin>\""
+                               "true\n"])
                     (str/join " "
                               ["true"
                                ":cljs"

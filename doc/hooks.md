@@ -182,14 +182,14 @@ level set to `:info`, `:warning` or `:error` in order to appear in the output:
  :hooks {:analyze-call {re-frame.core/dispatch hooks.re-frame/dispatch}}}
 ```
 
-The hook can access `config` to check if a warning should be emmited.
+The hook can access `config` to check if a warning should be emitted.
 
 ``` clojure
 {:linters {:foo/lint-bar {:level :warning
                           :lint [:a :b]}}
  :hooks {:analyze-call {foo/bar hooks.foo/bar}}}
 ```
-Configuration is supplied as key in hook argument:
+The configuration is supplied as a key in the hook argument:
 
 ``` clojure
 (ns hooks.foo
