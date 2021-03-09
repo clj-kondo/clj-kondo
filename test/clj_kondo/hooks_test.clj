@@ -98,17 +98,23 @@
     (let [s (with-out-str (lint! "
 (ns bar
   {:clj-kondo/config
-    '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename]}] (prn cljc lang filename))\"}}}}
+    '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename :config]}]
+ (prn cljc lang filename (keys config)))\"}}}}
   (:require [foo :refer [hook]]))
 
 (hook 1 2 3)"
                                  {:hooks {:__dangerously-allow-string-hooks__ true}}))
           s (str/replace s "\r\n" "\n")]
-      (is (= s "false :clj \"<stdin>\"\n")))
+      (is (= s (str/join " "
+                         ["false"
+                          ":clj"
+                          "\"<stdin>\""
+                          "(:skip-args :skip-comments :linters :lint-as :macroexpand :output :hooks :cfg-dir)\n"]))))
     (let [s (with-out-str (lint! "
 (ns bar
   {:clj-kondo/config
-    '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename]}] (prn cljc lang filename))\"}}}}
+    '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename :config]}]
+ (prn cljc lang filename (keys config)))\"}}}}
   (:require [foo :refer [hook]]))
 
 (hook 1 2 3)"
@@ -116,7 +122,16 @@
                                  "--lang" "cljc"))
           ;; Windows...
           s (str/replace s "\r\n" "\n")]
-      (is (= s "true :clj \"<stdin>\"\ntrue :cljs \"<stdin>\"\n")))))
+      (is (= s (str (str/join " "
+                          ["true"
+                           ":clj"
+                           "\"<stdin>\""
+                           "(:skip-args :skip-comments :linters :lint-as :macroexpand :output :hooks :cfg-dir)\n"])
+                    (str/join " "
+                              ["true"
+                               ":cljs"
+                               "\"<stdin>\""
+                               "(:skip-args :skip-comments :linters :lint-as :macroexpand :output :hooks :cfg-dir)\n"])))))))
 
 #_(fn [{:keys [:node]}]
   (let [children (next (:children node))
