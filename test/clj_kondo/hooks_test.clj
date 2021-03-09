@@ -123,15 +123,44 @@
           ;; Windows...
           s (str/replace s "\r\n" "\n")]
       (is (= s (str (str/join " "
-                          ["true"
-                           ":clj"
-                           "\"<stdin>\""
-                           "(:skip-args :skip-comments :linters :lint-as :macroexpand :output :hooks :cfg-dir)\n"])
+                              ["true"
+                               ":clj"
+                               "\"<stdin>\""
+                               "(:skip-args :skip-comments :linters :lint-as :macroexpand :output :hooks :cfg-dir)\n"])
                     (str/join " "
                               ["true"
                                ":cljs"
                                "\"<stdin>\""
                                "(:skip-args :skip-comments :linters :lint-as :macroexpand :output :hooks :cfg-dir)\n"])))))))
+
+(deftest confg-test
+  (when-not native?
+    (let [s (with-out-str (lint! "
+(ns bar
+  {:clj-kondo/config
+    '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:config]}]
+                                         (prn (-> config :linters :custom-linter-configuration)))\"}}}}
+  (:require [foo :refer [hook]]))
+
+(hook 1 2 3)"
+                                 {:hooks {:__dangerously-allow-string-hooks__ true}
+                                  :linters ^:replace {:custom-linter-configuration {:a 1 :b 2}}}))
+          s (str/replace s "\r\n" "\n")]
+      (is (= s "{:a 1, :b 2}\n")))
+    (let [s (with-out-str (lint! "
+(ns bar
+  {:clj-kondo/config
+    '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:config]}]
+                                         (prn (-> config :linters :custom-linter-configuration)))\"}}}}
+  (:require [foo :refer [hook]]))
+
+(hook 1 2 3)"
+                                 {:hooks {:__dangerously-allow-string-hooks__ true}
+                                  :linters ^:replace {:custom-linter-configuration {:a 1 :b 2}}}
+                                 "--lang" "cljc"))
+          ;; Windows...
+          s (str/replace s "\r\n" "\n")]
+      (is (= s "{:a 1, :b 2}\n{:a 1, :b 2}\n")))))
 
 #_(fn [{:keys [:node]}]
   (let [children (next (:children node))
