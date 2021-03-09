@@ -99,7 +99,7 @@
 (ns bar
   {:clj-kondo/config
     '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename :config]}]
- (prn cljc lang filename (sort (keys config))))\"}}}}
+ (prn cljc lang filename (some? (:linters config))))\"}}}}
   (:require [foo :refer [hook]]))
 
 (hook 1 2 3)"
@@ -109,12 +109,12 @@
                          ["false"
                           ":clj"
                           "\"<stdin>\""
-                          "(:cfg-dir :hooks :lint-as :linters :macroexpand :output :skip-args :skip-comments)\n"]))))
+                          "true\n"]))))
     (let [s (with-out-str (lint! "
 (ns bar
   {:clj-kondo/config
     '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [:cljc :lang :filename :config]}]
- (prn cljc lang filename (sort (keys config))))\"}}}}
+ (prn cljc lang filename (some? (:linters config))))\"}}}}
   (:require [foo :refer [hook]]))
 
 (hook 1 2 3)"
@@ -123,15 +123,15 @@
           ;; Windows...
           s (str/replace s "\r\n" "\n")]
       (is (= s (str (str/join " "
-                              ["true"
-                               ":clj"
-                               "\"<stdin>\""
-                               "(:cfg-dir :hooks :lint-as :linters :macroexpand :output :skip-args :skip-comments)\n"])
+                          ["true"
+                           ":clj"
+                           "\"<stdin>\""
+                           "true\n"])
                     (str/join " "
                               ["true"
                                ":cljs"
                                "\"<stdin>\""
-                               "(:cfg-dir :hooks :lint-as :linters :macroexpand :output :skip-args :skip-comments)\n"])))))))
+                               "true\n"])))))))
 
 (deftest confg-test
   (when-not native?
