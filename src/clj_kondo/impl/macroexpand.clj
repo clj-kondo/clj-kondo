@@ -51,11 +51,11 @@
 
 (defn expand-cond->
   "Expands cond-> and cond->>"
-  [_ctx expr resolved-as-namespace resolved-as-name]
+  [_ctx expr resolved-as-name]
   (let [[_ start-expr & clauses] (:children expr)
-        thread-sym (case [resolved-as-namespace resolved-as-name]
-                     [clojure.core cond->] 'clojure.core/->
-                     [clojure.core cond->>] 'clojure.core/->>)
+        thread-sym (case resolved-as-name
+                     cond-> 'clojure.core/->
+                     cond->> 'clojure.core/->>)
         g (with-meta-of (token-node (gensym))
             start-expr)
         steps (map (fn [[t step]]
