@@ -21,13 +21,21 @@
   ([ctx node] (lift-meta-content2 ctx node false))
   ([{:keys [:lang] :as ctx} node only-usage?]
    (if-let [meta-list (:meta node)]
-     (let [meta-ctx
+     (let [cljs? (identical? :cljs lang)
+           maybe-type-hint (and cljs? (utils/symbol-from-token node))
+           ignore-type-hint? (and cljs?
+                                  maybe-type-hint
+                                  (contains? (:bindings ctx) maybe-type-hint))
+           ctx (if ignore-type-hint?
+                 (assoc-in ctx [:config :linters :unresolved-symbol :level] :off)
+                 ctx)
+           meta-ctx
            (-> ctx
                (update :callstack conj [nil :metadata])
                (utils/ctx-with-bindings
                 (cond->
                     type-hint-bindings
-                  (identical? :cljs lang)
+                  cljs?
                   (assoc 'js {}
                          'number {}))))
            ;; use dorun to force analysis, we don't use the end result!
