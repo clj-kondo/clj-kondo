@@ -1802,7 +1802,10 @@ foo/foo ;; this does use the private var
                true (conj 1))]))
 
 (defmacro -> [])"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(fn [^clj x] ^clj x)"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 (deftest amap-test
   (is (empty? (lint! "
