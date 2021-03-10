@@ -182,6 +182,33 @@ level set to `:info`, `:warning` or `:error` in order to appear in the output:
  :hooks {:analyze-call {re-frame.core/dispatch hooks.re-frame/dispatch}}}
 ```
 
+The hook can access `config` to check if a warning should be emitted.
+
+``` clojure
+{:linters {:foo/lint-bar {:level :warning
+                          :lint [:a :b]}}
+ :hooks {:analyze-call {foo/bar hooks.foo/bar}}}
+```
+The configuration is supplied as a key in the hook argument:
+
+``` clojure
+(ns hooks.foo
+  (:require [clj-kondo.hooks-api :as api]))
+
+(defn warn? [linter-params]
+ ...)
+
+(defn bar [{:keys [:node :config]}]
+  (let [linter-params (-> config :linters :foo/lint-bar :lint)]
+    (when (warn? linter-params)
+      (let [{:keys [:row :col]} (meta node)]
+        (api/reg-finding! {:message "warning message!"
+                           :type :re-frame/keyword
+                           :row row
+                           :col col})))))
+```
+
+
 Additionally, the finding has `:row` and `:col`,
 derived from the node's metadata to show the finding at the appropriate
 location.
