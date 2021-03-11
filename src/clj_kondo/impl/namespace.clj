@@ -395,10 +395,17 @@
 
 (defn resolve-name
   [ctx ns-name name-sym]
-  ;; (prn "NAME" name-sym)
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)
-        cljs? (identical? :cljs lang)]
+        cljs? (identical? :cljs lang)
+        name-str (str name-sym)
+        name-sym (if (and cljs? (some-> (str/index-of name-str ".")
+                                        pos?))
+                   (let [name-str (first (str/split name-str #"\."))]
+                     (if (not= "goog" name-str)
+                       (symbol (first (str/split name-str #"\.")))
+                       name-sym))
+                   name-sym)]
     (if-let [ns* (namespace name-sym)]
       (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
                     ns*)

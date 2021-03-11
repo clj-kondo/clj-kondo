@@ -1805,6 +1805,9 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(fn [^clj x] ^clj x)"
                      {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(let [foo #js{}] foo.bar) (def bar #js {}) bar.baz"
+                     {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs"))))
 
 (deftest amap-test
