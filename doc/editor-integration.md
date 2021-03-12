@@ -228,8 +228,8 @@ and CLJC (`.cljc`)<sup>1</sup>.
 4. Scope: `Current file`
 5. In the Program field, type `clj-kondo`
 6. In the Arguments field, type `--lint $FilePath$`<br>
-You may use a custom config E.g `--lint $FilePath$ --config "{:lint-as {manifold.deferred/let-flow clojure.core/let}}"`
-7. In the Working directory field, type `$FileDir$`
+You may use a custom config E.g `--lint $FilePath$ --config "{:lint-as {manifold.deferred/let-flow clojure.core/let}}"` or `--lint $FilePath$ --config your-custom-path/clj-kondo.conf.js"`
+7. In the Working directory field, type `$ProjectFileDir$`
 8. Enable `Create output file from stdout`
 9. Show console: `Never`
 10. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`
