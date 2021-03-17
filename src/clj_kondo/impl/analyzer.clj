@@ -1036,7 +1036,7 @@
         metadata (meta name-node)
         metadata (assoc metadata :defined-by defined-by)
         record-name (:value name-node)
-        bindings? (not= 'clojure.core/definterface defined-by)
+        bindings? (not= "definterface" (name defined-by))
         binding-vector (when bindings? (second children))
         field-count (when bindings? (count (:children binding-vector)))
         bindings (when bindings? (extract-bindings (assoc ctx
@@ -1047,13 +1047,13 @@
         arglists? (and bindings? (:analyze-arglists? ctx))
         ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
-    (when-not (= 'clojure.core/definterface defined-by)
+    (when-not (= "definterface" (name defined-by))
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
                           (assoc-some metadata
                                       :arglist-strs (when arglists?
                                                       [(str binding-vector)])
                                       :fixed-arities #{field-count})))
-    (when (= 'clojure.core/defrecord defined-by)
+    (when (= "defrecord" (name defined-by))
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                           expr (assoc-some metadata
                                            :arglist-strs (when arglists?
@@ -1340,9 +1340,9 @@
           (recur ctx
                  (let [expr (macroexpand/expand-dot-constructor ctx expr)]
                    (assoc m
-                     :expr expr
-                     :full-fn-name 'new
-                     :arg-count (inc (:arg-count m)))))
+                          :expr expr
+                          :full-fn-name 'new
+                          :arg-count (inc (:arg-count m)))))
           unresolved-ns
           (do
             (namespace/reg-unresolved-namespace! ctx ns-name
@@ -1354,9 +1354,9 @@
           :else
           (let [[resolved-as-namespace resolved-as-name _lint-as?]
                 (or (when-let
-                     [[ns n]
-                      (config/lint-as config
-                                      [resolved-namespace resolved-name])]
+                        [[ns n]
+                         (config/lint-as config
+                                         [resolved-namespace resolved-name])]
                       [ns n true])
                     [resolved-namespace resolved-name false])
                 ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -1449,7 +1449,8 @@
                           (assoc ctx
                                  :resolved-as-clojure-var-name resolved-as-clojure-var-name)
                           ctx)
-                    full-ns-and-symbol (symbol (name resolved-as-namespace) (name resolved-as-name))
+                    full-ns-and-symbol (when (and resolved-as-name resolved-as-namespace)
+                                         (symbol (name resolved-as-namespace) (name resolved-as-name)))
                     analyzed
                     (case resolved-as-clojure-var-name
                       ns

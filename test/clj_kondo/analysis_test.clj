@@ -499,7 +499,8 @@
        {:fixed-arities #{1}, :end-row 3, :name-end-col 29, :name-end-row 3, :name-row 3, :ns foo, :name f1, :defined-by schema.core/defn, :filename "<stdin>", :col 19, :name-col 27, :end-col 36, :row 3}
        {:fixed-arities #{1 2}, :end-row 4, :name-end-col 29, :name-end-row 4, :name-row 4, :ns foo, :name f2, :defined-by schema.core/defn, :filename "<stdin>", :col 19, :name-col 27, :end-col 49, :row 4}
        {:end-row 5, :name-end-col 33, :name-end-row 5, :name-row 5, :ns foo, :name A, :defined-by schema.core/defrecord, :filename "<stdin>", :col 19, :name-col 32, :end-col 40, :row 5}
-       {:fixed-arities #{2}, :end-row 5, :name-end-col 33, :name-end-row 5, :name-row 5, :ns foo, :name ->A, :defined-by schema.core/defrecord, :filename "<stdin>", :col 19, :name-col 32, :end-col 40, :row 5}]
+       {:fixed-arities #{2}, :end-row 5, :name-end-col 33, :name-end-row 5, :name-row 5, :ns foo, :name ->A, :defined-by schema.core/defrecord, :filename "<stdin>", :col 19, :name-col 32, :end-col 40, :row 5}
+       {:fixed-arities #{1}, :end-row 5, :name-end-col 33, :name-end-row 5, :name-row 5, :ns foo, :name map->A, :defined-by schema.core/defrecord, :filename "<stdin>", :col 19, :name-col 32, :end-col 40, :row 5}]
      var-definitions)))
 
 (deftest declare-var-test
@@ -546,6 +547,3 @@
       '[{:name union :name-row 1 :name-end-row 1 :name-col 33 :name-end-col 38}
         {:name require :name-row 1 :name-end-row 1 :name-col 2 :name-end-col 9}]
      var-usages)))
-
-(comment
-  (t/run-tests))
