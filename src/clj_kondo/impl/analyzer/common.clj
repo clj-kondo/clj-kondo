@@ -18,8 +18,8 @@
 (defn analyze-children [ctx expr]
   ((get @common 'analyze-children) ctx expr))
 
-(defn analyze-defn [ctx expr]
-  ((get @common 'analyze-defn) ctx expr))
+(defn analyze-defn [ctx expr defined-by]
+  ((get @common 'analyze-defn) ctx expr defined-by))
 
 (defn analyze-usages2 [ctx expr]
   ((get @common 'analyze-usages2) ctx expr))

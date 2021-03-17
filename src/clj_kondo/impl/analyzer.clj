@@ -424,7 +424,7 @@
           :list exprs
           (recur rest-exprs))))))
 
-(defn analyze-defn [ctx expr]
+(defn analyze-defn [ctx expr defined-by]
   (let [ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
@@ -494,6 +494,7 @@
                    :macro macro?
                    :private private?
                    :deprecated deprecated
+                   :defined-by defined-by
                    :fixed-arities (not-empty fixed-arities)
                    :arglist-strs (when (:analyze-arglists? ctx)
                                    arglist-strs)
@@ -848,7 +849,7 @@
 
 (declare analyze-defmethod)
 
-(defn analyze-def [ctx expr]
+(defn analyze-def [ctx expr defined-by]
   ;; (def foo ?docstring ?init)
   (let [children (next (:children expr))
         var-name-node (->> children first (meta/lift-meta-content2 ctx))
@@ -861,14 +862,15 @@
                           var-name
                           expr
                           (assoc-some metadata
-                                      :doc docstring)))
+                                      :doc docstring
+                                      :defined-by defined-by)))
     (analyze-children (assoc ctx
                              :in-def var-name)
                       (nnext (:children expr)))))
 
 (declare analyze-defrecord)
 
-(defn analyze-schema [ctx fn-sym expr]
+(defn analyze-schema [ctx fn-sym expr defined-by]
   (let [{:keys [:expr :schemas]}
         (schema/expand-schema ctx
                               fn-sym
@@ -876,10 +878,10 @@
     (concat
      (case fn-sym
        fn (analyze-fn ctx expr)
-       def (analyze-def ctx expr)
-       defn (analyze-defn ctx expr)
+       def (analyze-def ctx expr defined-by)
+       defn (analyze-defn ctx expr defined-by)
        defmethod (analyze-defmethod ctx expr)
-       defrecord (analyze-defrecord ctx expr 'defrecord))
+       defrecord (analyze-defrecord ctx expr defined-by))
      (analyze-children ctx schemas))))
 
 (defn analyze-binding-call [ctx fn-name binding expr]
@@ -918,7 +920,7 @@
      ctx
      (node->line (:filename ctx) expr :warning :inline-def "inline def"))))
 
-(defn analyze-declare [ctx expr]
+(defn analyze-declare [ctx expr defined-by]
   (let [ns-name (-> ctx :ns :name)
         var-name-nodes (next (:children expr))]
     (doseq [var-name-node var-name-nodes]
@@ -926,7 +928,8 @@
                           (->> var-name-node (meta/lift-meta-content2 ctx) :value)
                           expr
                           (assoc (meta expr)
-                                 :declared true)))))
+                                 :declared true
+                                 :defined-by defined-by)))))
 
 (defn analyze-catch [ctx expr]
   (let [ctx (update ctx :callstack conj [nil 'catch])
@@ -1024,16 +1027,16 @@
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
-  [{:keys [:ns] :as ctx} expr resolved-as]
+  [{:keys [:ns] :as ctx} expr defined-by]
   (let [ns-name (:name ns)
         children (:children expr)
         children (next children)
         name-node (first children)
         name-node (meta/lift-meta-content2 ctx name-node)
         metadata (meta name-node)
-        metadata (assoc metadata :defined-by (symbol "clojure.core" (str resolved-as)))
+        metadata (assoc metadata :defined-by defined-by)
         record-name (:value name-node)
-        bindings? (not= 'definterface resolved-as)
+        bindings? (not= 'clojure.core/definterface defined-by)
         binding-vector (when bindings? (second children))
         field-count (when bindings? (count (:children binding-vector)))
         bindings (when bindings? (extract-bindings (assoc ctx
@@ -1044,13 +1047,13 @@
         arglists? (and bindings? (:analyze-arglists? ctx))
         ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
-    (when-not (= 'definterface resolved-as)
+    (when-not (= 'clojure.core/definterface defined-by)
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
                           (assoc-some metadata
                                       :arglist-strs (when arglists?
                                                       [(str binding-vector)])
                                       :fixed-arities #{field-count})))
-    (when (= 'defrecord resolved-as)
+    (when (= 'clojure.core/defrecord defined-by)
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                           expr (assoc-some metadata
                                            :arglist-strs (when arglists?
@@ -1337,9 +1340,9 @@
           (recur ctx
                  (let [expr (macroexpand/expand-dot-constructor ctx expr)]
                    (assoc m
-                          :expr expr
-                          :full-fn-name 'new
-                          :arg-count (inc (:arg-count m)))))
+                     :expr expr
+                     :full-fn-name 'new
+                     :arg-count (inc (:arg-count m)))))
           unresolved-ns
           (do
             (namespace/reg-unresolved-namespace! ctx ns-name
@@ -1351,9 +1354,9 @@
           :else
           (let [[resolved-as-namespace resolved-as-name _lint-as?]
                 (or (when-let
-                        [[ns n]
-                         (config/lint-as config
-                                         [resolved-namespace resolved-name])]
+                     [[ns n]
+                      (config/lint-as config
+                                      [resolved-namespace resolved-name])]
                       [ns n true])
                     [resolved-namespace resolved-name false])
                 ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -1446,6 +1449,7 @@
                           (assoc ctx
                                  :resolved-as-clojure-var-name resolved-as-clojure-var-name)
                           ctx)
+                    full-ns-and-symbol (symbol (name resolved-as-namespace) (name resolved-as-name))
                     analyzed
                     (case resolved-as-clojure-var-name
                       ns
@@ -1455,16 +1459,16 @@
                                 (analyze-children ctx children))
                       alias
                       [(analyze-alias ctx expr)]
-                      declare (analyze-declare ctx expr)
+                      declare (analyze-declare ctx expr full-ns-and-symbol)
                       (def defonce defmulti goog-define)
                       (do (lint-inline-def! ctx expr)
-                          (analyze-def ctx expr))
+                          (analyze-def ctx expr full-ns-and-symbol))
                       (defn defn- defmacro definline)
                       (do (lint-inline-def! ctx expr)
-                          (analyze-defn ctx expr))
+                          (analyze-defn ctx expr full-ns-and-symbol))
                       defmethod (analyze-defmethod ctx expr)
                       defprotocol (analyze-defprotocol ctx expr)
-                      (defrecord deftype definterface) (analyze-defrecord ctx expr resolved-as-clojure-var-name)
+                      (defrecord deftype definterface) (analyze-defrecord ctx expr full-ns-and-symbol)
                       comment
                       (analyze-children ctx children)
                       (-> some->)
@@ -1528,19 +1532,18 @@
                         [clj-kondo.lint-as def-catch-all]
                         (analyze-def-catch-all ctx expr)
                         [schema.core fn]
-                        (analyze-schema ctx 'fn expr)
+                        (analyze-schema ctx 'fn expr 'schema.core/fn)
                         [schema.core def]
-                        (analyze-schema ctx 'def expr)
+                        (analyze-schema ctx 'def expr 'schema.core/def)
                         [schema.core defn]
-                        (analyze-schema ctx 'defn expr)
+                        (analyze-schema ctx 'defn expr 'schema.core/defn)
                         [schema.core defmethod]
-                        (analyze-schema ctx 'defmethod expr)
+                        (analyze-schema ctx 'defmethod expr 'schema.core/defmethod)
                         [schema.core defrecord]
-                        (analyze-schema ctx 'defrecord expr)
+                        (analyze-schema ctx 'defrecord expr 'schema.core/defrecord)
                         ([clojure.test deftest]
                          [cljs.test deftest])
-                        (test/analyze-deftest ctx expr
-                                              resolved-namespace resolved-name
+                        (test/analyze-deftest ctx expr full-ns-and-symbol
                                               resolved-as-namespace resolved-as-name)
                         [clojure.core.match match]
                         (match/analyze-match ctx expr)

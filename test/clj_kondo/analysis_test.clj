@@ -262,6 +262,7 @@
         :end-col 54,
         :ns user,
         :name foo,
+        :defined-by clojure.core/defn
         :fixed-arities #{0},
         :doc "docstring",
         :added "1.2",
@@ -284,6 +285,7 @@
         :col 1,
         :end-row 1,
         :end-col 35,
+        :defined-by clojure.core/def,
         :ns user,
         :name x,
         :doc "docstring",
@@ -343,6 +345,7 @@
         :end-col 42,
         :ns foo,
         :name f,
+        :defined-by clojure.core/defn
         :fixed-arities #{0},
         :lang :clj}
        {:filename "<stdin>",
@@ -350,6 +353,7 @@
         :col 19,
         :ns foo,
         :name f,
+        :defined-by cljs.core/defn
         :fixed-arities #{0},
         :lang :cljs}]
      var-definitions)
@@ -444,20 +448,27 @@
                    {:config {:output {:analysis {:arglists true}}}})]
       (assert-submaps
         '[{:name f1,
+           :defined-by clojure.core/defn
            :arglist-strs ["[d]"]}
           {:name f2,
+           :defined-by clojure.core/defn
            :arglist-strs ["[e]" "[f f']"]}
           {:name f3,
+           :defined-by clojure.core/defprotocol
            :arglist-strs ["[g]"]}
           {}
           {:name f4,
+           :defined-by clojure.core/defprotocol
            :arglist-strs ["[h]" "[i i']"]}
           {}
           {:name ->A
+           :defined-by clojure.core/defrecord
            :arglist-strs ["[j k]"]}
           {:name map->A
+           :defined-by clojure.core/defrecord
            :arglist-strs ["[m]"]}
           {:name f5
+           :defined-by clojure.core/defmacro
            :arglist-strs ["[l m]"]}]
         var-definitions))))
 
@@ -474,6 +485,30 @@
     (assert-submaps
      '[{:filename "<stdin>", :row 2, :col 19, :end-row 2, :end-col 34, :ns foo, :name foo, :fixed-arities #{0},
         :test true :defined-by clojure.test/deftest}]
+     var-definitions)))
+
+(deftest schema-var-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo (:require [schema.core :as s]))
+                  (s/def bar)
+                  (s/defn f1 [d] d)
+                  (s/defn f2 ([e] e) ([f f'] f))
+                  (s/defrecord A [j k])")]
+    (assert-submaps
+     '[{:end-row 2, :name-end-col 29, :name-end-row 2, :name-row 2, :ns foo, :name bar, :defined-by schema.core/def, :filename "<stdin>", :col 19, :name-col 26, :end-col 30, :row 2}
+       {:fixed-arities #{1}, :end-row 3, :name-end-col 29, :name-end-row 3, :name-row 3, :ns foo, :name f1, :defined-by schema.core/defn, :filename "<stdin>", :col 19, :name-col 27, :end-col 36, :row 3}
+       {:fixed-arities #{1 2}, :end-row 4, :name-end-col 29, :name-end-row 4, :name-row 4, :ns foo, :name f2, :defined-by schema.core/defn, :filename "<stdin>", :col 19, :name-col 27, :end-col 49, :row 4}
+       {:end-row 5, :name-end-col 33, :name-end-row 5, :name-row 5, :ns foo, :name A, :defined-by schema.core/defrecord, :filename "<stdin>", :col 19, :name-col 32, :end-col 40, :row 5}
+       {:fixed-arities #{2}, :end-row 5, :name-end-col 33, :name-end-row 5, :name-row 5, :ns foo, :name ->A, :defined-by schema.core/defrecord, :filename "<stdin>", :col 19, :name-col 32, :end-col 40, :row 5}]
+     var-definitions)))
+
+(deftest declare-var-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns foo)
+                  (declare bar)")]
+    (assert-submaps
+     '[{:filename "<stdin>", :row 2, :col 19, :end-row 2, :end-col 32, :ns foo, :name bar,
+        :defined-by clojure.core/declare}]
      var-definitions)))
 
 (deftest deftype-test
@@ -511,3 +546,6 @@
       '[{:name union :name-row 1 :name-end-row 1 :name-col 33 :name-end-col 38}
         {:name require :name-row 1 :name-end-row 1 :name-col 2 :name-end-col 9}]
      var-usages)))
+
+(comment
+  (t/run-tests))
