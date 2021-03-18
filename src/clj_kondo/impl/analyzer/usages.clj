@@ -114,14 +114,19 @@
            (case t
              :token
              (if-let [symbol-val (symbol-from-token expr)]
-               (let [simple? (simple-symbol? symbol-val)]
+               (let [simple? (simple-symbol? symbol-val)
+                     expr-meta (meta expr)]
                  (if-let [b (when (and simple? (not syntax-quote?))
                               (get (:bindings ctx) symbol-val))]
                    (namespace/reg-used-binding! ctx
                                                 (-> ns :name)
                                                 b
                                                 (when (:analyze-locals? ctx)
-                                                  (assoc-some (meta expr)
+                                                  (assoc-some expr-meta
+                                                              :name-row (:row expr-meta)
+                                                              :name-col (:col expr-meta)
+                                                              :name-end-row (:end-row expr-meta)
+                                                              :name-end-col (:end-col expr-meta)
                                                               :name symbol-val
                                                               :filename (:filename ctx)
                                                               :str (:string-value expr))))

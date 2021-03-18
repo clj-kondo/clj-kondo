@@ -887,8 +887,8 @@
 (defn analyze-binding-call [ctx fn-name binding expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)
-        ns-name (-> ctx :ns :name)]
-    ;;(prn (:tag binding))
+        ns-name (-> ctx :ns :name)
+        fn-meta (meta fn-name)]
     (when-let [k (types/keyword binding)]
       (when-not (types/match? k :ifn)
         (findings/reg-finding! ctx (node->line (:filename ctx) expr :error
@@ -898,7 +898,11 @@
     (namespace/reg-used-binding! ctx
                                  ns-name
                                  binding
-                                 (meta expr))
+                                 (assoc (meta expr)
+                                        :name-row (:row fn-meta)
+                                        :name-col (:col fn-meta)
+                                        :name-end-row (:end-row fn-meta)
+                                        :name-end-col (:end-col fn-meta)))
     (when-not (config/skip? config :invalid-arity callstack)
       (let [filename (:filename ctx)
             children (:children expr)]
