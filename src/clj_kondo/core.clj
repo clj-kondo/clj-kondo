@@ -75,6 +75,8 @@
 
   - `:parallel`: optional. A boolean indicating if sources should be linted in parallel.`
 
+  - `:copy-hooks`: optional. A boolean indicating if scanned hooks should be copied to clj-kondo config dir.`
+
   Returns a map with `:findings`, a seqable of finding maps, a
   `:summary` of the findings and the `:config` that was used to
   produce those findings. This map can be passed to `print!` to print
@@ -88,7 +90,8 @@
            :config
            :config-dir
            :parallel
-           :no-warnings]
+           :no-warnings
+           :copy-hooks]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir
@@ -118,6 +121,7 @@
                         :cljs #{}
                         :cljc #{}})
         ctx {:no-warnings no-warnings
+             :copy-hooks copy-hooks
              :config-dir cfg-dir
              :config config
              :classpath classpath
