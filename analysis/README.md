@@ -51,6 +51,7 @@ The analysis output consists of a map with:
   - `:filename`, `:row`, `:col`, `end-row`, `end-col`
   - `:ns`: the namespace of the var
   - `:name`: the name of the var
+  - `:defined-by`: the namespaced symbol which defined this var
 
   Optional:
   - `:fixed-arities`: a set of fixed arities
@@ -149,12 +150,14 @@ $ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}
                     :end-col 11,
                     :ns foo,
                     :name f,
+                    :defined-by 'clojure.core/defn-
                     :private true,
                     :fixed-arities #{1}}
                    {:added "1.2",
                     :ns foo,
                     :name g,
                     :filename "/tmp/foo.clj",
+                    :defined-by 'clojure.core/defmacro
                     :macro true,
                     :row 11,
                     :col 1,
