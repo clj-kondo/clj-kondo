@@ -6,7 +6,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ### New
 
-- `--copy-hooks` flag to indicate linting is used to copy existing hooks to clj-kondo config dir.
+- `--copy-configs` flag to indicate copy configs from dependencies while linting. This replaces `--no-warnings`.
 
 ### Enhanced / fixed
 

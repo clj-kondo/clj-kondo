@@ -296,7 +296,7 @@ Suppose you would have [clj-kondo/config](https://github.com/clj-kondo/config)
 on your classpath and linted like this:
 
 ``` shellsession
-$ clj-kondo --copy-hooks --lint "$(clojure -Spath -Sdeps '{:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config" :sha "e2e156c53c6c228fee7242629b41013f3e55051d"}}}')"
+$ clj-kondo --copy-configs --dependencies --lint "$(clojure -Spath -Sdeps '{:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config" :sha "e2e156c53c6c228fee7242629b41013f3e55051d"}}}')"
 Copied config to .clj-kondo/clj-kondo/claypoole. Consider adding clj-kondo/claypoole to :config-paths in .clj-kondo/config.edn.
 ...
 ```
@@ -314,7 +314,8 @@ Imported configurations can be checked into source control, at your convenience.
 Note: configuration is only copied when all of these requirements are met:
 
 - There is a `.clj-kondo` directory that can be used as a target.
-- The `--copy-hooks` flag is used to indicate that clj-kondo is used to populate the cache.
+- The `--dependencies` flag tells clj-kondo to not output findings because you are only linting dependencies to populate the cache.
+- The `--copy-configs` flag tells clj-kondo to copy configs from dependencies while linting.
 
 ## Deprecations
 
