@@ -67,6 +67,7 @@ Options:
     "--parallel"   :scalar
     "--filename"   :scalar
     "--no-warnings" :scalar
+    "--copy-hooks" :scalar
     :scalar))
 
 (defn- parse-opts [options]
@@ -108,7 +109,8 @@ Options:
                  (when k
                    (or (nil? v)
                        (= "true" v))))
-     :no-warnings (contains? opts "--no-warnings")}))
+     :no-warnings (contains? opts "--no-warnings")
+     :copy-hooks (contains? opts "--copy-hooks")}))
 
 (defn main
   [& options]
