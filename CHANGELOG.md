@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+### New
+
+- `--copy-hooks` flag to indicate linting is used to copy existing hooks to clj-kondo config dir.
+
 ### Enhanced / fixed
 
 - NullPointerException when ignoring :deprecated-var [#1195](https://github.com/clj-kondo/clj-kondo/issues/1195)
