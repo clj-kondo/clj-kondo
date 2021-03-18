@@ -84,6 +84,7 @@ The analysis output consists of a map with:
 
 - `:local-usages`, a list of maps with:
   - `:filename`, `:row`, `:col`, `:end-row`, `:end-col`
+  - `:name-row`, `:name-col`, `:name-end-row`, `:name-end-col` 
   - `:id`: an identification for this local, refers to the local declaration with the same `:id` in `:locals`
   - `:name`: the name of the used local
 

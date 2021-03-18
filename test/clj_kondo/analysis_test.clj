@@ -176,11 +176,30 @@
     (is (not= (:id first-a) (:id second-a)))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use) (:id third-use))))
+  (testing "local usages are reported with correct positions"
+    (let [ana (analyze "(let [x (set 1 2 3)] (+ x 1))" {:config {:output {:analysis {:locals true}}}})
+          [x] (:locals ana)]
+      (assert-submaps
+        [{:row 1, :col 25,
+          :end-row 1, :end-col 26,
+          :name-row 1, :name-col 25,
+          :name-end-row 1, :name-end-col 26,
+          :name (:name x),
+          :filename "<stdin>",
+          :id 1}]
+        (:local-usages ana))))
   (testing "Names are reported in binding usages when called as fn"
-    (let [ana (analyze "(let [x (set 1 2 3)] (x 1))" {:config {:output {:analysis {:locals true}}}})
-          [x] (:locals ana)
-          [x-used](:local-usages ana)]
-      (is (= 'x (:name x) (:name x-used))))))
+    (let [ana (analyze "(let [x #(set 1 2 3)] (x 1))" {:config {:output {:analysis {:locals true}}}})
+          [x] (:locals ana)]
+      (assert-submaps
+        [{:row 1, :col 23,
+          :end-col 28, :end-row 1,
+          :name-row 1, :name-col 24,
+          :name-end-col 25, :name-end-row 1,
+          :name (:name x),
+          :filename "<stdin>",
+          :id 1}]
+        (:local-usages ana)))))
 
 (deftest name-position-test
   (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
