@@ -42,12 +42,12 @@
                 (recur (next ignores))))))))))
 
 (defn reg-finding! [ctx m]
-  (let [no-warnings (:no-warnings ctx)
+  (let [dependencies (:dependencies ctx)
         findings (:findings ctx)
         config (:config ctx)
         tp (:type m)
         level (-> config :linters tp :level)]
-    (when (and level (not (identical? :off level)) (not no-warnings))
+    (when (and level (not (identical? :off level)) (not dependencies))
       (when-not (ignored? ctx m tp)
         (let [m (assoc m :level level)]
           (swap! findings conj m)))))

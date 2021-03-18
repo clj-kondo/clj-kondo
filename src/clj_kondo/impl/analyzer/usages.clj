@@ -84,7 +84,7 @@
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
-         no-warnings (:no-warnings ctx)
+         dependencies (:dependencies ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
          ns-name (:name ns)
          t (tag expr)
@@ -193,7 +193,7 @@
                                                   :simple? simple?
                                                   :interop? interop?
                                                   ;; save some memory
-                                                  :expr (when-not no-warnings expr)
+                                                  :expr (when-not dependencies expr)
                                                   :resolved-core? resolved-core?})))))
                (do
                  ;; (prn (type (utils/sexpr expr)) (:callstack ctx) (:len ctx) (:idx ctx))

@@ -75,7 +75,7 @@
 
   - `:parallel`: optional. A boolean indicating if sources should be linted in parallel.`
 
-  - `:copy-hooks`: optional. A boolean indicating if scanned hooks should be copied to clj-kondo config dir.`
+  - `:copy-configs`: optional. A boolean indicating if scanned hooks should be copied to clj-kondo config dir.`
 
   Returns a map with `:findings`, a seqable of finding maps, a
   `:summary` of the findings and the `:config` that was used to
@@ -91,7 +91,8 @@
            :config-dir
            :parallel
            :no-warnings
-           :copy-hooks]
+           :dependencies
+           :copy-configs]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir
@@ -120,8 +121,8 @@
         used-nss (atom {:clj #{}
                         :cljs #{}
                         :cljc #{}})
-        ctx {:no-warnings no-warnings
-             :copy-hooks copy-hooks
+        ctx {:dependencies (or dependencies no-warnings)
+             :copy-configs copy-configs
              :config-dir cfg-dir
              :config config
              :classpath classpath
@@ -149,10 +150,10 @@
         idacs (core-impl/index-defs-and-calls ctx)
         idacs (cache/sync-cache idacs cache-dir)
         idacs (overrides idacs)
-        _ (when (and no-warnings (not analysis))
+        _ (when (and dependencies (not analysis))
             ;; analysis is called from lint-var-usage, this can probably happen somewhere else
             (l/lint-var-usage ctx idacs))
-        _ (when-not no-warnings
+        _ (when-not dependencies
             (l/lint-var-usage ctx idacs)
             (l/lint-unused-namespaces! ctx)
             (l/lint-unused-private-vars! ctx)
