@@ -1424,7 +1424,8 @@
                                                ns-name
                                                resolved-namespace)
                 (let [node expanded]
-                  (analyze-expression** ctx node)))
+                  (analyze-expression** (assoc-some ctx :defined-by (:defined-by transformed))
+                                        node)))
               ;;;; End macroexpansion
               (let [fq-sym (when (and resolved-namespace
                                       resolved-name)
@@ -1453,8 +1454,9 @@
                           (assoc ctx
                                  :resolved-as-clojure-var-name resolved-as-clojure-var-name)
                           ctx)
-                    full-ns-and-symbol (when (and resolved-as-name resolved-as-namespace)
-                                         (symbol (name resolved-as-namespace) (name resolved-as-name)))
+                    defined-by (or (:defined-by ctx)
+                                   (when (and resolved-as-name resolved-as-namespace)
+                                     (symbol (name resolved-as-namespace) (name resolved-as-name))))
                     analyzed
                     (case resolved-as-clojure-var-name
                       ns
@@ -1464,16 +1466,16 @@
                                 (analyze-children ctx children))
                       alias
                       [(analyze-alias ctx expr)]
-                      declare (analyze-declare ctx expr full-ns-and-symbol)
+                      declare (analyze-declare ctx expr defined-by)
                       (def defonce defmulti goog-define)
                       (do (lint-inline-def! ctx expr)
-                          (analyze-def ctx expr full-ns-and-symbol))
+                          (analyze-def ctx expr defined-by))
                       (defn defn- defmacro definline)
                       (do (lint-inline-def! ctx expr)
-                          (analyze-defn ctx expr full-ns-and-symbol))
+                          (analyze-defn ctx expr defined-by))
                       defmethod (analyze-defmethod ctx expr)
                       defprotocol (analyze-defprotocol ctx expr)
-                      (defrecord deftype definterface) (analyze-defrecord ctx expr full-ns-and-symbol)
+                      (defrecord deftype definterface) (analyze-defrecord ctx expr defined-by)
                       comment
                       (analyze-children ctx children)
                       (-> some->)
@@ -1548,7 +1550,7 @@
                         (analyze-schema ctx 'defrecord expr 'schema.core/defrecord)
                         ([clojure.test deftest]
                          [cljs.test deftest])
-                        (test/analyze-deftest ctx expr full-ns-and-symbol
+                        (test/analyze-deftest ctx expr defined-by
                                               resolved-as-namespace resolved-as-name)
                         [clojure.core.match match]
                         (match/analyze-match ctx expr)
