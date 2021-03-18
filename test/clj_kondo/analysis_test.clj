@@ -3,7 +3,6 @@
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [assert-submaps]]
    [clojure.edn :as edn]
-   [clojure.java.io :as io]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (defn analyze
@@ -445,12 +444,23 @@
 
 (deftest hooks-custom-defined-by-test
   (assert-submaps
-   '[{:ns baz,
-      :name my-flow,
-      :defined-by state-flow.cljtest/defflow}]
+   '[{:ns user,
+      :name foobar,
+      :defined-by user/defflow}]
    (:var-definitions
-    (analyze (slurp (io/file "corpus" "hooks" "state_flow.clj"))
-              {:config-dir (.getPath (io/file "corpus" ".clj-kondo"))}))))
+    (analyze "(user/defflow foobar)"
+             {:config {:output {:analysis {:keywords true}}
+                       :hooks {:__dangerously-allow-string-hooks__ true
+                               :analyze-call
+                               {'user/defflow
+                                (str "(require '[clj-kondo.hooks-api :as api])"
+                                     "(fn [{:keys [:node]}]"
+                                     "  (let [[test-name] (rest (:children node))"
+                                     "       new-node (api/list-node"
+                                     "                 [(api/token-node 'def)"
+                                     "                  test-name])]"
+                                     "   {:node (with-meta new-node (meta node))"
+                                     "     :defined-by 'user/defflow}))")}}}}))))
 
 (deftest analysis-alias-test
   (let [{:keys [:var-usages]}
