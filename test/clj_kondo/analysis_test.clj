@@ -297,6 +297,20 @@
         :arity 4}]
      var-usages))
 
+  (let [{:keys [:var-definitions]} (analyze "(defn foo \"docstring with\\n \\\"escaping\\\"\" [])")]
+    (assert-submaps
+     '[{:filename "<stdin>",
+        :row 1,
+        :col 1,
+        :end-row 1,
+        :end-col 46,
+        :ns user,
+        :name foo,
+        :defined-by clojure.core/defn,
+        :fixed-arities #{0},
+        :doc "docstring with\n \"escaping\""}]
+     var-definitions))  
+
   (let [{:keys [:var-definitions]} (analyze "(def ^:deprecated x \"docstring\" 1)")]
     (assert-submaps
      '[{:filename "<stdin>",

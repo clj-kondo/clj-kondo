@@ -159,8 +159,8 @@
   (char? (:value node)))
 
 (defn string-from-token [node]
-  (when-let [lines (:lines node)]
-    (str/join "\n" lines)))
+  (when (:lines node)
+    (node/sexpr node)))
 
 (defn number-token? [node]
   (number? (:value node)))
