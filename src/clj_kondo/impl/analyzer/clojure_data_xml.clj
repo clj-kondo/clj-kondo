@@ -2,6 +2,8 @@
   (:require [clj-kondo.impl.analyzer.common :as common]
             [clj-kondo.impl.utils :as utils :refer [list-node token-node]]))
 
+(set! *warn-on-reflection* true)
+
 (defn ->alias-node [alias-node]
   (let [sexpr (utils/sexpr alias-node)]
     (cond (string? sexpr)
@@ -16,7 +18,7 @@
                       (token-node (symbol (name sexpr)))])
           :else alias-node)))
 
-(defn encode-uri [uri]
+(defn encode-uri [^String uri]
   (java.net.URLEncoder/encode uri "UTF-8"))
 
 (defn uri-symbol [uri]
