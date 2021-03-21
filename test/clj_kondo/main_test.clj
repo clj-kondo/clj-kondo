@@ -2383,7 +2383,12 @@ foo/baz
    (lint! "(ns foo {:clj-kondo/config '{:linters {:unused-private-var {:exclude [foo/f]}}}}) (defn- f []) (defn- g [])"))
   (is (empty? (lint! "(ns foo) (defn- f []) (f)")))
   (is (empty? (lint! "(ns foo) (defn- f [])"
-                     '{:linters {:unused-private-var {:exclude [foo/f]}}}))))
+                     '{:linters {:unused-private-var {:exclude [foo/f]}}})))
+  (is (empty? (lint! "
+(defrecord ^:private SessionStore [session-service])
+(deftype ^:private SessionStore2 [session-service])
+(defprotocol ^:private Foo (foo [this]))
+(definterface ^:private SessionStore3)"))))
 
 (deftest cond->test
   (assert-submaps
