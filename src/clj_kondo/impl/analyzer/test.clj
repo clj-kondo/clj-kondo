@@ -4,7 +4,7 @@
     [clj-kondo.impl.analyzer.common :as common]
     [clj-kondo.impl.utils :as utils]))
 
-(defn analyze-deftest [ctx expr resolved-ns resolved-name resolved-as-ns resolved-as-name]
+(defn analyze-deftest [ctx expr defined-by resolved-as-ns resolved-as-name]
   (common/analyze-defn
    ctx
    (-> expr
@@ -16,10 +16,11 @@
            (when name-expr (vary-meta name-expr
                                       assoc
                                       :linted-as (symbol (str resolved-as-ns) (str resolved-as-name))
-                                      :defined-by (symbol (str resolved-ns) (str resolved-name))
+                                      :defined-by defined-by
                                       :test true))
            (utils/vector-node [])
-           body))))))
+           body))))
+   defined-by))
 
 (defn analyze-cljs-test-async [ctx expr]
   (let [[binding-expr & rest-children] (rest (:children expr))

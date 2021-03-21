@@ -48,7 +48,9 @@ Options:
 
   --parallel: lint sources in parallel.
 
-  --no-warnings: don't report warnings. Useful for when populating cache.
+  --dependencies: don't report warnings. Useful for populating cache while linting dependencies.
+
+  --copy-configs: copy configs from dependencies while linting.
 " core-impl/version))
   nil)
 
@@ -56,17 +58,19 @@ Options:
 
 (defn opt-type [opt]
   (case opt
-    "--help"       :scalar
-    "--version"    :scalar
-    "--lang"       :scalar
-    "--cache"      :scalar
-    "--cache-dir"  :scalar
-    "--config-dir" :scalar
-    "--lint"       :coll
-    "--config"     :coll
-    "--parallel"   :scalar
-    "--filename"   :scalar
-    "--no-warnings" :scalar
+    "--help"         :scalar
+    "--version"      :scalar
+    "--lang"         :scalar
+    "--cache"        :scalar
+    "--cache-dir"    :scalar
+    "--config-dir"   :scalar
+    "--lint"         :coll
+    "--config"       :coll
+    "--parallel"     :scalar
+    "--filename"     :scalar
+    "--no-warnings"  :scalar ;; deprecated
+    "--dependencies"  :scalar
+    "--copy-configs" :scalar
     :scalar))
 
 (defn- parse-opts [options]
@@ -108,11 +112,14 @@ Options:
                  (when k
                    (or (nil? v)
                        (= "true" v))))
-     :no-warnings (contains? opts "--no-warnings")}))
+     :dependencies (or (contains? opts "--dependencies")
+                       (contains? opts "--no-warnings") ;; deprecated
+                       ,)
+     :copy-configs (contains? opts "--copy-configs")}))
 
 (defn main
   [& options]
-  (let [{:keys [:help :lint :version :pod :no-warnings] :as parsed}
+  (let [{:keys [:help :lint :version :pod :dependencies] :as parsed}
         (parse-opts options)]
     (or (cond version
               (print-version)
@@ -124,7 +131,7 @@ Options:
               :else (let [{:keys [:summary]
                            :as results} (clj-kondo/run! parsed)
                           {:keys [:error :warning]} summary]
-                      (when-not no-warnings
+                      (when-not dependencies
                         (clj-kondo/print! results))
                       (cond (pos? error) 3
                             (pos? warning) 2

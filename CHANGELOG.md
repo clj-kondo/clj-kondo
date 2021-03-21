@@ -4,11 +4,21 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+### New
+
+- `--copy-configs` flag to indicate copy configs from dependencies while linting. This replaces `--no-warnings`.
+
 ### Enhanced / fixed
 
 - NullPointerException when ignoring :deprecated-var [#1195](https://github.com/clj-kondo/clj-kondo/issues/1195)
 - Fix `:lint-as` with `cond->` [#1205](https://github.com/clj-kondo/clj-kondo/issues/1205)
 - Fix false positive unresolved symbol in CLJS type hint [#1212](https://github.com/clj-kondo/clj-kondo/issues/1212)
+- Fix crash with :clj-kondo/ignore in combination with :rename [#1210](https://github.com/clj-kondo/clj-kondo/issues/1210)
+- Fix linting `user.clj` [#1190](https://github.com/clj-kondo/clj-kondo/issues/1190)
+- Add linting for `sgen/lazy-prims` [#1192](https://github.com/clj-kondo/clj-kondo/issues/1192)
+- Fix invalid namespace in clojure.data.xml analysis [#1202](https://github.com/clj-kondo/clj-kondo/issues/1202)
+- Fix analysis of `clojure.core.reducers/defcurried` [#1217](https://github.com/clj-kondo/clj-kondo/issues/1217)
+- False positive `:unused-private-var` warning for deftype `^:private` [#1222](https://github.com/clj-kondo/clj-kondo/issues/1222)
 
 ## 2021.03.03
 

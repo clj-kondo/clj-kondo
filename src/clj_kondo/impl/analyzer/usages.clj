@@ -98,7 +98,7 @@
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
-         no-warnings (:no-warnings ctx)
+         dependencies (:dependencies ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
          ns-name (:name ns)
          t (tag expr)
@@ -129,14 +129,19 @@
              :token
              (if-let [symbol-val (symbol-from-token expr)]
                (let [simple? (simple-symbol? symbol-val)
-                     symbol-val (normalize-sym-name ctx symbol-val)]
+                     symbol-val (normalize-sym-name ctx symbol-val)
+                     expr-meta (meta expr)]
                  (if-let [b (when (and simple? (not syntax-quote?))
                               (get (:bindings ctx) symbol-val))]
                    (namespace/reg-used-binding! ctx
                                                 (-> ns :name)
                                                 b
                                                 (when (:analyze-locals? ctx)
-                                                  (assoc-some (meta expr)
+                                                  (assoc-some expr-meta
+                                                              :name-row (:row expr-meta)
+                                                              :name-col (:col expr-meta)
+                                                              :name-end-row (:end-row expr-meta)
+                                                              :name-end-col (:end-col expr-meta)
                                                               :name symbol-val
                                                               :filename (:filename ctx)
                                                               :str (:string-value expr))))
@@ -203,7 +208,7 @@
                                                   :simple? simple?
                                                   :interop? interop?
                                                   ;; save some memory
-                                                  :expr (when-not no-warnings expr)
+                                                  :expr (when-not dependencies expr)
                                                   :resolved-core? resolved-core?})))))
                (do
                  ;; (prn (type (utils/sexpr expr)) (:callstack ctx) (:len ctx) (:idx ctx))

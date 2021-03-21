@@ -11,7 +11,7 @@
     (binding [*err* (java.io.StringWriter.)]
       (clj-kondo/run! {:lint [(io/file "corpus" "exports" "clj-kondo.config.jar")]
                        :config-dir tmp-dir
-                       :no-warnings true}))
+                       :copy-configs true}))
     (is (.exists (io/file tmp-dir "clj-kondo" "slingshot")))
     (is (= "{:hooks
  {:analyze-call {slingshot.slingshot/try+ clj-kondo.slingshot.try-plus/try+}}}
@@ -24,7 +24,7 @@
     (binding [*err* (java.io.StringWriter.)]
       (clj-kondo/run! {:lint [(io/file "corpus" "exports" "dir")]
                        :config-dir tmp-dir
-                       :no-warnings true}))
+                       :copy-configs true}))
     (is (.exists (io/file tmp-dir "clj-kondo" "slingshot")))
     (is (= "{:hooks
  {:analyze-call {slingshot.slingshot/try+ clj-kondo.slingshot.try-plus/try+}}}

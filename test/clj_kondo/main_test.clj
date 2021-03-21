@@ -2043,6 +2043,9 @@ foo/foo ;; this does use the private var
    '({:file "<stdin>", :row 1, :col 23, :level :warning, :message "namespace aws-sdk is required but never used"}
      {:file "<stdin>", :row 1, :col 42, :level :warning, :message "#'aws-sdk/AWS is referred but never used"})
    (lint! "(ns lambda (:require [\"aws-sdk\" :default AWS]))" "--lang" "cljs"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 36, :level :warning, :message "#'bar/v1 is referred but never used"})
+   (lint! "(ns foo (:require [bar :rename {v1 v2}])) ::bar/x"))
   (is (empty? (lint! "(ns foo (:require [bar :refer [bar]]))
         (apply bar 1 2 [3 4])")))
   (is (empty? (lint! "(ns ^{:clj-kondo/config
@@ -2383,7 +2386,12 @@ foo/baz
    (lint! "(ns foo {:clj-kondo/config '{:linters {:unused-private-var {:exclude [foo/f]}}}}) (defn- f []) (defn- g [])"))
   (is (empty? (lint! "(ns foo) (defn- f []) (f)")))
   (is (empty? (lint! "(ns foo) (defn- f [])"
-                     '{:linters {:unused-private-var {:exclude [foo/f]}}}))))
+                     '{:linters {:unused-private-var {:exclude [foo/f]}}})))
+  (is (empty? (lint! "
+(defrecord ^:private SessionStore [session-service])
+(deftype ^:private SessionStore2 [session-service])
+(defprotocol ^:private Foo (foo [this]))
+(definterface ^:private SessionStore3)"))))
 
 (deftest cond->test
   (assert-submaps

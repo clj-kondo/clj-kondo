@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.core :as core-impl]
-   [clj-kondo.test-utils :refer [lint! make-dirs remove-dir]]
+   [clj-kondo.test-utils :refer [lint! make-dirs remove-dir assert-submaps]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -160,6 +160,30 @@
       ;; populate cache
       (is (seq (lint! foo "--filename" (.getPath foo) "--cache" "true")))
       (is (.exists (io/file test-config-dir ".cache"))))))
+
+(deftest lint-user-from-cache
+  (let [tmp-dir (System/getProperty "java.io.tmpdir")
+        test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
+        test-source-dir (io/file tmp-dir "test-source-dir")
+        user (io/file test-source-dir "user.clj")
+        foo (io/file test-source-dir (str "foo.clj"))]
+    (remove-dir test-cache-dir)
+    (make-dirs test-cache-dir)
+    (remove-dir test-source-dir)
+    (make-dirs test-source-dir)
+    (io/copy "(ns user) (def x 1)"
+             user)
+    (io/copy "(ns foo (:require [user])) user/x user/y"
+             foo)
+    ;; populate cache
+    (lint! user "--cache" test-cache-dir)
+    (let [output (lint! foo
+                        {:linters {:unresolved-var {:level :warning}
+                                   :unresolved-symbol {:level :warning}}}
+                        "--cache" test-cache-dir)]
+      (assert-submaps
+       '({:row 1, :col 35, :level :warning, :message "Unresolved var: user/y"})
+       output))))
 
 ;;;; Scratch
 

@@ -199,7 +199,7 @@
       (mapv (fn [^JarFile$JarFileEntry entry]
               (let [entry-name (.getName entry)
                     source (slurp (.getInputStream jar entry))]
-                (when (and cfg-dir (:no-warnings ctx)
+                (when (and cfg-dir (:copy-configs ctx)
                            (str/includes? entry-name "clj-kondo.exports"))
                   (copy-config-entry ctx entry-name source cfg-dir))
                 {:filename (str (when canonical?
@@ -238,7 +238,7 @@
                   can-read? (.canRead file)
                   source? (and (.isFile file) (source-file? nm))]
               (when (and cfg-dir source?
-                         (:no-warnings ctx)
+                         (:copy-configs ctx)
                          (str/includes? path "clj-kondo.exports"))
                 (copy-config-file ctx file cfg-dir))
               (cond
@@ -314,7 +314,7 @@
             (let [jar-name (.getName file)
                   cache-dir (:cache-dir ctx)
                   skip-entry (when cache-dir (io/file cache-dir "skip" jar-name))]
-              (if-not (and cache-dir (:no-warnings ctx)
+              (if-not (and cache-dir (:dependencies ctx)
                            (not (str/includes? jar-name "SNAPSHOT"))
                            (.exists skip-entry)
                            (= path (slurp skip-entry)))
@@ -372,7 +372,7 @@
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (:parallel ctx)
       (parallel-lint ctx @(:sources ctx) dev?))
-    (when (and cache-dir (:no-warnings ctx))
+    (when (and cache-dir (:dependencies ctx))
       (doseq [[mark path] @(:mark-linted ctx)]
         (let [skip-file (io/file cache-dir "skip" mark)]
           (io/make-parents skip-file)
