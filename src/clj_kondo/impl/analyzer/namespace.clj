@@ -346,7 +346,7 @@
    :used-imports #{}
    :used-vars []
    :unresolved-namespaces #{}
-   :vars {}
+   :vars nil
    :row row
    :col col})
 

@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Fix `:lint-as` with `cond->` [#1205](https://github.com/clj-kondo/clj-kondo/issues/1205)
 - Fix false positive unresolved symbol in CLJS type hint [#1212](https://github.com/clj-kondo/clj-kondo/issues/1212)
 - Fix crash with :clj-kondo/ignore in combination with :rename [#1210](https://github.com/clj-kondo/clj-kondo/issues/1210)
+- Fix linting `user.clj` [#1190](https://github.com/clj-kondo/clj-kondo/issues/1190)
 
 ## 2021.03.03
 
