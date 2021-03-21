@@ -101,7 +101,13 @@
                                              "                    (drop 2 c)))}))")}}}})]
       (assert-submaps
         '[{:name "kw" :def user/mydef}]
-        (:keywords a)))))
+        (:keywords a))))
+  (testing "valid ns name with clojure.data.xml"
+    (let [a (analyze "(ns foo (:require [clojure.data.xml :as xml]))
+                      (xml/alias-uri 'pom \"http://maven.apache.org/POM/4.0.0\")
+                      ::pom/foo"
+                     {:config {:output {:analysis {:keywords true}}}})]
+      (is (edn/read-string (str a))))))
 
 (deftest locals-analysis-test
   (let [a (analyze "#(inc %1 %&)" {:config {:output {:analysis {:locals true}}}})]

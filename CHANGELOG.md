@@ -16,6 +16,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Fix crash with :clj-kondo/ignore in combination with :rename [#1210](https://github.com/clj-kondo/clj-kondo/issues/1210)
 - Fix linting `user.clj` [#1190](https://github.com/clj-kondo/clj-kondo/issues/1190)
 - Add linting for `sgen/lazy-prims` [#1192](https://github.com/clj-kondo/clj-kondo/issues/1192)
+- Fix invalid namespace in clojure.data.xml analysis [#1202](https://github.com/clj-kondo/clj-kondo/issues/1202)
 
 ## 2021.03.03
 
