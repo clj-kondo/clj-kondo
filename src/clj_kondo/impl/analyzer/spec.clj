@@ -39,12 +39,6 @@
                   name-expr)]
     (common/analyze-children ctx (cons reg-val body))))
 
-(defn analyze-lazy-combinators [ctx expr]
-  (let [vars (next (:children expr))
-        decl-node (utils/token-node 'clojure.core/declare)
-        new-expr (assoc expr :children (cons decl-node vars))]
-    (common/analyze-expression** ctx new-expr)))
-
 ;;;; Scratch
 (require '[clj-kondo.impl.parser])
 

@@ -1568,8 +1568,9 @@
                         (spec/analyze-fdef (assoc ctx
                                                   :analyze-children
                                                   analyze-children) expr)
-                        ([clojure.spec.gen.alpha lazy-combinators])
-                        (spec/analyze-lazy-combinators ctx expr)
+                        ([clojure.spec.gen.alpha lazy-combinators]
+                         [clojure.spec.gen.alpha lazy-prims])
+                        (analyze-declare ctx expr #_#_spec/analyze-lazy-combinators ctx expr)
                         [potemkin import-vars]
                         (potemkin/analyze-import-vars ctx expr)
                         ([clojure.core.async alt!] [clojure.core.async alt!!]

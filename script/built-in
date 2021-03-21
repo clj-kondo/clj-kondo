@@ -5,7 +5,7 @@ mkdir -p /tmp/built-in
 version=$(cat resources/CLJ_KONDO_VERSION)
 echo "$version"
 
-clojure -A:clj-kondo --lint "$(clojure -R:cljs -Spath)" --cache /tmp/built-in
+clojure -M:clj-kondo --lint "$(clojure -Spath -A:cljs)" --cache /tmp/built-in
 
 base_path="/tmp/built-in/$version"
 

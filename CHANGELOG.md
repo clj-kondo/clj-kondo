@@ -15,6 +15,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Fix false positive unresolved symbol in CLJS type hint [#1212](https://github.com/clj-kondo/clj-kondo/issues/1212)
 - Fix crash with :clj-kondo/ignore in combination with :rename [#1210](https://github.com/clj-kondo/clj-kondo/issues/1210)
 - Fix linting `user.clj` [#1190](https://github.com/clj-kondo/clj-kondo/issues/1190)
+- Add linting for `sgen/lazy-prims` [#1192](https://github.com/clj-kondo/clj-kondo/issues/1192)
 
 ## 2021.03.03
 
