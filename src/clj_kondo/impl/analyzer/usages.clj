@@ -80,6 +80,19 @@
     (when-let [f (:analyze-expression** ctx)]
       (f ctx m))))
 
+(defn normalize-sym-name
+  "Strips foo.bar.baz into foo, as it ignores property access in CLJS. Assumes simple symbol."
+  [ctx symbol-val]
+  (if (identical? :cljs (:lang ctx))
+    (let [name-str (str symbol-val)]
+      (if (str/includes? name-str ".")
+        (let [name-str (first (str/split name-str #"\." 2))]
+          (if-not (= "goog" name-str)
+            (symbol name-str)
+            symbol-val))
+        symbol-val))
+    symbol-val))
+
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
@@ -115,6 +128,9 @@
              :token
              (if-let [symbol-val (symbol-from-token expr)]
                (let [simple? (simple-symbol? symbol-val)
+                     symbol-val (if simple?
+                                  (normalize-sym-name ctx symbol-val)
+                                  symbol-val)
                      expr-meta (meta expr)]
                  (if-let [b (when (and simple? (not syntax-quote?))
                               (get (:bindings ctx) symbol-val))]

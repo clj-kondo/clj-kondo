@@ -1807,6 +1807,16 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs"))))
 
+(deftest js-property-access-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Unresolved symbol: foo"})
+   (lint! "foo.bar"
+          {:linters {:unresolved-symbol {:level :error}}}
+          "--lang" "cljs"))
+  (is (empty? (lint! "(let [foo #js{}] foo.bar) (def bar #js {}) bar.baz"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
+
 (deftest amap-test
   (is (empty? (lint! "
 (def an-array (int-array 25000 (int 0)))
