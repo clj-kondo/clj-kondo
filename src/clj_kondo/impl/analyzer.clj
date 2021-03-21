@@ -1579,6 +1579,8 @@
                                                         :analyze-expression** analyze-expression**
                                                         :extract-bindings extract-bindings)
                                                  expr)
+                        ([clojure.core.reducers defcurried])
+                        (analyze-defn ctx expr defined-by)
                         ([datahike.api q]
                          [datascript.core q]
                          [datomic.api q]

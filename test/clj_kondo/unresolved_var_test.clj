@@ -69,4 +69,10 @@ bar/x (bar/y)
     (assert-submaps '({:file "<stdin>", :row 1, :col 54, :level :error, :message "Unresolved var: gen/xfmap"})
                     (lint! "(require '[clojure.spec.gen.alpha :as gen]) gen/fmap gen/xfmap gen/string-ascii"
                            '{:linters {:unresolved-symbol {:level :error}
-                                       :unresolved-var {:level :error}}}))))
+                                       :unresolved-var {:level :error}}})))
+  (testing "clojure.core.reducers"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 66, :level :error, :message "Unresolved var: r/mapcatz"})
+     (lint! "(ns foo (:require [clojure.core.reducers :as r])) r/map r/mapcat r/mapcatz"
+            '{:linters {:unresolved-symbol {:level :error}
+                        :unresolved-var {:level :error}}}))))
