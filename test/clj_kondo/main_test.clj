@@ -1813,7 +1813,7 @@ foo/foo ;; this does use the private var
    (lint! "foo.bar"
           {:linters {:unresolved-symbol {:level :error}}}
           "--lang" "cljs"))
-  (is (empty? (lint! "(let [foo #js{}] foo.bar) (def bar #js {}) bar.baz"
+  (is (empty? (lint! "(let [foo #js{}] foo.bar (foo.bar)) (def bar #js {}) bar.baz (bar.baz)"
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs"))))
 

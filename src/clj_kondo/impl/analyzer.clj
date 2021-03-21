@@ -1825,9 +1825,12 @@
                   (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
                                           (when-not (one-of s ['. '..])
                                             s))]
-                    (let [full-fn-name (with-meta full-fn-name (meta function))
-                          unresolved? (nil? (namespace full-fn-name))
-                          binding (and unresolved?
+                    (let [simple? (simple-symbol? full-fn-name)
+                          full-fn-name (if simple?
+                                         (namespace/normalize-sym-name lang full-fn-name)
+                                         full-fn-name)
+                          full-fn-name (with-meta full-fn-name (meta function))
+                          binding (and simple?
                                        (get bindings full-fn-name))]
                       (if binding
                         (do

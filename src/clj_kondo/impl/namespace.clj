@@ -393,6 +393,22 @@
                                                    :shadowed-var
                                                    message))))))))
 
+(defn normalize-sym-name
+  "Strips foo.bar.baz into foo, as it ignores property access in CLJS. Assumes simple symbol."
+  [lang sym]
+  (if (identical? :cljs lang)
+    (let [name-str (str sym)]
+      (if (and
+           (not (str/starts-with? name-str "."))
+           (not (str/ends-with? name-str "."))
+           (str/includes? name-str "."))
+        (let [name-str (first (str/split name-str #"\." 2))]
+          (if-not (= "goog" name-str)
+            (symbol name-str)
+            sym))
+        sym))
+    sym))
+
 (defn resolve-name
   [ctx ns-name name-sym]
   (let [lang (:lang ctx)
@@ -442,14 +458,7 @@
               {:name (symbol (name name-sym))
                :unresolved? true
                :unresolved-ns ns-sym})))
-      (let [name-str (str name-sym)
-            name-sym (if (and cljs? (some-> (str/index-of name-str ".")
-                                            pos?))
-                       (let [name-str (first (str/split name-str #"\."))]
-                         (if (not= "goog" name-str)
-                           (symbol (first (str/split name-str #"\.")))
-                           name-sym))
-                       name-sym)]
+      (let [name-sym (normalize-sym-name lang name-sym)]
         (or
          (when-let [[k v] (find (:referred-vars ns)
                                 name-sym)]
