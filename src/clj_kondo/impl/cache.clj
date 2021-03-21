@@ -109,6 +109,7 @@
                               (update :cljs #(tu/resolve-return-types idacs %)))
                           (tu/resolve-return-types idacs ns-data))
                         ns-data)]
+                  ;; (when resolve? (prn ns-data))
                   (when (and cache-dir resolve?)
                     (to-cache cache-dir lang ns-nm ns-data))
                   (assoc! m ns-nm ns-data)))
@@ -119,6 +120,7 @@
   "Reads required namespaces from cache and combines them with the
   namespaces we linted in this run."
   [idacs cache-dir]
+  ;; first load all idacs so we can resolve types
   (let [idacs (assoc idacs :linted-namespaces #{})
         idacs
         (reduce (fn [idacs lang]
