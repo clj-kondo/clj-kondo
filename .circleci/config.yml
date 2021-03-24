@@ -28,6 +28,7 @@ jobs:
           name: Run JVM tests
           command: |
             script/test
+            script/analysis-test
       - run:
           name: Run as tools.deps dependency
           command: |
