@@ -19,4 +19,10 @@ else
     lein with-profiles +clojure-1.10.2 "do" clean, test
 fi
 
+rm -rf /tmp/kondo-test-analysis
+mkdir -p /tmp/kondo-test-analysis
+clojure -M:clj-kondo --config '{:output {:analysis {:locals true :keywords true :arglists true} :format :edn}}' --lint "$(clojure -Spath -A:cljs)" > /tmp/kondo-test-analysis/out.edn
+
+clojure -M -e '(do (require (quote [clojure.edn :as edn])) (edn/read-string (slurp "/tmp/kondo-test-analysis/out.edn")) nil)'
+
 clojure -A:test:pod-test -d pod-test
