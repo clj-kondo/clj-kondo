@@ -801,6 +801,12 @@ and helps preventing false positive unresolved symbols in this code:
   ,,,)
 ```
 
+You can report-duplicate warnings using:
+
+``` clojure
+{:linters {:unresolved-var {:report-duplicates true}}}
+```
+
 ### Unresolved var
 
 *Keyword:* `:unresolved-var`.
@@ -836,6 +842,12 @@ or exclude a selection of unresolved vars using qualified symbols:
 
 ``` clojure
 {:linters {:unresolved-var {:exclude [foo/x]}}}
+```
+
+You can report-duplicate warnings using:
+
+``` clojure
+{:linters {:unresolved-var {:report-duplicates true}}}
 ```
 
 ### Unsorted required namespace

@@ -10,6 +10,12 @@
           '{:linters {:unresolved-symbol {:level :error}
                       :unresolved-var {:level :error}}}))
   (assert-submaps
+    '({:file "<stdin>", :row 1, :col 35, :level :error, :message "Unresolved var: set/onion"}
+      {:file "<stdin>", :row 1, :col 47, :level :error, :message "Unresolved var: set/onion"} )
+    (lint! "(require '[clojure.set :as set]) (set/onion) (set/onion) set/union"
+           '{:linters {:unresolved-symbol {:level :error}
+                       :unresolved-var {:level :error :report-duplicates true}}}))
+  (assert-submaps
    '({:file "<stdin>", :row 1, :col 41, :level :error, :message "Unresolved var: set/onion"})
    (lint! "(require '[clojure.set :as set]) (apply set/onion 1 2 3)"
           '{:linters {:unresolved-symbol {:level :error}

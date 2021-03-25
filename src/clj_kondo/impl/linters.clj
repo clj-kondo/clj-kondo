@@ -548,43 +548,48 @@
 
 (defn lint-unresolved-symbols!
   [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [lang (:lang ns)
-                ctx (assoc ctx :lang lang)]
-          [_ v] (:unresolved-symbols ns)]
-    (let [
-          filename (:filename v)
-          n (:name v)]
-      (findings/reg-finding!
-       ctx
-       {:type :unresolved-symbol
-        :filename filename
-        :message (str "Unresolved symbol: " n)
-        :row (:row v)
-        :col (:col v)
-        :end-row (:end-row v)
-        :end-col (:end-col v)}))))
+  (let [hide-duplicates? (not (get-in ctx [:config :linters :unresolved-symbol :report-duplicates]))]
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [lang (:lang ns)
+                  ctx (assoc ctx :lang lang)]
+            [_ vs] (:unresolved-symbols ns)
+            v (cond->> vs
+                hide-duplicates? (take 1))]
+      (let [filename (:filename v)
+            n (:name v)]
+        (findings/reg-finding!
+          ctx
+          {:type :unresolved-symbol
+           :filename filename
+           :message (str "Unresolved symbol: " n)
+           :row (:row v)
+           :col (:col v)
+           :end-row (:end-row v)
+           :end-col (:end-col v)})))))
 
 (defn lint-unresolved-vars!
   [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [lang (:lang ns)
-                ctx (assoc ctx :lang lang)]
-          [_ v] (:unresolved-vars ns)]
-    (let [filename (:filename v)
-          expr (:expr v)
-          n (if-let [children (:children expr)]
-              (str (first children))
-              (str expr))]
-      (findings/reg-finding!
-       ctx
-       {:type :unresolved-var
-        :filename filename
-        :message (str "Unresolved var: " n)
-        :row (:row v)
-        :col (:col v)
-        :end-row (:end-row v)
-        :end-col (:end-col v)}))))
+  (let [hide-duplicates? (not (get-in ctx [:config :linters :unresolved-var :report-duplicates]))]
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [lang (:lang ns)
+                  ctx (assoc ctx :lang lang)]
+            [_ vs] (:unresolved-vars ns)
+            v (cond->> vs
+                hide-duplicates? (take 1))]
+      (let [filename (:filename v)
+            expr (:expr v)
+            n (if-let [children (:children expr)]
+                (str (first children))
+                (str expr))]
+        (findings/reg-finding!
+          ctx
+          {:type :unresolved-var
+           :filename filename
+           :message (str "Unresolved var: " n)
+           :row (:row v)
+           :col (:col v)
+           :end-row (:end-row v)
+           :end-col (:end-col v)})))))
 
 (defn lint-unused-imports!
   [ctx]

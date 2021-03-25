@@ -274,10 +274,8 @@
                   (or (str/starts-with? symbol-name ".")
                       (class-name? symbol-name))))
     (swap! (:namespaces ctx) update-in [base-lang lang ns-sym :unresolved-symbols sym]
-           (fn [old-sym-info]
-             (if (nil? old-sym-info)
-               sym-info
-               old-sym-info))))
+           (fnil conj [])
+           sym-info))
   nil)
 
 (defn reg-unresolved-var!
@@ -291,12 +289,9 @@
                   (or (str/starts-with? symbol-name ".")
                       (class-name? symbol-name))))
     (swap! (:namespaces ctx) update-in
-           [base-lang lang ns-sym :unresolved-vars
-            [resolved-ns sym]]
-           (fn [old-sym-info]
-             (if (nil? old-sym-info)
-               sym-info
-               old-sym-info))))
+           [base-lang lang ns-sym :unresolved-vars [resolved-ns sym]]
+           (fnil conj [])
+           sym-info))
   nil)
 
 (defn reg-used-referred-var!
