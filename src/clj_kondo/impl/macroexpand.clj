@@ -57,7 +57,7 @@
                      cond-> 'clojure.core/->
                      cond->> 'clojure.core/->>)
         g (with-meta-of (token-node (gensym))
-            start-expr)
+            (with-meta start-expr (assoc (meta start-expr) :clj-kondo.impl/generated true)))
         steps (map (fn [[t step]]
                      (list-node [(token-node 'if)
                                  t
@@ -76,7 +76,8 @@
 
 (defn expand-doto [_ctx expr]
   (let [[_doto x & forms] (:children expr)
-        gx (with-meta-of (token-node (gensym "_")) x)
+        gx (with-meta-of (token-node (gensym "_"))
+             (with-meta x (assoc (meta x) :clj-kondo.impl/generated true)))
         ret (list-node
              (list* (token-node 'clojure.core/let) (vector-node [gx x])
                     (map (fn [f]
