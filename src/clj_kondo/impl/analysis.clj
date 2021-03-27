@@ -83,14 +83,16 @@
               :alias alias)))))
 
 (defn reg-local! [{:keys [:analysis] :as ctx} filename binding]
-  (when analysis
+  (when (and analysis
+             (not (:clj-kondo.impl/generated binding)))
     (swap! analysis update :locals conj
            (assoc-some (select-keys binding [:name :str :id :row :col :end-row :end-col :scope-end-col :scope-end-row])
                        :filename filename
                        :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))))))
 
 (defn reg-local-usage! [{:keys [:analysis] :as ctx} filename binding usage]
-  (when analysis
+  (when (and analysis
+             (not (:clj-kondo.impl/generated binding)))
     (swap! analysis update :local-usages conj
            (assoc-some (select-keys usage [:id :row :col :end-row :end-col :name-row :name-col :name-end-row :name-end-col])
                        :name (:name binding)
