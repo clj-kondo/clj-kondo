@@ -191,8 +191,7 @@
                          (linter-disabled? ctx :unresolved-symbol)))]
     (swap! namespaces update-in path
            (fn [ns]
-             (update ns :used-vars conj
-                     usage)))))
+             (update ns :used-vars (fnil conj []) usage)))))
 
 (defn reg-used-namespace!
   "Registers usage of required namespaced in ns."
