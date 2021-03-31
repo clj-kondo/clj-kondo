@@ -189,8 +189,8 @@ directory, use `--cache false`.
 ## Exit codes
 
 - `0`: no errors or warnings were found
-- `2`: more than one warning was found
-- `3`: more than one error was found
+- `2`: one or more warnings were found
+- `3`: one or more errors were found
 
 All other error codes indicate an unexpected error.
 

@@ -108,12 +108,21 @@
        {:file "<stdin>", :row 1, :col 30, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
      (lint! "(ns foo \"docstring\" {:a a :b (inc)})"
             '{:linters {:unresolved-symbol {:level :error}}})))
+  (testing "position"
+    (assert-submaps
+     '({:file "<stdin>", :row 2, :col 2, :level :error, :message "Unresolved symbol: split-arguments-string"})
+     (lint!
+      "(ns babashka.process-test (:require [clojure.test :as t :refer [deftest is]]))
+(split-arguments-string)
+(split-arguments-string)"
+      '{:linters
+        {:unused-namespace {:level :off}
+         :unresolved-symbol {:level :error}}})))
   (testing "config is merged"
     (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (t/is (foo? (inc 1))) (t/is (bar? (inc 1)))"
                        '{:linters {:unresolved-symbol {:level :error
                                                        :exclude [(clojure.test/is [foo?])
                                                                  (clojure.test/is [bar?])]}}}))))
-
   ;; Preventing false positives
   (is (empty? (lint! "slurp"
                      '{:linters {:unresolved-symbol {:level :error}}})))

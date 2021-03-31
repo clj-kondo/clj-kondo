@@ -205,7 +205,14 @@
           :name (:name x),
           :filename "<stdin>",
           :id 1}]
-        (:local-usages ana)))))
+        (:local-usages ana))))
+  (testing "generated nodes should not be included on analysis"
+    (let [ana (analyze "(cond-> {:a 1 :b 2} true (merge {}))" {:config {:output {:analysis {:locals true}}}})]
+      (is (empty? (:locals ana)))
+      (is (empty? (:local-usages ana))))
+    (let [ana (analyze "(doto {:a 1 :b 2} (merge {}))" {:config {:output {:analysis {:locals true}}}})]
+      (is (empty? (:locals ana)))
+      (is (empty? (:local-usages ana))))))
 
 (deftest name-position-test
   (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
