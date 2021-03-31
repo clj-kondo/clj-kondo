@@ -611,20 +611,23 @@
 
 (defn lint-unresolved-namespaces!
   [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [ctx (assoc ctx :lang (:lang ns))]
-          un (:unresolved-namespaces ns)
-          :let [m (meta un)
-                filename (:filename m)]]
-    (findings/reg-finding!
-     ctx
-     {:type :unresolved-namespace
-      :filename filename
-      :message (str "Unresolved namespace " un ". Are you missing a require?")
-      :row (:row m)
-      :col (:col m)
-      :end-row (:end-row m)
-      :end-col (:end-col m)})))
+  (let [hide-duplicates? (not (get-in ctx [:config :linters :unresolved-namespace :report-duplicates]))]
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [ctx (assoc ctx :lang (:lang ns))]
+            [_ uns] (:unresolved-namespaces ns)
+            un (cond->> uns
+                 hide-duplicates? (take 1))
+            :let [m (meta un)
+                  filename (:filename m)]]
+      (findings/reg-finding!
+        ctx
+        {:type :unresolved-namespace
+         :filename filename
+         :message (str "Unresolved namespace " un ". Are you missing a require?")
+         :row (:row m)
+         :col (:col m)
+         :end-row (:end-row m)
+         :end-col (:end-col m)}))))
 
 ;;;; scratch
 

@@ -327,12 +327,14 @@
        (config/unresolved-namespace-excluded config unresolved-ns)
        ;; unresolved namespaces in an excluded unresolved symbols call are not reported
        (config/unresolved-symbol-excluded config callstack :dummy))
-    (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces]
-           conj (vary-meta unresolved-ns
-                           ;; since the user namespaces is present in each file
-                           ;; we must include the filename here
-                           ;; see #73
-                           assoc :filename filename))))
+      (let [unresolved-ns (vary-meta unresolved-ns
+                                     ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
+                                     ;; we must include the filename here
+                                     ;; see #73
+                                     assoc :filename filename)]
+        (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
+               (fnil conj [])
+               unresolved-ns))))
 
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))
