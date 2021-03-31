@@ -723,6 +723,12 @@ This will disable the warning in:
 
 *Config:* use `:exclude [foo.bar]` to suppress the above warning.
 
+You can report duplicate warnings using:
+
+``` clojure
+{:linters {:unresolved-var {:report-duplicates true}}}
+```
+
 ### Unresolved symbol
 
 *Keyword:* `:unresolved-symbol`.
@@ -801,7 +807,7 @@ and helps preventing false positive unresolved symbols in this code:
   ,,,)
 ```
 
-You can report-duplicate warnings using:
+You can report duplicate warnings using:
 
 ``` clojure
 {:linters {:unresolved-var {:report-duplicates true}}}
@@ -844,7 +850,7 @@ or exclude a selection of unresolved vars using qualified symbols:
 {:linters {:unresolved-var {:exclude [foo/x]}}}
 ```
 
-You can report-duplicate warnings using:
+You can report duplicate warnings using:
 
 ``` clojure
 {:linters {:unresolved-var {:report-duplicates true}}}
