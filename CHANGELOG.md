@@ -4,6 +4,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## 2021.03.31
 
+### Enhanced / fixed
+
 - `:defined-by` contains raw node for sgen fns [#1231](https://github.com/clj-kondo/clj-kondo/issues/1231)
 - Fix wrong order of unresolved symbols [#1237](https://github.com/clj-kondo/clj-kondo/issues/1237)
 - Remove generated nodes from analysis [#1239](https://github.com/clj-kondo/clj-kondo/issues/1239) ([@ericdallo](https://github.com/ericdallo))
