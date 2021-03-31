@@ -21,6 +21,20 @@
         :level :error,
         :message "Unresolved symbol: x"})
      (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
+  (testing "unresolved symbol is reported multiple times if configured"
+    (assert-submaps
+      '({:file "<stdin>",
+         :row 1,
+         :col 2,
+         :level :error,
+         :message "Unresolved symbol: x"}
+        {:file "<stdin>",
+         :row 1,
+         :col 5,
+         :level :error,
+         :message "Unresolved symbol: x"} )
+      (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}"
+             {:linters {:unresolved-symbol {:report-duplicates true}}})))
   (assert-submaps
    '({:file "corpus/unresolved_symbol.clj",
       :row 11,

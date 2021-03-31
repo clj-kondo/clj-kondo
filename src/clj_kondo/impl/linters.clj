@@ -548,43 +548,48 @@
 
 (defn lint-unresolved-symbols!
   [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [lang (:lang ns)
-                ctx (assoc ctx :lang lang)]
-          [_ v] (:unresolved-symbols ns)]
-    (let [
-          filename (:filename v)
-          n (:name v)]
-      (findings/reg-finding!
-       ctx
-       {:type :unresolved-symbol
-        :filename filename
-        :message (str "Unresolved symbol: " n)
-        :row (:row v)
-        :col (:col v)
-        :end-row (:end-row v)
-        :end-col (:end-col v)}))))
+  (let [hide-duplicates? (not (get-in ctx [:config :linters :unresolved-symbol :report-duplicates]))]
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [lang (:lang ns)
+                  ctx (assoc ctx :lang lang)]
+            [_ vs] (:unresolved-symbols ns)
+            v (cond->> vs
+                hide-duplicates? (take 1))]
+      (let [filename (:filename v)
+            n (:name v)]
+        (findings/reg-finding!
+          ctx
+          {:type :unresolved-symbol
+           :filename filename
+           :message (str "Unresolved symbol: " n)
+           :row (:row v)
+           :col (:col v)
+           :end-row (:end-row v)
+           :end-col (:end-col v)})))))
 
 (defn lint-unresolved-vars!
   [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [lang (:lang ns)
-                ctx (assoc ctx :lang lang)]
-          [_ v] (:unresolved-vars ns)]
-    (let [filename (:filename v)
-          expr (:expr v)
-          n (if-let [children (:children expr)]
-              (str (first children))
-              (str expr))]
-      (findings/reg-finding!
-       ctx
-       {:type :unresolved-var
-        :filename filename
-        :message (str "Unresolved var: " n)
-        :row (:row v)
-        :col (:col v)
-        :end-row (:end-row v)
-        :end-col (:end-col v)}))))
+  (let [hide-duplicates? (not (get-in ctx [:config :linters :unresolved-var :report-duplicates]))]
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [lang (:lang ns)
+                  ctx (assoc ctx :lang lang)]
+            [_ vs] (:unresolved-vars ns)
+            v (cond->> vs
+                hide-duplicates? (take 1))]
+      (let [filename (:filename v)
+            expr (:expr v)
+            n (if-let [children (:children expr)]
+                (str (first children))
+                (str expr))]
+        (findings/reg-finding!
+          ctx
+          {:type :unresolved-var
+           :filename filename
+           :message (str "Unresolved var: " n)
+           :row (:row v)
+           :col (:col v)
+           :end-row (:end-row v)
+           :end-col (:end-col v)})))))
 
 (defn lint-unused-imports!
   [ctx]
@@ -606,20 +611,23 @@
 
 (defn lint-unresolved-namespaces!
   [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)
-          :let [ctx (assoc ctx :lang (:lang ns))]
-          un (:unresolved-namespaces ns)
-          :let [m (meta un)
-                filename (:filename m)]]
-    (findings/reg-finding!
-     ctx
-     {:type :unresolved-namespace
-      :filename filename
-      :message (str "Unresolved namespace " un ". Are you missing a require?")
-      :row (:row m)
-      :col (:col m)
-      :end-row (:end-row m)
-      :end-col (:end-col m)})))
+  (let [hide-duplicates? (not (get-in ctx [:config :linters :unresolved-namespace :report-duplicates]))]
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [ctx (assoc ctx :lang (:lang ns))]
+            [_ uns] (:unresolved-namespaces ns)
+            un (cond->> uns
+                 hide-duplicates? (take 1))
+            :let [m (meta un)
+                  filename (:filename m)]]
+      (findings/reg-finding!
+        ctx
+        {:type :unresolved-namespace
+         :filename filename
+         :message (str "Unresolved namespace " un ". Are you missing a require?")
+         :row (:row m)
+         :col (:col m)
+         :end-row (:end-row m)
+         :end-col (:end-col m)}))))
 
 ;;;; scratch
 

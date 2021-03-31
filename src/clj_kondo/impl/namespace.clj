@@ -273,10 +273,8 @@
                   (or (str/starts-with? symbol-name ".")
                       (class-name? symbol-name))))
     (swap! (:namespaces ctx) update-in [base-lang lang ns-sym :unresolved-symbols sym]
-           (fn [old-sym-info]
-             (if (nil? old-sym-info)
-               sym-info
-               old-sym-info))))
+           (fnil conj [])
+           sym-info))
   nil)
 
 (defn reg-unresolved-var!
@@ -290,12 +288,9 @@
                   (or (str/starts-with? symbol-name ".")
                       (class-name? symbol-name))))
     (swap! (:namespaces ctx) update-in
-           [base-lang lang ns-sym :unresolved-vars
-            [resolved-ns sym]]
-           (fn [old-sym-info]
-             (if (nil? old-sym-info)
-               sym-info
-               old-sym-info))))
+           [base-lang lang ns-sym :unresolved-vars [resolved-ns sym]]
+           (fnil conj [])
+           sym-info))
   nil)
 
 (defn reg-used-referred-var!
@@ -331,12 +326,14 @@
        (config/unresolved-namespace-excluded config unresolved-ns)
        ;; unresolved namespaces in an excluded unresolved symbols call are not reported
        (config/unresolved-symbol-excluded config callstack :dummy))
-    (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces]
-           conj (vary-meta unresolved-ns
-                           ;; since the user namespaces is present in each file
-                           ;; we must include the filename here
-                           ;; see #73
-                           assoc :filename filename))))
+      (let [unresolved-ns (vary-meta unresolved-ns
+                                     ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
+                                     ;; we must include the filename here
+                                     ;; see #73
+                                     assoc :filename filename)]
+        (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
+               (fnil conj [])
+               unresolved-ns))))
 
 (defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
   (get-in @namespaces [base-lang lang ns-sym]))

@@ -13,6 +13,16 @@
    '({:file "<stdin>", :row 1, :col 1, :level :warning,
       :message "Unresolved namespace foo. Are you missing a require?"})
    (lint! "::foo/x"))
+  (assert-submaps
+    '({:file "<stdin>", :row 1, :col 2, :level :warning,
+       :message "Unresolved namespace foo. Are you missing a require?"})
+    (lint! "(foo/x) (foo/x)"))
+  (assert-submaps
+    '({:file "<stdin>", :row 1, :col 2, :level :warning,
+       :message "Unresolved namespace foo. Are you missing a require?"}
+      {:file "<stdin>", :row 1, :col 10, :level :warning,
+       :message "Unresolved namespace foo. Are you missing a require?"})
+    (lint! "(foo/x) (foo/x)" {:linters {:unresolved-namespace {:report-duplicates true}}}))
   ;; avoiding false positives
   (is (empty? (lint! (io/file "project.clj"))))
   (is (empty? (lint! "js/foo" "--lang" "cljs")))
