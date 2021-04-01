@@ -726,7 +726,7 @@ This will disable the warning in:
 You can report duplicate warnings using:
 
 ``` clojure
-{:linters {:unresolved-var {:report-duplicates true}}}
+{:linters {:unresolved-namespace {:report-duplicates true}}}
 ```
 
 ### Unresolved symbol
@@ -810,7 +810,7 @@ and helps preventing false positive unresolved symbols in this code:
 You can report duplicate warnings using:
 
 ``` clojure
-{:linters {:unresolved-var {:report-duplicates true}}}
+{:linters {:unresolved-symbol {:report-duplicates true}}}
 ```
 
 ### Unresolved var
