@@ -1,7 +1,6 @@
 (ns clj-kondo.unresolved-var-test
   (:require
    [babashka.fs :as fs]
-   [babashka.process :as p]
    [clj-kondo.core :as core]
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.test :refer [deftest is testing]]
