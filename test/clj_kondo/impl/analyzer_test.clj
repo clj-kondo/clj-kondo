@@ -123,17 +123,7 @@
         (-> (analyze "(ns foo (:require [bar :as baz] [qux :as quux])) (alias 'snafu 'clojure.set)")
             :namespaces
             deref
-            (get-in [:clj :clj 'foo]))))
-    (testing "keywords in defaults map provided after :or"
-      (is (= [{:message "keywords are not expected in defaults map provided after :or",
-               :level :error,
-               :row 1,
-               :col 32,
-               :end-row 1,
-               :end-col 34,
-               :filename "test.clj",
-               :type :syntax}]
-             @(:findings (analyze "(defn baz [a & {:keys [c] :or {:c 10}}] (* a c))")))))))
+            (get-in [:clj :clj 'foo]))))))
 
 (comment
   (t/run-tests)

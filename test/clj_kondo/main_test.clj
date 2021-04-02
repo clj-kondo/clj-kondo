@@ -2750,6 +2750,14 @@ foo/")))
    (lint! "
 #(inc #(inc %))")))
 
+(deftest destructuring-syntax-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Keys in :or should be simple symbols."})
+   (lint! "(defn baz [a & {:keys [c] :or {:c 10}}] (* a c))"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Keys in :or should be simple symbols."})
+   (lint! "(defn baz [a & {:keys [c] :or {\"c\" 10}}] (* a c))")))
+
 ;;;; Scratch
 
 (comment

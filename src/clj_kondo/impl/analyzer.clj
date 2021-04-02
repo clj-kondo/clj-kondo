@@ -92,16 +92,17 @@
             :filename (:filename ctx)
             :type :unbound-destructuring-default})))))
   (doseq [[k v] (partition 2 (:children defaults))]
-    (when (:k k)
-      (let [mta (meta k)]
+    (when-not (and (identical? :token (utils/tag k))
+                   (simple-symbol? (:value k)))
+      (let [m (meta k)]
         (findings/reg-finding!
          ctx
-         {:message "keywords are not expected in defaults map provided after :or"
+         {:message "Keys in :or should be simple symbols."
           :level :error
-          :row (:row mta)
-          :col (:col mta)
-          :end-row (:end-row mta)
-          :end-col (:end-col mta)
+          :row (:row m)
+          :col (:col m)
+          :end-row (:end-row m)
+          :end-col (:end-col m)
           :filename (:filename ctx)
           :type :syntax})))
     (if (= k v)
