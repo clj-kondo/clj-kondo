@@ -2,6 +2,12 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+### Enhanced / fixed
+
+- support core.async defblockingop macro [#1244](https://github.com/clj-kondo/clj-kondo/issues/1244)
+
 ## 2021.03.31
 
 ### Enhanced / fixed

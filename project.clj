@@ -21,7 +21,10 @@
              :test {:dependencies [[org.clojure/clojurescript "1.10.773"]
                                    [clj-commons/conch "0.9.2"]
                                    [jonase/eastwood "0.3.14"]
-                                   [borkdude/missing.test.assertions "0.0.2"]]
+                                   [borkdude/missing.test.assertions "0.0.2"]
+                                   [babashka/fs "0.0.3"]
+                                   [babashka/process "0.0.2"]
+                                   [org.clojure/tools.deps.alpha "0.11.905"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:global-vars {*assert* false}
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"

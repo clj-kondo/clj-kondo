@@ -22,7 +22,10 @@
               :sha "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}
              clj-commons/conch {:mvn/version "0.9.2"}
              jonase/eastwood {:mvn/version "0.3.14"}
-             borkdude/missing.test.assertions {:mvn/version "0.0.2"}}
+             borkdude/missing.test.assertions {:mvn/version "0.0.2"}
+             babashka/fs {:mvn/version "0.0.3"}
+             babashka/process {:mvn/version "0.0.2"}
+             org.clojure/tools.deps.alpha {:mvn/version "0.11.905"}}
             :extra-paths ["test" "extract"]
             :main-opts ["-m" "cognitect.test-runner"]}
            :clojure-1.9.0 {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}

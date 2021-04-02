@@ -1,7 +1,11 @@
 (ns clj-kondo.unresolved-var-test
   (:require
-    [clj-kondo.test-utils :refer [lint! assert-submaps]]
-    [clojure.test :refer [deftest is testing]]))
+   [babashka.fs :as fs]
+   [babashka.process :as p]
+   [clj-kondo.core :as core]
+   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clojure.test :refer [deftest is testing]]
+   [clojure.tools.deps.alpha :as deps]))
 
 (deftest unresolved-var-test
   (assert-submaps
@@ -82,3 +86,18 @@ bar/x (bar/y)
      (lint! "(ns foo (:require [clojure.core.reducers :as r])) r/map r/mapcat r/mapcatz"
             '{:linters {:unresolved-symbol {:level :error}
                         :unresolved-var {:level :error}}}))))
+
+(deftest libs-test
+  (let [cache (str (fs/create-temp-dir))
+        deps '{:deps {;; org.clojure/clojure {:mvn/version "1.9.0"}
+                      org.clojure/core.async {:mvn/version "0.4.474"}}
+               :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                           "clojars" {:url "https://repo.clojars.org/"}}}
+        jar (-> (deps/resolve-deps deps nil)
+                (get-in ['org.clojure/core.async :paths 0]))]
+    (core/run! {:lint [jar] :cache-dir cache})
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 39, :level :error, :message "clojure.core.async/<!! is called with 0 args but expects 1"})
+     (lint! "(require '[clojure.core.async :as a]) (a/<!!)" {:linters {:unresolved-symbol {:level :error}
+                                                                       :unresolved-var {:level :error}}}
+            "--cache" cache))))

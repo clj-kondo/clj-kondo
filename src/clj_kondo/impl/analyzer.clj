@@ -1579,6 +1579,8 @@
                                                         :analyze-expression** analyze-expression**
                                                         :extract-bindings extract-bindings)
                                                  expr)
+                        ([clojure.core.async defblockingop])
+                        (analyze-defn ctx expr defined-by)
                         ([clojure.core.reducers defcurried])
                         (analyze-defn ctx expr defined-by)
                         ([datahike.api q]
