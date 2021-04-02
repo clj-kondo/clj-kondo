@@ -92,6 +92,18 @@
             :filename (:filename ctx)
             :type :unbound-destructuring-default})))))
   (doseq [[k v] (partition 2 (:children defaults))]
+    (when (:k k)
+      (let [mta (meta k)]
+        (findings/reg-finding!
+         ctx
+         {:message "keywords are not expected in defaults map provided after :or"
+          :level :error
+          :row (:row mta)
+          :col (:col mta)
+          :end-row (:end-row mta)
+          :end-col (:end-col mta)
+          :filename (:filename ctx)
+          :type :syntax})))
     (if (= k v)
       ;; see #915
       (analyze-expression** prev-ctx v)
