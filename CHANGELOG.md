@@ -6,7 +6,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ### Enhanced / fixed
 
-- support core.async defblockingop macro [#1244](https://github.com/clj-kondo/clj-kondo/issues/1244)
+- Support `core.async` `defblockingop` macro [#1244](https://github.com/clj-kondo/clj-kondo/issues/1244)
+- Add error message when keywords are passed in `:or` map [#1242](https://github.com/clj-kondo/clj-kondo/issues/1242)
 
 ## 2021.03.31
 
