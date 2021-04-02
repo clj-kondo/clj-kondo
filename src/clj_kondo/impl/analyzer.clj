@@ -72,9 +72,10 @@
                children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
-  (let [skip-reg-binding? (when (:fn-args? opts)
-                            (-> ctx :config :linters :unused-binding
-                                :exclude-destructured-keys-in-fn-args))]
+  (let [skip-reg-binding? (or (:skip-reg-binding? ctx)
+                              (when (:fn-args? opts)
+                                (-> ctx :config :linters :unused-binding
+                                    :exclude-destructured-keys-in-fn-args)))]
     (when-not skip-reg-binding?
       (doseq [[k _v] (partition 2 (:children defaults))
               :let [sym (:value k)
@@ -151,8 +152,7 @@
            keys-destructuring? (:keys-destructuring? opts)
            expr (lift-meta-content* ctx expr)
            t (tag expr)
-           skip-reg-binding? (:skip-reg-binding? ctx)
-           skip-reg-binding? (or skip-reg-binding?
+           skip-reg-binding? (or (:skip-reg-binding? ctx)
                                  (when (and keys-destructuring? fn-args?)
                                    (-> ctx :config :linters :unused-binding
                                        :exclude-destructured-keys-in-fn-args)))]

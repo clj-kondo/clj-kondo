@@ -73,6 +73,15 @@
       (is (zero? warning))
       (is (zero? info)))))
 
+(deftest analysis-findings-interaction-test
+  (testing "github issue 1246")
+  (let [res (with-in-str "(fn [{:keys [a] :or {a 1}}] a)"
+              (clj-kondo/run!
+               {:lint ["-"]
+                :config {:output {:analysis {:locals true}}
+                         :linters {:unused-bindings {:level :warning}}}}))]
+    (is (empty? (:findings res)))))
+
 ;;;; Scratch
 
 (comment

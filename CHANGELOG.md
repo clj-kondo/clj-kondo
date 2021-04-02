@@ -8,6 +8,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - Support `core.async` `defblockingop` macro [#1244](https://github.com/clj-kondo/clj-kondo/issues/1244)
 - Add error message when keywords are passed in `:or` map [#1242](https://github.com/clj-kondo/clj-kondo/issues/1242)
+- False positive unused default when analyzing locals [#1246](https://github.com/clj-kondo/clj-kondo/issues/1246)
 
 ## 2021.03.31
 
