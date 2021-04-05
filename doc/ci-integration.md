@@ -86,5 +86,5 @@ jobs:
 
 For more information on Github Action Commands, see [Workflow Commands for Github Actions](https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-warning-message).
 
-# Other resources
+## Other resources
 - [Using clj-kondo in a notebook for Nextjournal CI](https://nextjournal.com/blog/ci)
