@@ -52,7 +52,7 @@ To install it globally, add it to your `systemPackages`. If you just want to try
 ## Brew (MacOS and Linux)
 
 On MacOS you can use [brew](https://brew.sh/).  On Linux you can use
-[Linuxbrew](http://linuxbrew.sh/).
+[Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux).
 
 To install with brew:
 
