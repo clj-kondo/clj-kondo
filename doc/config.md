@@ -272,7 +272,7 @@ configurations and hook code for several libraries:
 $ tree -d -L 3 resources
 resources
 └── clj-kondo.exports
-    └── clj_kondo
+    └── clj-kondo
         ├── claypoole
         ├── fulcro
         ├── mockery
