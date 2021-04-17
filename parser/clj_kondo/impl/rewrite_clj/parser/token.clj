@@ -39,23 +39,24 @@
 (defn parse-token
   "Parse a single token."
   [reader]
-  (try
-    (let [first-char (r/next reader)
-          s (->> (if (= first-char \\)
-                   (read-to-char-boundary reader)
-                   (read-to-boundary reader))
-                 (str first-char))
-          v (r/string->edn s)]
-      (if (symbol? v)
-        (symbol-node reader v s)
-        (node/token-node v s)))
-    (catch Exception e
-      (let [{:keys [:type :ex-kind]} (ex-data e)]
-        (when (and *invalid-token-exceptions*
-                   (= :reader-exception type)
-                   (= :reader-error ex-kind))
-          (let [f {:row (rt/get-line-number reader)
-                   :col (rt/get-column-number reader)
-                   :message (.getMessage e)}]
-            (swap! *invalid-token-exceptions* conj (ex-info "Syntax error" {:findings [f]})))))
-      reader)))
+  (let [token-location ((juxt rt/get-line-number rt/get-column-number) reader)]
+    (try
+      (let [first-char (r/next reader)
+            s (->> (if (= first-char \\)
+                     (read-to-char-boundary reader)
+                     (read-to-boundary reader))
+                   (str first-char))
+            v (r/string->edn s)]
+        (if (symbol? v)
+          (symbol-node reader v s)
+          (node/token-node v s)))
+      (catch Exception e
+        (let [{:keys [:type :ex-kind]} (ex-data e)]
+          (when (and *invalid-token-exceptions*
+                     (= :reader-exception type)
+                     (= :reader-error ex-kind))
+            (let [f {:row (token-location 0)
+                     :col (token-location 1)
+                     :message (.getMessage e)}]
+              (swap! *invalid-token-exceptions* conj (ex-info "Syntax error" {:findings [f]})))))
+        reader))))

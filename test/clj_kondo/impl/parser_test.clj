@@ -55,7 +55,7 @@
     ":"  [["unexpected EOF while reading keyword." 1 2]]
     "\"" [["Unexpected EOF while reading string." 1 2]]
     "#?" [[":reader-macro node expects 1 value." 1 3]]
-    "[1..1]" [["Invalid number: 1..1." 1 6]]
+    "[1..1]" [["Invalid number: 1..1." 1 2]]
     "#:" [["Unexpected EOF." 1 3]]))
 
 ;;;; Scratch
