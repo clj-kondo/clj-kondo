@@ -1636,7 +1636,9 @@
                         (let [next-ctx (cond-> ctx
                                          (one-of [resolved-namespace resolved-name]
                                                  [[clojure.core.async thread]
-                                                  [clojure.core dosync]])
+                                                  [clojure.core dosync]
+                                                  [clojure.core lazy-seq]
+                                                  [clojure.core lazy-cat]])
                                          (assoc-in [:recur-arity :fixed-arity] 0))]
                           (analyze-children next-ctx children false))))]
                 (if (= 'ns resolved-as-clojure-var-name)

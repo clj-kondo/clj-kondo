@@ -1791,6 +1791,8 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "(defn foo [_a _b] (dosync (recur)))")))
+  (is (empty? (lint! "(defn foo [_a _b] (lazy-seq (recur)))")))
+  (is (empty? (lint! "(defn foo [_a _b] (lazy-cat (recur)))")))
   (is (empty? (lint! "(ns foo (:refer-clojure :only [defn]))")))
   (is (empty? (lint! "
 (ns kitchen-async.promise
