@@ -1565,7 +1565,7 @@
                          [cljs.test deftest])
                         (test/analyze-deftest ctx expr defined-by
                                               resolved-as-namespace resolved-as-name)
-                        [clojure.core.match match]
+                        ([clojure.core.match match] [cljs.core.match match])
                         (match/analyze-match ctx expr)
                         [clojure.string replace]
                         (analyze-clojure-string-replace ctx expr)

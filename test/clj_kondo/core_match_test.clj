@@ -18,6 +18,14 @@
 (match [1 2 3]
   [1 2 a] :foo)
 "))
+  (testing "cljs"
+    (assert-submaps
+     '({:file "<stdin>", :row 3, :col 13, :level :warning, :message "unused binding a"})
+     (lint! "(ns foo (:require [cljs.core.match :refer-macros [match]]))
+(match [1 2 3]
+       [1 2 a] :foo)"
+            {:linters {:unused-binding {:level :warning}
+                       :unresolved-symbol {:level :error}}})))
   (assert-submaps
    '({:file "<stdin>", :row 5, :col 15, :level :warning, :message "unused binding b"})
    (lint!! "
