@@ -39,7 +39,8 @@
 (defn parse-token
   "Parse a single token."
   [reader]
-  (let [token-location ((juxt rt/get-line-number rt/get-column-number) reader)]
+  (let [token-row (rt/get-line-number reader)
+        token-col (rt/get-column-number reader)]
     (try
       (let [first-char (r/next reader)
             s (->> (if (= first-char \\)
@@ -55,8 +56,8 @@
           (when (and *invalid-token-exceptions*
                      (= :reader-exception type)
                      (= :reader-error ex-kind))
-            (let [f {:row (token-location 0)
-                     :col (token-location 1)
+            (let [f {:row token-row
+                     :col token-col
                      :message (.getMessage e)}]
               (swap! *invalid-token-exceptions* conj (ex-info "Syntax error" {:findings [f]})))))
         reader))))
