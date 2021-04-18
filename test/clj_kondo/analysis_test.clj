@@ -107,7 +107,33 @@
                       (xml/alias-uri 'pom \"http://maven.apache.org/POM/4.0.0\")
                       ::pom/foo"
                      {:config {:output {:analysis {:keywords true}}}})]
-      (is (edn/read-string (str a))))))
+      (is (edn/read-string (str a)))))
+  (testing "namespaced maps"
+    (testing "auto-resolved namespace"
+      (let [a (analyze "(ns foo (:require [clojure.data.xml :as xml]))
+                      #::xml{:a 1}"
+                       {:config {:output {:analysis {:keywords true}}}})]
+        (assert-submaps
+         '[{:name "a" :ns clojure.data.xml}]
+         (:keywords a))))
+    (testing "non-autoresolved namespace"
+      (let [a (analyze "(ns foo (:require [clojure.data.xml :as xml]))
+                      #:xml{:a 1}"
+                       {:config {:output {:analysis {:keywords true}}}})]
+        (assert-submaps
+         '[{:name "a" :ns xml}]
+         (:keywords a))))
+    (testing "no namespace for key :a"
+      (let [a (analyze "#:xml{:_/a 1}"
+                       {:config {:output {:analysis {:keywords true}}}})]
+        (is (= '{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>"}
+               (first (:keywords a))))))
+    (testing "no namespace for key :b"
+      (let [a (analyze "#:xml{:a {:b 1}}"
+                       {:config {:output {:analysis {:keywords true}}}})]
+        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>"}
+                 {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>"}]
+               (:keywords a)))))))
 
 (deftest locals-analysis-test
   (let [a (analyze "#(inc %1 %&)" {:config {:output {:analysis {:locals true}}}})]

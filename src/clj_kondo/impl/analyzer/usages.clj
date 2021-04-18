@@ -13,11 +13,16 @@
 
 (set! *warn-on-reflection* true)
 
+(defn err [& xs]
+  (binding [*out* *err*]
+    (apply prn xs)))
+
 (defn ^:private resolve-keyword [ctx expr current-ns]
   (let [aliased? (:namespaced? expr)
         token (if (symbol-token? expr)
                 (symbol-from-token expr)
                 (:k expr))
+        prefix (:prefix expr)
         name-sym (some-> token name symbol)
         alias-or-ns (some-> token namespace symbol)
         ns-sym (cond
@@ -27,6 +32,9 @@
 
                  aliased?
                  current-ns
+
+                 prefix (when (not= '_ alias-or-ns)
+                          prefix)
 
                  :else
                  alias-or-ns)]
@@ -71,14 +79,24 @@
         m (first children)
         ns (:ns ctx)
         ns-keyword (-> expr :ns :k)
-        ns-sym (kw->sym ns-keyword)]
-    (when (:aliased? expr)
+        ns-sym (kw->sym ns-keyword)
+        aliased? (:aliased? expr)
+        resolved-ns (when aliased? (get (:qualify-ns ns) ns-sym))
+        resolved (or resolved-ns ns-sym)]
+    (when resolved-ns
       (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
         (namespace/reg-used-namespace! ctx
                                        (-> ns :name)
                                        resolved-ns)))
-    (when-let [f (:analyze-expression** ctx)]
-      (f ctx m))))
+    (let [children (:children m)
+          keys (take-nth 2 children)
+          vals (take-nth 2 (rest children))
+          keys  (map (fn [child]
+                       (assoc child :prefix resolved)) keys)
+          children (interleave keys vals)
+          m (assoc m :children children)]
+      (when-let [f (:analyze-expression** ctx)]
+        (f ctx m)))))
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
