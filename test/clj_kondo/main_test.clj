@@ -719,7 +719,15 @@ foo/foo ;; this does use the private var
   (is (empty?
        (lint! "(select-keys (let [x (fn [])] (x 1 2 3)) [])" "--config"
               "{:linters {:invalid-arity {:skip-args [clojure.core/select-keys]}
-                          :unresolved-symbol {:level :off}}}"))))
+                          :unresolved-symbol {:level :off}}}")))
+  (is (empty?
+       (lint! "(defn foo [x {:keys [y] :or {y x}}] x y)"
+              {:linters {:unresolved-symbol {:level :error}
+                         :unused-binding {:level :warning}}})))
+  (is (empty?
+       (lint! "(defn foo [[x y] {:keys [:z] :or {z (+ x y)}}] z)"
+              {:linters {:unresolved-symbol {:level :error}
+                         :unused-binding {:level :warning}}}))))
 
 (deftest let-test
   (assert-submap

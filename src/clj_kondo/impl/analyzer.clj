@@ -231,9 +231,19 @@
                          :error
                          :syntax
                          (str "unsupported binding form " expr))))
-         :vector (let [v (map #(extract-bindings
-                                (update ctx :callstack conj [nil :vector])
-                                % scoped-expr opts) (:children expr))
+         :vector (let [children (:children expr)
+                       all-tokens? (every? #(identical? :token %) (map :tag children))
+                       v (let [ctx (update ctx :callstack conj [nil :vector])]
+                           (if all-tokens?
+                             (map #(extract-bindings ctx % scoped-expr opts) children)
+                             (-> (reduce (fn [[ctx acc] expr]
+                                           (let [bnds (extract-bindings ctx expr scoped-expr opts)]
+                                             [(ctx-with-bindings ctx bnds) (conj! acc bnds)]))
+                                         [ctx
+                                          (transient [])]
+                                         (:children expr))
+                                 second
+                                 persistent!)))
                        tags (map :tag (map meta v))
                        expr-meta (meta expr)
                        t (:tag expr-meta)
