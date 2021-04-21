@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+### New
+
+- `--fail-level` flag to specify the minimum severity for exit with a non-zero exit code.
+
 ### Enhanced / fixed
 
 - Support `core.async` `defblockingop` macro [#1244](https://github.com/clj-kondo/clj-kondo/issues/1244)

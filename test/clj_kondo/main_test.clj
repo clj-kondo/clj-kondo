@@ -319,6 +319,15 @@ foo/foo ;; this does use the private var
     (testing "the exit code is 1 when errors are detected"
       (is (= 3 (with-in-str "(defn foo []) (foo 1)" (main "--lint" "-")))))))
 
+(deftest exit-code-with-fail-level-test
+  (with-out-str
+    (testing "the exit code is 0 when fail-level is explicitly set to warning and no errors are detected"
+      (is (zero? (with-in-str "(defn foo []) (foo)" (main "--fail-level" "warning" "--lint" "-")))))
+    (testing "the exit code is 2 when fail-level is warning and warnings are detected"
+      (is (= 2 (with-in-str "(do (do 1))" (main "--fail-level" "warning" "--lint" "-")))))
+    (testing "the exit code is 3 when fail-level is error and errors are detected"
+      (is (= 3 (with-in-str  "(defn foo []) (foo 1)" (main "--fail-level" "error" "--lint" "-")))))))
+
 (deftest cond-test
   (doseq [lang [:clj :cljs :cljc]]
     (testing (str "lang: " lang)
