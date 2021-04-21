@@ -55,7 +55,7 @@ build_script:
 
     jar -cMf %zip% clj-kondo.exe
 
-    powershell -Command "if (Test-Path('bb.exe')) { return } else { (New-Object Net.WebClient).DownloadFile('https://github.com/borkdude/babashka/releases/download/v0.3.6/babashka-0.3.6-windows-amd64.zip', 'bb.zip') }"
+    powershell -Command "if (Test-Path('bb.exe')) { return } else { (New-Object Net.WebClient).DownloadFile('https://github.com/borkdude/babashka/releases/download/v0.3.5/babashka-0.3.5-windows-amd64.zip', 'bb.zip') }"
 
     powershell -Command "if (Test-Path('bb.exe')) { return } else { Expand-Archive bb.zip . }"
 
