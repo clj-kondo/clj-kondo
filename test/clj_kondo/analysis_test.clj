@@ -137,16 +137,17 @@
             {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>"}]
           (:keywords a))))
     (testing "auto-resolved"
-      (let [a (analyze ":a ::b :user/c #:d{:e 1 :_/f 2 :g/h 3 ::i 4}"
+      (let [a (analyze "(ns foo)
+                        :a ::b :bar/c #:d{:e 1 :_/f 2 :g/h 3 ::i 4}"
                        {:config {:output {:analysis {:keywords true}}}})]
         (assert-submaps
               '[{:name "a" :auto-resolved false}
-                {:name "b" :auto-resolved true}
-                {:name "c" :auto-resolved false}
-                {:name "e" :auto-resolved false}
+                {:name "b" :auto-resolved true :ns foo}
+                {:name "c" :auto-resolved false :ns bar}
+                {:name "e" :auto-resolved false :ns d}
                 {:name "f" :auto-resolved false}
-                {:name "h" :auto-resolved false}
-                {:name "i" :auto-resolved true}]
+                {:name "h" :auto-resolved false :ns g}
+                {:name "i" :auto-resolved true :ns foo}]
               (:keywords a))))))
 
 (deftest locals-analysis-test

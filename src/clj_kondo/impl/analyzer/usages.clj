@@ -33,8 +33,10 @@
                  aliased?
                  current-ns
 
-                 prefix (when (not= '_ alias-or-ns)
-                          prefix)
+                 (and prefix
+                      (not alias-or-ns))
+                 (when (not= '_ alias-or-ns)
+                   prefix)
 
                  :else
                  alias-or-ns)]
