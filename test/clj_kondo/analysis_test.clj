@@ -127,33 +127,32 @@
     (testing "no namespace for key :a"
       (let [a (analyze "#:xml{:_/a 1}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>" :auto-resolved false :namespace-from-prefix false}]
+        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>"}]
                (:keywords a)))))
     ;; Don't use assertmap here to make sure ns is absent
     (testing "no namespace for key :b"
       (let [a (analyze "#:xml{:a {:b 1}}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>" :auto-resolved false :namespace-from-prefix true}
-                 {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>" :auto-resolved false :namespace-from-prefix false}]
+        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>" :namespace-from-prefix true}
+                 {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>"}]
           (:keywords a)))))
-    (testing "auto-resolved"
+    (testing "auto-resolved and namespace-from-prefix"
       (let [a (analyze "(ns foo)
                         :a ::b :bar/c
                         #:d{:e 1 :_/f 2 :g/h 3 ::i 4}
                         {:j/k 5 :l 6 ::m 7}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (assert-submaps
-              '[{:name "a" :auto-resolved false :namespace-from-prefix false}
-                {:name "b"  :auto-resolved true :namespace-from-prefix false :ns foo}
-                {:name "c" :auto-resolved false :namespace-from-prefix false :ns bar}
-                {:name "e" :auto-resolved false :namespace-from-prefix true :ns d}
-                {:name "f" :auto-resolved false :namespace-from-prefix false}
-                {:name "h" :auto-resolved false :namespace-from-prefix false :ns g}
-                {:name "i" :auto-resolved true :namespace-from-prefix false :ns foo}
-                {:name "k" :auto-resolved false :namespace-from-prefix false :ns j}
-                {:name "l" :auto-resolved false :namespace-from-prefix false}
-                {:name "m" :auto-resolved true :namespace-from-prefix false :ns foo}]
-              (:keywords a))))))
+        (is (= '[{:row 2 :col 25 :end-row 2 :end-col 27 :name "a" :filename "<stdin>"}
+                 {:row 2 :col 28 :end-row 2 :end-col 31 :ns foo :auto-resolved true :name "b" :filename "<stdin>"}
+                 {:row 2 :col 32 :end-row 2 :end-col 38 :ns bar :name "c" :filename "<stdin>"}
+                 {:row 3 :col 29 :end-row 3 :end-col 31 :ns d :namespace-from-prefix true :name "e" :filename "<stdin>"}
+                 {:row 3 :col 34 :end-row 3 :end-col 38 :name "f" :filename "<stdin>"}
+                 {:row 3 :col 41 :end-row 3 :end-col 45 :ns g :name "h" :filename "<stdin>"}
+                 {:row 3 :col 48 :end-row 3 :end-col 51 :ns foo :auto-resolved true :name "i" :filename "<stdin>"}
+                 {:row 4 :col 26 :end-row 4 :end-col 30 :ns j :name "k" :filename "<stdin>"}
+                 {:row 4 :col 33 :end-row 4 :end-col 35 :name "l" :filename "<stdin>"}
+                 {:row 4 :col 38 :end-row 4 :end-col 41 :ns foo :auto-resolved true :name "m" :filename "<stdin>"}]
+              (:keywords a)))))))
 
 (deftest locals-analysis-test
   (let [a (analyze "#(inc %1 %&)" {:config {:output {:analysis {:locals true}}}})]
