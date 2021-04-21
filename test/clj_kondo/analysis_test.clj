@@ -126,14 +126,28 @@
     (testing "no namespace for key :a"
       (let [a (analyze "#:xml{:_/a 1}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>"}
-               (first (:keywords a))))))
+        (assert-submaps
+          '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>"}]
+          (:keywords a))))
     (testing "no namespace for key :b"
       (let [a (analyze "#:xml{:a {:b 1}}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>"}
-                 {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>"}]
-               (:keywords a)))))))
+        (assert-submaps
+          '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>"}
+            {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>"}]
+          (:keywords a))))
+    (testing "auto-resolved"
+      (let [a (analyze ":a ::b :user/c #:d{:e 1 :_/f 2 :g/h 3 ::i 4}"
+                       {:config {:output {:analysis {:keywords true}}}})]
+        (assert-submaps
+              '[{:name "a" :auto-resolved false}
+                {:name "b" :auto-resolved true}
+                {:name "c" :auto-resolved false}
+                {:name "e" :auto-resolved false}
+                {:name "f" :auto-resolved false}
+                {:name "h" :auto-resolved false}
+                {:name "i" :auto-resolved true}]
+              (:keywords a))))))
 
 (deftest locals-analysis-test
   (let [a (analyze "#(inc %1 %&)" {:config {:output {:analysis {:locals true}}}})]

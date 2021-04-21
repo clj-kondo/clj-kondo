@@ -59,6 +59,7 @@
            (assoc-some (meta expr)
                        :def (:def expr)
                        :keys-destructuring keys-destructuring?
+                       :auto-resolved (boolean (:namespaced? expr))
                        :name (:name resolved)
                        :alias (when-not (:alias destructuring) (:alias resolved))
                        :ns (or (:ns destructuring) (:ns resolved))))))
