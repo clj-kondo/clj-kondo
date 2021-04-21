@@ -16,8 +16,15 @@ cd /tmp/release
 
 ## release binary as zip archive
 
-zip "clj-kondo-$VERSION-$CLJ_KONDO_PLATFORM-amd64.zip" clj-kondo
+archive="clj-kondo-$VERSION-$CLJ_KONDO_PLATFORM-amd64.zip"
+
+zip "$archive" clj-kondo
+
+cd -
+
+bb release-artifact "/tmp/release/$archive"
 
 ## cleanup
 
+cd /tmp/release
 rm clj-kondo
