@@ -4,10 +4,12 @@
             [clojure.string :as str]))
 
 (defn current-branch []
-  (prn (sh "git" "rev-parse" "--abbrev-ref" "HEAD"))
-  (-> (sh "git" "rev-parse" "--abbrev-ref" "HEAD")
-      :out
-      str/trim))
+  (or (System/getenv "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH")
+      (System/getenv "APPVEYOR_REPO_BRANCH")
+      (System/getenv "CIRCLE_BRANCH")
+      (-> (sh "git" "rev-parse" "--abbrev-ref" "HEAD")
+          :out
+          str/trim)))
 
 (defn release [& args]
   (let [current-version (-> (slurp "resources/CLJ_KONDO_VERSION")
