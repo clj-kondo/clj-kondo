@@ -35,14 +35,15 @@
 
                  (and prefix
                       (not alias-or-ns))
-                 (when (not= '_ alias-or-ns)
-                   prefix)
+                 prefix
 
                  :else
                  alias-or-ns)]
     {:name name-sym
      :ns ns-sym
-     :prefix prefix
+     :prefix (and prefix
+                  (not alias-or-ns)
+                  (not (:namespaced? expr)))
      :alias (when (and aliased? (not= :clj-kondo/unknown-namespace ns-sym)) alias-or-ns)}))
 
 (defn analyze-keyword
@@ -63,7 +64,7 @@
                        :def (:def expr)
                        :keys-destructuring keys-destructuring?
                        :auto-resolved (boolean (:namespaced? expr))
-                       :namespace-applied (boolean (:prefix resolved))
+                       :namespace-from-prefix (boolean (:prefix resolved))
                        :name (:name resolved)
                        :alias (when-not (:alias destructuring) (:alias resolved))
                        :ns (or (:ns destructuring) (:ns resolved))))))

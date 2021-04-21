@@ -138,16 +138,21 @@
           (:keywords a))))
     (testing "auto-resolved"
       (let [a (analyze "(ns foo)
-                        :a ::b :bar/c #:d{:e 1 :_/f 2 :g/h 3 ::i 4}"
+                        :a ::b :bar/c
+                        #:d{:e 1 :_/f 2 :g/h 3 ::i 4}
+                        {:j/k 5 :l 6 ::m 7}"
                        {:config {:output {:analysis {:keywords true}}}})]
         (assert-submaps
-              '[{:name "a" :auto-resolved false :namespace-applied false}
-                {:name "b"  :auto-resolved true :namespace-applied false :ns foo}
-                {:name "c" :auto-resolved false :namespace-applied false :ns bar}
-                {:name "e" :auto-resolved false :namespace-applied true :ns d}
-                {:name "f" :auto-resolved false :namespace-applied true}
-                {:name "h" :auto-resolved false :namespace-applied true :ns g}
-                {:name "i" :auto-resolved true :namespace-applied true :ns foo}]
+              '[{:name "a" :auto-resolved false :namespace-from-prefix false}
+                {:name "b"  :auto-resolved true :namespace-from-prefix false :ns foo}
+                {:name "c" :auto-resolved false :namespace-from-prefix false :ns bar}
+                {:name "e" :auto-resolved false :namespace-from-prefix true :ns d}
+                {:name "f" :auto-resolved false :namespace-from-prefix false}
+                {:name "h" :auto-resolved false :namespace-from-prefix false :ns g}
+                {:name "i" :auto-resolved true :namespace-from-prefix false :ns foo}
+                {:name "k" :auto-resolved false :namespace-from-prefix false :ns j}
+                {:name "l" :auto-resolved false :namespace-from-prefix false}
+                {:name "m" :auto-resolved true :namespace-from-prefix false :ns foo}]
               (:keywords a))))))
 
 (deftest locals-analysis-test
