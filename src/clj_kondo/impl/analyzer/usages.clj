@@ -34,6 +34,10 @@
                  current-ns
 
                  (and prefix
+                      (= '_ alias-or-ns))
+                 nil
+
+                 (and prefix
                       (not alias-or-ns))
                  prefix
 

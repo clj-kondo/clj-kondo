@@ -123,19 +123,19 @@
         (assert-submaps
          '[{:name "a" :ns xml}]
          (:keywords a))))
+    ;; Don't use assertmap here to make sure ns is absent
     (testing "no namespace for key :a"
       (let [a (analyze "#:xml{:_/a 1}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (assert-submaps
-          '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>"}]
-          (:keywords a))))
+        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>" :auto-resolved false :namespace-from-prefix false}]
+               (:keywords a)))))
+    ;; Don't use assertmap here to make sure ns is absent
     (testing "no namespace for key :b"
       (let [a (analyze "#:xml{:a {:b 1}}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (assert-submaps
-          '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>"}
-            {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>"}]
-          (:keywords a))))
+        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>" :auto-resolved false :namespace-from-prefix true}
+                 {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>" :auto-resolved false :namespace-from-prefix false}]
+          (:keywords a)))))
     (testing "auto-resolved"
       (let [a (analyze "(ns foo)
                         :a ::b :bar/c
