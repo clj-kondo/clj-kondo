@@ -4,6 +4,7 @@
             [clojure.string :as str]))
 
 (defn current-branch []
+  (prn (sh "git" "rev-parse" "--abbrev-ref" "HEAD"))
   (-> (sh "git" "rev-parse" "--abbrev-ref" "HEAD")
       :out
       str/trim))
@@ -13,8 +14,13 @@
                             str/trim)
         ght (System/getenv "GITHUB_TOKEN")
         file (first args)
-        branch (current-branch)]
-    (if (and ght (contains? #{"master" "main"} branch))
+        branch (current-branch)
+        release-branch? (contains? #{"master" "main"} branch)]
+    (when-not ght
+      (println "Skipping: not GITHUB_TOKEN"))
+    (when-not release-branch?
+      (println "Skipping: not on release branch"))
+    (if (and ght release-branch?)
       (do (assert file "File name must be provided")
           (ghr/overwrite-asset {:org "clj-kondo"
                                 :repo "clj-kondo"
