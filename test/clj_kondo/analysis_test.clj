@@ -141,13 +141,13 @@
                         :a ::b :bar/c #:d{:e 1 :_/f 2 :g/h 3 ::i 4}"
                        {:config {:output {:analysis {:keywords true}}}})]
         (assert-submaps
-              '[{:name "a" :auto-resolved false}
-                {:name "b" :auto-resolved true :ns foo}
-                {:name "c" :auto-resolved false :ns bar}
-                {:name "e" :auto-resolved false :ns d}
-                {:name "f" :auto-resolved false}
-                {:name "h" :auto-resolved false :ns g}
-                {:name "i" :auto-resolved true :ns foo}]
+              '[{:name "a" :auto-resolved false :namespace-applied false}
+                {:name "b"  :auto-resolved true :namespace-applied false :ns foo}
+                {:name "c" :auto-resolved false :namespace-applied false :ns bar}
+                {:name "e" :auto-resolved false :namespace-applied true :ns d}
+                {:name "f" :auto-resolved false :namespace-applied true}
+                {:name "h" :auto-resolved false :namespace-applied true :ns g}
+                {:name "i" :auto-resolved true :namespace-applied true :ns foo}]
               (:keywords a))))))
 
 (deftest locals-analysis-test
