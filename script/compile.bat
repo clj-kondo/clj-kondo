@@ -35,6 +35,3 @@ call %GRAALVM_HOME%\bin\native-image.cmd ^
   "-J-Xmx3g"
 
 if %errorlevel% neq 0 exit /b %errorlevel%
-
-echo Creating zip archive
-jar -cMf clj-kondo-%CLJ_KONDO_VERSION%-windows-amd64.zip clj-kondo.exe
