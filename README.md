@@ -189,19 +189,20 @@ directory, use `--cache false`.
 ## Exit codes
 
 Exit codes can be controlled by the `--fail-level <level>` option. The
-default fail level is `warning` which will return the following exit codes:
+default fail level is `warning` which returns exit codes as follows:
 
 - `0`: no errors or warnings were found
 - `2`: one or more warnings were found
 - `3`: one or more errors were found
 
-If `--fail-level error` is supplied a 0 exit will occur for any level:
+If `--fail-level error` is supplied, warnings do not lead to a non-zero exit code:
 
 - `0`: no errors were found
 - `0`: one or more warnings were found
 - `3`: one or more errors were found
 
-All other error codes indicate an unexpected error.
+All exit codes other than `0`, `2` and `3` indicate an error because of a bug in
+clj-kondo or some other unexpected error beyond the control of clj-kondo.
 
 ## [CI Integration](doc/ci-integration.md)
 ## [Analysis data](analysis)
