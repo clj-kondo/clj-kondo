@@ -51,6 +51,9 @@ Options:
   --dependencies: don't report warnings. Useful for populating cache while linting dependencies.
 
   --copy-configs: copy configs from dependencies while linting.
+
+  --fail-level <level>: minimum severity for exit with error code.  Supported values:
+    warning, error.  The default level if unspecified is warning.
 " core-impl/version))
   nil)
 
@@ -69,8 +72,9 @@ Options:
     "--parallel"     :scalar
     "--filename"     :scalar
     "--no-warnings"  :scalar ;; deprecated
-    "--dependencies"  :scalar
+    "--dependencies" :scalar
     "--copy-configs" :scalar
+    "--fail-level"   :scalar
     :scalar))
 
 (defn- parse-opts [options]
@@ -115,11 +119,15 @@ Options:
      :dependencies (or (contains? opts "--dependencies")
                        (contains? opts "--no-warnings") ;; deprecated
                        ,)
-     :copy-configs (contains? opts "--copy-configs")}))
+     :copy-configs (contains? opts "--copy-configs")
+     :fail-level (or (last (get opts "--fail-level"))
+                     "warning")}))
+
+(def fail-level? #{"warning" "error"})
 
 (defn main
   [& options]
-  (let [{:keys [:help :lint :version :pod :dependencies] :as parsed}
+  (let [{:keys [:help :lint :version :pod :dependencies :fail-level] :as parsed}
         (parse-opts options)]
     (or (cond version
               (print-version)
@@ -128,14 +136,22 @@ Options:
               pod (pod/run-pod)
               (empty? lint)
               (print-help)
+              (not (fail-level? fail-level))
+              (print-help)
               :else (let [{:keys [:summary]
                            :as results} (clj-kondo/run! parsed)
                           {:keys [:error :warning]} summary]
                       (when-not dependencies
                         (clj-kondo/print! results))
-                      (cond (pos? error) 3
-                            (pos? warning) 2
-                            :else 0)))
+                      (cond
+                        (= "warning" fail-level)
+                        (cond (pos? error) 3
+                              (pos? warning) 2
+                              :else 0)
+                        (= "error" fail-level)
+                        (if (pos? error)
+                          3
+                          0))))
         0)))
 
 (defn -main [& options]

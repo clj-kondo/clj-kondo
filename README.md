@@ -1,7 +1,7 @@
 <img src="logo/logo-300dpi.png" width="400px">
 
 [![Clojars Project](https://img.shields.io/clojars/v/clj-kondo.svg)](https://clojars.org/clj-kondo)
-[![Financial Contributors on Open Collective](https://opencollective.com/clj-kondo/all/badge.svg?label=financial+contributors)](https://opencollective.com/clj-kondo) 
+[![Financial Contributors on Open Collective](https://opencollective.com/clj-kondo/all/badge.svg?label=financial+contributors)](https://opencollective.com/clj-kondo)
 [![CircleCI](https://circleci.com/gh/clj-kondo/clj-kondo/tree/master.svg?style=shield)](https://circleci.com/gh/clj-kondo/clj-kondo/tree/master)
 [![Build status](https://ci.appveyor.com/api/projects/status/3jdro7mu17nv3rb3/branch/master?svg=true)](https://ci.appveyor.com/project/clj-kondo/clj-kondo/branch/master)
 [![cljdoc badge](https://cljdoc.org/badge/clj-kondo/clj-kondo)](https://cljdoc.org/d/clj-kondo/clj-kondo/CURRENT)
@@ -188,8 +188,17 @@ directory, use `--cache false`.
 
 ## Exit codes
 
+Exit codes can be controlled by the `--fail-level <level>` option. The
+default fail level is `warning` which will return the following exit codes:
+
 - `0`: no errors or warnings were found
 - `2`: one or more warnings were found
+- `3`: one or more errors were found
+
+If `--fail-level error` is supplied a 0 exit will occur for any level:
+
+- `0`: no errors were found
+- `0`: one or more warnings were found
 - `3`: one or more errors were found
 
 All other error codes indicate an unexpected error.
