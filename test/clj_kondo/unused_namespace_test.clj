@@ -118,6 +118,7 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])")))
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "default.cljs"))))
+  (is (empty? (lint! (io/file "corpus" "shadow_cljs" "dot_alias.cljs"))))
   (is (empty? (lint! "(ns foo (:require [bar])) (:id bar/x)")))
   (is (empty? (lint! (io/file "corpus" "no_unused_namespace.clj"))))
   (is (empty? (lint! "(ns foo (:require [bar :as b])) (let [{::b/keys [:baz]} nil] baz)")))

@@ -1854,7 +1854,7 @@
                                             s))]
                     (let [simple? (simple-symbol? full-fn-name)
                           full-fn-name (if simple?
-                                         (namespace/normalize-sym-name lang full-fn-name)
+                                         (namespace/normalize-sym-name ctx full-fn-name)
                                          full-fn-name)
                           full-fn-name (with-meta full-fn-name (meta function))
                           binding (and simple?
