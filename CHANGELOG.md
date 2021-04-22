@@ -6,13 +6,17 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ### New
 
-- `--fail-level` flag to specify the minimum severity for exit with a non-zero exit code.
+- `--fail-level` flag to specify the minimum severity for exit with a non-zero exit code #1259
 
 ### Enhanced / fixed
 
 - Support `core.async` `defblockingop` macro [#1244](https://github.com/clj-kondo/clj-kondo/issues/1244)
 - Add error message when keywords are passed in `:or` map [#1242](https://github.com/clj-kondo/clj-kondo/issues/1242)
 - False positive unused default when analyzing locals [#1246](https://github.com/clj-kondo/clj-kondo/issues/1246)
+- False positive when destructuring depends on previous arg #782
+- Keyword analysis for namespaced maps #1251 (@ericdallo)
+- Report reader errors at the start of token #1255 (@yuhan0)
+- Fix recur arity for lazy-seq and lazy-cat (@yuhan0)
 
 ## 2021.03.31
 
