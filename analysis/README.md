@@ -97,8 +97,10 @@ The analysis output consists of a map with:
     - `::kw` will have the current ns.
     - `:b/kw` will have `b` as a ns regardless of `require`ed namespaces.
     - `::b/kw` will be the aliased ns of `b` or `:clj-kondo/unknown-namespace` if `b` is not an alias.
+
+    Keyword in namespaced maps:
     - `#:b{:kw 1}` will have `b` as ns.
-    - `#:b{:_/kw 1}` will have `nil` as ns.
+    - `#:b{:_/kw 1}` will have no ns
     - `#:b{:c/kw 1}` will have `c` as ns.
     - `#:b{::kw 1}` will have the current ns.
   - `:alias`: the alias used by the keyword. Only present when a valid, external alias.
