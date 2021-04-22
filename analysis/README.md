@@ -97,11 +97,17 @@ The analysis output consists of a map with:
     - `::kw` will have the current ns.
     - `:b/kw` will have `b` as a ns regardless of `require`ed namespaces.
     - `::b/kw` will be the aliased ns of `b` or `:clj-kondo/unknown-namespace` if `b` is not an alias.
+    - `#:b{:kw 1}` will have `b` as ns.
+    - `#:b{:_/kw 1}` will have `nil` as ns.
+    - `#:b{:c/kw 1}` will have `c` as ns.
+    - `#:b{::kw 1}` will have the current ns.
   - `:alias`: the alias used by the keyword. Only present when a valid, external alias.
     - `::a/kw` would have an alias of `a`.
     - `::kw` does not have an alias.
-  - `:keys-destructuring` if the keyword is within a `:keys` vector.
-  - `:def` can be added by `:hooks` using `clj-kondo.hook-api/reg-keyword!` to indicate a registered definition location for the keyword.
+  - `:auto-resolved`: if the keyword `:ns` is auto resolved, example: `::kw`
+  - `:namespace-from-prefix`: if the keyword `:ns` is from the namespaced map, example: `::b{:kw 1}`
+  - `:keys-destructuring`: if the keyword is within a `:keys` vector.
+  - `:def`: can be added by `:hooks` using `clj-kondo.hook-api/reg-keyword!` to indicate a registered definition location for the keyword.
     Can be truthy, either `true` or the fully qualified call that registered it.
 
 Example output after linting this code:
