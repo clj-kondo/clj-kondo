@@ -1,6 +1,7 @@
 (ns clj-kondo.analysis-test
   (:require
    [clj-kondo.core :as clj-kondo]
+   [clj-kondo.impl.utils :refer [err]]
    [clj-kondo.test-utils :refer [assert-submaps]]
    [clojure.edn :as edn]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -137,10 +138,11 @@
                  {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>"}]
           (:keywords a)))))
     (testing "auto-resolved and namespace-from-prefix"
-      (let [a (analyze "(ns foo)
+      (let [a (analyze "(ns foo (:require [clojure.set :as set]))
                         :a ::b :bar/c
                         #:d{:e 1 :_/f 2 :g/h 3 ::i 4}
-                        {:j/k 5 :l 6 ::m 7}"
+                        {:j/k 5 :l 6 ::m 7}
+                        #::set{:a 1}"
                        {:config {:output {:analysis {:keywords true}}}})]
         (is (= '[{:row 2 :col 25 :end-row 2 :end-col 27 :name "a" :filename "<stdin>"}
                  {:row 2 :col 28 :end-row 2 :end-col 31 :ns foo :auto-resolved true :name "b" :filename "<stdin>"}
@@ -151,8 +153,10 @@
                  {:row 3 :col 48 :end-row 3 :end-col 51 :ns foo :auto-resolved true :name "i" :filename "<stdin>"}
                  {:row 4 :col 26 :end-row 4 :end-col 30 :ns j :name "k" :filename "<stdin>"}
                  {:row 4 :col 33 :end-row 4 :end-col 35 :name "l" :filename "<stdin>"}
-                 {:row 4 :col 38 :end-row 4 :end-col 41 :ns foo :auto-resolved true :name "m" :filename "<stdin>"}]
-              (:keywords a)))))))
+                 {:row 4 :col 38 :end-row 4 :end-col 41 :ns foo :auto-resolved true :name "m" :filename "<stdin>"}
+                 {:row 5, :col 32, :end-row 5, :end-col 34, :ns clojure.set, :namespace-from-prefix true,
+                  :name "a", :filename "<stdin>"}]
+               (:keywords a)))))))
 
 (deftest locals-analysis-test
   (let [a (analyze "#(inc %1 %&)" {:config {:output {:analysis {:locals true}}}})]

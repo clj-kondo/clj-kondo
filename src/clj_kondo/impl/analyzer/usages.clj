@@ -13,10 +13,6 @@
 
 (set! *warn-on-reflection* true)
 
-(defn err [& xs]
-  (binding [*out* *err*]
-    (apply prn xs)))
-
 (defn ^:private resolve-keyword [ctx expr current-ns]
   (let [aliased? (:namespaced? expr)
         token (if (symbol-token? expr)
@@ -87,16 +83,17 @@
 (defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)
         m (first children)
-        ns (:ns ctx)
+        ns-name (-> ctx :ns :name)
+        the-ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) ns-name)
         ns-keyword (-> expr :ns :k)
         ns-sym (kw->sym ns-keyword)
         aliased? (:aliased? expr)
-        resolved-ns (when aliased? (get (:qualify-ns ns) ns-sym))
+        resolved-ns (when aliased? (get (:qualify-ns the-ns) ns-sym))
         resolved (or resolved-ns ns-sym)]
     (when resolved-ns
-      (when-let [resolved-ns (get (:qualify-ns ns) ns-sym)]
+      (when-let [resolved-ns (get (:qualify-ns the-ns) ns-sym)]
         (namespace/reg-used-namespace! ctx
-                                       (-> ns :name)
+                                       ns-name
                                        resolved-ns)))
     (let [children (:children m)
           keys (take-nth 2 children)

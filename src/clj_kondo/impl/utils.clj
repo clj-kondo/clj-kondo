@@ -302,6 +302,10 @@
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
                vconj (assoc m :ignore ignore))))))
 
+(defn err [& xs]
+  (binding [*out* *err*]
+    (apply prn xs)))
+
 ;;;; Scratch
 
 (comment
