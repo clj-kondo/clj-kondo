@@ -184,7 +184,8 @@ Select your preferred plugin/version management preference between:
 
 ### LSP server
 
-The LSP server does not provide features other than diagnostics.
+The clj-kondo LSP server provides diagnostics via the LSP protocol. To get it
+working in IntelliJ follow these steps:
 
 1. Download the latest clj-kondo LSP server jar to your system. Go to the
    [Github releases](https://github.com/clj-kondo/clj-kondo/releases) and look
