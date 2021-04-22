@@ -44,8 +44,6 @@ Options:
   --config-dir <config-dir>: use this config directory instead of auto-detected
     .clj-kondo dir.
 
-  --run-as-pod: run clj-kondo as a babashka pod
-
   --parallel: lint sources in parallel.
 
   --dependencies: don't report warnings. Useful for populating cache while linting dependencies.
