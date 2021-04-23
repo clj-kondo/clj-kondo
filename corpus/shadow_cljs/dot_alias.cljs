@@ -5,3 +5,6 @@
 
 (.extend dayjs dayjs.utc)
 (.extend dayjs dayjs.timezone)
+
+(require '["dayjs/plugin/utc2" :as dayjs.utc2])
+(.extend dayjs dayjs.utc2)
