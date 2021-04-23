@@ -2,7 +2,7 @@
 ;; To change dependencies, update deps.edn and run script/update-project.clj.
 ;; To change other things, edit project.template.clj and run script/update-project.clj.
 
-(defproject clj-kondo "2021.04.01-SNAPSHOT"
+(defproject clj-kondo "2021.04.23"
   :description "A linter for Clojure that sparks joy."
   :url "https://github.com/clj-kondo/clj-kondo"
   :scm {:name "git"
@@ -20,11 +20,11 @@
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.10.773"]
                                    [clj-commons/conch "0.9.2"]
+                                   [org.clojure/tools.deps.alpha "0.11.905"]
                                    [jonase/eastwood "0.3.14"]
-                                   [borkdude/missing.test.assertions "0.0.2"]
-                                   [babashka/fs "0.0.3"]
                                    [babashka/process "0.0.2"]
-                                   [org.clojure/tools.deps.alpha "0.11.905"]]
+                                   [borkdude/missing.test.assertions "0.0.2"]
+                                   [babashka/fs "0.0.3"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:global-vars {*assert* false}
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
