@@ -141,7 +141,7 @@
              (if-let [symbol-val (symbol-from-token expr)]
                (let [simple? (simple-symbol? symbol-val)
                      symbol-val (if simple?
-                                  (namespace/normalize-sym-name (:lang ctx) symbol-val)
+                                  (namespace/normalize-sym-name ctx symbol-val)
                                   symbol-val)
                      expr-meta (meta expr)]
                  (if-let [b (when (and simple? (not syntax-quote?))

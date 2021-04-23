@@ -391,10 +391,11 @@
 
 (defn normalize-sym-name
   "Strips foo.bar.baz into foo, as it ignores property access in CLJS. Assumes simple symbol."
-  [lang sym]
-  (if (identical? :cljs lang)
+  [ctx sym]
+  (if (identical? :cljs (:lang ctx))
     (let [name-str (str sym)]
       (if (and
+           (not (get-in ctx [:ns :aliases sym]))
            (not (str/starts-with? name-str "."))
            (not (str/ends-with? name-str "."))
            (str/includes? name-str "."))
@@ -454,7 +455,7 @@
               {:name (symbol (name name-sym))
                :unresolved? true
                :unresolved-ns ns-sym})))
-      (let [name-sym (normalize-sym-name lang name-sym)]
+      (let [name-sym (normalize-sym-name ctx name-sym)]
         (or
          (when-let [[k v] (find (:referred-vars ns)
                                 name-sym)]
