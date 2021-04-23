@@ -46,7 +46,7 @@ Options:
 
   --parallel: lint sources in parallel.
 
-  --dependencies: don't report warnings. Useful for populating cache while linting dependencies.
+  --dependencies: don't report any findings. Useful for populating cache while linting dependencies.
 
   --copy-configs: copy configs from dependencies while linting.
 
