@@ -78,3 +78,4 @@ lsp
 corpus/config_dir/.cache
 /.clj-kondo/clj-kondo
 /.lsp/
+clj-kondo.build_artifacts.txt
