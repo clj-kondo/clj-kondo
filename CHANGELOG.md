@@ -6,7 +6,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ### New
 
-- `--fail-level` flag to specify the minimum severity for a non-zero exit code [#1259](https://github.com/clj-kondo/clj-kondo/issues/1259)
+- `--fail-level` flag to specify the minimum severity for a non-zero exit code [#1259](https://github.com/clj-kondo/clj-kondo/issues/1259) ([@RickMoynihan](https://github.com/RickMoynihan))
 
 ### Enhanced / fixed
 
