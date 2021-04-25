@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
   (:require [clj-kondo.impl.findings :as findings]
-            [clj-kondo.impl.utils :as utils :refer [vector-node list-node
+            [clj-kondo.impl.utils :as utils :refer [assoc-some vector-node list-node
                                                     sexpr token-node keyword-node
                                                     string-node #_map-node]]
             [clojure.java.io :as io]
@@ -19,9 +19,9 @@
 
 (defn reg-keyword!
   ([k]
-   (reg-keyword! k true))
+   (reg-keyword! k nil))
   ([k reg-by]
-   (assoc k :def reg-by)))
+   (assoc-some k :reg reg-by)))
 
 (def zip-ns (sci/create-ns 'clojure.zip nil))
 

@@ -81,13 +81,13 @@
           {:name "s" :ns bar}
           {:name "t" :ns x}]
         (:keywords a))))
-  (testing "clojure.spec.alpha/def can add :def"
+  (testing "clojure.spec.alpha/def can add :reg"
     (let [a (analyze "(require '[clojure.spec.alpha :as s]) (s/def ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name "kw" :def clojure.spec.alpha/def}]
+        '[{:name "kw" :reg clojure.spec.alpha/def}]
         (:keywords a))))
-  (testing "hooks can add :def"
+  (testing "hooks can add :reg"
     (let [a (analyze "(user/mydef ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}
                                :hooks {:__dangerously-allow-string-hooks__ true
@@ -101,7 +101,7 @@
                                              "                    (a/reg-keyword! (second c) 'user/mydef)"
                                              "                    (drop 2 c)))}))")}}}})]
       (assert-submaps
-        '[{:name "kw" :def user/mydef}]
+        '[{:name "kw" :reg user/mydef}]
         (:keywords a))))
   (testing "valid ns name with clojure.data.xml"
     (let [a (analyze "(ns foo (:require [clojure.data.xml :as xml]))
