@@ -13,6 +13,7 @@
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.potemkin :as potemkin]
+   [clj-kondo.impl.analyzer.re-frame :as re-frame]
    [clj-kondo.impl.analyzer.spec :as spec]
    [clj-kondo.impl.analyzer.test :as test]
    [clj-kondo.impl.analyzer.usages :as usages :refer [analyze-usages2]]
@@ -1642,6 +1643,14 @@
                         (analyze-like-let ctx expr)
                         [babashka.process $]
                         (babashka/analyze-$ ctx expr)
+                        ([re-frame.core reg-event-db]
+                         [re-frame.core reg-event-fx]
+                         [re-frame.core reg-event-ctx]
+                         [re-frame.core reg-sub]
+                         [re-frame.core reg-sub-raw]
+                         [re-frame.core reg-fx]
+                         [re-frame.core reg-cofx])
+                        (re-frame/analyze-reg ctx expr (symbol (str resolved-as-namespace) (str resolved-as-name)))
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
                                          (one-of [resolved-namespace resolved-name]

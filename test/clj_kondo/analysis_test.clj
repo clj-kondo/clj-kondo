@@ -87,6 +87,25 @@
       (assert-submaps
         '[{:name "kw" :reg clojure.spec.alpha/def}]
         (:keywords a))))
+  (testing "re-frame.core/reg-event-db can add :reg"
+    (let [a (analyze "(require '[re-frame.core :as rf])
+                      (rf/reg-event-db ::a (constantly {}))
+                      (rf/reg-event-fx ::b (constantly {}))
+                      (rf/reg-event-ctx ::c (constantly {}))
+                      (rf/reg-sub ::d (constantly {}))
+                      (rf/reg-sub-raw ::e (constantly {}))
+                      (rf/reg-fx ::f (constantly {}))
+                      (rf/reg-cofx ::g (constantly {}))"
+                     {:config {:output {:analysis {:keywords true}}}})]
+      (assert-submaps
+        '[{:name "a" :reg re-frame.core/reg-event-db}
+          {:name "b" :reg re-frame.core/reg-event-fx}
+          {:name "c" :reg re-frame.core/reg-event-ctx}
+          {:name "d" :reg re-frame.core/reg-sub}
+          {:name "e" :reg re-frame.core/reg-sub-raw}
+          {:name "f" :reg re-frame.core/reg-fx}
+          {:name "g" :reg re-frame.core/reg-cofx}]
+        (:keywords a))))
   (testing "hooks can add :reg"
     (let [a (analyze "(user/mydef ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}
