@@ -28,6 +28,7 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.rewrite-clj.parser.token :refer [*invalid-token-exceptions*]]
    [clj-kondo.impl.schema :as schema]
+   [clj-kondo.impl.transients :as transients]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
@@ -1557,6 +1558,8 @@
                       set! (analyze-set! ctx expr)
                       (with-redefs binding) (analyze-with-redefs ctx expr)
                       (when when-not) (analyze-when ctx expr)
+                      (assoc! conj!) (do (transients/lint-unused-transient! ctx expr)
+                                         (analyze-children ctx children))
                       ;; catch-all
                       (case [resolved-as-namespace resolved-as-name]
                         [clj-kondo.lint-as def-catch-all]

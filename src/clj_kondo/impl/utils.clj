@@ -101,8 +101,8 @@
 
 (defn node->line [filename node level t message]
   #_(when (and (= type :missing-docstring)
-             (not (:row (meta node))))
-    (prn node))
+               (not (:row (meta node))))
+      (prn node))
   (let [m (meta node)]
     {:type t
      :message message
@@ -305,6 +305,28 @@
 (defn err [& xs]
   (binding [*out* *err*]
     (apply prn xs)))
+
+(defn unused-expr? [ctx expr call?]
+  (when-let [idx (:idx ctx)]
+    (let [len (:len ctx)]
+      (when (< idx (dec len))
+        (let [callstack (:callstack ctx)
+              parent-call (if call?
+                            (second callstack)
+                            (first callstack))
+              core? (one-of (first parent-call) [clojure.core cljs.core])
+              core-sym (when core?
+                         (second parent-call))
+              generated? (:clj-kondo.impl/generated expr)
+              unused?
+              (and (not generated?)
+                   core?
+                   (not (:clj-kondo.impl/generated (meta parent-call)))
+                   (one-of core-sym [do fn defn defn-
+                                     let when-let loop binding with-open
+                                     doseq try when when-not when-first
+                                     when-some future]))]
+          unused?)))))
 
 ;;;; Scratch
 
