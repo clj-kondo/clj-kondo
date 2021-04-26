@@ -81,13 +81,39 @@
           {:name "s" :ns bar}
           {:name "t" :ns x}]
         (:keywords a))))
-  (testing "clojure.spec.alpha/def can add :def"
+  (testing "clojure.spec.alpha/def can add :reg"
     (let [a (analyze "(require '[clojure.spec.alpha :as s]) (s/def ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name "kw" :def clojure.spec.alpha/def}]
+        '[{:name "kw" :reg clojure.spec.alpha/def}]
         (:keywords a))))
-  (testing "hooks can add :def"
+  (testing "re-frame.core/reg-event-db can add :reg"
+    (let [a (analyze "(require '[re-frame.core :as rf])
+                      (rf/reg-event-db ::a (constantly {}))
+                      (rf/reg-event-fx ::b (constantly {}))
+                      (rf/reg-event-ctx ::c (constantly {}))
+                      (rf/reg-sub ::d (constantly {}))
+                      (rf/reg-sub-raw ::e (constantly {}))
+                      (rf/reg-fx ::f (constantly {}))
+                      (rf/reg-cofx ::g (constantly {}))"
+                     {:config {:output {:analysis {:keywords true}}}})]
+      (assert-submaps
+        '[{:name "a" :reg re-frame.core/reg-event-db}
+          {:name "b" :reg re-frame.core/reg-event-fx}
+          {:name "c" :reg re-frame.core/reg-event-ctx}
+          {:name "d" :reg re-frame.core/reg-sub}
+          {:name "e" :reg re-frame.core/reg-sub-raw}
+          {:name "f" :reg re-frame.core/reg-fx}
+          {:name "g" :reg re-frame.core/reg-cofx}]
+        (:keywords a))))
+  (testing ":lint-as re-frame.core function will add :reg with the source full qualified ns"
+    (let [a (analyze "(user/mydef ::kw (constantly {}))"
+                     {:config {:output {:analysis {:keywords true}}
+                               :lint-as '{user/mydef re-frame.core/reg-event-fx}}})]
+      (assert-submaps
+        '[{:name "kw" :reg user/mydef}]
+        (:keywords a))))
+  (testing "hooks can add :reg"
     (let [a (analyze "(user/mydef ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}
                                :hooks {:__dangerously-allow-string-hooks__ true
@@ -101,7 +127,7 @@
                                              "                    (a/reg-keyword! (second c) 'user/mydef)"
                                              "                    (drop 2 c)))}))")}}}})]
       (assert-submaps
-        '[{:name "kw" :def user/mydef}]
+        '[{:name "kw" :reg user/mydef}]
         (:keywords a))))
   (testing "valid ns name with clojure.data.xml"
     (let [a (analyze "(ns foo (:require [clojure.data.xml :as xml]))

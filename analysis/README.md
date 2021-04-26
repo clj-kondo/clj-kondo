@@ -109,8 +109,8 @@ The analysis output consists of a map with:
   - `:auto-resolved`: if the keyword `:ns` is auto resolved, example: `::kw`
   - `:namespace-from-prefix`: if the keyword `:ns` is from the namespaced map, example: `::b{:kw 1}`
   - `:keys-destructuring`: if the keyword is within a `:keys` vector.
-  - `:def`: can be added by `:hooks` using `clj-kondo.hook-api/reg-keyword!` to indicate a registered definition location for the keyword.
-    Can be truthy, either `true` or the fully qualified call that registered it.
+  - `:reg`: can be added by `:hooks` using `clj-kondo.hook-api/reg-keyword!` to indicate a registered definition location for the keyword.
+    It should be the fully qualified call that registered it.
 
 Example output after linting this code:
 

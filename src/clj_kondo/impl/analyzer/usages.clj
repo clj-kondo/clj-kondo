@@ -61,7 +61,7 @@
            ctx
            (:filename ctx)
            (assoc-some (meta expr)
-                       :def (:def expr)
+                       :reg (:reg expr)
                        :keys-destructuring keys-destructuring?
                        :auto-resolved (:namespaced? expr)
                        :namespace-from-prefix (when (:namespace-from-prefix resolved) true)

@@ -35,7 +35,7 @@
 (defn analyze-def [ctx expr fq-def]
   (let [[name-expr & body] (next (:children expr))
         reg-val (if (:k name-expr)
-                  (assoc name-expr :def fq-def)
+                  (assoc name-expr :reg fq-def)
                   name-expr)]
     (common/analyze-children ctx (cons reg-val body))))
 
