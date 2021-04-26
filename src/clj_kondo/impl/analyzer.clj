@@ -1650,7 +1650,7 @@
                          [re-frame.core reg-sub-raw]
                          [re-frame.core reg-fx]
                          [re-frame.core reg-cofx])
-                        (re-frame/analyze-reg ctx expr (symbol (str resolved-as-namespace) (str resolved-as-name)))
+                        (re-frame/analyze-reg ctx expr (symbol (str resolved-namespace) (str resolved-name)))
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
                                          (one-of [resolved-namespace resolved-name]
