@@ -106,6 +106,13 @@
           {:name "f" :reg re-frame.core/reg-fx}
           {:name "g" :reg re-frame.core/reg-cofx}]
         (:keywords a))))
+  (testing ":lint-as re-frame.core function will add :reg with the source full qualified ns"
+    (let [a (analyze "(user/mydef ::kw (constantly {}))"
+                     {:config {:output {:analysis {:keywords true}}
+                               :lint-as '{user/mydef re-frame.core/reg-event-fx}}})]
+      (assert-submaps
+        '[{:name "kw" :reg user/mydef}]
+        (:keywords a))))
   (testing "hooks can add :reg"
     (let [a (analyze "(user/mydef ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}
