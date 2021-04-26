@@ -143,6 +143,8 @@ The `--dependencies` flag indicates that clj-kondo is used to analyze sources to
 populate the cache. When enabled, clj-kondo will suppress warnings and skips over
 already linted `.jar` files for performance.
 
+The `--parallel` option will use multiple threads to lint your sources, going through them faster.
+
 The `--copy-configs` flag will search and copy configurations from dependencies into the
 `.clj-kondo` directory, while linting (see
 [config.md](doc/config.md#exporting-and-importing-configuration)).
@@ -154,15 +156,7 @@ Build tool specific ways to get a classpath:
 
 So for `lein` the entire command would be:
 
-    $ clj-kondo --lint "$(lein classpath) --parallel"
-
-For `boot` the entire command would be:
-
-    $ clj-kondo --lint "$(boot with-cp -w -f -) --parallel"
-
-And for `clojure` CLI, the entire command would be:
-
-    $ clj-kondo --lint "$(clojure -Spath) --parallel"
+    $ clj-kondo --lint "$(lein classpath)" --dependencies --parallel --copy-configs
 
 Now you are ready to lint single files using [editor
 integration](doc/editor-integration.md). A simulation of what happens when you
