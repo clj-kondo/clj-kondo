@@ -18,10 +18,8 @@
     (findings/reg-finding! ctx (assoc m :filename filename))))
 
 (defn reg-keyword!
-  ([k]
-   (reg-keyword! k nil))
-  ([k reg-by]
-   (assoc-some k :reg reg-by)))
+  [k reg-by]
+  (assoc-some k :reg reg-by))
 
 (def zip-ns (sci/create-ns 'clojure.zip nil))
 
