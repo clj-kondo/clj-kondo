@@ -18,3 +18,16 @@
                                       :substr string?))
 
 (s/fdef xstr/starts-with? ,,,) ;; unresolved symbol
+
+(s/def ::a any?)
+(s/def ::bar (s/keys
+              ;; fine
+              :opt [::a]
+              :opt-un [::a]
+              :req [::a]
+              :req-un [::a]
+              ;; unkown
+              ::opt [::a]
+              ::opt-un [::a]
+              ::req [::a]
+              ::req-un [::a]))

@@ -39,6 +39,10 @@
                   name-expr)]
     (common/analyze-children ctx (cons reg-val body))))
 
+(defn analyze-keys [ctx expr]
+  (let [body (next (:children expr))]
+    (keys/lint-map-keys ctx {:children body} {:known-key? #{:req :opt :req-un :opt-un}})))
+
 ;;;; Scratch
 (require '[clj-kondo.impl.parser])
 
