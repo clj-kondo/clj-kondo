@@ -373,7 +373,8 @@
                                sort
                                seq)]
       (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
-                               (.relativize (.toPath (.getAbsoluteFile (io/file "."))) (.toPath cfg-dir))
+                               (.relativize (.toPath (.getParentFile (.getAbsoluteFile (io/file "."))))
+                                            (.toPath cfg-dir))
                                cfg-dir))]
         (for [new-config new-configs]
           {:imported-config (str (io/file rel-cfg-dir new-config))
