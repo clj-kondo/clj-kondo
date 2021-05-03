@@ -8,6 +8,7 @@
    [clj-kondo.impl.utils :refer [one-of print-err! map-vals assoc-some]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
+   [clojure.set :as set]
    [clojure.string :as str])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
@@ -364,10 +365,32 @@
                                     :row 0
                                     :message "Could not process file."})))))
 
+(defn inactive-config-imports [ctx]
+  (when-let [cfg-dir (io/file (:config-dir ctx))]
+    (when-let [new-configs (-> (set/difference (-> ctx :detected-configs deref set)
+                                               (-> ctx :config :config-paths set))
+                               vec
+                               sort
+                               seq)]
+      (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
+                               (.relativize (.normalize (.toPath (.getAbsoluteFile (io/file "."))))
+                                            (.normalize (.toPath cfg-dir)))
+                               cfg-dir))]
+        (for [new-config new-configs]
+          {:imported-config (str (io/file rel-cfg-dir new-config))
+           :suggested-config-path (str \" new-config \")
+           :config-file (.getPath (io/file (str rel-cfg-dir) "config.edn"))})))))
+
+(defn print-inactive-config-imports [inactives]
+  (binding [*out* *err*]
+    (doseq [{:keys [imported-config suggested-config-path config-file]} inactives]
+      (println (format "Imported config to %s. To activate, add %s to :config-paths in %s."
+                       imported-config suggested-config-path config-file)))))
+
 (defn process-files [ctx files default-lang filename]
   (let [cache-dir (:cache-dir ctx)
         ctx (assoc ctx :detected-configs (atom [])
-                       :mark-linted (atom []))
+                   :mark-linted (atom []))
         canonical? (-> ctx :config :output :canonical-paths)]
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (:parallel ctx)
@@ -377,19 +400,7 @@
         (let [skip-file (io/file cache-dir "skip" mark)]
           (io/make-parents skip-file)
           (spit skip-file path))))
-    (binding [*out* *err*]
-      (when-let [detected-configs (distinct @(:detected-configs ctx))]
-        (when-let [cfg-dir (io/file (:config-dir ctx))]
-          (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
-                                   (.relativize (.toPath (.getAbsoluteFile (io/file "."))) (.toPath cfg-dir))
-                                   cfg-dir))]
-            (doseq [detected-config detected-configs]
-              (println "Copied config to"
-                       (str (io/file rel-cfg-dir detected-config)
-                            ".")
-                       "Consider adding" detected-config "to :config-paths in"
-                       (.getPath (io/file (str rel-cfg-dir)
-                                          "config.edn."))))))))))
+    (print-inactive-config-imports (inactive-config-imports ctx))))
 
 ;;;; index defs and calls by language and namespace
 
