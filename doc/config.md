@@ -284,30 +284,30 @@ The clj-kondo team has provided config exports for some popular libraries in the
 Let's take a look at its clj-kondo exports:
 
 ```shellsession:
-❯ tree resources
+❯ tree -F resources
 resources
-└── clj-kondo.exports
-    └── clj-kondo
-        ├── claypoole
-        │   ├── config.edn
-        │   └── clj_kondo
-        │       └── claypoole.clj
-        ├── slingshot
-        │   ├── config.edn
-        │   └── clj_kondo
-        │       └── slingshot
-        │           └── try_plus.clj
-        ├── mockery
-        │   ├── config.edn
-        │   └── clj_kondo
-        │       └── mockery
-        │           ├── with_mocks.clj
-        │           └── with_mock.clj
-        ├── rum
-        │   ├── config.edn
-        │   └── clj_kondo
-        │       └── rum.clj
-        └── fulcro
+└── clj-kondo.exports/
+    └── clj-kondo/
+        ├── claypoole/
+        │   ├── clj_kondo/
+        │   │   └── claypoole.clj
+        │   └── config.edn
+        ├── fulcro/
+        │   └── config.edn
+        ├── mockery/
+        │   ├── clj_kondo/
+        │   │   └── mockery/
+        │   │       ├── with_mock.clj
+        │   │       └── with_mocks.clj
+        │   └── config.edn
+        ├── rum/
+        │   ├── clj_kondo/
+        │   │   └── rum.clj
+        │   └── config.edn
+        └── slingshot/
+            ├── clj_kondo/
+            │   └── slingshot/
+            │       └── try_plus.clj
             └── config.edn
 ```
 
@@ -329,18 +329,29 @@ For example, if the `claypoole` library itself wanted to export config, it would
 When invoked with the appropriate arguments, clj-kondo will inform you of any inactive imported clj-kondo configs from your project dependencies and instruct you how to activate them.
 Let's invoke clj-kondo with [clj-kondo/config](#sample-exports) as a dependency to demonstrate:
 
-```shellsession
-$ clj-kondo --copy-configs --dependencies --lint "$(clojure -Spath -Sdeps '{:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config" :sha "e2e156c53c6c228fee7242629b41013f3e55051d"}}}')"
-Imported config to .clj-kondo/clj-kondo/claypoole. To activate, add "clj-kondo/claypoole" to :config-paths in .clj-kondo/config.edn.
-...
-```
-
-To activate the claypoole clj-kondo config from the example above, you would edit
+1. Include `clj-kondo/config` in your `deps.edn`:
+    ```Clojure
+    {:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config"
+                              :sha "e2e156c53c6c228fee7242629b41013f3e55051d"}}}
+    ```
+2. Ensure a `.clj-kondo` directory exists.
+3. And then invoke clj-kondo like so:
+    ```shellsession
+    $ clj-kondo --copy-configs --dependencies --lint "$(clojure -Spath)"
+    Imported config to .clj-kondo/clj-kondo/claypoole. To activate, add "clj-kondo/claypoole" to :config-paths in .clj-kondo/config.edn.
+    Imported config to .clj-kondo/clj-kondo/fulcro. To activate, add "clj-kondo/fulcro" to :config-paths in .clj-kondo/config.edn.
+    Imported config to .clj-kondo/clj-kondo/mockery. To activate, add "clj-kondo/mockery" to :config-paths in .clj-kondo/config.edn.
+    Imported config to .clj-kondo/clj-kondo/rum. To activate, add "clj-kondo/rum" to :config-paths in .clj-kondo/config.edn.
+    Imported config to .clj-kondo/clj-kondo/slingshot. To activate, add "clj-kondo/slingshot" to :config-paths in .clj-kondo/config.edn.
+    ```
+4. To activate the claypoole clj-kondo config from the example above, you would edit
 your project's `.clj-kondo/config.edn` `:config-paths` as instructed:
 
-``` shellsession
-{:config-paths ["clj-kondo/claypoole"]}
-```
+    ``` shellsession
+    {:config-paths ["clj-kondo/claypoole"]}
+    ```
+
+    Note: Windows users should also use the forward slash as the directory separator character in `:config-paths` to ensure their configs also work on Linux and macOS.
 
 Typically, you'll want to check imported configs into version control with your project.
 
@@ -356,7 +367,7 @@ This tells clj-kondo to import clj-kondo configs from dependencies while linting
 ## Deprecations
 
 Some configuration keys have been renamed over time. The default configuration
-is always up-to-date and we strive to mantain backwards compatibility. However,
+is always up-to-date and we strive to maintain backwards compatibility. However,
 for completeness, you can find a list of the renamed keys here.
 
 - `:if -> :missing-else-branch`

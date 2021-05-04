@@ -5,7 +5,7 @@
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [one-of print-err! map-vals assoc-some]]
+   [clj-kondo.impl.utils :as utils :refer [one-of print-err! map-vals assoc-some]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -367,8 +367,16 @@
 
 (defn inactive-config-imports [ctx]
   (when-let [cfg-dir (io/file (:config-dir ctx))]
-    (when-let [new-configs (-> (set/difference (-> ctx :detected-configs deref set)
-                                               (-> ctx :config :config-paths set))
+    (when-let [new-configs (-> (set/difference (->> ctx
+                                                    :detected-configs
+                                                    deref
+                                                    (map utils/unixify-path)
+                                                    set)
+                                               (->> ctx
+                                                    :config
+                                                    :config-paths
+                                                    (map utils/unixify-path)
+                                                    set))
                                vec
                                sort
                                seq)]
@@ -377,9 +385,9 @@
                                             (.normalize (.toPath cfg-dir)))
                                cfg-dir))]
         (for [new-config new-configs]
-          {:imported-config (str (io/file rel-cfg-dir new-config))
+          {:imported-config (-> (io/file rel-cfg-dir new-config) str utils/unixify-path)
            :suggested-config-path (str \" new-config \")
-           :config-file (.getPath (io/file (str rel-cfg-dir) "config.edn"))})))))
+           :config-file (-> (io/file rel-cfg-dir "config.edn") str utils/unixify-path)})))))
 
 (defn print-inactive-config-imports [inactives]
   (binding [*out* *err*]
