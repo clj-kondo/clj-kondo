@@ -306,6 +306,22 @@
   (binding [*out* *err*]
     (apply prn xs)))
 
+;;; os specific
+
+(def windows? (-> (System/getProperty "os.name")
+                  (str/lower-case)
+                  (str/includes? "win")))
+
+
+(defn unixify-path
+  "Convert dir separators in `s`, when on Windows, to forward slashes.
+   Using forward slashes in paths make paths platform agnostic as Java does understand / as a path separator on Windows.
+   Note that you'll only want to call this function on relative paths."
+  [s]
+  (if windows?
+    (str/replace s "\\" "/")
+    s))
+
 ;;;; Scratch
 
 (comment
