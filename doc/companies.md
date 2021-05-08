@@ -12,6 +12,7 @@ listed!
 - [Codurance](https://www.codurance.com)
 - [Cognician](https://www.cognician.com)
 - [Cohesic](https://cohesic.com)
+- [Deon Digital](https://deondigital.com)
 - [Dividend Finance](https://www.dividendfinance.com)
 - [Doctor Evidence](https://drevidence.com)
 - [Dyne](https://www.dyne.org)
