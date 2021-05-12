@@ -1895,26 +1895,46 @@ foo/foo ;; this does use the private var
 
 (deftest spec-test
   (assert-submaps
-   '({:file "corpus/spec_syntax.clj",
-      :row 9,
-      :col 9,
-      :level :error,
-      :message "expected symbol"}
-     {:file "corpus/spec_syntax.clj",
-      :row 9,
-      :col 11,
-      :level :error,
-      :message "missing value for key :args"}
-     {:file "corpus/spec_syntax.clj",
-      :row 11,
-      :col 13,
-      :level :error,
-      :message "unknown option :xargs"}
-     {:file "corpus/spec_syntax.clj",
-      :row 20,
-      :col 9,
-      :level :error,
-      :message "Unresolved symbol: xstr/starts-with?"})
+   [{:file    "corpus/spec_syntax.clj",
+     :row     9,
+     :col     9,
+     :level   :error,
+     :message "expected symbol"}
+    {:file    "corpus/spec_syntax.clj",
+     :row     9,
+     :col     11,
+     :level   :error,
+     :message "missing value for key :args"}
+    {:file    "corpus/spec_syntax.clj",
+     :row     11,
+     :col     13,
+     :level   :error,
+     :message "unknown option :xargs"}
+    {:file    "corpus/spec_syntax.clj",
+     :row     20,
+     :col     9,
+     :level   :error,
+     :message "Unresolved symbol: xstr/starts-with?"}
+    {:file    "corpus/spec_syntax.clj",
+     :row     30,
+     :col     15,
+     :level   :error,
+     :message "unknown option ::opt"}
+    {:file    "corpus/spec_syntax.clj",
+     :row     31,
+     :col     15,
+     :level   :error,
+     :message "unknown option ::opt-un"}
+    {:file    "corpus/spec_syntax.clj",
+     :row     32,
+     :col     15,
+     :level   :error,
+     :message "unknown option ::req"}
+    {:file    "corpus/spec_syntax.clj",
+     :row     33,
+     :col     15,
+     :level   :error,
+     :message "unknown option ::req-un"}]
    (lint! (io/file "corpus" "spec_syntax.clj")
           '{:linters {:unresolved-symbol {:level :error}}})))
 

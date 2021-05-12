@@ -1596,6 +1596,8 @@
                         (spec/analyze-fdef (assoc ctx
                                                   :analyze-children
                                                   analyze-children) expr)
+                        ([clojure.spec.alpha keys] [cljs.spec.alpha keys])
+                        (spec/analyze-keys ctx expr)
                         ([clojure.spec.gen.alpha lazy-combinators]
                          [clojure.spec.gen.alpha lazy-prims])
                         (analyze-declare ctx expr defined-by)
