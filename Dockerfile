@@ -9,6 +9,13 @@ ENV GRAALVM_HOME="/opt/graalvm-ce-java11-21.0.0"
 ENV JAVA_HOME="/opt/graalvm-ce-java11-21.0.0/bin"
 ENV PATH="$JAVA_HOME:$PATH"
 COPY . .
+
+ARG CLJ_KONDO_STATIC=
+ARG CLJ_KONDO_MUSL=
+ENV CLJ_KONDO_STATIC=$CLJ_KONDO_STATIC
+ENV CLJ_KONDO_MUSL=$CLJ_KONDO_MUSL
+
+RUN ./script/setup-musl
 RUN ./script/compile
 
 FROM ubuntu:latest
