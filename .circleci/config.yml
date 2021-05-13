@@ -122,6 +122,7 @@ jobs:
       CLJ_KONDO_PLATFORM: linux-static # used in release script
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_STATIC: true
+      CLJ_KONDO_MUSL: true
     steps:
       - checkout
       - run:
@@ -150,6 +151,7 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get -y install gcc g++ zlib1g-dev
+            sudo -E script/setup-musl
       - run:
           name: Download GraalVM
           command: |
