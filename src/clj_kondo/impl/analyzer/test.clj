@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
     [clj-kondo.impl.analyzer.common :as common]
+    [clj-kondo.impl.macroexpand :as macros]
     [clj-kondo.impl.utils :as utils]))
 
 (defn analyze-deftest [ctx expr defined-by resolved-as-ns resolved-as-name]
@@ -30,10 +31,13 @@
                       {:fixed-arities #{0}})]
     (common/analyze-children ctx rest-children)))
 
-(defn analyze-are [ctx expr]
-  (let [children (next (:children expr))
-        symbols-node (first children)
-        bindings (when symbols-node
-                   (common/extract-bindings ctx symbols-node))
-        ctx (common/ctx-with-bindings ctx bindings)]
-    (common/analyze-children ctx (rest children))))
+(defn analyze-are [ctx resolved-namespace expr]
+  (let [[_ argv expr & args] (:children expr)
+        is-expr (utils/list-node [(utils/token-node (symbol (str resolved-namespace) "is")) expr])
+        new-node (macros/expand-do-template ctx
+                                            (utils/list-node (list* nil
+                                                                    argv
+                                                                    is-expr
+                                                                    args)))]
+    ;; (prn :new-node new-node)
+    (common/analyze-expression** ctx new-node)))
