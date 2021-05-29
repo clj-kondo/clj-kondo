@@ -2797,6 +2797,16 @@ foo/")))
    '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Keys in :or should be simple symbols."})
    (lint! "(defn baz [a & {:keys [c] :or {\"c\" 10}}] (* a c))")))
 
+(deftest do-template-test
+  (assert-submaps
+   '({:file "<stdin>", :row 4, :col 4, :level :error, :message "Unresolved symbol: f"}
+     {:file "<stdin>", :row 4, :col 6, :level :error, :message "Unresolved symbol: g"})
+   (lint! "(require '[clojure.template :as templ])
+(templ/do-template [a b] (def a b) x 1 y 2)
+(+ x y)
+(+ f g)"
+          {:linters {:unresolved-symbol {:level :error}}})))
+
 ;;;; Scratch
 
 (comment
