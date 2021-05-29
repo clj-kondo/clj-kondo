@@ -1582,7 +1582,7 @@
                         (analyze-clojure-string-replace ctx expr)
                         [cljs.test async]
                         (test/analyze-cljs-test-async ctx expr)
-                        ([clojure.test are] [cljs.test are] #_[clojure.template do-template])
+                        ([clojure.test are] [cljs.test are])
                         (test/analyze-are ctx expr)
                         [cljs.spec.alpha def]
                         (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
@@ -1609,6 +1609,8 @@
                         (analyze-defn ctx expr defined-by)
                         ([clojure.core.reducers defcurried])
                         (analyze-defn ctx expr defined-by)
+                        ([clojure.template do-template])
+                        (analyze-expression** ctx (macroexpand/expand-do-template ctx expr))
                         ([datahike.api q]
                          [datascript.core q]
                          [datomic.api q]

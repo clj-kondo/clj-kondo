@@ -1,7 +1,8 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]))
+   [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]
+   [clojure.walk :as walk]))
 
 (defn with-meta-of [x y]
   (let [m (meta y)
@@ -159,6 +160,18 @@
                   (if has-first-arg?
                     let-expr fn-body)])
       m)))
+
+(defn expand-do-template [_ctx node]
+  (let [[_ argv expr & values] (:children node)
+        c (count (:children argv))
+        argv (:children argv)
+        new-node
+        (if (pos? c) ;; prevent infinite partition
+          (list-node (list* (token-node 'do)
+                            (map (fn [a] (walk/postwalk-replace (zipmap argv a) expr))
+                                 (partition c values))))
+          expr)]
+    new-node))
 
 ;;;; Scratch
 
