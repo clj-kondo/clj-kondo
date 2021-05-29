@@ -1583,7 +1583,7 @@
                         [cljs.test async]
                         (test/analyze-cljs-test-async ctx expr)
                         ([clojure.test are] [cljs.test are])
-                        (test/analyze-are ctx expr)
+                        (test/analyze-are ctx resolved-namespace expr)
                         [cljs.spec.alpha def]
                         (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
                         [clojure.spec.alpha def]
