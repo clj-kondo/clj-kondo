@@ -12,3 +12,10 @@
              (= "1" (f 1)))
     str
     pr-str))
+
+(deftest are-with-testing2
+  (are [f] (testing f
+             (= "2" (f 1))
+             (= "1" (f 1))))
+  str
+  pr-str)
