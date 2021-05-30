@@ -1643,6 +1643,8 @@
                         (analyze-formatted-logging ctx expr)
                         [clojure.data.xml alias-uri]
                         (xml/analyze-alias-uri ctx expr)
+                        [clojure.data.xml.impl export-api]
+                        (xml/analyze-export-api ctx expr)
                         [cljs.core simple-benchmark]
                         (analyze-like-let ctx expr)
                         [babashka.process $]
