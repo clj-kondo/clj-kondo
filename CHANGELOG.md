@@ -2,6 +2,21 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+### New
+
+- Lint clojure.spec.alpha/keys [#1272](https://github.com/clj-kondo/clj-kondo/issues/1272) ([@daveduthie](https://github.com/daveduthie))
+- Macroexpand clojure.template/do-template [#603](https://github.com/clj-kondo/clj-kondo/issues/603)
+- Proper macroexpansion for clojure.test/are [#1284](https://github.com/clj-kondo/clj-kondo/issues/1284)
+- Resolve vars in `clojure.data.xml` imported via macro [#1274](https://github.com/clj-kondo/clj-kondo/issues/1274)
+
+### Enhanced / fixed
+
+- Improve keyword reg support for re-frame [#1159](https://github.com/clj-kondo/clj-kondo/issues/1159) ([@ericdallo](https://github.com/ericdallo))
+- Refine messaging around importing configs [#1256](https://github.com/clj-kondo/clj-kondo/issues/1256) ([@lread](https://github.com/lread))
+- Static linux binary is now compiled with musl
+
 ## 2021.04.23
 
 ### New
