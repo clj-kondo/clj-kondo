@@ -121,7 +121,11 @@
         used-nss (atom {:clj #{}
                         :cljs #{}
                         :cljc #{}})
-        ctx {:dependencies (or dependencies no-warnings)
+
+        ctx {:config-hash
+             ;; in delay to save time when linting only non-jar files
+             (delay (core-impl/config-hash config))
+             :dependencies (or dependencies no-warnings)
              :copy-configs copy-configs
              :config-dir cfg-dir
              :config config
