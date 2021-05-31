@@ -313,8 +313,10 @@
           (if (str/ends-with? (.getPath file) ".jar")
             ;; process jar file
             (let [jar-name (.getName file)
+                  config-hash @(:config-hash ctx)
                   cache-dir (:cache-dir ctx)
-                  skip-entry (when cache-dir (io/file cache-dir "skip" jar-name))]
+                  skip-mark (str jar-name "." config-hash)
+                  skip-entry (when cache-dir (io/file cache-dir "skip" skip-mark))]
               (if-not (and cache-dir (:dependencies ctx)
                            (not (str/includes? jar-name "SNAPSHOT"))
                            (.exists skip-entry)
@@ -322,7 +324,7 @@
                 (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                                      dev?)
                           (sources-from-jar ctx file canonical?))
-                    (update ctx :mark-linted swap! conj [jar-name path]))
+                    (update ctx :mark-linted swap! conj [skip-mark path]))
                 (stderr jar-name "was already linted, skipping")))
             ;; assume normal source file
             (schedule ctx {:filename (if canonical?
@@ -491,6 +493,15 @@
                             (re-find (re-pattern pattern) filename))
                           remove-output)]
       f)))
+
+;;;; aux
+
+(defn config-hash [cfg]
+  (let [config-bytes (.getBytes (str cfg))
+        digest (java.security.MessageDigest/getInstance "SHA-256")
+        config-hash (.digest digest config-bytes)
+        config-hash (format "%032x" (BigInteger. 1 config-hash))]
+    config-hash))
 
 ;;;; Scratch
 
