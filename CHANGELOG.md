@@ -18,7 +18,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Refine messaging around importing configs [#1256](https://github.com/clj-kondo/clj-kondo/issues/1256) ([@lread](https://github.com/lread))
 - Static linux binary is now compiled with musl
 - Recognize :doc from attr-map in defn [#1265](https://github.com/clj-kondo/clj-kondo/issues/1265)
-<!-- - Don't skip linting `.jar` files with `--dependencies` when config(s) have changed [#1285](https://github.com/clj-kondo/clj-kondo/issues/1285) -->
+- Don't skip linting `.jar` files with `--dependencies` when config(s) have changed [#1285](https://github.com/clj-kondo/clj-kondo/issues/1285)
 
 ## 2021.04.23
 
