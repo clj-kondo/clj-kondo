@@ -26,4 +26,6 @@
                      '{:linters {:missing-docstring {:level :warning}}
                        :lint-as {expectations.clojure.test/defexpect clojure.test/deftest}})))
   (is (empty? (lint! (str "(defprotocol Foo)")
+                     '{:linters {:missing-docstring {:level :warning}}})))
+  (is (empty? (lint! (str "(defn f3 {:doc \"Docstring\"} [])")
                      '{:linters {:missing-docstring {:level :warning}}}))))

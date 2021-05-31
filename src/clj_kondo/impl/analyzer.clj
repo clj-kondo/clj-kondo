@@ -478,7 +478,8 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        docstring (string-from-token (first children))
+        docstring (or (string-from-token (first children))
+                      (some-> var-meta :doc str))
         bodies (fn-bodies ctx children expr)
         _ (when (empty? bodies)
             (findings/reg-finding! ctx
