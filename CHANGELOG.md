@@ -10,6 +10,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Macroexpand `clojure.template/do-template` [#603](https://github.com/clj-kondo/clj-kondo/issues/603)
 - Proper macroexpansion for `clojure.test/are` [#1284](https://github.com/clj-kondo/clj-kondo/issues/1284)
 - Resolve vars in `clojure.data.xml` imported via macro [#1274](https://github.com/clj-kondo/clj-kondo/issues/1274)
+- Lint `([])` as invalid call to vector [#1276](https://github.com/clj-kondo/clj-kondo/issues/1276)
 
 ### Enhanced / fixed
 
