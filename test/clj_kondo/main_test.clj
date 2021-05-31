@@ -1505,6 +1505,12 @@ foo/foo ;; this does use the private var
                      "{:linters {:invalid-arity {:skip-args [user/foo]}
                                  :unresolved-symbol {:level :off}}}"))))
 
+(deftest vector-call-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Vector can only be called with 1 arg but was called with: 0"}
+     {:file "<stdin>", :row 1, :col 13, :level :error, :message "Vector can only be called with 1 arg but was called with: 2"})
+   (lint! "([]) ([] 1) ([] 1 2)")))
+
 (deftest not-a-function-test
   (assert-submaps '({:file "<stdin>",
                      :row 1,

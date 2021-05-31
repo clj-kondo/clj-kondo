@@ -1742,21 +1742,32 @@
 (defn lint-map-call! [ctx _the-map arg-count expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
-    (when-not (config/skip? config :invalid-arity callstack)
-      (when (or (zero? arg-count)
-                (> arg-count 2))
+    (when (or (zero? arg-count)
+              (> arg-count 2))
+      (when-not (config/skip? config :invalid-arity callstack)
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) expr :error :invalid-arity
                      (format "map is called with %s args but expects 1 or 2"
                              arg-count)))))))
 
+(defn lint-vector-call! [ctx _the-map arg-count expr]
+  (let [callstack (:callstack ctx)
+        config (:config ctx)]
+    (when (not= 1 arg-count)
+      (when-not (config/skip? config :invalid-arity callstack)
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) expr :error :invalid-arity
+                     (str "Vector can only be called with 1 arg but was called with: "
+                          arg-count)))))))
+
 (defn lint-symbol-call! [ctx _the-symbol arg-count expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
-    (when-not (config/skip? config :invalid-arity callstack)
-      (when (or (zero? arg-count)
-                (> arg-count 2))
+    (when (or (zero? arg-count)
+              (> arg-count 2))
+      (when-not (config/skip? config :invalid-arity callstack)
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) expr :error :invalid-arity
@@ -1858,6 +1869,10 @@
                         (analyze-children ctx
                                           (update ctx :callstack conj [nil t])
                                           children))))
+                :vector
+                (do (lint-vector-call! ctx function arg-count expr)
+                    (types/add-arg-type-from-expr ctx expr)
+                    (analyze-children (update ctx :callstack conj [nil t]) children))
                 :token
                 (if-let [k (:k function)]
                   (do
