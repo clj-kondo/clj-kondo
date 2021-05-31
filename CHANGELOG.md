@@ -17,6 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Improve keyword reg support for re-frame [#1159](https://github.com/clj-kondo/clj-kondo/issues/1159) ([@ericdallo](https://github.com/ericdallo))
 - Refine messaging around importing configs [#1256](https://github.com/clj-kondo/clj-kondo/issues/1256) ([@lread](https://github.com/lread))
 - Static linux binary is now compiled with musl
+- Don't skip linting `.jar` files with `--dependencies` when config(s) have changed [#1285](https://github.com/clj-kondo/clj-kondo/issues/1285)
 
 ## 2021.04.23
 
