@@ -41,7 +41,8 @@
 
 (defn analyze-keys [ctx expr]
   (let [body (next (:children expr))]
-    (keys/lint-map-keys ctx {:children body} {:known-key? #{:req :opt :req-un :opt-un}})))
+    (keys/lint-map-keys ctx {:children body} {:known-key? #{:req :opt :req-un :opt-un}})
+    (common/analyze-children ctx body)))
 
 ;;;; Scratch
 (require '[clj-kondo.impl.parser])

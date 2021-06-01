@@ -1942,7 +1942,8 @@ foo/foo ;; this does use the private var
      :level   :error,
      :message "unknown option ::req-un"}]
    (lint! (io/file "corpus" "spec_syntax.clj")
-          '{:linters {:unresolved-symbol {:level :error}}})))
+          '{:linters {:unresolved-symbol {:level :error}
+                      :unused-namespace {:level :error}}})))
 
 (deftest hashbang-test
   (assert-submaps

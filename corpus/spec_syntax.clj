@@ -31,3 +31,7 @@
               ::opt-un [::a]
               ::req [::a]
               ::req-un [::a]))
+
+(require '[spec-keys :as sk]) ;; namespace is used because of below s/keys call
+
+(s/keys :req [::sk/my-key])
