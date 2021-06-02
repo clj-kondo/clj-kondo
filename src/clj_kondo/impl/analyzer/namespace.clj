@@ -154,7 +154,8 @@
                                    (str "require with " (str child-k))))))
                   (recur
                    (nnext children)
-                   (cond (and (not self-require?) (sequential? opt))
+                   (cond (and (not self-require?) (sequential? opt)
+                              (not (contains? (set (get-in ctx [:config :linters :use :exclude])) ns-name)))
                          (let [;; undo referred-all when using :only with :use
                                m (if (and use? (= :only child-k))
                                    (do (findings/reg-finding!
