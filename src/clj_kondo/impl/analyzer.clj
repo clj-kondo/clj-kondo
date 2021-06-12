@@ -1502,7 +1502,8 @@
                       defprotocol (analyze-defprotocol ctx expr)
                       (defrecord deftype definterface) (analyze-defrecord ctx expr defined-by)
                       comment
-                      (analyze-children ctx children)
+                      (let [ctx (assoc ctx :in-comment true)]
+                        (analyze-children ctx children))
                       (-> some->)
                       (analyze-expression** ctx (macroexpand/expand-> ctx expr))
                       (->> some->>)
