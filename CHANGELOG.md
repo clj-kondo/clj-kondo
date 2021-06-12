@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- Disable redefined-var warning in comment [#1294](https://github.com/clj-kondo/clj-kondo/issues/1294)
+
 ## v2021.06.01
 
 - False positive unused namespace with `clojure.spec/keys` [#1289](https://github.com/clj-kondo/clj-kondo/issues/1289)
