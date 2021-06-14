@@ -960,7 +960,7 @@ foo/foo ;; this does use the private var
   (let [res (lint! "(let [x 1] (let [y 2]))" "--config" "^:replace {:linters {:redundant-let {:level :info}}}")]
     (is (every? #(identical? :info (:level %)) res))))
 
-(deftest map-duplicate-keys
+(deftest map-duplicate-keys-test
   (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}
            {:file "<stdin>",
             :row 1,
@@ -1066,13 +1066,14 @@ foo/foo ;; this does use the private var
    '({:row 1, :col 22, :level :error, :message "missing value for key :c"})
    (lint! "(let [{:keys [:a :b] :c} {}] [a b])")))
 
-(deftest set-duplicate-key
+(deftest set-duplicate-keys-test
   (is (= '({:file "<stdin>",
             :row 1,
             :col 7,
             :level :error,
             :message "duplicate set element 1"})
-         (lint! "#{1 2 1}"))))
+         (lint! "#{1 2 1}")))
+  (is (empty? (lint! "(let [foo 1] #{'foo foo})"))))
 
 (deftest macroexpand-test
   (assert-submap

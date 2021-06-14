@@ -6,6 +6,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - Disable redefined-var warning in comment [#1294](https://github.com/clj-kondo/clj-kondo/issues/1294)
 - `:skip-comments false` doesn't override `:skip-comments true` in namespace config [#1295](https://github.com/clj-kondo/clj-kondo/issues/1295)
+- False positive duplicate element set for symbols/classes [#1296](https://github.com/clj-kondo/clj-kondo/issues/1296)
 
 ## v2021.06.01
 
