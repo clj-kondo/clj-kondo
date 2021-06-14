@@ -322,6 +322,15 @@
     (str/replace s "\\" "/")
     s))
 
+;; (require 'clojure.pprint)
+
+;; (defn where-am-i [depth]
+;;   (let [ks [:fileName :lineNumber :className]]
+;;     (clojure.pprint/print-table
+;;      ks
+;;      (map (comp #(select-keys % ks) bean)
+;;           (take depth (.getStackTrace (Thread/currentThread)))))))
+
 ;;;; Scratch
 
 (comment

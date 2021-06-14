@@ -16,11 +16,12 @@
   (println))
 
 (defmethod clojure.test/report :end-test-var [_m]
-  (let [{:keys [:fail :error]} @*report-counters*]
-    (when (and (= "true" (System/getenv "CLJ_KONDO_FAIL_FAST"))
-               (or (pos? fail) (pos? error)))
-      (println "=== Failing fast")
-      (System/exit 1))))
+  (when-let [rc *report-counters*]
+    (when-let [{:keys [:fail :error]} @rc]
+      (when (and (= "true" (System/getenv "CLJ_KONDO_FAIL_FAST"))
+                 (or (pos? fail) (pos? error)))
+        (println "=== Failing fast")
+        (System/exit 1)))))
 
 (deftest self-lint-test
   (is (empty? (lint! (io/file "src")
@@ -217,7 +218,21 @@
       :col 24,
       :level :error,
       :message "user/deep-merge is called with 0 args but expects 2"})
-   (lint! "(defn deep-merge [x y] (deep-merge))")))
+   (lint! "(defn deep-merge [x y] (deep-merge))"))
+  (assert-submaps
+   '({:file "corpus/skip_args/streams_test.clj",
+      :row 4,
+      :col 33,
+      :level :error,
+      :message "duplicate key :a"})
+   (lint! (io/file "corpus" "skip_args" "streams_test.clj") '{:linters {:invalid-arity {:skip-args [riemann.test/test-stream]}}}))
+  (assert-submaps
+   '({:file "corpus/skip_args/arity.clj",
+      :row 6,
+      :col 1,
+      :level :error,
+      :message "skip-args.arity/my-macro is called with 4 args but expects 3"})
+   (lint! (io/file "corpus" "skip_args" "arity.clj") '{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}})))
 
 (deftest invalid-arity-schema-test
   (assert-submaps
@@ -888,27 +903,30 @@ foo/foo ;; this does use the private var
        (lint! "(cond 1 2)" '{:linters {:cond-else {:level :off}}})))
   (is (str/starts-with?
        (with-out-str
-         (lint! (io/file "corpus") '{:output {:progress true}}))
+         (lint! (io/file "corpus") '{:output {:progress true}} "--config-dir" "corpus/.clj-kondo"))
        "...."))
   (doseq [fmt [:json :edn]]
     (is (not (str/starts-with?
               (with-out-str
                 (lint! (io/file "corpus")
-                       {:output {:progress true :format fmt}}))
+                       {:output {:progress true :format fmt}}
+                       "--config-dir" "corpus/.clj-kondo"))
               "...."))))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
-                                   '{:output {:exclude-files ["datascript"]}})))))
+                                   '{:output {:exclude-files ["datascript"]}}
+                                   "--config-dir" "corpus/.clj-kondo")))))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
-                                   '{:output {:include-files ["inline_def"]}})))))
+                                   '{:output {:include-files ["inline_def"]}}
+                                   "--config-dir" "corpus/.clj-kondo")))))
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
            (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}"}
                                                 :linters {:unresolved-symbol {:level :off}}}))))
        "WARNING_<stdin>"))
-  (is (empty? (lint! "(comment (select-keys))" '{:skip-args [clojure.core/comment]
+  (is (empty? (lint! "(comment (select-keys))" '{:skip-comments true
                                                  :linters {:unresolved-symbol {:level :off}}})))
   (assert-submap
    '({:file "<stdin>",
@@ -925,6 +943,18 @@ foo/foo ;; this does use the private var
                      '{:linters {:unused-namespace {:exclude
                                                     [".*\\.specs$"
                                                      ".*\\.spex$"]}}}))))
+
+(deftest skip-comments-test
+  (is (= 1 (count
+            (lint! "(comment (inc :foo))"
+                   {:linters {:type-mismatch {:level :error}}}))))
+  (is (empty? (lint! "(comment (inc :foo))"
+                     {:skip-comments true
+                      :linters {:type-mismatch {:level :error}}})))
+  (is (= 1 (count (lint! "(ns foo {:clj-kondo/config {:skip-comments false}})
+                          (comment (inc :foo))"
+                         {:skip-comments true
+                          :linters {:type-mismatch {:level :error}}})))))
 
 (deftest replace-config-test
   (let [res (lint! "(let [x 1] (let [y 2]))" "--config" "^:replace {:linters {:redundant-let {:level :info}}}")]
@@ -1169,32 +1199,6 @@ foo/foo ;; this does use the private var
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(in-ns 'foo) (clojure.core/let [x 1])"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
-
-(deftest skip-args-test
-  (is
-   (empty?
-    (lint! (io/file "corpus" "skip_args" "comment.cljs") '{:skip-args [cljs.core/comment]})))
-  (assert-submaps
-   '({:file "corpus/skip_args/streams_test.clj",
-      :row 4,
-      :col 33,
-      :level :error,
-      :message "duplicate key :a"})
-   (lint! (io/file "corpus" "skip_args" "streams_test.clj") '{:linters {:invalid-arity {:skip-args [riemann.test/test-stream]}}}))
-  (assert-submaps
-   '({:file "corpus/skip_args/arity.clj",
-      :row 6,
-      :col 1,
-      :level :error,
-      :message "skip-args.arity/my-macro is called with 4 args but expects 3"})
-   (lint! (io/file "corpus" "skip_args" "arity.clj") '{:skip-args [skip-args.arity/my-macro]}))
-  (assert-submaps
-   '({:file "corpus/skip_args/arity.clj",
-      :row 6,
-      :col 1,
-      :level :error,
-      :message "skip-args.arity/my-macro is called with 4 args but expects 3"})
-   (lint! (io/file "corpus" "skip_args" "arity.clj") '{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}})))
 
 (deftest recur-test
   (assert-submaps

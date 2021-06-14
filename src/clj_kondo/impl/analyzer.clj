@@ -54,7 +54,8 @@
                                         [cljs.core do]
                                         [clojure.core let]
                                         [cljs.core let]])))]
-     (when-not (config/skip? config callstack)
+     (when-not (and (:in-comment ctx)
+                    (:skip-comments config))
        (let [len (count children)
              ctx (assoc ctx
                         :top-level? top-level?
