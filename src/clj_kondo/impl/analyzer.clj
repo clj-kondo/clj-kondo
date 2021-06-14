@@ -190,12 +190,12 @@
                      (namespace/check-shadowed-binding! ctx s expr)
                      (with-meta {s v} (when t {:tag t})))
                    (findings/reg-finding!
-                     ctx
-                     (node->line (:filename ctx)
-                                 expr
-                                 :error
-                                 :syntax
-                                 (str "unsupported binding form " sym)))))))
+                    ctx
+                    (node->line (:filename ctx)
+                                expr
+                                :error
+                                :syntax
+                                (str "unsupported binding form " sym)))))))
            ;; keyword
            (:k expr)
            (let [k (:k expr)]
@@ -219,20 +219,20 @@
                ;; context, e.g. seq-destructuring?
                (when (not= :as k)
                  (findings/reg-finding!
-                   ctx
-                   (node->line (:filename ctx)
-                               expr
-                               :error
-                               :syntax
-                               (str "unsupported binding form " k))))))
+                  ctx
+                  (node->line (:filename ctx)
+                              expr
+                              :error
+                              :syntax
+                              (str "unsupported binding form " k))))))
            :else
            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx)
-                         expr
-                         :error
-                         :syntax
-                         (str "unsupported binding form " expr))))
+            ctx
+            (node->line (:filename ctx)
+                        expr
+                        :error
+                        :syntax
+                        (str "unsupported binding form " expr))))
          :vector (let [children (:children expr)
                        all-tokens? (every? #(identical? :token %) (map :tag children))
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
@@ -251,10 +251,10 @@
                        t (:tag expr-meta)
                        t (when t (types/tag-from-meta t))]
                    (with-meta (into {} v)
-                              ;; this is used for checking the return tag of a function body
-                              (assoc expr-meta
-                                     :tag t
-                                     :tags tags)))
+                     ;; this is used for checking the return tag of a function body
+                     (assoc expr-meta
+                            :tag t
+                            :tags tags)))
          :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr opts)
          :map
          ;; first check even amount of keys + vals
@@ -270,13 +270,13 @@
                              (:keys :syms :strs)
                              (recur rest-kvs
                                     (into res (map #(extract-bindings
-                                                      ctx
-                                                      %
-                                                      scoped-expr
-                                                      (assoc opts
-                                                             :keys-destructuring? true
-                                                             :destructuring-type (some-> k :k name keyword)
-                                                             :destructuring-expr k)))
+                                                     ctx
+                                                     %
+                                                     scoped-expr
+                                                     (assoc opts
+                                                            :keys-destructuring? true
+                                                            :destructuring-type (some-> k :k name keyword)
+                                                            :destructuring-expr k)))
                                           (:children v)))
                              ;; or doesn't introduce new bindings, it only gives defaults
                              :or
@@ -299,12 +299,12 @@
                                                 {:analyzed (analyze-expression** ctx v)}))))
                  res)))
          (findings/reg-finding!
-           ctx
-           (node->line (:filename ctx)
-                       expr
-                       :error
-                       :syntax
-                       (str "unsupported binding form " expr))))))))
+          ctx
+          (node->line (:filename ctx)
+                      expr
+                      :error
+                      :syntax
+                      (str "unsupported binding form " expr))))))))
 
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
   (let [{:keys [:row :col]} expr
@@ -737,11 +737,11 @@
                 (if if?
                   ;; in the case of if, the binding is only valid in the first expression
                   (concat
-                    (analyze-expression** (ctx-with-bindings ctx
-                                                             (dissoc bindings
-                                                                     :analyzed))
-                                          (first body-exprs))
-                    (analyze-children ctx (rest body-exprs) false))
+                   (analyze-expression** (ctx-with-bindings ctx
+                                                            (dissoc bindings
+                                                                    :analyzed))
+                                         (first body-exprs))
+                   (analyze-children ctx (rest body-exprs) false))
                   (analyze-children ctx-with-binding body-exprs false)))))))
 
 (defn fn-arity [ctx bodies]
@@ -855,7 +855,7 @@
                                          (merge (scope-end expr))))]
                              (namespace/reg-binding! ctx (-> ctx :ns :name) v)
                              [(:value name-expr) v]))
-                        name-exprs))
+                         name-exprs))
         ctx (ctx-with-bindings ctx bindings)
         processed-fns (for [f fns
                             :let [children (:children f)
@@ -1020,8 +1020,8 @@
         protocol-name (:value name-node)
         ns-name (:name ns)
         transduce-arity-vecs (filter
-                               ;; skip last docstring
-                               #(when (= :vector (tag %)) %))]
+                              ;; skip last docstring
+                              #(when (= :vector (tag %)) %))]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr
                           (assoc (meta name-node)
@@ -1045,15 +1045,15 @@
                                   (comp transduce-arity-vecs (map #(count (:children %))))
                                   arities)]
           (namespace/reg-var!
-            ctx ns-name fn-name expr
-            (assoc-some (meta c)
-                        :arglist-strs arglist-strs
-                        :name-row (:row name-meta)
-                        :name-col (:col name-meta)
-                        :name-end-row (:end-row name-meta)
-                        :name-end-col (:end-col name-meta)
-                        :fixed-arities fixed-arities
-                        :defined-by 'clojure.core/defprotocol)))))))
+           ctx ns-name fn-name expr
+           (assoc-some (meta c)
+                       :arglist-strs arglist-strs
+                       :name-row (:row name-meta)
+                       :name-col (:col name-meta)
+                       :name-end-row (:end-row name-meta)
+                       :name-end-col (:end-col name-meta)
+                       :fixed-arities fixed-arities
+                       :defined-by 'clojure.core/defprotocol)))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
@@ -1346,6 +1346,60 @@
             (recur (inc attempt) (rest args))))))
     (analyze-children ctx children false)))
 
+(defn analyze-map [ctx expr]
+  (let [children (next (:children expr))
+        f (first children)
+        fsym (utils/symbol-from-token f)
+        binding? (when fsym (contains? (:bindings ctx) fsym))
+        ns (:ns ctx)
+        var? (and fsym (not binding?))
+        ns-name (:name ns)
+        {resolved-namespace :ns
+         resolved-name :name
+         resolved-alias :alias
+         unresolved? :unresolved?
+         unresolved-ns :unresolved-ns
+         clojure-excluded? :clojure-excluded?
+         interop? :interop?
+         resolved-core? :resolved-core?
+         :as _m} (when var?
+                   (resolve-name ctx ns-name fsym))
+        var? (and fsym (not binding?))
+        arg-count (dec (count children))]
+    (when var?
+      (let [{:keys [:row :end-row :col :end-col]} (meta f)]
+        (namespace/reg-var-usage! ctx ns-name
+                                  {:type :call
+                                   :resolved-ns resolved-namespace
+                                   :ns ns-name
+                                   :name (with-meta
+                                           (or resolved-name fsym)
+                                           (meta fsym))
+                                   :alias resolved-alias
+                                   :unresolved? unresolved?
+                                   :unresolved-ns unresolved-ns
+                                   :clojure-excluded? clojure-excluded?
+                                   :arity (if (zero? arg-count) ;; transducer
+                                            1
+                                            arg-count)
+                                   :row row
+                                   :end-row end-row
+                                   :col col
+                                   :end-col end-col
+                                   :base-lang (:base-lang ctx)
+                                   :lang (:lang ctx)
+                                   :filename (:filename ctx)
+                                   ;; save some memory during dependencies
+                                   :expr (when-not (:dependencies ctx) expr)
+                                   :simple? (simple-symbol? fsym)
+                                   :callstack (:callstack ctx)
+                                   :config (:config ctx)
+                                   :top-ns (:top-ns ctx)
+                                   :arg-types (:arg-types ctx)
+                                   :interop? interop?
+                                   :resolved-core? resolved-core?})))
+    (analyze-children ctx children false)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -1561,6 +1615,7 @@
                       set! (analyze-set! ctx expr)
                       (with-redefs binding) (analyze-with-redefs ctx expr)
                       (when when-not) (analyze-when ctx expr)
+                      (map) (analyze-map ctx expr)
                       ;; catch-all
                       (case [resolved-as-namespace resolved-as-name]
                         [clj-kondo.lint-as def-catch-all]
