@@ -3,5 +3,5 @@
 
 (private 1 2 3)
 (x/private-by-meta)
-(map private [])
-(map #'private.private-defs/private []) ;; <- should not be reported
+(map private [] [] [])
+(map #'private.private-defs/private [] [] []) ;; <- should not be reported
