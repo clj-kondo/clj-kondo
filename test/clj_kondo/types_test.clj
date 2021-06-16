@@ -49,10 +49,10 @@
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 32,
+      :col 33,
       :level :error,
       :message "Expected: seqable collection, received: transducer."})
-   (lint! "(let [x (map (fn []))] (cons 1 x))"
+   (lint! "(let [x (map (fn [_]))] (cons 1 x))"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps
    '({:file "<stdin>",
