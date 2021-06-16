@@ -141,6 +141,9 @@
       :message "clojure.core/inc is called with 2 args but expects 1"})
    (lint! "(map inc [1 2 3] [4 5 6])"))
   (assert-submaps
+   '({:file "<stdin>", :row 1, :col 9, :level :error, :message "fn is called with 1 arg but expects 2"})
+   (lint! "(filter (fn [_ _]) [1 2 3])"))
+  (assert-submaps
    '({:file "<stdin>", :row 1, :col 40, :level :error, :message "user/foo is called with 1 arg but expects 2"})
    (lint! "(defn foo [a b] (+ a b)) (into [] (map foo) [1 2 3])"))
   (assert-submaps
@@ -149,6 +152,9 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 6, :level :error, :message "fn* is called with 1 arg but expects 2"})
    (lint! "(map #(do % %2) [1 2 3])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 7, :level :error, :message "fn* is called with 1 arg but expects 2"})
+   (lint! "(mapv #(do % %2) [1 2 3])"))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 23, :level :error, :message "f is called with 1 arg but expects 0"})
    (lint! "(let [f (fn [])] (map f [1 2 3]))")))

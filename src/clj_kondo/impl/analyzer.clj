@@ -1349,7 +1349,7 @@
             (recur (inc attempt) (rest args))))))
     (analyze-children ctx children false)))
 
-(defn analyze-map [ctx expr]
+(defn analyze-hof [ctx expr resolved-as-name]
   (let [children (next (:children expr))
         f (first children)
         fana (analyze-expression** ctx f)
@@ -1373,8 +1373,13 @@
                    (resolve-name ctx ns-name fsym))
         var? (and fsym (not binding))
         args (rest children)
-        arg-count (count args)
-        arg-count (if (zero? arg-count) ;; transducer
+        arg-count (if (or (= 'map resolved-as-name)
+                          (= 'mapv resolved-as-name))
+                    (count args)
+                    1)
+        transducer-eligable? (one-of resolved-as-name [map filter remove])
+        arg-count (if (and transducer-eligable?
+                           (zero? arg-count)) ;; transducer
                     1
                     arg-count)]
     (cond var?
@@ -1639,7 +1644,7 @@
                       set! (analyze-set! ctx expr)
                       (with-redefs binding) (analyze-with-redefs ctx expr)
                       (when when-not) (analyze-when ctx expr)
-                      (map) (analyze-map ctx expr)
+                      (map mapv filter filterv remove) (analyze-hof ctx expr resolved-as-name)
                       ;; catch-all
                       (case [resolved-as-namespace resolved-as-name]
                         [clj-kondo.lint-as def-catch-all]
