@@ -910,6 +910,10 @@
        defrecord (analyze-defrecord ctx expr defined-by))
      (analyze-children ctx schemas))))
 
+(defn arity-match? [fixed-arities varargs-min-arity arg-count]
+  (or (contains? fixed-arities arg-count)
+      (and varargs-min-arity (>= arg-count varargs-min-arity))))
+
 (defn analyze-binding-call [ctx fn-name binding expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)
@@ -936,8 +940,7 @@
           (when-let [{:keys [:fixed-arities :varargs-min-arity]}
                      (get (:arities ctx) fn-name)]
             (let [arg-count (count (rest children))]
-              (when-not (or (contains? fixed-arities arg-count)
-                            (and varargs-min-arity (>= arg-count varargs-min-arity)))
+              (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
                 (findings/reg-finding! ctx
                                        (node->line filename expr :error
                                                    :invalid-arity
@@ -1349,10 +1352,14 @@
 (defn analyze-map [ctx expr]
   (let [children (next (:children expr))
         f (first children)
+        fana (analyze-expression** ctx f)
         fsym (utils/symbol-from-token f)
-        binding? (when fsym (contains? (:bindings ctx) fsym))
+        binding (get (:bindings ctx) fsym)
+        arity (if binding
+                (get (:arities ctx) fsym)
+                (-> fana meta :arity))
         ns (:ns ctx)
-        var? (and fsym (not binding?))
+        var? (and fsym (not binding))
         ns-name (:name ns)
         {resolved-namespace :ns
          resolved-name :name
@@ -1364,9 +1371,13 @@
          resolved-core? :resolved-core?
          :as _m} (when var?
                    (resolve-name ctx ns-name fsym))
-        var? (and fsym (not binding?))
-        arg-count (dec (count children))]
-    (when var?
+        var? (and fsym (not binding))
+        args (rest children)
+        arg-count (count args)
+        arg-count (if (zero? arg-count) ;; transducer
+                    1
+                    arg-count)]
+    (cond var?
       (let [{:keys [:row :end-row :col :end-col]} (meta f)]
         (namespace/reg-var-usage! ctx ns-name
                                   {:type :call
@@ -1379,9 +1390,7 @@
                                    :unresolved? unresolved?
                                    :unresolved-ns unresolved-ns
                                    :clojure-excluded? clojure-excluded?
-                                   :arity (if (zero? arg-count) ;; transducer
-                                            1
-                                            arg-count)
+                                   :arity arg-count
                                    :row row
                                    :end-row end-row
                                    :col col
@@ -1397,8 +1406,23 @@
                                    :top-ns (:top-ns ctx)
                                    :arg-types (:arg-types ctx)
                                    :interop? interop?
-                                   :resolved-core? resolved-core?})))
-    (analyze-children ctx children false)))
+                                   :resolved-core? resolved-core?}))
+      arity (let [{:keys [:fixed-arities :varargs-min-arity]} arity
+                  config (:config ctx)
+                  callstack (:callstack ctx)]
+              (when-not (config/skip? config :invalid-arity callstack)
+                (let [filename (:filename ctx)]
+                  (when-not (linter-disabled? ctx :invalid-arity)
+                    (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
+                      (let [fst-ana (first fana)
+                            fn-name (or fsym (:name fst-ana))]
+                        (findings/reg-finding!
+                         ctx
+                         (node->line filename f :error
+                                     :invalid-arity
+                                     (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
+    (concat fana
+            (analyze-children ctx args false))))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}

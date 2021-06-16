@@ -142,4 +142,13 @@
    (lint! "(map inc [1 2 3] [4 5 6])"))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 40, :level :error, :message "user/foo is called with 1 arg but expects 2"})
-   (lint! "(defn foo [a b] (+ a b)) (into [] (map foo) [1 2 3])")))
+   (lint! "(defn foo [a b] (+ a b)) (into [] (map foo) [1 2 3])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "fn is called with 1 arg but expects 0"})
+   (lint! "(map (fn []) [1 2 3])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "fn* is called with 1 arg but expects 2"})
+   (lint! "(map #(do % %2) [1 2 3])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 23, :level :error, :message "f is called with 1 arg but expects 0"})
+   (lint! "(let [f (fn [])] (map f [1 2 3]))")))
