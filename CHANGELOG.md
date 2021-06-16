@@ -4,6 +4,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+### New
+
+- Lint arities of fn arguments to `map`, `filter`, `reduce` and related  [#1297](https://github.com/clj-kondo/clj-kondo/issues/1297)
+
+### Enhanced / fixed
+
 - Disable redefined-var warning in comment [#1294](https://github.com/clj-kondo/clj-kondo/issues/1294)
 - `:skip-comments false` doesn't override `:skip-comments true` in namespace config [#1295](https://github.com/clj-kondo/clj-kondo/issues/1295)
 - False positive duplicate element set for symbols/classes [#1296](https://github.com/clj-kondo/clj-kondo/issues/1296)
