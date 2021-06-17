@@ -5,7 +5,7 @@ set -eo pipefail
 # populate mvn cache for extract tests
 clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.9.0"}}}' -Spath > /dev/null
 clojure -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.10.2"}}}' -Spath > /dev/null
-clojure -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.10.773"}}}' -Spath > /dev/null
+clojure -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.10.866"}}}' -Spath > /dev/null
 
 if [ "$CLJ_KONDO_TEST_ENV" = "native" ]; then
     clojure -M:test
