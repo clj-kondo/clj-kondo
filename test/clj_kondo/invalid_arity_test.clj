@@ -136,6 +136,9 @@
 
 (deftest invalid-arity-hof-test
   (is (empty? (lint! "(map inc [1 2 3])")))
+  (is (empty? (lint! "(map-indexed (fn [i e]) [1 2 3])")))
+  (is (empty? (lint! "(keep-indexed (fn [i e]) [1 2 3])")))
+  (is (empty? (lint! "(reduce (fn [acc e]) [1 2 3])")))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 6, :level :error,
       :message "clojure.core/inc is called with 2 args but expects 1"})
@@ -157,4 +160,10 @@
    (lint! "(mapv #(do % %2) [1 2 3])"))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 23, :level :error, :message "f is called with 1 arg but expects 0"})
-   (lint! "(let [f (fn [])] (map f [1 2 3]))")))
+   (lint! "(let [f (fn [])] (map f [1 2 3]))"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 14, :level :error, :message "fn is called with 2 args but expects 1"})
+   (lint! "(map-indexed (fn [e]) [1 2 3])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 7, :level :error, :message "fn is called with 1 arg but expects 2"})
+   (lint! "(some (fn [i e]) [1 2 3])")))

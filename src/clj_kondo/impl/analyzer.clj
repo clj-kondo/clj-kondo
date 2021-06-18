@@ -1373,12 +1373,12 @@
                    (resolve-name ctx ns-name fsym))
         var? (and fsym (not binding))
         args (rest children)
-        arg-count (cond (or (= 'map resolved-as-name)
-                          (= 'mapv resolved-as-name))
+        arg-count (cond (one-of resolved-as-name [map mapv mapcat])
                         (count args)
-                        (= 'reduce resolved-as-name) 2
+                        (one-of resolved-as-name [reduce map-indexed keep-indexed]) 2
                         :else 1)
-        transducer-eligable? (one-of resolved-as-name [map filter remove])
+        transducer-eligable? (one-of resolved-as-name [map filter remove mapcat map-indexed
+                                                       keep keep-indexed])
         arg-count (if (and transducer-eligable?
                            (zero? arg-count)) ;; transducer
                     1
@@ -1645,7 +1645,10 @@
                       set! (analyze-set! ctx expr)
                       (with-redefs binding) (analyze-with-redefs ctx expr)
                       (when when-not) (analyze-when ctx expr)
-                      (map mapv filter filterv remove reduce)
+                      (map mapv filter filterv remove reduce
+                           every? not-every? some not-any? mapcat iterate
+                           max-key min-key group-by partition-by map-indexed
+                           keep keep-indexed)
                       (analyze-hof ctx expr resolved-as-name)
                       ;; catch-all
                       (case [resolved-as-namespace resolved-as-name]
