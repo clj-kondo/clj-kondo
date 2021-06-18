@@ -7,6 +7,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ### New
 
 - Lint arities of fn arguments to higher order functions (`map`, `filter`, `reduce`, etc.) [#1297](https://github.com/clj-kondo/clj-kondo/issues/1297)
+- Add `map-node` and `map-node?` to hooks API [#1270](https://github.com/clj-kondo/clj-kondo/issues/1270)
 
 ### Enhanced / fixed
 
