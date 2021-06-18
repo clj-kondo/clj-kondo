@@ -15,7 +15,7 @@
                  [io.lambdaforge/datalog-parser "0.1.8"]
                  [cheshire/cheshire "5.10.0"]
                  [nrepl/bencode "1.1.0"]
-                 [borkdude/sci "0.2.4"]]
+                 [borkdude/sci "0.2.5"]]
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.10.866"]
