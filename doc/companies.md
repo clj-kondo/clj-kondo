@@ -29,6 +29,7 @@ listed!
 - [Loway](https://loway.ch)
 - [MastodonC](https://www.mastodonc.com)
 - [Mediquest](https://home.mediquest.nl/)
+- [Metabase](https://metabase.com)
 - [Metosin](https://www.metosin.fi)
 - [NextJournal](https://nextjournal.com)
 - [Nubank](https://www.nubank.com.br)
