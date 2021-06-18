@@ -17,6 +17,7 @@
 (defn sexpr [expr]
   (node/sexpr expr))
 
+(def map-node seq/map-node)
 (def vector-node seq/vector-node)
 (def list-node seq/list-node)
 (def token-node token/token-node)

@@ -3,10 +3,9 @@
   (:require [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.utils :as utils :refer [assoc-some vector-node list-node
                                                     sexpr token-node keyword-node
-                                                    string-node #_map-node]]
+                                                    string-node map-node]]
             [clojure.java.io :as io]
-            [clojure.zip :as zip]
-            [sci.core :as sci :refer [copy-var]]))
+            [sci.core :as sci]))
 
 (set! *warn-on-reflection* true)
 
@@ -20,38 +19,6 @@
 (defn reg-keyword!
   [k reg-by]
   (assoc-some k :reg reg-by))
-
-(def zip-ns (sci/create-ns 'clojure.zip nil))
-
-(def zip-namespace
-  {'zipper       (copy-var zip/zipper zip-ns)
-   'seq-zip      (copy-var zip/seq-zip zip-ns)
-   'vector-zip   (copy-var zip/vector-zip zip-ns)
-   'xml-zip      (copy-var zip/xml-zip zip-ns)
-   'node         (copy-var zip/node zip-ns)
-   'branch?      (copy-var zip/branch? zip-ns)
-   'children     (copy-var zip/children zip-ns)
-   'make-node    (copy-var zip/make-node zip-ns)
-   'path         (copy-var zip/path zip-ns)
-   'lefts        (copy-var zip/lefts zip-ns)
-   'rights       (copy-var zip/rights zip-ns)
-   'down         (copy-var zip/down zip-ns)
-   'up           (copy-var zip/up zip-ns)
-   'root         (copy-var zip/root zip-ns)
-   'right        (copy-var zip/right zip-ns)
-   'rightmost    (copy-var zip/rightmost zip-ns)
-   'left         (copy-var zip/left zip-ns)
-   'leftmost     (copy-var zip/leftmost zip-ns)
-   'insert-left  (copy-var zip/insert-left zip-ns)
-   'insert-right (copy-var zip/insert-right zip-ns)
-   'replace      (copy-var zip/replace zip-ns)
-   'edit         (copy-var zip/edit zip-ns)
-   'insert-child (copy-var zip/insert-child zip-ns)
-   'append-child (copy-var zip/append-child zip-ns)
-   'next         (copy-var zip/next zip-ns)
-   'prev         (copy-var zip/prev zip-ns)
-   'end?         (copy-var zip/end? zip-ns)
-   'remove       (copy-var zip/remove zip-ns)})
 
 (defn time*
   "Evaluates expr and prints the time it took.  Returns the value of
@@ -86,9 +53,9 @@
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :list (utils/tag n))))
 
-;; (defn map-node? [n]
-;;   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
-;;        (identical? :map (utils/tag n))))
+(defn map-node? [n]
+  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
+       (identical? :map (utils/tag n))))
 
 (defn mark-generate [node]
   (assoc node :clj-kondo.impl/generated true))
@@ -102,8 +69,8 @@
    'token-node? token-node?
    'vector-node (comp mark-generate vector-node)
    'vector-node? vector-node?
-   ;; 'map-node map-node
-   ;; 'map-node? map-node?
+   'map-node (comp mark-generate map-node)
+   'map-node? map-node?
    'list-node (comp mark-generate list-node)
    'list-node? list-node?
    'sexpr sexpr
@@ -112,7 +79,6 @@
 
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
-                          'clojure.zip zip-namespace
                           'clj-kondo.hooks-api api-ns}
              :classes {'java.io.Exception Exception
                        'java.lang.System System}
