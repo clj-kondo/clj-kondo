@@ -12,7 +12,6 @@
         row-col-files (sort-by (juxt :file :row :col)
                                (map #(select-keys % [:row :col :file])
                                     linted))]
-    row-col-files
     (assert-submaps
      '({:row 7, :col 1, :file "corpus/invalid_arity/calls.clj"}
        {:row 8, :col 1, :file "corpus/invalid_arity/calls.clj"}

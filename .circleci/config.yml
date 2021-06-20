@@ -37,6 +37,7 @@ jobs:
           command: |
             script/test
             script/analysis-test
+            clojure -M:test:eastwood
       - run:
           name: Run as tools.deps dependency
           command: |

@@ -373,7 +373,7 @@ foo/foo ;; this does use the private var
        (lint! "(quote 1 2 3)" "--lang" (name lang)))))
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
-(deftest cljs-clojure-ns-alias-test []
+(deftest cljs-clojure-ns-alias-test
   (assert-submap '{:file "<stdin>",
                    :row 2,
                    :col 1,
@@ -382,7 +382,7 @@ foo/foo ;; this does use the private var
                  (first (lint! "(ns foo (:require [clojure.test :as t]))
 (t/do-report 1 2 3)" "--lang" "cljs"))))
 
-(deftest prefix-libspec-test []
+(deftest prefix-libspec-test
   (assert-submaps
    '({:col 14
       :file "corpus/prefixed_libspec.clj"
