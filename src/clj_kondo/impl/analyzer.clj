@@ -813,7 +813,8 @@
 (defn analyze-recur [ctx expr]
   (let [filename (:filename ctx)
         recur-arity (:recur-arity ctx)]
-    (when-not (linter-disabled? ctx :invalid-arity)
+    (when-not (or (linter-disabled? ctx :invalid-arity)
+                  (config/skip? (:config ctx) :invalid-arity (:callstack ctx)))
       (let [arg-count (count (rest (:children expr)))
             expected-arity
             (or (:fixed-arity recur-arity)

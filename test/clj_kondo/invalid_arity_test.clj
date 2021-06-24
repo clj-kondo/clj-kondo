@@ -126,7 +126,16 @@
       :col 1,
       :level :error,
       :message "skip-args.arity/my-macro is called with 4 args but expects 3"})
-   (lint! (io/file "corpus" "skip_args" "arity.clj") '{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}})))
+   (lint! (io/file "corpus" "skip_args" "arity.clj") '{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}}))
+  (is (empty? (lint! "
+(ns my-ns
+  {:clj-kondo/config '{:linters {:invalid-arity {:skip-args [my-ns/loop-10]}
+                                 :unresolved-symbol {:exclude [(my-ns/loop-10)]}}}})
+
+(fn [_ _]
+  (loop-10 [n]
+           (when (pos? n)
+             (recur (dec n)))))"))))
 
 (deftest invalid-arity-schema-test
   (assert-submaps
