@@ -54,7 +54,8 @@
                                         [cljs.core do]
                                         [clojure.core let]
                                         [cljs.core let]])))]
-     (when-not (config/skip? config callstack)
+     (when-not (and (:in-comment ctx)
+                    (:skip-comments config))
        (let [len (count children)
              ctx (assoc ctx
                         :top-level? top-level?
@@ -189,12 +190,12 @@
                      (namespace/check-shadowed-binding! ctx s expr)
                      (with-meta {s v} (when t {:tag t})))
                    (findings/reg-finding!
-                     ctx
-                     (node->line (:filename ctx)
-                                 expr
-                                 :error
-                                 :syntax
-                                 (str "unsupported binding form " sym)))))))
+                    ctx
+                    (node->line (:filename ctx)
+                                expr
+                                :error
+                                :syntax
+                                (str "unsupported binding form " sym)))))))
            ;; keyword
            (:k expr)
            (let [k (:k expr)]
@@ -218,20 +219,20 @@
                ;; context, e.g. seq-destructuring?
                (when (not= :as k)
                  (findings/reg-finding!
-                   ctx
-                   (node->line (:filename ctx)
-                               expr
-                               :error
-                               :syntax
-                               (str "unsupported binding form " k))))))
+                  ctx
+                  (node->line (:filename ctx)
+                              expr
+                              :error
+                              :syntax
+                              (str "unsupported binding form " k))))))
            :else
            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx)
-                         expr
-                         :error
-                         :syntax
-                         (str "unsupported binding form " expr))))
+            ctx
+            (node->line (:filename ctx)
+                        expr
+                        :error
+                        :syntax
+                        (str "unsupported binding form " expr))))
          :vector (let [children (:children expr)
                        all-tokens? (every? #(identical? :token %) (map :tag children))
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
@@ -250,10 +251,10 @@
                        t (:tag expr-meta)
                        t (when t (types/tag-from-meta t))]
                    (with-meta (into {} v)
-                              ;; this is used for checking the return tag of a function body
-                              (assoc expr-meta
-                                     :tag t
-                                     :tags tags)))
+                     ;; this is used for checking the return tag of a function body
+                     (assoc expr-meta
+                            :tag t
+                            :tags tags)))
          :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr opts)
          :map
          ;; first check even amount of keys + vals
@@ -269,13 +270,13 @@
                              (:keys :syms :strs)
                              (recur rest-kvs
                                     (into res (map #(extract-bindings
-                                                      ctx
-                                                      %
-                                                      scoped-expr
-                                                      (assoc opts
-                                                             :keys-destructuring? true
-                                                             :destructuring-type (some-> k :k name keyword)
-                                                             :destructuring-expr k)))
+                                                     ctx
+                                                     %
+                                                     scoped-expr
+                                                     (assoc opts
+                                                            :keys-destructuring? true
+                                                            :destructuring-type (some-> k :k name keyword)
+                                                            :destructuring-expr k)))
                                           (:children v)))
                              ;; or doesn't introduce new bindings, it only gives defaults
                              :or
@@ -298,12 +299,12 @@
                                                 {:analyzed (analyze-expression** ctx v)}))))
                  res)))
          (findings/reg-finding!
-           ctx
-           (node->line (:filename ctx)
-                       expr
-                       :error
-                       :syntax
-                       (str "unsupported binding form " expr))))))))
+          ctx
+          (node->line (:filename ctx)
+                      expr
+                      :error
+                      :syntax
+                      (str "unsupported binding form " expr))))))))
 
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
   (let [{:keys [:row :col]} expr
@@ -478,7 +479,8 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        docstring (string-from-token (first children))
+        docstring (or (string-from-token (first children))
+                      (some-> var-meta :doc str))
         bodies (fn-bodies ctx children expr)
         _ (when (empty? bodies)
             (findings/reg-finding! ctx
@@ -737,11 +739,11 @@
                 (if if?
                   ;; in the case of if, the binding is only valid in the first expression
                   (concat
-                    (analyze-expression** (ctx-with-bindings ctx
-                                                             (dissoc bindings
-                                                                     :analyzed))
-                                          (first body-exprs))
-                    (analyze-children ctx (rest body-exprs) false))
+                   (analyze-expression** (ctx-with-bindings ctx
+                                                            (dissoc bindings
+                                                                    :analyzed))
+                                         (first body-exprs))
+                   (analyze-children ctx (rest body-exprs) false))
                   (analyze-children ctx-with-binding body-exprs false)))))))
 
 (defn fn-arity [ctx bodies]
@@ -855,7 +857,7 @@
                                          (merge (scope-end expr))))]
                              (namespace/reg-binding! ctx (-> ctx :ns :name) v)
                              [(:value name-expr) v]))
-                        name-exprs))
+                         name-exprs))
         ctx (ctx-with-bindings ctx bindings)
         processed-fns (for [f fns
                             :let [children (:children f)
@@ -912,6 +914,10 @@
        defrecord (analyze-defrecord ctx expr defined-by))
      (analyze-children ctx schemas))))
 
+(defn arity-match? [fixed-arities varargs-min-arity arg-count]
+  (or (contains? fixed-arities arg-count)
+      (and varargs-min-arity (>= arg-count varargs-min-arity))))
+
 (defn analyze-binding-call [ctx fn-name binding expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)
@@ -938,8 +944,7 @@
           (when-let [{:keys [:fixed-arities :varargs-min-arity]}
                      (get (:arities ctx) fn-name)]
             (let [arg-count (count (rest children))]
-              (when-not (or (contains? fixed-arities arg-count)
-                            (and varargs-min-arity (>= arg-count varargs-min-arity)))
+              (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
                 (findings/reg-finding! ctx
                                        (node->line filename expr :error
                                                    :invalid-arity
@@ -1022,8 +1027,8 @@
         protocol-name (:value name-node)
         ns-name (:name ns)
         transduce-arity-vecs (filter
-                               ;; skip last docstring
-                               #(when (= :vector (tag %)) %))]
+                              ;; skip last docstring
+                              #(when (= :vector (tag %)) %))]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr
                           (assoc (meta name-node)
@@ -1047,15 +1052,15 @@
                                   (comp transduce-arity-vecs (map #(count (:children %))))
                                   arities)]
           (namespace/reg-var!
-            ctx ns-name fn-name expr
-            (assoc-some (meta c)
-                        :arglist-strs arglist-strs
-                        :name-row (:row name-meta)
-                        :name-col (:col name-meta)
-                        :name-end-row (:end-row name-meta)
-                        :name-end-col (:end-col name-meta)
-                        :fixed-arities fixed-arities
-                        :defined-by 'clojure.core/defprotocol)))))))
+           ctx ns-name fn-name expr
+           (assoc-some (meta c)
+                       :arglist-strs arglist-strs
+                       :name-row (:row name-meta)
+                       :name-col (:col name-meta)
+                       :name-end-row (:end-row name-meta)
+                       :name-end-col (:end-col name-meta)
+                       :fixed-arities fixed-arities
+                       :defined-by 'clojure.core/defprotocol)))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
@@ -1348,6 +1353,87 @@
             (recur (inc attempt) (rest args))))))
     (analyze-children ctx children false)))
 
+(defn analyze-hof [ctx expr resolved-as-name]
+  (let [children (next (:children expr))
+        f (first children)
+        fana (analyze-expression** ctx f)
+        fsym (utils/symbol-from-token f)
+        binding (get (:bindings ctx) fsym)
+        arity (if binding
+                (get (:arities ctx) fsym)
+                (-> fana meta :arity))
+        ns (:ns ctx)
+        var? (and fsym (not binding))
+        ns-name (:name ns)
+        {resolved-namespace :ns
+         resolved-name :name
+         resolved-alias :alias
+         unresolved? :unresolved?
+         unresolved-ns :unresolved-ns
+         clojure-excluded? :clojure-excluded?
+         interop? :interop?
+         resolved-core? :resolved-core?
+         :as _m} (when var?
+                   (resolve-name ctx ns-name fsym))
+        var? (and fsym (not binding))
+        args (rest children)
+        arg-count (cond (one-of resolved-as-name [map mapv mapcat])
+                        (count args)
+                        (one-of resolved-as-name [reduce map-indexed keep-indexed]) 2
+                        :else 1)
+        transducer-eligable? (one-of resolved-as-name [map filter remove mapcat map-indexed
+                                                       keep keep-indexed])
+        arg-count (if (and transducer-eligable?
+                           (zero? arg-count)) ;; transducer
+                    1
+                    arg-count)]
+    (cond var?
+      (let [{:keys [:row :end-row :col :end-col]} (meta f)]
+        (namespace/reg-var-usage! ctx ns-name
+                                  {:type :call
+                                   :resolved-ns resolved-namespace
+                                   :ns ns-name
+                                   :name (with-meta
+                                           (or resolved-name fsym)
+                                           (meta fsym))
+                                   :alias resolved-alias
+                                   :unresolved? unresolved?
+                                   :unresolved-ns unresolved-ns
+                                   :clojure-excluded? clojure-excluded?
+                                   :arity arg-count
+                                   :row row
+                                   :end-row end-row
+                                   :col col
+                                   :end-col end-col
+                                   :base-lang (:base-lang ctx)
+                                   :lang (:lang ctx)
+                                   :filename (:filename ctx)
+                                   ;; save some memory during dependencies
+                                   :expr (when-not (:dependencies ctx) expr)
+                                   :simple? (simple-symbol? fsym)
+                                   :callstack (:callstack ctx)
+                                   :config (:config ctx)
+                                   :top-ns (:top-ns ctx)
+                                   ;; :arg-types (:arg-types ctx)
+                                   :interop? interop?
+                                   :resolved-core? resolved-core?}))
+      arity (let [{:keys [:fixed-arities :varargs-min-arity]} arity
+                  config (:config ctx)
+                  callstack (:callstack ctx)]
+              (when-not (config/skip? config :invalid-arity callstack)
+                (let [filename (:filename ctx)]
+                  (when-not (linter-disabled? ctx :invalid-arity)
+                    (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
+                      (let [fst-ana (first fana)
+                            fn-name (or fsym (:name fst-ana))]
+                        (findings/reg-finding!
+                         ctx
+                         (node->line filename f :error
+                                     :invalid-arity
+                                     (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
+    (concat fana
+            (analyze-children ctx args false))))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -1505,7 +1591,8 @@
                       defprotocol (analyze-defprotocol ctx expr)
                       (defrecord deftype definterface) (analyze-defrecord ctx expr defined-by)
                       comment
-                      (analyze-children ctx children)
+                      (let [ctx (assoc ctx :in-comment true)]
+                        (analyze-children ctx children))
                       (-> some->)
                       (analyze-expression** ctx (macroexpand/expand-> ctx expr))
                       (->> some->>)
@@ -1562,6 +1649,11 @@
                       set! (analyze-set! ctx expr)
                       (with-redefs binding) (analyze-with-redefs ctx expr)
                       (when when-not) (analyze-when ctx expr)
+                      (map mapv filter filterv remove reduce
+                           every? not-every? some not-any? mapcat iterate
+                           max-key min-key group-by partition-by map-indexed
+                           keep keep-indexed)
+                      (analyze-hof ctx expr resolved-as-name)
                       ;; catch-all
                       (case [resolved-as-namespace resolved-as-name]
                         [clj-kondo.lint-as def-catch-all]
@@ -1586,8 +1678,8 @@
                         (analyze-clojure-string-replace ctx expr)
                         [cljs.test async]
                         (test/analyze-cljs-test-async ctx expr)
-                        ([clojure.test are] [cljs.test are] #_[clojure.template do-template])
-                        (test/analyze-are ctx expr)
+                        ([clojure.test are] [cljs.test are])
+                        (test/analyze-are ctx resolved-namespace expr)
                         [cljs.spec.alpha def]
                         (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
                         [clojure.spec.alpha def]
@@ -1613,6 +1705,8 @@
                         (analyze-defn ctx expr defined-by)
                         ([clojure.core.reducers defcurried])
                         (analyze-defn ctx expr defined-by)
+                        ([clojure.template do-template])
+                        (analyze-expression** ctx (macroexpand/expand-do-template ctx expr))
                         ([datahike.api q]
                          [datascript.core q]
                          [datomic.api q]
@@ -1645,6 +1739,8 @@
                         (analyze-formatted-logging ctx expr)
                         [clojure.data.xml alias-uri]
                         (xml/analyze-alias-uri ctx expr)
+                        [clojure.data.xml.impl export-api]
+                        (xml/analyze-export-api ctx expr)
                         [cljs.core simple-benchmark]
                         (analyze-like-let ctx expr)
                         [babashka.process $]
@@ -1742,21 +1838,32 @@
 (defn lint-map-call! [ctx _the-map arg-count expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
-    (when-not (config/skip? config :invalid-arity callstack)
-      (when (or (zero? arg-count)
-                (> arg-count 2))
+    (when (or (zero? arg-count)
+              (> arg-count 2))
+      (when-not (config/skip? config :invalid-arity callstack)
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) expr :error :invalid-arity
                      (format "map is called with %s args but expects 1 or 2"
                              arg-count)))))))
 
+(defn lint-vector-call! [ctx _the-map arg-count expr]
+  (let [callstack (:callstack ctx)
+        config (:config ctx)]
+    (when (not= 1 arg-count)
+      (when-not (config/skip? config :invalid-arity callstack)
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) expr :error :invalid-arity
+                     (str "Vector can only be called with 1 arg but was called with: "
+                          arg-count)))))))
+
 (defn lint-symbol-call! [ctx _the-symbol arg-count expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
-    (when-not (config/skip? config :invalid-arity callstack)
-      (when (or (zero? arg-count)
-                (> arg-count 2))
+    (when (or (zero? arg-count)
+              (> arg-count 2))
+      (when-not (config/skip? config :invalid-arity callstack)
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) expr :error :invalid-arity
@@ -1858,6 +1965,10 @@
                         (analyze-children ctx
                                           (update ctx :callstack conj [nil t])
                                           children))))
+                :vector
+                (do (lint-vector-call! ctx function arg-count expr)
+                    (types/add-arg-type-from-expr ctx expr)
+                    (analyze-children (update ctx :callstack conj [nil t]) children))
                 :token
                 (if-let [k (:k function)]
                   (do

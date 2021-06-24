@@ -2,7 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [node->line tag]]))
+   [clj-kondo.impl.utils :as utils :refer [node->line tag]]))
 
 (defn- map-without-nils
   "Like map, but returns nil if any mapped value is nil."
@@ -17,19 +17,20 @@
 
 (defn key-value
   "We only support the following cases for now."
-  [node]
+  [node in-quote?]
   (case (tag node)
     :token (or (when-let [v (:k node)]
                  (if (:namespaced? node)
                    (str v) v))
-               (str node))
-    :vector (map-without-nils key-value (:children node))
-    :list (map-without-nils key-value (:children node))
-    :set (some-> (map-without-nils key-value (:children node))
+               (str (when (and in-quote?
+                               (not (utils/constant? node))) "'") node))
+    :vector (map-without-nils #(key-value % in-quote?) (:children node))
+    :list (map-without-nils #(key-value % in-quote?) (:children node))
+    :set (some-> (map-without-nils #(key-value % in-quote?) (:children node))
                  (set))
-    :map (some->> (map-without-nils key-value (:children node))
+    :map (some->> (map-without-nils #(key-value % in-quote?) (:children node))
                   (apply hash-map))
-    :quote (recur (first (:children node)))
+    :quote (recur (first (:children node)) true)
     nil))
 
 (defn lint-map-keys
@@ -43,7 +44,7 @@
                     (:children expr))]
      (reduce
       (fn [{:keys [:seen] :as acc} key-expr]
-        (if-let [k (key-value key-expr)]
+        (if-let [k (key-value key-expr false)]
           (do
             (when (contains? seen k)
               (findings/reg-finding!
@@ -76,7 +77,7 @@
   (let [children (:children expr)]
     (reduce
      (fn [{:keys [:seen] :as acc} set-element]
-       (if-let [k (key-value set-element)]
+       (if-let [k (key-value set-element false)]
          (do (when (contains? seen k)
                (findings/reg-finding!
                 ctx

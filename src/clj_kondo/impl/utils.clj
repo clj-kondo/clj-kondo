@@ -17,6 +17,7 @@
 (defn sexpr [expr]
   (node/sexpr expr))
 
+(def map-node seq/map-node)
 (def vector-node seq/vector-node)
 (def list-node seq/list-node)
 (def token-node token/token-node)
@@ -321,6 +322,15 @@
   (if windows?
     (str/replace s "\\" "/")
     s))
+
+;; (require 'clojure.pprint)
+
+;; (defn where-am-i [depth]
+;;   (let [ks [:fileName :lineNumber :className]]
+;;     (clojure.pprint/print-table
+;;      ks
+;;      (map (comp #(select-keys % ks) bean)
+;;           (take depth (.getStackTrace (Thread/currentThread)))))))
 
 ;;;; Scratch
 

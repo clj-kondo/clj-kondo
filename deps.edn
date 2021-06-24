@@ -3,7 +3,7 @@
         io.lambdaforge/datalog-parser {:mvn/version "0.1.8"}
         cheshire/cheshire {:mvn/version "5.10.0"}
         nrepl/bencode {:mvn/version "1.1.0"}
-        borkdude/sci {:mvn/version "0.2.4"}}
+        borkdude/sci {:mvn/version "0.2.5"}}
  :aliases {:clj-kondo
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
@@ -12,16 +12,16 @@
            :extract
            {:extra-paths ["extract" "classes"]
             :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}
-                         jonase/eastwood {:mvn/version "0.3.14"}}}
+                         jonase/eastwood {:mvn/version "0.5.2"}}}
            :test
            {:extra-deps
             {org.clojure/clojure {:mvn/version "1.9.0"}
-             org.clojure/clojurescript {:mvn/version "1.10.773"} ;; for extraction
+             org.clojure/clojurescript {:mvn/version "1.10.866"} ;; for extraction
              cognitect/test-runner
              {:git/url "https://github.com/cognitect-labs/test-runner"
               :sha "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}
              clj-commons/conch {:mvn/version "0.9.2"}
-             jonase/eastwood {:mvn/version "0.3.14"}
+             jonase/eastwood {:mvn/version "0.5.2"}
              borkdude/missing.test.assertions {:mvn/version "0.0.2"}
              babashka/fs {:mvn/version "0.0.3"}
              babashka/process {:mvn/version "0.0.2"}
@@ -38,10 +38,13 @@
             :main-opts ["-m" "clj-kondo.profile"]}
            :cljs ;; for performance and regression testing
            {:extra-deps
-            {org.clojure/clojurescript {:mvn/version "1.10.773"}}}
+            {org.clojure/clojurescript {:mvn/version "1.10.866"}}}
            :pod-test
            {:extra-paths ["pod-test"]
             :extra-deps
             {babashka/pods {#_#_:local/root "/Users/borkdude/Dropbox/dev/clojure/babashka/babashka.pods"
                             :git/url "https://github.com/babashka/babashka.pods"
-                            :sha "57cc95a2e2193a4bfb8505d44acaca900279369a"}}}}}
+                            :sha "57cc95a2e2193a4bfb8505d44acaca900279369a"}}}
+           :eastwood
+           {:main-opts ["-m" "eastwood.lint" {:source-paths ["src" "test"]
+                                              :exclude-linters [:unused-ret-vals]}]}}}

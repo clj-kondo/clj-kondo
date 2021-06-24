@@ -16,11 +16,12 @@
   (println))
 
 (defmethod clojure.test/report :end-test-var [_m]
-  (let [{:keys [:fail :error]} @*report-counters*]
-    (when (and (= "true" (System/getenv "CLJ_KONDO_FAIL_FAST"))
-               (or (pos? fail) (pos? error)))
-      (println "=== Failing fast")
-      (System/exit 1))))
+  (when-let [rc *report-counters*]
+    (when-let [{:keys [:fail :error]} @rc]
+      (when (and (= "true" (System/getenv "CLJ_KONDO_FAIL_FAST"))
+                 (or (pos? fail) (pos? error)))
+        (println "=== Failing fast")
+        (System/exit 1)))))
 
 (deftest self-lint-test
   (is (empty? (lint! (io/file "src")
@@ -110,119 +111,6 @@
                      {:linters {:redundant-expression {:level :off}}})))
   (is (empty? (lint! "#(do (prn %1 %2 true) %1)")))
   (is (empty? (lint! "(let [x (do (println 1) 1)] x)"))))
-
-(deftest invalid-arity-test
-  (let [linted (lint! (io/file "corpus" "invalid_arity"))
-        row-col-files (sort-by (juxt :file :row :col)
-                               (map #(select-keys % [:row :col :file])
-                                    linted))]
-    row-col-files
-    (assert-submaps
-     '({:row 7, :col 1, :file "corpus/invalid_arity/calls.clj"}
-       {:row 8, :col 1, :file "corpus/invalid_arity/calls.clj"}
-       {:row 9, :col 1, :file "corpus/invalid_arity/calls.clj"}
-       {:row 10, :col 1, :file "corpus/invalid_arity/calls.clj"}
-       {:row 11, :col 1, :file "corpus/invalid_arity/calls.clj"}
-       {:row 7, :col 1, :file "corpus/invalid_arity/defs.clj"}
-       {:row 10, :col 1, :file "corpus/invalid_arity/defs.clj"}
-       {:row 11, :col 1, :file "corpus/invalid_arity/defs.clj"}
-       {:row 9, :col 1, :file "corpus/invalid_arity/order.clj"})
-     row-col-files)
-    (is (every? #(str/includes? % "is called with")
-                (map :message linted))))
-  (let [invalid-core-function-call-example "
-(ns clojure.core)
-(defn inc [x])
-(ns cljs.core)
-(defn inc [x])
-
-(ns myns)
-(inc 1 2 3)
-"
-        linted (lint! invalid-core-function-call-example '{:linters {:redefined-var {:level :off}}})]
-    (is (pos? (count linted)))
-    (is (every? #(str/includes? % "is called with")
-                linted)))
-  (is (empty? (lint! "(defn foo [x]) (defn bar [foo] (foo))")))
-  (is (empty? (lint! "(defn foo [x]) (let [foo (fn [])] (foo))")))
-  (testing "macroexpansion of ->"
-    (is (empty? (lint! "(defn xinc [x] (+ x 1)) (-> x xinc xinc)")))
-    (is (= 1 (count (lint! "(defn xinc [x] (+ x 1)) (-> x xinc (xinc 1))")))))
-  (testing "macroexpansion of fn literal"
-    (is (= 1 (count (lint! "(defn xinc [x] (+ x 1)) #(-> % xinc (xinc 1))")))))
-  (testing "only invalid calls after definition are caught"
-    (let [linted (lint! (io/file "corpus" "invalid_arity" "order.clj"))
-          row-col-files (map #(select-keys % [:row :col :file])
-                             linted)]
-      (assert-submaps
-       '({:row 9, :col 1, :file "corpus/invalid_arity/order.clj"})
-       row-col-files)))
-  (testing "varargs"
-    (is (some? (seq (lint! "(defn foo [x & xs]) (foo)"))))
-    (is (empty? (lint! "(defn foo [x & xs]) (foo 1 2 3)"))))
-  (testing "defn arity error"
-    (assert-submaps
-     '({:file "<stdin>",
-        :row 1,
-        :col 1,
-        :level :error,
-        :message "clojure.core/defn is called with 0 args but expects 2 or more"}
-       {:file "<stdin>",
-        :row 1,
-        :col 1,
-        :level :error,
-        :message "Invalid function body."}
-       {:file "<stdin>",
-        :row 1,
-        :col 8,
-        :level :error,
-        :message "clojure.core/defmacro is called with 0 args but expects 2 or more"}
-       {:file "<stdin>",
-        :row 1,
-        :col 8,
-        :level :error,
-        :message "Invalid function body."})
-     (lint! "(defn) (defmacro)")))
-  (testing "redefining clojure var gives no error about incorrect arity of clojure var"
-    (is (empty? (lint! "(defn inc [x y] (+ x y))
-                        (inc 1 1)" '{:linters {:redefined-var {:level :off}}}))))
-  (testing "defn with metadata"
-    (assert-submaps
-     '({:file "<stdin>",
-        :row 4,
-        :col 14,
-        :level :error,
-        :message "user/my-chunk-buffer is called with 2 args but expects 1"})
-     (lint! "(defn ^:static ^:foo my-chunk-buffer ^:bar [capacity]
-              (clojure.lang.ChunkBuffer. capacity))
-             (my-chunk-buffer 1)
-             (my-chunk-buffer 1 2)")))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "clojure.core/areduce is called with 0 args but expects 5"})
-   (lint! "(areduce)"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "cljs.core/this-as is called with 0 args but expects 1 or more"})
-   (lint! "(this-as)" "--lang" "cljs"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 24,
-      :level :error,
-      :message "user/deep-merge is called with 0 args but expects 2"})
-   (lint! "(defn deep-merge [x y] (deep-merge))")))
-
-(deftest invalid-arity-schema-test
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 67, :level :error, :message "foo/foo is called with 2 args but expects 1"})
-   (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)")))
 
 (deftest cljc-test
   (assert-submaps
@@ -485,7 +373,7 @@ foo/foo ;; this does use the private var
        (lint! "(quote 1 2 3)" "--lang" (name lang)))))
   (is (empty? (lint! "(cljs.core/array 1 2 3)" "--lang" "cljs"))))
 
-(deftest cljs-clojure-ns-alias-test []
+(deftest cljs-clojure-ns-alias-test
   (assert-submap '{:file "<stdin>",
                    :row 2,
                    :col 1,
@@ -494,7 +382,7 @@ foo/foo ;; this does use the private var
                  (first (lint! "(ns foo (:require [clojure.test :as t]))
 (t/do-report 1 2 3)" "--lang" "cljs"))))
 
-(deftest prefix-libspec-test []
+(deftest prefix-libspec-test
   (assert-submaps
    '({:col 14
       :file "corpus/prefixed_libspec.clj"
@@ -888,27 +776,30 @@ foo/foo ;; this does use the private var
        (lint! "(cond 1 2)" '{:linters {:cond-else {:level :off}}})))
   (is (str/starts-with?
        (with-out-str
-         (lint! (io/file "corpus") '{:output {:progress true}}))
+         (lint! (io/file "corpus") '{:output {:progress true}} "--config-dir" "corpus/.clj-kondo"))
        "...."))
   (doseq [fmt [:json :edn]]
     (is (not (str/starts-with?
               (with-out-str
                 (lint! (io/file "corpus")
-                       {:output {:progress true :format fmt}}))
+                       {:output {:progress true :format fmt}}
+                       "--config-dir" "corpus/.clj-kondo"))
               "...."))))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
-                                   '{:output {:exclude-files ["datascript"]}})))))
+                                   '{:output {:exclude-files ["datascript"]}}
+                                   "--config-dir" "corpus/.clj-kondo")))))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
-                                   '{:output {:include-files ["inline_def"]}})))))
+                                   '{:output {:include-files ["inline_def"]}}
+                                   "--config-dir" "corpus/.clj-kondo")))))
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
            (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}"}
                                                 :linters {:unresolved-symbol {:level :off}}}))))
        "WARNING_<stdin>"))
-  (is (empty? (lint! "(comment (select-keys))" '{:skip-args [clojure.core/comment]
+  (is (empty? (lint! "(comment (select-keys))" '{:skip-comments true
                                                  :linters {:unresolved-symbol {:level :off}}})))
   (assert-submap
    '({:file "<stdin>",
@@ -926,11 +817,23 @@ foo/foo ;; this does use the private var
                                                     [".*\\.specs$"
                                                      ".*\\.spex$"]}}}))))
 
+(deftest skip-comments-test
+  (is (= 1 (count
+            (lint! "(comment (inc :foo))"
+                   {:linters {:type-mismatch {:level :error}}}))))
+  (is (empty? (lint! "(comment (inc :foo))"
+                     {:skip-comments true
+                      :linters {:type-mismatch {:level :error}}})))
+  (is (= 1 (count (lint! "(ns foo {:clj-kondo/config {:skip-comments false}})
+                          (comment (inc :foo))"
+                         {:skip-comments true
+                          :linters {:type-mismatch {:level :error}}})))))
+
 (deftest replace-config-test
   (let [res (lint! "(let [x 1] (let [y 2]))" "--config" "^:replace {:linters {:redundant-let {:level :info}}}")]
     (is (every? #(identical? :info (:level %)) res))))
 
-(deftest map-duplicate-keys
+(deftest map-duplicate-keys-test
   (is (= '({:file "<stdin>", :row 1, :col 7, :level :error, :message "duplicate key :a"}
            {:file "<stdin>",
             :row 1,
@@ -1036,13 +939,14 @@ foo/foo ;; this does use the private var
    '({:row 1, :col 22, :level :error, :message "missing value for key :c"})
    (lint! "(let [{:keys [:a :b] :c} {}] [a b])")))
 
-(deftest set-duplicate-key
+(deftest set-duplicate-keys-test
   (is (= '({:file "<stdin>",
             :row 1,
             :col 7,
             :level :error,
             :message "duplicate set element 1"})
-         (lint! "#{1 2 1}"))))
+         (lint! "#{1 2 1}")))
+  (is (empty? (lint! "(let [foo 1] #{'foo foo})"))))
 
 (deftest macroexpand-test
   (assert-submap
@@ -1169,32 +1073,6 @@ foo/foo ;; this does use the private var
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(in-ns 'foo) (clojure.core/let [x 1])"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
-
-(deftest skip-args-test
-  (is
-   (empty?
-    (lint! (io/file "corpus" "skip_args" "comment.cljs") '{:skip-args [cljs.core/comment]})))
-  (assert-submaps
-   '({:file "corpus/skip_args/streams_test.clj",
-      :row 4,
-      :col 33,
-      :level :error,
-      :message "duplicate key :a"})
-   (lint! (io/file "corpus" "skip_args" "streams_test.clj") '{:linters {:invalid-arity {:skip-args [riemann.test/test-stream]}}}))
-  (assert-submaps
-   '({:file "corpus/skip_args/arity.clj",
-      :row 6,
-      :col 1,
-      :level :error,
-      :message "skip-args.arity/my-macro is called with 4 args but expects 3"})
-   (lint! (io/file "corpus" "skip_args" "arity.clj") '{:skip-args [skip-args.arity/my-macro]}))
-  (assert-submaps
-   '({:file "corpus/skip_args/arity.clj",
-      :row 6,
-      :col 1,
-      :level :error,
-      :message "skip-args.arity/my-macro is called with 4 args but expects 3"})
-   (lint! (io/file "corpus" "skip_args" "arity.clj") '{:linters {:invalid-arity {:skip-args [skip-args.arity/my-macro]}}})))
 
 (deftest recur-test
   (assert-submaps
@@ -1405,7 +1283,9 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])")))
   (is (empty? (lint! "(declare foo) (def foo 1)")))
   (is (empty? (lint! "(def foo 1) (declare foo)")))
-  (is (empty? (lint! "(if (odd? 3) (def foo 1) (def foo 2))"))))
+  (is (empty? (lint! "(if (odd? 3) (def foo 1) (def foo 2))")))
+  (testing "disable linter in comment"
+    (is (empty? (lint! "(comment (def x 1) (def x 2))")))))
 
 (deftest unreachable-code-test
   (assert-submaps
@@ -1504,6 +1384,12 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(foo ('foo 1 2 3))" "--config"
                      "{:linters {:invalid-arity {:skip-args [user/foo]}
                                  :unresolved-symbol {:level :off}}}"))))
+
+(deftest vector-call-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Vector can only be called with 1 arg but was called with: 0"}
+     {:file "<stdin>", :row 1, :col 13, :level :error, :message "Vector can only be called with 1 arg but was called with: 2"})
+   (lint! "([]) ([] 1) ([] 1 2)")))
 
 (deftest not-a-function-test
   (assert-submaps '({:file "<stdin>",
@@ -1936,7 +1822,8 @@ foo/foo ;; this does use the private var
      :level   :error,
      :message "unknown option ::req-un"}]
    (lint! (io/file "corpus" "spec_syntax.clj")
-          '{:linters {:unresolved-symbol {:level :error}}})))
+          '{:linters {:unresolved-symbol {:level :error}
+                      :unused-namespace {:level :error}}})))
 
 (deftest hashbang-test
   (assert-submaps
@@ -2797,13 +2684,22 @@ foo/")))
    '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Keys in :or should be simple symbols."})
    (lint! "(defn baz [a & {:keys [c] :or {\"c\" 10}}] (* a c))")))
 
+(deftest do-template-test
+  (assert-submaps
+   '({:file "<stdin>", :row 4, :col 4, :level :error, :message "Unresolved symbol: f"}
+     {:file "<stdin>", :row 4, :col 6, :level :error, :message "Unresolved symbol: g"})
+   (lint! "(require '[clojure.template :as templ])
+(templ/do-template [a b] (def a b) x 1 y 2)
+(+ x y)
+(+ f g)"
+          {:linters {:unresolved-symbol {:level :error}}})))
+
 ;;;; Scratch
 
 (comment
   (inline-def-test)
   (redundant-let-test)
   (redundant-do-test)
-  (invalid-arity-test)
   (exit-code-test)
   (t/run-tests)
   )

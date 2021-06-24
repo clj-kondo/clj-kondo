@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [vconj deep-merge map-vals]]))
+   [clj-kondo.impl.utils :refer [deep-merge map-vals]]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
@@ -124,21 +124,17 @@
              ;; :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"
              :canonical-paths false}}) ;; set to true to see absolute file paths and jar files
 
-
 (defn merge-config!
   ([])
   ([cfg] cfg)
   ([cfg* cfg]
    (if (empty? cfg) cfg*
        (let [cfg (cond-> cfg
-                   (:skip-comments cfg)
-                   (-> (update :skip-args vconj 'clojure.core/comment 'cljs.core/comment))
-
-                   (contains? (:linters cfg) :if) (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
+                   (contains? (:linters cfg) :if)
+                   (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
          (if (:replace (meta cfg))
            cfg
            (deep-merge cfg* cfg))))))
-
 
 (defn fq-sym->vec [fq-sym]
   (if-let [ns* (namespace fq-sym)]
@@ -156,21 +152,13 @@
         fq-syms)))
 
 (defn skip-args*
-  ([config]
-   (fq-syms->vecs (get config :skip-args)))
   ([config linter]
    (fq-syms->vecs (get-in config [:linters linter :skip-args]))))
 
 (def skip-args (memoize skip-args*))
 
-;; TODO MB 2020-09-05: revise this code, why do we need this again?
 (defn skip?
-  "we optimize for the case that disable-within returns an empty sequence"
-  ([config callstack]
-   (when-let [disabled (seq (skip-args config))]
-     (some (fn [disabled-sym]
-             (some #(= disabled-sym %) callstack))
-           disabled)))
+  "Used by invalid-arity linter. We optimize for the case that disable-within returns an empty sequence"
   ([config linter callstack]
    (when-let [disabled (seq (skip-args config linter))]
      (some (fn [disabled-sym]

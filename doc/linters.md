@@ -959,3 +959,7 @@ it. That can be done as follows:
 
 *Example message:* `use :require with alias or :refer`.
 
+*Config:*
+
+This linter is closely tied to [Refer All](#refer-all). Namespaces configured to
+suppress the `:refer-all` warning will also suppress the `:use` warning.

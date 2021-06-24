@@ -7,23 +7,27 @@ jobs:
   jvm:
     docker:
       # specify the version you desire here
-      - image: circleci/clojure:lein-2.8.1
+      - image: circleci/clojure:lein-2.9.1
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
     steps:
       - checkout
+      - run:
+          name: Get rid of erroneous git config
+          command: |
+              rm -rf /home/circleci/.gitconfig
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "deps.edn" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            - v1-dependencies
       - run:
           name: Install Clojure
           command: |
-            wget -nc https://download.clojure.org/install/linux-install-1.10.2.796.sh
-            chmod +x linux-install-1.10.2.796.sh
-            sudo ./linux-install-1.10.2.796.sh
+            wget -nc https://download.clojure.org/install/linux-install-1.10.3.855.sh
+            chmod +x linux-install-1.10.3.855.sh
+            sudo ./linux-install-1.10.3.855.sh
       - run:
           name: Install bb
           command: |
@@ -33,6 +37,7 @@ jobs:
           command: |
             script/test
             script/analysis-test
+            clojure -M:test:eastwood
       - run:
           name: Run as tools.deps dependency
           command: |
@@ -48,7 +53,7 @@ jobs:
 
   linux:
     docker:
-      - image: circleci/clojure:lein-2.8.1
+      - image: circleci/clojure:lein-2.9.1
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
@@ -57,6 +62,10 @@ jobs:
       CLJ_KONDO_TEST_ENV: native
     steps:
       - checkout
+      - run:
+          name: Get rid of erroneous git config
+          command: |
+              rm -rf /home/circleci/.gitconfig
       - restore_cache:
           keys:
             - linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
@@ -114,7 +123,7 @@ jobs:
           destination: release
   linux-static:
     docker:
-      - image: circleci/clojure:lein-2.8.1
+      - image: circleci/clojure:lein-2.9.1
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
@@ -122,16 +131,21 @@ jobs:
       CLJ_KONDO_PLATFORM: linux-static # used in release script
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_STATIC: true
+      CLJ_KONDO_MUSL: true
     steps:
       - checkout
       - run:
-          name: "Short circuit on SNAPSHOT"
+          name: Get rid of erroneous git config
           command: |
-            VERSION=$(cat resources/CLJ_KONDO_VERSION)
-            if [[ "$VERSION" == *-SNAPSHOT ]]
-            then
-              circleci task halt
-            fi
+              rm -rf /home/circleci/.gitconfig
+      # - run:
+      #     name: "Short circuit on SNAPSHOT"
+      #     command: |
+      #       VERSION=$(cat resources/CLJ_KONDO_VERSION)
+      #       if [[ "$VERSION" == *-SNAPSHOT ]]
+      #       then
+      #         circleci task halt
+      #       fi
       - restore_cache:
           keys:
             - linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
@@ -150,6 +164,7 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get -y install gcc g++ zlib1g-dev
+            sudo -E script/setup-musl
       - run:
           name: Download GraalVM
           command: |
@@ -196,6 +211,10 @@ jobs:
       CLJ_KONDO_TEST_ENV: native
     steps:
       - checkout
+      - run:
+          name: Get rid of erroneous git config
+          command: |
+              rm -rf /home/circleci/.gitconfig
       - run:
           name: Short circuit on non-master branches
           command: |
@@ -263,6 +282,10 @@ jobs:
       LEIN_ROOT: "true"
     steps:
       - checkout
+      - run:
+          name: Get rid of erroneous git config
+          command: |
+              rm -rf /home/circleci/.gitconfig
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "deps.edn" }}
@@ -278,6 +301,10 @@ jobs:
       - image: circleci/buildpack-deps:stretch
     steps:
       - checkout
+      - run:
+          name: Get rid of erroneous git config
+          command: |
+              rm -rf /home/circleci/.gitconfig
       - attach_workspace:
           at: /tmp
       - setup_remote_docker:

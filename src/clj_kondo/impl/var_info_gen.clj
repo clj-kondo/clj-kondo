@@ -2,7 +2,7 @@
   "GENERATED, DO NOT EDIT."
   {:no-doc true})
   (in-ns 'clj-kondo.impl.var-info)
-  (def predicates '{clojure.core #{decimal? contains? every? satisfies? seq? fn? = vector? thread-bound? < char? some? future-done? pos? sequential? neg? reduced? float? set? <= reversible? bound? map? volatile? var? empty? string? map-entry? > associative? keyword? even? tagged-literal? extends? counted? future? zero? not-every? class? future-cancelled? sorted? nil? instance? record? identical? true? reader-conditional? >= integer? special-symbol? ratio? delay? ifn? chunked-seq? distinct? odd? false? list? == rational? realized? number? not-any? symbol? coll?}, clojure.string #{ends-with? starts-with? includes? blank?}, clojure.set #{superset? subset?}})
+  (def predicates '{clojure.core.memoize #{memoized?}, clojure.java.jdbc #{db-is-rollback-only}, clojure.core.cache #{has?}, clojure.core.async.impl.ioc-macros #{instruction? persistent-value? nested-go? finished?}, clojure.core #{decimal? contains? every? qualified-keyword? satisfies? seq? fn? = vector? thread-bound? any? < boolean? char? some? inst? future-done? simple-symbol? pos? sequential? neg? reduced? float? set? <= reversible? bound? map? volatile? var? empty? string? uri? double? map-entry? > int? associative? keyword? even? tagged-literal? extends? indexed? counted? future? zero? simple-keyword? not-every? class? future-cancelled? neg-int? sorted? nil? instance? bytes? record? identical? ident? qualified-ident? true? reader-conditional? >= integer? special-symbol? ratio? delay? ifn? nat-int? chunked-seq? distinct? pos-int? odd? uuid? false? list? simple-ident? == rational? realized? number? not-any? qualified-symbol? seqable? symbol? coll?}, clojure.set #{superset? subset?}, clojure.tools.trace #{traced? traceable?}, clojure.core.async.impl.dispatch #{in-dispatch-thread?}, clojure.string #{ends-with? starts-with? includes? blank?}})
 
 
   (def clojure-core-syms '#{*
@@ -36,7 +36,9 @@
 *print-namespace-maps*
 *print-readably*
 *read-eval*
+*reader-resolver*
 *source-path*
+*suppress-read*
 *unchecked-math*
 *use-context-classloader*
 *verbose-defrecords*
@@ -684,6 +686,7 @@ zipmap})
 *eval*
 *exec-tap-fn*
 *flush-on-newline*
+*global*
 *loaded-libs*
 *main-cli-fn*
 *ns*
@@ -704,6 +707,7 @@ zipmap})
 *warn-on-infer*
 +
 -
+--destructure-map
 ->
 ->>
 ->ArrayChunk
@@ -734,6 +738,8 @@ zipmap})
 ->HashSetIter
 ->IndexedSeq
 ->IndexedSeqIterator
+->IntegerRange
+->IntegerRangeChunk
 ->Iterate
 ->KeySeq
 ->Keyword
@@ -763,7 +769,6 @@ zipmap})
 ->PersistentVector
 ->RSeq
 ->Range
-->RangeChunk
 ->RangeIterator
 ->RangedIterator
 ->RecordIter
@@ -959,6 +964,8 @@ IWriter
 IndexedSeq
 IndexedSeqIterator
 Inst
+IntegerRange
+IntegerRangeChunk
 Iterate
 KeySeq
 Keyword
@@ -992,7 +999,6 @@ PersistentTreeSet
 PersistentVector
 RSeq
 Range
-RangeChunk
 RangeIterator
 RangedIterator
 RecordIter
@@ -1261,14 +1267,17 @@ js-arguments
 js-comment
 js-debugger
 js-delete
+js-fn?
 js-in
 js-inline-comment
 js-invoke
+js-iterable?
 js-keys
 js-mod
 js-obj
 js-reserved
 js-str
+js-symbol?
 juxt
 keep
 keep-indexed

@@ -126,7 +126,9 @@
                     prev-var (get vars var-sym)
                     prev-declared? (:declared prev-var)]
                 ;; declare is idempotent
-                (when (and top-level? (not (:declared metadata)))
+                (when (and top-level?
+                           (not (:declared metadata))
+                           (not (:in-comment ctx)))
                   (when-let [redefined-ns
                              (or (when-let [meta-v prev-var]
                                    (when-not (or

@@ -2,7 +2,7 @@
 ;; To change dependencies, update deps.edn and run script/update-project.clj.
 ;; To change other things, edit project.template.clj and run script/update-project.clj.
 
-(defproject clj-kondo "2021.04.24-SNAPSHOT"
+(defproject clj-kondo "2021.06.19-SNAPSHOT"
   :description "A linter for Clojure that sparks joy."
   :url "https://github.com/clj-kondo/clj-kondo"
   :scm {:name "git"
@@ -15,13 +15,13 @@
                  [io.lambdaforge/datalog-parser "0.1.8"]
                  [cheshire/cheshire "5.10.0"]
                  [nrepl/bencode "1.1.0"]
-                 [borkdude/sci "0.2.4"]]
+                 [borkdude/sci "0.2.5"]]
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
-             :test {:dependencies [[org.clojure/clojurescript "1.10.773"]
+             :test {:dependencies [[org.clojure/clojurescript "1.10.866"]
                                    [clj-commons/conch "0.9.2"]
                                    [org.clojure/tools.deps.alpha "0.11.905"]
-                                   [jonase/eastwood "0.3.14"]
+                                   [jonase/eastwood "0.5.2"]
                                    [babashka/process "0.0.2"]
                                    [borkdude/missing.test.assertions "0.0.2"]
                                    [babashka/fs "0.0.3"]]

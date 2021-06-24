@@ -85,7 +85,7 @@
     (let [parent (first callstack)]
       (case parent
         ([clojure.core let] [cljs.core let]) (recur (next callstack))
-        ([clojure.test testing] [cljs.test testing]) true
+        ([clojure.test testing] [cljs.test testing]) (recur (next callstack))
         ([clojure.test deftest] [cljs.test deftest]) true
         false))))
 

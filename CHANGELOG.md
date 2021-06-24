@@ -2,6 +2,41 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2021.06.18
+
+### New
+
+- Lint arities of fn arguments to higher order functions (`map`, `filter`, `reduce`, etc.) [#1297](https://github.com/clj-kondo/clj-kondo/issues/1297)
+- Add `map-node` and `map-node?` to hooks API [#1270](https://github.com/clj-kondo/clj-kondo/issues/1270)
+
+### Enhanced / fixed
+
+- Disable redefined-var warning in comment [#1294](https://github.com/clj-kondo/clj-kondo/issues/1294)
+- `:skip-comments false` doesn't override `:skip-comments true` in namespace config [#1295](https://github.com/clj-kondo/clj-kondo/issues/1295)
+- False positive duplicate element set for symbols/classes [#1296](https://github.com/clj-kondo/clj-kondo/issues/1296)
+
+## v2021.06.01
+
+- False positive unused namespace with `clojure.spec/keys` [#1289](https://github.com/clj-kondo/clj-kondo/issues/1289)
+
+## v2021.05.31
+
+### New
+
+- Lint `clojure.spec.alpha/keys` [#1272](https://github.com/clj-kondo/clj-kondo/issues/1272) ([@daveduthie](https://github.com/daveduthie))
+- Macroexpand `clojure.template/do-template` [#603](https://github.com/clj-kondo/clj-kondo/issues/603)
+- Proper macroexpansion for `clojure.test/are` [#1284](https://github.com/clj-kondo/clj-kondo/issues/1284)
+- Resolve vars in `clojure.data.xml` imported via macro [#1274](https://github.com/clj-kondo/clj-kondo/issues/1274)
+- Lint `([])` as invalid call to vector [#1276](https://github.com/clj-kondo/clj-kondo/issues/1276)
+
+### Enhanced / fixed
+
+- Improve keyword reg support for re-frame [#1159](https://github.com/clj-kondo/clj-kondo/issues/1159) ([@ericdallo](https://github.com/ericdallo))
+- Refine messaging around importing configs [#1256](https://github.com/clj-kondo/clj-kondo/issues/1256) ([@lread](https://github.com/lread))
+- Static linux binary is now compiled with musl
+- Recognize `:doc` from attr-map in `defn` [#1265](https://github.com/clj-kondo/clj-kondo/issues/1265)
+- Don't skip linting `.jar` files with `--dependencies` when config(s) have changed [#1285](https://github.com/clj-kondo/clj-kondo/issues/1285)
+
 ## 2021.04.23
 
 ### New

@@ -28,6 +28,11 @@ args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar"
 
 if [ "$CLJ_KONDO_STATIC" = "true" ]; then
     args+=("--static")
+    if [ "$CLJ_KONDO_MUSL" = "true" ]; then
+        args+=("--libc=musl"
+               # see https://github.com/oracle/graal/issues/3398
+               "-H:CCompilerOption=-Wl,-z,stack-size=2097152")
+    fi
 fi
 
 "$GRAALVM_HOME/bin/native-image" "${args[@]}"

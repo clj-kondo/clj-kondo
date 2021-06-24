@@ -152,6 +152,26 @@ Options:
                           0))))
         0)))
 
+(def musl?
+  "Captured at compile time, to know if we are running inside a
+  statically compiled executable with musl."
+  (and (= "true" (System/getenv "CLJ_KONDO_STATIC"))
+       (= "true" (System/getenv "CLJ_KONDO_MUSL"))))
+
+(defmacro run [expr]
+  (if musl?
+    ;; When running in musl-compiled static executable we lift execution of bb
+    ;; inside a thread, so we have a larger than default stack size, set by an
+    ;; argument to the linker. See https://github.com/oracle/graal/issues/3398
+    `(let [v# (volatile! nil)
+           f# (fn []
+                (vreset! v# ~expr))]
+       (doto (Thread. nil f# "main")
+         (.start)
+         (.join))
+       @v#)
+    `(do ~expr)))
+
 (defn -main [& options]
   (let [exit-code
         (try (apply main options)
