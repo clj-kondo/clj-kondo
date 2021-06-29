@@ -47,7 +47,7 @@ Run `clj-kondo.main` directly:
 ```
 
 ``` shellsession
-$ shadow-cljs run clj-kondo.main --lint src
+$ shadow-cljs run clj-kondo.main/main --lint src
 ```
 
 Execution will be much faster if there's a background server (either `shadow-cljs server` or `shadow-cljs watch`) running.
