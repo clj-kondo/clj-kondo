@@ -39,5 +39,4 @@
                                                                     argv
                                                                     is-expr
                                                                     args)))]
-    ;; (prn :new-node new-node)
     (common/analyze-expression** ctx new-node)))

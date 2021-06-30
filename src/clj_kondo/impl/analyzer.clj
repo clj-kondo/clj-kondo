@@ -1926,7 +1926,8 @@
                                            :callstack #(cons [nil t] %))
                                    children))
         :fn (do
-              (when (:in-fn-literal ctx)
+              (when (and (:in-fn-literal ctx)
+                         (not (:clj-kondo.impl/generated expr)))
                 (findings/reg-finding! ctx (assoc (meta expr)
                                                   :filename (:filename ctx)
                                                   :level :error

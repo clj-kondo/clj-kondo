@@ -167,11 +167,13 @@
         argv (:children argv)
         new-node
         (if (pos? c) ;; prevent infinite partition
-          (assoc (list-node (list* (token-node 'do)
-                                  (map (fn [a] (walk/postwalk-replace (zipmap argv a) expr))
-                                       (partition c values))))
-                 :clj-kondo.impl/generated true)
-          expr)]
+          (list-node (list* (token-node 'do)
+                            (map (fn [a] (walk/postwalk-replace (zipmap argv a) expr))
+                                 (partition c values))))
+          expr)
+        new-node (walk/postwalk #(if (map? %)
+                                   (assoc % :clj-kondo.impl/generated true)
+                                   %) new-node)]
     new-node))
 
 ;;;; Scratch

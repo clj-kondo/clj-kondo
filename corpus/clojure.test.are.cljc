@@ -12,3 +12,11 @@
              (= "1" (f 1)))
     str
     pr-str))
+
+(deftest linter-tests
+  (testing "Nested #()s are not allowed"
+    (are [key pred] (every? #(pred (get % key)) [])
+      :events #(every? (fn [{:keys [id timestamp]}] ;; no warning about nested fn literal
+                         (and (string? id)
+                              (pos-int? timestamp)))
+                       %))))
