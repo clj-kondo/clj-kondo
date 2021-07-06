@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- Add types for ex-info [#1314](https://github.com/clj-kondo/clj-kondo/issues/1314)
+
 ## 2021.06.18
 
 ### New
