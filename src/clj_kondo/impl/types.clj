@@ -101,7 +101,8 @@
    :seqable-or-transducer "seqable or transducer"
    :set "set"
    :char-sequence "char sequence"
-   :sequential "sequential collection"})
+   :sequential "sequential collection"
+   :throwable "throwable"})
 
 (defn label [k]
   (cond

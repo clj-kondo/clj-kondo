@@ -752,8 +752,12 @@
    ;; 4745 'prn-str
    ;; 4754 'print-str
    ;; 4763 'println-str
-   ;; 4783 'ex-info
-   ;; 4792 'ex-data
+   ;; 4794 'ex-info
+   'ex-info {:arities {2 {:args [:nilable/string :map]
+                          :ret :throwable}
+                       3 {:args [:nilable/string :map :any]
+                          :ret :throwable}}}
+   ;; 4803 'ex-data
    ;; 4800 'ex-message
    ;; 4808 'ex-cause
    ;; 4816 'assert
