@@ -255,13 +255,18 @@ This project exists thanks to all the people who contribute. [[Contribute](doc/d
 
 ### Financial Contributors
 
+#### Github Sponsors
+
+- [Robert Stuttaford](https://github.com/robert-stuttaford)
+
+#### OpenCollective
 Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/clj-kondo/contribute)]
 
-#### Individuals
+##### Individuals
 
 <a href="https://opencollective.com/clj-kondo"><img src="https://opencollective.com/clj-kondo/individuals.svg?width=890"></a>
 
-#### Organizations
+##### Organizations
 
 Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/clj-kondo/contribute)]
 
