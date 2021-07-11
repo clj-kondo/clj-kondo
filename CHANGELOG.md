@@ -5,6 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - Add types for ex-info [#1314](https://github.com/clj-kondo/clj-kondo/issues/1314)
+- Bump SCI to v0.2.6
 
 ## 2021.06.18
 
