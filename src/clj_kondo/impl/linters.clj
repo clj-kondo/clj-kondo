@@ -7,7 +7,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
-   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr tag]]
+   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr tag export-ns-sym]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -442,7 +442,7 @@
              ctx
              (-> (node->line filename ns-sym :warning :unused-namespace
                              (format "namespace %s is required but never used" ns-sym))
-                 (assoc :ns ns-sym))))))
+                 (assoc :ns (export-ns-sym ns-sym)))))))
       (doseq [[k v] referred-vars]
         (let [var-ns (:ns v)]
           (when-not
@@ -452,7 +452,7 @@
             (findings/reg-finding!
              ctx
              (-> (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
-                 (assoc :ns var-ns
+                 (assoc :ns (export-ns-sym var-ns)
                         :refer (:name v)))))))
       (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
               :when (not (config/refer-all-excluded? config referred-all-ns))]

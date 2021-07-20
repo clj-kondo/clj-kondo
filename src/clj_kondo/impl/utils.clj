@@ -323,6 +323,12 @@
     (str/replace s "\\" "/")
     s))
 
+(defn export-ns-sym [sym]
+  (let [m (meta sym)
+        raw (:raw-name m)]
+    (if (and raw (string? raw))
+      raw sym)))
+
 ;; (require 'clojure.pprint)
 
 ;; (defn where-am-i [depth]

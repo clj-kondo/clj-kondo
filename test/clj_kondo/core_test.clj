@@ -3,6 +3,7 @@
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :refer [path-separator]]
    [clj-kondo.test-utils :refer [file-path file-separator assert-submaps]]
+   [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -81,6 +82,13 @@
                 :config {:output {:analysis {:locals true}}
                          :linters {:unused-bindings {:level :warning}}}}))]
     (is (empty? (:findings res)))))
+
+(deftest findings-serialization-test
+  (let [{:keys [:findings]}
+        (with-in-str "(ns test (:require [\"@material-ui/core\" :default mui]))"
+          (clj-kondo/run!
+           {:lint   ["-"]}))]
+    (is (edn/read-string (pr-str findings)))))
 
 ;;;; Scratch
 
