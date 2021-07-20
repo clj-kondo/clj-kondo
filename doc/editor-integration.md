@@ -156,11 +156,6 @@ CompilerSet errorformat=%f:%l:%c:\ Parse\ %t%*[^:]:\ %m,%f:%l:%c:\ %t%*[^:]:\ %m
 CompilerSet makeprg=clj-kondo\ --lint\ %
 ```
 
-### nvim-lint (Neovim 0.5+ only)
-
-[nvim-lint](https://github.com/mfussenegger/nvim-lint) has built-in support for clj-kondo.
-It will be enabled automatically when using nvim-lint, no configuration required.
-
 #### Usage
 
 You can populate the quickfix list like so:
@@ -177,6 +172,11 @@ If you have [vim-dispatch](https://github.com/tpope/vim-dispatch/) installed, yo
 ```
 :Dispatch -compiler=clj-kondo
 ```
+
+### nvim-lint (Neovim 0.5+ only)
+
+[nvim-lint](https://github.com/mfussenegger/nvim-lint) has built-in support for clj-kondo.
+It will be enabled automatically when using nvim-lint, no configuration required.
 
 ## IntelliJ IDEA
 
