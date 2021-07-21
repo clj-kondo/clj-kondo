@@ -176,7 +176,19 @@ If you have [vim-dispatch](https://github.com/tpope/vim-dispatch/) installed, yo
 ### nvim-lint (Neovim 0.5+ only)
 
 [nvim-lint](https://github.com/mfussenegger/nvim-lint) has built-in support for clj-kondo.
-It will be enabled automatically when using nvim-lint, no configuration required.
+
+#### Configuration using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+```lua
+use {
+  "mfussenegger/nvim-lint",
+  config = function()
+    require("lint").linters_by_ft = {
+      clojure = {"clj-kondo"},
+      -- ... other linters
+    }
+  end,
+}
+```
 
 ## IntelliJ IDEA
 
