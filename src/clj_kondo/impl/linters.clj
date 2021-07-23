@@ -301,6 +301,9 @@
                   recursive? (and
                               (= fn-ns caller-ns-sym)
                               (= fn-name in-def))
+                  used-vars (:used-vars ctx)
+                  _ (when (and valid-call? resolved-ns)
+                      (swap! used-vars update-in [resolved-ns fn-name caller-ns-sym] (fnil inc 0)))
                   _ (when output-analysis?
                       (analysis/reg-usage! ctx
                                            filename

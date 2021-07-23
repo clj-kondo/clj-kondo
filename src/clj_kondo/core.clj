@@ -121,7 +121,9 @@
         used-nss (atom {:clj #{}
                         :cljs #{}
                         :cljc #{}})
-
+        used-vars (atom {} #_{:clj #{}
+                         :cljs #{}
+                         :cljc #{}})
         ctx {:config-hash
              ;; in delay to save time when linting only non-jar files
              (delay (core-impl/config-hash config))
@@ -138,6 +140,7 @@
              :analysis analysis
              :cache-dir cache-dir
              :used-namespaces used-nss
+             :used-vars used-vars
              :ignores (atom {})
              :id-gen (when analyze-locals? (atom 0))
              :analyze-locals? analyze-locals?
@@ -172,6 +175,7 @@
         summary (core-impl/summarize all-findings)
         duration (- (System/currentTimeMillis) start-time)
         summary (assoc summary :duration duration :files @files)]
+    ((requiring-resolve 'clojure.pprint/pprint) @used-vars)
     (cond->
         {:findings all-findings
          :config config
