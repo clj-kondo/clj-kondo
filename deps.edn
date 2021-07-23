@@ -3,7 +3,9 @@
         io.lambdaforge/datalog-parser {:mvn/version "0.1.8"}
         cheshire/cheshire {:mvn/version "5.10.0"}
         nrepl/bencode {:mvn/version "1.1.0"}
-        borkdude/sci {:mvn/version "0.2.6"}}
+        borkdude/sci {:mvn/version "0.2.6"}
+        org.hsqldb/hsqldb {:mvn/version "2.6.0"}
+        com.github.seancorfield/next.jdbc {:mvn/version "1.2.674"}}
  :aliases {:clj-kondo
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps

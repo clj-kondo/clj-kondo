@@ -5,6 +5,7 @@
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :refer [merge-config!]]
    [clj-kondo.impl.core :as core-impl]
+   [clj-kondo.impl.database :as db]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clojure.java.io :as io]))
@@ -100,6 +101,9 @@
               filename (core-impl/config-dir filename)
               :else
               (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
+        _ (when cfg-dir
+            (db/ddl (db/db-spec cfg-dir))
+            (db/insert (db/db-spec cfg-dir)))
         ;; for backward compatibility non-sequential config should be wrapped into collection
         config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]))
         classpath (:classpath config)
@@ -175,7 +179,7 @@
         summary (core-impl/summarize all-findings)
         duration (- (System/currentTimeMillis) start-time)
         summary (assoc summary :duration duration :files @files)]
-    ((requiring-resolve 'clojure.pprint/pprint) @used-vars)
+    #_((requiring-resolve 'clojure.pprint/pprint) @used-vars)
     (cond->
         {:findings all-findings
          :config config

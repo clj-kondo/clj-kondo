@@ -20,5 +20,22 @@
   {
     "name": "java.lang.reflect.AccessibleObject",
     "methods" : [{"name":"canAccess"}]
+  },
+
+  {
+    "name" : "org.hsqldb.jdbcDriver"
+  },
+  {"name": "org.hsqldb.jdbc.JDBCConnection",
+   "methods" : [{"name":"close"}]},
+  {
+    "methods" : [{"name":"<init>", "parameterTypes":[ "org.hsqldb.Database"]} ],
+    "name" : "org.hsqldb.dbinfo.DatabaseInformationFull"
+  },
+  {
+    "methods" : [ {
+      "name" : "getBundle",
+      "parameterTypes" : [ "java.lang.String", "java.util.Locale", "java.lang.ClassLoader" ]
+    } ],
+    "name" : "java.util.ResourceBundle"
   }
 ]
