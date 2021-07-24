@@ -1481,7 +1481,7 @@
                 transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
                               (let [filename (:filename ctx)]
-                                (binding [hooks/*ctx* ctx]
+                                (binding [utils/*ctx* ctx]
                                   (sci/binding [sci/out *out*]
                                     (try (hook-fn {:node expr
                                                    :cljc (identical? :cljc base-lang)

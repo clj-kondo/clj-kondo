@@ -3,13 +3,11 @@
   (:require [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.utils :as utils :refer [assoc-some vector-node list-node
                                                     sexpr token-node keyword-node
-                                                    string-node map-node]]
+                                                    string-node map-node *ctx*]]
             [clojure.java.io :as io]
             [sci.core :as sci]))
 
 (set! *warn-on-reflection* true)
-
-(def ^:dynamic *ctx* nil)
 
 (defn reg-finding! [m]
   (let [ctx *ctx*
