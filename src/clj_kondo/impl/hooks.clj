@@ -1,11 +1,15 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
   (:require [clj-kondo.impl.findings :as findings]
+            [clj-kondo.impl.metadata :as meta]
+            [clj-kondo.impl.rewrite-clj.node :as node]
             [clj-kondo.impl.utils :as utils :refer [assoc-some vector-node list-node
                                                     sexpr token-node keyword-node
                                                     string-node map-node]]
             [clojure.java.io :as io]
-            [sci.core :as sci]))
+            [clojure.walk :as walk]
+            [sci.core :as sci])
+  (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)
 
@@ -60,6 +64,30 @@
 (defn mark-generate [node]
   (assoc node :clj-kondo.impl/generated true))
 
+(defn coerce [s-expr]
+  (node/coerce s-expr))
+
+(defn annotate [node meta]
+  (walk/postwalk (fn [node]
+                   (if (map? node)
+                     (with-meta node meta)
+                     node)) node))
+
+(defn -macroexpand [macro node]
+  (let [call (sexpr node)
+        args (rest call)
+        res (apply macro nil nil args)
+        coerced (coerce res)
+        annotated (annotate coerced (meta node))
+        lifted (meta/lift-meta-content2 *ctx* annotated)]
+    ;;
+    lifted))
+
+(defmacro macroexpand [macro node]
+  `(clj-kondo.hooks-api/-macroexpand (deref (var ~macro)) ~node))
+
+(def ans (sci/create-ns 'clj-kondo.hooks-api nil))
+
 (def api-ns
   {'keyword-node (comp mark-generate keyword-node)
    'keyword-node? keyword-node?
@@ -75,7 +103,11 @@
    'list-node? list-node?
    'sexpr sexpr
    'reg-finding! reg-finding!
-   'reg-keyword! reg-keyword!})
+   'reg-keyword! reg-keyword!
+   'coerce coerce
+   '-macroexpand -macroexpand
+   'macroexpand (sci/copy-var macroexpand ans)
+   'annotate annotate})
 
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
