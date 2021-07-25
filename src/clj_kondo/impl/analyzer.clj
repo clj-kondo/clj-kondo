@@ -876,12 +876,27 @@
 
 (declare analyze-defmethod)
 
+(defn current-namespace-var-name [ctx var-name-node var-name]
+  (if (qualified-symbol? var-name)
+    (let [ns (:ns ctx)
+          alias (symbol (namespace var-name))]
+      (if (= (:name ns) (get (:qualify-ns ns) alias))
+        (symbol (name var-name))
+        (do (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx) var-name-node :error
+                         :syntax
+                         (str "Invalid var name: " var-name)))
+            nil)))
+    var-name))
+
 (defn analyze-def [ctx expr defined-by]
   ;; (def foo ?docstring ?init)
   (let [children (next (:children expr))
         var-name-node (->> children first (meta/lift-meta-content2 ctx))
         metadata (meta var-name-node)
         var-name (:value var-name-node)
+        var-name (current-namespace-var-name ctx var-name-node var-name)
         docstring (when (> (count children) 2)
                     (string-from-token (second children)))]
     (when var-name
@@ -956,10 +971,14 @@
 
 (defn analyze-declare [ctx expr defined-by]
   (let [ns-name (-> ctx :ns :name)
-        var-name-nodes (next (:children expr))]
-    (doseq [var-name-node var-name-nodes]
+        var-name-nodes (next (:children expr))
+        var-names (keep (fn [var-name-node]
+                          (let [var-sym (->> var-name-node (meta/lift-meta-content2 ctx) :value)]
+                            (current-namespace-var-name ctx var-name-node var-sym)))
+                        var-name-nodes)]
+    (doseq [var-name var-names]
       (namespace/reg-var! ctx ns-name
-                          (->> var-name-node (meta/lift-meta-content2 ctx) :value)
+                          var-name
                           expr
                           (assoc (meta expr)
                                  :declared true
