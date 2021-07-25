@@ -7,6 +7,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Add types for ex-info [#1314](https://github.com/clj-kondo/clj-kondo/issues/1314)
 - Bump SCI to v0.2.6
 - Fix EDN/JSON serialization of findings for NPM string namespace [#1319](https://github.com/clj-kondo/clj-kondo/issues/1319)
+- Support fully qualified symbol in def referring to current namespace [#1326](https://github.com/clj-kondo/clj-kondo/issues/1326)
 
 ## 2021.06.18
 
