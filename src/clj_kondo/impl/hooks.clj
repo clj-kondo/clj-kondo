@@ -70,7 +70,9 @@
 (defn annotate [node meta]
   (walk/postwalk (fn [node]
                    (if (map? node)
-                     (with-meta node meta)
+                     (-> node
+                         (with-meta meta)
+                         mark-generate)
                      node)) node))
 
 (defn -macroexpand [macro node]
