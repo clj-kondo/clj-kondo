@@ -141,10 +141,11 @@
 
 (def hook-fn
   (let [delayed-cfg
-        (fn [ctx config k ns-sym var-sym]
+        (fn [ctx config ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
-                                 (str var-sym))]
-                 (when-let [x (get-in config [:hooks k sym])]
+                                 (str var-sym))
+                     hook-cfg (:hooks config)]
+                 (if-let [x (get-in hook-cfg [:analyze-call sym])]
                    ;; we return a function of ctx, so we will never memoize on
                    ;; ctx, which will hold on to all the linting state and
                    ;; creates memory leaks for long lives processes (LSP /
@@ -158,7 +159,20 @@
                                   (let [ns (namespace x)]
                                     (format "(require '%s)\n%s" ns x)))]
                        (binding [*ctx* ctx]
-                         (sci/eval-string* sci-ctx code))))))
+                         (sci/eval-string* sci-ctx code))))
+                   (when-let [x (get-in hook-cfg [:macroexpand sym])]
+                     (sci/binding [sci/out *out*
+                                   sci/err *err*]
+                       (let [code (if (string? x)
+                                    (when (:allow-string-hooks ctx)
+                                      x)
+                                    ;; x is a function symbol
+                                    (let [ns (namespace x)]
+                                      (format "(require '%s)\n(deref (var %s))" ns x)))
+                             macro (binding [*ctx* ctx]
+                                     (sci/eval-string* sci-ctx code))]
+                         (fn [{:keys [node]}]
+                           {:node (-macroexpand macro node)}))))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"
