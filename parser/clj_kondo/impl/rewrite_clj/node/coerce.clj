@@ -58,7 +58,7 @@
   (coerce [v]
     (token-node nil)))
 
-(extend-protocol NodeCoercable
+(extend-protocol NodeCoerceable
   String
   (coerce [v]
     (string-node/string-node v)))
