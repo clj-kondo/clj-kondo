@@ -31,13 +31,15 @@
 
 ;; ## Helpers
 
+(def lconj (fnil conj '()))
+
 (defn- node-with-meta
   [node value]
   (if (instance? clojure.lang.IMeta value)
     (let [mta (meta value)]
       (if (empty? mta)
         node
-        (meta-node (coerce mta) node)))
+        (update node :meta lconj (coerce mta))))
     node))
 
 ;; ## Tokens
