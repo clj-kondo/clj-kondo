@@ -314,7 +314,7 @@
                                  ;; already a namespace name here
                                  acc (if as (assoc acc as n) acc)]
                              acc))
-                         {}
+                         {ns-name ns-name}
                          analyzed)
      :aliases (into {} (comp (filter :as) (map (juxt :as :ns))) analyzed)
      :referred-vars (into {} (mapcat :referred analyzed))
