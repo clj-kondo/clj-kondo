@@ -173,6 +173,23 @@ If you have [vim-dispatch](https://github.com/tpope/vim-dispatch/) installed, yo
 :Dispatch -compiler=clj-kondo
 ```
 
+### nvim-lint (Neovim 0.5+ only)
+
+[nvim-lint](https://github.com/mfussenegger/nvim-lint) has built-in support for clj-kondo.
+
+#### Configuration using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+```lua
+use {
+  "mfussenegger/nvim-lint",
+  config = function()
+    require("lint").linters_by_ft = {
+      clojure = {"clj-kondo"},
+      -- ... other linters
+    }
+  end,
+}
+```
+
 ## IntelliJ IDEA
 
 Currently there are two ways to get clj-kondo integration in IntelliJ.

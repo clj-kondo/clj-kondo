@@ -2694,6 +2694,16 @@ foo/")))
 (+ f g)"
           {:linters {:unresolved-symbol {:level :error}}})))
 
+(deftest def-and-alias-with-qualified-symbols
+  (testing "see GH-1326"
+    (is (empty? (lint! "(ns foo) (alias 'f 'foo) (declare f/x) f/x x (def f/x 1)")))
+    (is (empty? (lint! "(ns foo) (declare foo/x) foo/x x (def foo/x 1)")))
+    (assert-submaps (lint! "(declare foo/x) foo/x x (def foo/x 1)")
+                    '({:file "<stdin>", :row 1, :col 10, :level :error, :message "Invalid var name: foo/x"}
+                      {:file "<stdin>", :row 1, :col 17, :level :warning,
+                       :message "Unresolved namespace foo. Are you missing a require?"}
+                      {:file "<stdin>", :row 1, :col 30, :level :error, :message "Invalid var name: foo/x"}))))
+
 ;;;; Scratch
 
 (comment
