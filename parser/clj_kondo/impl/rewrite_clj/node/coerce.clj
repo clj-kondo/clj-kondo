@@ -2,7 +2,9 @@
   (:require [clj-kondo.impl.rewrite-clj.potemkin :refer [defprotocol+]]
             [clj-kondo.impl.rewrite-clj.node
              comment forms integer keyword
-             quote string uneval
+             quote
+             [string :as string-node]
+             uneval
              [meta :refer [meta-node]]
              [protocols :as node
               :refer [NodeCoerceable
@@ -55,6 +57,11 @@
   nil
   (coerce [v]
     (token-node nil)))
+
+(extend-protocol NodeCoercable
+  String
+  (coerce [v]
+    (string-node/string-node v)))
 
 ;; ## Seqs
 
