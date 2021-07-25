@@ -1487,7 +1487,8 @@
                                                    :cljc (identical? :cljc base-lang)
                                                    :lang lang
                                                    :filename filename
-                                                   :config config})
+                                                   :config config
+                                                   :ns ns-name})
                                          (catch Exception e
                                            (findings/reg-finding!
                                             ctx
@@ -1535,7 +1536,6 @@
                                                ns-name
                                                resolved-namespace)
                 (let [node expanded]
-                  ;; (prn :node node)
                   (analyze-expression** (assoc-some ctx :defined-by (:defined-by transformed))
                                         node)))
               ;;;; End macroexpansion
