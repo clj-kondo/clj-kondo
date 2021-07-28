@@ -63,7 +63,7 @@
   (coerce [v]
     (string-node/string-node v)))
 
-#_(extend-protocol NodeCoerceable
+(extend-protocol NodeCoerceable
   clojure.lang.Keyword
   (coerce [v]
     (keyword-node/keyword-node v)))
