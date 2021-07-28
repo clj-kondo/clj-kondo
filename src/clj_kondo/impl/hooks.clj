@@ -75,10 +75,10 @@
                          mark-generate)
                      node)) node))
 
-(defn -macroexpand [macro node]
+(defn -macroexpand [macro node bindings]
   (let [call (sexpr node)
         args (rest call)
-        res (apply macro nil nil args)
+        res (apply macro call bindings args)
         coerced (coerce res)
         annotated (annotate coerced (meta node))
         lifted (meta/lift-meta-content2 *ctx* annotated)]
@@ -171,7 +171,7 @@
                                macro (binding [*ctx* ctx]
                                        (sci/eval-string* sci-ctx code))]
                            (fn [{:keys [node]}]
-                             {:node (-macroexpand macro node)})))))))
+                             {:node (-macroexpand macro node (:bindings *ctx*))})))))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"

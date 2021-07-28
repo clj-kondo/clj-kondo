@@ -2,3 +2,9 @@
 
 (defmacro $ [op & args]
   (list* (symbol (str "." op)) 'sh args))
+
+(defmacro form-env-macro [_]
+  (list* 'clojure.core/+
+         (list* 'clojure.core/+
+                [(when (= 'form-env-macro (first &form)) "foo")
+                 (when (contains? &env 'x) :foo)])))
