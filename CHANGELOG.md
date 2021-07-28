@@ -2,7 +2,15 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2021.07.28
+
+### New
+
+- `:macroexpand` hook. This allows linting using the same or similar macros from
+  your code.See
+  [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/hooks.md#macroexpand).
+
+### Enhanced / fixed
 
 - Add types for ex-info [#1314](https://github.com/clj-kondo/clj-kondo/issues/1314)
 - Bump SCI to v0.2.6
