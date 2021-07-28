@@ -3,7 +3,7 @@
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.test :refer [deftest is testing]]))
 
-(deftest shadowed-var-test
+(deftest redundant-expression-test
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 5, :level :warning, :message "Redundant expression: 1"})
    (lint! "(do 1 2) "))
@@ -50,4 +50,10 @@
   [{:keys [a-key]}]
   (when-let [{:keys [a-deep]} a-key] a-deep)
   (println a-key))
-"))))
+")))
+  (is (empty? (lint! "
+(declare member)
+(do (clojure.core/defn disjoint?-impl [t1 t2 default]
+      {:post [(member % (quote (true false :dont-know)))]}
+      (list t1 t2 default))
+    (declare disjoint?))"))))

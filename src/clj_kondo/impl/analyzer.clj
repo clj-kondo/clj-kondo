@@ -373,7 +373,8 @@
                                        "Invalid function body."))))
 
 (defn analyze-pre-post-map [ctx expr]
-  (let [children (:children expr)]
+  (let [children (:children expr)
+        ctx (update ctx :callstack cons [:pre-post-map])]
     (key-linter/lint-map-keys ctx expr)
     (mapcat (fn [[key-expr value-expr]]
               (let [analyzed-key (analyze-expression** ctx key-expr)
@@ -1523,6 +1524,7 @@
             (if-let [expanded (and transformed
                                    (:node transformed))]
               (do ;;;; This registers the macro call, so we still get arity linting
+                ;; (prn :expanded expanded)
                 (namespace/reg-var-usage! ctx ns-name {:type :call
                                                        :resolved-ns resolved-namespace
                                                        :ns ns-name

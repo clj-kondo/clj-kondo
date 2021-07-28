@@ -1,7 +1,7 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.node.coerce
   (:require [clj-kondo.impl.rewrite-clj.potemkin :refer [defprotocol+]]
             [clj-kondo.impl.rewrite-clj.node
-             comment forms integer keyword
+             comment forms integer [keyword :as keyword-node]
              quote
              [string :as string-node]
              uneval
@@ -62,6 +62,11 @@
   String
   (coerce [v]
     (string-node/string-node v)))
+
+#_(extend-protocol NodeCoerceable
+  clojure.lang.Keyword
+  (coerce [v]
+    (keyword-node/keyword-node v)))
 
 ;; ## Seqs
 
