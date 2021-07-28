@@ -256,10 +256,10 @@ the values carrying the metadata:
 ## Macroexpand
 
 The `:macroexpand` hook can be used to expand the s-expression representation of
-the code using a macro in the configuration. Clj-kondo will attempt to coerce
-the expanded code back into rewrite-clj nodes. Using this feature is easier than
-writing hooks, but comes at the cost of loss of precision with respect to
-locations: all lint warnings will be reported at the call site of the
+the rewrite-clj nodes using a macro in the configuration. Clj-kondo will attempt
+to coerce the expanded code back into rewrite-clj nodes. This feature is easier
+to use than `:analyze-call`, but comes at the cost of loss of precision with
+respect to locations: all lint warnings will be reported at the call site of the
 macro. Similar rules to `:analyze-hook` apply to this feature: the macro in the
 config doesn't have to be the same as the original macro, as long as it expands
 in syntactically sane expressions. The config macros, like `:analyze-call`
