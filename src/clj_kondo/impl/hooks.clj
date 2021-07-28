@@ -85,7 +85,7 @@
     ;;
     lifted))
 
-(defmacro macroexpand [macro node]
+#_(defmacro macroexpand [macro node]
   `(clj-kondo.hooks-api/-macroexpand (deref (var ~macro)) ~node))
 
 (def ans (sci/create-ns 'clj-kondo.hooks-api nil))
@@ -107,9 +107,7 @@
    'reg-finding! reg-finding!
    'reg-keyword! reg-keyword!
    'coerce coerce
-   '-macroexpand -macroexpand
-   'macroexpand (sci/copy-var macroexpand ans)
-   'annotate annotate})
+   })
 
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
@@ -145,22 +143,12 @@
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))
                      hook-cfg (:hooks config)]
-                 (if-let [x (get-in hook-cfg [:analyze-call sym])]
-                   ;; we return a function of ctx, so we will never memoize on
-                   ;; ctx, which will hold on to all the linting state and
-                   ;; creates memory leaks for long lives processes (LSP /
-                   ;; VSCode), see #1036
-                   (sci/binding [sci/out *out*
-                                 sci/err *err*]
-                     (let [code (if (string? x)
-                                  (when (:allow-string-hooks ctx)
-                                    x)
-                                  ;; x is a function symbol
-                                  (let [ns (namespace x)]
-                                    (format "(require '%s)\n%s" ns x)))]
-                       (binding [*ctx* ctx]
-                         (sci/eval-string* sci-ctx code))))
-                   (when-let [x (get-in hook-cfg [:macroexpand sym])]
+                 (when hook-cfg
+                   (if-let [x (get-in hook-cfg [:analyze-call sym])]
+                     ;; we return a function of ctx, so we will never memoize on
+                     ;; ctx, which will hold on to all the linting state and
+                     ;; creates memory leaks for long lives processes (LSP /
+                     ;; VSCode), see #1036
                      (sci/binding [sci/out *out*
                                    sci/err *err*]
                        (let [code (if (string? x)
@@ -168,11 +156,22 @@
                                       x)
                                     ;; x is a function symbol
                                     (let [ns (namespace x)]
-                                      (format "(require '%s)\n(deref (var %s))" ns x)))
-                             macro (binding [*ctx* ctx]
-                                     (sci/eval-string* sci-ctx code))]
-                         (fn [{:keys [node]}]
-                           {:node (-macroexpand macro node)}))))))
+                                      (format "(require '%s)\n%s" ns x)))]
+                         (binding [*ctx* ctx]
+                           (sci/eval-string* sci-ctx code))))
+                     (when-let [x (get-in hook-cfg [:macroexpand sym])]
+                       (sci/binding [sci/out *out*
+                                     sci/err *err*]
+                         (let [code (if (string? x)
+                                      (when (:allow-string-hooks ctx)
+                                        x)
+                                      ;; x is a function symbol
+                                      (let [ns (namespace x)]
+                                        (format "(require '%s)\n(deref (var %s))" ns x)))
+                               macro (binding [*ctx* ctx]
+                                       (sci/eval-string* sci-ctx code))]
+                           (fn [{:keys [node]}]
+                             {:node (-macroexpand macro node)})))))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"
