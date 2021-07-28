@@ -58,6 +58,12 @@
     "[1..1]" [["Invalid number: 1..1." 1 2]]
     "#:" [["Unexpected EOF." 1 3]]))
 
+(deftest sexpr-test
+  (is (= '(clojure.core/unquote (+ 1 2 3))
+         (utils/sexpr (first (:children (utils/parse-string "`~(+ 1 2 3)"))))))
+  (is (= '(clojure.core/unquote-splicing (+ 1 2 3))
+         (utils/sexpr (first (:children (utils/parse-string "`~@(+ 1 2 3)")))))))
+
 ;;;; Scratch
 
 (comment
