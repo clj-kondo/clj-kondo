@@ -295,7 +295,10 @@ Place the macro in a similar named namespace in your config directory:
 Note: the namespace in `.clj-kondo` doesn't have to have the same name but in
 general this will work better for the macro expansion.
 
-Configure the macro to be used for expansion:
+Configure the macro to be used for expansion. On the left hand side of the map
+you use the fully qualified names of the original macros. On the right hand side
+you use the fully qualified names of the macros in the config. In this example
+they are the same.
 
 .clj-kondo/config.edn:
 ``` clojure
