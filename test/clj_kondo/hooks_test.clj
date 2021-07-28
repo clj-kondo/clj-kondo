@@ -203,3 +203,14 @@ children))]
 (hook-let (let [x 1] x))"
                        {:hooks {:__dangerously-allow-string-hooks__ true}})]
         (is (empty? res))))))
+
+(deftest real-macroexpand-test
+  (assert-submaps
+   '({:file "corpus/macroexpand2.cljs", :row 18, :col 1, :level :error, :message "Unresolved symbol: foobar"})
+   (let [results (lint! (io/file "corpus" "macroexpand2.cljs")
+                        {:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}
+                                   :type-mismatch {:level :error}}}
+                        "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))]
+     ;; (prn results)
+     results)))
