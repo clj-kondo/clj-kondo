@@ -266,7 +266,7 @@ long as it expands in syntactically sane expressions. The config macros, like
 `:analyze-call` hooks, are running in SCI and have a subset of Clojure
 available.
 
-Let's illustrate `:macroexpand` hooks using an example. Consider this script
+Let's illustrate the `:macroexpand` hook using an example. Consider this script
 with a macro that causes unresolved symbols:
 
 ``` clojure
