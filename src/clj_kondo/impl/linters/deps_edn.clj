@@ -65,14 +65,30 @@
                                    (str "Non-determistic version."))))
                     true)
                   (when (:git/url form)
-                    (when-not (:sha form)
+                    (when (and (:git/sha form) (:sha form))
                       (findings/reg-finding!
                        ctx
                        (node->line (:filename ctx)
                                    node
                                    :warning
                                    :deps.edn
-                                   (str "Missing required key :sha."))))
+                                   (str "Conflicting keys :git/sha and :sha."))))
+                    (when (and (:git/tag form) (:tag form))
+                      (findings/reg-finding!
+                       ctx
+                       (node->line (:filename ctx)
+                                   node
+                                   :warning
+                                   :deps.edn
+                                   (str "Conflicting keys :git/tag and :tag."))))
+                    (when-not (or (:git/sha form) (:sha form))
+                      (findings/reg-finding!
+                       ctx
+                       (node->line (:filename ctx)
+                                   node
+                                   :warning
+                                   :deps.edn
+                                   (str "Missing required key :git/sha."))))
                        true)
                   (:local/root form)
                   (findings/reg-finding!
