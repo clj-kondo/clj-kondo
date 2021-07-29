@@ -137,6 +137,8 @@
           (swap! mem assoc args ret)
           ret)))))
 
+(def load-lock (Object.))
+
 (def hook-fn
   (let [delayed-cfg
         (fn [ctx config ns-sym var-sym]
@@ -158,7 +160,8 @@
                                     (let [ns (namespace x)]
                                       (format "(require '%s)\n%s" ns x)))]
                          (binding [*ctx* ctx]
-                           (sci/eval-string* sci-ctx code))))
+                           ;; require isn't thread safe in SCI
+                           (locking load-lock (sci/eval-string* sci-ctx code)))))
                      (when-let [x (get-in hook-cfg [:macroexpand sym])]
                        (sci/binding [sci/out *out*
                                      sci/err *err*]
@@ -169,7 +172,9 @@
                                       (let [ns (namespace x)]
                                         (format "(require '%s)\n(deref (var %s))" ns x)))
                                macro (binding [*ctx* ctx]
-                                       (sci/eval-string* sci-ctx code))]
+                                       (locking load-lock
+                                         ;; require isn't thread safe in SCI
+                                         (sci/eval-string* sci-ctx code)))]
                            (fn [{:keys [node]}]
                              {:node (-macroexpand macro node (:bindings *ctx*))})))))))
                (catch Exception e
