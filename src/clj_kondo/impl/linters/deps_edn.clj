@@ -195,9 +195,9 @@
           ;; _ (lint-dep-coordinates ctx extra-dep-map-vals)
           extra-dep-map-vals (map sexpr-keys extra-dep-map-vals)
           exclusions (map (comp :children :exclusions) extra-dep-map-vals)
-          _ (run! #(lint-qualified-deps ctx %) exclusions)
-          _ (when-let [mvn-repos (:mvn/repos deps-edn)]
-              (lint-mvn-repos ctx mvn-repos))])
+          _ (run! #(lint-qualified-deps ctx %) exclusions)]
+      (when-let [mvn-repos (:mvn/repos deps-edn)]
+        (lint-mvn-repos ctx mvn-repos)))
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
       (binding [*out* *err*]
