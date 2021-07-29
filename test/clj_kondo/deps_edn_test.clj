@@ -47,7 +47,10 @@
     (assert-submaps
      '({:file "deps.edn", :row 1, :col 61, :level :warning, :message "Missing required key :git/sha."})
      (lint! (str deps-edn)
-            "--filename" "deps.edn"))))
+            "--filename" "deps.edn")))
+  (let [deps-edn '{:deps {io.github.cognitect-labs/test-runner
+                          {:git/tag "v0.4.0" :git/sha "334f2e2"}}}]
+    (is (empty? (lint! (binding [*print-namespace-maps* false] (str deps-edn)) "--filename" "deps.edn")))))
 
 (deftest git-coordinates-conflicting-keys-test
   (let [deps-edn '{:deps {foo/bar1 {:git/url "..."
