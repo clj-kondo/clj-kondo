@@ -197,17 +197,21 @@
       ;; issue #542. Maybe it makes sense to refactor loading source using
       ;; transducers so we don't have to load the entire source of a jar file in
       ;; memory at once?
-      (mapv (fn [^JarFile$JarFileEntry entry]
-              (let [entry-name (.getName entry)
-                    source (slurp (.getInputStream jar entry))]
-                (when (and cfg-dir (:copy-configs ctx)
-                           (str/includes? entry-name "clj-kondo.exports"))
-                  (copy-config-entry ctx entry-name source cfg-dir))
-                {:filename (str (when canonical?
-                                  (str (.getCanonicalPath jar-file) ":"))
-                                entry-name)
-                 :source source
-                 :group-id jar-file})) entries))))
+      (into []
+            (keep (fn [^JarFile$JarFileEntry entry]
+                    (let [entry-name (.getName entry)
+                          source (slurp (.getInputStream jar entry))]
+                      (if (and cfg-dir (:copy-configs ctx)
+                               (str/includes? entry-name "clj-kondo.exports"))
+                        ;; if config, don't lint
+                        (do (copy-config-entry ctx entry-name source cfg-dir)
+                            nil)
+                        {:filename (str (when canonical?
+                                          (str (.getCanonicalPath jar-file) ":"))
+                                        entry-name)
+                         :source source
+                         :group-id jar-file}))) )
+            entries))))
 
 ;;;; dir processing
 
@@ -238,18 +242,19 @@
                        (.getPath file))
                   can-read? (.canRead file)
                   source? (and (.isFile file) (source-file? nm))]
-              (when (and cfg-dir source?
-                         (:copy-configs ctx)
-                         (str/includes? path "clj-kondo.exports"))
-                (copy-config-file ctx file cfg-dir))
-              (cond
-                (and can-read? source?)
-                {:filename nm
-                 :source (slurp file)
-                 :group-id dir}
-                (and (not can-read?) source?)
-                (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
-                :else nil)))
+              (if (and cfg-dir source?
+                       (:copy-configs ctx)
+                       (str/includes? path "clj-kondo.exports"))
+                (do (copy-config-file ctx file cfg-dir)
+                    nil)
+                (cond
+                  (and can-read? source?)
+                  {:filename nm
+                   :source (slurp file)
+                   :group-id dir}
+                  (and (not can-read?) source?)
+                  (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
+                  :else nil))))
           files)))
 
 ;;;; threadpool
