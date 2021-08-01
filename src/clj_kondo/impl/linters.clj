@@ -24,12 +24,12 @@
             (when (not= :else v)
               (findings/reg-finding!
                ctx
-               (node->line (:filename ctx) condition :warning :cond-else
+               (node->line (:filename ctx) condition :cond-else
                            "use :else as the catch-all test expression in cond")))
             (when (seq rest-conditions)
               (findings/reg-finding!
                ctx
-               (node->line (:filename ctx) (first rest-conditions) :warning
+               (node->line (:filename ctx) (first rest-conditions)
                            :unreachable-code "unreachable code"))))))
       (recur rest-conditions))))
 
@@ -66,7 +66,7 @@
   (when-not (even? (count (rest (:children expr))))
     (findings/reg-finding!
      ctx
-     (node->line (:filename ctx) expr :error :syntax
+     (node->line (:filename ctx) expr :syntax
                  (format "cond requires even number of forms")))
     true))
 
@@ -92,7 +92,7 @@
 (defn lint-missing-test-assertion [ctx call]
   (when (expected-test-assertion? (next (:callstack call)))
     (findings/reg-finding! ctx
-                           (node->line (:filename ctx) (:expr call) :warning
+                           (node->line (:filename ctx) (:expr call)
                                        :missing-test-assertion "missing test assertion"))))
 
 (defn lint-missing-else-branch
@@ -105,7 +105,7 @@
             args (rest children)]
         (when (= (count args) 2)
           (findings/reg-finding! ctx
-                                 (node->line (:filename ctx) expr level :missing-else-branch
+                                 (node->line (:filename ctx) expr :missing-else-branch
                                              (format "Missing else branch."))))))))
 
 (defn lint-single-key-in [ctx called-name call]
@@ -114,7 +114,7 @@
       (when (and keyvec (= :vector (tag keyvec)) (= 1 (count (:children keyvec))))
         (findings/reg-finding!
          ctx
-         (node->line (:filename ctx) keyvec :warning :single-key-in
+         (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
 (defn lint-specific-calls! [ctx call called-fn]
@@ -180,7 +180,6 @@
           (node->line
            (:filename call)
            (:expr call)
-           :warning
            :single-operand-comparison
            (format "Single operand use of %s is always %s"
                    (str ns-nm "/" fn-name)
@@ -196,7 +195,6 @@
         (node->line
          (:filename call)
          (:expr call)
-         :warning
          :single-logical-operand
          (format "Single arg use of %s always returns the arg itself" call-name))))))
 
@@ -440,7 +438,7 @@
                 filename (:filename m)]
             (findings/reg-finding!
              ctx
-             (-> (node->line filename ns-sym :warning :unused-namespace
+             (-> (node->line filename ns-sym :unused-namespace
                              (format "namespace %s is required but never used" ns-sym))
                  (assoc :ns (export-ns-sym ns-sym)))))))
       (doseq [[k v] referred-vars]
@@ -451,7 +449,7 @@
                   (contains? refer-all-nss var-ns))
             (findings/reg-finding!
              ctx
-             (-> (node->line filename k :warning :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
+             (-> (node->line filename k :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
                  (assoc :ns (export-ns-sym var-ns)
                         :refer (:name v)))))))
       (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
@@ -470,7 +468,7 @@
           (findings/reg-finding!
            ctx
            (node->line filename node
-                       :warning finding-type msg)))))))
+                       finding-type msg)))))))
 
 (defn lint-unused-bindings!
   [ctx]
@@ -606,7 +604,7 @@
           :when (not (contains? used-imports import))]
     (findings/reg-finding!
      ctx
-     (-> (node->line filename import :warning :unused-import (str "Unused import " import))
+     (-> (node->line filename import :unused-import (str "Unused import " import))
          (assoc :class (symbol (str package "." import)))))))
 
 (defn lint-unresolved-namespaces!

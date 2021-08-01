@@ -358,8 +358,7 @@
     (catch Throwable e
       (if dev?
         (throw e)
-        (findings/reg-finding! ctx {:level :warning
-                                    :filename (if canonical?
+        (findings/reg-finding! ctx {:filename (if canonical?
                                                 (.getCanonicalPath (io/file path))
                                                 path)
                                     :type :file

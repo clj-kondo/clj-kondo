@@ -44,7 +44,6 @@
           (do (when prefix
                 (findings/reg-finding! ctx (node->line (:filename ctx)
                                                        libspec-expr
-                                                       :error
                                                        :syntax
                                                        "Prefix lists can only have two levels.")))
               (mapcat (fn [f]
@@ -65,7 +64,6 @@
               (findings/reg-finding! ctx
                                      (node->line (:filename ctx)
                                                  libspec-expr
-                                                 :error
                                                  :syntax
                                                  (format "found lib name '%s' containing period with prefix '%s'. lib names inside prefix lists must not contain periods."
                                                          form prefix))))
@@ -87,7 +85,7 @@
       (when-not (= expected-alias alias)
         (findings/reg-finding!
          ctx
-         (node->line (:filename ctx) alias :warning
+         (node->line (:filename ctx) alias
                      :consistent-alias
                      (str "Inconsistent alias. Expected " expected-alias " instead of " alias ".")))))))
 
@@ -149,7 +147,6 @@
                        ctx
                        (node->line (:filename ctx)
                                    child-expr
-                                   :warning
                                    :refer
                                    (str "require with " (str child-k))))))
                   (recur
@@ -162,7 +159,6 @@
                                         (node->line
                                          filename
                                          (:referred-all m)
-                                         :warning
                                          :use
                                          (format "use %srequire with alias or :refer with [%s]"
                                                  (if require-sym
@@ -246,7 +242,7 @@
       (meta node))
     (findings/reg-finding!
      ctx
-     (node->line (:filename ctx) node :error :syntax "Expected: class symbol"))))
+     (node->line (:filename ctx) node :syntax "Expected: class symbol"))))
 
 (defn analyze-import [ctx _ns-name libspec-expr]
   (utils/handle-ignore ctx libspec-expr)
@@ -262,7 +258,7 @@
                          ctx
                          (node->line
                           (:filename ctx) java-package-name-node
-                          :error :syntax "Expected: package name followed by classes.")))
+                          :syntax "Expected: package name followed by classes.")))
                       (into {} (for [i imported]
                                  [i java-package])))
     :token (let [package+class (:value libspec-expr)
@@ -395,7 +391,6 @@
                         ctx
                         (node->line (:filename ctx)
                                     ns-name-expr
-                                    :error
                                     :syntax
                                     "namespace name expected"))))
                  'user)

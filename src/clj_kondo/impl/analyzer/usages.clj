@@ -243,7 +243,6 @@
                                                     when-some future]))]
                          (when redundant?
                            (findings/reg-finding! ctx (assoc (meta expr)
-                                                             :level :warning
                                                              :type :redundant-expression
                                                              :message (str "Redundant expression: " (str expr))
                                                              :filename (:filename ctx))))))))

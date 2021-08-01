@@ -100,14 +100,13 @@
   (when-let [processed (process-reader-conditional node lang)]
     (select-lang-children processed lang)))
 
-(defn node->line [filename node level t message]
+(defn node->line [filename node t message]
   #_(when (and (= type :missing-docstring)
              (not (:row (meta node))))
     (prn node))
   (let [m (meta node)]
     {:type t
      :message message
-     :level level
      :row (:row m)
      :end-row (:end-row m)
      :end-col (:end-col m)
