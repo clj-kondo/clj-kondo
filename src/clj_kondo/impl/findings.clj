@@ -47,7 +47,8 @@
         findings (:findings ctx)
         config (:config ctx)
         tp (:type m)
-        level (-> config :linters tp :level)]
+        level (or (:level m)
+                  (-> config :linters tp :level))]
     (when (and level (not (identical? :off level)) (not dependencies))
       (when-not (ignored? ctx m tp)
         (let [m (assoc m :level level)]
