@@ -889,7 +889,8 @@
                          :syntax
                          (str "Invalid var name: " var-name)))
             nil)))
-    var-name))
+    (some-> var-name
+            (with-meta (meta var-name-node)))))
 
 (defn analyze-def [ctx expr defined-by]
   ;; (def foo ?docstring ?init)
@@ -982,6 +983,10 @@
                           var-name
                           expr
                           (assoc (meta expr)
+                                 :name-row (:row (meta var-name))
+                                 :name-col (:col (meta var-name))
+                                 :name-end-row (:end-row (meta var-name))
+                                 :name-end-col (:end-col (meta var-name))
                                  :declared true
                                  :defined-by defined-by)))))
 
