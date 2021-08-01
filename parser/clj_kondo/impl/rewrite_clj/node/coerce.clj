@@ -1,8 +1,10 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.node.coerce
   (:require [clj-kondo.impl.rewrite-clj.potemkin :refer [defprotocol+]]
             [clj-kondo.impl.rewrite-clj.node
-             comment forms integer keyword
-             quote string uneval
+             comment forms integer [keyword :as keyword-node]
+             quote
+             [string :as string-node]
+             uneval
              [meta :refer [meta-node]]
              [protocols :as node
               :refer [NodeCoerceable
@@ -31,13 +33,15 @@
 
 ;; ## Helpers
 
+(def lconj (fnil conj '()))
+
 (defn- node-with-meta
   [node value]
   (if (instance? clojure.lang.IMeta value)
     (let [mta (meta value)]
       (if (empty? mta)
         node
-        (meta-node (coerce mta) node)))
+        (update node :meta lconj (coerce mta))))
     node))
 
 ;; ## Tokens
@@ -54,13 +58,23 @@
   (coerce [v]
     (token-node nil)))
 
+(extend-protocol NodeCoerceable
+  String
+  (coerce [v]
+    (string-node/string-node v)))
+
+(extend-protocol NodeCoerceable
+  clojure.lang.Keyword
+  (coerce [v]
+    (keyword-node/keyword-node v)))
+
 ;; ## Seqs
 
 (defn- seq-node
   [f sq]
   (node-with-meta
     (->> (map coerce sq)
-         (ws/space-separated)
+         #_(ws/space-separated)
          (vec)
          (f))
     sq))
@@ -72,21 +86,26 @@
   clojure.lang.IPersistentList
   (coerce [sq]
     (seq-node list-node sq))
+  clojure.lang.Cons
+  (coerce [sq]
+    (seq-node list-node sq))
   clojure.lang.IPersistentSet
   (coerce [sq]
     (seq-node set-node sq)))
 
 ;; ## Maps
 
-(let [comma (ws/whitespace-nodes ", ")
-      space (ws/whitespace-node " ")]
+(let [;; comma (ws/whitespace-nodes ", ")
+      ;; space (ws/whitespace-node " ")
+      ]
   (defn- map->children
     [m]
     (->> (mapcat
           (fn [[k v]]
-            (list* (coerce k) space (coerce v) comma))
+            [k v])
           m)
-         (drop-last (count comma))
+         (map coerce)
+         ;; (drop-last (count comma))
          (vec))))
 
 (defn- record-node

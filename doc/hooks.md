@@ -253,11 +253,59 @@ the values carrying the metadata:
     - keyword node `:foo`
     - keyword node `:bar`
 
-## Example Hooks
+## Macroexpand
 
-- rewrite-cljc-playground: [import-vars-with-mod](https://github.com/lread/rewrite-cljc-playground/commit/09882e1244a8c12879ef8c1e6872724748e7914b)
+The `:macroexpand` hook can be used to expand the s-expression representation of
+the rewrite-clj nodes using a macro in the configuration. After macroexpansion,
+clj-kondo coerces the s-expression back into rewrite-clj nodes. That makes this
+feature easier to use than `:analyze-call`, but comes at the cost of loss of
+precision with respect to locations: all lint warnings will be reported at the
+call site of the macro. Similar rules to `:analyze-hook` apply to this feature:
+the macro in the config doesn't have to be the same as the original macro, as
+long as it expands in syntactically sane expressions. The config macros, like
+`:analyze-call` hooks, are running in SCI and have a subset of Clojure
+available.
 
-More examples of hooks can be found in the [config](https://github.com/clj-kondo/config) project.
+Let's illustrate the `:macroexpand` hook using an example. Consider this script
+with a macro that causes unresolved symbols:
+
+``` clojure
+(ns script)
+(def sh (js/require "shelljs"))
+
+(defmacro $ [op & args]
+  (list* (symbol (str "." op)) 'sh args))
+
+(prn (str ($ which "git"))) ;; which is unresolved
+(prn (str ($ pwd))) ;; pwd is unresolved
+($ cd  "..") ;; cd is unresolved
+(-> ($ ls) prn) ;; ls is unresolved
+```
+
+Place the macro in a similar named namespace in your config directory:
+
+.clj-kondo/script.clj
+``` clojure
+(ns script)
+
+(defmacro $ [op & args]
+  (list* (symbol (str "." op)) 'sh args))
+```
+
+Note: the namespace in `.clj-kondo` doesn't have to have the same name but in
+general this will work better for the macro expansion.
+
+Configure the macro to be used for expansion. On the left hand side of the map
+you use the fully qualified names of the original macros. On the right hand side
+you use the fully qualified names of the macros in the config. In this example
+they are the same.
+
+.clj-kondo/config.edn:
+``` clojure
+{:hooks {:macroexpand {script/$ script/$}}}
+```
+
+This should get rid of the unresolved symbols.
 
 ## Tips and tricks
 
@@ -280,6 +328,12 @@ To test performance of a hook, you can write code which triggers the hook and
 repeat that expression `n` times (where `n` is a large number like
 1000000). Then lint the file with `clj-kondo --lint` and measure
 timing. The `time` macro is also available within hooks code.
+
+## Example Hooks
+
+- rewrite-cljc-playground: [import-vars-with-mod](https://github.com/lread/rewrite-cljc-playground/commit/09882e1244a8c12879ef8c1e6872724748e7914b)
+
+More examples of hooks can be found in the [config](https://github.com/clj-kondo/config) project.
 
 ## Clojurists Together
 

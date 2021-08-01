@@ -22,7 +22,6 @@
                    ctx
                    (node->line (:filename ctx)
                                ns
-                               :warning
                                :duplicate-require
                                (str "duplicate require of " ns)))
                  required)
@@ -43,7 +42,6 @@
               ctx
               (node->line (:filename ctx)
                           as
-                          :warning
                           :conflicting-alias
                           (str "Conflicting alias for " ns))))
           (when (seq (rest ns-maps))
@@ -75,7 +73,6 @@
                    ctx
                    (node->line (:filename ctx)
                                ns
-                               level
                                :unsorted-required-namespaces
                                (str "Unsorted namespace: " ns)))
                   :else (recur raw-ns
@@ -147,7 +144,7 @@
                     (findings/reg-finding!
                      ctx
                      (node->line filename
-                                 expr :warning
+                                 expr
                                  :redefined-var
                                  (if (= ns-sym redefined-ns)
                                    (str "redefined var #'" redefined-ns "/" var-sym)
@@ -170,7 +167,7 @@
                     (findings/reg-finding!
                      ctx
                      (node->line filename
-                                 expr :warning
+                                 expr
                                  :missing-docstring
                                  "Missing docstring."))))
                 (update ns :vars assoc
@@ -387,7 +384,6 @@
                           message)]
             (findings/reg-finding! ctx (node->line (:filename ctx)
                                                    expr
-                                                   :warning
                                                    :shadowed-var
                                                    message))))))))
 

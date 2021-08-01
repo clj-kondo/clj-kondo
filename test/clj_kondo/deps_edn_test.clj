@@ -27,11 +27,43 @@
 (deftest coordinate-required-key-test
   (let [deps-edn '{:deps {foobar/bar {:mvn/release "2020.20"}}
                    :aliases {:foo {:extra-deps {foo/bar1 {:git/url "..."
-                                                          :git/sha "..."}}}}}
+                                                          :git/tag "..."}}}}}
         deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
     (assert-submaps
      '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Missing required key: :mvn/version, :git/url or :local/root."}
-       {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Missing required key :sha."})
+       {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Missing required key :git/sha."})
+     (lint! (str deps-edn)
+            "--filename" "deps.edn"))))
+
+(deftest git-coordinates-required-key-test
+  (let [deps-edn '{:deps {foo/bar1 {:git/url "..."
+                                    :git/sha "..."}
+                          foo/bar2 {:git/url "..."
+                                    :git/tag "..."}
+                          foo/bar3 {:git/url "..."
+                                    :git/tag "..."
+                                    :git/sha "..."}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
+    (assert-submaps
+     '({:file "deps.edn", :row 1, :col 61, :level :warning, :message "Missing required key :git/sha."})
+     (lint! (str deps-edn)
+            "--filename" "deps.edn")))
+  (let [deps-edn '{:deps {io.github.cognitect-labs/test-runner
+                          {:git/tag "v0.4.0" :git/sha "334f2e2"}}}]
+    (is (empty? (lint! (binding [*print-namespace-maps* false] (str deps-edn)) "--filename" "deps.edn")))))
+
+(deftest git-coordinates-conflicting-keys-test
+  (let [deps-edn '{:deps {foo/bar1 {:git/url "..."
+                                    :git/sha "..."
+                                    :sha     "..."}
+                          foo/bar2 {:git/url "..."
+                                    :git/tag "..."
+                                    :tag     "..."
+                                    :sha     "..."}}}
+        deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
+    (assert-submaps
+     '({:file "deps.edn", :row 1, :col 18, :level :warning, :message "Conflicting keys :git/sha and :sha."}
+       {:file "deps.edn", :row 1, :col 73, :level :warning, :message "Conflicting keys :git/tag and :tag."})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
 

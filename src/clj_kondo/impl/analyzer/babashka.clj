@@ -9,7 +9,7 @@
   (let [children (doall (keep (fn [child]
                                 (let [s (utils/sexpr child)]
                                   (when (and (seq? s)
-                                             (= 'unquote (first s)))
+                                             (= 'clojure.core/unquote (first s)))
                                     (first (:children child)))))
                               (:children expr)))]
     (common/analyze-children ctx children)))

@@ -203,3 +203,17 @@ children))]
 (hook-let (let [x 1] x))"
                        {:hooks {:__dangerously-allow-string-hooks__ true}})]
         (is (empty? res))))))
+
+(deftest macroexpand2-test
+  (assert-submaps
+   '({:file "corpus/macroexpand2.cljs", :row 19, :col 1, :level :error, :message "Unresolved symbol: foobar"}
+     {:file "corpus/macroexpand2.cljs", :row 31, :col 3, :level :error, :message "Expected: number, received: string."}
+     {:file "corpus/macroexpand2.cljs", :row 31, :col 3, :level :error, :message "Expected: number, received: keyword."}
+     {:file "corpus/macroexpand2.cljs", :row 37, :col 3, :level :error, :message "Expected: number, received: string."} {:file "corpus/macroexpand2.cljs", :row 37, :col 3, :level :error, :message "Expected: number, received: nil."})
+   (let [results (lint! (io/file "corpus" "macroexpand2.cljs")
+                        {:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}
+                                   :type-mismatch {:level :error}}}
+                        "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))]
+     ;; (prn results)
+     results)))

@@ -2,11 +2,21 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2021.07.28
 
-- Add types for ex-info [#1314](https://github.com/clj-kondo/clj-kondo/issues/1314)
+### New
+
+- `:macroexpand` hook. This allows linting using the same or similar macros from
+  your code. See
+  [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/hooks.md#macroexpand).
+
+### Enhanced / fixed
+
+- Add types for `ex-info` [#1314](https://github.com/clj-kondo/clj-kondo/issues/1314)
 - Bump SCI to v0.2.6
 - Fix EDN/JSON serialization of findings for NPM string namespace [#1319](https://github.com/clj-kondo/clj-kondo/issues/1319)
+- Support fully qualified symbol in def referring to current namespace [#1326](https://github.com/clj-kondo/clj-kondo/issues/1326)
+- Fix false positive redundant expression in pre-post map [#1335](https://github.com/clj-kondo/clj-kondo/issues/1335)
 
 ## 2021.06.18
 
