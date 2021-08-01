@@ -328,6 +328,8 @@
     (if (and raw (string? raw))
       raw sym)))
 
+(def ^:dynamic *ctx* nil)
+
 ;; (require 'clojure.pprint)
 
 ;; (defn where-am-i [depth]

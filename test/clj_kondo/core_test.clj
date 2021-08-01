@@ -90,6 +90,30 @@
            {:lint   ["-"]}))]
     (is (edn/read-string (pr-str findings)))))
 
+(defn custom-linter [code]
+  (with-in-str code
+    (clj-kondo/run!
+     {:lint   ["-"]
+      :config {:linters {:org.acme/forbidden-var {:level :error}}
+               :output {:analysis true}}
+      :custom-lint-fn (fn [{:keys [analysis reg-finding!]}]
+                        (let [evals (filter #(and (= 'clojure.core (:to %))
+                                                  (= 'eval (:name %))) (:var-usages analysis))]
+                          (doseq [e evals]
+                            (reg-finding! (assoc (select-keys e [:filename :row :end-row :col :end-col])
+                                                 :end-row (:name-end-row e)
+                                                 :end-col (:name-end-col e)
+                                                 :type :org.acme/forbidden-var)))))})))
+
+(deftest custom-lint-fn-test
+  (let [res (custom-linter "(eval '(+ 1 2 3))")]
+    (is (= [{:filename "<stdin>", :row 1, :col 2, :end-row 1, :end-col 6,
+             :type :org.acme/forbidden-var, :level :error}]
+           (:findings res))))
+  (testing "ignore hints"
+    (let [res (custom-linter "#_:clj-kondo/ignore (eval '(+ 1 2 3))")]
+      (is (empty? (:findings res))))))
+
 ;;;; Scratch
 
 (comment

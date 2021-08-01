@@ -5,8 +5,10 @@
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :refer [merge-config!]]
    [clj-kondo.impl.core :as core-impl]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
+   [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]))
 
 ;;;; Public API
@@ -92,7 +94,8 @@
            :parallel
            :no-warnings
            :dependencies
-           :copy-configs]
+           :copy-configs
+           :custom-lint-fn]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir
@@ -166,6 +169,19 @@
             (l/lint-unresolved-vars! ctx)
             (l/lint-unused-imports! ctx)
             (l/lint-unresolved-namespaces! ctx))
+        _ (when custom-lint-fn
+            (binding [utils/*ctx* ctx]
+              (custom-lint-fn (cond->
+                                  {:config config
+                                   :reg-finding!
+                                   (fn [m]
+                                     (findings/reg-finding!
+                                      (assoc utils/*ctx*
+                                             :lang (or (:lang m)
+                                                       (core-impl/lang-from-file
+                                                        (:filename m) lang))) m))}
+                                analysis-cfg
+                                (assoc :analysis @analysis)))))
         all-findings @findings
         all-findings (core-impl/filter-findings config all-findings)
         all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))
