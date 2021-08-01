@@ -889,7 +889,8 @@
                          :syntax
                          (str "Invalid var name: " var-name)))
             nil)))
-    var-name))
+    (some-> var-name
+            (with-meta (meta var-name-node)))))
 
 (defn analyze-def [ctx expr defined-by]
   ;; (def foo ?docstring ?init)
@@ -978,12 +979,17 @@
                             (current-namespace-var-name ctx var-name-node var-sym)))
                         var-name-nodes)]
     (doseq [var-name var-names]
-      (namespace/reg-var! ctx ns-name
-                          var-name
-                          expr
-                          (assoc (meta expr)
-                                 :declared true
-                                 :defined-by defined-by)))))
+      (let [var-name-meta (meta var-name)]
+        (namespace/reg-var! ctx ns-name
+                            var-name
+                            expr
+                            (assoc (meta expr)
+                                   :name-row (:row var-name-meta)
+                                   :name-col (:col var-name-meta)
+                                   :name-end-row (:end-row var-name-meta)
+                                   :name-end-col (:end-col var-name-meta)
+                                   :declared true
+                                   :defined-by defined-by))))))
 
 (defn analyze-catch [ctx expr]
   (let [ctx (update ctx :callstack conj [nil 'catch])

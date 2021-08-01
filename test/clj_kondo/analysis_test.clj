@@ -649,7 +649,7 @@
         (analyze "(ns foo)
                   (declare bar)")]
     (assert-submaps
-     '[{:filename "<stdin>", :row 2, :col 19, :end-row 2, :end-col 32, :ns foo, :name bar,
+     '[{:filename "<stdin>", :row 2, :col 19, :end-row 2, :end-col 32, :ns foo, :name bar, :name-row 2, :name-col 28, :name-end-row 2, :name-end-col 31
         :defined-by clojure.core/declare}]
      var-definitions)))
 
