@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
-  (:require [clj-kondo.impl.findings :as findings]
+  (:require [clj-kondo.impl.cache :as cache]
+            [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.metadata :as meta]
             [clj-kondo.impl.rewrite-clj.node :as node]
             [clj-kondo.impl.utils :as utils :refer [assoc-some vector-node list-node
@@ -65,6 +66,12 @@
 (defn coerce [s-expr]
   (node/coerce s-expr))
 
+(defn ns-analysis [lang ns-sym]
+  (cache/from-cache-1
+   (:cache-dir *ctx*)
+   lang
+   ns-sym))
+
 (defn annotate [node meta]
   (walk/postwalk (fn [node]
                    (if (map? node)
@@ -105,6 +112,7 @@
    'reg-finding! reg-finding!
    'reg-keyword! reg-keyword!
    'coerce coerce
+   'ns-analysis ns-analysis
    })
 
 (def sci-ctx
