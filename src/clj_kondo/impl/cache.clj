@@ -42,11 +42,14 @@
         ;; file entry doesn't contain clj-kondo.exports, then we should not skip
         ;; we need to check this before converting it into a nio Path, which
         ;; fails on Windows.
-        (when-not (str/includes? filename ".jar:")
-          (.startsWith (-> (.toPath (io/file filename))
-                           (.toAbsolutePath))
-                       (-> (.toPath config-dir)
-                           (.toAbsolutePath)))) )))
+        (when-not (or (str/includes? filename ".jar:")
+                      (= "<stdin>" filename))
+          #_:clj-kondo/ignore
+          (try (.startsWith (-> (.toPath (io/file filename))
+                                (.toAbsolutePath))
+                            (-> (.toPath config-dir)
+                                (.toAbsolutePath)))
+               #_(catch Exception _ false))) )))
 
 (defn to-cache
   "Writes ns-data to cache-dir. Always use with `with-cache`."
