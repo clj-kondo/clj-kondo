@@ -2,6 +2,13 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- Fix conflicts between application code and hook config code in cache [#1340](https://github.com/clj-kondo/clj-kondo/issues/1340)
+- Allow overriding level in `reg-finding!` [#1344](https://github.com/clj-kondo/clj-kondo/issues/1344) ([@ericdallo](https://github.com/ericdallo))
+- Fix `declare` name positions in analysis [#1343](https://github.com/clj-kondo/clj-kondo/issues/1343) ([@ericdallo](https://github.com/ericdallo))
+- Updated rules for `deps.edn` to match Clojure CLI `1.10.1.933` ([@dpassen](https://github.com/dpassen))
+
 ## 2021.07.28
 
 ### New
