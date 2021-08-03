@@ -430,16 +430,19 @@
 
 (defn namespaces->indexed [namespaces]
   (when namespaces
-    (map-vals (fn [{:keys [:vars :proxied-namespaces]}]
-                (assoc-some (format-vars vars)
-                            :proxied-namespaces proxied-namespaces))
+    (map-vals (fn [{:keys [:filename :vars :proxied-namespaces]}]
+                (some-> (assoc-some (format-vars vars)
+                                    :proxied-namespaces proxied-namespaces)
+                        (assoc :filename filename)))
               namespaces)))
 
 (defn namespaces->indexed-cljc [namespaces lang]
   (when namespaces
     (map-vals (fn [v]
-                (let [vars (:vars v)]
-                  {lang (format-vars vars)}))
+                (let [vars (:vars v)
+                      filename (:filename v)]
+                  {:filename filename
+                   lang (format-vars vars)}))
               namespaces)))
 
 (defn namespaces->indexed-defs [ctx]

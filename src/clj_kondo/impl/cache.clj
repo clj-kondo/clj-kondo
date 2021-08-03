@@ -4,6 +4,7 @@
    [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
+   [clojure.string :as str]
    [cognitect.transit :as transit])
   (:import [java.io RandomAccessFile]))
 
@@ -33,17 +34,28 @@
        (transit/read (transit/reader is :json)))
      :source source)))
 
+(defn skip-write?
+  [^java.io.File config-dir ^String filename]
+  (when filename
+    (or (str/includes? filename "clj-kondo.exports")
+        (.startsWith (-> (.toPath (io/file filename))
+                         (.toAbsolutePath))
+                     (-> (.toPath config-dir)
+                         (.toAbsolutePath))) )))
+
 (defn to-cache
   "Writes ns-data to cache-dir. Always use with `with-cache`."
-  [cache-dir lang ns-sym ns-data]
-  (let [file (cache-file cache-dir lang ns-sym)]
-    (with-open [;; first we write to a baos as a workaround for transit-clj #43
-                bos (java.io.ByteArrayOutputStream. 1024)
-                os (io/output-stream bos)]
-      (let [writer (transit/writer os :json)]
-        (io/make-parents file)
-        (transit/write writer ns-data)
-        (io/copy (.toByteArray bos) file)))))
+  [config-dir cache-dir lang ns-sym ns-data]
+  (let [filename (:filename ns-data)]
+    (when-not (skip-write? config-dir filename)
+      (let [file (cache-file cache-dir lang ns-sym)]
+        (with-open [;; first we write to a baos as a workaround for transit-clj #43
+                    bos (java.io.ByteArrayOutputStream. 1024)
+                    os (io/output-stream bos)]
+          (let [writer (transit/writer os :json)]
+            (io/make-parents file)
+            (transit/write writer ns-data)
+            (io/copy (.toByteArray bos) file)))))))
 
 (defmacro with-cache
   "Tries to lock cache in the scope of `body`. Retries `max-retries`
@@ -95,7 +107,7 @@
 (defn update-defs
   "Resolve types of defs. Optionally store to cache. Return defs with
   resolved types for linting.."
-  [idacs cache-dir lang defs]
+  [idacs config-dir cache-dir lang defs]
   (persistent!
    (reduce-kv (fn [m ns-nm ns-data]
                 (let [source (:source ns-data)
@@ -111,7 +123,7 @@
                         ns-data)]
                   ;; (when resolve? (prn ns-data))
                   (when (and cache-dir resolve?)
-                    (to-cache cache-dir lang ns-nm ns-data))
+                    (to-cache config-dir cache-dir lang ns-nm ns-data))
                   (assoc! m ns-nm ns-data)))
               (transient {})
               defs)))
@@ -119,7 +131,7 @@
 (defn sync-cache*
   "Reads required namespaces from cache and combines them with the
   namespaces we linted in this run."
-  [idacs cache-dir]
+  [idacs config-dir cache-dir]
   ;; first load all idacs so we can resolve types
   (let [idacs (assoc idacs :linted-namespaces #{})
         idacs
@@ -138,16 +150,16 @@
     (reduce (fn [idacs lang]
               (update-in idacs [lang :defs]
                          (fn [defs]
-                           (update-defs idacs cache-dir lang defs)))
+                           (update-defs idacs config-dir cache-dir lang defs)))
               idacs)
             idacs
             [:clj :cljs :cljc])))
 
-(defn sync-cache [idacs cache-dir]
+(defn sync-cache [idacs config-dir cache-dir]
   (if cache-dir
     (with-cache cache-dir 6
-      (sync-cache* idacs cache-dir))
-    (sync-cache* idacs cache-dir)))
+      (sync-cache* idacs config-dir cache-dir))
+    (sync-cache* idacs config-dir cache-dir)))
 
 ;;;; Scratch
 

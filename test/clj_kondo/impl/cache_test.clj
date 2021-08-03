@@ -185,6 +185,13 @@
        '({:row 1, :col 35, :level :warning, :message "Unresolved var: user/y"})
        output))))
 
+(deftest skip-write-test
+  (is (cache/skip-write? (io/file ".clj-kondo") "clj-kondo.exports/foo/bar/my_code.clj"))
+  (is (cache/skip-write? (io/file ".clj-kondo") ".clj-kondo/hooks/my_hook.clj"))
+  (is (not (cache/skip-write? (io/file ".clj-kondo") "src/code.clj")))
+  (is (not (cache/skip-write? (io/file ".clj-kondo") "/Users/foo/.m2/reposistory/foo.jar:hello.clj"))))
+
+
 ;;;; Scratch
 
 (comment

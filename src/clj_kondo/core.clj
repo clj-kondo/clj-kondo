@@ -146,6 +146,8 @@
              :analyze-locals? analyze-locals?
              :analyze-keywords? analyze-keywords?
              :analyze-arglists? (get analysis-cfg :arglists)
+             ;; set of files which should not be flushed into cache
+             ;; most notably hook configs, as they can conflict with original sources
              ;; NOTE: we don't allow this to be changed in namespace local
              ;; config, for e.g. the clj-kondo playground
              :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)}
@@ -155,7 +157,7 @@
                                      ctx) lint lang filename)
         ;; _ (prn :used-nss @used-nss)
         idacs (core-impl/index-defs-and-calls ctx)
-        idacs (cache/sync-cache idacs cache-dir)
+        idacs (cache/sync-cache idacs cfg-dir cache-dir)
         idacs (overrides idacs)
         _ (when (and dependencies (not analysis))
             ;; analysis is called from lint-var-usage, this can probably happen somewhere else
