@@ -2,7 +2,9 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2021.08.03
+
+### Enhanced / fixed
 
 - Fix conflicts between application code and hook config code in cache [#1340](https://github.com/clj-kondo/clj-kondo/issues/1340)
 - Allow overriding level in `reg-finding!` [#1344](https://github.com/clj-kondo/clj-kondo/issues/1344) ([@ericdallo](https://github.com/ericdallo))
