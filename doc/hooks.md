@@ -96,7 +96,7 @@ This is the code for the hook:
 (ns hooks.with-bound
   (:require [clj-kondo.hooks-api :as api]))
 
-(defn with-bound [{:keys [:node]}]
+(defn with-bound [{:keys [node]}]
   (let [[binding-vec & body] (rest (:children node))
         [sym val opts] (:children binding-vec)]
     (when-not (and sym val)
