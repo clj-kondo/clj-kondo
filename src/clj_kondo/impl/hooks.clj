@@ -67,13 +67,11 @@
   (node/coerce s-expr))
 
 (defn- var-definitions
-  "Project cached analysis as public var-definitions."
+  "Project cached analysis as a subset of public var-definitions."
   [analysis]
-  (let [selected-keys [:filename :row :col :end-row :end-col
-                       :ns :name :definied-by
+  (let [selected-keys [:ns :name
                        :fixed-arities :varargs-min-arity
-                       :private :macro :deprecated :doc :added
-                       :lang :arglists-str]]
+                       :private :macro]]
     (->> analysis
          vals
          (mapv #(select-keys % selected-keys)))))
