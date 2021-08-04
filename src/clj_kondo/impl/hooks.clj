@@ -6,7 +6,7 @@
             [clj-kondo.impl.rewrite-clj.node :as node]
             [clj-kondo.impl.utils :as utils :refer [assoc-some vector-node list-node
                                                     sexpr token-node keyword-node
-                                                    string-node map-node *ctx*]]
+                                                    string-node map-node map-vals *ctx*]]
             [clojure.java.io :as io]
             [clojure.walk :as walk]
             [sci.core :as sci])
@@ -66,31 +66,41 @@
 (defn coerce [s-expr]
   (node/coerce s-expr))
 
-(defmulti ns-analysis*
-  (fn [lang _ns-sym] lang))
+(defn- var-definitions
+  "Project cached analysis as public var-definitions."
+  [analysis]
+  (let [selected-keys [:filename :row :col :end-row :end-col
+                       :ns :name :definied-by
+                       :fixed-arities :varargs-min-arity
+                       :private :macro :deprecated :doc :added
+                       :lang :arglists-str]]
+    (->> analysis
+         vals
+         (mapv #(select-keys % selected-keys)))))
 
-(defmethod ns-analysis* :default
+(defn- ns-analysis*
   [lang ns-sym]
-  {lang (cache/from-cache-1
-          (:cache-dir *ctx*)
-          lang
-          ns-sym)})
-
-(defmethod ns-analysis* :cljc
-  [_lang ns-sym]
-  (cache/from-cache-1
-   (:cache-dir *ctx*)
-   :cljc
-   ns-sym))
+  (if (= lang :cljc)
+    (->> (dissoc
+          (cache/from-cache-1 (:cache-dir *ctx*) :cljc ns-sym)
+          :filename
+          :source)
+         (map-vals var-definitions))
+    {lang (-> (cache/from-cache-1 (:cache-dir *ctx*) lang ns-sym)
+              var-definitions)}))
 
 (defn ns-analysis
+  "Return any cached analysis for the namespace identified by ns-sym.
+  Returns a map keyed by language keyword with values being var definitions
+  as output by the top level :analysis option."
   ([ns-sym] (ns-analysis ns-sym {}))
   ([ns-sym {:keys [lang]}]
-   (if lang
-     (ns-analysis* lang ns-sym)
-     (reduce
-      merge
-      (map #(ns-analysis* % ns-sym) [:clj :cljc :cljs])))))
+   (->>
+    (if lang
+      (ns-analysis* lang ns-sym)
+      (reduce
+       merge
+       (map #(ns-analysis* % ns-sym) [:clj :cljc :cljs]))))))
 
 (defn annotate [node meta]
   (walk/postwalk (fn [node]
