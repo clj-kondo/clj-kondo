@@ -197,17 +197,21 @@
       ;; issue #542. Maybe it makes sense to refactor loading source using
       ;; transducers so we don't have to load the entire source of a jar file in
       ;; memory at once?
-      (mapv (fn [^JarFile$JarFileEntry entry]
-              (let [entry-name (.getName entry)
-                    source (slurp (.getInputStream jar entry))]
-                (when (and cfg-dir (:copy-configs ctx)
-                           (str/includes? entry-name "clj-kondo.exports"))
-                  (copy-config-entry ctx entry-name source cfg-dir))
-                {:filename (str (when canonical?
-                                  (str (.getCanonicalPath jar-file) ":"))
-                                entry-name)
-                 :source source
-                 :group-id jar-file})) entries))))
+      (into [] (keep (fn [^JarFile$JarFileEntry entry]
+                       (let [entry-name (.getName entry)
+                             source (slurp (.getInputStream jar entry))]
+                         (if (and cfg-dir
+                                  (str/includes? entry-name "clj-kondo.exports"))
+                           ;; never lint exported hook code
+                           (when (:copy-configs ctx)
+                             ;; only copy when copy-configs is true
+                             (copy-config-entry ctx entry-name source cfg-dir))
+                           {:filename (str (when canonical?
+                                             (str (.getCanonicalPath jar-file) ":"))
+                                           entry-name)
+                            :source source
+                            :group-id jar-file}))))
+            entries))))
 
 ;;;; dir processing
 
@@ -238,18 +242,21 @@
                        (.getPath file))
                   can-read? (.canRead file)
                   source? (and (.isFile file) (source-file? nm))]
-              (when (and cfg-dir source?
-                         (:copy-configs ctx)
-                         (str/includes? path "clj-kondo.exports"))
-                (copy-config-file ctx file cfg-dir))
-              (cond
-                (and can-read? source?)
-                {:filename nm
-                 :source (slurp file)
-                 :group-id dir}
-                (and (not can-read?) source?)
-                (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
-                :else nil)))
+              (if (and cfg-dir source?
+                       (str/includes? path "clj-kondo.exports"))
+                ;; never lint exported hook code, when coming from dir.
+                ;; should be ok when editing single hook file, it won't be persisted to cache
+                (when (:copy-configs ctx)
+                  ;; only copy when copy-configs is true
+                  (copy-config-file ctx file cfg-dir))
+                (cond
+                  (and can-read? source?)
+                  {:filename nm
+                   :source (slurp file)
+                   :group-id dir}
+                  (and (not can-read?) source?)
+                  (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
+                  :else nil))))
           files)))
 
 ;;;; threadpool
@@ -358,8 +365,7 @@
     (catch Throwable e
       (if dev?
         (throw e)
-        (findings/reg-finding! ctx {:level :warning
-                                    :filename (if canonical?
+        (findings/reg-finding! ctx {:filename (if canonical?
                                                 (.getCanonicalPath (io/file path))
                                                 path)
                                     :type :file
@@ -431,16 +437,19 @@
 
 (defn namespaces->indexed [namespaces]
   (when namespaces
-    (map-vals (fn [{:keys [:vars :proxied-namespaces]}]
-                (assoc-some (format-vars vars)
-                            :proxied-namespaces proxied-namespaces))
+    (map-vals (fn [{:keys [:filename :vars :proxied-namespaces]}]
+                (some-> (assoc-some (format-vars vars)
+                                    :proxied-namespaces proxied-namespaces)
+                        (assoc :filename filename)))
               namespaces)))
 
 (defn namespaces->indexed-cljc [namespaces lang]
   (when namespaces
     (map-vals (fn [v]
-                (let [vars (:vars v)]
-                  {lang (format-vars vars)}))
+                (let [vars (:vars v)
+                      filename (:filename v)]
+                  {:filename filename
+                   lang (format-vars vars)}))
               namespaces)))
 
 (defn namespaces->indexed-defs [ctx]

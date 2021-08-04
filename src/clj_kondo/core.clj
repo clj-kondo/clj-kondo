@@ -5,8 +5,10 @@
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :refer [merge-config!]]
    [clj-kondo.impl.core :as core-impl]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
+   [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]))
 
 ;;;; Public API
@@ -92,7 +94,8 @@
            :parallel
            :no-warnings
            :dependencies
-           :copy-configs]
+           :copy-configs
+           :custom-lint-fn]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir
@@ -143,6 +146,8 @@
              :analyze-locals? analyze-locals?
              :analyze-keywords? analyze-keywords?
              :analyze-arglists? (get analysis-cfg :arglists)
+             ;; set of files which should not be flushed into cache
+             ;; most notably hook configs, as they can conflict with original sources
              ;; NOTE: we don't allow this to be changed in namespace local
              ;; config, for e.g. the clj-kondo playground
              :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)}
@@ -152,7 +157,7 @@
                                      ctx) lint lang filename)
         ;; _ (prn :used-nss @used-nss)
         idacs (core-impl/index-defs-and-calls ctx)
-        idacs (cache/sync-cache idacs cache-dir)
+        idacs (cache/sync-cache idacs cfg-dir cache-dir)
         idacs (overrides idacs)
         _ (when (and dependencies (not analysis))
             ;; analysis is called from lint-var-usage, this can probably happen somewhere else
@@ -166,6 +171,19 @@
             (l/lint-unresolved-vars! ctx)
             (l/lint-unused-imports! ctx)
             (l/lint-unresolved-namespaces! ctx))
+        _ (when custom-lint-fn
+            (binding [utils/*ctx* ctx]
+              (custom-lint-fn (cond->
+                                  {:config config
+                                   :reg-finding!
+                                   (fn [m]
+                                     (findings/reg-finding!
+                                      (assoc utils/*ctx*
+                                             :lang (or (:lang m)
+                                                       (core-impl/lang-from-file
+                                                        (:filename m) lang))) m))}
+                                analysis-cfg
+                                (assoc :analysis @analysis)))))
         all-findings @findings
         all-findings (core-impl/filter-findings config all-findings)
         all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))

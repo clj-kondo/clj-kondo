@@ -22,5 +22,5 @@
         (catch Exception e
           (findings/reg-finding! ctx
                                  (node->line (:filename ctx) query-raw
-                                             :error :datalog-syntax
+                                             :datalog-syntax
                                              (.getMessage e))))))))

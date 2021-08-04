@@ -50,13 +50,13 @@
               (findings/reg-finding!
                ctx
                (node->line filename
-                           key-expr :error :duplicate-map-key
+                           key-expr :duplicate-map-key
                            (str "duplicate key " key-expr))))
             (when-not (known-key? k)
               (findings/reg-finding!
                ctx
                (node->line filename
-                           key-expr :error :syntax
+                           key-expr :syntax
                            (str "unknown option " key-expr))))
             (update acc :seen conj k))
           acc))
@@ -66,7 +66,7 @@
        (let [last-child (last children)]
          (findings/reg-finding!
           ctx
-          (node->line filename last-child :error :missing-map-value
+          (node->line filename last-child :missing-map-value
                       (str "missing value for key " last-child))))))))
 
 ;;;; end map linter
@@ -81,7 +81,7 @@
          (do (when (contains? seen k)
                (findings/reg-finding!
                 ctx
-                (node->line (:filename ctx) set-element :error :duplicate-set-key
+                (node->line (:filename ctx) set-element :duplicate-set-key
                             (str "duplicate set element " k))))
              (update acc :seen conj k))
          acc))

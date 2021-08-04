@@ -23,12 +23,12 @@
     (when-not (<= 2 (count binding-forms) 3)
       (findings/reg-finding!
        ctx
-       (node->line filename bindings :error :syntax
+       (node->line filename bindings :syntax
                    (format "%s binding form requires exactly 2 or 3 forms" call))))
     (when-not (utils/symbol-token? sym)
       (findings/reg-finding!
        ctx
-       (node->line filename sym :error :syntax
+       (node->line filename sym :syntax
                    (format "%s binding form requires a symbol" call))))
     (let [opts-analyzed (analyze-expression** ctx opts)
           ;; a normal binding vector with just these two forms:

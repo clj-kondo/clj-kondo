@@ -101,7 +101,6 @@
         (findings/reg-finding!
          ctx
          {:message "Keys in :or should be simple symbols."
-          :level :error
           :row (:row m)
           :col (:col m)
           :end-row (:end-row m)
@@ -193,7 +192,6 @@
                     ctx
                     (node->line (:filename ctx)
                                 expr
-                                :error
                                 :syntax
                                 (str "unsupported binding form " sym)))))))
            ;; keyword
@@ -222,7 +220,6 @@
                   ctx
                   (node->line (:filename ctx)
                               expr
-                              :error
                               :syntax
                               (str "unsupported binding form " k))))))
            :else
@@ -230,7 +227,6 @@
             ctx
             (node->line (:filename ctx)
                         expr
-                        :error
                         :syntax
                         (str "unsupported binding form " expr))))
          :vector (let [children (:children expr)
@@ -302,7 +298,6 @@
           ctx
           (node->line (:filename ctx)
                       expr
-                      :error
                       :syntax
                       (str "unsupported binding form " expr))))))))
 
@@ -350,7 +345,6 @@
         (findings/reg-finding! ctx
                                (node->line (:filename ctx)
                                            body
-                                           :warning
                                            :syntax
                                            "Function arguments should be wrapped in vector."))
         (let [arg-bindings (extract-bindings ctx arg-vec (:fn-body body) {:fn-args? true})
@@ -368,7 +362,6 @@
     (findings/reg-finding! ctx
                            (node->line (:filename ctx)
                                        body
-                                       :warning
                                        :syntax
                                        "Invalid function body."))))
 
@@ -415,7 +408,6 @@
                 (findings/reg-finding! ctx
                                        (node->line (:filename ctx)
                                                    first-child
-                                                   :warning
                                                    :misplaced-docstring
                                                    "Misplaced docstring."))))
         [parsed return-tag]
@@ -487,7 +479,6 @@
             (findings/reg-finding! ctx
                                    (node->line (:filename ctx)
                                                expr
-                                               :warning
                                                :syntax
                                                "Invalid function body.")))
         ;; var is known when making recursive call
@@ -623,7 +614,7 @@
     (when (odd? num-children)
       (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) bv :error :syntax
+       (node->line (:filename ctx) bv :syntax
                    (format "%s binding vector requires even number of forms" form-name))))))
 
 (defn assert-vector [ctx call expr]
@@ -632,7 +623,7 @@
       (if-not vec?
         (do (findings/reg-finding!
              ctx
-             (node->line (:filename ctx) expr :error :syntax
+             (node->line (:filename ctx) expr :syntax
                          ;; cf. error in clojure
                          (format "%s requires a vector for its binding" call)))
             nil)
@@ -659,7 +650,7 @@
                    (and valid-bv-node (empty? (:children valid-bv-node)))))
       (findings/reg-finding!
        ctx
-       (node->line filename expr :warning :redundant-let "Redundant let expression.")))
+       (node->line filename expr :redundant-let "Redundant let expression.")))
     (when bv-node
       (let [{analyzed-bindings :bindings
              arities :arities
@@ -710,7 +701,7 @@
     (when redundant?
       (findings/reg-finding!
        ctx
-       (node->line filename expr :warning :redundant-do "redundant do"))))
+       (node->line filename expr :redundant-do "redundant do"))))
   (analyze-children ctx (next (:children expr))))
 
 (defn lint-two-forms-binding-vector! [ctx form-name expr]
@@ -718,7 +709,7 @@
     (when (not= 2 num-children)
       (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) expr :error :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
+       (node->line (:filename ctx) expr :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
 (defn analyze-conditional-let [ctx call expr]
   (let [children (next (:children expr))
@@ -829,7 +820,6 @@
            (node->line
             filename
             expr
-            :warning
             :unexpected-recur "unexpected recur"))
           (not= expected-arity arg-count)
           (findings/reg-finding!
@@ -837,7 +827,6 @@
            (node->line
             filename
             expr
-            :error
             :invalid-arity
             (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
           :else nil))))
@@ -885,11 +874,12 @@
         (symbol (name var-name))
         (do (findings/reg-finding!
              ctx
-             (node->line (:filename ctx) var-name-node :error
+             (node->line (:filename ctx) var-name-node
                          :syntax
                          (str "Invalid var name: " var-name)))
             nil)))
-    var-name))
+    (some-> var-name
+            (with-meta (meta var-name-node)))))
 
 (defn analyze-def [ctx expr defined-by]
   ;; (def foo ?docstring ?init)
@@ -938,7 +928,7 @@
         fn-meta (meta fn-name)]
     (when-let [k (types/keyword binding)]
       (when-not (types/match? k :ifn)
-        (findings/reg-finding! ctx (node->line (:filename ctx) expr :error
+        (findings/reg-finding! ctx (node->line (:filename ctx) expr
                                                :type-mismatch
                                                (format "%s cannot be called as a function."
                                                        (str/capitalize (types/label k)))))))
@@ -959,7 +949,7 @@
             (let [arg-count (count (rest children))]
               (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
                 (findings/reg-finding! ctx
-                                       (node->line filename expr :error
+                                       (node->line filename expr
                                                    :invalid-arity
                                                    (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))
         (analyze-children (update ctx :callstack conj [nil fn-name]) (rest children))))))
@@ -968,7 +958,7 @@
   (when (:in-def ctx)
     (findings/reg-finding!
      ctx
-     (node->line (:filename ctx) expr :warning :inline-def "inline def"))))
+     (node->line (:filename ctx) expr :inline-def "inline def"))))
 
 (defn analyze-declare [ctx expr defined-by]
   (let [ns-name (-> ctx :ns :name)
@@ -978,12 +968,17 @@
                             (current-namespace-var-name ctx var-name-node var-sym)))
                         var-name-nodes)]
     (doseq [var-name var-names]
-      (namespace/reg-var! ctx ns-name
-                          var-name
-                          expr
-                          (assoc (meta expr)
-                                 :declared true
-                                 :defined-by defined-by)))))
+      (let [var-name-meta (meta var-name)]
+        (namespace/reg-var! ctx ns-name
+                            var-name
+                            expr
+                            (assoc (meta expr)
+                                   :name-row (:row var-name-meta)
+                                   :name-col (:col var-name-meta)
+                                   :name-end-row (:end-row var-name-meta)
+                                   :name-end-col (:end-col var-name-meta)
+                                   :declared true
+                                   :defined-by defined-by))))))
 
 (defn analyze-catch [ctx expr]
   (let [ctx (update ctx :callstack conj [nil 'catch])
@@ -1032,7 +1027,6 @@
              (node->line
               (:filename ctx)
               expr
-              :warning
               :missing-clause-in-try
               "Missing catch or finally in try")))
           analyzed)))))
@@ -1171,7 +1165,7 @@
       (findings/reg-finding!
        ctx
        (node->line (:filename ctx) not-expr
-                   :warning :not-empty?
+                   :not-empty?
                    "use the idiom (seq x) rather than (not (empty? x))")))
     (analyze-children ctx (rest (:children expr)) false)))
 
@@ -1200,7 +1194,7 @@
       (findings/reg-finding!
        ctx
        (node->line (:filename ctx) expr
-                   :warning linter
+                   linter
                    msg)))
     (analyze-children ctx args false)))
 
@@ -1271,7 +1265,6 @@
        (node->line
         (:filename ctx)
         expr
-        :warning
         :missing-body-in-when
         "Missing body in when"))
       (analyze-children ctx body false))))
@@ -1294,13 +1287,13 @@
                       (findings/reg-finding!
                        ctx
                        (node->line (:filename ctx) (last children)
-                                   :warning :type-mismatch
+                                   :type-mismatch
                                    "String match arg requires string replacement arg.")))
             :char (when (not (identical? matcher-type :char))
                     (findings/reg-finding!
                      ctx
                      (node->line (:filename ctx) (last children)
-                                 :warning :type-mismatch
+                                 :type-mismatch
                                  "Char match arg requires char replacement arg.")))
             :regex (when (not (or (identical? matcher-type :string)
                                   ;; we could allow :ifn here, but keywords are
@@ -1311,7 +1304,7 @@
                      (findings/reg-finding!
                       ctx
                       (node->line (:filename ctx) (last children)
-                                  :warning :type-mismatch
+                                  :type-mismatch
                                   "Regex match arg requires string or function replacement arg.")))
             nil))))))
 
@@ -1346,7 +1339,7 @@
         arg-count (count args)]
     (when-not (= percent-count
                  arg-count)
-      (findings/reg-finding! ctx (node->line (:filename ctx) format-str-node :error :format
+      (findings/reg-finding! ctx (node->line (:filename ctx) format-str-node :format
                                              (format "Format string expects %s arguments instead of %s."
                                                      percent-count arg-count))))))
 
@@ -1445,7 +1438,7 @@
                             fn-name (or fsym (:name fst-ana))]
                         (findings/reg-finding!
                          ctx
-                         (node->line filename f :error
+                         (node->line filename f
                                      :invalid-arity
                                      (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
     (concat fana
@@ -1501,7 +1494,7 @@
                 transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
                               (let [filename (:filename ctx)]
-                                (binding [hooks/*ctx* ctx]
+                                (binding [utils/*ctx* ctx]
                                   (sci/binding [sci/out *out*]
                                     (try (hook-fn {:node expr
                                                    :cljc (identical? :cljc base-lang)
@@ -1510,6 +1503,7 @@
                                                    :config config
                                                    :ns ns-name})
                                          (catch Exception e
+                                           ;;TODOAQUI
                                            (findings/reg-finding!
                                             ctx
                                             (merge
@@ -1849,7 +1843,7 @@
         (when (or (zero? arg-count)
                   (> arg-count 2))
           (findings/reg-finding! ctx
-                                 (node->line (:filename ctx) expr :error :invalid-arity
+                                 (node->line (:filename ctx) expr :invalid-arity
                                              (format "keyword :%s is called with %s args but expects 1 or 2"
                                                      kw-str
                                                      arg-count))))))))
@@ -1862,7 +1856,7 @@
       (when-not (config/skip? config :invalid-arity callstack)
         (findings/reg-finding!
          ctx
-         (node->line (:filename ctx) expr :error :invalid-arity
+         (node->line (:filename ctx) expr :invalid-arity
                      (format "map is called with %s args but expects 1 or 2"
                              arg-count)))))))
 
@@ -1873,7 +1867,7 @@
       (when-not (config/skip? config :invalid-arity callstack)
         (findings/reg-finding!
          ctx
-         (node->line (:filename ctx) expr :error :invalid-arity
+         (node->line (:filename ctx) expr :invalid-arity
                      (str "Vector can only be called with 1 arg but was called with: "
                           arg-count)))))))
 
@@ -1885,7 +1879,7 @@
       (when-not (config/skip? config :invalid-arity callstack)
         (findings/reg-finding!
          ctx
-         (node->line (:filename ctx) expr :error :invalid-arity
+         (node->line (:filename ctx) expr :invalid-arity
                      (format "symbol is called with %s args but expects 1 or 2"
                              arg-count)))))))
 
@@ -1896,7 +1890,7 @@
     (when-not (config/skip? config :not-a-function callstack)
       (findings/reg-finding!
        ctx
-       (node->line (:filename ctx) expr :error :not-a-function (str "a " typ " is not a function"))))))
+       (node->line (:filename ctx) expr :not-a-function (str "a " typ " is not a function"))))))
 
 (defn analyze-reader-macro [ctx expr]
   (analyze-children ctx (rest (:children expr))))

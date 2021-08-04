@@ -16,7 +16,6 @@
         (findings/reg-finding! ctx
                                (utils/node->line (:filename ctx)
                                                  sym-expr
-                                                 :error
                                                  :syntax
                                                  "expected symbol"))
         (let [{resolved-ns :ns}
@@ -27,7 +26,6 @@
             (findings/reg-finding! ctx
                                    (utils/node->line (:filename ctx)
                                                      sym-expr
-                                                     :error
                                                      :unresolved-symbol
                                                      (str "Unresolved symbol: " sym)))))))
     (analyze-children ctx body)))

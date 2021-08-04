@@ -36,7 +36,6 @@
        ctx
        (node->line (:filename ctx)
                    node
-                   :warning
                    :deps.edn
                    #_{:clj-kondo/ignore[:format]} ;; fixed on master
                    (format "Libs must be qualified, change %s => %<s/%<s" form)))
@@ -62,7 +61,6 @@
        ctx
        (node->line (:filename ctx)
                    node
-                   :warning
                    :deps.edn
                    (str "Expected map, found: " (.getName (class form)))))
       (or (when-let [version (:mvn/version form)]
@@ -72,7 +70,6 @@
                ctx
                (node->line (:filename ctx)
                            node
-                           :warning
                            :deps.edn
                            (str "Non-determistic version."))))
             true)
@@ -82,7 +79,6 @@
                ctx
                (node->line (:filename ctx)
                            node
-                           :warning
                            :deps.edn
                            (str "Conflicting keys :git/sha and :sha."))))
             (when (and (:git/tag form) (:tag form))
@@ -90,7 +86,6 @@
                ctx
                (node->line (:filename ctx)
                            node
-                           :warning
                            :deps.edn
                            (str "Conflicting keys :git/tag and :tag."))))
             (when-not (or (:git/sha form) (:sha form))
@@ -98,7 +93,6 @@
                ctx
                (node->line (:filename ctx)
                            node
-                           :warning
                            :deps.edn
                            (str "Missing required key :git/sha."))))
             true)
@@ -114,7 +108,6 @@
            ctx
            (node->line (:filename ctx)
                        node
-                       :warning
                        :deps.edn
                        (str "Missing required key: :mvn/version, :git/url or :local/root.")))))))
 
@@ -131,7 +124,6 @@
                ctx
                (node->line (:filename ctx)
                            node
-                           :warning
                            :deps.edn
                            (str "Prefer keyword for alias.")))
               (when (contains? #{:deps :extra-deps :jvm-opts} form)
@@ -139,7 +131,6 @@
                  ctx
                  (node->line (:filename ctx)
                              node
-                             :warning
                              :deps.edn
                              (str "Suspicious alias name: " (name form))))))))
         nodes))
@@ -154,7 +145,6 @@
                  ctx
                  (node->line (:filename ctx)
                              jvm-opts-node
-                             :warning
                              :deps.edn
                              (str "JVM opts should be seqable of strings.")))))))
         alias-nodes))
@@ -169,7 +159,6 @@
                  ctx
                  (node->line (:filename ctx)
                              repo-map-node
-                             :warning
                              :deps.edn
                              (str "Expected: map with :url."))))))
           repo-map-nodes)))
