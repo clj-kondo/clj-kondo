@@ -184,6 +184,18 @@
     (.renameTo (io/file old-path) (io/file new-path))
     (mv old-path new-path)))
 
+(defmacro with-temp-dir
+  [[binding dir-name] & body]
+  `(let [tmp-dir#  (System/getProperty "java.io.tmpdir")
+         test-dir# (.getPath (io/file tmp-dir# ~dir-name))
+         ~binding  test-dir#]
+     (remove-dir test-dir#)
+     (make-dirs test-dir#)
+     (try
+       ~@body
+       (finally
+         (remove-dir test-dir#)))))
+
 ;;;; Scratch
 
 (comment

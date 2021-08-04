@@ -72,7 +72,7 @@
   (let [selected-keys [:ns :name
                        :fixed-arities :varargs-min-arity
                        :private :macro]]
-    (->> analysis
+    (->> (dissoc analysis :filename :source)
          vals
          (mapv #(select-keys % selected-keys)))))
 
@@ -84,8 +84,9 @@
           :filename
           :source)
          (map-vals var-definitions))
-    {lang (-> (cache/from-cache-1 (:cache-dir *ctx*) lang ns-sym)
-              var-definitions)}))
+    (some->> (cache/from-cache-1 (:cache-dir *ctx*) lang ns-sym)
+             var-definitions
+             (hash-map lang))))
 
 (defn ns-analysis
   "Return any cached analysis for the namespace identified by ns-sym.
@@ -98,7 +99,7 @@
       (ns-analysis* lang ns-sym)
       (reduce
        merge
-       (map #(ns-analysis* % ns-sym) [:clj :cljc :cljs]))))))
+       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs]))))))
 
 (defn annotate [node meta]
   (walk/postwalk (fn [node]
