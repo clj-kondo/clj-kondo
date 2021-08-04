@@ -66,11 +66,31 @@
 (defn coerce [s-expr]
   (node/coerce s-expr))
 
-(defn ns-analysis [lang ns-sym]
+(defmulti ns-analysis*
+  (fn [lang _ns-sym] lang))
+
+(defmethod ns-analysis* :default
+  [lang ns-sym]
+  {lang (cache/from-cache-1
+          (:cache-dir *ctx*)
+          lang
+          ns-sym)})
+
+(defmethod ns-analysis* :cljc
+  [_lang ns-sym]
   (cache/from-cache-1
    (:cache-dir *ctx*)
-   lang
+   :cljc
    ns-sym))
+
+(defn ns-analysis
+  ([ns-sym] (ns-analysis ns-sym {}))
+  ([ns-sym {:keys [lang]}]
+   (if lang
+     (ns-analysis* lang ns-sym)
+     (reduce
+      merge
+      (map #(ns-analysis* % ns-sym) [:clj :cljc :cljs])))))
 
 (defn annotate [node meta]
   (walk/postwalk (fn [node]
