@@ -73,8 +73,7 @@
                        :fixed-arities :varargs-min-arity
                        :private :macro]]
     (->> (dissoc analysis :filename :source)
-         vals
-         (mapv #(select-keys % selected-keys)))))
+         (map-vals #(select-keys % selected-keys)))))
 
 (defn- ns-analysis*
   [lang ns-sym]

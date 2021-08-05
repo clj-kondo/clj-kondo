@@ -42,30 +42,30 @@ there
         ;; populate cache
         (lint! test-source-dir "--cache" "true" "--cache-dir" test-cache-dir)
         (let [full-cache-dir (io/file test-cache-dir core/version)]
-          (is (= {:clj [{:ns   'foo
-                         :name 'foo :fixed-arities #{1}}
-                        {:ns                'foo
-                         :name              'foo-p
-                         :varargs-min-arity 1
-                         :private           true}
-                        {:ns            'foo :name 'foo-m
-                         :fixed-arities #{1}
-                         :macro         true}]}
+          (is (= {:clj {'foo {:ns   'foo
+                              :name 'foo :fixed-arities #{1}}
+                        'foo-p {:ns                'foo
+                                :name              'foo-p
+                                :varargs-min-arity 1
+                                :private           true}
+                        'foo-m {:ns            'foo :name 'foo-m
+                                :fixed-arities #{1}
+                                :macro         true}}}
                  (binding [*ctx* {:cache-dir full-cache-dir}]
                    (hooks-api/ns-analysis 'foo))
                  (binding [*ctx* {:cache-dir full-cache-dir}]
                    (hooks-api/ns-analysis 'foo {:lang :clj}))))
-          (is (= {:clj [{:ns 'bar
-                         :name 'bar-clj
-                         :fixed-arities #{0}}]
-                  :cljs [{:ns 'bar
-                          :name 'bar-cljs
-                          :fixed-arities #{0}}]}
+          (is (= {:clj  {'bar-clj {:ns            'bar
+                                   :name          'bar-clj
+                                   :fixed-arities #{0}}}
+                  :cljs {'bar-cljs {:ns            'bar
+                                    :name          'bar-cljs
+                                    :fixed-arities #{0}}}}
                  (binding [*ctx* {:cache-dir full-cache-dir}]
                    (hooks-api/ns-analysis 'bar))
                  (binding [*ctx* {:cache-dir full-cache-dir}]
                    (hooks-api/ns-analysis 'bar {:lang :cljc}))))
-          (is (= {:cljs [{:ns 'baz, :name 'baz, :fixed-arities #{1}}]}
+          (is (= {:cljs {'baz {:ns 'baz, :name 'baz, :fixed-arities #{1}}}}
                  (binding [*ctx* {:cache-dir full-cache-dir}]
                    (hooks-api/ns-analysis 'baz))
                  (binding [*ctx* {:cache-dir full-cache-dir}]
