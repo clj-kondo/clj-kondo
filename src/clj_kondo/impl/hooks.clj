@@ -94,12 +94,11 @@
   as output by the top level :analysis option."
   ([ns-sym] (ns-analysis ns-sym {}))
   ([ns-sym {:keys [lang]}]
-   (->>
-    (if lang
-      (ns-analysis* lang ns-sym)
-      (reduce
-       merge
-       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs]))))))
+   (if lang
+     (ns-analysis* lang ns-sym)
+     (reduce
+      merge
+      (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
 
 (defn annotate [node meta]
   (walk/postwalk (fn [node]
