@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## 2021.08.06
 
-- Expose `ns-analysis` fn in hooks api [#1349](https://github.com/clj-kondo/clj-kondo/issues/1349) ([@hugoduncan](https://github.com/hugoduncan))
+- Expose `ns-analysis` fn in hooks API [#1349](https://github.com/clj-kondo/clj-kondo/issues/1349) ([@hugoduncan](https://github.com/hugoduncan))
 - Fix for Windows when analyzing deps
 
 ## 2021.08.03
