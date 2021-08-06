@@ -2,6 +2,11 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2021.08.06
+
+- Expose `ns-analysis` fn in hooks api #1349 (@hugod)
+- Fix for Windows when analyzing deps
+
 ## 2021.08.03
 
 ### Enhanced / fixed
