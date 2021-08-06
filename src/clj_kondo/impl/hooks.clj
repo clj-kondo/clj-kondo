@@ -76,6 +76,9 @@
          (map-vals #(select-keys % selected-keys)))))
 
 (defn- ns-analysis*
+  "Adapt from-cache-1 to provide a uniform return format.
+  Unifies the format of cached information provided for each source
+  language."
   [lang ns-sym]
   (if (= lang :cljc)
     (->> (dissoc
@@ -89,8 +92,9 @@
 
 (defn ns-analysis
   "Return any cached analysis for the namespace identified by ns-sym.
-  Returns a map keyed by language keyword with values being var definitions
-  as output by the top level :analysis option."
+  Returns a map keyed by language keyword with values being maps of var
+  definitions keyed by defined symbol. The value for each symbol is a
+  subset of the values provide by the top level :analysis option."
   ([ns-sym] (ns-analysis ns-sym {}))
   ([ns-sym {:keys [lang]}]
    (if lang
