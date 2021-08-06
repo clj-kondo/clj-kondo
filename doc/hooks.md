@@ -40,6 +40,11 @@ Other API functions:
   - `:type`: the type of lint warning. A level must be set for this type in the
     clj-kondo config under `:linters`. If the level is not set, the lint warning
     is ignored.
+- `ns-analysis`: Return any cached analysis for the namespace identified by the
+  `ns-sym` arg.  Returns a map keyed by language keyword with values being maps
+  of var definitions keyed by defined symbol. The value for each symbol is a
+  subset of the values provide by the top level `:analysis` option."  Arglists:
+  `[ns-sym]`, `[ns-sym {:keys [lang]}]`.
 
 The namespaces `clojure.core`, `clojure.set` and `clojure.string` are also available.
 Use `println` or `prn` for debugging and `time` to measure performance.
