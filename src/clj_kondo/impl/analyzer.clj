@@ -794,11 +794,23 @@
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
 (defn analyze-loop [ctx expr]
-  (let [bv (-> expr :children second)]
+  (let [bv       (-> expr :children second)
+        filename (:filename ctx)]
     (when (and bv (= :vector (tag bv)))
-      (let [arg-count (let [c (count (:children bv))]
-                        (when (even? c)
-                          (/ c 2)))]
+      (let [arg-count   (let [c (count (:children bv))]
+                          (when (even? c)
+                            (/ c 2)))
+            recur-count (count (macroexpand/find-children  #(= 'recur (:value %)) (:children expr)))]
+
+        (when (zero? recur-count)
+          (findings/reg-finding!
+            ctx
+            (node->line
+              filename
+              expr
+              :loop-missing-recur
+              (format "loop expects at least 1 recur call in the body but got none"))))
+
         (analyze-like-let (assoc ctx
                                  :recur-arity {:fixed-arity arg-count}) expr)))))
 

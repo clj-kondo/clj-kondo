@@ -1074,6 +1074,11 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(in-ns 'foo) (clojure.core/let [x 1])"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
+(deftest loop-missing-recur-test
+  ;;TODO I'm not sure yet how the test works here e.g  how and why are the other tests looking at row and col for stdin strings?
+  (lint! "(loop [x 2]  (recur 1))")
+  (lint! "(loop [x 2])"))
+
 (deftest recur-test
   (assert-submaps
    '({:file "<stdin>",
