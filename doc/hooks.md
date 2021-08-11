@@ -322,7 +322,13 @@ There are several special cases to watch out for when using the `:macroexpand` f
   then the macro must be defined in the file `.clj-kondo/my_app/bar.clj`.
 
   - If the macro depends on aliases in the original namespace, it is recommended
-    to fully qualify those aliases in the config macro: instead of writing ```(set/union ...)`` where `set` is an alias for `clojure.set`, write ```(clojure.set/union ...)``.
+    to fully qualify those aliases in the config macro: instead of writing 
+    
+    ```
+    `(set/union ...)
+    ```
+
+    where `set` is an alias for `clojure.set`, write ```(clojure.set/union ...)``.
 
 ## Tips and tricks
 
