@@ -312,6 +312,41 @@ they are the same.
 
 This should get rid of the unresolved symbols.
 
+### Subtleties of `:macroexpand`
+
+There are several special cases to watch out for when using the `:macroexpand` feature.
+  - You code which provides the macro expansion should go into a file named by normal
+  clojure convention.  E.g., if your macro `foo` is defined in a namespace named `bar` then
+  the `(defmacro foo  ...)` must sit in the file `.clj-kondo/bar.clj`.  Furthermore, if the namespace
+  is `my-app.bar`, then the macro must be defined in the file `.clj-kondo/my_app/bar.clj`.
+  
+  - If the macro expansion needs to expand to include symbols from other namespaces other than the
+  namespace of the macro callsite, and other than the namespace the macro is defined in, this is 
+  possible.  For example, suppose the macro `foo` needs to include a symbol `abc` from namespace `xyzzy`
+  the macro text should qualify name name as `xyzzy/foo`. 
+```clojure
+  ;; content of bar.clj
+  (ns bar)
+
+  (defmacro foo [& body] 
+     ...
+     `(xyzzy/abc ~@body)
+     ...)
+```
+
+   - Additionally, you need a file `xyzzy.clj`  which declares `abc`.
+
+```clojure
+  ;; content of xyzzy.clj
+  (ns xyzzy)
+  (declare abc)
+```
+
+  - The namespace defined in the file containing the macro callsite, just also require `abc`:
+  `(:require [xyzzy :refer abc] ... )`.  Note that this `require` is not needed by the 
+  clojure compiler, but rather by `clj-kondo`.
+  
+  
 ## Tips and tricks
 
 Here are some tips and tricks for developing hooks.
