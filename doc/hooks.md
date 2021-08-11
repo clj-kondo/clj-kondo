@@ -323,12 +323,15 @@ There are several special cases to watch out for when using the `:macroexpand` f
 
   - If the macro depends on aliases in the original namespace, it is recommended
     to fully qualify those aliases in the config macro: instead of writing 
-    
     ```
     `(set/union ...)
     ```
 
-    where `set` is an alias for `clojure.set`, write ```(clojure.set/union ...)``.
+    where `set` is an alias for `clojure.set`, write
+
+    ```
+    `(clojure.set/union ...)
+    ```
 
 ## Tips and tricks
 
