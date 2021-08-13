@@ -11,10 +11,11 @@
 (set! *warn-on-reflection* true)
 
 (defn built-in-cache-resource [lang ns-sym]
-  (io/resource (str "clj_kondo/impl/cache/built_in/"
-                    (name lang) "/" (str ns-sym ".transit.json"))
-               ;; workaround for https://github.com/oracle/graal/issues/1287
-               (.getClassLoader clojure.lang.RT)))
+  (let [path (str "clj_kondo/impl/cache/built_in/" (name lang) "/" (str ns-sym ".transit.json"))]
+    (if-let [loader (.getClassLoader clojure.lang.RT)]
+      ;; workaround for https://github.com/oracle/graal/issues/1287
+      (io/resource path loader)
+      (io/resource path))))
 
 (defn cache-file ^java.io.File [cache-dir lang ns-sym]
   (io/file cache-dir (name lang) (str ns-sym ".transit.json")))
