@@ -16,6 +16,7 @@ out="/tmp/clj-kondo-diff/branch.txt"
 export CLJ_KONDO_DEV=true
 
 echo "Linting and writing output to $out"
+rm -rf .clj-kondo/.cache
 clojure -M:clj-kondo --lint "$cp" --cache --config "$config" --parallel > "$out"
 
 cd /tmp
