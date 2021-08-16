@@ -381,6 +381,9 @@
 (defn analyze-fn-body [ctx body]
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
+        filename           (:filename ctx)
+        loop-recur-stack   (or (:loop-recur-stack ctx) (atom []))
+        _                  (swap! loop-recur-stack conj {:type :fn :body body :filename filename})
         {:keys [:arg-bindings
                 :arity :analyzed-arg-vec :arglist-str]
          return-tag :ret
@@ -388,6 +391,7 @@
         ctx (ctx-with-bindings ctx arg-bindings)
         ctx (assoc ctx
                    :recur-arity arity
+                                  :loop-recur-stack loop-recur-stack
                    :top-level? false)
         children (next (:children body))
         first-child (first children)
@@ -425,6 +429,10 @@
                                          last-expr (types/expr->tag ctx last-expr))]
                            tag))]
             [parsed ret-tag]))]
+
+    (let [[before _] (split-with #(not= body (:body %)) @loop-recur-stack)]
+      (reset! loop-recur-stack (vec before)))
+
     (assoc arity
            :parsed
            (concat analyzed-arg-vec analyze-pre-post parsed)
@@ -796,8 +804,9 @@
 (defn analyze-loop [ctx expr]
   (let [bv       (-> expr :children second)
         filename (:filename ctx)
+        loop-recur-stack (or (:loop-recur-stack ctx) (atom []))]
 
-        seen-recur? (or (:seen-recur? ctx) (atom false))]
+    (swap! loop-recur-stack conj {:type :loop :filename filename :expr expr})
     (when (and bv (= :vector (tag bv)))
       (let [arg-count   (let [c (count (:children bv))]
                           (when (even? c)
@@ -806,28 +815,29 @@
                         (-> ctx
                             (assoc
                               :recur-arity {:fixed-arity arg-count}
-                              :seen-recur? seen-recur?
+                              :loop-recur-stack loop-recur-stack
                               )) expr)]
-        ;; When we haven't seen a recur after inspecting the loop's children, we should issue a warning,
-        ;; and reset seen-recur? to false so a parent loop can use the same logic.
-        (when-not @seen-recur?
+
+        (let [[before children] (split-with #(not= expr (:expr %)) @loop-recur-stack)]
+          (println x)
+          (when-not ((set (map :type children)) :recur)
           (findings/reg-finding!
             ctx
             (node->line
               filename
               expr
-              :missing-recur?
+                :missing-recur
               "missing recur")))
-        (reset! seen-recur? false)
+          (reset! loop-recur-stack (vec before)))
 
         res))))
 
 (defn analyze-recur [ctx expr]
   (let [filename (:filename ctx)
         recur-arity (:recur-arity ctx)
-        seen-recur? (or (:seen-recur? ctx) (atom true))]
+        loop-recur-stack (or (:loop-recur-stack ctx) (atom []))]
 
-    (reset! seen-recur? true)
+    (swap! loop-recur-stack conj {:type :recur :filename filename :expr expr})
 
     (when-not (or (linter-disabled? ctx :invalid-arity)
                   (config/skip? (:config ctx) :invalid-arity (:callstack ctx)))
@@ -853,8 +863,10 @@
             expr
             :invalid-arity
             (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
-          :else nil))))
-  (analyze-children ctx (:children expr)))
+          :else nil)))
+
+    (analyze-children (assoc ctx :loop-recur-stack loop-recur-stack)
+                      (:children expr))))
 
 (defn analyze-letfn [ctx expr]
   (let [fns (-> expr :children second :children)

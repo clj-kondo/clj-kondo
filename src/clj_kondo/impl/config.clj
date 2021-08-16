@@ -12,7 +12,7 @@
     ;; all linters are enabled by default, but can be turned off by setting :level to :off.
     :linters {:invalid-arity {:level :error
                               :skip-args [#_riemann.test/test-stream]}
-                    :missing-recur?                {:level :warning}
+                    :missing-recur                 {:level :warning}
               :not-a-function {:level :error
                                :skip-args [#_user/foo]}
               :private-call {:level :error}

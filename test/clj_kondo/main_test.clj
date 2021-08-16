@@ -1078,17 +1078,36 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(defn foo [x] )")))
   (is (empty? (lint! "(defn foo [x] (recur 2))")))
   (is (empty? (lint! "(loop [x 2] (recur 2))")))
-  (is (empty? (lint! "(loop [x 2] (recur 1) (fn [] (loop (recur 1))))")))
+  (is (empty? (lint! "(loop [x 2] (recur 1) (fn [] (loop [x 2] (recur 1))))")))
   (is (empty? (lint!
                 "(loop [x 2]
                  (if true
-                   ((fn [] (loop (recur 1))))
-                   (recur 1)))")))
+                   ((fn [] (loop [x 1] (recur 1))))
+                   (recur 10)))")))
   (is (empty? (lint!
                 "(loop [x 2]
                  (if true
                    ((fn [x] (recur 1)))
                    (recur 1)))")))
+
+  ;; test a real example that failed on a previous implementation
+  (is (empty?
+        (lint!
+          "
+    (defn trim
+      [s]
+      (let [len (.length s)]
+        (loop [rindex len]
+          (if (zero? rindex)
+            :hello
+            (if (Character/isWhitespace (.charAt s (dec rindex)))
+              (recur (dec rindex))
+              ;; there is at least one non-whitespace char in the string,
+              ;; so no need to check for lindex reaching len.
+              (loop [lindex 0]
+                (if (Character/isWhitespace (.charAt s lindex))
+                  (recur (inc lindex))
+                  (.. s (subSequence lindex rindex) toString))))))))")))
 
   ;; ever loop should have at least one recur target.
   (assert-submaps
@@ -1125,8 +1144,8 @@ foo/foo ;; this does use the private var
           (if true
             (fn [] (loop [x 1] (inc x)))
             (recur 1)
-            ))")
-    )
+            ))"))
+
   ;; NOTE we don't catch if a recur is loopless, this would require a bit more book keeping.
   #_(assert-submaps
       '({:file    "<stdin>",
