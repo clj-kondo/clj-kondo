@@ -1074,10 +1074,70 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(in-ns 'foo) (clojure.core/let [x 1])"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
 
-(deftest loop-missing-recur-test
-  ;;TODO I'm not sure yet how the test works here e.g  how and why are the other tests looking at row and col for stdin strings?
-  (lint! "(loop [x 2]  (recur 1))")
+(deftest loop-missing-recur
+  (is (empty? (lint! "(defn foo [x] )")))
+  (is (empty? (lint! "(defn foo [x] (recur 2))")))
+  (is (empty? (lint! "(loop [x 2] (recur 2))")))
+  (is (empty? (lint! "(loop [x 2] (recur 1) (fn [] (loop (recur 1))))")))
+  (is (empty? (lint!
+                "(loop [x 2]
+                 (if true
+                   ((fn [] (loop (recur 1))))
+                   (recur 1)))")))
+  (is (empty? (lint!
+                "(loop [x 2]
+                 (if true
+                   ((fn [x] (recur 1)))
+                   (recur 1)))")))
+
+  ;; ever loop should have at least one recur target.
+  (assert-submaps
+    '({:file    "<stdin>",
+       :row     1,
+       :col     1,
+       :level   :warning
+       :message "missing recur"})
   (lint! "(loop [x 2])"))
+
+  ;; first/top level loop missing recur
+  (assert-submaps
+    '({:file    "<stdin>",
+       :row     1,
+       :col     1,
+       :level   :warning
+       :message "missing recur"})
+    (lint!
+      "(loop [x 2]
+          (if true
+            (fn [] (loop [x 1] (recur x)))
+            (inc 1)
+            ))"))
+
+  ;; nested loop missing recur
+  (assert-submaps
+    '({:file    "<stdin>",
+       :row     3,
+       :col     20,
+       :level   :warning
+       :message "missing recur"})
+    (lint!
+      "(loop [x 2]
+          (if true
+            (fn [] (loop [x 1] (inc x)))
+            (recur 1)
+            ))")
+    )
+  ;; NOTE we don't catch if a recur is loopless, this would require a bit more book keeping.
+  #_(assert-submaps
+      '({:file    "<stdin>",
+         :row     1,
+         :col     1,
+         :level   :warning
+         :message "missing recur"})
+      (lint! "(recur)"))
+
+  )
+
 
 (deftest recur-test
   (assert-submaps

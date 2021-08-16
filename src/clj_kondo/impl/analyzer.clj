@@ -795,28 +795,40 @@
 
 (defn analyze-loop [ctx expr]
   (let [bv       (-> expr :children second)
-        filename (:filename ctx)]
+        filename (:filename ctx)
+
+        seen-recur? (or (:seen-recur? ctx) (atom false))]
     (when (and bv (= :vector (tag bv)))
       (let [arg-count   (let [c (count (:children bv))]
                           (when (even? c)
                             (/ c 2)))
-            recur-count (count (macroexpand/find-children  #(= 'recur (:value %)) (:children expr)))]
-
-        (when (zero? recur-count)
+            res       (analyze-like-let
+                        (-> ctx
+                            (assoc
+                              :recur-arity {:fixed-arity arg-count}
+                              :seen-recur? seen-recur?
+                              )) expr)]
+        ;; When we haven't seen a recur after inspecting the loop's children, we should issue a warning,
+        ;; and reset seen-recur? to false so a parent loop can use the same logic.
+        (when-not @seen-recur?
           (findings/reg-finding!
             ctx
             (node->line
               filename
               expr
-              :loop-missing-recur
-              (format "loop expects at least 1 recur call in the body but got none"))))
+              :missing-recur?
+              "missing recur")))
+        (reset! seen-recur? false)
 
-        (analyze-like-let (assoc ctx
-                                 :recur-arity {:fixed-arity arg-count}) expr)))))
+        res))))
 
 (defn analyze-recur [ctx expr]
   (let [filename (:filename ctx)
-        recur-arity (:recur-arity ctx)]
+        recur-arity (:recur-arity ctx)
+        seen-recur? (or (:seen-recur? ctx) (atom true))]
+
+    (reset! seen-recur? true)
+
     (when-not (or (linter-disabled? ctx :invalid-arity)
                   (config/skip? (:config ctx) :invalid-arity (:callstack ctx)))
       (let [arg-count (count (rest (:children expr)))
