@@ -819,7 +819,6 @@
                               )) expr)]
 
         (let [[before children] (split-with #(not= expr (:expr %)) @loop-recur-stack)]
-          (println x)
           (when-not ((set (map :type children)) :recur)
           (findings/reg-finding!
             ctx
