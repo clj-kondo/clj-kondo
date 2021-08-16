@@ -10,9 +10,9 @@
     :skip-comments false ;; convenient shorthand for :skip-args [clojure.core/comment cljs.core/comment]
     ;; linter level can be tweaked by setting :level to :error, :warn or :info (or any other keyword)
     ;; all linters are enabled by default, but can be turned off by setting :level to :off.
-    :linters       {:missing-recur?                {:level :warning}
-              :invalid-arity {:level :error
+    :linters {:invalid-arity {:level :error
                               :skip-args [#_riemann.test/test-stream]}
+                    :missing-recur?                {:level :warning}
               :not-a-function {:level :error
                                :skip-args [#_user/foo]}
               :private-call {:level :error}
