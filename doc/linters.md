@@ -199,7 +199,7 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 
 *Keyword:* `:deps.edn`
 
-*Description:* warn on common errors in a `deps.edn`.
+*Description:* warn on common errors in `deps.edn` and `bb.edn` files.
 
 *Default level:* `:warning`
 

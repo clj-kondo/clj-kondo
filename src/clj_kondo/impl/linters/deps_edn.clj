@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.linters.deps-edn
+  "Linter for deps.edn and bb.edn file contents."
   (:require [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.utils :refer [sexpr node->line]]
             [clojure.string :as str]))
@@ -26,6 +27,62 @@
           vnodes (take-nth 2 (rest (:children map-node)))]
       vnodes)
     (take-nth 2 (rest (:children map-node)))))
+
+(defn name-for-type [form]
+  (cond
+    (nil? form) "nil"
+    (symbol? form) "symbol"
+    (int? form) "int"
+    (float? form) "float"
+    (keyword? form) "keyword"
+    (char? form) "char"
+    (string? form) "string"
+    (map? form) "map"
+    (vector? form) "vector"
+    (list? form) "list"
+    (set? form) "set"
+    :else (.getName (class form))))
+
+(defn lint-paths-container [ctx node ]
+  (let [form (sexpr node)]
+    (when-not (vector? form)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx)
+                   node
+                   :deps.edn
+                   (str "Expected vector, found: " (name-for-type form))))
+      true)))
+
+(defn lint-bb-edn-paths-elems [ctx node]
+  (doseq [node (:children node)]
+    (let [form (sexpr node)]
+      (when-not (string? form)
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx)
+                     node
+                     :deps.edn
+                     (str "Expected string, found: " (name-for-type form))))))))
+
+(defn lint-deps-edn-paths-elems [ctx node]
+  (doseq [node (:children node)]
+    (let [form (sexpr node)]
+      (when-not (or (keyword? form) (string? form))
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx)
+                     node
+                     :deps.edn
+                     (str "Expected string or keyword, found: " (name-for-type form))))))))
+
+(defn lint-bb-edn-paths [ctx node]
+  (when (and node (not (lint-paths-container ctx node)))
+    (lint-bb-edn-paths-elems ctx node)))
+
+(defn lint-deps-edn-paths [ctx node]
+  (when (and node (not (lint-paths-container ctx node)))
+    (lint-deps-edn-paths-elems ctx node)))
 
 (defn lint-qualified-lib [ctx node]
   (let [form (sexpr node)]
@@ -167,9 +224,19 @@
   (zipmap (-> raw-node key-nodes)
           (-> raw-node val-nodes)))
 
+(defn lint-bb-edn [ctx expr]
+  (try
+    (let [bb-edn (sexpr-keys expr)]
+      (lint-bb-edn-paths ctx (:paths bb-edn)))
+    ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
+    (catch Exception e
+      (binding [*out* *err*]
+        (println "ERROR: " (.getMessage e))))))
+
 (defn lint-deps-edn [ctx expr]
   (try
     (let [deps-edn (sexpr-keys expr)
+          _ (lint-deps-edn-paths ctx (:paths deps-edn))
           deps (:deps deps-edn)
           _ (lint-deps ctx (deps-map deps))
           aliases (:aliases deps-edn)
