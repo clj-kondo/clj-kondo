@@ -41,10 +41,10 @@ Before creating a code PR, please create an issue first that describes the probl
 
 ### Linting diff
 
-When implementing a new linter or changing an existing one, run the
-`script/diff` to view changed linting output between your branch and the master
-branch on Github. Please include the output in a PR. This step may be automated
-in the future using a Github action.
+A GitHub Action will automatically run `script/diff` on your PR.
+This reports on the linting differences between clj-kondo master sources and your PR sources.
+
+It can be useful to run `script/diff` locally especially when implementing a new linter or changing an existing one.
 
 ### Force-push
 
@@ -104,7 +104,7 @@ To test clj-kondo on the JVM, run:
 
     script/test
 
-To test the native binary of clj-kondo, run:
+To test the [native](#native) binary of clj-kondo, run:
 
     CLJ_KONDO_TEST_ENV=native script/test
 
