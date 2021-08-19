@@ -356,7 +356,10 @@
         :else
         (findings/reg-finding! ctx
                                {:filename (if canonical?
-                                            (.getCanonicalPath file)
+                                            ;; canonical path on weird file
+                                            ;; crashes on Windows
+                                            (try (.getCanonicalPath file)
+                                                 (catch Exception _ path))
                                             path)
                                 :type :file
                                 :col 0
