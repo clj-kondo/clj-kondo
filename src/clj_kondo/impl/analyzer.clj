@@ -2177,9 +2177,11 @@
           (analyze-expressions ctx (:children parsed))
           ;; analyze-expressions should go first in order to process ignores
           (when (identical? :edn lang)
-            (let [fn (.getName (io/file filename))]
-              (when (= fn "deps.edn")
-                (deps-edn/lint-deps-edn ctx (first (:children parsed)))))))))
+            (let [fname (.getName (io/file filename))]
+              (case fname
+                "deps.edn" (deps-edn/lint-deps-edn ctx (first (:children parsed)))
+                "bb.edn"   (deps-edn/lint-bb-edn ctx (first (:children parsed)))
+                nil))))))
     (catch Exception e
       (if dev?
         (throw e)

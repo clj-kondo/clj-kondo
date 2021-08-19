@@ -2,6 +2,42 @@
   (:require [clj-kondo.test-utils :refer [lint! assert-submaps]]
             [clojure.test :refer [deftest testing is]]))
 
+(deftest paths-test
+  (testing "no report on valid value types"
+    (let [bb-edn "{:paths [\"src\" \"test\"]}"]
+      (is (empty? (lint! bb-edn
+                         "--filename" "bb.edn"))))
+    (let [deps-edn "{:paths [\"src\"  \"test\" :alias1]}"]
+      (is (empty? (lint! deps-edn
+                         "--filename" "deps.edn")))))
+  (testing "report on value not a vector"
+    (let [edn "{:paths scripts}"]
+      (doseq [fname ["bb.edn" "deps.edn"]]
+        (assert-submaps
+         (list {:file fname :row 1 :col 9 :level :warning :message "Expected vector, found: symbol"})
+         (lint! edn
+                "--filename" fname)))))
+  (testing "when container type wrong, report only on container type and not container elems"
+    (let [edn "{:paths {bad 32}}"]
+      (doseq [fname ["bb.edn" "deps.edn"]]
+        (assert-submaps
+         (list {:file fname :row 1 :col 9 :level :warning :message "Expected vector, found: map"})
+         (lint! edn
+                "--filename" fname))))  )
+  (testing "report on each unexpected vector elem type"
+    (let [deps-edn "{:paths [scripts 42 \"ok\" :alias]}"]
+      (assert-submaps
+       '({:file "deps.edn" :row 1 :col 10 :level :warning :message "Expected string or keyword, found: symbol"}
+         {:file "deps.edn" :row 1 :col 18 :level :warning :message "Expected string or keyword, found: int"})
+       (lint! deps-edn
+              "--filename" "deps.edn"))
+      (assert-submaps
+       '({:file "bb.edn" :row 1 :col 10 :level :warning :message "Expected string, found: symbol"}
+         {:file "bb.edn" :row 1 :col 18 :level :warning :message "Expected string, found: int"}
+         {:file "bb.edn" :row 1 :col 26 :level :warning :message "Expected string, found: keyword"})
+       (lint! deps-edn
+              "--filename" "bb.edn")))))
+
 (deftest qualified-lib-test
   (let [deps-edn '{:deps {clj-kondo {:mvn/version "2020.10.10"}}
                    :aliases {:foo {:extra-deps {clj-kondo {:mvn/version "2020.10.10"
