@@ -17,6 +17,8 @@ You can add clj-kondo to `~/.lein/profiles.clj` to make it available as a `lein`
 $ lein clj-kondo --lint src
 ```
 
+or you can use the [official lein plugin](https://github.com/clj-kondo/lein-clj-kondo) which has support for [linting the classpath of your project](https://github.com/clj-kondo/lein-clj-kondo#aliases)
+
 ## tools.deps.alpha
 
 Run clj-kondo as an ad-hoc command line dependency:
