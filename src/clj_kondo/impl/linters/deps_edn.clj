@@ -119,7 +119,7 @@
        (node->line (:filename ctx)
                    node
                    :deps.edn
-                   (str "Expected map, found: " (.getName (class form)))))
+                   (str "Expected map, found: " (name-for-type form))))
       (or (when-let [version (:mvn/version form)]
             (when (or (= "RELEASE" version)
                       (= "LATEST" version))
@@ -227,7 +227,8 @@
 (defn lint-bb-edn [ctx expr]
   (try
     (let [bb-edn (sexpr-keys expr)]
-      (lint-bb-edn-paths ctx (:paths bb-edn)))
+      (lint-bb-edn-paths ctx (:paths bb-edn))
+      (lint-deps ctx (-> bb-edn :deps deps-map)))
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
       (binding [*out* *err*]
