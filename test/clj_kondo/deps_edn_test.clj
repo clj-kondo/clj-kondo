@@ -55,8 +55,8 @@
                    :aliases {:foo {:extra-deps {foobar/baz "2020.20"}}}}
         deps-edn (binding [*print-namespace-maps* false] (str deps-edn))]
     (assert-submaps
-     '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Expected map, found: java.lang.String"}
-       {:file "deps.edn", :row 1, :col 72, :level :warning, :message "Expected map, found: java.lang.String"})
+     '({:file "deps.edn", :row 1, :col 20, :level :warning, :message "Expected map, found: string"}
+       {:file "deps.edn", :row 1, :col 72, :level :warning, :message "Expected map, found: string"})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
 
@@ -112,6 +112,16 @@
        {:file "deps.edn", :row 1, :col 85, :level :warning, :message "Non-determistic version."})
      (lint! (str deps-edn)
             "--filename" "deps.edn"))))
+
+(deftest spot-check-deps-linting-enabled-for-bb-edn-test
+  (let [bb-edn '{:deps {clj-kondo {:mvn/version "LATEST"}
+                        foo/baz1 "OOPS"}}]
+    (assert-submaps
+     '({:file "bb.edn", :row 1, :col 9, :level :warning, :message "Libs must be qualified, change clj-kondo => clj-kondo/clj-kondo"}
+       {:file "bb.edn", :row 1, :col 19, :level :warning, :message "Non-determistic version."}
+       {:file "bb.edn", :row 1, :col 53, :level :warning, :message "Expected map, found: string"})
+     (lint! (str bb-edn)
+            "--filename" "bb.edn"))))
 
 (deftest alias-keyword-names-test
   (let [deps-edn '{:aliases {foo {:extra-deps {foo/bar1 {:mvn/version "..."}}}}}
