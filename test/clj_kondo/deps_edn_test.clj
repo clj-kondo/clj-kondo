@@ -119,7 +119,7 @@
     (assert-submaps
      '({:file "bb.edn", :row 1, :col 9, :level :warning, :message "Libs must be qualified, change clj-kondo => clj-kondo/clj-kondo"}
        {:file "bb.edn", :row 1, :col 19, :level :warning, :message "Non-determistic version."}
-       {:file "bb.edn", :row 1, :col 53, :level :warning, :message "Expected map, found: string"})
+       {:file "bb.edn", :row 1, :col 54, :level :warning, :message "Expected map, found: string"})
      (lint! (str bb-edn)
             "--filename" "bb.edn"))))
 
