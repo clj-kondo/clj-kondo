@@ -258,9 +258,10 @@
 
 (defn class-name? [^String s]
   (when-let [i (str/last-index-of s \.)]
-    (let [should-be-capital-letter-idx (inc i)]
-      (and (> (.length s) should-be-capital-letter-idx)
-           (Character/isUpperCase ^char (.charAt s (inc i)))))))
+    (or (let [should-be-capital-letter-idx (inc i)]
+          (and (> (.length s) should-be-capital-letter-idx)
+               (Character/isUpperCase ^char (.charAt s should-be-capital-letter-idx))))
+        (str/includes? s "_"))))
 
 (defn reg-unresolved-symbol!
   [ctx ns-sym sym {:keys [:base-lang :lang :config

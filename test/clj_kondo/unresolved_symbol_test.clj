@@ -240,4 +240,6 @@
  x
  (:foo x))
 
-" '{:linters {:unresolved-symbol {:exclude [(slingshot.slingshot/try+)]}}}))))
+" '{:linters {:unresolved-symbol {:exclude [(slingshot.slingshot/try+)]}}})))
+  (is (empty? (lint! "(def ^name.fraser.neil.plaintext.diff_match_patch dmp (diff_match_patch.))"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
