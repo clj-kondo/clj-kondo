@@ -175,6 +175,7 @@
                                                                      :name (with-meta (sexpr %) m)
                                                                      :resolved-ns ns-name
                                                                      :ns current-ns-name
+                                                                     :refer true
                                                                      :lang lang
                                                                      :base-lang base-lang
                                                                      :filename filename

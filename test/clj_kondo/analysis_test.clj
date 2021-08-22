@@ -680,6 +680,24 @@
     (is (= 'clojure.set (:to (first namespace-usages))))
     (is (= 'clojure.set (:to (first var-usages))))))
 
+(deftest refer-var-usages-test
+  (testing "from require"
+    (let [{:keys [:namespace-usages :var-usages]}
+          (analyze "(ns foo (:require [clojure [set :refer [union]]])) (union #{1 2 3} #{3 4 5})")]
+      (is (= 'clojure.set (:to (first namespace-usages))))
+      (assert-submaps
+       '[{:name union :to clojure.set :name-col 41 :refer true}
+         {:name union :to clojure.set :name-col 53}]
+       var-usages)))
+  (testing "from use"
+    (let [{:keys [:namespace-usages :var-usages]}
+          (analyze "(ns foo (:use [clojure [set :only [union]]])) (union #{1 2 3} #{3 4 5})")]
+      (is (= 'clojure.set (:to (first namespace-usages))))
+      (assert-submaps
+       '[{:name union :to clojure.set :name-col 36 :refer true}
+         {:name union :to clojure.set :name-col 48}]
+       var-usages))))
+
 (deftest standalone-require-test
   (let [{:keys [:namespace-usages :var-usages]}
         (analyze "(require '[clojure [set :refer [union]]])")]
