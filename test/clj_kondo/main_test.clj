@@ -1,8 +1,9 @@
 (ns clj-kondo.main-test
   (:require
    [cheshire.core :as cheshire]
+   [clj-kondo.core :as clj-kondo]
    [clj-kondo.main :refer [main]]
-   [clj-kondo.test-utils :refer
+   [clj-kondo.test-utils :as tu :refer
     [lint! assert-submaps assert-submap submap?
      make-dirs rename-path remove-dir]]
    [clojure.edn :as edn]
@@ -2703,6 +2704,14 @@ foo/")))
                       {:file "<stdin>", :row 1, :col 17, :level :warning,
                        :message "Unresolved namespace foo. Are you missing a require?"}
                       {:file "<stdin>", :row 1, :col 30, :level :error, :message "Invalid var name: foo/x"}))))
+
+(deftest issue-1366-conflicting-user-ns
+  (let [expected-filename (tu/normalize-filename "corpus/issue-1366/dir-1/user.clj")]
+    (is (apply = expected-filename
+               (map (comp tu/normalize-filename
+                          :filename)
+                    (:findings (clj-kondo/run! {:lint ["corpus/issue-1366/dir-1"
+                                                       "corpus/issue-1366/dir-2"]})))))))
 
 ;;;; Scratch
 

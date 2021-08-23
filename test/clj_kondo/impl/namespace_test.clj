@@ -69,13 +69,14 @@
         _ (analyze-ns-decl
            ctx
            (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-    (is (= '{:ns bar :name quux}
-           (resolve-name ctx 'foo 'quux)))
+    (assert-submap
+     '{:ns bar :name quux}
+     (resolve-name ctx 'foo 'quux))
     (let [_ (analyze-ns-decl
              ctx
              (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
-      (is (= '{:ns bar :name quux}
-             (resolve-name ctx 'foo 'quux))))
+      (assert-submap '{:ns bar :name quux}
+                     (resolve-name ctx 'foo 'quux)))
     (let [_ (analyze-ns-decl
              ctx
              (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))

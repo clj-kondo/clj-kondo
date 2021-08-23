@@ -428,7 +428,6 @@
                   used-referred-vars (:used-referred-vars ns)
                   refer-alls (:refer-alls ns)
                   refer-all-nss (set (keys refer-alls))
-                  filename (:filename ns)
                   ns-config (:config ns)
                   config (or ns-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
@@ -448,12 +447,13 @@
               (or (contains? used-referred-vars k)
                   (config/unused-referred-var-excluded config var-ns k)
                   (contains? refer-all-nss var-ns))
-            (findings/reg-finding!
-             ctx
-             (-> (node->line filename k :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
-                 (assoc :ns (export-ns-sym var-ns)
-                        :refer (:name v)))))))
-      (doseq [[referred-all-ns {:keys [:referred :node]}] refer-alls
+            (let [filename (:filename v)]
+              (findings/reg-finding!
+               ctx
+               (-> (node->line filename k :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
+                   (assoc :ns (export-ns-sym var-ns)
+                          :refer (:name v))))))))
+      (doseq [[referred-all-ns {:keys [:referred :node] :as refer-all}] refer-alls
               :when (not (config/refer-all-excluded? config referred-all-ns))]
         (let [{:keys [:k :value]} node
               use? (or (= :use k)
@@ -465,7 +465,8 @@
                                  ""))
                        (when (seq referred)
                          (format " [%s]"
-                                 (str/join " " (sort referred)))))]
+                                 (str/join " " (sort referred)))))
+              filename (:filename refer-all)]
           (findings/reg-finding!
            ctx
            (node->line filename node

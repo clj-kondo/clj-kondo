@@ -229,11 +229,13 @@
                 :excluded excluded
                 :referred (concat (map (fn [r]
                                          [r {:ns ns-name
-                                             :name r}])
+                                             :name r
+                                             :filename filename}])
                                        referred)
                                   (map (fn [[original-name new-name]]
                                          [new-name {:ns ns-name
-                                                    :name original-name}])
+                                                    :name original-name
+                                                    :filename filename}])
                                        renamed))
                 :referred-all referred-all}])))))))
 
@@ -290,7 +292,8 @@
                                (assoc acc (:ns clause)
                                       {:excluded (:excluded clause)
                                        :node m
-                                       :referred #{}})
+                                       :referred #{}
+                                       :filename (:filename ctx)})
                                acc))
                            {}
                            analyzed)
