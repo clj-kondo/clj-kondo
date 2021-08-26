@@ -519,9 +519,9 @@
             :let [config (or ns-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
                   ctx (assoc ctx :lang lang)
-                  ;;_ (prn (-> config :linters :unused-private-var))
                   vars (vals vars)
-                  used-vars (into #{} (comp (filter #(= (:ns %) ns-nm))
+                  used-vars (into #{} (comp (filter #(and (= (:ns %) ns-nm)
+                                                          (not= (:name %) (:in-def %))))
                                             (map :name))
                                   used-vars)]
             v vars

@@ -2318,6 +2318,10 @@ foo/baz
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 103, :level :warning, :message "Unused private var foo/g"})
    (lint! "(ns foo {:clj-kondo/config '{:linters {:unused-private-var {:exclude [foo/f]}}}}) (defn- f []) (defn- g [])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 8, :level :warning, :message "Unused private var user/foo"}
+     {:file "<stdin>", :row 1, :col 29, :level :warning, :message "Unused private var user/bar"})
+   (lint! "(defn- foo [] (foo)) (defn- bar ([] (bar 1)) ([_]))"))
   (is (empty? (lint! "(ns foo) (defn- f []) (f)")))
   (is (empty? (lint! "(ns foo) (defn- f [])"
                      '{:linters {:unused-private-var {:exclude [foo/f]}}})))
