@@ -889,7 +889,7 @@
         var-name (:value var-name-node)
         var-name (current-namespace-var-name ctx var-name-node var-name)
         children (next children)
-        docstring (when (> (count children) 2)
+        docstring (when (> (count children) 1)
                     (string-from-token (first children)))
         [child & children] (if docstring (next children) children)
         [extra-meta children] (if (and (= 'clojure.core/defmulti defined-by)
