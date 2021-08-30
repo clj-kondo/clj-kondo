@@ -888,8 +888,16 @@
         metadata (meta var-name-node)
         var-name (:value var-name-node)
         var-name (current-namespace-var-name ctx var-name-node var-name)
+        children (next children)
         docstring (when (> (count children) 2)
-                    (string-from-token (second children)))]
+                    (string-from-token (first children)))
+        [child & children] (if docstring (next children) children)
+        [extra-meta children] (if (and (= 'clojure.core/defmulti defined-by)
+                                       (identical? :map (utils/tag child)))
+                                [(sexpr child) children]
+                                [nil (cons child children)])
+        metadata (if extra-meta (merge metadata extra-meta)
+                     metadata)]
     (when var-name
       (namespace/reg-var! ctx (-> ctx :ns :name)
                           var-name
@@ -899,7 +907,7 @@
                                       :defined-by defined-by)))
     (analyze-children (assoc ctx
                              :in-def var-name)
-                      (nnext (:children expr)))))
+                      children)))
 
 (declare analyze-defrecord)
 
@@ -1398,49 +1406,49 @@
                     1
                     arg-count)]
     (cond var?
-      (let [{:keys [:row :end-row :col :end-col]} (meta f)]
-        (namespace/reg-var-usage! ctx ns-name
-                                  {:type :call
-                                   :resolved-ns resolved-namespace
-                                   :ns ns-name
-                                   :name (with-meta
-                                           (or resolved-name fsym)
-                                           (meta fsym))
-                                   :alias resolved-alias
-                                   :unresolved? unresolved?
-                                   :unresolved-ns unresolved-ns
-                                   :clojure-excluded? clojure-excluded?
-                                   :arity arg-count
-                                   :row row
-                                   :end-row end-row
-                                   :col col
-                                   :end-col end-col
-                                   :base-lang (:base-lang ctx)
-                                   :lang (:lang ctx)
-                                   :filename (:filename ctx)
-                                   ;; save some memory during dependencies
-                                   :expr (when-not (:dependencies ctx) expr)
-                                   :simple? (simple-symbol? fsym)
-                                   :callstack (:callstack ctx)
-                                   :config (:config ctx)
-                                   :top-ns (:top-ns ctx)
-                                   ;; :arg-types (:arg-types ctx)
-                                   :interop? interop?
-                                   :resolved-core? resolved-core?}))
-      arity (let [{:keys [:fixed-arities :varargs-min-arity]} arity
-                  config (:config ctx)
-                  callstack (:callstack ctx)]
-              (when-not (config/skip? config :invalid-arity callstack)
-                (let [filename (:filename ctx)]
-                  (when-not (linter-disabled? ctx :invalid-arity)
-                    (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
-                      (let [fst-ana (first fana)
-                            fn-name (or fsym (:name fst-ana))]
-                        (findings/reg-finding!
-                         ctx
-                         (node->line filename f
-                                     :invalid-arity
-                                     (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
+          (let [{:keys [:row :end-row :col :end-col]} (meta f)]
+            (namespace/reg-var-usage! ctx ns-name
+                                      {:type :call
+                                       :resolved-ns resolved-namespace
+                                       :ns ns-name
+                                       :name (with-meta
+                                               (or resolved-name fsym)
+                                               (meta fsym))
+                                       :alias resolved-alias
+                                       :unresolved? unresolved?
+                                       :unresolved-ns unresolved-ns
+                                       :clojure-excluded? clojure-excluded?
+                                       :arity arg-count
+                                       :row row
+                                       :end-row end-row
+                                       :col col
+                                       :end-col end-col
+                                       :base-lang (:base-lang ctx)
+                                       :lang (:lang ctx)
+                                       :filename (:filename ctx)
+                                       ;; save some memory during dependencies
+                                       :expr (when-not (:dependencies ctx) expr)
+                                       :simple? (simple-symbol? fsym)
+                                       :callstack (:callstack ctx)
+                                       :config (:config ctx)
+                                       :top-ns (:top-ns ctx)
+                                       ;; :arg-types (:arg-types ctx)
+                                       :interop? interop?
+                                       :resolved-core? resolved-core?}))
+          arity (let [{:keys [:fixed-arities :varargs-min-arity]} arity
+                      config (:config ctx)
+                      callstack (:callstack ctx)]
+                  (when-not (config/skip? config :invalid-arity callstack)
+                    (let [filename (:filename ctx)]
+                      (when-not (linter-disabled? ctx :invalid-arity)
+                        (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
+                          (let [fst-ana (first fana)
+                                fn-name (or fsym (:name fst-ana))]
+                            (findings/reg-finding!
+                             ctx
+                             (node->line filename f
+                                         :invalid-arity
+                                         (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
     (concat fana
             (analyze-children ctx args false))))
 

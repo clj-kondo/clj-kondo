@@ -1944,6 +1944,9 @@ foo/foo ;; this does use the private var
       :level :warning,
       :message "#'clojure.core/replicate is deprecated since 1.3"})
    (lint! "replicate"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 83, :level :warning, :message "#'user/deprecated-multi is deprecated"})
+   (lint! "(defmulti deprecated-multi \"Docstring\" {:private true :deprecated true} identity) (deprecated-multi)"))
   (testing "config"
     (assert-submaps
      '({:file "corpus/deprecated_var.clj", :row 9, :col 30, :level :warning, :message "#'foo.foo/deprecated-fn is deprecated"}
