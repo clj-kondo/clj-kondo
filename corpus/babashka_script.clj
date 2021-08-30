@@ -15,3 +15,12 @@
 
 (-> ($ ~x) ;; unresolved
     check)
+
+(defn example
+  []
+  (let [env {"SOME_VAR" "wee"}] ;; not unused
+    ;; unused binding env
+    (-> ($ {:out :string :env env} echo "hi")
+        (check)
+        (:out)
+        (println))))
