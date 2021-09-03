@@ -519,7 +519,8 @@
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
-                   :added (:added var-meta))))
+                   :added (:added var-meta)
+                   :meta (meta name-node))))
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
@@ -904,7 +905,8 @@
                           expr
                           (assoc-some metadata
                                       :doc docstring
-                                      :defined-by defined-by)))
+                                      :defined-by defined-by
+                                      :meta metadata)))
     (analyze-children (assoc ctx
                              :in-def var-name)
                       children)))
@@ -986,7 +988,8 @@
                                    :name-end-row (:end-row var-name-meta)
                                    :name-end-col (:end-col var-name-meta)
                                    :declared true
-                                   :defined-by defined-by))))))
+                                   :defined-by defined-by
+                                   :meta (meta expr)))))))
 
 (defn analyze-catch [ctx expr]
   (let [ctx (update ctx :callstack conj [nil 'catch])
@@ -1051,7 +1054,8 @@
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr
                           (assoc (meta name-node)
-                                 :defined-by 'clojure.core/defprotocol)))
+                                 :defined-by 'clojure.core/defprotocol
+                                 :meta (meta name-node))))
     (doseq [c (next children)
             :when (= :list (tag c)) ;; skip first docstring
             :let [children (:children c)
@@ -1079,7 +1083,8 @@
                        :name-end-row (:end-row name-meta)
                        :name-end-col (:end-col name-meta)
                        :fixed-arities fixed-arities
-                       :defined-by 'clojure.core/defprotocol)))))))
+                       :defined-by 'clojure.core/defprotocol
+                       :meta (meta c))))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
@@ -1102,19 +1107,21 @@
                                                    {}))
         arglists? (and bindings? (:analyze-arglists? ctx))
         ctx (ctx-with-bindings ctx bindings)]
-    (namespace/reg-var! ctx ns-name record-name expr metadata)
+    (namespace/reg-var! ctx ns-name record-name expr (assoc metadata :meta metadata))
     (when-not (= "definterface" (name defined-by))
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
                           (assoc-some metadata
                                       :arglist-strs (when arglists?
                                                       [(str binding-vector)])
-                                      :fixed-arities #{field-count})))
+                                      :fixed-arities #{field-count}
+                                      :meta metadata)))
     (when (= "defrecord" (name defined-by))
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                           expr (assoc-some metadata
                                            :arglist-strs (when arglists?
                                                            ["[m]"])
-                                           :fixed-arities #{1})))
+                                           :fixed-arities #{1}
+                                           :meta metadata)))
     (loop [current-protocol nil
            children (nnext children)]
       (when-first [c children]
@@ -1256,7 +1263,7 @@
                                             :type-mismatch
                                             :private-call
                                             :missing-docstring])]
-    (namespace/reg-var! ctx ns-name name-sym (meta expr))
+    (namespace/reg-var! ctx ns-name name-sym (assoc (meta expr) :meta (meta expr)))
     (run! #(analyze-usages2 ctx %) body)))
 
 (defn analyze-when [ctx expr]
