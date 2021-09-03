@@ -2176,7 +2176,7 @@ foo/foo ;; this does use the private var
       :message "app.core/foo is called with 0 args but expects 1"})
    (lint! (io/file "corpus" "import_vars.clj")
           {:linters {:unresolved-symbol {:level :error}}}))
-  (testing "import-vars works when using cache"
+  (testing "import-vars with vector works when using cache"
     (when (.exists (io/file ".clj-kondo"))
       (rename-path ".clj-kondo" ".clj-kondo.bak"))
     (make-dirs ".clj-kondo")
@@ -2190,6 +2190,28 @@ foo/foo ;; this does use the private var
                        :level :error,
                        :message "app.core/foo is called with 1 arg but expects 0"})
                     (lint! "(ns consumer (:require [app.api :refer [foo]])) (foo 1)" "--cache"))
+    (remove-dir ".clj-kondo")
+    (when (.exists (io/file ".clj-kondo.bak"))
+      (rename-path ".clj-kondo.bak" ".clj-kondo")))
+  (testing "import-vars with full qualified symbol with vector works when using cache"
+    (when (.exists (io/file ".clj-kondo"))
+      (rename-path ".clj-kondo" ".clj-kondo.bak"))
+    (make-dirs ".clj-kondo")
+    (lint! "(ns app.core) (defn foo []) (defn bar [])" "--cache")
+    (lint! "(ns app.api (:require [potemkin :refer [import-vars]]))
+            (import-vars app.core/foo app.core/bar)"
+           "--cache")
+    (assert-submaps '({:file "<stdin>",
+                       :row 1,
+                       :col 53,
+                       :level :error,
+                       :message "app.core/foo is called with 1 arg but expects 0"}
+                      {:file "<stdin>",
+                       :row 1,
+                       :col 61,
+                       :level :error,
+                       :message "app.core/bar is called with 1 arg but expects 0"})
+                    (lint! "(ns consumer (:require [app.api :refer [foo bar]])) (foo 1) (bar 2)" "--cache"))
     (remove-dir ".clj-kondo")
     (when (.exists (io/file ".clj-kondo.bak"))
       (rename-path ".clj-kondo.bak" ".clj-kondo")))
