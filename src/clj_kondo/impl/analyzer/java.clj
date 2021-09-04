@@ -20,7 +20,10 @@
     ;; (prn (pprint (bean cu)) (type cu))
     ;; (prn cu)
     (let [visitor (proxy [VoidVisitorAdapter] []
-                    (visit [^ClassOrInterfaceDeclaration decl arg]
-                      (prn (.getName decl))))]
-      (.visit ^visitor cu nil))
-    ))
+                    (visit [decl arg]
+                      (proxy-super visit decl arg)
+                      (prn (class decl))
+                      #_(when (instance? ClassOrInterfaceDeclaration decl)
+                        (prn decl arg)
+                        )))]
+      (.visit visitor cu nil))))
