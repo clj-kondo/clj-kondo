@@ -12,12 +12,15 @@
   :source-paths ["src" "parser" "inlined"]
   :java-source-paths ["src-java"]
   :dependencies [[org.clojure/clojure "1.9.0"]
-                 [com.cognitect/transit-clj "1.0.324"]
                  [io.lambdaforge/datalog-parser "0.1.8"]
+                 [javax.json/javax.json-api "1.1.4"]
+                 [com.github.javaparser/javaparser-core-serialization "3.23.0"]
+                 [com.cognitect/transit-clj "1.0.324"]
                  [cheshire/cheshire "5.10.0"]
+                 [com.github.javaparser/javaparser-core "3.23.0"]
                  [nrepl/bencode "1.1.0"]
                  [borkdude/sci "0.2.6"]
-                 [com.github.javaparser/javaparser-core "3.23.0"]]
+                 [org.glassfish/javax.json "1.1.4"]]
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.10.866"]

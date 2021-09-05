@@ -4,7 +4,10 @@
         cheshire/cheshire {:mvn/version "5.10.0"}
         nrepl/bencode {:mvn/version "1.1.0"}
         borkdude/sci {:mvn/version "0.2.6"}
-        com.github.javaparser/javaparser-core {:mvn/version "3.23.0"}}
+        com.github.javaparser/javaparser-core {:mvn/version "3.23.0"}
+        com.github.javaparser/javaparser-core-serialization {:mvn/version "3.23.0"}
+        javax.json/javax.json-api {:mvn/version "1.1.4"}
+        org.glassfish/javax.json {:mvn/version "1.1.4"}}
  :aliases {:clj-kondo/dev
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
