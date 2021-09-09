@@ -24,12 +24,7 @@ call %GRAALVM_HOME%\bin\gu.cmd install native-image
 Rem the --no-server option is not supported in GraalVM Windows.
 call %GRAALVM_HOME%\bin\native-image.cmd ^
   "-jar" "target/clj-kondo-%CLJ_KONDO_VERSION%-standalone.jar" ^
-  "-H:Name=clj-kondo" ^
   "-H:+ReportExceptionStackTraces" ^
-  "-H:IncludeResources=clj_kondo/impl/cache/built_in/.{0,}" ^
-  "-H:ReflectionConfigurationFiles=reflection.json" ^
-  "--initialize-at-build-time"  ^
-  "-H:Log=registerResource:" ^
   "--no-fallback" ^
   "--verbose" ^
   "-J-Xmx3g"
