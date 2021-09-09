@@ -9,10 +9,16 @@
     [{:type :import-vars
       :used-namespaces
       (for [g import-groups
-            :let [[imported-ns & imported-vars] (:children g)
-                  imported-ns-sym (:value imported-ns)]]
+            :let [gval (:value g)
+                  fqs-import? (and gval (qualified-symbol? gval))
+                  gchildren (:children g)
+                  imported-ns (if fqs-import?
+                                (symbol (namespace gval))
+                                (:value (first gchildren)))
+                  imported-vars (if fqs-import?
+                                  [(symbol (name gval))]
+                                  (map :value (rest gchildren)))]]
         (do (doseq [iv imported-vars]
-              (let [iv-sym (:value iv)]
-                (namespace/reg-var! ctx ns-name iv-sym expr {:imported-ns imported-ns-sym
-                                                             :imported-var iv-sym})))
-            imported-ns-sym))}]))
+              (namespace/reg-var! ctx ns-name iv expr {:imported-ns imported-ns
+                                                       :imported-var iv}))
+            imported-ns))}]))
