@@ -7,7 +7,8 @@
         com.github.javaparser/javaparser-core {:mvn/version "3.23.0"}
         com.github.javaparser/javaparser-core-serialization {:mvn/version "3.23.0"}
         javax.json/javax.json-api {:mvn/version "1.1.4"}
-        org.glassfish/javax.json {:mvn/version "1.1.4"}}
+        org.glassfish/javax.json {:mvn/version "1.1.4"}
+        org.ow2.asm/asm {:mvn/version "9.2"}}
  :aliases {:clj-kondo/dev
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
