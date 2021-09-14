@@ -52,8 +52,8 @@
     (when (and level (not (identical? :off level)) (not dependencies))
       (when-not (ignored? ctx m tp)
         (let [m (assoc m :level level)]
-          (swap! findings conj m)))))
-  nil)
+          (swap! findings conj m)
+          m)))))
 
 ;;;; Scratch
 
