@@ -2742,6 +2742,12 @@ foo/")))
                     (:findings (clj-kondo/run! {:lint ["corpus/issue-1366/dir-1"
                                                        "corpus/issue-1366/dir-2"]})))))))
 
+(deftest loop-without-recur
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Loop without recur"})
+   (lint! "(loop [])" {:linters {:loop-without-recur {:level :warning}}}))
+  (is (empty? (lint! "(loop [] (recur))" {:linters {:loop-without-recur {:level :warning}}}))))
+
 ;;;; Scratch
 
 (comment

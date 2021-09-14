@@ -98,7 +98,8 @@
                              #_#_:exclude [frequencies]
                              #_#_:include [name]}
               :deps.edn {:level :warning}
-              :redundant-expression {:level :warning}}
+              :redundant-expression {:level :warning}
+              :loop-without-recur {:level :warning}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
