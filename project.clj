@@ -26,7 +26,8 @@
                                    [borkdude/missing.test.assertions "0.0.2"]
                                    [babashka/fs "0.0.3"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
-             :uberjar {:global-vars {*assert* false}
+             :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.0"]]
+                       :global-vars {*assert* false}
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.spec.skip-macros=true"]
                        :main clj-kondo.main
