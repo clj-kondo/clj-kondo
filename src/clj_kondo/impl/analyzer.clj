@@ -794,17 +794,28 @@
     (assoc-in ns [:qualify-ns alias-sym] ns-sym)))
 
 (defn analyze-loop [ctx expr]
-  (let [bv (-> expr :children second)]
+  (let [seen-recur? (volatile! nil)
+        ctx (assoc ctx :seen-recur? seen-recur?)
+        bv (-> expr :children second)]
     (when (and bv (= :vector (tag bv)))
       (let [arg-count (let [c (count (:children bv))]
                         (when (even? c)
-                          (/ c 2)))]
-        (analyze-like-let (assoc ctx
-                                 :recur-arity {:fixed-arity arg-count}) expr)))))
+                          (/ c 2)))
+            analyzed (analyze-like-let (assoc ctx
+                                              :recur-arity {:fixed-arity arg-count}) expr)]
+        (when-not @seen-recur?
+          (findings/reg-finding! ctx
+                                 (node->line
+                                  (:filename ctx)
+                                  expr
+                                  :loop-without-recur "Loop without recur.")))
+        analyzed))))
 
 (defn analyze-recur [ctx expr]
   (let [filename (:filename ctx)
-        recur-arity (:recur-arity ctx)]
+        recur-arity (:recur-arity ctx)
+        seen-recur? (:seen-recur? ctx)]
+    (when seen-recur? (vreset! seen-recur? true))
     (when-not (or (linter-disabled? ctx :invalid-arity)
                   (config/skip? (:config ctx) :invalid-arity (:callstack ctx)))
       (let [arg-count (count (rest (:children expr)))

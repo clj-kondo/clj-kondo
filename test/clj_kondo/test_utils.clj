@@ -69,7 +69,8 @@
               :refer-all {:level :off}
               :type-mismatch {:level :off}
               :unsorted-required-namespaces {:level :off}
-              :shadowed-var {:level :off}}})
+              :shadowed-var {:level :off}
+              :loop-without-recur {:level :off}}})
 
 (defn lint-jvm!
   ([input]
