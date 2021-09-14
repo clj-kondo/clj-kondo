@@ -2,6 +2,19 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2021.09.14
+
+- Add `:loop-without-recur` linter. [#426](https://github.com/clj-kondo/clj-kondo/issues/426)
+- Lint `deps.edn` and `bb.edn` `:paths` [#1353](https://github.com/clj-kondo/clj-kondo/issues/1353) ([@lread](https://github.com/lread))
+- Fix unresolved-symbol for all-lowercase class name [#1362](https://github.com/clj-kondo/clj-kondo/issues/1362)
+- Add `:refer` to var-usages when inside a require [#1364](https://github.com/clj-kondo/clj-kondo/issues/1364) ([@ericdallo](https://github.com/ericdallo))
+- musl fix [#1365](https://github.com/clj-kondo/clj-kondo/issues/1365) ([@thiagokokada](https://github.com/thiagokokada))
+- Fix incorrectly reported filename [#1366](https://github.com/clj-kondo/clj-kondo/issues/1366)
+- Self-referring private-var should be reported unused if not used elsewhere [#1367](https://github.com/clj-kondo/clj-kondo/issues/1367)
+- Support options map in `babashka.process/$` [#1386](https://github.com/clj-kondo/clj-kondo/issues/1386)
+- Analyze metadata map of `defmulti` [#1310](https://github.com/clj-kondo/clj-kondo/issues/1310)
+- Add support for potemkin full qualified symbols [#1371](https://github.com/clj-kondo/clj-kondo/issues/1371) ([@ericdallo](https://github.com/ericdallo))
+
 ## 2021.08.06
 
 - Expose `ns-analysis` fn in hooks API [#1349](https://github.com/clj-kondo/clj-kondo/issues/1349) ([@hugoduncan](https://github.com/hugoduncan))
