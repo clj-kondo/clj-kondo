@@ -20,6 +20,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Format](#format)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
+    - [Loop without recur](#loop-without-recur)
     - [Misplaced docstring](#misplaced-docstring)
     - [Missing body in when](#missing-body-in-when)
     - [Missing clause in try](#missing-clause-in-try)
@@ -328,6 +329,18 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 ``` clojure
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
+
+### Loop without recur
+
+*Keyword:* `:loop-without-recur`.
+
+*Description:* warn when loop does not contain recur.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(loop [])`.
+
+*Example message:* `Loop without recur.`
 
 ### Misplaced docstring
 

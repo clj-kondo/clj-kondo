@@ -804,7 +804,11 @@
             analyzed (analyze-like-let (assoc ctx
                                               :recur-arity {:fixed-arity arg-count}) expr)]
         (when-not @seen-recur?
-          (findings/reg-finding! ctx (node->line (:filename ctx) expr :loop-without-recur "Loop without recur")))
+          (findings/reg-finding! ctx
+                                 (node->line
+                                  (:filename ctx)
+                                  expr
+                                  :loop-without-recur "Loop without recur.")))
         analyzed))))
 
 (defn analyze-recur [ctx expr]
