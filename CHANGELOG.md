@@ -11,7 +11,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - musl fix [#1365](https://github.com/clj-kondo/clj-kondo/issues/1365) ([@thiagokokada](https://github.com/thiagokokada))
 - Fix incorrectly reported filename [#1366](https://github.com/clj-kondo/clj-kondo/issues/1366)
 - Self-referring private-var should be reported unused if not used elsewhere [#1367](https://github.com/clj-kondo/clj-kondo/issues/1367)
-- Support options map in `babashka.process/$` [#1386](https://github.com/clj-kondo/clj-kondo/issues/1386)
+- Support options map in `babashka.process/$` [#1368](https://github.com/clj-kondo/clj-kondo/issues/1368)
 - Analyze metadata map of `defmulti` [#1310](https://github.com/clj-kondo/clj-kondo/issues/1310)
 - Add support for potemkin full qualified symbols [#1371](https://github.com/clj-kondo/clj-kondo/issues/1371) ([@ericdallo](https://github.com/ericdallo))
 
