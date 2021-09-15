@@ -2746,6 +2746,12 @@ foo/")))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Loop without recur."})
    (lint! "(loop [])" {:linters {:loop-without-recur {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Loop without recur."})
+   (lint! "(loop [] (fn [] (recur)))" {:linters {:loop-without-recur {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Loop without recur."})
+   (lint! "(loop [] (future (recur)))" {:linters {:loop-without-recur {:level :warning}}}))
   (is (empty? (lint! "(loop [] (recur))" {:linters {:loop-without-recur {:level :warning}}}))))
 
 (deftest as-alias-test

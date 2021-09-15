@@ -746,7 +746,8 @@
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity))))
 
 (defn analyze-fn [ctx expr]
-  (let [children (:children expr)
+  (let [ctx (assoc ctx :seen-recur? (volatile! nil))
+        children (:children expr)
         ?fn-name (when-let [?name-expr (second children)]
                    (when-let [n (utils/symbol-from-token ?name-expr)]
                      n))
@@ -1790,9 +1791,11 @@
                                          (one-of [resolved-namespace resolved-name]
                                                  [[clojure.core.async thread]
                                                   [clojure.core dosync]
+                                                  [clojure.core future]
                                                   [clojure.core lazy-seq]
                                                   [clojure.core lazy-cat]])
-                                         (assoc-in [:recur-arity :fixed-arity] 0))]
+                                         (-> (assoc-in [:recur-arity :fixed-arity] 0)
+                                             (assoc :seen-recur? (volatile! nil))))]
                           (analyze-children next-ctx children false))))]
                 (if (= 'ns resolved-as-clojure-var-name)
                   analyzed
