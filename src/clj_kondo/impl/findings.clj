@@ -42,7 +42,10 @@
                       (recur (next ignores))))
                   (recur (next ignores)))))))))))
 
-(defn reg-finding! [ctx m]
+(defn reg-finding!
+  "Register a new finding.
+  Returns truthy value if the finding was applied / not ignored."
+  [ctx m]
   (let [dependencies (:dependencies ctx)
         findings (:findings ctx)
         config (:config ctx)
