@@ -2748,6 +2748,13 @@ foo/")))
    (lint! "(loop [])" {:linters {:loop-without-recur {:level :warning}}}))
   (is (empty? (lint! "(loop [] (recur))" {:linters {:loop-without-recur {:level :warning}}}))))
 
+(deftest as-alias-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "namespace foo.bar is required but never used"}
+     {:file "<stdin>", :row 1, :col 44, :level :warning, :message "Unresolved namespace fx. Are you missing a require?"})
+   (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fx/bar"))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fb/bar"))))
+
 ;;;; Scratch
 
 (comment

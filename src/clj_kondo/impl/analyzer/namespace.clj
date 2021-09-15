@@ -189,10 +189,13 @@
                          (= :all opt)
                          (assoc m :referred-all opt-expr)
                          :else m)))
-                :as (recur
-                     (nnext children)
-                     (assoc m :as (with-meta opt
-                                    (meta opt-expr))))
+                (:as :as-alias)
+                (recur
+                 (nnext children)
+                 (assoc m
+                        :as (with-meta opt
+                                (meta opt-expr))
+                        :as-alias true))
                 ;; shadow-cljs:
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default
@@ -206,13 +209,13 @@
                 :rename
                 (let [opt (zipmap (keys opt) (map #(with-meta (sexpr %) (meta %))
                                                   (take-nth 2 (rest (:children opt-expr)))))]
-                    (recur
-                     (nnext children)
-                     (-> m (update :renamed merge opt)
-                         ;; for :refer-all we need to know the excluded
-                         (update :excluded into (set (keys opt)))
-                         ;; for :refer it is sufficient to pretend they were never referred
-                         (update :referred set/difference (set (keys opt))))))
+                  (recur
+                   (nnext children)
+                   (-> m (update :renamed merge opt)
+                       ;; for :refer-all we need to know the excluded
+                       (update :excluded into (set (keys opt)))
+                       ;; for :refer it is sufficient to pretend they were never referred
+                       (update :referred set/difference (set (keys opt))))))
                 (recur (nnext children)
                        m)))
             (let [{:keys [:as :referred :excluded :referred-all :renamed]} m
