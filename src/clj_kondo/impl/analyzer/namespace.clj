@@ -194,8 +194,9 @@
                  (nnext children)
                  (assoc m
                         :as (with-meta opt
-                                (meta opt-expr))
-                        :as-alias true))
+                              (cond-> (meta opt-expr)
+                                (identical? :as-alias child-k)
+                                (assoc :as-alias true)))))
                 ;; shadow-cljs:
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default
