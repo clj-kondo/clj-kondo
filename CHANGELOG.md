@@ -2,6 +2,11 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2021.09.15
+
+- Support `:as-alias` (new feature in Clojure 1.11) [#1378](https://github.com/clj-kondo/clj-kondo/issues/1378)
+- Improve `:loop-without-recuir` wrt/ `fn` and other constructs that introduce a `recur` target [#1376](https://github.com/clj-kondo/clj-kondo/issues/1376)
+
 ## 2021.09.14
 
 - Add `:loop-without-recur` linter. [#426](https://github.com/clj-kondo/clj-kondo/issues/426)
