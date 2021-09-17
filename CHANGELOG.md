@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- Update built-in cache to clojure 1.11.0-alpha2 [#1382](https://github.com/clj-kondo/clj-kondo/issues/1382)
+
 ## 2021.09.15
 
 - Support `:as-alias` (new feature in Clojure 1.11) [#1378](https://github.com/clj-kondo/clj-kondo/issues/1378)
