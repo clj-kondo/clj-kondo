@@ -7,6 +7,10 @@ assignees: ''
 
 ---
 
+If you are a regular user of clj-kondo, consider
+[sponsoring](https://github.com/sponsors/borkdude) or ask your organization to
+sponsor this project, to keep it alive.
+
 **version**
 
 [ Please specify which version of clj-kondo you're using. You can find this with `clj-kondo --version`.]
@@ -45,5 +49,3 @@ configuration, as the bug may be a result of malformed configuration. ]
 
 
 [ Optional: if you are interested in doing a PR yourself, please leave a note. ]
-
-[ Optional: if you or your organization is sponsoring this project, please write "**Sponsor**" in this ticket for higher priority. ]

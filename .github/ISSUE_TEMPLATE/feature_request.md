@@ -7,6 +7,10 @@ assignees: ''
 
 ---
 
+If you are a regular user of clj-kondo, consider
+[sponsoring](https://github.com/sponsors/borkdude) or ask your organization to
+sponsor this project, to keep it alive.
+
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 
