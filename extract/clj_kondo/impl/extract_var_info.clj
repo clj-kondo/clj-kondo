@@ -9,6 +9,9 @@
 
 (set! *warn-on-reflection* true)
 
+(def clj-version (System/getenv "CLJ_KONDO_EXTRACT_CLJ_VERSION"))
+(def cljs-version (System/getenv "CLJ_KONDO_EXTRACT_CLJS_VERSION"))
+
 (def code-template "(ns clj-kondo.impl.var-info-gen
   \"GENERATED, DO NOT EDIT.\"
   {:no-doc true})
@@ -52,7 +55,7 @@
                                :cljc #{}})}
       [(io/file (System/getProperty "user.home")
                 ".m2" "repository" "org" "clojure" "clojure"
-                "1.10.2" "clojure-1.10.2.jar")]
+                clj-version (format "clojure-%s.jar" clj-version))]
       :clj
       nil))
     (reduce into special
@@ -76,7 +79,7 @@
                                :cljc #{}})}
       [(io/file (System/getProperty "user.home")
                 ".m2" "repository" "org" "clojure" "clojurescript"
-                "1.10.866" "clojurescript-1.10.866.jar")]
+                cljs-version (format "clojurescript-%s.jar" cljs-version))]
       :clj
       nil))
     (reduce into special

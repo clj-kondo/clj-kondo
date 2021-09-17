@@ -102,23 +102,24 @@ tuple-map {2 {:ret {:type :map, :val {}}}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.alpha.transit.json  ===
 alt-impl {3 {:ret :associative}}
 pvalid? {2 {:ret :boolean}, 3 {:ret :boolean}}
-explain-data* {5 {:ret #{{:type :map, :val #:user{:problems {:row 214, :col 19, :end-row 214, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 215, :col 15, :end-row 215, :end-col 19}, :value {:row 216, :col 16, :end-row 216, :end-col 17}}} :nil}}}
+explain-data* {5 {:ret #{{:type :map, :val #:user{:problems {:row 221, :col 19, :end-row 221, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 222, :col 15, :end-row 222, :end-col 19}, :value {:row 223, :col 16, :end-row 223, :end-col 17}}} :nil}}}
 fn-sym {1 {:ret #{:symbol :nil}}}
 inst-in-range? {3 {:ret #{:nil :boolean}}}
 accept? {1 {:ret :boolean}}
-accept {1 {:ret {:type :map, :val {:user/op {:row 1375, :col 25, :end-row 1375, :end-col 33, :tag :keyword}, :ret {:row 1375, :col 39, :end-row 1375, :end-col 40}}}}}
+accept {1 {:ret {:type :map, :val {:user/op {:row 1382, :col 25, :end-row 1382, :end-col 33, :tag :keyword}, :ret {:row 1382, :col 39, :end-row 1382, :end-col 40}}}}}
 recur-limit? {4 {:ret #{:nil :boolean}}}
 valid? {2 {:ret :boolean}, 3 {:ret :boolean}}
 int-in-range? {3 {:ret #{:nil :boolean}}}
 exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq}}
-explain-data {2 {:ret #{{:type :map, :val #:user{:problems {:row 214, :col 19, :end-row 214, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 215, :col 15, :end-row 215, :end-col 19}, :value {:row 216, :col 16, :end-row 216, :end-col 17}}} :nil}}}
+explain-data {2 {:ret #{{:type :map, :val #:user{:problems {:row 221, :col 19, :end-row 221, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 222, :col 15, :end-row 222, :end-col 19}, :value {:row 223, :col 16, :end-row 223, :end-col 17}}} :nil}}}
 inck {2 {:ret :associative}}
 invalid? {1 {:ret :boolean}}
-amp-impl {4 {:ret {:type :map, :val {:user/op {:row 1416, :col 9, :end-row 1416, :end-col 14, :tag :keyword}, :p1 {:row 1416, :col 19, :end-row 1416, :end-col 21}, :amp {:row 1416, :col 27, :end-row 1416, :end-col 34}, :ps {:row 1416, :col 39, :end-row 1416, :end-col 44}, :forms {:row 1416, :col 52, :end-row 1416, :end-col 62}}}}}
-rep-impl {2 {:ret #{{:type :map, :val {:user/op {:row 1399, :col 19, :end-row 1399, :end-col 24, :tag :keyword}, :p2 {:row 1399, :col 30, :end-row 1399, :end-col 32}, :splice {:row 1399, :col 42, :end-row 1399, :end-col 48}, :forms {:row 1399, :col 57, :end-row 1399, :end-col 61}, :id {:row 1399, :col 66, :end-row 1399, :end-col 93}}} :nil}}}
+amp-impl {4 {:ret {:type :map, :val {:user/op {:row 1423, :col 9, :end-row 1423, :end-col 14, :tag :keyword}, :p1 {:row 1423, :col 19, :end-row 1423, :end-col 21}, :amp {:row 1423, :col 27, :end-row 1423, :end-col 34}, :ps {:row 1423, :col 39, :end-row 1423, :end-col 44}, :forms {:row 1423, :col 52, :end-row 1423, :end-col 62}}}}}
+explain-str {2 {:ret :nilable/string}}
+rep-impl {2 {:ret #{{:type :map, :val {:user/op {:row 1406, :col 19, :end-row 1406, :end-col 24, :tag :keyword}, :p2 {:row 1406, :col 30, :end-row 1406, :end-col 32}, :splice {:row 1406, :col 42, :end-row 1406, :end-col 48}, :forms {:row 1406, :col 57, :end-row 1406, :end-col 61}, :id {:row 1406, :col 66, :end-row 1406, :end-col 93}}} :nil}}}
 filter-alt {4 {:ret #{:vector}}}
 call-valid? {3 {:ret #{:nil :boolean}}}
-rep* {5 {:ret #{{:type :map, :val {:user/op {:row 1399, :col 19, :end-row 1399, :end-col 24, :tag :keyword}, :p2 {:row 1399, :col 30, :end-row 1399, :end-col 32}, :splice {:row 1399, :col 42, :end-row 1399, :end-col 48}, :forms {:row 1399, :col 57, :end-row 1399, :end-col 61}, :id {:row 1399, :col 66, :end-row 1399, :end-col 93}}} :nil}}}
+rep* {5 {:ret #{{:type :map, :val {:user/op {:row 1406, :col 19, :end-row 1406, :end-col 24, :tag :keyword}, :p2 {:row 1406, :col 30, :end-row 1406, :end-col 32}, :splice {:row 1406, :col 42, :end-row 1406, :end-col 48}, :forms {:row 1406, :col 57, :end-row 1406, :end-col 61}, :id {:row 1406, :col 66, :end-row 1406, :end-col 93}}} :nil}}}
 maybe-impl {2 {:ret :associative}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.stacktrace.transit.json  ===
@@ -288,7 +289,7 @@ rand-int {1 {:ret :int}}
 map {1 {:ret :fn}, 2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}, :varargs {:ret :seq, :min-arity 4}}
 juxt {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 < {1 {:ret :boolean}}
-make-hierarchy {0 {:ret {:type :map, :val {:parents {:row 5532, :col 16, :end-row 5532, :end-col 18, :tag {:type :map, :val {}}}, :descendants {:row 5532, :col 32, :end-row 5532, :end-col 34, :tag {:type :map, :val {}}}, :ancestors {:row 5532, :col 46, :end-row 5532, :end-col 48, :tag {:type :map, :val {}}}}}}}
+make-hierarchy {0 {:ret {:type :map, :val {:parents {:row 5544, :col 16, :end-row 5544, :end-col 18, :tag {:type :map, :val {}}}, :descendants {:row 5544, :col 32, :end-row 5544, :end-col 34, :tag {:type :map, :val {}}}, :ancestors {:row 5544, :col 46, :end-row 5544, :end-col 48, :tag {:type :map, :val {}}}}}}}
 keep {1 {:ret :fn}, 2 {:ret :seq}}
 unchecked-long {1 {:args (:nilable/number)}}
 some? {1 {:ret :boolean}}
@@ -436,12 +437,16 @@ diff-sequential {2 {:ret :vector}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.tap.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.javadoc.transit.json  ===
+fill-in-module-name {2 {:ret #{:nilable/string :string}, :args (:nilable/string :nilable/string)}}
 javadoc-url {1 {:args (:nilable/string)}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.test.alpha.transit.json  ===
+explain-check {4 {:ret :throwable}}
 interpret-stack-trace-element {1 {:ret :nilable/map}}
 spec-checking-fn {3 {:ret :fn}}
 fn-spec-name? {1 {:ret #{:nil :boolean}}}
+check-call {3 {:ret #{:throwable :boolean}}}
+no-fspec {2 {:ret :throwable}}
 make-check-result {3 {:ret :nilable/map}}
 enumerate-namespace {1 {:ret :set}}
 sym->check-map {1 {:ret {:type :map, :val {:s {:row 348, :col 9, :end-row 348, :end-col 10}, :v {:row 349, :col 9, :end-row 349, :end-col 10, :tag {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.core, :ns clojure.spec.test.alpha, :name resolve, :arity 1}}}, :spec {:row 350, :col 12, :end-row 350, :end-col 35, :tag #{:nil {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.test.alpha, :name get-spec, :arity 1}, :row 350, :col 20, :end-row 350, :end-col 34}}}}}}}

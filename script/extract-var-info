@@ -3,4 +3,8 @@
 rm -rf /tmp/var-info
 mkdir -p /tmp/var-info
 
-clojure -A:clojure-1.10.2:extract -m clj-kondo.impl.extract-var-info
+# shellcheck disable=1091
+source script/extract-versions
+
+clojure -M:extract -m clj-kondo.impl.extract-var-info
+

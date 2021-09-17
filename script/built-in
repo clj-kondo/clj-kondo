@@ -5,7 +5,10 @@ mkdir -p /tmp/built-in
 version=$(cat resources/CLJ_KONDO_VERSION)
 echo "$version"
 
-clojure -M:clj-kondo --lint "$(clojure -Spath -A:cljs)" --cache /tmp/built-in
+# shellcheck disable=1091
+source script/extract-versions
+
+clojure -M:clj-kondo/dev --lint "$CLJ_KONDO_EXTRACT_CORE_DEPS_PATH" --cache /tmp/built-in > /dev/null
 
 base_path="/tmp/built-in/$version"
 

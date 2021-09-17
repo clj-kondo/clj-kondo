@@ -539,6 +539,7 @@ send
 send-off
 send-via
 seq
+seq-to-map-for-destructuring
 seq?
 seqable?
 seque
@@ -636,7 +637,9 @@ unreduced
 unsigned-bit-shift-right
 update
 update-in
+update-keys
 update-proxy
+update-vals
 uri?
 use
 uuid?

@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.extract-var-info-test
   (:require
     [clj-kondo.impl.extract-var-info :as extract-var-info]
-    [clojure.test :refer [deftest is]]))
+    [clojure.test :refer [deftest is testing]]))
 
 (deftest eastwood-var-info-test
   (let [var-info (extract-var-info/eastwood-var-info)]
@@ -10,7 +10,10 @@
 (deftest extract-clojure-core-vars-test
   (let [vars (extract-var-info/extract-clojure-core-vars)]
     (is (contains? vars 'future))
-    (is (contains? vars 'transduce))))
+    (is (contains? vars 'transduce))
+    (testing "clojure 1.11.0-alpha2"
+      (is (contains? vars 'update-vals))
+      (is (contains? vars 'update-keys)))))
 
 (deftest extract-cljs-core-vars-test
   (let [vars (extract-var-info/extract-cljs-core-vars)]
