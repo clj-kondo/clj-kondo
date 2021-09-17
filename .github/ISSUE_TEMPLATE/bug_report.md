@@ -7,9 +7,8 @@ assignees: ''
 
 ---
 
-To keep development of this project going, consider sponsoring
-[sponsoring](https://github.com/sponsors/borkdude)! If you are already a
-sponsor, thank you!
+To keep development of this project going, consider sponsoring. If you are
+already a sponsor, thank you!
 
 **version**
 
@@ -46,6 +45,5 @@ configuration, as the bug may be a result of malformed configuration. ]
 **expected behavior**
 
 [ What is the behavior you expected to see from clj-kondo? ]
-
 
 [ Optional: if you are interested in doing a PR yourself, please leave a note. ]
