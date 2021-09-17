@@ -79,3 +79,4 @@ corpus/config_dir/.cache
 /.clj-kondo/clj-kondo
 /.lsp/
 clj-kondo.build_artifacts.txt
+/.clj-kondo/rewrite-clj
