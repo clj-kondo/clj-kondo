@@ -252,10 +252,13 @@
                         (when (not (and unknown-ns? unresolved?))
                           (or
                            ;; cljs func in another cljc file
-                           (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                           (some-> (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+                                   (assoc :lang :cljs :cljc true))
                            ;; maybe a macro?
-                           (get-in idacs [:clj :defs fn-ns fn-name])
-                           (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
+                           (some-> (get-in idacs [:clj :defs fn-ns fn-name])
+                                   (assoc :lang :clj))
+                           (some-> (get-in idacs [:cljc :defs fn-ns :clj fn-name])
+                                   (assoc :lang :clj :cljc true)))))
       ;; calling a clojure function from cljc
       [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                        (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
