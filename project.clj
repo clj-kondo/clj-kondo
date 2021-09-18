@@ -18,6 +18,8 @@
                  [borkdude/sci "0.2.6"]]
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
+             :extract-deps {:dependencies [[org.clojure/clojure "1.11.0-alpha2"]
+                                           [org.clojure/clojurescript "1.10.866"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.10.866"]
                                    [clj-commons/conch "0.9.2"]
                                    [org.clojure/tools.deps.alpha "0.11.905"]

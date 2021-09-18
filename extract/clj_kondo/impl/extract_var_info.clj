@@ -9,8 +9,10 @@
 
 (set! *warn-on-reflection* true)
 
-(def clj-version (System/getenv "CLJ_KONDO_EXTRACT_CLJ_VERSION"))
-(def cljs-version (System/getenv "CLJ_KONDO_EXTRACT_CLJS_VERSION"))
+(def versions (edn/read-string (slurp "script/versions.edn")))
+
+(def clj-version (:extract-clj-version versions))
+(def cljs-version (:extract-cljs-version versions))
 
 (def code-template "(ns clj-kondo.impl.var-info-gen
   \"GENERATED, DO NOT EDIT.\"

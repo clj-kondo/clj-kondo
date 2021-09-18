@@ -34,6 +34,7 @@ build_script:
     powershell -Command "(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein.bat', 'lein.bat')"
 
     call lein self-install
+    call lein with-profiles +extract-deps deps
 
     set CLJ_KONDO_TEST_ENV=jvm
 
