@@ -2215,10 +2215,31 @@ foo/foo ;; this does use the private var
     (remove-dir ".clj-kondo")
     (when (.exists (io/file ".clj-kondo.bak"))
       (rename-path ".clj-kondo.bak" ".clj-kondo")))
-  (is (empty? (lint! "(ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
-  (:require [potemkin :refer [import-vars]]))
+  (is (empty? (lint! "
+(ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
+(:require [potemkin :refer [import-vars]]))
 
-(import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])")))
+(import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "aliases"
+    (assert-submaps
+     ' ({:file "<stdin>", :row 4, :col 14, :level :warning, :message "namespace clojure.string is required but never used"}
+        {:file "<stdin>", :row 9, :col 10, :level :error, :message "clojure.string/starts-with? is called with 0 args but expects 2"}
+        {:file "<stdin>", :row 9, :col 27, :level :error, :message "Unresolved var: i/x"})
+     (lint! "
+(ns importing-ns
+  (:require [potemkin :refer [import-vars]]
+            [clojure.string :as str]))
+
+(import-vars [str blank?, starts-with?])
+
+(ns using-ns (:require [importing-ns :as i]))
+i/blank? (i/starts-with?) i/x
+"
+            {:linters {:invalid-arity {:level :error}
+                       :unresolved-symbol {:level :error}
+                       :unresolved-var {:level :error}
+                       :type-mismatch {:level :error}}})))
   (is (empty? (lint! "
 (ns foo.bar)
 
@@ -2234,7 +2255,8 @@ foo/foo ;; this does use the private var
 foo/baz
 "
                   {:linters {:unresolved-symbol {:level :error}
-                             :unresolved-var {:level :error}}}))))
+                             :unresolved-var {:level :error}}})))
+  )
 
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
