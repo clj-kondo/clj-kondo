@@ -5,7 +5,9 @@
    [clj-kondo.impl.core :as core-impl]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.tools.deps.alpha :as deps]
+   ))
 
 (set! *warn-on-reflection* true)
 
@@ -13,6 +15,13 @@
 
 (def clj-version (:extract-clj-version versions))
 (def cljs-version (:extract-cljs-version versions))
+
+(def deps {:deps {'org.clojure/clojure clj-version
+                  'org.clojure/clojurescript cljs-version}
+            :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                        "clojars" {:url "https://repo.clojars.org/"}}})
+
+(deps/resolve-deps deps nil)
 
 (def code-template "(ns clj-kondo.impl.var-info-gen
   \"GENERATED, DO NOT EDIT.\"
