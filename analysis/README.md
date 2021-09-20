@@ -62,8 +62,12 @@ The analysis output consists of a map with:
   - `:arglists-str`: a list of each set of args as written
 
 - `:var-usages`, a list of maps with:
-  - `:filename`, `:row`, `:col`
+  - `:filename`
   - `:name`: the name of the used var
+  - `:row`, `col`: the start position of this usage, the parenthesis start location if a function call
+  - `:end-row`, `end-col`: the end position of this usage, the parenthesis end location if a function call
+  - `:name-row`, `:name-col`: the start position of the name of this usage
+  - `:name-end-row`, `:name-end-col`: the end position of the name of this usage
   - `:from`: the namespace from which the var was used
   - `:to`: the namespace of the used var
   - `:from-var`: the function name from which the var was used
