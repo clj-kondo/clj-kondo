@@ -572,7 +572,17 @@ foo/foo ;; this does use the private var
   (testing "case dispatch vals are analyzed"
     (is (empty? (lint! "(require '[clojure.string :as str] (case 10 ::str/foo 11))"
                        {:linters {:unresolved-symbol {:level :error}
-                                  :unused-namespace {:level :error}}})))))
+                                  :unused-namespace {:level :error}}}))))
+  (testing "CLJS constant"
+    ;; More info on this: https://blog.fikesfarm.com/posts/2015-06-15-clojurescript-case-constants.html
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 24, :level :error, :message "Unused private var user/x"})
+     (lint! "(def ^:private ^:const x 2) (case 1 x :yeah)"
+            {:linters {:unused-private-var {:level :error}}}))
+    (is (empty?
+         (lint! "(def ^:private ^:const x 2) (case 1 x :yeah)"
+                {:linters {:unused-private-var {:level :error}}}
+                "--lang" "cljs")))))
 
 (deftest local-bindings-test
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))

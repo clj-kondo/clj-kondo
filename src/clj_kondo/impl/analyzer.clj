@@ -524,17 +524,23 @@
 
 (defn analyze-case [ctx expr]
   (let [children (rest (:children expr))
-        matched-val (first children)]
+        matched-val (first children)
+        [test-ctx test-opts]
+        (if (identical? :cljs (:lang ctx))
+          [(ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
+           nil]
+          [ctx {:quote? true}])]
     (analyze-expression** ctx matched-val)
     (loop [[constant expr & exprs] (rest children)]
       (when constant
         (if-not expr
           ;; this is the default expression
           (analyze-expression** ctx constant)
-          (do (let [t (tag constant)]
-                (if (identical? :list t)
-                  (run! #(analyze-usages2 ctx % {:quote? true}) (:children constant))
-                  (analyze-usages2 ctx constant {:quote? true})))
+          (do
+            (let [t (tag constant)]
+              (if (identical? :list t)
+                (run! #(analyze-usages2 test-ctx % test-opts) (:children constant))
+                (analyze-usages2 test-ctx constant test-opts)))
               (when expr
                 (analyze-expression** ctx expr)
                 (recur exprs))))))))
