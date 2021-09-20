@@ -365,6 +365,10 @@ Details about releases prior to v2020.09.09 can be found
 
 ## Breaking changes
 
+### Unreleased
+
+- Change `:row` and `:col` for `:var-usages` to use the start location of the call instead of the name location [#1170](https://github.com/clj-kondo/clj-kondo/issues/1170)
+
 ### 2020.10.10
 
 - Base Docker image on Ubuntu latest instead of Alpine [#1026](https://github.com/clj-kondo/clj-kondo/issues/1026)
