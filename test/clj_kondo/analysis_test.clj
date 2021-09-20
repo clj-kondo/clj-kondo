@@ -361,34 +361,53 @@
 (deftest scope-usage-test
   (testing "when the var-usage is called as function"
     (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (foo 2)" {:config {:output {:analysis true}}})]
-      (assert-submaps
-       '[{:name foo
-          :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22
-          :row 1 :col 19 :scope-end-row 1 :scope-end-col 25}
-         {}]
-       var-usages)))
+      (is (some #(= % '{:fixed-arities #{1}
+                        :name-end-col 22
+                        :name-end-row 1
+                        :name-row 1
+                        :end-row 1
+                        :name foo
+                        :end-col 25
+                        :filename "<stdin>"
+                        :from user
+                        :col 19
+                        :name-col 19
+                        :arity 1
+                        :row 1
+                        :to user})
+                var-usages))))
   (testing "when the var-usage is not called as function"
     (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) foo" {:config {:output {:analysis true}}})]
       (is (some #(= % '{:fixed-arities #{1}
                         :name-end-col 21
                         :name-end-row 1
                         :name-row 1
+                        :name-col 18
                         :name foo
                         :filename "<stdin>"
                         :from user
-                        :col 18
-                        :name-col 18
                         :row 1
+                        :col 18
+                        :end-row 1
+                        :end-col 21
                         :to user})
                 var-usages))))
   (testing "when the var-usage call is unknown"
     (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:output {:analysis true}}})]
-      (assert-submaps
-       '[{:name bar
-          :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22
-          :row 1 :col 19 :scope-end-row 1 :scope-end-col 25}
-         {}]
-       var-usages))))
+      (is (some #(= % '{:name-end-row 1
+                        :name-end-col 22
+                        :name-row 1
+                        :name-col 19
+                        :name bar
+                        :filename "<stdin>"
+                        :from user
+                        :arity 1
+                        :row 1
+                        :col 19
+                        :end-row 1
+                        :end-col 25
+                        :to :clj-kondo/unknown-namespace})
+                var-usages)))))
 
 (deftest analysis-test
   (let [{:keys [:var-definitions
@@ -429,7 +448,7 @@
         :defined-by clojure.core/defn,
         :fixed-arities #{0},
         :doc "docstring with\n \"escaping\""}]
-     var-definitions))  
+     var-definitions))
 
   (let [{:keys [:var-definitions]} (analyze "(def ^:deprecated x \"docstring\" 1)")]
     (assert-submaps

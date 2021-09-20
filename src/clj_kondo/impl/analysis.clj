@@ -28,8 +28,8 @@
                                :name-col
                                :name-end-row
                                :name-end-col
-                               :scope-end-row
-                               :scope-end-col]))
+                               :end-row
+                               :end-col]))
                 :arity arity
                 :lang lang
                 :from-var in-def))))))

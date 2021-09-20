@@ -1816,8 +1816,6 @@
                                     :end-row (:end-row expr-meta)
                                     :col col
                                     :end-col (:end-col expr-meta)
-                                    :scope-end-row (:end-row expr-meta)
-                                    :scope-end-col (:end-col expr-meta)
                                     :base-lang base-lang
                                     :lang lang
                                     :filename (:filename ctx)
