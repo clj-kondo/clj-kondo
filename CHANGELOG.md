@@ -5,6 +5,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - Update built-in cache to clojure 1.11.0-alpha2 [#1382](https://github.com/clj-kondo/clj-kondo/issues/1382)
+- Add `:end-row`, `:end-col` to `:var-usages` analysis element [#1387](https://github.com/clj-kondo/clj-kondo/pull/1387)
+- BREAKING: Change `:row` and `:col` for `:var-usages` to use the start location of the call instead of the name location [#1170](https://github.com/clj-kondo/clj-kondo/issues/1170)
 
 ## 2021.09.15
 
