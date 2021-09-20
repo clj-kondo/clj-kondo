@@ -2215,12 +2215,6 @@ foo/foo ;; this does use the private var
     (remove-dir ".clj-kondo")
     (when (.exists (io/file ".clj-kondo.bak"))
       (rename-path ".clj-kondo.bak" ".clj-kondo")))
-  (is (empty? (lint! "
-(ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
-(:require [potemkin :refer [import-vars]]))
-
-(import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])"
-                     {:linters {:unresolved-symbol {:level :error}}})))
   (testing "aliases"
     (assert-submaps
      ' ({:file "<stdin>", :row 4, :col 14, :level :warning, :message "namespace clojure.string is required but never used"}
@@ -2241,6 +2235,12 @@ i/blank? (i/starts-with?) i/x
                        :unresolved-var {:level :error}
                        :type-mismatch {:level :error}}})))
   (is (empty? (lint! "
+(ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
+(:require [potemkin :refer [import-vars]]))
+
+(import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
 (ns foo.bar)
 
 (defn foo []) ;; non-empty to generated ns cache
@@ -2256,7 +2256,23 @@ foo/baz
 "
                   {:linters {:unresolved-symbol {:level :error}
                              :unresolved-var {:level :error}}})))
-  )
+  ;; TODO? for now just include duplicate lint-as
+  #_(testing "lint-as works automatically with imported vars"
+    (is (empty? (lint! "
+(ns foo.bar)
+
+(defmacro defsomething [name & body])
+
+(ns foo (:require [potemkin :refer [import-vars]]))
+
+(import-vars [foo.bar defsomething])
+
+(ns consumer (:require foo))
+(foo/defsomething dude)
+"
+                       '{:lint-as {foo.bar/defsomething clojure.core/def}
+                         :linters {:unresolved-symbol {:level :error}
+                                   :unresolved-var {:level :error}}})))))
 
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
