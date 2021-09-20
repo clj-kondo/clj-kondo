@@ -365,15 +365,15 @@
                         :name-end-col 22
                         :name-end-row 1
                         :name-row 1
-                        :end-row 1
+                        :name-col 19
                         :name foo
-                        :end-col 25
                         :filename "<stdin>"
                         :from user
-                        :col 19
-                        :name-col 19
                         :arity 1
                         :row 1
+                        :col 18
+                        :end-row 1
+                        :end-col 25
                         :to user})
                 var-usages))))
   (testing "when the var-usage is not called as function"
@@ -403,7 +403,7 @@
                         :from user
                         :arity 1
                         :row 1
-                        :col 19
+                        :col 18
                         :end-row 1
                         :end-col 25
                         :to :clj-kondo/unknown-namespace})
@@ -429,7 +429,9 @@
     (assert-submaps
      '[{:filename "<stdin>",
         :row 1,
-        :col 2,
+        :col 1,
+        :name-row 1,
+        :name-col 2,
         :from user,
         :to clojure.core,
         :name defn,
@@ -532,7 +534,9 @@
     (assert-submaps
      '[{:filename "<stdin>",
         :row 2,
-        :col 31,
+        :col 30,
+        :name-row 2,
+        :name-col 31,
         :from foo,
         :to clojure.core,
         :name inc,
@@ -545,13 +549,17 @@
         :filename "<stdin>",
         :from foo,
         :macro true,
-        :col 20,
+        :col 19,
+        :name-row 2,
+        :name-col 20,
         :arity 3,
         :row 2,
         :to clojure.core}
        {:filename "<stdin>",
         :row 2,
-        :col 31,
+        :col 30,
+        :name-row 2,
+        :name-col 31,
         :from foo,
         :to cljs.core,
         :name inc,
@@ -564,7 +572,9 @@
         :filename "<stdin>",
         :from foo,
         :macro true,
-        :col 20,
+        :col 19,
+        :name-row 2,
+        :name-col 20,
         :arity 3,
         :row 2,
         :to cljs.core}]
@@ -577,19 +587,25 @@
     (assert-submaps
      '[{:filename "<stdin>",
         :row 2,
-        :col 20,
+        :col 19,
+        :name-row 2,
+        :name-col 20,
         :name fn,
         :from foo,
         :to clojure.core}
        {:filename "<stdin>",
         :row 3,
-        :col 20,
+        :col 19,
+        :name-row 3,
+        :name-col 20,
         :name fn*,
         :from foo,
         :to clojure.core}
        {:filename "<stdin>",
         :row 4,
-        :col 20,
+        :col 19,
+        :name-row 4,
+        :name-col 20,
         :name bound-fn,
         :from foo,
         :to clojure.core}]

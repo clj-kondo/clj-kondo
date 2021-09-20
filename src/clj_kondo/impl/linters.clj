@@ -302,10 +302,8 @@
                   _ (when output-analysis?
                       (analysis/reg-usage! ctx
                                            filename
-                                           (if call? name-row
-                                               row)
-                                           (if call? name-col
-                                               col)
+                                           row
+                                           col
                                            caller-ns-sym
                                            resolved-ns fn-name arity
                                            (when (= :cljc base-lang)
