@@ -358,6 +358,38 @@
       '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
       var-usages)))
 
+(deftest scope-usage-test
+  (testing "when the var-usage is called as function"
+    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (foo 2)" {:config {:output {:analysis true}}})]
+      (assert-submaps
+       '[{:name foo
+          :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22
+          :row 1 :col 19 :scope-end-row 1 :scope-end-col 25}
+         {}]
+       var-usages)))
+  (testing "when the var-usage is not called as function"
+    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) foo" {:config {:output {:analysis true}}})]
+      (is (some #(= % '{:fixed-arities #{1}
+                        :name-end-col 21
+                        :name-end-row 1
+                        :name-row 1
+                        :name foo
+                        :filename "<stdin>"
+                        :from user
+                        :col 18
+                        :name-col 18
+                        :row 1
+                        :to user})
+                var-usages))))
+  (testing "when the var-usage call is unknown"
+    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:output {:analysis true}}})]
+      (assert-submaps
+       '[{:name bar
+          :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22
+          :row 1 :col 19 :scope-end-row 1 :scope-end-col 25}
+         {}]
+       var-usages))))
+
 (deftest analysis-test
   (let [{:keys [:var-definitions
                 :var-usages]} (analyze "(defn ^:deprecated foo \"docstring\" {:added \"1.2\"} [])")]

@@ -229,6 +229,8 @@
                   col (:col call)
                   end-row (:end-row call)
                   end-col (:end-col call)
+                  scope-end-row (:scope-end-row call)
+                  scope-end-col (:scope-end-col call)
                   ;; _ (prn :used (:used-namespaces idacs))
                   #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
@@ -317,7 +319,9 @@
                                                   :name-row name-row
                                                   :name-col name-col
                                                   :name-end-row name-end-row
-                                                  :name-end-col name-end-col)))]
+                                                  :name-end-col name-end-col
+                                                  :scope-end-row scope-end-row
+                                                  :scope-end-col scope-end-col)))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?
