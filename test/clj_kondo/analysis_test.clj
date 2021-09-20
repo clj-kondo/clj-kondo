@@ -358,6 +358,57 @@
       '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
       var-usages)))
 
+(deftest scope-usage-test
+  (testing "when the var-usage is called as function"
+    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (foo 2)" {:config {:output {:analysis true}}})]
+      (is (some #(= % '{:fixed-arities #{1}
+                        :name-end-col 22
+                        :name-end-row 1
+                        :name-row 1
+                        :name-col 19
+                        :name foo
+                        :filename "<stdin>"
+                        :from user
+                        :arity 1
+                        :row 1
+                        :col 18
+                        :end-row 1
+                        :end-col 25
+                        :to user})
+                var-usages))))
+  (testing "when the var-usage is not called as function"
+    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) foo" {:config {:output {:analysis true}}})]
+      (is (some #(= % '{:fixed-arities #{1}
+                        :name-end-col 21
+                        :name-end-row 1
+                        :name-row 1
+                        :name-col 18
+                        :name foo
+                        :filename "<stdin>"
+                        :from user
+                        :row 1
+                        :col 18
+                        :end-row 1
+                        :end-col 21
+                        :to user})
+                var-usages))))
+  (testing "when the var-usage call is unknown"
+    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:output {:analysis true}}})]
+      (is (some #(= % '{:name-end-row 1
+                        :name-end-col 22
+                        :name-row 1
+                        :name-col 19
+                        :name bar
+                        :filename "<stdin>"
+                        :from user
+                        :arity 1
+                        :row 1
+                        :col 18
+                        :end-row 1
+                        :end-col 25
+                        :to :clj-kondo/unknown-namespace})
+                var-usages)))))
+
 (deftest analysis-test
   (let [{:keys [:var-definitions
                 :var-usages]} (analyze "(defn ^:deprecated foo \"docstring\" {:added \"1.2\"} [])")]
@@ -378,7 +429,9 @@
     (assert-submaps
      '[{:filename "<stdin>",
         :row 1,
-        :col 2,
+        :col 1,
+        :name-row 1,
+        :name-col 2,
         :from user,
         :to clojure.core,
         :name defn,
@@ -397,7 +450,7 @@
         :defined-by clojure.core/defn,
         :fixed-arities #{0},
         :doc "docstring with\n \"escaping\""}]
-     var-definitions))  
+     var-definitions))
 
   (let [{:keys [:var-definitions]} (analyze "(def ^:deprecated x \"docstring\" 1)")]
     (assert-submaps
@@ -481,7 +534,9 @@
     (assert-submaps
      '[{:filename "<stdin>",
         :row 2,
-        :col 31,
+        :col 30,
+        :name-row 2,
+        :name-col 31,
         :from foo,
         :to clojure.core,
         :name inc,
@@ -494,13 +549,17 @@
         :filename "<stdin>",
         :from foo,
         :macro true,
-        :col 20,
+        :col 19,
+        :name-row 2,
+        :name-col 20,
         :arity 3,
         :row 2,
         :to clojure.core}
        {:filename "<stdin>",
         :row 2,
-        :col 31,
+        :col 30,
+        :name-row 2,
+        :name-col 31,
         :from foo,
         :to cljs.core,
         :name inc,
@@ -513,7 +572,9 @@
         :filename "<stdin>",
         :from foo,
         :macro true,
-        :col 20,
+        :col 19,
+        :name-row 2,
+        :name-col 20,
         :arity 3,
         :row 2,
         :to cljs.core}]
@@ -526,19 +587,25 @@
     (assert-submaps
      '[{:filename "<stdin>",
         :row 2,
-        :col 20,
+        :col 19,
+        :name-row 2,
+        :name-col 20,
         :name fn,
         :from foo,
         :to clojure.core}
        {:filename "<stdin>",
         :row 3,
-        :col 20,
+        :col 19,
+        :name-row 3,
+        :name-col 20,
         :name fn*,
         :from foo,
         :to clojure.core}
        {:filename "<stdin>",
         :row 4,
-        :col 20,
+        :col 19,
+        :name-row 4,
+        :name-col 20,
         :name bound-fn,
         :from foo,
         :to clojure.core}]

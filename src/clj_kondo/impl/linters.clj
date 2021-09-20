@@ -302,10 +302,8 @@
                   _ (when output-analysis?
                       (analysis/reg-usage! ctx
                                            filename
-                                           (if call? name-row
-                                               row)
-                                           (if call? name-col
-                                               col)
+                                           row
+                                           col
                                            caller-ns-sym
                                            resolved-ns fn-name arity
                                            (when (= :cljc base-lang)
@@ -317,7 +315,9 @@
                                                   :name-row name-row
                                                   :name-col name-col
                                                   :name-end-row name-end-row
-                                                  :name-end-col name-end-col)))]
+                                                  :name-end-col name-end-col
+                                                  :end-row end-row
+                                                  :end-col end-col)))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?

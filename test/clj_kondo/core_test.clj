@@ -109,7 +109,7 @@
 (deftest custom-lint-fn-test
   (testing "custom-lint reg a new finding and reg-finding! return the new finding"
     (let [res (custom-linter "(eval '(+ 1 2 3))" #(is %))]
-      (is (= [{:filename "<stdin>", :row 1, :col 2, :end-row 1, :end-col 6,
+      (is (= [{:filename "<stdin>", :row 1, :col 1, :end-row 1, :end-col 6,
                :type :org.acme/forbidden-var, :level :error}]
              (:findings res)))))
   (testing "ignore hints return nil during reg-finding!"

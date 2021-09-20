@@ -1523,7 +1523,6 @@
                                                    :config config
                                                    :ns ns-name})
                                          (catch Exception e
-                                           ;;TODOAQUI
                                            (findings/reg-finding!
                                             ctx
                                             (merge
