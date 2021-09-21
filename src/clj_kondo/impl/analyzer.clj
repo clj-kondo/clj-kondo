@@ -541,9 +541,9 @@
               (if (identical? :list t)
                 (run! #(analyze-usages2 test-ctx % test-opts) (:children constant))
                 (analyze-usages2 test-ctx constant test-opts)))
-              (when expr
-                (analyze-expression** ctx expr)
-                (recur exprs))))))))
+            (when expr
+              (analyze-expression** ctx expr)
+              (recur exprs))))))))
 
 (defn expr-bindings [ctx binding-vector scoped-expr]
   (let [ctx (update ctx :callstack conj [:nil :vector])]
@@ -1470,6 +1470,21 @@
     (concat fana
             (analyze-children ctx args false))))
 
+(defn analyze-ns-unmap [ctx base-lang lang ns-name expr]
+  (let [[ns-expr sym-expr] (rest (:children expr))]
+    (when (= '*ns* (:value ns-expr))
+      (let [t (tag sym-expr)]
+        (when (identical? :quote t)
+          (let [sym (first (:children sym-expr))
+                sym (:value sym)]
+            (when (simple-symbol? sym)
+              (let [nss (:namespaces ctx)
+                    ;; ns (get-in @nss [base-lang lang ns-name])
+                    ]
+                (swap! nss update-in [base-lang lang ns-name :clojure-excluded]
+                       (fnil conj #{}) sym)))))))
+    (analyze-children ctx expr)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -1544,33 +1559,34 @@
                                    (:node transformed))]
               (do ;;;; This registers the macro call, so we still get arity linting
                 ;; (prn :expanded expanded)
-                (namespace/reg-var-usage! ctx ns-name {:type :call
-                                                       :resolved-ns resolved-namespace
-                                                       :ns ns-name
-                                                       :name (with-meta
-                                                               (or resolved-name full-fn-name)
-                                                               (meta full-fn-name))
-                                                       :alias resolved-alias
-                                                       :unresolved? unresolved?
-                                                       :unresolved-ns unresolved-ns
-                                                       :clojure-excluded? clojure-excluded?
-                                                       :arity arg-count
-                                                       :row row
-                                                       :end-row (:end-row expr-meta)
-                                                       :col col
-                                                       :end-col (:end-col expr-meta)
-                                                       :base-lang base-lang
-                                                       :lang lang
-                                                       :filename (:filename ctx)
-                                                       ;; save some memory during dependencies
-                                                       :expr (when-not dependencies expr)
-                                                       :simple? (simple-symbol? full-fn-name)
-                                                       :callstack (:callstack ctx)
-                                                       :config (:config ctx)
-                                                       :top-ns (:top-ns ctx)
-                                                       :arg-types (:arg-types ctx)
-                                                       :interop? interop?
-                                                       :resolved-core? resolved-core?})
+                (namespace/reg-var-usage!
+                 ctx ns-name {:type :call
+                              :resolved-ns resolved-namespace
+                              :ns ns-name
+                              :name (with-meta
+                                      (or resolved-name full-fn-name)
+                                      (meta full-fn-name))
+                              :alias resolved-alias
+                              :unresolved? unresolved?
+                              :unresolved-ns unresolved-ns
+                              :clojure-excluded? clojure-excluded?
+                              :arity arg-count
+                              :row row
+                              :end-row (:end-row expr-meta)
+                              :col col
+                              :end-col (:end-col expr-meta)
+                              :base-lang base-lang
+                              :lang lang
+                              :filename (:filename ctx)
+                              ;; save some memory during dependencies
+                              :expr (when-not dependencies expr)
+                              :simple? (simple-symbol? full-fn-name)
+                              :callstack (:callstack ctx)
+                              :config (:config ctx)
+                              :top-ns (:top-ns ctx)
+                              :arg-types (:arg-types ctx)
+                              :interop? interop?
+                              :resolved-core? resolved-core?})
                   ;;;; This registers the namespace as used, to prevent unused warnings
                 (namespace/reg-used-namespace! ctx
                                                ns-name
@@ -1692,6 +1708,7 @@
                            max-key min-key group-by partition-by map-indexed
                            keep keep-indexed)
                       (analyze-hof ctx expr resolved-as-name)
+                      (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                       ;; catch-all
                       (case [resolved-as-namespace resolved-as-name]
                         [clj-kondo.lint-as def-catch-all]

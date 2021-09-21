@@ -2809,6 +2809,12 @@ foo/")))
    (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fx/bar"))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fb/bar"))))
 
+(deftest ns-unmap-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Unresolved symbol: inc"})
+   (lint! "(ns foo) (ns-unmap *ns* 'inc) (inc 1)"
+          {:linters {:unresolved-symbol {:level :error}}})))
+
 ;;;; Scratch
 
 (comment

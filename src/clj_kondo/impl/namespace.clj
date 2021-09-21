@@ -335,8 +335,8 @@
                (fnil conj [])
                unresolved-ns))))
 
-(defn get-namespace [{:keys [:namespaces]} base-lang lang ns-sym]
-  (get-in @namespaces [base-lang lang ns-sym]))
+(defn get-namespace [ctx base-lang lang ns-sym]
+  (get-in @(:namespaces ctx) [base-lang lang ns-sym]))
 
 (defn next-token [^StringTokenizer st]
   (when (.hasMoreTokens st)
