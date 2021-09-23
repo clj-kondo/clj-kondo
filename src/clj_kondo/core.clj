@@ -202,6 +202,21 @@
   ([& configs]
    (reduce merge-config! configs)))
 
+(defn resolve-config
+  "Returns the configuration for `cfg-dir` merged with home,
+  clj-kondo default configs and optional `config` if provided."
+  ([cfg-dir]
+   (resolve-config cfg-dir {}))
+  ([cfg-dir config]
+   (core-impl/resolve-config cfg-dir config)))
+
+(defn config-hash
+  "Return the hash of the provided clj-kondo config."
+  [config]
+  (-> config
+      (dissoc :classpath)
+      core-impl/config-hash))
+
 ;;;; Scratch
 
 (comment
