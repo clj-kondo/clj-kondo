@@ -147,4 +147,5 @@
                            ui.gift-list/CreatedGiftLists))}
   :foo)"
                      '{:linters {:unresolved-symbol {:level :error}}
-                       :lint-as {fulcro/defsc clojure.core/defn}}))))
+                       :lint-as {fulcro/defsc clojure.core/defn}})))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as bar])) ('#{a b c} (bar/foo))"))))

@@ -2020,8 +2020,7 @@
                         (analyze-children (update ctx :callstack conj [nil t])
                                           children))
                     (do (types/add-arg-type-from-expr ctx expr)
-                        (analyze-children ctx
-                                          (update ctx :callstack conj [nil t])
+                        (analyze-children (update ctx :callstack conj [nil t])
                                           children))))
                 :vector
                 (do (lint-vector-call! ctx function arg-count expr)
