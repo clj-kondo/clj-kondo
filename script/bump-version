@@ -13,7 +13,7 @@ version="$today"
 
 if [ "$1" = "release" ]; then
     echo -e "$version" > resources/CLJ_KONDO_VERSION
-    script/update-project.clj
+    script/update-templates.clj
 elif [ "$1" = "post-release" ]; then
     cat resources/CLJ_KONDO_VERSION > resources/CLJ_KONDO_RELEASED_VERSION
     tomorrow=$($date_cmd $date_pattern --date='next day')
