@@ -4,6 +4,9 @@ Is your company using clj-kondo? Make a PR to this document or mention it in
 [this](https://github.com/clj-kondo/clj-kondo/discussions/1397) discussion to
 get yours listed!
 
+If your company is using babashka or SCI as well, mention it
+[here](https://github.com/babashka/babashka/discussions/1026).
+
 If your company is sponsoring, it will be listed first (in order of sponsorship
 size) with a logo and hiring link (if applicable)!
 
