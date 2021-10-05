@@ -37,6 +37,7 @@ Sponsoring by providing upgraded CI for [babashka](https://babashka.org/) and
 ## Companies
 
 - [AppsFlyer](https://appsflyer.com)
+- [Ardoq](https://www.ardoq.com/)
 - [BrightIn](https://www.brightin.nl/)
 - [Clubhouse](https://clubhouse.io/)
 - [Codurance](https://www.codurance.com)
