@@ -296,6 +296,7 @@
                   resolved-ns (or fn-ns resolved-ns)
                   arity (:arity call)
                   in-def (:in-def call)
+                  in-reg (:in-reg call)
                   recursive? (and
                               (= fn-ns caller-ns-sym)
                               (= fn-name in-def))
@@ -308,8 +309,9 @@
                                            resolved-ns fn-name arity
                                            (when (= :cljc base-lang)
                                              call-lang)
-                                           in-def
+                                           (or in-def (when-let [k (:k in-reg)] (name k)))
                                            (assoc called-fn
+                                                  :reg (:reg in-reg)
                                                   :alias (:alias call)
                                                   :refer (:refer call)
                                                   :name-row name-row

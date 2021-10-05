@@ -1873,13 +1873,20 @@
                         [babashka.process $]
                         (babashka/analyze-$ ctx expr)
                         ([re-frame.core reg-event-db]
-                         [re-frame.core reg-event-fx]
                          [re-frame.core reg-event-ctx]
-                         [re-frame.core reg-sub]
                          [re-frame.core reg-sub-raw]
                          [re-frame.core reg-fx]
                          [re-frame.core reg-cofx])
                         (re-frame/analyze-reg ctx expr (symbol (str resolved-namespace) (str resolved-name)))
+                        ([re-frame.core reg-sub])
+                        (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace) (str resolved-name)))
+                        ([re-frame.core subscribe])
+                        (re-frame/analyze-subscribe ctx (next (:children expr)))
+                        ([re-frame.core dispatch]
+                         [re-frame.core dispatch-sync])
+                        (re-frame/analyze-dispatch ctx (next (:children expr)))
+                        ([re-frame.core reg-event-fx])
+                        (re-frame/analyze-reg-event-fx ctx expr (symbol (str resolved-namespace) (str resolved-name)))
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
                                          (one-of [resolved-namespace resolved-name]
@@ -1894,6 +1901,7 @@
                 (if (= 'ns resolved-as-clojure-var-name)
                   analyzed
                   (let [in-def (:in-def ctx)
+                        in-reg (:in-reg ctx)
                         id (:id expr)
                         m (meta analyzed)
                         proto-call {:type :call
@@ -1927,6 +1935,7 @@
                         call (cond-> proto-call
                                id (assoc :id id)
                                in-def (assoc :in-def in-def)
+                               in-reg (assoc :in-reg in-reg)
                                ret-tag (assoc :ret ret-tag))]
                     (when id (reg-call ctx call id))
                     (namespace/reg-var-usage! ctx ns-name call)

@@ -218,6 +218,7 @@
                                                   :callstack (:callstack ctx)
                                                   :config (:config ctx)
                                                   :in-def (:in-def ctx)
+                                                  :in-reg (:in-reg ctx)
                                                   :simple? simple?
                                                   :interop? interop?
                                                   ;; save some memory
