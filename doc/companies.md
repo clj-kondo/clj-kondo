@@ -1,8 +1,8 @@
 # Companies using clj-kondo
 
 Is your company using clj-kondo? Make a PR to this document or mention it in
-[this](https://github.com/clj-kondo/clj-kondo/issues/438) issue to get yours
-listed!
+[this](https://github.com/clj-kondo/clj-kondo/discussions/1397) discussion to
+get yours listed!
 
 If your company is sponsoring, it will be listed first (in order of sponsorship
 size) with a logo and hiring link (if applicable)!
