@@ -2,11 +2,19 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2021.09.25
 
 - Update built-in cache to clojure 1.11.0-alpha2 [#1382](https://github.com/clj-kondo/clj-kondo/issues/1382)
+- Take into account aliases in `import-vars` [#1385](https://github.com/clj-kondo/clj-kondo/issues/1385)
+- Consider var as used in CLJS `case` to avoid false positives for constants [#1388](https://github.com/clj-kondo/clj-kondo/issues/1388)
+- Understand `ns-unmap` pattern [#1384](https://github.com/clj-kondo/clj-kondo/issues/1384)
+- Expose config functions in core API namespace [#1389](https://github.com/clj-kondo/clj-kondo/issues/1389)
+- Fix false positives when using quoted collection in function position [#1390](https://github.com/clj-kondo/clj-kondo/issues/1390)
+
+### Analysis
+
 - Add `:end-row`, `:end-col` to `:var-usages` analysis element [#1387](https://github.com/clj-kondo/clj-kondo/pull/1387)
-- BREAKING: Change `:row` and `:col` for `:var-usages` to use the start location of the call instead of the name location [#1170](https://github.com/clj-kondo/clj-kondo/issues/1170)
+- BREAKING: Change `:row` and `:col` for `:var-usages` to use the start location of the call instead of the name location [#1387](https://github.com/clj-kondo/clj-kondo/issues/1387)
 
 ## 2021.09.15
 
@@ -365,9 +373,9 @@ Details about releases prior to v2020.09.09 can be found
 
 ## Breaking changes
 
-### Unreleased
+### 2021.09.25
 
-- Change `:row` and `:col` for `:var-usages` to use the start location of the call instead of the name location [#1170](https://github.com/clj-kondo/clj-kondo/issues/1170)
+- Change `:row` and `:col` for `:var-usages` to use the start location of the call instead of the name location [#1387](https://github.com/clj-kondo/clj-kondo/issues/1387)
 
 ### 2020.10.10
 

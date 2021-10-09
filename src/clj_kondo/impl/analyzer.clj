@@ -1471,7 +1471,7 @@
             (analyze-children ctx args false))))
 
 (defn analyze-ns-unmap [ctx base-lang lang ns-name expr]
-  (let [[ns-expr sym-expr] (rest (:children expr))]
+  (let [[ns-expr sym-expr :as children] (rest (:children expr))]
     (when (= '*ns* (:value ns-expr))
       (let [t (tag sym-expr)]
         (when (identical? :quote t)
@@ -1483,7 +1483,7 @@
                     ]
                 (swap! nss update-in [base-lang lang ns-name :clojure-excluded]
                        (fnil conj #{}) sym)))))))
-    (analyze-children ctx expr)))
+    (analyze-children ctx children)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
@@ -2020,8 +2020,7 @@
                         (analyze-children (update ctx :callstack conj [nil t])
                                           children))
                     (do (types/add-arg-type-from-expr ctx expr)
-                        (analyze-children ctx
-                                          (update ctx :callstack conj [nil t])
+                        (analyze-children (update ctx :callstack conj [nil t])
                                           children))))
                 :vector
                 (do (lint-vector-call! ctx function arg-count expr)
