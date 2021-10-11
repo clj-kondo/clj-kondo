@@ -1,3 +1,3 @@
 (ns custom-lint-fn-ignore)
 
-(eval '(+ 1 2 3))
+#_:clj-kondo/ignore (eval '(+ 1 2 3))

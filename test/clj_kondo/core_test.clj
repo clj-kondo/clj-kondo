@@ -109,19 +109,19 @@
                                                     :type :org.acme/forbidden-var))))))}))))
 
 (deftest custom-lint-fn-test
-  #_(testing "custom-lint reg a new finding and reg-finding! return the new finding"
+  (testing "custom-lint reg a new finding and reg-finding! return the new finding"
     (let [res (custom-linter "(eval '(+ 1 2 3))" :clj #(is %))]
       (is (= [{:filename "<stdin>", :row 1, :col 1, :end-row 1, :end-col 6,
                :type :org.acme/forbidden-var, :level :error}]
              (:findings res)))))
-  #_(testing "ignore hints return nil during reg-finding! for clj files"
+  (testing "ignore hints return nil during reg-finding! for clj files"
     (let [res (custom-linter "#_:clj-kondo/ignore (eval '(+ 1 2 3))" :clj #(is (not %)))]
       (is (empty? (:findings res)))))
-  #_(testing "ignore hints return nil during reg-finding! for clj files"
+  (testing "ignore hints return nil during reg-finding! for clj files"
     (let [res (custom-linter "#_:clj-kondo/ignore (eval '(+ 1 2 3))" :cljs #(is (not %)))]
       (is (empty? (:findings res)))))
   (testing "ignore hints return nil during reg-finding! for cljc files"
-    (let [res (custom-linter (io/file "corpus/custom_lint_fn.cljc") :cljc #(is (not %)))]
+    (let [res (custom-linter (io/file "corpus/custom_lint_fn_ignore.cljc") :cljc #(is (not %)))]
       (is (empty? (:findings res))))))
 
 ;;;; Scratch
