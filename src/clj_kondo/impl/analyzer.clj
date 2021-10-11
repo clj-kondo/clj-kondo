@@ -915,17 +915,26 @@
                                 [(sexpr child) children]
                                 [nil (cons child children)])
         metadata (if extra-meta (merge metadata extra-meta)
-                     metadata)]
+                     metadata)
+        ctx (assoc ctx :in-def var-name)
+        def-init (when (or (= 'clojure.core/def defined-by)
+                           (= 'cljs.core/def defined-by))
+                   (analyze-expression** ctx (first children)))
+        arity (some-> def-init meta :arity)]
     (when var-name
       (namespace/reg-var! ctx (-> ctx :ns :name)
                           var-name
                           expr
-                          (assoc-some metadata
-                                      :doc docstring
-                                      :defined-by defined-by)))
-    (analyze-children (assoc ctx
-                             :in-def var-name)
-                      children)))
+                          (cond->
+                              (assoc-some metadata
+                                          :doc docstring
+                                          :defined-by defined-by
+                                          :fixed-arities (:fixed-arities arity)
+                                          :varargs-min-arity (:varargs-min-arity arity)))))
+    (when-not def-init
+      ;; this was something else than core/def
+      (analyze-children ctx
+                        children))))
 
 (declare analyze-defrecord)
 
