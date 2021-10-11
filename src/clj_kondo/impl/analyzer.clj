@@ -926,12 +926,11 @@
       (namespace/reg-var! ctx (-> ctx :ns :name)
                           var-name
                           expr
-                          (cond->
-                              (assoc-some metadata
-                                          :doc docstring
-                                          :defined-by defined-by
-                                          :fixed-arities (:fixed-arities arity)
-                                          :varargs-min-arity (:varargs-min-arity arity)))))
+                          (assoc-some metadata
+                                      :doc docstring
+                                      :defined-by defined-by
+                                      :fixed-arities (:fixed-arities arity)
+                                      :varargs-min-arity (:varargs-min-arity arity))))
     (when-not def-init
       ;; this was something else than core/def
       (analyze-children ctx
