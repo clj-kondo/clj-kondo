@@ -917,8 +917,9 @@
         metadata (if extra-meta (merge metadata extra-meta)
                      metadata)
         ctx (assoc ctx :in-def var-name)
-        def-init (when (or (= 'clojure.core/def defined-by)
-                           (= 'cljs.core/def defined-by))
+        def-init (when (and (or (= 'clojure.core/def defined-by)
+                                (= 'cljs.core/def defined-by))
+                            (= 1 (count children)))
                    (analyze-expression** ctx (first children)))
         arity (some-> def-init meta :arity)]
     (when var-name
