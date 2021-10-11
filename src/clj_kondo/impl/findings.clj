@@ -15,8 +15,10 @@
         filename (:filename m)
         lang (:lang ctx)
         row (:row m)]
+    (prn ignores)
     (when row
       (when-let [ignores (get-in ignores [filename lang])]
+        (prn :ignores ignores)
         (loop [ignores ignores]
           (when ignores
             (let [ignore (first ignores)
