@@ -349,10 +349,6 @@
                        :lang (if filename
                                (lang-from-file filename default-language)
                                default-language)} dev?)
-        (classpath? path)
-        (run! #(process-file ctx % default-language canonical? filename)
-              (str/split path
-                         (re-pattern path-separator)))
         :else
         (findings/reg-finding! ctx
                                {:filename (if canonical?
@@ -406,8 +402,34 @@
       (println (format "Imported config to %s. To activate, add %s to :config-paths in %s."
                        imported-config suggested-config-path config-file)))))
 
+
+(def cp-re (re-pattern path-separator))
+
+(defn normalize-files [files]
+  (loop [seen #{}
+         paths []
+         files files]
+    (if (seq files)
+      (let [f (first files)]
+        (if (classpath? f)
+          (let [classpath-segments (str/split f cp-re)
+                without-seen (remove seen (dedupe classpath-segments))]
+            (recur (into seen without-seen)
+                   (into paths without-seen)
+                   (next files)))
+          (if (contains? seen f)
+            (recur seen
+                   paths
+                   (next files))
+            (recur (conj seen f)
+                   (conj paths f)
+                   (next files)))))
+      paths)))
+
 (defn process-files [ctx files default-lang filename]
-  (let [cache-dir (:cache-dir ctx)
+  (let [files (normalize-files files)
+        ;; _ (.println System/err (str/join " " files))
+        cache-dir (:cache-dir ctx)
         ctx (assoc ctx :detected-configs (atom [])
                    :mark-linted (atom []))
         canonical? (-> ctx :config :output :canonical-paths)]
