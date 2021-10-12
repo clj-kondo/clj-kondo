@@ -604,10 +604,14 @@
                   new-bindings (when binding (extract-bindings ctx* binding scoped-expr {:tag tag}))
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
-                  next-arities (if-let [arity (:arity (meta analyzed-value))]
+                  m (meta analyzed-value)
+                  arity (:arity m)
+                  types-by-arity (:arities m)
+                  next-arities (if arity
                                  ;; in this case binding-sexpr is a symbol,
                                  ;; since functions cannot be destructured
-                                 (assoc arities binding-val arity)
+                                 (assoc arities binding-val (assoc arity
+                                                                   :types types-by-arity))
                                  arities)]
               (recur rest-bindings
                      (merge bindings new-bindings)
@@ -981,7 +985,11 @@
   (let [callstack (:callstack ctx)
         config (:config ctx)
         ns-name (-> ctx :ns :name)
-        fn-meta (meta fn-name)]
+        fn-meta (meta fn-name)
+        arg-types (atom [])
+        ctx (assoc ctx :arg-types arg-types)
+        children (:children expr)
+        binding-info (get (:arities ctx) fn-name)]
     (when-let [k (types/keyword binding)]
       (when-not (types/match? k :ifn)
         (findings/reg-finding! ctx (node->line (:filename ctx) expr
@@ -997,18 +1005,23 @@
                                         :name-end-row (:end-row fn-meta)
                                         :name-end-col (:end-col fn-meta)))
     (when-not (config/skip? config :invalid-arity callstack)
-      (let [filename (:filename ctx)
-            children (:children expr)]
+      (let [filename (:filename ctx)]
         (when-not (linter-disabled? ctx :invalid-arity)
           (when-let [{:keys [:fixed-arities :varargs-min-arity]}
-                     (get (:arities ctx) fn-name)]
+                     binding-info]
+            ;; (prn :arities types)
             (let [arg-count (count (rest children))]
               (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
                 (findings/reg-finding! ctx
                                        (node->line filename expr
                                                    :invalid-arity
-                                                   (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))
-        (analyze-children (update ctx :callstack conj [nil fn-name]) (rest children))))))
+                                                   (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))))
+    (let [types (:types binding-info)
+          children (rest children)
+          type (get types (count children))
+          ret (:ret type)]
+      (analyze-children (update ctx :callstack conj [nil fn-name]) children false)
+      {:ret ret})))
 
 (defn lint-inline-def! [ctx expr]
   (when (:in-def ctx)
@@ -2073,9 +2086,10 @@
                           binding (and simple?
                                        (get bindings full-fn-name))]
                       (if binding
-                        (do
-                          (types/add-arg-type-from-expr ctx expr)
-                          (analyze-binding-call ctx full-fn-name binding expr))
+                        (if-let [ret-tag (:ret (analyze-binding-call ctx full-fn-name binding expr))]
+
+                          (types/add-arg-type-from-expr ctx expr ret-tag)
+                          (types/add-arg-type-from-expr ctx expr))
                         (let [ret (analyze-call ctx {:arg-count arg-count
                                                      :full-fn-name full-fn-name
                                                      :row row
