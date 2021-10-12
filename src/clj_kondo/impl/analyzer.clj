@@ -492,6 +492,7 @@
                                         :macro? macro?))
                              %)
                            bodies)
+        ;; poor naming, this is for type information
         arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
                                 (let [arg-tags (when (some identity args)
                                                  args)
@@ -770,9 +771,24 @@
                                                     :filename (:filename ctx))])
                      (update :arities assoc ?fn-name
                              arity))
-                 ctx) %) bodies)]
+                 ctx) %) bodies)
+        arities
+        (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
+                        (let [arg-tags (when (some identity args)
+                                         args)
+                              v (assoc-some {}
+                                            :ret ret :min-arity min-arity
+                                            :args arg-tags)]
+                          (if varargs?
+                            [:varargs v]
+                            [fixed-arity v]))))
+              parsed-bodies)
+        fixed-arities (into #{} (filter number?) (keys arities))
+        varargs-min-arity (get-in arities [:varargs :min-arity])]
     (with-meta (mapcat :parsed parsed-bodies)
-      {:arity arity})))
+      {:arity {:fixed-arities fixed-arities
+               :varargs-min-arity varargs-min-arity}
+       :arities arities})))
 
 (defn analyze-alias [ctx expr]
   (let [ns (:ns ctx)
@@ -921,7 +937,10 @@
                                 (= 'cljs.core/def defined-by))
                             (= 1 (count children)))
                    (analyze-expression** ctx (first children)))
-        arity (some-> def-init meta :arity)]
+        init-meta (some-> def-init meta)
+        ;; :args and :ret is are the type related keys
+        ;; together this is called :arities in reg-var!
+        arity (when init-meta (:arity init-meta))]
     (when var-name
       (namespace/reg-var! ctx (-> ctx :ns :name)
                           var-name
@@ -930,7 +949,8 @@
                                       :doc docstring
                                       :defined-by defined-by
                                       :fixed-arities (:fixed-arities arity)
-                                      :varargs-min-arity (:varargs-min-arity arity))))
+                                      :varargs-min-arity (:varargs-min-arity arity)
+                                      :arities (:arities init-meta))))
     (when-not def-init
       ;; this was something else than core/def
       (analyze-children ctx

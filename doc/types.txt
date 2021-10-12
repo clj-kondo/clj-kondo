@@ -314,6 +314,7 @@ remove {1 {:ret :transducer}, 2 {:ret :seq}}
 * {0 {:ret :pos-int}}
 nary-inline {1 {:ret :fn}, 2 {:ret :fn}}
 format {:varargs {:ret :nilable/string, :min-arity 1}}
+conj {0 {:ret :vector}}
 bound? {:varargs {:ret :boolean, :min-arity 0}}
 parse-opts+specs {1 {:ret :vector}}
 interleave {1 {:ret :seq}, 2 {:ret :seq}, :varargs {:ret :seq, :min-arity 2}}
@@ -321,6 +322,7 @@ protocol? {1 {:ret :boolean}}
 into {0 {:ret :vector}}
 long {1 {:args (:nilable/number)}}
 double {1 {:args (:nilable/number)}}
+nfirst {1 {:ret :seq}}
 method-sig {1 {:ret :vector}}
 hash-ordered-coll {1 {:ret :int}}
 deref-as-map {1 {:ret {:type :map, :val {:status {:row 445, :col 6, :end-row 455, :end-col 14, :tag #{{:tag :keyword, :row 452, :col 7, :end-row 452, :end-col 15} {:tag :keyword, :row 455, :col 7, :end-row 455, :end-col 13} {:tag :keyword, :row 449, :col 7, :end-row 449, :end-col 14}}}, :val {:row 457, :col 11, :end-row 457, :end-col 14}}}}}
@@ -337,6 +339,7 @@ replace {1 {:ret :transducer}}
 unchecked-int {1 {:args (:nilable/number)}}
 bound-fn* {1 {:ret :fn}}
 prn {:varargs {:ret #{:nil}, :min-arity 0}}
+defn {:varargs {:ret :list, :min-arity 3}}
 extends? {2 {:ret :boolean}}
 agent-errors {1 {:ret #{:list :nil}}}
 float {1 {:args (:nilable/number)}}
@@ -350,6 +353,7 @@ strip-ns {1 {:ret #{:symbol :keyword}}}
 assoc-in {3 {:ret #{:associative}}}
 memoize {1 {:ret :fn}}
 simple-keyword? {1 {:ret #{:nil :boolean}}}
+nnext {1 {:ret :seq}}
 neg-int? {1 {:ret #{:nil :boolean}}}
 drop {1 {:ret :fn}, 2 {:ret :seq}}
 split-at {2 {:ret :vector}}
@@ -389,6 +393,7 @@ subvec {2 {:ret :vector}}
 partial {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}, :varargs {:ret :fn, :min-arity 4}}
 replicate {2 {:ret :seq}}
 unchecked-byte {1 {:args (:nilable/number)}}
+defmacro {:varargs {:ret :list, :min-arity 3}}
 every-pred {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 distinct? {1 {:ret :boolean}, 2 {:ret :boolean}}
 pos-int? {1 {:ret #{:nil :boolean}}}

@@ -680,6 +680,15 @@
    (lint! "(defn foo [^String x] (x))"
           {:linters {:type-mismatch {:level :error}}})))
 
+(deftest def+fn-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 37, :level :error, :message "Expected: number, received: keyword."}
+     {:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: string or nil, received: keyword."})
+   (lint! "(def x (fn [^String _x] :foo)) (inc (x :foo))"
+          {:linters {:type-mismatch {:level :error}}}))
+  ;; TODO: (let [x (fn [^String _x] :foo)] (inc (x :foo)))
+  )
+
 ;;;; Scratch
 
 (comment
