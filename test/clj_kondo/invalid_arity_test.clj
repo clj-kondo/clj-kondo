@@ -175,3 +175,9 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 7, :level :error, :message "fn is called with 1 arg but expects 2"})
    (lint! "(some (fn [i e]) [1 2 3])")))
+
+(deftest def+fn-test
+  (assert-submaps
+   '({:file "corpus/def_fn.clj", :row 12, :col 1, :level :error,
+      :message "def-fn/cons is called with 3 args but expects 2"})
+   (lint! (io/file "corpus/def_fn.clj"))))
