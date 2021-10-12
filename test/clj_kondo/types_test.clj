@@ -686,11 +686,19 @@
      {:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: string or nil, received: keyword."})
    (lint! "(def x (fn [^String _x] :foo)) (inc (x :foo))"
           {:linters {:type-mismatch {:level :error}}}))
-  ;; TODO: (let [x (fn [^String _x] :foo)] (inc (x :foo)))
   ;; This is actually an arity error but clj-kondo doesn't handle macro metadata in that way yet
   (is (empty? (lint! "(def ^:macro f (fn [_ _] (list (symbol \"+\") 1 2 3))) (inc (f 1 2))"
-                     {:linters {:type-mismatch {:level :error}}})))
-  )
+                     {:linters {:type-mismatch {:level :error}}}))))
+
+(deftest let+fn-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 38, :level :error, :message "Expected: number, received: keyword."})
+   (lint! "(let [x (fn [^String _x] :foo)] (inc (x :foo)))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 36, :level :error, :message "Expected: number, received: keyword."})
+   (lint! "(let [x (fn [x] (keyword x))] (inc (x \"dude\")))"
+              {:linters {:type-mismatch {:level :error}}})))
 
 ;;;; Scratch
 

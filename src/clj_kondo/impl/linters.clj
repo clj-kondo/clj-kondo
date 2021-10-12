@@ -413,6 +413,7 @@
                   :filename filename)
            call called-fn)
           (when-not (or arity-error? skip-arity-check?)
+            ;; (prn :>> fn-name @(:arg-types call))
             (lint-arg-types! ctx idacs call called-fn)))))))
 
 (defn lint-unused-namespaces!
