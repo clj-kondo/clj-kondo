@@ -773,16 +773,17 @@
                              arity))
                  ctx) %) bodies)
         arities
-        (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
-                        (let [arg-tags (when (some identity args)
-                                         args)
-                              v (assoc-some {}
-                                            :ret ret :min-arity min-arity
-                                            :args arg-tags)]
-                          (if varargs?
-                            [:varargs v]
-                            [fixed-arity v]))))
-              parsed-bodies)
+        (when-not (some-> ctx :def-meta :macro)
+          (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
+                          (let [arg-tags (when (some identity args)
+                                           args)
+                                v (assoc-some {}
+                                              :ret ret :min-arity min-arity
+                                              :args arg-tags)]
+                            (if varargs?
+                              [:varargs v]
+                              [fixed-arity v]))))
+                parsed-bodies))
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])]
     (with-meta (mapcat :parsed parsed-bodies)
@@ -932,7 +933,7 @@
                                 [nil (cons child children)])
         metadata (if extra-meta (merge metadata extra-meta)
                      metadata)
-        ctx (assoc ctx :in-def var-name)
+        ctx (assoc ctx :in-def var-name :def-meta metadata)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
                             (= 1 (count children)))

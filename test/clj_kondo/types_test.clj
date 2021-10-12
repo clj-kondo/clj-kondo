@@ -687,6 +687,9 @@
    (lint! "(def x (fn [^String _x] :foo)) (inc (x :foo))"
           {:linters {:type-mismatch {:level :error}}}))
   ;; TODO: (let [x (fn [^String _x] :foo)] (inc (x :foo)))
+  ;; This is actually an arity error but clj-kondo doesn't handle macro metadata in that way yet
+  (is (empty? (lint! "(def ^:macro f (fn [_ _] (list (symbol \"+\") 1 2 3))) (inc (f 1 2))"
+                     {:linters {:type-mismatch {:level :error}}})))
   )
 
 ;;;; Scratch
