@@ -231,32 +231,49 @@
       (io/copy (io/file base-file) dest))
     (catch Exception e (prn (.getMessage e)))))
 
+(defn stderr [& msgs]
+  (binding [*out* *err*]
+    (apply println msgs)))
+
+(defn seen?
+  "Atomically adds f to the seen atom and returns if it changed or not."
+  [f seen]
+  (let [[old new]
+        (swap-vals! seen conj f)
+        seen? (= old new)]
+    (when seen?
+      (stderr "[clj-kondo] Already seen the file" f "before, skipping"))
+    seen?))
+
 (defn sources-from-dir
   [ctx dir canonical?]
-  (let [cfg-dir (:config-dir ctx)
+  (let [seen (:seen-files ctx)
+        cfg-dir (:config-dir ctx)
         files (file-seq dir)]
     (keep (fn [^java.io.File file]
-            (let [path (.getPath file)
-                  nm (if canonical?
-                       (.getCanonicalPath file)
-                       (.getPath file))
-                  can-read? (.canRead file)
-                  source? (and (.isFile file) (source-file? nm))]
-              (if (and cfg-dir source?
-                       (str/includes? path "clj-kondo.exports"))
-                ;; never lint exported hook code, when coming from dir.
-                ;; should be ok when editing single hook file, it won't be persisted to cache
-                (when (:copy-configs ctx)
-                  ;; only copy when copy-configs is true
-                  (copy-config-file ctx file cfg-dir))
-                (cond
-                  (and can-read? source?)
-                  {:filename nm
-                   :source (slurp file)
-                   :group-id dir}
-                  (and (not can-read?) source?)
-                  (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
-                  :else nil))))
+            (let [canonical (.getCanonicalPath file)]
+              (when-not (seen? canonical seen)
+                (let [path (.getPath file)
+                      nm (if canonical?
+                           (.getCanonicalPath file)
+                           (.getPath file))
+                      can-read? (.canRead file)
+                      source? (and (.isFile file) (source-file? nm))]
+                  (if (and cfg-dir source?
+                           (str/includes? path "clj-kondo.exports"))
+                    ;; never lint exported hook code, when coming from dir.
+                    ;; should be ok when editing single hook file, it won't be persisted to cache
+                    (when (:copy-configs ctx)
+                      ;; only copy when copy-configs is true
+                      (copy-config-file ctx file cfg-dir))
+                    (cond
+                      (and can-read? source?)
+                      {:filename nm
+                       :source (slurp file)
+                       :group-id dir}
+                      (and (not can-read?) source?)
+                      (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
+                      :else nil))))))
           files)))
 
 ;;;; threadpool
@@ -307,74 +324,76 @@
     (swap! (:sources ctx) conj m)
     (ana/analyze-input ctx filename source lang dev?)))
 
-(defn stderr [& msgs]
-  (binding [*out* *err*]
-    (apply println msgs)))
-
 (defn process-file [ctx path default-language canonical? filename]
-  (try
-    (let [file (io/file path)]
-      (cond
-        (.exists file)
-        (if (.isFile file)
-          (if (str/ends-with? (.getPath file) ".jar")
-            ;; process jar file
-            (let [jar-name (.getName file)
-                  config-hash (force (:config-hash ctx))
-                  cache-dir (:cache-dir ctx)
-                  skip-mark (str jar-name "." config-hash)
-                  skip-entry (when cache-dir (io/file cache-dir "skip" skip-mark))]
-              (if (and cache-dir (:dependencies ctx)
-                       (not (str/includes? jar-name "SNAPSHOT"))
-                       (.exists skip-entry)
-                       (= path (slurp skip-entry)))
-                (stderr jar-name "was already linted, skipping")
-                (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
-                                     dev?)
-                          (sources-from-jar ctx file canonical?))
-                    (swap! (:mark-linted ctx) conj [skip-mark path]))))
-            ;; assume normal source file
-            (schedule ctx {:filename (if canonical?
-                                       (.getCanonicalPath file)
-                                       path)
-                           :source (slurp file)
-                           :lang (lang-from-file path default-language)}
-                      dev?))
-          ;; assume directory
-          (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
-                (sources-from-dir ctx file canonical?)))
-        (= "-" path)
-        (schedule ctx {:filename (or filename "<stdin>")
-                       :source (slurp *in*)
-                       :lang (if filename
-                               (lang-from-file filename default-language)
-                               default-language)} dev?)
-        (classpath? path)
-        (run! #(process-file ctx % default-language canonical? filename)
-              (str/split path
-                         (re-pattern path-separator)))
-        :else
-        (findings/reg-finding! ctx
-                               {:filename (if canonical?
-                                            ;; canonical path on weird file
-                                            ;; crashes on Windows
-                                            (try (.getCanonicalPath file)
-                                                 (catch Exception _ path))
-                                            path)
-                                :type :file
-                                :col 0
-                                :row 0
-                                :message "file does not exist"})))
-    (catch Throwable e
-      (if dev?
-        (throw e)
-        (findings/reg-finding! ctx {:filename (if canonical?
-                                                (.getCanonicalPath (io/file path))
-                                                path)
-                                    :type :file
-                                    :col 0
-                                    :row 0
-                                    :message "Could not process file."})))))
+  (let [seen-files (:seen-files ctx)]
+    (try
+      (let [file (io/file path)
+            canonical (when (.exists file)
+                        ;; calling canonical-path on non-existing
+                        ;; files (e.g. classpaths) can cause errors
+                        (.getCanonicalPath file))]
+        (cond
+          canonical ;; implies the file exiss
+          (if (.isFile file)
+            (when-not (seen? canonical seen-files)
+              (if (str/ends-with? (.getPath file) ".jar")
+                ;; process jar file
+                (let [jar-name (.getName file)
+                      config-hash (force (:config-hash ctx))
+                      cache-dir (:cache-dir ctx)
+                      skip-mark (str jar-name "." config-hash)
+                      skip-entry (when cache-dir (io/file cache-dir "skip" skip-mark))]
+                  (if (and cache-dir (:dependencies ctx)
+                           (not (str/includes? jar-name "SNAPSHOT"))
+                           (.exists skip-entry)
+                           (= path (slurp skip-entry)))
+                    (stderr "[clj-kondo]" jar-name "was already linted, skipping")
+                    (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
+                                         dev?)
+                              (sources-from-jar ctx file canonical?))
+                        (swap! (:mark-linted ctx) conj [skip-mark path]))))
+                ;; assume normal source file
+                (schedule ctx {:filename (if canonical?
+                                           canonical
+                                           path)
+                               :source (slurp file)
+                               :lang (lang-from-file path default-language)}
+                          dev?)))
+            ;; assume directory
+            (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
+                  (sources-from-dir ctx file canonical?)))
+          (= "-" path)
+          (schedule ctx {:filename (or filename "<stdin>")
+                         :source (slurp *in*)
+                         :lang (if filename
+                                 (lang-from-file filename default-language)
+                                 default-language)} dev?)
+          (classpath? path)
+          (run! #(process-file ctx % default-language canonical? filename)
+                (str/split path
+                           (re-pattern path-separator)))
+          :else
+          (findings/reg-finding! ctx
+                                 {:filename (if canonical?
+                                              ;; canonical path on weird file
+                                              ;; crashes on Windows
+                                              (try (.getCanonicalPath file)
+                                                   (catch Exception _ path))
+                                              path)
+                                  :type :file
+                                  :col 0
+                                  :row 0
+                                  :message "file does not exist"})))
+      (catch Throwable e
+        (if dev?
+          (throw e)
+          (findings/reg-finding! ctx {:filename (if canonical?
+                                                  (.getCanonicalPath (io/file path))
+                                                  path)
+                                      :type :file
+                                      :col 0
+                                      :row 0
+                                      :message "Could not process file."}))))))
 
 (defn inactive-config-imports [ctx]
   (when-let [cfg-dir (io/file (:config-dir ctx))]
@@ -407,7 +426,8 @@
                        imported-config suggested-config-path config-file)))))
 
 (defn process-files [ctx files default-lang filename]
-  (let [cache-dir (:cache-dir ctx)
+  (let [ctx (assoc ctx :seen-files (atom #{}))
+        cache-dir (:cache-dir ctx)
         ctx (assoc ctx :detected-configs (atom [])
                    :mark-linted (atom []))
         canonical? (-> ctx :config :output :canonical-paths)]
