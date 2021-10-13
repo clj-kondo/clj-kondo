@@ -34,21 +34,27 @@
                 :lang lang
                 :from-var in-def))))))
 
-(defn reg-var! [{:keys [:analysis :base-lang :lang] :as _ctx}
+(defn reg-var! [{:keys [:config :analysis :base-lang :lang] :as _ctx}
                 filename row col ns nom attrs]
   (when analysis
-    (let [attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
+    (let [raw-attrs attrs
+          attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
                                     :doc :added :deprecated :test :export :defined-by
                                     :name-row :name-col :name-end-col :name-end-row
-                                    :arglist-strs :end-row :end-col])]
+                                    :arglist-strs :end-row :end-col])
+          meta-fn (when-let [f (some-> config :output :analysis :var-definitions :meta)]
+                    (if (true? f)
+                      identity
+                      f))]
       (swap! analysis update :var-definitions conj
              (assoc-some
-              (merge {:filename filename
-                      :row row
-                      :col col
-                      :ns ns
-                      :name nom}
-                     attrs)
+              (cond-> (merge {:filename filename
+                              :row row
+                              :col col
+                              :ns ns
+                              :name nom}
+                             attrs)
+                meta-fn (assoc :meta (meta-fn raw-attrs)))
               :lang (when (= :cljc base-lang) lang))))))
 
 (defn reg-namespace! [{:keys [:analysis :base-lang :lang] :as _ctx}
