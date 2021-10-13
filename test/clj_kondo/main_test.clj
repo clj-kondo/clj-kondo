@@ -2825,6 +2825,11 @@ foo/")))
   (is (empty? (lint! "(doseq [sym ['foo 'bar 'baz]] (ns-unmap *ns* sym))"
                      {:linters {:unused-binding {:level :warning}}}))))
 
+(deftest duplicate-files
+  (is (empty? (lint! [(io/file "corpus" "simple_test")
+                      (io/file "corpus" "simple_test" "a_test.clj")]
+                      "--config" "{:linters {:redefined-var {:level :error}}}"))))
+
 ;;;; Scratch
 
 (comment
