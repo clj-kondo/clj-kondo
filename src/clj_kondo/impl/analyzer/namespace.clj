@@ -454,16 +454,12 @@
                                                      'clojure.core 'cljs.core)))]
     (when (-> ctx :config :output :analysis)
       (analysis/reg-namespace! ctx filename row col
-                               ns-name false (assoc-some {}
+                               ns-name false (assoc-some ns-meta
                                                          :name-row (:row metadata)
                                                          :name-col (:col metadata)
                                                          :name-end-row (:end-row metadata)
                                                          :name-end-col (:end-col metadata)
-                                                         :deprecated (:deprecated ns-meta)
-                                                         :doc docstring
-                                                         :added (:added ns-meta)
-                                                         :no-doc (:no-doc ns-meta)
-                                                         :author (:author ns-meta)))
+                                                         :doc docstring))
       (doseq [req (:required ns)]
         (let [{:keys [row col end-row end-col alias]} (meta req)
               meta-alias (meta alias)]

@@ -785,7 +785,7 @@
                   (or (not  (= 'foo (:name usage)))
                       (= 'foo (:from-var usage)))) var-usages))))
 
-(deftest meta-fn-test
+(deftest meta-fn-var-test
   (is (submap? '{:no-doc true :name x}
                (-> (with-in-str "(def ^:no-doc x true)"
                      (clj-kondo/run! {:lint ["-"] :config
@@ -802,3 +802,21 @@
                                   {:var-definitions
                                    {:meta #(select-keys % [:no-doc])}}}}}))
              :analysis :var-definitions first :meta))))
+
+(deftest meta-fn-ns-test
+  (is (submap? '{:my-meta-here true :doc "some ns docs"}
+               (-> (with-in-str "(ns ^:my-meta-here \"some ns docs\" my.ns.here)"
+                     (clj-kondo/run! {:lint ["-"] :config
+                                      {:output
+                                       {:analysis
+                                        {:namespace-definitions
+                                         {:meta true}}}}}))
+                   :analysis :namespace-definitions first :meta)))
+  (is (= {:my-meta-here true}
+         (-> (with-in-str "(ns ^:my-meta-here my.ns.here)"
+               (clj-kondo/run! {:lint ["-"] :config
+                                {:output
+                                 {:analysis
+                                  {:namespace-definitions
+                                   {:meta #(select-keys % [:my-meta-here])}}}}}))
+             :analysis :namespace-definitions first :meta))))
