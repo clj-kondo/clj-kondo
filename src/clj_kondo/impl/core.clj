@@ -231,32 +231,49 @@
       (io/copy (io/file base-file) dest))
     (catch Exception e (prn (.getMessage e)))))
 
+(defn stderr [& msgs]
+  (binding [*out* *err*]
+    (apply println msgs)))
+
+(defn seen?
+  "Atomically adds f to the seen atom and returns if it changed or not."
+  [f seen]
+  (let [[old new]
+        (swap-vals! seen conj f)
+        seen? (= old new)]
+    (when seen?
+      (stderr "[clj-kondo] Already seen the file" f "before, skipping"))
+    seen?))
+
 (defn sources-from-dir
   [ctx dir canonical?]
-  (let [cfg-dir (:config-dir ctx)
+  (let [seen (:seen-files ctx)
+        cfg-dir (:config-dir ctx)
         files (file-seq dir)]
     (keep (fn [^java.io.File file]
-            (let [path (.getPath file)
-                  nm (if canonical?
-                       (.getCanonicalPath file)
-                       (.getPath file))
-                  can-read? (.canRead file)
-                  source? (and (.isFile file) (source-file? nm))]
-              (if (and cfg-dir source?
-                       (str/includes? path "clj-kondo.exports"))
-                ;; never lint exported hook code, when coming from dir.
-                ;; should be ok when editing single hook file, it won't be persisted to cache
-                (when (:copy-configs ctx)
-                  ;; only copy when copy-configs is true
-                  (copy-config-file ctx file cfg-dir))
-                (cond
-                  (and can-read? source?)
-                  {:filename nm
-                   :source (slurp file)
-                   :group-id dir}
-                  (and (not can-read?) source?)
-                  (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
-                  :else nil))))
+            (let [canonical (.getCanonicalPath file)]
+              (when-not (seen? canonical seen)
+                (let [path (.getPath file)
+                      nm (if canonical?
+                           (.getCanonicalPath file)
+                           (.getPath file))
+                      can-read? (.canRead file)
+                      source? (and (.isFile file) (source-file? nm))]
+                  (if (and cfg-dir source?
+                           (str/includes? path "clj-kondo.exports"))
+                    ;; never lint exported hook code, when coming from dir.
+                    ;; should be ok when editing single hook file, it won't be persisted to cache
+                    (when (:copy-configs ctx)
+                      ;; only copy when copy-configs is true
+                      (copy-config-file ctx file cfg-dir))
+                    (cond
+                      (and can-read? source?)
+                      {:filename nm
+                       :source (slurp file)
+                       :group-id dir}
+                      (and (not can-read?) source?)
+                      (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
+                      :else nil))))))
           files)))
 
 ;;;; threadpool
@@ -306,20 +323,6 @@
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
     (ana/analyze-input ctx filename source lang dev?)))
-
-(defn stderr [& msgs]
-  (binding [*out* *err*]
-    (apply println msgs)))
-
-(defn seen?
-  "Atomically adds f to the seen atom and returns if it changed or not."
-  [f seen]
-  (let [[old new]
-        (swap-vals! seen conj f)
-        seen? (= old new)]
-    (when seen?
-      (stderr "[clj-kondo] Already seen the file" f "before, skipping"))
-    seen?))
 
 (defn process-file [ctx path default-language canonical? filename]
   (let [seen-files (:seen-files ctx)]
