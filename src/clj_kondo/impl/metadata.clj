@@ -21,7 +21,10 @@
   ([ctx node] (lift-meta-content2 ctx node false))
   ([{:keys [:lang] :as ctx} node only-usage?]
    (if-let [meta-list (:meta node)]
-     (let [cljs? (identical? :cljs lang)
+     (let [meta-list (if (identical? :cljc (:base-lang ctx))
+                       (map #(utils/select-lang % lang) meta-list)
+                       meta-list)
+           cljs? (identical? :cljs lang)
            maybe-type-hint (and cljs? (utils/symbol-from-token node))
            ignore-type-hint? (and cljs?
                                   maybe-type-hint

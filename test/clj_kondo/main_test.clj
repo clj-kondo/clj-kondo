@@ -133,6 +133,8 @@
   (is (empty? (lint! "(defn foo [#?(:default s :clj s)]) (foo 1)"
                      "--lang" "cljc")))
   (is (empty? (lint! "(defn foo [_x _y]) (foo 1 #uuid \"00000000-0000-0000-0000-000000000000\")"
+                     "--lang" "cljc")))
+  (is (empty? (lint! "(def ^{#?@(:clj [:deprecated \"deprecation message\"])} my-deprecated-var :bla)"
                      "--lang" "cljc"))))
 
 (deftest exclude-clojure-test
@@ -1967,6 +1969,12 @@ foo/foo ;; this does use the private var
                {:exclude {foo.foo/deprecated-fn
                           {:namespaces [foo.bar "bar\\.*"]
                            :defs [foo.baz/allowed "foo\\.baz/ign\\.*"]}}}}})))
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 40, :level :warning,
+      :message "#'user/my-deprecated-var is deprecated since deprecation message"})
+   (lint! "(def ^#?(:clj {:deprecated \"deprecation message\"} :cljs {})
+               my-deprecated-var :bla) my-deprecated-var"
+          "--lang" "cljc"))
   (is (empty? (lint! "(defn ^:deprecated foo [] (foo))")))
   (is (empty? (lint! "(def ^:deprecated foo (fn [] (foo)))"))))
 

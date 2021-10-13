@@ -773,3 +773,14 @@
       '[{:name union :name-row 1 :name-end-row 1 :name-col 33 :name-end-col 38}
         {:name require :name-row 1 :name-end-row 1 :name-col 2 :name-end-col 9}]
      var-usages)))
+
+(deftest hof-test
+  (let [{:keys [:var-usages]}
+        (analyze "(defn foo [x y] (reduce foo x [y 3 4]))")]
+    (is (some (fn [usage]
+                (and (= 'foo (:name usage))
+                     (= 2 (:arity usage))
+                     (= 'foo (:from-var usage)))) var-usages))
+    (is (every? (fn [usage]
+                  (or (not  (= 'foo (:name usage)))
+                      (= 'foo (:from-var usage)))) var-usages))))
