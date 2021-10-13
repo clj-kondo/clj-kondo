@@ -1495,7 +1495,8 @@
                                        :top-ns (:top-ns ctx)
                                        ;; :arg-types (:arg-types ctx)
                                        :interop? interop?
-                                       :resolved-core? resolved-core?}))
+                                       :resolved-core? resolved-core?
+                                       :in-def (:in-def ctx)}))
           arity (let [{:keys [:fixed-arities :varargs-min-arity]} arity
                       config (:config ctx)
                       callstack (:callstack ctx)]
