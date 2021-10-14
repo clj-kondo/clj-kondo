@@ -459,9 +459,10 @@
                                 sc))))))
         ;; use dorun to force evaluation, we don't use the result!
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
-        var-meta (if meta-node
+        user-meta (when meta-node (sexpr meta-node))
+        var-meta (if user-meta
                    (merge var-meta
-                          (sexpr meta-node))
+                          user-meta)
                    var-meta)
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
@@ -510,6 +511,7 @@
       (namespace/reg-var!
        ctx ns-name fn-name expr
        (assoc-some (meta name-node)
+                   :meta user-meta
                    :macro macro?
                    :private private?
                    :deprecated deprecated
@@ -925,6 +927,7 @@
   (let [children (next (:children expr))
         var-name-node (->> children first (meta/lift-meta-content2 ctx))
         metadata (meta var-name-node)
+        user-coded-meta (dissoc metadata :row :col :end-row :end-col)
         var-name (:value var-name-node)
         var-name (current-namespace-var-name ctx var-name-node var-name)
         children (next children)
@@ -951,6 +954,7 @@
                           var-name
                           expr
                           (assoc-some metadata
+                                      :meta user-coded-meta
                                       :doc docstring
                                       :defined-by defined-by
                                       :fixed-arities (:fixed-arities arity)

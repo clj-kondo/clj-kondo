@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submaps submap?]]
+   [clj-kondo.test-utils :refer [assert-submaps]]
    [clojure.edn :as edn]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -786,37 +786,62 @@
                       (= 'foo (:from-var usage)))) var-usages))))
 
 (deftest meta-var-test
-  (is (submap? '{:no-doc true :name x}
-               (-> (with-in-str "(def ^:no-doc x true)"
-                     (clj-kondo/run! {:lint ["-"] :config
-                                      {:output
-                                       {:analysis
-                                        {:var-definitions
-                                         {:meta true}}}}}))
-                   :analysis :var-definitions first :meta)))
-  (is (= {:no-doc true}
-         (-> (with-in-str "(def ^:no-doc x true)"
-               (clj-kondo/run! {:lint ["-"] :config
-                                {:output
-                                 {:analysis
-                                  {:var-definitions
-                                   {:meta [:no-doc]}}}}}))
-             :analysis :var-definitions first :meta))))
+  (testing "request all user coded metadata to be returned"
+    (is (= {:no-doc true}
+           (-> (with-in-str "(def ^:no-doc x true)"
+                 (clj-kondo/run! {:lint ["-"] :config
+                                  {:output
+                                   {:analysis
+                                    {:var-definitions
+                                     {:meta true}}}}}))
+               :analysis :var-definitions first :meta))))
+  (testing "request specific user coded metadata to be returned"
+    (is (= {:no-doc true}
+           (-> (with-in-str "(def ^:no-doc ^:other x true)"
+                 (clj-kondo/run! {:lint ["-"] :config
+                                  {:output
+                                   {:analysis
+                                    {:var-definitions
+                                     {:meta [:no-doc]}}}}}))
+               :analysis :var-definitions first :meta))))
+  (testing "request no user coded metadata to be returned"
+    (is (nil? (-> (with-in-str "(def ^:no-doc ^:other x true)"
+                    (clj-kondo/run! {:lint ["-"] :config
+                                     {:output
+                                      {:analysis true}}}))
+                  :analysis :var-definitions first :meta)))))
 
 (deftest meta-ns-test
-  (is (submap? '{:my-meta-here true :doc "some ns docs"}
-               (-> (with-in-str "(ns ^:my-meta-here my.ns.here \"some ns docs\")"
-                     (clj-kondo/run! {:lint ["-"] :config
-                                      {:output
-                                       {:analysis
-                                        {:namespace-definitions
-                                         {:meta true}}}}}))
-                   :analysis :namespace-definitions first :meta)))
-  (is (= {:my-meta-here true}
-         (-> (with-in-str "(ns ^:my-meta-here my.ns.here)"
-               (clj-kondo/run! {:lint ["-"] :config
-                                {:output
-                                 {:analysis
-                                  {:namespace-definitions
-                                   {:meta #{:my-meta-here}}}}}}))
-             :analysis :namespace-definitions first :meta))))
+  (testing "request all user coded metadata to be returned"
+    (is (= {:my-meta1 true :my-meta2 true :my-meta3 true}
+           (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here \"some ns docs\")"
+                 (clj-kondo/run! {:lint ["-"] :config
+                                  {:output
+                                   {:analysis
+                                    {:namespace-definitions
+                                     {:meta true}}}}}))
+               :analysis :namespace-definitions first :meta)))
+    (testing "docs, if specified as user coded metadata, is returned"
+      (is (= {:my-meta-here true :doc "some ns docs"}
+             (-> (with-in-str "(ns ^{:my-meta-here true :doc \"some ns docs\"} my.ns.here)"
+                   (clj-kondo/run! {:lint ["-"] :config
+                                    {:output
+                                     {:analysis
+                                      {:namespace-definitions
+                                       {:meta true}}}}}))
+                 :analysis :namespace-definitions first :meta)))))
+  (testing "request some user coded metadata to be returned"
+    (is (= {:my-meta1 true :my-meta3 true}
+           (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
+                 (clj-kondo/run! {:lint ["-"] :config
+                                  {:output
+                                   {:analysis
+                                    {:namespace-definitions
+                                     {:meta #{:my-meta1 :my-meta3}}}}}}))
+               :analysis :namespace-definitions first :meta))))
+  (testing "request no user coded metadata to be returned"
+    (is (nil? (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
+                    (clj-kondo/run! {:lint ["-"] :config
+                                     {:output
+                                      {:analysis true}}}))
+                  :analysis :var-definitions first :meta)))))

@@ -382,6 +382,7 @@
                   (merge metadata
                          (sexpr meta-node))
                   metadata)
+        user-coded-meta (dissoc ns-meta :row :col :end-row :end-col)
         global-config (:global-config ctx)
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))
@@ -455,6 +456,7 @@
     (when (-> ctx :config :output :analysis)
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some ns-meta
+                                                         :meta user-coded-meta
                                                          :name-row (:row metadata)
                                                          :name-col (:col metadata)
                                                          :name-end-row (:end-row metadata)

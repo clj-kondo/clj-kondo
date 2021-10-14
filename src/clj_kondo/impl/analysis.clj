@@ -54,7 +54,7 @@
                               :ns ns
                               :name nom}
                              attrs)
-                meta-fn (assoc :meta (meta-fn raw-attrs)))
+                meta-fn (assoc :meta (meta-fn (:meta raw-attrs))))
               :lang (when (= :cljc base-lang) lang))))))
 
 (defn reg-namespace! [{:keys [:config :analysis :base-lang :lang] :as _ctx}
@@ -69,14 +69,14 @@
                       #(select-keys % keyseq)))]
       (swap! analysis update :namespace-definitions conj
              (assoc-some
-               (cond-> (merge {:filename filename
-                               :row      row
-                               :col      col
-                               :name     ns-name}
-                              attrs)
-                 meta-fn (assoc :meta (meta-fn raw-attrs)))
-               :in-ns (when in-ns? in-ns?) ;; don't include when false
-               :lang (when (= :cljc base-lang) lang))))))
+              (cond-> (merge {:filename filename
+                              :row      row
+                              :col      col
+                              :name     ns-name}
+                             attrs)
+                meta-fn (assoc :meta (meta-fn (:meta raw-attrs))))
+              :in-ns (when in-ns? in-ns?) ;; don't include when false
+              :lang (when (= :cljc base-lang) lang))))))
 
 (defn reg-namespace-usage! [{:keys [:analysis :base-lang :lang] :as _ctx}
                             filename row col from-ns to-ns alias metadata]
