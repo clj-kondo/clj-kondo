@@ -23,7 +23,16 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 - `:keywords`: when truthy return `:keywords` described below
 - `:arglists`: when truthy return `:arglists` on `:var-definitions`
 
-## Data
+Clj-kondo returns popular metadata such as `:added` and `:deprecated`.
+You can request that it return all, or a specific set, of user-coded namespace or var metadata via:
+
+- `:namespace-definitions`
+  - `:meta`: return user coded metadata under `:namespace-definitions` -> `:meta`, specify:
+    - `true`: to return all
+    - key sequence:  return metadata matching specified keys, ex. `[:skip-wiki :integration-test]`
+- `:var-definitions`
+  - `:meta`: return user coded metadata under `:var-definitions` -> `:meta`, options are the same as for namespaces. 
+# Data
 
 The analysis output consists of a map with:
 
@@ -34,8 +43,9 @@ The analysis output consists of a map with:
   Optional:
   - `:lang`: if definition occurred in a `.cljc` file, the language in which the
     definition was done: `:clj` or `:cljs`
-  - several metadata values: `:deprecated`, `:doc`, `:author`, `:added`, `:no-doc` (used by
+  - popular metadata values: `:deprecated`, `:doc`, `:author`, `:added`, `:no-doc` (used by
     [codox](https://github.com/weavejester/codox)).
+  - `:meta` map of requested metadata for namespace
 
  - `:namespace-usages`, a list of maps with:
    - `:filename`, `:row`, `:col`
@@ -56,7 +66,8 @@ The analysis output consists of a map with:
   Optional:
   - `:fixed-arities`: a set of fixed arities
   - `:varargs-min-arity`: the minimal number of arguments of a varargs signature
-  - several metadata values: `:private`, `:macro`, `:deprecated`, `:doc`, `:added`
+  - popular metadata values: `:private`, `:macro`, `:deprecated`, `:doc`, `:added`
+  - `:meta` map of requested metadata for var
   - `:lang`: if definition occurred in a `.cljc` file, the language in which the
     definition was done: `:clj` or `:cljs`
   - `:arglists-str`: a list of each set of args as written
