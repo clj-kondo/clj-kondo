@@ -42,10 +42,10 @@
                                     :doc :added :deprecated :test :export :defined-by
                                     :name-row :name-col :name-end-col :name-end-row
                                     :arglist-strs :end-row :end-col])
-          meta-fn (when-let [f (some-> config :output :analysis :var-definitions :meta)]
-                    (if (true? f)
+          meta-fn (when-let [keyseq (some-> config :output :analysis :var-definitions :meta)]
+                    (if (true? keyseq)
                       identity
-                      f))]
+                      #(select-keys % keyseq)))]
       (swap! analysis update :var-definitions conj
              (assoc-some
               (cond-> (merge {:filename filename
@@ -63,10 +63,10 @@
     (let [raw-attrs attrs
           attrs (select-keys attrs [:doc :added :deprecated :author :no-doc
                                     :name-row :name-col :name-end-col :name-end-row])
-          meta-fn (when-let [f (some-> config :output :analysis :namespace-definitions :meta)]
-                    (if (true? f)
+          meta-fn (when-let [keyseq (some-> config :output :analysis :namespace-definitions :meta)]
+                    (if (true? keyseq)
                       identity
-                      f))]
+                      #(select-keys % keyseq)))]
       (swap! analysis update :namespace-definitions conj
              (assoc-some
                (cond-> (merge {:filename filename
