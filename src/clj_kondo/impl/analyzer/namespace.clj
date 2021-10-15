@@ -440,9 +440,11 @@
                                               :name original-name}])
                                  (:renamed refer-clojure-clauses)))
                    :clojure-excluded (:excluded refer-clojure-clauses)}
+        gen-class? (some #(some-> % :children first :k (= :gen-class)) clauses)
         ns (cond->
                (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
-                             :imports imports)
+                             :imports imports
+                             :gen-class gen-class?)
                       (merge-with into
                                   analyzed-require-clauses
                                   refer-clj))
