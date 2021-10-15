@@ -2837,7 +2837,20 @@ foo/")))
   #_(:gen-class))
 
 (defn -main [& _args])
-"))))
+")))
+  (is (empty?
+       (lint! "(ns foo
+  {:clj-kondo/config {:linters {:main-without-gen-class {:level :warning}}}}
+  (:gen-class))
+
+(defn -main [& _args])
+")))
+  (testing "in CLJS you'll never get a warning"
+    (is (empty?
+         (lint! "(ns foo
+  {:clj-kondo/config {:linters {:main-without-gen-class {:level :warning}}}})
+(defn -main [& _args])
+" "--lang" "cljs")))))
 
 ;;;; Scratch
 
