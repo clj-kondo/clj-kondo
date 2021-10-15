@@ -54,7 +54,7 @@
                               :ns ns
                               :name nom}
                              attrs)
-                meta-fn (assoc :meta (meta-fn (:meta raw-attrs))))
+                meta-fn (assoc :meta (meta-fn (:user-meta raw-attrs))))
               :lang (when (= :cljc base-lang) lang))))))
 
 (defn reg-namespace! [{:keys [:config :analysis :base-lang :lang] :as _ctx}
@@ -74,7 +74,7 @@
                               :col      col
                               :name     ns-name}
                              attrs)
-                meta-fn (assoc :meta (meta-fn (:meta raw-attrs))))
+                meta-fn (assoc :meta (meta-fn (:user-meta raw-attrs))))
               :in-ns (when in-ns? in-ns?) ;; don't include when false
               :lang (when (= :cljc base-lang) lang))))))
 

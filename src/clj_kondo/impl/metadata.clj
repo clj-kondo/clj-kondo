@@ -51,7 +51,8 @@
            meta-map (apply merge meta-maps)
            node (-> node
                     (dissoc :meta)
-                    (with-meta (merge (meta node) meta-map)))]
+                    (with-meta (merge (meta node) meta-map))
+                    (vary-meta assoc :user-meta meta-map))]
        node)
      node)))
 

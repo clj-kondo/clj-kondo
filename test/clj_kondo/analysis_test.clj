@@ -785,61 +785,93 @@
                   (or (not  (= 'foo (:name usage)))
                       (= 'foo (:from-var usage)))) var-usages))))
 
+(defn- ana-var-meta [s cfg]
+  (-> (with-in-str s
+        (clj-kondo/run! {:lint ["-"] :config
+                         {:output
+                          {:analysis
+                           {:var-definitions
+                            cfg}}}}))
+      :analysis :var-definitions first :meta))
+
 (deftest meta-var-test
-  (testing "request all user coded metadata to be returned"
-    (is (= {:no-doc true}
-           (-> (with-in-str "(def ^:no-doc x true)"
-                 (clj-kondo/run! {:lint ["-"] :config
-                                  {:output
-                                   {:analysis
-                                    {:var-definitions
-                                     {:meta true}}}}}))
-               :analysis :var-definitions first :meta))))
-  (testing "request specific user coded metadata to be returned"
-    (is (= {:no-doc true}
-           (-> (with-in-str "(def ^:no-doc ^:other x true)"
-                 (clj-kondo/run! {:lint ["-"] :config
-                                  {:output
-                                   {:analysis
-                                    {:var-definitions
-                                     {:meta [:no-doc]}}}}}))
-               :analysis :var-definitions first :meta))))
-  (testing "request no user coded metadata to be returned"
-    (is (nil? (-> (with-in-str "(def ^:no-doc ^:other x true)"
-                    (clj-kondo/run! {:lint ["-"] :config
-                                     {:output
-                                      {:analysis true}}}))
-                  :analysis :var-definitions first :meta)))))
+  (testing "def"
+    (testing "all"
+      (is (= {:no-doc true}
+             (ana-var-meta "(def ^:no-doc x true)"
+                           {:meta true}))))
+    (testing "specific"
+      (is (= {:no-doc true}
+             (ana-var-meta "(def ^:no-doc ^:other x true)"
+                           {:meta [:no-doc]}))))
+    (testing "none"
+      (is (nil? (-> (with-in-str "(def ^:no-doc ^:other x true)"
+                      (clj-kondo/run! {:lint ["-"] :config
+                                       {:output
+                                        {:analysis true}}}))
+                    :analysis :var-definitions first :meta))))
+    (testing "when user specifies metadata with same keys as positional metadata, it is returned"
+      (is (= '{:row :yer-boat :col :me-a-cab :end-col :foo :end-row :bar :cool :yes}
+             (ana-var-meta "(def ^{:row :yer-boat :col :me-a-cab :end-col :foo :end-row :bar :cool :yes} x)"
+                           {:meta true})))))
+  (testing "defn"
+    (testing "reader macro shorthand"
+      (is (= {:my-meta1 true :my-meta2 true :my-meta3 true}
+             (ana-var-meta "(defn ^:my-meta1 ^:my-meta2 ^:my-meta3 my-fn [x])"
+                           {:meta true}))))
+    (testing "reader macro longhand"
+      (is (= {:my-meta1 true :my-meta2 true :my-meta3 true}
+             (ana-var-meta "(defn ^{:my-meta1 true :my-meta2 true :my-meta3 true} my-fn [x])"
+                           {:meta true}))))
+    (testing "attr-map"
+      (is (= {:my-meta1 true :my-meta2 true :my-meta3 true}
+             (ana-var-meta "(defn my-fn {:my-meta1 true :my-meta2 true :my-meta3 true} [x])"
+                           {:meta true}))))
+    (testing "docs, if specified as doc-string, is not returned"
+      (is (= {:my-meta-here true}
+             (ana-var-meta "(defn ^{:my-meta-here true} my-fn \"some fn docs\")"
+                           {:meta true}))))
+    (testing "docs, if specified as user coded metadata, is returned"
+      (is (= {:my-meta-here true :doc "some fn docs"}
+             (ana-var-meta "(defn ^{:my-meta-here true :doc \"some fn docs\"} my-fn)"
+                           {:meta true}))))))
+
+(defn- ana-ns-meta [s cfg]
+  (-> (with-in-str s
+        (clj-kondo/run! {:lint ["-"] :config
+                         {:output
+                          {:analysis
+                           {:namespace-definitions
+                            cfg}}}}))
+      :analysis :namespace-definitions first :meta))
 
 (deftest meta-ns-test
-  (testing "request all user coded metadata to be returned"
-    (is (= {:my-meta1 true :my-meta2 true :my-meta3 true}
-           (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here \"some ns docs\")"
-                 (clj-kondo/run! {:lint ["-"] :config
-                                  {:output
-                                   {:analysis
-                                    {:namespace-definitions
-                                     {:meta true}}}}}))
-               :analysis :namespace-definitions first :meta)))
+  (testing "return all"
+    (testing "reader-macro shorthand"
+      (is (= {:my-meta1 true :my-meta2 true :my-meta3 true}
+             (ana-ns-meta "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here \"some ns docs\")"
+                          {:meta true}))))
+    (testing "reader-macro longhand"
+      (is (= {:my-meta1 true :my-meta2 true :my-meta3 true}
+             (ana-ns-meta "(ns ^{:my-meta1 true :my-meta2 true :my-meta3 true} my.ns.here \"some ns docs\")"
+                          {:meta true}))))
+    (testing "attr-map"
+      (is (= {:my-meta1 true :my-meta2 true :my-meta3 true}
+             (ana-ns-meta "(ns my.ns.here \"some ns docs\" {:my-meta1 true :my-meta2 true :my-meta3 true})"
+                          {:meta true}))))
     (testing "docs, if specified as user coded metadata, is returned"
       (is (= {:my-meta-here true :doc "some ns docs"}
-             (-> (with-in-str "(ns ^{:my-meta-here true :doc \"some ns docs\"} my.ns.here)"
-                   (clj-kondo/run! {:lint ["-"] :config
-                                    {:output
-                                     {:analysis
-                                      {:namespace-definitions
-                                       {:meta true}}}}}))
-                 :analysis :namespace-definitions first :meta)))))
-  (testing "request some user coded metadata to be returned"
+             (ana-ns-meta "(ns ^{:my-meta-here true :doc \"some ns docs\"} my.ns.here)"
+                          {:meta true})))))
+  (testing "return specific"
     (is (= {:my-meta1 true :my-meta3 true}
-           (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
-                 (clj-kondo/run! {:lint ["-"] :config
-                                  {:output
-                                   {:analysis
-                                    {:namespace-definitions
-                                     {:meta #{:my-meta1 :my-meta3}}}}}}))
-               :analysis :namespace-definitions first :meta))))
-  (testing "request no user coded metadata to be returned"
+           (ana-ns-meta "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
+                        {:meta #{:my-meta1 :my-meta3}}))))
+  (testing "when user specifies metadata with same keys as positional metadata, it is returned"
+    (is (= '{:row :yer-boat :col :me-a-cab :end-col :foo :end-row :bar :cool :yes}
+           (ana-ns-meta "(ns ^{:row :yer-boat :col :me-a-cab :end-col :foo :end-row :bar :cool :yes} my.ns.here)"
+                        {:meta true}))))
+  (testing "request none"
     (is (nil? (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
                     (clj-kondo/run! {:lint ["-"] :config
                                      {:output

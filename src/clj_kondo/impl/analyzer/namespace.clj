@@ -378,11 +378,9 @@
                           (when (= :map (tag sc))
                             sc)))))
         _ (when meta-node (common/analyze-expression** ctx meta-node))
-        ns-meta (if meta-node
-                  (merge metadata
-                         (sexpr meta-node))
-                  metadata)
-        user-coded-meta (dissoc ns-meta :row :col :end-row :end-col)
+        user-meta (when meta-node (sexpr meta-node))
+        ns-meta (merge metadata
+                       user-meta)
         global-config (:global-config ctx)
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))
@@ -442,11 +440,11 @@
                                  (:renamed refer-clojure-clauses)))
                    :clojure-excluded (:excluded refer-clojure-clauses)}
         ns (cond->
-               (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
-                             :imports imports)
-                      (merge-with into
-                                  analyzed-require-clauses
-                                  refer-clj))
+            (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
+                          :imports imports)
+                   (merge-with into
+                               analyzed-require-clauses
+                               refer-clj))
              local-config (assoc :config merged-config)
              (identical? :clj lang) (update :qualify-ns
                                             #(assoc % 'clojure.core 'clojure.core))
@@ -456,7 +454,7 @@
     (when (-> ctx :config :output :analysis)
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some ns-meta
-                                                         :meta user-coded-meta
+                                                         :user-meta user-meta
                                                          :name-row (:row metadata)
                                                          :name-col (:col metadata)
                                                          :name-end-row (:end-row metadata)
