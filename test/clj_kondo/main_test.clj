@@ -2828,7 +2828,29 @@ foo/")))
 (deftest duplicate-files
   (is (empty? (lint! [(io/file "corpus" "simple_test")
                       (io/file "corpus" "simple_test" "a_test.clj")]
-                      "--config" "{:linters {:redefined-var {:level :error}}}"))))
+                     "--config" "{:linters {:redefined-var {:level :error}}}"))))
+
+(deftest main-without-gen-class
+  (is (= '({:file "<stdin>", :row 5, :col 1, :level :warning, :message "-main function without :gen-class in ns form"})
+         (lint! "(ns foo
+  {:clj-kondo/config {:linters {:main-without-gen-class {:level :warning}}}}
+  #_(:gen-class))
+
+(defn -main [& _args])
+")))
+  (is (empty?
+       (lint! "(ns foo
+  {:clj-kondo/config {:linters {:main-without-gen-class {:level :warning}}}}
+  (:gen-class))
+
+(defn -main [& _args])
+")))
+  (testing "in CLJS you'll never get a warning"
+    (is (empty?
+         (lint! "(ns foo
+  {:clj-kondo/config {:linters {:main-without-gen-class {:level :warning}}}})
+(defn -main [& _args])
+" "--lang" "cljs")))))
 
 ;;;; Scratch
 
