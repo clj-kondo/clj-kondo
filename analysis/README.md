@@ -23,7 +23,7 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 - `:keywords`: when truthy return `:keywords` described below
 - `:arglists`: when truthy return `:arglists` on `:var-definitions`
 
-Clj-kondo returns popular metadata such as `:added` and `:deprecated`.
+Clj-kondo returns common metadata such as `:added` and `:deprecated`.
 You can request that it return all, or a specific set, of user-coded namespace or var metadata via:
 
 - `:namespace-definitions`
@@ -43,7 +43,7 @@ The analysis output consists of a map with:
   Optional:
   - `:lang`: if definition occurred in a `.cljc` file, the language in which the
     definition was done: `:clj` or `:cljs`
-  - popular metadata values: `:deprecated`, `:doc`, `:author`, `:added`, `:no-doc` (used by
+  - common metadata values: `:deprecated`, `:doc`, `:author`, `:added`, `:no-doc` (used by
     [codox](https://github.com/weavejester/codox)).
   - `:meta` map of requested metadata for namespace
 
@@ -66,7 +66,7 @@ The analysis output consists of a map with:
   Optional:
   - `:fixed-arities`: a set of fixed arities
   - `:varargs-min-arity`: the minimal number of arguments of a varargs signature
-  - popular metadata values: `:private`, `:macro`, `:deprecated`, `:doc`, `:added`
+  - common metadata values: `:private`, `:macro`, `:deprecated`, `:doc`, `:added`
   - `:meta` map of requested metadata for var
   - `:lang`: if definition occurred in a `.cljc` file, the language in which the
     definition was done: `:clj` or `:cljs`
