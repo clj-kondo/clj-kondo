@@ -443,13 +443,13 @@
                              (format "namespace %s is required but never used" ns-sym))
                  (assoc :ns (export-ns-sym ns-sym)))))))
       (doseq [[k v] referred-vars]
-        (let [var-ns (:ns v)
-              referred-ns (export-ns-sym var-ns)]
+        (let [var-ns (:ns v)]
           (when-not
               (or (contains? used-referred-vars k)
                   (config/unused-referred-var-excluded config var-ns k)
                   (contains? refer-all-nss var-ns))
-            (let [filename (:filename v)]
+            (let [filename (:filename v)
+                  referred-ns (export-ns-sym var-ns)]
               (findings/reg-finding!
                ctx
                (-> (node->line filename k :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
