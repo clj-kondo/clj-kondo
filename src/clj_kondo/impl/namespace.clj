@@ -24,7 +24,7 @@
                                    ns
                                    :duplicate-require
                                    (str "duplicate require of " ns))
-                       (assoc :namespace (export-ns-sym ns))))
+                       (assoc :duplicate-ns (export-ns-sym ns))))
                  required)
                (conj required ns)))
            (set init)

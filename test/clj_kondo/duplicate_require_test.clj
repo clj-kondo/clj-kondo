@@ -7,7 +7,7 @@
   (assert-submaps
    '({:type :duplicate-require
       :filename "<stdin>",
-      :namespace clojure.string
+      :duplicate-ns clojure.string
       :row 1,
       :col 43,
       :level :warning,
