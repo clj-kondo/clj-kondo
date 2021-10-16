@@ -5,7 +5,7 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled? one-of]]
+   [clj-kondo.impl.utils :refer [export-ns-sym node->line deep-merge linter-disabled? one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
   (:import [java.util StringTokenizer]))
@@ -20,10 +20,11 @@
                (do
                  (findings/reg-finding!
                    ctx
-                   (node->line (:filename ctx)
-                               ns
-                               :duplicate-require
-                               (str "duplicate require of " ns)))
+                   (-> (node->line (:filename ctx)
+                                   ns
+                                   :duplicate-require
+                                   (str "duplicate require of " ns))
+                       (assoc :duplicate-ns (export-ns-sym ns))))
                  required)
                (conj required ns)))
            (set init)
