@@ -453,6 +453,7 @@
                ctx
                (-> (node->line filename k :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
                    (assoc :ns (export-ns-sym var-ns)
+                          :referred-ns (export-ns-sym var-ns)
                           :refer (:name v))))))))
       (doseq [[referred-all-ns {:keys [:referred :node] :as refer-all}] refer-alls
               :when (not (config/refer-all-excluded? config referred-all-ns))]
