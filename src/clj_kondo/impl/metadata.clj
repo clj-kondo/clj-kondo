@@ -51,7 +51,9 @@
            meta-map (apply merge meta-maps)
            node (-> node
                     (dissoc :meta)
+                    ;; add user metadata, this will be in some cases recomputed and ultimately cleaned up
                     (with-meta (merge (meta node) meta-map))
+                    ;; save a copy of original user metadata
                     (vary-meta assoc :user-meta meta-map))]
        node)
      node)))

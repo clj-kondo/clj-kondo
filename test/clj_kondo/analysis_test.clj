@@ -452,6 +452,37 @@
         :doc "docstring with\n \"escaping\""}]
      var-definitions))
 
+  (let [{:keys [:var-definitions
+                :var-usages]} (analyze (str "(defn"
+                                            " ^:uncommon1"
+                                            " ^{:doc \"docstring1\" :added \"added1\" :uncommon2 \"meta\"}"
+                                            " foo \"docstring2\""
+                                            " {:added \"added2\" :doc \"docstring3\" :uncommon3 \"meta\"}[])"))]
+    (assert-submaps
+     '[{:filename "<stdin>",
+        :row 1,
+        :col 1,
+        :end-row 1,
+        :end-col 147,
+        :ns user,
+        :name foo,
+        :defined-by clojure.core/defn
+        :fixed-arities #{0},
+        :doc "docstring3",
+        :added "added2"}]
+     var-definitions)
+    (assert-submaps
+     '[{:filename "<stdin>",
+        :row 1,
+        :col 1,
+        :name-row 1,
+        :name-col 2,
+        :from user,
+        :to clojure.core,
+        :name defn,
+        :arity 4}]
+     var-usages))
+
   (let [{:keys [:var-definitions]} (analyze "(def ^:deprecated x \"docstring\" 1)")]
     (assert-submaps
      '[{:filename "<stdin>",
@@ -485,6 +516,21 @@
     (assert-submaps
      '[{:filename "<stdin>", :row 3, :col 24, :from foo, :to clojure.string}]
      namespace-usages))
+  (let [{:keys [:namespace-definitions]}
+        (analyze
+         "(ns ^:uncommon1 ^{:uncommon2 \"meta\" :doc \"docstring1\" :added \"added1\" :no-doc false}
+            foo \"docstring2\"
+            {:doc \"docstring3\" :added \"added2\" :no-doc true :author \"Michiel Borkent\"})")]
+    (assert-submaps
+     '[{:filename "<stdin>",
+        :row 1,
+        :col 1,
+        :name foo,
+        :doc "docstring3",
+        :added "added2",
+        :no-doc true,
+        :author "Michiel Borkent"}]
+     namespace-definitions))
   (let [{:keys [:namespace-definitions
                 :namespace-usages
                 :var-usages
@@ -834,6 +880,14 @@
     (testing "docs, if specified as user coded metadata, is returned"
       (is (= {:my-meta-here true :doc "some fn docs"}
              (ana-var-meta "(defn ^{:my-meta-here true :doc \"some fn docs\"} my-fn)"
+                           {:meta true}))))
+    (testing "metadata reader-macro and attr-map are merged"
+      (is (= '{:deprecated true :added "1.2.3"}
+             (ana-var-meta "(defn ^:deprecated ^{:added \"0.1.2\"} my-fn {:added \"1.2.3\"} [])"
+                           {:meta true}))))
+    (testing "2nd attr-map is currently ignored in obscure (?) syntax"
+      (is (= '{:deprecated true :added "1.2.3"}
+             (ana-var-meta "(defn ^:deprecated ^{:added \"0.1.2\"} my-fn {:added \"1.2.3\"} ([]) {:added \"hmmm?\"})"
                            {:meta true}))))))
 
 (defn- ana-ns-meta [s cfg]
@@ -859,7 +913,11 @@
       (is (= {:my-meta1 true :my-meta2 true :my-meta3 true}
              (ana-ns-meta "(ns my.ns.here \"some ns docs\" {:my-meta1 true :my-meta2 true :my-meta3 true})"
                           {:meta true}))))
-    (testing "docs, if specified as user coded metadata, is returned"
+    (testing "metadata reader-macro and attr-map are merged"
+      (is (= '{:deprecated true :added "1.2.3"}
+             (ana-ns-meta "(ns ^:deprecated ^{:added \"0.1.2\"} my.ns.here {:added \"1.2.3\"} [])"
+                           {:meta true}))))
+    (testing "docs, if specified as user coded metadata, is returned (docstring string is not metadata)"
       (is (= {:my-meta-here true :doc "some ns docs"}
              (ana-ns-meta "(ns ^{:my-meta-here true :doc \"some ns docs\"} my.ns.here)"
                           {:meta true})))))

@@ -355,6 +355,7 @@
    :col col})
 
 (defn analyze-ns-decl
+  "(ns ^metadata* name docstring? attr-map? references*)"
   [ctx expr]
   (let [lang (:lang ctx)
         base-lang (:base-lang ctx)
@@ -364,23 +365,27 @@
         col (:col m)
         children (next (:children expr))
         ns-name-expr (first children)
-        ns-name-expr  (meta/lift-meta-content2 ctx ns-name-expr)
+        ns-name-expr (meta/lift-meta-content2 ctx ns-name-expr)
         metadata (meta ns-name-expr)
         children (next children) ;; first = docstring, attr-map or libspecs
         fc (first children)
         docstring (when fc
                     (string-from-token fc))
-        meta-node (when fc
-                    (let [t (tag fc)]
-                      (if (= :map t)
-                        fc
-                        (when-let [sc (second children)]
-                          (when (= :map (tag sc))
-                            sc)))))
-        _ (when meta-node (common/analyze-expression** ctx meta-node))
-        user-meta (when meta-node (sexpr meta-node))
-        ns-meta (merge metadata
-                       user-meta)
+        attr-map-node (when fc
+                        (let [t (tag fc)]
+                          (if (= :map t)
+                            fc
+                            (when-let [sc (second children)]
+                              (when (= :map (tag sc))
+                                sc)))))
+        _ (when attr-map-node (common/analyze-expression** ctx attr-map-node))
+        user-meta-ns-name (:user-meta metadata)
+        user-meta-attr-map (when attr-map-node (sexpr attr-map-node))
+        user-meta (merge user-meta-ns-name user-meta-attr-map)
+        ns-meta (merge metadata user-meta-attr-map)
+        docstring (or (some-> user-meta-attr-map :doc str)
+                      docstring
+                      (some-> user-meta-ns-name :doc str))
         global-config (:global-config ctx)
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))

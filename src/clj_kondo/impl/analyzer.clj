@@ -442,37 +442,40 @@
           :list exprs
           (recur rest-exprs))))))
 
-(defn analyze-defn [ctx expr defined-by]
+(defn analyze-defn
+  "(defn ^metadata* name docstring? attr-map? [params*] prepost-map? body)"
+  [ctx expr defined-by]
   (let [ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
         fn-name (:value name-node)
         call (name (symbol-call expr))
-        var-meta (meta name-node)
-        meta-node (when-let [fc (first children)]
-                    (let [t (tag fc)]
-                      (if (= :map t) fc
-                          (when (not= :vector t)
-                            (when-let [sc (second children)]
-                              (when (= :map (tag sc))
-                                sc))))))
+        metadata (meta name-node)
+        attr-map-node (when-let [fc (first children)]
+                        (let [t (tag fc)]
+                          (if (= :map t) fc
+                              (when (not= :vector t)
+                                (when-let [sc (second children)]
+                                  (when (= :map (tag sc))
+                                    sc))))))
         ;; use dorun to force evaluation, we don't use the result!
-        _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
-        user-meta (when meta-node (sexpr meta-node))
-        var-meta (merge var-meta
-                        user-meta)
+        _ (when attr-map-node (dorun (analyze-expression** ctx attr-map-node)))
+        user-meta-var (:user-meta metadata)
+        user-meta-attr-map (when attr-map-node (sexpr attr-map-node))
+        user-meta (merge user-meta-var user-meta-attr-map)
+        var-meta (merge metadata user-meta-attr-map)
         macro? (or (= "defmacro" call)
-                   (:macro var-meta))
-        deprecated (:deprecated var-meta)
+                   (:macro user-meta))
         ctx (if macro?
               (ctx-with-bindings ctx '{&env {}
                                        &form {}})
               ctx)
         private? (or (= "defn-" call)
-                     (:private var-meta))
-        docstring (or (string-from-token (first children))
-                      (some-> var-meta :doc str))
+                     (:private user-meta))
+        docstring (or (some-> user-meta-attr-map :doc str)
+                      (string-from-token (first children))
+                      (some-> user-meta-var :doc str))
         bodies (fn-bodies ctx children expr)
         _ (when (empty? bodies)
             (findings/reg-finding! ctx
@@ -508,19 +511,17 @@
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
-       (assoc-some (meta name-node)
+       (assoc-some var-meta
                    :user-meta user-meta
                    :macro macro?
                    :private private?
-                   :deprecated deprecated
                    :defined-by defined-by
                    :fixed-arities (not-empty fixed-arities)
                    :arglist-strs (when (:analyze-arglists? ctx)
                                    arglist-strs)
                    :arities arities
                    :varargs-min-arity varargs-min-arity
-                   :doc docstring
-                   :added (:added var-meta))))
+                   :doc docstring)))
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
