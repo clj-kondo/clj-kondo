@@ -511,7 +511,8 @@
       (namespace/reg-var!
        ctx ns-name fn-name expr
        (assoc-some var-leading-meta
-                   :user-meta (conj (:user-meta var-leading-meta) meta-node-meta)
+                   :user-meta (when (:analysis-var-meta ctx)
+                                (conj (:user-meta var-leading-meta) meta-node-meta))
                    :macro macro?
                    :private private?
                    :deprecated deprecated

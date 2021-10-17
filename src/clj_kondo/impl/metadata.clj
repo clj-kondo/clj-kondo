@@ -19,7 +19,7 @@
 
 (defn lift-meta-content2
   ([ctx node] (lift-meta-content2 ctx node false))
-  ([{:keys [:lang] :as ctx} node only-usage?]
+  ([{:keys [:analyze-meta? :lang] :as ctx} node only-usage?]
    (if-let [meta-list (:meta node)]
      (let [meta-list (if (identical? :cljc (:base-lang ctx))
                        (map #(utils/select-lang % lang) meta-list)
@@ -49,12 +49,12 @@
                      meta-list))
            meta-maps (map #(meta-node->map ctx %) meta-list)
            meta-map (apply merge meta-maps)
+           meta-map (if analyze-meta?
+                      (assoc meta-map :user-meta [meta-map])
+                      meta-map)
            node (-> node
                     (dissoc :meta)
-                    ;; add user metadata, this will be in some cases recomputed and ultimately cleaned up
-                    (with-meta (merge (meta node) meta-map))
-                    ;; save a copy of original user metadata
-                    (vary-meta assoc :user-meta [meta-map]))]
+                    (with-meta (merge (meta node) meta-map)))]
        node)
      node)))
 

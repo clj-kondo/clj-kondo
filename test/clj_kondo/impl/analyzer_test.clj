@@ -7,10 +7,13 @@
    [clj-kondo.test-utils :refer [assert-submap]]
    [clojure.test :as t :refer [deftest testing is are]]))
 
-(defn- lifted-meta [s]
-  (meta (meta/lift-meta-content2 {:lang :clj
-                                  :namespaces (atom {})}
-                                 (parse-string s))))
+(defn- lifted-meta
+  ([s] (lifted-meta s nil))
+  ([s cfg]
+   (meta (meta/lift-meta-content2 (merge {:lang :clj
+                                          :namespaces (atom {})}
+                                         cfg)
+                                  (parse-string s)))))
 
 (deftest lift-meta-test
   (is (= {:private true
@@ -19,6 +22,13 @@
           :end-row 1
           :end-col 14
           :user-meta [{:private true}]}
+         (lifted-meta "^:private [x]" {:analyze-meta? true})))
+
+  (is (= {:private true
+          :row 1
+          :col 11
+          :end-row 1
+          :end-col 14}
          (lifted-meta "^:private [x]")))
 
   (is (= {:private true
@@ -27,7 +37,7 @@
           :end-row 1
           :end-col 16
           :user-meta [{:private true}]}
-         (lifted-meta "#^ :private [x]")))
+         (lifted-meta "#^ :private [x]" {:analyze-meta? true})))
 
   (is (= {:tag "[B"
           :row 1
@@ -35,7 +45,7 @@
           :end-row 1
           :end-col 11
           :user-meta [{:tag "[B"}]}
-         (lifted-meta "^\"[B\" body"))))
+         (lifted-meta "^\"[B\" body" {:analyze-meta? true}))))
 
 (def ctx
   (let [ctx {:filename "-"

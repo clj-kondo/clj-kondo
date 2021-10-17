@@ -455,7 +455,8 @@
     (when (-> ctx :config :output :analysis)
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some {}
-                                                         :user-meta (conj (:user-meta metadata) meta-node-meta)
+                                                         :user-meta (when (:analysis-ns-meta ctx)
+                                                                      (conj (:user-meta metadata) meta-node-meta))
                                                          :name-row (:row metadata)
                                                          :name-col (:col metadata)
                                                          :name-end-row (:end-row metadata)
