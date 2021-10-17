@@ -452,37 +452,6 @@
         :doc "docstring with\n \"escaping\""}]
      var-definitions))
 
-  (let [{:keys [:var-definitions
-                :var-usages]} (analyze (str "(defn"
-                                            " ^:uncommon1"
-                                            " ^{:doc \"docstring1\" :added \"added1\" :uncommon2 \"meta\"}"
-                                            " foo \"docstring2\""
-                                            " {:added \"added2\" :doc \"docstring3\" :uncommon3 \"meta\"}[])"))]
-    (assert-submaps
-     '[{:filename "<stdin>",
-        :row 1,
-        :col 1,
-        :end-row 1,
-        :end-col 147,
-        :ns user,
-        :name foo,
-        :defined-by clojure.core/defn
-        :fixed-arities #{0},
-        :doc "docstring3",
-        :added "added2"}]
-     var-definitions)
-    (assert-submaps
-     '[{:filename "<stdin>",
-        :row 1,
-        :col 1,
-        :name-row 1,
-        :name-col 2,
-        :from user,
-        :to clojure.core,
-        :name defn,
-        :arity 4}]
-     var-usages))
-
   (let [{:keys [:var-definitions]} (analyze "(def ^:deprecated x \"docstring\" 1)")]
     (assert-submaps
      '[{:filename "<stdin>",
@@ -516,21 +485,6 @@
     (assert-submaps
      '[{:filename "<stdin>", :row 3, :col 24, :from foo, :to clojure.string}]
      namespace-usages))
-  (let [{:keys [:namespace-definitions]}
-        (analyze
-         "(ns ^:uncommon1 ^{:uncommon2 \"meta\" :doc \"docstring1\" :added \"added1\" :no-doc false}
-            foo \"docstring2\"
-            {:doc \"docstring3\" :added \"added2\" :no-doc true :author \"Michiel Borkent\"})")]
-    (assert-submaps
-     '[{:filename "<stdin>",
-        :row 1,
-        :col 1,
-        :name foo,
-        :doc "docstring3",
-        :added "added2",
-        :no-doc true,
-        :author "Michiel Borkent"}]
-     namespace-definitions))
   (let [{:keys [:namespace-definitions
                 :namespace-usages
                 :var-usages

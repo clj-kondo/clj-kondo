@@ -37,7 +37,7 @@
                (update :callstack conj [nil :metadata])
                (utils/ctx-with-bindings
                 (cond->
-                    type-hint-bindings
+                 type-hint-bindings
                   cljs?
                   (assoc 'js {}
                          'number {}))))
@@ -54,7 +54,7 @@
                     ;; add user metadata, this will be in some cases recomputed and ultimately cleaned up
                     (with-meta (merge (meta node) meta-map))
                     ;; save a copy of original user metadata
-                    (vary-meta assoc :user-meta meta-map))]
+                    (vary-meta assoc :user-meta [meta-map]))]
        node)
      node)))
 

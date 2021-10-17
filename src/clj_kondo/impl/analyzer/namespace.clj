@@ -355,7 +355,6 @@
    :col col})
 
 (defn analyze-ns-decl
-  "(ns ^metadata* name docstring? attr-map? references*)"
   [ctx expr]
   (let [lang (:lang ctx)
         base-lang (:base-lang ctx)
@@ -371,21 +370,18 @@
         fc (first children)
         docstring (when fc
                     (string-from-token fc))
-        attr-map-node (when fc
-                        (let [t (tag fc)]
-                          (if (= :map t)
-                            fc
-                            (when-let [sc (second children)]
-                              (when (= :map (tag sc))
-                                sc)))))
-        _ (when attr-map-node (common/analyze-expression** ctx attr-map-node))
-        user-meta-ns-name (:user-meta metadata)
-        user-meta-attr-map (when attr-map-node (sexpr attr-map-node))
-        user-meta (merge user-meta-ns-name user-meta-attr-map)
-        ns-meta (merge metadata user-meta-attr-map)
-        docstring (or (some-> user-meta-attr-map :doc str)
-                      docstring
-                      (some-> user-meta-ns-name :doc str))
+        meta-node (when fc
+                    (let [t (tag fc)]
+                      (if (= :map t)
+                        fc
+                        (when-let [sc (second children)]
+                          (when (= :map (tag sc))
+                            sc)))))
+        _ (when meta-node (common/analyze-expression** ctx meta-node))
+        meta-node-meta (when meta-node (sexpr meta-node))
+        ns-meta (if meta-node-meta
+                  (merge metadata meta-node-meta)
+                  metadata)
         global-config (:global-config ctx)
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))
@@ -458,13 +454,18 @@
                                                      'clojure.core 'cljs.core)))]
     (when (-> ctx :config :output :analysis)
       (analysis/reg-namespace! ctx filename row col
-                               ns-name false (assoc-some ns-meta
-                                                         :user-meta user-meta
+                               ns-name false (assoc-some {}
+                                                         :user-meta (conj (:user-meta metadata) meta-node-meta)
                                                          :name-row (:row metadata)
                                                          :name-col (:col metadata)
                                                          :name-end-row (:end-row metadata)
                                                          :name-end-col (:end-col metadata)
-                                                         :doc docstring))
+                                                         :deprecated (:deprecated ns-meta)
+                                                         :doc docstring
+                                                         :added (:added ns-meta)
+                                                         :no-doc (:no-doc ns-meta)
+                                                         :author (:author ns-meta)))
+
       (doseq [req (:required ns)]
         (let [{:keys [row col end-row end-col alias]} (meta req)
               meta-alias (meta alias)]

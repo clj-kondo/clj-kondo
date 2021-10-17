@@ -44,8 +44,8 @@
                                     :arglist-strs :end-row :end-col])
           meta-fn (when-let [keyseq (some-> config :output :analysis :var-definitions :meta)]
                     (if (true? keyseq)
-                      identity
-                      #(select-keys % keyseq)))]
+                      #(apply merge %)
+                      #(select-keys (apply merge %) keyseq)))]
       (swap! analysis update :var-definitions conj
              (assoc-some
               (cond-> (merge {:filename filename
@@ -58,23 +58,20 @@
               :lang (when (= :cljc base-lang) lang))))))
 
 (defn reg-namespace! [{:keys [:config :analysis :base-lang :lang] :as _ctx}
-                      filename row col ns-name in-ns? attrs]
+                      filename row col ns-name in-ns? metadata]
   (when analysis
-    (let [raw-attrs attrs
-          attrs (select-keys attrs [:doc :added :deprecated :author :no-doc
-                                    :name-row :name-col :name-end-col :name-end-row])
-          meta-fn (when-let [keyseq (some-> config :output :analysis :namespace-definitions :meta)]
+    (let [meta-fn (when-let [keyseq (some-> config :output :analysis :namespace-definitions :meta)]
                     (if (true? keyseq)
-                      identity
-                      #(select-keys % keyseq)))]
+                      #(apply merge %)
+                      #(select-keys (apply merge %) keyseq)))]
       (swap! analysis update :namespace-definitions conj
              (assoc-some
               (cond-> (merge {:filename filename
                               :row      row
                               :col      col
                               :name     ns-name}
-                             attrs)
-                meta-fn (assoc :meta (meta-fn (:user-meta raw-attrs))))
+                             metadata)
+                meta-fn (assoc :meta (meta-fn (:user-meta metadata))))
               :in-ns (when in-ns? in-ns?) ;; don't include when false
               :lang (when (= :cljc base-lang) lang))))))
 

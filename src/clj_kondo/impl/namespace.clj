@@ -92,31 +92,31 @@
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
   ([{:keys [:base-lang :lang :filename :namespaces :top-level? :top-ns] :as ctx}
-    ns-sym var-sym expr attrs]
+    ns-sym var-sym expr metadata]
    (let [m (meta expr)
          expr-row (:row m)
          expr-col (:col m)
          expr-end-row (:end-row m)
          expr-end-col (:end-col m)
-         attrs (assoc attrs
-                      :ns ns-sym
-                      :name var-sym
-                      :name-row (or (:name-row attrs) (:row attrs))
-                      :name-col (or (:name-col attrs) (:col attrs))
-                      :name-end-row (or (:name-end-row attrs) (:end-row attrs))
-                      :name-end-col (or (:name-end-col attrs) (:end-col attrs))
-                      :row expr-row
-                      :col expr-col
-                      :end-row expr-end-row
-                      :end-col expr-end-col)
+         metadata (assoc metadata
+                         :ns ns-sym
+                         :name var-sym
+                         :name-row (or (:name-row metadata) (:row metadata))
+                         :name-col (or (:name-col metadata) (:col metadata))
+                         :name-end-row (or (:name-end-row metadata) (:end-row metadata))
+                         :name-end-col (or (:name-end-col metadata) (:end-col metadata))
+                         :row expr-row
+                         :col expr-col
+                         :end-row expr-end-row
+                         :end-col expr-end-col)
          path [base-lang lang ns-sym]
-         temp? (:temp attrs)
+         temp? (:temp metadata)
          config (:config ctx)]
      (when (and (-> config :output :analysis)
                 (not temp?))
        (analysis/reg-var! ctx filename expr-row expr-col
                           ns-sym var-sym
-                          attrs))
+                          metadata))
      (swap! namespaces update-in path
             (fn [ns]
               (let [vars (:vars ns)
@@ -124,7 +124,7 @@
                     prev-declared? (:declared prev-var)]
                 ;; declare is idempotent
                 (when (and top-level?
-                           (not (:declared attrs))
+                           (not (:declared metadata))
                            (not (:in-comment ctx)))
                   (when-let [redefined-ns
                              (or (when-let [meta-v prev-var]
@@ -150,14 +150,14 @@
                                    (str "redefined var #'" redefined-ns "/" var-sym)
                                    (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))
                   (when (and (not (identical? :off (-> config :linters :missing-docstring :level)))
-                             (not (:private attrs))
-                             (not (:doc attrs))
-                             (not (:test attrs))
+                             (not (:private metadata))
+                             (not (:doc metadata))
+                             (not (:test metadata))
                              (not temp?)
-                             (not (:imported-var attrs))
+                             (not (:imported-var metadata))
                              (not
-                              (when-let [defined-by (or (:linted-as attrs)
-                                                        (:defined-by attrs))]
+                              (when-let [defined-by (or (:linted-as metadata)
+                                                        (:defined-by metadata))]
                                 (or
                                  (= 'clojure.test/deftest defined-by)
                                  (= 'clojure.core/deftype defined-by)
@@ -173,7 +173,7 @@
                 (update ns :vars assoc
                         var-sym
                         (assoc
-                         (merge attrs (select-keys
+                         (merge metadata (select-keys
                                           prev-var
                                           [:row :col :end-row :end-col]))
                          :top-ns top-ns))))))))

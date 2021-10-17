@@ -18,7 +18,7 @@
           :col 11
           :end-row 1
           :end-col 14
-          :user-meta {:private true}}
+          :user-meta [{:private true}]}
          (lifted-meta "^:private [x]")))
 
   (is (= {:private true
@@ -26,7 +26,7 @@
           :col 13
           :end-row 1
           :end-col 16
-          :user-meta {:private true}}
+          :user-meta [{:private true}]}
          (lifted-meta "#^ :private [x]")))
 
   (is (= {:tag "[B"
@@ -34,7 +34,7 @@
           :col 7
           :end-row 1
           :end-col 11
-          :user-meta {:tag "[B"}}
+          :user-meta [{:tag "[B"}]}
          (lifted-meta "^\"[B\" body"))))
 
 (def ctx
