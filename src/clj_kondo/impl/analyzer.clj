@@ -442,14 +442,15 @@
           :list exprs
           (recur rest-exprs))))))
 
-(defn analyze-defn [ctx expr defined-by]
+(defn analyze-defn
+  [ctx expr defined-by]
   (let [ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
         fn-name (:value name-node)
         call (name (symbol-call expr))
-        var-meta (meta name-node)
+        var-leading-meta (meta name-node)
         meta-node (when-let [fc (first children)]
                     (let [t (tag fc)]
                       (if (= :map t) fc
@@ -459,10 +460,10 @@
                                 sc))))))
         ;; use dorun to force evaluation, we don't use the result!
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
-        var-meta (if meta-node
-                   (merge var-meta
-                          (sexpr meta-node))
-                   var-meta)
+        meta-node-meta (when meta-node (sexpr meta-node))
+        var-meta (if meta-node-meta
+                   (merge var-leading-meta meta-node-meta)
+                   var-leading-meta)
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         deprecated (:deprecated var-meta)
@@ -509,7 +510,9 @@
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
-       (assoc-some (meta name-node)
+       (assoc-some var-leading-meta
+                   :user-meta (when (:analysis-var-meta ctx)
+                                (conj (:user-meta var-leading-meta) meta-node-meta))
                    :macro macro?
                    :private private?
                    :deprecated deprecated

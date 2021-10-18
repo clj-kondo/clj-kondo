@@ -7,16 +7,61 @@
    [clj-kondo.test-utils :refer [assert-submap]]
    [clojure.test :as t :refer [deftest testing is are]]))
 
+(defn- lifted-meta
+  ([s] (lifted-meta s nil))
+  ([s cfg]
+   (meta (meta/lift-meta-content2 (merge {:lang :clj
+                                          :namespaces (atom {})}
+                                         cfg)
+                                  (parse-string s)))))
+
 (deftest lift-meta-test
-  (is (:private (meta (meta/lift-meta-content2 {:lang :clj
-                                                :namespaces (atom {})}
-                                               (parse-string "^:private [x]")))))
-  (is (:private (meta (meta/lift-meta-content2 {:lang :clj
-                                                :namespaces (atom {})}
-                                               (parse-string "#^ :private [x]")))))
-  (is (= "[B" (:tag (meta (meta/lift-meta-content2 {:lang :clj
-                                                    :namespaces (atom {})}
-                                                   (parse-string "^\"[B\" body")))))))
+  (is (= {:private true
+          :row 1
+          :col 11
+          :end-row 1
+          :end-col 14
+          :user-meta [{:private true}]}
+         (lifted-meta "^:private [x]" {:analyze-meta? true})))
+
+  (is (= {:private true
+          :row 1
+          :col 11
+          :end-row 1
+          :end-col 14}
+         (lifted-meta "^:private [x]")))
+
+  ;; no-clobber test
+  (is (= {:row 1
+          :col 149
+          :end-row 1
+          :end-col 152
+          :uncommon :thing
+          :user-meta [{:row :r :col :c :end-row :er :end-col :ec
+                       :name-row :nr :name-col :nc :name-end-row :ner :name-end-col :nec
+                       :user-meta :foo-bar
+                       :uncommon :thing}]}
+         (lifted-meta (str "^{:row :r :col :c :end-row :er :end-col :ec"
+                           " :name-row :nr :name-col :nc :name-end-row :ner :name-end-col :nec"
+                           " :user-meta :foo-bar"
+                           " :uncommon :thing} [x]")
+                      {:analyze-meta? true})))
+
+  (is (= {:private true
+          :row 1
+          :col 13
+          :end-row 1
+          :end-col 16
+          :user-meta [{:private true}]}
+         (lifted-meta "#^ :private [x]" {:analyze-meta? true})))
+
+  (is (= {:tag "[B"
+          :row 1
+          :col 7
+          :end-row 1
+          :end-col 11
+          :user-meta [{:tag "[B"}]}
+         (lifted-meta "^\"[B\" body" {:analyze-meta? true}))))
 
 (def ctx
   (let [ctx {:filename "-"

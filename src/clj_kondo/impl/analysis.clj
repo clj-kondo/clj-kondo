@@ -34,33 +34,41 @@
                 :lang lang
                 :from-var in-def))))))
 
-(defn reg-var! [{:keys [:analysis :base-lang :lang] :as _ctx}
+(defn reg-var! [{:keys [:analysis-var-meta :analysis :base-lang :lang] :as _ctx}
                 filename row col ns nom attrs]
   (when analysis
-    (let [attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
+    (let [raw-attrs attrs
+          attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
                                     :doc :added :deprecated :test :export :defined-by
                                     :name-row :name-col :name-end-col :name-end-row
                                     :arglist-strs :end-row :end-col])]
       (swap! analysis update :var-definitions conj
              (assoc-some
-              (merge {:filename filename
-                      :row row
-                      :col col
-                      :ns ns
-                      :name nom}
-                     attrs)
+              (cond-> (merge {:filename filename
+                              :row row
+                              :col col
+                              :ns ns
+                              :name nom}
+                             attrs)
+                analysis-var-meta (assoc :meta
+                                         (cond-> (apply merge (:user-meta raw-attrs))
+                                           (not (true? analysis-var-meta)) (select-keys analysis-var-meta))))
               :lang (when (= :cljc base-lang) lang))))))
 
-(defn reg-namespace! [{:keys [:analysis :base-lang :lang] :as _ctx}
+(defn reg-namespace! [{:keys [:analysis-ns-meta :analysis :base-lang :lang] :as _ctx}
                       filename row col ns-name in-ns? metadata]
   (when analysis
     (swap! analysis update :namespace-definitions conj
            (assoc-some
-            (merge {:filename filename
-                    :row row
-                    :col col
-                    :name ns-name}
-                   metadata)
+            (cond-> (merge {:filename filename
+                            :row      row
+                            :col      col
+                            :name     ns-name}
+                           metadata)
+              analysis-ns-meta (-> (assoc :meta
+                                          (cond-> (apply merge (:user-meta metadata))
+                                            (not (true? analysis-ns-meta)) (select-keys analysis-ns-meta)))
+                                   (dissoc :user-meta)))
             :in-ns (when in-ns? in-ns?) ;; don't include when false
             :lang (when (= :cljc base-lang) lang)))))
 

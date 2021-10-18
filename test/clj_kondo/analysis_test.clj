@@ -22,31 +22,31 @@
     (let [a (analyze "(require '[bar :as b]) :kw :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name "kw"}
-          {:name "xkwa" :ns x}
-          {:name "xkwb" :ns :clj-kondo/unknown-namespace}
-          {:name "fookwa" :ns user}
-          {:name "fookwb" :ns foo}
-          {:name "fookwc" :ns :clj-kondo/unknown-namespace}
-          {:name "barkwa" :ns bar}
-          {:name "barkwb" :ns bar :alias b}
-          {:name "barkwc" :ns :clj-kondo/unknown-namespace}]
-        (:keywords a))))
+       '[{:name "kw"}
+         {:name "xkwa" :ns x}
+         {:name "xkwb" :ns :clj-kondo/unknown-namespace}
+         {:name "fookwa" :ns user}
+         {:name "fookwb" :ns foo}
+         {:name "fookwc" :ns :clj-kondo/unknown-namespace}
+         {:name "barkwa" :ns bar}
+         {:name "barkwb" :ns bar :alias b}
+         {:name "barkwc" :ns :clj-kondo/unknown-namespace}]
+       (:keywords a))))
   (testing "standalone keywords"
     (let [a (analyze "(ns foo (:require [bar :as b])) :kw :2foo :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name "kw"}
-          {:name "2foo"}
-          {:name "xkwa" :ns x}
-          {:name "xkwb" :ns :clj-kondo/unknown-namespace}
-          {:name "fookwa" :ns foo}
-          {:name "fookwb" :ns foo}
-          {:name "fookwc" :ns :clj-kondo/unknown-namespace}
-          {:name "barkwa" :ns bar}
-          {:name "barkwb" :ns bar :alias b}
-          {:name "barkwc" :ns :clj-kondo/unknown-namespace}]
-        (:keywords a))))
+       '[{:name "kw"}
+         {:name "2foo"}
+         {:name "xkwa" :ns x}
+         {:name "xkwb" :ns :clj-kondo/unknown-namespace}
+         {:name "fookwa" :ns foo}
+         {:name "fookwb" :ns foo}
+         {:name "fookwc" :ns :clj-kondo/unknown-namespace}
+         {:name "barkwa" :ns bar}
+         {:name "barkwb" :ns bar :alias b}
+         {:name "barkwc" :ns :clj-kondo/unknown-namespace}]
+       (:keywords a))))
   (testing "destructuring keywords"
     (let [a (analyze (str "(ns foo (:require [bar :as b]))\n"
                           "(let [{::keys [a :b]\n"
@@ -56,37 +56,37 @@
                           "       p :p q ::q r ::b/r s :bar/s t :x/t} {}])")
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name "keys" :ns foo}
-          {:name "a" :ns foo :keys-destructuring true}
-          {:name "b" :ns foo :keys-destructuring true}
-          {:name "keys" :ns bar :alias b}
-          {:name "c" :ns bar :keys-destructuring true}
-          {:name "d" :ns bar :keys-destructuring true}
-          {:name "keys" :ns bar}
-          {:name "e" :ns bar :keys-destructuring true}
-          {:name "f" :ns bar :keys-destructuring true}
-          {:name "keys"}
-          {:name "g" :keys-destructuring true}
-          {:name "h" :keys-destructuring true}
-          {:name "i" :ns foo :keys-destructuring true}
-          {:name "j" :ns foo :keys-destructuring true}
-          {:name "k" :ns bar :keys-destructuring true}
-          {:name "l" :ns bar :alias b :keys-destructuring true}
-          {:name "m" :ns :clj-kondo/unknown-namespace}
-          {:name "n" :ns x}
-          {:name "o" :ns :clj-kondo/unknown-namespace}
-          {:name "p"}
-          {:name "q" :ns foo}
-          {:name "r" :ns bar :alias b}
-          {:name "s" :ns bar}
-          {:name "t" :ns x}]
-        (:keywords a))))
+       '[{:name "keys" :ns foo}
+         {:name "a" :ns foo :keys-destructuring true}
+         {:name "b" :ns foo :keys-destructuring true}
+         {:name "keys" :ns bar :alias b}
+         {:name "c" :ns bar :keys-destructuring true}
+         {:name "d" :ns bar :keys-destructuring true}
+         {:name "keys" :ns bar}
+         {:name "e" :ns bar :keys-destructuring true}
+         {:name "f" :ns bar :keys-destructuring true}
+         {:name "keys"}
+         {:name "g" :keys-destructuring true}
+         {:name "h" :keys-destructuring true}
+         {:name "i" :ns foo :keys-destructuring true}
+         {:name "j" :ns foo :keys-destructuring true}
+         {:name "k" :ns bar :keys-destructuring true}
+         {:name "l" :ns bar :alias b :keys-destructuring true}
+         {:name "m" :ns :clj-kondo/unknown-namespace}
+         {:name "n" :ns x}
+         {:name "o" :ns :clj-kondo/unknown-namespace}
+         {:name "p"}
+         {:name "q" :ns foo}
+         {:name "r" :ns bar :alias b}
+         {:name "s" :ns bar}
+         {:name "t" :ns x}]
+       (:keywords a))))
   (testing "clojure.spec.alpha/def can add :reg"
     (let [a (analyze "(require '[clojure.spec.alpha :as s]) (s/def ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name "kw" :reg clojure.spec.alpha/def}]
-        (:keywords a))))
+       '[{:name "kw" :reg clojure.spec.alpha/def}]
+       (:keywords a))))
   (testing "re-frame.core/reg-event-db can add :reg"
     (let [a (analyze "(require '[re-frame.core :as rf])
                       (rf/reg-event-db ::a (constantly {}))
@@ -98,21 +98,21 @@
                       (rf/reg-cofx ::g (constantly {}))"
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-        '[{:name "a" :reg re-frame.core/reg-event-db}
-          {:name "b" :reg re-frame.core/reg-event-fx}
-          {:name "c" :reg re-frame.core/reg-event-ctx}
-          {:name "d" :reg re-frame.core/reg-sub}
-          {:name "e" :reg re-frame.core/reg-sub-raw}
-          {:name "f" :reg re-frame.core/reg-fx}
-          {:name "g" :reg re-frame.core/reg-cofx}]
-        (:keywords a))))
+       '[{:name "a" :reg re-frame.core/reg-event-db}
+         {:name "b" :reg re-frame.core/reg-event-fx}
+         {:name "c" :reg re-frame.core/reg-event-ctx}
+         {:name "d" :reg re-frame.core/reg-sub}
+         {:name "e" :reg re-frame.core/reg-sub-raw}
+         {:name "f" :reg re-frame.core/reg-fx}
+         {:name "g" :reg re-frame.core/reg-cofx}]
+       (:keywords a))))
   (testing ":lint-as re-frame.core function will add :reg with the source full qualified ns"
     (let [a (analyze "(user/mydef ::kw (constantly {}))"
                      {:config {:output {:analysis {:keywords true}}
                                :lint-as '{user/mydef re-frame.core/reg-event-fx}}})]
       (assert-submaps
-        '[{:name "kw" :reg user/mydef}]
-        (:keywords a))))
+       '[{:name "kw" :reg user/mydef}]
+       (:keywords a))))
   (testing "hooks can add :reg"
     (let [a (analyze "(user/mydef ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}
@@ -127,8 +127,8 @@
                                              "                    (a/reg-keyword! (second c) 'user/mydef)"
                                              "                    (drop 2 c)))}))")}}}})]
       (assert-submaps
-        '[{:name "kw" :reg user/mydef}]
-        (:keywords a))))
+       '[{:name "kw" :reg user/mydef}]
+       (:keywords a))))
   (testing "valid ns name with clojure.data.xml"
     (let [a (analyze "(ns foo (:require [clojure.data.xml :as xml]))
                       (xml/alias-uri 'pom \"http://maven.apache.org/POM/4.0.0\")
@@ -162,7 +162,7 @@
                        {:config {:output {:analysis {:keywords true}}}})]
         (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>" :namespace-from-prefix true}
                  {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>"}]
-          (:keywords a)))))
+               (:keywords a)))))
     (testing "auto-resolved and namespace-from-prefix"
       (let [a (analyze "(ns foo (:require [clojure.set :as set]))
                         :a ::b :bar/c
@@ -191,69 +191,69 @@
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]
     (assert-submaps
-      [{:end-col 14 :scope-end-col 27}
-       {:end-col 16 :scope-end-col 27}]
-      (:locals a))
+     [{:end-col 14 :scope-end-col 27}
+      {:end-col 16 :scope-end-col 27}]
+     (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use))))
   (let [a (analyze "(defn x [a] (let [a a] a) a)" {:config {:output {:analysis {:locals true}}}})
         [first-a second-a] (:locals a)
         [first-use second-use third-use] (:local-usages a)]
     (assert-submaps
-      [{:end-col 11 :scope-end-col 29}
-       {:end-col 20 :scope-end-col 26}]
-      (:locals a))
+     [{:end-col 11 :scope-end-col 29}
+      {:end-col 20 :scope-end-col 26}]
+     (:locals a))
     (is (= (:id first-a) (:id first-use) (:id third-use)))
     (is (= (:id second-a) (:id second-use))))
   (let [a (analyze "(as-> {} $ $)" {:config {:output {:analysis {:locals true}}}})
         [first-a] (:locals a)
         [first-use] (:local-usages a)]
     (assert-submaps
-      [{:end-col 11 :scope-end-col 14}]
-      (:locals a))
+     [{:end-col 11 :scope-end-col 14}]
+     (:locals a))
     (is (= (:id first-a) (:id first-use))))
   (let [a (analyze "(letfn [(a [b] b)] a)" {:config {:output {:analysis {:locals true}}}})
-         [first-a second-a] (:locals a)
-         [first-use second-use] (:local-usages a)]
+        [first-a second-a] (:locals a)
+        [first-use second-use] (:local-usages a)]
     (assert-submaps
-      [{:end-col 11 :scope-end-col 22}
-       {:end-col 14 :scope-end-col 18}]
-      (:locals a))
+     [{:end-col 11 :scope-end-col 22}
+      {:end-col 14 :scope-end-col 18}]
+     (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use))))
   (let [a (analyze "(let [a 0] (let [a a] a))" {:config {:output {:analysis {:locals true}}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]
     (assert-submaps
-      [{:end-col 8 :scope-end-col 26}
-       {:end-col 19 :scope-end-col 25}]
-      (:locals a))
+     [{:end-col 8 :scope-end-col 26}
+      {:end-col 19 :scope-end-col 25}]
+     (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use))))
   (let [a (analyze "(let [a 0 a a] a)" {:config {:output {:analysis {:locals true}}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]
     (assert-submaps
-      [{:end-col 8 :scope-end-col 18}
-       {:end-col 12 :scope-end-col 18}]
-      (:locals a))
+     [{:end-col 8 :scope-end-col 18}
+      {:end-col 12 :scope-end-col 18}]
+     (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use))))
   (let [a (analyze "(if-let [a 0] a a)" {:config {:output {:analysis {:locals true}}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]
     (assert-submaps
-      [{:end-col 11 :scope-end-col 16}]
-      (:locals a))
+     [{:end-col 11 :scope-end-col 16}]
+     (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= nil second-a second-use)))
   (let [a (analyze "(for [a [123] :let [a a] :when a] a)" {:config {:output {:analysis {:locals true}}}})
         [first-a second-a] (:locals a)
         [first-use second-use third-use] (:local-usages a)]
     (assert-submaps
-      [{:end-col 8 :scope-end-col 37}
-       {:end-col 22 :scope-end-col 37}]
-      (:locals a))
+     [{:end-col 8 :scope-end-col 37}
+      {:end-col 22 :scope-end-col 37}]
+     (:locals a))
     (is (not= (:id first-a) (:id second-a)))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use) (:id third-use))))
@@ -261,26 +261,26 @@
     (let [ana (analyze "(let [x (set 1 2 3)] (+ x 1))" {:config {:output {:analysis {:locals true}}}})
           [x] (:locals ana)]
       (assert-submaps
-        [{:row 1, :col 25,
-          :end-row 1, :end-col 26,
-          :name-row 1, :name-col 25,
-          :name-end-row 1, :name-end-col 26,
-          :name (:name x),
-          :filename "<stdin>",
-          :id 1}]
-        (:local-usages ana))))
+       [{:row 1, :col 25,
+         :end-row 1, :end-col 26,
+         :name-row 1, :name-col 25,
+         :name-end-row 1, :name-end-col 26,
+         :name (:name x),
+         :filename "<stdin>",
+         :id 1}]
+       (:local-usages ana))))
   (testing "Names are reported in binding usages when called as fn"
     (let [ana (analyze "(let [x #(set 1 2 3)] (x 1))" {:config {:output {:analysis {:locals true}}}})
           [x] (:locals ana)]
       (assert-submaps
-        [{:row 1, :col 23,
-          :end-col 28, :end-row 1,
-          :name-row 1, :name-col 24,
-          :name-end-col 25, :name-end-row 1,
-          :name (:name x),
-          :filename "<stdin>",
-          :id 1}]
-        (:local-usages ana))))
+       [{:row 1, :col 23,
+         :end-col 28, :end-row 1,
+         :name-row 1, :name-col 24,
+         :name-end-col 25, :name-end-row 1,
+         :name (:name x),
+         :filename "<stdin>",
+         :id 1}]
+       (:local-usages ana))))
   (testing "generated nodes should not be included on analysis"
     (let [ana (analyze "(cond-> {:a 1 :b 2} true (merge {}))" {:config {:output {:analysis {:locals true}}}})]
       (is (empty? (:locals ana)))
@@ -295,68 +295,68 @@
      '[{:name foo :name-row 1 :name-col 7 :name-end-row 1 :name-end-col 10 :end-row 1 :end-col 18}]
      var-definitions)
     (assert-submaps
-      '[{:name foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17} {}]
-      var-usages))
+     '[{:name foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17} {}]
+     var-usages))
   (let [{:keys [:var-definitions :var-usages]} (analyze "(defprotocol Foo (bar [])) Foo bar" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
-      '[{:name Foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17 :end-row 1 :end-col 27}
-        {:name bar :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22 :end-row 1 :end-col 27}]
-      var-definitions)
+     '[{:name Foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17 :end-row 1 :end-col 27}
+       {:name bar :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22 :end-row 1 :end-col 27}]
+     var-definitions)
     (assert-submaps
-      '[{}
-        {:name Foo
-         :name-end-col 31,
-         :name-end-row 1,
-         :name-row 1,
-         :name-col 28}
-        {:name bar
-         :name-end-col 35,
-         :name-end-row 1,
-         :name-row 1,
-         :name-col 32}]
-      var-usages))
+     '[{}
+       {:name Foo
+        :name-end-col 31,
+        :name-end-row 1,
+        :name-row 1,
+        :name-col 28}
+       {:name bar
+        :name-end-col 35,
+        :name-end-row 1,
+        :name-row 1,
+        :name-col 32}]
+     var-usages))
   (let [{:keys [:namespace-definitions :namespace-usages]} (analyze "(ns foo (:require [bar :as b :refer [x]] [clojure [string :as str]]))" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
-      '[{:name foo
-         :name-end-col 8,
-         :name-end-row 1,
-         :name-row 1,
-         :name-col 5}]
-      namespace-definitions)
+     '[{:name foo
+        :name-end-col 8,
+        :name-end-row 1,
+        :name-row 1,
+        :name-col 5}]
+     namespace-definitions)
     (assert-submaps
-      '[{:alias b
-         :alias-end-col 29,
-         :alias-end-row 1,
-         :alias-row 1,
-         :alias-col 28
-         :name-row 1
-         :name-col 20
-         :name-end-row 1
-         :name-end-col 23}
-        {:alias str
-         :alias-end-col 66,
-         :alias-end-row 1,
-         :alias-row 1,
-         :alias-col 63
-         :name-row 1
-         :name-col 52
-         :name-end-row 1
-         :name-end-col 58}]
-      namespace-usages))
+     '[{:alias b
+        :alias-end-col 29,
+        :alias-end-row 1,
+        :alias-row 1,
+        :alias-col 28
+        :name-row 1
+        :name-col 20
+        :name-end-row 1
+        :name-end-col 23}
+       {:alias str
+        :alias-end-col 66,
+        :alias-end-row 1,
+        :alias-row 1,
+        :alias-col 63
+        :name-row 1
+        :name-col 52
+        :name-end-row 1
+        :name-end-col 58}]
+     namespace-usages))
   (let [{:keys [:var-definitions :var-usages]} (analyze "(try (catch Exception foo foo))" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
-      '[]
-      var-definitions)
+     '[]
+     var-definitions)
     (assert-submaps
-      '[{:name-row 1 :name-col 13 :name-end-row 1 :name-end-col 22} {}]
-      var-usages))
+     '[{:name-row 1 :name-col 13 :name-end-row 1 :name-end-col 22} {}]
+     var-usages))
   (let [{:keys [:var-definitions :var-usages]} (analyze "(def a (atom nil)) (:foo @a)" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
-      '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7 :end-row 1 :end-col 19}]
-      var-definitions)
+     '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7 :end-row 1 :end-col 19}]
+     var-definitions)
     (assert-submaps
-      '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
-      var-usages)))
+     '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
+     var-usages)))
 
 (deftest scope-usage-test
   (testing "when the var-usage is called as function"
@@ -639,11 +639,11 @@
                   b/y
                   bar/z")]
     (assert-submaps
-      '[{:to bar :alias b :name w}
-        {:to bar :name x}
-        {:to bar :alias b :name y}
-        {:to bar :name z}]
-      var-usages)))
+     '[{:to bar :alias b :name w}
+       {:to bar :name x}
+       {:to bar :alias b :name y}
+       {:to bar :name z}]
+     var-usages)))
 
 (deftest analysis-arglists-test
   (testing "arglist-strs are present on definitions"
@@ -655,30 +655,30 @@
                     (defmacro f5 [l m])"
                    {:config {:output {:analysis {:arglists true}}}})]
       (assert-submaps
-        '[{:name f1,
-           :defined-by clojure.core/defn
-           :arglist-strs ["[d]"]}
-          {:name f2,
-           :defined-by clojure.core/defn
-           :arglist-strs ["[e]" "[f f']"]}
-          {:name f3,
-           :defined-by clojure.core/defprotocol
-           :arglist-strs ["[g]"]}
-          {}
-          {:name f4,
-           :defined-by clojure.core/defprotocol
-           :arglist-strs ["[h]" "[i i']"]}
-          {}
-          {:name ->A
-           :defined-by clojure.core/defrecord
-           :arglist-strs ["[j k]"]}
-          {:name map->A
-           :defined-by clojure.core/defrecord
-           :arglist-strs ["[m]"]}
-          {:name f5
-           :defined-by clojure.core/defmacro
-           :arglist-strs ["[l m]"]}]
-        var-definitions))))
+       '[{:name f1,
+          :defined-by clojure.core/defn
+          :arglist-strs ["[d]"]}
+         {:name f2,
+          :defined-by clojure.core/defn
+          :arglist-strs ["[e]" "[f f']"]}
+         {:name f3,
+          :defined-by clojure.core/defprotocol
+          :arglist-strs ["[g]"]}
+         {}
+         {:name f4,
+          :defined-by clojure.core/defprotocol
+          :arglist-strs ["[h]" "[i i']"]}
+         {}
+         {:name ->A
+          :defined-by clojure.core/defrecord
+          :arglist-strs ["[j k]"]}
+         {:name map->A
+          :defined-by clojure.core/defrecord
+          :arglist-strs ["[m]"]}
+         {:name f5
+          :defined-by clojure.core/defmacro
+          :arglist-strs ["[l m]"]}]
+       var-definitions))))
 
 (deftest analysis-is-valid-edn-test
   (testing "solution for GH-476, CLJS with string require"
@@ -770,8 +770,8 @@
         (analyze "(require '[clojure [set :refer [union]]])")]
     (is (= 'clojure.set (:to (first namespace-usages))))
     (assert-submaps
-      '[{:name union :name-row 1 :name-end-row 1 :name-col 33 :name-end-col 38}
-        {:name require :name-row 1 :name-end-row 1 :name-col 2 :name-end-col 9}]
+     '[{:name union :name-row 1 :name-end-row 1 :name-col 33 :name-end-col 38}
+       {:name require :name-row 1 :name-end-row 1 :name-col 2 :name-end-col 9}]
      var-usages)))
 
 (deftest hof-test
@@ -784,3 +784,243 @@
     (is (every? (fn [usage]
                   (or (not  (= 'foo (:name usage)))
                       (= 'foo (:from-var usage)))) var-usages))))
+
+(defn- ana-var-meta [s cfg]
+  (-> (with-in-str s
+        (clj-kondo/run! {:lint ["-"] :config
+                         {:output
+                          {:analysis
+                           {:var-definitions
+                            cfg}}}}))
+      :analysis :var-definitions first))
+
+(defn- ana-def-expected [m]
+  (merge {:row 1 :col 1 :end-row 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
+          :ns 'user :name 'x :defined-by 'clojure.core/def} m))
+
+(defn- ana-defn-expected [m]
+  (merge {:row 1 :col 1 :end-row 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
+          :ns 'user :name 'my-fn :defined-by 'clojure.core/defn} m))
+
+(deftest meta-var-test
+  (testing "def"
+    (testing "all"
+      (is (= (ana-def-expected {:meta {:no-doc true}
+                                :end-col 22
+                                :name-col 15
+                                :name-end-col 16})
+             (ana-var-meta "(def ^:no-doc x true)"
+                           {:meta true}))))
+    (testing "specific"
+      (is (= (ana-def-expected {:meta {:no-doc true}
+                                :end-col 30
+                                :name-col 23
+                                :name-end-col 24})
+             (ana-var-meta "(def ^:no-doc ^:other x true)"
+                           {:meta [:no-doc]}))))
+    (testing "none"
+      (is (= (ana-def-expected {:end-col 30
+                                :name-col 23
+                                :name-end-col 24})
+             (-> (with-in-str "(def ^:no-doc ^:other x true)"
+                   (clj-kondo/run! {:lint ["-"] :config
+                                    {:output
+                                     {:analysis true}}}))
+                 :analysis :var-definitions first))))
+    (testing "we don't clobber :user-meta"
+      (is (= (ana-def-expected {:meta {:user-meta :foo-bar}
+                                :end-col 36
+                                :name-col 29
+                                :name-end-col 30})
+             (ana-var-meta "(def ^{:user-meta :foo-bar} x true)"
+                           {:meta true}))))
+    (testing "when user specifies metadata with same keys as positional metadata, it is returned"
+      (is (= (ana-def-expected {:meta {:row :r
+                                       :col :c
+                                       :end-col :ec
+                                       :end-row :er
+                                       :name-row :nr :name-col :nc
+                                       :name-end-row :ner
+                                       :name-end-col :nec
+                                       :cool :yes}
+                                :name-col 128
+                                :name-end-col 129
+                                :end-col 130})
+             (ana-var-meta (str "(def ^{:row :r :col :c"
+                                " :end-col :ec :end-row :er"
+                                " :name-row :nr :name-col :nc"
+                                " :name-end-row :ner :name-end-col :nec"
+                                " :cool :yes} x)")
+                           {:meta true})))))
+  (testing "defn"
+    (testing "reader macro shorthand"
+      (is (= (ana-defn-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                                 :end-col 50
+                                 :name-col 40
+                                 :name-end-col 45
+                                 :fixed-arities #{1}})
+             (ana-var-meta "(defn ^:my-meta1 ^:my-meta2 ^:my-meta3 my-fn [x])"
+                           {:meta true}))))
+    (testing "reader macro longhand"
+      (is (= (ana-defn-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                                 :end-col 65
+                                 :name-col 55
+                                 :name-end-col 60
+                                 :fixed-arities #{1}})
+             (ana-var-meta "(defn ^{:my-meta1 true :my-meta2 true :my-meta3 true} my-fn [x])"
+                           {:meta true}))))
+    (testing "attr-map"
+      (is (= (ana-defn-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                                 :end-col 64
+                                 :name-col 7
+                                 :name-end-col 12
+                                 :fixed-arities #{1}})
+             (ana-var-meta "(defn my-fn {:my-meta1 true :my-meta2 true :my-meta3 true} [x])"
+                           {:meta true}))))
+    (testing "docs, if specified as doc-string, is not returned under :meta"
+      (is (= (ana-defn-expected {:meta {:my-meta-here true}
+                                 :end-col 53
+                                 :name-col 29
+                                 :name-end-col 34
+                                 :doc "some fn docs"
+                                 :fixed-arities #{0}})
+             (ana-var-meta "(defn ^{:my-meta-here true} my-fn \"some fn docs\" [])"
+                           {:meta true}))))
+    (testing "docs, if specified as user coded metadata, is returned under :meta"
+      (is (= (ana-defn-expected {:meta {:my-meta-here true :doc "some fn docs"}
+                                 :end-col 58
+                                 :name-col 49
+                                 :name-end-col 54
+                                 :doc "some fn docs"
+                                 :fixed-arities #{0}})
+             (ana-var-meta "(defn ^{:my-meta-here true :doc \"some fn docs\"} my-fn [])"
+                           {:meta true}))))
+    (testing "metadata reader-macro and attr-map are merged"
+      (is (= (ana-defn-expected {:meta {:deprecated true :added "1.2.3"}
+                                 :end-col 64
+                                 :name-col 38
+                                 :name-end-col 43
+                                 :added "1.2.3"
+                                 :deprecated true
+                                 :fixed-arities #{0}})
+             (ana-var-meta "(defn ^:deprecated ^{:added \"0.1.2\"} my-fn {:added \"1.2.3\"} [])"
+                           {:meta true}))))
+    (testing "user meta does not clobber our meta"
+      (is (= (ana-defn-expected {:meta {:user-meta :foo-bar
+                                        :row :r
+                                        :col :c
+                                        :end-col :ec
+                                        :end-row :er
+                                        :name-row :nr :name-col :nc
+                                        :name-end-row :ner
+                                        :name-end-col :nec
+                                        :cool :yes}
+                                 :name-col 149
+                                 :name-end-col 154
+                                 :end-col 158
+                                 :fixed-arities #{0}})
+             (ana-var-meta (str "(defn ^{:user-meta :foo-bar"
+                                " :row :r :col :c"
+                                " :end-col :ec :end-row :er"
+                                " :name-row :nr :name-col :nc"
+                                " :name-end-row :ner :name-end-col :nec"
+                                " :cool :yes} my-fn [])")
+                           {:meta true}))))
+    (testing "2nd attr-map is currently ignored in obscure (?) syntax"
+      (is (= (ana-defn-expected {:meta {:deprecated true :added "1.2.3"}
+                                 :end-col 83
+                                 :name-col 38
+                                 :name-end-col 43
+                                 :added "1.2.3"
+                                 :deprecated true
+                                 :fixed-arities #{0}})
+             (ana-var-meta "(defn ^:deprecated ^{:added \"0.1.2\"} my-fn {:added \"1.2.3\"} ([]) {:added \"hmmm?\"})"
+                           {:meta true}))))))
+
+(defn- ana-ns-meta [s cfg]
+  (-> (with-in-str s
+        (clj-kondo/run! {:lint ["-"] :config
+                         {:output
+                          {:analysis
+                           {:namespace-definitions
+                            cfg}}}}))
+      :analysis :namespace-definitions first))
+
+(defn- ana-ns-expected [m]
+  (merge {:row 1 :col 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
+          :name 'my.ns.here} m))
+
+(deftest meta-ns-test
+  (testing "return all"
+    (testing "reader-macro shorthand"
+      (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                               :name-col 38
+                               :name-end-col 48
+                               :doc "some ns docs"})
+             (ana-ns-meta "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here \"some ns docs\")"
+                          {:meta true}))))
+    (testing "reader-macro longhand"
+      (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                               :name-col 53
+                               :name-end-col 63
+                               :doc "some ns docs"})
+             (ana-ns-meta "(ns ^{:my-meta1 true :my-meta2 true :my-meta3 true} my.ns.here \"some ns docs\")"
+                          {:meta true}))))
+    (testing "attr-map"
+      (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                               :name-col 5
+                               :name-end-col 15
+                               :doc "some ns docs"})
+             (ana-ns-meta "(ns my.ns.here \"some ns docs\" {:my-meta1 true :my-meta2 true :my-meta3 true})"
+                          {:meta true}))))
+    (testing "metadata reader-macro and attr-map are merged"
+      (is (= (ana-ns-expected {:meta {:deprecated true :added "1.2.3"}
+                               :name-col 36
+                               :name-end-col 46
+                               :deprecated true
+                               :added "1.2.3"})
+             (ana-ns-meta "(ns ^:deprecated ^{:added \"0.1.2\"} my.ns.here {:added \"1.2.3\"} [])"
+                          {:meta true}))))
+    (testing "docs, if specified as user coded metadata, is returned (docstring string is not metadata)"
+      (is (= (ana-ns-expected {:meta {:my-meta-here true :doc "some ns docs"}
+                               :name-col 47
+                               :name-end-col 57})
+             (ana-ns-meta "(ns ^{:my-meta-here true :doc \"some ns docs\"} my.ns.here)"
+                          {:meta true}))))
+    (testing "we don't clobber :user-meta"
+      (is (= (ana-ns-expected {:meta {:user-meta :foo-bar}
+                               :name-col 28
+                               :name-end-col 38})
+             (ana-ns-meta "(ns ^{:user-meta :foo-bar} my.ns.here)"
+                           {:meta true})))))
+  (testing "return specific"
+    (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta3 true}
+                             :name-col 38
+                             :name-end-col 48})
+           (ana-ns-meta "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
+                        {:meta #{:my-meta1 :my-meta3}}))))
+  (testing "when user specifies metadata with same keys as positional metadata, it is returned"
+    (is (= (ana-ns-expected {:meta {:row :r
+                                    :col :c
+                                    :end-col :ec
+                                    :end-row :er
+                                    :name-row :nr :name-col :nc
+                                    :name-end-row :ner
+                                    :name-end-col :nec
+                                    :cool :yes}
+                             :name-col 127
+                             :name-end-col 137})
+           (ana-ns-meta (str "(ns ^{:row :r :col :c"
+                             " :end-col :ec :end-row :er"
+                             " :name-row :nr :name-col :nc"
+                             " :name-end-row :ner :name-end-col :nec"
+                             " :cool :yes} my.ns.here)")
+                        {:meta true}))))
+  (testing "request none"
+    (is (= (ana-ns-expected {:name-col 38
+                             :name-end-col 48})
+           (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
+                 (clj-kondo/run! {:lint ["-"] :config
+                                  {:output
+                                   {:analysis true}}}))
+               :analysis :namespace-definitions first)))))

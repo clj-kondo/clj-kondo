@@ -364,7 +364,7 @@
         col (:col m)
         children (next (:children expr))
         ns-name-expr (first children)
-        ns-name-expr  (meta/lift-meta-content2 ctx ns-name-expr)
+        ns-name-expr (meta/lift-meta-content2 ctx ns-name-expr)
         metadata (meta ns-name-expr)
         children (next children) ;; first = docstring, attr-map or libspecs
         fc (first children)
@@ -378,9 +378,9 @@
                           (when (= :map (tag sc))
                             sc)))))
         _ (when meta-node (common/analyze-expression** ctx meta-node))
-        ns-meta (if meta-node
-                  (merge metadata
-                         (sexpr meta-node))
+        meta-node-meta (when meta-node (sexpr meta-node))
+        ns-meta (if meta-node-meta
+                  (merge metadata meta-node-meta)
                   metadata)
         global-config (:global-config ctx)
         local-config (-> ns-meta :clj-kondo/config)
@@ -457,6 +457,8 @@
     (when (-> ctx :config :output :analysis)
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some {}
+                                                         :user-meta (when (:analysis-ns-meta ctx)
+                                                                      (conj (:user-meta metadata) meta-node-meta))
                                                          :name-row (:row metadata)
                                                          :name-col (:col metadata)
                                                          :name-end-row (:end-row metadata)

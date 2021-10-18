@@ -1,9 +1,9 @@
 (ns clj-kondo.impl.metadata
   {:no-doc true}
   (:require
-    [clj-kondo.impl.analyzer.common :as common]
-    [clj-kondo.impl.linters.keys :as key-linter]
-    [clj-kondo.impl.utils :as utils]))
+   [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.linters.keys :as key-linter]
+   [clj-kondo.impl.utils :as utils]))
 
 (defn meta-node->map [ctx node]
   (let [s (utils/sexpr node)]
@@ -19,7 +19,7 @@
 
 (defn lift-meta-content2
   ([ctx node] (lift-meta-content2 ctx node false))
-  ([{:keys [:lang] :as ctx} node only-usage?]
+  ([{:keys [:analyze-meta? :lang] :as ctx} node only-usage?]
    (if-let [meta-list (:meta node)]
      (let [meta-list (if (identical? :cljc (:base-lang ctx))
                        (map #(utils/select-lang % lang) meta-list)
@@ -49,9 +49,16 @@
                      meta-list))
            meta-maps (map #(meta-node->map ctx %) meta-list)
            meta-map (apply merge meta-maps)
-           node (-> node
-                    (dissoc :meta)
-                    (with-meta (merge (meta node) meta-map)))]
+           meta-map (if analyze-meta?
+                      (assoc meta-map :user-meta [meta-map])
+                      meta-map)
+           node (dissoc node :meta)
+           node (let [new-meta (->
+                                ;; clear user-coded metadata that can conflict with clj-kondo
+                                ;; clj-kondo only sometimes sets these but later always checks them
+                                (dissoc meta-map :name-row :name-col :name-end-row :name-end-col))
+                      new-meta (merge new-meta (meta node))]
+                  (with-meta node new-meta))]
        node)
      node)))
 
