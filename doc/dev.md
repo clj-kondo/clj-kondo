@@ -59,7 +59,7 @@ reasons:
 ## Invoking clj-kondo from the command line
 
 ```
-$ clojure -A:clj-kondo --lint - <<< "(defn foo [x] (if-let [x 1] x x x))"
+$ clojure -M:clj-kondo/dev --lint - <<< "(defn foo [x] (if-let [x 1] x x x))"
 <stdin>:1:15: error: if-let body requires one or two forms
 linting took 73ms, errors: 1, warnings: 0
 ```
@@ -76,13 +76,13 @@ To get a REPL that also includes the test source directory, run:
 
 This is how [borkdude](https://github.com/borkdude) starts his REPL using CIDER:
 
-    clojure -A:test:cider-nrepl
+    clojure -M:test:cider-nrepl
 
 The `test` alias includes sources in the `test` directory on the classpath.
 
 Once started, he connect from Emacs using `cider-connect`. You may prefer to use `cider-jack-in` instead.
 
-The alias `cider-nrepl` is defined in his `~/.clojure/deps.edn`:
+The alias `cider-nrepl` is defined in his `~/.clojure/deps.edn` (update versions as appropriate):
 
 ``` clojure
 :cider-nrepl
@@ -110,7 +110,7 @@ To test the [native](#native) binary of clj-kondo, run:
 
 To test a single namespace:
 
-    clojure -A:test -n clj-kondo.impl.types-test
+    clojure -M:test -n clj-kondo.impl.types-test
 
 or:
 
@@ -118,7 +118,7 @@ or:
 
 To run a single test:
 
-    clojure -A:test -v clj-kondo.impl.types-test/x-is-y-implies-y-could-be-x
+    clojure -M:test -v clj-kondo.impl.types-test/x-is-y-implies-y-could-be-x
 
 or:
 
@@ -131,7 +131,7 @@ In case of an exception, you may want to prefix the above lines with `CLJ_KONDO_
 Profiling using [clj-async-profiler](https://github.com/clojure-goes-fast/clj-async-profiler) can be done as follows:
 
 ``` shell
-$ clojure -A:profiler --lint src test
+$ clojure -M:profiler --lint src test
 ```
 
 A flamegraph will be produced in `/tmp/clj-async-profiler/results`.
