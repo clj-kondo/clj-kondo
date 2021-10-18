@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submaps submap?]]
+   [clj-kondo.test-utils :refer [assert-submaps]]
    [clojure.edn :as edn]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -785,20 +785,242 @@
                   (or (not  (= 'foo (:name usage)))
                       (= 'foo (:from-var usage)))) var-usages))))
 
-(deftest meta-fn-test
-  (is (submap? '{:no-doc true :name x}
-               (-> (with-in-str "(def ^:no-doc x true)"
-                     (clj-kondo/run! {:lint ["-"] :config
-                                      {:output
-                                       {:analysis
-                                        {:var-definitions
-                                         {:meta true}}}}}))
-                   :analysis :var-definitions first :meta)))
-  (is (= {:no-doc true}
-         (-> (with-in-str "(def ^:no-doc x true)"
-               (clj-kondo/run! {:lint ["-"] :config
-                                {:output
-                                 {:analysis
-                                  {:var-definitions
-                                   {:meta #(select-keys % [:no-doc])}}}}}))
-             :analysis :var-definitions first :meta))))
+(defn- ana-var-meta [s cfg]
+  (-> (with-in-str s
+        (clj-kondo/run! {:lint ["-"] :config
+                         {:output
+                          {:analysis
+                           {:var-definitions
+                            cfg}}}}))
+      :analysis :var-definitions first))
+
+(defn- ana-def-expected [m]
+  (merge {:row 1 :col 1 :end-row 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
+          :ns 'user :name 'x :defined-by 'clojure.core/def} m))
+
+(defn- ana-defn-expected [m]
+  (merge {:row 1 :col 1 :end-row 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
+          :ns 'user :name 'my-fn :defined-by 'clojure.core/defn} m))
+
+(deftest meta-var-test
+  (testing "def"
+    (testing "all"
+      (is (= (ana-def-expected {:meta {:no-doc true}
+                                :end-col 22
+                                :name-col 15
+                                :name-end-col 16})
+             (ana-var-meta "(def ^:no-doc x true)"
+                           {:meta true}))))
+    (testing "specific"
+      (is (= (ana-def-expected {:meta {:no-doc true}
+                                :end-col 30
+                                :name-col 23
+                                :name-end-col 24})
+             (ana-var-meta "(def ^:no-doc ^:other x true)"
+                           {:meta [:no-doc]}))))
+    (testing "none"
+      (is (= (ana-def-expected {:end-col 30
+                                :name-col 23
+                                :name-end-col 24})
+             (-> (with-in-str "(def ^:no-doc ^:other x true)"
+                   (clj-kondo/run! {:lint ["-"] :config
+                                    {:output
+                                     {:analysis true}}}))
+                 :analysis :var-definitions first))))
+    (testing "we don't clobber :user-meta"
+      (is (= (ana-def-expected {:meta {:user-meta :foo-bar}
+                                :end-col 36
+                                :name-col 29
+                                :name-end-col 30})
+             (ana-var-meta "(def ^{:user-meta :foo-bar} x true)"
+                           {:meta true}))))
+    (testing "when user specifies metadata with same keys as positional metadata, it is returned"
+      (is (= (ana-def-expected {:meta {:row :r
+                                       :col :c
+                                       :end-col :ec
+                                       :end-row :er
+                                       :name-row :nr :name-col :nc
+                                       :name-end-row :ner
+                                       :name-end-col :nec
+                                       :cool :yes}
+                                :name-col 128
+                                :name-end-col 129
+                                :end-col 130})
+             (ana-var-meta (str "(def ^{:row :r :col :c"
+                                " :end-col :ec :end-row :er"
+                                " :name-row :nr :name-col :nc"
+                                " :name-end-row :ner :name-end-col :nec"
+                                " :cool :yes} x)")
+                           {:meta true})))))
+  (testing "defn"
+    (testing "reader macro shorthand"
+      (is (= (ana-defn-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                                 :end-col 50
+                                 :name-col 40
+                                 :name-end-col 45
+                                 :fixed-arities #{1}})
+             (ana-var-meta "(defn ^:my-meta1 ^:my-meta2 ^:my-meta3 my-fn [x])"
+                           {:meta true}))))
+    (testing "reader macro longhand"
+      (is (= (ana-defn-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                                 :end-col 65
+                                 :name-col 55
+                                 :name-end-col 60
+                                 :fixed-arities #{1}})
+             (ana-var-meta "(defn ^{:my-meta1 true :my-meta2 true :my-meta3 true} my-fn [x])"
+                           {:meta true}))))
+    (testing "attr-map"
+      (is (= (ana-defn-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                                 :end-col 64
+                                 :name-col 7
+                                 :name-end-col 12
+                                 :fixed-arities #{1}})
+             (ana-var-meta "(defn my-fn {:my-meta1 true :my-meta2 true :my-meta3 true} [x])"
+                           {:meta true}))))
+    (testing "docs, if specified as doc-string, is not returned under :meta"
+      (is (= (ana-defn-expected {:meta {:my-meta-here true}
+                                 :end-col 53
+                                 :name-col 29
+                                 :name-end-col 34
+                                 :doc "some fn docs"
+                                 :fixed-arities #{0}})
+             (ana-var-meta "(defn ^{:my-meta-here true} my-fn \"some fn docs\" [])"
+                           {:meta true}))))
+    (testing "docs, if specified as user coded metadata, is returned under :meta"
+      (is (= (ana-defn-expected {:meta {:my-meta-here true :doc "some fn docs"}
+                                 :end-col 58
+                                 :name-col 49
+                                 :name-end-col 54
+                                 :doc "some fn docs"
+                                 :fixed-arities #{0}})
+             (ana-var-meta "(defn ^{:my-meta-here true :doc \"some fn docs\"} my-fn [])"
+                           {:meta true}))))
+    (testing "metadata reader-macro and attr-map are merged"
+      (is (= (ana-defn-expected {:meta {:deprecated true :added "1.2.3"}
+                                 :end-col 64
+                                 :name-col 38
+                                 :name-end-col 43
+                                 :added "1.2.3"
+                                 :deprecated true
+                                 :fixed-arities #{0}})
+             (ana-var-meta "(defn ^:deprecated ^{:added \"0.1.2\"} my-fn {:added \"1.2.3\"} [])"
+                           {:meta true}))))
+    (testing "user meta does not clobber our meta"
+      (is (= (ana-defn-expected {:meta {:user-meta :foo-bar
+                                        :row :r
+                                        :col :c
+                                        :end-col :ec
+                                        :end-row :er
+                                        :name-row :nr :name-col :nc
+                                        :name-end-row :ner
+                                        :name-end-col :nec
+                                        :cool :yes}
+                                 :name-col 149
+                                 :name-end-col 154
+                                 :end-col 158
+                                 :fixed-arities #{0}})
+             (ana-var-meta (str "(defn ^{:user-meta :foo-bar"
+                                " :row :r :col :c"
+                                " :end-col :ec :end-row :er"
+                                " :name-row :nr :name-col :nc"
+                                " :name-end-row :ner :name-end-col :nec"
+                                " :cool :yes} my-fn [])")
+                           {:meta true}))))
+    (testing "2nd attr-map is currently ignored in obscure (?) syntax"
+      (is (= (ana-defn-expected {:meta {:deprecated true :added "1.2.3"}
+                                 :end-col 83
+                                 :name-col 38
+                                 :name-end-col 43
+                                 :added "1.2.3"
+                                 :deprecated true
+                                 :fixed-arities #{0}})
+             (ana-var-meta "(defn ^:deprecated ^{:added \"0.1.2\"} my-fn {:added \"1.2.3\"} ([]) {:added \"hmmm?\"})"
+                           {:meta true}))))))
+
+(defn- ana-ns-meta [s cfg]
+  (-> (with-in-str s
+        (clj-kondo/run! {:lint ["-"] :config
+                         {:output
+                          {:analysis
+                           {:namespace-definitions
+                            cfg}}}}))
+      :analysis :namespace-definitions first))
+
+(defn- ana-ns-expected [m]
+  (merge {:row 1 :col 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
+          :name 'my.ns.here} m))
+
+(deftest meta-ns-test
+  (testing "return all"
+    (testing "reader-macro shorthand"
+      (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                               :name-col 38
+                               :name-end-col 48
+                               :doc "some ns docs"})
+             (ana-ns-meta "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here \"some ns docs\")"
+                          {:meta true}))))
+    (testing "reader-macro longhand"
+      (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                               :name-col 53
+                               :name-end-col 63
+                               :doc "some ns docs"})
+             (ana-ns-meta "(ns ^{:my-meta1 true :my-meta2 true :my-meta3 true} my.ns.here \"some ns docs\")"
+                          {:meta true}))))
+    (testing "attr-map"
+      (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
+                               :name-col 5
+                               :name-end-col 15
+                               :doc "some ns docs"})
+             (ana-ns-meta "(ns my.ns.here \"some ns docs\" {:my-meta1 true :my-meta2 true :my-meta3 true})"
+                          {:meta true}))))
+    (testing "metadata reader-macro and attr-map are merged"
+      (is (= (ana-ns-expected {:meta {:deprecated true :added "1.2.3"}
+                               :name-col 36
+                               :name-end-col 46
+                               :deprecated true
+                               :added "1.2.3"})
+             (ana-ns-meta "(ns ^:deprecated ^{:added \"0.1.2\"} my.ns.here {:added \"1.2.3\"} [])"
+                          {:meta true}))))
+    (testing "docs, if specified as user coded metadata, is returned (docstring string is not metadata)"
+      (is (= (ana-ns-expected {:meta {:my-meta-here true :doc "some ns docs"}
+                               :name-col 47
+                               :name-end-col 57})
+             (ana-ns-meta "(ns ^{:my-meta-here true :doc \"some ns docs\"} my.ns.here)"
+                          {:meta true}))))
+    (testing "we don't clobber :user-meta"
+      (is (= (ana-ns-expected {:meta {:user-meta :foo-bar}
+                               :name-col 28
+                               :name-end-col 38})
+             (ana-ns-meta "(ns ^{:user-meta :foo-bar} my.ns.here)"
+                           {:meta true})))))
+  (testing "return specific"
+    (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta3 true}
+                             :name-col 38
+                             :name-end-col 48})
+           (ana-ns-meta "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
+                        {:meta #{:my-meta1 :my-meta3}}))))
+  (testing "when user specifies metadata with same keys as positional metadata, it is returned"
+    (is (= (ana-ns-expected {:meta {:row :r
+                                    :col :c
+                                    :end-col :ec
+                                    :end-row :er
+                                    :name-row :nr :name-col :nc
+                                    :name-end-row :ner
+                                    :name-end-col :nec
+                                    :cool :yes}
+                             :name-col 127
+                             :name-end-col 137})
+           (ana-ns-meta (str "(ns ^{:row :r :col :c"
+                             " :end-col :ec :end-row :er"
+                             " :name-row :nr :name-col :nc"
+                             " :name-end-row :ner :name-end-col :nec"
+                             " :cool :yes} my.ns.here)")
+                        {:meta true}))))
+  (testing "request none"
+    (is (= (ana-ns-expected {:name-col 38
+                             :name-end-col 48})
+           (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
+                 (clj-kondo/run! {:lint ["-"] :config
+                                  {:output
+                                   {:analysis true}}}))
+               :analysis :namespace-definitions first)))))

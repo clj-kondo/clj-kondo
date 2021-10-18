@@ -19,7 +19,7 @@
 
 (defn lift-meta-content2
   ([ctx node] (lift-meta-content2 ctx node false))
-  ([{:keys [:lang] :as ctx} node only-usage?]
+  ([{:keys [:analyze-meta? :lang] :as ctx} node only-usage?]
    (if-let [meta-list (:meta node)]
      (let [meta-list (if (identical? :cljc (:base-lang ctx))
                        (map #(utils/select-lang % lang) meta-list)
@@ -49,9 +49,17 @@
                      meta-list))
            meta-maps (map #(meta-node->map ctx %) meta-list)
            meta-map (apply merge meta-maps)
+           meta-map (if analyze-meta?
+                      (assoc meta-map :user-meta [meta-map])
+                      meta-map)
+           ;; clear user-coded metadata that can conflict with clj-kondo
+           ;; clj-kondo only sometimes sets these but later always checks them
+           meta-map (if (seq meta-map)
+                      (dissoc meta-map :name-row :name-col :name-end-row :name-end-col)
+                      meta-map)
            node (-> node
                     (dissoc :meta)
-                    (with-meta (merge (meta node) meta-map)))]
+                    (with-meta (merge meta-map (meta node))))]
        node)
      node)))
 
