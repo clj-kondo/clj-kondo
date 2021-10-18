@@ -1,6 +1,10 @@
 (ns clj-kondo.impl.overrides
   {:no-doc true})
 
+;; TODO: we can do this more intelligently. E.g. only override when we actually
+;; have linted clojure.core and ont he way to the cache override it, so the
+;; transit will contain the right info and we don't have to do this at runtime.
+
 (defn overrides
   "Overrides var information. The way this is done looks a bit verbose,
   but it's faster than merging one giant map."
@@ -35,6 +39,14 @@
                                                   :name set!
                                                   :macro true
                                                   :fixed-arities #{2}})
+      (update-in '[:clj :defs clojure.core if-some] (fn [var]
+                                                      (-> var
+                                                          (dissoc :varargs-min-arity)
+                                                          (assoc :fixed-arities #{2 3}))))
+      (update-in '[:clj :defs clojure.core if-let] (fn [var]
+                                                     (-> var
+                                                         (dissoc :varargs-min-arity)
+                                                         (assoc :fixed-arities #{2 3}))))
       ;; cljs.core
       (assoc-in '[:cljs :defs cljs.core array :varargs-min-arity] 0)
       (assoc-in '[:cljc :defs cljs.core :clj def] '{:ns cljs.core
@@ -85,11 +97,27 @@
                                                     :name var
                                                     :macro true
                                                     :fixed-arities #{1}})
-      (assoc-in '[:cljc :defs clojure.core :clj set!] '{:ns cljs.core
-                                                        :name set!
-                                                        :macro true
-                                                        :fixed-arities #{2}})
-      (assoc-in '[:cljc :defs clojure.core :cljs set!] '{:ns cljs.core
-                                                         :name set!
-                                                         :macro true
-                                                         :fixed-arities #{2 3}})))
+      (assoc-in '[:cljc :defs cljs.core :clj set!] '{:ns cljs.core
+                                                     :name set!
+                                                     :macro true
+                                                     :fixed-arities #{2}})
+      (assoc-in '[:cljc :defs cljs.core :cljs set!] '{:ns cljs.core
+                                                      :name set!
+                                                      :macro true
+                                                      :fixed-arities #{2 3}})
+      (update-in '[:cljc :defs cljs.core :clj if-some] (fn [var]
+                                                         (-> var
+                                                             (dissoc :varargs-min-arity)
+                                                             (assoc :fixed-arities #{2 3}))))
+      (update-in '[:cljc :defs cljs.core :cljs if-some] (fn [var]
+                                                          (-> var
+                                                              (dissoc :varargs-min-arity)
+                                                              (assoc :fixed-arities #{2 3}))))
+      (update-in '[:cljc :defs cljs.core :clj if-let] (fn [var]
+                                                        (-> var
+                                                            (dissoc :varargs-min-arity)
+                                                            (assoc :fixed-arities #{2 3}))))
+      (update-in '[:cljc :defs cljs.core :cljs if-let] (fn [var]
+                                                         (-> var
+                                                             (dissoc :varargs-min-arity)
+                                                             (assoc :fixed-arities #{2 3}))))))

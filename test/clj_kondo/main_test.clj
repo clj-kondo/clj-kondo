@@ -687,74 +687,84 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(let [err (fn [& msg])] (err 1 2 3))"))))
 
 (deftest if-let-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
-     {:file "<stdin>",
-      :row 1,
-      :col 9,
-      :level :error,
-      :message "if-let binding vector requires exactly 2 forms"})
-   (lint! "(if-let [x 1 y 2])"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "clojure.core/if-let is called with 1 arg but expects 2, 3 or more"}
-     {:file "<stdin>",
-      :row 1,
-      :col 9,
-      :level :error,
-      :message "if-let binding vector requires exactly 2 forms"})
-   (lint! "(if-let [x 1 y])"))
   (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message #"if-let is called with 1 arg but expects 2 or 3"}
+       {:file "<stdin>",
+        :row 1,
+        :col 9,
+        :level :error,
+        :message "if-let binding vector requires exactly 2 forms"})
+     (lint! "(if-let [x 1 y 2])"))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 1, :level :error,
+        :message #"if-let is called with 4 args but expects 2 or 3"}
+       {:file "<stdin>", :row 1, :col 9, :level :error,
+        :message "if-let binding vector requires exactly 2 forms"})
+     (lint! "(if-let [x 1 y 2] x 1 2)"
+            "--lang" lang))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message #"if-let is called with 1 arg but expects 2 or 3"}
+       {:file "<stdin>",
+        :row 1,
+        :col 9,
+        :level :error,
+        :message "if-let binding vector requires exactly 2 forms"})
+     (lint! "(if-let [x 1 y])"
+            "--lang" lang))
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
         :col 1,
         :level :warning,
         :message "Missing else branch."})
-     (lint! "(if-let [x 1] true)" "--lang" lang)))
-  (is (empty? (lint! "(if-let [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
+     (lint! "(if-let [x 1] true)" "--lang" lang))
+    (is (empty? (lint! "(if-let [{:keys [row col]} {:row 1 :col 2}] row 1)"
+                       "--lang" lang)))))
 
 (deftest if-some-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
-     {:file "<stdin>",
-      :row 1,
-      :col 10,
-      :level :error,
-      :message "if-some binding vector requires exactly 2 forms"})
-   (lint! "(if-some [x 1 y 2])"))
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :error,
-      :message "clojure.core/if-some is called with 1 arg but expects 2, 3 or more"}
-     {:file "<stdin>",
-      :row 1,
-      :col 10,
-      :level :error,
-      :message "if-some binding vector requires exactly 2 forms"})
-   (lint! "(if-some [x 1 y])"))
   (doseq [lang ["clj" "cljs"]]
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message #"if-some is called with 1 arg but expects 2 or 3"}
+       {:file "<stdin>",
+        :row 1,
+        :col 10,
+        :level :error,
+        :message "if-some binding vector requires exactly 2 forms"})
+     (lint! "(if-some [x 1 y 2])" "--lang" lang))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :error,
+        :message #"if-some is called with 1 arg but expects 2 or 3"}
+       {:file "<stdin>",
+        :row 1,
+        :col 10,
+        :level :error,
+        :message "if-some binding vector requires exactly 2 forms"})
+     (lint! "(if-some [x 1 y])" "--lang" lang))
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
         :col 1,
         :level :warning,
         :message "Missing else branch."})
-     (lint! "(if-some [x 1] true)" "--lang" lang)))
-  (is (empty? (lint! "(if-some [{:keys [row col]} {:row 1 :col 2}] row 1)"))))
+     (lint! "(if-some [x 1] true)" "--lang" lang))
+    (is (empty? (lint! "(if-some [{:keys [row col]} {:row 1 :col 2}] row 1)"
+                       "--lang" lang)))))
 
 (deftest when-let-test
   (assert-submap
