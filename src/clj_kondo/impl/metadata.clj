@@ -52,12 +52,14 @@
            meta-map (if analyze-meta?
                       (assoc meta-map :user-meta [meta-map])
                       meta-map)
+           ;; clear user-coded metadata that can conflict with clj-kondo
+           ;; clj-kondo only sometimes sets these but later always checks them
+           meta-map (if (seq meta-map)
+                      (dissoc meta-map :name-row :name-col :name-end-row :name-end-col)
+                      meta-map)
            node (-> node
                     (dissoc :meta)
-                    (with-meta (-> meta-map
-                                   (merge (meta node))
-                                   ;; clear out positional root keys we rely on, but only sometimes set
-                                   (dissoc :name-row :name-col :name-end-row :name-end-col))))]
+                    (with-meta (merge meta-map (meta node))))]
        node)
      node)))
 
