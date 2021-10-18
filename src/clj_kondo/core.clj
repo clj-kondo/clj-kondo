@@ -180,14 +180,14 @@
         _ (when custom-lint-fn
             (binding [utils/*ctx* ctx]
               (custom-lint-fn (cond->
-                               {:config config
-                                :reg-finding!
-                                (fn [m]
-                                  (findings/reg-finding!
-                                   (assoc utils/*ctx*
-                                          :lang (or (:lang m)
-                                                    (core-impl/lang-from-file
-                                                     (:filename m) lang))) m))}
+                                  {:config config
+                                   :reg-finding!
+                                   (fn [m]
+                                     (findings/reg-finding!
+                                       (assoc utils/*ctx*
+                                              :lang (or (:lang m)
+                                                        (core-impl/lang-from-file
+                                                          (:filename m) lang))) m))}
                                 analysis-cfg
                                 (assoc :analysis @analysis)))))
         all-findings @findings
@@ -197,9 +197,9 @@
         duration (- (System/currentTimeMillis) start-time)
         summary (assoc summary :duration duration :files @files)]
     (cond->
-     {:findings all-findings
-      :config config
-      :summary summary}
+        {:findings all-findings
+         :config config
+         :summary summary}
       analysis-cfg
       (assoc :analysis @analysis))))
 

@@ -37,7 +37,7 @@
                (update :callstack conj [nil :metadata])
                (utils/ctx-with-bindings
                 (cond->
-                 type-hint-bindings
+                    type-hint-bindings
                   cljs?
                   (assoc 'js {}
                          'number {}))))
@@ -65,6 +65,4 @@
 
 (comment
   (meta (lift-meta-content2 {:findings (atom [])} (clj-kondo.impl.utils/parse-string "^{:a 1 :a 2} []")))
-
-
   )
