@@ -53,10 +53,10 @@
                       (assoc meta-map :user-meta [meta-map])
                       meta-map)
            node (dissoc node :meta)
-           node (let [new-meta (->
-                                ;; clear user-coded metadata that can conflict with clj-kondo
-                                ;; clj-kondo only sometimes sets these but later always checks them
-                                (dissoc meta-map :name-row :name-col :name-end-row :name-end-col))
+           node (let [new-meta
+                      ;; clear user-coded metadata that can conflict with clj-kondo
+                      ;; clj-kondo only sometimes sets these but later always checks them
+                      (dissoc meta-map :name-row :name-col :name-end-row :name-end-col)
                       new-meta (merge new-meta (meta node))]
                   (with-meta node new-meta))]
        node)
