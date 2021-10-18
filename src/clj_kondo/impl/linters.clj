@@ -448,11 +448,13 @@
               (or (contains? used-referred-vars k)
                   (config/unused-referred-var-excluded config var-ns k)
                   (contains? refer-all-nss var-ns))
-            (let [filename (:filename v)]
+            (let [filename (:filename v)
+                  referred-ns (export-ns-sym var-ns)]
               (findings/reg-finding!
                ctx
                (-> (node->line filename k :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
-                   (assoc :ns (export-ns-sym var-ns)
+                   (assoc :ns referred-ns
+                          :referred-ns referred-ns
                           :refer (:name v))))))))
       (doseq [[referred-all-ns {:keys [:referred :node] :as refer-all}] refer-alls
               :when (not (config/refer-all-excluded? config referred-all-ns))]

@@ -5,7 +5,7 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [node->line deep-merge linter-disabled? one-of]]
+   [clj-kondo.impl.utils :refer [export-ns-sym node->line deep-merge linter-disabled? one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
   (:import [java.util StringTokenizer]))
@@ -20,10 +20,11 @@
                (do
                  (findings/reg-finding!
                    ctx
-                   (node->line (:filename ctx)
-                               ns
-                               :duplicate-require
-                               (str "duplicate require of " ns)))
+                   (-> (node->line (:filename ctx)
+                                   ns
+                                   :duplicate-require
+                                   (str "duplicate require of " ns))
+                       (assoc :duplicate-ns (export-ns-sym ns))))
                  required)
                (conj required ns)))
            (set init)
@@ -149,27 +150,39 @@
                                  (if (= ns-sym redefined-ns)
                                    (str "redefined var #'" redefined-ns "/" var-sym)
                                    (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))
-                  (when (and (not (identical? :off (-> config :linters :missing-docstring :level)))
-                             (not (:private metadata))
-                             (not (:doc metadata))
-                             (not (:test metadata))
-                             (not temp?)
-                             (not (:imported-var metadata))
-                             (not
-                              (when-let [defined-by (or (:linted-as metadata)
-                                                        (:defined-by metadata))]
-                                (or
-                                 (= 'clojure.test/deftest defined-by)
-                                 (= 'clojure.core/deftype defined-by)
-                                 (= 'clojure.core/defrecord defined-by)
-                                 (= 'clojure.core/defprotocol defined-by)
-                                 (= 'clojure.core/definterface defined-by)))))
-                    (findings/reg-finding!
-                     ctx
-                     (node->line filename
-                                 expr
-                                 :missing-docstring
-                                 "Missing docstring."))))
+                  (when-not temp?
+                    (when (and (not (identical? :off (-> config :linters :missing-docstring :level)))
+                               (not (:private metadata))
+                               (not (:doc metadata))
+                               (not (:test metadata))
+                               (not temp?)
+                               (not (:imported-var metadata))
+                               (not
+                                (when-let [defined-by (or (:linted-as metadata)
+                                                          (:defined-by metadata))]
+                                  (or
+                                   (= 'clojure.test/deftest defined-by)
+                                   (= 'clojure.core/deftype defined-by)
+                                   (= 'clojure.core/defrecord defined-by)
+                                   (= 'clojure.core/defprotocol defined-by)
+                                   (= 'clojure.core/definterface defined-by)))))
+                      (findings/reg-finding!
+                       ctx
+                       (node->line filename
+                                   expr
+                                   :missing-docstring
+                                   "Missing docstring.")))
+                    (when (and (identical? :clj lang)
+                               (= '-main var-sym))
+                      ;; TODO: and lang = :clj
+                      (when-not (:gen-class ns)
+                        (when-not (identical? :off (-> config :linters :main-without-gen-class :level))
+                          (findings/reg-finding!
+                           ctx
+                           (node->line filename
+                                       expr
+                                       :main-without-gen-class
+                                       "-main function without :gen-class in ns form")))))))
                 (update ns :vars assoc
                         var-sym
                         (assoc

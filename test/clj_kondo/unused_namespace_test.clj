@@ -26,6 +26,7 @@
          :col 47,
          :filename "<stdin>",
          :ns clojure.core.async
+         :referred-ns clojure.core.async
          :refer go-loop})
       (-> (with-in-str
             "(ns foo (:require [clojure.core.async :refer [go-loop]]))"

@@ -99,7 +99,8 @@
                              #_#_:include [name]}
               :deps.edn {:level :warning}
               :redundant-expression {:level :warning}
-              :loop-without-recur {:level :warning}}
+              :loop-without-recur {:level :warning}
+              :main-without-gen-class {:level :off}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
