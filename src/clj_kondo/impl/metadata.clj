@@ -54,7 +54,10 @@
                       meta-map)
            node (-> node
                     (dissoc :meta)
-                    (with-meta (merge (meta node) meta-map)))]
+                    (with-meta (-> meta-map
+                                   (merge (meta node))
+                                   ;; clear out positional root keys we rely on, but only sometimes set
+                                   (dissoc :name-row :name-col :name-end-row :name-end-col))))]
        node)
      node)))
 
@@ -62,4 +65,6 @@
 
 (comment
   (meta (lift-meta-content2 {:findings (atom [])} (clj-kondo.impl.utils/parse-string "^{:a 1 :a 2} []")))
+
+
   )

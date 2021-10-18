@@ -65,9 +65,10 @@
                             :col      col
                             :name     ns-name}
                            metadata)
-              analysis-ns-meta (assoc :meta
-                                      (cond-> (apply merge (:user-meta metadata))
-                                        (not (true? analysis-ns-meta)) (select-keys analysis-ns-meta))))
+              analysis-ns-meta (-> (assoc :meta
+                                          (cond-> (apply merge (:user-meta metadata))
+                                            (not (true? analysis-ns-meta)) (select-keys analysis-ns-meta)))
+                                   (dissoc :user-meta)))
             :in-ns (when in-ns? in-ns?) ;; don't include when false
             :lang (when (= :cljc base-lang) lang)))))
 
