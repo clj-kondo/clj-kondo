@@ -184,10 +184,10 @@
                                    :reg-finding!
                                    (fn [m]
                                      (findings/reg-finding!
-                                       (assoc utils/*ctx*
-                                              :lang (or (:lang m)
-                                                        (core-impl/lang-from-file
-                                                          (:filename m) lang))) m))}
+                                      (assoc utils/*ctx*
+                                             :lang (or (:lang m)
+                                                       (core-impl/lang-from-file
+                                                        (:filename m) lang))) m))}
                                 analysis-cfg
                                 (assoc :analysis @analysis)))))
         all-findings @findings
