@@ -31,6 +31,22 @@
           :end-col 14}
          (lifted-meta "^:private [x]")))
 
+  ;; no-clobber test
+  (is (= {:row 1
+          :col 149
+          :end-row 1
+          :end-col 152
+          :uncommon :thing
+          :user-meta [{:row :r :col :c :end-row :er :end-col :ec
+                       :name-row :nr :name-col :nc :name-end-row :ner :name-end-col :nec
+                       :user-meta :foo-bar
+                       :uncommon :thing}]}
+         (lifted-meta (str "^{:row :r :col :c :end-row :er :end-col :ec"
+                           " :name-row :nr :name-col :nc :name-end-row :ner :name-end-col :nec"
+                           " :user-meta :foo-bar"
+                           " :uncommon :thing} [x]")
+                      {:analyze-meta? true})))
+
   (is (= {:private true
           :row 1
           :col 13
