@@ -451,19 +451,29 @@
         fn-name (:value name-node)
         call (name (symbol-call expr))
         var-leading-meta (meta name-node)
+        docstring (string-from-token (first children))
+        children (if docstring (rest children) children)
         meta-node (when-let [fc (first children)]
                     (let [t (tag fc)]
-                      (if (= :map t) fc
-                          (when (not= :vector t)
-                            (when-let [sc (second children)]
-                              (when (= :map (tag sc))
-                                sc))))))
-        ;; use dorun to force evaluation, we don't use the result!
+                      (when (= :map t) fc)))
+        children (if meta-node (rest children) children)
+        meta-node2 (when-let [fc (first children)]
+                     (let [fct (tag fc)]
+                       (when (= :list fct)
+                         (when-let [lc (last (rest children))]
+                           (let [lct (tag lc)]
+                             (when (= :map lct) lc))))))
+       ;; use dorun to force evaluation, we don't use the result!
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
+        _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
         meta-node-meta (when meta-node (sexpr meta-node))
+        meta-node2-meta (when meta-node2 (sexpr meta-node2))
         var-meta (if meta-node-meta
                    (merge var-leading-meta meta-node-meta)
                    var-leading-meta)
+        var-meta (if meta-node2-meta
+                   (merge var-meta meta-node2-meta)
+                   var-meta)
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         deprecated (:deprecated var-meta)
@@ -473,7 +483,7 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        docstring (or (string-from-token (first children))
+        docstring (or docstring
                       (some-> var-meta :doc str))
         bodies (fn-bodies ctx children expr)
         _ (when (empty? bodies)
@@ -512,7 +522,7 @@
        ctx ns-name fn-name expr
        (assoc-some var-leading-meta
                    :user-meta (when (:analysis-var-meta ctx)
-                                (conj (:user-meta var-leading-meta) meta-node-meta))
+                                (conj (:user-meta var-leading-meta) meta-node-meta meta-node2-meta))
                    :macro macro?
                    :private private?
                    :deprecated deprecated

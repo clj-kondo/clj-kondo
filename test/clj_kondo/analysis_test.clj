@@ -926,15 +926,64 @@
                                 " :name-end-row :ner :name-end-col :nec"
                                 " :cool :yes} my-fn [])")
                            {:meta true}))))
-    (testing "2nd attr-map is currently ignored in obscure (?) syntax"
-      (is (= (ana-defn-expected {:meta {:deprecated true :added "1.2.3"}
-                                 :end-col 83
-                                 :name-col 38
-                                 :name-end-col 43
-                                 :added "1.2.3"
+    (testing "2nd attr-map"
+      (testing "is recognized for single multi-arity"
+        (is (= (ana-defn-expected {:meta {:deprecated true :added :attr2 :l true :a1 true :a2 true}
+                                   :end-col 108
+                                   :name-col 47
+                                   :name-end-col 52
+                                   :added :attr2
+                                   :deprecated true
+                                   :fixed-arities #{0}})
+               (ana-var-meta (str "(defn ^:deprecated ^{:added :leading :l true} my-fn"
+                                  " {:added :attr1 :a1 true} ([]) {:added :attr2 :a2 true})")
+                             {:meta true}))))
+      (testing "is recognized for multi multi-arity"
+        (is (= (ana-defn-expected {:meta {:deprecated true :added :attr2 :l true :a1 true :a2 true}
+                                   :end-col 122
+                                   :name-col 47
+                                   :name-end-col 52
+                                   :added :attr2
+                                   :deprecated true
+                                   :fixed-arities #{0 1 2}})
+               (ana-var-meta (str "(defn ^:deprecated ^{:added :leading :l true} my-fn"
+                                  " {:added :attr1 :a1 true} ([]) ([x]) ([x y]) {:added :attr2 :a2 true})")
+                             {:meta true}))))
+      (testing "is recognized for multi multi-arity when it is only metadata expressed"
+        (is (= (ana-defn-expected {:meta {:added :attr2 :a2 true}
+                                   :end-col 57
+                                   :name-col 7
+                                   :name-end-col 12
+                                   :added :attr2
+                                   :fixed-arities #{0 1 2}})
+               (ana-var-meta (str "(defn my-fn ([]) ([x]) ([x y]) {:added :attr2 :a2 true})")
+                             {:meta true}))))
+      (testing "is not recognized for single arity syntax"
+        (is (= (ana-defn-expected {:meta {:deprecated true :added :attr1 :l true :a1 true}
+                                   :end-col 106
+                                   :name-col 47
+                                   :name-end-col 52
+                                   :added :attr1
+                                   :deprecated true
+                                   :fixed-arities #{0}})
+               (ana-var-meta (str "(defn ^:deprecated ^{:added :leading :l true} my-fn"
+                                  ;; this is technically invalid
+                                  " {:added :attr1 :a1 true} [] {:added :attr2 :a2 true})")
+                             {:meta true}))))))
+  (testing "defmacro (sanity, see defn testing for full suite)"
+    (testing "2nd attr-map is recognized and parsed"
+      (is (= (ana-defn-expected {:meta {:deprecated true :added :attr2 :l true :a1 true :a2 true}
+                                 :end-col 125
+                                 :name-col 51
+                                 :name-end-col 59
+                                 :macro true
+                                 :name 'my-macro
+                                 :defined-by 'clojure.core/defmacro
+                                 :added :attr2
                                  :deprecated true
-                                 :fixed-arities #{0}})
-             (ana-var-meta "(defn ^:deprecated ^{:added \"0.1.2\"} my-fn {:added \"1.2.3\"} ([]) {:added \"hmmm?\"})"
+                                 :fixed-arities #{0 3}})
+             (ana-var-meta (str "(defmacro ^:deprecated ^{:added :leading :l true} my-macro"
+                                " {:added :attr1 :a1 true} ([]) ([x y z]) {:added :attr2 :a2 true})")
                            {:meta true}))))))
 
 (defn- ana-ns-meta [s cfg]
