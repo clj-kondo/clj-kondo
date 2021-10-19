@@ -2869,7 +2869,17 @@ foo/")))
          (lint! "(ns foo
   {:clj-kondo/config {:linters {:main-without-gen-class {:level :warning}}}})
 (defn -main [& _args])
-" "--lang" "cljs")))))
+" "--lang" "cljs"))))
+  (testing "gen-class as macro outside ns form"
+    (is (empty?
+         (lint! "
+(ns foo
+  {:clj-kondo/config {:linters {:main-without-gen-class {:level :warning}}}})
+
+(gen-class)
+
+(defn -main [])
+")))))
 
 ;;;; Scratch
 
