@@ -382,6 +382,9 @@
         ns-meta (if meta-node-meta
                   (merge metadata meta-node-meta)
                   metadata)
+        docstring (or (some-> meta-node-meta :doc str)
+                       docstring
+                       (some-> metadata :doc str))
         global-config (:global-config ctx)
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))

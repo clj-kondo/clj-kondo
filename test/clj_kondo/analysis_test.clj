@@ -1031,8 +1031,9 @@
                                :added "1.2.3"})
              (ana-ns-meta "(ns ^:deprecated ^{:added \"0.1.2\"} my.ns.here {:added \"1.2.3\"} [])"
                           {:meta true}))))
-    (testing "docs, if specified as user coded metadata, is returned (docstring string is not metadata)"
+    (testing "docs, if specified as user coded metadata, is returned"
       (is (= (ana-ns-expected {:meta {:my-meta-here true :doc "some ns docs"}
+                               :doc "some ns docs"
                                :name-col 47
                                :name-end-col 57})
              (ana-ns-meta "(ns ^{:my-meta-here true :doc \"some ns docs\"} my.ns.here)"
@@ -1077,6 +1078,24 @@
 
 
 (deftest derived-doc
+  (testing "namespace"
+    (let [enable? [false true]]
+      (doseq [lead? enable?
+              docs? enable?
+              attr? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    attr (when attr? "attr")
+                    s (format "(ns %s my.ns %s %s)"
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" "")
+                              (if attr "{:doc \"attr\"}" ""))
+                    e (remove nil? [lead docs attr])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-ns-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-ns-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s)))))
+
   (testing "def"
     (let [enable? [false true]]
       (doseq [lead? enable?
