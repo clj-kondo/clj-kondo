@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Local `fn` type inference
   [#1412](https://github.com/clj-kondo/clj-kondo/issues/1412)
 - Analysis: allow user to request all or specific metadata be returned [#1280](https://github.com/clj-kondo/clj-kondo/issues/1280) ([@lread](https://github.com/lread))
+-  `rseq` called on other type than vector or sorted-map now gives type error [#1432](https://github.com/clj-kondo/clj-kondo/issues/1432)
 
 ### Enhanced / fixed
 
