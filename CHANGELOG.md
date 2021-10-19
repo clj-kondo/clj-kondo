@@ -2,6 +2,27 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+### New
+
+- Support def + fn arity linting [#1408](https://github.com/clj-kondo/clj-kondo/issues/1408)
+- Type improvements for def + fn combination [#1410](https://github.com/clj-kondo/clj-kondo/issues/1410)
+- Local fn type inference [#1412](https://github.com/clj-kondo/clj-kondo/issues/1412)
+- Warn on missing gen-class if namespace has -main fn [#1417](https://github.com/clj-kondo/clj-kondo/issues/1417)
+- Analysis: allow user to request all or specific metadata be returned [#1280](https://github.com/clj-kondo/clj-kondo/issues/1280) ([@lread](https://github.com/lread))
+
+### Enhanced / fixed
+
+- Fix false positive with ns-unmap [#1393](https://github.com/clj-kondo/clj-kondo/issues/1393)
+- Support custom-lint-fn with `.cljc` [#1403](https://github.com/clj-kondo/clj-kondo/issues/1403)
+- Allow reader conditional in metadata [#1414](https://github.com/clj-kondo/clj-kondo/issues/1414)
+- Analysis: add `:from-var` in higher order call [#1404](https://github.com/clj-kondo/clj-kondo/issues/1404)
+- Dedupe linted files [#1395](https://github.com/clj-kondo/clj-kondo/issues/1395) ([@ericdallo](https://github.com/ericdallo))
+- Add `:duplicate-ns` to duplicate-require linter output [#1421](https://github.com/clj-kondo/clj-kondo/issues/1421) ([@ericdallo](https://github.com/ericdallo))
+- `if-let` / `if-some` with invalid arity no longer warn [#1426](https://github.com/clj-kondo/clj-kondo/issues/1426)
+- Analysis: spport for defn 2nd attr-map, :doc derivation fixes ([@lread](https://github.com/lread))
+
 ## 2021.09.25
 
 - Update built-in cache to clojure 1.11.0-alpha2 [#1382](https://github.com/clj-kondo/clj-kondo/issues/1382)
