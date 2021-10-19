@@ -39,24 +39,26 @@
    :transducer #{:ifn :fn}
    :list #{:seq :sequential :seqable :coll :stack}
    :seq #{:seqable :sequential :coll}
-   :sequential #{:coll :seqable}})
+   :sequential #{:coll :seqable}
+   :sorted-map #{:map :seqable :associative :coll :ifn}})
 
 (def could-be-relations
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double :byte}
-   :coll #{:map :vector :set :list  :associative :seq :sequential :ifn :stack}
+   :coll #{:map :sorted-map :vector :set :list  :associative :seq :sequential :ifn :stack}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil
-              :list :seq :sequential :ifn :stack}
-   :associative #{:map :vector :sequential :stack}
+              :list :seq :sequential :ifn :stack :sorted-map}
+   :associative #{:map :vector :sequential :stack :sorted-map}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
-          :sequential :stack}
+          :sequential :stack :sorted-map}
    :fn #{:transducer}
    :nat-int #{:pos-int}
    :seq #{:list :stack}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
-   :sequential #{:seq :list :vector :ifn :associative :stack}})
+   :sequential #{:seq :list :vector :ifn :associative :stack}
+   :map #{:sorted-map}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
@@ -102,7 +104,8 @@
    :set "set"
    :char-sequence "char sequence"
    :sequential "sequential collection"
-   :throwable "throwable"})
+   :throwable "throwable"
+   :sorted-map "sorted map"})
 
 (defn label [k]
   (cond
@@ -112,7 +115,6 @@
     :else (get labels k)))
 
 (defn match? [k target]
-  ;; (prn 'match? k '-> target)
   (cond
     (or (identical? k target)
         (identical? k :any)

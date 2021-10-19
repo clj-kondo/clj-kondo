@@ -698,7 +698,16 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 36, :level :error, :message "Expected: number, received: keyword."})
    (lint! "(let [x (fn [x] (keyword x))] (inc (x \"dude\")))"
-              {:linters {:type-mismatch {:level :error}}})))
+          {:linters {:type-mismatch {:level :error}}})))
+
+(deftest rseq-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 7, :level :error,
+      :message "Expected: vector or sorted map, received: seq."})
+   (lint! "(rseq (map inc [1 2 3]))"
+          {:linters {:type-mismatch {:level :error}}}))
+  (is (empty? (lint! "(rseq (sorted-map :a 1)) (rseq [1 2 3])"
+                     {:linters {:type-mismatch {:level :error}}}))))
 
 ;;;; Scratch
 

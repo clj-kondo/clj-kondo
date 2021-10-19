@@ -129,7 +129,8 @@
                                   :ret :map}}}
    ;; 389
    'hash-set {:arities {:varargs {:ret :set}}}
-   ;; 398 'sorted-map
+   ;; 398
+   'sorted-map {:arities {:varargs {:ret :sorted-map}}}
    ;; 407 'sorted-map-by
    ;; 417 'sorted-set
    ;; 425 'sorted-set-by
@@ -387,7 +388,9 @@
                        :ret :seq}}}
    ;; 1567 'key
    ;; 1574 'val
-   ;; 1581 'rseq
+   ;; 1581
+   'rseq {:arities {1 {:args [#{:vector :sorted-map}]
+                      :req :seq}}}
    ;; 1589 'name
    ;; 1597
    'namespace {:arities {1 {:ret :string}}}
