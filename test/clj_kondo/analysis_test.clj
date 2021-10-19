@@ -985,7 +985,19 @@
                                  :fixed-arities #{0 3}})
              (ana-var-meta (str "(defmacro ^:deprecated ^{:added :leading :l true} my-macro"
                                 " {:added :attr1 :a1 true} ([]) ([x y z]) {:added :attr2 :a2 true})")
-                           {:meta true}))))))
+                           {:meta true})))))
+  (testing "defmulti (sanity, see def, defn testing for full suite)"
+    (is (= (ana-defn-expected {:meta {:deprecated true :added :attr1 :l true :a1 true}
+                               :end-col 95
+                               :name-col 51
+                               :name-end-col 59
+                               :name 'my-multi
+                               :defined-by 'clojure.core/defmulti
+                               :added :attr1
+                               :deprecated true})
+           (ana-var-meta (str "(defmulti ^:deprecated ^{:added :leading :l true} my-multi"
+                              " {:added :attr1 :a1 true} :dispatch)")
+                         {:meta true})))))
 
 (defn- ana-ns-meta [s cfg]
   (-> (with-in-str s
