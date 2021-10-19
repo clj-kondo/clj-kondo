@@ -806,10 +806,11 @@
   (testing "def"
     (testing "all"
       (is (= (ana-def-expected {:meta {:no-doc true}
-                                :end-col 22
+                                :end-col 34
                                 :name-col 15
+                                :doc "docstring"
                                 :name-end-col 16})
-             (ana-var-meta "(def ^:no-doc x true)"
+             (ana-var-meta "(def ^:no-doc x \"docstring\" true)"
                            {:meta true}))))
     (testing "specific"
       (is (= (ana-def-expected {:meta {:no-doc true}
@@ -1073,3 +1074,83 @@
                                   {:output
                                    {:analysis true}}}))
                :analysis :namespace-definitions first)))))
+
+
+(deftest derived-doc
+  (testing "def"
+    (let [enable? [false true]]
+      (doseq [lead? enable?
+              docs? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    s (format "(def %s x %s 42)"
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" ""))
+                    e (remove nil? [lead docs])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-var-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-var-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s)))))
+
+  (testing "defn variants"
+    (let [enable? [false true]]
+      (doseq [call ["defn" "defn-" "defmacro"]
+              lead? enable?
+              docs? enable?
+              attr? enable?
+              prepost? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    attr (when attr? "attr")
+                    s (format "(%s %s x %s %s [y] %s y)"
+                              call
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" "")
+                              (if attr "{:doc \"attr\"}" "")
+                              (if prepost? "{:pre [(string? y)]}" ""))
+                    e (remove nil? [lead docs attr])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-var-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-var-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s)))))
+
+  (testing "defmulti"
+    (let [enable? [false true]]
+      (doseq [lead? enable?
+              docs? enable?
+              attr? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    attr (when attr? "attr")
+                    s (format "(defmulti %s x %s %s :hi-there)"
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" "")
+                              (if attr "{:doc \"attr\"}" ""))
+                    e (remove nil? [lead docs attr])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-var-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-var-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s)))))
+
+  (testing "multi-arity variants"
+    (let [enable? [false true]]
+      (doseq [call ["defn-" "defn" "defmacro"]
+              lead? enable?
+              docs? enable?
+              attr1? enable?
+              attr2? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    attr1 (when attr1? "attr1")
+                    attr2 (when attr2? "attr2")
+                    s (format "(%s %s x %s %s ([]) ([x] x) %s)"
+                              call
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" "")
+                              (if attr1 "{:doc \"attr1\"}" "")
+                              (if attr2 "{:doc \"attr2\"}" ""))
+                    e (remove nil? [lead docs attr1 attr2])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-var-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-var-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s))))))

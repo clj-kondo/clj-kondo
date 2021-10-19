@@ -483,8 +483,10 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        docstring (or docstring
-                      (some-> var-meta :doc str))
+        docstring (or (some-> meta-node2-meta :doc str)
+                      (some-> meta-node-meta :doc str)
+                      docstring
+                      (some-> var-leading-meta :doc str))
         bodies (fn-bodies ctx children expr)
         _ (when (empty? bodies)
             (findings/reg-finding! ctx
@@ -522,7 +524,7 @@
        ctx ns-name fn-name expr
        (assoc-some var-leading-meta
                    :user-meta (when (:analysis-var-meta ctx)
-                                (conj (:user-meta var-leading-meta) meta-node-meta meta-node2-meta))
+                                (conj (or (:user-meta var-leading-meta) []) meta-node-meta meta-node2-meta))
                    :macro macro?
                    :private private?
                    :deprecated deprecated
@@ -950,6 +952,9 @@
                                 [nil (cons child children)])
         metadata (if extra-meta (merge metadata extra-meta)
                      metadata)
+        docstring (or (some-> extra-meta :doc str)
+                      docstring
+                      (some-> metadata :doc str))
         ctx (assoc ctx :in-def var-name :def-meta metadata)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
@@ -964,6 +969,8 @@
                           var-name
                           expr
                           (assoc-some metadata
+                                      :user-meta (when (:analysis-var-meta ctx)
+                                                   (conj (:user-meta metadata) extra-meta))
                                       :doc docstring
                                       :defined-by defined-by
                                       :fixed-arities (:fixed-arities arity)
