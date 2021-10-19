@@ -1921,7 +1921,34 @@ foo/foo ;; this does use the private var
       :col 12,
       :level :error,
       :message "Function arguments should be wrapped in vector."})
-   (lint! "(defn oops (x))")))
+   (lint! "(defn oops (x))"))
+  (is (empty? (lint! "(defn ok-fine [] {:this :is :not :attr-map2 :meta :data})")))
+  (testing "multi-arity"
+    (is (empty? (lint! "(defn- second-attr-map-private-defn ([]) {:look :metadata!})
+                      (second-attr-map-private-defn)")))
+    (is (empty? (lint! "(defn second-attr-map ([]) ([x] x) {:look :metadata!})")))
+    (is (empty? (lint! "(defmacro ^{:leading :meta} second-attr-map-macro {:attr1 :meta} ([]) ([x] x) {:attr2 :metadata!})")))
+    (assert-submaps
+     '({:file "<stdin>"
+        :row 1
+        :col 27
+        :level :error
+        :message "Function arguments should be wrapped in vector."})
+     (lint! "(defn oopsie ([]) ([x] x) [:not :good])"))
+    (assert-submaps
+     '({:file "<stdin>"
+        :row 1
+        :col 19
+        :level :error
+        :message "Function arguments should be wrapped in vector."})
+     (lint! "(defn oopsie ([]) {:not :good} {:look metadata!})"))
+    (assert-submaps
+     '({:file "<stdin>"
+        :row 1
+        :col 19
+        :level :error
+        :message "Function arguments should be wrapped in vector."})
+     (lint! "(defn oopsie ([]) ({:not :good}))"))))
 
 (deftest not-empty?-test
   (assert-submaps
