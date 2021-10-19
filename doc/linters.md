@@ -21,6 +21,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
     - [Loop without recur](#loop-without-recur)
+    - [Main without gen-class](#main-without-gen-class)
     - [Misplaced docstring](#misplaced-docstring)
     - [Missing body in when](#missing-body-in-when)
     - [Missing clause in try](#missing-clause-in-try)
@@ -341,6 +342,18 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 *Example trigger:* `(loop [])`.
 
 *Example message:* `Loop without recur.`
+
+### Main without gen-class
+
+*Keyword:* `:main-without-gen-class`.
+
+*Description:* warn when -main function is present without corresponding `:gen-class`.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(ns foo) (defn -main [& _args])`.
+
+*Example message:* `Main function without gen-class.`
 
 ### Misplaced docstring
 

@@ -2850,7 +2850,7 @@ foo/")))
                      "--config" "{:linters {:redefined-var {:level :error}}}"))))
 
 (deftest main-without-gen-class
-  (is (= '({:file "<stdin>", :row 5, :col 1, :level :warning, :message "-main function without :gen-class in ns form"})
+  (is (= '({:file "<stdin>", :row 5, :col 1, :level :warning, :message "Main function without gen-class."})
          (lint! "(ns foo
   {:clj-kondo/config {:linters {:main-without-gen-class {:level :warning}}}}
   #_(:gen-class))

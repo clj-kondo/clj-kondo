@@ -182,7 +182,7 @@
                            (node->line filename
                                        expr
                                        :main-without-gen-class
-                                       "-main function without :gen-class in ns form")))))))
+                                       "Main function without gen-class.")))))))
                 (update ns :vars assoc
                         var-sym
                         (assoc
