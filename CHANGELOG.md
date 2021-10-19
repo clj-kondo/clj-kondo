@@ -22,6 +22,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Add `:duplicate-ns` to duplicate-require linter output [#1421](https://github.com/clj-kondo/clj-kondo/issues/1421) ([@ericdallo](https://github.com/ericdallo))
 - `if-let` / `if-some` with invalid arity no longer warn [#1426](https://github.com/clj-kondo/clj-kondo/issues/1426)
 - Analysis: spport for defn 2nd attr-map, :doc derivation fixes ([@lread](https://github.com/lread))
+- Fix parsing of trailing metdata map [#1433](https://github.com/clj-kondo/clj-kondo/issues/1433) ([@lread](https://github.com/lread))
 
 ## 2021.09.25
 
