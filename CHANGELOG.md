@@ -6,7 +6,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ### New
 
-- New optional linter: Warn on missing `gen-class` if namespace has `-main` fn
+- New optional linter: warn on missing `gen-class` if namespace has `-main` fn
   [#1417](https://github.com/clj-kondo/clj-kondo/issues/1417). See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#main-without-gen-class).
 - Detect arity mismatches for functions defined with `def` [#1408](https://github.com/clj-kondo/clj-kondo/issues/1408)
 - Type inference improvements for `def` + `fn` combination
