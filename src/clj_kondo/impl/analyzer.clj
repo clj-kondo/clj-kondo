@@ -463,6 +463,7 @@
                          (when-let [lc (last (next children))]
                            (let [lct (tag lc)]
                              (when (= :map lct) lc))))))
+        children (if meta-node2 (butlast children) children)
        ;; use dorun to force evaluation, we don't use the result!
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
         _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
