@@ -1733,7 +1733,16 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(fn [^clj x] ^clj x)"
                      {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "
+(ns foo)
+
+(gen-class
+ :name foo.Engine
+ :state state
+ :init init
+ :methods [[eval [java.util.HashMap String] java.util.Map]])"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest js-property-access-test
   (assert-submaps

@@ -1549,6 +1549,11 @@
                        (fnil conj #{}) sym)))))))
     (analyze-children ctx children)))
 
+(defn analyze-gen-class [_ctx _expr]
+  ;; for now we just ignore the form to not cause false positives
+  ;; we can add more sophisticated linting, e.g. causing -init to be used
+  )
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -1773,6 +1778,7 @@
                            keep keep-indexed)
                       (analyze-hof ctx expr resolved-as-name)
                       (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
+                      (gen-class) (analyze-gen-class ctx expr)
                       ;; catch-all
                       (case [resolved-as-namespace resolved-as-name]
                         [clj-kondo.lint-as def-catch-all]
