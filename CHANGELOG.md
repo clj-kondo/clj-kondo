@@ -2,14 +2,17 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2021.10.19
 
 ### New
 
-- Support def + fn arity linting [#1408](https://github.com/clj-kondo/clj-kondo/issues/1408)
-- Type improvements for def + fn combination [#1410](https://github.com/clj-kondo/clj-kondo/issues/1410)
-- Local fn type inference [#1412](https://github.com/clj-kondo/clj-kondo/issues/1412)
-- Warn on missing gen-class if namespace has -main fn [#1417](https://github.com/clj-kondo/clj-kondo/issues/1417)
+- New optional linter: Warn on missing `gen-class` if namespace has `-main` fn
+  [#1417](https://github.com/clj-kondo/clj-kondo/issues/1417). See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#main-without-gen-class).
+- Detect arity mismatches for functions defined with `def` [#1408](https://github.com/clj-kondo/clj-kondo/issues/1408)
+- Type inference improvements for `def` + `fn` combination
+  [#1410](https://github.com/clj-kondo/clj-kondo/issues/1410)
+- Local `fn` type inference
+  [#1412](https://github.com/clj-kondo/clj-kondo/issues/1412)
 - Analysis: allow user to request all or specific metadata be returned [#1280](https://github.com/clj-kondo/clj-kondo/issues/1280) ([@lread](https://github.com/lread))
 
 ### Enhanced / fixed
