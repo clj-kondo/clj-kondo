@@ -452,15 +452,15 @@
         call (name (symbol-call expr))
         var-leading-meta (meta name-node)
         docstring (string-from-token (first children))
-        children (if docstring (rest children) children)
+        children (if docstring (next children) children)
         meta-node (when-let [fc (first children)]
                     (let [t (tag fc)]
                       (when (= :map t) fc)))
-        children (if meta-node (rest children) children)
+        children (if meta-node (next children) children)
         meta-node2 (when-let [fc (first children)]
                      (let [fct (tag fc)]
                        (when (= :list fct)
-                         (when-let [lc (last (rest children))]
+                         (when-let [lc (last (next children))]
                            (let [lct (tag lc)]
                              (when (= :map lct) lc))))))
        ;; use dorun to force evaluation, we don't use the result!
