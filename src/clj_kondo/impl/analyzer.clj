@@ -451,19 +451,29 @@
         fn-name (:value name-node)
         call (name (symbol-call expr))
         var-leading-meta (meta name-node)
+        docstring (string-from-token (first children))
+        children (if docstring (next children) children)
         meta-node (when-let [fc (first children)]
                     (let [t (tag fc)]
-                      (if (= :map t) fc
-                          (when (not= :vector t)
-                            (when-let [sc (second children)]
-                              (when (= :map (tag sc))
-                                sc))))))
-        ;; use dorun to force evaluation, we don't use the result!
+                      (when (= :map t) fc)))
+        children (if meta-node (next children) children)
+        meta-node2 (when-let [fc (first children)]
+                     (let [fct (tag fc)]
+                       (when (= :list fct)
+                         (when-let [lc (last (next children))]
+                           (let [lct (tag lc)]
+                             (when (= :map lct) lc))))))
+       ;; use dorun to force evaluation, we don't use the result!
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
+        _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
         meta-node-meta (when meta-node (sexpr meta-node))
+        meta-node2-meta (when meta-node2 (sexpr meta-node2))
         var-meta (if meta-node-meta
                    (merge var-leading-meta meta-node-meta)
                    var-leading-meta)
+        var-meta (if meta-node2-meta
+                   (merge var-meta meta-node2-meta)
+                   var-meta)
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         deprecated (:deprecated var-meta)
@@ -473,8 +483,10 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        docstring (or (string-from-token (first children))
-                      (some-> var-meta :doc str))
+        docstring (or (some-> meta-node2-meta :doc str)
+                      (some-> meta-node-meta :doc str)
+                      docstring
+                      (some-> var-leading-meta :doc str))
         bodies (fn-bodies ctx children expr)
         _ (when (empty? bodies)
             (findings/reg-finding! ctx
@@ -512,7 +524,7 @@
        ctx ns-name fn-name expr
        (assoc-some var-leading-meta
                    :user-meta (when (:analysis-var-meta ctx)
-                                (conj (:user-meta var-leading-meta) meta-node-meta))
+                                (conj (or (:user-meta var-leading-meta) []) meta-node-meta meta-node2-meta))
                    :macro macro?
                    :private private?
                    :deprecated deprecated
@@ -940,6 +952,9 @@
                                 [nil (cons child children)])
         metadata (if extra-meta (merge metadata extra-meta)
                      metadata)
+        docstring (or (some-> extra-meta :doc str)
+                      docstring
+                      (some-> metadata :doc str))
         ctx (assoc ctx :in-def var-name :def-meta metadata)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
@@ -954,6 +969,8 @@
                           var-name
                           expr
                           (assoc-some metadata
+                                      :user-meta (when (:analysis-var-meta ctx)
+                                                   (conj (:user-meta metadata) extra-meta))
                                       :doc docstring
                                       :defined-by defined-by
                                       :fixed-arities (:fixed-arities arity)

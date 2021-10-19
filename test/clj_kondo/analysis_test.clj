@@ -806,10 +806,11 @@
   (testing "def"
     (testing "all"
       (is (= (ana-def-expected {:meta {:no-doc true}
-                                :end-col 22
+                                :end-col 34
                                 :name-col 15
+                                :doc "docstring"
                                 :name-end-col 16})
-             (ana-var-meta "(def ^:no-doc x true)"
+             (ana-var-meta "(def ^:no-doc x \"docstring\" true)"
                            {:meta true}))))
     (testing "specific"
       (is (= (ana-def-expected {:meta {:no-doc true}
@@ -926,16 +927,77 @@
                                 " :name-end-row :ner :name-end-col :nec"
                                 " :cool :yes} my-fn [])")
                            {:meta true}))))
-    (testing "2nd attr-map is currently ignored in obscure (?) syntax"
-      (is (= (ana-defn-expected {:meta {:deprecated true :added "1.2.3"}
-                                 :end-col 83
-                                 :name-col 38
-                                 :name-end-col 43
-                                 :added "1.2.3"
+    (testing "2nd attr-map"
+      (testing "is recognized for single multi-arity"
+        (is (= (ana-defn-expected {:meta {:deprecated true :added :attr2 :l true :a1 true :a2 true}
+                                   :end-col 108
+                                   :name-col 47
+                                   :name-end-col 52
+                                   :added :attr2
+                                   :deprecated true
+                                   :fixed-arities #{0}})
+               (ana-var-meta (str "(defn ^:deprecated ^{:added :leading :l true} my-fn"
+                                  " {:added :attr1 :a1 true} ([]) {:added :attr2 :a2 true})")
+                             {:meta true}))))
+      (testing "is recognized for multi multi-arity"
+        (is (= (ana-defn-expected {:meta {:deprecated true :added :attr2 :l true :a1 true :a2 true}
+                                   :end-col 122
+                                   :name-col 47
+                                   :name-end-col 52
+                                   :added :attr2
+                                   :deprecated true
+                                   :fixed-arities #{0 1 2}})
+               (ana-var-meta (str "(defn ^:deprecated ^{:added :leading :l true} my-fn"
+                                  " {:added :attr1 :a1 true} ([]) ([x]) ([x y]) {:added :attr2 :a2 true})")
+                             {:meta true}))))
+      (testing "is recognized for multi multi-arity when it is only metadata expressed"
+        (is (= (ana-defn-expected {:meta {:added :attr2 :a2 true}
+                                   :end-col 57
+                                   :name-col 7
+                                   :name-end-col 12
+                                   :added :attr2
+                                   :fixed-arities #{0 1 2}})
+               (ana-var-meta (str "(defn my-fn ([]) ([x]) ([x y]) {:added :attr2 :a2 true})")
+                             {:meta true}))))
+      (testing "is not recognized for single arity syntax"
+        (is (= (ana-defn-expected {:meta {:deprecated true :added :attr1 :l true :a1 true}
+                                   :end-col 106
+                                   :name-col 47
+                                   :name-end-col 52
+                                   :added :attr1
+                                   :deprecated true
+                                   :fixed-arities #{0}})
+               (ana-var-meta (str "(defn ^:deprecated ^{:added :leading :l true} my-fn"
+                                  ;; this is technically invalid
+                                  " {:added :attr1 :a1 true} [] {:added :attr2 :a2 true})")
+                             {:meta true}))))))
+  (testing "defmacro (sanity, see defn testing for full suite)"
+    (testing "2nd attr-map is recognized and parsed"
+      (is (= (ana-defn-expected {:meta {:deprecated true :added :attr2 :l true :a1 true :a2 true}
+                                 :end-col 125
+                                 :name-col 51
+                                 :name-end-col 59
+                                 :macro true
+                                 :name 'my-macro
+                                 :defined-by 'clojure.core/defmacro
+                                 :added :attr2
                                  :deprecated true
-                                 :fixed-arities #{0}})
-             (ana-var-meta "(defn ^:deprecated ^{:added \"0.1.2\"} my-fn {:added \"1.2.3\"} ([]) {:added \"hmmm?\"})"
-                           {:meta true}))))))
+                                 :fixed-arities #{0 3}})
+             (ana-var-meta (str "(defmacro ^:deprecated ^{:added :leading :l true} my-macro"
+                                " {:added :attr1 :a1 true} ([]) ([x y z]) {:added :attr2 :a2 true})")
+                           {:meta true})))))
+  (testing "defmulti (sanity, see def, defn testing for full suite)"
+    (is (= (ana-defn-expected {:meta {:deprecated true :added :attr1 :l true :a1 true}
+                               :end-col 95
+                               :name-col 51
+                               :name-end-col 59
+                               :name 'my-multi
+                               :defined-by 'clojure.core/defmulti
+                               :added :attr1
+                               :deprecated true})
+           (ana-var-meta (str "(defmulti ^:deprecated ^{:added :leading :l true} my-multi"
+                              " {:added :attr1 :a1 true} :dispatch)")
+                         {:meta true})))))
 
 (defn- ana-ns-meta [s cfg]
   (-> (with-in-str s
@@ -981,8 +1043,9 @@
                                :added "1.2.3"})
              (ana-ns-meta "(ns ^:deprecated ^{:added \"0.1.2\"} my.ns.here {:added \"1.2.3\"} [])"
                           {:meta true}))))
-    (testing "docs, if specified as user coded metadata, is returned (docstring string is not metadata)"
+    (testing "docs, if specified as user coded metadata, is returned"
       (is (= (ana-ns-expected {:meta {:my-meta-here true :doc "some ns docs"}
+                               :doc "some ns docs"
                                :name-col 47
                                :name-end-col 57})
              (ana-ns-meta "(ns ^{:my-meta-here true :doc \"some ns docs\"} my.ns.here)"
@@ -1024,3 +1087,101 @@
                                   {:output
                                    {:analysis true}}}))
                :analysis :namespace-definitions first)))))
+
+
+(deftest derived-doc
+  (testing "namespace"
+    (let [enable? [false true]]
+      (doseq [lead? enable?
+              docs? enable?
+              attr? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    attr (when attr? "attr")
+                    s (format "(ns %s my.ns %s %s)"
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" "")
+                              (if attr "{:doc \"attr\"}" ""))
+                    e (remove nil? [lead docs attr])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-ns-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-ns-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s)))))
+
+  (testing "def"
+    (let [enable? [false true]]
+      (doseq [lead? enable?
+              docs? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    s (format "(def %s x %s 42)"
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" ""))
+                    e (remove nil? [lead docs])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-var-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-var-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s)))))
+
+  (testing "defn variants"
+    (let [enable? [false true]]
+      (doseq [call ["defn" "defn-" "defmacro"]
+              lead? enable?
+              docs? enable?
+              attr? enable?
+              prepost? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    attr (when attr? "attr")
+                    s (format "(%s %s x %s %s [y] %s y)"
+                              call
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" "")
+                              (if attr "{:doc \"attr\"}" "")
+                              (if prepost? "{:pre [(string? y)]}" ""))
+                    e (remove nil? [lead docs attr])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-var-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-var-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s)))))
+
+  (testing "defmulti"
+    (let [enable? [false true]]
+      (doseq [lead? enable?
+              docs? enable?
+              attr? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    attr (when attr? "attr")
+                    s (format "(defmulti %s x %s %s :hi-there)"
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" "")
+                              (if attr "{:doc \"attr\"}" ""))
+                    e (remove nil? [lead docs attr])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-var-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-var-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s)))))
+
+  (testing "multi-arity variants"
+    (let [enable? [false true]]
+      (doseq [call ["defn-" "defn" "defmacro"]
+              lead? enable?
+              docs? enable?
+              attr1? enable?
+              attr2? enable?
+              :let [lead (when lead? "lead")
+                    docs (when docs? "docs")
+                    attr1 (when attr1? "attr1")
+                    attr2 (when attr2? "attr2")
+                    s (format "(%s %s x %s %s ([]) ([x] x) %s)"
+                              call
+                              (if lead "^{:doc \"lead\"}" "")
+                              (if docs "\"docs\"" "")
+                              (if attr1 "{:doc \"attr1\"}" "")
+                              (if attr2 "{:doc \"attr2\"}" ""))
+                    e (remove nil? [lead docs attr1 attr2])
+                    expected-doc (last e)
+                    expected-meta-doc (last (remove #(= "docs" %) e))]]
+        (is (= expected-doc (-> (ana-var-meta s {:meta true}) :doc)) (str ":doc " s))
+        (is (= expected-meta-doc (-> (ana-var-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s))))))
