@@ -365,9 +365,48 @@ To refer to the exported config for a project within that same project, you can 
 
 ## Example Hooks
 
+### Libraries
+
+Here are some example hooks from libraries.
+
 - coffi: [defcfn](https://github.com/IGJoshua/coffi/blob/master/resources/clj-kondo.exports/org.suskalo/coffi/hooks/coffi.clj)
 
 More examples of hooks can be found in the [config](https://github.com/clj-kondo/config) project.
+
+### Disrecommend usage of function or macro
+
+`.clj-kondo/config.edn`:
+
+``` Clojure
+{:hooks {:analyze-call {clojure.core/eval org.acme.not-recommended/hook}}
+ :linters {:org.acme/not-recommended {:level :error}}}
+```
+
+`.clj-kondo/org/acme/not_recommended.clj`:
+
+``` Clojure
+(ns org.acme.not-recommended
+  (:require [clj-kondo.hooks-api :as api]))
+
+(defn hook [{:keys [node]}]
+  (let [name (str (first (:children node)))]
+    (api/reg-finding!
+     (assoc (meta node)
+            :message (format "Please don't use %s" name)
+            :type :org.acme/not-recommended))))
+```
+
+Output when linting:
+
+``` Clojure
+(ns app.core)
+
+(eval '(+ 1 2 3))
+```
+
+``` Clojure
+src/app/core.clj:3:1: error: Please don't use eval
+```
 
 ## Clojurists Together
 
