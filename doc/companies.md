@@ -67,6 +67,7 @@ Sponsoring by providing upgraded CI for [babashka](https://babashka.org/) and
 - [Red Planet Labs](https://redplanetlabs.com/)
 - [Reify Health](https://www.reifyhealth.com/)
 - [Sharetribe](https://www.sharetribe.com)
+- [Schnaq](https://schnaq.com/)
 - [Solita](https://www.solita.fi/en/)
 - [Splash Financial](https://www.splashfinancial.com/)
 - [SUPREMATIC](https://suprematic.de/company/)
