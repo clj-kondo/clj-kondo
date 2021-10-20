@@ -2908,6 +2908,14 @@ foo/")))
 (defn -main [])
 ")))))
 
+(deftest CLJS-3330-deprecate-global-goog-modules
+  ;; see https://github.com/clojure/clojurescript/pull/108/files#diff-e4675a7819e3cdf480a73075d43ad0da83dd66b0f0a87d399c586a87fa41c140
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 2, :level :warning,
+      :message "Unresolved namespace goog.object. Are you missing a require?"})
+   (lint! "(goog.object/get #js {:a 1} \"a\")"
+          "--lang" "cljs")))
+
 ;;;; Scratch
 
 (comment

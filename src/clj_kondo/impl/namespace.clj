@@ -466,8 +466,7 @@
                         (when cljs?
                           ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
                           (one-of ns* ["js" "goog" "cljs.core"
-                                       "Math" "String" "goog.object" "goog.string"
-                                       "goog.array"])))
+                                       "Math" "String"])))
               {:name (symbol (name name-sym))
                :unresolved? true
                :unresolved-ns ns-sym})))
