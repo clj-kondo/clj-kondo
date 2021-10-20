@@ -54,6 +54,7 @@ Sponsoring by providing upgraded CI for [babashka](https://babashka.org/) and
 - [HealthUnlocked](https://www.healthunlocked.com)
 - [Helpshift](https://www.helpshift.com)
 - [Imatic](https://www.imatic.cz/)
+- [IRIS.TV](https://iris.tv/)
 - [Juxt](https://juxt.pro)
 - [Klarna](https://klarna.com)
 - [Leanheat](https://leanheat.com)
