@@ -404,7 +404,7 @@ Output when linting:
 (eval '(+ 1 2 3))
 ```
 
-``` Clojure
+``` shell
 src/app/core.clj:3:1: error: Please don't use eval
 ```
 
