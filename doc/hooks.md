@@ -355,9 +355,17 @@ repeat that expression `n` times (where `n` is a large number like
 1000000). Then lint the file with `clj-kondo --lint` and measure
 timing. The `time` macro is also available within hooks code.
 
+## Refer to exported config within project
+
+To refer to the exported config for a project within that same project, you can use:
+
+``` Clojure
+{:config-paths ["../resources/clj-kondo.exports/org.your/your.lib"]}
+```
+
 ## Example Hooks
 
-- rewrite-cljc-playground: [import-vars-with-mod](https://github.com/lread/rewrite-cljc-playground/commit/09882e1244a8c12879ef8c1e6872724748e7914b)
+- coffi: [defcfn](https://github.com/IGJoshua/coffi/blob/master/resources/clj-kondo.exports/org.suskalo/coffi/hooks/coffi.clj)
 
 More examples of hooks can be found in the [config](https://github.com/clj-kondo/config) project.
 
