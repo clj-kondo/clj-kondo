@@ -51,6 +51,7 @@ Sponsoring by providing upgraded CI for [babashka](https://babashka.org/) and
 - [Ekata](https://ekata.com)
 - [Flexport](https://www.flexport.com)
 - [Gatheround](https://gatheround.com)
+- [HealthUnlocked](https://www.healthunlocked.com)
 - [Helpshift](https://www.helpshift.com)
 - [Imatic](https://www.imatic.cz/)
 - [Juxt](https://juxt.pro)
