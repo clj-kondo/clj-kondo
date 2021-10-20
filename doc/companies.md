@@ -64,6 +64,7 @@ Sponsoring by providing upgraded CI for [babashka](https://babashka.org/) and
 - [Metabase](https://metabase.com)
 - [Metosin](https://www.metosin.fi)
 - [Oscaro](https://www.oscaro.com/)
+- [Pilloxa](https://www.pilloxa.com/)
 - [Red Planet Labs](https://redplanetlabs.com/)
 - [Reify Health](https://www.reifyhealth.com/)
 - [Sharetribe](https://www.sharetribe.com)
