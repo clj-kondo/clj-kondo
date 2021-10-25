@@ -382,4 +382,6 @@ $ clj -m clj-kondo.tools.circular-dependencies /tmp/circular.clj
 
 ### Finding unused and undefined re-frame subscriptions
 
-See this [gist](https://gist.github.com/roman01la/c6a2e4db8d74f89789292002794a7142).
+See [this](https://github.com/yannvanhalewyn/analyze-re-frame-usage-with-clj-kondo) repo.
+
+Also see this [gist](https://gist.github.com/roman01la/c6a2e4db8d74f89789292002794a7142).
