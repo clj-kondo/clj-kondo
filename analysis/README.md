@@ -31,7 +31,7 @@ You can request that it return all, or a specific set, of user-coded namespace o
     - `true`: to return all
     - key sequence:  return metadata matching specified keys, ex. `[:skip-wiki :integration-test]`
 - `:var-definitions`
-  - `:meta`: return user coded metadata under `:var-definitions` -> `:meta`, options are the same as for namespaces. 
+  - `:meta`: return user coded metadata under `:var-definitions` -> `:meta`, options are the same as for namespaces.
 # Data
 
 The analysis output consists of a map with:
@@ -379,3 +379,7 @@ $ clj -m clj-kondo.tools.circular-dependencies /tmp/circular.clj
 /tmp/circular.clj:3:17: circular dependendy from namespace b to a
 /tmp/circular.clj:5:17: circular dependendy from namespace c to a
 ```
+
+### Finding unused and undefined re-frame subscriptions
+
+See this [gist](https://gist.github.com/roman01la/c6a2e4db8d74f89789292002794a7142).

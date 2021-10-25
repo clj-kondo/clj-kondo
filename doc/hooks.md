@@ -408,6 +408,10 @@ Output when linting:
 src/app/core.clj:3:1: error: Please don't use eval
 ```
 
+### Finding unused and undefined re-frame subscriptions
+
+See this [gist](https://gist.github.com/roman01la/c6a2e4db8d74f89789292002794a7142).
+
 ## Clojurists Together
 
 The initial work on hooks was sponsored by [Clojurists
