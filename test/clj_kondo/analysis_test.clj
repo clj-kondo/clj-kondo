@@ -52,7 +52,7 @@
                           "(let [{::keys [a :b]\n"
                           "       ::b/keys [c :d]\n"
                           "       :bar/keys [e :f]\n"
-                          "       :keys [g :h ::i :foo/j :bar/k ::b/l ::bar/m :x/n ::y/o]\n"
+                          "       :keys [g :h ::i :foo/j :bar/k ::b/l ::bar/m :x/n ::y/o foo/j]\n"
                           "       p :p q ::q r ::b/r s :bar/s t :x/t} {}])")
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
@@ -79,7 +79,8 @@
          {:name "q" :ns foo}
          {:name "r" :ns bar :alias b}
          {:name "s" :ns bar}
-         {:name "t" :ns x}]
+         {:name "t" :ns x}
+         {:name "j" :ns foo :keys-destructuring true}]
        (:keywords a))))
   (testing "clojure.spec.alpha/def can add :reg"
     (let [a (analyze "(require '[clojure.spec.alpha :as s]) (s/def ::kw (inc))"
@@ -1055,7 +1056,7 @@
                                :name-col 28
                                :name-end-col 38})
              (ana-ns-meta "(ns ^{:user-meta :foo-bar} my.ns.here)"
-                           {:meta true})))))
+                          {:meta true})))))
   (testing "return specific"
     (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta3 true}
                              :name-col 38
