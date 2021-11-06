@@ -34,7 +34,7 @@ If you wish to add a new linter, do not forget to add the appropriate keyword in
 
 This is necessary because only the linters with a keyword in the default config appear in the report.
 
-## Code
+## Workflow
 
 ### Start with an issue before writing code
 
@@ -110,11 +110,6 @@ The alias `cider-nrepl` is defined in his `~/.clojure/deps.edn` (update versions
  :main-opts ["-m" "nrepl.cmdline" "--middleware"
              "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"]}
 ```
-
-## Coding guidelines
-
-- Avoid calling rewrite-clj `sexpr` when you can. This often results in exceptions when the code is not representable as a sexpr, e.g.: `{:a}`. This becomes noticeable when you use clj-kondo in an editor and you stop typ
-- Avoid traversing the AST multiple times if possible.
 
 ## Tests
 
