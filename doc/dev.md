@@ -29,15 +29,32 @@ All issues are categorized in a column on the [project board](https://github.com
  6) Clj-kondo should be unobtrusive. Users of clj-kondo should not have to change their code only to make the linter happy. Team members who do not wish to use clj-kondo should not be confronted with clj-kondo-related annotations in their code.
 
 ## Adding a new linter
+
 If you wish to add a new linter, do not forget to add the appropriate keyword in `clj-kondo.impl.config/default-config`, the map that defines the default configuration.
 
 This is necessary because only the linters with a keyword in the default config appear in the report.
 
-## PR
+## Code
 
-### Issue
+### Start with an issue before writing code
 
-Before creating a code PR, please create an issue first that describes the problem you are trying to solve, alternatives that you have considered, etc. A little bit of prior communication can save a lot of time on coding.
+Before writing any code, please create an issue first that describes the problem
+you are trying to solve with alternatives that you have considered. A little bit
+of prior communication can save a lot of time on coding. Keep the problem as
+small as possible. If there are two problems, make two issues. We discuss the
+issue and if we reach an agreement on the approach, it's time to move on to a
+PR.
+
+### Follow up with a pull request
+
+Post a corresponding PR with the smallest change possible to address the
+issue. Then we discuss the PR, make changes as needed and if we reach an
+agreement, the PR will be merged.
+
+### Tests
+
+Each bug fix, change or new feature should be tested well to prevent future
+regressions.
 
 ### Linting diff
 
