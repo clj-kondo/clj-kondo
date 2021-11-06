@@ -69,6 +69,7 @@ Please do not use `git push --force` on your PR branch for the following
 reasons:
 
 - It makes it more difficult for others to contribute to your branch if needed.
+- It makes it harder to review incremental commits.
 - CircleCI doesn't play well with it: it might try to fetch a commit which
   doesn't exist anymore.
 - Your PR will be squashed anyway.
