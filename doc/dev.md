@@ -70,6 +70,8 @@ reasons:
 
 - It makes it more difficult for others to contribute to your branch if needed.
 - It makes it harder to review incremental commits.
+- Links (in e.g. e-mails and notifications) go stale and you're confronted with:
+  this code isn't here anymore, when clicking on them.
 - CircleCI doesn't play well with it: it might try to fetch a commit which
   doesn't exist anymore.
 - Your PR will be squashed anyway.
