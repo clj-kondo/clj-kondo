@@ -2800,7 +2800,19 @@ foo/
      {:file "<stdin>", :row 3, :col 1, :level :error, :message "Invalid symbol: foo/."})
    (lint! "
 (inc)
-foo/")))
+foo/"))
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 1, :level :error, :message "A single colon is not a valid keyword."}
+     {:file "<stdin>", :row 3, :col 1, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
+   (lint! "
+:
+(inc)"))
+  (assert-submaps
+   '({:file "<stdin>", :row 3, :col 1, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"}
+     {:file "<stdin>", :row 2, :col 1, :level :error, :message "A single colon is not a valid keyword."})
+   (lint! "
+(inc)
+:")))
 
 (deftest nested-fn-literal-test
   (assert-submaps
