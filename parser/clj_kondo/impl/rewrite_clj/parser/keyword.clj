@@ -15,7 +15,7 @@
 (defn read-keyword
   [reader]
   (let [ch (r/read-char reader)]
-    (if-not (ru/whitespace? ch)
+    (when-not (ru/whitespace? ch)
       (let [^String token (#'edn/read-token reader :keyword ch)
             s (rc/parse-symbol token)]
         (if (and s (not (zero? (.indexOf token "::"))))
@@ -24,8 +24,7 @@
             (if (identical? \: (nth token 0))
               (err/throw-invalid reader :keyword token) ; No ::kw in edn.
               (keyword ns name)))
-          (err/throw-invalid reader :keyword token)))
-      (err/throw-single-colon reader))))
+          (err/throw-invalid reader :keyword token))))))
 
 (defn parse-keyword
   [reader]
@@ -37,7 +36,8 @@
         (node/keyword-node
          (read-keyword reader)
          true))
-      (node/keyword-node (read-keyword reader)))
+      (some-> (read-keyword reader)
+              node/keyword-node))
     (u/throw-reader reader "unexpected EOF while reading keyword.")))
 
 ;;;; Scratch

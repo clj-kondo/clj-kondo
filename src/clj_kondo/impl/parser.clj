@@ -10,6 +10,7 @@
 
 (comment
   (parse-string "(+ 1 2 3) #_1 2 ;; no")
+  (parse-string "123 :\n")
   (:meta (utils/parse-string "^{:a 1} [1 2 3]"))
   (:meta (utils/parse-string "^{:a 1} ^{:b 1} [1 2 3]"))
   (:meta (utils/parse-string "^{:a 1} ^{:b 1} [1 2 3]"))
