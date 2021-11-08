@@ -2802,6 +2802,14 @@ foo/
 (inc)
 foo/")))
 
+(deftest continue-on-invalid-keyword-test
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 1, :level :error, :message "A single colon is not a valid keyword."}
+     {:file "<stdin>", :row 3, :col 1, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
+   (lint! "
+:
+(inc)")))
+
 (deftest nested-fn-literal-test
   (assert-submaps
    '({:file "<stdin>", :row 2, :col 7, :level :error, :message "Nested #()s are not allowed"})

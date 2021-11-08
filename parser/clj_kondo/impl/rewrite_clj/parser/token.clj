@@ -4,7 +4,7 @@
              [reader :as r]]
             [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as rt]))
 
-(def ^:dynamic *invalid-token-exceptions* nil)
+(set! *warn-on-reflection* true)
 
 (defn- read-to-boundary
   [reader & [allowed]]
@@ -52,12 +52,14 @@
           (symbol-node reader v s)
           (node/token-node v s)))
       (catch Exception e
-        (let [{:keys [:type :ex-kind]} (ex-data e)]
-          (when (and *invalid-token-exceptions*
-                     (= :reader-exception type)
-                     (= :reader-error ex-kind))
-            (let [f {:row token-row
-                     :col token-col
-                     :message (.getMessage e)}]
-              (swap! *invalid-token-exceptions* conj (ex-info "Syntax error" {:findings [f]})))))
-        reader))))
+        (if r/*reader-exceptions*
+          (do (let [{:keys [:type :ex-kind]} (ex-data e)]
+                (if (and (= :reader-exception type)
+                           (= :reader-error ex-kind))
+                  (let [f {:row token-row
+                           :col token-col
+                           :message (.getMessage e)}]
+                    (swap! r/*reader-exceptions* conj (ex-info "Syntax error" {:findings [f]})))
+                  (throw e)))
+              reader)
+          (throw e))))))

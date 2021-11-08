@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.parser-test
   (:require [clj-kondo.impl.parser :as parser :refer [parse-string]]
-            [clj-kondo.impl.rewrite-clj.parser.token :refer [*invalid-token-exceptions*]]
+            [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
             [clj-kondo.impl.utils :as utils]
             [clojure.test :as t :refer [deftest is are]]))
 
@@ -30,7 +30,7 @@
   [source]
   (let [ex (atom nil)
         token-exceptions (atom [])]
-    (try (binding [*invalid-token-exceptions* token-exceptions]
+    (try (binding [*reader-exceptions* token-exceptions]
            (parse-string source))
          (catch Exception e (reset! ex e)))
     (let [^Exception e (or @ex (first @token-exceptions))

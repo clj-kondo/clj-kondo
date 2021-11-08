@@ -8,6 +8,8 @@
             [clojure.java.io :as io])
   (:import [java.io PushbackReader]))
 
+(def ^:dynamic *reader-exceptions* nil)
+
 ;; ## Decisions
 
 (defn boundary?
