@@ -66,23 +66,25 @@ esac
 download_url="https://github.com/clj-kondo/clj-kondo/releases/download/v$version/clj-kondo-$version-$platform-amd64.zip"
 
 mkdir -p "$download_dir"
-cd "$download_dir"
+pushd "$download_dir" > /dev/null
 echo -e "Downloading $download_url to $download_dir"
 rm -rf "clj-kondo-$version-$platform-amd64.zip"
 rm -rf "clj-kondo"
 curl -o "clj-kondo-$version-$platform-amd64.zip" -sL "https://github.com/clj-kondo/clj-kondo/releases/download/v$version/clj-kondo-$version-$platform-amd64.zip"
 unzip -qqo "clj-kondo-$version-$platform-amd64.zip"
 rm "clj-kondo-$version-$platform-amd64.zip"
+popd > /dev/null
 
 if [ "$download_dir" != "$install_dir" ]
 then
     mkdir -p "$install_dir"
-    cd "$install_dir"
+    pushd "$install_dir" > /dev/null
     if [ -f clj-kondo ]; then
         echo -e "Moving $install_dir/clj-kondo to $install_dir/clj-kondo.old"
         mv -f "clj-kondo" "clj-kondo.old"
     fi
-    mv -f "$download_dir/clj-kondo" "$PWD/clj-kondo"
+    pushd > /dev/null
+    mv -f "$download_dir/clj-kondo" "$install_dir/clj-kondo"
 fi
 
 echo -e "Successfully installed clj-kondo in $install_dir"
