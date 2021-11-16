@@ -512,7 +512,7 @@
           :let [filename (:filename f)
                 tp (:type f)
                 level (:level f)]
-          :when (and level (not= :off level))
+          :when (and filename level (not= :off level))
           :when (if (= :debug tp)
                   print-debug?
                   true)
