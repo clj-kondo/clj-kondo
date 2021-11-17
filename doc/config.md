@@ -339,7 +339,6 @@ As an example, let's add [clj-kondo/config](#sample-exports) that has some clj-k
     ```shellsession
     $ clj-kondo --copy-configs --dependencies --lint "$(clojure -Spath)"
     Imported config to .clj-kondo/clj-kondo/claypoole. To activate, add "clj-kondo/claypoole" to :config-paths in .clj-kondo/config.edn.
-    Imported config to .clj-kondo/clj-kondo/fulcro. To activate, add "clj-kondo/fulcro" to :config-paths in .clj-kondo/config.edn.
     Imported config to .clj-kondo/clj-kondo/mockery. To activate, add "clj-kondo/mockery" to :config-paths in .clj-kondo/config.edn.
     Imported config to .clj-kondo/clj-kondo/rum. To activate, add "clj-kondo/rum" to :config-paths in .clj-kondo/config.edn.
     Imported config to .clj-kondo/clj-kondo/slingshot. To activate, add "clj-kondo/slingshot" to :config-paths in .clj-kondo/config.edn.
