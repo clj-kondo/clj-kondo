@@ -327,7 +327,7 @@ For example, if the `claypoole` library itself wanted to export config, it would
 ### Importing
 
 When invoked with the appropriate arguments, clj-kondo will inform you of any inactive imported clj-kondo configs from your project dependencies and instruct you how to activate them.
-Let's invoke clj-kondo with [clj-kondo/config](#sample-exports) as a dependency to demonstrate:
+As an example, let's add [clj-kondo/config](#sample-exports) that has some clj-kondo exports as a dependency to demonstrate:
 
 1. Include `clj-kondo/config` in your `deps.edn`:
     ```Clojure
