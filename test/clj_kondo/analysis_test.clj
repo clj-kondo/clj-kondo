@@ -114,6 +114,15 @@
       (assert-submaps
        '[{:name "kw" :reg user/mydef}]
        (:keywords a))))
+  (testing "var usage in re-frame.core/reg-event-db body makes reg available in :context under :in-reg key"
+    (let [a (analyze "(require '[re-frame.core :as rf])
+                      (rf/reg-event-db ::a (constantly {}))"
+                     {:config {:output {:analysis {:keywords true}}}})]
+      (assert-submaps
+       '[{:name require}
+         {:name constantly :context {:in-reg {:k :a :reg re-frame.core/reg-event-db}}}
+         {:name reg-event-db}]
+       (:var-usages a))))
   (testing "hooks can add :reg"
     (let [a (analyze "(user/mydef ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}
@@ -1197,4 +1206,4 @@
             inc-usage (some #(when (= 'inc (:name %)) %) usages)
             context (:context inc-usage)]
         ;; THIS IS JUST AN EXAMPLE, subject to change per feedback from Benedek.
-        (is (submap? context '{re-frame.core/reg-sub {:row 2, :col 56, :end-row 2, :end-col 61}}))))))
+        (is (submap? '{re-frame.core/reg-sub {:row 2, :col 56, :end-row 2, :end-col 61}} context))))))
