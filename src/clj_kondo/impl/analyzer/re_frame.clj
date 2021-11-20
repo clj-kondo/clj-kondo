@@ -6,7 +6,7 @@
 
 (defn analyze-reg [ctx expr fq-def]
   (let [[name-expr & body] (next (:children expr))
-        [ctx reg-val] (if-let [kw (:k name-expr)]
+        [ctx reg-val] (if-let [_kw (:k name-expr)]
                         [(assoc-in ctx [:context fq-def] (meta name-expr))
                          (-> name-expr
                              (assoc :reg fq-def)
