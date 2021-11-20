@@ -32,7 +32,8 @@
                                :end-col]))
                 :arity arity
                 :lang lang
-                :from-var in-def))))))
+                :from-var in-def
+                :context (:context ctx)))))))
 
 (defn reg-var! [{:keys [:analysis-var-meta :analysis :base-lang :lang] :as _ctx}
                 filename row col ns nom attrs]
@@ -109,7 +110,8 @@
   (when (:analyze-keywords? ctx)
     (when-let [analysis (:analysis ctx)]
       (swap! analysis update :keywords conj
-             (assoc-some (select-keys usage [:row :col :end-row :end-col :alias :ns :keys-destructuring :reg :auto-resolved :namespace-from-prefix])
+             (assoc-some (select-keys usage [:row :col :end-row :end-col :alias :ns :keys-destructuring
+                                             :reg :auto-resolved :namespace-from-prefix :context])
                          :name (name (:name usage))
                          :filename filename
                          :lang (when (= :cljc (:base-lang ctx)) (:lang ctx)))))))

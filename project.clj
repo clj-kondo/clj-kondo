@@ -16,6 +16,7 @@
                  [cheshire/cheshire "5.10.0"]
                  [nrepl/bencode "1.1.0"]
                  [borkdude/sci "0.2.7"]]
+  :global-vars {*print-namespace-maps* false}
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.10.866"]

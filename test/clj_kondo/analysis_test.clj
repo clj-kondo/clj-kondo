@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submaps submap?]]
    [clojure.edn :as edn]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -1186,3 +1186,15 @@
                     expected-meta-doc (last (remove #(= "docs" %) e))]]
         (is (= expected-doc (-> (ana-var-meta s {:meta true}) :doc)) (str ":doc " s))
         (is (= expected-meta-doc (-> (ana-var-meta s {:meta true}) :meta :doc))  (str ":meta :doc " s))))))
+
+(deftest context-test
+  (testing "re-frame context"
+    (testing "vars have re-frame subscription context"
+      (let [usages (-> (with-in-str "(require '[re-frame.core :as re-frame])
+                                     (re-frame/reg-sub ::foo (fn [x] (inc x)))"
+                         (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:output {:analysis {:keywords true}}}}))
+                       :analysis :var-usages)
+            inc-usage (some #(when (= 'inc (:name %)) %) usages)
+            context (:context inc-usage)]
+        ;; THIS IS JUST AN EXAMPLE, subject to change per feedback from Benedek.
+        (is (submap? context '{re-frame.core/reg-sub {:row 2, :col 56, :end-row 2, :end-col 61}}))))))

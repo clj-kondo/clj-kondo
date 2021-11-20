@@ -300,7 +300,7 @@
                               (= fn-ns caller-ns-sym)
                               (= fn-name in-def))
                   _ (when output-analysis?
-                      (analysis/reg-usage! ctx
+                      (analysis/reg-usage! (assoc ctx :context (:context call))
                                            filename
                                            row
                                            col
