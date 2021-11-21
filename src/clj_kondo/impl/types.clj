@@ -168,9 +168,17 @@
 
 (declare expr->tag)
 
-(defn map-key [_ctx expr]
+(defn map-key [ctx expr]
   (case (tag expr)
-    :token (sexpr expr)
+    :token (if (:namespaced? expr)
+             (let [k (:k expr)
+                   _ (prn k)
+                   kns (namespace k)
+                   kns (symbol kns)
+                   kns ((:qualify-ns ctx) kns)]
+               (prn kns)
+               (sexpr expr))
+             (sexpr expr))
     ::unknown))
 
 (defn map->tag [ctx expr]
