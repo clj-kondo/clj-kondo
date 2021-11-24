@@ -114,15 +114,6 @@
       (assert-submaps
        '[{:name "kw" :reg user/mydef}]
        (:keywords a))))
-  (testing "var usage in re-frame.core/reg-event-db body makes reg available in :context under :in-reg key"
-    (let [a (analyze "(require '[re-frame.core :as rf])
-                      (rf/reg-event-db ::a (constantly {}))"
-                     {:config {:output {:analysis {:keywords true}}}})]
-      (assert-submaps
-       '[{:name require}
-         {:name constantly :context {:in-reg {:k :a :reg re-frame.core/reg-event-db}}}
-         {:name reg-event-db}]
-       (:var-usages a))))
   (testing "hooks can add :reg"
     (let [a (analyze "(user/mydef ::kw (inc))"
                      {:config {:output {:analysis {:keywords true}}
@@ -1198,12 +1189,19 @@
 
 (deftest context-test
   (testing "re-frame context"
-    (testing "vars have re-frame subscription context"
-      (let [usages (-> (with-in-str "(require '[re-frame.core :as re-frame])
+    (testing "var usages have re-frame subscription context"
+      (testing "with meta/location info about the reg"
+        (let [usages (-> (with-in-str "(require '[re-frame.core :as re-frame])
                                      (re-frame/reg-sub ::foo (fn [x] (inc x)))"
-                         (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:output {:analysis {:keywords true}}}}))
-                       :analysis :var-usages)
-            inc-usage (some #(when (= 'inc (:name %)) %) usages)
-            context (:context inc-usage)]
-        ;; THIS IS JUST AN EXAMPLE, subject to change per feedback from Benedek.
-        (is (submap? '{re-frame.core/reg-sub {:row 2, :col 56, :end-row 2, :end-col 61}} context))))))
+                           (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:output {:analysis {:keywords true}}}}))
+                         :analysis :var-usages)
+              inc-usage (some #(when (= 'inc (:name %)) %) usages)
+              context (:context inc-usage)]
+          (is (submap? '{re-frame.core/reg-sub {:row 2, :col 56, :end-row 2, :end-col 61}} (:reg (:re-frame.core/in-reg context))))))
+      (testing "with details about the reg"
+        (let [usages (-> (analyze "(require '[re-frame.core :as rf])
+                      (rf/reg-event-db ::a (constantly {}))"
+                                  {:config {:output {:analysis {:keywords true}}}})
+                    :var-usages)
+              const-usage (some #(when (= 'constantly (:name %)) %) usages)]
+          (is (submap? '{:re-frame.core/in-reg {:keyword {:name "a" :auto-resolved true}}} (:context const-usage))))))))
