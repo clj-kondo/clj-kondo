@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- Support `:context` in nodes in hooks for adding context to analysis
+- Support `:context` in nodes in hooks for adding context to analysis [#1211](https://github.com/clj-kondo/clj-kondo/issues/1211)
 
 - `goog.object`, `goog.string` etc must be required before use in future releases of CLJS [#1422](https://github.com/clj-kondo/clj-kondo/issues/1422)
 - Resume linting after invalid keyword [#1451](https://github.com/clj-kondo/clj-kondo/issues/1451)
