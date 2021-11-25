@@ -1,6 +1,5 @@
 (ns clj-kondo.hooks-test
   (:require
-   [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [lint! assert-submaps native?]]
    [clojure.java.io :as io]
    [clojure.string :as str]
