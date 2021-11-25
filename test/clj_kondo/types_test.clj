@@ -683,7 +683,18 @@
        (rf result input)))))
 
 (into [] (transducer) [1 2 3])
-" {:linters {:type-mismatch {:level :error}}}))))
+" {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "
+(ns private.tmp.test
+  (:require [clojure.string :as str]))
+
+(defn fun1 [replacement]
+  (str/replace \"foo\" #\"foo\" replacement))
+
+(defn fun2 [^String replacement]
+  (str/replace \"foo\" #\"foo\" replacement))
+"
+                     {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest binding-call-test
   (assert-submaps

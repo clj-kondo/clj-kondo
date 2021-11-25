@@ -1386,6 +1386,7 @@
                                  :type-mismatch
                                  "Char match arg requires char replacement arg.")))
             :regex (when (not (or (identical? matcher-type :string)
+                                  (identical? matcher-type :nilable/string)
                                   ;; we could allow :ifn here, but keywords are
                                   ;; not valid in this position, so we do an
                                   ;; additional check for :map
