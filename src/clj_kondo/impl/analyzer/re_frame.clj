@@ -13,16 +13,15 @@
   (let [[name-expr & body] (next (:children expr))
         [ctx reg-val] (if (:k name-expr)
                         (let [ns (namespace fq-def)
+                              kns (keyword ns)
                               re-frame-name (name fq-def)
-                              id (new-id!)
-                              in-reg-id-key (keyword ns (format "in-%s-id" re-frame-name))
-                              reg-id-key (keyword ns (str re-frame-name "-id"))]
+                              id (new-id!)]
                           [(assoc-in
                             ctx
-                            [:context in-reg-id-key] id)
+                            [:context kns] {:in-id id})
                            (-> name-expr
                                (assoc :reg fq-def)
-                               (assoc-in [:context reg-id-key] id))])
+                               (assoc-in [:context kns] {:id id :var re-frame-name}))])
                         [ctx  name-expr])]
     (common/analyze-children ctx (cons reg-val body))))
 

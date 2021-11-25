@@ -1191,20 +1191,37 @@
   (testing "re-frame context"
     (testing "var usages have re-frame subscription context"
       (testing "with meta/location info about the reg"
-        (let [usages (-> (with-in-str "(require '[re-frame.core :as re-frame])
-                                     (re-frame/reg-sub ::foo (fn [x] (inc x)))"
-                           (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:output {:analysis {:keywords true}}}}))
-                         :analysis :var-usages)
+        (let [analysis (-> (with-in-str "
+(ns app (:require [re-frame.core :as re-frame]))
+(re-frame/reg-sub ::foo (fn [x] (inc x)))
+(re-frame/reg-event-db ::bar (fn [x] (dec x)))
+"
+                             (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:output {:analysis {:keywords true}}}}))
+                           :analysis)
+              usages (:var-usages analysis)
+              keywords (:keywords analysis)
               inc-usage (some #(when (= 'inc (:name %)) %) usages)
-              context (:context inc-usage)]
-          (is (:re-frame.core/in-reg-sub-id context))))
-      (testing "with details about the reg"
-        (let [usages (-> (analyze "(require '[re-frame.core :as rf])
-                      (rf/reg-event-db ::a (constantly {}))"
-                                  {:config {:output {:analysis {:keywords true}}}})
-                         :var-usages)
-              const-usage (some #(when (= 'constantly (:name %)) %) usages)]
-          (is (:re-frame.core/in-reg-event-db-id (:context const-usage))))))))
+              inc-re-frame-id (-> inc-usage :context :re-frame.core :in-id)
+              inc-k (some (fn [k]
+                        (when (some-> k :context :re-frame.core :id (= inc-re-frame-id))
+                          k))
+                          keywords)
+              dec-usage (some #(when (= 'dec (:name %)) %) usages)
+              dec-re-frame-id (-> dec-usage :context :re-frame.core :in-id)
+              dec-k (some (fn [k]
+                            (when (some-> k :context :re-frame.core :id (= dec-re-frame-id))
+                              k))
+                          keywords)]
+          (is inc-re-frame-id)
+          (is (= "foo" (:name inc-k)))
+          (is (= 'app (:ns inc-k)))
+          (is (:auto-resolved inc-k))
+          (is (= "reg-sub" (-> inc-k :context :re-frame.core :var)))
+          (is dec-re-frame-id)
+          (is (= "bar" (:name dec-k)))
+          (is (= 'app (:ns dec-k)))
+          (is (:auto-resolved dec-k))
+          (is (= "reg-event-db" (-> dec-k :context :re-frame.core :var))))))))
 
 (comment
   (context-test)
