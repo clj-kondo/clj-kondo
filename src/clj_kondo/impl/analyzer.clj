@@ -1625,8 +1625,7 @@
                                                    :lang lang
                                                    :filename filename
                                                    :config config
-                                                   :ns ns-name
-                                                   :context (:context ctx)})
+                                                   :ns ns-name})
                                          (catch Exception e
                                            (findings/reg-finding!
                                             ctx
@@ -1638,11 +1637,7 @@
                                               :message (.getMessage e)}
                                              (select-keys (ex-data e)
                                                           [:level :row :col])))
-                                           nil))))))
-                ctx (if-let [context (when transformed
-                                       (:context transformed))]
-                      (assoc ctx :context context)
-                      ctx)]
+                                           nil))))))]
             (if-let [expanded (and transformed
                                    (:node transformed))]
               (do ;;;; This registers the macro call, so we still get arity linting
