@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submaps submap?]]
+   [clj-kondo.test-utils :refer [assert-submaps]]
    [clojure.edn :as edn]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -1204,10 +1204,8 @@
                                   {:config {:output {:analysis {:keywords true}}}})
                          :var-usages)
               const-usage (some #(when (= 'constantly (:name %)) %) usages)]
-          (def c (:context const-usage))
           (is (:re-frame.core/in-reg-event-db-id (:context const-usage))))))))
 
 (comment
-  c
   (context-test)
   )
