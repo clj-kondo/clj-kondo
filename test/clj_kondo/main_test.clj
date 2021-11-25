@@ -1648,7 +1648,6 @@ foo/foo ;; this does use the private var
 
 (deftest misc-false-positives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))
-  (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))")))
   (is (empty? (lint! "(ns foo) (defn foo [] (ns bar (:require [clojure.string :as s])))")))
   (is (empty? (lint! "(defn foo [x y z] ^{:a x :b y :c z} [1 2 3])")))
   (is (empty? (lint! "(fn [^js x] x)"
@@ -1742,7 +1741,14 @@ foo/foo ;; this does use the private var
  :state state
  :init init
  :methods [[eval [java.util.HashMap String] java.util.Map]])"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(specify! #js {:current x}
+  IDeref
+  (-deref [this]
+    (.-current ^js this)))"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 (deftest js-property-access-test
   (assert-submaps

@@ -2,6 +2,16 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- `goog.object`, `goog.string` etc must be required before use in future releases of CLJS #1422
+- Resume linting after invalid keyword #1451
+- Fix install script for relative dir opts #1444
+- Fix type mismatch error with auto-qualified keyword #1467
+- String type hint causes false error report #1455
+- Fix false positive with cljs/specify! #1450
+- Improve analysis for reify #1447
+
 ## 2021.10.19
 
 ### New
