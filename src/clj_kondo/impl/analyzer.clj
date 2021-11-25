@@ -1557,6 +1557,17 @@
   (swap! (:namespaces ctx) assoc-in [base-lang lang current-ns :gen-class] true)
   nil)
 
+(defn analyze-reify [ctx expr]
+  (let [children (next (:children expr))
+        children (map (fn [node]
+                           (if (= :list (tag node))
+                             (update node :children (fn [children]
+                                                      (cons (utils/token-node 'clojure.core/fn)
+                                                            (rest children))))
+                          node))
+                      children)]
+    (analyze-children ctx children)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -1725,7 +1736,8 @@
                       (analyze-expression** ctx (macroexpand/expand->> ctx expr))
                       doto
                       (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
-                      (. .. proxy extend-protocol reify
+                      reify (analyze-reify ctx expr)
+                      (. .. proxy extend-protocol
                          defcurried extend-type specify!)
                       ;; don't lint calls in these expressions, only register them as used vars
                       (analyze-children (ctx-with-linters-disabled ctx [:invalid-arity
