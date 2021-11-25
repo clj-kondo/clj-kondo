@@ -1197,11 +1197,17 @@
                          :analysis :var-usages)
               inc-usage (some #(when (= 'inc (:name %)) %) usages)
               context (:context inc-usage)]
-          (is (submap? '{re-frame.core/reg-sub {:row 2, :col 56, :end-row 2, :end-col 61}} (:reg (:re-frame.core/in-reg context))))))
+          (is (:re-frame.core/in-reg-sub-id context))))
       (testing "with details about the reg"
         (let [usages (-> (analyze "(require '[re-frame.core :as rf])
                       (rf/reg-event-db ::a (constantly {}))"
                                   {:config {:output {:analysis {:keywords true}}}})
-                    :var-usages)
+                         :var-usages)
               const-usage (some #(when (= 'constantly (:name %)) %) usages)]
-          (is (submap? '{:re-frame.core/in-reg {:keyword {:name "a" :auto-resolved true}}} (:context const-usage))))))))
+          (def c (:context const-usage))
+          (is (:re-frame.core/in-reg-event-db-id (:context const-usage))))))))
+
+(comment
+  c
+  (context-test)
+  )
