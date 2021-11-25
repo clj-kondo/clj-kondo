@@ -1911,6 +1911,7 @@
                         id (:id expr)
                         m (meta analyzed)
                         proto-call {:type :call
+                                    :context (:context ctx)
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
                                     :name (with-meta

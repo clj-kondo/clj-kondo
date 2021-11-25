@@ -23,6 +23,8 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 - `:keywords`: when truthy return `:keywords` described below
 - `:arglists`: when truthy return `:arglists` on `:var-definitions`
 
+### Metadata
+
 Clj-kondo returns common metadata such as `:added` and `:deprecated`.
 You can request that it return all, or a specific set, of user-coded namespace or var metadata via:
 
@@ -32,6 +34,14 @@ You can request that it return all, or a specific set, of user-coded namespace o
     - key sequence:  return metadata matching specified keys, ex. `[:skip-wiki :integration-test]`
 - `:var-definitions`
   - `:meta`: return user coded metadata under `:var-definitions` -> `:meta`, options are the same as for namespaces.
+
+### Context data
+
+Built-in and custom hook can add arbitrary data to the analysis using a
+`:context` map. This context map will currently appear in `:var-usages` and
+`:keywords`. You can opt-in to the entire context map using `:context true` or
+select certain keys using `:context [:re-frame.core]`.
+
 # Data
 
 The analysis output consists of a map with:
