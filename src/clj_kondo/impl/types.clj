@@ -172,12 +172,16 @@
   (case (tag expr)
     :token (if (:namespaced? expr)
              (let [k (:k expr)
-                   _ (prn k)
-                   kns (namespace k)
-                   kns (symbol kns)
-                   kns ((:qualify-ns ctx) kns)]
-               (prn kns)
-               (sexpr expr))
+                   kname (name k)]
+               (if-let [kns (namespace k)]
+                 (let [kns (symbol kns)
+                       kns (some-> ctx :ns :qualify-ns (get kns))
+                       res (if kns (clojure.core/keyword (str kns) kname)
+                               (sexpr expr))]
+                   res)
+                 (if-let [kns (some-> ctx :ns :name)]
+                   (clojure.core/keyword (str kns) kname)
+                   (sexpr expr))))
              (sexpr expr))
     ::unknown))
 

@@ -509,7 +509,9 @@
                                                                      :req {:b :string}}}}]}}}}}}}}))))
 
 (deftest map-spec-auto-resolved-key-test
-  (prn (lint! "
+  (assert-submaps
+   '({:file "<stdin>", :row 6, :col 4, :level :error, :message "Missing required key: :other-ns/thing"})
+   (lint! "
 (ns test-ns
   (:require [some-ns :as s]))
 
@@ -520,7 +522,8 @@
                  {:level :error
                   :namespaces
                   {test-ns
-                   {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}})))
+                   {x {:arities {1 {:args [{:op :keys, :req {:other-ns/thing :any
+                                                             :some-ns/thing :any}}]}}}}}}}})))
 
 (deftest if-let-test
   (assert-submaps
