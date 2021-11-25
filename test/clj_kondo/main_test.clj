@@ -1742,7 +1742,14 @@ foo/foo ;; this does use the private var
  :state state
  :init init
  :methods [[eval [java.util.HashMap String] java.util.Map]])"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(specify! #js {:current x}
+  IDeref
+  (-deref [this]
+    (.-current ^js this)))"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 (deftest js-property-access-test
   (assert-submaps

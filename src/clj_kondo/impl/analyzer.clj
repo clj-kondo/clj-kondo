@@ -1726,12 +1726,13 @@
                       doto
                       (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                       (. .. proxy extend-protocol reify
-                         defcurried extend-type)
+                         defcurried extend-type specify!)
                       ;; don't lint calls in these expressions, only register them as used vars
                       (analyze-children (ctx-with-linters-disabled ctx [:invalid-arity
                                                                         :unresolved-symbol
                                                                         :type-mismatch])
                                         children)
+                      ;; TODO: extend-type + specify! are similar in CLJS
                       (proxy-super)
                       (analyze-proxy-super ctx expr)
                       (amap)
