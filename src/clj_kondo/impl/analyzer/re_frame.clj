@@ -18,11 +18,11 @@
                               id (new-id!)]
                           [(assoc-in
                             ctx
-                            [:context kns] {:in-id id})
+                            [:context kns :in-id] id)
                            (-> name-expr
                                (assoc :reg fq-def)
                                (assoc-in [:context kns] {:id id :var re-frame-name}))])
-                        [ctx  name-expr])]
+                        [ctx name-expr])]
     (common/analyze-children ctx (cons reg-val body))))
 
 ;;;; Scratch

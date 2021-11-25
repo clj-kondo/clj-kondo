@@ -115,6 +115,7 @@
         analyze-keywords? (get analysis-cfg :keywords)
         analysis-var-meta (some-> analysis-cfg :var-definitions :meta)
         analysis-ns-meta (some-> analysis-cfg :namespace-definitions :meta)
+        analysis-context (some-> analysis-cfg :context)
         analyze-meta? (or analysis-var-meta analysis-ns-meta)
         analysis (when analysis-cfg
                    (atom (cond-> {:namespace-definitions []
@@ -152,6 +153,7 @@
              :analysis-var-meta analysis-var-meta
              :analysis-ns-meta analysis-ns-meta
              :analyze-meta? analyze-meta?
+             :analysis-context analysis-context
              ;; set of files which should not be flushed into cache
              ;; most notably hook configs, as they can conflict with original sources
              ;; NOTE: we don't allow this to be changed in namespace local

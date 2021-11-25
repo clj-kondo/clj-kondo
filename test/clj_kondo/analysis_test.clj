@@ -1196,15 +1196,17 @@
 (re-frame/reg-sub ::foo (fn [x] (inc x)))
 (re-frame/reg-event-db ::bar (fn [x] (dec x)))
 "
-                             (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:output {:analysis {:keywords true}}}}))
+                             (clj-kondo/run! {:lang :cljs :lint ["-"] :config
+                                              {:output {:analysis {:context [:re-frame.core]
+                                                                   :keywords true}}}}))
                            :analysis)
               usages (:var-usages analysis)
               keywords (:keywords analysis)
               inc-usage (some #(when (= 'inc (:name %)) %) usages)
               inc-re-frame-id (-> inc-usage :context :re-frame.core :in-id)
               inc-k (some (fn [k]
-                        (when (some-> k :context :re-frame.core :id (= inc-re-frame-id))
-                          k))
+                            (when (some-> k :context :re-frame.core :id (= inc-re-frame-id))
+                              k))
                           keywords)
               dec-usage (some #(when (= 'dec (:name %)) %) usages)
               dec-re-frame-id (-> dec-usage :context :re-frame.core :in-id)

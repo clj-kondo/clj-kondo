@@ -4,6 +4,12 @@
   (:refer-clojure :exclude [ns-name])
   (:require [clj-kondo.impl.utils :refer [assoc-some select-some export-ns-sym]]))
 
+(defn select-context [selector ctx]
+  (when selector
+    (if (true? selector)
+      (:context ctx)
+      (select-keys (:context ctx) selector))))
+
 (defn reg-usage! [ctx filename row col from-ns to-ns var-name arity lang in-def metadata]
   (let [analysis (:analysis ctx)]
     (when analysis
@@ -33,7 +39,7 @@
                 :arity arity
                 :lang lang
                 :from-var in-def
-                :context (:context ctx)))))))
+                :context (select-context (:analysis-context ctx) ctx)))))))
 
 (defn reg-var! [{:keys [:analysis-var-meta :analysis :base-lang :lang] :as _ctx}
                 filename row col ns nom attrs]
@@ -111,7 +117,8 @@
     (when-let [analysis (:analysis ctx)]
       (swap! analysis update :keywords conj
              (assoc-some (select-keys usage [:row :col :end-row :end-col :alias :ns :keys-destructuring
-                                             :reg :auto-resolved :namespace-from-prefix :context])
+                                             :reg :auto-resolved :namespace-from-prefix])
                          :name (name (:name usage))
                          :filename filename
-                         :lang (when (= :cljc (:base-lang ctx)) (:lang ctx)))))))
+                         :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
+                         :context (select-context (:analysis-context ctx) usage))))))
