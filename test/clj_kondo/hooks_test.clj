@@ -1,10 +1,10 @@
 (ns clj-kondo.hooks-test
   (:require
+   [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [lint! assert-submaps native?]]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.test :refer [deftest testing is]]
-   [clj-kondo.core :as clj-kondo]))
+   [clojure.test :refer [deftest testing is]]))
 
 (deftest macroexpand-test
   (assert-submaps
