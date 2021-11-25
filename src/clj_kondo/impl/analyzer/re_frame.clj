@@ -21,6 +21,7 @@
                             ctx
                             [:context in-reg-id-key] id)
                            (-> name-expr
+                               (assoc :reg fq-def)
                                (assoc-in [:context reg-id-key] id))])
                         [ctx  name-expr])]
     (common/analyze-children ctx (cons reg-val body))))
