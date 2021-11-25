@@ -168,9 +168,21 @@
 
 (declare expr->tag)
 
-(defn map-key [_ctx expr]
+(defn map-key [ctx expr]
   (case (tag expr)
-    :token (sexpr expr)
+    :token (if (:namespaced? expr)
+             (let [k (:k expr)
+                   kname (name k)]
+               (if-let [kns (namespace k)]
+                 (let [kns (symbol kns)
+                       kns (some-> ctx :ns :qualify-ns (get kns))
+                       res (if kns (clojure.core/keyword (str kns) kname)
+                               (sexpr expr))]
+                   res)
+                 (if-let [kns (some-> ctx :ns :name)]
+                   (clojure.core/keyword (str kns) kname)
+                   (sexpr expr))))
+             (sexpr expr))
     ::unknown))
 
 (defn map->tag [ctx expr]

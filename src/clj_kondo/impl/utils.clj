@@ -330,6 +330,9 @@
 
 (def ^:dynamic *ctx* nil)
 
+(defn log [& xs]
+  (.println System/err (str/join " " xs)))
+
 ;; (require 'clojure.pprint)
 
 ;; (defn where-am-i [depth]
