@@ -262,7 +262,7 @@ You can create an alias for a tool in your `~/.clojure/deps.edn`:
 and then call it from anywhere in your system with:
 
 ```
-$ clj -A:unused-vars src
+$ clj -M:unused-vars src
 ```
 
 ### Unused vars
@@ -317,7 +317,7 @@ script/private_vars.cljs /tmp/private.clj
 This example requires GraphViz. Install with e.g. `brew install graphviz`.
 
 ``` shellsession
-$ clj -m clj-kondo.tools.namespace-graph src
+$ clj -M -m clj-kondo.tools.namespace-graph src
 ```
 
 <img src="assets/namespace-graph.png">
