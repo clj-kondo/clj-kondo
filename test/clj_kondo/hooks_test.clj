@@ -1,5 +1,6 @@
 (ns clj-kondo.hooks-test
   (:require
+   [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [lint! assert-submaps native?]]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -217,3 +218,52 @@ children))]
                         "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))]
      ;; (prn results)
      results)))
+
+(deftest hook-context-test
+  (testing "hook can set node context"
+    (when-not native?
+      (let [prog "(ns bar
+                    (:require [foo :refer [hook-fn]]))
+                  (hook-fn :a)"
+            {:keys [analysis]}
+            (with-in-str prog
+              (clj-kondo/run!
+               {:lint ["-"]
+                :config {:hooks {:__dangerously-allow-string-hooks__ true
+                                 :analyze-call {'foo/hook-fn "
+                                               (require '[clj-kondo.hooks-api :as api])
+                                               (fn [{:keys [:node :context]}]
+                                                 (let [child (second (:children node))
+                                                       new-node (assoc child :context {:my-hook {:can-set-context true}})]
+                                                   {:node new-node}))"}}
+                         :output {:analysis {:keywords true :context true}}}}))
+            {:keys [keywords]} analysis
+            a-keyword (some #(when (= "a" (:name %))
+                               %) keywords)
+            context (:context a-keyword)]
+        (is a-keyword)
+        (is (= {:my-hook {:can-set-context true}} context)))))
+  (testing "hook can set ambient context"
+    (when-not native?
+      (let [prog "(ns bar
+                    (:require [foo :refer [hook-fn]]))
+                  (hook-fn :a)"
+            {:keys [analysis]}
+            (with-in-str prog
+              (clj-kondo/run!
+               {:lint ["-"]
+                :config {:hooks {:__dangerously-allow-string-hooks__ true
+                                 :analyze-call {'foo/hook-fn "
+                                               (require '[clj-kondo.hooks-api :as api])
+                                               (fn [{:keys [:node :context]}]
+                                                   (let [child (second (:children node))
+                                                         new-node (assoc child :context {:my-hook {:can-set-context true}})]
+                                                     {:node new-node
+                                                      :context {:yolo true}}))"}}
+                         :output {:analysis {:keywords true :context true}}}}))
+            {:keys [keywords]} analysis
+            a-keyword (some #(when (= "a" (:name %))
+                               %) keywords)
+            context (:context a-keyword)]
+        (is a-keyword)
+        (is (= {:my-hook {:can-set-context true}, :yolo true} context))))))

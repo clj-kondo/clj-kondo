@@ -61,7 +61,9 @@
            ctx
            (:filename ctx)
            (assoc-some (meta expr)
-                       :context (:context expr)
+                       :context (utils/deep-merge
+                                 (:context ctx)
+                                 (:context expr))
                        :reg (:reg expr)
                        :keys-destructuring keys-destructuring?
                        :auto-resolved (:namespaced? expr)
