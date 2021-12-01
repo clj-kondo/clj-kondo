@@ -1559,7 +1559,9 @@
   (swap! (:namespaces ctx) assoc-in [base-lang lang current-ns :gen-class] true)
   nil)
 
-(defn analyze-protocol-impl-children [ctx children]
+(defn analyze-extend-type-children
+  "Used for analyzing children of extend-type, reify and extend-protocol."
+  [ctx children]
   (let [children (map (fn [node]
                         (if (= :list (tag node))
                           (update node :children (fn [children]
@@ -1571,16 +1573,17 @@
 
 (defn analyze-reify [ctx expr]
   (let [children (next (:children expr))]
-    (analyze-protocol-impl-children ctx children)))
+    (analyze-extend-type-children ctx children)))
 
 (defn analyze-extend-type [ctx expr]
   (let [children (next (:children expr))
         ctx (if (identical? :cljs (:lang ctx))
               (update-in ctx [:config :linters :unresolved-symbol :exclude]
                          (fn [config]
-                           (conj config 'number 'function 'default 'object)))
+                           (conj config
+                                 'number 'function 'default 'object 'string)))
               ctx)]
-    (analyze-protocol-impl-children ctx children)))
+    (analyze-extend-type-children ctx children)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
@@ -1756,9 +1759,8 @@
                       doto
                       (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                       reify (analyze-reify ctx expr)
-                      (extend-type specify!) (analyze-extend-type ctx expr)
-                      (. .. proxy extend-protocol
-                         defcurried)
+                      (extend-protocol extend-type specify!) (analyze-extend-type ctx expr)
+                      (. .. proxy defcurried)
                       ;; don't lint calls in these expressions, only register them as used vars
                       (analyze-children (ctx-with-linters-disabled ctx [:invalid-arity
                                                                         :unresolved-symbol
