@@ -5,7 +5,6 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - Support `:context` in nodes in hooks for adding context to analysis [#1211](https://github.com/clj-kondo/clj-kondo/issues/1211)
-
 - `goog.object`, `goog.string` etc must be required before use in future releases of CLJS [#1422](https://github.com/clj-kondo/clj-kondo/issues/1422)
 - Resume linting after invalid keyword [#1451](https://github.com/clj-kondo/clj-kondo/issues/1451)
 - Fix install script for relative dir opts [#1444](https://github.com/clj-kondo/clj-kondo/issues/1444)
@@ -13,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - String type hint causes false error report [#1455](https://github.com/clj-kondo/clj-kondo/issues/1455)
 - Fix false positive with cljs/specify! [#1450](https://github.com/clj-kondo/clj-kondo/issues/1450)
 - Improve analysis for `reify` [#1447](https://github.com/clj-kondo/clj-kondo/issues/1447)
+- Improve analysis for ns-modifying destructuring key [#1441](https://github.com/clj-kondo/clj-kondo/issues/1441)
 
 ## 2021.10.19
 
