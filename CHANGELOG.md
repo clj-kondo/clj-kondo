@@ -2,11 +2,12 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2021.12.01
 
 - Improve linting in `extend-protocol`, `extend-type`, `reify`, `specify!` [#1333](https://github.com/clj-kondo/clj-kondo/issues/1333)
 - Support `:context` in nodes in hooks for adding context to analysis [#1211](https://github.com/clj-kondo/clj-kondo/issues/1211)
-- `goog.object`, `goog.string` etc must be required before use in future releases of CLJS [#1422](https://github.com/clj-kondo/clj-kondo/issues/1422)
+- `goog.object`, `goog.string` etc must be required before use in newer releases
+  of CLJS [#1422](https://github.com/clj-kondo/clj-kondo/issues/1422)
 - Resume linting after invalid keyword [#1451](https://github.com/clj-kondo/clj-kondo/issues/1451)
 - Fix install script for relative dir opts [#1444](https://github.com/clj-kondo/clj-kondo/issues/1444)
 - Fix type mismatch error with auto-qualified keyword [#1467](https://github.com/clj-kondo/clj-kondo/issues/1467)
