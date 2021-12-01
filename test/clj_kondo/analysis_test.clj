@@ -1231,6 +1231,7 @@
 (ns bar (:require [re-frame.core :as rf]))
 (rf/reg-sub :b :<- [:a] (fn [a _] a))
 (rf/reg-sub :c (fn [] [(rf/subscribe [:a]) (rf/subscribe [:b])]) (fn [[a b]] (vector a b)))
+(rf/reg-sub :d :<- [:a] :<- [:b] (fn [[a b]] (vector (:c a) b)))
 "
                            (clj-kondo/run! {:lang :cljs :lint ["-"] :config
                                             {:output {:analysis {:context [:re-frame.core]
@@ -1243,18 +1244,25 @@
             sub-id-fn (fn [sub-name kw] (when-let [id (and (= sub-name (:name kw)) (-> kw :context :re-frame.core :id))] id))
             a-sub-id (some (partial sub-id-fn "a") keywords)
             b-sub-id (some (partial sub-id-fn "b") keywords)
-            c-sub-id (some (partial sub-id-fn "c") keywords)]
+            c-sub-id (some (partial sub-id-fn "c") keywords)
+            d-sub-id (some (partial sub-id-fn "d") keywords)]
         (testing "var usages in re-frame subscription is tracked"
           (is constantly-in-re-frame-id)
           (is (some #(when (some-> % :context :re-frame.core :id (= constantly-in-re-frame-id)) %) keywords)))
         (is a-sub-id)
         (is b-sub-id)
         (is c-sub-id)
+        (is d-sub-id)
         (testing "arrow style syntatic sugar references are tracked"
-          (is (some #(when (and (= "a" (:name %)) (some-> % :context :re-frame.core :from-sub (= b-sub-id))) %) keywords)))
+          (is (some #(when (and (= "a" (:name %)) (some-> % :context :re-frame.core :from-sub (= b-sub-id))) %) keywords))
+          (is (some #(when (and (= "a" (:name %)) (some-> % :context :re-frame.core :from-sub (= d-sub-id))) %) keywords))
+          (is (some #(when (and (= "b" (:name %)) (some-> % :context :re-frame.core :from-sub (= d-sub-id))) %) keywords)))
         (testing "subscribe calls in signal fns are tracked"
           (is (some #(when (and (= "a" (:name %)) (some-> % :context :re-frame.core :from-sub (= c-sub-id))) %) keywords))
-          (is (some #(when (and (= "b" (:name %)) (some-> % :context :re-frame.core :from-sub (= c-sub-id))) %) keywords)))))))
+          (is (some #(when (and (= "b" (:name %)) (some-> % :context :re-frame.core :from-sub (= c-sub-id))) %) keywords)))
+        (testing "keyword that is also used as a subscription id reused in subscription not resulting in :from-sub reference"
+          (is (some #(when (and (= "c" (:name %)) (some-> % :context :re-frame.core :in-id (= d-sub-id))) %) keywords))
+          (is (not-any? #(when (and (= "c" (:name %)) (some-> % :context :re-frame.core :from-sub (= d-sub-id))) %) keywords)))))))
 
 
 (comment

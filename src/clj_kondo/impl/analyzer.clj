@@ -1901,7 +1901,7 @@
                          [re-frame.core reg-cofx])
                         (re-frame/analyze-reg ctx expr (symbol (str resolved-namespace) (str resolved-name)))
                         ([re-frame.core subscribe])
-                        (re-frame/analyze-subscribe ctx (next (:children expr)) (str resolved-namespace))
+                        (re-frame/analyze-subscribe ctx expr (str resolved-namespace))
                         ([re-frame.core reg-sub])
                         (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace) (str resolved-name)))
                         ;; catch-all
