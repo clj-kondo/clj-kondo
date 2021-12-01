@@ -232,7 +232,24 @@
         :level :error,
         :message "Insufficient input."})
      (lint! "(assoc {} 1 2 3)"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '()
+     (lint! "(require '[some-ns :as s]) (assoc {} 1 2 3 #::s{:x 0})"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '()
+     (lint! "(assoc {} 1 2 3 #:some-ns{:x 0})"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>"
+        :row 1
+        :col 15
+        :level :error
+        :message "Insufficient input."})
+     (lint! "(assoc {} 1 2 #:some-ns{:x 0})"
             {:linters {:type-mismatch {:level :error}}})))
+
   (testing "handle multiple errors"
     (assert-submaps
      '({:file "<stdin>",
