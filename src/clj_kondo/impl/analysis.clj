@@ -116,7 +116,9 @@
   (when (:analyze-keywords? ctx)
     (when-let [analysis (:analysis ctx)]
       (swap! analysis update :keywords conj
-             (assoc-some (select-keys usage [:row :col :end-row :end-col :alias :ns :keys-destructuring
+             (assoc-some (select-keys usage [:row :col :end-row :end-col :alias :ns
+                                             :keys-destructuring
+                                             :keys-destructuring-ns-modifier
                                              :reg :auto-resolved :namespace-from-prefix])
                          :name (name (:name usage))
                          :filename filename
