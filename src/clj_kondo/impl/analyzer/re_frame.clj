@@ -9,22 +9,38 @@
 (defn new-id! []
   (str (swap! counter inc)))
 
+(defn- assoc-reg-maybe [ctx name-expr fq-def]
+  (if (:k name-expr)
+    (let [ns (namespace fq-def)
+          kns (keyword ns)
+          re-frame-name (name fq-def)
+          id (new-id!)]
+      [(assoc-in
+        ctx
+        [:context kns :in-id] id)
+       (-> name-expr
+           (assoc :reg fq-def)
+           (assoc-in [:context kns] {:id id :var re-frame-name}))])
+    [ctx name-expr]))
+
 (defn analyze-reg [ctx expr fq-def]
   (let [[name-expr & body] (next (:children expr))
-        [ctx reg-val] (if (:k name-expr)
-                        (let [ns (namespace fq-def)
-                              kns (keyword ns)
-                              re-frame-name (name fq-def)
-                              id (new-id!)]
-                          [(assoc-in
-                            ctx
-                            [:context kns :in-id] id)
-                           (-> name-expr
-                               (assoc :reg fq-def)
-                               (assoc-in [:context kns] {:id id :var re-frame-name}))])
-                        [ctx name-expr])]
+        [ctx reg-val] (assoc-reg-maybe ctx name-expr fq-def)]
     (common/analyze-children ctx (cons reg-val body))))
 
+(defn analyze-subscribe [ctx expr ns]
+  (let [kns (keyword ns)]
+    (common/analyze-children (assoc-in ctx [:context kns :from-sub] (get-in ctx [:context kns :in-id])) expr)))
+
+(defn analyze-reg-sub [ctx expr fq-def]
+  (let [[name-expr & body] (next (:children expr))
+        arrow-subs (map last (filter #(= :<- (:k (first %))) (partition-all 2 body)))]
+    (if (seq arrow-subs)
+      (let [[ctx reg-val] (assoc-reg-maybe ctx name-expr fq-def)]
+        (doseq [s arrow-subs]
+          (analyze-subscribe ctx [s] (str (namespace fq-def))))
+        (common/analyze-children ctx (cons reg-val (last body))))
+      (analyze-reg ctx expr fq-def))))
 ;;;; Scratch
 
 (comment
