@@ -260,35 +260,37 @@
                (if k
                  (let [k (lift-meta-content* ctx k)]
                    (cond (:k k)
-                         (do
-                           (analyze-usages2 ctx k)
-                           (case (keyword (name (:k k)))
-                             (:keys :syms :strs)
-                             (recur rest-kvs
-                                    (into res (map #(extract-bindings
-                                                     ctx
-                                                     %
-                                                     scoped-expr
-                                                     (assoc opts
-                                                            :keys-destructuring? true
-                                                            :destructuring-type (some-> k :k name keyword)
-                                                            :destructuring-expr k)))
-                                          (:children v)))
-                             ;; or doesn't introduce new bindings, it only gives defaults
-                             :or
-                             (if (empty? rest-kvs)
-                               ;; or can refer to a binding introduced by what we extracted
-                               (let [prev-ctx ctx
-                                     ctx (ctx-with-bindings ctx res)]
-                                 (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
-                                 (recur rest-kvs res))
-                               ;; analyze or after the rest
-                               (recur (concat rest-kvs [k v]) res))
-                             :as (if (-> ctx :config :linters :unused-binding
-                                         :exclude-destructured-as)
-                                   (recur rest-kvs (merge res (extract-bindings (assoc ctx :skip-reg-binding? true) v scoped-expr opts)))
-                                   (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts))))
-                             (recur rest-kvs res)))
+                         (let [key-name (keyword (name (:k k)))
+                               ns-modifier? (one-of key-name [:keys :syms :strs])]
+                           (if ns-modifier?
+                             (do (analyze-usages2 ctx k (assoc opts :keys-destructuring-ns-modifier? true))
+                                 (recur rest-kvs
+                                        (into res (map #(extract-bindings
+                                                         ctx
+                                                         %
+                                                         scoped-expr
+                                                         (assoc opts
+                                                                :keys-destructuring? true
+                                                                :destructuring-type (some-> k :k name keyword)
+                                                                :destructuring-expr k)))
+                                              (:children v))))
+                             (do (analyze-usages2 ctx k)
+                                 (case key-name
+                                   :or
+                                   ;; or doesn't introduce new bindings, it only gives defaults
+                                   (if (empty? rest-kvs)
+                                     ;; or can refer to a binding introduced by what we extracted
+                                     (let [prev-ctx ctx
+                                           ctx (ctx-with-bindings ctx res)]
+                                       (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
+                                       (recur rest-kvs res))
+                                     ;; analyze or after the rest
+                                     (recur (concat rest-kvs [k v]) res))
+                                   :as (if (-> ctx :config :linters :unused-binding
+                                               :exclude-destructured-as)
+                                         (recur rest-kvs (merge res (extract-bindings (assoc ctx :skip-reg-binding? true) v scoped-expr opts)))
+                                         (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts))))
+                                   (recur rest-kvs res)))))
                          :else
                          (recur rest-kvs (merge res
                                                 (extract-bindings ctx k scoped-expr opts)
@@ -464,7 +466,7 @@
                            (let [lct (tag lc)]
                              (when (= :map lct) lc))))))
         children (if meta-node2 (butlast children) children)
-       ;; use dorun to force evaluation, we don't use the result!
+        ;; use dorun to force evaluation, we don't use the result!
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
         _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
         meta-node-meta (when meta-node (sexpr meta-node))
@@ -1560,10 +1562,10 @@
 (defn analyze-reify [ctx expr]
   (let [children (next (:children expr))
         children (map (fn [node]
-                           (if (= :list (tag node))
-                             (update node :children (fn [children]
-                                                      (cons (utils/token-node 'clojure.core/fn)
-                                                            (rest children))))
+                        (if (= :list (tag node))
+                          (update node :children (fn [children]
+                                                   (cons (utils/token-node 'clojure.core/fn)
+                                                         (rest children))))
                           node))
                       children)]
     (analyze-children ctx children)))

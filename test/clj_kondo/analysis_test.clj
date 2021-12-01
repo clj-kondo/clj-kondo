@@ -56,7 +56,7 @@
                           "       p :p q ::q r ::b/r s :bar/s t :x/t} {}])")
                      {:config {:output {:analysis {:keywords true}}}})]
       (assert-submaps
-       '[{:name "keys" :ns foo}
+       '[{:name "keys" :ns foo :keys-destructuring-ns-modifier true}
          {:name "a" :ns foo :keys-destructuring true}
          {:name "b" :ns foo :keys-destructuring true}
          {:name "keys" :ns bar :alias b}

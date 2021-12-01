@@ -53,7 +53,8 @@
          ns-name (:name ns)
          keyword-val (:k expr)]
      (when (:analyze-keywords? ctx)
-       (let [{:keys [:destructuring-expr :keys-destructuring?]} opts
+       (let [{:keys [:destructuring-expr :keys-destructuring?
+                     :keys-destructuring-ns-modifier?]} opts
              current-ns (some-> ns-name symbol)
              destructuring (when destructuring-expr (resolve-keyword ctx destructuring-expr current-ns))
              resolved (resolve-keyword ctx expr current-ns)]
@@ -66,6 +67,7 @@
                                  (:context expr))
                        :reg (:reg expr)
                        :keys-destructuring keys-destructuring?
+                       :keys-destructuring-ns-modifier keys-destructuring-ns-modifier?
                        :auto-resolved (:namespaced? expr)
                        :namespace-from-prefix (when (:namespace-from-prefix resolved) true)
                        :name (:name resolved)
