@@ -1741,14 +1741,25 @@ foo/foo ;; this does use the private var
  :state state
  :init init
  :methods [[eval [java.util.HashMap String] java.util.Map]])"
-                     {:linters {:unresolved-symbol {:level :error}}})))
-  (is (empty? (lint! "
+                     {:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest extend-type-specify-test
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 25, :level :error, :message "Unresolved symbol: x"})
+   (lint! "
 (specify! #js {:current x}
   IDeref
   (-deref [this]
     (.-current ^js this)))"
-                     {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+          {:linters {:unresolved-symbol {:level :error}}}
+          "--lang" "cljs"))
+  (is (empty?
+       (lint! "
+(extend-type String
+  clojure.lang.IDeref
+  (deref [this]
+    this))"
+              {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest js-property-access-test
   (assert-submaps
