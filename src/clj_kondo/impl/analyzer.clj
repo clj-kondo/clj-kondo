@@ -1585,6 +1585,10 @@
               ctx)]
     (analyze-extend-type-children ctx children)))
 
+(defn analyze-cljs-exists? [ctx expr]
+  (run! #(analyze-usages2 (ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace]) %)
+        (next (:children expr))))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -1766,7 +1770,6 @@
                                                                         :unresolved-symbol
                                                                         :type-mismatch])
                                         children)
-                      ;; TODO: extend-type + specify! are similar in CLJS
                       (proxy-super)
                       (analyze-proxy-super ctx expr)
                       (amap)
@@ -1817,6 +1820,7 @@
                       (analyze-hof ctx expr resolved-as-name)
                       (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                       (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
+                      (exists?) (analyze-cljs-exists? ctx expr)
                       ;; catch-all
                       (case [resolved-as-namespace resolved-as-name]
                         [clj-kondo.lint-as def-catch-all]

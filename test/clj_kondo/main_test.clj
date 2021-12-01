@@ -1741,7 +1741,11 @@ foo/foo ;; this does use the private var
  :state state
  :init init
  :methods [[eval [java.util.HashMap String] java.util.Map]])"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(exists? foo.bar/baz)"
+                     {:linters {:unresolved-namespace {:level :error}}}
+                     "--lang" "cljs"))))
 
 (deftest extend-type-specify-test
   (assert-submaps
