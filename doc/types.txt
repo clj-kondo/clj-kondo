@@ -278,11 +278,13 @@ signum {1 {:ret :double, :args (:double)}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.data.json.transit.json  ===
 codepoint-clause {1 {:ret #{:vector}}}
-write-double {2 {:args (:nilable/double nil)}}
+slow-read-string {2 {:args (nil :nilable/string)}}
+write-double {3 {:args (:nilable/double nil nil)}}
+write-str {:varargs {:ret :nilable/string, :min-arity 1}}
 read-integer {1 {:args (:nilable/string)}}
-write-string {2 {:args (:nilable/char-sequence nil)}}
-write-float {2 {:args (:nilable/double nil)}}
-read-decimal {1 {:args (:nilable/string)}}
+write-string {3 {:args (:nilable/char-sequence nil nil)}}
+write-float {3 {:args (:nilable/double nil nil)}}
+read-decimal {2 {:args (:nilable/string nil)}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.xml.transit.json  ===
 
