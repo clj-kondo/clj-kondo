@@ -870,13 +870,21 @@
                 ;; varargs must be passed as a seq or nil in recur
                 (when-let [min-arity (:min-arity recur-arity)]
                   (inc min-arity)))]
-        (when (not= (:len ctx) (:idx ctx))
-          (findings/reg-finding!
-           ctx
-           (node->line
-            filename
-            expr
-            :unexpected-recur "Recur can only be used in tail position.")))
+        (let [len (:len ctx)
+              idx (:idx ctx)
+              parent (-> (:callstack ctx)
+                         second second)]
+          (when (and len idx
+                     (not= (dec len) idx)
+                     (not= 'if parent)
+                     (not= 'case parent)
+                     (not= 'cond parent))
+            (findings/reg-finding!
+             ctx
+             (node->line
+              filename
+              expr
+              :unexpected-recur "Recur can only be used in tail position."))))
         (cond
           (not expected-arity)
           (findings/reg-finding!
@@ -884,7 +892,7 @@
            (node->line
             filename
             expr
-            :unexpected-recur "unexpected recur"))
+            :unexpected-recur "Unexpected usage of recur."))
           (not= expected-arity arg-count)
           (findings/reg-finding!
            ctx
