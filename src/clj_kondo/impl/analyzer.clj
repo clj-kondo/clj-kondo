@@ -876,7 +876,7 @@
                          second second)]
           (when (and len idx
                      (not= (dec len) idx)
-                     (not (one-of parent [if case cond if-not condp])))
+                     (not (one-of parent [if case cond if-let if-not condp])))
             (findings/reg-finding!
              ctx
              (node->line
