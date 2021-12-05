@@ -6,7 +6,7 @@
 
 (extend-protocol Foo
   nil
-  (-foo ([this]) ([this x]) (this x y)))
+  (-foo ([this]) ([this x]) ([this x y])))
 
 (-foo nil)
 (-foo nil 1)

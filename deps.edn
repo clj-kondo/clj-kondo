@@ -14,6 +14,9 @@
             :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}
                          jonase/eastwood {:mvn/version "0.9.4"}
                          org.clojure/tools.deps.alpha {:mvn/version "0.12.1048"}}}
+           :built-in-cache
+           {:extra-deps
+            {org.clojure/data.json {:mvn/version "2.4.0"}}}
            :test
            {:extra-deps
             {org.clojure/clojure {:mvn/version "1.9.0"}

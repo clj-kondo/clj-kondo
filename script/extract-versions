@@ -1,6 +1,6 @@
-export CLJ_KONDO_EXTRACT_CLJ_VERSION="1.11.0-alpha2"
-export CLJ_KONDO_EXTRACT_CLJS_VERSION="1.10.866"
+export CLJ_KONDO_EXTRACT_CLJ_VERSION="1.11.0-alpha3"
+export CLJ_KONDO_EXTRACT_CLJS_VERSION="1.10.891"
 export CLJ_KONDO_EXTRACT_CORE_DEPS="
 {:deps {org.clojure/clojure {:mvn/version \"$CLJ_KONDO_EXTRACT_CLJ_VERSION\"}
         org.clojure/clojurescript {:mvn/version \"$CLJ_KONDO_EXTRACT_CLJS_VERSION\"}}}"
-export CLJ_KONDO_EXTRACT_CORE_DEPS_PATH=$(clojure -Spath -Sdeps "$CLJ_KONDO_EXTRACT_CORE_DEPS")
+export CLJ_KONDO_EXTRACT_CORE_DEPS_PATH=$(clojure -Spath -Sdeps "$CLJ_KONDO_EXTRACT_CORE_DEPS" -A:built-in-cache)
