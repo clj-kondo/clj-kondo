@@ -29,8 +29,11 @@
     (common/analyze-children ctx (cons reg-val body))))
 
 (defn analyze-subscribe [ctx expr ns]
-  (let [kns (keyword ns)]
-    (common/analyze-children (assoc-in ctx [:context kns :from-sub] (get-in ctx [:context kns :in-id])) (next (:children expr)))))
+  (let [kns (keyword ns)
+        [subscription-id & subscription-params] (:children (first (next (:children expr))))]
+    (common/analyze-children (assoc-in ctx [:context kns :subscription-reference] true) [subscription-id])
+    (when subscription-params
+      (common/analyze-children ctx subscription-params))))
 
 (defn analyze-reg-sub [ctx expr fq-def]
   (let [[name-expr & body] (next (:children expr))
