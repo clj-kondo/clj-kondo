@@ -12,7 +12,7 @@ staleLabel: expired
 markComment: >
   This issue has been automatically marked as expired because it has not had
   recent activity. To prevent it from being closed, please leave a
-  message. Consider giving the original message a thumbs up if this issue is
-  important to you. Thank you for your contributions.
+  message. Additionally, consider giving the original message a thumbs up if
+  this issue is important to you. Thank you for your contributions.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: false
