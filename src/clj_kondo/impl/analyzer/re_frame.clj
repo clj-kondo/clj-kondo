@@ -2,7 +2,8 @@
   {:no-doc true}
   (:require
      [clj-kondo.impl.analyzer.common :as common]
-     [clj-kondo.impl.utils :as utils]))
+     [clj-kondo.impl.utils :as utils]
+     [clojure.walk :as w]))
 
 (def counter (atom 0))
 
@@ -40,6 +41,13 @@
           (common/analyze-children ctx args)))
       (common/analyze-children ctx children))))
 
+(defn analyze-dispatch [ctx expr ns]
+  (let [kns (keyword ns)
+        [event-id & event-params] (:children (first (next (:children expr))))]
+    (common/analyze-children (assoc-in ctx [:context kns :event-ref] true) [event-id])
+    (when event-params
+      (common/analyze-children ctx event-params))))
+
 (defn analyze-reg-sub [ctx expr fq-def]
   (let [[name-expr & body] (next (:children expr))
         arrow-subs (map last (filter #(= :<- (:k (first %))) (partition-all 2 body)))]
@@ -49,6 +57,45 @@
           (analyze-subscribe ctx {:children (cons :<- [s])} (str (namespace fq-def))))
         (common/analyze-children ctx (cons reg-val (take-last 1 body))))
       (analyze-reg ctx expr fq-def))))
+
+(defmulti analyze-dispatch-type (fn [_ctx _fq-def x] (:k (first x))))
+
+(defmethod analyze-dispatch-type :dispatch [ctx fq-def x]
+  (let [[disp-kw & _dispatch-vector] x]
+    (analyze-dispatch ctx {:children x} (str (namespace fq-def)))
+    [disp-kw]))
+
+(defmethod analyze-dispatch-type :dispatch-n [ctx fq-def x]
+  (let [disp-kw (:k (first x))]
+    (doseq [dispatch-vector (:children (first (drop 1 x)))]
+      (analyze-dispatch ctx {:children (cons disp-kw [dispatch-vector])} (str (namespace fq-def))))
+    [disp-kw]))
+
+(defmethod analyze-dispatch-type :dispatch-later [ctx fq-def x]
+  (let [disp-kw (:k (first x))]
+    (analyze-dispatch
+     ctx
+     {:children (->> (last x)
+                     :children
+                     (partition-all 2)
+                     (some #(when (= :dispatch (:k (first %))) (last %)))
+                     vector
+                     (cons disp-kw))}
+     (str (namespace fq-def)))
+    [disp-kw]))
+
+(defmethod analyze-dispatch-type :default [_ctx _fq-def x] x)
+
+(defn analyze-reg-event-fx [ctx expr fq-def]
+  (let [[name-expr & body] (next (:children expr))
+        [ctx reg-val] (with-context ctx name-expr fq-def)
+        body (w/postwalk
+              (fn [x]
+                (if (coll? x)
+                  (analyze-dispatch-type ctx fq-def x)
+                  x))
+              body)]
+    (common/analyze-children ctx (cons reg-val body))))
 ;;;; Scratch
 
 (comment

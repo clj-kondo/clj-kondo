@@ -1407,6 +1407,9 @@
           (is (:auto-resolved dec-k))
           (is (= "reg-event-db" (-> dec-k :context :re-frame.core :var))))))))
 
+(defn- re-frame-id [re-frame-name kw]
+  (when-let [id (and (= re-frame-name (:name kw)) (-> kw :context :re-frame.core :id))] id))
+
 (deftest re-frame-reg-sub-subscription-test
   (testing "reg-sub and subscription relations are trackable through context"
     (let [analysis (-> (with-in-str "
@@ -1427,12 +1430,11 @@
           keywords (:keywords analysis)
           constantly-usage (some #(when (= 'constantly (:name %)) %) usages)
           constantly-in-re-frame-id (-> constantly-usage :context :re-frame.core :in-id)
-          sub-id-fn (fn [sub-name kw] (when-let [id (and (= sub-name (:name kw)) (-> kw :context :re-frame.core :id))] id))
-          a-sub-id (some (partial sub-id-fn "a") keywords)
-          b-sub-id (some (partial sub-id-fn "b") keywords)
-          c-sub-id (some (partial sub-id-fn "c") keywords)
-          d-sub-id (some (partial sub-id-fn "d") keywords)
-          e-sub-id (some (partial sub-id-fn "e") keywords)]
+          a-sub-id (some (partial re-frame-id "a") keywords)
+          b-sub-id (some (partial re-frame-id "b") keywords)
+          c-sub-id (some (partial re-frame-id "c") keywords)
+          d-sub-id (some (partial re-frame-id "d") keywords)
+          e-sub-id (some (partial re-frame-id "e") keywords)]
       (testing "var usages in re-frame subscription is tracked"
         (is constantly-in-re-frame-id)
         (is (some #(when (some-> % :context :re-frame.core :id (= constantly-in-re-frame-id)) %) keywords)))
@@ -1605,6 +1607,60 @@
               :name-end-row 12
               :name-end-col 16}
              my-other-definition))))))
+
+(deftest re-frame-dispatch-reg-event-fx-test
+  (let [analysis (:analysis (with-in-str
+"(ns foo (:require [re-frame.core :as rf]))
+(rf/reg-event-db :foo (fn [db [_ arg1]] (dissoc db arg1)))
+(rf/reg-event-db :other-foo (fn [db [_ arg1 arg2]] (assoc db arg1 arg2)))
+
+(ns bar (:require [re-frame.core :as rf]))
+(defn bar-fn [] (rf/dispatch [:foo :some-key]))
+(rf/reg-event-fx :simple-dispatch (fn [{:keys [db]} [_ arg1]] {:dispatch [:foo (:bar arg1)]}))
+(rf/reg-event-fx :fx-dispatch (fn [{:keys [db]} [_ arg1]] {:fx [[:dispatch [:foo (:bar arg1)]]]}))
+(rf/reg-event-fx :later-dispatch (fn [{:keys [db]} [_ arg1]] {:fx [[:dispatch-later {:ms 10 :dispatch [:foo (:bar arg1)]}]]}))
+(rf/reg-event-fx :multiple-dispatch (fn [{:keys [db]} [_ arg1 arg2]] {:fx [[:dispatch-n [[:foo (:bar arg1)] [:other-foo arg1 arg2]]]]}))"
+                              (clj-kondo/run! {:lang :cljs :lint ["-"] :config
+                                               {:output {:analysis {:context [:re-frame.core]
+                                                                    :keywords true}}}})))
+        keywords (:keywords analysis)
+        simple-dispatch-id (some (partial re-frame-id "simple-dispatch") keywords)
+        fx-dispatch-id (some (partial re-frame-id "fx-dispatch") keywords)
+        later-dispatch-id (some (partial re-frame-id "later-dispatch") keywords)
+        multiple-dispatch-id (some (partial re-frame-id "multiple-dispatch") keywords)]
+    (is simple-dispatch-id)
+    (is fx-dispatch-id)
+    (is later-dispatch-id)
+    (is multiple-dispatch-id)
+    (testing "from-var and from filled on keyword that is an event reference for dispatch in a cljs var"
+      (->> (filter #(and (= "foo" (:name %)) (some-> % :context :re-frame.core :event-ref)) keywords)
+           (some #(when (and (= 'bar-fn (:from-var %)) (= 'bar (:from %))) %))
+           is))
+    (testing ":dispatch keyword in reg-event-fx return map is tracked"
+      (is (some #(when (and (= "foo" (:name %))
+                            (= simple-dispatch-id (-> % :context :re-frame.core :in-id))
+                            (some-> % :context :re-frame.core :event-ref)) %) keywords)))
+    (testing ":dispatch keyword in vector in reg-event-fx under :fx keyword is tracked"
+      (is (some #(when (and (= "foo" (:name %))
+                            (= fx-dispatch-id (-> % :context :re-frame.core :in-id))
+                            (some-> % :context :re-frame.core :event-ref)) %) keywords)))
+    (testing ":dispatch keyword in reg-event-fx under :dispatch-later keyword is tracked"
+      (is (some #(when (and (= "foo" (:name %))
+                            (= later-dispatch-id (-> % :context :re-frame.core :in-id))
+                            (some-> % :context :re-frame.core :event-ref)) %) keywords)))
+    (testing "references to multiple dispatches under :dispatch-n are tracked"
+      (is (some #(when (and (= "foo" (:name %))
+                            (= multiple-dispatch-id (-> % :context :re-frame.core :in-id))
+                            (some-> % :context :re-frame.core :event-ref)) %) keywords))
+      (is (some #(when (and (= "other-foo" (:name %))
+                            (= multiple-dispatch-id (-> % :context :re-frame.core :in-id))
+                            (some-> % :context :re-frame.core :event-ref)) %) keywords)))
+    (testing "keyword used as param in a dispatch not resulting in subscription-ref"
+        (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= simple-dispatch-id))) %) keywords))
+        (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= fx-dispatch-id))) %) keywords))
+        (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= later-dispatch-id))) %) keywords))
+        (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= multiple-dispatch-id))) %) keywords))
+        (is (not-any? #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :event-ref)) %) keywords)))))
 
 (comment
   (context-test)
