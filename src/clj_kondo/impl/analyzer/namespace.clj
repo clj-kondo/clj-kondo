@@ -160,7 +160,7 @@
                                          filename
                                          (:referred-all m)
                                          :use
-                                         (format "use %srequire with alias or :refer with [%s]"
+                                         (format "use %srequire with alias or :refer [%s]"
                                                  (if require-sym
                                                    "" ":")
                                                  (str/join " " (sort opt)))))
