@@ -1915,11 +1915,14 @@
                         ([re-frame.core reg-event-db]
                          [re-frame.core reg-event-fx]
                          [re-frame.core reg-event-ctx]
-                         [re-frame.core reg-sub]
                          [re-frame.core reg-sub-raw]
                          [re-frame.core reg-fx]
                          [re-frame.core reg-cofx])
                         (re-frame/analyze-reg ctx expr (symbol (str resolved-namespace) (str resolved-name)))
+                        ([re-frame.core subscribe])
+                        (re-frame/analyze-subscribe ctx expr (str resolved-namespace))
+                        ([re-frame.core reg-sub])
+                        (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace) (str resolved-name)))
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
                                          (one-of [resolved-namespace resolved-name]
