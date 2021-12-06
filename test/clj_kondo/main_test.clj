@@ -2174,7 +2174,7 @@ foo/foo ;; this does use the private var
       :row 19,
       :col 4,
       :level :warning,
-      :message "use :require with alias or :refer with [join]"}
+      :message "use :require with alias or :refer [join]"}
      {:file "corpus/use.clj",
       :row 19,
       :col 10,
@@ -2189,7 +2189,7 @@ foo/foo ;; this does use the private var
       :row 22,
       :col 2,
       :level :warning,
-      :message "use require with alias or :refer with [join]"}
+      :message "use require with alias or :refer [join]"}
      {:file "corpus/use.clj",
       :row 22,
       :col 8,
