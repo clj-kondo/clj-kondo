@@ -155,14 +155,14 @@
     (testing "no namespace for key :a"
       (let [a (analyze "#:xml{:_/a 1}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>" :from-ns user}]
+        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>" :from user}]
                (:keywords a)))))
     ;; Don't use assertmap here to make sure ns is absent
     (testing "no namespace for key :b"
       (let [a (analyze "#:xml{:a {:b 1}}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>" :namespace-from-prefix true :from-ns user}
-                 {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>" :from-ns user}]
+        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>" :namespace-from-prefix true :from user}
+                 {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>" :from user}]
                (:keywords a)))))
     (testing "auto-resolved and namespace-from-prefix"
       (let [a (analyze "(ns foo (:require [clojure.set :as set]))
@@ -171,18 +171,18 @@
                         {:j/k 5 :l 6 ::m 7}
                         #::set{:a 1}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '[{:row 2 :col 25 :end-row 2 :end-col 27 :name "a" :filename "<stdin>" :from-ns foo}
-                 {:row 2 :col 28 :end-row 2 :end-col 31 :ns foo :auto-resolved true :name "b" :filename "<stdin>" :from-ns foo}
-                 {:row 2 :col 32 :end-row 2 :end-col 38 :ns bar :name "c" :filename "<stdin>" :from-ns foo}
-                 {:row 3 :col 29 :end-row 3 :end-col 31 :ns d :namespace-from-prefix true :name "e" :filename "<stdin>" :from-ns foo}
-                 {:row 3 :col 34 :end-row 3 :end-col 38 :name "f" :filename "<stdin>" :from-ns foo}
-                 {:row 3 :col 41 :end-row 3 :end-col 45 :ns g :name "h" :filename "<stdin>" :from-ns foo}
-                 {:row 3 :col 48 :end-row 3 :end-col 51 :ns foo :auto-resolved true :name "i" :filename "<stdin>" :from-ns foo}
-                 {:row 4 :col 26 :end-row 4 :end-col 30 :ns j :name "k" :filename "<stdin>" :from-ns foo}
-                 {:row 4 :col 33 :end-row 4 :end-col 35 :name "l" :filename "<stdin>" :from-ns foo}
-                 {:row 4 :col 38 :end-row 4 :end-col 41 :ns foo :auto-resolved true :name "m" :filename "<stdin>" :from-ns foo}
+        (is (= '[{:row 2 :col 25 :end-row 2 :end-col 27 :name "a" :filename "<stdin>" :from foo}
+                 {:row 2 :col 28 :end-row 2 :end-col 31 :ns foo :auto-resolved true :name "b" :filename "<stdin>" :from foo}
+                 {:row 2 :col 32 :end-row 2 :end-col 38 :ns bar :name "c" :filename "<stdin>" :from foo}
+                 {:row 3 :col 29 :end-row 3 :end-col 31 :ns d :namespace-from-prefix true :name "e" :filename "<stdin>" :from foo}
+                 {:row 3 :col 34 :end-row 3 :end-col 38 :name "f" :filename "<stdin>" :from foo}
+                 {:row 3 :col 41 :end-row 3 :end-col 45 :ns g :name "h" :filename "<stdin>" :from foo}
+                 {:row 3 :col 48 :end-row 3 :end-col 51 :ns foo :auto-resolved true :name "i" :filename "<stdin>" :from foo}
+                 {:row 4 :col 26 :end-row 4 :end-col 30 :ns j :name "k" :filename "<stdin>" :from foo}
+                 {:row 4 :col 33 :end-row 4 :end-col 35 :name "l" :filename "<stdin>" :from foo}
+                 {:row 4 :col 38 :end-row 4 :end-col 41 :ns foo :auto-resolved true :name "m" :filename "<stdin>" :from foo}
                  {:row 5, :col 32, :end-row 5, :end-col 34, :ns clojure.set, :namespace-from-prefix true,
-                  :name "a", :filename "<stdin>" :from-ns foo}]
+                  :name "a", :filename "<stdin>" :from foo}]
                (:keywords a)))))))
 
 (deftest locals-analysis-test
@@ -1262,29 +1262,29 @@
       (testing "arrow style syntatic sugar references are tracked"
         (is (some #(when (and (= "a" (:name %))
                               (= b-sub-id (-> % :context :re-frame.core :in-id))
-                              (some-> % :context :re-frame.core :subscription-reference)) %) keywords))
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords))
         (is (some #(when (and (= "a" (:name %))
                               (= d-sub-id (-> % :context :re-frame.core :in-id))
-                              (some-> % :context :re-frame.core :subscription-reference)) %) keywords))
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords))
         (is (some #(when (and (= "b" (:name %))
                               (= d-sub-id (-> % :context :re-frame.core :in-id))
-                              (some-> % :context :re-frame.core :subscription-reference)) %) keywords)))
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords)))
       (testing "subscribe calls in signal fns are tracked"
         (is (some #(when (and (= "a" (:name %))
                               (= c-sub-id (-> % :context :re-frame.core :in-id))
-                              (some-> % :context :re-frame.core :subscription-reference)) %) keywords))
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords))
         (is (some #(when (and (= "b" (:name %))
                               (= c-sub-id (-> % :context :re-frame.core :in-id))
-                              (some-> % :context :re-frame.core :subscription-reference)) %) keywords)))
-      (testing "keyword that is also used as a subscription id reused in subscription not resulting in :subscription-reference"
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords)))
+      (testing "keyword that is also used as a subscription id reused in subscription not resulting in :subscription-ref"
         (is (some #(when (and (= "c" (:name %)) (some-> % :context :re-frame.core :in-id (= d-sub-id))) %) keywords))
-        (is (not-any? #(when (and (= "c" (:name %)) (some-> % :context :re-frame.core :subscription-reference)) %) keywords)))
-      (testing "keyword used as subscription param not resulting in subscription-reference"
+        (is (not-any? #(when (and (= "c" (:name %)) (some-> % :context :re-frame.core :subscription-ref)) %) keywords)))
+      (testing "keyword used as subscription param not resulting in subscription-ref"
         (is (some #(when (and (= "d" (:name %)) (some-> % :context :re-frame.core :in-id (= e-sub-id))) %) keywords))
-        (is (not-any? #(when (and (= "d" (:name %)) (some-> % :context :re-frame.core :subscription-reference)) %) keywords)))
-      (testing "from-var and from-ns filled on keyword that is a subscription reference for subscription in a cljs var"
-        (->> (filter #(and (= "a" (:name %)) (some-> % :context :re-frame.core :subscription-reference)) keywords)
-             (some #(when (and (= 'barfn (:from-var %)) (= 'bar (:from-ns %))) %))
+        (is (not-any? #(when (and (= "d" (:name %)) (some-> % :context :re-frame.core :subscription-ref)) %) keywords)))
+      (testing "from-var and from filled on keyword that is a subscription reference for subscription in a cljs var"
+        (->> (filter #(and (= "a" (:name %)) (some-> % :context :re-frame.core :subscription-ref)) keywords)
+             (some #(when (and (= 'barfn (:from-var %)) (= 'bar (:from %))) %))
              is)))))
 
 

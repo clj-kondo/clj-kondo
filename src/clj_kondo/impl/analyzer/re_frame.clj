@@ -31,7 +31,7 @@
 (defn analyze-subscribe [ctx expr ns]
   (let [kns (keyword ns)
         [subscription-id & subscription-params] (:children (first (next (:children expr))))]
-    (common/analyze-children (assoc-in ctx [:context kns :subscription-reference] true) [subscription-id])
+    (common/analyze-children (assoc-in ctx [:context kns :subscription-ref] true) [subscription-id])
     (when subscription-params
       (common/analyze-children ctx subscription-params))))
 

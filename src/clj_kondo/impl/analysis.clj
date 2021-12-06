@@ -124,5 +124,5 @@
                          :filename filename
                          :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
                          :from-var (:in-def ctx)
-                         :from-ns (get-in ctx [:ns :name])
+                         :from (get-in ctx [:ns :name])
                          :context (select-context (:analysis-context ctx) usage))))))
