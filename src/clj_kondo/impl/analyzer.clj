@@ -1839,6 +1839,9 @@
                          [cljs.test deftest])
                         (test/analyze-deftest ctx expr defined-by
                                               resolved-as-namespace resolved-as-name)
+                        ([clojure.test testing]
+                         [cljs.test testing])
+                        (test/analyze-testing ctx expr resolved-as-namespace)
                         ([clojure.core.match match] [cljs.core.match match])
                         (match/analyze-match ctx expr)
                         [clojure.string replace]

@@ -1089,7 +1089,6 @@
                                    {:analysis true}}}))
                :analysis :namespace-definitions first)))))
 
-
 (deftest derived-doc
   (testing "namespace"
     (let [enable? [false true]]
@@ -1287,7 +1286,30 @@
              (some #(when (and (= 'barfn (:from-var %)) (= 'bar (:from %))) %))
              is)))))
 
+(deftest testing-context-test
+  (testing "with testing-str of testing var-usage"
+    (let [analysis (-> (with-in-str "(ns app (:require [clojure.test :refer [testing is]]))\n(testing \"some `cool` docs here\" (is true))"
+                         (clj-kondo/run! {:lang :clj :lint ["-"] :config
+                                          {:output {:analysis {:context [:clojure.test]}}}}))
+                       :analysis)
+          usages (:var-usages analysis)
+          testing-usage (some #(when (= 'testing (:name %)) %) usages)]
+      (is (= '{:end-row 1
+               :name-end-col 48
+               :name-end-row 1
+               :name-row 1
+               :name testing
+               :from app
+               :context {:clojure.test {:testing-str "some `cool` docs here"}}
+               :macro true
+               :col 41
+               :name-col 41
+               :end-col 48
+               :varargs-min-arity 1
+               :refer true
+               :row 1
+               :to clojure.test}
+             testing-usage)))))
 
 (comment
-  (context-test)
-  )
+  (context-test))
