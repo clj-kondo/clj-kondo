@@ -24,11 +24,10 @@
    defined-by))
 
 (defn analyze-testing [ctx expr resolved-as-namespace]
-  (let [[testing testing-str & rest-children] (:children expr)
+  (let [[_ testing-str & _rest-children] (:children expr)
         kns (keyword resolved-as-namespace)]
     (common/analyze-children (assoc-in ctx [:context kns :testing-str] (utils/sexpr testing-str))
-                             testing)
-    (common/analyze-children ctx rest-children)))
+                             expr)))
 
 (defn analyze-cljs-test-async [ctx expr]
   (let [[binding-expr & rest-children] (rest (:children expr))
