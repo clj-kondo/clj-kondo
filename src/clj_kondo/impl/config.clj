@@ -80,6 +80,9 @@
               :missing-else-branch {:level :warning}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
+              :docstring-blank {:level :warning}
+              :docstring-no-summary {:level :off}
+              :docstring-leading-trailing-whitespace {:level :off}
               :consistent-alias {:level :warning
                                  ;; warn when alias for clojure.string is
                                  ;; different from str
