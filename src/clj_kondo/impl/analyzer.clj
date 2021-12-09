@@ -157,7 +157,10 @@
            skip-reg-binding? (or (:skip-reg-binding? ctx)
                                  (when (and keys-destructuring? fn-args?)
                                    (-> ctx :config :linters :unused-binding
-                                       :exclude-destructured-keys-in-fn-args)))]
+                                       :exclude-destructured-keys-in-fn-args))
+                                 (and (:defmulti? ctx)
+                                      (-> ctx :config :linters :unused-binding
+                                       :exclude-defmulti-args)))]
        (case t
          :token
          (cond
@@ -958,7 +961,8 @@
         doc-node (when docstring
                    (first children))
         [child & children] (if docstring (next children) children)
-        [extra-meta extra-meta-node children] (if (and (= 'clojure.core/defmulti defined-by)
+        defmulti? (= 'clojure.core/defmulti defined-by)
+        [extra-meta extra-meta-node children] (if (and defmulti?
                                                        (identical? :map (utils/tag child)))
                                                 [(sexpr child) child children]
                                                 [nil nil (cons child children)])
@@ -971,7 +975,7 @@
                                ;; TODO: too late to get metadata node
                                (when-let [docstring (some-> metadata :doc str)]
                                  [expr docstring]))
-        ctx (assoc ctx :in-def var-name :def-meta metadata)
+        ctx (assoc ctx :in-def var-name :def-meta metadata :defmulti? defmulti?)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
                             (= 1 (count children)))

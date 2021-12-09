@@ -749,6 +749,18 @@ This will disable the warning in:
 (defn f [{:keys [a b c] :as g}] a b c)
 ```
 
+To exclude warnings about defmulti dispatch function arguments, use:
+
+``` clojure
+{:linters {:unused-binding {:exclude-defmulti-args true}}}
+```
+
+This will disable the warning in:
+
+``` clojure
+(defmulti f (fn [a b] a))
+```
+
 ### Unreachable code
 
 *Keyword:* `:unreachable-code`.

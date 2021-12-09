@@ -182,6 +182,14 @@
       :message "unused binding a"})
    (lint! "(let [a 1] `{:a 'a})"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,:col 36,
+      :level :warning,
+      :message "unused binding b"})
+   (lint! "(defmulti descriptive-multi (fn [a b] a))"
+          '{:linters {:unused-binding
+                      {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
@@ -224,7 +232,11 @@
                                  :unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns problem {:clj-kondo/config {:linters {:unused-binding {:level :off}}}})
 (defn f [x] (println))"
-                     '{:linters {:unused-binding {:level :warning}}}))))
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defmulti descriptive-multi (fn [a b] a))"
+                     '{:linters {:unused-binding
+                                 {:level :warning
+                                  :exclude-defmulti-args true}}}))))
 
 (deftest unused-destructuring-default-test
   (doseq [input ["(let [{:keys [:i] :or {i 2}} {}])"
@@ -308,3 +320,5 @@
                              '{:linters {:unused-binding
                                          {:level :warning
                                           :exclude-destructured-as true}}})))))
+
+
