@@ -156,7 +156,10 @@
            skip-reg-binding? (or (:skip-reg-binding? ctx)
                                  (when (and keys-destructuring? fn-args?)
                                    (-> ctx :config :linters :unused-binding
-                                       :exclude-destructured-keys-in-fn-args)))]
+                                       :exclude-destructured-keys-in-fn-args))
+                                 (and (:defmulti? ctx)
+                                      (-> ctx :config :linters :unused-binding
+                                       :exclude-defmulti-args)))]
        (case t
          :token
          (cond
@@ -948,8 +951,9 @@
         children (next children)
         docstring (when (> (count children) 1)
                     (string-from-token (first children)))
+        defmulti? (= 'clojure.core/defmulti defined-by)
         [child & children] (if docstring (next children) children)
-        [extra-meta children] (if (and (= 'clojure.core/defmulti defined-by)
+        [extra-meta children] (if (and defmulti?
                                        (identical? :map (utils/tag child)))
                                 [(sexpr child) children]
                                 [nil (cons child children)])
@@ -958,7 +962,7 @@
         docstring (or (some-> extra-meta :doc str)
                       docstring
                       (some-> metadata :doc str))
-        ctx (assoc ctx :in-def var-name :def-meta metadata)
+        ctx (assoc ctx :in-def var-name :def-meta metadata :defmulti? defmulti?)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
                             (= 1 (count children)))
