@@ -2,6 +2,13 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- `:exclude-defmulti-args` option for `:unused-bindings` linter. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md) [#1188](https://github.com/clj-kondo/clj-kondo/issues/1188) ([@mknoszlig](https://github.com/mknoszlig))
+- Bump built-in cache for clojure 1.11.0-alpha3 and `clojure.data.json`
+- Reword `:refer` suggestion so you can copy paste it [#1293](https://github.com/clj-kondo/clj-kondo/issues/1293) ([@vemv](https://github.com/vemv))
+- Add re-frame analysis output [#1465](https://github.com/clj-kondo/clj-kondo/issues/1465) ([@benedekfazekas](https://github.com/benedekfazekas))
+
 ## 2021.12.01
 
 - Improve linting in `extend-protocol`, `extend-type`, `reify`, `specify!` [#1333](https://github.com/clj-kondo/clj-kondo/issues/1333), [#1447](https://github.com/clj-kondo/clj-kondo/issues/1447)
