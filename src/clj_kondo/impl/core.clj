@@ -327,7 +327,9 @@
 (defn process-file [ctx path default-language canonical? filename]
   (let [seen-files (:seen-files ctx)]
     (try
-      (let [file (io/file path)
+      (let [path (str path) ;; always assume path to be a string in the body of
+                            ;; this function
+            file (io/file path) ;; and file to be a java.io.File
             canonical (when (.exists file)
                         ;; calling canonical-path on non-existing
                         ;; files (e.g. classpaths) can cause errors
