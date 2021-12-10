@@ -551,8 +551,19 @@
         (if (identical? :cljs (:lang ctx))
           [(ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
            nil]
-          [ctx {:quote? true}])]
+          [ctx {:quote? true}])
+        test-constants (take-nth 2 (next children))]
     (analyze-expression** ctx matched-val)
+    (doseq [[_ occs] (->> (if (odd? (count test-constants))
+                                 (drop-last test-constants)
+                                 test-constants)
+                          (group-by identity))
+            :when (> (count occs) 1)
+            :let  [dupe (last occs)]]
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) dupe :duplicate-case-test-constant
+                   (format "Duplicate case test constant: %s" dupe))))
     (loop [[constant expr & exprs] (rest children)]
       (when constant
         (if-not expr
