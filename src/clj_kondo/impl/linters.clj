@@ -117,6 +117,18 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
+(defn lint-case [ctx expr]
+  (let [test-constants (take-nth 2 (drop 2 (:children expr)))]
+    (doseq [[_ occs] (group-by identity (if (odd? (-> expr :children count))
+                                          (drop-last test-constants)
+                                          test-constants))
+            :when (> (count occs) 1)
+            :let  [dupe (last occs)]]
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) dupe :duplicate-case-test-constant
+                   (format "Duplicate case test constant: %s" dupe))))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)]
@@ -129,6 +141,8 @@
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
+      ([clojure.core case] [cljs.core case])
+      (lint-case ctx (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)
