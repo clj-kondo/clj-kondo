@@ -584,7 +584,24 @@ foo/foo ;; this does use the private var
     (is (empty?
          (lint! "(def ^:private ^:const x 2) (case 1 x :yeah)"
                 {:linters {:unused-private-var {:level :error}}}
-                "--lang" "cljs")))))
+                "--lang" "cljs"))))
+  (testing "duplicate case test constant"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 14,
+        :level :error,
+        :message "Duplicate case test constant: :a"})
+     (lint! "(case f :a 2 :a 3 :b 1)"))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 14,
+        :level :error,
+        :message "Duplicate case test constant: :a"})
+     (lint! "(case f :a 2 :a 3 :b 1 :default)"))
+    (is (empty? (lint! "(case f :a 1 :b 2)")))
+    (is (empty? (lint! "(case f :a 1 :b 2 :a)")))))
 
 (deftest local-bindings-test
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))
