@@ -600,6 +600,7 @@ foo/foo ;; this does use the private var
         :level :error,
         :message "Duplicate case test constant: :a"})
      (lint! "(case f :a 2 :a 3 :b 1 :default)"))
+    (is (empty? (lint! "(case 0 :a 1 :a)")))
     (is (empty? (lint! "(case f :a 1 :b 2)")))
     (is (empty? (lint! "(case f :a 1 :b 2 :a)")))))
 
