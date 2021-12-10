@@ -552,11 +552,12 @@
           [(ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
            nil]
           [ctx {:quote? true}])
-        test-constants (take-nth 2 (next children))]
+        clauses        (rest children)
+        test-constants (take-nth 2 clauses)]
     (analyze-expression** ctx matched-val)
-    (doseq [[_ occs] (->> (if (odd? (count test-constants))
-                                 (drop-last test-constants)
-                                 test-constants)
+    (doseq [[_ occs] (->> (if (even? (count clauses))
+                            test-constants
+                            (drop-last test-constants))
                           (group-by identity))
             :when (> (count occs) 1)
             :let  [dupe (last occs)]]
@@ -564,7 +565,7 @@
        ctx
        (node->line (:filename ctx) dupe :duplicate-case-test-constant
                    (format "Duplicate case test constant: %s" dupe))))
-    (loop [[constant expr & exprs] (rest children)]
+    (loop [[constant expr & exprs] clauses]
       (when constant
         (if-not expr
           ;; this is the default expression
