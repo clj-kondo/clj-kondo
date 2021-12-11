@@ -1,8 +1,9 @@
 (ns clj-kondo.test-test
   (:require
-    [clj-kondo.test-utils :refer [lint! assert-submaps]]
-    [clojure.java.io :as io]
-    [clojure.test :refer [deftest is]]))
+   [clj-kondo.core :as clj-kondo]
+   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clojure.java.io :as io]
+   [clojure.test :refer [deftest is]]))
 
 (deftest missing-test-assertion-test
   (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest (t/is (odd? 1)))")))
@@ -67,3 +68,22 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 48, :level :warning, :message "inline def"})
    (lint! "(require '[clojure.test :as t]) (t/deftest foo (def x 1))")))
+
+(deftest testing-str-analysis
+  (let [usages (filter (comp :clojure.test :context)
+                      (-> (with-in-str
+                            (pr-str
+                             '(do (require '[clojure.test :refer [deftest is testing]])
+                                  (deftest foo
+                                    (testing "everything works correctly"
+                                      (is (= 1 1))))))
+                            (clj-kondo/run! {:lint ["-"]
+                                             :config {:output
+                                                      {:analysis
+                                                       {:context
+                                                        [:clojure.test]}}}}))
+                          :analysis :var-usages))
+        usage (first usages)]
+    (is (= 1 (count usages)))
+    (is (= 'testing (:name usage)))
+    (is (= "everything works correctly" (-> usage :context :clojure.test :testing-str)))))

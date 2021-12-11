@@ -24,6 +24,10 @@
 (def keyword-node k/keyword-node)
 (def string-node node-string/string-node)
 
+(defn list-node? [n]
+  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
+       (identical? :list (tag n))))
+
 ;;; end export
 
 (defn print-err! [& strs]
