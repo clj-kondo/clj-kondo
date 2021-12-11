@@ -159,7 +159,7 @@
                                        :exclude-destructured-keys-in-fn-args))
                                  (and (:defmulti? ctx)
                                       (-> ctx :config :linters :unused-binding
-                                       :exclude-defmulti-args)))]
+                                          :exclude-defmulti-args)))]
        (case t
          :token
          (cond
@@ -1681,37 +1681,48 @@
                       ctx)]
             (if-let [expanded (and transformed
                                    (:node transformed))]
-              (let [expanded (assoc expanded :visited [resolved-namespace resolved-name])]
-                ;;;; This registers the macro call, so we still get arity linting
-                ;; (prn :expanded expanded)
-                (namespace/reg-var-usage!
-                 ctx ns-name {:type :call
-                              :resolved-ns resolved-namespace
-                              :ns ns-name
-                              :name (with-meta
-                                      (or resolved-name full-fn-name)
-                                      (meta full-fn-name))
-                              :alias resolved-alias
-                              :unresolved? unresolved?
-                              :unresolved-ns unresolved-ns
-                              :clojure-excluded? clojure-excluded?
-                              :arity arg-count
-                              :row row
-                              :end-row (:end-row expr-meta)
-                              :col col
-                              :end-col (:end-col expr-meta)
-                              :base-lang base-lang
-                              :lang lang
-                              :filename (:filename ctx)
-                              ;; save some memory during dependencies
-                              :expr (when-not dependencies expr)
-                              :simple? (simple-symbol? full-fn-name)
-                              :callstack (:callstack ctx)
-                              :config (:config ctx)
-                              :top-ns (:top-ns ctx)
-                              :arg-types (:arg-types ctx)
-                              :interop? interop?
-                              :resolved-core? resolved-core?})
+              (let [[new-name-node new-arg-count]
+                    (when (utils/list-node? expanded)
+                      (when-let [children (:children expanded)]
+                        [(first children)
+                         (dec (count children))]))
+                    same-call? (and (= (utils/tag name-node)
+                                       (utils/tag new-name-node))
+                                    (= full-fn-name (:value new-name-node))
+                                    (= arg-count
+                                       new-arg-count))
+                    expanded (assoc expanded :visited [resolved-namespace resolved-name])]
+                ;;;; This registers the original call when the new node does not
+                ;;;; refer to the same call, so we still get arity linting
+                (when-not same-call?
+                  (namespace/reg-var-usage!
+                   ctx ns-name {:type :call
+                                :resolved-ns resolved-namespace
+                                :ns ns-name
+                                :name (with-meta
+                                        (or resolved-name full-fn-name)
+                                        (meta full-fn-name))
+                                :alias resolved-alias
+                                :unresolved? unresolved?
+                                :unresolved-ns unresolved-ns
+                                :clojure-excluded? clojure-excluded?
+                                :arity arg-count
+                                :row row
+                                :end-row (:end-row expr-meta)
+                                :col col
+                                :end-col (:end-col expr-meta)
+                                :base-lang base-lang
+                                :lang lang
+                                :filename (:filename ctx)
+                                ;; save some memory during dependencies
+                                :expr (when-not dependencies expr)
+                                :simple? (simple-symbol? full-fn-name)
+                                :callstack (:callstack ctx)
+                                :config (:config ctx)
+                                :top-ns (:top-ns ctx)
+                                :arg-types (:arg-types ctx)
+                                :interop? interop?
+                                :resolved-core? resolved-core?}))
                   ;;;; This registers the namespace as used, to prevent unused warnings
                 (namespace/reg-used-namespace! ctx
                                                ns-name

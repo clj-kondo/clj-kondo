@@ -52,9 +52,7 @@
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :vector (utils/tag n))))
 
-(defn list-node? [n]
-  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
-       (identical? :list (utils/tag n))))
+(def list-node? utils/list-node?)
 
 (defn map-node? [n]
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
