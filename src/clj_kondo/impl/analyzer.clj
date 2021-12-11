@@ -1600,7 +1600,9 @@
            :row :col
            :expr] :as m}]
   (let [ns-name (:name ns)
-        children (next (:children expr))
+        children (:children expr)
+        name-node (first children)
+        children (rest children)
         {resolved-namespace :ns
          resolved-name :name
          resolved-alias :alias
@@ -1639,7 +1641,16 @@
                 ;; See #1170, we deliberaly use resolved and not resolved-as
                 ;; Users can get :lint-as like behavior for hooks by configuring
                 ;; multiple fns to target the same hook code
-                hook-fn (hooks/hook-fn ctx config resolved-namespace resolved-name)
+                hook-fn
+                (let [visited (:visited expr)]
+                  (when-not (and visited (= visited [resolved-namespace resolved-name]))
+                    (or (hooks/hook-fn ctx config resolved-namespace resolved-name)
+                        (case [resolved-namespace resolved-name]
+                          ([clojure.test testing] [cljs.test testing])
+                          (when (:analysis-context ctx)
+                            ;; only use testing hook when analysis is requested
+                            test/testing-hook)
+                          nil))))
                 transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
                               (let [filename (:filename ctx)]
@@ -1670,7 +1681,8 @@
                       ctx)]
             (if-let [expanded (and transformed
                                    (:node transformed))]
-              (do ;;;; This registers the macro call, so we still get arity linting
+              (let [expanded (assoc expanded :visited [resolved-namespace resolved-name])]
+                ;;;; This registers the macro call, so we still get arity linting
                 ;; (prn :expanded expanded)
                 (namespace/reg-var-usage!
                  ctx ns-name {:type :call
@@ -1943,8 +1955,15 @@
                   (let [in-def (:in-def ctx)
                         id (:id expr)
                         m (meta analyzed)
+                        context (when (:analysis-context ctx)
+                                  (let [node-context (:context name-node)
+                                        ctx-context (:context ctx)
+                                        context (utils/deep-merge
+                                                 ctx-context
+                                                 node-context)]
+                                    context))
                         proto-call {:type :call
-                                    :context (:context ctx)
+                                    :context context
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
                                     :name (with-meta
