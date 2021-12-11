@@ -1686,7 +1686,9 @@
                       (when-let [children (:children expanded)]
                         [(first children)
                          (dec (count children))]))
-                    same-call? (and (= (utils/tag name-node)
+                    same-call? (and new-name-node
+                                    new-arg-count
+                                    (= (utils/tag name-node)
                                        (utils/tag new-name-node))
                                     (= full-fn-name (:value new-name-node))
                                     (= arg-count
