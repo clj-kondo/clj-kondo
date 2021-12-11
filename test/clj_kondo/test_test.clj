@@ -70,18 +70,20 @@
    (lint! "(require '[clojure.test :as t]) (t/deftest foo (def x 1))")))
 
 (deftest testing-str-analysis
-  (let [usage (first (filter (comp :clojure.test :context)
-                             (-> (with-in-str
-                                   (pr-str
-                                    '(do (require '[clojure.test :refer [deftest is testing]])
-                                         (deftest foo
-                                           (testing "everything works correctly"
-                                             (is (= 1 1))))))
-                                   (clj-kondo/run! {:lint ["-"]
-                                                    :config {:output
-                                                             {:analysis
-                                                              {:context
-                                                               [:clojure.test]}}}}))
-                                 :analysis :var-usages)))]
+  (let [usages (filter (comp :clojure.test :context)
+                      (-> (with-in-str
+                            (pr-str
+                             '(do (require '[clojure.test :refer [deftest is testing]])
+                                  (deftest foo
+                                    (testing "everything works correctly"
+                                      (is (= 1 1))))))
+                            (clj-kondo/run! {:lint ["-"]
+                                             :config {:output
+                                                      {:analysis
+                                                       {:context
+                                                        [:clojure.test]}}}}))
+                          :analysis :var-usages))
+        usage (first usages)]
+    (is (= 1 (count usages)))
     (is (= 'testing (:name usage)))
     (is (= "everything works correctly" (-> usage :context :clojure.test :testing-str)))))
