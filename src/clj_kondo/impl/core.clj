@@ -124,15 +124,20 @@
                        (let [f (io/file cfg-dir "config.edn")]
                          (when (.exists f)
                            (read-edn-file f))))
-        discovered (when (and cfg-dir
-                              (not (false? (:auto-config-paths local-config))))
-                     (mapv (comp str fs/parent) (fs/glob cfg-dir "**/**/config.edn"
-                                                         {:max-depth 3})))
-        _ (binding [*out* *err*]
-            (run! #(println "[clj-kondo] Discovered config path:" %) discovered))
+        auto-load-configs? (and cfg-dir
+                                (not (false? (:auto-load-configs local-config))))
+        discovered (when auto-load-configs?
+                     (mapv (comp str
+                                 #(fs/relativize cfg-dir %)
+                                 fs/parent) (fs/glob cfg-dir "**/**/config.edn"
+                                                     {:max-depth 3})))
+        _ (when (and auto-load-configs?
+                     (seq discovered))
+            (binding [*out* *err*]
+              (run! #(println "[clj-kondo] Auto-loading config path:" %) discovered)))
         skip-home? (some-> local-config :config-paths meta :replace)
         local-config (when local-config
-                       (update local-config :config-paths into discovered))
+                       (update local-config :config-paths into (distinct) discovered))
         config
         (reduce config/merge-config!
                 config/default-config
