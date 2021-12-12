@@ -113,6 +113,7 @@
               compojure.core/defroutes clojure.core/def
               compojure.core/let-routes clojure.core/let}
     :macroexpand {}
+    ;; :auto-config-paths true
     :output {:format :text ;; or :edn
              :summary true ;; outputs summary at end, only applicable to output :text
              ;; outputs analyzed var definitions and usages of them

@@ -2,6 +2,7 @@
   "Implementation details of clj-kondo.core"
   {:no-doc true}
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -108,7 +109,7 @@
   inspects :config-paths, merges configs from left to right with cfg
   last."
   [cfg-dir cfg]
-  (if-let [config-paths (:config-paths cfg)]
+  (if-let [config-paths (seq (:config-paths cfg))]
     (if-let [paths (sanitize-paths cfg-dir config-paths)]
       (let [configs (map process-cfg-dir paths)
             merged (reduce config/merge-config! configs)
@@ -123,7 +124,13 @@
                        (let [f (io/file cfg-dir "config.edn")]
                          (when (.exists f)
                            (read-edn-file f))))
+        discovered (time (when (and cfg-dir
+                                    (not (false? (:auto-config-paths local-config))))
+                           (mapv (comp str fs/parent) (fs/glob cfg-dir "**/**/config.edn"
+                                                               {:max-depth 3}))))
         skip-home? (some-> local-config :config-paths meta :replace)
+        local-config (when local-config
+                       (update local-config :config-paths into discovered))
         config
         (reduce config/merge-config!
                 config/default-config
