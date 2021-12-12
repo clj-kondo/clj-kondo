@@ -141,8 +141,9 @@
             (binding [*out* *err*]
               (run! #(println "[clj-kondo] Auto-loading config path:" %) discovered)))
         skip-home? (some-> local-config-paths meta :replace)
-        local-config (when local-config
-                       (update local-config :config-paths into (distinct) discovered))
+        local-config (when (seq discovered)
+                       (update local-config :config-paths
+                               (fnil into []) (distinct) discovered))
         config
         (reduce config/merge-config!
                 config/default-config
