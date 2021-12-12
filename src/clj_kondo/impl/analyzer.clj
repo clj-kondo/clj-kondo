@@ -553,14 +553,18 @@
            nil]
           [ctx {:quote? true}])
         clauses        (rest children)
-        test-constants (take-nth 2 clauses)]
+        test-constants (reduce (fn [acc c]
+                                 (if (= :list (:tag c))
+                                   (into acc (:children c))
+                                   (conj acc c)))
+                               []
+                               (take-nth 2 (if (even? (count clauses))
+                                             clauses
+                                             (butlast clauses))))]
     (analyze-expression** ctx matched-val)
-    (doseq [[_ occs] (->> (if (even? (count clauses))
-                            test-constants
-                            (drop-last test-constants))
-                          (group-by identity))
-            :when (> (count occs) 1)
-            :let  [dupe (last occs)]]
+    (doseq [[_ occs] (group-by identity test-constants)
+            dupe     (rest occs)
+            :when    (> (count occs) 1)]
       (findings/reg-finding!
        ctx
        (node->line (:filename ctx) dupe :duplicate-case-test-constant

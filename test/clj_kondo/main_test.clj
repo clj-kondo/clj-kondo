@@ -591,8 +591,13 @@ foo/foo ;; this does use the private var
         :row 1,
         :col 14,
         :level :error,
+        :message "Duplicate case test constant: :a"}
+       {:file "<stdin>",
+        :row 1,
+        :col 24,
+        :level :error,
         :message "Duplicate case test constant: :a"})
-     (lint! "(case f :a 2 :a 3 :b 1)"))
+     (lint! "(case f :a 2 :a 3 :b 1 :a 0)"))
     (assert-submaps
      '({:file "<stdin>",
         :row 1,
@@ -600,6 +605,21 @@ foo/foo ;; this does use the private var
         :level :error,
         :message "Duplicate case test constant: :a"})
      (lint! "(case f :a 2 :a 3 :b 1 :default)"))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 3,
+        :col 3,
+        :level :error,
+        :message "Duplicate case test constant: :bar"}
+       {:file "<stdin>",
+        :row 4,
+        :col 3,
+        :level :error,
+        :message "Duplicate case test constant: :bar"})
+     (lint! "(case x
+  (:foo :bar) :yolo
+  :bar :hello
+  :bar :hi)"))
     (is (empty? (lint! "(case 0 :a 1 :a)")))
     (is (empty? (lint! "(case f :a 1 :b 2)")))
     (is (empty? (lint! "(case f :a 1 :b 2 :a)")))))
