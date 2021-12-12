@@ -143,9 +143,10 @@
         skip-home? (some-> local-config-paths meta :replace)
         ;; local config exists implicitly when configs are discovered, even when
         ;; local-config was nil
-        local-config (when (seq discovered)
+        local-config (if (seq discovered)
                        (update local-config :config-paths
-                               (fnil into []) (distinct) discovered))
+                               (fnil into []) (distinct) discovered)
+                       local-config)
         config
         (reduce config/merge-config!
                 config/default-config
