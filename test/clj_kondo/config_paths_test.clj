@@ -40,3 +40,11 @@
             (is (empty? (lint! prog "--config-dir" project-cfg-dir)))))
         (finally
           (System/setProperty "user.home" old-home))))))
+
+(deftest auto-load-configs-test
+  (when-not native?
+    (assert-submaps
+     '({:file "corpus/acme/lib/example.clj", :row 7, :col 21, :level :error, :message "Unresolved symbol: a"})
+     (lint! (io/file "corpus" "acme" "lib" "example.clj")
+            {:linters {:unresolved-symbol {:level :error}}}
+            "--config-dir" (.getPath (io/file "corpus" ".clj-kondo"))))))

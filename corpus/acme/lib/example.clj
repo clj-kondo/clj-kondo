@@ -4,4 +4,4 @@
   ;; dark magic happening here
   )
 
-(awful-macro [x y z])
+(awful-macro [x y z a])
