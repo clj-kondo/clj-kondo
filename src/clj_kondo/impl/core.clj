@@ -126,16 +126,21 @@
                            (read-edn-file f))))
         auto-load-configs? (and cfg-dir
                                 (not (false? (:auto-load-configs local-config))))
+        local-config-paths (:config-paths local-config)
+        local-config-paths-set (set local-config-paths)
         discovered (when auto-load-configs?
-                     (mapv (comp str
-                                 #(fs/relativize cfg-dir %)
-                                 fs/parent) (fs/glob cfg-dir "**/**/config.edn"
-                                                     {:max-depth 3})))
+                     (into []
+                           (comp (map fs/parent)
+                                 (map #(fs/relativize cfg-dir %))
+                                 (map str)
+                                 (filter #(not (contains? local-config-paths-set %))))
+                           (fs/glob cfg-dir "**/**/config.edn"
+                                    {:max-depth 3})))
         _ (when (and auto-load-configs?
                      (seq discovered))
             (binding [*out* *err*]
               (run! #(println "[clj-kondo] Auto-loading config path:" %) discovered)))
-        skip-home? (some-> local-config :config-paths meta :replace)
+        skip-home? (some-> local-config-paths meta :replace)
         local-config (when local-config
                        (update local-config :config-paths into (distinct) discovered))
         config
