@@ -1,5 +1,6 @@
 (ns clj-kondo.config-paths-test
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.test-utils :refer [lint! assert-submaps native?]]
    [clojure.java.io :as io]
    [clojure.test :refer [deftest testing is]])
@@ -40,3 +41,26 @@
             (is (empty? (lint! prog "--config-dir" project-cfg-dir)))))
         (finally
           (System/setProperty "user.home" old-home))))))
+
+(deftest auto-load-configs-test
+  (let [config-file (io/file "corpus" ".clj-kondo" "config.edn")]
+    (when-not native?
+      (testing "auto-load-configs enabled by default, even with no config.edn"
+        (is (not (fs/exists? config-file)))
+        (assert-submaps
+         '({:file "corpus/acme/lib/example.clj", :row 7, :col 21, :level :error, :message "Unresolved symbol: a"})
+         (lint! (io/file "corpus" "acme" "lib" "example.clj")
+                {:linters {:unresolved-symbol {:level :error}}}
+                "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))))
+      (testing "auto-load-configs disabled"
+        (let [edn {:auto-load-configs false}]
+          (try
+            (is (not (fs/exists? config-file)))
+            (spit config-file edn)
+            (is (= 4
+                   (count
+                    (lint! (io/file "corpus" "acme" "lib" "example.clj")
+                           {:linters {:unresolved-symbol {:level :error}}}
+                           "--config-dir" (.getPath (io/file "corpus" ".clj-kondo"))
+                           "--config" (pr-str '{:auto-load-configs false})))))
+            (finally (fs/delete config-file))))))))

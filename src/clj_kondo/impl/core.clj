@@ -2,6 +2,7 @@
   "Implementation details of clj-kondo.core"
   {:no-doc true}
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -108,7 +109,7 @@
   inspects :config-paths, merges configs from left to right with cfg
   last."
   [cfg-dir cfg]
-  (if-let [config-paths (:config-paths cfg)]
+  (if-let [config-paths (seq (:config-paths cfg))]
     (if-let [paths (sanitize-paths cfg-dir config-paths)]
       (let [configs (map process-cfg-dir paths)
             merged (reduce config/merge-config! configs)
@@ -123,7 +124,29 @@
                        (let [f (io/file cfg-dir "config.edn")]
                          (when (.exists f)
                            (read-edn-file f))))
-        skip-home? (some-> local-config :config-paths meta :replace)
+        auto-load-configs? (and cfg-dir
+                                (not (false? (:auto-load-configs local-config))))
+        local-config-paths (:config-paths local-config)
+        local-config-paths-set (set local-config-paths)
+        discovered (when auto-load-configs?
+                     (into []
+                           (comp (map fs/parent)
+                                 (map #(fs/relativize cfg-dir %))
+                                 (map str)
+                                 (filter #(not (contains? local-config-paths-set %))))
+                           (fs/glob cfg-dir "**/**/config.edn"
+                                    {:max-depth 3})))
+        _ (when (and auto-load-configs?
+                     (seq discovered))
+            (binding [*out* *err*]
+              (run! #(println "[clj-kondo] Auto-loading config path:" %) discovered)))
+        skip-home? (some-> local-config-paths meta :replace)
+        ;; local config exists implicitly when configs are discovered, even when
+        ;; local-config was nil
+        local-config (if (seq discovered)
+                       (update local-config :config-paths
+                               (fnil into []) (distinct) discovered)
+                       local-config)
         config
         (reduce config/merge-config!
                 config/default-config
