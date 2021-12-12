@@ -141,6 +141,8 @@
             (binding [*out* *err*]
               (run! #(println "[clj-kondo] Auto-loading config path:" %) discovered)))
         skip-home? (some-> local-config-paths meta :replace)
+        ;; local config exists implicitly when configs are discovered, even when
+        ;; local-config was nil
         local-config (when (seq discovered)
                        (update local-config :config-paths
                                (fnil into []) (distinct) discovered))
