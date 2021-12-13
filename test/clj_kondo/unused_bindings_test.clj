@@ -27,8 +27,7 @@
       :level :warning,
       :message "used binding _c marked as unused."})
    (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
-          '{:linters {:unused-binding {:level :warning
-                                       :exclude-destructured-as true}}}))
+          '{:linters {:used-underscored-binding {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
@@ -252,12 +251,11 @@
                                  {:level :warning
                                   :exclude-defmulti-args true}}})))
   (is (empty?  (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
-                      '{:linters {:unused-binding {:level :warning
-                                       :exclude-incorrectly-marked-unused true}}})))
+                      '{:linters {:used-underscored-binding {:level :off}}})))
   (is (empty? (lint! "(doto (Object.) (.method))"
-                     '{:linters {:unused-binding {:level :warning}}})))
+                     '{:linters {:used-underscored-binding {:level :warning}}})))
   (is (empty? (lint! "(let [_ 1] _)"
-                     '{:linters {:unused-binding {:level :warning}}}))))
+                     '{:linters {:used-underscored-binding {:level :warning}}}))))
 
 
 (deftest unused-destructuring-default-test
