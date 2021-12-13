@@ -492,7 +492,7 @@
            ctx
            {:type :used-underscored-binding
             :filename (:filename binding)
-            :message (str "Using binding marked as unused: " (:name binding))
+            :message (str "Used binding is marked as unused: " (:name binding))
             :row (:row binding)
             :col (:col binding)
             :end-row (:end-row binding)
