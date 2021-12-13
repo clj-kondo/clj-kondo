@@ -30,10 +30,12 @@
               :unreachable-code {:level :warning}
               :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}
+              :used-underscored-binding {:level :off}
               :unused-binding {:level :warning
                                ;;:exclude-destructured-keys-in-fn-args false
                                ;;:exclude-destructured-as false
                                ;;:exclude-defmulti-args false
+                               ;:exclude-incorrectly-marked-unused false
                                ,}
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
