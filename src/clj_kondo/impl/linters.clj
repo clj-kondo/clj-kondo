@@ -505,8 +505,7 @@
           (when-not (-> ctx :config :linters :unused-binding
                         :exclude-incorrectly-marked-unused)
             (doseq [binding (set (->> (filter (comp not :clj-kondo.impl/generated) used-bindings)
-                                      (filter #(str/starts-with? (str (:name %)) "_"))))
-                    :when (not= "_" (str (:name binding)))]
+                                      (filter #(str/starts-with? (str (:name %)) "_"))))]
               (findings/reg-finding!
                ctx
                {:type :used-underscored-binding
