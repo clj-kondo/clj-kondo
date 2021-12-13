@@ -40,6 +40,7 @@ Clj-kondo detects:
 * referred but unused vars
 * duplicate requires
 * unused function arguments and let bindings
+* marked as unused, but used arguments and let bindings (optional)
 * unused imports
 * redefined vars
 * unresolved symbols, vars and namespaces

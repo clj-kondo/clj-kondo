@@ -738,6 +738,25 @@ This will disable the warning in:
 (defmulti f (fn [a b] a))
 ```
 
+### Used underscored bindings
+
+*Keyword:* `:used-underscored-binding`.
+
+*Description:* warn when a underscored (ie marked as unused) binding is used.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(let [_x 0] _x)`.
+
+*Example message:* `Using binding marked as unused: _x'
+
+These warnings can be enabled by setting the level to `:warning` or
+`:error` in your config.
+
+``` clojure
+{:linters {:used-underscored-binding {:level :warning}}}
+```
+
 ### Unreachable code
 
 *Keyword:* `:unreachable-code`.
