@@ -569,13 +569,16 @@
           (let [t (tag constant)
                 list? (identical? :list t)
                 dupe-cands (if list? (:children constant) [constant])]
-            (doseq [dupe dupe-cands
-                    :let  [s-dupe (str dupe)]
-                    :when (seen-constants s-dupe)]
-              (findings/reg-finding!
-               ctx
-               (node->line (:filename ctx) dupe :duplicate-case-test-constant
-                           (format "Duplicate case test constant: %s" s-dupe))))
+            (loop [[dupe & more] dupe-cands
+                   seen-local seen-constants]
+              (let [s-dupe (str dupe)]
+                (when (seen-local s-dupe)
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx) dupe :duplicate-case-test-constant
+                               (format "Duplicate case test constant: %s" s-dupe))))
+                (when (seq more)
+                  (recur more (conj seen-local s-dupe)))))
             (if list?
               (run! #(analyze-usages2 test-ctx % test-opts) (:children constant))
               (analyze-usages2 test-ctx constant test-opts))
