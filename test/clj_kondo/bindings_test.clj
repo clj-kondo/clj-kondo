@@ -333,12 +333,12 @@
       :row 1,
       :col 7,
       :level :warning,
-      :message "Using binding marked as unused: _x"}
+      :message "Used binding is marked as unused: _x"}
      {:file "<stdin>",
       :row 1,
       :col 29,
       :level :warning,
-      :message "Using binding marked as unused: _c"})
+      :message "Used binding is marked as unused: _c"})
    (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
           '{:linters {:used-underscored-binding {:level :warning}}}))
   (assert-submaps
@@ -346,7 +346,7 @@
       :row 1,
       :col 7,
       :level :warning,
-      :message "Using binding marked as unused: _"})
+      :message "Used binding is marked as unused: _"})
    (lint! "(let [_ 1] _)"
           '{:linters {:used-underscored-binding {:level :warning}}}))
   (is (empty?  (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
