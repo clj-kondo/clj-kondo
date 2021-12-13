@@ -620,6 +620,21 @@ foo/foo ;; this does use the private var
   (:foo :bar) :yolo
   :bar :hello
   :bar :hi)"))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 2,
+        :col 6,
+        :level :error,
+        :message "Duplicate case test constant: a"}
+       {:file "<stdin>",
+        :row 3,
+        :col 3,
+        :level :error,
+        :message "Duplicate case test constant: a"})
+     (lint! "(case x
+  (a a) 1
+  a 1
+  1)"))
     (is (empty? (lint! "(case 0 :a 1 :a)")))
     (is (empty? (lint! "(case f :a 1 :b 2)")))
     (is (empty? (lint! "(case f :a 1 :b 2 :a)")))))
