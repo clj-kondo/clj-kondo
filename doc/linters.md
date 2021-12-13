@@ -746,16 +746,9 @@ This will disable the warning in:
 
 *Default level:* `:off`.
 
-*Example trigger:* `(cond :else 1 (odd? 1) 2)`.
+*Example trigger:* `(let [_x 0] _x)`.
 
-*Example message:* `used binding _x marked as unused.`.
-
-Bindings marked as unused (eg `_x`) will be reported as incorrectly
-marked as unused when they're actually being used, eg:
-
-``` clojure
-(let [_x 0] _x)
-```
+*Example message:* `Using binding marked as unused: _x'
 
 These warnings can be enabled by setting the level to `:warning` or
 `:error` in your config.
