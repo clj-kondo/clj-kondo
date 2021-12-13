@@ -701,6 +701,19 @@ You can add or override type annotations. See
 To exclude unused bindings from being reported, start their names with
 underscores: `_x`.
 
+Bindings marked as unused (eg `_x`) will be reported as incorrectly
+marked as unused when they're actually being used, eg:
+
+``` clojure
+(let [_x 0] _x)
+```
+
+These warnings can be switched off by setting
+
+``` clojure
+{:linters {:unused-binding {:exclude-incorrectly-marked-unused true}}}
+```
+
 To exclude warnings about key-destructured function arguments, use:
 
 ``` clojure
