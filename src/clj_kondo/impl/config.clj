@@ -30,6 +30,7 @@
               :unreachable-code {:level :warning}
               :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}
+              :used-underscored-binding {:level :off}
               :unused-binding {:level :warning
                                ;;:exclude-destructured-keys-in-fn-args false
                                ;;:exclude-destructured-as false

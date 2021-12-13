@@ -175,6 +175,7 @@
             (l/lint-unused-namespaces! ctx)
             (l/lint-unused-private-vars! ctx)
             (l/lint-unused-bindings! ctx)
+            (l/lint-used-underscored-bindings! ctx)
             (l/lint-unresolved-symbols! ctx)
             (l/lint-unresolved-vars! ctx)
             (l/lint-unused-imports! ctx)
