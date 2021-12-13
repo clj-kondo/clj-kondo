@@ -495,7 +495,7 @@
                ctx
                {:type :unused-binding
                 :filename (:filename binding)
-                :message (format "binding %s marked as unused but is actually used." (:name binding))
+                :message (format "used binding %s marked as unused." (:name binding))
                 :row (:row binding)
                 :col (:col binding)
                 :end-row (:end-row binding)
@@ -520,7 +520,7 @@
              ctx
              {:type :unused-binding
               :filename (:filename binding)
-              :message (format "used binding %s marked as unused." nm)
+              :message (str "unused default for binding " nm)
               :row (:row default)
               :col (:col default)
               :end-row (:end-row default)

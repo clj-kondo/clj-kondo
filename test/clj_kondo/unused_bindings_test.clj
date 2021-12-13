@@ -25,7 +25,7 @@
       :row 1,
       :col 29,
       :level :warning,
-      :message "used binding _x marked as unused."})
+      :message "used binding _c marked as unused."})
    (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
           '{:linters {:unused-binding {:level :warning
                                        :exclude-destructured-as true}}}))
