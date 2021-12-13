@@ -252,8 +252,13 @@
                                  {:level :warning
                                   :exclude-defmulti-args true}}})))
   (is (empty?  (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
-          '{:linters {:unused-binding {:level :warning
-                                       :exclude-incorrectly-marked-unused true}}}))))
+                      '{:linters {:unused-binding {:level :warning
+                                       :exclude-incorrectly-marked-unused true}}})))
+  (is (empty? (lint! "(doto (Object.) (.method))"
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(let [_ 1] _)"
+                     '{:linters {:unused-binding {:level :warning}}}))))
+
 
 (deftest unused-destructuring-default-test
   (doseq [input ["(let [{:keys [:i] :or {i 2}} {}])"

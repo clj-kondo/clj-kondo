@@ -490,7 +490,9 @@
               defaults (:destructuring-defaults ns)]
           (when-not (-> ctx :config :linters :unused-binding
                         :exclude-incorrectly-marked-unused)
-            (doseq [binding (set (filter #(str/starts-with? (str (:name %)) "_") used-bindings))]
+            (doseq [binding (set (->> (filter (comp not :clj-kondo.impl/generated) used-bindings)
+                                      (filter #(str/starts-with? (str (:name %)) "_"))))
+                    :when (not= "_" (str (:name binding)))]
               (findings/reg-finding!
                ctx
                {:type :unused-binding
