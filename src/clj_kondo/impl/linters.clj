@@ -515,14 +515,13 @@
                   :end-row (:end-row binding)
                   :end-col (:end-col binding)}))))
           (doseq [default defaults
-                  :let [binding (:binding default)
-                        nm (:name binding)]
+                  :let [binding (:binding default)]
                   :when (not (contains? (:used-bindings ns) binding))]
             (findings/reg-finding!
              ctx
              {:type :unused-binding
               :filename (:filename binding)
-              :message (str "unused default for binding " nm)
+              :message (str "unused default for binding " (:name binding))
               :row (:row default)
               :col (:col default)
               :end-row (:end-row default)
