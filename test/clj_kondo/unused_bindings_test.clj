@@ -18,6 +18,20 @@
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
+      :col 7,
+      :level :warning,
+      :message "used binding _x marked as unused."}
+     {:file "<stdin>",
+      :row 1,
+      :col 29,
+      :level :warning,
+      :message "used binding _x marked as unused."})
+   (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
+          '{:linters {:unused-binding {:level :warning
+                                       :exclude-destructured-as true}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
       :col 15,
       :level :warning,
       :message "unused binding id"})
@@ -236,7 +250,10 @@
   (is (empty? (lint! "(defmulti descriptive-multi (fn [a b] a))"
                      '{:linters {:unused-binding
                                  {:level :warning
-                                  :exclude-defmulti-args true}}}))))
+                                  :exclude-defmulti-args true}}})))
+  (is (empty?  (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
+          '{:linters {:unused-binding {:level :warning
+                                       :exclude-incorrectly-marked-unused true}}}))))
 
 (deftest unused-destructuring-default-test
   (doseq [input ["(let [{:keys [:i] :or {i 2}} {}])"
