@@ -488,6 +488,18 @@
               used-bindings (:used-bindings ns)
               diff (set/difference bindings used-bindings)
               defaults (:destructuring-defaults ns)]
+          (when-not (-> ctx :config :linters :unused-binding
+                        :exclude-incorrectly-marked-unused)
+            (doseq [binding (set (filter #(str/starts-with? (:name %) "_") used-bindings))]
+              (findings/reg-finding!
+               ctx
+               {:type :unused-binding
+                :filename (:filename binding)
+                :message (format "binding %s marked as unused but is actually used." (:name binding))
+                :row (:row binding)
+                :col (:col binding)
+                :end-row (:end-row binding)
+                :end-col (:end-col binding)})))
           (doseq [binding diff]
             (let [nm (:name binding)]
               (when-not (str/starts-with? (str nm) "_")
@@ -501,13 +513,14 @@
                   :end-row (:end-row binding)
                   :end-col (:end-col binding)}))))
           (doseq [default defaults
-                  :let [binding (:binding default)]
+                  :let [binding (:binding default)
+                        nm (:name binding)]
                   :when (not (contains? (:used-bindings ns) binding))]
             (findings/reg-finding!
              ctx
              {:type :unused-binding
               :filename (:filename binding)
-              :message (str "unused default for binding " (:name binding))
+              :message (format "used binding %s marked as unused." nm)
               :row (:row default)
               :col (:col default)
               :end-row (:end-row default)
