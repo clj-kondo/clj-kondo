@@ -475,7 +475,8 @@
            (node->line filename node
                        finding-type msg)))))))
 
-(defn lint-used-underscored-bindings! [ctx]
+(defn lint-bindings!
+  [ctx]
   (doseq [ns (namespace/list-namespaces ctx)]
     (let [ns-config (:config ns)
           ctx (if ns-config
@@ -491,20 +492,11 @@
            ctx
            {:type :used-underscored-binding
             :filename (:filename binding)
-            :message (format "used binding %s marked as unused." (:name binding))
+            :message (str "Using binding marked as unused: " (:name binding))
             :row (:row binding)
             :col (:col binding)
             :end-row (:end-row binding)
-            :end-col (:end-col binding)}))))))
-
-(defn lint-unused-bindings!
-  [ctx]
-  (doseq [ns (namespace/list-namespaces ctx)]
-    (let [ns-config (:config ns)
-          ctx (if ns-config
-                (assoc ctx :config ns-config)
-                ctx)
-          ctx (assoc ctx :lang (:lang ns))]
+            :end-col (:end-col binding)})))
       (when-not (identical? :off (-> ctx :config :linters :unused-binding :level))
         (let [bindings (:bindings ns)
               used-bindings (:used-bindings ns)
