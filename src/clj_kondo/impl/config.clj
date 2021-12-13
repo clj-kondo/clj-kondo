@@ -79,6 +79,7 @@
                           :exclude #{}}
               :use {:level :warning}
               :missing-else-branch {:level :warning}
+              :duplicate-case-test-constant {:level :error}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
               :docstring-blank {:level :warning}

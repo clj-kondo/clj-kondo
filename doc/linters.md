@@ -16,6 +16,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
+    - [Duplicate case test constant](#duplicate-case-test-constant)
     - [File](#file)
     - [Format](#format)
     - [Inline def](#inline-def)
@@ -292,6 +293,18 @@ Expected map, found: java.lang.String
 *Example trigger:* `#{:a :a}`
 
 *Example message:* `duplicate set element :a`.
+
+### Duplicate case test constant
+
+*Keyword:* `:duplicate-case-test-constant`.
+
+*Description:* identify duplicate case test constants.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(case x :a 1 :b 2 :a 3)`
+
+*Example message:* `Duplicate case test constant: :a`.
 
 ### File
 
