@@ -484,10 +484,10 @@
                 ctx)
           ctx (assoc ctx :lang (:lang ns))]
       (when-not (identical? :off (-> ctx :config :linters :used-underscored-binding :level))
-        (doseq [binding (sequence (comp (distinct)
-                                        (remove :clj-kondo.impl/generated)
-                                        (filter #(str/starts-with? (str (:name %)) "_")))
-                                  (:used-bindings ns))]
+        (doseq [binding (into #{}
+                              (comp (remove :clj-kondo.impl/generated)
+                                    (filter #(str/starts-with? (str (:name %)) "_")))
+                              (:used-bindings ns))]
           (findings/reg-finding!
            ctx
            {:type :used-underscored-binding
