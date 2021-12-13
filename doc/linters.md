@@ -701,19 +701,6 @@ You can add or override type annotations. See
 To exclude unused bindings from being reported, start their names with
 underscores: `_x`.
 
-Bindings marked as unused (eg `_x`) will be reported as incorrectly
-marked as unused when they're actually being used, eg:
-
-``` clojure
-(let [_x 0] _x)
-```
-
-These warnings can be switched off by setting
-
-``` clojure
-{:linters {:unused-binding {:exclude-incorrectly-marked-unused true}}}
-```
-
 To exclude warnings about key-destructured function arguments, use:
 
 ``` clojure
@@ -749,6 +736,32 @@ This will disable the warning in:
 
 ``` clojure
 (defmulti f (fn [a b] a))
+```
+
+### Used underscored bindings
+
+*Keyword:* `:used-underscored-binding`.
+
+*Description:* warn when a underscored (ie marked as unused) binding is used.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(cond :else 1 (odd? 1) 2)`.
+
+*Example message:* `used binding _x marked as unused.`.
+
+Bindings marked as unused (eg `_x`) will be reported as incorrectly
+marked as unused when they're actually being used, eg:
+
+``` clojure
+(let [_x 0] _x)
+```
+
+These warnings can be enabled by setting the level to `:warning` or
+`:error` in your config.
+
+``` clojure
+{:linters {:used-underscored-binding {:level :warning}}}
 ```
 
 ### Unreachable code
