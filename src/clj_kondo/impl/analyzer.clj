@@ -551,37 +551,30 @@
         (if (identical? :cljs (:lang ctx))
           [(ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
            nil]
-          [ctx {:quote? true}])
-        clauses        (rest children)
-        test-constants (reduce (fn [acc c]
-                                 (if (= :list (:tag c))
-                                   (into acc (:children c))
-                                   (conj acc c)))
-                               []
-                               (take-nth 2 (if (even? (count clauses))
-                                             clauses
-                                             (butlast clauses))))]
+          [ctx {:quote? true}])]
     (analyze-expression** ctx matched-val)
-    (doseq [[_ occs] (group-by identity test-constants)
-            dupe     (rest occs)
-            :when    (> (count occs) 1)]
-      (findings/reg-finding!
-       ctx
-       (node->line (:filename ctx) dupe :duplicate-case-test-constant
-                   (format "Duplicate case test constant: %s" dupe))))
-    (loop [[constant expr & exprs] clauses]
+    (loop [[constant expr & exprs] (rest children)
+           seen-constants #{}]
       (when constant
         (if-not expr
           ;; this is the default expression
           (analyze-expression** ctx constant)
-          (do
-            (let [t (tag constant)]
-              (if (identical? :list t)
-                (run! #(analyze-usages2 test-ctx % test-opts) (:children constant))
-                (analyze-usages2 test-ctx constant test-opts)))
+          (let [t (tag constant)
+                list? (identical? :list t)
+                dupe-cands (if list? (:children constant) [constant])]
+            (doseq [dupe dupe-cands
+                    :let  [s-dupe (str dupe)]
+                    :when (seen-constants s-dupe)]
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) dupe :duplicate-case-test-constant
+                           (format "Duplicate case test constant: %s" s-dupe))))
+            (if list?
+              (run! #(analyze-usages2 test-ctx % test-opts) (:children constant))
+              (analyze-usages2 test-ctx constant test-opts))
             (when expr
               (analyze-expression** ctx expr)
-              (recur exprs))))))))
+              (recur exprs (into seen-constants (map str dupe-cands))))))))))
 
 (defn expr-bindings [ctx binding-vector scoped-expr]
   (let [ctx (update ctx :callstack conj [:nil :vector])]
