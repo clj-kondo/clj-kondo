@@ -35,7 +35,6 @@
                                ;;:exclude-destructured-keys-in-fn-args false
                                ;;:exclude-destructured-as false
                                ;;:exclude-defmulti-args false
-                               ;:exclude-incorrectly-marked-unused false
                                ,}
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
