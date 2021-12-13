@@ -502,19 +502,6 @@
               used-bindings (:used-bindings ns)
               diff (set/difference bindings used-bindings)
               defaults (:destructuring-defaults ns)]
-          (when-not (-> ctx :config :linters :unused-binding
-                        :exclude-incorrectly-marked-unused)
-            (doseq [binding (set (->> (filter (comp not :clj-kondo.impl/generated) used-bindings)
-                                      (filter #(str/starts-with? (str (:name %)) "_"))))]
-              (findings/reg-finding!
-               ctx
-               {:type :used-underscored-binding
-                :filename (:filename binding)
-                :message (format "used binding %s marked as unused." (:name binding))
-                :row (:row binding)
-                :col (:col binding)
-                :end-row (:end-row binding)
-                :end-col (:end-col binding)})))
           (doseq [binding diff]
             (let [nm (:name binding)]
               (when-not (str/starts-with? (str nm) "_")
