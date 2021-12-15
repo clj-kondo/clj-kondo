@@ -2378,6 +2378,24 @@ i/blank? (i/starts-with?) i/x
 
 (import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])"
                      {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(ns foo.bar)
+
+(defn foo []) ;; non-empty to generated ns cache
+
+(defmacro baz [])
+
+;; dynamically generated baz
+
+(ns foo (:require [foo.bar] [potemkin :refer [import-vars]]))
+
+(import-vars [foo.bar baz])
+
+(ns bar (:require [foo]))
+foo/baz
+"
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unresolved-var {:level :error}}})))
   ;; TODO? for now just include duplicate lint-as
   #_(testing "lint-as works automatically with imported vars"
     (is (empty? (lint! "
