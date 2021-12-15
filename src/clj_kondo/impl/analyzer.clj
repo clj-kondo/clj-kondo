@@ -2161,7 +2161,10 @@
           {:keys [:row :col]} (meta expr)
           arg-count (count (rest children))]
       (utils/handle-ignore ctx expr)
-      (when-not (one-of t [:map :list :quote]) ;; list and quote are handled specially because of return types
+      ;; map's type is added in :map handler below
+      ;; namespaced map's type is added when going through analyze-expression** via analyze-namespaced-map
+      ;; list and quote are handled specially because of return types
+      (when-not (one-of t [:namespaced-map :map :list :quote])
         (types/add-arg-type-from-expr ctx expr))
       (case t
         :quote (let [ctx (assoc ctx :quoted true)]
