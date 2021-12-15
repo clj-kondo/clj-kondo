@@ -52,4 +52,5 @@
            :eastwood
            {:main-opts ["-m" "eastwood.lint" {:source-paths ["src" "test"]
                                               :exclude-linters [:unused-ret-vals
-                                                                :implicit-dependencies]}]}}}
+                                                                :implicit-dependencies
+                                                                :local-shadows-var]}]}}}
