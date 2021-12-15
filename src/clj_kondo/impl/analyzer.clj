@@ -553,8 +553,7 @@
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
                    :added (:added var-meta))))
-    (when docstring
-      (docstring/lint-docstring! ctx doc-node docstring))
+    (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
