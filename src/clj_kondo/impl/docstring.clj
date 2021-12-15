@@ -3,38 +3,34 @@
             [clj-kondo.impl.utils :refer [node->line tag node->keyword string-from-token]]
             [clojure.string :as str]))
 
-(defn docstring-messages
-  "Return a sequence of linting messages for the given `docstring`."
-  [docstring]
-  (cond-> nil
-    (str/blank? docstring)
-    (conj {:message "Docstring should not be blank."
-           :type :docstring-blank})
-
-    (not (re-find #"^\s*[A-Z].*[.!?]\s*$" docstring))
-    (conj {:message "First line of the docstring should be a capitalized sentence ending with punctuation."
-           :type :docstring-no-summary})
-
-    (or (re-find #"^\s" docstring)
-        (re-find #"\s$" docstring))
-    (conj {:message "Docstring should not have leading or trailing whitespace."
-           :type :docstring-leading-trailing-whitespace})))
-
 (defn lint-docstring!
   "Lint `docstring` for styling issues.
 
   `node` is the node reported when docstring has findings, so ideally
   it should be the text node for `docstring`."
   [{:keys [filename config] :as ctx} node docstring]
-  (when (some? docstring)
-    (doseq [{:keys [type message]} (docstring-messages docstring)]
-      (when-not (identical? :off (-> config :linters type :level))
+  (when docstring
+    (doseq [[type f msg] [[:docstring-blank
+                           (fn [docstring]
+                             (str/blank? docstring))
+                           "Docstring should not be blank."]
+                          [:docstring-no-summary
+                           (fn [docstring]
+                             (not (re-find #"^\s*[A-Z].*[.!?]\s*$" docstring)))
+                           "First line of the docstring should be a capitalized sentence ending with punctuation."]
+                          [:docstring-no-summary
+                           (fn [docstring]
+                             (or (re-find #"^\s" docstring)
+                                 (re-find #"\s$" docstring)))
+                           "Docstring should not have leading or trailing whitespace."]]]
+      (when (and (not (identical? :off (some-> config :linters type :level)))
+                 (f docstring))
         (findings/reg-finding!
          ctx
          (node->line filename
                      node
                      type
-                     message))))))
+                     msg))))))
 
 (defn docs-from-meta
   "Return a tuple of `[doc-node docstring]` given `meta-node`.
