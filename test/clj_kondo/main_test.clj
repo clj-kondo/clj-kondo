@@ -2303,12 +2303,12 @@ foo/foo ;; this does use the private var
 (deftest import-vars-test
   (assert-submaps
    '({:file "corpus/import_vars.clj",
-      :row 19,
+      :row 23,
       :col 1,
       :level :error,
       :message "clojure.walk/prewalk is called with 0 args but expects 2"}
      {:file "corpus/import_vars.clj",
-      :row 20,
+      :row 24,
       :col 1,
       :level :error,
       :message "app.core/foo is called with 0 args but expects 1"})
@@ -2355,8 +2355,7 @@ foo/foo ;; this does use the private var
       (rename-path ".clj-kondo.bak" ".clj-kondo")))
   (testing "aliases"
     (assert-submaps
-     ' ({:file "<stdin>", :row 4, :col 14, :level :warning, :message "namespace clojure.string is required but never used"}
-        {:file "<stdin>", :row 9, :col 10, :level :error, :message "clojure.string/starts-with? is called with 0 args but expects 2"}
+     ' ({:file "<stdin>", :row 9, :col 10, :level :error, :message "clojure.string/starts-with? is called with 0 args but expects 2"}
         {:file "<stdin>", :row 9, :col 27, :level :error, :message "Unresolved var: i/x"})
      (lint! "
 (ns importing-ns
@@ -2374,7 +2373,8 @@ i/blank? (i/starts-with?) i/x
                        :type-mismatch {:level :error}}})))
   (is (empty? (lint! "
 (ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
-(:require [potemkin :refer [import-vars]]))
+(:require [potemkin :refer [import-vars]]
+          [clojure.string]))
 
 (import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])"
                      {:linters {:unresolved-symbol {:level :error}}})))
@@ -2385,15 +2385,15 @@ i/blank? (i/starts-with?) i/x
 
 ;; dynamically generated baz
 
-(ns foo (:require [potemkin :refer [import-vars]]))
+(ns foo (:require [foo.bar] [potemkin :refer [import-vars]]))
 
 (import-vars [foo.bar baz])
 
 (ns bar (:require [foo]))
 foo/baz
 "
-                  {:linters {:unresolved-symbol {:level :error}
-                             :unresolved-var {:level :error}}})))
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unresolved-var {:level :error}}})))
   ;; TODO? for now just include duplicate lint-as
   #_(testing "lint-as works automatically with imported vars"
     (is (empty? (lint! "

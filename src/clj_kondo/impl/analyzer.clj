@@ -1948,7 +1948,7 @@
                          [clojure.spec.gen.alpha lazy-prims])
                         (analyze-declare ctx expr defined-by)
                         [potemkin import-vars]
-                        (potemkin/analyze-import-vars ctx expr)
+                        (potemkin/analyze-import-vars ctx expr ctx-with-linters-disabled)
                         ([clojure.core.async alt!] [clojure.core.async alt!!]
                          [cljs.core.async alt!] [cljs.core.async alt!!])
                         (core-async/analyze-alt! (assoc ctx
