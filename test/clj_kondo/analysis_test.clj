@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submaps assert-submap]]
    [clojure.edn :as edn]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -1089,7 +1089,6 @@
                                    {:analysis true}}}))
                :analysis :namespace-definitions first)))))
 
-
 (deftest derived-doc
   (testing "namespace"
     (let [enable? [false true]]
@@ -1287,6 +1286,80 @@
              (some #(when (and (= 'barfn (:from-var %)) (= 'bar (:from %))) %))
              is)))))
 
+(deftest potemkin-import-vars-test
+  (testing "var usages from potemkin usage are available"
+    (testing "when using import-vars with full qualified symbol"
+      (let [analysis (-> (with-in-str "
+(ns foo)
+(defn my-func [a] a)
+
+(defn my-other [a] a)
+
+(ns api (:require
+  [foo]
+  [potemkin :refer [import-vars]]))
+(import-vars
+  foo/my-func
+  foo/my-other)
+"
+                           (clj-kondo/run! {:lang :clj :lint ["-"] :config
+                                            {:output {:analysis true}}}))
+                         :analysis)
+            usages (:var-usages analysis)
+            my-func-usage (some #(when (= 'my-func (:name %)) %) usages)
+            my-other-usage (some #(when (= 'my-other (:name %)) %) usages)]
+        (is (assert-submap
+              {:name 'my-func
+               :name-row 11
+               :name-col 3
+               :from 'api
+               :to 'foo}
+              my-func-usage))
+        (is (assert-submap
+              {:name 'my-other
+               :name-row 12
+               :name-col 3
+               :from 'api
+               :to 'foo}
+              my-other-usage))))
+    (testing "when using import-vars with vectors"
+      (let [analysis (-> (with-in-str "
+(ns foo)
+(defn my-func [a] a)
+
+(defn my-other [a] a)
+
+(ns api (:require
+  [foo]
+  [potemkin :refer [import-vars]]))
+(import-vars
+  [foo my-func
+       my-other])
+"
+                           (clj-kondo/run! {:lang :clj :lint ["-"] :config
+                                            {:output {:analysis true}}}))
+                         :analysis)
+            usages (:var-usages analysis)
+            my-func-usage (some #(when (= 'my-func (:name %)) %) usages)
+            my-other-usage (some #(when (= 'my-other (:name %)) %) usages)]
+        (is (assert-submap
+              {:name 'my-func
+               :from 'api
+               :to 'foo
+               :name-row 11
+               :name-col 8
+               :name-end-row 11
+               :name-end-col 15}
+              my-func-usage))
+        (is (assert-submap
+              {:name 'my-other
+               :from 'api
+               :to 'foo
+               :name-row 12
+               :name-col 8
+               :name-end-row 12
+               :name-end-col 16}
+              my-other-usage))))))
 
 (comment
   (context-test)

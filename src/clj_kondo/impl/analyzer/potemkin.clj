@@ -1,7 +1,10 @@
 (ns clj-kondo.impl.analyzer.potemkin
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
-  (:require [clj-kondo.impl.namespace :as namespace]))
+  (:require
+   [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.utils :as utils :refer [token-node]]))
 
 (defn analyze-import-vars [ctx expr]
   (let [ns (:ns ctx)
@@ -19,9 +22,18 @@
                                 (:value (first gchildren)))
                   imported-ns (qualify-ns imported-ns imported-ns)
                   imported-vars (if fqs-import?
-                                  [(symbol (name gval))]
-                                  (map :value (rest gchildren)))]]
-        (do (doseq [iv imported-vars]
-              (namespace/reg-var! ctx ns-name iv expr {:imported-ns imported-ns
-                                                       :imported-var iv}))
-            imported-ns))}]))
+                                  [[g (symbol (name gval))]]
+                                  (map (fn [c] [c (:value c)]) (rest gchildren)))]]
+        (do
+          (doseq [[i-expr i-value] imported-vars]
+            (common/analyze-usages2
+             ctx
+             (if fqs-import?
+               i-expr
+               (with-meta (token-node
+                           (symbol (str (:value (first gchildren)))
+                                   (str i-value)))
+                 (meta i-expr))))
+            (namespace/reg-var! ctx ns-name i-value expr {:imported-ns imported-ns
+                                                          :imported-var i-value}))
+          imported-ns))}]))
