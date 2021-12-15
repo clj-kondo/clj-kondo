@@ -7,8 +7,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 ### New
 
 - Automatically load configurations from `.clj-kondo/*/*/config.edn`. This can be disabled with `:auto-load-configs false`. [#1492](https://github.com/clj-kondo/clj-kondo/issues/1492)
-- Detect duplicate case test constants. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-case-test-constant). [#587](https://github.com/clj-kondo/clj-kondo/issues/587) ([@mknoszlig](https://github.com/mknoszlig))
-- Add linter `:unexpected-recur`: warn on `recur` in unexpected (non-tail) position.
+- Add linter `:duplicate-case-test-constant`: detect duplicate case test constants. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-case-test-constant). [#587](https://github.com/clj-kondo/clj-kondo/issues/587) ([@mknoszlig](https://github.com/mknoszlig))
+- Add linter `:unexpected-recur`: warn on `recur` in unexpected (non-tail) position. [#1126](https://github.com/clj-kondo/clj-kondo/issues/1126)
 - Add linter `:used-underscored-binding`: warn on used bindings that start with underscore. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#used-underscored-bindings). [#1149](https://github.com/clj-kondo/clj-kondo/issues/1149) ([@mknoszlig](https://github.com/mknoszlig))
 - Add linter `:docstring-blank` for checking empty docstring. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-blank). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
 - Add linter `:docstring-leading-trailing-whitespace` for checking leading and trailing whitespace in docstring. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-leading-trailing-whitespace). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
