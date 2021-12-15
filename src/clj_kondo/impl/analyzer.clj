@@ -474,10 +474,14 @@
         ;; use dorun to force evaluation, we don't use the result!
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
         _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
-        [doc-node docstring] (or (docstring/docs-from-meta meta-node) [doc-node docstring])
         meta-node-meta (when meta-node (sexpr meta-node))
-        [doc-node docstring] (or (docstring/docs-from-meta meta-node2) [doc-node docstring])
+        [doc-node docstring] (or (and (:doc meta-node-meta)
+                                      (docstring/docs-from-meta meta-node))
+                                 [doc-node docstring])
         meta-node2-meta (when meta-node2 (sexpr meta-node2))
+        [doc-node docstring] (or (and (:doc meta-node2)
+                                      (docstring/docs-from-meta meta-node2))
+                              [doc-node docstring])
         var-meta (if meta-node-meta
                    (merge var-leading-meta meta-node-meta)
                    var-leading-meta)
