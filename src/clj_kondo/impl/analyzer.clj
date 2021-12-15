@@ -969,7 +969,9 @@
 (defn analyze-def [ctx expr defined-by]
   ;; (def foo ?docstring ?init)
   (let [children (next (:children expr))
-        var-name-node (->> children first (meta/lift-meta-content2 ctx))
+        raw-var-name-node (first children)
+        var-name-node-meta-nodes (:meta raw-var-name-node)
+        var-name-node (meta/lift-meta-content2 ctx raw-var-name-node)
         metadata (meta var-name-node)
         var-name (:value var-name-node)
         var-name (current-namespace-var-name ctx var-name-node var-name)
@@ -987,13 +989,14 @@
                                                 [nil nil (cons child children)])
         metadata (if extra-meta (merge metadata extra-meta)
                      metadata)
-        [doc-node docstring] (or (docstring/docs-from-meta extra-meta-node)
+        [doc-node docstring] (or (and extra-meta
+                                      (:doc extra-meta)
+                                      (docstring/docs-from-meta extra-meta-node))
                                  [doc-node docstring])
         [doc-node docstring] (if docstring
                                [doc-node docstring]
-                               ;; TODO: too late to get metadata node
-                               (when-let [docstring (some-> metadata :doc str)]
-                                 [expr docstring]))
+                               (when (some-> metadata :doc str)
+                                 (some docstring/docs-from-meta var-name-node-meta-nodes)))
         ctx (assoc ctx :in-def var-name :def-meta metadata :defmulti? defmulti?)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
