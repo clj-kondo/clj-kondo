@@ -1,7 +1,7 @@
 # Number of days of inactivity before an issue becomes stale
 daysUntilStale: 180
 # Number of days of inactivity before a stale issue is closed
-daysUntilClose: 7
+daysUntilClose: 30
 # Issues with these labels will never be considered stale
 exemptLabels:
   - pinned
@@ -11,7 +11,15 @@ staleLabel: expired
 # Comment to post when marking an issue as stale. Set to `false` to disable
 markComment: >
   This issue has been automatically marked as expired because it has not had
+<<<<<<< HEAD
   recent activity. It will be closed if no further activity occurs. Thank you
   for your contributions.
+=======
+  recent activity. To prevent it from being closed, please leave a
+  message. Additionally, consider giving the original message a thumbs up if
+  this issue is important to you, so it will appear higher in [this
+  list](https://github.com/clj-kondo/clj-kondo/issues?q=is%3Aissue+is%3Aopen+sort%3Areactions-%2B1-desc). Thank
+  you for your contributions!
+>>>>>>> master
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: false

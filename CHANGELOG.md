@@ -2,6 +2,19 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- Automatically load configurations from `.clj-kondo/*/*/config.edn`. This can be disabled with `:auto-load-configs false`. [#1492](https://github.com/clj-kondo/clj-kondo/issues/1492)
+- Detect duplicate case test constants. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-case-test-constant). [#587](https://github.com/clj-kondo/clj-kondo/issues/587) ([@mknoszlig](https://github.com/mknoszlig))
+- Warn on used bindings that start with underscore. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#used-underscored-bindings). [#1149](https://github.com/clj-kondo/clj-kondo/issues/1149) ([@mknoszlig](https://github.com/mknoszlig))
+- Add linter `:docstring-blank` for checking empty docstring. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-blank). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
+- Add linter `:docstring-leading-trailing-whitespace` for checking leading and trailing whitespace in docstring. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-leading-trailing-whitespace). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
+- Add linter `:docstring-no-summary` for checking the absence of summary of args in docstring. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-no-summary). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
+- Add `:exclude-defmulti-args` option for `:unused-bindings` linter. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md). [#1188](https://github.com/clj-kondo/clj-kondo/issues/1188) ([@mknoszlig](https://github.com/mknoszlig))
+- Bump built-in cache for clojure 1.11.0-alpha3 and `clojure.data.json`
+- Reword `:refer` suggestion so you can copy paste it [#1293](https://github.com/clj-kondo/clj-kondo/issues/1293) ([@vemv](https://github.com/vemv))
+- Add re-frame analysis output [#1465](https://github.com/clj-kondo/clj-kondo/issues/1465) ([@benedekfazekas](https://github.com/benedekfazekas))
+
 ## 2021.12.01
 
 - Improve linting in `extend-protocol`, `extend-type`, `reify`, `specify!` [#1333](https://github.com/clj-kondo/clj-kondo/issues/1333), [#1447](https://github.com/clj-kondo/clj-kondo/issues/1447)

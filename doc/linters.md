@@ -16,6 +16,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
+    - [Duplicate case test constant](#duplicate-case-test-constant)
     - [File](#file)
     - [Format](#format)
     - [Inline def](#inline-def)
@@ -219,6 +220,42 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 Expected map, found: java.lang.String
 ```
 
+### Docstring blank
+
+*Keyword:* `:docstring-blank`.
+
+*Description:* warn on blank docstring.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(defn foo "" [a b] 1)`
+
+*Example message:* `Docstring should not be blank.`.
+
+### Docstring no summary
+
+*Keyword:* `:docstring-no-summary`.
+
+*Description:* warn when first line of docstring is not a complete sentence.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(defn foo "not a sentence" [a b] 1)`
+
+*Example message:* `First line of the docstring should be a capitalized sentence ending with punctuation.`
+
+### Docstring leading trailing whitespace
+
+*Keyword:* `:docstring-leading-trailing-whitespace`.
+
+*Description:* warn when docstring has leading or trailing whitespace
+
+*Default level:* `:off`.
+
+*Example trigger:* `(defn foo "Has trailing whitespace.\n" [a b] 1)`
+
+*Example message:* `Docstring should not have leading or trailing whitespace.`
+
 ### Duplicate map key
 
 *Keyword:* `:duplicate-map-key`.
@@ -256,6 +293,18 @@ Expected map, found: java.lang.String
 *Example trigger:* `#{:a :a}`
 
 *Example message:* `duplicate set element :a`.
+
+### Duplicate case test constant
+
+*Keyword:* `:duplicate-case-test-constant`.
+
+*Description:* identify duplicate case test constants.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(case x :a 1 :b 2 :a 3)`
+
+*Example message:* `Duplicate case test constant: :a`.
 
 ### File
 
@@ -711,6 +760,37 @@ This will disable the warning in:
 
 ``` clojure
 (defn f [{:keys [a b c] :as g}] a b c)
+```
+
+To exclude warnings about defmulti dispatch function arguments, use:
+
+``` clojure
+{:linters {:unused-binding {:exclude-defmulti-args true}}}
+```
+
+This will disable the warning in:
+
+``` clojure
+(defmulti f (fn [a b] a))
+```
+
+### Used underscored bindings
+
+*Keyword:* `:used-underscored-binding`.
+
+*Description:* warn when a underscored (ie marked as unused) binding is used.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(let [_x 0] _x)`.
+
+*Example message:* `Using binding marked as unused: _x'
+
+These warnings can be enabled by setting the level to `:warning` or
+`:error` in your config.
+
+``` clojure
+{:linters {:used-underscored-binding {:level :warning}}}
 ```
 
 ### Unreachable code

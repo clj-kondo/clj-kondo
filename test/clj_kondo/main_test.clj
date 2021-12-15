@@ -584,7 +584,60 @@ foo/foo ;; this does use the private var
     (is (empty?
          (lint! "(def ^:private ^:const x 2) (case 1 x :yeah)"
                 {:linters {:unused-private-var {:level :error}}}
-                "--lang" "cljs")))))
+                "--lang" "cljs"))))
+  (testing "duplicate case test constant"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 14,
+        :level :error,
+        :message "Duplicate case test constant: :a"}
+       {:file "<stdin>",
+        :row 1,
+        :col 24,
+        :level :error,
+        :message "Duplicate case test constant: :a"})
+     (lint! "(case f :a 2 :a 3 :b 1 :a 0)"))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 14,
+        :level :error,
+        :message "Duplicate case test constant: :a"})
+     (lint! "(case f :a 2 :a 3 :b 1 :default)"))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 3,
+        :col 3,
+        :level :error,
+        :message "Duplicate case test constant: :bar"}
+       {:file "<stdin>",
+        :row 4,
+        :col 3,
+        :level :error,
+        :message "Duplicate case test constant: :bar"})
+     (lint! "(case x
+  (:foo :bar) :yolo
+  :bar :hello
+  :bar :hi)"))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 2,
+        :col 6,
+        :level :error,
+        :message "Duplicate case test constant: a"}
+       {:file "<stdin>",
+        :row 3,
+        :col 3,
+        :level :error,
+        :message "Duplicate case test constant: a"})
+     (lint! "(case x
+  (a a) 1
+  a 1
+  1)"))
+    (is (empty? (lint! "(case 0 :a 1 :a)")))
+    (is (empty? (lint! "(case f :a 1 :b 2)")))
+    (is (empty? (lint! "(case f :a 1 :b 2 :a)")))))
 
 (deftest local-bindings-test
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))
@@ -2174,7 +2227,7 @@ foo/foo ;; this does use the private var
       :row 19,
       :col 4,
       :level :warning,
-      :message "use :require with alias or :refer with [join]"}
+      :message "use :require with alias or :refer [join]"}
      {:file "corpus/use.clj",
       :row 19,
       :col 10,
@@ -2189,7 +2242,7 @@ foo/foo ;; this does use the private var
       :row 22,
       :col 2,
       :level :warning,
-      :message "use require with alias or :refer with [join]"}
+      :message "use require with alias or :refer [join]"}
      {:file "corpus/use.clj",
       :row 22,
       :col 8,

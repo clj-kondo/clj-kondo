@@ -18,6 +18,7 @@
    [clj-kondo.impl.analyzer.test :as test]
    [clj-kondo.impl.analyzer.usages :as usages :refer [analyze-usages2]]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.docstring :as docstring]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.linters :as linters]
@@ -156,7 +157,10 @@
            skip-reg-binding? (or (:skip-reg-binding? ctx)
                                  (when (and keys-destructuring? fn-args?)
                                    (-> ctx :config :linters :unused-binding
-                                       :exclude-destructured-keys-in-fn-args)))]
+                                       :exclude-destructured-keys-in-fn-args))
+                                 (and (:defmulti? ctx)
+                                      (-> ctx :config :linters :unused-binding
+                                          :exclude-defmulti-args)))]
        (case t
          :token
          (cond
@@ -449,11 +453,13 @@
   (let [ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
+        name-node-meta-nodes (:meta name-node)
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
         fn-name (:value name-node)
         call (name (symbol-call expr))
         var-leading-meta (meta name-node)
         docstring (string-from-token (first children))
+        doc-node (when docstring (first children))
         children (if docstring (next children) children)
         meta-node (when-let [fc (first children)]
                     (let [t (tag fc)]
@@ -470,7 +476,15 @@
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
         _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
         meta-node-meta (when meta-node (sexpr meta-node))
+        [doc-node docstring] (or (and meta-node-meta
+                                      (:doc meta-node-meta)
+                                      (docstring/docs-from-meta meta-node))
+                                 [doc-node docstring])
         meta-node2-meta (when meta-node2 (sexpr meta-node2))
+        [doc-node docstring] (or (and meta-node2-meta
+                                      (:doc meta-node2-meta)
+                                      (docstring/docs-from-meta meta-node2))
+                              [doc-node docstring])
         var-meta (if meta-node-meta
                    (merge var-leading-meta meta-node-meta)
                    var-leading-meta)
@@ -486,10 +500,10 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        docstring (or (some-> meta-node2-meta :doc str)
-                      (some-> meta-node-meta :doc str)
-                      docstring
-                      (some-> var-leading-meta :doc str))
+        [doc-node docstring] (if docstring
+                               [doc-node docstring]
+                               (when (some-> var-leading-meta :doc str)
+                                 (some docstring/docs-from-meta name-node-meta-nodes)))
         bodies (fn-bodies ctx children expr)
         _ (when (empty? bodies)
             (findings/reg-finding! ctx
@@ -539,6 +553,7 @@
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
                    :added (:added var-meta))))
+    (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
@@ -550,19 +565,31 @@
            nil]
           [ctx {:quote? true}])]
     (analyze-expression** ctx matched-val)
-    (loop [[constant expr & exprs] (rest children)]
+    (loop [[constant expr & exprs] (rest children)
+           seen-constants #{}]
       (when constant
         (if-not expr
           ;; this is the default expression
           (analyze-expression** ctx constant)
-          (do
-            (let [t (tag constant)]
-              (if (identical? :list t)
-                (run! #(analyze-usages2 test-ctx % test-opts) (:children constant))
-                (analyze-usages2 test-ctx constant test-opts)))
+          (let [t (tag constant)
+                list? (identical? :list t)
+                dupe-cands (if list? (:children constant) [constant])]
+            (loop [[dupe & more] dupe-cands
+                   seen-local seen-constants]
+              (let [s-dupe (str dupe)]
+                (when (seen-local s-dupe)
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx) dupe :duplicate-case-test-constant
+                               (format "Duplicate case test constant: %s" s-dupe))))
+                (when (seq more)
+                  (recur more (conj seen-local s-dupe)))))
+            (if list?
+              (run! #(analyze-usages2 test-ctx % test-opts) (:children constant))
+              (analyze-usages2 test-ctx constant test-opts))
             (when expr
               (analyze-expression** ctx expr)
-              (recur exprs))))))))
+              (recur exprs (into seen-constants (map str dupe-cands))))))))))
 
 (defn expr-bindings [ctx binding-vector scoped-expr]
   (let [ctx (update ctx :callstack conj [:nil :vector])]
@@ -954,24 +981,35 @@
 (defn analyze-def [ctx expr defined-by]
   ;; (def foo ?docstring ?init)
   (let [children (next (:children expr))
-        var-name-node (->> children first (meta/lift-meta-content2 ctx))
+        raw-var-name-node (first children)
+        var-name-node-meta-nodes (:meta raw-var-name-node)
+        var-name-node (meta/lift-meta-content2 ctx raw-var-name-node)
         metadata (meta var-name-node)
         var-name (:value var-name-node)
         var-name (current-namespace-var-name ctx var-name-node var-name)
         children (next children)
         docstring (when (> (count children) 1)
                     (string-from-token (first children)))
+
+        defmulti? (= 'clojure.core/defmulti defined-by)
+        doc-node (when docstring
+                   (first children))
         [child & children] (if docstring (next children) children)
-        [extra-meta children] (if (and (= 'clojure.core/defmulti defined-by)
-                                       (identical? :map (utils/tag child)))
-                                [(sexpr child) children]
-                                [nil (cons child children)])
+        [extra-meta extra-meta-node children] (if (and defmulti?
+                                                       (identical? :map (utils/tag child)))
+                                                [(sexpr child) child children]
+                                                [nil nil (cons child children)])
         metadata (if extra-meta (merge metadata extra-meta)
                      metadata)
-        docstring (or (some-> extra-meta :doc str)
-                      docstring
-                      (some-> metadata :doc str))
-        ctx (assoc ctx :in-def var-name :def-meta metadata)
+        [doc-node docstring] (or (and extra-meta
+                                      (:doc extra-meta)
+                                      (docstring/docs-from-meta extra-meta-node))
+                                 [doc-node docstring])
+        [doc-node docstring] (if docstring
+                               [doc-node docstring]
+                               (when (some-> metadata :doc str)
+                                 (some docstring/docs-from-meta var-name-node-meta-nodes)))
+        ctx (assoc ctx :in-def var-name :def-meta metadata :defmulti? defmulti?)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
                             (= 1 (count children)))
@@ -992,6 +1030,7 @@
                                       :fixed-arities (:fixed-arities arity)
                                       :varargs-min-arity (:varargs-min-arity arity)
                                       :arities (:arities init-meta))))
+    (docstring/lint-docstring! ctx doc-node docstring)
     (when-not def-init
       ;; this was something else than core/def
       (analyze-children ctx
@@ -1142,13 +1181,18 @@
         name-node (first children)
         protocol-name (:value name-node)
         ns-name (:name ns)
+        docstring (string-from-token (second children))
+        doc-node (when docstring
+                   (second children))
         transduce-arity-vecs (filter
                               ;; skip last docstring
                               #(when (= :vector (tag %)) %))]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr
-                          (assoc (meta name-node)
-                                 :defined-by 'clojure.core/defprotocol)))
+                          (assoc-some (meta name-node)
+                                      :doc docstring
+                                      :defined-by 'clojure.core/defprotocol)))
+    (docstring/lint-docstring! ctx doc-node docstring)
     (doseq [c (next children)
             :when (= :list (tag c)) ;; skip first docstring
             :let [children (:children c)
@@ -1156,7 +1200,10 @@
                   name-node (meta/lift-meta-content2 ctx name-node)
                   name-meta (meta name-node)
                   fn-name (:value name-node)
-                  arities (rest children)]]
+                  arities (rest children)
+                  docstring (string-from-token (last children))
+                  doc-node (when docstring
+                             (last children))]]
       (let [ctx (ctx-with-linter-disabled ctx :unresolved-symbol)]
         (run! #(analyze-usages2 ctx %) arities))
       (when fn-name
@@ -1170,13 +1217,15 @@
           (namespace/reg-var!
            ctx ns-name fn-name expr
            (assoc-some (meta c)
+                       :doc docstring
                        :arglist-strs arglist-strs
                        :name-row (:row name-meta)
                        :name-col (:col name-meta)
                        :name-end-row (:end-row name-meta)
                        :name-end-col (:end-col name-meta)
                        :fixed-arities fixed-arities
-                       :defined-by 'clojure.core/defprotocol)))))))
+                       :defined-by 'clojure.core/defprotocol))
+          (docstring/lint-docstring! ctx doc-node docstring))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
@@ -1609,7 +1658,9 @@
            :row :col
            :expr] :as m}]
   (let [ns-name (:name ns)
-        children (next (:children expr))
+        children (:children expr)
+        name-node (first children)
+        children (rest children)
         {resolved-namespace :ns
          resolved-name :name
          resolved-alias :alias
@@ -1648,7 +1699,16 @@
                 ;; See #1170, we deliberaly use resolved and not resolved-as
                 ;; Users can get :lint-as like behavior for hooks by configuring
                 ;; multiple fns to target the same hook code
-                hook-fn (hooks/hook-fn ctx config resolved-namespace resolved-name)
+                hook-fn
+                (let [visited (:visited expr)]
+                  (when-not (and visited (= visited [resolved-namespace resolved-name]))
+                    (or (hooks/hook-fn ctx config resolved-namespace resolved-name)
+                        (case [resolved-namespace resolved-name]
+                          ([clojure.test testing] [cljs.test testing])
+                          (when (:analysis-context ctx)
+                            ;; only use testing hook when analysis is requested
+                            test/testing-hook)
+                          nil))))
                 transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
                               (let [filename (:filename ctx)]
@@ -1679,36 +1739,50 @@
                       ctx)]
             (if-let [expanded (and transformed
                                    (:node transformed))]
-              (do ;;;; This registers the macro call, so we still get arity linting
-                ;; (prn :expanded expanded)
-                (namespace/reg-var-usage!
-                 ctx ns-name {:type :call
-                              :resolved-ns resolved-namespace
-                              :ns ns-name
-                              :name (with-meta
-                                      (or resolved-name full-fn-name)
-                                      (meta full-fn-name))
-                              :alias resolved-alias
-                              :unresolved? unresolved?
-                              :unresolved-ns unresolved-ns
-                              :clojure-excluded? clojure-excluded?
-                              :arity arg-count
-                              :row row
-                              :end-row (:end-row expr-meta)
-                              :col col
-                              :end-col (:end-col expr-meta)
-                              :base-lang base-lang
-                              :lang lang
-                              :filename (:filename ctx)
-                              ;; save some memory during dependencies
-                              :expr (when-not dependencies expr)
-                              :simple? (simple-symbol? full-fn-name)
-                              :callstack (:callstack ctx)
-                              :config (:config ctx)
-                              :top-ns (:top-ns ctx)
-                              :arg-types (:arg-types ctx)
-                              :interop? interop?
-                              :resolved-core? resolved-core?})
+              (let [[new-name-node new-arg-count]
+                    (when (utils/list-node? expanded)
+                      (when-let [children (:children expanded)]
+                        [(first children)
+                         (dec (count children))]))
+                    same-call? (and new-name-node
+                                    new-arg-count
+                                    (= (utils/tag name-node)
+                                       (utils/tag new-name-node))
+                                    (= full-fn-name (:value new-name-node))
+                                    (= arg-count
+                                       new-arg-count))
+                    expanded (assoc expanded :visited [resolved-namespace resolved-name])]
+                ;;;; This registers the original call when the new node does not
+                ;;;; refer to the same call, so we still get arity linting
+                (when-not same-call?
+                  (namespace/reg-var-usage!
+                   ctx ns-name {:type :call
+                                :resolved-ns resolved-namespace
+                                :ns ns-name
+                                :name (with-meta
+                                        (or resolved-name full-fn-name)
+                                        (meta full-fn-name))
+                                :alias resolved-alias
+                                :unresolved? unresolved?
+                                :unresolved-ns unresolved-ns
+                                :clojure-excluded? clojure-excluded?
+                                :arity arg-count
+                                :row row
+                                :end-row (:end-row expr-meta)
+                                :col col
+                                :end-col (:end-col expr-meta)
+                                :base-lang base-lang
+                                :lang lang
+                                :filename (:filename ctx)
+                                ;; save some memory during dependencies
+                                :expr (when-not dependencies expr)
+                                :simple? (simple-symbol? full-fn-name)
+                                :callstack (:callstack ctx)
+                                :config (:config ctx)
+                                :top-ns (:top-ns ctx)
+                                :arg-types (:arg-types ctx)
+                                :interop? interop?
+                                :resolved-core? resolved-core?}))
                   ;;;; This registers the namespace as used, to prevent unused warnings
                 (namespace/reg-used-namespace! ctx
                                                ns-name
@@ -1928,11 +2002,14 @@
                         ([re-frame.core reg-event-db]
                          [re-frame.core reg-event-fx]
                          [re-frame.core reg-event-ctx]
-                         [re-frame.core reg-sub]
                          [re-frame.core reg-sub-raw]
                          [re-frame.core reg-fx]
                          [re-frame.core reg-cofx])
                         (re-frame/analyze-reg ctx expr (symbol (str resolved-namespace) (str resolved-name)))
+                        ([re-frame.core subscribe])
+                        (re-frame/analyze-subscribe ctx expr (str resolved-namespace))
+                        ([re-frame.core reg-sub])
+                        (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace) (str resolved-name)))
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
                                          (one-of [resolved-namespace resolved-name]
@@ -1949,8 +2026,15 @@
                   (let [in-def (:in-def ctx)
                         id (:id expr)
                         m (meta analyzed)
+                        context (when (:analysis-context ctx)
+                                  (let [node-context (:context name-node)
+                                        ctx-context (:context ctx)
+                                        context (utils/deep-merge
+                                                 ctx-context
+                                                 node-context)]
+                                    context))
                         proto-call {:type :call
-                                    :context (:context ctx)
+                                    :context context
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
                                     :name (with-meta

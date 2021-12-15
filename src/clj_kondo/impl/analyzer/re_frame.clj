@@ -9,22 +9,41 @@
 (defn new-id! []
   (str (swap! counter inc)))
 
+(defn- with-context [ctx name-expr fq-def]
+  (if (:k name-expr)
+    (let [ns (namespace fq-def)
+          kns (keyword ns)
+          re-frame-name (name fq-def)
+          id (new-id!)]
+      [(assoc-in
+        ctx
+        [:context kns :in-id] id)
+       (-> name-expr
+           (assoc :reg fq-def)
+           (assoc-in [:context kns] {:id id :var re-frame-name}))])
+    [ctx name-expr]))
+
 (defn analyze-reg [ctx expr fq-def]
   (let [[name-expr & body] (next (:children expr))
-        [ctx reg-val] (if (:k name-expr)
-                        (let [ns (namespace fq-def)
-                              kns (keyword ns)
-                              re-frame-name (name fq-def)
-                              id (new-id!)]
-                          [(assoc-in
-                            ctx
-                            [:context kns :in-id] id)
-                           (-> name-expr
-                               (assoc :reg fq-def)
-                               (assoc-in [:context kns] {:id id :var re-frame-name}))])
-                        [ctx name-expr])]
+        [ctx reg-val] (with-context ctx name-expr fq-def)]
     (common/analyze-children ctx (cons reg-val body))))
 
+(defn analyze-subscribe [ctx expr ns]
+  (let [kns (keyword ns)
+        [subscription-id & subscription-params] (:children (first (next (:children expr))))]
+    (common/analyze-children (assoc-in ctx [:context kns :subscription-ref] true) [subscription-id])
+    (when subscription-params
+      (common/analyze-children ctx subscription-params))))
+
+(defn analyze-reg-sub [ctx expr fq-def]
+  (let [[name-expr & body] (next (:children expr))
+        arrow-subs (map last (filter #(= :<- (:k (first %))) (partition-all 2 body)))]
+    (if (seq arrow-subs)
+      (let [[ctx reg-val] (with-context ctx name-expr fq-def)]
+        (doseq [s arrow-subs]
+          (analyze-subscribe ctx {:children (cons :<- [s])} (str (namespace fq-def))))
+        (common/analyze-children ctx (cons reg-val (take-last 1 body))))
+      (analyze-reg ctx expr fq-def))))
 ;;;; Scratch
 
 (comment
