@@ -453,6 +453,7 @@
   (let [ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
+        name-node-meta-nodes (:meta name-node)
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
         fn-name (:value name-node)
         call (name (symbol-call expr))
@@ -501,9 +502,8 @@
                      (:private var-meta))
         [doc-node docstring] (if docstring
                                [doc-node docstring]
-                               ;; TODO: too late to get raw var-leading-meta node
-                               (when-let [doc (some-> var-leading-meta :doc str)]
-                                 [expr doc]))
+                               (when (some-> var-leading-meta :doc str)
+                                 (some docstring/docs-from-meta name-node-meta-nodes)))
         bodies (fn-bodies ctx children expr)
         _ (when (empty? bodies)
             (findings/reg-finding! ctx
