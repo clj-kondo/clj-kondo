@@ -365,6 +365,7 @@
         col (:col m)
         children (next (:children expr))
         ns-name-expr (first children)
+        ns-name-metas (:meta ns-name-expr)
         ns-name-expr (meta/lift-meta-content2 ctx ns-name-expr)
         metadata (meta ns-name-expr)
         children (next children) ;; first = docstring, attr-map or libspecs
@@ -385,13 +386,14 @@
         ns-meta (if meta-node-meta
                   (merge metadata meta-node-meta)
                   metadata)
-        [doc-node docstring] (or (docstring/docs-from-meta meta-node)
+        [doc-node docstring] (or (and meta-node-meta
+                                      (:doc meta-node-meta)
+                                      (docstring/docs-from-meta meta-node))
                                  [doc-node docstring])
         [doc-node docstring] (if docstring
                                [doc-node docstring]
-                               ;; TODO: too late to get raw metadata-node
-                               (when-let [docstring (some-> metadata :doc str)]
-                                 [expr docstring]))
+                               (when (some-> metadata :doc str)
+                                 (some docstring/docs-from-meta ns-name-metas)))
         global-config (:global-config ctx)
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))
