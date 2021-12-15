@@ -6,7 +6,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils :refer [token-node]]))
 
-(defn analyze-import-vars [ctx expr]
+(defn analyze-import-vars [ctx expr ctx-with-linters-disabled]
   (let [ns (:ns ctx)
         ns-name (:name ns)
         import-groups (next (:children expr))
@@ -27,7 +27,7 @@
         (do
           (doseq [[i-expr i-value] imported-vars]
             (common/analyze-usages2
-             ctx
+             (ctx-with-linters-disabled ctx [:unresolved-var :unresolved-symbol])
              (if fqs-import?
                i-expr
                (with-meta (token-node

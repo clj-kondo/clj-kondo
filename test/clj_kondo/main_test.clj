@@ -2383,8 +2383,6 @@ i/blank? (i/starts-with?) i/x
 
 (defn foo []) ;; non-empty to generated ns cache
 
-(defmacro baz [])
-
 ;; dynamically generated baz
 
 (ns foo (:require [foo.bar] [potemkin :refer [import-vars]]))
