@@ -475,11 +475,13 @@
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
         _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
         meta-node-meta (when meta-node (sexpr meta-node))
-        [doc-node docstring] (or (and (:doc meta-node-meta)
+        [doc-node docstring] (or (and meta-node-meta
+                                      (:doc meta-node-meta)
                                       (docstring/docs-from-meta meta-node))
                                  [doc-node docstring])
         meta-node2-meta (when meta-node2 (sexpr meta-node2))
-        [doc-node docstring] (or (and (:doc meta-node2)
+        [doc-node docstring] (or (and meta-node2-meta
+                                      (:doc meta-node2-meta)
                                       (docstring/docs-from-meta meta-node2))
                               [doc-node docstring])
         var-meta (if meta-node-meta
