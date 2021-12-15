@@ -220,6 +220,42 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 Expected map, found: java.lang.String
 ```
 
+### Docstring blank
+
+*Keyword:* `:docstring-blank`.
+
+*Description:* warn on blank docstring.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(defn foo "" [a b] 1)`
+
+*Example message:* `Docstring should not be blank.`.
+
+### Docstring no summary
+
+*Keyword:* `:docstring-no-summary`.
+
+*Description:* warn when first line of docstring is not a complete sentence.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(defn foo "not a sentence" [a b] 1)`
+
+*Example message:* `First line of the docstring should be a capitalized sentence ending with punctuation.`
+
+### Docstring leading trailing whitespace
+
+*Keyword:* `:docstring-leading-trailing-whitespace`.
+
+*Description:* warn when docstring has leading or trailing whitespace
+
+*Default level:* `:off`.
+
+*Example trigger:* `(defn foo "Has trailing whitespace.\n" [a b] 1)`
+
+*Example message:* `Docstring should not have leading or trailing whitespace.`
+
 ### Duplicate map key
 
 *Keyword:* `:duplicate-map-key`.

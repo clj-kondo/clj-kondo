@@ -18,6 +18,7 @@
    [clj-kondo.impl.analyzer.test :as test]
    [clj-kondo.impl.analyzer.usages :as usages :refer [analyze-usages2]]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.docstring :as docstring]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.linters :as linters]
@@ -452,11 +453,13 @@
   (let [ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
+        name-node-meta-nodes (:meta name-node)
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
         fn-name (:value name-node)
         call (name (symbol-call expr))
         var-leading-meta (meta name-node)
         docstring (string-from-token (first children))
+        doc-node (when docstring (first children))
         children (if docstring (next children) children)
         meta-node (when-let [fc (first children)]
                     (let [t (tag fc)]
@@ -473,7 +476,15 @@
         _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
         _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
         meta-node-meta (when meta-node (sexpr meta-node))
+        [doc-node docstring] (or (and meta-node-meta
+                                      (:doc meta-node-meta)
+                                      (docstring/docs-from-meta meta-node))
+                                 [doc-node docstring])
         meta-node2-meta (when meta-node2 (sexpr meta-node2))
+        [doc-node docstring] (or (and meta-node2-meta
+                                      (:doc meta-node2-meta)
+                                      (docstring/docs-from-meta meta-node2))
+                              [doc-node docstring])
         var-meta (if meta-node-meta
                    (merge var-leading-meta meta-node-meta)
                    var-leading-meta)
@@ -489,10 +500,10 @@
               ctx)
         private? (or (= "defn-" call)
                      (:private var-meta))
-        docstring (or (some-> meta-node2-meta :doc str)
-                      (some-> meta-node-meta :doc str)
-                      docstring
-                      (some-> var-leading-meta :doc str))
+        [doc-node docstring] (if docstring
+                               [doc-node docstring]
+                               (when (some-> var-leading-meta :doc str)
+                                 (some docstring/docs-from-meta name-node-meta-nodes)))
         bodies (fn-bodies ctx children expr)
         _ (when (empty? bodies)
             (findings/reg-finding! ctx
@@ -542,6 +553,7 @@
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
                    :added (:added var-meta))))
+    (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
 
 (defn analyze-case [ctx expr]
@@ -956,24 +968,34 @@
 (defn analyze-def [ctx expr defined-by]
   ;; (def foo ?docstring ?init)
   (let [children (next (:children expr))
-        var-name-node (->> children first (meta/lift-meta-content2 ctx))
+        raw-var-name-node (first children)
+        var-name-node-meta-nodes (:meta raw-var-name-node)
+        var-name-node (meta/lift-meta-content2 ctx raw-var-name-node)
         metadata (meta var-name-node)
         var-name (:value var-name-node)
         var-name (current-namespace-var-name ctx var-name-node var-name)
         children (next children)
         docstring (when (> (count children) 1)
                     (string-from-token (first children)))
+
         defmulti? (= 'clojure.core/defmulti defined-by)
+        doc-node (when docstring
+                   (first children))
         [child & children] (if docstring (next children) children)
-        [extra-meta children] (if (and defmulti?
-                                       (identical? :map (utils/tag child)))
-                                [(sexpr child) children]
-                                [nil (cons child children)])
+        [extra-meta extra-meta-node children] (if (and defmulti?
+                                                       (identical? :map (utils/tag child)))
+                                                [(sexpr child) child children]
+                                                [nil nil (cons child children)])
         metadata (if extra-meta (merge metadata extra-meta)
                      metadata)
-        docstring (or (some-> extra-meta :doc str)
-                      docstring
-                      (some-> metadata :doc str))
+        [doc-node docstring] (or (and extra-meta
+                                      (:doc extra-meta)
+                                      (docstring/docs-from-meta extra-meta-node))
+                                 [doc-node docstring])
+        [doc-node docstring] (if docstring
+                               [doc-node docstring]
+                               (when (some-> metadata :doc str)
+                                 (some docstring/docs-from-meta var-name-node-meta-nodes)))
         ctx (assoc ctx :in-def var-name :def-meta metadata :defmulti? defmulti?)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
@@ -995,6 +1017,7 @@
                                       :fixed-arities (:fixed-arities arity)
                                       :varargs-min-arity (:varargs-min-arity arity)
                                       :arities (:arities init-meta))))
+    (docstring/lint-docstring! ctx doc-node docstring)
     (when-not def-init
       ;; this was something else than core/def
       (analyze-children ctx
@@ -1145,13 +1168,18 @@
         name-node (first children)
         protocol-name (:value name-node)
         ns-name (:name ns)
+        docstring (string-from-token (second children))
+        doc-node (when docstring
+                   (second children))
         transduce-arity-vecs (filter
                               ;; skip last docstring
                               #(when (= :vector (tag %)) %))]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr
-                          (assoc (meta name-node)
-                                 :defined-by 'clojure.core/defprotocol)))
+                          (assoc-some (meta name-node)
+                                      :doc docstring
+                                      :defined-by 'clojure.core/defprotocol)))
+    (docstring/lint-docstring! ctx doc-node docstring)
     (doseq [c (next children)
             :when (= :list (tag c)) ;; skip first docstring
             :let [children (:children c)
@@ -1159,7 +1187,10 @@
                   name-node (meta/lift-meta-content2 ctx name-node)
                   name-meta (meta name-node)
                   fn-name (:value name-node)
-                  arities (rest children)]]
+                  arities (rest children)
+                  docstring (string-from-token (last children))
+                  doc-node (when docstring
+                             (last children))]]
       (let [ctx (ctx-with-linter-disabled ctx :unresolved-symbol)]
         (run! #(analyze-usages2 ctx %) arities))
       (when fn-name
@@ -1173,13 +1204,15 @@
           (namespace/reg-var!
            ctx ns-name fn-name expr
            (assoc-some (meta c)
+                       :doc docstring
                        :arglist-strs arglist-strs
                        :name-row (:row name-meta)
                        :name-col (:col name-meta)
                        :name-end-row (:end-row name-meta)
                        :name-end-col (:end-col name-meta)
                        :fixed-arities fixed-arities
-                       :defined-by 'clojure.core/defprotocol)))))))
+                       :defined-by 'clojure.core/defprotocol))
+          (docstring/lint-docstring! ctx doc-node docstring))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
