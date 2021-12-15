@@ -6,6 +6,7 @@
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.docstring :as docstring]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
@@ -364,12 +365,15 @@
         col (:col m)
         children (next (:children expr))
         ns-name-expr (first children)
+        ns-name-metas (:meta ns-name-expr)
         ns-name-expr (meta/lift-meta-content2 ctx ns-name-expr)
         metadata (meta ns-name-expr)
         children (next children) ;; first = docstring, attr-map or libspecs
         fc (first children)
         docstring (when fc
                     (string-from-token fc))
+        doc-node (when docstring
+                   fc)
         meta-node (when fc
                     (let [t (tag fc)]
                       (if (= :map t)
@@ -382,9 +386,14 @@
         ns-meta (if meta-node-meta
                   (merge metadata meta-node-meta)
                   metadata)
-        docstring (or (some-> meta-node-meta :doc str)
-                       docstring
-                       (some-> metadata :doc str))
+        [doc-node docstring] (or (and meta-node-meta
+                                      (:doc meta-node-meta)
+                                      (docstring/docs-from-meta meta-node))
+                                 [doc-node docstring])
+        [doc-node docstring] (if docstring
+                               [doc-node docstring]
+                               (when (some-> metadata :doc str)
+                                 (some docstring/docs-from-meta ns-name-metas)))
         global-config (:global-config ctx)
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))
@@ -483,6 +492,7 @@
                                                     :alias-col (:col meta-alias)
                                                     :alias-end-row (:end-row meta-alias)
                                                     :alias-end-col (:end-col meta-alias)}))))
+    (docstring/lint-docstring! ctx doc-node docstring)
     (namespace/reg-namespace! ctx ns)
     ns))
 
