@@ -970,10 +970,11 @@
         children (next children)
         docstring (when (> (count children) 1)
                     (string-from-token (first children)))
+
+        defmulti? (= 'clojure.core/defmulti defined-by)
         doc-node (when docstring
                    (first children))
         [child & children] (if docstring (next children) children)
-        defmulti? (= 'clojure.core/defmulti defined-by)
         [extra-meta extra-meta-node children] (if (and defmulti?
                                                        (identical? :map (utils/tag child)))
                                                 [(sexpr child) child children]
