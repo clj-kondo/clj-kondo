@@ -21,6 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Reword `:refer` suggestion so you can copy paste it [#1293](https://github.com/clj-kondo/clj-kondo/issues/1293) ([@vemv](https://github.com/vemv))
 - Add re-frame analysis output [#1465](https://github.com/clj-kondo/clj-kondo/issues/1465) ([@benedekfazekas](https://github.com/benedekfazekas))
 - Qualified map causes too many arguments in type checker [#1474](https://github.com/clj-kondo/clj-kondo/issues/1474)
+- Handle reader conditional with unknown language [#970](https://github.com/clj-kondo/clj-kondo/issues/970)
 
 ## 2021.12.01
 
