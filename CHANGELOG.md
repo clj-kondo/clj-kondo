@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Add linter `:docstring-leading-trailing-whitespace` for checking leading and trailing whitespace in docstring. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-leading-trailing-whitespace). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
 - Add linter `:docstring-no-summary` for checking the absence of summary of args in docstring. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-no-summary). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
 - Add `:exclude-defmulti-args` option for `:unused-bindings` linter. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md). [#1188](https://github.com/clj-kondo/clj-kondo/issues/1188) ([@mknoszlig](https://github.com/mknoszlig))
+- Support `:config-in-comment` #1473. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#override-config-in-comment-forms).
 
 ### Enhanced
 
