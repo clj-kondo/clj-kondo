@@ -25,6 +25,9 @@
            datalog.parser.type/deftrecord clojure.core/defrecord
            clj-kondo.impl.rewrite-clj.potemkin/defprotocol+ clojure.core/defprotocol
            clj-kondo.impl.rewrite-clj.potemkin/import-vars potemkin/import-vars
-           clj-kondo.test-utils/with-temp-dir clojure.core/let}
+           clj-kondo.test-utils/with-temp-dir clojure.core/let
+           clojure.data.json/codepoint-case clojure.core/case}
  :output {:exclude-files ["src/clj_kondo/impl/rewrite_clj_patch.clj"]}
- :hooks {:analyze-call {clj-kondo.impl.utils/one-of macroexpand.one-of/one-of}}}
+ :hooks {:analyze-call {clj-kondo.impl.utils/one-of macroexpand.one-of/one-of}}
+ ;; we don't use this in clj-kondo since we need to exclude certain configs for testing
+ :auto-load-configs false}

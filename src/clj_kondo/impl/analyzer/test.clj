@@ -40,3 +40,10 @@
                                                                     is-expr
                                                                     args)))]
     (common/analyze-expression** ctx new-node)))
+
+(defn testing-hook [{:keys [node]}]
+  (let [[testing testing-str & children] (:children node)
+        new-node (assoc node :children
+                        (list* (assoc-in testing [:context :clojure.test :testing-str] (utils/sexpr testing-str))
+                               testing-str children))]
+    {:node new-node}))

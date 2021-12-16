@@ -61,10 +61,6 @@ flycheck_*.el
 # projectiles files
 .projectile
 
-# directory configuration
-.dir-locals.el
-
-
 # End of https://www.gitignore.io/api/emacs,clojure
 /clj-kondo
 **/.clj-kondo/.cache
@@ -74,9 +70,8 @@ clj-kondo*.snap
 
 .DS_Store
 !corpus/**/*.jar
-lsp
 corpus/config_dir/.cache
 /.clj-kondo/clj-kondo
-/.lsp/
+/.lsp/.cache
 clj-kondo.build_artifacts.txt
 /.clj-kondo/rewrite-clj

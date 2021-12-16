@@ -280,9 +280,9 @@
                                 :end-row (:end-row m)
                                 :end-col (:end-col m)}))))))
 
-(defn add-arg-type-from-call [ctx call _expr]
+(defn add-arg-type-from-call [ctx call expr]
   (when-let [arg-types (:arg-types ctx)]
-    (swap! arg-types conj (when-let [r (ret-tag-from-call ctx call _expr)]
+    (swap! arg-types conj (when-let [r (ret-tag-from-call ctx call expr)]
                             (assoc r
                                    :row (:row call)
                                    :col (:col call)

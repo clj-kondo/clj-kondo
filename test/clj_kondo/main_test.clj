@@ -135,6 +135,8 @@
   (is (empty? (lint! "(defn foo [_x _y]) (foo 1 #uuid \"00000000-0000-0000-0000-000000000000\")"
                      "--lang" "cljc")))
   (is (empty? (lint! "(def ^{#?@(:clj [:deprecated \"deprecation message\"])} my-deprecated-var :bla)"
+                     "--lang" "cljc")))
+  (is (empty? (lint! "^#?(:clj :a :cljsr :b) [1 2 3]"
                      "--lang" "cljc"))))
 
 (deftest exclude-clojure-test
@@ -584,7 +586,60 @@ foo/foo ;; this does use the private var
     (is (empty?
          (lint! "(def ^:private ^:const x 2) (case 1 x :yeah)"
                 {:linters {:unused-private-var {:level :error}}}
-                "--lang" "cljs")))))
+                "--lang" "cljs"))))
+  (testing "duplicate case test constant"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 14,
+        :level :error,
+        :message "Duplicate case test constant: :a"}
+       {:file "<stdin>",
+        :row 1,
+        :col 24,
+        :level :error,
+        :message "Duplicate case test constant: :a"})
+     (lint! "(case f :a 2 :a 3 :b 1 :a 0)"))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 14,
+        :level :error,
+        :message "Duplicate case test constant: :a"})
+     (lint! "(case f :a 2 :a 3 :b 1 :default)"))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 3,
+        :col 3,
+        :level :error,
+        :message "Duplicate case test constant: :bar"}
+       {:file "<stdin>",
+        :row 4,
+        :col 3,
+        :level :error,
+        :message "Duplicate case test constant: :bar"})
+     (lint! "(case x
+  (:foo :bar) :yolo
+  :bar :hello
+  :bar :hi)"))
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 2,
+        :col 6,
+        :level :error,
+        :message "Duplicate case test constant: a"}
+       {:file "<stdin>",
+        :row 3,
+        :col 3,
+        :level :error,
+        :message "Duplicate case test constant: a"})
+     (lint! "(case x
+  (a a) 1
+  a 1
+  1)"))
+    (is (empty? (lint! "(case 0 :a 1 :a)")))
+    (is (empty? (lint! "(case f :a 1 :b 2)")))
+    (is (empty? (lint! "(case f :a 1 :b 2 :a)")))))
 
 (deftest local-bindings-test
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))
@@ -1743,12 +1798,27 @@ foo/foo ;; this does use the private var
  :methods [[eval [java.util.HashMap String] java.util.Map]])"
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "
+(exists? foo.bar/baz)"
+                     {:linters {:unresolved-namespace {:level :error}}}
+                     "--lang" "cljs"))))
+
+(deftest extend-type-specify-test
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 25, :level :error, :message "Unresolved symbol: x"})
+   (lint! "
 (specify! #js {:current x}
   IDeref
   (-deref [this]
     (.-current ^js this)))"
-                     {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+          {:linters {:unresolved-symbol {:level :error}}}
+          "--lang" "cljs"))
+  (is (empty?
+       (lint! "
+(extend-type String
+  clojure.lang.IDeref
+  (deref [this]
+    this))"
+              {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest js-property-access-test
   (assert-submaps
@@ -2159,7 +2229,7 @@ foo/foo ;; this does use the private var
       :row 19,
       :col 4,
       :level :warning,
-      :message "use :require with alias or :refer with [join]"}
+      :message "use :require with alias or :refer [join]"}
      {:file "corpus/use.clj",
       :row 19,
       :col 10,
@@ -2174,7 +2244,7 @@ foo/foo ;; this does use the private var
       :row 22,
       :col 2,
       :level :warning,
-      :message "use require with alias or :refer with [join]"}
+      :message "use require with alias or :refer [join]"}
      {:file "corpus/use.clj",
       :row 22,
       :col 8,
@@ -2235,12 +2305,12 @@ foo/foo ;; this does use the private var
 (deftest import-vars-test
   (assert-submaps
    '({:file "corpus/import_vars.clj",
-      :row 19,
+      :row 23,
       :col 1,
       :level :error,
       :message "clojure.walk/prewalk is called with 0 args but expects 2"}
      {:file "corpus/import_vars.clj",
-      :row 20,
+      :row 24,
       :col 1,
       :level :error,
       :message "app.core/foo is called with 0 args but expects 1"})
@@ -2287,8 +2357,7 @@ foo/foo ;; this does use the private var
       (rename-path ".clj-kondo.bak" ".clj-kondo")))
   (testing "aliases"
     (assert-submaps
-     ' ({:file "<stdin>", :row 4, :col 14, :level :warning, :message "namespace clojure.string is required but never used"}
-        {:file "<stdin>", :row 9, :col 10, :level :error, :message "clojure.string/starts-with? is called with 0 args but expects 2"}
+     ' ({:file "<stdin>", :row 9, :col 10, :level :error, :message "clojure.string/starts-with? is called with 0 args but expects 2"}
         {:file "<stdin>", :row 9, :col 27, :level :error, :message "Unresolved var: i/x"})
      (lint! "
 (ns importing-ns
@@ -2306,7 +2375,8 @@ i/blank? (i/starts-with?) i/x
                        :type-mismatch {:level :error}}})))
   (is (empty? (lint! "
 (ns dev.clj-kondo {:clj-kondo/config '{:linters {:missing-docstring {:level :warning}}}}
-(:require [potemkin :refer [import-vars]]))
+(:require [potemkin :refer [import-vars]]
+          [clojure.string]))
 
 (import-vars [clojure.string blank?, starts-with?, ends-with?, includes?])"
                      {:linters {:unresolved-symbol {:level :error}}})))
@@ -2317,15 +2387,15 @@ i/blank? (i/starts-with?) i/x
 
 ;; dynamically generated baz
 
-(ns foo (:require [potemkin :refer [import-vars]]))
+(ns foo (:require [foo.bar] [potemkin :refer [import-vars]]))
 
 (import-vars [foo.bar baz])
 
 (ns bar (:require [foo]))
 foo/baz
 "
-                  {:linters {:unresolved-symbol {:level :error}
-                             :unresolved-var {:level :error}}})))
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unresolved-var {:level :error}}})))
   ;; TODO? for now just include duplicate lint-as
   #_(testing "lint-as works automatically with imported vars"
     (is (empty? (lint! "

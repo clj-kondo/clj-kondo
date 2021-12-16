@@ -475,7 +475,7 @@
            (node->line filename node
                        finding-type msg)))))))
 
-(defn lint-unused-bindings!
+(defn lint-bindings!
   [ctx]
   (doseq [ns (namespace/list-namespaces ctx)]
     (let [ns-config (:config ns)
@@ -483,6 +483,20 @@
                 (assoc ctx :config ns-config)
                 ctx)
           ctx (assoc ctx :lang (:lang ns))]
+      (when-not (identical? :off (-> ctx :config :linters :used-underscored-binding :level))
+        (doseq [binding (into #{}
+                              (comp (remove :clj-kondo.impl/generated)
+                                    (filter #(str/starts-with? (str (:name %)) "_")))
+                              (:used-bindings ns))]
+          (findings/reg-finding!
+           ctx
+           {:type :used-underscored-binding
+            :filename (:filename binding)
+            :message (str "Used binding is marked as unused: " (:name binding))
+            :row (:row binding)
+            :col (:col binding)
+            :end-row (:end-row binding)
+            :end-col (:end-col binding)})))
       (when-not (identical? :off (-> ctx :config :linters :unused-binding :level))
         (let [bindings (:bindings ns)
               used-bindings (:used-bindings ns)

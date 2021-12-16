@@ -4,14 +4,37 @@ For an overview of all available linters, go [here](linters.md).
 
 Table of contents:
 
-- [Introduction](#introduction)
-- [Examples](#examples)
-- [Unrecognized macros](#unrecognized-macros)
-- [Hooks](#hooks)
-- [Output](#output)
-- [Example configurations](#example-configurations)
-- [Exporting and importing configuration](#exporting-and-importing-configuration)
-- [Deprecations](#deprecations)
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [Configuration](#configuration)
+    - [Introduction](#introduction)
+    - [Unrecognized macros](#unrecognized-macros)
+    - [Options](#options)
+        - [Disable a linter](#disable-a-linter)
+        - [Enable optional linters](#enable-optional-linters)
+        - [Disable all linters but one](#disable-all-linters-but-one)
+        - [Ignore warnings in an expression](#ignore-warnings-in-an-expression)
+        - [Lint a custom macro like a built-in macro](#lint-a-custom-macro-like-a-built-in-macro)
+        - [Override config in comment forms](#override-config-in-comment-forms)
+        - [Ignore the contents of comment forms](#ignore-the-contents-of-comment-forms)
+        - [Disable auto-load-configs](#disable-auto-load-configs)
+    - [Available linters](#available-linters)
+    - [Hooks](#hooks)
+    - [Output](#output)
+        - [Print results in JSON format](#print-results-in-json-format)
+        - [Print results with a custom format](#print-results-with-a-custom-format)
+        - [Include and exclude files from the output](#include-and-exclude-files-from-the-output)
+        - [Show progress bar while linting](#show-progress-bar-while-linting)
+        - [Output canonical file paths](#output-canonical-file-paths)
+    - [Example configurations](#example-configurations)
+    - [Exporting and importing configuration](#exporting-and-importing-configuration)
+        - [Exporting](#exporting)
+        - [Sample Exports](#sample-exports)
+        - [Importing](#importing)
+    - [Deprecations](#deprecations)
+
+<!-- markdown-toc end -->
 
 ## Introduction
 
@@ -43,10 +66,6 @@ Note that namespace local config must always be quoted: `{:clj-kondo/config
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
 
-## Examples
-
-See the [config](https://github.com/clj-kondo/config) project for library-specific configurations.
-
 ## Unrecognized macros
 
 Clj-kondo only expands a selected set of macros from clojure.core and some
@@ -57,15 +76,12 @@ configurations:
 - [`:unresolved-symbol`](./linters.md#unresolved-symbol)
 - [`:hooks`](#hooks)
 
-## Linters
+## Options
 
-Each linter is identified by a keyword in the `:linters` config. We will start
-with general linter configutation and will then enumerate all available linters
-and corresponding config options.
+This section covers general configuration options. For an overview of all
+available linters, go [here](linters.md).
 
-### Enabling and disabling
-
-#### Disable a linter
+### Disable a linter
 
 ``` shellsession
 $ echo '(select-keys [:a])' | clj-kondo --lint -
@@ -76,7 +92,7 @@ $ echo '(select-keys [:a])' | clj-kondo --lint - --config '{:linters {:invalid-a
 linting took 10ms, errors: 0, warnings: 0
 ```
 
-#### Enable optional linters
+### Enable optional linters
 
 Some linters are not enabled by default. Right now these linters are:
 
@@ -85,6 +101,9 @@ Some linters are not enabled by default. Right now these linters are:
 - `:refer`: warn when there is **any** usage of `:refer` in your namespace requires.
 - `:single-key-in`: warn when using assoc-in, update-in or get-in with single key.
 - `:shadowed-var`: warn when a binding shadows a var.
+- `:docstring-no-summary`: warn when first line of docstring is not a complete sentence.
+- `:docstring-leading-trailing-whitespace`: warn when docstring has leading or trailing whitespace.
+- `:used-underscored-binding`: warn when a underscored (ie marked as unused) binding is used.
 
 You can enable these linters by setting the `:level`:
 
@@ -92,7 +111,7 @@ You can enable these linters by setting the `:level`:
 {:linters {:missing-docstring {:level :warning}}}
 ```
 
-#### Disable all linters but one
+### Disable all linters but one
 
 You can accomplish this by using `^:replace` metadata, which will override
 instead of merge with other configurations:
@@ -158,6 +177,12 @@ When you have custom `def` or `defn`-like macros and you can't find a supported 
 {:lint-as {foo/my-defn clj-kondo.lint-as/def-catch-all}}
 ```
 
+### Override config in comment forms
+
+```clojure
+{:config-in-comment {:linters {:unresolved-namespace {:level :off}}}}
+```
+
 ### Ignore the contents of comment forms
 
 If you prefer not to lint the contents of `(comment ...)` forms, use this configuration:
@@ -166,7 +191,15 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 {:skip-comments true}
 ```
 
-### Available linters
+### Disable auto-load-configs
+
+By default configurations in `.clj-kondo/*/*/config.edn` are used. You can disable this with:
+
+``` shellsession
+:auto-load-configs false`
+```
+
+## Available linters
 
 See [linters.md](linters.md).
 

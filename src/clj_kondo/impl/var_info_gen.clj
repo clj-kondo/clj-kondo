@@ -70,6 +70,7 @@ EMPTY-NODE
 Eduction
 IVecImpl
 Inst
+NaN?
 PrintWriter-on
 StackTraceElement->vec
 Throwable->map
@@ -324,6 +325,7 @@ in-ns
 inc
 inc'
 indexed?
+infinite?
 init-proxy
 inst-ms
 inst-ms*
@@ -430,6 +432,10 @@ object-array
 odd?
 or
 parents
+parse-boolean
+parse-double
+parse-long
+parse-uuid
 partial
 partition
 partition-all
@@ -475,6 +481,7 @@ rand
 rand-int
 rand-nth
 random-sample
+random-uuid
 range
 ratio?
 rational?
@@ -974,6 +981,7 @@ KeySeq
 Keyword
 LazySeq
 List
+LongImpl
 MODULE_INFOS
 MODULE_URIS
 Many

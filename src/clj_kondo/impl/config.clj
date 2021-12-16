@@ -10,6 +10,7 @@
     :skip-comments false ;; convenient shorthand for :skip-args [clojure.core/comment cljs.core/comment]
     ;; linter level can be tweaked by setting :level to :error, :warn or :info (or any other keyword)
     ;; all linters are enabled by default, but can be turned off by setting :level to :off.
+    ;; :config-in-comment {} config override for comment blocks
     :linters {:invalid-arity {:level :error
                               :skip-args [#_riemann.test/test-stream]}
               :not-a-function {:level :error
@@ -30,9 +31,11 @@
               :unreachable-code {:level :warning}
               :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}
+              :used-underscored-binding {:level :off}
               :unused-binding {:level :warning
                                ;;:exclude-destructured-keys-in-fn-args false
                                ;;:exclude-destructured-as false
+                               ;;:exclude-defmulti-args false
                                ,}
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
@@ -78,8 +81,12 @@
                           :exclude #{}}
               :use {:level :warning}
               :missing-else-branch {:level :warning}
+              :duplicate-case-test-constant {:level :error}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
+              :docstring-blank {:level :warning}
+              :docstring-no-summary {:level :off}
+              :docstring-leading-trailing-whitespace {:level :off}
               :consistent-alias {:level :warning
                                  ;; warn when alias for clojure.string is
                                  ;; different from str
@@ -100,6 +107,7 @@
               :deps.edn {:level :warning}
               :redundant-expression {:level :warning}
               :loop-without-recur {:level :warning}
+              :unexpected-recur {:level :error}
               :main-without-gen-class {:level :off}}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
@@ -112,6 +120,7 @@
               compojure.core/defroutes clojure.core/def
               compojure.core/let-routes clojure.core/let}
     :macroexpand {}
+    ;; :auto-load-configs true
     :output {:format :text ;; or :edn
              :summary true ;; outputs summary at end, only applicable to output :text
              ;; outputs analyzed var definitions and usages of them
@@ -337,6 +346,31 @@
             (or (not exclude)
                 (contains? exclude sym))))))))
 
+;; (defn ns-group-1 [m full-ns-name]
+;;   (when-let [r (:regex m)]
+;;     (if (re-matches (re-pattern r) (str full-ns-name))
+;;       (:name m)
+;;       full-ns-name)))
+
+;; (def ns-group
+;;   (let [delayed-cfg (fn [config]
+;;                       (let [group-cfg (:ns-groups config)]
+;;                         (fn [full-ns-name]
+;;                           (or (some #(ns-group-1 % full-ns-name) group-cfg)
+;;                               full-ns-name))))
+;;         delayed-cfg-fn (memoize delayed-cfg)]
+;;     (fn [config sym]
+;;       (if-let [cfg-fn (delayed-cfg-fn config)]
+;;         (cfg-fn sym)
+;;         sym))))
+
 ;;;; Scratch
 
-(comment)
+;; (comment
+;;   (ns-group {} 'foo.bar)
+;;   (ns-group {:ns-groups [{:regex "nubank\\..*\\.service" :name 'nubank.service-group}]}
+;;             'nubank.awesome.service) ;; nubank.service-group
+;;
+;;   (re-matches (re-pattern ".*") "foo.bar")
+
+;;   )

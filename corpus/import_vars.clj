@@ -3,7 +3,11 @@
 (defn foo [_x]) ;; 1 arg
 
 (ns app.api
-  (:require [potemkin :refer [import-vars]]))
+  (:require
+   [clojure.walk]
+   [clojure.data]
+   [app.core]
+   [potemkin :refer [import-vars]]))
 
 (import-vars
  [clojure.walk

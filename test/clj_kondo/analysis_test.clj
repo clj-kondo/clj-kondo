@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submaps assert-submap]]
    [clojure.edn :as edn]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -155,14 +155,14 @@
     (testing "no namespace for key :a"
       (let [a (analyze "#:xml{:_/a 1}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>"}]
+        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>" :from user}]
                (:keywords a)))))
     ;; Don't use assertmap here to make sure ns is absent
     (testing "no namespace for key :b"
       (let [a (analyze "#:xml{:a {:b 1}}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>" :namespace-from-prefix true}
-                 {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>"}]
+        (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>" :namespace-from-prefix true :from user}
+                 {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>" :from user}]
                (:keywords a)))))
     (testing "auto-resolved and namespace-from-prefix"
       (let [a (analyze "(ns foo (:require [clojure.set :as set]))
@@ -171,18 +171,18 @@
                         {:j/k 5 :l 6 ::m 7}
                         #::set{:a 1}"
                        {:config {:output {:analysis {:keywords true}}}})]
-        (is (= '[{:row 2 :col 25 :end-row 2 :end-col 27 :name "a" :filename "<stdin>"}
-                 {:row 2 :col 28 :end-row 2 :end-col 31 :ns foo :auto-resolved true :name "b" :filename "<stdin>"}
-                 {:row 2 :col 32 :end-row 2 :end-col 38 :ns bar :name "c" :filename "<stdin>"}
-                 {:row 3 :col 29 :end-row 3 :end-col 31 :ns d :namespace-from-prefix true :name "e" :filename "<stdin>"}
-                 {:row 3 :col 34 :end-row 3 :end-col 38 :name "f" :filename "<stdin>"}
-                 {:row 3 :col 41 :end-row 3 :end-col 45 :ns g :name "h" :filename "<stdin>"}
-                 {:row 3 :col 48 :end-row 3 :end-col 51 :ns foo :auto-resolved true :name "i" :filename "<stdin>"}
-                 {:row 4 :col 26 :end-row 4 :end-col 30 :ns j :name "k" :filename "<stdin>"}
-                 {:row 4 :col 33 :end-row 4 :end-col 35 :name "l" :filename "<stdin>"}
-                 {:row 4 :col 38 :end-row 4 :end-col 41 :ns foo :auto-resolved true :name "m" :filename "<stdin>"}
+        (is (= '[{:row 2 :col 25 :end-row 2 :end-col 27 :name "a" :filename "<stdin>" :from foo}
+                 {:row 2 :col 28 :end-row 2 :end-col 31 :ns foo :auto-resolved true :name "b" :filename "<stdin>" :from foo}
+                 {:row 2 :col 32 :end-row 2 :end-col 38 :ns bar :name "c" :filename "<stdin>" :from foo}
+                 {:row 3 :col 29 :end-row 3 :end-col 31 :ns d :namespace-from-prefix true :name "e" :filename "<stdin>" :from foo}
+                 {:row 3 :col 34 :end-row 3 :end-col 38 :name "f" :filename "<stdin>" :from foo}
+                 {:row 3 :col 41 :end-row 3 :end-col 45 :ns g :name "h" :filename "<stdin>" :from foo}
+                 {:row 3 :col 48 :end-row 3 :end-col 51 :ns foo :auto-resolved true :name "i" :filename "<stdin>" :from foo}
+                 {:row 4 :col 26 :end-row 4 :end-col 30 :ns j :name "k" :filename "<stdin>" :from foo}
+                 {:row 4 :col 33 :end-row 4 :end-col 35 :name "l" :filename "<stdin>" :from foo}
+                 {:row 4 :col 38 :end-row 4 :end-col 41 :ns foo :auto-resolved true :name "m" :filename "<stdin>" :from foo}
                  {:row 5, :col 32, :end-row 5, :end-col 34, :ns clojure.set, :namespace-from-prefix true,
-                  :name "a", :filename "<stdin>"}]
+                  :name "a", :filename "<stdin>" :from foo}]
                (:keywords a)))))))
 
 (deftest locals-analysis-test
@@ -1089,7 +1089,6 @@
                                    {:analysis true}}}))
                :analysis :namespace-definitions first)))))
 
-
 (deftest derived-doc
   (testing "namespace"
     (let [enable? [false true]]
@@ -1224,6 +1223,143 @@
           (is (= 'app (:ns dec-k)))
           (is (:auto-resolved dec-k))
           (is (= "reg-event-db" (-> dec-k :context :re-frame.core :var))))))))
+
+(deftest re-frame-reg-sub-subscription-test
+  (testing "reg-sub and subscription relations are trackable through context"
+    (let [analysis (-> (with-in-str "
+(ns foo (:require [re-frame.core :as rf]))
+(rf/reg-sub :a (constantly {}))
+(ns bar (:require [re-frame.core :as rf]))
+(rf/reg-sub :b :<- [:a] (fn [a _] a))
+(rf/reg-sub :c (fn [] [(rf/subscribe [:a]) (rf/subscribe [:b])]) (fn [[a b]] (vector a b)))
+(rf/reg-sub :d :<- [:a] :<- [:b] (fn [[a b]] (vector (:c a) b)))
+(rf/reg-sub :e (fn [] [(rf/subscribe [:a (:d foobar)])]) (fn [a] (vector a)))
+(defn barfn [] @(rf/subscribe [:a]))
+"
+                         (clj-kondo/run! {:lang :cljs :lint ["-"] :config
+                                          {:output {:analysis {:context [:re-frame.core]
+                                                               :keywords true}}}}))
+                       :analysis)
+          usages (:var-usages analysis)
+          keywords (:keywords analysis)
+          constantly-usage (some #(when (= 'constantly (:name %)) %) usages)
+          constantly-in-re-frame-id (-> constantly-usage :context :re-frame.core :in-id)
+          sub-id-fn (fn [sub-name kw] (when-let [id (and (= sub-name (:name kw)) (-> kw :context :re-frame.core :id))] id))
+          a-sub-id (some (partial sub-id-fn "a") keywords)
+          b-sub-id (some (partial sub-id-fn "b") keywords)
+          c-sub-id (some (partial sub-id-fn "c") keywords)
+          d-sub-id (some (partial sub-id-fn "d") keywords)
+          e-sub-id (some (partial sub-id-fn "e") keywords)]
+      (testing "var usages in re-frame subscription is tracked"
+        (is constantly-in-re-frame-id)
+        (is (some #(when (some-> % :context :re-frame.core :id (= constantly-in-re-frame-id)) %) keywords)))
+      (is a-sub-id)
+      (is b-sub-id)
+      (is c-sub-id)
+      (is d-sub-id)
+      (is e-sub-id)
+      (testing "arrow style syntatic sugar references are tracked"
+        (is (some #(when (and (= "a" (:name %))
+                              (= b-sub-id (-> % :context :re-frame.core :in-id))
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords))
+        (is (some #(when (and (= "a" (:name %))
+                              (= d-sub-id (-> % :context :re-frame.core :in-id))
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords))
+        (is (some #(when (and (= "b" (:name %))
+                              (= d-sub-id (-> % :context :re-frame.core :in-id))
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords)))
+      (testing "subscribe calls in signal fns are tracked"
+        (is (some #(when (and (= "a" (:name %))
+                              (= c-sub-id (-> % :context :re-frame.core :in-id))
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords))
+        (is (some #(when (and (= "b" (:name %))
+                              (= c-sub-id (-> % :context :re-frame.core :in-id))
+                              (some-> % :context :re-frame.core :subscription-ref)) %) keywords)))
+      (testing "keyword that is also used as a subscription id reused in subscription not resulting in :subscription-ref"
+        (is (some #(when (and (= "c" (:name %)) (some-> % :context :re-frame.core :in-id (= d-sub-id))) %) keywords))
+        (is (not-any? #(when (and (= "c" (:name %)) (some-> % :context :re-frame.core :subscription-ref)) %) keywords)))
+      (testing "keyword used as subscription param not resulting in subscription-ref"
+        (is (some #(when (and (= "d" (:name %)) (some-> % :context :re-frame.core :in-id (= e-sub-id))) %) keywords))
+        (is (not-any? #(when (and (= "d" (:name %)) (some-> % :context :re-frame.core :subscription-ref)) %) keywords)))
+      (testing "from-var and from filled on keyword that is a subscription reference for subscription in a cljs var"
+        (->> (filter #(and (= "a" (:name %)) (some-> % :context :re-frame.core :subscription-ref)) keywords)
+             (some #(when (and (= 'barfn (:from-var %)) (= 'bar (:from %))) %))
+             is)))))
+
+(deftest potemkin-import-vars-test
+  (testing "var usages from potemkin usage are available"
+    (testing "when using import-vars with full qualified symbol"
+      (let [analysis (-> (with-in-str "
+(ns foo)
+(defn my-func [a] a)
+
+(defn my-other [a] a)
+
+(ns api (:require
+  [foo]
+  [potemkin :refer [import-vars]]))
+(import-vars
+  foo/my-func
+  foo/my-other)
+"
+                           (clj-kondo/run! {:lang :clj :lint ["-"] :config
+                                            {:output {:analysis true}}}))
+                         :analysis)
+            usages (:var-usages analysis)
+            my-func-usage (some #(when (= 'my-func (:name %)) %) usages)
+            my-other-usage (some #(when (= 'my-other (:name %)) %) usages)]
+        (is (assert-submap
+              {:name 'my-func
+               :name-row 11
+               :name-col 3
+               :from 'api
+               :to 'foo}
+              my-func-usage))
+        (is (assert-submap
+              {:name 'my-other
+               :name-row 12
+               :name-col 3
+               :from 'api
+               :to 'foo}
+              my-other-usage))))
+    (testing "when using import-vars with vectors"
+      (let [analysis (-> (with-in-str "
+(ns foo)
+(defn my-func [a] a)
+
+(defn my-other [a] a)
+
+(ns api (:require
+  [foo]
+  [potemkin :refer [import-vars]]))
+(import-vars
+  [foo my-func
+       my-other])
+"
+                           (clj-kondo/run! {:lang :clj :lint ["-"] :config
+                                            {:output {:analysis true}}}))
+                         :analysis)
+            usages (:var-usages analysis)
+            my-func-usage (some #(when (= 'my-func (:name %)) %) usages)
+            my-other-usage (some #(when (= 'my-other (:name %)) %) usages)]
+        (is (assert-submap
+              {:name 'my-func
+               :from 'api
+               :to 'foo
+               :name-row 11
+               :name-col 8
+               :name-end-row 11
+               :name-end-col 15}
+              my-func-usage))
+        (is (assert-submap
+              {:name 'my-other
+               :from 'api
+               :to 'foo
+               :name-row 12
+               :name-col 8
+               :name-end-row 12
+               :name-end-col 16}
+              my-other-usage))))))
 
 (comment
   (context-test)

@@ -1,4 +1,4 @@
-(ns clj-kondo.unused-bindings-test
+(ns clj-kondo.bindings-test
   (:require [clj-kondo.test-utils :refer [assert-submaps lint!]]
             [clojure.test :refer [deftest is testing]]
             [missing.test.assertions]))
@@ -182,6 +182,14 @@
       :message "unused binding a"})
    (lint! "(let [a 1] `{:a 'a})"
           '{:linters {:unused-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,:col 36,
+      :level :warning,
+      :message "unused binding b"})
+   (lint! "(defmulti descriptive-multi (fn [a b] a))"
+          '{:linters {:unused-binding
+                      {:level :warning}}}))
   (is (empty? (lint! "(let [{:keys [:a :b :c]} 1 x 2] (a) b c x)"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defn foo [x] x)"
@@ -224,7 +232,16 @@
                                  :unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns problem {:clj-kondo/config {:linters {:unused-binding {:level :off}}}})
 (defn f [x] (println))"
-                     '{:linters {:unused-binding {:level :warning}}}))))
+                     '{:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! "(defmulti descriptive-multi (fn [a b] a))"
+                     '{:linters {:unused-binding
+                                 {:level :warning
+                                  :exclude-defmulti-args true}}})))
+  (is (empty?  (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
+                      '{:linters {:used-underscored-binding {:level :off}}})))
+  (is (empty? (lint! "(doto (Object.) (.method))"
+                     '{:linters {:used-underscored-binding {:level :warning}}}))))
+
 
 (deftest unused-destructuring-default-test
   (doseq [input ["(let [{:keys [:i] :or {i 2}} {}])"
@@ -308,3 +325,31 @@
                              '{:linters {:unused-binding
                                          {:level :warning
                                           :exclude-destructured-as true}}})))))
+
+
+(deftest used-underscored-binding-test
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :warning,
+      :message "Used binding is marked as unused: _x"}
+     {:file "<stdin>",
+      :row 1,
+      :col 29,
+      :level :warning,
+      :message "Used binding is marked as unused: _c"})
+   (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
+          '{:linters {:used-underscored-binding {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 7,
+      :level :warning,
+      :message "Used binding is marked as unused: _"})
+   (lint! "(let [_ 1] _)"
+          '{:linters {:used-underscored-binding {:level :warning}}}))
+  (is (empty?  (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
+                      '{:linters {:used-underscored-binding {:level :off}}})))
+  (is (empty? (lint! "(doto (Object.) (.method))"
+                     '{:linters {:used-underscored-binding {:level :warning}}}))))

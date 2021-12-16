@@ -2,17 +2,41 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2021.12.16
 
+### New
+
+- Automatically load configurations from `.clj-kondo/*/*/config.edn`. This can be disabled with `:auto-load-configs false`. [#1492](https://github.com/clj-kondo/clj-kondo/issues/1492)
+- Add linter `:duplicate-case-test-constant`: detect duplicate case test constants. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#duplicate-case-test-constant). [#587](https://github.com/clj-kondo/clj-kondo/issues/587) ([@mknoszlig](https://github.com/mknoszlig))
+- Add linter `:unexpected-recur`: warn on `recur` in unexpected (non-tail) position. [#1126](https://github.com/clj-kondo/clj-kondo/issues/1126)
+- Add linter `:used-underscored-binding`: warn on used bindings that start with underscore. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#used-underscored-bindings). [#1149](https://github.com/clj-kondo/clj-kondo/issues/1149) ([@mknoszlig](https://github.com/mknoszlig))
+- Add linter `:docstring-blank` for checking empty docstring. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-blank). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
+- Add linter `:docstring-leading-trailing-whitespace` for checking leading and trailing whitespace in docstring. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-leading-trailing-whitespace). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
+- Add linter `:docstring-no-summary` for checking the absence of summary of args in docstring. Disabled by default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#docstring-no-summary). [#805](https://github.com/clj-kondo/clj-kondo/issues/805) ([@joodie](https://github.com/joodie))
+- Add `:exclude-defmulti-args` option for `:unused-bindings` linter. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md). [#1188](https://github.com/clj-kondo/clj-kondo/issues/1188) ([@mknoszlig](https://github.com/mknoszlig))
+- Support `:config-in-comment` [#1473](https://github.com/clj-kondo/clj-kondo/issues/1473). See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#override-config-in-comment-forms).
+
+### Enhanced
+
+- Bump built-in cache for clojure 1.11.0-alpha3 and `clojure.data.json`
+- Reword `:refer` suggestion so you can copy paste it [#1293](https://github.com/clj-kondo/clj-kondo/issues/1293) ([@vemv](https://github.com/vemv))
+- Add re-frame analysis output [#1465](https://github.com/clj-kondo/clj-kondo/issues/1465) ([@benedekfazekas](https://github.com/benedekfazekas))
+- Qualified map causes too many arguments in type checker [#1474](https://github.com/clj-kondo/clj-kondo/issues/1474)
+- Handle reader conditional with unknown language [#970](https://github.com/clj-kondo/clj-kondo/issues/970)
+
+## 2021.12.01
+
+- Improve linting in `extend-protocol`, `extend-type`, `reify`, `specify!` [#1333](https://github.com/clj-kondo/clj-kondo/issues/1333), [#1447](https://github.com/clj-kondo/clj-kondo/issues/1447)
 - Support `:context` in nodes in hooks for adding context to analysis [#1211](https://github.com/clj-kondo/clj-kondo/issues/1211)
-- `goog.object`, `goog.string` etc must be required before use in future releases of CLJS [#1422](https://github.com/clj-kondo/clj-kondo/issues/1422)
+- `goog.object`, `goog.string` etc must be required before use in newer releases
+  of CLJS [#1422](https://github.com/clj-kondo/clj-kondo/issues/1422)
 - Resume linting after invalid keyword [#1451](https://github.com/clj-kondo/clj-kondo/issues/1451)
 - Fix install script for relative dir opts [#1444](https://github.com/clj-kondo/clj-kondo/issues/1444)
 - Fix type mismatch error with auto-qualified keyword [#1467](https://github.com/clj-kondo/clj-kondo/issues/1467)
 - String type hint causes false error report [#1455](https://github.com/clj-kondo/clj-kondo/issues/1455)
 - Fix false positive with cljs/specify! [#1450](https://github.com/clj-kondo/clj-kondo/issues/1450)
-- Improve analysis for `reify` [#1447](https://github.com/clj-kondo/clj-kondo/issues/1447)
 - Improve analysis for ns-modifying destructuring key [#1441](https://github.com/clj-kondo/clj-kondo/issues/1441)
+- CLJS `(exists? foo.bar/az)` complains about require [#1472](https://github.com/clj-kondo/clj-kondo/issues/1472)
 
 ## 2021.10.19
 
