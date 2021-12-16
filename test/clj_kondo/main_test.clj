@@ -135,6 +135,8 @@
   (is (empty? (lint! "(defn foo [_x _y]) (foo 1 #uuid \"00000000-0000-0000-0000-000000000000\")"
                      "--lang" "cljc")))
   (is (empty? (lint! "(def ^{#?@(:clj [:deprecated \"deprecation message\"])} my-deprecated-var :bla)"
+                     "--lang" "cljc")))
+  (is (empty? (lint! "^#?(:clj :a :cljsr :b) [1 2 3]"
                      "--lang" "cljc"))))
 
 (deftest exclude-clojure-test

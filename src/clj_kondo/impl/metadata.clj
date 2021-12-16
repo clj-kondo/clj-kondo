@@ -22,7 +22,7 @@
   ([{:keys [:analyze-meta? :lang] :as ctx} node only-usage?]
    (if-let [meta-list (:meta node)]
      (let [meta-list (if (identical? :cljc (:base-lang ctx))
-                       (map #(utils/select-lang % lang) meta-list)
+                       (keep #(utils/select-lang % lang) meta-list)
                        meta-list)
            cljs? (identical? :cljs lang)
            maybe-type-hint (and cljs? (utils/symbol-from-token node))
