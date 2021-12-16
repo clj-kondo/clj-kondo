@@ -158,6 +158,12 @@ When you have custom `def` or `defn`-like macros and you can't find a supported 
 {:lint-as {foo/my-defn clj-kondo.lint-as/def-catch-all}}
 ```
 
+### Override config in comment forms
+
+```clojure
+{:config-in-comment {:linters {:unresolved-namespace {:level :off}}}}
+```
+
 ### Ignore the contents of comment forms
 
 If you prefer not to lint the contents of `(comment ...)` forms, use this configuration:

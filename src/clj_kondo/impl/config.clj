@@ -10,6 +10,7 @@
     :skip-comments false ;; convenient shorthand for :skip-args [clojure.core/comment cljs.core/comment]
     ;; linter level can be tweaked by setting :level to :error, :warn or :info (or any other keyword)
     ;; all linters are enabled by default, but can be turned off by setting :level to :off.
+    ;; :config-in-comment {} config override for comment blocks
     :linters {:invalid-arity {:level :error
                               :skip-args [#_riemann.test/test-stream]}
               :not-a-function {:level :error
@@ -345,6 +346,31 @@
             (or (not exclude)
                 (contains? exclude sym))))))))
 
+;; (defn ns-group-1 [m full-ns-name]
+;;   (when-let [r (:regex m)]
+;;     (if (re-matches (re-pattern r) (str full-ns-name))
+;;       (:name m)
+;;       full-ns-name)))
+
+;; (def ns-group
+;;   (let [delayed-cfg (fn [config]
+;;                       (let [group-cfg (:ns-groups config)]
+;;                         (fn [full-ns-name]
+;;                           (or (some #(ns-group-1 % full-ns-name) group-cfg)
+;;                               full-ns-name))))
+;;         delayed-cfg-fn (memoize delayed-cfg)]
+;;     (fn [config sym]
+;;       (if-let [cfg-fn (delayed-cfg-fn config)]
+;;         (cfg-fn sym)
+;;         sym))))
+
 ;;;; Scratch
 
-(comment)
+;; (comment
+;;   (ns-group {} 'foo.bar)
+;;   (ns-group {:ns-groups [{:regex "nubank\\..*\\.service" :name 'nubank.service-group}]}
+;;             'nubank.awesome.service) ;; nubank.service-group
+;;
+;;   (re-matches (re-pattern ".*") "foo.bar")
+
+;;   )

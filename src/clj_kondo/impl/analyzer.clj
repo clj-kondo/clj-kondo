@@ -1671,7 +1671,12 @@
          resolved-core? :resolved-core?
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
-        expr-meta (meta expr)]
+        expr-meta (meta expr)
+        cfg (when-let [in-call-cfg (:config-in-call config)]
+              (get in-call-cfg (symbol (str resolved-namespace) (str resolved-name))))
+        ctx (if cfg
+              (update ctx :config config/merge-config! cfg)
+              ctx)]
     (cond (and unresolved?
                (str/ends-with? full-fn-name "."))
           (recur ctx
@@ -1841,7 +1846,11 @@
                       defprotocol (analyze-defprotocol ctx expr)
                       (defrecord deftype definterface) (analyze-defrecord ctx expr defined-by)
                       comment
-                      (let [ctx (assoc ctx :in-comment true)]
+                      (let [cfg (:config-in-comment config)
+                            ctx (if cfg
+                                  (assoc ctx :config (config/merge-config! config cfg))
+                                  ctx)
+                            ctx (assoc ctx :in-comment true)]
                         (analyze-children ctx children))
                       (-> some->)
                       (analyze-expression** ctx (macroexpand/expand-> ctx expr))
