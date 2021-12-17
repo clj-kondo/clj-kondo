@@ -1,6 +1,7 @@
 (ns clj-kondo.test-utils
   (:require
    [clj-kondo.impl.utils :refer [deep-merge]]
+   [clj-kondo.impl.config :as conf]
    [clj-kondo.main :as main :refer [main]]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -81,7 +82,7 @@
            (if (map? m)
              [m (rest args)]
              [nil args]))
-         config (str (deep-merge base-config config))
+         config (str (deep-merge conf/default-config base-config config))
          res (with-out-str
                (try
                  (cond
