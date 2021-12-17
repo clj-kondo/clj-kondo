@@ -236,7 +236,8 @@
   (is (empty? (lint! "(defmulti descriptive-multi (fn [a b] a))"
                      '{:linters {:unused-binding
                                  {:level :warning
-                                  :exclude-defmulti-args true}}})))
+                                  :exclude-defmulti-args true}}}
+                     "--lang" "cljc")))
   (is (empty?  (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
                       '{:linters {:used-underscored-binding {:level :off}}})))
   (is (empty? (lint! "(doto (Object.) (.method))"

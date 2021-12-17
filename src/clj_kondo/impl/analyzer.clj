@@ -991,7 +991,8 @@
         docstring (when (> (count children) 1)
                     (string-from-token (first children)))
 
-        defmulti? (= 'clojure.core/defmulti defined-by)
+        defmulti? (or (= 'clojure.core/defmulti defined-by)
+                      (= 'cljs.core/defmulti defined-by))
         doc-node (when docstring
                    (first children))
         [child & children] (if docstring (next children) children)
