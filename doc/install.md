@@ -61,6 +61,12 @@ To install with brew:
 To upgrade:
 
     brew upgrade clj-kondo
+    
+Apple's new M1 Silicon computers use the ARM architecture, instead of Intel. To use clj-kondo, you'll need to install Rosetta2 and then run homebrew via that:
+
+    softwareupdate --install-rosetta
+    <accept the prompt>
+    arch -x86_64 brew install borkdude/brew/clj-kondo
 
 <!-- ## NPM (Linux, MacOS, Windows) -->
 
