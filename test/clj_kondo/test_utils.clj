@@ -1,7 +1,7 @@
 (ns clj-kondo.test-utils
   (:require
-   [clj-kondo.impl.utils :refer [deep-merge]]
    [clj-kondo.impl.config :as conf]
+   [clj-kondo.impl.utils :refer [deep-merge]]
    [clj-kondo.main :as main :refer [main]]
    [clojure.java.io :as io]
    [clojure.string :as str]
