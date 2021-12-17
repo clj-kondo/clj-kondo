@@ -30,10 +30,15 @@
 
 (defn analyze-subscribe [ctx expr ns]
   (let [kns (keyword ns)
-        [subscription-id & subscription-params] (:children (first (next (:children expr))))]
-    (common/analyze-children (assoc-in ctx [:context kns :subscription-ref] true) [subscription-id])
-    (when subscription-params
-      (common/analyze-children ctx subscription-params))))
+        [farg & args :as children] (next (:children expr))]
+    (if (identical? :vector (utils/tag farg))
+      (let [[subscription-id & subscription-params] (:children farg)]
+        (common/analyze-children (assoc-in ctx [:context kns :subscription-ref] true) [subscription-id])
+        (when subscription-params
+          (common/analyze-children ctx subscription-params))
+        (when args
+          (common/analyze-children ctx args)))
+      (common/analyze-children ctx children))))
 
 (defn analyze-reg-sub [ctx expr fq-def]
   (let [[name-expr & body] (next (:children expr))
