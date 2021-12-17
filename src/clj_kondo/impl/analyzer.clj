@@ -572,10 +572,16 @@
           ;; this is the default expression
           (analyze-expression** ctx constant)
           (let [t (tag constant)
-                list? (identical? :list t)
-                dupe-cands (if list? (:children constant) [constant])]
+                list-const? (identical? :list t)
+                dupe-cands (if list-const? (:children constant) [constant])]
             (loop [[dupe & more] dupe-cands
                    seen-local seen-constants]
+              (when (identical? :quote (:tag constant))
+                (findings/reg-finding!
+                 ctx
+                 (node->line (:filename ctx) dupe :quoted-case-test-constant
+                             (format "Quoted constant %s will expand to (quote %s)"
+                                     (str dupe) (-> constant :children first str)))))
               (let [s-dupe (str dupe)]
                 (when (seen-local s-dupe)
                   (findings/reg-finding!
@@ -584,7 +590,7 @@
                                (format "Duplicate case test constant: %s" s-dupe))))
                 (when (seq more)
                   (recur more (conj seen-local s-dupe)))))
-            (if list?
+            (if list-const?
               (run! #(analyze-usages2 test-ctx % test-opts) (:children constant))
               (analyze-usages2 test-ctx constant test-opts))
             (when expr

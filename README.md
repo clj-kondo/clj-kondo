@@ -46,7 +46,7 @@ Clj-kondo detects:
 * unresolved symbols, vars and namespaces
 * misplaced docstrings
 * duplicate map keys and set elements
-* duplicate case test constants
+* duplicates and quoting in case test constants
 * missing map keys
 * invalid number of forms in binding vectors
 * missing assertions in `clojure.test/deftest`

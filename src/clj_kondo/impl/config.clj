@@ -82,6 +82,7 @@
               :use {:level :warning}
               :missing-else-branch {:level :warning}
               :duplicate-case-test-constant {:level :error}
+              :quoted-case-test-constant {:level :warning}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
               :docstring-blank {:level :warning}

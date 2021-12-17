@@ -587,6 +587,14 @@ foo/foo ;; this does use the private var
          (lint! "(def ^:private ^:const x 2) (case 1 x :yeah)"
                 {:linters {:unused-private-var {:level :error}}}
                 "--lang" "cljs"))))
+  (testing "quoted case test constant"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 10,
+        :level :warning,
+        :message "Quoted constant 'a will expand to (quote a)"})
+     (lint! "(case 'x 'a 1 b 0)")))
   (testing "duplicate case test constant"
     (assert-submaps
      '({:file "<stdin>",

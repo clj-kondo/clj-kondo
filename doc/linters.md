@@ -306,6 +306,18 @@ Expected map, found: java.lang.String
 
 *Example message:* `Duplicate case test constant: :a`.
 
+### Quoted case test constant
+
+*Keyword:* `:quoted-case-test-constant`.
+
+*Description:* warn when encountering quoted test case constants.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(case x 'a 1 :b 2)`
+
+*Example message:* `Quoted constant 'a will expand to (quote a)`.
+
 ### File
 
 *Keyword:* `:file`.
