@@ -34,6 +34,8 @@ If you wish to add a new linter, do not forget to add the appropriate keyword in
 
 This is necessary because only the linters with a keyword in the default config appear in the report.
 
+If you're adding a new option to an existing linter, please add the option with its default value in `clj-kondo.impl.config/default-config`. This ensures that the option is not overridden by personal settings when running the test suite locally.
+
 ## Workflow
 
 ### Start with an issue before writing code
