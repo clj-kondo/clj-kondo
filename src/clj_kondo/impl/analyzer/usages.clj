@@ -88,6 +88,8 @@
 (defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)
         m (first children)
+        ;; reset location of inner map to location of outer expression
+        m (vary-meta m merge (meta expr))
         ns-name (-> ctx :ns :name)
         the-ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) ns-name)
         ns-keyword (-> expr :ns :k)

@@ -3,6 +3,12 @@
             [clj-kondo.impl.utils :refer [node->line tag node->keyword string-from-token]]
             [clojure.string :as str]))
 
+(set! *warn-on-reflection* true)
+
+(defn safe-char-at [^String s idx len]
+  (when (and (nat-int? idx) (< idx len))
+    (.charAt s idx)))
+
 (defn lint-docstring!
   "Lint `docstring` for styling issues.
 
@@ -16,12 +22,18 @@
                            "Docstring should not be blank."]
                           [:docstring-no-summary
                            (fn [docstring]
-                             (not (re-find #"^\s*[A-Z].*[.!?]\s*$" docstring)))
+                             (let [first-line (first (str/split-lines docstring))
+                                   first-line (str/trim first-line)
+                                   len (.length first-line)
+                                   first-char (safe-char-at first-line 0 len)
+                                   last-char (safe-char-at first-line (dec len) len)]
+                               (not
+                                (and first-char (Character/isUpperCase ^char first-char)
+                                     (re-matches #"[.!?]" (str last-char))))))
                            "First line of the docstring should be a capitalized sentence ending with punctuation."]
-                          [:docstring-no-summary
+                          [:docstring-leading-trailing-whitespace
                            (fn [docstring]
-                             (or (re-find #"^\s" docstring)
-                                 (re-find #"\s$" docstring)))
+                             (not= docstring (str/trim docstring)))
                            "Docstring should not have leading or trailing whitespace."]]]
       (when (and (not (identical? :off (some-> config :linters type :level)))
                  (f docstring))
