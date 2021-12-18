@@ -1525,7 +1525,7 @@
             (recur (inc attempt) (rest args))))))
     (analyze-children ctx children false)))
 
-(defn analyze-hof [ctx expr resolved-as-name]
+(defn analyze-hof [ctx expr resolved-as-name hof-ns-name hof-resolved-name]
   (let [children (next (:children expr))
         f (first children)
         fana (analyze-expression** ctx f)
@@ -1605,9 +1605,9 @@
                                          :invalid-arity
                                          (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
     (when (and (not (utils/linter-disabled? ctx :two-argument-reduce))
-               (= 'reduce resolved-as-name)
-               (or (= 'clojure.core resolved-namespace)
-                   (= 'clojure.cljs resolved-namespace))
+               (= 'reduce hof-resolved-name)
+               (or (= 'clojure.core hof-ns-name)
+                   (= 'clojure.cljs hof-ns-name))
                (= 2 (count children)))
       (findings/reg-finding!
        ctx
@@ -1931,7 +1931,7 @@
                            every? not-every? some not-any? mapcat iterate
                            max-key min-key group-by partition-by map-indexed
                            keep keep-indexed)
-                      (analyze-hof ctx expr resolved-as-name)
+                      (analyze-hof ctx expr resolved-as-name resolved-namespace resolved-name)
                       (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                       (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
                       (exists?) (analyze-cljs-exists? ctx expr)
