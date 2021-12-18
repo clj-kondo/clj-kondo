@@ -540,6 +540,20 @@ foo/foo ;; this does use the private var
 (b/inc)
 "))))
 
+(deftest reduce-test
+  (testing "when enabled, warn on two argument usage of reduce"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 1,
+        :col 1,
+        :level :warning,
+        :message  "clojure.core/reduce called with 2 arguments. 3 argument form is recommended."})
+     (lint! "(reduce + (range 3))"
+            {:linters {:two-argument-reduce {:level :warning}}}))
+    (is (empty? (lint! "(reduce + 0 [1 2 3])"
+                       {:linters {:two-argument-reduce {:level :warning}}})))
+    (is (empty? (lint! "(reduce + [1 2 3])")))))
+
 (deftest case-test
   (testing "case dispatch values should not be linted as function calls"
     (assert-submaps
