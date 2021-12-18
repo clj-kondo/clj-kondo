@@ -354,6 +354,20 @@
                   (and call?
                        (not (utils/linter-disabled? call :single-logical-operand))
                        (lint-single-logical-operand call))]]
+      (when (and (not (utils/linter-disabled? ctx :two-argument-reduce))
+                 (= fn-name 'reduce)
+                 (= 2 arity)
+                 (#{'clojure.core 'cljs.core} fn-ns))
+        (findings/reg-finding!
+         ctx
+         {:filename filename
+          :row row
+          :end-row end-row
+          :col col
+          :end-col end-col
+          :type :two-argument-reduce
+          :message (format "%s/reduce called with 2 arguments. 3 argument form is recommended."
+                           fn-ns)}))
       (when arity-error?
         (findings/reg-finding!
          ctx
