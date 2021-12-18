@@ -1604,6 +1604,17 @@
                              (node->line filename f
                                          :invalid-arity
                                          (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
+    (when (and (not (utils/linter-disabled? ctx :two-argument-reduce))
+               (= 'reduce resolved-as-name)
+               (or (= 'clojure.core resolved-namespace)
+                   (= 'clojure.cljs resolved-namespace))
+               (= 2 (count children)))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) expr
+                   :two-argument-reduce
+                   (format "%s/reduce called with 2 arguments. 3 argument form is recommended."
+                           resolved-namespace))))
     (concat fana
             (analyze-children ctx args false))))
 
