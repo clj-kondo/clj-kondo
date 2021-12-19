@@ -580,8 +580,7 @@
                 (findings/reg-finding!
                  ctx
                  (node->line (:filename ctx) dupe :quoted-case-test-constant
-                             (format "Quoted constant %s will expand to (quote %s)"
-                                     (str dupe) (-> constant :children first str)))))
+                             "Case test is compile time constant and should not be quoted.")))
               (let [s-dupe (str dupe)]
                 (when (seen-local s-dupe)
                   (findings/reg-finding!

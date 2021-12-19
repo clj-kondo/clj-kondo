@@ -607,7 +607,7 @@ foo/foo ;; this does use the private var
         :row 1,
         :col 10,
         :level :warning,
-        :message "Quoted constant 'a will expand to (quote a)"})
+        :message "Case test is compile time constant and should not be quoted."})
      (lint! "(case 'x 'a 1 b 0)")))
   (testing "duplicate case test constant"
     (assert-submaps

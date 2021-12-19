@@ -322,7 +322,7 @@ Expected map, found: java.lang.String
 
 *Example trigger:* `(case x 'a 1 :b 2)`
 
-*Example message:* `Quoted constant 'a will expand to (quote a)`.
+*Example message:* `Case test is compile time constant and should not be quoted.`
 
 ### File
 
