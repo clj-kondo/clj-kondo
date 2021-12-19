@@ -25,7 +25,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Format](#format)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
-    - [Two argument usage of reduce](#two-argument-usage-of-reduce)
+    - [Reduce without initial value](#reduce-without-initial-value)
     - [Loop without recur](#loop-without-recur)
     - [Main without gen-class](#main-without-gen-class)
     - [Misplaced docstring](#misplaced-docstring)

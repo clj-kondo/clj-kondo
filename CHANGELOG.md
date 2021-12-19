@@ -8,8 +8,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - Add linter `:reduce-without-init`: warn against two argument version of
   reduce. Disabled by
-  default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#two-argument-usage-of-reduce). [#1064](https://github.com/clj-kondo/clj-kondo/issues/1064)([@mknoszlig](https://github.com/mknoszlig))
-- Add linter `:quoted-case-test-constant`: warn on quoted test constants in case. [#1496](https://github.com/clj-kondo/clj-kondo/issues/1496)([@mknoszlig](https://github.com/mknoszlig))
+  default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#reduce-without-initial-value). [#1064](https://github.com/clj-kondo/clj-kondo/issues/1064) ([@mknoszlig](https://github.com/mknoszlig))
+- Add linter `:quoted-case-test-constant`: warn on quoted test constants in case. [#1496](https://github.com/clj-kondo/clj-kondo/issues/1496) ([@mknoszlig](https://github.com/mknoszlig))
 
 ### Enhanced
 
