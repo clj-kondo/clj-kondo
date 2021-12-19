@@ -2,7 +2,7 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2021.12.19
 
 ### New
 
@@ -10,6 +10,14 @@ For a list of breaking changes, check [here](#breaking-changes).
   reduce. Disabled by
   default. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#two-argument-usage-of-reduce). [#1064](https://github.com/clj-kondo/clj-kondo/issues/1064)([@mknoszlig](https://github.com/mknoszlig))
 - Add linter `:quoted-case-test-constant`: warn on quoted test constants in case. [#1496](https://github.com/clj-kondo/clj-kondo/issues/1496)([@mknoszlig](https://github.com/mknoszlig))
+
+### Enhanced
+
+- Fix false positive unused binding in re-frame subscribe [#1504](https://github.com/clj-kondo/clj-kondo/issues/1504)
+- Fix exclude-defmulti-args for CLJS [#1503](https://github.com/clj-kondo/clj-kondo/issues/1503)
+- Fix warning location of namespaced map [#1475](https://github.com/clj-kondo/clj-kondo/issues/1475)
+- False positive :docstring-no-summary on multiline docstrings [#1507](https://github.com/clj-kondo/clj-kondo/issues/1507)
+
 
 ## 2021.12.16
 
