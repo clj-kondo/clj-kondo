@@ -208,7 +208,7 @@
 (defn merge-configs
   "Returns the merged configuration of c1 with c2."
   ([& configs]
-   (reduce merge-config! configs)))
+   (reduce merge-config! configs {})))
 
 (defn resolve-config
   "Returns the configuration for `cfg-dir` merged with home,
