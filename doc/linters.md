@@ -392,6 +392,18 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
 
+### Two argument usage of reduce
+
+**Keyword:** `:two-argument-reduce`.
+
+*Description:* warn when reduce is called with 2 instead of 3 arguments.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(reduce + (range 3))`.
+
+*Example message:* `clojure.core/reduce called with 2 arguments. 3 argument form is recommended.`.
+
 ### Loop without recur
 
 *Keyword:* `:loop-without-recur`.

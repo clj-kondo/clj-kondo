@@ -59,7 +59,7 @@
               :unresolved-namespace {:level :warning
                                      :exclude [#_foo.bar]}
                                                ;; for example: foo.bar is always loaded in a user profile
-
+              :two-argument-reduce {:level :off}
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}
               :deprecated-var {:level :warning

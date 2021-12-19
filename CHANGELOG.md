@@ -4,6 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Optional linter: warn against 2 argument version of reduce [#1064](https://github.com/clj-kondo/clj-kondo/issues/1064)([@mknoszlig](https://github.com/mknoszlig))
 - Warn on quoted test constants in case. [#1496](https://github.com/clj-kondo/clj-kondo/issues/1496)([@mknoszlig](https://github.com/mknoszlig))
 
 
