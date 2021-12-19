@@ -111,7 +111,7 @@
            (if (map? m)
              [m (rest args)]
              [nil args]))
-         config (str (deep-merge base-config config))
+         config (str (deep-merge conf/default-config base-config config))
          config (if windows? (str/replace config "\"" "\\\"")
                     config)
          res (let-programs [clj-kondo "./clj-kondo"]
