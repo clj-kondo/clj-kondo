@@ -18,6 +18,7 @@
              clj-kondo.impl.config #include "../src/clj_kondo/impl/config.types.edn"
              clj-kondo.impl.findings #include "../src/clj_kondo/impl/findings.types.edn"
              }}
+           :reduce-without-init {:level :warning}
            :missing-docstring {:level :off}
            :unsorted-required-namespaces {:level :warning}}
  :lint-as {me.raynes.conch/programs clojure.core/declare

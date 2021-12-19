@@ -33,7 +33,7 @@
   ([idacs arg-type seen-calls]
    (if (resolved-type? arg-type) arg-type
        (let [ret
-             (cond (set? arg-type) (reduce union-type (map #(resolve-arg-type idacs % seen-calls) arg-type))
+             (cond (set? arg-type) (reduce union-type #{} (map #(resolve-arg-type idacs % seen-calls) arg-type))
                    (map? arg-type)
                    (or (when-let [t (:tag arg-type)] (resolve-arg-type idacs t seen-calls))
                        (when-let [t (:type arg-type)]

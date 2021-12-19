@@ -112,7 +112,7 @@
   (if-let [config-paths (seq (:config-paths cfg))]
     (if-let [paths (sanitize-paths cfg-dir config-paths)]
       (let [configs (map process-cfg-dir paths)
-            merged (reduce config/merge-config! configs)
+            merged (reduce config/merge-config! nil configs)
             ;; cfg is merged last
             cfg (config/merge-config! merged cfg)]
         cfg)

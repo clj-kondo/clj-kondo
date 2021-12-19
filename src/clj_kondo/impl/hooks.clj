@@ -99,6 +99,7 @@
      (ns-analysis* lang ns-sym)
      (reduce
       merge
+      {}
       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
 
 (defn annotate [node meta]

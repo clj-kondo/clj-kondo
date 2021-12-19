@@ -175,7 +175,7 @@
                           args (next args)]
                       (recur args next-cond (conj rets next-ret)))
                     (if (identical? :keyword (:tag last-cond))
-                      (reduce tu/union-type rets)
+                      (reduce tu/union-type #{} rets)
                       (reduce tu/union-type :nil rets)))))}
    ;; 589
    'symbol {:arities {1 {:args [#{:symbol :string :keyword}]
@@ -231,7 +231,7 @@
                (reduce tu/union-type :nil args))}
    ;; 854 'or
    'or {:fn (fn [args]
-              (reduce tu/union-type args))}
+              (reduce tu/union-type #{} args))}
    ;; 867
    'zero? any->boolean
    ;; 874
