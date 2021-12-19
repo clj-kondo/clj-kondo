@@ -13,14 +13,19 @@ configuration. For general configurations options, go [here](config.md).
     - [Datalog syntax](#datalog-syntax)
     - [Deprecated var](#deprecated-var)
     - [Deps.edn](#depsedn)
+    - [Docstring blank](#docstring-blank)
+    - [Docstring no summary](#docstring-no-summary)
+    - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate case test constant](#duplicate-case-test-constant)
+    - [Quoted case test constant](#quoted-case-test-constant)
     - [File](#file)
     - [Format](#format)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
+    - [Two argument usage of reduce](#two-argument-usage-of-reduce)
     - [Loop without recur](#loop-without-recur)
     - [Main without gen-class](#main-without-gen-class)
     - [Misplaced docstring](#misplaced-docstring)
@@ -45,6 +50,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
     - [Unused binding](#unused-binding)
+    - [Used underscored bindings](#used-underscored-bindings)
     - [Unreachable code](#unreachable-code)
     - [Unused import](#unused-import)
     - [Unresolved namespace](#unresolved-namespace)
@@ -392,17 +398,20 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
 
-### Two argument usage of reduce
+### Reduce without initial value
 
-**Keyword:** `:two-argument-reduce`.
+**Keyword:** `:reduce-without-init`.
 
-*Description:* warn when reduce is called with 2 instead of 3 arguments.
+*Description:* warn when reduce is called without an explicit initial
+value. Read [this
+article](https://purelyfunctional.tv/issues/purelyfunctional-tv-newsletter-313-always-use-the-3-argument-version-of-reduce/)
+why this can be problematic.
 
 *Default level:* `:warning`.
 
 *Example trigger:* `(reduce + (range 3))`.
 
-*Example message:* `clojure.core/reduce called with 2 arguments. 3 argument form is recommended.`.
+*Example message:* `Reduce called without explicit initial value.`
 
 ### Loop without recur
 

@@ -547,11 +547,11 @@ foo/foo ;; this does use the private var
         :row 1,
         :col 1,
         :level :warning,
-        :message  "clojure.core/reduce called with 2 arguments. 3 argument form is recommended."})
+        :message  "Reduce called without explicit initial value."})
      (lint! "(reduce + (range 3))"
-            {:linters {:two-argument-reduce {:level :warning}}}))
+            {:linters {:reduce-without-init {:level :warning}}}))
     (is (empty? (lint! "(reduce + 0 [1 2 3])"
-                       {:linters {:two-argument-reduce {:level :warning}}})))
+                       {:linters {:reduce-without-init {:level :warning}}})))
     (is (empty? (lint! "(reduce + [1 2 3])")))))
 
 (deftest case-test

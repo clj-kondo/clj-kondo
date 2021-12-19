@@ -1612,9 +1612,8 @@
       (findings/reg-finding!
        ctx
        (node->line (:filename ctx) expr
-                   :two-argument-reduce
-                   (format "%s/reduce called with 2 arguments. 3 argument form is recommended."
-                           resolved-namespace))))
+                   :reduce-without-init
+                   "Reduce called without explicit initial value.")))
     (concat fana
             (analyze-children ctx args false))))
 
