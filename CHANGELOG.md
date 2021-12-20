@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+ - Add linter `:repeated-arity`: warn when an arity repeats in a function that overloads on arity. [#1136](https://github.com/clj-kondo/clj-kondo/issues/1136) ([@mknoszlig](https://github.com/mknoszlig))
+
 ## 2021.12.19
 
 ### New
