@@ -13,6 +13,7 @@
     ;; :config-in-comment {} config override for comment blocks
     :linters {:invalid-arity {:level :error
                               :skip-args [#_riemann.test/test-stream]}
+              :repeated-arity {:level :error}
               :not-a-function {:level :error
                                :skip-args [#_user/foo]}
               :private-call {:level :error}

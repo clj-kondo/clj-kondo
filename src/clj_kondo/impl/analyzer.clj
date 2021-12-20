@@ -359,7 +359,7 @@
               arg-list (sexpr arg-vec)
               arity (analyze-arity arg-list)
               ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
-                           :arity arity
+                           :arity (with-meta arity (meta body))
                            :analyzed-arg-vec (:analyzed arg-bindings)
                            :args arg-tags
                            :ret return-tag}
@@ -523,16 +523,26 @@
                              %)
                            bodies)
         ;; poor naming, this is for type information
-        arities (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
-                                (let [arg-tags (when (some identity args)
-                                                 args)
-                                      v (assoc-some {}
-                                                    :ret ret :min-arity min-arity
-                                                    :args arg-tags)]
-                                  (if varargs?
-                                    [:varargs v]
-                                    [fixed-arity v]))))
-                      parsed-bodies)
+        arities (reduce (fn [acc {:keys [:fixed-arity :varargs? :min-arity :ret :args] :as arity}]
+                          (let [arg-tags (when (some identity args)
+                                           args)
+                                v (assoc-some {}
+                                              :ret ret :min-arity min-arity
+                                              :args arg-tags)]
+                            (if varargs?
+                              (assoc acc :varargs v)
+                              (do
+                                (when (get acc fixed-arity)
+                                  (findings/reg-finding! ctx
+                                                         (node->line
+                                                          (:filename ctx)
+                                                          arity
+                                                          :repeated-arity
+                                                          (format "More than one function body with arity %s."
+                                                                  fixed-arity))))
+                                (assoc acc fixed-arity v)))))
+                        {}
+                        parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])
         arglist-strs (mapv :arglist-str parsed-bodies)]
@@ -828,16 +838,26 @@
                  ctx) %) bodies)
         arities
         (when-not (some-> ctx :def-meta :macro)
-          (into {} (map (fn [{:keys [:fixed-arity :varargs? :min-arity :ret :args]}]
-                          (let [arg-tags (when (some identity args)
-                                           args)
-                                v (assoc-some {}
-                                              :ret ret :min-arity min-arity
-                                              :args arg-tags)]
-                            (if varargs?
-                              [:varargs v]
-                              [fixed-arity v]))))
-                parsed-bodies))
+          (reduce (fn [acc {:keys [:fixed-arity :varargs? :min-arity :ret :args] :as arity}]
+                    (let [arg-tags (when (some identity args)
+                                     args)
+                          v (assoc-some {}
+                                        :ret ret :min-arity min-arity
+                                        :args arg-tags)]
+                      (if varargs?
+                        (assoc acc :varargs v)
+                        (do
+                          (when (get acc fixed-arity)
+                            (findings/reg-finding! ctx
+                                                   (node->line
+                                                    (:filename ctx)
+                                                    arity
+                                                    :repeated-arity
+                                                    (format "More than one function body with arity %s."
+                                                            fixed-arity))))
+                          (assoc acc fixed-arity v)))))
+                  {}
+                  parsed-bodies))
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])]
     (with-meta (mapcat :parsed parsed-bodies)
