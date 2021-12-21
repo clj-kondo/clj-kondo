@@ -2023,14 +2023,14 @@ foo/foo ;; this does use the private var
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 21,
+      :col 22,
       :level :error,
       :message "More than one function body with arity 2."})
    (lint! "(defn fun ([x y] x) ([y x] y))"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
-      :col 13,
+      :col 14,
       :level :error,
       :message "More than one function body with arity 1."})
    (lint! "(fn ([x] x) ([y] y))"))

@@ -359,8 +359,9 @@
               arg-list (sexpr arg-vec)
               arity (analyze-arity arg-list)
               ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
-                           :arity (with-meta arity (meta body))
+                           :arity arity
                            :analyzed-arg-vec (:analyzed arg-bindings)
+                           :arg-vec arg-vec
                            :args arg-tags
                            :ret return-tag}
                     (:analyze-arglists? ctx) (assoc :arglist-str (str arg-vec)))]
@@ -388,7 +389,7 @@
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [:arg-bindings
-                :arity :analyzed-arg-vec :arglist-str]
+                :arity :analyzed-arg-vec :arglist-str :arg-vec]
          return-tag :ret
          arg-tags :args} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
@@ -436,6 +437,7 @@
            (concat analyzed-arg-vec analyze-pre-post parsed)
            :ret return-tag
            :arglist-str arglist-str
+           :arg-vec arg-vec
            :args arg-tags)))
 
 (defn fn-bodies [ctx children body]
@@ -447,6 +449,28 @@
           :vector [{:children exprs :fn-body body}]
           :list exprs
           (recur rest-exprs))))))
+
+(defn extract-arity-info [ctx parsed-bodies]
+  (reduce (fn [acc {:keys [:fixed-arity :varargs? :min-arity :ret :args :arg-vec]}]
+            (let [arg-tags (when (some identity args)
+                             args)
+                  v (assoc-some {}
+                                :ret ret :min-arity min-arity
+                                :args arg-tags)]
+              (if varargs?
+                (assoc acc :varargs v)
+                (do
+                  (when (get acc fixed-arity)
+                    (findings/reg-finding! ctx
+                                           (node->line
+                                            (:filename ctx)
+                                            arg-vec
+                                            :repeated-arity
+                                            (format "More than one function body with arity %s."
+                                                    fixed-arity))))
+                  (assoc acc fixed-arity v)))))
+          {}
+          parsed-bodies))
 
 (defn analyze-defn
   [ctx expr defined-by]
@@ -523,26 +547,7 @@
                              %)
                            bodies)
         ;; poor naming, this is for type information
-        arities (reduce (fn [acc {:keys [:fixed-arity :varargs? :min-arity :ret :args] :as arity}]
-                          (let [arg-tags (when (some identity args)
-                                           args)
-                                v (assoc-some {}
-                                              :ret ret :min-arity min-arity
-                                              :args arg-tags)]
-                            (if varargs?
-                              (assoc acc :varargs v)
-                              (do
-                                (when (get acc fixed-arity)
-                                  (findings/reg-finding! ctx
-                                                         (node->line
-                                                          (:filename ctx)
-                                                          arity
-                                                          :repeated-arity
-                                                          (format "More than one function body with arity %s."
-                                                                  fixed-arity))))
-                                (assoc acc fixed-arity v)))))
-                        {}
-                        parsed-bodies)
+        arities (extract-arity-info ctx parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])
         arglist-strs (mapv :arglist-str parsed-bodies)]
@@ -838,26 +843,7 @@
                  ctx) %) bodies)
         arities
         (when-not (some-> ctx :def-meta :macro)
-          (reduce (fn [acc {:keys [:fixed-arity :varargs? :min-arity :ret :args] :as arity}]
-                    (let [arg-tags (when (some identity args)
-                                     args)
-                          v (assoc-some {}
-                                        :ret ret :min-arity min-arity
-                                        :args arg-tags)]
-                      (if varargs?
-                        (assoc acc :varargs v)
-                        (do
-                          (when (get acc fixed-arity)
-                            (findings/reg-finding! ctx
-                                                   (node->line
-                                                    (:filename ctx)
-                                                    arity
-                                                    :repeated-arity
-                                                    (format "More than one function body with arity %s."
-                                                            fixed-arity))))
-                          (assoc acc fixed-arity v)))))
-                  {}
-                  parsed-bodies))
+          (extract-arity-info ctx parsed-bodies))
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])]
     (with-meta (mapcat :parsed parsed-bodies)
