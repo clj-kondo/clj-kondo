@@ -465,7 +465,7 @@
                                            (node->line
                                             (:filename ctx)
                                             arg-vec
-                                            :repeated-arity
+                                            :conflicting-fn-arity
                                             (format "More than one function body with arity %s."
                                                     fixed-arity))))
                   (assoc acc fixed-arity v)))))
