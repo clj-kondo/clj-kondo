@@ -466,7 +466,7 @@
                                             (:filename ctx)
                                             arg-vec
                                             :conflicting-fn-arity
-                                            (format "More than one function body with arity %s."
+                                            (format "More than one function overload with arity %s."
                                                     fixed-arity))))
                   (assoc acc fixed-arity v)))))
           {}

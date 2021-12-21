@@ -403,13 +403,13 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 
 **Keyword:** `:conflicting-fn-arity`.
 
-*Description:* warn when an overloaded function defines multiple bodies with the same arity.
+*Description:* warn when an overloaded function defines multiple argument vectors with the same arity.
 
 *Default level:* `:error`.
 
 *Example trigger:* `(fn ([x] x) ([y]) x)`.
 
-*Example message:* `More than one function body with arity 2.`.
+*Example message:* `More than one function overload with arity 2.`.
 
 ### Reduce without initial value
 

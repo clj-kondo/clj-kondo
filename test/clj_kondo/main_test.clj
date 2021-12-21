@@ -2025,14 +2025,14 @@ foo/foo ;; this does use the private var
       :row 1,
       :col 22,
       :level :error,
-      :message "More than one function body with arity 2."})
+      :message "More than one function overload with arity 2."})
    (lint! "(defn fun ([x y] x) ([y x] y))"))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
       :col 14,
       :level :error,
-      :message "More than one function body with arity 1."})
+      :message "More than one function overload with arity 1."})
    (lint! "(fn ([x] x) ([y] y))"))
   (is (empty? (lint! "(defn ok-fine [] {:this :is :not :attr-map2 :meta :data})")))
   (testing "multi-arity"
