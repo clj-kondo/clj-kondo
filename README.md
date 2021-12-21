@@ -33,6 +33,7 @@ Clj-kondo detects:
   - of static Java method calls
   - of local `let` and `letfn` binding calls
   - of recursive calls (including `recur`)
+  - conflicting arities in overloaded functions
 * unused private vars
 * private and deprecated var usage
 * required but unused namespaces

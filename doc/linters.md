@@ -25,6 +25,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Format](#format)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
+    - [Conflicting Arity](#conflicting-fn-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
     - [Loop without recur](#loop-without-recur)
     - [Main without gen-class](#main-without-gen-class)
@@ -397,6 +398,18 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 ``` clojure
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
+
+### Conflicting arity
+
+**Keyword:** `:conflicting-fn-arity`.
+
+*Description:* warn when an overloaded function defines multiple argument vectors with the same arity.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(fn ([x] x) ([y]) x)`.
+
+*Example message:* `More than one function overload with arity 2.`.
 
 ### Reduce without initial value
 
