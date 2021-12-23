@@ -243,7 +243,16 @@ Expected map, found: java.lang.String
 
 *Keyword:* `:docstring-no-summary`.
 
-*Description:* warn when first line of docstring is not a complete sentence.
+*Description:* warn when first _line_ of docstring is not a complete
+sentence. This linter is based on the community [style
+guide](https://guide.clojure.style/#docstring-summary).
+
+Explanation by Bozhidar Batsov:
+
+> The idea is simple - each docstring should start with a one-line
+> sentence. This minimizes the work tools have to do to extract some meaningful
+> summary of what a var does (and as a bonus - it plays great with the Emacs
+> minibuffer, that happens to have a height of 1 line).
 
 *Default level:* `:off`.
 
@@ -420,7 +429,7 @@ value. Read [this
 article](https://purelyfunctional.tv/issues/purelyfunctional-tv-newsletter-313-always-use-the-3-argument-version-of-reduce/)
 why this can be problematic.
 
-*Default level:* `:warning`.
+*Default level:* `:off`.
 
 *Example trigger:* `(reduce + (range 3))`.
 
