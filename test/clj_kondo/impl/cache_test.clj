@@ -7,7 +7,7 @@
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
 
-(def cache-version core-impl/version)
+(def cache-version core-impl/cache-version)
 
 (deftest cache-test
   (testing "arity checks work in all languages"

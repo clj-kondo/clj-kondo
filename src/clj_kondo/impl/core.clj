@@ -21,6 +21,8 @@
   (str/trim
    (slurp (io/resource "CLJ_KONDO_VERSION"))))
 
+(def cache-version "v1")
+
 (defn format-output [config]
   (if-let [^String pattern (-> config :output :pattern)]
     (fn [filename row col level message]
@@ -165,7 +167,7 @@
                            (when-not (true? cache)
                              cache)
                            (when cfg-dir (io/file cfg-dir ".cache")))]
-    (io/file cache-dir version)))
+    (io/file cache-dir cache-version)))
 
 ;;;; find cache/config dir
 

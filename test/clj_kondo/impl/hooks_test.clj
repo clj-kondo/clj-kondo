@@ -41,7 +41,7 @@ there
 
         ;; populate cache
         (lint! test-source-dir "--cache" "true" "--cache-dir" test-cache-dir)
-        (let [full-cache-dir (io/file test-cache-dir core/version)]
+        (let [full-cache-dir (io/file test-cache-dir core/cache-version)]
           (is (= {:clj {'foo {:ns   'foo
                               :name 'foo :fixed-arities #{1}}
                         'foo-p {:ns                'foo
