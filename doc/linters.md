@@ -431,9 +431,15 @@ why this can be problematic.
 
 *Default level:* `:off`.
 
-*Example trigger:* `(reduce + (range 3))`.
+*Example trigger:* `(reduce max [])`.
 
 *Example message:* `Reduce called without explicit initial value.`
+
+*Config:* to suppress the above warning:
+
+```clojure
+{:linters {:reduce-without-init {:exclude [clojure.core/max cljs.core/max]}}}
+```
 
 ### Loop without recur
 

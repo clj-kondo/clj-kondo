@@ -60,7 +60,8 @@
               :unresolved-namespace {:level :warning
                                      :exclude [#_foo.bar]}
                                                ;; for example: foo.bar is always loaded in a user profile
-              :reduce-without-init {:level :off}
+              :reduce-without-init {:level :off
+                                    :exclude [#_foo.bar/baz]}
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}
               :deprecated-var {:level :warning
@@ -347,6 +348,21 @@
             (not (contains? include sym))
             (or (not exclude)
                 (contains? exclude sym))))))))
+
+(def reduce-without-init-excluded?
+  (let [delayed-cfg (fn [config]
+                      (let [cfg (get-in config [:linters :reduce-without-init])
+                            exclude (some-> (:exclude cfg) set)
+                            #_#_include (some-> (:include cfg) set)]
+                        (cond-> nil
+                          exclude (assoc :exclude exclude)
+                          #_#_include (assoc :include include))))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config sym]
+      (when-let [cfg (delayed-cfg config)]
+        (let [{:keys [:exclude #_:include]} cfg]
+          (or (not exclude)
+              (contains? exclude sym)))))))
 
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]

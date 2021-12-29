@@ -1609,11 +1609,17 @@
                              (node->line filename f
                                          :invalid-arity
                                          (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
-    (when (and (not (utils/linter-disabled? ctx :two-argument-reduce))
+    (when (and (not (utils/linter-disabled? ctx :reduce-without-init))
                (= 'reduce hof-resolved-name)
                (or (= 'clojure.core hof-ns-name)
                    (= 'clojure.cljs hof-ns-name))
-               (= 2 (count children)))
+               (= 2 (count children))
+               (not (one-of [resolved-namespace resolved-name]
+                            [[clojure.core +] [cljs.core +]
+                             [clojure.core *] [cljs.core *]]))
+               (not (config/reduce-without-init-excluded? (:config ctx)
+                                                          (symbol (str resolved-namespace)
+                                                                  (str resolved-name)))))
       (findings/reg-finding!
        ctx
        (node->line (:filename ctx) expr

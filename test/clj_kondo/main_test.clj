@@ -540,7 +540,7 @@ foo/foo ;; this does use the private var
 (b/inc)
 "))))
 
-(deftest reduce-test
+(deftest reduce-without-init-test
   (testing "when enabled, warn on two argument usage of reduce"
     (assert-submaps
      '({:file "<stdin>",
@@ -548,11 +548,16 @@ foo/foo ;; this does use the private var
         :col 1,
         :level :warning,
         :message  "Reduce called without explicit initial value."})
-     (lint! "(reduce + (range 3))"
+     (lint! "(reduce max [])"
             {:linters {:reduce-without-init {:level :warning}}}))
-    (is (empty? (lint! "(reduce + 0 [1 2 3])"
+    (is (empty? (lint! "(reduce + [1 2 3])"
                        {:linters {:reduce-without-init {:level :warning}}})))
-    (is (empty? (lint! "(reduce + [1 2 3])")))))
+    (is (empty? (lint! "(reduce max 0 [1 2 3])"
+                       {:linters {:reduce-without-init {:level :warning}}})))
+    (is (empty? (lint! "(reduce + [1 2 3])")))
+    (is (empty? (lint! "(reduce max [])"
+                       '{:linters {:reduce-without-init {:level :warning
+                                                         :exclude [clojure.core/max]}}})))))
 
 (deftest case-test
   (testing "case dispatch values should not be linted as function calls"
