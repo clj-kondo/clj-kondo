@@ -1307,21 +1307,52 @@
                          :analysis)
             usages (:var-usages analysis)
             my-func-usage (some #(when (= 'my-func (:name %)) %) usages)
-            my-other-usage (some #(when (= 'my-other (:name %)) %) usages)]
+            my-other-usage (some #(when (= 'my-other (:name %)) %) usages)
+            definitions (:var-definitions analysis)
+            my-func-definition (some #(when (and (= 'my-func (:name %))
+                                                 (= 'api (:ns %))) %) definitions)
+            my-other-definition (some #(when (and (= 'my-other (:name %))
+                                                  (= 'api (:ns %))) %) definitions)]
         (is (assert-submap
-              {:name 'my-func
-               :name-row 11
-               :name-col 3
-               :from 'api
-               :to 'foo}
-              my-func-usage))
+             {:name 'my-func
+              :name-row 11
+              :name-col 3
+              :from 'api
+              :to 'foo}
+             my-func-usage))
         (is (assert-submap
-              {:name 'my-other
-               :name-row 12
-               :name-col 3
-               :from 'api
-               :to 'foo}
-              my-other-usage))))
+             {:name 'my-other
+              :name-row 12
+              :name-col 3
+              :from 'api
+              :to 'foo}
+             my-other-usage))
+        (is (assert-submap
+             {:name 'my-func
+              :ns 'api
+              :defined-by 'potemkin/import-vars
+              :row 10
+              :col 1
+              :end-row 12
+              :end-col 16
+              :name-row 11
+              :name-col 3
+              :name-end-row 11
+              :name-end-col 14}
+             my-func-definition))
+        (is (assert-submap
+             {:name 'my-other
+              :ns 'api
+              :defined-by 'potemkin/import-vars
+              :row 10
+              :col 1
+              :end-row 12
+              :end-col 16
+              :name-row 12
+              :name-col 3
+              :name-end-row 12
+              :name-end-col 15}
+             my-other-definition))))
     (testing "when using import-vars with vectors"
       (let [analysis (-> (with-in-str "
 (ns foo)
@@ -1341,25 +1372,56 @@
                          :analysis)
             usages (:var-usages analysis)
             my-func-usage (some #(when (= 'my-func (:name %)) %) usages)
-            my-other-usage (some #(when (= 'my-other (:name %)) %) usages)]
+            my-other-usage (some #(when (= 'my-other (:name %)) %) usages)
+            definitions (:var-definitions analysis)
+            my-func-definition (some #(when (and (= 'my-func (:name %))
+                                                 (= 'api (:ns %))) %) definitions)
+            my-other-definition (some #(when (and (= 'my-other (:name %))
+                                                  (= 'api (:ns %))) %) definitions)]
         (is (assert-submap
-              {:name 'my-func
-               :from 'api
-               :to 'foo
-               :name-row 11
-               :name-col 8
-               :name-end-row 11
-               :name-end-col 15}
-              my-func-usage))
+             {:name 'my-func
+              :from 'api
+              :to 'foo
+              :name-row 11
+              :name-col 8
+              :name-end-row 11
+              :name-end-col 15}
+             my-func-usage))
         (is (assert-submap
-              {:name 'my-other
-               :from 'api
-               :to 'foo
-               :name-row 12
-               :name-col 8
-               :name-end-row 12
-               :name-end-col 16}
-              my-other-usage))))))
+             {:name 'my-other
+              :from 'api
+              :to 'foo
+              :name-row 12
+              :name-col 8
+              :name-end-row 12
+              :name-end-col 16}
+             my-other-usage))
+        (is (assert-submap
+             {:name 'my-func
+              :ns 'api
+              :defined-by 'potemkin/import-vars
+              :row 10
+              :col 1
+              :end-row 12
+              :end-col 18
+              :name-row 11
+              :name-col 8
+              :name-end-row 11
+              :name-end-col 15}
+             my-func-definition))
+        (is (assert-submap
+             {:name 'my-other
+              :ns 'api
+              :defined-by 'potemkin/import-vars
+              :row 10
+              :col 1
+              :end-row 12
+              :end-col 18
+              :name-row 12
+              :name-col 8
+              :name-end-row 12
+              :name-end-col 16}
+             my-other-definition))))))
 
 (comment
   (context-test)
