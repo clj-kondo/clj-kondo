@@ -2484,7 +2484,8 @@
       (let [output-cfg (:output config)]
         (when (and (= :text (:format output-cfg))
                    (:progress output-cfg))
-          (print ".") (flush))))))
+          (binding [*out* *err*]
+            (print ".") (flush)))))))
 
 ;;;; Scratch
 

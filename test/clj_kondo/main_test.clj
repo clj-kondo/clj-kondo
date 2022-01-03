@@ -879,17 +879,20 @@ foo/foo ;; this does use the private var
        (lint! "(let [x 1] (let [y 2]))" '{:linters {:redundant-let {:level :off}}})))
   (is (empty?
        (lint! "(cond 1 2)" '{:linters {:cond-else {:level :off}}})))
-  (is (str/starts-with?
-       (with-out-str
-         (lint! (io/file "corpus") '{:output {:progress true}} "--config-dir" "corpus/.clj-kondo"))
-       "...."))
-  (doseq [fmt [:json :edn]]
-    (is (not (str/starts-with?
-              (with-out-str
-                (lint! (io/file "corpus")
-                       {:output {:progress true :format fmt}}
-                       "--config-dir" "corpus/.clj-kondo"))
-              "...."))))
+  (when-not tu/native?
+    (is (str/includes?
+         (let [err (java.io.StringWriter.)]
+           (binding [*err* err]
+             (lint! (io/file "corpus") '{:output {:progress true}} "--config-dir" "corpus/.clj-kondo")
+             (str err)))
+         "...."))
+    (doseq [fmt [:json :edn]]
+      (is (not (str/includes?
+                (with-out-str
+                  (lint! (io/file "corpus")
+                         {:output {:progress true :format fmt}}
+                         "--config-dir" "corpus/.clj-kondo"))
+                "....")))))
   (is (not (some #(str/includes? % "datascript")
                  (map :file (lint! (io/file "corpus")
                                    '{:output {:exclude-files ["datascript"]}}

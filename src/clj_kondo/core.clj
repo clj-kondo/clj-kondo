@@ -22,7 +22,8 @@
     (case fmt
       :text
       (do
-        (when (:progress output-cfg) (println))
+        (when (:progress output-cfg) (binding [*out* *err*]
+                                       (println)))
         (let [format-fn (core-impl/format-output config)]
           (doseq [{:keys [:filename :message
                           :level :row :col] :as _finding}
