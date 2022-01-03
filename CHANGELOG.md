@@ -6,7 +6,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
  - Add linter `:conflicting-fn-arity`: warn when an arity occurs more than once in a function that overloads on arity. [#1136](https://github.com/clj-kondo/clj-kondo/issues/1136) ([@mknoszlig](https://github.com/mknoszlig))
 - Relax reduce-without-init for functions known to be safe [#1519](https://github.com/clj-kondo/clj-kondo/issues/1519)
-- Improve potemkin generated var-definition analysis [#1521](https://github.com/clj-kondo/clj-kondo/issues/1521)
+- Improve potemkin generated var-definition analysis [#1521](https://github.com/clj-kondo/clj-kondo/issues/1521) ([@ericdallo](https://github.com/ericdallo))
+-  Stabilize cache version independent from kondo version [#1520](https://github.com/clj-kondo/clj-kondo/issues/1520)
+- `:output {:progress true}` should print to stderr [#1523](https://github.com/clj-kondo/clj-kondo/issues/1523)
 
 ## 2021.12.19
 
