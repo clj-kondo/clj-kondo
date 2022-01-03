@@ -52,6 +52,8 @@ Options:
 
   --fail-level <level>: minimum severity for exit with error code.  Supported values:
     warning, error.  The default level if unspecified is warning.
+
+  --debug: print debug information.
 " core-impl/version))
   nil)
 
@@ -73,6 +75,7 @@ Options:
     "--dependencies" :scalar
     "--copy-configs" :scalar
     "--fail-level"   :scalar
+    "--debug"        :scalar
     :scalar))
 
 (defn- parse-opts [options]
@@ -119,7 +122,8 @@ Options:
                        ,)
      :copy-configs (contains? opts "--copy-configs")
      :fail-level (or (last (get opts "--fail-level"))
-                     "warning")}))
+                     "warning")
+     :debug (contains? opts "--debug")}))
 
 (def fail-level? #{"warning" "error"})
 

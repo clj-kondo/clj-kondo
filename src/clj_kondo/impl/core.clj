@@ -121,7 +121,7 @@
       cfg)
     cfg))
 
-(defn resolve-config [^java.io.File cfg-dir configs]
+(defn resolve-config [^java.io.File cfg-dir configs debug]
   (let [local-config (when cfg-dir
                        (let [f (io/file cfg-dir "config.edn")]
                          (when (.exists f)
@@ -138,7 +138,8 @@
                                  (filter #(not (contains? local-config-paths-set %))))
                            (fs/glob cfg-dir "**/**/config.edn"
                                     {:max-depth 3})))
-        _ (when (and auto-load-configs?
+        _ (when (and debug
+                     auto-load-configs?
                      (seq discovered))
             (binding [*out* *err*]
               (run! #(println "[clj-kondo] Auto-loading config path:" %) discovered)))
@@ -262,11 +263,11 @@
 
 (defn seen?
   "Atomically adds f to the seen atom and returns if it changed or not."
-  [f seen]
+  [f seen debug]
   (let [[old new]
         (swap-vals! seen conj f)
         seen? (= old new)]
-    (when seen?
+    (when (and debug seen?)
       (stderr "[clj-kondo] Already seen the file" f "before, skipping"))
     seen?))
 
@@ -274,10 +275,11 @@
   [ctx dir canonical?]
   (let [seen (:seen-files ctx)
         cfg-dir (:config-dir ctx)
-        files (file-seq dir)]
+        files (file-seq dir)
+        debug (:debug ctx)]
     (keep (fn [^java.io.File file]
             (let [canonical (.getCanonicalPath file)]
-              (when-not (seen? canonical seen)
+              (when-not (seen? canonical seen debug)
                 (let [path (.getPath file)
                       nm (if canonical?
                            (.getCanonicalPath file)
@@ -353,16 +355,17 @@
   (let [seen-files (:seen-files ctx)]
     (try
       (let [path (str path) ;; always assume path to be a string in the body of
-                            ;; this function
+            ;; this function
             file (io/file path) ;; and file to be a java.io.File
             canonical (when (.exists file)
                         ;; calling canonical-path on non-existing
                         ;; files (e.g. classpaths) can cause errors
-                        (.getCanonicalPath file))]
+                        (.getCanonicalPath file))
+            debug (:debug ctx)]
         (cond
           canonical ;; implies the file exiss
           (if (.isFile file)
-            (when-not (seen? canonical seen-files)
+            (when-not (seen? canonical seen-files debug)
               (if (str/ends-with? (.getPath file) ".jar")
                 ;; process jar file
                 (let [jar-name (.getName file)

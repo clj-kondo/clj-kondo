@@ -80,6 +80,8 @@
 
   - `:copy-configs`: optional. A boolean indicating if scanned hooks should be copied to clj-kondo config dir.`
 
+  - `:debug`: optional. Print debug info.
+
   Returns a map with `:findings`, a seqable of finding maps, a
   `:summary` of the findings and the `:config` that was used to
   produce those findings. This map can be passed to `print!` to print
@@ -96,7 +98,8 @@
            :no-warnings
            :dependencies
            :copy-configs
-           :custom-lint-fn]
+           :custom-lint-fn
+           :debug]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir
@@ -105,7 +108,7 @@
               :else
               (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
         ;; for backward compatibility non-sequential config should be wrapped into collection
-        config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]))
+        config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]) debug)
         classpath (:classpath config)
         config (dissoc config :classpath)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
@@ -159,7 +162,9 @@
              ;; most notably hook configs, as they can conflict with original sources
              ;; NOTE: we don't allow this to be changed in namespace local
              ;; config, for e.g. the clj-kondo playground
-             :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)}
+             ;; TODO: :__dangerously-allow-string-hooks should not be able to come in via lib configs
+             :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
+             :debug debug}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
@@ -217,7 +222,7 @@
   ([cfg-dir]
    (resolve-config cfg-dir {}))
   ([cfg-dir config]
-   (core-impl/resolve-config cfg-dir config)))
+   (core-impl/resolve-config cfg-dir config false)))
 
 (defn config-hash
   "Return the hash of the provided clj-kondo config."
