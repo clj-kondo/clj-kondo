@@ -192,12 +192,13 @@ use {
 
 ## IntelliJ IDEA
 
-Currently there are two ways to get clj-kondo integration in IntelliJ.
-Both methods work well and have equivalent features.
+Currently there are three ways to get clj-kondo integration in IntelliJ.
+All three methods work well and have equivalent features.
 Select your preferred plugin/version management preference between:
-* LSP (Language Server Protocol) plugin to run clj-kondo from a jar
-* Cursive or ClojureKit + File Watchers plugin to run an installed binary clj-kondo
 
+* LSP (Language Server Protocol) plugin to run clj-kondo from a jar
+* Clojure Extras IntelliJ Plugin
+* Cursive or ClojureKit + File Watchers plugin to run an installed binary clj-kondo
 
 ### LSP server
 
@@ -227,6 +228,11 @@ working in IntelliJ follow these steps:
 
 Now, when editing a Clojure file, you should get linting feedback.
 
+### Clojure Extras Plugin
+
+Install the plugin from [IntelliJ IDEA Plugins Marketplace](https://plugins.jetbrains.com/plugin/18108-clojure-extras/).
+You can setup a custom binary from the settings screen or just use the built-in version.
+
 ### File Watchers + installed binary
 
 <img src="../screenshots/intellij-let.png" width="50%" align="right">
@@ -246,14 +252,14 @@ and CLJC (`.cljc`)<sup>1</sup>.
 4. Scope: `Current file`
 5. In the Program field, type `clj-kondo`
 6. In the Arguments field, type `--lint $FilePath$`<br>
-You may use a custom config E.g `--lint $FilePath$ --config "{:lint-as {manifold.deferred/let-flow clojure.core/let}}"`
+   You may use a custom config E.g `--lint $FilePath$ --config "{:lint-as {manifold.deferred/let-flow clojure.core/let}}"`
 7. In the Working directory field, type `$FileDir$`
 8. Enable `Create output file from stdout`
 9. Show console: `Never`
 10. In output filters put `$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$`
     <img src="../screenshots/intellij-fw-config.png">
 11. The newly created file-watcher "level" defaults to "Project". Change it to "Global" so that `clj-kondo` is active for all future projects
-  <img src="../screenshots/intellij-fw-global.png">
+    <img src="../screenshots/intellij-fw-global.png">
 
 <sup>1</sup> See [Reader Conditionals](https://clojure.org/guides/reader_conditionals) for more information on the `.cljc` extension.
 CLJX (`.cljx`) is an extension that was used prior to CLJC but is no longer in wide use.
@@ -359,3 +365,4 @@ and error counts on the message line:
 ```kak
 define-command -hidden -override lint-show-counters %{}
 ```
+::q!::q
