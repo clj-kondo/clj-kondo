@@ -195,9 +195,15 @@ use {
 Currently there are three ways to get clj-kondo integration in IntelliJ.
 All three methods work well and have equivalent features.
 Select your preferred plugin/version management preference between:
-* LSP (Language Server Protocol) plugin to run clj-kondo from a jar
+
 * Clojure Extras IntelliJ Plugin
+* LSP (Language Server Protocol) plugin to run clj-kondo from a jar
 * Cursive or ClojureKit + File Watchers plugin to run an installed binary clj-kondo
+
+### Clojure Extras Plugin
+
+Install the plugin from [IntelliJ IDEA Plugins Marketplace](https://plugins.jetbrains.com/plugin/18108-clojure-extras/).
+You can setup a custom binary from the settings screen or just use the built-in version.
 
 ### LSP server
 
@@ -226,11 +232,6 @@ working in IntelliJ follow these steps:
       e.g. `/Users/clj-kondo/clj-kondo-lsp-server-2019.11.23-standalone.jar`.
 
 Now, when editing a Clojure file, you should get linting feedback.
-
-### Clojure Extras Plugin
-
-Install the plugin from [IntelliJ IDEA Plugins Marketplace](https://plugins.jetbrains.com/plugin/18108-clojure-extras/).
-You can setup a custom binary from the settings screen or just use the built-in version.
 
 ### File Watchers + installed binary
 
