@@ -195,7 +195,6 @@ use {
 Currently there are three ways to get clj-kondo integration in IntelliJ.
 All three methods work well and have equivalent features.
 Select your preferred plugin/version management preference between:
-
 * LSP (Language Server Protocol) plugin to run clj-kondo from a jar
 * Clojure Extras IntelliJ Plugin
 * Cursive or ClojureKit + File Watchers plugin to run an installed binary clj-kondo
@@ -365,4 +364,3 @@ and error counts on the message line:
 ```kak
 define-command -hidden -override lint-show-counters %{}
 ```
-::q!::q
