@@ -365,3 +365,7 @@ and error counts on the message line:
 ```kak
 define-command -hidden -override lint-show-counters %{}
 ```
+
+## Sublime Text
+
+Requires Sublime Text 3 or 4. Install [SublimeLinter](https://github.com/SublimeLinter/SublimeLinter) and [SublimeLinter-contrib-clj-kondo](https://github.com/ToxicFrog/SublimeLinter-contrib-clj-kondo) with Package Control. clj-kondo must be available on the `$PATH` to work.
