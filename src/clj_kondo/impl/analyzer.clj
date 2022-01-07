@@ -2450,6 +2450,8 @@
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
   [{:keys [:config] :as ctx} filename input lang dev?]
+  (when (:debug ctx)
+    (utils/stderr "[clj-kondo] Linting file:" filename))
   (try
     (let [reader-exceptions (atom [])
           parsed (binding [*reader-exceptions* reader-exceptions]

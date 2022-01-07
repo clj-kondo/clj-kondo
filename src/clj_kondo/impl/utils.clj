@@ -337,6 +337,10 @@
 (defn log [& xs]
   (.println System/err (str/join " " xs)))
 
+(defn stderr [& msgs]
+  (binding [*out* *err*]
+    (apply println msgs)))
+
 ;; (require 'clojure.pprint)
 
 ;; (defn where-am-i [depth]
