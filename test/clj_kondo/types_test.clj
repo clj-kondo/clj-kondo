@@ -773,4 +773,26 @@
 
 (comment
 
-  )
+  (defmacro xxx
+    [& body]
+    `(lint! (pr-str (quote ~@body)) config))
+
+  (xxx
+   (inc (:a {:a "foo"})))
+
+  (xxx
+   (inc ({:a "foo"} :a)))
+
+  (xxx
+   (inc (:a {:a (:b {:b "foo"})})))
+
+  (xxx
+   (inc {:a "foo"}))
+
+  (xxx
+   (inc 3))
+
+  (xxx
+   (inc "3"))
+
+  ())

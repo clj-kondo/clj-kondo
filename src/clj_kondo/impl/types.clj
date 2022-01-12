@@ -236,9 +236,19 @@
             (keyword t))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
-  (when-let [id (:id expr)]
-    (when-let [call (get @calls-by-id id)]
-      (ret-tag-from-call ctx call expr))))
+  (or (when-let [id (:id expr)]
+        (when-let [call (get @calls-by-id id)]
+          (ret-tag-from-call ctx call expr)))
+      (let [first-child (first (:children expr))
+            last-child (second (:children expr))]
+        (when (and (:k first-child)
+                   (= (:type (expr->tag ctx last-child)) :map))
+          (get (:val (expr->tag ctx last-child)) (:k first-child))))
+      (let [first-child (first (:children expr))
+            last-child (second (:children expr))]
+        (when (and (:k last-child)
+                   (= (:type (expr->tag ctx first-child)) :map))
+          (get (:val (expr->tag ctx first-child)) (:k last-child))))))
 
 (defn expr->tag [{:keys [:bindings :lang :quoted] :as ctx} expr]
   (let [t (tag expr)
