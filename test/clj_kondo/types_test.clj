@@ -773,19 +773,73 @@
 
 (comment
 
+  (def config-2
+    '{:linters
+      {:type-mismatch
+       {:level :error
+        :namespaces
+        {user
+         {fun2
+          {:arities
+           {1
+            {:args [{:op :keys, :req {:a :int}}],
+             :ret {:op :keys, :req {:a :string}}}}}}}}}})
+
+  (def config-3
+    '{:linters
+      {:type-mismatch
+       {:level :error
+        :namespaces
+        {user
+         {fun2
+          {:arities
+           {1
+            {:args [{:op :keys, :req {:a :int}}],
+             :ret :string}}}}}}}})
+
   (defmacro xxx
     [& body]
     `(lint! (pr-str (quote ~@body)) config))
 
+  (defmacro xxx-2
+    [& body]
+    `(lint! (pr-str (quote ~@body)) config-2))
+
+  (defmacro xxx-3
+    [& body]
+    `(lint! (pr-str (quote ~@body)) config-3))
+
+  ;; constant map with keyword being used as a function
   (xxx
    (inc (:a {:a "foo"})))
 
+  ;; constant map with map being used as a function
   (xxx
    (inc ({:a "foo"} :a)))
 
+  ;; nested constant maps
   (xxx
    (inc (:a {:a (:b {:b "foo"})})))
 
+  ;; TODO: function `:ret` type is not respected
+  (xxx-2
+   (do
+     (defn fun2 [m] (:a m))
+     (+ 1 (:a (fun2 {:a 41})))))
+
+  ;; TODO: function `:ret` type is not respected
+  (xxx-2
+   (do
+     (defn fun2 [m] (:a m))
+     (+ 1 (fun2 {:a 23}))))
+
+  ;; Here we have an error when ret is not a map?
+  (xxx-3
+   (do
+     (defn fun2 [m] (:a m))
+     (+ 1 (fun2 {:a 23}))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (xxx
    (inc {:a "foo"}))
 
@@ -794,5 +848,11 @@
 
   (xxx
    (inc "3"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (xxx
+   (do
+     (defn fun2 [m] (str (:a m)))
+     (+ 1 (fun2 {:a 41}))))
 
   ())
