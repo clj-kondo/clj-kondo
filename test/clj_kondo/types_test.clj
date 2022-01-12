@@ -822,22 +822,30 @@
    (inc (:a {:a (:b {:b "foo"})})))
 
   ;; TODO: function `:ret` type is not respected
+  ;; ret type is respected for indirect call
   (xxx-2
    (do
      (defn fun2 [m] (:a m))
      (+ 1 (:a (fun2 {:a 41})))))
 
-  ;; TODO: function `:ret` type is not respected
+  ;; DONE: function `:ret` type is not respected
+  ;; ret type is respected for direct call
   (xxx-2
    (do
      (defn fun2 [m] (:a m))
      (+ 1 (fun2 {:a 23}))))
 
-  ;; Here we have an error when ret is not a map?
+  ;; Here we have an error when typed ret is not a map
   (xxx-3
    (do
      (defn fun2 [m] (:a m))
      (+ 1 (fun2 {:a 23}))))
+
+  ;; Here we have an error when we have a inferred map ret
+  (xxx
+   (do
+     (defn fun2 [m] {:a (:a m)})
+     (+ 1 (fun2 {:a 41}))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (xxx
@@ -850,9 +858,5 @@
    (inc "3"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  (xxx
-   (do
-     (defn fun2 [m] (str (:a m)))
-     (+ 1 (fun2 {:a 41}))))
 
   ())

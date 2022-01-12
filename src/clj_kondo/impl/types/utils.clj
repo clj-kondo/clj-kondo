@@ -38,7 +38,7 @@
                    (or (when-let [t (:tag arg-type)] (resolve-arg-type idacs t seen-calls))
                        (when-let [t (:type arg-type)]
                          (when (identical? t :map) arg-type))
-                       (if-let [call (:call arg-type)]
+                       (when-let [call (:call arg-type)]
                          (when-not (contains? seen-calls call)
                            (let [arity (:arity call)]
                              (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
@@ -49,8 +49,10 @@
                                                (when (>= arity (:min-arity v))
                                                  (:ret v))))]
                                  ;; (prn arg-type '-> tag)
-                                 (resolve-arg-type idacs tag (conj seen-calls call))))))
-                         :any)
+                                 (resolve-arg-type idacs tag (conj seen-calls call)))))))
+                       (when-let [op (:op arg-type)]
+                         (when (identical? op :keys)
+                           :map))
                        :any)
                    (nil? arg-type) :any)]
          ;; (prn arg-type '-> ret)
