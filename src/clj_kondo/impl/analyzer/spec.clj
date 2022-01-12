@@ -21,9 +21,10 @@
         (let [{resolved-ns :ns}
               (namespace/resolve-name ctx ns-nm
                                       sym)]
-          (if resolved-ns
+          (when resolved-ns
             (namespace/reg-used-namespace! ctx ns-nm resolved-ns)
-            (findings/reg-finding! ctx
+            ;; revisit this when needed
+            #_(findings/reg-finding! ctx
                                    (utils/node->line (:filename ctx)
                                                      sym-expr
                                                      :unresolved-symbol

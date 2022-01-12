@@ -17,7 +17,7 @@
 (s/fdef str/starts-with? :args (s/cat :s string?
                                       :substr string?))
 
-(s/fdef xstr/starts-with? ,,,) ;; unresolved symbol
+(s/fdef xstr/starts-with? ,,,) ;; unresolved symbol, but should not give warning by default, #1532
 
 (s/def ::a any?)
 (s/def ::bar (s/keys

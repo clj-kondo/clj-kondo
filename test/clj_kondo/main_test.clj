@@ -1934,7 +1934,7 @@ foo/foo ;; this does use the private var
      :col     13,
      :level   :error,
      :message "unknown option :xargs"}
-    {:file    "corpus/spec_syntax.clj",
+    #_{:file    "corpus/spec_syntax.clj",
      :row     20,
      :col     9,
      :level   :error,
