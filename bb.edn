@@ -3,6 +3,8 @@
         #_{:local/root "../gh-release-artifact"}
         {:git/url "https://github.com/borkdude/gh-release-artifact"
          :sha "2f8898d84126a4e922c490f8614211a8b0cf67cd"}}
- :tasks {bump-release (shell "script/bump-version release")
+ :tasks {extract (shell "script/extract-var-info")
+         test (shell "script/test")
+         bump-release (shell "script/bump-version release")
          bump-post-release (shell "script/bump-version post-release")
          release-artifact clj-kondo.release-artifact/release}}
