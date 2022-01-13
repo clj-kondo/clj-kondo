@@ -2,6 +2,7 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.impl.analyzer.babashka :as babashka]
    [clj-kondo.impl.analyzer.clojure-data-xml :as xml]
    [clj-kondo.impl.analyzer.common :refer [common]]
@@ -22,6 +23,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.linters :as linters]
+   [clj-kondo.impl.linters.config :as lint-config]
    [clj-kondo.impl.linters.deps-edn :as deps-edn]
    [clj-kondo.impl.linters.keys :as key-linter]
    [clj-kondo.impl.macroexpand :as macroexpand]
@@ -34,7 +36,6 @@
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
-   [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
    [sci.core :as sci]))
@@ -2471,10 +2472,15 @@
           (analyze-expressions ctx (:children parsed))
           ;; analyze-expressions should go first in order to process ignores
           (when (identical? :edn lang)
-            (let [fname (.getName (io/file filename))]
+            (let [fname (fs/file-name filename)]
               (case fname
                 "deps.edn" (deps-edn/lint-deps-edn ctx (first (:children parsed)))
                 "bb.edn"   (deps-edn/lint-bb-edn ctx (first (:children parsed)))
+                "config.edn" (when (and (fs/exists? filename)
+                                        (-> (fs/parent filename)
+                                            (fs/file-name)
+                                            (= ".clj-kondo")))
+                               (lint-config/lint-config ctx (first (:children parsed))))
                 nil))))))
     (catch Exception e
       (if dev?

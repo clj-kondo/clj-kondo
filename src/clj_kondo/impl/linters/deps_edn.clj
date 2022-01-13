@@ -1,47 +1,11 @@
 (ns clj-kondo.impl.linters.deps-edn
   "Linter for deps.edn and bb.edn file contents."
   (:require [clj-kondo.impl.findings :as findings]
+            [clj-kondo.impl.linters.edn-utils :as edn-utils]
             [clj-kondo.impl.utils :refer [sexpr node->line]]
             [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
-
-(defn sexpr-keys [map-node]
-  (let [children (:children map-node)
-        keys (take-nth 2 children)
-        keys (map sexpr keys)
-        vals (take-nth 2 (rest children))]
-    (zipmap keys vals)))
-
-(defn key-nodes [map-node]
-  (if (identical? :namespaced-map (:tag map-node))
-    (let [nspace-k (-> map-node :ns :k)
-          map-node (first (:children map-node))
-          knodes (take-nth 2 (:children map-node))]
-      (map #(assoc % :namespace nspace-k) knodes))
-    (take-nth 2 (:children map-node))))
-
-(defn val-nodes [map-node]
-  (if (identical? :namespaced-map (:tag map-node))
-    (let [map-node (first (:children map-node))
-          vnodes (take-nth 2 (rest (:children map-node)))]
-      vnodes)
-    (take-nth 2 (rest (:children map-node)))))
-
-(defn name-for-type [form]
-  (cond
-    (nil? form) "nil"
-    (symbol? form) "symbol"
-    (int? form) "int"
-    (float? form) "float"
-    (keyword? form) "keyword"
-    (char? form) "char"
-    (string? form) "string"
-    (map? form) "map"
-    (vector? form) "vector"
-    (list? form) "list"
-    (set? form) "set"
-    :else (.getName (class form))))
 
 (defn lint-paths-container [ctx node ]
   (let [form (sexpr node)]
@@ -51,7 +15,7 @@
        (node->line (:filename ctx)
                    node
                    :deps.edn
-                   (str "Expected vector, found: " (name-for-type form))))
+                   (str "Expected vector, found: " (edn-utils/name-for-type form))))
       true)))
 
 (defn lint-bb-edn-paths-elems [ctx node]
@@ -63,7 +27,7 @@
          (node->line (:filename ctx)
                      node
                      :deps.edn
-                     (str "Expected string, found: " (name-for-type form))))))))
+                     (str "Expected string, found: " (edn-utils/name-for-type form))))))))
 
 (defn lint-deps-edn-paths-elems [ctx node]
   (doseq [node (:children node)]
@@ -74,7 +38,7 @@
          (node->line (:filename ctx)
                      node
                      :deps.edn
-                     (str "Expected string or keyword, found: " (name-for-type form))))))))
+                     (str "Expected string or keyword, found: " (edn-utils/name-for-type form))))))))
 
 (defn lint-bb-edn-paths [ctx node]
   (when (and node (not (lint-paths-container ctx node)))
@@ -119,7 +83,7 @@
        (node->line (:filename ctx)
                    node
                    :deps.edn
-                   (str "Expected map, found: " (name-for-type form))))
+                   (str "Expected map, found: " (edn-utils/name-for-type form))))
       (or (when-let [version (:mvn/version form)]
             (when (or (= "RELEASE" version)
                       (= "LATEST" version))
@@ -207,7 +171,7 @@
         alias-nodes))
 
 (defn lint-mvn-repos [ctx mvn-repos]
-  (let [repo-map-nodes (val-nodes mvn-repos)]
+  (let [repo-map-nodes (edn-utils/val-nodes mvn-repos)]
     (run! (fn [repo-map-node]
             (let [form (sexpr repo-map-node)]
               (when-not (and (map? form)
@@ -220,15 +184,11 @@
                              (str "Expected: map with :url."))))))
           repo-map-nodes)))
 
-(defn deps-map [raw-node]
-  (zipmap (-> raw-node key-nodes)
-          (-> raw-node val-nodes)))
-
 (defn lint-bb-edn [ctx expr]
   (try
-    (let [bb-edn (sexpr-keys expr)]
+    (let [bb-edn (edn-utils/sexpr-keys expr)]
       (lint-bb-edn-paths ctx (:paths bb-edn))
-      (lint-deps ctx (-> bb-edn :deps deps-map)))
+      (lint-deps ctx (-> bb-edn :deps edn-utils/node-map)))
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
       (binding [*out* *err*]
@@ -236,21 +196,21 @@
 
 (defn lint-deps-edn [ctx expr]
   (try
-    (let [deps-edn (sexpr-keys expr)
+    (let [deps-edn (edn-utils/sexpr-keys expr)
           _ (lint-deps-edn-paths ctx (:paths deps-edn))
           deps (:deps deps-edn)
-          _ (lint-deps ctx (deps-map deps))
+          _ (lint-deps ctx (edn-utils/node-map deps))
           aliases (:aliases deps-edn)
-          alias-keys (key-nodes aliases)
+          alias-keys (edn-utils/key-nodes aliases)
           _ (lint-alias-keys ctx alias-keys)
-          alias-maps (val-nodes aliases)
-          alias-maps (map sexpr-keys alias-maps)
+          alias-maps (edn-utils/val-nodes aliases)
+          alias-maps (map edn-utils/sexpr-keys alias-maps)
           _ (lint-aliases ctx alias-maps)
           extra-dep-maps (map :extra-deps alias-maps)
-          _ (run! #(lint-deps ctx (deps-map %)) extra-dep-maps)
-          extra-dep-map-vals (mapcat val-nodes extra-dep-maps)
+          _ (run! #(lint-deps ctx (edn-utils/node-map %)) extra-dep-maps)
+          extra-dep-map-vals (mapcat edn-utils/val-nodes extra-dep-maps)
           ;; _ (lint-dep-coordinates ctx extra-dep-map-vals)
-          extra-dep-map-vals (map sexpr-keys extra-dep-map-vals)
+          extra-dep-map-vals (map edn-utils/sexpr-keys extra-dep-map-vals)
           exclusions (map (comp :children :exclusions) extra-dep-map-vals)
           _ (run! #(lint-qualified-deps ctx %) exclusions)]
       (when-let [mvn-repos (:mvn/repos deps-edn)]

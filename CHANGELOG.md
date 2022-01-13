@@ -5,10 +5,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - Add linter `:conflicting-fn-arity`: warn when an arity occurs more than once in a function that overloads on arity. [#1136](https://github.com/clj-kondo/clj-kondo/issues/1136) ([@mknoszlig](https://github.com/mknoszlig))
+- Add linter `:clj-kondo-config` which provides linting for `.clj-kondo/config.edn`. [#1527](https://github.com/clj-kondo/clj-kondo/issues/1527)
 - Relax `:reduce-without-init` for functions known to be safe [#1519](https://github.com/clj-kondo/clj-kondo/issues/1519)
 - Symbol arg to `fdef` can be arbitrary namespace [#1532](https://github.com/clj-kondo/clj-kondo/issues/1532)
 - Improve potemkin generated var-definition analysis [#1521](https://github.com/clj-kondo/clj-kondo/issues/1521) ([@ericdallo](https://github.com/ericdallo))
--  Stabilize cache version independent from kondo version [#1520](https://github.com/clj-kondo/clj-kondo/issues/1520)
+-  Stabilize cache version independent from kondo version [#1520](https://github.com/clj-kondo/clj-kondo/issues/1520). This allows you to re-use the cache over multiple kondo versions.
 - `:output {:progress true}` should print to stderr [#1523](https://github.com/clj-kondo/clj-kondo/issues/1523)
 - Only print informative messages when `--debug` is enabled. [#1514](https://github.com/clj-kondo/clj-kondo/issues/1514)
 - Add Sublime Text instructions [#827](https://github.com/clj-kondo/clj-kondo/issues/827)
