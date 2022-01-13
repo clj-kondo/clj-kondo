@@ -239,12 +239,51 @@
   (or (when-let [id (:id expr)]
         (when-let [call (get @calls-by-id id)]
           (ret-tag-from-call ctx call expr)))
-      (let [first-child (first (:children expr))
-            last-child (second (:children expr))]
+      #_(let [first-child (first (:children expr))
+            last-child (second (:children expr))
+            x (expr->tag ctx last-child)]
+
+        (when (= (str expr) "(fun2 {:a 41})")
+          (def xxa ctx)
+          (def xxb expr)
+          (comment
+
+            (ret-tag-from-call ctx expr)
+
+            (clj-kondo.impl.analyzer/analyze-call
+             xxa
+             {:arg-count 1
+              :full-fn-name (with-meta
+                              (clj-kondo.impl.namespace/normalize-sym-name
+                               xxa
+                               (utils/symbol-from-token (first (:children xxb))))
+                              (meta (first (:children xxb))))
+              :row (:row (with-meta
+                           (clj-kondo.impl.namespace/normalize-sym-name
+                            xxa
+                            (utils/symbol-from-token (first (:children xxb))))
+                           (meta (first (:children xxb)))))
+              :col (:col (with-meta
+                           (clj-kondo.impl.namespace/normalize-sym-name
+                            xxa
+                            (utils/symbol-from-token (first (:children xxb))))
+                           (meta (first (:children xxb)))))
+              :expr xxb})
+
+            (utils/tag xxb)
+
+            ()))
+        (clojure.pprint/pprint
+         {:>>>>>>>>>SPECC_CCCFF
+          {:children (:children expr)
+           :expr (str expr)
+           :tag-last-child x
+           :AAA (:val x)}})
+
         (when (and (:k first-child)
-                   (= (:type (expr->tag ctx last-child)) :map))
-          (get (:val (expr->tag ctx last-child)) (:k first-child))))
-      (let [first-child (first (:children expr))
+                   (= (:type x) :map))
+          (get (:val x) (:k first-child))))
+      #_(let [first-child (first (:children expr))
             last-child (second (:children expr))]
         (when (and (:k last-child)
                    (= (:type (expr->tag ctx first-child)) :map))

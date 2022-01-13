@@ -809,24 +809,34 @@
     [& body]
     `(lint! (pr-str (quote ~@body)) config-3))
 
-  ;; constant map with keyword being used as a function
+  ;; DONE: constant map with keyword being used as a function
   (xxx
    (inc (:a {:a "foo"})))
 
-  ;; constant map with map being used as a function
+  ;; TODO: constant map with map being used as a function
   (xxx
    (inc ({:a "foo"} :a)))
 
-  ;; nested constant maps
+  ;; TODO: nested constant maps
   (xxx
    (inc (:a {:a (:b {:b "foo"})})))
 
-  ;; TODO: function `:ret` type is not respected
+  ;; DONE: function `:ret` type is not respected
   ;; ret type is respected for indirect call
   (xxx-2
    (do
      (defn fun2 [m] (:a m))
      (+ 1 (:a (fun2 {:a 41})))))
+
+  ;; DONE
+  (xxx
+   (do
+     (defn fun2 [m] {:a "2"})
+     (+ 1 (:a (fun2 {:a 41})))))
+
+  ;; DONE
+  (xxx
+   (+ 1 (:a {:a ""})))
 
   ;; DONE: function `:ret` type is not respected
   ;; ret type is respected for direct call
@@ -844,7 +854,7 @@
   ;; Here we have an error when we have a inferred map ret
   (xxx
    (do
-     (defn fun2 [m] {:a (:a m)})
+     (defn fun2 [m] {:a "2"})
      (+ 1 (fun2 {:a 41}))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

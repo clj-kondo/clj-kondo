@@ -2114,30 +2114,72 @@
                         m)
                       (cons call analyzed))))))))))
 
+;; TODO: Change this to `analyze-keyword-call`?
 (defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
   (let [callstack (:callstack ctx)
-        config (:config ctx)]
-    (when-not (config/skip? config :invalid-arity callstack)
-      (let [ns (:ns ctx)
-            ?resolved-ns (if namespaced?
-                           (if-let [kw-ns (namespace kw)]
-                             (or (get (:qualify-ns ns) (symbol kw-ns))
-                                 ;; because we couldn't resolve the namespaced
-                                 ;; keyword, we print it as is
-                                 (str ":" (namespace kw)))
-                             ;; if the keyword is namespace, but there is no
-                             ;; namespace, it's the current ns
-                             (:name ns))
-                           (namespace kw))
-            kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
-                       (str (name kw)))]
-        (when (or (zero? arg-count)
-                  (> arg-count 2))
-          (findings/reg-finding! ctx
-                                 (node->line (:filename ctx) expr :invalid-arity
-                                             (format "keyword :%s is called with %s args but expects 1 or 2"
-                                                     kw-str
-                                                     arg-count))))))))
+        config (:config ctx)
+        ns (:ns ctx)
+        ?resolved-ns (if namespaced?
+                       (if-let [kw-ns (namespace kw)]
+                         (or (get (:qualify-ns ns) (symbol kw-ns))
+                             ;; because we couldn't resolve the namespaced
+                             ;; keyword, we print it as is
+                             (str ":" (namespace kw)))
+                         ;; if the keyword is namespace, but there is no
+                         ;; namespace, it's the current ns
+                         (:name ns))
+                       (namespace kw))
+        kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
+                   (str (name kw)))]
+    (when (and (not (config/skip? config :invalid-arity callstack))
+               (or (zero? arg-count)
+                   (> arg-count 2)))
+      (findings/reg-finding! ctx
+                             (node->line (:filename ctx) expr :invalid-arity
+                                         (format "keyword :%s is called with %s args but expects 1 or 2"
+                                                 kw-str
+                                                 arg-count))))
+    ;; With one argument to the keyword call, we can check if the return is a map.
+    ;; Another linter warning we could create is to check if the 2-arity version
+    ;; will never return the default value.
+    (when (= arg-count 1)
+      (def expr expr)
+      (def ctx ctx)
+      #_(def gao (deref (:namespaces ctx)))
+      #_(def ggg (first (analyze-children (update ctx :callstack conj [nil :list]) (rest (:children expr)))))
+      #_(def ggg2 (types/expr->tag ctx (last (:children expr))))
+      #_(def ggg3 (types/ret-tag-from-call ctx (:call (:ret ggg)) (last (:children expr))))
+      (let [analyzed (first (analyze-children (update ctx :callstack conj [nil :list]) (rest (:children expr))))
+            ret (:ret analyzed)
+            call (:call ret)]
+        (def analyzed analyzed)
+        (def ret ret)
+        (def call call)
+        (def kw kw)
+        (cond
+          (:tag ret)
+          (let [{:keys [:op :req]} (:tag ret)]
+            (when (= op :keys)
+              (get req kw)))
+
+          call
+          (-> (deref (:namespaces ctx))
+              (get (:base-lang call))
+              (get (:lang call))
+              (get (:ns call))
+              :vars
+              (get (:name call))
+              :arities
+              (get (:arity call))
+              :ret
+              :val
+              (get kw)
+              :tag)
+
+          :else
+          (let [tag (types/expr->tag ctx (last (:children expr)))]
+            (when (= (:type tag) :map)
+              (:tag (get (:val tag) kw)))))))))
 
 (defn lint-map-call! [ctx _the-map arg-count expr]
   (let [callstack (:callstack ctx)
@@ -2278,10 +2320,10 @@
                     (analyze-children (update ctx :callstack conj [nil t]) children))
                 :token
                 (if-let [k (:k function)]
-                  (do
-                    (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
-                    (types/add-arg-type-from-expr ctx expr)
-                    (analyze-children (update ctx :callstack conj [nil t]) children))
+                  (do (if-let [ret-tag (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)]
+                        (types/add-arg-type-from-expr ctx expr ret-tag)
+                        (types/add-arg-type-from-expr ctx expr))
+                      (analyze-children (update ctx :callstack conj [nil t]) children))
                   (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
                                           (when-not (one-of s ['. '..])
                                             s))]
