@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Only print informative messages when `--debug` is enabled. [#1514](https://github.com/clj-kondo/clj-kondo/issues/1514)
 - Add Sublime Text instructions [#827](https://github.com/clj-kondo/clj-kondo/issues/827)
 - Fix end location in anonyous function body [#1533](https://github.com/clj-kondo/clj-kondo/issues/1533)
+- Bump datalog-parser to 0.1.9: allows symbol constants in datalog expression
 
 ## 2021.12.19
 

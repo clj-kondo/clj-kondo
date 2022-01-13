@@ -1,6 +1,6 @@
 {:paths ["src" "parser" "resources" "inlined"]
  :deps {com.cognitect/transit-clj {:mvn/version "1.0.324"}
-        io.lambdaforge/datalog-parser {:mvn/version "0.1.8"}
+        io.lambdaforge/datalog-parser {:mvn/version "0.1.9"}
         cheshire/cheshire {:mvn/version "5.10.0"}
         nrepl/bencode {:mvn/version "1.1.0"}
         org.babashka/sci {:mvn/version "0.2.8"}
