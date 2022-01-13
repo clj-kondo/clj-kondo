@@ -113,6 +113,7 @@
               :loop-without-recur {:level :warning}
               :unexpected-recur {:level :error}
               :main-without-gen-class {:level :off}}
+    ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
@@ -123,7 +124,6 @@
               schema.core/defschema clojure.core/def
               compojure.core/defroutes clojure.core/def
               compojure.core/let-routes clojure.core/let}
-    :macroexpand {}
     ;; :auto-load-configs true
     :output {:format :text ;; or :edn
              :summary true ;; outputs summary at end, only applicable to output :text
