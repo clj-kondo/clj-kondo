@@ -2,7 +2,7 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.01.13
 
 - Add linter `:conflicting-fn-arity`: warn when an arity occurs more than once in a function that overloads on arity. [#1136](https://github.com/clj-kondo/clj-kondo/issues/1136) ([@mknoszlig](https://github.com/mknoszlig))
 - Add linter `:clj-kondo-config` which provides linting for `.clj-kondo/config.edn`. [#1527](https://github.com/clj-kondo/clj-kondo/issues/1527)
