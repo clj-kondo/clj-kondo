@@ -12,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - `:output {:progress true}` should print to stderr [#1523](https://github.com/clj-kondo/clj-kondo/issues/1523)
 - Only print informative messages when `--debug` is enabled. [#1514](https://github.com/clj-kondo/clj-kondo/issues/1514)
 - Add Sublime Text instructions [#827](https://github.com/clj-kondo/clj-kondo/issues/827)
+- Fix end location in anonyous function body [#1533](https://github.com/clj-kondo/clj-kondo/issues/1533)
 
 ## 2021.12.19
 

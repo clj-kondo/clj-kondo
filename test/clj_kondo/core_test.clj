@@ -83,6 +83,17 @@
                          :linters {:unused-bindings {:level :warning}}}}))]
     (is (empty? (:findings res)))))
 
+(deftest fn-literal-end-location-test
+  (let [res (with-in-str "#(if 1 2)"
+              (clj-kondo/run!
+               {:lint ["-"]
+                :config {:linters {:missing-else-branch {:level :warning}}}}))
+        findings (:findings res)
+        first-and-only-finding (first findings)]
+    (is (= 1 (count findings)))
+    (is (= 1 (:end-row first-and-only-finding)))
+    (is (= 10 (:end-col first-and-only-finding)))))
+
 (deftest findings-serialization-test
   (let [{:keys [:findings]}
         (with-in-str "(ns test (:require [\"@material-ui/core\" :default mui]))"
