@@ -108,6 +108,7 @@
                              #_#_:exclude [frequencies]
                              #_#_:include [name]}
               :deps.edn {:level :warning}
+              :clj-kondo-config {:level :warning}
               :redundant-expression {:level :warning}
               :loop-without-recur {:level :warning}
               :unexpected-recur {:level :error}
