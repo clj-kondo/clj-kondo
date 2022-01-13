@@ -27,7 +27,7 @@
           linters-map (edn-utils/node-map linters)
           _ (lint-linters ctx linters-map)
           _lint-as (:lint-as config-edn)]
-      )
+      :eastwood)
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
       (binding [*out* *err*]
