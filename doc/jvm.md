@@ -32,7 +32,7 @@ Or add it as an alias to `~/.clojure/deps.edn`:
 ``` clojure
 {:aliases
  {:clj-kondo
-  {:extra-deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}
+  {:replace-deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}
    :main-opts ["-m" "clj-kondo.main"]}}}
 ```
 
