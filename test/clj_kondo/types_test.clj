@@ -2,7 +2,9 @@
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.java.io :as io]
-   [clojure.test :as t :refer [deftest is testing]]))
+   [clojure.test :as t :refer [deftest is testing]]
+   [clojure.string :as str]
+   [clojure.walk :as walk]))
 
 (deftest type-mismatch-test
   (assert-submaps
@@ -769,21 +771,57 @@
   (is (empty? (lint! "(assoc {} 1 2 3 #::s{:thing 1})" config)))
   (is (empty? (lint! "(assoc {} 1 2 3 #:some-ns{:thing 1})" config))))
 
+(def config-2
+  '{:linters
+    {:type-mismatch
+     {:level :error
+      :namespaces
+      {user
+       {fun2
+        {:arities
+         {1
+          {:args [{:op :keys, :req {:a :int}}],
+           :ret {:op :keys, :req {:a :string}}}}}}}}}})
+
+(defmacro assert-errors
+  [body & error-messages]
+  (let [body' (clojure.walk/prewalk-replace
+               {'$ :__THIS_IS_JUST_FOR_TEST}
+               body)]
+    `(let [body-str# (pr-str (quote ~body'))]
+       (loop [body-str# body-str#
+              errors# []
+              [message# & rest-messages#] ~(vec error-messages)]
+         (let [idx# (clojure.string/index-of body-str# ":__THIS_IS_JUST_FOR_TEST ")]
+           (if idx#
+             (recur (clojure.string/replace body-str# ":__THIS_IS_JUST_FOR_TEST " "")
+                    (conj errors# (merge {:file "<stdin>" :row 1 :col (inc idx#) :level :error}
+                                         message#))
+                    rest-messages#)
+             (assert-submaps
+              errors#
+              (lint! body-str# config))))))))
+
+(defmacro xxx-
+  [& body]
+  `(lint! (pr-str (quote ~@body)) config))
+
+(defn expected-message
+  [expected received]
+  (format "Expected: %s, received: %s."
+          (name expected)
+          (name received)))
+
+(declare $)
+
+(deftest keyword-call-resolution-test
+  (assert-errors
+   (inc $ (:a {:a "foo"}))
+   {:message (expected-message :number :string)}))
+
 ;;;; Scratch
 
 (comment
-
-  (def config-2
-    '{:linters
-      {:type-mismatch
-       {:level :error
-        :namespaces
-        {user
-         {fun2
-          {:arities
-           {1
-            {:args [{:op :keys, :req {:a :int}}],
-             :ret {:op :keys, :req {:a :string}}}}}}}}}})
 
   (def config-3
     '{:linters
@@ -797,10 +835,6 @@
             {:args [{:op :keys, :req {:a :int}}],
              :ret :string}}}}}}}})
 
-  (defmacro xxx
-    [& body]
-    `(lint! (pr-str (quote ~@body)) config))
-
   (defmacro xxx-2
     [& body]
     `(lint! (pr-str (quote ~@body)) config-2))
@@ -810,7 +844,7 @@
     `(lint! (pr-str (quote ~@body)) config-3))
 
   ;; DONE: constant map with keyword being used as a function
-  (xxx
+  (xxx-
    (inc (:a {:a "foo"})))
 
   ;; DONE: constant map with map being used as a function
