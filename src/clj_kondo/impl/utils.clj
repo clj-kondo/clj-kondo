@@ -270,6 +270,10 @@
                         (get-in idacs [:clj :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
+(defn stderr [& msgs]
+  (binding [*out* *err*]
+    (apply println msgs)))
+
 (defn resolve-call [idacs call call-lang fn-ns fn-name unresolved? refer-alls]
   (when-let [called-fn
              (or (resolve-call* idacs call fn-ns fn-name)
@@ -285,6 +289,7 @@
                                         :clj 'clojure.core
                                         :cljs 'cljs.core
                                         :clj1c 'clojure.core)])))))]
+    (stderr "imported-ns" (:imported-ns called-fn) "imported-var" (:imported-var called-fn))
     (if-let [imported-ns (:imported-ns called-fn)]
       (or
        (resolve-call idacs call call-lang imported-ns
@@ -336,10 +341,6 @@
 
 (defn log [& xs]
   (.println System/err (str/join " " xs)))
-
-(defn stderr [& msgs]
-  (binding [*out* *err*]
-    (apply println msgs)))
 
 ;; (require 'clojure.pprint)
 
