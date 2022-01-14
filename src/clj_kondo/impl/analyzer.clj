@@ -2114,8 +2114,7 @@
                         m)
                       (cons call analyzed))))))))))
 
-;; TODO: Change this to `analyze-keyword-call`?
-(defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
+(defn analyze-keyword-call [ctx kw namespaced? arg-count expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)
         ns (:ns ctx)
@@ -2143,25 +2142,18 @@
     ;; Another linter warning we could create is to check if the 2-arity version
     ;; will never return the default value.
     (when (= arg-count 1)
-      (def expr expr)
-      (def ctx ctx)
-      #_(def gao (deref (:namespaces ctx)))
-      #_(def ggg (first (analyze-children (update ctx :callstack conj [nil :list]) (rest (:children expr)))))
-      #_(def ggg2 (types/expr->tag ctx (last (:children expr))))
-      #_(def ggg3 (types/ret-tag-from-call ctx (:call (:ret ggg)) (last (:children expr))))
       (let [analyzed (first (analyze-children (update ctx :callstack conj [nil :list]) (rest (:children expr))))
             ret (:ret analyzed)
             call (:call ret)]
-        (def analyzed analyzed)
-        (def ret ret)
-        (def call call)
-        (def kw kw)
         (cond
+          ;; Type from the configuration file.
           (:tag ret)
           (let [{:keys [:op :req]} (:tag ret)]
             (when (= op :keys)
               (get req kw)))
 
+          ;; FIXME: (ask in the PR): Do we already have a more elegant way of doing this?
+          ;; Inferred type.
           call
           (-> (deref (:namespaces ctx))
               (get (:base-lang call))
@@ -2174,12 +2166,7 @@
               :ret
               :val
               (get kw)
-              :tag)
-
-          :else
-          (let [tag (types/expr->tag ctx (last (:children expr)))]
-            (when (= (:type tag) :map)
-              (:tag (get (:val tag) kw)))))))))
+              :tag))))))
 
 (defn lint-map-call! [ctx _the-map arg-count expr]
   (let [callstack (:callstack ctx)
@@ -2320,7 +2307,7 @@
                     (analyze-children (update ctx :callstack conj [nil t]) children))
                 :token
                 (if-let [k (:k function)]
-                  (do (if-let [ret-tag (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)]
+                  (do (if-let [ret-tag (analyze-keyword-call ctx k (:namespaced? function) arg-count expr)]
                         (types/add-arg-type-from-expr ctx expr ret-tag)
                         (types/add-arg-type-from-expr ctx expr))
                       (analyze-children (update ctx :callstack conj [nil t]) children))

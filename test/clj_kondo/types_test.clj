@@ -813,11 +813,11 @@
   (xxx
    (inc (:a {:a "foo"})))
 
-  ;; TODO: constant map with map being used as a function
+  ;; DONE: constant map with map being used as a function
   (xxx
    (inc ({:a "foo"} :a)))
 
-  ;; TODO: nested constant maps
+  ;; DONE: nested constant maps
   (xxx
    (inc (:a {:a (:b {:b "foo"})})))
 
