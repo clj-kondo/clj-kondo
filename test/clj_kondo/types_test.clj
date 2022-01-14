@@ -771,6 +771,33 @@
   (is (empty? (lint! "(assoc {} 1 2 3 #::s{:thing 1})" config)))
   (is (empty? (lint! "(assoc {} 1 2 3 #:some-ns{:thing 1})" config))))
 
+(defmacro  assert-errors
+  [config body & error-messages]
+  (let [body' (walk/prewalk-replace
+               {'$ :__THIS_IS_JUST_FOR_TEST}
+               body)]
+    `(let [body-str# (pr-str (quote ~body'))]
+       (loop [body-str# body-str#
+              errors# []
+              [message# & rest-messages#] ~(vec error-messages)]
+         (let [idx# (str/index-of body-str# ":__THIS_IS_JUST_FOR_TEST ")]
+           (if idx#
+             (recur (str/replace body-str# ":__THIS_IS_JUST_FOR_TEST " "")
+                    (conj errors# (merge {:file "<stdin>" :row 1 :col (inc idx#) :level :error}
+                                         message#))
+                    rest-messages#)
+             (assert-submaps
+              errors#
+              (lint! body-str# ~config))))))))
+
+(defn expected-message
+  [expected received]
+  (format "Expected: %s, received: %s."
+          (name expected)
+          (name received)))
+
+(declare $)
+
 (def config-2
   '{:linters
     {:type-mismatch
@@ -783,124 +810,46 @@
           {:args [{:op :keys, :req {:a :int}}],
            :ret {:op :keys, :req {:a :string}}}}}}}}}})
 
-(defmacro assert-errors
-  [body & error-messages]
-  (let [body' (clojure.walk/prewalk-replace
-               {'$ :__THIS_IS_JUST_FOR_TEST}
-               body)]
-    `(let [body-str# (pr-str (quote ~body'))]
-       (loop [body-str# body-str#
-              errors# []
-              [message# & rest-messages#] ~(vec error-messages)]
-         (let [idx# (clojure.string/index-of body-str# ":__THIS_IS_JUST_FOR_TEST ")]
-           (if idx#
-             (recur (clojure.string/replace body-str# ":__THIS_IS_JUST_FOR_TEST " "")
-                    (conj errors# (merge {:file "<stdin>" :row 1 :col (inc idx#) :level :error}
-                                         message#))
-                    rest-messages#)
-             (assert-submaps
-              errors#
-              (lint! body-str# config))))))))
-
-(defmacro xxx-
-  [& body]
-  `(lint! (pr-str (quote ~@body)) config))
-
-(defn expected-message
-  [expected received]
-  (format "Expected: %s, received: %s."
-          (name expected)
-          (name received)))
-
-(declare $)
-
-(deftest keyword-call-resolution-test
-  (assert-errors
-   (inc $ (:a {:a "foo"}))
-   {:message (expected-message :number :string)}))
+(deftest keyword-resolution-test
+  (testing "keyword call"
+    (assert-errors
+     config
+     (inc $ (:a {:a "foo"}))
+     {:message (expected-message :number :string)}))
+  (testing "map call"
+    (assert-errors
+     config
+     (inc $ ({:a "foo"} :a))
+     {:message (expected-message :number :string)}))
+  (testing "nested keyword call"
+    (assert-errors
+     config
+     (inc $ (:a {:a (:b {:b "foo"})}))
+     {:message (expected-message :number :string)}))
+  (testing "inferred type"
+    (assert-errors
+     config
+     (do
+       (defn fun2 [_] {:a "2"})
+       (+ 1 $ (:a (fun2 {:a 41}))))
+     {:message (expected-message :number :string)}))
+  (testing "manually typed function"
+    (assert-errors
+     config-2
+     (do
+       (defn fun2 [m] (:a m))
+       (+ 1 $ (:a (fun2 {:a 41}))))
+     {:message (expected-message :number :string)}))
+  (testing "manually typed function which returns a map"
+    (assert-errors
+     config-2
+     (do
+       (defn fun2 [m] (:a m))
+       (+ 1 $ (fun2 {:a 23})))
+     {:message (expected-message :number :map)})))
 
 ;;;; Scratch
 
 (comment
 
-  (def config-3
-    '{:linters
-      {:type-mismatch
-       {:level :error
-        :namespaces
-        {user
-         {fun2
-          {:arities
-           {1
-            {:args [{:op :keys, :req {:a :int}}],
-             :ret :string}}}}}}}})
-
-  (defmacro xxx-2
-    [& body]
-    `(lint! (pr-str (quote ~@body)) config-2))
-
-  (defmacro xxx-3
-    [& body]
-    `(lint! (pr-str (quote ~@body)) config-3))
-
-  ;; DONE: constant map with keyword being used as a function
-  (xxx-
-   (inc (:a {:a "foo"})))
-
-  ;; DONE: constant map with map being used as a function
-  (xxx
-   (inc ({:a "foo"} :a)))
-
-  ;; DONE: nested constant maps
-  (xxx
-   (inc (:a {:a (:b {:b "foo"})})))
-
-  ;; DONE: function `:ret` type is not respected
-  ;; ret type is respected for indirect call
-  (xxx-2
-   (do
-     (defn fun2 [m] (:a m))
-     (+ 1 (:a (fun2 {:a 41})))))
-
-  ;; DONE
-  (xxx
-   (do
-     (defn fun2 [m] {:a "2"})
-     (+ 1 (:a (fun2 {:a 41})))))
-
-  ;; DONE
-  (xxx
-   (+ 1 (:a {:a ""})))
-
-  ;; DONE: function `:ret` type is not respected
-  ;; ret type is respected for direct call
-  (xxx-2
-   (do
-     (defn fun2 [m] (:a m))
-     (+ 1 (fun2 {:a 23}))))
-
-  ;; Here we have an error when typed ret is not a map
-  (xxx-3
-   (do
-     (defn fun2 [m] (:a m))
-     (+ 1 (fun2 {:a 23}))))
-
-  ;; Here we have an error when we have a inferred map ret
-  (xxx
-   (do
-     (defn fun2 [m] {:a "2"})
-     (+ 1 (fun2 {:a 41}))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  (xxx
-   (inc {:a "foo"}))
-
-  (xxx
-   (inc 3))
-
-  (xxx
-   (inc "3"))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ())
+  )
