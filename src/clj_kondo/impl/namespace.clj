@@ -412,13 +412,21 @@
              (not (str/ends-with? name-str "."))
              (str/includes? name-str "."))
           (let [the-ns (get-namespace ctx (:base-lang ctx) lang (-> ctx :ns :name))
-                aliases (:aliases the-ns)]
-            (if (not (contains? aliases sym))
-              (let [name-str (first (str/split name-str #"\." 2))]
-                (if-not (= "goog" name-str)
-                  (symbol name-str)
-                  sym))
-              sym))
+                qualify-ns (:qualify-ns the-ns)
+                ks (keys qualify-ns)
+                sym-str (str sym)]
+            (if (contains? qualify-ns sym)
+              sym
+              (if-let [qname (some-> (some #(when (str/starts-with? sym-str %)
+                                                %)
+                                             (map str ks))
+                                       symbol
+                                       qualify-ns)]
+                  (symbol (str qname) (str/replace sym-str (str qname) ""))
+                  (let [name-str (first (str/split name-str #"\." 2))]
+                    (if-not (= "goog" name-str)
+                      (symbol name-str)
+                      sym)))))
           sym))
       sym)))
 
@@ -471,6 +479,7 @@
                :unresolved? true
                :unresolved-ns ns-sym})))
       (let [name-sym (normalize-sym-name ctx name-sym)]
+        ;; (prn :name-sym name-sym)
         (or
          (when-let [[k v] (find (:referred-vars ns)
                                 name-sym)]
