@@ -422,11 +422,11 @@
                                              (map str ks))
                                        symbol
                                        qualify-ns)]
-                  (symbol (str qname) (str/replace sym-str (str qname) ""))
-                  (let [name-str (first (str/split name-str #"\." 2))]
-                    (if-not (= "goog" name-str)
-                      (symbol name-str)
-                      sym)))))
+                (symbol (str qname) (str/replace  sym-str (str qname ".") ""))
+                (let [name-str (first (str/split name-str #"\." 2))]
+                  (if-not (= "goog" name-str)
+                    (symbol name-str)
+                    sym)))))
           sym))
       sym)))
 
@@ -479,58 +479,59 @@
                :unresolved? true
                :unresolved-ns ns-sym})))
       (let [name-sym (normalize-sym-name ctx name-sym)]
-        ;; (prn :name-sym name-sym)
-        (or
-         (when-let [[k v] (find (:referred-vars ns)
-                                name-sym)]
-           (reg-used-referred-var! ctx ns-name k)
-           v)
-         (when (contains? (:vars ns) name-sym)
-           {:ns (:name ns)
-            :name name-sym})
-         (when-let [[name-sym* package]
-                    (or (find var-info/default-import->qname name-sym)
-                        (when-let [v (get var-info/default-fq-imports name-sym)]
-                          [v v])
-                        ;; (find (:imports ns) name-sym)
-                        (if cljs?
-                          ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
-                          ;; hmm, this causes the extractor to fuck up
-                          (let [fs (first-segment name-sym)]
-                            (find (:imports ns) fs))
-                          (find (:imports ns) name-sym)))]
-           ;; (prn "name-sym" name-sym*)
-           (reg-used-import! ctx ns-name name-sym*)
-           {:ns package
-            :interop? true
-            :name name-sym*})
-         (when cljs?
-           (when-let [ns* (get (:qualify-ns ns) name-sym)]
-             (when (some-> (meta ns*) :raw-name string?)
-               {:ns ns*
-                :name name-sym})))
-         (let [clojure-excluded? (contains? (:clojure-excluded ns)
-                                            name-sym)]
-           (if (or
-                ;; check core-sym
-                (when-not clojure-excluded?
-                  (var-info/core-sym? lang name-sym))
-                ;; check special form
-                (or (special-symbol? name-sym)
-                    (contains? var-info/special-forms name-sym)))
-             {:ns (case lang
-                    :clj 'clojure.core
-                    :cljs 'cljs.core)
-              :name name-sym
-              :resolved-core? true}
-             (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
-                                           (when-not (contains? excluded name-sym)
-                                             k))
-                                         (:refer-alls ns))]
-               {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+        (if (namespace name-sym)
+          (recur ctx ns-name name-sym)
+          (or
+           (when-let [[k v] (find (:referred-vars ns)
+                                  name-sym)]
+             (reg-used-referred-var! ctx ns-name k)
+             v)
+           (when (contains? (:vars ns) name-sym)
+             {:ns (:name ns)
+              :name name-sym})
+           (when-let [[name-sym* package]
+                      (or (find var-info/default-import->qname name-sym)
+                          (when-let [v (get var-info/default-fq-imports name-sym)]
+                            [v v])
+                          ;; (find (:imports ns) name-sym)
+                          (if cljs?
+                            ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
+                            ;; hmm, this causes the extractor to fuck up
+                            (let [fs (first-segment name-sym)]
+                              (find (:imports ns) fs))
+                            (find (:imports ns) name-sym)))]
+             ;; (prn "name-sym" name-sym*)
+             (reg-used-import! ctx ns-name name-sym*)
+             {:ns package
+              :interop? true
+              :name name-sym*})
+           (when cljs?
+             (when-let [ns* (get (:qualify-ns ns) name-sym)]
+               (when (some-> (meta ns*) :raw-name string?)
+                 {:ns ns*
+                  :name name-sym})))
+           (let [clojure-excluded? (contains? (:clojure-excluded ns)
+                                              name-sym)]
+             (if (or
+                  ;; check core-sym
+                  (when-not clojure-excluded?
+                    (var-info/core-sym? lang name-sym))
+                  ;; check special form
+                  (or (special-symbol? name-sym)
+                      (contains? var-info/special-forms name-sym)))
+               {:ns (case lang
+                      :clj 'clojure.core
+                      :cljs 'cljs.core)
                 :name name-sym
-                :unresolved? true
-                :clojure-excluded? clojure-excluded?}))))))))
+                :resolved-core? true}
+               (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
+                                             (when-not (contains? excluded name-sym)
+                                               k))
+                                           (:refer-alls ns))]
+                 {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                  :name name-sym
+                  :unresolved? true
+                  :clojure-excluded? clojure-excluded?})))))))))
 
 ;;;; Scratch
 
