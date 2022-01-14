@@ -781,11 +781,18 @@
               errors# []
               [message# & rest-messages#] ~(vec error-messages)]
          (let [idx# (str/index-of body-str# ":__THIS_IS_JUST_FOR_TEST ")]
-           (if idx#
+
+           (cond
+             (and idx# (nil? message#))
+             (throw (ex-info "the number of error messages should be equal to the number of `$`" {}))
+
+             idx#
              (recur (str/replace body-str# ":__THIS_IS_JUST_FOR_TEST " "")
                     (conj errors# (merge {:file "<stdin>" :row 1 :col (inc idx#) :level :error}
                                          message#))
                     rest-messages#)
+
+             :else
              (assert-submaps
               errors#
               (lint! body-str# ~config))))))))
