@@ -289,11 +289,13 @@
                                         :clj 'clojure.core
                                         :cljs 'cljs.core
                                         :clj1c 'clojure.core)])))))]
-    (stderr "imported-ns" (:imported-ns called-fn) "imported-var" (:imported-var called-fn))
     (if-let [imported-ns (:imported-ns called-fn)]
       (or
-       (resolve-call idacs call call-lang imported-ns
-                     (:imported-var called-fn) unresolved? refer-alls)
+       (let [imported-var (:imported-var called-fn)]
+         (when-not (and (= fn-ns imported-ns)
+                        (= fn-name imported-var))
+           (resolve-call idacs call call-lang imported-ns imported-var
+                         unresolved? refer-alls)))
        ;; if we cannot find the imported var here, we fall back on called-fn
        called-fn)
       called-fn)))

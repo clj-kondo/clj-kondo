@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- Fix [#1537](https://github.com/clj-kondo/clj-kondo/issues/1537): stackoverflow with potemkin import vars with cyclic references
+
 ## 2022.01.13
 
 - Add linter `:conflicting-fn-arity`: warn when an arity occurs more than once in a function that overloads on arity. [#1136](https://github.com/clj-kondo/clj-kondo/issues/1136) ([@mknoszlig](https://github.com/mknoszlig))

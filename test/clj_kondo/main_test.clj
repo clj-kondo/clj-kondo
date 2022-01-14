@@ -2458,6 +2458,15 @@ foo/baz
                          :linters {:unresolved-symbol {:level :error}
                                    :unresolved-var {:level :error}}})))))
 
+(deftest potemkin-import-vars-cyclic-test
+  (assert-submaps
+   '({:file "<stdin>", :row 4, :col 1, :level :warning, :message "redefined var #'foo/foo"})
+   (lint! "
+(ns foo (:require [potemkin]))
+(defn foo [])
+(potemkin/import-vars [foo foo])
+")))
+
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
     (let [dir (io/file "corpus" "directory.clj")
