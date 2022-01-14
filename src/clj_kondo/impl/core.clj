@@ -257,10 +257,6 @@
       (io/copy (io/file base-file) dest))
     (catch Exception e (prn (.getMessage e)))))
 
-(defn stderr [& msgs]
-  (binding [*out* *err*]
-    (apply println msgs)))
-
 (defn seen?
   "Atomically adds f to the seen atom and returns if it changed or not."
   [f seen debug]
@@ -268,7 +264,7 @@
         (swap-vals! seen conj f)
         seen? (= old new)]
     (when (and debug seen?)
-      (stderr "[clj-kondo] Already seen the file" f "before, skipping"))
+      (utils/stderr "[clj-kondo] Already seen the file" f "before, skipping"))
     seen?))
 
 (defn sources-from-dir
@@ -377,7 +373,7 @@
                            (not (str/includes? jar-name "SNAPSHOT"))
                            (.exists skip-entry)
                            (= path (slurp skip-entry)))
-                    (stderr "[clj-kondo]" jar-name "was already linted, skipping")
+                    (utils/stderr "[clj-kondo]" jar-name "was already linted, skipping")
                     (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                                          dev?)
                               (sources-from-jar ctx file canonical?))
