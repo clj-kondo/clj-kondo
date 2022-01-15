@@ -2465,7 +2465,10 @@ foo/baz
 (ns foo (:require [potemkin]))
 (defn foo [])
 (potemkin/import-vars [foo foo])
-")))
+"))
+  (is (empty? (lint!"
+(ns foo (:require [bar])) (require '[potemkin]) (potemkin/import-vars [bar x])
+(ns bar (:require [foo] [potemkin])) (potemkin/import-vars [foo x])"))))
 
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
