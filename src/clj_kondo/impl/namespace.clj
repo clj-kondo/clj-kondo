@@ -409,39 +409,37 @@
   Strips foo.bar.baz into foo if foo is a local or var, as it ignores property access in CLJS.
   When foo.bar is a known namespace, returns foo.bar/baz."
   [ctx sym]
-  (let [lang (:lang ctx)
-        normalized-sym
-        (if (identical? :cljs lang)
-          (let [name-str (str sym)]
-            (if (and
-                 (not (str/starts-with? name-str "."))
-                 (not (str/ends-with? name-str "."))
-                 (str/includes? name-str "."))
-              (let [locals (:bindings ctx)
-                    sym-str (str sym)
-                    segments (split-on-dots sym-str)
-                    prefix-str (segments 0)
-                    prefix-sym (symbol prefix-str)
-                    the-ns (get-namespace ctx (:base-lang ctx) lang (-> ctx :ns :name))]
-                (if (or (contains? locals prefix-sym)
-                        (contains? (:vars the-ns) prefix-sym))
-                  prefix-sym
-                  (let [qualify-ns (:qualify-ns the-ns)
-                        ns-resolved? (contains? qualify-ns sym)]
-                    (if ns-resolved? sym
-                        (let [maybe-ns-str (str/join "." (subvec segments
-                                                               0 (dec (count segments))))
-                              maybe-ns (symbol maybe-ns-str)
-                              ns-prefix? (= maybe-ns (get qualify-ns maybe-ns))]
-                        (if ns-prefix?
-                          ;; return fully qualified symbol
-                          (symbol maybe-ns-str (peek segments))
-                          (if-not (= "goog" prefix-str)
-                            prefix-sym
-                            sym)))))))
-              sym))
-          sym)]
-    normalized-sym))
+  (let [lang (:lang ctx)]
+    (if (identical? :cljs lang)
+      (let [name-str (str sym)]
+        (if (and
+             (not (str/starts-with? name-str "."))
+             (not (str/ends-with? name-str "."))
+             (str/includes? name-str "."))
+          (let [locals (:bindings ctx)
+                sym-str (str sym)
+                segments (split-on-dots sym-str)
+                prefix-str (segments 0)
+                prefix-sym (symbol prefix-str)
+                the-ns (get-namespace ctx (:base-lang ctx) lang (-> ctx :ns :name))]
+            (if (or (contains? locals prefix-sym)
+                    (contains? (:vars the-ns) prefix-sym))
+              prefix-sym
+              (let [qualify-ns (:qualify-ns the-ns)
+                    ns-resolved? (contains? qualify-ns sym)]
+                (if ns-resolved? sym
+                    (let [maybe-ns-str (str/join "." (subvec segments
+                                                             0 (dec (count segments))))
+                          maybe-ns (symbol maybe-ns-str)
+                          ns-prefix? (= maybe-ns (get qualify-ns maybe-ns))]
+                      (if ns-prefix?
+                        ;; return fully qualified symbol
+                        (symbol maybe-ns-str (peek segments))
+                        (if-not (= "goog" prefix-str)
+                          prefix-sym
+                          sym)))))))
+          sym))
+      sym)))
 
 (defn resolve-name
   [ctx ns-name name-sym]
