@@ -19,12 +19,12 @@
              (if (contains? required ns)
                (do
                  (findings/reg-finding!
-                   ctx
-                   (-> (node->line (:filename ctx)
-                                   ns
-                                   :duplicate-require
-                                   (str "duplicate require of " ns))
-                       (assoc :duplicate-ns (export-ns-sym ns))))
+                  ctx
+                  (-> (node->line (:filename ctx)
+                                  ns
+                                  :duplicate-require
+                                  (str "duplicate require of " ns))
+                      (assoc :duplicate-ns (export-ns-sym ns))))
                  required)
                (conj required ns)))
            (set init)
@@ -40,11 +40,11 @@
         (let [{:keys [ns as]} (first ns-maps)]
           (when (contains? aliases as)
             (findings/reg-finding!
-              ctx
-              (node->line (:filename ctx)
-                          as
-                          :conflicting-alias
-                          (str "Conflicting alias for " ns))))
+             ctx
+             (node->line (:filename ctx)
+                         as
+                         :conflicting-alias
+                         (str "Conflicting alias for " ns))))
           (when (seq (rest ns-maps))
             (recur (conj aliases as)
                    (rest ns-maps))))))))
@@ -61,11 +61,11 @@
                 raw-ns (:raw-name m)
                 prefix (:prefix m)
                 raw-ns (cond prefix
-                         (str prefix "." ns)
-                         raw-ns (if (string? raw-ns)
-                                  (pr-str raw-ns)
-                                  (str raw-ns))
-                         :else (str ns))
+                             (str prefix "." ns)
+                             raw-ns (if (string? raw-ns)
+                                      (pr-str raw-ns)
+                                      (str raw-ns))
+                             :else (str ns))
                 branch (:branch m)]
             (cond branch
                   (recur last-processed-ns (next ns-list))
@@ -278,7 +278,7 @@
 
 (defn reg-unresolved-symbol!
   [ctx ns-sym sym {:keys [:base-lang :lang :config
-                             :callstack] :as sym-info}]
+                          :callstack] :as sym-info}]
   (when-not (or (:unresolved-symbol-disabled? sym-info)
                 (config/unresolved-symbol-excluded config
                                                    callstack sym)
@@ -297,9 +297,9 @@
              ;; before removing this, check script/diff
              (:unresolved-symbol-disabled? sym-info)
              (config/unresolved-var-excluded config resolved-ns sym)
-                (let [symbol-name (name sym)]
-                  (or (str/starts-with? symbol-name ".")
-                      (class-name? symbol-name))))
+             (let [symbol-name (name sym)]
+               (or (str/starts-with? symbol-name ".")
+                   (class-name? symbol-name))))
     (swap! (:namespaces ctx) update-in
            [base-lang lang ns-sym :unresolved-vars [resolved-ns sym]]
            (fnil conj [])
@@ -339,14 +339,14 @@
        (config/unresolved-namespace-excluded config unresolved-ns)
        ;; unresolved namespaces in an excluded unresolved symbols call are not reported
        (config/unresolved-symbol-excluded config callstack :dummy))
-      (let [unresolved-ns (vary-meta unresolved-ns
-                                     ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
-                                     ;; we must include the filename here
-                                     ;; see #73
-                                     assoc :filename filename)]
-        (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
-               (fnil conj [])
-               unresolved-ns))))
+    (let [unresolved-ns (vary-meta unresolved-ns
+                                   ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
+                                   ;; we must include the filename here
+                                   ;; see #73
+                                   assoc :filename filename)]
+      (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
+             (fnil conj [])
+             unresolved-ns))))
 
 (defn get-namespace [ctx base-lang lang ns-sym]
   (get-in @(:namespaces ctx) [base-lang lang ns-sym]))
@@ -401,34 +401,47 @@
                                                    :shadowed-var
                                                    message))))))))
 
+(defn split-on-dots [name-sym]
+  (vec (.split ^String (str name-sym) "\\.")))
+
 (defn normalize-sym-name
-  "Strips foo.bar.baz into foo, as it ignores property access in CLJS. Assumes simple symbol."
+  "Assumes simple symbol.
+  Strips foo.bar.baz into foo if foo is a local or var, as it ignores property access in CLJS.
+  When foo.bar is a known namespace, returns foo.bar/baz."
   [ctx sym]
-  (let [lang (:lang ctx)]
-    (if (identical? :cljs lang)
-      (let [name-str (str sym)]
-        (if (and
-             (not (str/starts-with? name-str "."))
-             (not (str/ends-with? name-str "."))
-             (str/includes? name-str "."))
-          (let [the-ns (get-namespace ctx (:base-lang ctx) lang (-> ctx :ns :name))
-                qualify-ns (:qualify-ns the-ns)
-                ks (keys qualify-ns)
-                sym-str (str sym)]
-            (if (contains? qualify-ns sym)
-              sym
-              (if-let [qname (some-> (some #(when (str/starts-with? sym-str %)
-                                                %)
-                                             (map str ks))
-                                       symbol
-                                       qualify-ns)]
-                (symbol (str qname) (str/replace  sym-str (str qname ".") ""))
-                (let [name-str (first (str/split name-str #"\." 2))]
-                  (if-not (= "goog" name-str)
-                    (symbol name-str)
-                    sym)))))
-          sym))
-      sym)))
+  (let [lang (:lang ctx)
+        normalized-sym
+        (if (identical? :cljs lang)
+          (let [name-str (str sym)]
+            (if (and
+                 (not (str/starts-with? name-str "."))
+                 (not (str/ends-with? name-str "."))
+                 (str/includes? name-str "."))
+              (let [locals (:bindings ctx)
+                    sym-str (str sym)
+                    segments (split-on-dots sym-str)
+                    prefix-str (segments 0)
+                    prefix-sym (symbol prefix-str)
+                    the-ns (get-namespace ctx (:base-lang ctx) lang (-> ctx :ns :name))]
+                (if (or (contains? locals prefix-sym)
+                        (contains? (:vars the-ns) prefix-sym))
+                  prefix-sym
+                  (let [qualify-ns (:qualify-ns the-ns)
+                        ns-resolved? (contains? qualify-ns sym)]
+                    (if ns-resolved? sym
+                        (let [maybe-ns-str (str/join "." (subvec segments
+                                                               0 (dec (count segments))))
+                              maybe-ns (symbol maybe-ns-str)
+                              ns-prefix? (= maybe-ns (get qualify-ns maybe-ns))]
+                        (if ns-prefix?
+                          ;; return fully qualified symbol
+                          (symbol maybe-ns-str (peek segments))
+                          (if-not (= "goog" prefix-str)
+                            prefix-sym
+                            sym)))))))
+              sym))
+          sym)]
+    normalized-sym))
 
 (defn resolve-name
   [ctx ns-name name-sym]
@@ -450,8 +463,8 @@
                               (str/replace (str (name name-sym))
                                            #"\.$" ""))]
                 (cond->
-                  {:ns ns*
-                   :name var-name}
+                    {:ns ns*
+                     :name var-name}
 
                   (contains? (:aliases ns) ns-sym)
                   (assoc :alias ns-sym)
@@ -478,8 +491,12 @@
               {:name (symbol (name name-sym))
                :unresolved? true
                :unresolved-ns ns-sym})))
-      (let [name-sym (normalize-sym-name ctx name-sym)]
-        (if (namespace name-sym)
+      (let [name-sym (if cljs?
+                       ;; although we also check for CLJS in normalize-sym, we
+                       ;; already know cljs? here
+                       (normalize-sym-name ctx name-sym)
+                       name-sym)]
+        (if (and cljs? (namespace name-sym))
           (recur ctx ns-name name-sym)
           (or
            (when-let [[k v] (find (:referred-vars ns)
@@ -493,14 +510,11 @@
                       (or (find var-info/default-import->qname name-sym)
                           (when-let [v (get var-info/default-fq-imports name-sym)]
                             [v v])
-                          ;; (find (:imports ns) name-sym)
                           (if cljs?
                             ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
-                            ;; hmm, this causes the extractor to fuck up
                             (let [fs (first-segment name-sym)]
                               (find (:imports ns) fs))
                             (find (:imports ns) name-sym)))]
-             ;; (prn "name-sym" name-sym*)
              (reg-used-import! ctx ns-name name-sym*)
              {:ns package
               :interop? true
