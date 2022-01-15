@@ -243,3 +243,7 @@
 " '{:linters {:unresolved-symbol {:exclude [(slingshot.slingshot/try+)]}}})))
   (is (empty? (lint! "(def ^name.fraser.neil.plaintext.diff_match_patch dmp (diff_match_patch.))"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest cljs-property-access-test
+  (is (empty? (lint! "(defn editable? [coll] (satisfies? cljs.core.IEditableCollection coll))"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
