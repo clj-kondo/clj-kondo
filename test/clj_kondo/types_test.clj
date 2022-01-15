@@ -775,8 +775,6 @@
           (name expected)
           (name received)))
 
-(declare $)
-
 (def config-2
   '{:linters
     {:type-mismatch
