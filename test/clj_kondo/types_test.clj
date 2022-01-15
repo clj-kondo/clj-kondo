@@ -2,9 +2,7 @@
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.java.io :as io]
-   [clojure.test :as t :refer [deftest is testing]]
-   [clojure.string :as str]
-   [clojure.walk :as walk]))
+   [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest type-mismatch-test
   (assert-submaps
@@ -771,32 +769,6 @@
   (is (empty? (lint! "(assoc {} 1 2 3 #::s{:thing 1})" config)))
   (is (empty? (lint! "(assoc {} 1 2 3 #:some-ns{:thing 1})" config))))
 
-(defmacro  assert-errors
-  [config body & error-messages]
-  (let [body' (walk/prewalk-replace
-               {'$ :__THIS_IS_JUST_FOR_TEST}
-               body)]
-    `(let [body-str# (pr-str (quote ~body'))]
-       (loop [body-str# body-str#
-              errors# []
-              [message# & rest-messages#] ~(vec error-messages)]
-         (let [idx# (str/index-of body-str# ":__THIS_IS_JUST_FOR_TEST ")]
-
-           (cond
-             (and idx# (nil? message#))
-             (throw (ex-info "the number of error messages should be equal to the number of `$`" {}))
-
-             idx#
-             (recur (str/replace body-str# ":__THIS_IS_JUST_FOR_TEST " "")
-                    (conj errors# (merge {:file "<stdin>" :row 1 :col (inc idx#) :level :error}
-                                         message#))
-                    rest-messages#)
-
-             :else
-             (assert-submaps
-              errors#
-              (lint! body-str# ~config))))))))
-
 (defn expected-message
   [expected received]
   (format "Expected: %s, received: %s."
@@ -815,59 +787,55 @@
         {:arities
          {1
           {:args [{:op :keys, :req {:a :int}}],
-           :ret {:op :keys, :req {:a :string}}}}}
-        fun3
-        {:arities
-         {1
-          {:args [:int],
            :ret {:op :keys, :req {:a :string}}}}}}}}}})
 
 (deftest keyword-resolution-test
   (testing "keyword call"
-    (assert-errors
-     config
-     (inc $ (:a {:a "foo"}))
-     {:message (expected-message :number :string)}))
+    (assert-submaps
+     [{:row 1 :col 6 :message (expected-message :number :string)}]
+     (lint! "(inc (:a {:a \"foo\"}))" config)))
   (testing "map call"
-    (assert-errors
-     config
-     (inc $ ({:a "foo"} :a))
-     {:message (expected-message :number :string)}))
+    (assert-submaps
+     [{:row 1 :col 6 :message (expected-message :number :string)}]
+     (lint! "(inc ({:a \"foo\"} :a))" config)))
   (testing "nested keyword call"
-    (assert-errors
-     config
-     (inc $ (:a {:a (:b {:b "foo"})}))
-     {:message (expected-message :number :string)}))
+    (assert-submaps
+     [{:row 1 :col 6 :message (expected-message :number :string)}]
+     (lint! "(inc (:a {:a (:b {:b \"foo\"})}))" config)))
   (testing "inferred type"
-    (assert-errors
-     config
-     (do
-       (defn fun2 [_] {:a "2"})
-       (+ 1 $ (:a (fun2 {:a 41}))))
-     {:message (expected-message :number :string)}))
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(do
+  (defn fun2 [_] {:a \"2\"})
+  (+ 1 (:a (fun2 {:a 41}))))"
+            config)))
   (testing "manually typed function"
-    (assert-errors
-     config-2
-     (do
-       (defn fun2 [m] (:a m))
-       (+ 1 $ (:a (fun2 {:a 41}))))
-     {:message (expected-message :number :string)})))
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(do
+  (defn fun2 [m] (:a m))
+  (+ 1 (:a (fun2 {:a 41}))))"
+            config-2))))
 
 (deftest function-ret-map-test
   (testing "manually typed function which returns a map"
-    (assert-errors
-     config-2
-     (do
-       (defn fun2 [m] (:a m))
-       (+ 1 $ (fun2 {:a 23})))
-     {:message (expected-message :number :map)}))
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :map)}]
+     (lint! "
+(do
+  (defn fun2 [m] (:a m))
+  (+ 1 (fun2 {:a 23})))"
+            config-2)))
   (testing "typed ret map function which calls another typed function which also expects a map"
-    (assert-errors
-     config-2
-     (do
-       (defn fun2 [m] (:a m))
-       (fun2 $ (fun2 {:a 23})))
-     {:message (expected-message :integer :string)})))
+    (assert-submaps
+     [{:row 4 :col 9 :message (expected-message :integer :string)}]
+     (lint! "
+(do
+  (defn fun2 [m] (:a m))
+  (fun2 (fun2 {:a 23})))"
+            config-2))))
 
 ;;;; Scratch
 

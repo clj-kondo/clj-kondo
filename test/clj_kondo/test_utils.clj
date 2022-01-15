@@ -42,8 +42,9 @@
          res# ~result]
      (and
       (is (= (count maps#) (count res#))
-          (format "Expected %s results, but got: %s"
-                  (count maps#) (count res#)))
+          (format "Expected %s results, but got: %s\n\n%s\n%s"
+                  (count maps#) (count res#)
+                  maps# (vec res#)))
       (doseq [m# maps#]
         (is (some #(submap? m# %) res#) (str "No superset of " m# " found"))))))
 
