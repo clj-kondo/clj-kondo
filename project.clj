@@ -2,7 +2,7 @@
 ;; To change dependencies, update deps.edn and run script/update-project.clj.
 ;; To change other things, edit project.template.clj and run script/update-project.clj.
 
-(defproject clj-kondo "2021.12.20-SNAPSHOT"
+(defproject clj-kondo "2022.01.14-SNAPSHOT"
   :description "A linter for Clojure that sparks joy."
   :url "https://github.com/clj-kondo/clj-kondo"
   :scm {:name "git"
@@ -12,7 +12,7 @@
   :source-paths ["src" "parser" "inlined"]
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [com.cognitect/transit-clj "1.0.324"]
-                 [io.lambdaforge/datalog-parser "0.1.8"]
+                 [io.lambdaforge/datalog-parser "0.1.9"]
                  [cheshire/cheshire "5.10.0"]
                  [nrepl/bencode "1.1.0"]
                  [org.babashka/sci "0.2.8"]
@@ -22,9 +22,9 @@
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.10.866"]
                                    [clj-commons/conch "0.9.2"]
-                                   [jonase/eastwood "0.9.4"]
+                                   [jonase/eastwood "1.1.0"]
                                    [borkdude/missing.test.assertions "0.0.2"]
-                                   [babashka/process "0.0.2"]
+                                   [babashka/process "0.1.0"]
                                    [org.clojure/tools.deps.alpha "0.12.1048"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.0"]]

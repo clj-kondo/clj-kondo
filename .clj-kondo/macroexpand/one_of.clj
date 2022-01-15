@@ -3,11 +3,12 @@
 (ns macroexpand.one-of
   (:require [clj-kondo.hooks-api :as api]))
 
-(defn one-of [{:keys [:node]}]
+(defn one-of [{:keys [node]}]
   (let [[matchee matches] (rest (:children node))
         new-node (api/list-node
                   [(api/token-node 'case)
                    matchee
-                   (api/list-node matches)
+                   (with-meta (api/list-node (:children matches))
+                     (meta matches))
                    matchee])]
     {:node new-node}))

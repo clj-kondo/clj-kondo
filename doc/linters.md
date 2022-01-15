@@ -7,6 +7,7 @@ configuration. For general configurations options, go [here](config.md).
 **Table of Contents**
 
 - [Linters](#linters)
+    - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
@@ -25,7 +26,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Format](#format)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
-    - [Conflicting Arity](#conflicting-fn-arity)
+    - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
     - [Loop without recur](#loop-without-recur)
     - [Main without gen-class](#main-without-gen-class)
@@ -64,6 +65,24 @@ configuration. For general configurations options, go [here](config.md).
     - [Use](#use)
 
 <!-- markdown-toc end -->
+
+### Clj-kondo config
+
+*Keyword:* `:clj-kondo-config`
+
+*Description:* warn on common errors in `.clj-kondo/config` files
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+`.clj-kondo/config.edn`:
+
+``` clojure
+{:linters {:foo 1}}
+```
+
+*Example message:*: `Unexpected linter name: :foo`.
 
 ### Cond-else
 

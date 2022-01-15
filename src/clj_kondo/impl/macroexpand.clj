@@ -137,8 +137,9 @@
   (let [{:keys [:row :col] :as m} (meta expr)
         {:keys [:args :varargs?]} (fn-args children)
         fn-body (with-meta (list-node children)
-                  {:row row
-                   :col (inc col)})
+                  (assoc m
+                         :row row
+                         :col (inc col)))
         arg-list (vector-node
                   (map #(with-meta (token-node %)
                           {:clj-kondo/mark-used true})
