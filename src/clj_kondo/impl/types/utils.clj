@@ -35,7 +35,12 @@
        (let [ret
              (cond (set? arg-type) (reduce union-type #{} (map #(resolve-arg-type idacs % seen-calls) arg-type))
                    (map? arg-type)
-                   (or (when-let [t (:tag arg-type)] (resolve-arg-type idacs t seen-calls))
+                   (or (when-let [t (:tag arg-type)] (resolve-arg-type
+                                                      idacs
+                                                      (if (map? t)
+                                                        (merge t (select-keys arg-type [:row :col :end-row :end-col]))
+                                                        t)
+                                                      seen-calls))
                        (when-let [t (:type arg-type)]
                          (when (identical? t :map) arg-type))
                        (when-let [call (:call arg-type)]
@@ -52,7 +57,12 @@
                                  (resolve-arg-type idacs tag (conj seen-calls call)))))))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
-                           :map))
+                           {:type :map
+                            :val (->> (:req arg-type)
+                                      (mapv (fn [[k v]]
+                                              [k (merge {:tag v}
+                                                        (select-keys arg-type [:row :col :end-row :end-col]))]))
+                                      (into {}))}))
                        :any)
                    (nil? arg-type) :any)]
          ;; (prn arg-type '-> ret)

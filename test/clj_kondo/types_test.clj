@@ -815,6 +815,11 @@
         {:arities
          {1
           {:args [{:op :keys, :req {:a :int}}],
+           :ret {:op :keys, :req {:a :string}}}}}
+        fun3
+        {:arities
+         {1
+          {:args [:int],
            :ret {:op :keys, :req {:a :string}}}}}}}}}})
 
 (deftest keyword-resolution-test
@@ -846,14 +851,23 @@
      (do
        (defn fun2 [m] (:a m))
        (+ 1 $ (:a (fun2 {:a 41}))))
-     {:message (expected-message :number :string)}))
+     {:message (expected-message :number :string)})))
+
+(deftest function-ret-map-test
   (testing "manually typed function which returns a map"
     (assert-errors
      config-2
      (do
        (defn fun2 [m] (:a m))
        (+ 1 $ (fun2 {:a 23})))
-     {:message (expected-message :number :map)})))
+     {:message (expected-message :number :map)}))
+  (testing "typed ret map function which calls another typed function which also expects a map"
+    (assert-errors
+     config-2
+     (do
+       (defn fun2 [m] (:a m))
+       (fun2 $ (fun2 {:a 23})))
+     {:message (expected-message :integer :string)})))
 
 ;;;; Scratch
 
