@@ -21,5 +21,6 @@
     (is (empty? (lint! "(loop [] (recur))" linter-config))))
   (testing "recur is in tail position"
     (is (empty? (lint! "(fn [] (if true (recur) 3))" linter-config)))
-    (is (empty? (lint! "(fn [x] (case x 1 (recur (inc x)) 2 :the-end))" linter-config)))))
+    (is (empty? (lint! "(fn [x] (case x 1 (recur (inc x)) 2 :the-end))" linter-config)))
+    (is (empty? (lint! "(loop [x 10] (cond-> (dec x) (pos? x) (recur)))" linter-config)))))
 

@@ -896,6 +896,15 @@
                                   :loop-without-recur "Loop without recur.")))
         analyzed))))
 
+(defn first-callstack-elt-ignoring-macros
+  [callstack]
+  (loop [callstack callstack]
+    (when-let [cse (first callstack)]
+      (if (not (one-of (second cse)
+                       [-> ->> some-> some->> doto cond->]))
+        cse
+        (recur (rest callstack))))))
+
 (defn analyze-recur [ctx expr]
   (let [filename (:filename ctx)
         recur-arity (:recur-arity ctx)
@@ -912,7 +921,7 @@
         (let [len (:len ctx)
               idx (:idx ctx)
               parent (-> (:callstack ctx)
-                         second second)]
+                         rest first-callstack-elt-ignoring-macros second)]
           (when (and len idx
                      (not= (dec len) idx)
                      (not (one-of parent [if case cond if-let if-not condp])))

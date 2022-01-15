@@ -5,6 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - Fix [#1537](https://github.com/clj-kondo/clj-kondo/issues/1537): stackoverflow with potemkin import vars with cyclic references
+- Fix [#1545](https://github.com/clj-kondo/clj-kondo/issues/1545): `recur` in `cond->` gives warning about `recur` not in tail position.
 
 ## 2022.01.13
 
