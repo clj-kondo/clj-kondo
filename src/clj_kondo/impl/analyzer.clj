@@ -2075,9 +2075,11 @@
                                     :context context
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
-                                    :name (with-meta
-                                            (or resolved-name full-fn-name)
-                                            (meta full-fn-name))
+                                    :name (if (keyword? full-fn-name)
+                                            full-fn-name
+                                            (with-meta
+                                              (or resolved-name full-fn-name)
+                                              (meta full-fn-name)))
                                     :alias resolved-alias
                                     :unresolved? unresolved?
                                     :unresolved-ns unresolved-ns
@@ -2115,59 +2117,30 @@
                         m)
                       (cons call analyzed))))))))))
 
-(defn analyze-keyword-call [ctx kw namespaced? arg-count expr]
+(defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
   (let [callstack (:callstack ctx)
-        config (:config ctx)
-        ns (:ns ctx)
-        ?resolved-ns (if namespaced?
-                       (if-let [kw-ns (namespace kw)]
-                         (or (get (:qualify-ns ns) (symbol kw-ns))
-                             ;; because we couldn't resolve the namespaced
-                             ;; keyword, we print it as is
-                             (str ":" (namespace kw)))
-                         ;; if the keyword is namespace, but there is no
-                         ;; namespace, it's the current ns
-                         (:name ns))
-                       (namespace kw))
-        kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
-                   (str (name kw)))]
-    (when (and (not (config/skip? config :invalid-arity callstack))
-               (or (zero? arg-count)
-                   (> arg-count 2)))
-      (findings/reg-finding! ctx
-                             (node->line (:filename ctx) expr :invalid-arity
-                                         (format "keyword :%s is called with %s args but expects 1 or 2"
-                                                 kw-str
-                                                 arg-count))))
-    ;; With one argument to the keyword call, we can check if the return is a map.
-    ;; Another linter warning we could create is to check if the 2-arity version
-    ;; will never return the default value.
-    (when (= arg-count 1)
-      (let [analyzed (first (analyze-children (update ctx :callstack conj [nil :list]) (rest (:children expr))))
-            ret (:ret analyzed)
-            call (:call ret)]
-        (cond
-          ;; Type from the configuration file.
-          (:tag ret)
-          (let [{:keys [:op :req]} (:tag ret)]
-            (when (= op :keys)
-              (get req kw)))
-
-          ;; FIXME: (ask in the PR): Do we already have a more elegant way of doing this?
-          ;; Inferred type.
-          call
-          (-> (deref (:namespaces ctx))
-              (get (:base-lang call))
-              (get (:lang call))
-              (get (:ns call))
-              :vars
-              (get (:name call))
-              :arities
-              (get (:arity call))
-              :ret
-              :val
-              (get kw)
-              :tag))))))
+        config (:config ctx)]
+    (when-not (config/skip? config :invalid-arity callstack)
+      (let [ns (:ns ctx)
+            ?resolved-ns (if namespaced?
+                           (if-let [kw-ns (namespace kw)]
+                             (or (get (:qualify-ns ns) (symbol kw-ns))
+                                 ;; because we couldn't resolve the namespaced
+                                 ;; keyword, we print it as is
+                                 (str ":" (namespace kw)))
+                             ;; if the keyword is namespace, but there is no
+                             ;; namespace, it's the current ns
+                             (:name ns))
+                           (namespace kw))
+            kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
+                       (str (name kw)))]
+        (when (or (zero? arg-count)
+                  (> arg-count 2))
+          (findings/reg-finding! ctx
+                                 (node->line (:filename ctx) expr :invalid-arity
+                                             (format "keyword :%s is called with %s args but expects 1 or 2"
+                                                     kw-str
+                                                     arg-count))))))))
 
 (defn lint-map-call! [ctx _the-map arg-count expr]
   (let [callstack (:callstack ctx)
@@ -2308,10 +2281,18 @@
                     (analyze-children (update ctx :callstack conj [nil t]) children))
                 :token
                 (if-let [k (:k function)]
-                  (do (if-let [ret-tag (analyze-keyword-call ctx k (:namespaced? function) arg-count expr)]
-                        (types/add-arg-type-from-expr ctx expr ret-tag)
-                        (types/add-arg-type-from-expr ctx expr))
-                      (analyze-children (update ctx :callstack conj [nil t]) children))
+                  (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+                      (let [ret (analyze-call ctx {:arg-count arg-count
+                                                   :full-fn-name k
+                                                   :row row
+                                                   :col col
+                                                   :expr expr})
+                            maybe-call (first ret)]
+                        (if (identical? :call (:type maybe-call))
+                          (types/add-arg-type-from-call ctx maybe-call expr)
+                          (types/add-arg-type-from-expr ctx expr))
+                        (analyze-children (update ctx :callstack conj [nil t]) [(first children)])
+                        ret))
                   (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
                                           (when-not (one-of s ['. '..])
                                             s))]

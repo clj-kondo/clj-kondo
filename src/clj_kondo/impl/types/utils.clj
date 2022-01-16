@@ -52,9 +52,14 @@
                                                (:ret v))
                                              (when-let [v (get arities :varargs)]
                                                (when (>= arity (:min-arity v))
-                                                 (:ret v))))]
+                                                 (:ret v))))
+                                     resolved-arg-type (resolve-arg-type idacs tag (conj seen-calls call))]
                                  ;; (prn arg-type '-> tag)
-                                 (resolve-arg-type idacs tag (conj seen-calls call)))))))
+                                 (if (map? resolved-arg-type)
+                                   (with-meta
+                                     resolved-arg-type
+                                     (meta arg-type))
+                                   resolved-arg-type))))))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
                            {:type :map

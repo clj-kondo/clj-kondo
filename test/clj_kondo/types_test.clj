@@ -351,7 +351,7 @@
    '({:file "<stdin>", :row 1, :col 12, :level :error,
       :message "Expected: associative collection or string or set, received: seq."})
    (lint! "(contains? (map inc [1 2 3]) 1)"
-              {:linters {:type-mismatch {:level :error}}}))
+          {:linters {:type-mismatch {:level :error}}}))
   (testing "resolve types via cache"
     (lint! "(ns cached-ns1) (defn foo [] :keyword)"
            {:linters {:type-mismatch {:level :error}}}
@@ -365,8 +365,8 @@
 (defn bar [] (cached-ns1/foo))
 (inc (bar)) ;; this should also give a warning
 "
-                {:linters {:type-mismatch {:level :error}}}
-                "--cache" "true")))
+            {:linters {:type-mismatch {:level :error}}}
+            "--cache" "true")))
   (testing "return type of assoc"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 42, :level :error, :message "Expected: number, received: map."})
@@ -792,10 +792,6 @@
     (assert-submaps
      [{:row 1 :col 6 :message (expected-message :number :string)}]
      (lint! "(inc (:a {:a \"foo\"}))" config)))
-  (testing "map call"
-    (assert-submaps
-     [{:row 1 :col 6 :message (expected-message :number :string)}]
-     (lint! "(inc ({:a \"foo\"} :a))" config)))
   (testing "nested keyword call"
     (assert-submaps
      [{:row 1 :col 6 :message (expected-message :number :string)}]
@@ -813,9 +809,11 @@
      [{:row 4 :col 8 :message (expected-message :number :string)}]
      (lint! "
 (do
-  (defn fun2 [m] (:a m))
+  (defn fun2 [m] (:b m))
   (+ 1 (:a (fun2 {:a 41}))))"
-            config-2))))
+            config-2)))
+  ;; TODO: Test for explicitly and implicit namespaced keywords.
+  )
 
 (deftest function-ret-map-test
   (testing "manually typed function which returns a map"
