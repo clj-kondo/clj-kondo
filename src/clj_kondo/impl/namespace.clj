@@ -446,12 +446,16 @@
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)
         cljs? (identical? :cljs lang)]
-    (if-let [ns* (and (symbol? name-sym)
-                      (namespace name-sym))]
+    (if-let [ns* (namespace name-sym)]
       (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
                     ns*)
             ns-sym (symbol ns*)]
-        (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
+        (or (when (keyword? name-sym)
+              {:ns :clj-kondo/unknown-namespace
+               :name name-sym
+               :unresolved? true
+               :clojure-excluded? false})
+            (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)
                                  ns-sym))]
