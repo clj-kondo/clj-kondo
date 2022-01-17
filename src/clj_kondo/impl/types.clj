@@ -201,8 +201,7 @@
   [ctx call _expr]
   ;; Note, we need to return maps here because we are adding row and col later on.
   (or (:ret call)
-      (cond
-        (not (:unresolved? call))
+      (when (not (:unresolved? call))
         (or (when-let [ret (:ret call)]
               {:tag ret})
             (when-let [arg-types (:arg-types call)]
@@ -224,18 +223,20 @@
                        {:tag t})))
                   ;; we delay resolving this call, because we might find the spec for by linting other code
                   ;; see linters.clj
-                  {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])}))))
+                  {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])})))))
 
-        ;; Keyword calls are handled differently, we try to resolve the return
-        ;; type dynamically for the 1-arity version.
-        (and (keyword? (:name call))
-             (= (some-> (:arg-types call) deref count) 1))
+      ;; Keyword calls are handled differently, we try to resolve the return
+      ;; type dynamically for the 1-arity version.
+      (when (and (keyword? (:name call))
+                 (= (some-> (:arg-types call) deref count) 1))
         (when-let [arg-type (some-> (:arg-types call) deref first)]
           (cond
             (:call arg-type)
-            (with-meta
-              {:call (:call arg-type)}
-              {:call-name (:name call)})
+            {:call (assoc (:call arg-type)
+                          :resolver
+                          (fn [t]
+                            (when (= (:type t) :map)
+                              (-> t :val (get (:name call)) :tag))))}
 
             (:req (:tag arg-type))
             {:tag (get (:req (:tag arg-type))
@@ -437,14 +438,8 @@
                   (keyword? s)
                   (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
                         :else
-                        (do (let [meta-t (meta t)]
-                              (if-let [t (and (:call-name meta-t)
-                                              (= (:type t) :map)
-                                              (-> t :val (get (:call-name meta-t)) :tag))]
-                                (when-not (match? t s)
-                                  (emit-non-match! ctx s a t))
-                                (when-not (match? t s)
-                                  (emit-non-match! ctx s a t))))
+                        (do (when-not (match? t s)
+                              (emit-non-match! ctx s a t))
                             (recur check-ctx rest-args-spec rest-args rest-tags))))))))))
 
 ;;;; Scratch

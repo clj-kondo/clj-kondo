@@ -2117,23 +2117,31 @@
                         m)
                       (cons call analyzed))))))))))
 
+(defn- resolve-keyword
+  [ctx kw namespaced?]
+  (let [ns (:ns ctx)
+        ?resolved-ns (if namespaced?
+                       (if-let [kw-ns (namespace kw)]
+                         (or (get (:qualify-ns ns) (symbol kw-ns))
+                             ;; because we couldn't resolve the namespaced
+                             ;; keyword, we print it as is
+                             (str ":" (namespace kw)))
+                         ;; if the keyword is namespace, but there is no
+                         ;; namespace, it's the current ns
+                         (:name ns))
+                       (namespace kw))]
+    (if ?resolved-ns
+      (keyword (str ?resolved-ns) (name kw))
+      kw)))
+
 (defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
     (when-not (config/skip? config :invalid-arity callstack)
-      (let [ns (:ns ctx)
-            ?resolved-ns (if namespaced?
-                           (if-let [kw-ns (namespace kw)]
-                             (or (get (:qualify-ns ns) (symbol kw-ns))
-                                 ;; because we couldn't resolve the namespaced
-                                 ;; keyword, we print it as is
-                                 (str ":" (namespace kw)))
-                             ;; if the keyword is namespace, but there is no
-                             ;; namespace, it's the current ns
-                             (:name ns))
-                           (namespace kw))
-            kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
-                       (str (name kw)))]
+      (let [resolved-kw (resolve-keyword ctx kw namespaced?)
+            kw-str (if (namespace resolved-kw)
+                     (str (namespace resolved-kw) "/" (name kw))
+                     (str (name resolved-kw)))]
         (when (or (zero? arg-count)
                   (> arg-count 2))
           (findings/reg-finding! ctx
@@ -2283,7 +2291,7 @@
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                       (let [ret (analyze-call ctx {:arg-count arg-count
-                                                   :full-fn-name k
+                                                   :full-fn-name (resolve-keyword ctx k (:namespaced? function))
                                                    :row row
                                                    :col col
                                                    :expr expr})

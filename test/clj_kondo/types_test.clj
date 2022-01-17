@@ -785,7 +785,12 @@
         {:arities
          {1
           {:args [{:op :keys, :req {:a :int}}],
-           :ret {:op :keys, :req {:a :string}}}}}}}}}})
+           :ret {:op :keys, :req {:a :string}}}}}
+        fun3
+        {:arities
+         {1
+          {:args [{:op :keys, :req {:a :int}}],
+           :ret {:op :keys, :req {:user/a :string}}}}}}}}}})
 
 (deftest keyword-resolution-test
   (testing "keyword call"
@@ -804,6 +809,24 @@
   (defn fun2 [_] {:a \"2\"})
   (+ 1 (:a (fun2 {:a 41}))))"
             config)))
+  (testing "inferred type for explicit namespaced keyword"
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(do
+  (defn fun2 [_] {:eita/a \"2\"})
+  (+ 1 (:eita/a (fun2 {:a 41}))))"
+            config)))
+  (testing "inferred type for implict namespaced keyword"
+    (assert-submaps
+     [{:row 6 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(ns foo)
+
+(do
+  (defn fun2 [_] {:foo/a \"2\"})
+  (+ 1 (::a (fun2 {:a 41}))))"
+            config)))
   (testing "manually typed function"
     (assert-submaps
      [{:row 4 :col 8 :message (expected-message :number :string)}]
@@ -812,8 +835,43 @@
   (defn fun2 [m] (:b m))
   (+ 1 (:a (fun2 {:a 41}))))"
             config-2)))
-  ;; TODO: Test for explicitly and implicit namespaced keywords.
-  )
+  (testing "manually typed function for explicit namespaced keyword"
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(do
+  (defn fun3 [m] (:b m))
+  (+ 1 (:user/a (fun3 {:a 41}))))"
+            config-2)))
+  (testing "manually typed function for implicit namespaced keyword"
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(do
+  (defn fun3 [m] (:b m))
+  (+ 1 (::a (fun3 {:a 41}))))"
+            config-2)))
+  (testing "unhandled keywords are properly handled"
+    (is (empty? (lint! "
+(do
+  (defn fun2 [m] (:b m))
+  (+ 1 (:b (fun2 {:a 41}))))"
+                       config)))
+    (is (empty? (lint! "
+(do
+  (defn fun2 [m] (:b m))
+  (+ 1 (:b (fun2 {:a 41}))))"
+                       config)))
+    (is (empty? (lint! "
+(do
+  (defn fun2 [m] (:b m))
+  (+ 1 (::a (fun2 {:a 41}))))"
+                       config-2)))
+    (is (empty? (lint! "
+(do
+  (defn fun2 [m] (:b m))
+  (+ 1 (:user/a (fun2 {:a 41}))))"
+                       config-2)))))
 
 (deftest function-ret-map-test
   (testing "manually typed function which returns a map"
