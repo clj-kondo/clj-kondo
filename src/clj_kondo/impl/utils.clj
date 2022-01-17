@@ -274,31 +274,37 @@
   (binding [*out* *err*]
     (apply println msgs)))
 
-(defn resolve-call [idacs call call-lang fn-ns fn-name unresolved? refer-alls]
-  (when-let [called-fn
-             (or (resolve-call* idacs call fn-ns fn-name)
-                 (when unresolved?
-                   (some #(resolve-call* idacs call % fn-name)
-                         (into (vec
-                                (keep (fn [[ns {:keys [:excluded]}]]
-                                        (when-not (contains? excluded fn-name)
-                                          ns))
-                                      refer-alls))
-                               (when (not (:clojure-excluded? call))
-                                 [(case call-lang #_base-lang
-                                        :clj 'clojure.core
-                                        :cljs 'cljs.core
-                                        :clj1c 'clojure.core)])))))]
-    (if-let [imported-ns (:imported-ns called-fn)]
-      (or
-       (let [imported-var (:imported-var called-fn)]
-         (when-not (and (= fn-ns imported-ns)
-                        (= fn-name imported-var))
-           (resolve-call idacs call call-lang imported-ns imported-var
-                         unresolved? refer-alls)))
-       ;; if we cannot find the imported var here, we fall back on called-fn
-       called-fn)
-      called-fn)))
+(defn resolve-call
+  ([idacs call call-lang fn-ns fn-name unresolved? refer-alls]
+   (resolve-call idacs call call-lang fn-ns fn-name unresolved? refer-alls #{}))
+  ([idacs call call-lang fn-ns fn-name unresolved? refer-alls seen]
+   (when-let [called-fn
+              (or (resolve-call* idacs call fn-ns fn-name)
+                  (when unresolved?
+                    (some #(resolve-call* idacs call % fn-name)
+                          (into (vec
+                                 (keep (fn [[ns {:keys [:excluded]}]]
+                                         (when-not (contains? excluded fn-name)
+                                           ns))
+                                       refer-alls))
+                                (when (not (:clojure-excluded? call))
+                                  [(case call-lang #_base-lang
+                                         :clj 'clojure.core
+                                         :cljs 'cljs.core
+                                         :clj1c 'clojure.core)])))))]
+     (if-let [imported-ns (:imported-ns called-fn)]
+       (or
+        (let [imported-var (:imported-var called-fn)
+              seenv [imported-ns imported-var]]
+          (when (not (or
+                      (seen seenv)
+                      (and (not= fn-ns imported-ns)
+                           (not= fn-name imported-var))))
+            (resolve-call idacs call call-lang imported-ns imported-var
+                          unresolved? refer-alls (conj seen seenv))))
+        ;; if we cannot find the imported var here, we fall back on called-fn
+        called-fn)
+       called-fn))))
 
 (defn handle-ignore [ctx expr]
   (let [cljc? (identical? :cljc (:base-lang ctx))
