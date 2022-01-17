@@ -223,7 +223,28 @@
                        {:tag t})))
                   ;; we delay resolving this call, because we might find the spec for by linting other code
                   ;; see linters.clj
-                  {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])})))))))
+                  {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])})))))
+
+      ;; Keyword calls are handled differently, we try to resolve the return
+      ;; type dynamically for the 1-arity version.
+      (when (and (keyword? (:name call))
+                 (= (some-> (:arg-types call) deref count) 1))
+        (when-let [arg-type (some-> (:arg-types call) deref first)]
+          (cond
+            (:call arg-type)
+            {:call (assoc (:call arg-type)
+                          :resolver
+                          (fn [t]
+                            (when (= (:type t) :map)
+                              (-> t :val (get (:name call)) :tag))))}
+
+            (:req (:tag arg-type))
+            {:tag (get (:req (:tag arg-type))
+                       (:name call))}
+
+            (:val (:tag arg-type))
+            {:tag (get (:val (:tag arg-type))
+                       (:name call))})))))
 
 (defn keyword
   "Converts tagged item into single keyword, if possible."
@@ -236,21 +257,9 @@
             (keyword t))))))
 
 (defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
-  (or (when-let [id (:id expr)]
-        (when-let [call (get @calls-by-id id)]
-          (ret-tag-from-call ctx call expr)))
-      ;; Keyword call for a map, get return type.
-      (let [first-child (first (:children expr))
-            last-child (second (:children expr))]
-        (when (and (:k first-child)
-                   (= (:type (expr->tag ctx last-child)) :map))
-          (get (:val (expr->tag ctx last-child)) (:k first-child))))
-      ;; Map call for a keyword, get return type.
-      (let [first-child (first (:children expr))
-            last-child (second (:children expr))]
-        (when (and (:k last-child)
-                   (= (:type (expr->tag ctx first-child)) :map))
-          (get (:val (expr->tag ctx first-child)) (:k last-child))))))
+  (when-let [id (:id expr)]
+    (when-let [call (get @calls-by-id id)]
+      (ret-tag-from-call ctx call expr))))
 
 (defn expr->tag [{:keys [:bindings :lang :quoted] :as ctx} expr]
   (let [t (tag expr)

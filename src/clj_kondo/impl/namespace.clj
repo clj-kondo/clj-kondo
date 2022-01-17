@@ -446,7 +446,8 @@
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)
         cljs? (identical? :cljs lang)]
-    (if-let [ns* (namespace name-sym)]
+    (if-let [ns* (and (symbol? name-sym)
+                      (namespace name-sym))]
       (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
                     ns*)
             ns-sym (symbol ns*)]

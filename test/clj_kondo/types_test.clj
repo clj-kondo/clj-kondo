@@ -351,7 +351,7 @@
    '({:file "<stdin>", :row 1, :col 12, :level :error,
       :message "Expected: associative collection or string or set, received: seq."})
    (lint! "(contains? (map inc [1 2 3]) 1)"
-              {:linters {:type-mismatch {:level :error}}}))
+          {:linters {:type-mismatch {:level :error}}}))
   (testing "resolve types via cache"
     (lint! "(ns cached-ns1) (defn foo [] :keyword)"
            {:linters {:type-mismatch {:level :error}}}
@@ -365,8 +365,8 @@
 (defn bar [] (cached-ns1/foo))
 (inc (bar)) ;; this should also give a warning
 "
-                {:linters {:type-mismatch {:level :error}}}
-                "--cache" "true")))
+            {:linters {:type-mismatch {:level :error}}}
+            "--cache" "true")))
   (testing "return type of assoc"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 42, :level :error, :message "Expected: number, received: map."})
@@ -785,17 +785,18 @@
         {:arities
          {1
           {:args [{:op :keys, :req {:a :int}}],
-           :ret {:op :keys, :req {:a :string}}}}}}}}}})
+           :ret {:op :keys, :req {:a :string}}}}}
+        fun3
+        {:arities
+         {1
+          {:args [{:op :keys, :req {:a :int}}],
+           :ret {:op :keys, :req {:user/a :string}}}}}}}}}})
 
 (deftest keyword-resolution-test
   (testing "keyword call"
     (assert-submaps
      [{:row 1 :col 6 :message (expected-message :number :string)}]
      (lint! "(inc (:a {:a \"foo\"}))" config)))
-  (testing "map call"
-    (assert-submaps
-     [{:row 1 :col 6 :message (expected-message :number :string)}]
-     (lint! "(inc ({:a \"foo\"} :a))" config)))
   (testing "nested keyword call"
     (assert-submaps
      [{:row 1 :col 6 :message (expected-message :number :string)}]
@@ -808,14 +809,69 @@
   (defn fun2 [_] {:a \"2\"})
   (+ 1 (:a (fun2 {:a 41}))))"
             config)))
+  (testing "inferred type for explicit namespaced keyword"
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(do
+  (defn fun2 [_] {:eita/a \"2\"})
+  (+ 1 (:eita/a (fun2 {:a 41}))))"
+            config)))
+  (testing "inferred type for implict namespaced keyword"
+    (assert-submaps
+     [{:row 6 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(ns foo)
+
+(do
+  (defn fun2 [_] {:foo/a \"2\"})
+  (+ 1 (::a (fun2 {:a 41}))))"
+            config)))
   (testing "manually typed function"
     (assert-submaps
      [{:row 4 :col 8 :message (expected-message :number :string)}]
      (lint! "
 (do
-  (defn fun2 [m] (:a m))
+  (defn fun2 [m] (:b m))
   (+ 1 (:a (fun2 {:a 41}))))"
-            config-2))))
+            config-2)))
+  (testing "manually typed function for explicit namespaced keyword"
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(do
+  (defn fun3 [m] (:b m))
+  (+ 1 (:user/a (fun3 {:a 41}))))"
+            config-2)))
+  (testing "manually typed function for implicit namespaced keyword"
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(do
+  (defn fun3 [m] (:b m))
+  (+ 1 (::a (fun3 {:a 41}))))"
+            config-2)))
+  (testing "unhandled keywords are properly handled"
+    (is (empty? (lint! "
+(do
+  (defn fun2 [m] (:b m))
+  (+ 1 (:b (fun2 {:a 41}))))"
+                       config)))
+    (is (empty? (lint! "
+(do
+  (defn fun2 [m] (:b m))
+  (+ 1 (:b (fun2 {:a 41}))))"
+                       config)))
+    (is (empty? (lint! "
+(do
+  (defn fun2 [m] (:b m))
+  (+ 1 (::a (fun2 {:a 41}))))"
+                       config-2)))
+    (is (empty? (lint! "
+(do
+  (defn fun2 [m] (:b m))
+  (+ 1 (:user/a (fun2 {:a 41}))))"
+                       config-2)))))
 
 (deftest function-ret-map-test
   (testing "manually typed function which returns a map"
