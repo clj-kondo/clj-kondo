@@ -246,6 +246,28 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 Expected map, found: java.lang.String
 ```
 
+### Bb.edn
+
+*Keyword:* `:bb.edn`
+
+*Description:* warn on common errors in `bb.edn` files.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+`bb.edn`:
+
+``` clojure
+{:tasks {run {:depends [compile}}}
+```
+
+*Example message:*
+
+```
+Depending on undefined task: compile
+```
+
 ### Docstring blank
 
 *Keyword:* `:docstring-blank`.
