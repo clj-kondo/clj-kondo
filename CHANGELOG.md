@@ -2,12 +2,15 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- Fix [#1547](https://github.com/clj-kondo/clj-kondo/issues/1547): catch tasks undefined tasks present in `:depends`. ([@mknoszlig](https://github.com/mknoszlig))
+
 ## 2022.01.15
 
 - Fix [#1537](https://github.com/clj-kondo/clj-kondo/issues/1537): stackoverflow with potemkin import vars with cyclic references
 - Fix [#1545](https://github.com/clj-kondo/clj-kondo/issues/1545): `recur` in `cond->` gives warning about `recur` not in tail position.
 - Fix [#1535](https://github.com/clj-kondo/clj-kondo/issues/1535): support CLJS vars / protocols references via dot rather than slash.
-- Fix [#1547](https://github.com/clj-kondo/clj-kondo/issues/1547): catch tasks undefined tasks present in `:depends`. ([@mknoszlig](https://github.com/mknoszlig))
 
 ## 2022.01.13
 
