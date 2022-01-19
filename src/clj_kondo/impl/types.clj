@@ -233,10 +233,7 @@
           (cond
             (:call arg-type)
             {:call (assoc (:call arg-type)
-                          :resolver
-                          (fn [t]
-                            (when (= (:type t) :map)
-                              (-> t :val (get (:name call)) :tag))))}
+                          :kw-call (:name call))}
 
             (:req (:tag arg-type))
             {:tag (get (:req (:tag arg-type))

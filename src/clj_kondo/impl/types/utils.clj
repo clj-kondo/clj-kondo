@@ -46,7 +46,7 @@
                        (when-let [call (:call arg-type)]
                          (when-not (contains? seen-calls call)
                            (let [arity (:arity call)
-                                 resolver (:resolver call)]
+                                 kw-call (:kw-call call)]
                              (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
                                (let [arities (:arities called-fn)
                                      tag (or (when-let [v (get arities arity)]
@@ -56,12 +56,12 @@
                                                  (:ret v))))
                                      resolved-arg-type (resolve-arg-type idacs tag (conj seen-calls call))]
                                  ;; (prn arg-type '-> tag)
-                                 ;; `resolver` exists for dynamic types, e.g. keyword calls
-                                 ;; can't have a known type depending of its arguments.
-                                 ;; See `clj-kondo.impl.types/ret-tag-from-call` for a
-                                 ;; resolver example.
-                                 (if resolver
-                                   (resolver resolved-arg-type)
+                                 ;; `kw-call` exists for dynamic types when using keyword calls.
+                                 ;; See `clj-kondo.impl.types/ret-tag-from-call` where
+                                 ;; `kw-call` is introduced.
+                                 (if kw-call
+                                   (when (= (:type resolved-arg-type) :map)
+                                     (-> resolved-arg-type :val (get kw-call) :tag))
                                    resolved-arg-type))))))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
