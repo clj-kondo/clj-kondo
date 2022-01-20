@@ -188,14 +188,16 @@
   (let [tasks (edn-utils/sexpr-keys expr)
         known-task? (set (keys tasks))]
     (doseq [[_ t-def] tasks
-            dep-task   (:children (last (:children t-def)))
+            [td-key td-body]   (partition 2 (:children t-def))
+            t-dep              (:children td-body)
             :when (and (identical? :map (:tag t-def))
-                       (not (known-task? (:value dep-task))))]
+                       (identical? (:k td-key) :depends)
+                       (not (known-task? (:value t-dep))))]
       (findings/reg-finding! ctx
                              (node->line (:filename ctx)
-                                         dep-task
+                                         t-dep
                                          :bb.edn
-                                         (str "Depending on undefined task: " (:value dep-task)))))))
+                                         (str "Depending on undefined task: " (:value t-dep)))))))
 
 (defn lint-bb-edn [ctx expr]
   (try
