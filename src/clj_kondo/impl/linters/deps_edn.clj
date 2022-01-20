@@ -189,15 +189,15 @@
         known-task? (set (keys tasks))]
     (doseq [[_ t-def] tasks
             [td-key td-body]   (partition 2 (:children t-def))
-            t-dep              (:children td-body)
+            dep-task              (:children td-body)
             :when (and (identical? :map (:tag t-def))
                        (identical? (:k td-key) :depends)
-                       (not (known-task? (:value t-dep))))]
+                       (not (known-task? (:value dep-task))))]
       (findings/reg-finding! ctx
                              (node->line (:filename ctx)
-                                         t-dep
+                                         dep-task
                                          :bb.edn
-                                         (str "Depending on undefined task: " (:value t-dep)))))))
+                                         (str "Depending on undefined task: " (:value dep-task)))))))
 
 (defn lint-bb-edn [ctx expr]
   (try
