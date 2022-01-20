@@ -169,3 +169,13 @@
   (let [deps-edn "{:deps #_:clj-kondo/ignore {clj-kondo {:mvn/version \"2020.11.07\"}}}"]
     (is (empty? (lint! (str deps-edn)
                        "--filename" "deps.edn")))))
+
+(deftest depend-on-undefined-task-test
+  (let [bb-edn '{:tasks
+                 {run {:depends [compile]}
+                  cleanup {:depends [run]}
+                  init (println "init")}}]
+    (assert-submaps
+     '({:file "bb.edn", :row 1, :col 25, :level :warning, :message "Depending on undefined task: compile"})
+     (lint! (str bb-edn)
+            "--filename" "bb.edn"))))

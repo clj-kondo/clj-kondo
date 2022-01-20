@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- Fix [#1547](https://github.com/clj-kondo/clj-kondo/issues/1547): catch tasks undefined tasks present in `:depends`. ([@mknoszlig](https://github.com/mknoszlig))
+
 ## 2022.01.15
 
 - Fix [#1537](https://github.com/clj-kondo/clj-kondo/issues/1537): stackoverflow with potemkin import vars with cyclic references
