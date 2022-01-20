@@ -188,8 +188,10 @@
   (let [tasks (edn-utils/sexpr-keys expr)
         known-task? (set (keys tasks))]
     (doseq [[_ t-def] tasks
-            dep-task   (:children (last (:children t-def)))
+            [td-key td-body]   (partition 2 (:children t-def))
+            dep-task              (:children td-body)
             :when (and (identical? :map (:tag t-def))
+                       (identical? (:k td-key) :depends)
                        (not (known-task? (:value dep-task))))]
       (findings/reg-finding! ctx
                              (node->line (:filename ctx)

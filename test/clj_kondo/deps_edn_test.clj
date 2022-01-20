@@ -172,10 +172,13 @@
 
 (deftest depend-on-undefined-task-test
   (let [bb-edn '{:tasks
-                 {run {:depends [compile]}
-                  cleanup {:depends [run]}
+                 {run {:paths ["script"]
+                       :depends [compile]
+                       :task (call/fn)}
+                  cleanup {:depends [run]
+                           :paths ["script"]}
                   init (println "init")}}]
     (assert-submaps
-     '({:file "bb.edn", :row 1, :col 25, :level :warning, :message "Depending on undefined task: compile"})
+     '({:file "bb.edn", :row 1, :col 44, :level :warning, :message "Depending on undefined task: compile"})
      (lint! (str bb-edn)
             "--filename" "bb.edn"))))
