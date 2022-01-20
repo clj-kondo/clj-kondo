@@ -71,7 +71,7 @@ It suggests several style guide recommendations, such as:
 It has support for syntax of commonly used macros like
 `clojure.core.async/alt!!`, `schema.core/defn` and `potemkin/import-vars`.
 
-It detects common errors in `deps.edn`
+It detects common errors in `deps.edn` and `bb.edn`
 
 It provides [analysis data](analysis) so you build your own custom linters.
 

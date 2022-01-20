@@ -4,6 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Fix [#1547](https://github.com/clj-kondo/clj-kondo/issues/1547): catch tasks undefined tasks present in `:depends`. ([@mknoszlig](https://github.com/mknoszlig))
 - Fix [#783](https://github.com/clj-kondo/clj-kondo/issues/783): `:keys` can't be used in :ret position, also fixes typesd return map call as input for another typed map function
 
 ## 2022.01.15

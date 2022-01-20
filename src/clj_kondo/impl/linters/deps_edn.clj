@@ -184,11 +184,26 @@
                              (str "Expected: map with :url."))))))
           repo-map-nodes)))
 
+(defn lint-tasks [ctx expr]
+  (let [tasks (edn-utils/sexpr-keys expr)
+        known-task? (set (keys tasks))]
+    (doseq [[_ t-def] tasks
+            dep-task   (:children (last (:children t-def)))
+            :when (and (identical? :map (:tag t-def))
+                       (not (known-task? (:value dep-task))))]
+      (findings/reg-finding! ctx
+                             (node->line (:filename ctx)
+                                         dep-task
+                                         :bb.edn
+                                         (str "Depending on undefined task: " (:value dep-task)))))))
+
 (defn lint-bb-edn [ctx expr]
   (try
     (let [bb-edn (edn-utils/sexpr-keys expr)]
       (lint-bb-edn-paths ctx (:paths bb-edn))
-      (lint-deps ctx (-> bb-edn :deps edn-utils/node-map)))
+      (lint-deps ctx (-> bb-edn :deps edn-utils/node-map))
+      (when-let [tasks (:tasks bb-edn)]
+        (lint-tasks ctx tasks)))
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
       (binding [*out* *err*]
