@@ -182,3 +182,17 @@
      '({:file "bb.edn", :row 1, :col 44, :level :warning, :message "Depending on undefined task: compile"})
      (lint! (str bb-edn)
             "--filename" "bb.edn"))))
+
+(deftest cyclic-task-dependencies-test
+  (let [bb-edn '{:tasks
+                 {run {:paths ["script"]
+                       :task (call/fn)}
+                  cleanup {:depends [init]
+                           :paths ["script"]}
+                  init {:depends [cleanup]
+                        :task (println "init")}}}]
+    (assert-submaps
+     '({:file "bb.edn", :row 1, :col 71, :level :warning, :message "Cyclic task dependency: cleanup -> init -> cleanup"}
+       {:file "bb.edn", :row 1, :col 114, :level :warning, :message "Cyclic task dependency: init -> cleanup -> init"})
+     (lint! (str bb-edn)
+            "--filename" "bb.edn"))))
