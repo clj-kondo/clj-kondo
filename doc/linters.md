@@ -226,7 +226,7 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 
 ### Deps.edn
 
-*Keyword:* `:deps.edn/undefined-task`
+*Keyword:* `:deps.edn`
 
 *Description:* warn on common errors in `deps.edn` and `bb.edn` files.
 
@@ -248,7 +248,7 @@ Expected map, found: java.lang.String
 
 ### Bb.edn dependency on undefined task
 
-*Keyword:* `:bb.edn`
+*Keyword:* `:bb.edn/undefined-task`
 
 *Description:* warn on taks undefined task dependencies in `bb.edn` files.
 
