@@ -179,7 +179,7 @@
                            :paths ["script"]}
                   init (println "init")}}]
     (assert-submaps
-     '({:file "bb.edn", :row 1, :col 44, :level :warning, :message "Depending on undefined task: compile"})
+     '({:file "bb.edn", :row 1, :col 44, :level :error, :message "Depending on undefined task: compile"})
      (lint! (str bb-edn)
             "--filename" "bb.edn"))))
 
@@ -192,7 +192,7 @@
                   init {:depends [cleanup]
                         :task (println "init")}}}]
     (assert-submaps
-     '({:file "bb.edn", :row 1, :col 71, :level :warning, :message "Cyclic task dependency: cleanup -> init -> cleanup"}
-       {:file "bb.edn", :row 1, :col 114, :level :warning, :message "Cyclic task dependency: init -> cleanup -> init"})
+     '({:file "bb.edn", :row 1, :col 71, :level :error, :message "Cyclic task dependency: cleanup -> init -> cleanup"}
+       {:file "bb.edn", :row 1, :col 114, :level :error, :message "Cyclic task dependency: init -> cleanup -> init"})
      (lint! (str bb-edn)
             "--filename" "bb.edn"))))
