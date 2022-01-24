@@ -223,7 +223,7 @@
         (findings/reg-finding! ctx
                                (node->line (:filename ctx)
                                            dep-task
-                                           :bb.edn/depends-on-undefined-task
+                                           :bb.edn/undefined-task
                                            (str "Depending on undefined task: " (:value dep-task))))))))
 
 (defn lint-bb-edn [ctx expr]

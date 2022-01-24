@@ -226,7 +226,7 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 
 ### Deps.edn
 
-*Keyword:* `:deps.edn`
+*Keyword:* `:deps.edn/undefined-task`
 
 *Description:* warn on common errors in `deps.edn` and `bb.edn` files.
 
