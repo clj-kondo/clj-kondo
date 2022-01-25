@@ -21,11 +21,12 @@
      ;; (prn x '+ y '= ret)
      ret)))
 
-(defn resolved-type? [t]
-  (or (keyword? t)
-      (and (set? t) (every? resolved-type? t))
-      (and (map? t) (when-let [t (:type t)]
-                      (identical? t :map)))))
+(defn resolved-type? [arg-type]
+  (or (keyword? arg-type)
+      (and (set? arg-type) (every? resolved-type? arg-type))
+      (and (map? arg-type) (when-let [t (:type arg-type)]
+                             (and (not (:kw-calls arg-type))
+                                  (identical? t :map))))))
 
 (defn resolve-arg-type
   "Resolves arg-type to something which is not a call anymore, i.e. a resolved type or :any."
@@ -42,11 +43,26 @@
                                                         t)
                                                       seen-calls))
                        (when-let [t (:type arg-type)]
-                         (when (identical? t :map) arg-type))
+                         (when (identical? t :map)
+                           (if-let [[kw-call & rest-kw-calls] (seq (:kw-calls arg-type))]
+                             (let [resolved-tag (-> arg-type :val (get kw-call) :tag)]
+                               (cond
+                                 (and (seq rest-kw-calls)
+                                      (= (:type resolved-tag) :map))
+                                 (resolve-arg-type idacs
+                                                   (assoc resolved-tag :kw-calls rest-kw-calls)
+                                                   seen-calls)
+
+                                 (seq rest-kw-calls)
+                                 nil
+
+                                 :else
+                                 resolved-tag))
+                             arg-type)))
                        (when-let [call (:call arg-type)]
                          (when-not (contains? seen-calls call)
                            (let [arity (:arity call)
-                                 kw-call (:kw-call call)]
+                                 kw-calls (:kw-calls call)]
                              (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
                                (let [arities (:arities called-fn)
                                      tag (or (when-let [v (get arities arity)]
@@ -56,19 +72,32 @@
                                                  (:ret v))))
                                      resolved-arg-type (resolve-arg-type idacs tag (conj seen-calls call))]
                                  ;; (prn arg-type '-> tag)
-                                 ;; `kw-call` exists for dynamic types when using keyword calls.
+                                 ;; `kw-calls` exists for dynamic types when using keyword calls.
                                  ;; See `clj-kondo.impl.types/ret-tag-from-call` where
-                                 ;; `kw-call` is introduced.
-                                 (if kw-call
+                                 ;; `kw-calls` is introduced.
+                                 (if kw-calls
                                    (when (= (:type resolved-arg-type) :map)
-                                     (-> resolved-arg-type :val (get kw-call) :tag))
-                                   resolved-arg-type))))))
+                                     (let [[kw-call & rest-kw-calls] kw-calls
+                                           resolved-tag (-> resolved-arg-type :val (get kw-call) :tag)]
+                                       (cond
+                                         (and (seq rest-kw-calls)
+                                              (= (:type resolved-tag) :map))
+                                         (resolve-arg-type idacs
+                                                           (assoc resolved-tag :kw-calls rest-kw-calls)
+                                                           seen-calls)
+
+                                         (seq rest-kw-calls)
+                                         nil
+
+                                         :else
+                                         resolved-tag)))
+                                   (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
                            {:type :map
                             :val (->> (:req arg-type)
                                       (mapv (fn [[k v]]
-                                              [k (merge {:tag v}
+                                              [k (merge {:tag (resolve-arg-type idacs v seen-calls)}
                                                         (select-keys arg-type [:row :col :end-row :end-col]))]))
                                       (into {}))}))
                        :any)

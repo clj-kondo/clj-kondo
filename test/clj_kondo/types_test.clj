@@ -809,6 +809,21 @@
   (defn fun2 [_] {:a \"2\"})
   (+ 1 (:a (fun2 {:a 41}))))"
             config)))
+  (testing "nested inferred type with the same keyword"
+    (is (empty?
+         (lint! "
+(do
+  (defn fun2 [_] {:a \"2\"})
+  (+ 1 (:a (:a (fun2 {:a 41})))))"
+                config))))
+  (testing "nested inferred type with different keywords"
+    (assert-submaps
+     [{:row 4 :col 8 :message (expected-message :number :string)}]
+     (lint! "
+(do
+  (defn fun2 [_] {:b {:a \"2\"}})
+  (+ 1 (:a (:b (fun2 {:a 41})))))"
+            config)))
   (testing "inferred type for explicit namespaced keyword"
     (assert-submaps
      [{:row 4 :col 8 :message (expected-message :number :string)}]

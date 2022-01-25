@@ -233,7 +233,8 @@
           (cond
             (:call arg-type)
             {:call (assoc (:call arg-type)
-                          :kw-call (:name call))}
+                          :kw-calls (concat (:kw-calls (:call arg-type))
+                                            [(:name call)]))}
 
             (:req (:tag arg-type))
             {:tag (get (:req (:tag arg-type))
