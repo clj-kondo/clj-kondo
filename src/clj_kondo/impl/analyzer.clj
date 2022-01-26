@@ -2080,36 +2080,52 @@
                                                  ctx-context
                                                  node-context)]
                                     context))
-                        proto-call {:type :call
-                                    :context context
-                                    :resolved-ns resolved-namespace
-                                    :ns ns-name
-                                    ;; TODO: explain reasoning of adding keyword as call here
-                                    :name (if (keyword? full-fn-name)
-                                            full-fn-name
-                                            (with-meta
-                                              (or resolved-name full-fn-name)
-                                              (meta full-fn-name)))
-                                    :alias resolved-alias
-                                    :unresolved? unresolved?
-                                    :unresolved-ns unresolved-ns
-                                    :clojure-excluded? clojure-excluded?
-                                    :arity arg-count
-                                    :row row
-                                    :end-row (:end-row expr-meta)
-                                    :col col
-                                    :end-col (:end-col expr-meta)
-                                    :base-lang base-lang
-                                    :lang lang
-                                    :filename (:filename ctx)
-                                    :expr (when-not dependencies expr)
-                                    :callstack (:callstack ctx)
-                                    :config (:config ctx)
-                                    :top-ns (:top-ns ctx)
-                                    :arg-types (:arg-types ctx)
-                                    :simple? (simple-symbol? full-fn-name)
-                                    :interop? interop?
-                                    :resolved-core? resolved-core?}
+                        proto-call (if (keyword? full-fn-name)
+                                     {:type :call
+                                      :resolved-ns resolved-namespace
+                                      :ns ns-name
+                                      :name full-fn-name
+                                      :unresolved? unresolved?
+                                      :unresolved-ns unresolved-ns
+                                      :arity arg-count
+                                      :row row
+                                      :end-row (:end-row expr-meta)
+                                      :col col
+                                      :end-col (:end-col expr-meta)
+                                      :base-lang base-lang
+                                      :lang lang
+                                      :filename (:filename ctx)
+                                      :arg-types (:arg-types ctx)}
+                                     {:type :call
+                                      :context context
+                                      :resolved-ns resolved-namespace
+                                      :ns ns-name
+                                      ;; TODO: explain reasoning of adding keyword as call here
+                                      :name (if (keyword? full-fn-name)
+                                              full-fn-name
+                                              (with-meta
+                                                (or resolved-name full-fn-name)
+                                                (meta full-fn-name)))
+                                      :alias resolved-alias
+                                      :unresolved? unresolved?
+                                      :unresolved-ns unresolved-ns
+                                      :clojure-excluded? clojure-excluded?
+                                      :arity arg-count
+                                      :row row
+                                      :end-row (:end-row expr-meta)
+                                      :col col
+                                      :end-col (:end-col expr-meta)
+                                      :base-lang base-lang
+                                      :lang lang
+                                      :filename (:filename ctx)
+                                      :expr (when-not dependencies expr)
+                                      :callstack (:callstack ctx)
+                                      :config (:config ctx)
+                                      :top-ns (:top-ns ctx)
+                                      :arg-types (:arg-types ctx)
+                                      :simple? (simple-symbol? full-fn-name)
+                                      :interop? interop?
+                                      :resolved-core? resolved-core?})
                         ret-tag (or (:ret m)
                                     (types/ret-tag-from-call ctx proto-call expr))
                         call (cond-> proto-call
