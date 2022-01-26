@@ -2173,6 +2173,8 @@
                ret-tag (assoc :ret ret-tag))]
     (when id
       (reg-call ctx call id))
+    ;; TODO: var-usage... this is not a good name and looks suspicious
+    ;; can we do it another way?
     (namespace/reg-var-usage! ctx ns-name call)
     (if m
       (with-meta (cons call analyzed)
