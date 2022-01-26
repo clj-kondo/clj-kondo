@@ -2156,36 +2156,14 @@
         expr-meta (meta expr)
         resolved-namespace :clj-kondo/unknown-namespace
         resolved-name full-fn-name
-        fq-sym (when (and resolved-namespace
-                          resolved-name)
-                 (symbol (str resolved-namespace)
-                         (str resolved-name)))
-        unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
-        resolved-namespace* (if unknown-ns?
-                              ns-name resolved-namespace)
-        ctx (if fq-sym
-              (update ctx :callstack
-                      (fn [cs]
-                        (let [generated? (:clj-kondo.impl/generated expr)]
-                          (cons (with-meta [resolved-namespace* resolved-name]
-                                  (cond-> expr-meta
-                                    generated? (assoc :clj-kondo.impl/generated true))) cs))))
-              (update ctx :callstack conj [nil nil]))
+        ctx (update ctx :callstack conj [nil nil])
         arg-types (if (and resolved-namespace resolved-name
                            (not (linter-disabled? ctx :type-mismatch)))
                     (atom [])
                     nil)
         ctx (assoc ctx :arg-types arg-types)
         analyzed
-        (let [next-ctx (cond-> ctx
-                         (one-of [resolved-namespace resolved-name]
-                                 [[clojure.core.async thread]
-                                  [clojure.core dosync]
-                                  [clojure.core future]
-                                  [clojure.core lazy-seq]
-                                  [clojure.core lazy-cat]])
-                         (-> (assoc-in [:recur-arity :fixed-arity] 0)
-                             (assoc :seen-recur? (volatile! nil))))]
+        (let [next-ctx ctx]
           (analyze-children next-ctx children false))
         in-def (:in-def ctx)
           id (:id expr)
