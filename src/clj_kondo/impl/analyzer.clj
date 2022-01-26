@@ -2346,8 +2346,14 @@
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                       (let [;; TODO: going through analyze-call to get a potential call to a function?
-                            ret (analyze-keyword-call ctx expr arg-count
+                            #_#_ret (analyze-keyword-call ctx expr arg-count
                                                       (resolve-keyword ctx k (:namespaced? function)))
+                            ;; TODO: can we make it work with the above?
+                            ret (analyze-call ctx {:arg-count arg-count
+                                                   :full-fn-name (resolve-keyword ctx k (:namespaced? function))
+                                                   :row row
+                                                   :col col
+                                                   :expr expr})
                             maybe-call (first ret)]
                         ;; (prn k (:name maybe-call))
                         ;; the above prn shows that maybe-call was the keyword call
