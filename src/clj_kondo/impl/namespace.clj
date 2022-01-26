@@ -450,12 +450,7 @@
       (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
                     ns*)
             ns-sym (symbol ns*)]
-        (or (when (keyword? name-sym)
-              {:ns :clj-kondo/unknown-namespace
-               :name name-sym
-               :unresolved? true
-               :clojure-excluded? false})
-            (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
+        (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)
                                  ns-sym))]
