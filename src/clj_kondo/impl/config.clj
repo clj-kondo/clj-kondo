@@ -108,6 +108,8 @@
                              #_#_:exclude [frequencies]
                              #_#_:include [name]}
               :deps.edn {:level :warning}
+              :bb.edn/undefined-task {:level :error}
+              :bb.edn/cyclic-task-dependency {:level :error}
               :clj-kondo-config {:level :warning}
               :redundant-expression {:level :warning}
               :loop-without-recur {:level :warning}

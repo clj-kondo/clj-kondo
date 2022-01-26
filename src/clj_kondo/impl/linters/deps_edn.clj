@@ -184,11 +184,55 @@
                              (str "Expected: map with :url."))))))
           repo-map-nodes)))
 
+(defn- find-task-cycle
+  ([adj current path seen?]
+   (if (seen? current)
+     (vec (drop-while (partial not= current) path))
+     (when-let [dests (get adj current)]
+       (some #(find-task-cycle adj %1 (conj path current) (conj seen? current)) dests))))
+  ([task-map]
+   (let [adj (reduce (fn [acc [t {:keys [depends]}]]
+                       (assoc acc t depends))
+                     {}
+                     task-map)]
+     (some #(find-task-cycle adj %  [] #{}) (keys adj)))))
+
+(defn lint-tasks [ctx expr]
+  (let [tasks (edn-utils/sexpr-keys expr)
+        known-task? (set (keys tasks))
+        path (find-task-cycle (sexpr expr))
+        rotate #(vec (take (count path) (drop % (cycle path))))
+        seg->index (->> (partition 2 1 (conj path (first path)))
+                        (map-indexed #(do [%2 %1]))
+                        (into {}))]
+    (doseq [[t-key t-def]    tasks
+            [td-key td-body] (partition 2 (:children t-def))
+            dep-task         (:children td-body)
+            :let  [cycle-idx  (get seg->index [t-key (:value dep-task)])]
+            :when (and (identical? :map (:tag t-def))
+                       (identical? (:k td-key) :depends)
+                       (or (not (known-task? (:value dep-task)))
+                           cycle-idx))]
+      (if cycle-idx
+        (findings/reg-finding! ctx
+                               (node->line (:filename ctx)
+                                           dep-task
+                                           :bb.edn/cyclic-task-dependency
+                                           (str "Cyclic task dependency: "
+                                                (apply str (interpose " -> " (conj (rotate cycle-idx) t-key))))))
+        (findings/reg-finding! ctx
+                               (node->line (:filename ctx)
+                                           dep-task
+                                           :bb.edn/undefined-task
+                                           (str "Depending on undefined task: " (:value dep-task))))))))
+
 (defn lint-bb-edn [ctx expr]
   (try
     (let [bb-edn (edn-utils/sexpr-keys expr)]
       (lint-bb-edn-paths ctx (:paths bb-edn))
-      (lint-deps ctx (-> bb-edn :deps edn-utils/node-map)))
+      (lint-deps ctx (-> bb-edn :deps edn-utils/node-map))
+      (when-let [tasks (:tasks bb-edn)]
+        (lint-tasks ctx tasks)))
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
       (binding [*out* *err*]

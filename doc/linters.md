@@ -246,6 +246,52 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 Expected map, found: java.lang.String
 ```
 
+### Bb.edn dependency on undefined task
+
+*Keyword:* `:bb.edn/undefined-task`
+
+*Description:* warn on taks undefined task dependencies in `bb.edn` files.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+`bb.edn`:
+
+``` clojure
+{:tasks {run {:depends [compile]}}}
+```
+
+*Example message:*
+
+```
+Depending on undefined task: compile
+```
+
+### Bb.edn cyclic task dependency
+
+*Keyword:* `:bb.edn/cyclic-task-dependency`
+
+*Description:* warn on cyclic dependencies `bb.edn` files.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+`bb.edn`:
+
+``` clojure
+{:tasks {a {:depends [b]
+            :task (println "a")}
+         b {:depends [a]}}}
+```
+
+*Example message:*
+
+```
+Cyclic task dependency: a -> b -> a
+```
+
 ### Docstring blank
 
 *Keyword:* `:docstring-blank`.

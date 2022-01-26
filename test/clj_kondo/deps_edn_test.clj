@@ -169,3 +169,30 @@
   (let [deps-edn "{:deps #_:clj-kondo/ignore {clj-kondo {:mvn/version \"2020.11.07\"}}}"]
     (is (empty? (lint! (str deps-edn)
                        "--filename" "deps.edn")))))
+
+(deftest depend-on-undefined-task-test
+  (let [bb-edn '{:tasks
+                 {run {:paths ["script"]
+                       :depends [compile]
+                       :task (call/fn)}
+                  cleanup {:depends [run]
+                           :paths ["script"]}
+                  init (println "init")}}]
+    (assert-submaps
+     '({:file "bb.edn", :row 1, :col 44, :level :error, :message "Depending on undefined task: compile"})
+     (lint! (str bb-edn)
+            "--filename" "bb.edn"))))
+
+(deftest cyclic-task-dependencies-test
+  (let [bb-edn '{:tasks
+                 {run {:paths ["script"]
+                       :task (call/fn)}
+                  cleanup {:depends [init]
+                           :paths ["script"]}
+                  init {:depends [cleanup]
+                        :task (println "init")}}}]
+    (assert-submaps
+     '({:file "bb.edn", :row 1, :col 71, :level :error, :message "Cyclic task dependency: cleanup -> init -> cleanup"}
+       {:file "bb.edn", :row 1, :col 114, :level :error, :message "Cyclic task dependency: init -> cleanup -> init"})
+     (lint! (str bb-edn)
+            "--filename" "bb.edn"))))
