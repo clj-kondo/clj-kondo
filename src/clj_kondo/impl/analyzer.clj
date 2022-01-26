@@ -2084,12 +2084,9 @@
                                     :context context
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
-                                    ;; TODO: explain reasoning of adding keyword as call here
-                                    :name (if (keyword? full-fn-name)
-                                            full-fn-name
-                                            (with-meta
-                                              (or resolved-name full-fn-name)
-                                              (meta full-fn-name)))
+                                    :name (with-meta
+                                            (or resolved-name full-fn-name)
+                                            (meta full-fn-name))
                                     :alias resolved-alias
                                     :unresolved? unresolved?
                                     :unresolved-ns unresolved-ns
