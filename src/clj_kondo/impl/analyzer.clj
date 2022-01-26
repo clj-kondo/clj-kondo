@@ -1797,7 +1797,8 @@
                     expanded (assoc expanded :visited [resolved-namespace resolved-name])]
                 ;;;; This registers the original call when the new node does not
                 ;;;; refer to the same call, so we still get arity linting
-                (when-not same-call?
+                (when-not (or same-call?
+                              (keyword? full-fn-name))
                   (namespace/reg-var-usage!
                    ctx ns-name {:type :call
                                 :resolved-ns resolved-namespace
@@ -2143,28 +2144,74 @@
                         m)
                       (cons call analyzed))))))))))
 
-(defn analyze-keyword-call [ctx expr arg-count k]
-  (let [arg-types (atom [])
+(defn analyze-keyword-call
+  [{:keys [:base-lang :lang :ns] :as ctx}
+   {:keys [:arg-count
+           :full-fn-name
+           :row :col
+           :expr]}]
+  (let [ns-name (:name ns)
+        children (:children expr)
+        children (rest children)
+        expr-meta (meta expr)
+        resolved-namespace :clj-kondo/unknown-namespace
+        resolved-name full-fn-name
+        fq-sym (when (and resolved-namespace
+                          resolved-name)
+                 (symbol (str resolved-namespace)
+                         (str resolved-name)))
+        unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
+        resolved-namespace* (if unknown-ns?
+                              ns-name resolved-namespace)
+        ctx (if fq-sym
+              (update ctx :callstack
+                      (fn [cs]
+                        (let [generated? (:clj-kondo.impl/generated expr)]
+                          (cons (with-meta [resolved-namespace* resolved-name]
+                                  (cond-> expr-meta
+                                    generated? (assoc :clj-kondo.impl/generated true))) cs))))
+              (update ctx :callstack conj [nil nil]))
+        arg-types (if (and resolved-namespace resolved-name
+                           (not (linter-disabled? ctx :type-mismatch)))
+                    (atom [])
+                    nil)
         ctx (assoc ctx :arg-types arg-types)
-        analyzed (analyze-children ctx (rest (:children expr)) false)
-        m (meta analyzed)
-        ns-name (-> ctx :ns :name)
-        proto-call (merge {:type :call
-                           :resolved-ns :clj-kondo/unknown-namespace
-                           :ns ns-name
-                           :name k
-                           :unresolved? true
-                           :unresolved-ns true
-                           :arity arg-count
-                           :base-lang (:base-lang ctx)
-                           :lang (:lang ctx)
-                           :filename (:filename ctx)
-                           :arg-types arg-types}
-                          (meta expr))
-        ret-tag (or (:ret m)
-                    (types/ret-tag-from-call ctx proto-call expr))
-        call (cond-> proto-call
-               ret-tag (assoc :ret ret-tag))]
+        analyzed
+        (let [next-ctx (cond-> ctx
+                         (one-of [resolved-namespace resolved-name]
+                                 [[clojure.core.async thread]
+                                  [clojure.core dosync]
+                                  [clojure.core future]
+                                  [clojure.core lazy-seq]
+                                  [clojure.core lazy-cat]])
+                         (-> (assoc-in [:recur-arity :fixed-arity] 0)
+                             (assoc :seen-recur? (volatile! nil))))]
+          (analyze-children next-ctx children false))
+        in-def (:in-def ctx)
+          id (:id expr)
+          m (meta analyzed)
+        proto-call {:type :call
+                    :resolved-ns resolved-namespace
+                    :ns ns-name
+                    :name full-fn-name
+                    :unresolved? true
+                    :unresolved-ns nil
+                    :arity arg-count
+                    :row row
+                    :end-row (:end-row expr-meta)
+                    :col col
+                    :end-col (:end-col expr-meta)
+                    :base-lang base-lang
+                    :lang lang
+                    :filename (:filename ctx)
+                    :arg-types (:arg-types ctx)}
+          ret-tag (or (:ret m)
+                      (types/ret-tag-from-call ctx proto-call expr))
+          call (cond-> proto-call
+                 id (assoc :id id)
+                 in-def (assoc :in-def in-def)
+                 ret-tag (assoc :ret ret-tag))]
+    (when id (reg-call ctx call id))
     (namespace/reg-var-usage! ctx ns-name call)
     (if m
       (with-meta (cons call analyzed)
@@ -2346,14 +2393,11 @@
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                       (let [;; TODO: going through analyze-call to get a potential call to a function?
-                            #_#_ret (analyze-keyword-call ctx expr arg-count
-                                                      (resolve-keyword ctx k (:namespaced? function)))
-                            ;; TODO: can we make it work with the above?
-                            ret (analyze-call ctx {:arg-count arg-count
-                                                   :full-fn-name (resolve-keyword ctx k (:namespaced? function))
-                                                   :row row
-                                                   :col col
-                                                   :expr expr})
+                            ret (analyze-keyword-call ctx {:arg-count arg-count
+                                                           :full-fn-name (resolve-keyword ctx k (:namespaced? function))
+                                                           :row row
+                                                           :col col
+                                                           :expr expr})
                             maybe-call (first ret)]
                         ;; (prn k (:name maybe-call))
                         ;; the above prn shows that maybe-call was the keyword call
