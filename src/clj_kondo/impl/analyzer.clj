@@ -2084,6 +2084,7 @@
                                     :context context
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
+                                    ;; TODO: explain reasoning of adding keyword as call here
                                     :name (if (keyword? full-fn-name)
                                             full-fn-name
                                             (with-meta
@@ -2126,6 +2127,7 @@
                         m)
                       (cons call analyzed))))))))))
 
+;; pulled out from lint-keyword-call!
 (defn- resolve-keyword
   [ctx kw namespaced?]
   (let [ns (:ns ctx)
@@ -2299,7 +2301,8 @@
                 :token
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
-                      (let [ret (analyze-call ctx {:arg-count arg-count
+                      (let [;; TODO: going through analyze-call to get a potential call to a function?
+                            ret (analyze-call ctx {:arg-count arg-count
                                                    :full-fn-name (resolve-keyword ctx k (:namespaced? function))
                                                    :row row
                                                    :col col
