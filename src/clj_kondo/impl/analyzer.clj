@@ -2132,11 +2132,13 @@
            :expr]}]
   (let [ns-name (:name ns)
         children (:children expr)
+        kw-node (first children)
+        _ (usages/analyze-keyword ctx kw-node)
         children (rest children)
         expr-meta (meta expr)
         resolved-namespace :clj-kondo/unknown-namespace
         resolved-name full-fn-name
-        ctx (update ctx :callstack conj [nil nil])
+        ctx (update ctx :callstack conj [nil :token])
         arg-types (if (and resolved-namespace resolved-name
                            (not (linter-disabled? ctx :type-mismatch)))
                     (atom [])
@@ -2351,19 +2353,20 @@
                 :token
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
-                      (let [;; TODO: going through analyze-call to get a potential call to a function?
+                      (let [[id expr] (if-let [id (:id expr)]
+                                        [id expr]
+                                        (let [id (gensym)]
+                                          [id (assoc expr :id id)]))
                             ret (analyze-keyword-call ctx {:arg-count arg-count
                                                            :full-fn-name (resolve-keyword ctx k (:namespaced? function))
                                                            :row row
                                                            :col col
                                                            :expr expr})
-                            maybe-call (first ret)]
-                        ;; (prn k (:name maybe-call))
-                        ;; the above prn shows that maybe-call was the keyword call
-                        (if (identical? :call (:type maybe-call))
+                            maybe-call (some #(when (= id (:id %))
+                                                %) ret)]
+                        (if maybe-call
                           (types/add-arg-type-from-call ctx maybe-call expr)
                           (types/add-arg-type-from-expr ctx expr))
-                        (analyze-children (update ctx :callstack conj [nil t]) [(first children)])
                         ret))
                   (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
                                           (when-not (one-of s ['. '..])
