@@ -2189,7 +2189,8 @@
                  id (assoc :id id)
                  in-def (assoc :in-def in-def)
                  ret-tag (assoc :ret ret-tag))]
-    (when id (reg-call ctx call id))
+    (when id
+      (reg-call ctx call id))
     (namespace/reg-var-usage! ctx ns-name call)
     (if m
       (with-meta (cons call analyzed)
