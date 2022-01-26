@@ -12,18 +12,6 @@
    [clojure.test :as t :refer [deftest is testing *report-counters*]]
    [missing.test.assertions]))
 
-(defmethod clojure.test/report :begin-test-var [m]
-  (println "===" (-> m :var meta :name))
-  (println))
-
-(defmethod clojure.test/report :end-test-var [_m]
-  (when-let [rc *report-counters*]
-    (when-let [{:keys [:fail :error]} @rc]
-      (when (and (= "true" (System/getenv "CLJ_KONDO_FAIL_FAST"))
-                 (or (pos? fail) (pos? error)))
-        (println "=== Failing fast")
-        (System/exit 1)))))
-
 (deftest self-lint-test
   (is (empty? (lint! (io/file "src")
                      {:linters {:unresolved-symbol {:level :error}}})))

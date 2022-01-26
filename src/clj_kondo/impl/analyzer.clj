@@ -509,7 +509,7 @@
         [doc-node docstring] (or (and meta-node2-meta
                                       (:doc meta-node2-meta)
                                       (docstring/docs-from-meta meta-node2))
-                              [doc-node docstring])
+                                 [doc-node docstring])
         var-meta (if meta-node-meta
                    (merge var-leading-meta meta-node-meta)
                    var-leading-meta)
@@ -2143,6 +2143,34 @@
                         m)
                       (cons call analyzed))))))))))
 
+(defn analyze-keyword-call [ctx expr arg-count k]
+  (let [arg-types (atom [])
+        ctx (assoc ctx :arg-types arg-types)
+        analyzed (analyze-children ctx (rest (:children expr)) false)
+        m (meta analyzed)
+        ns-name (-> ctx :ns :name)
+        proto-call (merge {:type :call
+                           :resolved-ns :clj-kondo/unknown-namespace
+                           :ns ns-name
+                           :name k
+                           :unresolved? true
+                           :unresolved-ns true
+                           :arity arg-count
+                           :base-lang (:base-lang ctx)
+                           :lang (:lang ctx)
+                           :filename (:filename ctx)
+                           :arg-types arg-types}
+                          (meta expr))
+        ret-tag (or (:ret m)
+                    (types/ret-tag-from-call ctx proto-call expr))
+        call (cond-> proto-call
+               ret-tag (assoc :ret ret-tag))]
+    (namespace/reg-var-usage! ctx ns-name call)
+    (if m
+      (with-meta (cons call analyzed)
+        m)
+      (cons call analyzed))))
+
 ;; pulled out from lint-keyword-call!
 (defn- resolve-keyword
   [ctx kw namespaced?]
@@ -2318,12 +2346,11 @@
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
                       (let [;; TODO: going through analyze-call to get a potential call to a function?
-                            ret (analyze-call ctx {:arg-count arg-count
-                                                   :full-fn-name (resolve-keyword ctx k (:namespaced? function))
-                                                   :row row
-                                                   :col col
-                                                   :expr expr})
+                            ret (analyze-keyword-call ctx expr arg-count
+                                                      (resolve-keyword ctx k (:namespaced? function)))
                             maybe-call (first ret)]
+                        ;; (prn k (:name maybe-call))
+                        ;; the above prn shows that maybe-call was the keyword call
                         (if (identical? :call (:type maybe-call))
                           (types/add-arg-type-from-call ctx maybe-call expr)
                           (types/add-arg-type-from-expr ctx expr))
