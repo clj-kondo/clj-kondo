@@ -2137,10 +2137,8 @@
         children (rest children)
         expr-meta (meta expr)
         resolved-namespace :clj-kondo/unknown-namespace
-        resolved-name full-fn-name
         ctx (update ctx :callstack conj [nil :token])
-        arg-types (if (and resolved-namespace resolved-name
-                           (not (linter-disabled? ctx :type-mismatch)))
+        arg-types (if (not (linter-disabled? ctx :type-mismatch))
                     (atom [])
                     nil)
         ctx (assoc ctx :arg-types arg-types)
