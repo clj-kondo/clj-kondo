@@ -9,7 +9,7 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing *report-counters*]]
+   [clojure.test :as t :refer [deftest is testing]]
    [missing.test.assertions]))
 
 (deftest self-lint-test
