@@ -248,7 +248,7 @@ Expected map, found: java.lang.String
 
 ### Bb.edn dependency on undefined task
 
-*Keyword:* `:bb.edn/undefined-task`
+*Keyword:* `:bb.edn-undefined-task`
 
 *Description:* warn on taks undefined task dependencies in `bb.edn` files.
 
@@ -270,7 +270,7 @@ Depending on undefined task: compile
 
 ### Bb.edn cyclic task dependency
 
-*Keyword:* `:bb.edn/cyclic-task-dependency`
+*Keyword:* `:bb.edn-cyclic-task-dependency`
 
 *Description:* warn on cyclic dependencies `bb.edn` files.
 
