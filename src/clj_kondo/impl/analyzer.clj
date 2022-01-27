@@ -509,7 +509,7 @@
         [doc-node docstring] (or (and meta-node2-meta
                                       (:doc meta-node2-meta)
                                       (docstring/docs-from-meta meta-node2))
-                              [doc-node docstring])
+                                 [doc-node docstring])
         var-meta (if meta-node-meta
                    (merge var-leading-meta meta-node-meta)
                    var-leading-meta)
@@ -2124,23 +2124,84 @@
                         m)
                       (cons call analyzed))))))))))
 
+(defn analyze-keyword-call
+  [{:keys [:base-lang :lang :ns] :as ctx}
+   {:keys [:arg-count
+           :full-fn-name
+           :row :col
+           :expr]}]
+  (let [ns-name (:name ns)
+        children (:children expr)
+        kw-node (first children)
+        _ (usages/analyze-keyword ctx kw-node)
+        children (rest children)
+        expr-meta (meta expr)
+        resolved-namespace :clj-kondo/unknown-namespace
+        ctx (update ctx :callstack conj [nil :token])
+        arg-types (if (not (linter-disabled? ctx :type-mismatch))
+                    (atom [])
+                    nil)
+        ctx (assoc ctx :arg-types arg-types)
+        analyzed
+        (let [next-ctx ctx]
+          (analyze-children next-ctx children false))
+        in-def (:in-def ctx)
+        id (:id expr)
+        m (meta analyzed)
+        proto-call {:type :call
+                    :resolved-ns resolved-namespace
+                    :ns ns-name
+                    :name full-fn-name
+                    :unresolved? true
+                    :unresolved-ns nil
+                    :arity arg-count
+                    :row row
+                    :end-row (:end-row expr-meta)
+                    :col col
+                    :end-col (:end-col expr-meta)
+                    :base-lang base-lang
+                    :lang lang
+                    :filename (:filename ctx)
+                    :arg-types (:arg-types ctx)}
+        ret-tag (or (:ret m)
+                    (types/ret-tag-from-call ctx proto-call expr))
+        call (cond-> proto-call
+               id (assoc :id id)
+               in-def (assoc :in-def in-def)
+               ret-tag (assoc :ret ret-tag))]
+    (when id
+      (reg-call ctx call id))
+    (if m
+      (with-meta (cons call analyzed)
+        m)
+      (cons call analyzed))))
+
+;; pulled out from lint-keyword-call!
+(defn- resolve-keyword
+  [ctx kw namespaced?]
+  (let [ns (:ns ctx)
+        ?resolved-ns (if namespaced?
+                       (if-let [kw-ns (namespace kw)]
+                         (or (get (:qualify-ns ns) (symbol kw-ns))
+                             ;; because we couldn't resolve the namespaced
+                             ;; keyword, we print it as is
+                             (str ":" (namespace kw)))
+                         ;; if the keyword is namespace, but there is no
+                         ;; namespace, it's the current ns
+                         (:name ns))
+                       (namespace kw))]
+    (if ?resolved-ns
+      (keyword (str ?resolved-ns) (name kw))
+      kw)))
+
 (defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
     (when-not (config/skip? config :invalid-arity callstack)
-      (let [ns (:ns ctx)
-            ?resolved-ns (if namespaced?
-                           (if-let [kw-ns (namespace kw)]
-                             (or (get (:qualify-ns ns) (symbol kw-ns))
-                                 ;; because we couldn't resolve the namespaced
-                                 ;; keyword, we print it as is
-                                 (str ":" (namespace kw)))
-                             ;; if the keyword is namespace, but there is no
-                             ;; namespace, it's the current ns
-                             (:name ns))
-                           (namespace kw))
-            kw-str (if ?resolved-ns (str ?resolved-ns "/" (name kw))
-                       (str (name kw)))]
+      (let [resolved-kw (resolve-keyword ctx kw namespaced?)
+            kw-str (if (namespace resolved-kw)
+                     (str (namespace resolved-kw) "/" (name kw))
+                     (str (name resolved-kw)))]
         (when (or (zero? arg-count)
                   (> arg-count 2))
           (findings/reg-finding! ctx
@@ -2288,10 +2349,22 @@
                     (analyze-children (update ctx :callstack conj [nil t]) children))
                 :token
                 (if-let [k (:k function)]
-                  (do
-                    (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
-                    (types/add-arg-type-from-expr ctx expr)
-                    (analyze-children (update ctx :callstack conj [nil t]) children))
+                  (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+                      (let [[id expr] (if-let [id (:id expr)]
+                                        [id expr]
+                                        (let [id (gensym)]
+                                          [id (assoc expr :id id)]))
+                            ret (analyze-keyword-call ctx {:arg-count arg-count
+                                                           :full-fn-name (resolve-keyword ctx k (:namespaced? function))
+                                                           :row row
+                                                           :col col
+                                                           :expr expr})
+                            maybe-call (some #(when (= id (:id %))
+                                                %) ret)]
+                        (if maybe-call
+                          (types/add-arg-type-from-call ctx maybe-call expr)
+                          (types/add-arg-type-from-expr ctx expr))
+                        ret))
                   (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
                                           (when-not (one-of s ['. '..])
                                             s))]

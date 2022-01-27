@@ -413,7 +413,6 @@
                   :filename filename)
            call called-fn)
           (when-not (or arity-error? skip-arity-check?)
-            ;; (prn :>> fn-name @(:arg-types call))
             (lint-arg-types! ctx idacs call called-fn)))))))
 
 (defn lint-unused-namespaces!
@@ -575,14 +574,14 @@
       (let [filename (:filename v)
             n (:name v)]
         (findings/reg-finding!
-          ctx
-          {:type :unresolved-symbol
-           :filename filename
-           :message (str "Unresolved symbol: " n)
-           :row (:row v)
-           :col (:col v)
-           :end-row (:end-row v)
-           :end-col (:end-col v)})))))
+         ctx
+         {:type :unresolved-symbol
+          :filename filename
+          :message (str "Unresolved symbol: " n)
+          :row (:row v)
+          :col (:col v)
+          :end-row (:end-row v)
+          :end-col (:end-col v)})))))
 
 (defn lint-unresolved-vars!
   [ctx]
