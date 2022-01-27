@@ -573,16 +573,15 @@
                 hide-duplicates? (take 1))]
       (let [filename (:filename v)
             n (:name v)]
-        (when-not (keyword? n)
-          (findings/reg-finding!
-           ctx
-           {:type :unresolved-symbol
-            :filename filename
-            :message (str "Unresolved symbol: " n)
-            :row (:row v)
-            :col (:col v)
-            :end-row (:end-row v)
-            :end-col (:end-col v)}))))))
+        (findings/reg-finding!
+         ctx
+         {:type :unresolved-symbol
+          :filename filename
+          :message (str "Unresolved symbol: " n)
+          :row (:row v)
+          :col (:col v)
+          :end-row (:end-row v)
+          :end-col (:end-col v)})))))
 
 (defn lint-unresolved-vars!
   [ctx]
