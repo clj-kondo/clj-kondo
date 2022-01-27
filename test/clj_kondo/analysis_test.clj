@@ -356,8 +356,7 @@
      '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7 :end-row 1 :end-col 19}]
      var-definitions)
     (assert-submaps
-     ;; Last map is a duplicate of the third argument,
-     '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28} {}]
+     '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
      var-usages)))
 
 (deftest scope-usage-test
