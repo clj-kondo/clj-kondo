@@ -224,25 +224,28 @@
                   ;; we delay resolving this call, because we might find the spec for by linting other code
                   ;; see linters.clj
                   {:call (select-keys call [:filename :type :lang :base-lang :resolved-ns :ns :name :arity])})))))
-
       ;; Keyword calls are handled differently, we try to resolve the return
       ;; type dynamically for the 1-arity version.
-      (when (and (keyword? (:name call))
-                 (= (some-> (:arg-types call) deref count) 1))
-        (when-let [arg-type (some-> (:arg-types call) deref first)]
-          (cond
-            (:call arg-type)
-            {:call (assoc (:call arg-type)
-                          :kw-calls (concat (:kw-calls (:call arg-type))
-                                            [(:name call)]))}
-
-            (:req (:tag arg-type))
-            {:tag (get (:req (:tag arg-type))
-                       (:name call))}
-
-            (:val (:tag arg-type))
-            {:tag (get (:val (:tag arg-type))
-                       (:name call))})))))
+      (let [nm (:name call)
+            arg-types (:arg-types call)
+            arg-types (when arg-types (deref arg-types))
+            arg-count (count arg-types)]
+        (when (and (keyword? nm)
+                   (= 1 arg-count))
+          (when-let [arg-type (first arg-types)]
+            (let [call* (:call arg-type)]
+              (if call*
+                {:call (assoc call*
+                              ;; build chain of keyword calls
+                              :kw-calls ((fnil conj []) (:kw-calls call*)
+                                         nm))}
+                (let [t (:tag arg-type)
+                      nm (:name call)]
+                  (if (:req t)
+                    {:tag (get (:req (:tag arg-type))
+                               nm)}
+                    (when-let [v (:val t)]
+                      {:tag (get v nm)}))))))))))
 
 (defn keyword
   "Converts tagged item into single keyword, if possible."

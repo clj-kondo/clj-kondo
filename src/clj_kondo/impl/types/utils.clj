@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.types.utils
   {:no-doc true}
-  (:require [clj-kondo.impl.utils :refer [resolve-call*]]))
+  (:require [clj-kondo.impl.utils :as utils :refer [resolve-call*]]))
 
 (defn union-type
   ([] #{})
