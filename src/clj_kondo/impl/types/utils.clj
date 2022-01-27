@@ -80,17 +80,17 @@
                                  ;; See `clj-kondo.impl.types/ret-tag-from-call` where
                                  ;; `kw-calls` is introduced.
                                  (if kw-calls
-                                   (when (= (:type resolved-arg-type) :map)
+                                   (when (identical? :map (:type resolved-arg-type))
                                      (let [[kw-call & rest-kw-calls] kw-calls
                                            resolved-tag (-> resolved-arg-type :val (get kw-call) :tag)]
                                        (cond
-                                         (and (seq rest-kw-calls)
+                                         (and rest-kw-calls
                                               (= (:type resolved-tag) :map))
                                          (resolve-arg-type idacs
                                                            (assoc resolved-tag :kw-calls rest-kw-calls)
                                                            seen-calls)
 
-                                         (seq rest-kw-calls)
+                                         rest-kw-calls
                                          nil
 
                                          :else

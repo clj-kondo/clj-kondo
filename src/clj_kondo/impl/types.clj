@@ -369,7 +369,7 @@
 (defn lint-map-types! [ctx arg mval spec spec-key required?]
   (doseq [[k target] (get spec spec-key)]
     (if-let [v (get mval k)]
-      (when-let [t (type-utils/resolve-arg-type ctx v)]
+      (when-let [t (type-utils/resolve-arg-type nil v)]
         (if (= :keys (:op target))
           (lint-map! ctx target v t)
           (when-not (match? t target)
