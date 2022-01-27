@@ -36,24 +36,28 @@
        (let [ret
              (cond (set? arg-type) (reduce union-type #{} (map #(resolve-arg-type idacs % seen-calls) arg-type))
                    (map? arg-type)
-                   (or (when-let [t (:tag arg-type)] (resolve-arg-type
-                                                      idacs
-                                                      (if (map? t)
-                                                        (merge t (select-keys arg-type [:row :col :end-row :end-col]))
-                                                        t)
-                                                      seen-calls))
+                   (or (when-let [t (:tag arg-type)]
+                         (resolve-arg-type
+                          idacs
+                          (if (map? t)
+                            (if (:row t)
+                              t
+                              ;; should we have added this location info before?
+                              (merge t (select-keys arg-type [:row :col :end-row :end-col])))
+                            t)
+                          seen-calls))
                        (when-let [t (:type arg-type)]
                          (when (identical? t :map)
                            (if-let [[kw-call & rest-kw-calls] (seq (:kw-calls arg-type))]
                              (let [resolved-tag (-> arg-type :val (get kw-call) :tag)]
                                (cond
-                                 (and (seq rest-kw-calls)
+                                 (and rest-kw-calls
                                       (= (:type resolved-tag) :map))
                                  (resolve-arg-type idacs
                                                    (assoc resolved-tag :kw-calls rest-kw-calls)
                                                    seen-calls)
 
-                                 (seq rest-kw-calls)
+                                 rest-kw-calls
                                  nil
 
                                  :else
