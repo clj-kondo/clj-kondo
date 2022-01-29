@@ -2255,7 +2255,15 @@
        (node->line (:filename ctx) expr :not-a-function (str "a " typ " is not a function"))))))
 
 (defn analyze-reader-macro [ctx expr]
-  (analyze-children ctx (rest (:children expr))))
+  (let [children (:children expr)
+        tag-expr (first children)
+        tag (:value tag-expr)
+        ctx (if (and (identical? :cljs (:lang ctx))
+                     (= 'js tag))
+              ctx
+              (assoc ctx :quoted true))
+        children (rest children)]
+    (analyze-children ctx children)))
 
 (defn analyze-expression**
   [{:keys [:bindings :lang] :as ctx}

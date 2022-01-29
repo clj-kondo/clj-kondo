@@ -1820,6 +1820,17 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-namespace {:level :error}}}
                      "--lang" "cljs"))))
 
+(deftest tagged-literal-test
+  (is (empty?
+       (lint! "(let [x 1] #js {:a x})"
+              {:linters {:unused-binding {:level :warning}}}
+              "--lang" "cljs")))
+  (is (empty?
+       (lint! "(set! *default-data-reader-fn* tagged-literal)
+               #read-thing ([1 2 3] 4 5 6 (inc :foo))"
+              )))
+  )
+
 (deftest extend-type-specify-test
   (assert-submaps
    '({:file "<stdin>", :row 2, :col 25, :level :error, :message "Unresolved symbol: x"})
