@@ -73,10 +73,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - name: Setup clj-kondo
-      uses: DeLaGuardo/setup-clj-kondo@822352b8aa37d5c94135e67f7b4e2f46c08008a8
+    - name: Install clj-kondo
+      uses: DeLaGuardo/setup-clj-kondo@afc83dbbf4e7e32e04649e29dbf30668d30e9e3e
       with:
-        version: '2020.04.05'
+        version: '2022.01.15'
 
     - uses: actions/checkout@v2
 
