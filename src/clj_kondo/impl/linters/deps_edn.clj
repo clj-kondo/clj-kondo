@@ -212,7 +212,7 @@
         (findings/reg-finding! ctx
                                (node->line (:filename ctx)
                                            t-def
-                                           :bb.edn-task-docstring-missing
+                                           :bb.edn-task-missing-docstring
                                            (format "Docstring missing for task: %s" t-key))))
       (doseq [dep-task         (:children (:depends t-map))
               :let             [cycle-idx    (get seg->index [t-key (:value dep-task)])

@@ -214,5 +214,5 @@
     (assert-submaps
      '({:file "bb.edn", :row 1, :col 14, :level :warning, :message "Docstring missing for task: run"})
      (lint! (str bb-edn)
-            '{:linters {:bb.edn-task-docstring-missing {:level :warning}}}
+            '{:linters {:bb.edn-task-missing-docstring {:level :warning}}}
             "--filename" "bb.edn"))))

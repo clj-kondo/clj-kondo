@@ -316,7 +316,7 @@ Global :requires belong in the :tasks map.
 
 ### Bb.edn task docstring missing
 
-*Keyword:* `:bb.edn-task-docstring-missing`
+*Keyword:* `:bb.edn-task-missing-docstring`
 
 *Description:* warn on missing docstring for map tasks.
 
