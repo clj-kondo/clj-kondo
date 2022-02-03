@@ -286,6 +286,12 @@ Depending on undefined task: compile
          b {:depends [a]}}}
 ```
 
+*Example message:*
+
+```
+Cyclic task dependency: a -> b -> a
+```
+
 ### Bb.edn global requires
 
 *Keyword:* `:bb.edn-global-requires`
