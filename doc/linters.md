@@ -286,10 +286,26 @@ Depending on undefined task: compile
          b {:depends [a]}}}
 ```
 
+### Bb.edn global requires
+
+*Keyword:* `:bb.edn-global-requires`
+
+*Description:* warn on top level `:requires` key.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+`bb.edn`:
+
+``` clojure
+{:requires [[babashka.fs :as fs]]}
+```
+
 *Example message:*
 
 ```
-Cyclic task dependency: a -> b -> a
+Global :requires belong in the :tasks map.
 ```
 
 ### Docstring blank

@@ -196,3 +196,13 @@
        {:file "bb.edn", :row 1, :col 114, :level :error, :message "Cyclic task dependency: init -> cleanup -> init"})
      (lint! (str bb-edn)
             "--filename" "bb.edn"))))
+
+(deftest global-task-require-test
+  (let [bb-edn '{:requires [[babashka.fs :as fs]]
+                 :tasks
+                 {run {:paths ["script"]
+                       :task (call/fn)}}}]
+    (assert-submaps
+     '({:file "bb.edn", :row 1, :col 2, :level :warning, :message "Global :requires belong in the :tasks map."})
+     (lint! (str bb-edn)
+            "--filename" "bb.edn"))))

@@ -231,6 +231,13 @@
     (let [bb-edn (edn-utils/sexpr-keys expr)]
       (lint-bb-edn-paths ctx (:paths bb-edn))
       (lint-deps ctx (-> bb-edn :deps edn-utils/node-map))
+      (when-let [key-node (and (:requires bb-edn)
+                               (some #(when (= :requires (:k %)) %) (edn-utils/key-nodes expr)))]
+        (findings/reg-finding! ctx
+                               (node->line (:filename ctx)
+                                           key-node
+                                           :bb.edn-global-requires
+                                           "Global :requires belong in the :tasks map.")))
       (when-let [tasks (:tasks bb-edn)]
         (lint-tasks ctx tasks)))
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
