@@ -407,7 +407,6 @@
                [s & rest-args-spec :as all-specs] args-spec
                [a & rest-args :as all-args] args
                [t & rest-tags :as all-tags] tags]
-          ;; (prn "S" s "CTX" check-ctx)
           (let [op (:op s)]
             (cond (and (empty? all-args)
                        (empty? all-specs)) :done

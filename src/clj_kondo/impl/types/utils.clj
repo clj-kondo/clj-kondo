@@ -65,8 +65,7 @@
                              arg-type)))
                        (when-let [call (:call arg-type)]
                          (when-not (contains? seen-calls call)
-                           (let [arity (:arity call)
-                                 kw-calls (:kw-calls call)]
+                           (let [arity (:arity call)]
                              (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
                                (let [arities (:arities called-fn)
                                      tag (or (when-let [v (get arities arity)]
@@ -79,7 +78,7 @@
                                  ;; `kw-calls` exists for dynamic types when using keyword calls.
                                  ;; See `clj-kondo.impl.types/ret-tag-from-call` where
                                  ;; `kw-calls` is introduced.
-                                 (if kw-calls
+                                 (if-let [kw-calls (:kw-calls call)]
                                    (when (identical? :map (:type resolved-arg-type))
                                      (let [[kw-call & rest-kw-calls] kw-calls
                                            resolved-tag (-> resolved-arg-type :val (get kw-call) :tag)]
@@ -94,7 +93,8 @@
                                          nil
 
                                          :else
-                                         resolved-tag)))
+                                         ;; resolved-tag may be a :call that still needs resolving
+                                         (resolve-arg-type idacs resolved-tag seen-calls))))
                                    (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
