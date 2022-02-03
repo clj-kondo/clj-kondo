@@ -197,7 +197,7 @@
      (lint! (str bb-edn)
             "--filename" "bb.edn"))))
 
-(deftest global-task-require-test
+(deftest unexpected-key-test
   (let [bb-edn '{:requires [[babashka.fs :as fs]]
                  :tasks
                  {run {:paths ["script"]

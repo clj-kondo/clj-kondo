@@ -292,11 +292,11 @@ Depending on undefined task: compile
 Cyclic task dependency: a -> b -> a
 ```
 
-### Bb.edn global requires
+### Bb.edn Unexpected key
 
-*Keyword:* `:bb.edn-global-requires`
+*Keyword:* `:bb.edn-unexpected-key`
 
-*Description:* warn on top level `:requires` key.
+*Description:* warn on unexpected keys in bb.edn
 
 *Default level:* `:warning`
 

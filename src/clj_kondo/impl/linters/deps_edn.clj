@@ -241,7 +241,7 @@
         (findings/reg-finding! ctx
                                (node->line (:filename ctx)
                                            key-node
-                                           :bb.edn-global-requires
+                                           :bb.edn-unexpected-key
                                            "Global :requires belong in the :tasks map.")))
       (when-let [tasks (:tasks bb-edn)]
         (lint-tasks ctx tasks)))
