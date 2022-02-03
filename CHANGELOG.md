@@ -6,8 +6,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - Feature [#1549](https://github.com/clj-kondo/clj-kondo/issues/1549): detect and warn on cyclic task dependencies in bb.edn ([@mknoszlig](https://github.com/mknoszlig))
 - Feature [#1547](https://github.com/clj-kondo/clj-kondo/issues/1547): catch tasks undefined tasks present in `:depends`. ([@mknoszlig](https://github.com/mknoszlig))
-- Feature [#783](https://github.com/clj-kondo/clj-kondo/issues/783): `:keys` can be used in `:ret` position, also fixes types return map call as input for another typed map function
-- Fix [#1563](https://github.com/clj-kondo/clj-kondo/issues/1563): vector inside list should not be linted as function call when inside tagged literal
+- Feature [#783](https://github.com/clj-kondo/clj-kondo/issues/783): `:keys` can be used in `:ret` position, also fixes types return map call as input for another typed map function.
+- Fix [#1563](https://github.com/clj-kondo/clj-kondo/issues/1563): vector inside list should not be linted as function call when inside tagged literal.
+- Fix [#1540](https://github.com/clj-kondo/clj-kondo/issues/1540): imported class flagged as unused when it only appears in annotation metadata.
 
 ## 2022.01.15
 

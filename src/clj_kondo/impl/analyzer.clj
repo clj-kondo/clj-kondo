@@ -1293,8 +1293,12 @@
           ;; Assume protocol fn impl. Analyzing the fn sym can cause false
           ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
           ;; is linted as (fn [x y z])
-          (do (analyze-fn ctx c)
-              (recur current-protocol (rest children))))))))
+          (let [fn-children (:children c)
+                protocol-fn-name (first fn-children)]
+            ;; protocol-fn-name might contain metadata
+            (meta/lift-meta-content2 ctx protocol-fn-name)
+            (analyze-fn ctx c)
+            (recur current-protocol (rest children))))))))
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))

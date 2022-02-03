@@ -1684,7 +1684,9 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "defrecord/map->Thing is called with 2 args but expects 1"})
    (lint! (io/file "corpus" "defrecord.clj")
-          "--config" "{:linters {:unused-binding {:level :warning}}}")))
+          "--config" "{:linters {:unused-binding {:level :warning}}}"))
+  (is (empty? (lint! (io/file "corpus" "record_protocol_metadata.clj")
+                     {:unused-import {:level :warning}}))))
 
 (deftest deftype-test
   (assert-submaps
