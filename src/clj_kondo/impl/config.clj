@@ -111,6 +111,7 @@
               :bb.edn-undefined-task {:level :error}
               :bb.edn-cyclic-task-dependency {:level :error}
               :bb.edn-global-requires {:level :warning}
+              :bb.edn-task-docstring-missing {:level :off}
               :clj-kondo-config {:level :warning}
               :redundant-expression {:level :warning}
               :loop-without-recur {:level :warning}

@@ -206,3 +206,13 @@
      '({:file "bb.edn", :row 1, :col 2, :level :warning, :message "Global :requires belong in the :tasks map."})
      (lint! (str bb-edn)
             "--filename" "bb.edn"))))
+
+(deftest missing-task-docstring-test
+  (let [bb-edn '{:tasks
+                 {run {:paths ["script"]
+                       :task (call/fn)}}}]
+    (assert-submaps
+     '({:file "bb.edn", :row 1, :col 14, :level :warning, :message "Docstring missing for task: run"})
+     (lint! (str bb-edn)
+            '{:linters {:bb.edn-task-docstring-missing {:level :warning}}}
+            "--filename" "bb.edn"))))
