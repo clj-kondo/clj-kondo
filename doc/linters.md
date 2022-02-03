@@ -292,6 +292,50 @@ Depending on undefined task: compile
 Cyclic task dependency: a -> b -> a
 ```
 
+### Bb.edn Unexpected key
+
+*Keyword:* `:bb.edn-unexpected-key`
+
+*Description:* warn on unexpected keys in bb.edn
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+`bb.edn`:
+
+``` clojure
+{:requires [[babashka.fs :as fs]]}
+```
+
+*Example message:*
+
+```
+Global :requires belong in the :tasks map.
+```
+
+### Bb.edn task docstring missing
+
+*Keyword:* `:bb.edn-task-missing-docstring`
+
+*Description:* warn on missing docstring for map tasks.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+`bb.edn`:
+
+``` clojure
+{:tasks {a {:task (call-fn}]}
+```
+
+*Example message:*
+
+```
+Docstring missing for task: a
+```
+
 ### Docstring blank
 
 *Keyword:* `:docstring-blank`.

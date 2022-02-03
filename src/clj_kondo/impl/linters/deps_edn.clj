@@ -206,31 +206,43 @@
                         (map-indexed #(do [%2 %1]))
                         (into {}))]
     (doseq [[t-key t-def]    tasks
-            [td-key td-body] (partition 2 (:children t-def))
-            dep-task         (:children td-body)
-            :let  [cycle-idx  (get seg->index [t-key (:value dep-task)])]
-            :when (and (identical? :map (:tag t-def))
-                       (identical? (:k td-key) :depends)
-                       (or (not (known-task? (:value dep-task)))
-                           cycle-idx))]
-      (if cycle-idx
+            :let  [t-map (edn-utils/sexpr-keys t-def)]
+            :when (identical? :map (:tag t-def))]
+      (when-not (:doc t-map)
         (findings/reg-finding! ctx
                                (node->line (:filename ctx)
-                                           dep-task
-                                           :bb.edn-cyclic-task-dependency
-                                           (str "Cyclic task dependency: "
-                                                (apply str (interpose " -> " (conj (rotate cycle-idx) t-key))))))
-        (findings/reg-finding! ctx
-                               (node->line (:filename ctx)
-                                           dep-task
-                                           :bb.edn-undefined-task
-                                           (str "Depending on undefined task: " (:value dep-task))))))))
+                                           t-def
+                                           :bb.edn-task-missing-docstring
+                                           (format "Docstring missing for task: %s" t-key))))
+      (doseq [dep-task         (:children (:depends t-map))
+              :let             [cycle-idx    (get seg->index [t-key (:value dep-task)])
+                                unknown-dep? (not (known-task? (:value dep-task)))]
+              :when            (or unknown-dep? cycle-idx)]
+        (if cycle-idx
+          (findings/reg-finding! ctx
+                                 (node->line (:filename ctx)
+                                             dep-task
+                                             :bb.edn-cyclic-task-dependency
+                                             (str "Cyclic task dependency: "
+                                                  (apply str (interpose " -> " (conj (rotate cycle-idx) t-key))))))
+          (findings/reg-finding! ctx
+                                 (node->line (:filename ctx)
+                                             dep-task
+                                             :bb.edn-undefined-task
+                                             (str "Depending on undefined task: " (:value dep-task)))))))))
 
 (defn lint-bb-edn [ctx expr]
   (try
     (let [bb-edn (edn-utils/sexpr-keys expr)]
       (lint-bb-edn-paths ctx (:paths bb-edn))
       (lint-deps ctx (-> bb-edn :deps edn-utils/node-map))
+      (when-let [key-node (and (:requires bb-edn)
+                               (some #(when (= :requires (:k %)) %) (edn-utils/key-nodes expr)))]
+        (findings/reg-finding! ctx
+                               (node->line (:filename ctx)
+                                           key-node
+                                           :bb.edn-unexpected-key
+                                           "Global :requires belong in the :tasks map.")))
       (when-let [tasks (:tasks bb-edn)]
         (lint-tasks ctx tasks)))
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.

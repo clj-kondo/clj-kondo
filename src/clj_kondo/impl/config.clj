@@ -110,6 +110,8 @@
               :deps.edn {:level :warning}
               :bb.edn-undefined-task {:level :error}
               :bb.edn-cyclic-task-dependency {:level :error}
+              :bb.edn-unexpected-key {:level :warning}
+              :bb.edn-task-missing-docstring {:level :off}
               :clj-kondo-config {:level :warning}
               :redundant-expression {:level :warning}
               :loop-without-recur {:level :warning}

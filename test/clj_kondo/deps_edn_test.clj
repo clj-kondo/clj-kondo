@@ -196,3 +196,28 @@
        {:file "bb.edn", :row 1, :col 114, :level :error, :message "Cyclic task dependency: init -> cleanup -> init"})
      (lint! (str bb-edn)
             "--filename" "bb.edn"))))
+
+(deftest unexpected-key-test
+  (let [bb-edn '{:requires [[babashka.fs :as fs]]
+                 :tasks
+                 {run {:paths ["script"]
+                       :task (call/fn)}}}]
+    (assert-submaps
+     '({:file "bb.edn", :row 1, :col 2, :level :warning, :message "Global :requires belong in the :tasks map."})
+     (lint! (str bb-edn)
+            "--filename" "bb.edn"))))
+
+(deftest missing-task-docstring-test
+  (let [bb-edn '{:tasks
+                 {run {:paths ["script"]
+                       :task (call/fn)}
+                  -hidden {:task (call/another)}
+                  private {:task (call/yet-another)
+                           :private true}}}]
+    (assert-submaps
+     '({:file "bb.edn", :row 1, :col 14, :level :warning, :message "Docstring missing for task: run"}
+       {:file "bb.edn", :row 1, :col 60, :level :warning, :message "Docstring missing for task: -hidden"}
+       {:file "bb.edn", :row 1, :col 92, :level :warning, :message "Docstring missing for task: private"})
+     (lint! (str bb-edn)
+            '{:linters {:bb.edn-task-missing-docstring {:level :warning}}}
+            "--filename" "bb.edn"))))
