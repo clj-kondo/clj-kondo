@@ -206,9 +206,12 @@
                         (map-indexed #(do [%2 %1]))
                         (into {}))]
     (doseq [[t-key t-def]    tasks
-            :let  [t-map (edn-utils/sexpr-keys t-def)]
+            :let  [t-map (edn-utils/sexpr-keys t-def)
+                   private? (or (:private t-map)
+                                (= \- (first (name t-key))))]
             :when (identical? :map (:tag t-def))]
-      (when-not (:doc t-map)
+      (when-not (or (:doc t-map)
+                    private?)
         (findings/reg-finding! ctx
                                (node->line (:filename ctx)
                                            t-def
