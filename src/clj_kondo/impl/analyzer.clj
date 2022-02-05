@@ -825,20 +825,22 @@
 (defn analyze-fn [ctx expr]
   (let [ctx (assoc ctx :seen-recur? (volatile! nil))
         children (:children expr)
-        ?fn-name (when-let [?name-expr (second children)]
+        ?name-expr (second children)
+        ?fn-name (when ?name-expr
                    (when-let [n (utils/symbol-from-token ?name-expr)]
                      n))
         bodies (fn-bodies ctx (next children) expr)
         ;; we need the arity beforehand because this is valid in each body
         arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)
+        filename (:filename ctx)
         parsed-bodies
         (map #(analyze-fn-body
                (if ?fn-name
                  (-> ctx
                      (update :bindings conj [?fn-name
-                                             (assoc (meta (second children))
+                                             (assoc (meta ?name-expr)
                                                     :name ?fn-name
-                                                    :filename (:filename ctx))])
+                                                    :filename filename)])
                      (update :arities assoc ?fn-name
                              arity))
                  ctx) %) bodies)
@@ -846,8 +848,18 @@
         (when-not (some-> ctx :def-meta :macro)
           (extract-arity-info ctx parsed-bodies))
         fixed-arities (into #{} (filter number?) (keys arities))
-        varargs-min-arity (get-in arities [:varargs :min-arity])]
-    (with-meta (mapcat :parsed parsed-bodies)
+        varargs-min-arity (get-in arities [:varargs :min-arity])
+        parsed-bodies (mapcat :parsed parsed-bodies)]
+    (when (and (not varargs-min-arity)
+               (= 1 (count fixed-arities))
+               (= 1 (count bodies))
+               )
+      (let [pb (first parsed-bodies)]
+        (when (and (= :call (:type pb))
+                   (= (first fixed-arities)
+                      (:arity pb)))
+          (findings/reg-finding! ctx (node->line filename expr :redundant-fn-wrapper "Redundant fn wrapper")))))
+    (with-meta parsed-bodies
       {:arity {:fixed-arities fixed-arities
                :varargs-min-arity varargs-min-arity}
        :arities arities})))
