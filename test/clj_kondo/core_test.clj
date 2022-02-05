@@ -121,6 +121,8 @@
 
 (deftest custom-lint-fn-test
   (testing "custom-lint reg a new finding and reg-finding! return the new finding"
+    ;; TODO
+    #_:clj-kondo/ignore
     (let [res (custom-linter "(eval '(+ 1 2 3))" :clj #(is %))]
       (is (= [{:filename "<stdin>", :row 1, :col 1, :end-row 1, :end-col 6,
                :type :org.acme/forbidden-var, :level :error}]

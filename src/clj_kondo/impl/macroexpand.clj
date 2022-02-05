@@ -146,8 +146,8 @@
                        (if varargs?
                          (concat args '[& %&])
                          args)))
-        has-first-arg? (= '%1 (first args))
-        let-expr (when has-first-arg?
+        ;; has-first-arg? (= '%1 (first args))
+        #_#_let-expr (when has-first-arg?
                    (list-node
                     [(token-node 'clojure.core/let*)
                      (vector-node
@@ -158,7 +158,7 @@
                      fn-body]))]
     (with-meta
       (list-node [(token-node 'fn*) arg-list
-                  (if has-first-arg?
+                  fn-body #_(if has-first-arg?
                     let-expr fn-body)])
       m)))
 

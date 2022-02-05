@@ -849,6 +849,7 @@
           (extract-arity-info ctx parsed-bodies))
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])
+        parsed-bodies* parsed-bodies
         parsed-bodies (mapcat :parsed parsed-bodies)]
     (when (and (not varargs-min-arity)
                (= 1 (count fixed-arities))
@@ -858,7 +859,13 @@
         (when (and (= :call (:type pb))
                    (= (first fixed-arities)
                       (:arity pb)))
-          (findings/reg-finding! ctx (node->line filename expr :redundant-fn-wrapper "Redundant fn wrapper")))))
+          (let [expr (:expr pb)
+                arg-exprs (rest (:children expr))
+                ]
+            (when (= (map #(str/replace % #"^%$" "%1")
+                          arg-exprs)
+                     (map str (:children (:arg-vec (first parsed-bodies*)))))
+              (findings/reg-finding! ctx (node->line filename expr :redundant-fn-wrapper "Redundant fn wrapper")))))))
     (with-meta parsed-bodies
       {:arity {:fixed-arities fixed-arities
                :varargs-min-arity varargs-min-arity}
@@ -2318,7 +2325,7 @@
                  (let [children (map (fn [c s]
                                        (assoc c :id s))
                                      children
-                                     (repeatedly #(gensym)))
+                                     (repeatedly gensym))
                        analyzed (analyze-children
                                  (update ctx
                                          :callstack #(cons [nil t] %)) children)]
@@ -2338,7 +2345,8 @@
                                                   :level :error
                                                   :type :syntax
                                                   :message "Nested #()s are not allowed")))
-              (recur (assoc ctx :arg-types nil :in-fn-literal true)
+              (recur (-> (assoc ctx :arg-types nil :in-fn-literal true)
+                         (update :bindings assoc '% {}))
                      (macroexpand/expand-fn expr)))
         :token
         (if (:quoted ctx)
