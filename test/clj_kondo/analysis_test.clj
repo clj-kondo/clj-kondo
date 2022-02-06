@@ -320,6 +320,7 @@
     789))" {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
         '[{:protocol-name MyFoo
+           :protocol-ns user
            :method-name something
            :impl-ns user
            :filename "<stdin>"
@@ -327,6 +328,7 @@
            :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
            :row 8 :col 3 :end-row 9 :end-col 9}
           {:protocol-name MyFoo
+           :protocol-ns user
            :method-name other-thing
            :impl-ns user
            :filename "<stdin>"
@@ -352,14 +354,16 @@
                         (string/join "\n"))
                    {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
-        '[{:protocol-name some-ns/MyFoo
+        '[{:protocol-name MyFoo
+           :protocol-ns some-ns
            :method-name something
            :impl-ns other-ns
            :filename "<stdin>"
            :defined-by clojure.core/defrecord
            :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
            :row 8 :col 3 :end-row 9 :end-col 9}
-          {:protocol-name some-ns/MyFoo
+          {:protocol-name MyFoo
+           :protocol-ns some-ns
            :method-name other-thing
            :impl-ns other-ns
            :filename "<stdin>"
@@ -383,6 +387,7 @@
     789))" {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
         '[{:protocol-name MyFoo
+           :protocol-ns user
            :method-name something
            :impl-ns user
            :filename "<stdin>"
@@ -390,6 +395,7 @@
            :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
            :row 8 :col 3 :end-row 9 :end-col 9}
           {:protocol-name MyFoo
+           :protocol-ns user
            :method-name other-thing
            :impl-ns user
            :filename "<stdin>"

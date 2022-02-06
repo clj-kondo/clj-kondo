@@ -1302,7 +1302,8 @@
                 (analysis/reg-protocol-impl! ctx
                                              (:filename ctx)
                                              ns-name
-                                             (symbol (name protocol-ns) (name protocol-name))
+                                             protocol-ns
+                                             protocol-name
                                              c
                                              protocol-fn-name
                                              defined-by)))

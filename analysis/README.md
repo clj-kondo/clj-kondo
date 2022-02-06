@@ -143,6 +143,7 @@ The analysis output consists of a map with:
   - `:row`, `:col`, `:end-row`, `:end-col`, the range of the implementation method.
   - `:name-row`, `:name-col`, `:name-end-row`, `:name-end-col`, the range of the implementation method name.
   - `protocol-name`, the name of the protocol being implemented.
+  - `protocol-ns`, the namespace of the protocol being implemented.
   - `impl-ns`, the namespace of the implementation of the protocol.
   - `method-name`, the method name of the implementation.
   - `defined-by`, the symbol that defines this, e.g. `clojure.core/defrecord`.
