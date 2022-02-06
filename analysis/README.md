@@ -22,6 +22,7 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 - `:locals`: when truthy return `:locals` and `:local-usages` described below
 - `:keywords`: when truthy return `:keywords` described below
 - `:arglists`: when truthy return `:arglists` on `:var-definitions`
+- `:protocol-impls`: when truthy return `:protocol-impls` described below
 
 ### Metadata
 
@@ -136,6 +137,15 @@ The analysis output consists of a map with:
   - `:keys-destructuring`: if the keyword is within a `:keys` vector.
   - `:reg`: can be added by `:hooks` using `clj-kondo.hook-api/reg-keyword!` to indicate a registered definition location for the keyword.
     It should be the fully qualified call that registered it.
+
+- `:protocol-impls`, a list of maps with:
+  - `filename`
+  - `:row`, `:col`, `:end-row`, `:end-col`, the range of the implementation method.
+  - `:name-row`, `:name-col`, `:name-end-row`, `:name-end-col`, the range of the implementation method name.
+  - `protocol-name`, the name of the protocol being implemented.
+  - `impl-ns`, the namespace of the implementation of the protocol.
+  - `method-name`, the method name of the implementation.
+  - `defined-by`, the symbol that defines this, e.g. `clojure.core/defrecord`.
 
 Example output after linting this code:
 
