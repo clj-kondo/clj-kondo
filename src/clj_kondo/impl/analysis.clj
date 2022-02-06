@@ -129,13 +129,13 @@
                          :context (select-context (:analysis-context ctx) usage))))))
 
 (defn reg-protocol-impl!
-  [ctx filename ns-name  method-node method-name-node defined-by]
+  [ctx filename ns-name protocol-name method-node method-name-node defined-by]
   (when (:analyze-protocol-impls? ctx)
     (when-let [analysis (:analysis ctx)]
       (let [method-meta (meta method-node)
             method-name-meta (meta method-name-node)]
         (swap! analysis update :protocol-impls conj
-               {:protocol-name 'MyFoo
+               {:protocol-name protocol-name
                 :method-name (:value method-name-node)
                 :impl-ns ns-name
                 :filename filename

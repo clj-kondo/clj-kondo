@@ -2,8 +2,9 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submaps assert-submap]]
+   [clj-kondo.test-utils :refer [assert-submap assert-submaps]]
    [clojure.edn :as edn]
+   [clojure.string :as string]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (defn analyze
@@ -291,7 +292,19 @@
       (is (empty? (:local-usages ana))))))
 
 (deftest protocol-impls-test
-  (testing "defrecord"
+  (testing "defrecord without protocol"
+    (let [{:keys [:protocol-impls]} (analyze "
+(defrecord MyBar []
+  (something [_]
+    123)
+
+  (^Bla other-thing [_ a b]
+    456
+    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+      (assert-submaps
+        []
+        protocol-impls)))
+  (testing "defrecord with simple protocol"
     (let [{:keys [:protocol-impls]} (analyze "
 (defprotocol MyFoo
   (something [this])
@@ -306,21 +319,54 @@
     456
     789))" {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
-       '[{:protocol-name MyFoo
-          :method-name something
-          :impl-ns user
-          :filename "<stdin>"
-          :defined-by clojure.core/defrecord
-          :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
-          :row 8 :col 3 :end-row 9 :end-col 9}
-         {:protocol-name MyFoo
-          :method-name other-thing
-          :impl-ns user
-          :filename "<stdin>"
-          :defined-by clojure.core/defrecord
-          :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
-          :row 11 :col 3 :end-row 13 :end-col 9}]
-       protocol-impls)))
+        '[{:protocol-name MyFoo
+           :method-name something
+           :impl-ns user
+           :filename "<stdin>"
+           :defined-by clojure.core/defrecord
+           :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
+           :row 8 :col 3 :end-row 9 :end-col 9}
+          {:protocol-name MyFoo
+           :method-name other-thing
+           :impl-ns user
+           :filename "<stdin>"
+           :defined-by clojure.core/defrecord
+           :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
+           :row 11 :col 3 :end-row 13 :end-col 9}]
+        protocol-impls)))
+  (testing "defrecord with aliased protocol"
+    (let [{:keys [:protocol-impls]}
+          (analyze (->> ["(ns some-ns)"
+                         "(defprotocol MyFoo"
+                         "  (something [this])"
+                         "  (^Bla other-thing [this a b]))"
+                         "(ns other-ns (:require [some-ns :as some]))"
+                         "(defrecord MyBar []"
+                         "  some/MyFoo"
+                         "  (something [_]"
+                         "    123)"
+                         ""
+                         "  (^Bla other-thing [_ a b]"
+                         "    456"
+                         "    789))"]
+                        (string/join "\n"))
+                   {:config {:output {:analysis {:protocol-impls true}}}})]
+      (assert-submaps
+        '[{:protocol-name some-ns/MyFoo
+           :method-name something
+           :impl-ns other-ns
+           :filename "<stdin>"
+           :defined-by clojure.core/defrecord
+           :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
+           :row 8 :col 3 :end-row 9 :end-col 9}
+          {:protocol-name some-ns/MyFoo
+           :method-name other-thing
+           :impl-ns other-ns
+           :filename "<stdin>"
+           :defined-by clojure.core/defrecord
+           :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
+           :row 11 :col 3 :end-row 13 :end-col 9}]
+        protocol-impls)))
   (testing "deftype"
     (let [{:keys [:protocol-impls]} (analyze "
 (defprotocol MyFoo
@@ -336,21 +382,21 @@
     456
     789))" {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
-       '[{:protocol-name MyFoo
-          :method-name something
-          :impl-ns user
-          :filename "<stdin>"
-          :defined-by clojure.core/deftype
-          :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
-          :row 8 :col 3 :end-row 9 :end-col 9}
-         {:protocol-name MyFoo
-          :method-name other-thing
-          :impl-ns user
-          :filename "<stdin>"
-          :defined-by clojure.core/deftype
-          :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
-          :row 11 :col 3 :end-row 13 :end-col 9}]
-       protocol-impls))))
+        '[{:protocol-name MyFoo
+           :method-name something
+           :impl-ns user
+           :filename "<stdin>"
+           :defined-by clojure.core/deftype
+           :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
+           :row 8 :col 3 :end-row 9 :end-col 9}
+          {:protocol-name MyFoo
+           :method-name other-thing
+           :impl-ns user
+           :filename "<stdin>"
+           :defined-by clojure.core/deftype
+           :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
+           :row 11 :col 3 :end-row 13 :end-col 9}]
+        protocol-impls))))
 
 (deftest name-position-test
   (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
