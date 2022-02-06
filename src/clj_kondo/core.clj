@@ -117,6 +117,7 @@
         analysis-cfg (get-in config [:output :analysis])
         analyze-locals? (get analysis-cfg :locals)
         analyze-keywords? (get analysis-cfg :keywords)
+        analyze-protocol-impls? (get analysis-cfg :protocol-impls)
         analysis-var-meta (some-> analysis-cfg :var-definitions :meta)
         analysis-ns-meta (some-> analysis-cfg :namespace-definitions :meta)
         analysis-context (some-> analysis-cfg :context)
@@ -128,7 +129,8 @@
                                   :var-usages []}
                            analyze-locals? (assoc :locals []
                                                   :local-usages [])
-                           analyze-keywords? (assoc :keywords []))))
+                           analyze-keywords? (assoc :keywords [])
+                           analyze-protocol-impls? (assoc :protocol-impls []))))
         used-nss (atom {:clj #{}
                         :cljs #{}
                         :cljc #{}})
@@ -152,6 +154,7 @@
              :ignores (atom {})
              :id-gen (when analyze-locals? (atom 0))
              :analyze-locals? analyze-locals?
+             :analyze-protocol-impls? analyze-protocol-impls?
              :analyze-keywords? analyze-keywords?
              :analyze-arglists? (get analysis-cfg :arglists)
              :analysis-var-meta analysis-var-meta

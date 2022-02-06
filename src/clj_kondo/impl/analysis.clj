@@ -2,7 +2,8 @@
   "Helpers for analysis output"
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
-  (:require [clj-kondo.impl.utils :refer [assoc-some select-some export-ns-sym]]))
+  (:require
+   [clj-kondo.impl.utils :refer [assoc-some export-ns-sym select-some]]))
 
 (defn select-context [selector ctx]
   (when selector
@@ -85,12 +86,12 @@
     (let [to-ns (export-ns-sym to-ns)]
       (swap! analysis update :namespace-usages conj
              (assoc-some
-               (merge {:filename filename
-                       :row row
-                       :col col
-                       :from from-ns
-                       :to to-ns}
-                      metadata)
+              (merge {:filename filename
+                      :row row
+                      :col col
+                      :from from-ns
+                      :to to-ns}
+                     metadata)
               :lang (when (= :cljc base-lang) lang)
               :alias alias)))))
 
@@ -126,3 +127,25 @@
                          :from-var (:in-def ctx)
                          :from (get-in ctx [:ns :name])
                          :context (select-context (:analysis-context ctx) usage))))))
+
+(defn reg-protocol-impl!
+  [ctx filename impl-ns protocol-ns protocol-name method-node method-name-node defined-by]
+  (when (:analyze-protocol-impls? ctx)
+    (when-let [analysis (:analysis ctx)]
+      (let [method-meta (meta method-node)
+            method-name-meta (meta method-name-node)]
+        (swap! analysis update :protocol-impls conj
+               {:protocol-name protocol-name
+                :protocol-ns protocol-ns
+                :method-name (:value method-name-node)
+                :impl-ns impl-ns
+                :filename filename
+                :defined-by defined-by
+                :name-row (:row method-name-meta)
+                :name-col (:col method-name-meta)
+                :name-end-row (:end-row method-name-meta)
+                :name-end-col (:end-col method-name-meta)
+                :row (:row method-meta)
+                :col (:col method-meta)
+                :end-row (:end-row method-meta)
+                :end-col (:end-col method-meta)})))))
