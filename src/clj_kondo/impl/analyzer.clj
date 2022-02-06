@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [babashka.fs :as fs]
+   [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.babashka :as babashka]
    [clj-kondo.impl.analyzer.clojure-data-xml :as xml]
    [clj-kondo.impl.analyzer.common :refer [common]]
@@ -1295,6 +1296,13 @@
           ;; is linted as (fn [x y z])
           (let [fn-children (:children c)
                 protocol-fn-name (first fn-children)]
+            (when-not (= "definterface" (name defined-by))
+              (analysis/reg-protocol-impl! ctx
+                                           (:filename ctx)
+                                           ns-name
+                                           c
+                                           protocol-fn-name
+                                           defined-by))
             ;; protocol-fn-name might contain metadata
             (meta/lift-meta-content2 ctx protocol-fn-name)
             (analyze-fn ctx c)

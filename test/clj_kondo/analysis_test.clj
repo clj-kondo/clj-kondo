@@ -290,6 +290,68 @@
       (is (empty? (:locals ana)))
       (is (empty? (:local-usages ana))))))
 
+(deftest protocol-impls-test
+  (testing "defrecord"
+    (let [{:keys [:protocol-impls]} (analyze "
+(defprotocol MyFoo
+  (something [this])
+  (^Bla other-thing [this a b]))
+
+(defrecord MyBar []
+  MyFoo
+  (something [_]
+    123)
+
+  (^Bla other-thing [_ a b]
+    456
+    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+      (assert-submaps
+       '[{:protocol-name MyFoo
+          :method-name something
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/defrecord
+          :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
+          :row 8 :col 3 :end-row 9 :end-col 9}
+         {:protocol-name MyFoo
+          :method-name other-thing
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/defrecord
+          :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
+          :row 11 :col 3 :end-row 13 :end-col 9}]
+       protocol-impls)))
+  (testing "deftype"
+    (let [{:keys [:protocol-impls]} (analyze "
+(defprotocol MyFoo
+  (something [this])
+  (^Bla other-thing [this a b]))
+
+(deftype MyBar []
+  MyFoo
+  (something [_]
+    123)
+
+  (^Bla other-thing [_ a b]
+    456
+    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+      (assert-submaps
+       '[{:protocol-name MyFoo
+          :method-name something
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/deftype
+          :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
+          :row 8 :col 3 :end-row 9 :end-col 9}
+         {:protocol-name MyFoo
+          :method-name other-thing
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/deftype
+          :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
+          :row 11 :col 3 :end-row 13 :end-col 9}]
+       protocol-impls))))
+
 (deftest name-position-test
   (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
