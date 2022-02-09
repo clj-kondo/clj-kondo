@@ -146,21 +146,12 @@
                        (if varargs?
                          (concat args '[& %&])
                          args)))
-        has-first-arg? (= '%1 (first args))
-        let-expr (when has-first-arg?
-                   (list-node
-                    [(token-node 'clojure.core/let*)
-                     (vector-node
-                      [(with-meta
-                         (token-node '%)
-                         {:clj-kondo/mark-used true})
-                       (token-node '%1)])
-                     fn-body]))]
+        has-first-arg? (= '%1 (first args))]
     (with-meta
       (list-node [(token-node 'fn*) arg-list
-                  (if has-first-arg?
+                  fn-body #_(if has-first-arg?
                     let-expr fn-body)])
-      m)))
+      (assoc m :clj-kondo.impl/fn-has-first-arg has-first-arg?))))
 
 (defn expand-do-template [_ctx node]
   (let [[_ argv expr & values] (:children node)

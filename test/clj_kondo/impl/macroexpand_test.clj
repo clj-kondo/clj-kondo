@@ -25,31 +25,13 @@
 (deftest expand-fn-test
   (testing
       "Expanded function literals have a location for the function they call"
-    (let [fn-body (-> (macroexpand/expand-fn
-                       (parse-string "#(valid? %)"))
-                      :children
-                      nnext
-                      first
-                      :children
-                      nnext
-                      first)]
+    (let [fn-body (macroexpand/expand-fn
+                   (parse-string "#(valid? %)"))]
       (is
        (every? location
                (filter #(= :list (tag %))
                        (tree-seq :children :children
-                                 fn-body))))))
-  (is (= '(fn* [%1] (clojure.core/let* [% %1] (println % %)))
-         (sexpr
-          (macroexpand/expand-fn
-           (parse-string "#(println % %)")))))
-  (is (= '(fn* [%1 %2] (clojure.core/let* [% %1] (println % %2)))
-         (sexpr
-          (macroexpand/expand-fn
-           (parse-string "#(println % %2)")))))
-  (is (= '(fn* [%1 %2 & %&] (clojure.core/let* [% %1] (apply println % %2 %&)))
-         (sexpr
-          (macroexpand/expand-fn
-           (parse-string "#(apply println % %2 %&)"))))))
+                                 fn-body)))))))
 
 
 ;;;; Scratch

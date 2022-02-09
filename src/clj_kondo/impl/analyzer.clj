@@ -2318,7 +2318,7 @@
                  (let [children (map (fn [c s]
                                        (assoc c :id s))
                                      children
-                                     (repeatedly #(gensym)))
+                                     (repeatedly gensym))
                        analyzed (analyze-children
                                  (update ctx
                                          :callstack #(cons [nil t] %)) children)]
@@ -2338,8 +2338,12 @@
                                                   :level :error
                                                   :type :syntax
                                                   :message "Nested #()s are not allowed")))
-              (recur (assoc ctx :arg-types nil :in-fn-literal true)
-                     (macroexpand/expand-fn expr)))
+              (let [expanded-node (macroexpand/expand-fn expr)
+                    m (meta expanded-node)
+                    has-first-arg? (:clj-kondo.impl/fn-has-first-arg m)]
+                (recur (cond-> (assoc ctx :arg-types nil :in-fn-literal true)
+                         has-first-arg? (update :bindings assoc '% {}))
+                       expanded-node)))
         :token
         (if (:quoted ctx)
           (when (:k expr)
