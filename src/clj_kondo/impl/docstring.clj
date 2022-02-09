@@ -17,8 +17,7 @@
   [{:keys [filename config] :as ctx} node docstring]
   (when docstring
     (doseq [[type f msg] [[:docstring-blank
-                           (fn [docstring]
-                             (str/blank? docstring))
+                           str/blank?
                            "Docstring should not be blank."]
                           [:docstring-no-summary
                            (fn [docstring]

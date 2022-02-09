@@ -84,7 +84,8 @@
               :type-mismatch {:level :off}
               :unsorted-required-namespaces {:level :off}
               :shadowed-var {:level :off}
-              :loop-without-recur {:level :off}}})
+              :loop-without-recur {:level :off}
+              :redundant-fn-wrapper {:level :off}}})
 
 (defn lint-jvm!
   ([input]
@@ -102,6 +103,8 @@
                    (instance? java.io.File input)
                    (apply main "--cache" "false" "--lint" (.getPath ^java.io.File input) "--config" config args)
                    (vector? input)
+                   ;; TODO
+                   #_:clj-kondo/ignore
                    (apply main "--cache" "false" "--lint" (concat (map #(.getPath ^java.io.File %) input)
                                                                   ["--config" config] args))
                    :else (with-in-str input
