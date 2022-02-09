@@ -10,6 +10,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Fix [#1563](https://github.com/clj-kondo/clj-kondo/issues/1563): vector inside list should not be linted as function call when inside tagged literal.
 - Fix [#1540](https://github.com/clj-kondo/clj-kondo/issues/1540): imported class flagged as unused when it only appears in annotation metadata.
 - Feature [#1549](https://github.com/clj-kondo/clj-kondo/issues/1560): lint task definition keys in bb.edn ([@mknoszlig](https://github.com/mknoszlig))
+- Feature [#1484](https://github.com/clj-kondo/clj-kondo/issues/1484): Add analysis information about protocol implementations.
 
 ## 2022.01.15
 
