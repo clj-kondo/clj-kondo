@@ -64,20 +64,28 @@
                        (recur (if remove? (z/remove zloc)
                                   (cz/next zloc)))))))))
 
-(defn process-reader-conditional [node lang]
+(defn attach-branch* [node lang]
+  (vary-meta node assoc :branch lang))
+
+(defn attach-branch [node lang splice?]
+  (cond-> (attach-branch* node lang)
+    splice? (update :children (fn [children]
+                                (map #(attach-branch* % lang) children)))))
+
+(defn process-reader-conditional [node lang splice?]
   (if (and node
            (= :reader-macro (node/tag node))
            (let [sv (-> node :children first :string-value)]
              (str/starts-with? sv "?")))
-    (let [tokens (-> node :children last :children)]
-      (loop [[k v & ts] tokens
+    (let [children (-> node :children last :children)]
+      (loop [[k v & ts] children
              default nil]
         (let [kw (:k k)
               default (or default
                           (when (= :default kw)
                             v))]
           (if (= lang kw)
-            (vary-meta  v assoc :branch lang)
+            (attach-branch v lang splice?)
             (if (seq ts)
               (recur ts default)
               default)))))
@@ -89,20 +97,23 @@
   (if-let [children (:children node)]
     (let [new-children (reduce
                         (fn [acc node]
-                          (if-let [processed (select-lang node lang)]
-                            (if (= "?@" (some-> node :children first :string-value))
-                              (into acc (:children processed))
-                              (conj acc processed))
-                            acc))
+                          (let [splice? (= "?@" (some-> node :children first :string-value))]
+                            (if-let [processed (select-lang node lang splice?)]
+                              (if splice?
+                                (into acc (:children processed))
+                                (conj acc processed))
+                              acc)))
                         []
                         children)]
       (assoc node :children
              new-children))
     node))
 
-(defn select-lang [node lang]
-  (when-let [processed (process-reader-conditional node lang)]
-    (select-lang-children processed lang)))
+(defn select-lang
+  ([node lang] (select-lang node lang nil))
+  ([node lang splice?]
+   (when-let [processed (process-reader-conditional node lang splice?)]
+     (select-lang-children processed lang))))
 
 (defn node->line [filename node t message]
   #_(when (and (= type :missing-docstring)
