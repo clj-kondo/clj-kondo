@@ -419,7 +419,9 @@
                                                    first-child
                                                    :misplaced-docstring
                                                    "Misplaced docstring."))))
-        ctx (assoc ctx :fn-args (:children arg-vec))
+        ctx (-> ctx
+                (assoc :fn-args (:children arg-vec))
+                (assoc :body-children-count (count children)))
         [parsed return-tag]
         (if (or macro? return-tag)
           [(analyze-children ctx children) return-tag]
@@ -2105,12 +2107,12 @@
                                                  node-context)]
                                     context))
                         fn-args (:fn-args ctx)
-                        extend-type (:extend-type ctx)
                         redundant-fn-wrapper-parent-loc
                         (when (and
-                               (not extend-type)
+                               (not (:extend-type ctx))
                                (not interop?)
                                (= 1 (:fn-body-count ctx))
+                               (= 1 (:body-children-count ctx))
                                (= (count children) (count fn-args))
                                (one-of (first prev-callstack) [[clojure.core fn]
                                                                [clojure.core fn*]

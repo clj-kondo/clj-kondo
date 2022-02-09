@@ -410,7 +410,7 @@
             (findings/reg-finding! ctx (assoc loc
                                               :filename filename
                                               :type :redundant-fn-wrapper
-                                              :message "Redundant fn wrapper.")))))
+                                              :message "Redundant fn wrapper")))))
       (let [ctx (assoc ctx :filename filename)]
         (when call?
           (lint-specific-calls!
