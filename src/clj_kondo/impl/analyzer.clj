@@ -419,6 +419,7 @@
                                                    first-child
                                                    :misplaced-docstring
                                                    "Misplaced docstring."))))
+        ctx (assoc ctx :fn-args (:children arg-vec))
         [parsed return-tag]
         (if (or macro? return-tag)
           [(analyze-children ctx children) return-tag]
@@ -835,38 +836,25 @@
         arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)
         filename (:filename ctx)
         parsed-bodies
-        (map #(analyze-fn-body
-               (if ?fn-name
-                 (-> ctx
-                     (update :bindings conj [?fn-name
-                                             (assoc (meta ?name-expr)
-                                                    :name ?fn-name
-                                                    :filename filename)])
-                     (update :arities assoc ?fn-name
-                             arity))
-                 ctx) %) bodies)
+        (let [ctx (-> ctx
+                      (assoc :fn-body-count (count bodies))
+                      (assoc :fn-parent-loc (meta expr)))]
+          (map #(analyze-fn-body
+                 (if ?fn-name
+                   (-> ctx
+                       (update :bindings conj [?fn-name
+                                               (assoc (meta ?name-expr)
+                                                      :name ?fn-name
+                                                      :filename filename)])
+                       (update :arities assoc ?fn-name
+                               arity))
+                   ctx) %) bodies))
         arities
         (when-not (some-> ctx :def-meta :macro)
           (extract-arity-info ctx parsed-bodies))
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])
-        parsed-bodies* parsed-bodies
         parsed-bodies (mapcat :parsed parsed-bodies)]
-    (when (and (not varargs-min-arity)
-               (= 1 (count fixed-arities))
-               (= 1 (count bodies))
-               )
-      (let [pb (first parsed-bodies)]
-        (when (and (= :call (:type pb))
-                   (= (first fixed-arities)
-                      (:arity pb)))
-          (let [expr (:expr pb)
-                arg-exprs (rest (:children expr))
-                ]
-            (when (= (map #(str/replace % #"^%$" "%1")
-                          arg-exprs)
-                     (map str (:children (:arg-vec (first parsed-bodies*)))))
-              (findings/reg-finding! ctx (node->line filename expr :redundant-fn-wrapper "Redundant fn wrapper")))))))
     (with-meta parsed-bodies
       {:arity {:fixed-arities fixed-arities
                :varargs-min-arity varargs-min-arity}
@@ -1749,7 +1737,8 @@
               (get in-call-cfg (symbol (str resolved-namespace) (str resolved-name))))
         ctx (if cfg
               (update ctx :config config/merge-config! cfg)
-              ctx)]
+              ctx)
+        prev-callstack (:callstack ctx)]
     (cond (and unresolved?
                (str/ends-with? full-fn-name "."))
           (recur ctx
@@ -2115,6 +2104,19 @@
                                                  ctx-context
                                                  node-context)]
                                     context))
+                        fn-args (:fn-args ctx)
+                        redundant-fn-wrapper-parent-loc
+                        (when (and
+                               (not interop?)
+                               (= 1 (:fn-body-count ctx))
+                               (= (count children) (count fn-args))
+                               (one-of (first prev-callstack) [[clojure.core fn]
+                                                               [clojure.core fn*]
+                                                               [cljs.core fn]
+                                                               [cljs.core fn*]])
+                               (= (map #(str/replace % #"^%$" "%1") children)
+                                  (map str (:fn-args ctx))))
+                          (:fn-parent-loc ctx))
                         proto-call {:type :call
                                     :context context
                                     :resolved-ns resolved-namespace
@@ -2141,7 +2143,9 @@
                                     :arg-types (:arg-types ctx)
                                     :simple? (simple-symbol? full-fn-name)
                                     :interop? interop?
-                                    :resolved-core? resolved-core?}
+                                    :resolved-core? resolved-core?
+                                    :redundant-fn-wrapper-parent-loc
+                                    redundant-fn-wrapper-parent-loc}
                         ret-tag (or (:ret m)
                                     (types/ret-tag-from-call ctx proto-call expr))
                         call (cond-> proto-call
