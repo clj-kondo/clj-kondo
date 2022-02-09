@@ -4,19 +4,24 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## 2022.02.09
 
-- Feature [#1549](https://github.com/clj-kondo/clj-kondo/issues/1549): detect and warn on cyclic task dependencies in bb.edn ([@mknoszlig](https://github.com/mknoszlig))
-- Feature [#1547](https://github.com/clj-kondo/clj-kondo/issues/1547): catch tasks undefined tasks present in `:depends`. ([@mknoszlig](https://github.com/mknoszlig))
-- Feature [#783](https://github.com/clj-kondo/clj-kondo/issues/783): `:keys` can be used in `:ret` position, also fixes types return map call as input for another typed map function. ([@pfeodrippe](https://github.com/pfeodrippe))
-- Feature [#1526](https://github.com/clj-kondo/clj-kondo/issues/1526): detect
+### New
+
+- [#1549](https://github.com/clj-kondo/clj-kondo/issues/1549): detect and warn on cyclic task dependencies in `bb.edn` ([@mknoszlig](https://github.com/mknoszlig))
+- [#1547](https://github.com/clj-kondo/clj-kondo/issues/1547): catch undefined tasks present in `:depends`. ([@mknoszlig](https://github.com/mknoszlig))
+- [#783](https://github.com/clj-kondo/clj-kondo/issues/783): `:keys` can be used in `:ret` position, also fixes types return map call as input for another typed map function. ([@pfeodrippe](https://github.com/pfeodrippe))
+- [#1526](https://github.com/clj-kondo/clj-kondo/issues/1526): detect
   redundant fn wrappers, like `#(inc %)`. See
   [docs](doc/linters.md#redundant-fn-wrapper). This linter of `:off` by default
   but may be enabled by default in future versions after more testing.
-- Feature [#1549](https://github.com/clj-kondo/clj-kondo/issues/1560): lint task definition keys in bb.edn ([@mknoszlig](https://github.com/mknoszlig))
-- Feature [#1484](https://github.com/clj-kondo/clj-kondo/issues/1484): Add analysis information about protocol implementations. ([@ericdallo](https://github.com/ericdallo))
-- Fix [#1563](https://github.com/clj-kondo/clj-kondo/issues/1563): vector inside list should not be linted as function call when inside tagged literal.
-- Fix [#1540](https://github.com/clj-kondo/clj-kondo/issues/1540): imported class flagged as unused when it only appears in annotation metadata.
-- Fix [#1571](https://github.com/clj-kondo/clj-kondo/issues/1571): ignore spliced reader conditionals wrt. namespace sorting.
-- Fix [#1574](https://github.com/clj-kondo/clj-kondo/issues/1574): def usage context contains reference of the re-frame reg-sub it is used in. ([@benedekfazekas](https://github.com/benedekfazekas))
+- [#1549](https://github.com/clj-kondo/clj-kondo/issues/1560): lint task definition keys in `bb.edn` ([@mknoszlig](https://github.com/mknoszlig))
+- [#1484](https://github.com/clj-kondo/clj-kondo/issues/1484): Add analysis information about protocol implementations. ([@ericdallo](https://github.com/ericdallo))
+
+## Fixed
+
+- [#1563](https://github.com/clj-kondo/clj-kondo/issues/1563): vector inside list should not be linted as function call when inside tagged literal.
+- [#1540](https://github.com/clj-kondo/clj-kondo/issues/1540): imported class flagged as unused when it only appears in annotation metadata.
+- [#1571](https://github.com/clj-kondo/clj-kondo/issues/1571): ignore spliced reader conditionals wrt. namespace sorting.
+- [#1574](https://github.com/clj-kondo/clj-kondo/issues/1574): def usage context contains reference of the re-frame reg-sub it is used in. ([@benedekfazekas](https://github.com/benedekfazekas))
 
 ## 2022.01.15
 
