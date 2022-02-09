@@ -1692,7 +1692,7 @@
                                                          (rest children))))
                           node))
                       children)]
-    (analyze-children ctx children)))
+    (analyze-children (assoc ctx :extend-type true) children)))
 
 (defn analyze-reify [ctx expr]
   (let [children (next (:children expr))]
@@ -2105,8 +2105,10 @@
                                                  node-context)]
                                     context))
                         fn-args (:fn-args ctx)
+                        extend-type (:extend-type ctx)
                         redundant-fn-wrapper-parent-loc
                         (when (and
+                               (not extend-type)
                                (not interop?)
                                (= 1 (:fn-body-count ctx))
                                (= (count children) (count fn-args))
@@ -2115,7 +2117,7 @@
                                                                [cljs.core fn]
                                                                [cljs.core fn*]])
                                (= (map #(str/replace % #"^%$" "%1") children)
-                                  (map str (:fn-args ctx))))
+                                  (map str fn-args)))
                           (:fn-parent-loc ctx))
                         proto-call {:type :call
                                     :context context

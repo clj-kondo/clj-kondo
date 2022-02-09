@@ -404,12 +404,13 @@
                                             (if (true? deprecated)
                                               nil
                                               (str " since " deprecated)))})))
-      (when-let [loc (:redundant-fn-wrapper-parent-loc call)]
-        (when-not (:macro called-fn)
-          (findings/reg-finding! ctx (assoc loc
-                                            :filename filename
-                                            :type :redundant-fn-wrapper
-                                            :message "Redundant fn wrapper."))))
+      (when called-fn
+        (when-let [loc (:redundant-fn-wrapper-parent-loc call)]
+          (when-not (:macro called-fn)
+            (findings/reg-finding! ctx (assoc loc
+                                              :filename filename
+                                              :type :redundant-fn-wrapper
+                                              :message "Redundant fn wrapper.")))))
       (let [ctx (assoc ctx :filename filename)]
         (when call?
           (lint-specific-calls!
