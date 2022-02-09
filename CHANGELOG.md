@@ -12,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Feature [#1549](https://github.com/clj-kondo/clj-kondo/issues/1560): lint task definition keys in bb.edn ([@mknoszlig](https://github.com/mknoszlig))
 - Feature [#1484](https://github.com/clj-kondo/clj-kondo/issues/1484): Add analysis information about protocol implementations.
 - Fix [#1571](https://github.com/clj-kondo/clj-kondo/issues/1571): ignore spliced reader conditionals wrt. namespace sorting.
+- Features [#1526](https://github.com/clj-kondo/clj-kondo/issues/1526): detect redundant fn wrappers, like `#(inc %)`. See [docs](doc/linters.md#redundant-fn-wrapper).
 
 ## 2022.01.15
 

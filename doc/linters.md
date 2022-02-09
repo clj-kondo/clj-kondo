@@ -14,6 +14,10 @@ configuration. For general configurations options, go [here](config.md).
     - [Datalog syntax](#datalog-syntax)
     - [Deprecated var](#deprecated-var)
     - [Deps.edn](#depsedn)
+    - [Bb.edn dependency on undefined task](#bbedn-dependency-on-undefined-task)
+    - [Bb.edn cyclic task dependency](#bbedn-cyclic-task-dependency)
+    - [Bb.edn Unexpected key](#bbedn-unexpected-key)
+    - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
     - [Docstring blank](#docstring-blank)
     - [Docstring no summary](#docstring-no-summary)
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
@@ -41,6 +45,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Private call](#private-call)
     - [Redefined var](#redefined-var)
     - [Redundant do](#redundant-do)
+    - [Redundant fn wrapper](#redundant-fn-wrapper)
     - [Redundant expression](#redundant-expression)
     - [Redundant let](#redundant-let)
     - [Refer](#refer)
@@ -728,6 +733,18 @@ because of an explicit or implicit do as the direct parent s-expression.
 *Example trigger:* `(defn foo [] (do 1))`.
 
 *Example message:* `redundant do`.
+
+### Redundant fn wrapper
+
+*Keyword*: `:redundant-fn-wrapper`
+
+*Description:* warn on redundant function wrapper.
+
+*Default level:* `:off`.
+
+*Example trigger:* `#(inc %)`.
+
+*Example message:* `Redundant fn wrapper`.
 
 ### Redundant expression
 
