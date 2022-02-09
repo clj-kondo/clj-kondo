@@ -77,6 +77,7 @@ Throwable->map
 Vec
 VecNode
 VecSeq
+abs
 accessor
 aclone
 add-classpath
@@ -344,6 +345,7 @@ ints
 io!
 isa?
 iterate
+iteration
 iterator-seq
 juxt
 keep
