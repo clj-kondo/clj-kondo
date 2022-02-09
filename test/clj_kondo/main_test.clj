@@ -2727,7 +2727,17 @@ foo/baz
              [bravo]]
             [echo]))
 
-" {:linters {:unsorted-required-namespaces {:level :warning}}})))))
+" {:linters {:unsorted-required-namespaces {:level :warning}}}))))
+  (testing "namespaces in spliced reader conditionals are ignored"
+    (is (empty? (lint! "(ns myname.myapp
+  (:require
+   [com.fulcrologic.fulcro.components]
+   [taoensso.timbre]
+   #?@(:cljs [[com.fulcrologic.fulcro.dom ]]
+       :clj [[com.fulcrologic.fulcro.dom-server]])))"
+
+                       {:linters {:unsorted-required-namespaces {:level :warning}}}
+                       "--lang" "cljc")))))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
