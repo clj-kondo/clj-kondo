@@ -10,7 +10,7 @@ source script/extract-versions
 
 clojure -M:clj-kondo/dev --lint "$CLJ_KONDO_EXTRACT_CORE_DEPS_PATH" --cache /tmp/built-in > /dev/null
 
-base_path="/tmp/built-in/$version"
+base_path="/tmp/built-in/v1"
 
 rm "$base_path"/clj/clojure.tools.reader.*.transit.json
 rm "$base_path"/cljs/cljs.tools.reader.*transit.json
