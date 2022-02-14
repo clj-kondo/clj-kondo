@@ -191,10 +191,9 @@
      (when-let [dests (get adj current)]
        (some #(find-task-cycle adj %1 (conj path current) (conj seen? current)) dests))))
   ([task-map]
-   (let [adj (reduce (fn [acc [t {:keys [depends]}]]
-                       (assoc acc t depends))
-                     {}
-                     task-map)]
+   (let [adj (->> (filter (fn [[t t-def]] (and (symbol? t) (map? t-def))) task-map)
+                  (map (fn [[t t-def]] [t (:depends t-def)]))
+                  (into {}))]
      (some #(find-task-cycle adj %  [] #{}) (keys adj)))))
 
 (defn lint-tasks [ctx expr]

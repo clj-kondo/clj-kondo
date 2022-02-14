@@ -190,7 +190,10 @@
                   cleanup {:depends [init]
                            :paths ["script"]}
                   init {:depends [cleanup]
-                        :task (println "init")}}}]
+                        :task (println "init")}
+                  min-task (call/some-fn)
+                  :enter (call/some-more)
+                  }}]
     (assert-submaps
      '({:file "bb.edn", :row 1, :col 71, :level :error, :message "Cyclic task dependency: cleanup -> init -> cleanup"}
        {:file "bb.edn", :row 1, :col 114, :level :error, :message "Cyclic task dependency: init -> cleanup -> init"})
