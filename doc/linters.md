@@ -63,7 +63,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unresolved namespace](#unresolved-namespace)
     - [Unresolved symbol](#unresolved-symbol)
     - [Unresolved var](#unresolved-var)
-    - [Unsorted required namespace](#unsorted-required-namespaces)
+    - [Unsorted required namespaces](#unsorted-required-namespaces)
     - [Unused namespace](#unused-namespace)
     - [Unused private var](#unused-private-var)
     - [Unused referred var](#unused-referred-var)
