@@ -63,7 +63,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unresolved namespace](#unresolved-namespace)
     - [Unresolved symbol](#unresolved-symbol)
     - [Unresolved var](#unresolved-var)
-    - [Unsorted required namespace](#unsorted-required-namespace)
+    - [Unsorted required namespaces](#unsorted-required-namespaces)
     - [Unused namespace](#unused-namespace)
     - [Unused private var](#unused-private-var)
     - [Unused referred var](#unused-referred-var)
@@ -1149,9 +1149,9 @@ You can report duplicate warnings using:
 {:linters {:unresolved-var {:report-duplicates true}}}
 ```
 
-### Unsorted required namespace
+### Unsorted required namespaces
 
-*Keyword:* `:unsorted-required-namespace`.
+*Keyword:* `:unsorted-required-namespaces`.
 
 *Description:* warns on non-alphabetically sorted libspecs in `ns` and `require` forms.
 
