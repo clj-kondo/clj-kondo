@@ -1149,7 +1149,7 @@ You can report duplicate warnings using:
 {:linters {:unresolved-var {:report-duplicates true}}}
 ```
 
-### Unsorted required namespace
+### Unsorted required namespaces
 
 *Keyword:* `:unsorted-required-namespaces`.
 
