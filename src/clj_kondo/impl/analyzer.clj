@@ -1740,7 +1740,12 @@
         ctx (if cfg
               (update ctx :config config/merge-config! cfg)
               ctx)
-        prev-callstack (:callstack ctx)]
+        prev-callstack (:callstack ctx)
+        arg-types (if (and resolved-namespace resolved-name
+                           (not (linter-disabled? ctx :type-mismatch)))
+                    (atom [])
+                    nil)
+        ctx (assoc ctx :arg-types arg-types)]
     (cond (and unresolved?
                (str/ends-with? full-fn-name "."))
           (recur ctx
@@ -1849,7 +1854,7 @@
                                 :callstack (:callstack ctx)
                                 :config (:config ctx)
                                 :top-ns (:top-ns ctx)
-                                :arg-types (:arg-types ctx)
+                                :arg-types arg-types
                                 :interop? interop?
                                 :resolved-core? resolved-core?}))
                   ;;;; This registers the namespace as used, to prevent unused warnings
@@ -1878,11 +1883,6 @@
                     resolved-as-clojure-var-name
                     (when (one-of resolved-as-namespace [clojure.core cljs.core])
                       resolved-as-name)
-                    arg-types (if (and resolved-namespace resolved-name
-                                       (not (linter-disabled? ctx :type-mismatch)))
-                                (atom [])
-                                nil)
-                    ctx (assoc ctx :arg-types arg-types)
                     ctx (if resolved-as-clojure-var-name
                           (assoc ctx
                                  :resolved-as-clojure-var-name resolved-as-clojure-var-name)
