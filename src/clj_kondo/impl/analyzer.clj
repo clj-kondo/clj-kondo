@@ -2092,6 +2092,8 @@
                         (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace) (str resolved-name)))
                         ([re-frame.core reg-event-fx])
                         (re-frame/analyze-reg-event-fx ctx expr (symbol (str resolved-namespace) (str resolved-name)))
+                        ([re-frame.core inject-cofx])
+                        (re-frame/analyze-inject-cofx ctx expr (str resolved-namespace))
                         ;; catch-all
                         (let [next-ctx (cond-> ctx
                                          (one-of [resolved-namespace resolved-name]

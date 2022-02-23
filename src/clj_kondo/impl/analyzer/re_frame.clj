@@ -41,6 +41,13 @@
           (common/analyze-children ctx args)))
       (common/analyze-children ctx children))))
 
+(defn analyze-inject-cofx [ctx expr ns]
+  (let [kns (keyword ns)
+        [cofx-id cofx-param] (next (:children expr))]
+    (common/analyze-children (assoc-in ctx [:context kns :cofx-ref] true) [cofx-id])
+    (when cofx-param
+      (common/analyze-children ctx [cofx-param]))))
+
 (defn analyze-dispatch [ctx expr ns]
   (let [kns (keyword ns)
         [event-id & event-params] (:children (first (next (:children expr))))]

@@ -1662,6 +1662,25 @@
         (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= multiple-dispatch-id))) %) keywords))
         (is (not-any? #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :event-ref)) %) keywords)))))
 
+(deftest re-frame-inject-cofx-test
+  (let [analysis (:analysis (with-in-str
+"(ns foo (:require [re-frame.core :as rf]))
+(rf/reg-cofx :foo (fn [cofx _] (assoc :cofx :bar :goo)))
+(rf/reg-event-fx :use-foo [(rf/inject-cofx :foo)] (fn [{:keys [db bar]}] {:db (assoc db :lolfoo bar)}))
+"
+                              (clj-kondo/run! {:lang :cljs :lint ["-"] :config
+                                               {:output {:analysis {:context [:re-frame.core]
+                                                                    :keywords true}}}})))
+        keywords (:keywords analysis)
+        foo-cofx-id (some (partial re-frame-id "foo") keywords)
+        use-foo-id (some (partial re-frame-id "use-foo") keywords)]
+    (prn keywords)
+    (is foo-cofx-id)
+    (testing "cofx in inject-cofx is tracked"
+      (is (some #(when (and (= "foo" (:name %))
+                            (= use-foo-id (-> % :context :re-frame.core :in-id))
+                            (some-> % :context :re-frame.core :cofx-ref)) %) keywords)))))
+
 (comment
   (context-test)
   )
