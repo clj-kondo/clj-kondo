@@ -1674,7 +1674,6 @@
         keywords (:keywords analysis)
         foo-cofx-id (some (partial re-frame-id "foo") keywords)
         use-foo-id (some (partial re-frame-id "use-foo") keywords)]
-    (prn keywords)
     (is foo-cofx-id)
     (testing "cofx in inject-cofx is tracked"
       (is (some #(when (and (= "foo" (:name %))
