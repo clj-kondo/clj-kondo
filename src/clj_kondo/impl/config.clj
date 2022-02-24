@@ -117,7 +117,8 @@
               :loop-without-recur {:level :warning}
               :unexpected-recur {:level :error}
               :main-without-gen-class {:level :off}
-              :redundant-fn-wrapper {:level :off}}
+              :redundant-fn-wrapper {:level :off}
+              :namespace-name-mismatch {:level :error}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

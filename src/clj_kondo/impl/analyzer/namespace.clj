@@ -414,6 +414,22 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
+        _ (let [expected-file-path (-> (str (munge ns-name))
+                                       (str/replace #"\." "/"))]
+            (when-not (or (= 'user ns-name)
+                          ;; Test for .indexOf because there can be something before
+                          ;; (e.g. 'corpus/' in the tests), and the "expected-file-path"
+                          ;; does not include the extension.
+                          (<= 0 (.indexOf (:filename ctx) expected-file-path)))
+              (findings/reg-finding!
+               ctx
+               {:type :namespace-name-mismatch
+                :message (str "Namespace name does not match file name: " ns-name)
+                :row row
+                :col col
+                :end-row (-> ns-name-expr meta :end-row)
+                :end-col (-> ns-name-expr meta :end-col)
+                :filename filename})))
         clauses children
         _ (run! #(utils/handle-ignore ctx %) children)
         kw+libspecs (for [?require-clause clauses
