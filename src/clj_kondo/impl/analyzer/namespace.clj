@@ -416,7 +416,8 @@
                  'user)
         _ (let [expected-file-path (-> (str (munge ns-name))
                                        (str/replace #"\." "/"))]
-            (when-not (or (= 'user ns-name)
+            (when-not (or (= "<stdin>" (:filename ctx))
+                          (= 'user ns-name)
                           ;; Test for .indexOf because there can be something before
                           ;; (e.g. 'corpus/' in the tests), and the "expected-file-path"
                           ;; does not include the extension.
