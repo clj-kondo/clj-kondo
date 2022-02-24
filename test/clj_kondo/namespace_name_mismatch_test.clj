@@ -1,7 +1,6 @@
 (ns clj-kondo.namespace-name-mismatch-test
   (:require
     [clj-kondo.test-utils :refer [lint! assert-submaps]]
-    [clojure.edn :as edn]
     [clojure.java.io :as io]
     [clojure.test :refer [deftest is testing]]))
 
