@@ -15,7 +15,8 @@
             token-node string-from-token symbol-from-token
             assoc-some]]
    [clojure.set :as set]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [babashka.fs :as fs]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 
@@ -415,7 +416,7 @@
                                     "namespace name expected"))))
                  'user)
         _ (let [expected-file-path (-> (str (munge ns-name))
-                                       (str/replace #"\." java.io.File/separator))
+                                       (str/replace #"\." fs/file-separator))
                 filename (:filename ctx)]
             (when-not (or (= "<stdin>" filename)
                           (= 'user ns-name)
