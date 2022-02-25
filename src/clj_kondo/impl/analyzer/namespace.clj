@@ -415,15 +415,16 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
-        _ (let [expected-file-path (-> (str (munge ns-name))
-                                       (str/replace #"\." fs/file-separator))
-                filename (:filename ctx)]
+        _ (let [filename (:filename ctx)
+                filename-to-periods (some-> filename
+                                            (str/replace #"/" ".")
+                                            (str/replace (re-pattern fs/file-separator) "."))
+                munged-ns (str (munge ns-name))]
             (when-not (or (= "<stdin>" filename)
                           (= 'user ns-name)
-                          ;; Test for index-of because there can be something before
-                          ;; (e.g. 'corpus/' in the tests), and the "expected-file-path"
-                          ;; does not include the extension.
-                          (and filename (str/index-of filename expected-file-path)))
+                          (and filename-to-periods 
+                               (or (str/ends-with? filename-to-periods (str munged-ns ".clj"))
+                                   (str/ends-with? filename-to-periods (str munged-ns ".cljs")))))
               (findings/reg-finding!
                ctx
                (node->line filename
