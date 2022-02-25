@@ -13,7 +13,7 @@
   (assert-submaps
    '({:file "corpus/namespace_name_mismatch/wrong_file.clj",
       :row 1,
-      :col 1,
+      :col 5,
       :level :error,
       :message "Namespace name does not match file name: namespace-name-mismatch.foo"})
    (lint! (io/file "corpus" "namespace_name_mismatch" "wrong_file.clj")
@@ -22,7 +22,7 @@
   (assert-submaps
    '({:file "corpus/namespace_name_mismatch/wrong_folder/foo.clj",
       :row 1,
-      :col 1,
+      :col 5,
       :level :error,
       :message "Namespace name does not match file name: namespace-name-mismatch.something.foo"})
    (lint! (io/file "corpus" "namespace_name_mismatch" "wrong_folder" "foo.clj")
@@ -31,7 +31,7 @@
   (assert-submaps
    '({:file "corpus/namespace_name_mismatch/file-with-dashes.clj",
       :row 1,
-      :col 1,
+      :col 5,
       :level :error,
       :message "Namespace name does not match file name: namespace-name-mismatch.file-with-dashes"})
    (lint! (io/file "corpus" "namespace_name_mismatch" "file-with-dashes.clj")
@@ -40,7 +40,7 @@
   (assert-submaps
    '({:file "corpus/namespace_name_mismatch/folder-with-dashes/foo.clj",
       :row 1,
-      :col 1,
+      :col 5,
       :level :error,
       :message "Namespace name does not match file name: namespace-name-mismatch.folder-with-dashes.foo"})
    (lint! (io/file "corpus" "namespace_name_mismatch" "folder-with-dashes" "foo.clj")

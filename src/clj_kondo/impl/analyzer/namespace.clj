@@ -426,8 +426,8 @@
                ctx
                {:type :namespace-name-mismatch
                 :message (str "Namespace name does not match file name: " ns-name)
-                :row row
-                :col col
+                :row (-> ns-name-expr meta :row)
+                :col (-> ns-name-expr meta :col)
                 :end-row (-> ns-name-expr meta :end-row)
                 :end-col (-> ns-name-expr meta :end-col)
                 :filename filename})))
