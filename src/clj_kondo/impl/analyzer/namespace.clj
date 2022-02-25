@@ -415,22 +415,20 @@
                                     "namespace name expected"))))
                  'user)
         _ (let [expected-file-path (-> (str (munge ns-name))
-                                       (str/replace #"\." "/"))]
-            (when-not (or (= "<stdin>" (:filename ctx))
+                                       (str/replace #"\." "/"))
+                filename (:filename ctx)]
+            (when-not (or (= "<stdin>" filename)
                           (= 'user ns-name)
-                          ;; Test for .indexOf because there can be something before
+                          ;; Test for index-of because there can be something before
                           ;; (e.g. 'corpus/' in the tests), and the "expected-file-path"
                           ;; does not include the extension.
-                          (and (seq (:filename ctx)) (<= 0 (.indexOf ^String (:filename ctx) ^String expected-file-path))))
+                          (and filename (str/index-of filename expected-file-path)))
               (findings/reg-finding!
                ctx
-               {:type :namespace-name-mismatch
-                :message (str "Namespace name does not match file name: " ns-name)
-                :row (-> ns-name-expr meta :row)
-                :col (-> ns-name-expr meta :col)
-                :end-row (-> ns-name-expr meta :end-row)
-                :end-col (-> ns-name-expr meta :end-col)
-                :filename filename})))
+               (node->line filename
+                           ns-name-expr
+                           :namespace-name-mismatch
+                           (str "Namespace name does not match file name: " ns-name)))))
         clauses children
         _ (run! #(utils/handle-ignore ctx %) children)
         kw+libspecs (for [?require-clause clauses
