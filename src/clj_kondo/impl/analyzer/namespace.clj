@@ -415,7 +415,7 @@
                                     "namespace name expected"))))
                  'user)
         _ (let [expected-file-path (-> (str (munge ns-name))
-                                       (str/replace #"\." "/"))
+                                       (str/replace #"\." java.io.File/separator))
                 filename (:filename ctx)]
             (when-not (or (= "<stdin>" filename)
                           (= 'user ns-name)
