@@ -1,4 +1,4 @@
-(ns case-ns)
+(ns case)
 
 (def fn-name 'select-keys)
 

@@ -85,7 +85,8 @@
               :unsorted-required-namespaces {:level :off}
               :shadowed-var {:level :off}
               :loop-without-recur {:level :off}
-              :redundant-fn-wrapper {:level :off}}})
+              :redundant-fn-wrapper {:level :off}
+              :namespace-name-mismatch {:level :off}}})
 
 (defn lint-jvm!
   ([input]

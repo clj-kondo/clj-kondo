@@ -41,6 +41,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing else branch](#missing-else-branch)
     - [Missing map value](#missing-map-value)
     - [Missing test assertion](#missing-test-assertion)
+    - [Namespace name mismatch](#namespace-name-mismatch)
     - [Not empty?](#not-empty)
     - [Private call](#private-call)
     - [Redefined var](#redefined-var)
@@ -668,6 +669,19 @@ misses a value.
 ```
 
 *Example message:* `missing test assertion`.
+
+### Namespace name mismatch
+
+*Keyword:* `:namespace-name-mismatch`.
+
+*Description:* warn when the namespace in the `ns` form does not
+correspond with the file name of the file.
+
+*Default level:* `:error`.
+
+*Example trigger:* a file named `foo.clj` containing a namespace `(ns bar)`.
+
+*Example message:* `Namespace name does not match file name: bar`
 
 ### Not empty?
 
