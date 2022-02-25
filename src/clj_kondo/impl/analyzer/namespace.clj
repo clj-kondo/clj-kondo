@@ -418,7 +418,7 @@
         _ (let [filename (:filename ctx)
                 filename-to-periods (some-> filename
                                             (str/replace #"/" ".")
-                                            (.replaceAll ^String fs/file-separator "."))
+                                            (.replace ^CharSequence fs/file-separator "."))
                 munged-ns (str (munge ns-name))]
             (when-not (or (= "<stdin>" filename)
                           (= 'user ns-name)
