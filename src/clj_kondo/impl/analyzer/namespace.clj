@@ -416,7 +416,7 @@
                                     "namespace name expected"))))
                  'user)
         _ (let [filename (:filename ctx)
-                filename-to-periods (some-> filename
+                filename-to-periods (some-> ^String filename
                                             (.replace "/" ".")
                                             (cond-> (not= fs/file-separator "/")
                                               (.replace ^CharSequence fs/file-separator ".")))
