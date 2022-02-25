@@ -44,4 +44,9 @@
       :level :error,
       :message "Namespace name does not match file name: namespace-name-mismatch.folder-with-dashes.foo"})
    (lint! (io/file "corpus" "namespace_name_mismatch" "folder-with-dashes" "foo.clj")
+          '{:linters {:namespace-name-mismatch {:level :error}}}))
+  
+  (assert-submaps
+   '()
+   (lint! (io/file "corpus" "namespace_name_mismatch" "ignored.clj")
           '{:linters {:namespace-name-mismatch {:level :error}}})))
