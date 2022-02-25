@@ -423,9 +423,7 @@
             (when-not (or (= "<stdin>" filename)
                           (= 'user ns-name)
                           (and filename-to-periods 
-                               (or (str/ends-with? filename-to-periods (str munged-ns ".clj"))
-                                   (str/ends-with? filename-to-periods (str munged-ns ".cljs"))
-                                   (str/ends-with? filename-to-periods (str munged-ns ".cljc")))))
+                               (str/ends-with? (fs/strip-ext filename-to-periods) munged-ns)))
               (findings/reg-finding!
                ctx
                (node->line filename
