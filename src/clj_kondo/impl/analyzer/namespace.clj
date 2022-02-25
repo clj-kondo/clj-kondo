@@ -421,7 +421,7 @@
                           ;; Test for .indexOf because there can be something before
                           ;; (e.g. 'corpus/' in the tests), and the "expected-file-path"
                           ;; does not include the extension.
-                          (and (seq (:filename ctx)) (<= 0 (.indexOf (:filename ctx) expected-file-path))))
+                          (and (seq (:filename ctx)) (<= 0 (.indexOf ^String (:filename ctx) ^String expected-file-path))))
               (findings/reg-finding!
                ctx
                {:type :namespace-name-mismatch
