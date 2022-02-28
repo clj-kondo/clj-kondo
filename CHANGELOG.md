@@ -2,6 +2,14 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+### New
+
+### Fixed
+
+- [#1598](https://github.com/clj-kondo/clj-kondo/issues/1598): `:scope-end-row` is missing on multi-arity fn args ([@mainej](https://github.com/mainej))
+
 ## 2022.02.09
 
 ### New

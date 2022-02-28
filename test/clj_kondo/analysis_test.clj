@@ -207,6 +207,15 @@
      (:locals a))
     (is (= (:id first-a) (:id first-use) (:id third-use)))
     (is (= (:id second-a) (:id second-use))))
+  (let [a (analyze "(defn x ([a] a) ([b] b))" {:config {:output {:analysis {:locals true}}}})
+        [first-a first-b] (:locals a)
+        [a-use b-use] (:local-usages a)]
+    (assert-submaps
+     [{:end-col 12 :scope-end-col 16}
+      {:end-col 20 :scope-end-col 24}]
+     (:locals a))
+    (is (= (:id first-a) (:id a-use)))
+    (is (= (:id first-b) (:id b-use))))
   (let [a (analyze "(as-> {} $ $)" {:config {:output {:analysis {:locals true}}}})
         [first-a] (:locals a)
         [first-use] (:local-usages a)]

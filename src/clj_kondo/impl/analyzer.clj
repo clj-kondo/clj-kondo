@@ -355,7 +355,7 @@
                                            body
                                            :syntax
                                            "Function arguments should be wrapped in vector."))
-        (let [arg-bindings (extract-bindings ctx arg-vec (:fn-body body) {:fn-args? true})
+        (let [arg-bindings (extract-bindings ctx arg-vec (or (:fn-body body) body) {:fn-args? true})
               {return-tag :tag
                arg-tags :tags} (meta arg-bindings)
               arg-list (sexpr arg-vec)
