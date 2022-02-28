@@ -355,7 +355,7 @@
                                            body
                                            :syntax
                                            "Function arguments should be wrapped in vector."))
-        (let [arg-bindings (extract-bindings ctx arg-vec (:fn-body body) {:fn-args? true})
+        (let [arg-bindings (extract-bindings ctx arg-vec body {:fn-args? true})
               {return-tag :tag
                arg-tags :tags} (meta arg-bindings)
               arg-list (sexpr arg-vec)
@@ -451,8 +451,8 @@
       (let [expr (meta/lift-meta-content2 ctx expr)
             t (tag expr)]
         (case t
-          :vector [{:children exprs :fn-body body}]
-          :list (map (fn [expr] (assoc expr :fn-body expr)) exprs)
+          :vector [(assoc body :children exprs)]
+          :list exprs
           (recur rest-exprs))))))
 
 (defn extract-arity-info [ctx parsed-bodies]
