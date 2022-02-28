@@ -2,6 +2,12 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+### New
+
+- [#1240](https://github.com/clj-kondo/clj-kondo/issues/1240): Add linter `:namespace-name-mismatch` to detect when namespace name does not match file name. ([@svdo](https://github.com/svdo))
+
 ## 2022.02.09
 
 ### New
@@ -15,7 +21,6 @@ For a list of breaking changes, check [here](#breaking-changes).
   but may be enabled by default in future versions after more testing.
 - [#1549](https://github.com/clj-kondo/clj-kondo/issues/1560): lint task definition keys in `bb.edn` ([@mknoszlig](https://github.com/mknoszlig))
 - [#1484](https://github.com/clj-kondo/clj-kondo/issues/1484): Add analysis information about protocol implementations. ([@ericdallo](https://github.com/ericdallo))
-- [#1240](https://github.com/clj-kondo/clj-kondo/issues/1240): Add linter `:namespace-name-mismatch` to detect when namespace name does not match file name. ([@svdo](https://github.com/svdo))
 
 ### Fixed
 
