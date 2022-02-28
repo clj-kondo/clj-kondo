@@ -2,6 +2,7 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.cache :as cache]
@@ -15,8 +16,7 @@
             token-node string-from-token symbol-from-token
             assoc-some]]
    [clojure.set :as set]
-   [clojure.string :as str]
-   [babashka.fs :as fs]))
+   [clojure.string :as str]))
 
 (def valid-ns-name? (some-fn symbol? string?))
 

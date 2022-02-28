@@ -207,6 +207,17 @@
      (:locals a))
     (is (= (:id first-a) (:id first-use) (:id third-use)))
     (is (= (:id second-a) (:id second-use))))
+  (let [a (analyze "(defn x ([a] a) ([b c] (+ b c)))" {:config {:output {:analysis {:locals true}}}})
+        [first-a first-b first-c] (:locals a)
+        [a-use b-use c-use] (:local-usages a)]
+    (assert-submaps
+     [{:end-col 12 :scope-end-col 16}
+      {:end-col 20 :scope-end-col 32}
+      {:end-col 22 :scope-end-col 32}]
+     (:locals a))
+    (is (= (:id first-a) (:id a-use)))
+    (is (= (:id first-b) (:id b-use)))
+    (is (= (:id first-c) (:id c-use))))
   (let [a (analyze "(as-> {} $ $)" {:config {:output {:analysis {:locals true}}}})
         [first-a] (:locals a)
         [first-use] (:local-usages a)]
@@ -223,6 +234,19 @@
      (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use))))
+  (let [a (analyze "(letfn [(a ([b] b) ([c d] (+ c d)))] a)" {:config {:output {:analysis {:locals true}}}})
+        [first-a first-b first-c first-d] (:locals a)
+        [first-use second-use third-use fourth-use] (:local-usages a)]
+    (assert-submaps
+     [{:end-col 11 :scope-end-col 40}
+      {:end-col 15 :scope-end-col 19}
+      {:end-col 23 :scope-end-col 35}
+      {:end-col 25 :scope-end-col 35}]
+     (:locals a))
+    (is (= (:id first-a) (:id first-use)))
+    (is (= (:id first-b) (:id second-use)))
+    (is (= (:id first-c) (:id third-use)))
+    (is (= (:id first-d) (:id fourth-use))))
   (let [a (analyze "(let [a 0] (let [a a] a))" {:config {:output {:analysis {:locals true}}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]

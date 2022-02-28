@@ -8,6 +8,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#1240](https://github.com/clj-kondo/clj-kondo/issues/1240): Add linter `:namespace-name-mismatch` to detect when namespace name does not match file name. ([@svdo](https://github.com/svdo))
 
+### Fixed
+
+- [#1598](https://github.com/clj-kondo/clj-kondo/issues/1598): `:scope-end-row` is missing on multi-arity fn args ([@mainej](https://github.com/mainej))
+
 ## 2022.02.09
 
 ### New
