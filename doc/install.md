@@ -37,7 +37,7 @@ It is fully self-contained - without the overhead that comes with Docker! -->
 ### Arch
 
 `clj-kondo` is [available](https://aur.archlinux.org/packages/clj-kondo-bin/) in the [Arch User Repository](https://aur.archlinux.org). It can be installed using your favorite [AUR](https://aur.archlinux.org) helper such as
-[yay](https://github.com/Jguer/yay), [yaourt](https://github.com/archlinuxfr/yaourt), [apacman](https://github.com/oshazard/apacman) and [pacaur](https://github.com/rmarquis/pacaur). Here is an example using `yay`:
+[yay](https://github.com/Jguer/yay) or [paru](https://github.com/Morganamilo/paru). Here is an example using `yay`:
 
     yay -S clj-kondo-bin
 
