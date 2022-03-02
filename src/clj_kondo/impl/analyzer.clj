@@ -375,8 +375,7 @@
                                        "Invalid function body."))))
 
 (defn analyze-pre-post-map [ctx expr]
-  (let [children (:children expr)
-        ctx (update ctx :callstack cons [:pre-post-map])]
+  (let [children (:children expr)]
     (key-linter/lint-map-keys ctx expr)
     (mapcat (fn [[key-expr value-expr]]
               (let [analyzed-key (analyze-expression** ctx key-expr)
@@ -405,6 +404,7 @@
                        (when (and first-child
                                   (identical? :map (tag first-child)))
                          first-child))
+        ctx (if pre-post-map (update ctx :callstack conj [nil :pre-post]) ctx)
         analyze-pre-post (when pre-post-map
                            (analyze-pre-post-map ctx first-child))
         children (if pre-post-map (next children) children)

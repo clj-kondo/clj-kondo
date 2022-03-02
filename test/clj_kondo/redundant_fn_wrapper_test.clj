@@ -19,4 +19,7 @@
               {:linters {:redundant-fn-wrapper {:level :warning}}})))
   (is (empty?
        (lint! "(fn [x] (inc x) (dec x))"
+              {:linters {:redundant-fn-wrapper {:level :warning}}})))
+  (is (empty?
+       (lint! "(fn [x] {:pre [(odd? x)]} (- x))"
               {:linters {:redundant-fn-wrapper {:level :warning}}}))))

@@ -17,4 +17,3 @@
 (reify PlatformManagedObject
   (^ObjectName getObjectName [_this]))"
                      {:linters {:unused-import {:level :warning}}}))))
-
