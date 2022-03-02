@@ -1688,12 +1688,13 @@
   "Used for analyzing children of extend-type, reify and extend-protocol."
   [ctx children]
   (let [children (map (fn [node]
-                        (if (= :list (tag node))
-                          (update node :children (fn [children]
-                                                   (cons (utils/token-node 'clojure.core/fn)
-                                                         (rest children))))
-                          node))
-                      children)]
+                           (if (= :list (tag node))
+                             (do (meta/lift-meta-content2 ctx (first (:children node)))
+                                 (update node :children (fn [children]
+                                                          (cons (utils/token-node 'clojure.core/fn)
+                                                                (rest children)))))
+                             node))
+                         children)]
     (analyze-children (assoc ctx :extend-type true) children)))
 
 (defn analyze-reify [ctx expr]

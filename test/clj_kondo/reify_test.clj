@@ -8,5 +8,13 @@
    (lint! "(reify clojure.lang.IDeref (deref [x] nil))"
           {:linters {:unused-binding {:level :warning}}}))
   (is (empty? (lint! "(reify clojure.lang.IDeref (deref [_] nil))"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "
+(ns fiddle
+  (:import (java.lang.management PlatformManagedObject)
+           (javax.management ObjectName)))
+
+(reify PlatformManagedObject
+  (^ObjectName getObjectName [_this]))"
+                     {:linters {:unused-import {:level :warning}}}))))
 
