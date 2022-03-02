@@ -1831,7 +1831,11 @@ foo/foo ;; this does use the private var
        (lint! "(set! *default-data-reader-fn* tagged-literal)
                #read-thing ([1 2 3] 4 5 6 (inc :foo))"
               )))
-  )
+  (is (empty?
+       (lint! "(let [foo \"2022-02-10\"
+                    bar #time/date foo]
+                bar)"
+              {:linters {:unused-binding {:level :warning}}}))))
 
 (deftest extend-type-specify-test
   (assert-submaps

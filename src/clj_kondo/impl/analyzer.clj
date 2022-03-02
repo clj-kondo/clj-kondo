@@ -2305,7 +2305,8 @@
         ctx (if (and (identical? :cljs (:lang ctx))
                      (= 'js tag))
               ctx
-              (assoc ctx :quoted true))
+              (ctx-with-linters-disabled ctx [:unresolved-symbol
+                                              :invalid-arity]))
         children (rest children)]
     (analyze-children ctx children)))
 
