@@ -906,6 +906,9 @@
   (fun2 (fun2 {:a 23})))"
             config-2))))
 
+(deftest misc-false-positives-test
+  (is (empty? (lint! "(even? ('a {'a 10}))" config))))
+
 ;;;; Scratch
 
 (comment

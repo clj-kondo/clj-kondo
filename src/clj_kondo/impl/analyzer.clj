@@ -2392,13 +2392,13 @@
                     (analyze-children (update ctx :callstack conj [nil t]) children))
                 :quote
                 (let [quoted-child (-> function :children first)]
+                  (types/add-arg-type-from-expr ctx expr)
                   (if (utils/symbol-token? quoted-child)
                     (do (lint-symbol-call! ctx quoted-child arg-count expr)
                         (analyze-children (update ctx :callstack conj [nil t])
                                           children))
-                    (do (types/add-arg-type-from-expr ctx expr)
-                        (analyze-children (update ctx :callstack conj [nil t])
-                                          children))))
+                    (analyze-children (update ctx :callstack conj [nil t])
+                                      children)))
                 :vector
                 (do (lint-vector-call! ctx function arg-count expr)
                     (types/add-arg-type-from-expr ctx expr)
