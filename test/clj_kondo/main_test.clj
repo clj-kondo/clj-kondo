@@ -2147,7 +2147,19 @@ foo/foo ;; this does use the private var
                my-deprecated-var :bla) my-deprecated-var"
           "--lang" "cljc"))
   (is (empty? (lint! "(defn ^:deprecated foo [] (foo))")))
-  (is (empty? (lint! "(def ^:deprecated foo (fn [] (foo)))"))))
+  (is (empty? (lint! "(def ^:deprecated foo (fn [] (foo)))")))
+  (is (empty? (lint! "(ns dude {:clj-kondo/config '{:linters {:deprecated-var
+                                                              {:level :off}}}})
+(def ^:deprecated foo)
+foo")))
+  (is (empty? (lint! "(ns dude {:clj-kondo/config '{:linters {:deprecated-var
+                                                              {:level :off}}}})
+(def ^:deprecated foo)
+foo")))
+  (is (empty? (lint! "(ns dude {:clj-kondo/config '{:linters {:deprecated-var
+                                                     {:exclude {dude/foo {:namespaces [dude]}}}}}})
+(def ^:deprecated foo)
+foo"))))
 
 (deftest unused-referred-var-test
   (assert-submaps

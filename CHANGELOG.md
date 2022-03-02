@@ -15,6 +15,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1581](https://github.com/clj-kondo/clj-kondo/issues/1581): redundant fn wrapper false positive when using pre-post-map
 - [#1582](https://github.com/clj-kondo/clj-kondo/issues/1582): False positive Insufficient input when using symbol call
 - [#1579](https://github.com/clj-kondo/clj-kondo/issues/1579): relax linting in tagged literal forms
+- [#1578](https://github.com/clj-kondo/clj-kondo/issues/1578): allow `:deprecated-var` config in ns form metadata
 
 ## 2022.02.09
 

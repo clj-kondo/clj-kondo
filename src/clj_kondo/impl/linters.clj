@@ -386,8 +386,9 @@
             (or
              ;; recursive call
              recursive?
+             (utils/linter-disabled? call :deprecated-var)
              (config/deprecated-var-excluded
-              config
+              (:config call)
               (symbol (str fn-ns)
                       (str fn-name))
               caller-ns-sym in-def))
