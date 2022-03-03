@@ -2595,7 +2595,13 @@
   (try
     (let [reader-exceptions (atom [])
           parsed (binding [*reader-exceptions* reader-exceptions]
-                   (p/parse-string input))]
+                   (p/parse-string input))
+          fname (fs/file-name filename)
+          ctx (case fname
+                ("data_readers.clj"
+                 "data_readers.cljc")
+                (ctx-with-linters-disabled ctx [:unresolved-namespace])
+                ctx)]
       (doseq [e @reader-exceptions]
         (if dev?
           (throw e)
@@ -2613,16 +2619,15 @@
           (analyze-expressions ctx (:children parsed))
           ;; analyze-expressions should go first in order to process ignores
           (when (identical? :edn lang)
-            (let [fname (fs/file-name filename)]
-              (case fname
-                "deps.edn" (deps-edn/lint-deps-edn ctx (first (:children parsed)))
-                "bb.edn"   (deps-edn/lint-bb-edn ctx (first (:children parsed)))
-                "config.edn" (when (and (fs/exists? filename)
-                                        (-> (fs/parent filename)
-                                            (fs/file-name)
-                                            (= ".clj-kondo")))
-                               (lint-config/lint-config ctx (first (:children parsed))))
-                nil))))))
+            (case fname
+              "deps.edn" (deps-edn/lint-deps-edn ctx (first (:children parsed)))
+              "bb.edn"   (deps-edn/lint-bb-edn ctx (first (:children parsed)))
+              "config.edn" (when (and (fs/exists? filename)
+                                      (-> (fs/parent filename)
+                                          (fs/file-name)
+                                          (= ".clj-kondo")))
+                             (lint-config/lint-config ctx (first (:children parsed))))
+              nil)))))
     (catch Exception e
       (if dev?
         (throw e)

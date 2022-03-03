@@ -16,6 +16,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1582](https://github.com/clj-kondo/clj-kondo/issues/1582): False positive Insufficient input when using symbol call
 - [#1579](https://github.com/clj-kondo/clj-kondo/issues/1579): relax linting in tagged literal forms
 - [#1578](https://github.com/clj-kondo/clj-kondo/issues/1578): allow `:deprecated-var` config in ns form metadata
+- [#892](https://github.com/clj-kondo/clj-kondo/issues/892): suppress unresolved namespaces in data readers config
 
 ## 2022.02.09
 

@@ -1837,6 +1837,14 @@ foo/foo ;; this does use the private var
                 bar)"
               {:linters {:unused-binding {:level :warning}}}))))
 
+(deftest data-readers-config-test
+  (is (empty? (lint! (io/file "corpus/data_readers.clj")
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unresolved-namespace {:level :error}}})))
+  (is (empty? (lint! (io/file "corpus/data_readers.cljc")
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unresolved-namespace {:level :error}}}))))
+
 (deftest extend-type-specify-test
   (assert-submaps
    '({:file "<stdin>", :row 2, :col 25, :level :error, :message "Unresolved symbol: x"})
