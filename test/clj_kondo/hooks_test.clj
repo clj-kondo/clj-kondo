@@ -134,7 +134,7 @@
                                "\"<stdin>\""
                                "true\n"])))))))
 
-(deftest confg-test
+(deftest config-test
   (when-not native?
     (let [s (with-out-str (lint! "
 (ns bar
@@ -163,10 +163,22 @@
           s (str/replace s "\r\n" "\n")]
       (is (= s "{:a 1, :b 2}\n{:a 1, :b 2}\n")))))
 
-#_(fn [{:keys [:node]}]
-  (let [children (next (:children node))
-        new-node (api/list-node (list* (api/token-node 'do) children))]
-    {:node new-node}))
+(deftest custom-lint-warning-ignore-test
+  (when-not native?
+    (let [res (lint! "
+(ns bar
+  {:clj-kondo/config
+    '{:hooks {:analyze-call {foo/hook \"(fn [{:keys [node]}]
+                                         (clj-kondo.hooks-api/reg-finding!
+                                          (assoc (meta node) :message \\\"Yolo\\\"
+                                                                                 :type :foo)))\"}}}}
+  (:require [foo :refer [hook]]))
+
+(hook 1 2 3)
+#_:clj-kondo/ignore (hook 1 2 3)"
+                   {:hooks {:__dangerously-allow-string-hooks__ true}
+                    :linters {:foo {:level :error}}})]
+      (assert-submaps '({:file "<stdin>", :row 10, :col 1, :level :error, :message "Yolo"}) res))))
 
 (deftest redundant-do-let-test
   (testing "hook code generating do or let won't be reported as redundant"
