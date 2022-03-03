@@ -51,10 +51,8 @@ Also check out these resources:
 
 A number of [GitHub Actions](https://github.com/features/actions) that use `clj-kondo` are available:
 
-- [clojure-lint-action](https://github.com/marketplace/actions/clj-kondo-checks)
-- [lint-clojure](https://github.com/marketplace/actions/clj-kondo)
-- [Mega-Linter](https://github.com/marketplace/actions/mega-linter): 100% open-source linters aggregator
 - [setup-clj-kondo](https://github.com/marketplace/actions/setup-clj-kondo)
+- [clojure-lint-action](https://github.com/marketplace/actions/clj-kondo-checks)
 
 ### Linter Output Integration
 
