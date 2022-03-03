@@ -2008,6 +2008,8 @@
                         (test/analyze-cljs-test-async ctx expr)
                         ([clojure.test are] [cljs.test are])
                         (test/analyze-are ctx resolved-namespace expr)
+                        ([clojure.test.check.properties for-all])
+                        (analyze-like-let ctx expr)
                         [cljs.spec.alpha def]
                         (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
                         [clojure.spec.alpha def]

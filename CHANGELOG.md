@@ -17,6 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1579](https://github.com/clj-kondo/clj-kondo/issues/1579): relax linting in tagged literal forms
 - [#1578](https://github.com/clj-kondo/clj-kondo/issues/1578): allow `:deprecated-var` config in ns form metadata
 - [#892](https://github.com/clj-kondo/clj-kondo/issues/892): suppress unresolved namespaces in data readers config
+- [#1594](https://github.com/clj-kondo/clj-kondo/issues/1594): lint clojure.test.check.properties/for-all as let
 
 ## 2022.02.09
 

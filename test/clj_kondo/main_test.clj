@@ -1693,7 +1693,7 @@ foo/foo ;; this does use the private var
    '({:file "corpus/deftype.cljs", :row 9, :col 10, :level :warning, :message "unused binding coll"}
      {:file "corpus/deftype.cljs", :row 17, :col 16, :level :warning, :message "unused binding coll"})
    (lint! (io/file "corpus" "deftype.cljs")
-              "--config" "{:linters {:unused-binding {:level :warning}}}")))
+          "--config" "{:linters {:unused-binding {:level :warning}}}")))
 
 (deftest defmulti-test
   (assert-submaps
@@ -1948,10 +1948,10 @@ foo/foo ;; this does use the private var
      :level   :error,
      :message "unknown option :xargs"}
     #_{:file    "corpus/spec_syntax.clj",
-     :row     20,
-     :col     9,
-     :level   :error,
-     :message "Unresolved symbol: xstr/starts-with?"}
+       :row     20,
+       :col     9,
+       :level   :error,
+       :message "Unresolved symbol: xstr/starts-with?"}
     {:file    "corpus/spec_syntax.clj",
      :row     30,
      :col     15,
@@ -2467,7 +2467,7 @@ foo/baz
                                 :unresolved-var {:level :error}}})))
   ;; TODO? for now just include duplicate lint-as
   #_(testing "lint-as works automatically with imported vars"
-    (is (empty? (lint! "
+      (is (empty? (lint! "
 (ns foo.bar)
 
 (defmacro defsomething [name & body])
@@ -2479,9 +2479,9 @@ foo/baz
 (ns consumer (:require foo))
 (foo/defsomething dude)
 "
-                       '{:lint-as {foo.bar/defsomething clojure.core/def}
-                         :linters {:unresolved-symbol {:level :error}
-                                   :unresolved-var {:level :error}}})))))
+                         '{:lint-as {foo.bar/defsomething clojure.core/def}
+                           :linters {:unresolved-symbol {:level :error}
+                                     :unresolved-var {:level :error}}})))))
 
 (deftest potemkin-import-vars-cyclic-test
   (assert-submaps
@@ -2796,11 +2796,11 @@ foo/baz
 
 (deftest conflicting-aliases-test
   (assert-submaps
-    [{:file "<stdin>", :row 1, :col 50,
-      :level :error, :message #"Conflicting alias for "}]
-    (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
-           {:linters {:conflicting-alias {:level :error}
-                      :unused-namespace {:level :off}}}))
+   [{:file "<stdin>", :row 1, :col 50,
+     :level :error, :message #"Conflicting alias for "}]
+   (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
+          {:linters {:conflicting-alias {:level :error}
+                     :unused-namespace {:level :off}}}))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar :as baz]))"
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-namespace {:level :off}}})))
@@ -2813,16 +2813,16 @@ foo/baz
 (deftest refer-test
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)")))
   (assert-submaps
-    [{:file "<stdin>", :row 1, :col 46,
-      :level :warning, :message #"require with :refer"}]
-    (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)"
-           {:linters {:refer {:level :warning}}}))
+   [{:file "<stdin>", :row 1, :col 46,
+     :level :warning, :message #"require with :refer"}]
+   (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)"
+          {:linters {:refer {:level :warning}}}))
   (assert-submaps
-    [{:file "<stdin>", :row 1, :col 46,
-      :level :warning, :message #"require with :refer"}]
-    (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer :all])) (foo/bazbar) (asd)"
-           {:linters {:refer {:level :warning}
-                      :refer-all {:level :off}}}))
+   [{:file "<stdin>", :row 1, :col 46,
+     :level :warning, :message #"require with :refer"}]
+   (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer :all])) (foo/bazbar) (asd)"
+          {:linters {:refer {:level :warning}
+                     :refer-all {:level :off}}}))
   (assert-submaps
    [{:file "<stdin>", :row 1, :col 35,
      :level :warning, :message #"require with :refer"}]
@@ -3090,6 +3090,14 @@ foo/")))
       :message "Unresolved namespace goog.object. Are you missing a require?"})
    (lint! "(goog.object/get #js {:a 1} \"a\")"
           "--lang" "cljs")))
+
+(deftest clojure-test-check-properties-for-all-test
+  (is (empty? (lint! "(require '[clojure.test.check.properties :refer [for-all]]
+                               '[clojure.test.check.generators :as gen])
+          (for-all [a gen/large-integer
+                    b gen/large-integer]
+            (>= (+ a b) a))"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch
 
