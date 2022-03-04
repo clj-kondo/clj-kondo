@@ -36,7 +36,7 @@ Other API functions:
 <!-- - `reg-keyword!`: indicates that a keyword's analysis should be mared as a definition. Expects the keyword node and either true or the fully-qualified call that registered it.-->
 - `reg-finding!`: registers a finding. Expects a map with:
   - `:message`: the lint message
-  - `:row` and `:col`: the location of the finding. These values can be derived from the metadata of a node.
+  - `:row`, `:col`, `:end-row` and `:end-col`: the location of the finding. These values can be derived from the metadata of a node.
   - `:type`: the type of lint warning. A level must be set for this type in the
     clj-kondo config under `:linters`. If the level is not set, the lint warning
     is ignored.
@@ -169,11 +169,9 @@ dispatched event used a qualified keyword.
     (when (and (vector? event)
                (keyword? kw)
                (not (qualified-keyword? kw)))
-      (let [{:keys [:row :col]} (some-> node :children second :children first meta)]
-        (api/reg-finding! {:message "keyword should be fully qualified!"
-                           :type :re-frame/keyword
-                           :row row
-                           :col col})))))
+      (let [m (some-> node :children second :children first meta)]
+        (api/reg-finding! (assoc m :message "keyword should be fully qualified!"
+                                 :type :re-frame/keyword))))))
 ```
 
 The hook uses the `api/sexpr` function to convert the rewrite-clj node into a
@@ -201,22 +199,18 @@ The configuration is supplied as a key in the hook argument:
   (:require [clj-kondo.hooks-api :as api]))
 
 (defn warn? [linter-params]
- ...)
+  ...)
 
 (defn bar [{:keys [:node :config]}]
   (let [linter-params (-> config :linters :foo/lint-bar :lint)]
     (when (warn? linter-params)
-      (let [{:keys [:row :col]} (meta node)]
-        (api/reg-finding! {:message "warning message!"
-                           :type :re-frame/keyword
-                           :row row
-                           :col col})))))
+      (api/reg-finding! (assoc (meta node)
+                               :message "warning message!"
+                               :type :re-frame/keyword)))))
 ```
 
-
-Additionally, the finding has `:row` and `:col`,
-derived from the node's metadata to show the finding at the appropriate
-location.
+Additionally, the finding has `:row`, `:col`, `:end-row` and `:end-col`, derived
+from the node's metadata to show the finding at the appropriate location.
 
 <img src="../screenshots/re-frame-hook.png"/>
 
