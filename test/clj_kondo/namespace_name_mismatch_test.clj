@@ -1,5 +1,6 @@
 (ns clj-kondo.namespace-name-mismatch-test
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.java.io :as io]
    [clojure.test :refer [deftest is testing]]))
@@ -73,3 +74,10 @@
    '()
    (lint! (io/file "corpus" "namespace_name_mismatch" "ignored.clj")
           '{:linters {:namespace-name-mismatch {:level :error}}})))
+
+(deftest windows-test
+  (testing "absolute path on Windows"
+    (assert-submaps
+     '()
+     (lint! (io/file (str (fs/absolutize (io/file "corpus" "namespace_name_mismatch" "correct_file.cljs"))))
+            '{:linters {:namespace-name-mismatch {:level :error}}}))))
