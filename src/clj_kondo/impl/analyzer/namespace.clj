@@ -18,6 +18,7 @@
    [clojure.set :as set]
    [clojure.string :as str]))
 
+(set! *warn-on-reflection* true)
 (def valid-ns-name? (some-fn symbol? string?))
 
 (defn- prefix-spec?
@@ -415,16 +416,16 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
-        _ (let [filename (:filename ctx)
-                filename-to-periods (some-> ^String filename
-                                            (.replace "/" ".")
-                                            (cond-> (not= fs/file-separator "/")
-                                              (.replace ^CharSequence fs/file-separator ".")))
+        _ (let [filename* (some-> filename
+                                  ^String (fs/strip-ext)
+                                  ^String (.replace "/" ".")
+                                  (cond-> (not= fs/file-separator "/")
+                                    (.replace ^CharSequence fs/file-separator ".")))
                 munged-ns (str (munge ns-name))]
             (when-not (or (= "<stdin>" filename)
                           (= 'user ns-name)
-                          (and filename-to-periods 
-                               (str/ends-with? (fs/strip-ext filename-to-periods) munged-ns)))
+                          (and filename*
+                               (str/ends-with? filename* munged-ns)))
               (findings/reg-finding!
                ctx
                (node->line filename
