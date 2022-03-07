@@ -416,15 +416,16 @@
                                     "namespace name expected"))))
                  'user)
         _ (let [filename (:filename ctx)
-                filename-to-periods (some-> ^String filename
-                                            (.replace "/" ".")
-                                            (cond-> (not= fs/file-separator "/")
-                                              (.replace ^CharSequence fs/file-separator ".")))
+                filename* (fs/strip-ext filename)
+                filename* (some-> ^String filename*
+                                  (.replace "/" ".")
+                                  (cond-> (not= fs/file-separator "/")
+                                    (.replace ^CharSequence fs/file-separator ".")))
                 munged-ns (str (munge ns-name))]
             (when-not (or (= "<stdin>" filename)
                           (= 'user ns-name)
-                          (and filename-to-periods 
-                               (str/ends-with? (fs/strip-ext filename-to-periods) munged-ns)))
+                          (and filename*
+                               (str/ends-with?  munged-ns)))
               (findings/reg-finding!
                ctx
                (node->line filename
