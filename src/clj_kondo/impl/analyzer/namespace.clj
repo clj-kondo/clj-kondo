@@ -417,8 +417,8 @@
                                     "namespace name expected"))))
                  'user)
         _ (let [filename* (some-> filename
-                                  ^String fs/strip-ext
-                                  (.replace "/" ".")
+                                  ^String (fs/strip-ext)
+                                  ^String (.replace "/" ".")
                                   (cond-> (not= fs/file-separator "/")
                                     (.replace ^CharSequence fs/file-separator ".")))
                 munged-ns (str (munge ns-name))]
