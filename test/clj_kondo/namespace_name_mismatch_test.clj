@@ -79,6 +79,7 @@
   (testing "absolute path on Windows"
     (is (empty?
          (:findings (clj-kondo/run! {:lint [(-> (io/file "corpus" "namespace_name_mismatch" "correct_file.cljs")
+                                                .toURI
                                                 .toURL
                                                 .getPath)]
                                      :config {:linters {:namespace-name-mismatch {:level :error}}}}))))))
