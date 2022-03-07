@@ -77,9 +77,8 @@
 
 (deftest windows-test
   (testing "absolute path on Windows"
-    (assert-submaps
-     '()
-     (clj-kondo/run! {:lint [(-> (io/file "corpus" "namespace_name_mismatch" "correct_file.cljs")
-                                 .toURL
-                                 .getPath)]
-                      :config {:linters {:namespace-name-mismatch {:level :error}}}}))))
+    (is (empty?
+         (:findings (clj-kondo/run! {:lint [(-> (io/file "corpus" "namespace_name_mismatch" "correct_file.cljs")
+                                                .toURL
+                                                .getPath)]
+                                     :config {:linters {:namespace-name-mismatch {:level :error}}}}))))))
