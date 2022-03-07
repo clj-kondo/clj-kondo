@@ -48,6 +48,7 @@
     (let [raw-attrs attrs
           attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
                                     :doc :added :deprecated :test :export :defined-by
+                                    :protocol-ns :protocol-name
                                     :name-row :name-col :name-end-col :name-end-row
                                     :arglist-strs :end-row :end-col])]
       (swap! analysis update :var-definitions conj

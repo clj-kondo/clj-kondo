@@ -2,6 +2,12 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+### New
+
+- [#1602](https://github.com/clj-kondo/clj-kondo/issues/1602): analysis data now includes `:protocol-ns` and `:protocol-name` on protocol methods ([@lread](https://github.com/lread))
+
 ## 2022.03.04
 
 ### New

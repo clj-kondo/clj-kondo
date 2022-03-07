@@ -82,6 +82,7 @@ The analysis output consists of a map with:
   - `:lang`: if definition occurred in a `.cljc` file, the language in which the
     definition was done: `:clj` or `:cljs`
   - `:arglists-str`: a list of each set of args as written
+  - `:protocol-ns`, `:protocol-name`: the protocol namespace and name for a protocol method
 
 - `:var-usages`, a list of maps with:
   - `:filename`
