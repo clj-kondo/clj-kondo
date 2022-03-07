@@ -1256,6 +1256,8 @@
                        :name-end-row (:end-row name-meta)
                        :name-end-col (:end-col name-meta)
                        :fixed-arities fixed-arities
+                       :protocol-ns ns-name
+                       :protocol-name protocol-name
                        :defined-by 'clojure.core/defprotocol))
           (docstring/lint-docstring! ctx doc-node docstring))))))
 

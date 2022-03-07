@@ -871,8 +871,14 @@
 (deftest defprotocol-test
   (let [{:keys [:var-definitions]}
         (analyze "(ns foo)
-                  (defprotocol Foo (foo [_]))")]
-    (is (= '#{clojure.core/defprotocol} (set (map :defined-by var-definitions))))))
+                  (defprotocol Foo (bar [_]) (baz [_]))")]
+    (is (= '#{clojure.core/defprotocol} (set (map :defined-by var-definitions))))
+    (is (= {} (select-keys (first var-definitions) [:protocol-ns :protocol-name])))
+    (assert-submaps
+     '[{:name Foo}
+       {:name bar :protocol-ns foo :protocol-name Foo}
+       {:name baz :protocol-ns foo :protocol-name Foo}]
+     var-definitions)))
 
 (deftest export-test
   (let [{:keys [:var-definitions]}
