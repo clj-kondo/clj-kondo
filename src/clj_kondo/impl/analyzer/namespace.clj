@@ -425,7 +425,7 @@
             (when-not (or (= "<stdin>" filename)
                           (= 'user ns-name)
                           (and filename*
-                               (str/ends-with?  munged-ns)))
+                               (str/ends-with? filename* munged-ns)))
               (findings/reg-finding!
                ctx
                (node->line filename
