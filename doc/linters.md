@@ -677,7 +677,7 @@ misses a value.
 *Description:* warn when the namespace in the `ns` form does not
 correspond with the file name of the file.
 
-*Default level:* `:error`.
+*Default level:* `:off`.
 
 *Example trigger:* a file named `foo.clj` containing a namespace `(ns bar)`.
 
