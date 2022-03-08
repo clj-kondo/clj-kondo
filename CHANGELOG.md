@@ -2,11 +2,15 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.03.08
 
 ### New
 
 - [#1602](https://github.com/clj-kondo/clj-kondo/issues/1602): analysis data now includes `:protocol-ns` and `:protocol-name` on protocol methods ([@lread](https://github.com/lread))
+
+### Fixed
+
+- [#1605](https://github.com/clj-kondo/clj-kondo/issues/1605): error while determining namespace mismatch on Windows
 
 ## 2022.03.04
 
