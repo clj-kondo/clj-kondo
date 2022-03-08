@@ -428,6 +428,33 @@
            :row 11 :col 3 :end-row 13 :end-col 9}]
         protocol-impls))))
 
+(deftest defmulti-defmethod-test
+  (testing "defmulti and defmethod"
+    (let [{:keys [:var-usages :var-definitions]} (analyze "
+(defmulti my-multi :some-key)
+​
+(defmethod my-multi :some-value
+  [_]
+  :bar)" {:config {:output {:analysis true}}})]
+      (assert-submaps
+        '[{:name my-multi
+           :defined-by clojure.core/defmulti
+           :ns user
+           :name-row 2 :name-col 11 :name-end-row 2 :name-end-col 19
+           :row 2 :col 1 :end-row 2 :end-col 30}]
+        var-definitions)
+      (assert-submaps
+        '[{:name defmulti}
+          {}
+          {:name defmethod}
+          {:name my-multi
+           :from user
+           :to user
+           :defmethod true
+           :name-row 4 :name-col 12 :name-end-row 4 :name-end-col 20
+           :row 4 :col 12 :end-row 4 :end-col 20}]
+        var-usages))))
+
 (deftest name-position-test
   (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps

@@ -31,6 +31,7 @@
                                :deprecated
                                :refer
                                :alias
+                               :defmethod
                                :name-row
                                :name-col
                                :name-end-row

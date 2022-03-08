@@ -311,6 +311,7 @@
                                            (assoc called-fn
                                                   :alias (:alias call)
                                                   :refer (:refer call)
+                                                  :defmethod (:defmethod call)
                                                   :name-row name-row
                                                   :name-col name-col
                                                   :name-end-row name-end-row
