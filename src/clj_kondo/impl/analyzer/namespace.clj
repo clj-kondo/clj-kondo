@@ -16,7 +16,8 @@
             token-node string-from-token symbol-from-token
             assoc-some]]
    [clojure.set :as set]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.java.io :as io]))
 
 (set! *warn-on-reflection* true)
 (def valid-ns-name? (some-fn symbol? string?))
@@ -428,6 +429,7 @@
                   munged-ns (str (munge ns-name))]
               (when (and filename*
                          (not (str/ends-with? filename* munged-ns)))
+                (spit (io/file "clj-kondo.log" [filename filename* ns-name munged-ns]) :append true)
                 (findings/reg-finding!
                  ctx
                  (node->line filename
