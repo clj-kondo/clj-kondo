@@ -416,18 +416,18 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
-        _ (when-not (identical? :off (-> ctx :config :linters :namespace-name-mismatch :level))
+        _ (when (and (not= "<stdin>" filename)
+                     (not= 'user ns-name)
+                     (not (identical? :off (-> ctx :config :linters :namespace-name-mismatch :level))))
             ;; users should be able to disable linter without hitting this code-path
             (let [filename* (some-> filename
                                     ^String (fs/strip-ext)
                                     ^String (.replace "/" ".")
-                                    (cond-> (not= fs/file-separator "/")
-                                      (.replace ^CharSequence fs/file-separator ".")))
+                                    ;; Windows, but do unconditionally, see issue 1607
+                                    (.replace "\\" "."))
                   munged-ns (str (munge ns-name))]
-              (when-not (or (= "<stdin>" filename)
-                            (= 'user ns-name)
-                            (and filename*
-                                 (str/ends-with? filename* munged-ns)))
+              (when (and filename*
+                         (not (str/ends-with? filename* munged-ns)))
                 (findings/reg-finding!
                  ctx
                  (node->line filename
