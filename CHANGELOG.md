@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- [#1611](https://github.com/clj-kondo/clj-kondo/pull/1611): support `^:replace` override for nested config values
+
 ## 2022.03.09
 
 - [#1607](https://github.com/clj-kondo/clj-kondo/issues/1607): disable `:namespace-name-mismatch` until further notice due to problems on Windows
