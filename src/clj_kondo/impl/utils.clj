@@ -144,12 +144,9 @@
   ([a b]
    (cond (when-let [m (meta b)]
            (:replace m)) b
-         (and (map? a) (map? b))
-         (merge-with deep-merge a b)
-         (and (sequential? a) (sequential? b))
-         (into a b)
-         (and (set? a) (set? b))
-         (into a b)
+         (and (map? a) (map? b)) (merge-with deep-merge a b)
+         (and (or (sequential? a) (set? a))
+              (or (sequential? b) (set? b))) (into a b)
          (false? b) b
          :else (or b a)))
   ([a b & more]
