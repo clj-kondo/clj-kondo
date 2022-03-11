@@ -142,7 +142,8 @@
   ([])
   ([a] a)
   ([a b]
-   (cond (and (map? a) (map? b))
+   (cond (:replace (meta b)) b
+         (and (map? a) (map? b))
          (merge-with deep-merge a b)
          (and (sequential? a) (sequential? b))
          (into a b)

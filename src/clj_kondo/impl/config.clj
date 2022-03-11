@@ -153,9 +153,7 @@
        (let [cfg (cond-> cfg
                    (contains? (:linters cfg) :if)
                    (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
-         (if (:replace (meta cfg))
-           cfg
-           (deep-merge cfg* cfg))))))
+         (deep-merge cfg* cfg)))))
 
 (defn fq-sym->vec [fq-sym]
   (if-let [ns* (namespace fq-sym)]
