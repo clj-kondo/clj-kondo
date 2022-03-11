@@ -16,8 +16,7 @@
             token-node string-from-token symbol-from-token
             assoc-some]]
    [clojure.set :as set]
-   [clojure.string :as str]
-   [clojure.java.io :as io]))
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 (def valid-ns-name? (some-fn symbol? string?))
@@ -421,20 +420,14 @@
                      (not= 'user ns-name)
                      (not (identical? :off (-> ctx :config :linters :namespace-name-mismatch :level))))
             ;; users should be able to disable linter without hitting this code-path
-            (let [log (fn [& strs]
-                        (spit (io/file "clj-kondo.log") (str (str/join " " strs) "\n") :append true))
-                  filename* (some-> filename
+            (let [filename* (some-> filename
                                     ^String (fs/strip-ext)
-                                    (doto (log :<-:stripped))
                                     ^String (.replace "/" ".")
-                                    (doto (log :<-replaced))
-                                    (cond-> (not= fs/file-separator "/")
-                                      (-> (doto (.replace ^CharSequence fs/file-separator ".")
-                                            (log :<-replace2)))))
+                                    ;; Windows, but do unconditionally, see issue 1607
+                                    (.replace "\\" "."))
                   munged-ns (str (munge ns-name))]
               (when (and filename*
                          (not (str/ends-with? filename* munged-ns)))
-                (log [:filename filename filename* filename* :ns-name ns-name :munged-ns munged-ns] :append true)
                 (findings/reg-finding!
                  ctx
                  (node->line filename
