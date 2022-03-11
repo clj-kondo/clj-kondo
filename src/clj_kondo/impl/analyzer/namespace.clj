@@ -421,15 +421,20 @@
                      (not= 'user ns-name)
                      (not (identical? :off (-> ctx :config :linters :namespace-name-mismatch :level))))
             ;; users should be able to disable linter without hitting this code-path
-            (let [filename* (some-> filename
+            (let [log (fn [& strs]
+                        (spit (io/file "clj-kondo.log") (str (str/join " " strs) "\n") :append true))
+                  filename* (some-> filename
                                     ^String (fs/strip-ext)
+                                    (doto (log :<-:stripped))
                                     ^String (.replace "/" ".")
+                                    (doto (log :<-replaced))
                                     (cond-> (not= fs/file-separator "/")
-                                      (.replace ^CharSequence fs/file-separator ".")))
+                                      (-> (doto (.replace ^CharSequence fs/file-separator ".")
+                                            (log :<-replace2)))))
                   munged-ns (str (munge ns-name))]
               (when (and filename*
                          (not (str/ends-with? filename* munged-ns)))
-                (spit (io/file "clj-kondo.log" [filename filename* ns-name munged-ns]) :append true)
+                (log [:filename filename filename* filename* :ns-name ns-name :munged-ns munged-ns] :append true)
                 (findings/reg-finding!
                  ctx
                  (node->line filename
