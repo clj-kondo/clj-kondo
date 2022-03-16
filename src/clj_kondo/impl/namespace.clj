@@ -225,12 +225,16 @@
                (assoc-in [base-lang lang ns-sym :aliases alias-sym] aliased-ns-sym)))))
 
 (defn reg-binding!
-  [{:keys [:base-lang :lang :namespaces :filename] :as ctx} ns-sym binding]
-  (when-not (:clj-kondo/mark-used binding)
+  [ctx ns-sym binding]
+  (when-not (or (:skip-reg-binding? ctx)
+                (:clj-kondo/skip-reg-binding binding))
     (when (:analyze-locals? ctx)
-      (analysis/reg-local! ctx filename binding))
-    (swap! namespaces update-in [base-lang lang ns-sym :bindings]
-           conj binding))
+      (analysis/reg-local! ctx (:filename ctx) binding))
+    (when-not (or (:clj-kondo/mark-used binding)
+                  (:mark-bindings-used? ctx))
+      (let [{:keys [:base-lang :lang :namespaces]} ctx]
+        (swap! namespaces update-in [base-lang lang ns-sym :bindings]
+               conj binding))))
   nil)
 
 (defn reg-destructuring-default!
