@@ -1262,6 +1262,37 @@
                        :defined-by 'clojure.core/defprotocol))
           (docstring/lint-docstring! ctx doc-node docstring))))))
 
+(defn analyze-protocol-impls [ctx defined-by ns-name children]
+  (loop [current-protocol nil
+           protocol-ns nil
+           protocol-name nil
+         children children]
+      (when-first [c children]
+        (if-let [sym (utils/symbol-from-token c)]
+          ;; we have encountered a protocol or interface name
+          (do (analyze-expression** ctx c)
+              (let [{protocol-ns :ns protocol-name :name} (resolve-name ctx ns-name sym)]
+                (recur sym protocol-ns protocol-name (rest children))))
+          ;; Assume protocol fn impl. Analyzing the fn sym can cause false
+          ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
+          ;; is linted as (fn [x y z])
+          (let [fn-children (:children c)
+                protocol-method-name (first fn-children)]
+            (when (and current-protocol
+                       (not= "definterface" (name defined-by)))
+              (analysis/reg-protocol-impl! ctx
+                                           (:filename ctx)
+                                           ns-name
+                                           protocol-ns
+                                           protocol-name
+                                           c
+                                           protocol-method-name
+                                           defined-by))
+            ;; protocol-fn-name might contain metadata
+            (meta/lift-meta-content2 ctx protocol-method-name)
+            (analyze-fn ctx c)
+            (recur current-protocol protocol-ns protocol-name (rest children)))))))
+
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
   [{:keys [:ns] :as ctx} expr defined-by]
@@ -1296,33 +1327,7 @@
                                            :arglist-strs (when arglists?
                                                            ["[m]"])
                                            :fixed-arities #{1})))
-    (loop [current-protocol nil
-           children (nnext children)]
-      (when-first [c children]
-        (if-let [sym (utils/symbol-from-token c)]
-          ;; we have encountered a protocol or interface name
-          (do (analyze-expression** ctx c)
-              (recur sym (rest children)))
-          ;; Assume protocol fn impl. Analyzing the fn sym can cause false
-          ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
-          ;; is linted as (fn [x y z])
-          (let [fn-children (:children c)
-                protocol-fn-name (first fn-children)]
-            (when (and current-protocol
-                       (not= "definterface" (name defined-by)))
-              (let [{protocol-ns :ns protocol-name :name} (resolve-name ctx ns-name current-protocol)]
-                (analysis/reg-protocol-impl! ctx
-                                             (:filename ctx)
-                                             ns-name
-                                             protocol-ns
-                                             protocol-name
-                                             c
-                                             protocol-fn-name
-                                             defined-by)))
-            ;; protocol-fn-name might contain metadata
-            (meta/lift-meta-content2 ctx protocol-fn-name)
-            (analyze-fn ctx c)
-            (recur current-protocol (rest children))))))))
+    (analyze-protocol-impls ctx defined-by ns-name (nnext children))))
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
@@ -1690,15 +1695,7 @@
 (defn analyze-extend-type-children
   "Used for analyzing children of extend-type, reify and extend-protocol."
   [ctx children]
-  (let [children (map (fn [node]
-                        (if (= :list (tag node))
-                          (do (meta/lift-meta-content2 ctx (first (:children node)))
-                              (update node :children (fn [children]
-                                                       (cons (utils/token-node 'clojure.core/fn)
-                                                             (rest children)))))
-                          node))
-                      children)]
-    (analyze-children (assoc ctx :extend-type true) children)))
+  (analyze-protocol-impls ctx "extend-type" (-> ctx :ns :name) children))
 
 (defn analyze-reify [ctx expr]
   (let [children (next (:children expr))]
@@ -1713,6 +1710,12 @@
                                  'number 'function 'default 'object 'string)))
               ctx)]
     (analyze-extend-type-children ctx children)))
+
+(defn analyze-specify! [ctx expr]
+  (let [children (next (:children expr))
+        expr (first children)
+        _ (analyze-expression** ctx expr)]
+    (analyze-extend-type ctx {:children children})))
 
 (defn analyze-cljs-exists? [ctx expr]
   (run! #(analyze-usages2 (ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace]) %)
@@ -1927,7 +1930,8 @@
                       doto
                       (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                       reify (analyze-reify ctx expr)
-                      (extend-protocol extend-type specify!) (analyze-extend-type ctx expr)
+                      (extend-protocol extend-type) (analyze-extend-type ctx expr)
+                      (specify!) (analyze-specify! ctx expr)
                       (. .. proxy defcurried)
                       ;; don't lint calls in these expressions, only register them as used vars
                       (analyze-children (ctx-with-linters-disabled ctx [:invalid-arity
