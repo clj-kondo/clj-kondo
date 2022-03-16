@@ -828,7 +828,6 @@
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity))))
 
 (defn analyze-fn [ctx expr]
-  (prn :expr expr)
   (let [ctx (assoc ctx :seen-recur? (volatile! nil))
         children (:children expr)
         ?name-expr (second children)

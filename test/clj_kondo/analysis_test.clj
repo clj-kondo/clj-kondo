@@ -319,13 +319,11 @@
   (let [{:keys [:locals :local-usages]}
         (analyze "(deftype Foo [a b c] clojure.lang.IFn (invoke [_] [a b]))"
                  {:config {:output {:analysis {:locals true}}}})]
+    ;; (clj-kondo.impl.utils/stderr :locals (pr-str locals))
     (assert-submaps locals
                     '[{:end-row 1, :scope-end-row 1, :name a, :scope-end-col 58, :filename "<stdin>", :str "a", :col 15, :id 1, :end-col 16, :row 1}
-                      {:end-row 1, :scope-end-row 1, :name b, :scope-end-col 58, :filename "<stdin>", :str "b", :col 17, :id 2, :end-col 18, :row 1}
-                      {:end-row 1, :scope-end-row 1, :name c, :scope-end-col 58, :filename "<stdin>", :str "c", :col 19, :id 3, :end-col 20, :row 1}
-                      {:end-row 1, :scope-end-row 1, :name _, :scope-end-col 57, :filename "<stdin>", :str "_", :col 48, :id 4, :end-col 49, :row 1}
-                      {:end-row 1, :scope-end-row 1, :name _, :scope-end-col 57, :filename "<stdin>", :str "_", :col 48, :id 5, :end-col 49, :row 1}]
-)
+                      {:end-row 1, :scope-end-row 1, :name b, :scope-end-col 58, :filename "<stdin>", :str "b", :col 17, :id 2, :end-col 18, :row 1} {:end-row 1, :scope-end-row 1, :name c, :scope-end-col 58, :filename "<stdin>", :str "c", :col 19, :id 3, :end-col 20, :row 1}
+                      {:end-row 1, :scope-end-row 1, :name _, :scope-end-col 57, :filename "<stdin>", :str "_", :col 48, :id 5, :end-col 49, :row 1}])
     (assert-submaps local-usages
                     '[{:end-row 1, :name-end-col 53, :name-end-row 1, :name-row 1, :name a, :filename "<stdin>", :col 52, :id 1, :name-col 52, :end-col 53, :row 1}
                       {:end-row 1, :name-end-col 55, :name-end-row 1, :name-row 1, :name b, :filename "<stdin>", :col 54, :id 2, :name-col 54, :end-col 55, :row 1}])))

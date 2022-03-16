@@ -229,7 +229,6 @@
   (when-not (or (:skip-reg-binding? ctx)
                 (:clj-kondo/skip-reg-binding binding))
     (when (:analyze-locals? ctx)
-      (prn :local! binding)
       (analysis/reg-local! ctx (:filename ctx) binding))
     (when-not (or (:clj-kondo/mark-used binding)
                   (:mark-bindings-used? ctx))
