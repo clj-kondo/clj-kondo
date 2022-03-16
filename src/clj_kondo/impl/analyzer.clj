@@ -77,11 +77,11 @@
                children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
-  (let [skip-reg-binding? (or (:skip-reg-binding? ctx)
-                              (when (:fn-args? opts)
-                                (-> ctx :config :linters :unused-binding
-                                    :exclude-destructured-keys-in-fn-args)))]
-    (when-not skip-reg-binding?
+  (let [mark-used? (or (:mark-bindings-used? ctx)
+                       (when (:fn-args? opts)
+                         (-> ctx :config :linters :unused-binding
+                             :exclude-destructured-keys-in-fn-args)))]
+    (when-not mark-used?
       (doseq [[k _v] (partition 2 (:children defaults))
               :let [sym (:value k)
                     mta (meta k)]
@@ -156,13 +156,15 @@
            keys-destructuring? (:keys-destructuring? opts)
            expr (lift-meta-content* ctx expr)
            t (tag expr)
-           skip-reg-binding? (or (:skip-reg-binding? ctx)
-                                 (when (and keys-destructuring? fn-args?)
-                                   (-> ctx :config :linters :unused-binding
-                                       :exclude-destructured-keys-in-fn-args))
-                                 (and (:defmulti? ctx)
-                                      (-> ctx :config :linters :unused-binding
-                                          :exclude-defmulti-args)))]
+           mark-used? (or
+                       (when (and keys-destructuring? fn-args?)
+                         (-> ctx :config :linters :unused-binding
+                             :exclude-destructured-keys-in-fn-args))
+                       (and (:defmulti? ctx)
+                            (-> ctx :config :linters :unused-binding
+                                :exclude-defmulti-args)))
+           ctx (cond-> ctx
+                 mark-used? (assoc :mark-bindings-used? mark-used?))]
        (case t
          :token
          (cond
@@ -188,10 +190,9 @@
                              (-> (assoc :id (swap! (:id-gen ctx) inc)
                                         :str (str expr))
                                  (merge (scope-end scoped-expr))))]
-                     (when-not skip-reg-binding?
-                       (namespace/reg-binding! ctx
-                                               (-> ctx :ns :name)
-                                               v))
+                     (namespace/reg-binding! ctx
+                                             (-> ctx :ns :name)
+                                             v)
                      (namespace/check-shadowed-binding! ctx s expr)
                      (with-meta {s v} (when t {:tag t})))
                    (findings/reg-finding!
@@ -214,10 +215,9 @@
                          (-> (assoc :id (swap! (:id-gen ctx) inc)
                                     :str (str expr))
                              (merge (scope-end scoped-expr))))]
-                 (when-not skip-reg-binding?
-                   (namespace/reg-binding! ctx
-                                           (-> ctx :ns :name)
-                                           v))
+                 (namespace/reg-binding! ctx
+                                         (-> ctx :ns :name)
+                                         v)
                  {s v})
                ;; TODO: we probably need to check if :as is supported in this
                ;; context, e.g. seq-destructuring?
@@ -294,7 +294,7 @@
                                      (recur (concat rest-kvs [k v]) res))
                                    :as (if (-> ctx :config :linters :unused-binding
                                                :exclude-destructured-as)
-                                         (recur rest-kvs (merge res (extract-bindings (assoc ctx :skip-reg-binding? true) v scoped-expr opts)))
+                                         (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr opts)))
                                          (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts))))
                                    (recur rest-kvs res)))))
                          :else
@@ -835,7 +835,7 @@
                      n))
         bodies (fn-bodies ctx (next children) expr)
         ;; we need the arity beforehand because this is valid in each body
-        arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)
+        arity (fn-arity (assoc ctx :mark-bindings-used? true) bodies)
         filename (:filename ctx)
         parsed-bodies
         (let [ctx (-> ctx
@@ -1276,7 +1276,7 @@
         binding-vector (when bindings? (second children))
         field-count (when bindings? (count (:children binding-vector)))
         bindings (when bindings? (extract-bindings (assoc ctx
-                                                          :skip-reg-binding? true)
+                                                          :mark-bindings-used? true)
                                                    binding-vector
                                                    expr
                                                    {}))
@@ -1690,13 +1690,13 @@
   "Used for analyzing children of extend-type, reify and extend-protocol."
   [ctx children]
   (let [children (map (fn [node]
-                           (if (= :list (tag node))
-                             (do (meta/lift-meta-content2 ctx (first (:children node)))
-                                 (update node :children (fn [children]
-                                                          (cons (utils/token-node 'clojure.core/fn)
-                                                                (rest children)))))
-                             node))
-                         children)]
+                        (if (= :list (tag node))
+                          (do (meta/lift-meta-content2 ctx (first (:children node)))
+                              (update node :children (fn [children]
+                                                       (cons (utils/token-node 'clojure.core/fn)
+                                                             (rest children)))))
+                          node))
+                      children)]
     (analyze-children (assoc ctx :extend-type true) children)))
 
 (defn analyze-reify [ctx expr]

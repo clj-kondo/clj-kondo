@@ -142,7 +142,8 @@
                          :col (inc col)))
         arg-list (vector-node
                   (map #(with-meta (token-node %)
-                          {:clj-kondo/mark-used true})
+                          {:clj-kondo/mark-used true
+                           :clj-kondo/skip-reg-binding true})
                        (if varargs?
                          (concat args '[& %&])
                          args)))
