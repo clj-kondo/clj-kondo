@@ -320,8 +320,7 @@
         (analyze "(deftype Foo [a b c] clojure.lang.IFn (invoke [_] [a b]))"
                  {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps locals
-                    '[{:end-row 1, :scope-end-row 1, :name a, :scope-end-col 58, :filename "<stdin>",
-                       :str "a", :col 15, :id 1, :end-col 16, :row 1}
+                    '[{:end-row 1, :scope-end-row 1, :name a, :scope-end-col 58, :filename "<stdin>", :str "a", :col 15, :id 1, :end-col 16, :row 1}
                       {:end-row 1, :scope-end-row 1, :name b, :scope-end-col 58, :filename "<stdin>", :str "b", :col 17, :id 2, :end-col 18, :row 1}
                       {:end-row 1, :scope-end-row 1, :name c, :scope-end-col 58, :filename "<stdin>", :str "c", :col 19, :id 3, :end-col 20, :row 1}
                       {:end-row 1, :scope-end-row 1, :name _, :scope-end-col 57, :filename "<stdin>", :str "_", :col 48, :id 4, :end-col 49, :row 1}

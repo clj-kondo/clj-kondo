@@ -77,7 +77,8 @@
                children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
-  (let [mark-used? (or (:mark-bindings-used? ctx)
+  (let [mark-used? (or (:skip-reg-binding? ctx)
+                       (:mark-bindings-used? ctx)
                        (when (:fn-args? opts)
                          (-> ctx :config :linters :unused-binding
                              :exclude-destructured-keys-in-fn-args)))]
@@ -827,6 +828,7 @@
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity))))
 
 (defn analyze-fn [ctx expr]
+  (prn :expr expr)
   (let [ctx (assoc ctx :seen-recur? (volatile! nil))
         children (:children expr)
         ?name-expr (second children)
@@ -835,7 +837,7 @@
                      n))
         bodies (fn-bodies ctx (next children) expr)
         ;; we need the arity beforehand because this is valid in each body
-        arity (fn-arity (assoc ctx :mark-bindings-used? true) bodies)
+        arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)
         filename (:filename ctx)
         parsed-bodies
         (let [ctx (-> ctx
