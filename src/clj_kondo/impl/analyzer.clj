@@ -1695,15 +1695,7 @@
 (defn analyze-extend-type-children
   "Used for analyzing children of extend-type, reify and extend-protocol."
   [ctx children]
-  (let [children (map (fn [node]
-                        (if (= :list (tag node))
-                          (do (meta/lift-meta-content2 ctx (first (:children node)))
-                              (update node :children (fn [children]
-                                                       (cons (utils/token-node 'clojure.core/fn)
-                                                             (rest children)))))
-                          node))
-                      children)]
-    (analyze-children (assoc ctx :extend-type true) children)))
+  (analyze-protocol-impls ctx "extend-type" (-> ctx :ns :name) children))
 
 (defn analyze-reify [ctx expr]
   (let [children (next (:children expr))]
@@ -1718,6 +1710,12 @@
                                  'number 'function 'default 'object 'string)))
               ctx)]
     (analyze-extend-type-children ctx children)))
+
+(defn analyze-specify! [ctx expr]
+  (let [children (next (:children expr))
+        expr (first children)
+        _ (analyze-expression** ctx expr)]
+    (analyze-extend-type ctx {:children children})))
 
 (defn analyze-cljs-exists? [ctx expr]
   (run! #(analyze-usages2 (ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace]) %)
@@ -1932,7 +1930,8 @@
                       doto
                       (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                       reify (analyze-reify ctx expr)
-                      (extend-protocol extend-type specify!) (analyze-extend-type ctx expr)
+                      (extend-protocol extend-type) (analyze-extend-type ctx expr)
+                      (specify!) (analyze-specify! ctx expr)
                       (. .. proxy defcurried)
                       ;; don't lint calls in these expressions, only register them as used vars
                       (analyze-children (ctx-with-linters-disabled ctx [:invalid-arity

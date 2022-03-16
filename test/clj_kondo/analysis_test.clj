@@ -441,6 +441,18 @@
            :row 11 :col 3 :end-row 13 :end-col 9}]
         protocol-impls))))
 
+(deftest reify-protocol-impls-test
+  (testing "reify"
+    (let [{:keys [:protocol-impls]} (analyze "
+(defprotocol MyFoo
+  (something [this]))
+
+(reify MyFoo
+  (something [this] :yeah))" {:config {:output {:analysis {:protocol-impls true}}}})]
+      (assert-submaps
+       '[{:impl-ns user, :end-row 6, :name-end-col 13, :protocol-ns user, :name-end-row 6, :method-name something, :name-row 6, :defined-by "extend-type", :protocol-name MyFoo, :filename "<stdin>", :col 3, :name-col 4, :end-col 27, :row 6}]
+       protocol-impls))))
+
 (deftest defmulti-defmethod-test
   (testing "defmulti and defmethod"
     (let [{:keys [:var-usages :var-definitions]} (analyze "
