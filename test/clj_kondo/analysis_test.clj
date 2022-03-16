@@ -315,6 +315,12 @@
       (is (empty? (:locals ana)))
       (is (empty? (:local-usages ana))))))
 
+(deftest deftype-locals-test
+  (let [{:keys [:locals :local-usages]}
+        (analyze "(deftype Foo [a b c] [a b])" {:config {:output {:analysis {:locals true}}}})]
+    (prn locals)
+    (prn local-usages)))
+
 (deftest protocol-impls-test
   (testing "defrecord without protocol"
     (let [{:keys [:protocol-impls]} (analyze "
