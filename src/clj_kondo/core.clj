@@ -51,6 +51,8 @@
   (flush)
   nil)
 
+;; (require '[clojure.pprint])
+
 (defn run!
   "Takes a map with:
 
@@ -148,6 +150,7 @@
              :files files
              :findings findings
              :namespaces (atom {})
+             :java-analysis (atom {})
              :analysis analysis
              :cache-dir cache-dir
              :used-namespaces used-nss
@@ -172,6 +175,7 @@
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
                                      ctx) lint lang filename)
+        ;; _ (clojure.pprint/pprint @(:java-analysis ctx))
         ;; _ (prn :used-nss @used-nss)
         idacs (core-impl/index-defs-and-calls ctx)
         idacs (cache/sync-cache idacs cfg-dir cache-dir)

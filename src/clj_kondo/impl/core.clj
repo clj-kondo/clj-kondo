@@ -4,6 +4,7 @@
   (:require
    [babashka.fs :as fs]
    [clj-kondo.impl.analyzer :as ana]
+   [clj-kondo.impl.analyzer.java :as java]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer [one-of print-err! map-vals assoc-some]]
@@ -218,7 +219,15 @@
           entries (enumeration-seq (.entries jar))
           entries (filter (fn [^JarFile$JarFileEntry x]
                             (let [nm (.getName x)]
-                              (and (not (.isDirectory x)) (source-file? nm)))) entries)]
+                              (when-not (.isDirectory x)
+                                (when (or (str/ends-with? nm ".class")
+                                          (str/ends-with? nm ".java"))
+                                  (when-not (str/includes? nm "$")
+                                    (java/reg-java-class! ctx {:jar (if canonical?
+                                                                      (str (.getCanonicalPath jar-file))
+                                                                      (str jar-file))
+                                                               :entry nm})))
+                                (source-file? nm)))) entries)]
       ;; Important that we close the `JarFile` so this has to be strict see GH
       ;; issue #542. Maybe it makes sense to refactor loading source using
       ;; transducers so we don't have to load the entire source of a jar file in
@@ -281,7 +290,12 @@
                            (.getCanonicalPath file)
                            (.getPath file))
                       can-read? (.canRead file)
-                      source? (and (.isFile file) (source-file? nm))]
+                      is-file? (.isFile file)
+                      _ (when (and is-file?
+                                   (or (str/ends-with? nm ".class")
+                                       (str/ends-with? nm ".java")))
+                          (java/reg-java-class! ctx {:file nm}))
+                      source? (and is-file? (source-file? nm))]
                   (if (and cfg-dir source?
                            (str/includes? path "clj-kondo.exports"))
                     ;; never lint exported hook code, when coming from dir.
