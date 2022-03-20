@@ -3,8 +3,8 @@
   {:no-doc true}
   (:require
    [babashka.fs :as fs]
+   [clj-kondo.impl.analysis.java :as java]
    [clj-kondo.impl.analyzer :as ana]
-   [clj-kondo.impl.analyzer.java :as java]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer [one-of print-err! map-vals assoc-some]]
@@ -222,11 +222,12 @@
                               (when-not (.isDirectory x)
                                 (when (or (str/ends-with? nm ".class")
                                           (str/ends-with? nm ".java"))
-                                  (when-not (str/includes? nm "$")
-                                    (java/reg-java-class! ctx {:jar (if canonical?
-                                                                      (str (.getCanonicalPath jar-file))
-                                                                      (str jar-file))
-                                                               :entry nm})))
+                                  (when (and (not (str/includes? nm "$"))
+                                             (:analyze-java-class-defs? ctx))
+                                    (java/reg-java-class-def! ctx {:jar (if canonical?
+                                                                          (str (.getCanonicalPath jar-file))
+                                                                          (str jar-file))
+                                                                   :entry nm})))
                                 (source-file? nm)))) entries)]
       ;; Important that we close the `JarFile` so this has to be strict see GH
       ;; issue #542. Maybe it makes sense to refactor loading source using
@@ -294,7 +295,7 @@
                       _ (when (and is-file?
                                    (or (str/ends-with? nm ".class")
                                        (str/ends-with? nm ".java")))
-                          (java/reg-java-class! ctx {:file nm}))
+                          (java/reg-java-class-def! ctx {:file nm}))
                       source? (and is-file? (source-file? nm))]
                   (if (and cfg-dir source?
                            (str/includes? path "clj-kondo.exports"))

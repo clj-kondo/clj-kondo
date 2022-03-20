@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.analysis :as analysis]
+   [clj-kondo.impl.analysis.java :as java]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :refer [export-ns-sym node->line deep-merge linter-disabled? one-of]]
@@ -329,11 +330,13 @@
     ns))
 
 (defn reg-used-import!
-  [{:keys [:base-lang :lang :namespaces] :as _ctx}
-   ns-sym imp]
+  [{:keys [:base-lang :lang :namespaces] :as ctx}
+   ns-sym package class-name]
   ;; (prn "import" import)
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
-         conj imp))
+         conj class-name)
+  (when (:analyze-java-class-usages? ctx)
+    (java/reg-java-class-usage! ctx (str package "." class-name) (meta class-name))))
 
 (defn reg-unresolved-namespace!
   [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as _ctx} ns-sym unresolved-ns]
@@ -479,7 +482,7 @@
                                  (when-let [v (get var-info/default-fq-imports ns-sym)]
                                    [v v])))
                            (find (:imports ns) ns-sym))]
-              (reg-used-import! ctx ns-name class-name)
+              (reg-used-import! ctx ns-name package class-name)
               {:interop? true
                :ns package
                :name (symbol (name name-sym))})
@@ -517,7 +520,7 @@
                             (let [fs (first-segment name-sym)]
                               (find (:imports ns) fs))
                             (find (:imports ns) name-sym)))]
-             (reg-used-import! ctx ns-name name-sym*)
+             (reg-used-import! ctx ns-name package name-sym*)
              {:ns package
               :interop? true
               :name name-sym*})
