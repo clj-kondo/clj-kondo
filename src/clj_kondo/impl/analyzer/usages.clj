@@ -173,7 +173,7 @@
                           interop? :interop?
                           resolved-core? :resolved-core?
                           :as _m}
-                         (let [v (namespace/resolve-name ctx ns-name symbol-val)]
+                         (let [v (namespace/resolve-name ctx ns-name symbol-val expr)]
                            (when-not syntax-quote?
                              (when-let [n (:unresolved-ns v)]
                                (namespace/reg-unresolved-namespace!
