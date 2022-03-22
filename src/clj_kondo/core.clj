@@ -125,7 +125,8 @@
         analysis-ns-meta (some-> analysis-cfg :namespace-definitions :meta)
         analysis-context (some-> analysis-cfg :context)
         analyze-meta? (or analysis-var-meta analysis-ns-meta)
-        analysis (when analysis-cfg
+        analysis (when (and analysis-cfg
+                            (not skip-lint))
                    (atom (cond-> {:namespace-definitions []
                                   :namespace-usages []
                                   :var-definitions []
@@ -217,7 +218,7 @@
         {:findings all-findings
          :config config
          :summary summary}
-      analysis-cfg
+      (and analysis-cfg (not skip-lint))
       (assoc :analysis @analysis))))
 
 (defn merge-configs

@@ -461,7 +461,8 @@
                    :mark-linted (atom []))
         canonical? (-> ctx :config :output :canonical-paths)]
     (run! #(process-file ctx % default-lang canonical? filename) files)
-    (when (:parallel ctx)
+    (when (and (:parallel ctx)
+               (not (:skip-lint ctx)))
       (parallel-lint ctx @(:sources ctx) dev?))
     (when (and cache-dir (:dependencies ctx))
       (doseq [[mark path] @(:mark-linted ctx)]

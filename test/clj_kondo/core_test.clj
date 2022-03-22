@@ -143,9 +143,10 @@
                {:lint [(file-path "corpus" "invalid_arity")]
                 :copy-configs true
                 :skip-lint true
+                :parallel true
                 :config {:output {:analysis true}}})]
       (is (empty? (:findings res)))
-      (is (every? empty? (vals (:analysis res)))))))
+      (is (empty? (:analysis res))))))
 
 ;;;; Scratch
 
