@@ -80,6 +80,8 @@
 
   - `:copy-configs`: optional. A boolean indicating if scanned hooks should be copied to clj-kondo config dir.`
 
+  - `:skip-lint`: optional. A boolean indicating if lint should be skippet but other taks like copy configs will still be done.`
+
   - `:debug`: optional. Print debug info.
 
   Returns a map with `:findings`, a seqable of finding maps, a
@@ -99,6 +101,7 @@
            :dependencies
            :copy-configs
            :custom-lint-fn
+           :skip-lint
            :debug]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
@@ -140,6 +143,7 @@
              (delay (core-impl/config-hash config))
              :dependencies (or dependencies no-warnings)
              :copy-configs copy-configs
+             :skip-lint skip-lint
              :config-dir cfg-dir
              :config config
              :classpath classpath
