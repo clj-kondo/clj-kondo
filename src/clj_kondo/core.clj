@@ -177,13 +177,15 @@
                                      (assoc ctx :parallel parallel)
                                      ctx) lint lang filename)
         ;; _ (prn :used-nss @used-nss)
-        idacs (core-impl/index-defs-and-calls ctx)
-        idacs (cache/sync-cache idacs cfg-dir cache-dir)
-        idacs (overrides idacs)
-        _ (when (and dependencies (not analysis))
+        idacs (when-not skip-lint
+                (-> (core-impl/index-defs-and-calls ctx)
+                    (cache/sync-cache cfg-dir cache-dir)
+                    (overrides)))
+        _ (when (and dependencies (not skip-lint) (not analysis))
             ;; analysis is called from lint-var-usage, this can probably happen somewhere else
             (l/lint-var-usage ctx idacs))
-        _ (when-not dependencies
+        _ (when-not (or dependencies
+                        skip-lint)
             (l/lint-var-usage ctx idacs)
             (l/lint-unused-namespaces! ctx)
             (l/lint-unused-private-vars! ctx)
