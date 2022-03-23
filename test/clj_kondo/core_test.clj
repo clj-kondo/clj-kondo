@@ -68,8 +68,8 @@
   (testing "passing file as config arg"
     (let [{{:keys [error warning info]} :summary}
           (clj-kondo/run!
-            {:lint   [(file-path "corpus" "invalid_arity")]
-             :config (file-path "corpus" "config" "invalid_arity.edn")})]
+           {:lint   [(file-path "corpus" "invalid_arity")]
+            :config (file-path "corpus" "config" "invalid_arity.edn")})]
       (is (zero? error))
       (is (zero? warning))
       (is (zero? info)))))
@@ -137,10 +137,20 @@
     (let [res (custom-linter (io/file "corpus/custom_lint_fn_ignore.cljc") :cljc #(is (not %)))]
       (is (empty? (:findings res))))))
 
+(deftest run-skip-lint
+  (testing "Copy configs only without lint."
+    (let [res (clj-kondo/run!
+               {:lint [(file-path "corpus" "invalid_arity")]
+                :copy-configs true
+                :skip-lint true
+                :parallel true
+                :config {:output {:analysis true}}})]
+      (is (empty? (:findings res)))
+      (is (empty? (:analysis res))))))
+
 ;;;; Scratch
 
 (comment
   (.getPath (io/file "foo" "bar"))
   (-> (clj-kondo/run! {:lint ["corpus"] :config {:output {:progress true}}})
-      (clj-kondo/print!))
-  )
+      (clj-kondo/print!)))

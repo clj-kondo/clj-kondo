@@ -50,6 +50,8 @@ Options:
 
   --copy-configs: copy configs from dependencies while linting.
 
+  --skip-lint: skip lint/analysis, still check for other tasks like copy-configs.
+
   --fail-level <level>: minimum severity for exit with error code.  Supported values:
     warning, error.  The default level if unspecified is warning.
 
@@ -74,6 +76,7 @@ Options:
     "--no-warnings"  :scalar ;; deprecated
     "--dependencies" :scalar
     "--copy-configs" :scalar
+    "--skip-lint"    :scalar
     "--fail-level"   :scalar
     "--debug"        :scalar
     :scalar))
@@ -121,6 +124,7 @@ Options:
                        (contains? opts "--no-warnings") ;; deprecated
                        ,)
      :copy-configs (contains? opts "--copy-configs")
+     :skip-lint (contains? opts "--skip-lint")
      :fail-level (or (last (get opts "--fail-level"))
                      "warning")
      :debug (contains? opts "--debug")}))

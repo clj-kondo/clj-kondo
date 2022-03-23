@@ -345,7 +345,8 @@
   (swap! (:files ctx) inc)
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
-    (ana/analyze-input ctx filename source lang dev?)))
+    (when-not (:skip-lint ctx)
+      (ana/analyze-input ctx filename source lang dev?))))
 
 (defn process-file [ctx path default-language canonical? filename]
   (let [seen-files (:seen-files ctx)]
@@ -399,27 +400,29 @@
                 (str/split path
                            (re-pattern path-separator)))
           :else
-          (findings/reg-finding! ctx
-                                 {:filename (if canonical?
+          (when-not (:skip-lint ctx)
+            (findings/reg-finding! ctx
+                                   {:filename (if canonical?
                                               ;; canonical path on weird file
                                               ;; crashes on Windows
-                                              (try (.getCanonicalPath file)
-                                                   (catch Exception _ path))
-                                              path)
-                                  :type :file
-                                  :col 0
-                                  :row 0
-                                  :message "file does not exist"})))
+                                                (try (.getCanonicalPath file)
+                                                     (catch Exception _ path))
+                                                path)
+                                    :type :file
+                                    :col 0
+                                    :row 0
+                                    :message "file does not exist"}))))
       (catch Throwable e
         (if dev?
           (throw e)
-          (findings/reg-finding! ctx {:filename (if canonical?
-                                                  (.getCanonicalPath (io/file path))
-                                                  path)
-                                      :type :file
-                                      :col 0
-                                      :row 0
-                                      :message "Could not process file."}))))))
+          (when-not (:skip-lint ctx)
+            (findings/reg-finding! ctx {:filename (if canonical?
+                                                    (.getCanonicalPath (io/file path))
+                                                    path)
+                                        :type :file
+                                        :col 0
+                                        :row 0
+                                        :message "Could not process file."})))))))
 
 (defn inactive-config-imports [ctx]
   (when-let [cfg-dir (io/file (:config-dir ctx))]
@@ -458,7 +461,8 @@
                    :mark-linted (atom []))
         canonical? (-> ctx :config :output :canonical-paths)]
     (run! #(process-file ctx % default-lang canonical? filename) files)
-    (when (:parallel ctx)
+    (when (and (:parallel ctx)
+               (not (:skip-lint ctx)))
       (parallel-lint ctx @(:sources ctx) dev?))
     (when (and cache-dir (:dependencies ctx))
       (doseq [[mark path] @(:mark-linted ctx)]
@@ -563,5 +567,4 @@
 
 ;;;; Scratch
 
-(comment
-  )
+(comment)
