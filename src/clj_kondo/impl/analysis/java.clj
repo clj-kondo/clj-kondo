@@ -19,8 +19,8 @@
            update :java-class-definitions conj
            {:class class-name
             :uri (->uri jar entry file)
-            :filename (str file)}))
-  nil)
+            :filename (or file
+                          (str jar ":" entry))})))
 
 (defn reg-java-class-usage! [ctx class-name loc]
   (swap! (:analysis ctx)

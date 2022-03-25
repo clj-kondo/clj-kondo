@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   #_[clj-kondo.test-utils :refer [assert-submap assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submap]]
    #_[clojure.edn :as edn]
    #_[clojure.string :as string]
    [clojure.test :as t :refer [deftest is testing]]
@@ -25,14 +25,25 @@
                            "clojars" {:url "https://repo.clojars.org/"}}}
         jar (-> (deps/resolve-deps deps nil)
                 (get-in ['org.clojure/clojure :paths 0]))
-        _ (def j jar)
-        {:keys [:java-class-definitions :java-class-usages]} (analyze [jar])]
-    (is (contains? (set java-class-definitions)
-                   {:class "clojure.lang.PersistentVector",
-                    :uri
-                    "jar:file:/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/PersistentVector.class"}))
-    (def x java-class-usages)))
+        {:keys [:java-class-definitions :java-class-usages]} (analyze [jar])
+        rt-def (some #(when (= (:class %) "clojure.lang.RT")
+                        %) java-class-definitions)
+        _rt-usage (some #(when (= (:class %) "clojure.lang.RT")
+                          %) java-class-usages)]
+    ;; (def rt-def rt-def)
+    (assert-submap
+     {:class "clojure.lang.RT",
+      :uri
+      #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class",
+      :filename
+      #"\.class"
+      }
+     rt-def
+     )
+    ))
 
 (comment
-x
+
+  #_(assert-submap {:filename #"\.class"} {:filename "/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar:clojure/lang/RT.class"})
+  #_(:filename rt-def)
   )

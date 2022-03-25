@@ -32,8 +32,9 @@
   (cond
     (and (map? m1) (map? m2))
     (every? (fn [[k v]] (and (contains? m2 k)
-                             (if (or (identical? k :filename)
-                                     (identical? k :file))
+                             (if (and (or (identical? k :filename)
+                                          (identical? k :file))
+                                      (string? v))
                                (= (normalize-filename v)
                                   (normalize-filename (get m2 k)))
                                (submap? v (get m2 k)))))
