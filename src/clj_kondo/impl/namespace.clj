@@ -488,10 +488,9 @@
                                     [v v])))
                             (find (:imports ns) ns-sym))]
                (reg-used-import! ctx ns-name package class-name expr)
-               (doto {:interop? true
-                      :ns (symbol package)
-                      :name (symbol class-name)}
-                 prn))
+               {:interop? true
+                :ns (symbol (str package "." class-name))
+                :name (symbol (name name-sym))})
              (when-not (if (identical? :clj lang)
                          (or (one-of ns* ["clojure.core"])
                              (class-name? ns*))
@@ -530,9 +529,10 @@
                                (find (:imports ns) fs))
                              (find (:imports ns) name-sym)))]
               (reg-used-import! ctx ns-name package name-sym* expr)
-              {:ns package
-               :interop? true
-               :name name-sym*})
+              (doto {:ns package
+                     :interop? true
+                     :name name-sym*}
+                prn))
             (when cljs?
               (when-let [ns* (get (:qualify-ns ns) name-sym)]
                 (when (some-> (meta ns*) :raw-name string?)
