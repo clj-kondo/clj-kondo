@@ -28,19 +28,22 @@
         {:keys [:java-class-definitions :java-class-usages]} (analyze [jar])
         rt-def (some #(when (= (:class %) "clojure.lang.RT")
                         %) java-class-definitions)
-        _rt-usage (some #(when (= (:class %) "clojure.lang.RT")
+        rt-usage (some #(when (= (:class %) "clojure.lang.RT")
                           %) java-class-usages)]
-    ;; (def rt-def rt-def)
     (assert-submap
      {:class "clojure.lang.RT",
-      :uri
-      #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class",
-      :filename
-      #"\.class"
-      }
-     rt-def
-     )
-    ))
+      :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class",
+      :filename #"\.class"}
+     rt-def)
+    (assert-submap
+     {:class "clojure.lang.RT",
+      :uri #"jar:file:.*\.clj",
+      :filename #".*\.clj"}
+     rt-usage)
+    (is (every? number? ((juxt :row
+                               :col
+                               :end-row
+                               :end-col) rt-usage)))))
 
 (comment
 
