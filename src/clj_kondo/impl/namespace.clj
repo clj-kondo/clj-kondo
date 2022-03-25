@@ -488,9 +488,10 @@
                                     [v v])))
                             (find (:imports ns) ns-sym))]
                (reg-used-import! ctx ns-name package class-name expr)
-               {:interop? true
-                :ns package
-                :name (symbol (name name-sym))})
+               (doto {:interop? true
+                      :ns (symbol package)
+                      :name (symbol class-name)}
+                 prn))
              (when-not (if (identical? :clj lang)
                          (or (one-of ns* ["clojure.core"])
                              (class-name? ns*))
