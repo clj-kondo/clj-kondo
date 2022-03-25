@@ -1,11 +1,10 @@
 (ns clj-kondo.analysis.java-test
   (:require
-   [babashka.fs :as fs]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submap assert-submaps]]
-   [clojure.edn :as edn]
-   [clojure.string :as string]
+   #_[clj-kondo.test-utils :refer [assert-submap assert-submaps]]
+   #_[clojure.edn :as edn]
+   #_[clojure.string :as string]
    [clojure.test :as t :refer [deftest is testing]]
    [clojure.tools.deps.alpha :as deps]))
 
@@ -25,15 +24,9 @@
                            "clojars" {:url "https://repo.clojars.org/"}}}
         jar (-> (deps/resolve-deps deps nil)
                 (get-in ['org.clojure/clojure :paths 0]))
-        {:keys [:java-class-definitions :java-class-usages]} (analyze [jar])]
+        {:keys [:java-class-definitions :_java-class-usages]} (analyze [jar])]
     (is (contains? (set java-class-definitions)
                    {:class "clojure.lang.PersistentVector",
                     :uri
                     "jar:file:/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/PersistentVector.class"}))
     ))
-
-(comment
-
-  (:java-class-usages x)
-
-  )
