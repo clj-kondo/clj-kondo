@@ -1,15 +1,11 @@
 (ns clj-kondo.impl.analysis.java
-  (:require [clojure.string :as str]))
+  (:require [clj-kondo.impl.utils :refer [->uri]]
+            [clojure.string :as str]))
 
 (defn ->class-name [entry]
   (-> (str/replace entry "/" ".")
       (str/replace ".class" "")
       (str/replace ".java" "")))
-
-(defn ->uri [jar entry file]
-  (cond file (str "file:" file)
-        (and jar entry)
-        (str "jar:file:" jar "!/" entry)))
 
 (defn java-class-def-analysis? [ctx]
   (-> ctx :config ))
@@ -22,15 +18,15 @@
     (swap! (:analysis ctx)
            update :java-class-definitions conj
            {:class class-name
-            :uri (->uri jar entry file)}))
+            :uri (->uri jar entry file)
+            :filename (str file)}))
   nil)
 
 (defn reg-java-class-usage! [ctx class-name loc]
   (swap! (:analysis ctx)
          update :java-class-usages conj
          (merge {:class class-name
-                 ;; TODO, fix for jar file
-                 :uri (str "file:" (:filename ctx))
-                 }
+                 :uri (:uri ctx)
+                 :filename (:filename ctx)}
                 loc))
   nil)

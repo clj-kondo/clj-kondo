@@ -369,6 +369,11 @@
 ;;      (map (comp #(select-keys % ks) bean)
 ;;           (take depth (.getStackTrace (Thread/currentThread)))))))
 
+(defn ->uri [jar entry file]
+  (cond file (str "file:" file)
+        (and jar entry)
+        (str "jar:file:" jar "!/" entry)))
+
 ;;;; Scratch
 
 (comment

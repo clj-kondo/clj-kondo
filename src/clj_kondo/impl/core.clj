@@ -7,7 +7,8 @@
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :as utils :refer [one-of print-err! map-vals assoc-some]]
+   [clj-kondo.impl.utils :as utils :refer [one-of print-err! map-vals assoc-some
+                                           ->uri]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -242,7 +243,8 @@
                            (when (:copy-configs ctx)
                              ;; only copy when copy-configs is true
                              (copy-config-entry ctx entry-name source cfg-dir))
-                           {:filename (str (when canonical?
+                           {:uri (->uri (str (.getCanonicalPath jar-file)) entry-name nil)
+                            :filename (str (when canonical?
                                              (str (.getCanonicalPath jar-file) ":"))
                                            entry-name)
                             :source source
@@ -306,7 +308,8 @@
                       (copy-config-file ctx file cfg-dir))
                     (cond
                       (and can-read? source?)
-                      {:filename nm
+                      {:uri (str "file:" nm)
+                       :filename nm
                        :source (slurp file)
                        :group-id dir}
                       (and (not can-read?) source?)
@@ -320,8 +323,8 @@
   (loop []
     (when-let [group (.pollFirst deque)]
       (try
-        (doseq [{:keys [:filename :source :lang]} group]
-          (ana/analyze-input ctx filename source lang dev?))
+        (doseq [{:keys [:filename :source :lang :uri]} group]
+          (ana/analyze-input ctx filename uri source lang dev?))
         (catch Exception e (binding [*out* *err*]
                              (prn e))))
       (recur))))
@@ -356,12 +359,12 @@
 (defn classpath? [f]
   (str/includes? f path-separator))
 
-(defn schedule [ctx {:keys [:filename :source :lang] :as m} dev?]
+(defn schedule [ctx {:keys [:filename :source :lang :uri] :as m} dev?]
   (swap! (:files ctx) inc)
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
     (when-not (:skip-lint ctx)
-      (ana/analyze-input ctx filename source lang dev?))))
+      (ana/analyze-input ctx filename uri source lang dev?))))
 
 (defn process-file [ctx path default-language canonical? filename]
   (let [seen-files (:seen-files ctx)]

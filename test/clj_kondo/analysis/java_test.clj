@@ -14,7 +14,8 @@
    (:analysis
     (clj-kondo/run! (merge
                      {:lint paths
-                      :config {:output {:analysis {:java-class-definitions true
+                      :config {:output {:canonical-paths true
+                                        :analysis {:java-class-definitions true
                                                    :java-class-usages true}}}}
                      config)))))
 
@@ -24,9 +25,14 @@
                            "clojars" {:url "https://repo.clojars.org/"}}}
         jar (-> (deps/resolve-deps deps nil)
                 (get-in ['org.clojure/clojure :paths 0]))
-        {:keys [:java-class-definitions :_java-class-usages]} (analyze [jar])]
+        _ (def j jar)
+        {:keys [:java-class-definitions :java-class-usages]} (analyze [jar])]
     (is (contains? (set java-class-definitions)
                    {:class "clojure.lang.PersistentVector",
                     :uri
                     "jar:file:/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/PersistentVector.class"}))
-    ))
+    (def x java-class-usages)))
+
+(comment
+x
+  )
