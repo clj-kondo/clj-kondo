@@ -484,8 +484,9 @@
                               (or (when-let [[class fq] (find var-info/default-import->qname ns-sym)]
                                     ;; TODO: fix in default-import->qname
                                     [class (str/replace fq (str/re-quote-replacement (str "." class)) "")])
-                                  (when-let [v (get var-info/default-fq-imports ns-sym)]
-                                    [v v])))
+                                  (when-let [fq (str (get var-info/default-fq-imports ns-sym))]
+                                    [(last (str/split fq #"\."))
+                                     (str/join "." (butlast (str/split fq #"\.")))])))
                             (find (:imports ns) ns-sym))]
                (reg-used-import! ctx ns-name package class-name expr)
                {:interop? true
