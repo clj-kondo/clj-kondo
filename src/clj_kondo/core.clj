@@ -80,6 +80,9 @@
 
   - `:copy-configs`: optional. A boolean indicating if scanned hooks should be copied to clj-kondo config dir.`
 
+  - `:skip-lint`: optional. A boolean indicating if linting should be
+  skipped. Other tasks like copying configs will still be done if `:copy-configs` is true.`
+
   - `:debug`: optional. Print debug info.
 
   Returns a map with `:findings`, a seqable of finding maps, a
@@ -99,6 +102,7 @@
            :dependencies
            :copy-configs
            :custom-lint-fn
+           :skip-lint
            :debug]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
@@ -124,7 +128,8 @@
         analyze-java-class-defs? (some-> analysis-cfg :java-class-definitions)
         analyze-java-class-usages? (some-> analysis-cfg :java-class-usages)
         analyze-meta? (or analysis-var-meta analysis-ns-meta)
-        analysis (when analysis-cfg
+        analysis (when (and analysis-cfg
+                            (not skip-lint))
                    (atom (cond-> {:namespace-definitions []
                                   :namespace-usages []
                                   :var-definitions []
@@ -144,6 +149,7 @@
              (delay (core-impl/config-hash config))
              :dependencies (or dependencies no-warnings)
              :copy-configs copy-configs
+             :skip-lint skip-lint
              :config-dir cfg-dir
              :config config
              :classpath classpath
@@ -180,13 +186,15 @@
                                      ctx) lint lang filename)
         ;;_ (prn (some-> analysis deref :java-class-usages))
         ;; _ (prn :used-nss @used-nss)
-        idacs (core-impl/index-defs-and-calls ctx)
-        idacs (cache/sync-cache idacs cfg-dir cache-dir)
-        idacs (overrides idacs)
-        _ (when (and dependencies (not analysis))
+        idacs (when-not skip-lint
+                (-> (core-impl/index-defs-and-calls ctx)
+                    (cache/sync-cache cfg-dir cache-dir)
+                    (overrides)))
+        _ (when (and dependencies (not skip-lint) (not analysis))
             ;; analysis is called from lint-var-usage, this can probably happen somewhere else
             (l/lint-var-usage ctx idacs))
-        _ (when-not dependencies
+        _ (when-not (or dependencies
+                        skip-lint)
             (l/lint-var-usage ctx idacs)
             (l/lint-unused-namespaces! ctx)
             (l/lint-unused-private-vars! ctx)
@@ -218,7 +226,7 @@
         {:findings all-findings
          :config config
          :summary summary}
-      analysis-cfg
+      (and analysis-cfg (not skip-lint))
       (assoc :analysis @analysis))))
 
 (defn merge-configs
