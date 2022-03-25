@@ -80,7 +80,8 @@
 
   - `:copy-configs`: optional. A boolean indicating if scanned hooks should be copied to clj-kondo config dir.`
 
-  - `:skip-lint`: optional. A boolean indicating if lint should be skippet but other taks like copy configs will still be done.`
+  - `:skip-lint`: optional. A boolean indicating if linting should be
+  skipped. Other tasks like copying configs will still be done if `:copy-configs` is true.`
 
   - `:debug`: optional. Print debug info.
 
