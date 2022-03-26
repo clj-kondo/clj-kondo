@@ -13,7 +13,9 @@
     (.toByteArray xout)))
 
 (defn entry->class-name [entry]
-  (-> (str/replace entry "/" ".")
+  (-> entry
+      (str/replace "/" ".")
+      (str/replace "\\" ".")
       (str/replace ".class" "")
       (str/replace ".java" "")))
 
@@ -24,17 +26,30 @@
         class-name (str/replace class-name "/" ".")]
     class-name))
 
+(defn source->class-name [file]
+  (let [fname (entry->class-name file)
+        fname (str/replace fname "\\" ".")
+        class-name (last (str/split fname #"\."))]
+    (binding [*in* (io/reader file)]
+      (loop []
+        (if-let [next-line (read-line)]
+          (if-let [[_ package] (re-matches #"\s*package\s+(\S*)\s*;\s*" next-line)]
+            (str package "." class-name)
+            (recur))
+          class-name)))))
+
 (defn java-class-def-analysis? [ctx]
   (-> ctx :config ))
 
 (defn reg-java-class-def! [ctx {:keys [jar entry file]}]
-  (when-let [class-name (cond entry
-                              (entry->class-name entry)
+  (when-let [class-name (if entry
+                          (entry->class-name entry)
+                          (when file
+                            (cond
                               (str/ends-with? file ".class")
                               (class->class-name file)
                               (str/ends-with? file ".java")
-                              ;; TODO, fix clas name
-                              (entry->class-name entry))]
+                              (source->class-name file))))]
     (swap! (:analysis ctx)
            update :java-class-definitions conj
            {:class class-name

@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submap]]
+   [clj-kondo.test-utils :refer [assert-submap assert-submaps]]
    #_[clojure.edn :as edn]
    #_[clojure.string :as string]
    [clojure.test :as t :refer [deftest is testing]]
@@ -19,7 +19,7 @@
                                                    :java-class-usages true}}}}
                      config)))))
 
-(deftest unresolved-var-test
+(deftest jar-classes-test
   (let [deps '{:deps {org.clojure/clojure {:mvn/version "1.10.3"}}
                :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
                            "clojars" {:url "https://repo.clojars.org/"}}}
@@ -44,6 +44,20 @@
                                :col
                                :end-row
                                :end-col) rt-usage)))))
+
+(deftest local-classes-test
+  (let [{:keys [:java-class-definitions]} (analyze ["corpus/java/classes"])]
+    (assert-submaps
+     '[{:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class",
+        :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}]
+     java-class-definitions))
+  (let [{:keys [:java-class-definitions]} (analyze ["corpus/java/sources"])]
+    (assert-submaps
+     '[{:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
+        :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
+     java-class-definitions)))
 
 (comment
 
