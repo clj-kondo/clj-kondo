@@ -1740,7 +1740,7 @@
          interop? :interop?
          resolved-core? :resolved-core?
          :as _m}
-        (resolve-name ctx ns-name full-fn-name)
+        (resolve-name ctx ns-name full-fn-name expr)
         expr-meta (meta expr)
         cfg (when-let [in-call-cfg (:config-in-call config)]
               (get in-call-cfg (symbol (str resolved-namespace) (str resolved-name))))
@@ -2604,7 +2604,7 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config] :as ctx} filename input lang dev?]
+  [{:keys [:config] :as ctx} filename uri input lang dev?]
   (when (:debug ctx)
     (utils/stderr "[clj-kondo] Linting file:" filename))
   (try
@@ -2630,7 +2630,8 @@
             (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
                                  (:children (select-lang parsed lang)))))
         (:clj :cljs :edn)
-        (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename)]
+        (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename
+                         :uri uri)]
           (analyze-expressions ctx (:children parsed))
           ;; analyze-expressions should go first in order to process ignores
           (when (identical? :edn lang)

@@ -2916,7 +2916,7 @@ foo/baz
 (deftest multiple-options-test
 
   (testing "multiple --lint option"
-    (let [out (read-string
+    (let [out (edn/read-string
                (with-out-str
                  (main "--lint" "corpus/case.clj"
                        "--lint" "corpus/defmulti.clj"
@@ -2929,7 +2929,7 @@ foo/baz
              (select-keys (:summary out) [:error :warning :info])))))
 
   (testing "multiple --config option"
-    (let [out (read-string
+    (let [out (edn/read-string
                (with-out-str
                  (main "--lint" "corpus/case.clj"
                        "--lint" "corpus/defmulti.clj"

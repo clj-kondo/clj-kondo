@@ -2,7 +2,6 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
-   [babashka.fs :as fs]
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.cache :as cache]
@@ -357,6 +356,11 @@
    :row row
    :col col})
 
+(defn strip-file-ext [fn]
+  (if-let [last-dot (str/last-index-of fn ".")]
+    (subs fn 0 last-dot)
+    fn))
+
 (defn analyze-ns-decl
   [ctx expr]
   (let [lang (:lang ctx)
@@ -421,7 +425,7 @@
                      (not (identical? :off (-> ctx :config :linters :namespace-name-mismatch :level))))
             ;; users should be able to disable linter without hitting this code-path
             (let [filename* (some-> filename
-                                    ^String (fs/strip-ext)
+                                    ^String (strip-file-ext)
                                     ^String (.replace "/" ".")
                                     ;; Windows, but do unconditionally, see issue 1607
                                     (.replace "\\" "."))

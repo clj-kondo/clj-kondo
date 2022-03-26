@@ -1,12 +1,14 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.impl.rewrite-clj.node.keyword :as k]
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.string :as node-string]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.parser :as p]
+   [clojure.java.io :as io]
    [clojure.string :as str]))
 
 ;;; export rewrite-clj functions
@@ -368,6 +370,12 @@
 ;;      ks
 ;;      (map (comp #(select-keys % ks) bean)
 ;;           (take depth (.getStackTrace (Thread/currentThread)))))))
+
+(defn ->uri [jar entry file]
+  (cond file (when (fs/exists? file)
+               (str (.toURI (fs/file file))))
+        (and jar entry)
+        (str "jar:file:" (.toURI (io/file jar)) "!/" entry)))
 
 ;;;; Scratch
 

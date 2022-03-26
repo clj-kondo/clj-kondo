@@ -125,6 +125,8 @@
         analysis-var-meta (some-> analysis-cfg :var-definitions :meta)
         analysis-ns-meta (some-> analysis-cfg :namespace-definitions :meta)
         analysis-context (some-> analysis-cfg :context)
+        analyze-java-class-defs? (some-> analysis-cfg :java-class-definitions)
+        analyze-java-class-usages? (some-> analysis-cfg :java-class-usages)
         analyze-meta? (or analysis-var-meta analysis-ns-meta)
         analysis (when (and analysis-cfg
                             (not skip-lint))
@@ -135,7 +137,9 @@
                            analyze-locals? (assoc :locals []
                                                   :local-usages [])
                            analyze-keywords? (assoc :keywords [])
-                           analyze-protocol-impls? (assoc :protocol-impls []))))
+                           analyze-protocol-impls? (assoc :protocol-impls [])
+                           analyze-java-class-defs? (assoc :java-class-definitions [])
+                           analyze-java-class-usages? (assoc :java-class-usages []))))
         used-nss (atom {:clj #{}
                         :cljs #{}
                         :cljc #{}})
@@ -163,6 +167,8 @@
              :analyze-protocol-impls? analyze-protocol-impls?
              :analyze-keywords? analyze-keywords?
              :analyze-arglists? (get analysis-cfg :arglists)
+             :analyze-java-class-defs? analyze-java-class-defs?
+             :analyze-java-class-usages? analyze-java-class-usages?
              :analysis-var-meta analysis-var-meta
              :analysis-ns-meta analysis-ns-meta
              :analyze-meta? analyze-meta?
@@ -178,6 +184,7 @@
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
                                      ctx) lint lang filename)
+        ;;_ (prn (some-> analysis deref :java-class-usages))
         ;; _ (prn :used-nss @used-nss)
         idacs (when-not skip-lint
                 (-> (core-impl/index-defs-and-calls ctx)

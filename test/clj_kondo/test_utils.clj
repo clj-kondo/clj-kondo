@@ -25,6 +25,9 @@
 (defn normalize-filename [s]
   (str/replace s "\\" "/"))
 
+(defn regex? [x]
+  (instance? java.util.regex.Pattern x))
+
 (defn submap?
   "Is m1 a subset of m2? Taken from
   https://github.com/clojure/spec-alpha2, clojure.test-clojure.spec"
@@ -34,11 +37,13 @@
     (every? (fn [[k v]] (and (contains? m2 k)
                              (if (or (identical? k :filename)
                                      (identical? k :file))
-                               (= (normalize-filename v)
-                                  (normalize-filename (get m2 k)))
+                               (if (regex? v)
+                                 (re-find v (normalize-filename (get m2 k)))
+                                 (= (normalize-filename v)
+                                    (normalize-filename (get m2 k))))
                                (submap? v (get m2 k)))))
             m1)
-    (instance? java.util.regex.Pattern m1)
+    (regex? m1)
     (re-find m1 m2)
     :else (= m1 m2)))
 
