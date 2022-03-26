@@ -8,7 +8,8 @@
    [clj-kondo.impl.rewrite-clj.node.string :as node-string]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.parser :as p]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.java.io :as io]))
 
 ;;; export rewrite-clj functions
 
@@ -374,7 +375,7 @@
   (cond file (when (fs/exists? file)
                (str (.toURI (fs/file file))))
         (and jar entry)
-        (str "jar:file:" jar "!/" entry)))
+        (str "jar:file:" (.toURI (io/file jar)) "!/" entry)))
 
 ;;;; Scratch
 
