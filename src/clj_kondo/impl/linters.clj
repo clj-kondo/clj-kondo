@@ -299,25 +299,26 @@
                               (= fn-ns caller-ns-sym)
                               (= fn-name in-def))
                   _ (when output-analysis?
-                      (analysis/reg-usage! (assoc ctx :context (:context call))
-                                           filename
-                                           row
-                                           col
-                                           caller-ns-sym
-                                           resolved-ns fn-name arity
-                                           (when (= :cljc base-lang)
-                                             call-lang)
-                                           in-def
-                                           (assoc called-fn
-                                                  :alias (:alias call)
-                                                  :refer (:refer call)
-                                                  :defmethod (:defmethod call)
-                                                  :name-row name-row
-                                                  :name-col name-col
-                                                  :name-end-row name-end-row
-                                                  :name-end-col name-end-col
-                                                  :end-row end-row
-                                                  :end-col end-col)))]
+                      (when-not (:interop? call)
+                        (analysis/reg-usage! (assoc ctx :context (:context call))
+                                             filename
+                                             row
+                                             col
+                                             caller-ns-sym
+                                             resolved-ns fn-name arity
+                                             (when (= :cljc base-lang)
+                                               call-lang)
+                                             in-def
+                                             (assoc called-fn
+                                                    :alias (:alias call)
+                                                    :refer (:refer call)
+                                                    :defmethod (:defmethod call)
+                                                    :name-row name-row
+                                                    :name-col name-col
+                                                    :name-end-row name-end-row
+                                                    :name-end-col name-end-col
+                                                    :end-row end-row
+                                                    :end-col end-col))))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?

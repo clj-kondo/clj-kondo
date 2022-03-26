@@ -534,13 +534,6 @@
         :name-end-row 1
         :name-end-col 58}]
      namespace-usages))
-  (let [{:keys [:var-definitions :var-usages]} (analyze "(try (catch Exception foo foo))" {:config {:output {:analysis {:locals true}}}})]
-    (assert-submaps
-     '[]
-     var-definitions)
-    (assert-submaps
-     '[{:name-row 1 :name-col 13 :name-end-row 1 :name-end-col 22} {}]
-     var-usages))
   (let [{:keys [:var-definitions :var-usages]} (analyze "(def a (atom nil)) (:foo @a)" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
      '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7 :end-row 1 :end-col 19}]

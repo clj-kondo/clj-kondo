@@ -59,6 +59,13 @@
         :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
      java-class-definitions)))
 
+(deftest class-usages-test
+  (let [{:keys [:java-class-usages]} (with-in-str "(try (catch Exception foo foo))"
+                                       (analyze ["-"]))]
+    (assert-submaps
+     [{:class "java.lang.Exception", :filename "<stdin>", :row 1, :col 13, :end-row 1, :end-col 22}]
+     java-class-usages)))
+
 (comment
 
   #_(assert-submap {:filename #"\.class"} {:filename "/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar:clojure/lang/RT.class"})
