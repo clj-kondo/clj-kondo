@@ -331,22 +331,29 @@
 
 (defn reg-used-import!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
-   ns-sym package class-name expr]
-  ;; (prn "import" import)
+   name-sym ns-sym package class-name expr]
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj class-name)
   (when (:analyze-java-class-usages? ctx)
-    (java/reg-java-class-usage! ctx (str package "." class-name) (or (meta expr)
-                                                                     (meta class-name)))))
+    (let [name-meta (meta name-sym)
+          loc (or (meta expr)
+                  (meta class-name))]
+      (java/reg-java-class-usage! ctx
+                                  (str package "." class-name)
+                                  (assoc loc
+                                         :name-row (or (:row name-meta) (:row loc))
+                                         :name-col (or (:col name-meta) (:col loc))
+                                         :name-end-row (or (:end-row name-meta) (:end-row loc))
+                                         :name-end-col (or (:end-col name-meta) (:end-col loc)))))))
 
 (defn reg-unresolved-namespace!
   [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as _ctx} ns-sym unresolved-ns]
   (when-not
-      (or
-       (identical? :off (-> config :linters :unresolved-namespace :level))
-       (config/unresolved-namespace-excluded config unresolved-ns)
+   (or
+    (identical? :off (-> config :linters :unresolved-namespace :level))
+    (config/unresolved-namespace-excluded config unresolved-ns)
        ;; unresolved namespaces in an excluded unresolved symbols call are not reported
-       (config/unresolved-symbol-excluded config callstack :dummy))
+    (config/unresolved-symbol-excluded config callstack :dummy))
     (let [unresolved-ns (vary-meta unresolved-ns
                                    ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
                                    ;; we must include the filename here
@@ -471,8 +478,8 @@
                                (str/replace (str (name name-sym))
                                             #"\.$" ""))]
                  (cond->
-                     {:ns ns*
-                      :name var-name}
+                  {:ns ns*
+                   :name var-name}
 
                    (contains? (:aliases ns) ns-sym)
                    (assoc :alias ns-sym)
@@ -489,7 +496,7 @@
                                       [(last (str/split fq #"\."))
                                        (str/join "." (butlast (str/split fq #"\.")))]))))
                             (find (:imports ns) ns-sym))]
-               (reg-used-import! ctx ns-name package class-name expr)
+               (reg-used-import! ctx name-sym ns-name package class-name expr)
                {:interop? true
                 :ns (symbol (str package "." class-name))
                 :name (symbol (name name-sym))})
@@ -530,7 +537,7 @@
                              (let [fs (first-segment name-sym)]
                                (find (:imports ns) fs))
                              (find (:imports ns) name-sym)))]
-              (reg-used-import! ctx ns-name package name-sym* expr)
+              (reg-used-import! ctx name-sym ns-name package name-sym* expr)
               {:ns package
                :interop? true
                :name name-sym*})
