@@ -60,11 +60,19 @@
      java-class-definitions)))
 
 (deftest class-usages-test
-  (let [{:keys [:java-class-usages]} (with-in-str "(try (catch Exception foo foo))"
-                                       (analyze ["-"]))]
+  (let [{:keys [:java-class-usages]} (analyze ["corpus/java/usages.clj"])]
     (assert-submaps
-     [{:class "java.lang.Exception", :filename "<stdin>", :row 1, :col 13, :end-row 1, :end-col 22}]
-     java-class-usages)))
+     [{:class "java.lang.Exception", :uri #"file:.*corpus/java/usages.clj", :filename #"corpus/java/usages.clj",
+       :row 3, :col 13, :end-row 3, :end-col 22}
+      {:class "java.lang.Thread", :uri #"file:.*corpus/java/usages.clj", :filename #"corpus/java/usages.clj",
+       :row 4, :col 1, :end-row 4, :end-col 13}
+      {:class "java.lang.Thread", :uri #"file:.*corpus/java/usages.clj", :filename #"corpus/java/usages.clj",
+       :row 5, :col 1, :end-row 5, :end-col 19}
+      {:class "java.lang.Thread", :uri #"file:.*corpus/java/usages.clj", :filename #"corpus/java/usages.clj",
+       :row 6, :col 2, :end-row 6, :end-col 9}]
+     java-class-usages)
+    )
+  )
 
 (comment
 

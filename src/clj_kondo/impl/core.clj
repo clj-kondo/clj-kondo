@@ -398,12 +398,14 @@
                               (sources-from-jar ctx file canonical?))
                         (swap! (:mark-linted ctx) conj [skip-mark path]))))
                 ;; assume normal source file
-                (schedule ctx {:filename (if canonical?
-                                           canonical
-                                           path)
-                               :source (slurp file)
-                               :lang (lang-from-file path default-language)}
-                          dev?)))
+                (let [fn (if canonical?
+                           canonical
+                           path)]
+                  (schedule ctx {:filename fn
+                                 :uri (str "file:" fn)
+                                 :source (slurp file)
+                                 :lang (lang-from-file path default-language)}
+                            dev?))))
             ;; assume directory
             (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
                   (sources-from-dir ctx file canonical?)))
