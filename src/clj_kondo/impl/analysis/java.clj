@@ -1,20 +1,40 @@
 (ns clj-kondo.impl.analysis.java
   (:require [clj-kondo.impl.utils :refer [->uri]]
-            [clojure.string :as str]))
+            [clojure.java.io :as io]
+            [clojure.string :as str])
+  (:import (org.objectweb.asm ClassReader)))
 
-(defn ->class-name [entry]
+(set! *warn-on-reflection* true)
+
+(defn file->bytes [file]
+  (with-open [xin (io/input-stream file)
+              xout (java.io.ByteArrayOutputStream.)]
+    (io/copy xin xout)
+    (.toByteArray xout)))
+
+(defn entry->class-name [entry]
   (-> (str/replace entry "/" ".")
       (str/replace ".class" "")
       (str/replace ".java" "")))
+
+(defn class->class-name [class-file]
+  (let [bytes (file->bytes class-file)
+        rdr (new ClassReader ^bytes bytes)
+        class-name (.getClassName rdr)
+        class-name (str/replace class-name "/" ".")]
+    class-name))
 
 (defn java-class-def-analysis? [ctx]
   (-> ctx :config ))
 
 (defn reg-java-class-def! [ctx {:keys [jar entry file]}]
   (when-let [class-name (cond entry
-                              (->class-name entry)
-                              file
-                              (->class-name file))]
+                              (entry->class-name entry)
+                              (str/ends-with? file ".class")
+                              (class->class-name file)
+                              (str/ends-with? file ".java")
+                              ;; TODO, fix clas name
+                              (entry->class-name entry))]
     (swap! (:analysis ctx)
            update :java-class-definitions conj
            {:class class-name

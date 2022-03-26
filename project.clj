@@ -16,7 +16,8 @@
                  [cheshire/cheshire "5.10.2"]
                  [nrepl/bencode "1.1.0"]
                  [org.babashka/sci "0.3.2"]
-                 [babashka/fs "0.1.2"]]
+                 [babashka/fs "0.1.2"]
+                 [org.ow2.asm/asm "9.2"]]
   ;; :global-vars {*print-namespace-maps* false}
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
