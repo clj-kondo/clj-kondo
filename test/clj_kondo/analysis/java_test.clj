@@ -70,9 +70,7 @@
        :row 5, :col 1, :end-row 5, :end-col 19}
       {:class "java.lang.Thread", :uri #"file:.*corpus/java/usages.clj", :filename #"corpus/java/usages.clj",
        :row 6, :col 2, :end-row 6, :end-col 9}]
-     java-class-usages)
-    )
-  )
+     java-class-usages)))
 
 (comment
 

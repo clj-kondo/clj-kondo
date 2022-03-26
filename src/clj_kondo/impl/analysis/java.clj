@@ -21,8 +21,8 @@
 
 (defn class->class-name [class-file]
   (let [bytes (file->bytes class-file)
-        rdr (new ClassReader ^bytes bytes)
-        class-name (.getClassName rdr)
+        class-name (with-open [rdr (new ClassReader ^bytes bytes)]
+                     (.getClassName rdr))
         class-name (str/replace class-name "/" ".")]
     class-name))
 
