@@ -223,8 +223,9 @@
                               (when-not (.isDirectory x)
                                 (when (or (str/ends-with? nm ".class")
                                           (str/ends-with? nm ".java"))
-                                  (when (and (not (str/includes? nm "$"))
-                                             (:analyze-java-class-defs? ctx))
+                                  (when (and (:analyze-java-class-defs? ctx)
+                                             (not (str/includes? nm "$"))
+                                             (not (str/ends-with? nm "__init.class")))
                                     (java/reg-java-class-def! ctx {:jar (if canonical?
                                                                           (str (.getCanonicalPath jar-file))
                                                                           (str jar-file))
