@@ -357,7 +357,7 @@
    :col col})
 
 (defn safe-file-ext [fn]
-  (last (str/split fn #".")))
+  (last (str/split fn #"\.")))
 
 (defn analyze-ns-decl
   [ctx expr]
