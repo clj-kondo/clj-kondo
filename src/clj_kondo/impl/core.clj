@@ -308,7 +308,7 @@
                       (copy-config-file ctx file cfg-dir))
                     (cond
                       (and can-read? source?)
-                      {:uri (str "file:" nm)
+                      {:uri (->uri nil nil nm)
                        :filename nm
                        :source (slurp file)
                        :group-id dir}
@@ -402,7 +402,7 @@
                            canonical
                            path)]
                   (schedule ctx {:filename fn
-                                 :uri (str "file:" fn)
+                                 :uri (->uri nil nil fn)
                                  :source (slurp file)
                                  :lang (lang-from-file path default-language)}
                             dev?))))
