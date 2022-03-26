@@ -21,8 +21,12 @@
 
 (defn class->class-name [class-file]
   (let [bytes (file->bytes class-file)
-        class-name (with-open [rdr (new ClassReader ^bytes bytes)]
-                     (.getClassName rdr))
+        ;; we use ASM for reading the fully qualified class name
+        ;; hand-made solutions, if we ever want to get rid of ASM:
+        ;; https://stackoverflow.com/questions/1649674/resolve-class-name-from-bytecode/1650442#comment115293993_1650442
+        ;; https://stackoverflow.com/a/52332101/6264
+        rdr (new ClassReader ^bytes bytes)
+        class-name (.getClassName rdr)
         class-name (str/replace class-name "/" ".")]
     class-name))
 
