@@ -33,8 +33,8 @@
         (do
           (case (.read dis)
             1 (vswap! strings assoc @counter (.readUTF dis))
-            5 (do (.readLong dis) (vswap! counter inc))
-            6 (do (.readLong dis) (vswap! counter inc))
+            5 (do (.skipBytes dis 8) (swap! counter inc))
+            6 (do (.skipBytes dis 8) (swap! counter inc))
             7 (vswap! classes assoc  @counter (.readShort dis))
             8 (.readShort dis)
             (.readInt dis))
