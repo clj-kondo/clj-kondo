@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.analysis :as analysis]
+   [clj-kondo.impl.analysis.java :as java]
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
@@ -15,8 +16,7 @@
             token-node string-from-token symbol-from-token
             assoc-some]]
    [clojure.set :as set]
-   [clojure.string :as str]
-   [clj-kondo.impl.analysis.java :as java]))
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 (def valid-ns-name? (some-fn symbol? string?))
