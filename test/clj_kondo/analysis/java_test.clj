@@ -61,8 +61,12 @@
 
 (deftest class-usages-test
   (let [{:keys [:java-class-usages]} (analyze ["corpus/java/usages.clj"])]
+    java-class-usages
+    ;; ((resolve 'clojure.pprint/pprint) java-class-usages)
     (assert-submaps
-     [{:class "java.lang.Exception"
+     [{:class "clojure.lang.PersistentVector", :uri #"file:.*corpus/java/usages.clj",
+       :filename #"corpus/java/usages.clj", :row 1, :col 40, :end-row 1, :end-col 56}
+      {:class "java.lang.Exception"
        :uri #"file:.*corpus/java/usages.clj"
        :filename #"corpus/java/usages.clj"
        :row 3 :col 13 :end-row 3 :end-col 22
@@ -81,7 +85,18 @@
        :uri #"file:.*corpus/java/usages.clj"
        :filename #"corpus/java/usages.clj"
        :row 6 :col 2 :end-row 6 :end-col 9
-       :name-row 6 :name-col 2 :name-end-row 6 :name-end-col 9}]
+       :name-row 6 :name-col 2 :name-end-row 6 :name-end-col 9}
+      {:end-row 7, :name-end-col 17, :name-end-row 7, :name-row 7,
+       :filename #"corpus/java/usages.clj", :col 1,
+       :class "clojure.lang.PersistentVector", :name-col 1,
+       :uri #"file:.*corpus/java/usages.clj", :end-col 17, :row 7}
+      {:class "clojure.lang.Compiler", :uri #"file:.*corpus/java/usages.clj",
+       :filename #"corpus/java/usages.clj",
+       :row 9, :col 24, :end-row 9, :end-col 32}
+      {:end-row 10, :name-end-col 18, :name-end-row 10, :name-row 10,
+       :uri #"file:.*corpus/java/usages.clj", :col 1, :class "clojure.lang.Compiler", :name-col 1,
+       :filename #"corpus/java/usages.clj"
+       :end-col 18, :row 10}]
      java-class-usages)))
 
 (comment

@@ -266,13 +266,15 @@
   nil)
 
 (defn reg-imports!
-  [{:keys [:base-lang :lang :namespaces] :as _ctx} ns-sym imports]
+  [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym imports]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
            ;; TODO:
            ;; (lint-duplicate-imports! ctx (:required ns) ...)
            (update ns :imports merge imports)))
-  nil)
+  (when (:analyze-java-class-usages? ctx)
+    (doseq [[k v] imports]
+      (java/reg-java-class-usage! ctx (str v "." k) (meta k)))))
 
 (defn class-name? [^String s]
   (when-let [i (str/last-index-of s \.)]

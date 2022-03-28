@@ -15,7 +15,8 @@
             token-node string-from-token symbol-from-token
             assoc-some]]
    [clojure.set :as set]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clj-kondo.impl.analysis.java :as java]))
 
 (set! *warn-on-reflection* true)
 (def valid-ns-name? (some-fn symbol? string?))
@@ -491,6 +492,9 @@
                                              #(assoc % 'cljs.core 'cljs.core
                                                      'clojure.core 'cljs.core)))]
     (when (-> ctx :config :output :analysis)
+      (when (:analyze-java-class-usages? ctx)
+        (doseq [[k v] imports]
+          (java/reg-java-class-usage! ctx (str v "." k) (meta k))))
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some {}
                                                          :user-meta (when (:analysis-ns-meta ctx)
