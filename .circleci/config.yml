@@ -123,7 +123,7 @@ jobs:
           destination: release
   linux-static:
     docker:
-      - image: circleci/clojure:openjdk-11-lein-2.9.6-bullseye
+      - image: circleci/clojure:openjdk-11-lein-2.9.8-bullseye
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
@@ -163,7 +163,7 @@ jobs:
           name: Install native dev tools
           command: |
             sudo apt-get update
-            sudo apt-get -y install gcc g++ zlib1g-dev
+            sudo apt-get -y install build-essential zlib1g-dev
             sudo -E script/setup-musl
       - run:
           name: Download GraalVM
