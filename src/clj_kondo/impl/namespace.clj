@@ -281,8 +281,8 @@
     (or (let [should-be-capital-letter-idx (inc i)]
           (and (> (.length s) should-be-capital-letter-idx)
                (Character/isUpperCase ^char (.charAt s should-be-capital-letter-idx))))
-        ;; underscore but not in first position
-        (pos? (str/index-of s "_")))))
+        (when-let [i (str/index-of s "_")]
+          (pos? i)))))
 
 (defn reg-unresolved-symbol!
   [ctx ns-sym sym {:keys [:base-lang :lang :config
@@ -567,21 +567,10 @@
                                               (when-not (contains? excluded name-sym)
                                                 k))
                                             (:refer-alls ns))]
-                  (cond referred-all-ns
-                    {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                     :name name-sym
-                     :unresolved? true
-                     :clojure-excluded? clojure-excluded?}
-                    (class-name? name-sym)
-                    {:ns :clj-kondo/unknown-namespace
-                     :name name-sym
-                     :unresolved? true
-                     :clojure-excluded? clojure-excluded?
-                     :interop? true}
-                    :else {:ns :clj-kondo/unknown-namespace
-                           :name name-sym
-                           :unresolved? true
-                           :clojure-excluded? clojure-excluded?})))))))))))
+                  {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                   :name name-sym
+                   :unresolved? true
+                   :clojure-excluded? clojure-excluded?}))))))))))
 
 ;;;; Scratch
 
