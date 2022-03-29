@@ -509,6 +509,10 @@
   (let [{:keys [:namespace-definitions :namespace-usages]} (analyze "(ns foo (:require [bar :as b :refer [x]] [clojure [string :as str]]))" {:config {:output {:analysis {:locals true}}}})]
     (assert-submaps
      '[{:name foo
+        :row 1,
+        :end-row 1,
+        :col 1,
+        :end-col 70,
         :name-end-col 8,
         :name-end-row 1,
         :name-row 1,
@@ -1208,6 +1212,8 @@
       (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
                                :name-col 38
                                :name-end-col 48
+                               :end-row 1
+                               :end-col 64
                                :doc "some ns docs"})
              (ana-ns-meta "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here \"some ns docs\")"
                           {:meta true}))))
@@ -1215,6 +1221,8 @@
       (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
                                :name-col 53
                                :name-end-col 63
+                               :end-row 1
+                               :end-col 79
                                :doc "some ns docs"})
              (ana-ns-meta "(ns ^{:my-meta1 true :my-meta2 true :my-meta3 true} my.ns.here \"some ns docs\")"
                           {:meta true}))))
@@ -1222,6 +1230,8 @@
       (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta2 true :my-meta3 true}
                                :name-col 5
                                :name-end-col 15
+                               :end-row 1
+                               :end-col 78
                                :doc "some ns docs"})
              (ana-ns-meta "(ns my.ns.here \"some ns docs\" {:my-meta1 true :my-meta2 true :my-meta3 true})"
                           {:meta true}))))
@@ -1229,6 +1239,8 @@
       (is (= (ana-ns-expected {:meta {:deprecated true :added "1.2.3"}
                                :name-col 36
                                :name-end-col 46
+                               :end-row 1
+                               :end-col 67
                                :deprecated true
                                :added "1.2.3"})
              (ana-ns-meta "(ns ^:deprecated ^{:added \"0.1.2\"} my.ns.here {:added \"1.2.3\"} [])"
@@ -1237,19 +1249,25 @@
       (is (= (ana-ns-expected {:meta {:my-meta-here true :doc "some ns docs"}
                                :doc "some ns docs"
                                :name-col 47
-                               :name-end-col 57})
+                               :name-end-col 57
+                               :end-row 1
+                               :end-col 58})
              (ana-ns-meta "(ns ^{:my-meta-here true :doc \"some ns docs\"} my.ns.here)"
                           {:meta true}))))
     (testing "we don't clobber :user-meta"
       (is (= (ana-ns-expected {:meta {:user-meta :foo-bar}
                                :name-col 28
-                               :name-end-col 38})
+                               :name-end-col 38
+                               :end-row 1
+                               :end-col 39})
              (ana-ns-meta "(ns ^{:user-meta :foo-bar} my.ns.here)"
                           {:meta true})))))
   (testing "return specific"
     (is (= (ana-ns-expected {:meta {:my-meta1 true :my-meta3 true}
                              :name-col 38
-                             :name-end-col 48})
+                             :name-end-col 48
+                             :end-row 1
+                             :end-col 49})
            (ana-ns-meta "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
                         {:meta #{:my-meta1 :my-meta3}}))))
   (testing "when user specifies metadata with same keys as positional metadata, it is returned"
@@ -1262,7 +1280,9 @@
                                     :name-end-col :nec
                                     :cool :yes}
                              :name-col 127
-                             :name-end-col 137})
+                             :name-end-col 137
+                             :end-row 1
+                             :end-col 138})
            (ana-ns-meta (str "(ns ^{:row :r :col :c"
                              " :end-col :ec :end-row :er"
                              " :name-row :nr :name-col :nc"
@@ -1271,7 +1291,9 @@
                         {:meta true}))))
   (testing "request none"
     (is (= (ana-ns-expected {:name-col 38
-                             :name-end-col 48})
+                             :name-end-col 48
+                             :end-row 1
+                             :end-col 49})
            (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
                  (clj-kondo/run! {:lint ["-"] :config
                                   {:output
