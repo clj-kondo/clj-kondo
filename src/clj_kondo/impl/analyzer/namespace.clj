@@ -499,6 +499,8 @@
                                ns-name false (assoc-some {}
                                                          :user-meta (when (:analysis-ns-meta ctx)
                                                                       (conj (:user-meta metadata) meta-node-meta))
+                                                         :end-row (:end-row m)
+                                                         :end-col (:end-col m)
                                                          :name-row (:row metadata)
                                                          :name-col (:col metadata)
                                                          :name-end-row (:end-row metadata)
