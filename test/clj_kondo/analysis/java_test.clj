@@ -67,9 +67,8 @@
        java-class-definitions))))
 
 (deftest class-usages-test
-  (let [{:keys [:java-class-usages]} (analyze ["corpus/java/usages.clj"])]
-    java-class-usages
-    ;; ((resolve 'clojure.pprint/pprint) java-class-usages)
+  (let [{:keys [:java-class-usages :var-usages]} (analyze ["corpus/java/usages.clj"])]
+    (is (= '(try fn new import) (map :name var-usages)))
     (assert-submaps
      [{:class "clojure.lang.PersistentVector", :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 1, :col 40, :end-row 1, :end-col 56}
@@ -110,7 +109,9 @@
       {:class "foo.bar.Baz", :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 12, :col 1, :end-row 12, :end-col 18}
       {:class "java.util.Date", :uri #"file:.*corpus/java/usages.clj",
-       :filename #"corpus/java/usages.clj", :row 13, :col 1, :end-row 13, :end-col 15}]
+       :filename #"corpus/java/usages.clj", :row 13, :col 1, :end-row 13, :end-col 15}
+      {:class "java.io.File", :uri #"file:.*corpus/java/usages.clj",
+       :filename #"corpus/java/usages.clj", :row 14, :col 1, :end-row 14, :end-col 42}]
      java-class-usages)))
 
 (comment

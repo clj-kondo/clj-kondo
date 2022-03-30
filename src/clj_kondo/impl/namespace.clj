@@ -508,7 +508,8 @@
              (if (identical? :clj lang)
                (if (and (not (one-of ns* ["clojure.core"]))
                           (class-name? ns*))
-                 (java/reg-class-usage! ctx ns* (meta expr))
+                 (do (java/reg-class-usage! ctx ns* (meta expr))
+                     {:interop? true})
                  {:name (symbol (name name-sym))
                   :unresolved? true
                   :unresolved-ns ns-sym})
@@ -578,7 +579,8 @@
                                             (:refer-alls ns))]
                   (if (and (not referred-all-ns)
                            (class-name? name-sym))
-                    (java/reg-class-usage! ctx (str name-sym) (meta expr))
+                    (do (java/reg-class-usage! ctx (str name-sym) (meta expr))
+                        {:interop? true})
                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
                      :name name-sym
                      :unresolved? true

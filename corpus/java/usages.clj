@@ -11,3 +11,4 @@ Compiler/specials
 foo.bar.Baz
 foo.bar.Baz/EMPTY
 java.util.Date
+(java.io.File/createTempFile "foo" "bar")
