@@ -8,3 +8,4 @@ PersistentVector
 
 (import '[clojure.lang Compiler])
 Compiler/specials
+foo.bar.Baz

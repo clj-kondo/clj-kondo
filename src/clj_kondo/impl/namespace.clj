@@ -507,8 +507,7 @@
                 :name (symbol (name name-sym))})
              (when-not (if (identical? :clj lang)
                          (or (one-of ns* ["clojure.core"])
-                             (doto (class-name? ns*)
-                               (utils/log)))
+                             (class-name? ns*))
                          (when cljs?
                            ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
                            (one-of ns* ["js" "goog" "cljs.core"
@@ -572,7 +571,7 @@
                                             (:refer-alls ns))]
                   (if (and (not referred-all-ns)
                            (class-name? name-sym))
-                    nil
+                    (java/reg-java-class-usage! ctx (str name-sym) (meta expr))
                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
                      :name name-sym
                      :unresolved? true
