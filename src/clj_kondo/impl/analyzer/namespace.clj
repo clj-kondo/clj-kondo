@@ -357,11 +357,6 @@
    :row row
    :col col})
 
-(defn strip-file-ext [fn]
-  (if-let [last-dot (str/last-index-of fn ".")]
-    (subs fn 0 last-dot)
-    fn))
-
 (defn analyze-ns-decl
   [ctx expr]
   (let [lang (:lang ctx)
@@ -426,7 +421,7 @@
                      (not (identical? :off (-> ctx :config :linters :namespace-name-mismatch :level))))
             ;; users should be able to disable linter without hitting this code-path
             (let [filename* (some-> filename
-                                    ^String (strip-file-ext)
+                                    ^String (utils/strip-file-ext)
                                     ^String (.replace "/" ".")
                                     ;; Windows, but do unconditionally, see issue 1607
                                     (.replace "\\" "."))

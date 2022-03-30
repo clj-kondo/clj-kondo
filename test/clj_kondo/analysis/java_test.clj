@@ -57,7 +57,14 @@
      '[{:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
         :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
-     java-class-definitions)))
+     java-class-definitions))
+  (testing "linting just one java source"
+    (let [{:keys [:java-class-definitions]} (analyze ["corpus/java/sources/foo/bar/AwesomeClass.java"])]
+      (assert-submaps
+       '[{:class "foo.bar.AwesomeClass",
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
+          :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
+       java-class-definitions))))
 
 (deftest class-usages-test
   (let [{:keys [:java-class-usages]} (analyze ["corpus/java/usages.clj"])]

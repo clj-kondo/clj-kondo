@@ -383,7 +383,7 @@
           canonical ;; implies the file exiss
           (if (.isFile file)
             (when-not (seen? canonical seen-files debug)
-              (if (str/ends-with? (.getPath file) ".jar")
+              (if (str/ends-with? canonical ".jar")
                 ;; process jar file
                 (let [jar-name (.getName file)
                       config-hash (force (:config-hash ctx))
@@ -403,11 +403,13 @@
                 (let [fn (if canonical?
                            canonical
                            path)]
-                  (schedule ctx {:filename fn
-                                 :uri (->uri nil nil fn)
-                                 :source (slurp file)
-                                 :lang (lang-from-file path default-language)}
-                            dev?))))
+                  (if (str/ends-with? canonical ".java")
+                    (java/reg-class-def! ctx {:file canonical})
+                    (schedule ctx {:filename fn
+                                   :uri (->uri nil nil fn)
+                                   :source (slurp file)
+                                   :lang (lang-from-file path default-language)}
+                              dev?)))))
             ;; assume directory
             (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
                   (sources-from-dir ctx file canonical?)))

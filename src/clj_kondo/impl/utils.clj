@@ -377,6 +377,15 @@
         (and jar entry)
         (str "jar:file:" (.toURI (io/file jar)) "!/" entry)))
 
+(defn file-ext [fn]
+  (when-let [last-dot (str/last-index-of fn ".")]
+    (subs fn (inc last-dot))))
+
+(defn strip-file-ext [fn]
+  (if-let [last-dot (str/last-index-of fn ".")]
+    (subs fn 0 last-dot)
+    fn))
+
 ;;;; Scratch
 
 (comment
