@@ -96,7 +96,10 @@
       {:end-row 10, :name-end-col 18, :name-end-row 10, :name-row 10,
        :uri #"file:.*corpus/java/usages.clj", :col 1, :class "clojure.lang.Compiler", :name-col 1,
        :filename #"corpus/java/usages.clj"
-       :end-col 18, :row 10}]
+       :end-col 18, :row 10}
+      {:class "foo.bar.Baz",
+       :uri #"file:.*corpus/java/usages.clj",
+       :filename #"corpus/java/usages.clj", :row 11, :col 1, :end-row 11, :end-col 12}]
      java-class-usages)))
 
 (comment
