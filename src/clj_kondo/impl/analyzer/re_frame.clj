@@ -62,22 +62,24 @@
     (when cofx-params
       (common/analyze-children ctx cofx-params))))
 
-(defn analyze-dispatch
-  "Analyzes re-frame dispatch call.
-  Marks the event id, the first element of the parameter vector as an event reference so
+(defn- analyze-dispatch-event-id
+  "Marks the event id, the first element of the parameter vector as an event reference so
   it can be tracked back to the event registration. Marker is `[:context :re-frame.core :event-ref]`.
   https://day8.github.io/re-frame/api-re-frame.core/#dispatch"
   [ctx expr ns]
   (let [kns (keyword ns)
-        [farg & args :as children] (next (:children expr))]
-    (if (identical? :vector (utils/tag farg))
-      (let [[event-id & event-params] (:children farg)]
-        (common/analyze-children (assoc-in ctx [:context kns :event-ref] true) [event-id])
-        (when event-params
-          (common/analyze-children ctx event-params))
-        (when args
-          (common/analyze-children ctx args)))
-      (common/analyze-children ctx children))))
+        [farg & _args :as _children] (next (:children expr))]
+    (when (identical? :vector (utils/tag farg))
+      (let [[event-id & _event-params] (:children farg)]
+        (common/analyze-children (assoc-in ctx [:context kns :event-ref] true) [event-id])))))
+
+(defn analyze-dispatch
+  "Analyzes re-frame dispatch call.
+  Uses [[analyze-dispatch-event-id]] to analyze the event id. And analyzes the rest of the dispatch call
+  as usual."
+  [ctx expr ns]
+  (analyze-dispatch-event-id ctx expr ns)
+  (common/analyze-children ctx (next (:children expr))))
 
 (defn analyze-reg-sub
   "Analyzes re-frame subscription registration.
@@ -99,18 +101,19 @@
 (defmulti analyze-dispatch-type (fn [_ctx _fq-def x] (:k (first x))))
 
 (defmethod analyze-dispatch-type :dispatch [ctx fq-def x]
-  (analyze-dispatch ctx {:children x} (str (namespace fq-def)))
-  [])
+  (analyze-dispatch-event-id ctx {:children x} (str (namespace fq-def)))
+  x)
 
 (defmethod analyze-dispatch-type :dispatch-n [ctx fq-def x]
   (let [disp-kw (:k (first x))]
-    (doseq [dispatch-vector (:children (second x))]
-      (analyze-dispatch ctx {:children (cons disp-kw [dispatch-vector])} (str (namespace fq-def))))
-    []))
+    (when (identical? :vector (utils/tag (second x)))
+      (doseq [dispatch-vector (:children (second x))]
+        (analyze-dispatch-event-id ctx {:children (cons disp-kw [dispatch-vector])} (str (namespace fq-def)))))
+    x))
 
 (defmethod analyze-dispatch-type :dispatch-later [ctx fq-def x]
   (let [disp-kw (:k (first x))]
-    (analyze-dispatch
+    (analyze-dispatch-event-id
      ctx
      {:children (->> (last x)
                      :children
@@ -119,7 +122,7 @@
                      vector
                      (cons disp-kw))}
      (str (namespace fq-def)))
-    []))
+    x))
 
 (defmethod analyze-dispatch-type :default [_ctx _fq-def x] x)
 
