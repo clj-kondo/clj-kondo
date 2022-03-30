@@ -273,9 +273,9 @@
            ;; TODO:
            ;; (lint-duplicate-imports! ctx (:required ns) ...)
            (update ns :imports merge imports)))
-  (when (:analyze-java-class-usages? ctx)
+  (when (java/analyze-class-usages? ctx)
     (doseq [[k v] imports]
-      (java/reg-java-class-usage! ctx (str v "." k) (meta k)))))
+      (java/reg-class-usage! ctx (str v "." k) (meta k)))))
 
 (defn class-name? [s]
   (let [^String s (str s)]
@@ -339,11 +339,11 @@
    name-sym ns-sym package class-name expr]
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj class-name)
-  (when (:analyze-java-class-usages? ctx)
+  (when (java/analyze-class-usages? ctx)
     (let [name-meta (meta name-sym)
           loc (or (meta expr)
                   (meta class-name))]
-      (java/reg-java-class-usage! ctx
+      (java/reg-class-usage! ctx
                                   (str package "." class-name)
                                   (assoc loc
                                          :name-row (or (:row name-meta) (:row loc))
@@ -508,8 +508,7 @@
              (if (identical? :clj lang)
                (if (and (not (one-of ns* ["clojure.core"]))
                           (class-name? ns*))
-                 (when (:analyze-java-class-usages? ctx)
-                   (java/reg-java-class-usage! ctx ns* (meta expr)))
+                 (java/reg-class-usage! ctx ns* (meta expr))
                  {:name (symbol (name name-sym))
                   :unresolved? true
                   :unresolved-ns ns-sym})
@@ -579,8 +578,7 @@
                                             (:refer-alls ns))]
                   (if (and (not referred-all-ns)
                            (class-name? name-sym))
-                    (when (:analyze-java-class-usages? ctx)
-                      (java/reg-java-class-usage! ctx (str name-sym) (meta expr)))
+                    (java/reg-class-usage! ctx (str name-sym) (meta expr))
                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
                      :name name-sym
                      :unresolved? true

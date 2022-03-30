@@ -46,27 +46,36 @@
 (defn java-class-def-analysis? [ctx]
   (-> ctx :config ))
 
-(defn reg-java-class-def! [ctx {:keys [jar entry file]}]
-  (when-let [class-name (if entry
-                          (entry->class-name entry)
-                          (when file
-                            (cond
-                              (str/ends-with? file ".class")
-                              (class->class-name file)
-                              (str/ends-with? file ".java")
-                              (source->class-name file))))]
-    (swap! (:analysis ctx)
-           update :java-class-definitions conj
-           {:class class-name
-            :uri (->uri jar entry file)
-            :filename (or file
-                          (str jar ":" entry))})))
+(defn analyze-class-defs? [ctx]
+  (:analyze-java-class-defs? ctx))
 
-(defn reg-java-class-usage! [ctx class-name loc]
-  (swap! (:analysis ctx)
-         update :java-class-usages conj
-         (merge {:class class-name
-                 :uri (:uri ctx)
-                 :filename (:filename ctx)}
-                loc))
+(defn reg-class-def! [ctx {:keys [jar entry file]}]
+  (when (analyze-class-defs? ctx)
+    (when-let [class-name (if entry
+                            (entry->class-name entry)
+                            (when file
+                              (cond
+                                (str/ends-with? file ".class")
+                                (class->class-name file)
+                                (str/ends-with? file ".java")
+                                (source->class-name file))))]
+      (swap! (:analysis ctx)
+             update :java-class-definitions conj
+             {:class class-name
+              :uri (->uri jar entry file)
+              :filename (or file
+                            (str jar ":" entry))}))))
+
+(defn analyze-class-usages? [ctx]
+  (and (:analyze-java-class-usages? ctx)
+       (identical? :clj (:lang ctx))))
+
+(defn reg-class-usage! [ctx class-name loc]
+  (when (analyze-class-usages? ctx)
+    (swap! (:analysis ctx)
+           update :java-class-usages conj
+           (merge {:class class-name
+                   :uri (:uri ctx)
+                   :filename (:filename ctx)}
+                  loc)))
   nil)

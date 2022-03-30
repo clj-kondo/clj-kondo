@@ -223,10 +223,10 @@
                               (when-not (.isDirectory x)
                                 (when (or (str/ends-with? nm ".class")
                                           (str/ends-with? nm ".java"))
-                                  (when (and (:analyze-java-class-defs? ctx)
+                                  (when (and (java/analyze-class-defs? ctx)
                                              (not (str/includes? nm "$"))
                                              (not (str/ends-with? nm "__init.class")))
-                                    (java/reg-java-class-def! ctx {:jar (if canonical?
+                                    (java/reg-class-def! ctx {:jar (if canonical?
                                                                           (str (.getCanonicalPath jar-file))
                                                                           (str jar-file))
                                                                    :entry nm})))
@@ -296,9 +296,10 @@
                       can-read? (.canRead file)
                       is-file? (.isFile file)
                       _ (when (and is-file?
+                                   (java/analyze-class-defs? ctx)
                                    (or (str/ends-with? nm ".class")
                                        (str/ends-with? nm ".java")))
-                          (java/reg-java-class-def! ctx {:file nm}))
+                          (java/reg-class-def! ctx {:file nm}))
                       source? (and is-file? (source-file? nm))]
                   (if (and cfg-dir source?
                            (str/includes? path "clj-kondo.exports"))

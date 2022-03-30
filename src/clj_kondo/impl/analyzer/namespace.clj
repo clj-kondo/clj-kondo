@@ -492,9 +492,9 @@
                                              #(assoc % 'cljs.core 'cljs.core
                                                      'clojure.core 'cljs.core)))]
     (when (-> ctx :config :output :analysis)
-      (when (:analyze-java-class-usages? ctx)
+      (when (java/analyze-class-usages? ctx)
         (doseq [[k v] imports]
-          (java/reg-java-class-usage! ctx (str v "." k) (meta k))))
+          (java/reg-class-usage! ctx (str v "." k) (meta k))))
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some {}
                                                          :user-meta (when (:analysis-ns-meta ctx)
