@@ -505,16 +505,24 @@
                {:interop? true
                 :ns (symbol (str package "." class-name))
                 :name (symbol (name name-sym))})
-             (when-not (if (identical? :clj lang)
-                         (or (one-of ns* ["clojure.core"])
-                             (class-name? ns*))
-                         (when cljs?
-                           ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
-                           (one-of ns* ["js" "goog" "cljs.core"
-                                        "Math" "String"])))
-               {:name (symbol (name name-sym))
-                :unresolved? true
-                :unresolved-ns ns-sym})))
+             (if (identical? :clj lang)
+               (if (and (not (one-of ns* ["clojure.core"]))
+                          (class-name? ns*))
+                 (when (:analyze-java-class-usages? ctx)
+                   (java/reg-java-class-usage! ctx ns* (meta expr)))
+                 {:name (symbol (name name-sym))
+                  :unresolved? true
+                  :unresolved-ns ns-sym})
+               (if cljs?
+                 ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
+                 (when-not (one-of ns* ["js" "goog" "cljs.core"
+                                        "Math" "String"])
+                   {:name (symbol (name name-sym))
+                    :unresolved? true
+                    :unresolved-ns ns-sym})
+                 {:name (symbol (name name-sym))
+                  :unresolved? true
+                  :unresolved-ns ns-sym}))))
        (let [name-sym (if cljs?
                         ;; although we also check for CLJS in normalize-sym, we
                         ;; already know cljs? here
