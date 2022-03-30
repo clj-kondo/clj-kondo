@@ -10,3 +10,4 @@ PersistentVector
 Compiler/specials
 foo.bar.Baz
 foo.bar.Baz/EMPTY
+java.util.Date

@@ -101,7 +101,9 @@
        :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 11, :col 1, :end-row 11, :end-col 12}
       {:class "foo.bar.Baz", :uri #"file:.*corpus/java/usages.clj",
-       :filename #"corpus/java/usages.clj", :row 12, :col 1, :end-row 12, :end-col 18}]
+       :filename #"corpus/java/usages.clj", :row 12, :col 1, :end-row 12, :end-col 18}
+      {:class "java.util.Date", :uri #"file:.*corpus/java/usages.clj",
+       :filename #"corpus/java/usages.clj", :row 13, :col 1, :end-row 13, :end-col 15}]
      java-class-usages)))
 
 (comment
