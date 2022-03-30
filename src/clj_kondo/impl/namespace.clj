@@ -6,7 +6,8 @@
    [clj-kondo.impl.analysis.java :as java]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :refer [export-ns-sym node->line deep-merge linter-disabled? one-of]]
+   [clj-kondo.impl.utils :as utils
+    :refer [export-ns-sym node->line deep-merge linter-disabled? one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
   (:import [java.util StringTokenizer]))
@@ -276,13 +277,14 @@
     (doseq [[k v] imports]
       (java/reg-java-class-usage! ctx (str v "." k) (meta k)))))
 
-(defn class-name? [^String s]
-  (when-let [i (str/last-index-of s \.)]
-    (or (let [should-be-capital-letter-idx (inc i)]
-          (and (> (.length s) should-be-capital-letter-idx)
-               (Character/isUpperCase ^char (.charAt s should-be-capital-letter-idx))))
-        (when-let [i (str/index-of s "_")]
-          (pos? i)))))
+(defn class-name? [s]
+  (let [^String s (str s)]
+    (when-let [i (str/last-index-of s \.)]
+      (or (let [should-be-capital-letter-idx (inc i)]
+            (and (> (.length s) should-be-capital-letter-idx)
+                 (Character/isUpperCase ^char (.charAt s should-be-capital-letter-idx))))
+          (when-let [i (str/index-of s "_")]
+            (pos? i))))))
 
 (defn reg-unresolved-symbol!
   [ctx ns-sym sym {:keys [:base-lang :lang :config
@@ -505,7 +507,8 @@
                 :name (symbol (name name-sym))})
              (when-not (if (identical? :clj lang)
                          (or (one-of ns* ["clojure.core"])
-                             (class-name? ns*))
+                             (doto (class-name? ns*)
+                               (utils/log)))
                          (when cljs?
                            ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
                            (one-of ns* ["js" "goog" "cljs.core"
@@ -567,10 +570,13 @@
                                               (when-not (contains? excluded name-sym)
                                                 k))
                                             (:refer-alls ns))]
-                  {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                   :name name-sym
-                   :unresolved? true
-                   :clojure-excluded? clojure-excluded?}))))))))))
+                  (if (and (not referred-all-ns)
+                           (class-name? name-sym))
+                    nil
+                    {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                     :name name-sym
+                     :unresolved? true
+                     :clojure-excluded? clojure-excluded?})))))))))))
 
 ;;;; Scratch
 
