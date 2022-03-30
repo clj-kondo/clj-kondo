@@ -571,7 +571,8 @@
                                             (:refer-alls ns))]
                   (if (and (not referred-all-ns)
                            (class-name? name-sym))
-                    (java/reg-java-class-usage! ctx (str name-sym) (meta expr))
+                    (when (:analyze-java-class-usages? ctx)
+                      (java/reg-java-class-usage! ctx (str name-sym) (meta expr)))
                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
                      :name name-sym
                      :unresolved? true
