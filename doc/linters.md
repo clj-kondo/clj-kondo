@@ -1048,32 +1048,29 @@ You can report duplicate warnings using:
 
 *Config:*
 
-In the following code `streams` is a macro that assigns a special meaning to the
-symbol `where`, so it should not be reported as an unresolved symbol:
+In the following code, `match?` is a test assert expression brought in by `matcher-combinators.test`.
+We don't want it to be reported as an unresolved symbol.
 
 ``` clojure
 (ns foo
-  (:require [riemann.streams :refer [streams]]))
+  (:require [clojure.test :refer [deftest is]]
+            [matcher-combinators.test]))
 
-(def email (mailer {:host "mail.relay"
-                    :from "riemann@example.com"}))
-(streams
-  (where (and (= (:service event) “my-service”)
-              (= (:level event) “ERROR”))
-    ,,,))
+(deftest my-test
+  (is (match? [1 odd?] [1 3])))
 ```
 
-This is the config for it:
+The necessary config:
 
 ``` clojure
 {:linters
   {:unresolved-symbol
-    {:exclude [(riemann.streams/streams [where])]}}}
+    {:exclude [(clojure.test/is [match?])]}}}
 ```
 
-To exclude all symbols in calls to `riemann.streams/streams` write `:exclude [(riemann.streams/streams)]`, without the vector.
-
-To exclude a symbol from being reported as unresolved globally in your project, e.g. `foo`, you can use `:exclude [foo]`.
+If you want to exclude unresolved symbols from being reported:
+- for all symbols under calls to `clojure.test/is`, omit the vector of symbols: `:exclude [(clojure.test/is)]`
+- for symbol `match?` globally for your project, specify only the vector of symbols: `:exclude [match?]`
 
 Sometimes vars are introduced by executing macros, e.g. when using [HugSQL](https://github.com/layerware/hugsql)'s `def-db-fns`. You can suppress warnings about these vars by using `declare`. Example:
 
