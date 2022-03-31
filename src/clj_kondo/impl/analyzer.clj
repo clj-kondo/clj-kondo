@@ -866,13 +866,14 @@
         arities
         (when-not (some-> ctx :def-meta :macro)
           (extract-arity-info ctx parsed-bodies))
-        fixed-arities (into #{} (filter number?) (keys arities))
-        varargs-min-arity (get-in arities [:varargs :min-arity])
+        fixed-arities (when arities (into #{} (filter number?) (keys arities)))
+        varargs-min-arity (when arities (get-in arities [:varargs :min-arity]))
         parsed-bodies (mapcat :parsed parsed-bodies)]
     (with-meta parsed-bodies
-      {:arity {:fixed-arities fixed-arities
-               :varargs-min-arity varargs-min-arity}
-       :arities arities})))
+      (when arities
+        {:arity {:fixed-arities fixed-arities
+                 :varargs-min-arity varargs-min-arity}
+         :arities arities}))))
 
 (defn analyze-alias [ctx expr]
   (let [ns (:ns ctx)
