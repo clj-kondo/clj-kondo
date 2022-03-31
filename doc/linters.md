@@ -696,6 +696,8 @@ correspond with the file name of the file.
 
 *Example message:* `Prefer placing return type hint on arg vector: String`
 
+Read [this](https://github.com/clj-kondo/clj-kondo/issues/1331) issue for more background information on this linter.
+
 ### Not empty?
 
 *Keyword:* `:not-empty?`
