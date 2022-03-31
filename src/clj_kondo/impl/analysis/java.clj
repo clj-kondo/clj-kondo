@@ -70,12 +70,13 @@
   (and (:analyze-java-class-usages? ctx)
        (identical? :clj (:lang ctx))))
 
-(defn reg-class-usage! [ctx class-name loc]
+(defn reg-class-usage!
+  [ctx class-name loc+data]
   (when (analyze-class-usages? ctx)
     (swap! (:analysis ctx)
            update :java-class-usages conj
            (merge {:class class-name
                    :uri (:uri ctx)
                    :filename (:filename ctx)}
-                  loc)))
+                  loc+data)))
   nil)

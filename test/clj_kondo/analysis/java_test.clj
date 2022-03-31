@@ -71,7 +71,8 @@
     (is (= '(try fn new import) (map :name var-usages)))
     (assert-submaps
      [{:class "clojure.lang.PersistentVector", :uri #"file:.*corpus/java/usages.clj",
-       :filename #"corpus/java/usages.clj", :row 1, :col 40, :end-row 1, :end-col 56}
+       :filename #"corpus/java/usages.clj", :row 1, :col 40, :end-row 1, :end-col 56
+       :import true}
       {:class "java.lang.Exception"
        :uri #"file:.*corpus/java/usages.clj"
        :filename #"corpus/java/usages.clj"
@@ -98,7 +99,7 @@
        :uri #"file:.*corpus/java/usages.clj", :end-col 17, :row 7}
       {:class "clojure.lang.Compiler", :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj",
-       :row 9, :col 24, :end-row 9, :end-col 32}
+       :row 9, :col 24, :end-row 9, :end-col 32, :import true}
       {:end-row 10, :name-end-col 18, :name-end-row 10, :name-row 10,
        :uri #"file:.*corpus/java/usages.clj", :col 1, :class "clojure.lang.Compiler", :name-col 1,
        :filename #"corpus/java/usages.clj"

@@ -275,7 +275,7 @@
            (update ns :imports merge imports)))
   (when (java/analyze-class-usages? ctx)
     (doseq [[k v] imports]
-      (java/reg-class-usage! ctx (str v "." k) (meta k)))))
+      (java/reg-class-usage! ctx (str v "." k) (assoc (meta k) :import true)))))
 
 (defn class-name? [s]
   (let [^String s (str s)]
