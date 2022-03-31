@@ -493,7 +493,7 @@
               (findings/reg-finding! ctx (utils/node->line
                                           (:filename ctx)
                                           (first name-node-meta-nodes)
-                                          :misplaced-defn-type-hint
+                                          :misplaced-defn-return-type-hint
                                           (str "Misplaced type hint, move to arg vector: " t)))))
         docstring (string-from-token (first children))
         doc-node (when docstring (first children))
