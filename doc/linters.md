@@ -34,7 +34,6 @@ configuration. For general configurations options, go [here](config.md).
     - [Reduce without initial value](#reduce-without-initial-value)
     - [Loop without recur](#loop-without-recur)
     - [Main without gen-class](#main-without-gen-class)
-    - [Misplaced defn return type hint](#misplaced-defn-return-type-hint)
     - [Misplaced docstring](#misplaced-docstring)
     - [Missing body in when](#missing-body-in-when)
     - [Missing clause in try](#missing-clause-in-try)
@@ -43,6 +42,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing map value](#missing-map-value)
     - [Missing test assertion](#missing-test-assertion)
     - [Namespace name mismatch](#namespace-name-mismatch)
+    - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
     - [Not empty?](#not-empty)
     - [Private call](#private-call)
     - [Redefined var](#redefined-var)
@@ -581,18 +581,6 @@ why this can be problematic.
 
 *Example message:* `Main function without gen-class.`
 
-### Misplaced defn return type hint
-
-*Keyword:* `:misplaced-defn-return-type-hint`.
-
-*Description:* warn when a return type in `defn` is not placed on the argument vector (CLJ only).
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(defn ^String foo [] "cool fn")`.
-
-*Example message:* `Misplaced type hint, move to arg vector: String`
-
 ### Misplaced docstring
 
 *Keyword:* `:misplaced-docstring`.
@@ -695,6 +683,18 @@ correspond with the file name of the file.
 *Example trigger:* a file named `foo.clj` containing a namespace `(ns bar)`.
 
 *Example message:* `Namespace name does not match file name: bar`
+
+### Non-arg vec return type hint
+
+*Keyword:* `:non-arg-vec-return-type-hint`.
+
+*Description:* warn when a return type in `defn` is not placed on the argument vector (CLJ only).
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(defn ^String foo [] "cool fn")`.
+
+*Example message:* `Prefer placing return type hint on arg vector: String`
 
 ### Not empty?
 
