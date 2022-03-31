@@ -103,7 +103,7 @@
 
 (deftest cljc-test
   (assert-submaps
-   '({:file "corpus/cljc/datascript.cljc", :row 8, :col 1}
+   '({:file "corpus/cljc/datascript.cljc", :row 9, :col 1}
      {:file "corpus/cljc/test_cljc.cljc", :row 13, :col 9}
      {:file "corpus/cljc/test_cljc.cljc", :row 14, :col 10}
      {:file "corpus/cljc/test_cljc.cljc", :row 21, :col 1}

@@ -42,6 +42,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing map value](#missing-map-value)
     - [Missing test assertion](#missing-test-assertion)
     - [Namespace name mismatch](#namespace-name-mismatch)
+    - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
     - [Not empty?](#not-empty)
     - [Private call](#private-call)
     - [Redefined var](#redefined-var)
@@ -682,6 +683,18 @@ correspond with the file name of the file.
 *Example trigger:* a file named `foo.clj` containing a namespace `(ns bar)`.
 
 *Example message:* `Namespace name does not match file name: bar`
+
+### Non-arg vec return type hint
+
+*Keyword:* `:non-arg-vec-return-type-hint`.
+
+*Description:* warn when a return type in `defn` is not placed on the argument vector (CLJ only).
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(defn ^String foo [] "cool fn")`.
+
+*Example message:* `Prefer placing return type hint on arg vector: String`
 
 ### Not empty?
 

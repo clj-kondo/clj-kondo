@@ -4,14 +4,16 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1331](https://github.com/clj-kondo/clj-kondo/issues/1331): new linter `:non-arg-vec-return-type-hint` that warns when a return type hint is not placed on the arg vector (CLJ only).
 - [#1635](https://github.com/clj-kondo/clj-kondo/pull/1635): add `:end-row` and `end-col` to analyze data for `:namespace-definitions`
 - [#1611](https://github.com/clj-kondo/clj-kondo/pull/1611): support `^:replace` override for nested config values
 - [#1625](https://github.com/clj-kondo/clj-kondo/issues/1625): Add option `--skip-lint`, to skip linting while still executing other tasks like copying configuration with `--copy-configs`.
+- Re-enable `:namespace-name-mismatch` by default
 
 ## 2022.03.09
 
 - [#1607](https://github.com/clj-kondo/clj-kondo/issues/1607): disable `:namespace-name-mismatch` until further notice due to problems on Windows
-- [#1570](https://github.com/clj-kondo/clj-kondo/issues/1570): add `:defmethod true` to defmethod `var-usages` analysis. 
+- [#1570](https://github.com/clj-kondo/clj-kondo/issues/1570): add `:defmethod true` to defmethod `var-usages` analysis.
 
 ## 2022.03.08
 
