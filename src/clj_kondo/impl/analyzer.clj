@@ -490,11 +490,15 @@
         var-leading-meta (meta name-node)
         _ (when (identical? :clj (:lang ctx))
             (when-let [t (:tag var-leading-meta)]
-              (findings/reg-finding! ctx (utils/node->line
-                                          (:filename ctx)
-                                          (first name-node-meta-nodes)
-                                          :misplaced-defn-return-type-hint
-                                          (str "Misplaced type hint, move to arg vector: " t)))))
+              (let [tstr (str t)
+                    matching-node (some #(when (= tstr (str %))
+                                           %) name-node-meta-nodes)]
+                (when matching-node
+                  (findings/reg-finding! ctx (utils/node->line
+                                              (:filename ctx)
+                                              matching-node
+                                              :non-arg-vec-return-type-hint
+                                              (str "Prefer placing return type hint on arg vector: " t)))))))
         docstring (string-from-token (first children))
         doc-node (when docstring (first children))
         children (if docstring (next children) children)

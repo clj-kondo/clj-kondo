@@ -1,4 +1,4 @@
-(ns clj-kondo.misplaced-defn-type-hint
+(ns clj-kondo.non-arg-vec-return-type-hint-test
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -9,7 +9,8 @@
        '{:lint-as {nedap.speced.def/defn clojure.core/defn}}}
      (:require [nedap.speced.def :as sd]))
    (defn ^String foo [])
-   (sd/defn ^String bar [])")
+   (defn ^:static ^String bar [])
+   (sd/defn ^String baz [])")
 
 (def example-with-override
   "(ns test
@@ -22,8 +23,12 @@
 
 (deftest misplaced-defn-type-hint
   (assert-submaps
-   '({:file "<stdin>", :row 5, :col 11, :level :warning, :message "Misplaced type hint, move to arg vector: String"} {:file "<stdin>", :row 6, :col 14, :level :warning, :message "Misplaced type hint, move to arg vector: String"})
+   [{:file "<stdin>", :row 5, :col 11, :level :warning, :message "Prefer placing return type hint on arg vector: String"}
+    {:file "<stdin>", :row 6, :col 20, :level :warning, :message "Prefer placing return type hint on arg vector: String"}
+    {:file "<stdin>", :row 7, :col 14, :level :warning, :message "Prefer placing return type hint on arg vector: String"}]
+
    (lint! example-without-override))
   (assert-submaps
-   '({:file "<stdin>", :row 6, :col 11, :level :warning, :message "Misplaced type hint, move to arg vector: String"})
+   [{:file "<stdin>", :row 6, :col 11, :level :warning, :message "Prefer placing return type hint on arg vector: String"}
+    {:file "<stdin>", :row 7, :col 14, :level :warning, :message "Prefer placing return type hint on arg vector: String"}]
    (lint! example-with-override)))

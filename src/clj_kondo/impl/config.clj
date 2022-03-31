@@ -119,7 +119,7 @@
               :main-without-gen-class {:level :off}
               :redundant-fn-wrapper {:level :off}
               :namespace-name-mismatch {:level :error}
-              :misplaced-defn-return-type-hint {:level :warning}}
+              :non-arg-vec-return-type-hint {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
