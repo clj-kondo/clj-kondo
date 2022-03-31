@@ -488,6 +488,13 @@
         fn-name (:value name-node)
         call (name (symbol-call expr))
         var-leading-meta (meta name-node)
+        _ (when (identical? :clj (:lang ctx))
+            (when-let [t (:tag var-leading-meta)]
+              (findings/reg-finding! ctx (utils/node->line
+                                          (:filename ctx)
+                                          (first name-node-meta-nodes)
+                                          :misplaced-defn-type-hint
+                                          (str "Misplaced type hint, move to arg vector: " t)))))
         docstring (string-from-token (first children))
         doc-node (when docstring (first children))
         children (if docstring (next children) children)
@@ -1264,34 +1271,34 @@
 
 (defn analyze-protocol-impls [ctx defined-by ns-name children]
   (loop [current-protocol nil
-           protocol-ns nil
-           protocol-name nil
+         protocol-ns nil
+         protocol-name nil
          children children]
-      (when-first [c children]
-        (if-let [sym (utils/symbol-from-token c)]
-          ;; we have encountered a protocol or interface name
-          (do (analyze-expression** ctx c)
-              (let [{protocol-ns :ns protocol-name :name} (resolve-name ctx ns-name sym)]
-                (recur sym protocol-ns protocol-name (rest children))))
-          ;; Assume protocol fn impl. Analyzing the fn sym can cause false
-          ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
-          ;; is linted as (fn [x y z])
-          (let [fn-children (:children c)
-                protocol-method-name (first fn-children)]
-            (when (and current-protocol
-                       (not= "definterface" (name defined-by)))
-              (analysis/reg-protocol-impl! ctx
-                                           (:filename ctx)
-                                           ns-name
-                                           protocol-ns
-                                           protocol-name
-                                           c
-                                           protocol-method-name
-                                           defined-by))
-            ;; protocol-fn-name might contain metadata
-            (meta/lift-meta-content2 ctx protocol-method-name)
-            (analyze-fn ctx c)
-            (recur current-protocol protocol-ns protocol-name (rest children)))))))
+    (when-first [c children]
+      (if-let [sym (utils/symbol-from-token c)]
+        ;; we have encountered a protocol or interface name
+        (do (analyze-expression** ctx c)
+            (let [{protocol-ns :ns protocol-name :name} (resolve-name ctx ns-name sym)]
+              (recur sym protocol-ns protocol-name (rest children))))
+        ;; Assume protocol fn impl. Analyzing the fn sym can cause false
+        ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
+        ;; is linted as (fn [x y z])
+        (let [fn-children (:children c)
+              protocol-method-name (first fn-children)]
+          (when (and current-protocol
+                     (not= "definterface" (name defined-by)))
+            (analysis/reg-protocol-impl! ctx
+                                         (:filename ctx)
+                                         ns-name
+                                         protocol-ns
+                                         protocol-name
+                                         c
+                                         protocol-method-name
+                                         defined-by))
+          ;; protocol-fn-name might contain metadata
+          (meta/lift-meta-content2 ctx protocol-method-name)
+          (analyze-fn ctx c)
+          (recur current-protocol protocol-ns protocol-name (rest children)))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
