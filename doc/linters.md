@@ -34,6 +34,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Reduce without initial value](#reduce-without-initial-value)
     - [Loop without recur](#loop-without-recur)
     - [Main without gen-class](#main-without-gen-class)
+    - [Misplaced defn return type hint](#misplaced-defn-return-type-hint)
     - [Misplaced docstring](#misplaced-docstring)
     - [Missing body in when](#missing-body-in-when)
     - [Missing clause in try](#missing-clause-in-try)
@@ -579,6 +580,18 @@ why this can be problematic.
 *Example trigger:* `(ns foo) (defn -main [& _args])`.
 
 *Example message:* `Main function without gen-class.`
+
+### Misplaced defn return type hint
+
+*Keyword:* `:misplaced-defn-return-type-hint`.
+
+*Description:* warn when a return type in `defn` is not placed on the argument vector (CLJ only).
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(defn ^String foo [] "cool fn")`.
+
+*Example message:* `Misplaced type hint, move to arg vector: String`
 
 ### Misplaced docstring
 
