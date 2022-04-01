@@ -9,6 +9,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1611](https://github.com/clj-kondo/clj-kondo/pull/1611): support `^:replace` override for nested config values
 - [#1625](https://github.com/clj-kondo/clj-kondo/issues/1625): Add option `--skip-lint`, to skip linting while still executing other tasks like copying configuration with `--copy-configs`.
 - Re-enable `:namespace-name-mismatch` by default
+- [#1620](https://github.com/clj-kondo/clj-kondo/issues/1620): return type too narrow for re-find
 
 ## 2022.03.09
 

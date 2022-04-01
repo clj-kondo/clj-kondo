@@ -777,7 +777,7 @@
                              :ret #{:vector :string}}}}
    ;; 4898
    're-find {:arities {1 {:args [:any] ;; matcher
-                          :ret :seq}
+                          :ret #{:vector :string}}
                        2 {:args [:regex :string]
                           :ret #{:vector :string}}}}
    ;; 4911 'rand

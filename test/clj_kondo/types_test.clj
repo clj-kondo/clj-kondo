@@ -907,7 +907,8 @@
             config-2))))
 
 (deftest misc-false-positives-test
-  (is (empty? (lint! "(even? ('a {'a 10}))" config))))
+  (is (empty? (lint! "(even? ('a {'a 10}))" config)))
+  (is (empty? (lint! "(keyword (re-find (re-matcher #\"foo\" \"foo\")))" config))))
 
 ;;;; Scratch
 
