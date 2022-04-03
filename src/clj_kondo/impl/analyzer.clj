@@ -2335,6 +2335,9 @@
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
   (when expr
+    (when-let [hook (:core-typed-hook ctx)]
+      (hook {:node expr
+             :lang lang}))
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
                  (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)

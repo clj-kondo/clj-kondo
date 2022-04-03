@@ -103,7 +103,8 @@
            :copy-configs
            :custom-lint-fn
            :skip-lint
-           :debug]
+           :debug
+           :core-typed-hook]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir
@@ -179,7 +180,8 @@
              ;; config, for e.g. the clj-kondo playground
              ;; TODO: :__dangerously-allow-string-hooks should not be able to come in via lib configs
              :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
-             :debug debug}
+             :debug debug
+             :core-typed-hook core-typed-hook}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
