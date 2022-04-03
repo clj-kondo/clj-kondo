@@ -2337,7 +2337,8 @@
   (when expr
     (when-let [hook (:core-typed-hook ctx)]
       (hook {:node expr
-             :lang lang}))
+             :lang lang
+             :ns (-> ctx :ns :name)}))
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
                  (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
