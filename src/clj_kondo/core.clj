@@ -181,7 +181,9 @@
              ;; TODO: :__dangerously-allow-string-hooks should not be able to come in via lib configs
              :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
              :debug debug
-             :core-typed-hook core-typed-hook}
+             :core-typed-hook (when core-typed-hook
+                                (let [state (core-typed-hook)]
+                                  #(core-typed-hook (assoc % :state state))))}
         lang (or lang :clj)
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
