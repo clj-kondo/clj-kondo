@@ -2339,6 +2339,8 @@
       (hook {:node expr
              :lang lang
              :ns (-> ctx :ns :name)
+             :filename (:filename ctx)
+             :top-level? (:top-level? ctx)
              :reg-finding! (fn [{:keys [row col end-row end-col type message]}]
                              (findings/reg-finding! ctx {:filename (:filename ctx)
                                                          :row row
