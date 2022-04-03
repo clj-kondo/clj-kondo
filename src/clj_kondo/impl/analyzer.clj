@@ -2338,7 +2338,15 @@
     (when-let [hook (:core-typed-hook ctx)]
       (hook {:node expr
              :lang lang
-             :ns (-> ctx :ns :name)}))
+             :ns (-> ctx :ns :name)
+             :reg-finding! (fn [{:keys [row col end-row end-col type message]}]
+                             (findings/reg-finding! ctx {:filename (:filename ctx)
+                                                         :row row
+                                                         :col col
+                                                         :end-row end-row
+                                                         :end-col end-col
+                                                         :type type
+                                                         :message message}))}))
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
                  (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
