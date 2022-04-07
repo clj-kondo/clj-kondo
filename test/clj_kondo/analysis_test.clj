@@ -339,118 +339,393 @@
     456
     789))" {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
-        []
-        protocol-impls)))
-  (testing "defrecord with simple protocol"
+       []
+       protocol-impls)))
+  (testing "defrecord with simple protocols"
     (let [{:keys [:protocol-impls]} (analyze "
-(defprotocol MyFoo
-  (something [this])
-  (^Bla other-thing [this a b]))
+(defprotocol AProtocol
+  (a-method [this])
+  (^Bla b-method [this a b]))
 
-(defrecord MyBar []
-  MyFoo
-  (something [_]
+(defprotocol BProtocol
+  (c-method [this])
+  (^Bla d-method [this a b]))
+
+(defrecord ARecord []
+  AProtocol
+  (a-method [_]
     123)
+  (^Bla b-method [_ a b]
+    456
+    789)
 
-  (^Bla other-thing [_ a b]
+  BProtocol
+  (c-method [_]
+    123)
+  (^Bla d-method [_ a b]
     456
     789))" {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
-        '[{:protocol-name MyFoo
-           :protocol-ns user
-           :method-name something
-           :impl-ns user
-           :filename "<stdin>"
-           :defined-by clojure.core/defrecord
-           :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
-           :row 8 :col 3 :end-row 9 :end-col 9}
-          {:protocol-name MyFoo
-           :protocol-ns user
-           :method-name other-thing
-           :impl-ns user
-           :filename "<stdin>"
-           :defined-by clojure.core/defrecord
-           :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
-           :row 11 :col 3 :end-row 13 :end-col 9}]
-        protocol-impls)))
+       '[{:protocol-name AProtocol
+          :protocol-ns user
+          :method-name a-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/defrecord
+          :name-row 12 :name-col 4 :name-end-row 12 :name-end-col 12
+          :row 12 :col 3 :end-row 13 :end-col 9}
+         {:protocol-name AProtocol
+          :protocol-ns user
+          :method-name b-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/defrecord
+          :name-row 14 :name-col 9 :name-end-row 14 :name-end-col 17
+          :row 14 :col 3 :end-row 16 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name c-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/defrecord
+          :name-row 19 :name-col 4 :name-end-row 19 :name-end-col 12
+          :row 19 :col 3 :end-row 20 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name d-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/defrecord
+          :name-row 21 :name-col 9 :name-end-row 21 :name-end-col 17
+          :row 21 :col 3 :end-row 23 :end-col 9}]
+       protocol-impls)))
   (testing "defrecord with aliased protocol"
     (let [{:keys [:protocol-impls]}
           (analyze (->> ["(ns some-ns)"
-                         "(defprotocol MyFoo"
-                         "  (something [this])"
-                         "  (^Bla other-thing [this a b]))"
+                         "(defprotocol AProtocol"
+                         "  (a-method [this])"
+                         "  (^Bla b-method [this a b]))"
                          "(ns other-ns (:require [some-ns :as some]))"
-                         "(defrecord MyBar []"
-                         "  some/MyFoo"
-                         "  (something [_]"
+                         "(defrecord ARecord []"
+                         "  some/AProtocol"
+                         "  (a-method [_]"
                          "    123)"
                          ""
-                         "  (^Bla other-thing [_ a b]"
+                         "  (^Bla b-method [_ a b]"
                          "    456"
                          "    789))"]
                         (string/join "\n"))
                    {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
-        '[{:protocol-name MyFoo
-           :protocol-ns some-ns
-           :method-name something
-           :impl-ns other-ns
-           :filename "<stdin>"
-           :defined-by clojure.core/defrecord
-           :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
-           :row 8 :col 3 :end-row 9 :end-col 9}
-          {:protocol-name MyFoo
-           :protocol-ns some-ns
-           :method-name other-thing
-           :impl-ns other-ns
-           :filename "<stdin>"
-           :defined-by clojure.core/defrecord
-           :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
-           :row 11 :col 3 :end-row 13 :end-col 9}]
-        protocol-impls)))
+       '[{:protocol-name AProtocol
+          :protocol-ns some-ns
+          :method-name a-method
+          :impl-ns other-ns
+          :filename "<stdin>"
+          :defined-by clojure.core/defrecord
+          :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 12
+          :row 8 :col 3 :end-row 9 :end-col 9}
+         {:protocol-name AProtocol
+          :protocol-ns some-ns
+          :method-name b-method
+          :impl-ns other-ns
+          :filename "<stdin>"
+          :defined-by clojure.core/defrecord
+          :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 17
+          :row 11 :col 3 :end-row 13 :end-col 9}]
+       protocol-impls)))
   (testing "deftype"
     (let [{:keys [:protocol-impls]} (analyze "
-(defprotocol MyFoo
-  (something [this])
-  (^Bla other-thing [this a b]))
+(defprotocol AProtocol
+  (a-method [this])
+  (^Bla b-method [this a b]))
 
-(deftype MyBar []
-  MyFoo
-  (something [_]
+(defprotocol BProtocol
+  (c-method [this])
+  (^Bla d-method [this a b]))
+
+(deftype AType []
+  AProtocol
+  (a-method [_]
     123)
+  (^Bla b-method [_ a b]
+    456
+    789)
 
-  (^Bla other-thing [_ a b]
+  BProtocol
+  (c-method [_]
+    123)
+  (^Bla d-method [_ a b]
     456
     789))" {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
-        '[{:protocol-name MyFoo
-           :protocol-ns user
-           :method-name something
-           :impl-ns user
-           :filename "<stdin>"
-           :defined-by clojure.core/deftype
-           :name-row 8 :name-col 4 :name-end-row 8 :name-end-col 13
-           :row 8 :col 3 :end-row 9 :end-col 9}
-          {:protocol-name MyFoo
-           :protocol-ns user
-           :method-name other-thing
-           :impl-ns user
-           :filename "<stdin>"
-           :defined-by clojure.core/deftype
-           :name-row 11 :name-col 9 :name-end-row 11 :name-end-col 20
-           :row 11 :col 3 :end-row 13 :end-col 9}]
-        protocol-impls))))
+       '[{:protocol-name AProtocol
+          :protocol-ns user
+          :method-name a-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/deftype
+          :name-row 12 :name-col 4 :name-end-row 12 :name-end-col 12
+          :row 12 :col 3 :end-row 13 :end-col 9}
+         {:protocol-name AProtocol
+          :protocol-ns user
+          :method-name b-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/deftype
+          :name-row 14 :name-col 9 :name-end-row 14 :name-end-col 17
+          :row 14 :col 3 :end-row 16 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name c-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/deftype
+          :name-row 19 :name-col 4 :name-end-row 19 :name-end-col 12
+          :row 19 :col 3 :end-row 20 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name d-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/deftype
+          :name-row 21 :name-col 9 :name-end-row 21 :name-end-col 17
+          :row 21 :col 3 :end-row 23 :end-col 9}]
+       protocol-impls)))
+  (testing "extend-protocol"
+    (let [{:keys [:protocol-impls]} (analyze "
+(defprotocol AProtocol
+  (a-method [this])
+  (^Bla b-method [this a b]))
 
-(deftest reify-protocol-impls-test
+(defrecord ARecord [])
+(deftype AType [])
+
+(extend-protocol AProtocol
+  ARecord
+  (a-method [_]
+    123)
+  (^Bla b-method [_ a b]
+    456
+    789)
+
+  AType
+  (a-method [_]
+    123)
+  (^Bla b-method [_ a b]
+    456
+    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+      (assert-submaps
+       '[{:protocol-name AProtocol
+          :protocol-ns user
+          :method-name a-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/extend-protocol
+          :name-row 11 :name-col 4 :name-end-row 11 :name-end-col 12
+          :row 11 :col 3 :end-row 12 :end-col 9}
+         {:protocol-name AProtocol
+          :protocol-ns user
+          :method-name b-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/extend-protocol
+          :name-row 13 :name-col 9 :name-end-row 13 :name-end-col 17
+          :row 13 :col 3 :end-row 15 :end-col 9}
+         {:protocol-name AProtocol
+          :protocol-ns user
+          :method-name a-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/extend-protocol
+          :name-row 18 :name-col 4 :name-end-row 18 :name-end-col 12
+          :row 18 :col 3 :end-row 19 :end-col 9}
+         {:protocol-name AProtocol
+          :protocol-ns user
+          :method-name b-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/extend-protocol
+          :name-row 20 :name-col 9 :name-end-row 20 :name-end-col 17
+          :row 20 :col 3 :end-row 22 :end-col 9}]
+       protocol-impls)))
+  (testing "extend-type"
+    (let [{:keys [:protocol-impls]} (analyze "
+(defprotocol AProtocol
+  (a-method [this])
+  (^Bla b-method [this a b]))
+
+(defprotocol BProtocol
+  (c-method [this])
+  (^Bla d-method [this a b]))
+
+(deftype AType [])
+
+(extend-type AType
+  AProtocol
+  (a-method [_]
+    123)
+  (^Bla b-method [_ a b]
+    456
+    789)
+
+  BProtocol
+  (c-method [_]
+    123)
+  (^Bla d-method [_ a b]
+    456
+    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+      (assert-submaps
+       '[{:protocol-name AProtocol
+          :protocol-ns user
+          :method-name a-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/extend-type
+          :name-row 14 :name-col 4 :name-end-row 14 :name-end-col 12
+          :row 14 :col 3 :end-row 15 :end-col 9}
+         {:protocol-name AProtocol
+          :protocol-ns user
+          :method-name b-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/extend-type
+          :name-row 16 :name-col 9 :name-end-row 16 :name-end-col 17
+          :row 16 :col 3 :end-row 18 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name c-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/extend-type
+          :name-row 21 :name-col 4 :name-end-row 21 :name-end-col 12
+          :row 21 :col 3 :end-row 22 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name d-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/extend-type
+          :name-row 23 :name-col 9 :name-end-row 23 :name-end-col 17
+          :row 23 :col 3 :end-row 25 :end-col 9}]
+       protocol-impls)))
   (testing "reify"
     (let [{:keys [:protocol-impls]} (analyze "
-(defprotocol MyFoo
-  (something [this]))
+(defprotocol AProtocol
+  (a-method [this])
+  (^Bla b-method [this a b]))
 
-(reify MyFoo
-  (something [this] :yeah))" {:config {:output {:analysis {:protocol-impls true}}}})]
+(defprotocol BProtocol
+  (c-method [this])
+  (^Bla d-method [this a b]))
+
+(reify
+  AProtocol
+  (a-method [_]
+    123)
+  (^Bla b-method [_ a b]
+    456
+    789)
+
+  BProtocol
+  (c-method [_]
+    123)
+  (^Bla d-method [_ a b]
+    456
+    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
       (assert-submaps
-       '[{:impl-ns user, :end-row 6, :name-end-col 13, :protocol-ns user, :name-end-row 6, :method-name something, :name-row 6, :defined-by "extend-type", :protocol-name MyFoo, :filename "<stdin>", :col 3, :name-col 4, :end-col 27, :row 6}]
+       '[{:protocol-name AProtocol
+          :protocol-ns user
+          :method-name a-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/reify
+          :name-row 12 :name-col 4 :name-end-row 12 :name-end-col 12
+          :row 12 :col 3 :end-row 13 :end-col 9}
+         {:protocol-name AProtocol
+          :protocol-ns user
+          :method-name b-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/reify
+          :name-row 14 :name-col 9 :name-end-row 14 :name-end-col 17
+          :row 14 :col 3 :end-row 16 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name c-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/reify
+          :name-row 19 :name-col 4 :name-end-row 19 :name-end-col 12
+          :row 19 :col 3 :end-row 20 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name d-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by clojure.core/reify
+          :name-row 21 :name-col 9 :name-end-row 21 :name-end-col 17
+          :row 21 :col 3 :end-row 23 :end-col 9}]
+       protocol-impls)))
+  (testing "specify!"
+    (let [{:keys [:protocol-impls]} (analyze "
+(defprotocol AProtocol
+  (a-method [this])
+  (^Bla b-method [this a b]))
+
+(defprotocol BProtocol
+  (c-method [this])
+  (^Bla d-method [this a b]))
+
+(def a-map {})
+
+(specify! a-map
+  AProtocol
+  (a-method [_]
+    123)
+  (^Bla b-method [_ a b]
+    456
+    789)
+
+  BProtocol
+  (c-method [_]
+    123)
+  (^Bla d-method [_ a b]
+    456
+    789))" {:lang :cljs, :config {:output {:analysis {:protocol-impls true}}}})]
+      (assert-submaps
+       '[{:protocol-name AProtocol
+          :protocol-ns user
+          :method-name a-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by cljs.core/specify!
+          :name-row 14 :name-col 4 :name-end-row 14 :name-end-col 12
+          :row 14 :col 3 :end-row 15 :end-col 9}
+         {:protocol-name AProtocol
+          :protocol-ns user
+          :method-name b-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by cljs.core/specify!
+          :name-row 16 :name-col 9 :name-end-row 16 :name-end-col 17
+          :row 16 :col 3 :end-row 18 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name c-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by cljs.core/specify!
+          :name-row 21 :name-col 4 :name-end-row 21 :name-end-col 12
+          :row 21 :col 3 :end-row 22 :end-col 9}
+         {:protocol-name BProtocol
+          :protocol-ns user
+          :method-name d-method
+          :impl-ns user
+          :filename "<stdin>"
+          :defined-by cljs.core/specify!
+          :name-row 23 :name-col 9 :name-end-row 23 :name-end-col 17
+          :row 23 :col 3 :end-row 25 :end-col 9}]
        protocol-impls))))
 
 (deftest defmulti-defmethod-test
