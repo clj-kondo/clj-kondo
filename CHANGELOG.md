@@ -4,13 +4,19 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#1331](https://github.com/clj-kondo/clj-kondo/issues/1331): new linter `:non-arg-vec-return-type-hint` that warns when a return type hint is not placed on the arg vector (CLJ only).
-- [#1635](https://github.com/clj-kondo/clj-kondo/pull/1635): add `:end-row` and `end-col` to analyze data for `:namespace-definitions`
+- [#1331](https://github.com/clj-kondo/clj-kondo/issues/1331): new linter `:non-arg-vec-return-type-hint` that warns when a return type hint is not placed on the arg vector (CLJ only). See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#non-arg-vec-return-type-hint).
+- Enable `:namespace-name-mismatch` by default
 - [#1611](https://github.com/clj-kondo/clj-kondo/pull/1611): support `^:replace` override for nested config values
 - [#1625](https://github.com/clj-kondo/clj-kondo/issues/1625): Add option `--skip-lint`, to skip linting while still executing other tasks like copying configuration with `--copy-configs`.
-- Re-enable `:namespace-name-mismatch` by default
-- [#1620](https://github.com/clj-kondo/clj-kondo/issues/1620): return type too narrow for re-find
-- [#1651](https://github.com/clj-kondo/clj-kondo/issues/1651): Fix `:protocol-impls` implementation
+- [#1620](https://github.com/clj-kondo/clj-kondo/issues/1620): return type too narrow for `re-find`
+
+Analysis:
+
+- [#1623](https://github.com/clj-kondo/clj-kondo/issues/1623): Implement analysis for Java classes: `:java-class-definitions` and `:java-class-usages`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/analysis/README.md).
+- [#1635](https://github.com/clj-kondo/clj-kondo/pull/1635): add `:end-row` and `end-col` to analyze data for `:namespace-definitions`
+- [#1651](https://github.com/clj-kondo/clj-kondo/issues/1651): Improvements for `:protocol-impls`
+- [#1612](https://github.com/clj-kondo/clj-kondo/issues/1612): Improve analysis for `deftype`
+- [#1613](https://github.com/clj-kondo/clj-kondo/issues/1613): Improve analysis for `reify`
 
 ## 2022.03.09
 
