@@ -17,6 +17,7 @@ Analysis:
 - [#1651](https://github.com/clj-kondo/clj-kondo/issues/1651): Improvements for `:protocol-impls`
 - [#1612](https://github.com/clj-kondo/clj-kondo/issues/1612): Improve analysis for `deftype`
 - [#1613](https://github.com/clj-kondo/clj-kondo/issues/1613): Improve analysis for `reify`
+- [#1609](https://github.com/clj-kondo/clj-kondo/issues/1609): keyword analysis for `ns` + `require`
 
 ## 2022.03.09
 
