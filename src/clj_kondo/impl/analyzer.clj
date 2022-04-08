@@ -1276,7 +1276,9 @@
 
 (defn analyze-protocol-impls [ctx defined-by ns-name children]
   (loop [current-protocol nil
-         children children]
+         children children
+         protocol-ns nil
+         protocol-name nil]
     (when-first [c children]
       (if-let [sym (utils/symbol-from-token c)]
         ;; We have encountered a protocol or interface name, or a
@@ -1298,11 +1300,11 @@
                    "extend-type" (if (nil? current-protocol)
                                    ;; extend-type has a type name as it first symbol,
                                    ;; not a protocol name. We need to skip it.
-                                   (utils/symbol-from-token (first (rest children)))
+                                   (utils/symbol-from-token (second children))
                                    sym)
                    ;; The rest of the use cases have only protocol names in their body.
                    sym)
-                 (rest children)))
+                 (rest children) protocol-ns protocol-name))
         ;; Assume protocol fn impl. Analyzing the fn sym can cause false
         ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
         ;; is linted as (fn [x y z])
@@ -1310,7 +1312,13 @@
               protocol-method-name (first fn-children)]
           (when (and current-protocol
                      (not= "definterface" (name defined-by)))
-            (let [{protocol-ns :ns protocol-name :name} (resolve-name ctx ns-name current-protocol)]
+            (let [[protocol-ns protocol-name]
+                  (if (or (not= "extend-protocol" (name defined-by))
+                          (not protocol-ns))
+                    (let [{pns :ns pname :name} (resolve-name ctx ns-name current-protocol)]
+                      [pns pname])
+                    ;; we already have the resolved ns + name for extend-protocol
+                    [protocol-ns protocol-name])]
               (analysis/reg-protocol-impl! ctx
                                            (:filename ctx)
                                            ns-name
@@ -1322,7 +1330,7 @@
           ;; protocol-fn-name might contain metadata
           (meta/lift-meta-content2 ctx protocol-method-name)
           (analyze-fn ctx c)
-          (recur current-protocol (rest children)))))))
+          (recur current-protocol (rest children) protocol-ns protocol-name))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
