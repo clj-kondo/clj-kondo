@@ -431,12 +431,16 @@
                   munged-ns (str (munge ns-name))]
               (when (and filename*
                          (not (str/ends-with? filename* munged-ns)))
-                (findings/reg-finding!
-                 ctx
-                 (node->line filename
-                             ns-name-expr
-                             :namespace-name-mismatch
-                             (str "Namespace name does not match file name: " ns-name))))))
+                (when-not (some (fn [m]
+                                  (and (identical? :namespace-name-mismatch (:type m))
+                                       (= filename (:filename m))))
+                                @(:findings ctx))
+                  (findings/reg-finding!
+                   ctx
+                   (node->line filename
+                               ns-name-expr
+                               :namespace-name-mismatch
+                               (str "Namespace name does not match file name: " ns-name)))))))
         clauses children
         _ (run! #(utils/handle-ignore ctx %) children)
         kw+libspecs (for [?require-clause clauses
