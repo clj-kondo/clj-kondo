@@ -5,6 +5,7 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analysis.java :as java]
    [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.analyzer.usages :as usages]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.docstring :as docstring]
@@ -359,6 +360,8 @@
 
 (defn analyze-ns-decl
   [ctx expr]
+  (when (:analyze-keywords? ctx)
+    (usages/analyze-usages2 ctx expr {:quote? true}))
   (let [lang (:lang ctx)
         base-lang (:base-lang ctx)
         filename (:filename ctx)
@@ -538,6 +541,8 @@
                                                                  utils/symbol-from-token)))
                                       (second children)))))
                            children)]
+    (when (:analyze-keywords? ctx)
+      (run! #(usages/analyze-usages2 ctx % {:quote? true}) libspecs))
     (let [analyzed
           (analyze-require-clauses ctx ns-name [[require-node libspecs]])]
       (namespace/reg-required-namespaces! ctx ns-name analyzed)
