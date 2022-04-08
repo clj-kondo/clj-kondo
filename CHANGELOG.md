@@ -2,7 +2,7 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.04.08
 
 - [#1331](https://github.com/clj-kondo/clj-kondo/issues/1331): new linter `:non-arg-vec-return-type-hint` that warns when a return type hint is not placed on the arg vector (CLJ only). See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#non-arg-vec-return-type-hint).
 - Enable `:namespace-name-mismatch` by default
