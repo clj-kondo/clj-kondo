@@ -1276,15 +1276,33 @@
 
 (defn analyze-protocol-impls [ctx defined-by ns-name children]
   (loop [current-protocol nil
-         protocol-ns nil
-         protocol-name nil
          children children]
     (when-first [c children]
       (if-let [sym (utils/symbol-from-token c)]
-        ;; we have encountered a protocol or interface name
-        (do (analyze-expression** ctx c)
-            (let [{protocol-ns :ns protocol-name :name} (resolve-name ctx ns-name sym)]
-              (recur sym protocol-ns protocol-name (rest children))))
+        ;; We have encountered a protocol or interface name, or a
+        ;; record or type name (in the case of extend-protocol and
+        ;; extend-type). We need to deal with extend-protocol in a
+        ;; special way, as there is a single protocol being extented
+        ;; to multiple records/types.
+        (do
+          (analyze-expression** ctx c)
+          (recur (case (name defined-by)
+                   "extend-protocol" (if (nil? current-protocol)
+                                       ;; extend-protocol has the protocol name as
+                                       ;; it first symbol
+                                       sym
+                                       ;; but has record/type names in its body that
+                                       ;; we need to ignore, and keep the initial
+                                       ;; (and only) protocol name.
+                                       current-protocol)
+                   "extend-type" (if (nil? current-protocol)
+                                   ;; extend-type has a type name as it first symbol,
+                                   ;; not a protocol name. We need to skip it.
+                                   (utils/symbol-from-token (first (rest children)))
+                                   sym)
+                   ;; The rest of the use cases have only protocol names in their body.
+                   sym)
+                 (rest children)))
         ;; Assume protocol fn impl. Analyzing the fn sym can cause false
         ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
         ;; is linted as (fn [x y z])
@@ -1292,18 +1310,19 @@
               protocol-method-name (first fn-children)]
           (when (and current-protocol
                      (not= "definterface" (name defined-by)))
-            (analysis/reg-protocol-impl! ctx
-                                         (:filename ctx)
-                                         ns-name
-                                         protocol-ns
-                                         protocol-name
-                                         c
-                                         protocol-method-name
-                                         defined-by))
+            (let [{protocol-ns :ns protocol-name :name} (resolve-name ctx ns-name current-protocol)]
+              (analysis/reg-protocol-impl! ctx
+                                           (:filename ctx)
+                                           ns-name
+                                           protocol-ns
+                                           protocol-name
+                                           c
+                                           protocol-method-name
+                                           defined-by)))
           ;; protocol-fn-name might contain metadata
           (meta/lift-meta-content2 ctx protocol-method-name)
           (analyze-fn ctx c)
-          (recur current-protocol protocol-ns protocol-name (rest children)))))))
+          (recur current-protocol (rest children)))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord, deftype and definterface."
@@ -1705,15 +1724,15 @@
   nil)
 
 (defn analyze-extend-type-children
-  "Used for analyzing children of extend-type, reify and extend-protocol."
-  [ctx children]
-  (analyze-protocol-impls ctx "extend-type" (-> ctx :ns :name) children))
+  "Used for analyzing children of extend-protocol, extend-type, reify and specify! "
+  [ctx children defined-by]
+  (analyze-protocol-impls ctx defined-by (-> ctx :ns :name) children))
 
-(defn analyze-reify [ctx expr]
+(defn analyze-reify [ctx expr defined-by]
   (let [children (next (:children expr))]
-    (analyze-extend-type-children ctx children)))
+    (analyze-extend-type-children ctx children defined-by)))
 
-(defn analyze-extend-type [ctx expr]
+(defn analyze-extend-type [ctx expr defined-by]
   (let [children (next (:children expr))
         ctx (if (identical? :cljs (:lang ctx))
               (update-in ctx [:config :linters :unresolved-symbol :exclude]
@@ -1721,13 +1740,13 @@
                            (conj config
                                  'number 'function 'default 'object 'string)))
               ctx)]
-    (analyze-extend-type-children ctx children)))
+    (analyze-extend-type-children ctx children defined-by)))
 
-(defn analyze-specify! [ctx expr]
+(defn analyze-specify! [ctx expr defined-by]
   (let [children (next (:children expr))
         expr (first children)
         _ (analyze-expression** ctx expr)]
-    (analyze-extend-type ctx {:children children})))
+    (analyze-extend-type ctx {:children children} defined-by)))
 
 (defn analyze-cljs-exists? [ctx expr]
   (run! #(analyze-usages2 (ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace]) %)
@@ -1941,9 +1960,9 @@
                       (analyze-expression** ctx (macroexpand/expand->> ctx expr))
                       doto
                       (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
-                      reify (analyze-reify ctx expr)
-                      (extend-protocol extend-type) (analyze-extend-type ctx expr)
-                      (specify!) (analyze-specify! ctx expr)
+                      reify (analyze-reify ctx expr defined-by)
+                      (extend-protocol extend-type) (analyze-extend-type ctx expr defined-by)
+                      (specify!) (analyze-specify! ctx expr defined-by)
                       (. .. proxy defcurried)
                       ;; don't lint calls in these expressions, only register them as used vars
                       (analyze-children (ctx-with-linters-disabled ctx [:invalid-arity
