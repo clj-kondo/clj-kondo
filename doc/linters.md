@@ -32,6 +32,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
+    - [Keyword in binding vector](#keyword-in-binding-vector)
     - [Loop without recur](#loop-without-recur)
     - [Main without gen-class](#main-without-gen-class)
     - [Misplaced docstring](#misplaced-docstring)
@@ -568,6 +569,18 @@ why this can be problematic.
 *Example trigger:* `(loop [])`.
 
 *Example message:* `Loop without recur.`
+
+### Keyword in binding vector
+
+**Keyword:** `:keyword-binding`
+
+*Description:* warn when a keyword is used in a `:keys` binding vector
+
+*Default level:* `:off`.
+
+*Example trigger:* `(let [{:keys [:a]} {:a 1}] a)`.
+
+*Example message:* `Keyword binding should be a symbol: :a`
 
 ### Main without gen-class
 
