@@ -1,4 +1,4 @@
-(ns clj-kondo.keyword-in-binding-vector-test
+(ns clj-kondo.keyword-binding-test
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.test :as t :refer [deftest is testing]]))
