@@ -120,7 +120,7 @@
               :redundant-fn-wrapper {:level :off}
               :namespace-name-mismatch {:level :error}
               :non-arg-vec-return-type-hint {:level :warning}
-              :keyword-in-binding-vector {:level :off}}
+              :keyword-binding {:level :off}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

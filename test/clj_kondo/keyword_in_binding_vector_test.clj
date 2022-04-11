@@ -6,7 +6,7 @@
 (def example-with-keyword-bindings
   "(ns test
      {:clj-kondo/config
-       '{:linters {:keyword-in-binding-vector {:level :warning}}}})
+       '{:linters {:keyword-binding {:level :warning}}}})
    (let [{:keys [:a :b]} {:a 1 :b 2}] (println a b))")
 
 (deftest multiple-keywords-test
@@ -19,7 +19,7 @@
 (def mixed-example
   "(ns test
      {:clj-kondo/config
-       '{:linters {:keyword-in-binding-vector {:level :warning}}}})
+       '{:linters {:keyword-binding {:level :warning}}}})
    (let [{:keys [:a b]} {:a 1 :b 2}] (println a b))")
 
 (deftest mixed-keyword-and-symbols-test

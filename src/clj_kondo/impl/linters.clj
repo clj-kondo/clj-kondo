@@ -533,11 +533,11 @@
               :col (:col default)
               :end-row (:end-row default)
               :end-col (:end-col default)}))))
-      (when-not (identical? :off (-> ctx :config :linters :keyword-in-binding-vector :level))
+      (when-not (identical? :off (-> ctx :config :linters :keyword-binding :level))
         (doseq [binding (filter :keyword? (:bindings ns))]
           (findings/reg-finding!
            ctx
-           {:type :keyword-in-binding-vector
+           {:type :keyword-binding
             :filename (:filename binding)
             :message (str "Keyword binding should be a symbol: " (keyword (:name binding)))
             :row (:row binding)

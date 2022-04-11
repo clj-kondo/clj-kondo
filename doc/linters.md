@@ -572,7 +572,7 @@ why this can be problematic.
 
 ### Keyword in binding vector
 
-**Keyword:** `:keyword-in-binding-vector`
+**Keyword:** `:keyword-binding`
 
 *Description:* warn when a keyword is used in a `:keys` binding vector
 
