@@ -41,8 +41,8 @@
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
-                                 :exclude [#_clj-kondo.impl.var-info-gen]}
-                                 :simple-libspec false
+                                 :exclude [#_clj-kondo.impl.var-info-gen]
+                                 :simple-libspec false}
 
               :unresolved-symbol {:level :error
                                   :exclude [;; ignore globally:
