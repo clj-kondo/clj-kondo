@@ -43,6 +43,39 @@
       (prn (:summary lint-result))
       (is (empty? (:findings lint-result))))))
 
+(deftest re-frame-analysis-lint-test
+  (is (empty? (:findings
+               (with-in-str
+                 "
+(require '[re-frame.core :as rf])
+
+(rf/reg-event-fx
+ ::setup
+ (fn [_ [_ {show-key :show-key}]]
+   {:fx [[:dispatch [:path show-key]]]}))"
+                 (clj-kondo/run!
+                  {:lang :cljs
+                   :lint "-"
+                   :config {:output {:analysis {:context [:re-frame.core]
+                                                :keywords true}}}}))))))
+
+(deftest re-frame-analysis-dispatch-n-w-conditionals-test
+  (is (empty? (:findings
+               (with-in-str
+                 "
+(require '[re-frame.core :as rf])
+
+(rf/reg-event-fx
+ ::setup
+ (fn [_ [_ {show-key :show-key}]]
+   {:fx [[:dispatch-n (cond-> [[:path show-key]]
+                        true (conj [:foo])) ]]}))"
+                 (clj-kondo/run!
+                  {:lang :cljs
+                   :lint "-"
+                   :config {:output {:analysis {:context [:re-frame.core]
+                                                :keywords true}}}}))))))
+
 (deftest subscribe-arguments-are-used-test
   (is (empty? (lint! "
 (require '[re-frame.core :as rf])
