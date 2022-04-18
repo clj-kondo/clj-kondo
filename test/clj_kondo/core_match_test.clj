@@ -130,3 +130,16 @@
     [([_ _ :when even? _ _] :seq)] :a0
     [([_ _ :when [number? odd?] _ _] :seq)] :a1
     :else []))")))))
+
+(deftest same-named-binding-test
+  (is (empty? (lint!! "
+(defn match-or
+  [x]
+  (match
+   [x]
+   [(:or [\"x\" clause] [\"y\" clause])]
+   clause
+   :else :something))
+
+(match-or [\"x\" :dude])
+"))))
