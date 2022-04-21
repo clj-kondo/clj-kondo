@@ -3,8 +3,10 @@
 For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
+
 - [#1653](https://github.com/clj-kondo/clj-kondo/issues/1653): new linter `:keyword-binding` warns when a keyword is used in a `:keys` binding vector. This linter is `:off` by default. See [docs](doc/linters.md#keyword-in-binding-vector).
 - [#1657](https://github.com/clj-kondo/clj-kondo/issues/1657): support bindings with same name in `clojure.core.match`
+#1659: false positive unused import
 
 ## 2022.04.08
 
