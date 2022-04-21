@@ -81,7 +81,8 @@
                        "--lang" "cljs")))
     (is (empty? (lint! "(import '[java.util Foo]) (defn foo [^Foo x] x)")))
     (is (empty? (lint! "(import '[java.util Foo]) (try 1 (catch Foo _e nil))")))
-    (is (empty? (lint! "(ns foo (:import [foo Bar])) (defn foo [x] x) (defn bar [x] (-> x ^Bar (.execute)))"))))
+    (is (empty? (lint! "(ns foo (:import [foo Bar])) (defn foo [x] x) (defn bar [x] (-> x ^Bar (.execute)))")))
+    (is (empty? (lint! "(import '(org.bouncycastle.crypto.digests GOST3411_2012_256Digest)) (GOST3411_2012_256Digest.)"))))
   (testing "return import info"
     (assert-submaps
       '({:type :unused-import,

@@ -95,7 +95,7 @@
   [_ctx expr]
   (let [[ctor-node & children] (:children expr)
         ctor (:value ctor-node)
-        ctor-name (name ctor)
+        ctor-name (str ctor)
         ctor-name (-> ctor-name
                       (subs 0 (dec (count ctor-name)))
                       symbol)
