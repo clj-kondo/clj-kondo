@@ -180,7 +180,7 @@
                                 ctx ns-name
                                 (with-meta n
                                   (meta expr)))))
-                           (doto v prn)
+                           v
                            #_(if (:unresolved? v)
                              (let [symbol-str (str symbol-val)]
                                (if (str/ends-with? (str symbol-val) ".")

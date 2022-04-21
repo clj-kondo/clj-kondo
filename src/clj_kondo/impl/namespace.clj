@@ -293,7 +293,9 @@
                 (config/unresolved-symbol-excluded config
                                                    callstack sym)
                 (let [symbol-name (name sym)]
-                  (or (str/starts-with? symbol-name ".")
+                  (or (and
+                       (> (count symbol-name) 1)
+                       (str/starts-with? symbol-name "."))
                       (class-name? symbol-name))))
     (swap! (:namespaces ctx) update-in [base-lang lang ns-sym :unresolved-symbols sym]
            (fnil conj [])
@@ -582,12 +584,10 @@
                            (class-name? name-sym))
                     (do (java/reg-class-usage! ctx (str name-sym) (meta expr))
                         {:interop? true})
-                    (do
-                      (prn :name-sym name-sym)
-                      {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                       :name name-sym
-                       :unresolved? true
-                       :clojure-excluded? clojure-excluded?}))))))))))))
+                    {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                     :name name-sym
+                     :unresolved? true
+                     :clojure-excluded? clojure-excluded?})))))))))))
 
 ;;;; Scratch
 
