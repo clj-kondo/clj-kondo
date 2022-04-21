@@ -972,7 +972,7 @@
             :invalid-arity
             (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
           :else nil))))
-  (analyze-children ctx (:children expr)))
+  (analyze-children ctx (rest (:children expr))))
 
 (defn analyze-letfn [ctx expr]
   (let [fns (-> expr :children second :children)
