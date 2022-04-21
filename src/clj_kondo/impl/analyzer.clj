@@ -1316,7 +1316,7 @@
             (let [[protocol-ns protocol-name]
                   (if (or (not= "extend-protocol" (name defined-by))
                           (not protocol-ns))
-                    (let [{pns :ns pname :name} (resolve-name ctx true ns-name current-protocol)]
+                    (let [{pns :ns pname :name} (resolve-name ctx true ns-name current-protocol nil)]
                       [pns pname])
                     ;; we already have the resolved ns + name for extend-protocol
                     [protocol-ns protocol-name])]
@@ -1634,7 +1634,7 @@
          interop? :interop?
          resolved-core? :resolved-core?
          :as _m} (when var?
-                   (resolve-name ctx ns-name fsym))
+                   (resolve-name ctx true ns-name fsym nil))
         var? (and fsym (not binding))
         args (rest children)
         arg-count (cond (one-of resolved-as-name [map mapv mapcat])

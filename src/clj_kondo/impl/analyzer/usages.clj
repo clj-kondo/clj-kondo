@@ -76,7 +76,7 @@
      (when (and keyword-val (:namespaced? expr))
        (let [symbol-val (kw->sym keyword-val)
              {resolved-ns :ns}
-             (namespace/resolve-name ctx false ns-name symbol-val)]
+             (namespace/resolve-name ctx false ns-name symbol-val nil)]
          (if resolved-ns
            (namespace/reg-used-namespace! ctx
                                           (-> ns :name)

@@ -20,7 +20,7 @@
                                                  "expected symbol"))
         (let [{resolved-ns :ns}
               (namespace/resolve-name ctx true ns-nm
-                                      sym)]
+                                      sym nil)]
           (when resolved-ns
             (namespace/reg-used-namespace! ctx ns-nm resolved-ns)
             ;; revisit this when needed
