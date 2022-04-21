@@ -243,9 +243,12 @@
                   (when (and (not called-fn)
                              (not (:interop? call))
                              row col end-row end-col
-                             (contains? linted-namespaces resolved-ns)
+                             (or
+                              (keyword? resolved-ns)
+                              (contains? linted-namespaces resolved-ns))
                              (not (:resolved-core? call))
                              ;; the var could be :refer-all'ed, in this case unresolved? is true
+                             (do (prn unresolved?) :yal)
                              (not unresolved?))
                     (namespace/reg-unresolved-var!
                      ctx caller-ns-sym resolved-ns fn-name

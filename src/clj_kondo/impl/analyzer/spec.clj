@@ -19,7 +19,7 @@
                                                  :syntax
                                                  "expected symbol"))
         (let [{resolved-ns :ns}
-              (namespace/resolve-name ctx ns-nm
+              (namespace/resolve-name ctx true ns-nm
                                       sym)]
           (when resolved-ns
             (namespace/reg-used-namespace! ctx ns-nm resolved-ns)

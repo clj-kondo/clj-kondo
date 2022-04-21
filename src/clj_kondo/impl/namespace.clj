@@ -462,9 +462,9 @@
       sym)))
 
 (defn resolve-name
-  ([ctx ns-name name-sym]
-   (resolve-name ctx ns-name name-sym nil))
-  ([ctx ns-name name-sym expr]
+  ([ctx call? ns-name name-sym]
+   (resolve-name ctx call? ns-name name-sym nil))
+  ([ctx call? ns-name name-sym expr]
    (let [lang (:lang ctx)
          ns (get-namespace ctx (:base-lang ctx) lang ns-name)
          cljs? (identical? :cljs lang)]
@@ -529,7 +529,7 @@
                         (normalize-sym-name ctx name-sym)
                         name-sym)]
          (if (and cljs? (namespace name-sym))
-           (recur ctx ns-name name-sym expr)
+           (recur ctx call? ns-name name-sym expr)
            (or
             (when-let [[k v] (find (:referred-vars ns)
                                    name-sym)]
@@ -566,8 +566,9 @@
                    (when-not clojure-excluded?
                      (var-info/core-sym? lang name-sym))
                    ;; check special form
-                   (or (special-symbol? name-sym)
-                       (contains? var-info/special-forms name-sym)))
+                   (and call?
+                        (or (special-symbol? name-sym)
+                            (contains? var-info/special-forms name-sym))))
                 {:ns (case lang
                        :clj 'clojure.core
                        :cljs 'cljs.core)
@@ -581,10 +582,12 @@
                            (class-name? name-sym))
                     (do (java/reg-class-usage! ctx (str name-sym) (meta expr))
                         {:interop? true})
-                    {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                     :name name-sym
-                     :unresolved? true
-                     :clojure-excluded? clojure-excluded?})))))))))))
+                    (do
+                      (prn :name-sym name-sym)
+                      {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                       :name name-sym
+                       :unresolved? true
+                       :clojure-excluded? clojure-excluded?}))))))))))))
 
 ;;;; Scratch
 
