@@ -18,6 +18,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Bb.edn cyclic task dependency](#bbedn-cyclic-task-dependency)
     - [Bb.edn Unexpected key](#bbedn-unexpected-key)
     - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
+    - [Discouraged var](#discouraged-var)
     - [Docstring blank](#docstring-blank)
     - [Docstring no summary](#docstring-no-summary)
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
@@ -32,8 +33,8 @@ configuration. For general configurations options, go [here](config.md).
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
-    - [Keyword in binding vector](#keyword-in-binding-vector)
     - [Loop without recur](#loop-without-recur)
+    - [Keyword in binding vector](#keyword-in-binding-vector)
     - [Main without gen-class](#main-without-gen-class)
     - [Misplaced docstring](#misplaced-docstring)
     - [Missing body in when](#missing-body-in-when)
@@ -342,6 +343,36 @@ Global :requires belong in the :tasks map.
 
 ```
 Docstring missing for task: a
+```
+
+### Discouraged var
+
+*Keyword*: `:discouraged-var`*
+
+*Description:* warn on the usage of a var that is discouraged to be used.
+
+*Default level:* `:warning`
+
+*Config:*
+
+``` clojure
+{:linters {:discouraged-var {clojure.core/read-string {:message "Use edn/read-string instead of read-string"}}}}
+```
+
+The matching namespace symbol may be given a group name using a regex pattern.
+
+*Example trigger:*
+
+With the configuration above:
+
+``` clojure
+(read-string "(+ 1 2 3)")
+```
+
+*Example message:*
+
+```
+Use edn/read-string instead of read-string
 ```
 
 ### Docstring blank
