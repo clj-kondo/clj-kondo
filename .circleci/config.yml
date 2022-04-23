@@ -308,7 +308,7 @@ jobs:
       - attach_workspace:
           at: /tmp
       - setup_remote_docker:
-          version: 19.03.12
+          version: 20.10.11
       - run:
           name: Build Docker image
           command: .circleci/script/docker
