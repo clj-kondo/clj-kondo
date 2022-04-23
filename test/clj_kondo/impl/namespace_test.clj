@@ -71,18 +71,18 @@
            (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
     (assert-submap
      '{:ns bar :name quux}
-     (resolve-name ctx 'foo 'quux))
+     (resolve-name ctx false 'foo 'quux nil))
     (let [_ (analyze-ns-decl
              ctx
              (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
       (assert-submap '{:ns bar :name quux}
-                     (resolve-name ctx 'foo 'quux)))
+                     (resolve-name ctx false 'foo 'quux nil)))
     (let [_ (analyze-ns-decl
              ctx
              (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
       (is (= '{:ns rewrite-clj.parser :name parse-string :alias p}
-             (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string))))
+             (resolve-name ctx false 'clj-kondo.impl.utils 'p/parse-string nil))))
     (testing "referring to unknown namespace alias"
       (let [ctx {:namespaces (atom {})
                  :findings (atom [])
@@ -92,7 +92,7 @@
                ctx
                (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
 "))]
-        (is (= 'p (:unresolved-ns (resolve-name ctx 'clj-kondo.impl.utils 'p/parse-string))))))
+        (is (= 'p (:unresolved-ns (resolve-name ctx false 'clj-kondo.impl.utils 'p/parse-string nil))))))
     (testing "referring with full namespace"
       (let [_ (analyze-ns-decl
                 ctx
@@ -101,7 +101,7 @@
 "))]
         (is (=
              '{:ns clojure.core :name inc :resolved-core? true}
-             (resolve-name ctx 'clj-kondo.impl.utils 'clojure.core/inc)))))))
+             (resolve-name ctx false 'clj-kondo.impl.utils 'clojure.core/inc nil)))))))
 
 (comment
   (t/run-tests)

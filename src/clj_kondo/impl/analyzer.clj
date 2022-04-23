@@ -972,7 +972,7 @@
             :invalid-arity
             (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
           :else nil))))
-  (analyze-children ctx (:children expr)))
+  (analyze-children ctx (rest (:children expr))))
 
 (defn analyze-letfn [ctx expr]
   (let [fns (-> expr :children second :children)
@@ -1316,7 +1316,7 @@
             (let [[protocol-ns protocol-name]
                   (if (or (not= "extend-protocol" (name defined-by))
                           (not protocol-ns))
-                    (let [{pns :ns pname :name} (resolve-name ctx ns-name current-protocol)]
+                    (let [{pns :ns pname :name} (resolve-name ctx true ns-name current-protocol nil)]
                       [pns pname])
                     ;; we already have the resolved ns + name for extend-protocol
                     [protocol-ns protocol-name])]
@@ -1634,7 +1634,7 @@
          interop? :interop?
          resolved-core? :resolved-core?
          :as _m} (when var?
-                   (resolve-name ctx ns-name fsym))
+                   (resolve-name ctx true ns-name fsym nil))
         var? (and fsym (not binding))
         args (rest children)
         arg-count (cond (one-of resolved-as-name [map mapv mapcat])
@@ -1789,7 +1789,7 @@
            interop? :interop?
            resolved-core? :resolved-core?
            :as _m}
-          (resolve-name ctx ns-name full-fn-name expr)
+          (resolve-name ctx true ns-name full-fn-name expr)
           expr-meta (meta expr)
           cfg (when-let [in-call-cfg (:config-in-call config)]
                 (get in-call-cfg (symbol (str resolved-namespace) (str resolved-name))))
