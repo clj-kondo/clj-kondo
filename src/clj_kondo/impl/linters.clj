@@ -415,7 +415,7 @@
                                               :filename filename
                                               :type :redundant-fn-wrapper
                                               :message "Redundant fn wrapper")))))
-      (when-let [cfg (get-in config [:linters :discouraged-var fn-sym])]
+      (when-let [cfg (get-in (:config call) [:linters :discouraged-var fn-sym])]
         (findings/reg-finding! ctx {:filename filename
                                     :row row
                                     :end-row end-row
