@@ -87,7 +87,7 @@ This will silence unresolved symbol errors in the following:
 x y z
 ```
 
-See [Namespace groups](#namespacegroups) on how to configure multiple namespace
+See [Namespace groups](#namespace-groups) on how to configure multiple namespace
 in one go.
 
 ### Metadata config

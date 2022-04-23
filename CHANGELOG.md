@@ -2,12 +2,16 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.04.23
 
-- [#1653](https://github.com/clj-kondo/clj-kondo/issues/1653): new linter `:keyword-binding` warns when a keyword is used in a `:keys` binding vector. This linter is `:off` by default. See [docs](doc/linters.md#keyword-in-binding-vector).
+- [#1653](https://github.com/clj-kondo/clj-kondo/issues/1653): new linter `:keyword-binding` - warns when a keyword is used in a `:keys` binding vector. This linter is `:off` by default. See [docs](doc/linters.md#keyword-in-binding-vector).
+- [#996](https://github.com/clj-kondo/clj-kondo/issues/996): new linter `:discouraged-var`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-var).
+- [#1618](https://github.com/clj-kondo/clj-kondo/issues/1618): new `:config-in-ns` configuration option. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#config-in-ns).
+- Support `:ns-groups` configuration option. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#namespace-groups)
 - [#1657](https://github.com/clj-kondo/clj-kondo/issues/1657): support bindings with same name in `clojure.core.match`
-#1659: false positive unused import
-- [#1649](https://github.com/clj-kondo/clj-kondo/issues/1649): dot (.) is unresolved when not in fn position
+- [#1659](https://github.com/clj-kondo/clj-kondo/issues/1659): fix alse positive unused import
+- [#1649](https://github.com/clj-kondo/clj-kondo/issues/1649): dot (`.`) should
+  be unresolved when not in fn position
 
 ## 2022.04.08
 
