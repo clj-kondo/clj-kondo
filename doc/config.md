@@ -279,6 +279,14 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 (rest of the output omitted)
 ```
 
+## Namespace groups
+
+Sometimes it is desirable to configure a group of namespaces in one go. This can be done by creating namespace groups:
+
+``` clojure
+
+```
+
 ## Example configurations
 
 These are some example configurations used in real projects. Feel free to create a PR with yours too.

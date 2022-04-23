@@ -344,6 +344,36 @@ Global :requires belong in the :tasks map.
 Docstring missing for task: a
 ```
 
+### Discouraged var
+
+*Keyword*: `:discouraged-var`*
+
+*Description:* warn on the usage of a var that is discouraged to be used.
+
+*Default level:* `:warning`
+
+*Config:*
+
+``` clojure
+{:linters {:discouraged-var {clojure.core/read-string {:message "Use edn/read-string instead of read-string"}}}}
+```
+
+The matching namespace symbol may be given a group name using a regex pattern.
+
+*Example trigger:*
+
+With the configuration above:
+
+``` clojure
+(read-string "(+ 1 2 3)")
+```
+
+*Example message:*
+
+```
+Use edn/read-string instead of read-string
+```
+
 ### Docstring blank
 
 *Keyword:* `:docstring-blank`.
