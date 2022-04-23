@@ -356,7 +356,10 @@
                        (not (utils/linter-disabled? call :single-logical-operand))
                        (lint-single-logical-operand call))
                   fn-sym (symbol (str fn-ns)
-                                 (str fn-name))]]
+                                 (str fn-name))
+                  call-config (:config call)
+                  fn-lookup-sym (symbol (str (config/ns-group call-config fn-ns))
+                                        (str fn-name))]]
       (when arity-error?
         (findings/reg-finding!
          ctx
@@ -415,7 +418,7 @@
                                               :filename filename
                                               :type :redundant-fn-wrapper
                                               :message "Redundant fn wrapper")))))
-      (when-let [cfg (get-in (:config call) [:linters :discouraged-var fn-sym])]
+      (when-let [cfg (get-in (:config call) [:linters :discouraged-var fn-lookup-sym])]
         (findings/reg-finding! ctx {:filename filename
                                     :row row
                                     :end-row end-row

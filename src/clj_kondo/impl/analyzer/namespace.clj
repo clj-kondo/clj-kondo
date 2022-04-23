@@ -410,13 +410,7 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
-        ns-group (or (some (fn [{:keys [pattern
-                                        name]}]
-                             (when (and (string? pattern) (symbol? name)
-                                        (re-matches (re-pattern pattern) (str ns-name)))
-                               name))
-                           (:ns-groups global-config))
-                     ns-name)
+        ns-group (config/ns-group global-config ns-name)
         config-in-ns (let [config-in-ns (:config-in-ns global-config)]
                        (get config-in-ns ns-group))
         local-config (-> ns-meta :clj-kondo/config)

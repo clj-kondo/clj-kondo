@@ -372,6 +372,17 @@
           (or (not exclude)
               (contains? exclude sym)))))))
 
+(defn ns-group* [config ns-name]
+  (or (some (fn [{:keys [pattern
+                         name]}]
+              (when (and (string? pattern) (symbol? name)
+                         (re-matches (re-pattern pattern) (str ns-name)))
+                name))
+            (:ns-groups config))
+      ns-name))
+
+(def ns-group (memoize ns-group*))
+
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]
 ;;     (if (re-matches (re-pattern r) (str full-ns-name))
