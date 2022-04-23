@@ -2,12 +2,13 @@
   {:no-doc true}
   (:refer-clojure :exclude [ns-name])
   (:require
-    [clj-kondo.impl.analysis :as analysis]
-    [clj-kondo.impl.analyzer.common :as common]
-    [clj-kondo.impl.findings :as findings]
-    [clj-kondo.impl.metadata :as meta]
-    [clj-kondo.impl.namespace :as namespace]
-    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some symbol-token?]])
+   [clj-kondo.impl.analysis :as analysis]
+   [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.metadata :as meta]
+   [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some symbol-token?]]
+   [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
 (set! *warn-on-reflection* true)
@@ -179,13 +180,13 @@
                                 ctx ns-name
                                 (with-meta n
                                   (meta expr)))))
-                           v
-                           #_(if (:unresolved? v)
+                           (if (:unresolved? v)
                              (let [symbol-str (str symbol-val)]
-                               (if (str/ends-with? (str symbol-val) ".")
-                                 (namespace/resolve-name ctx false ns-name
+                               (if (and (not= "." symbol-str)
+                                        (str/ends-with? symbol-str "."))
+                                 (namespace/resolve-name ctx true ns-name
                                                          (symbol (subs symbol-str
-                                                                       0 (dec (count symbol-str)))))
+                                                                       0 (dec (count symbol-str)))) expr)
                                  v))
                              v))
                          m (meta expr)
