@@ -9,6 +9,9 @@ Table of contents:
 
 - [Configuration](#configuration)
     - [Introduction](#introduction)
+    - [Namespace local configuration](#namespace-local-configuration)
+        - [:config-in-ns](#config-in-ns)
+        - [Metadata config](#metadata-config)
     - [Unrecognized macros](#unrecognized-macros)
     - [Options](#options)
         - [Disable a linter](#disable-a-linter)
@@ -27,6 +30,7 @@ Table of contents:
         - [Include and exclude files from the output](#include-and-exclude-files-from-the-output)
         - [Show progress bar while linting](#show-progress-bar-while-linting)
         - [Output canonical file paths](#output-canonical-file-paths)
+    - [Namespace groups](#namespace-groups)
     - [Example configurations](#example-configurations)
     - [Exporting and importing configuration](#exporting-and-importing-configuration)
         - [Exporting](#exporting)
@@ -38,14 +42,14 @@ Table of contents:
 
 ## Introduction
 
-Clj-kondo can be configured in five ways, by providing:
+Clj-kondo can be configured in several ways:
 
-- home dir config in `~/.config/clj-kondo/config.edn` (respects `XDG_CONFIG_HOME`)
+- home dir config in `~/.config/clj-kondo/config.edn` (respects `XDG_CONFIG_HOME`).
 - project config: a `config.edn` file in the `.clj-kondo` directory (see
-  [project setup](../README.md#project-setup))
-- `:config-paths` in project `config.edn`: a list of directories that provide additional config
-- command line `--config` file or EDN arguments
-- namespace local config using `:clj-kondo/config` metadata in the namespace form
+  [project setup](../README.md#project-setup)).
+- `:config-paths` in project `config.edn`: a list of directories that provide additional config.
+- command line `--config` file or EDN arguments.
+- namespace local config using `:clj-kondo/config` metadata in the namespace form (see below).
 
 The configurations are merged in the following order, where a later config overrides an earlier config:
 
@@ -60,11 +64,47 @@ configuration instead of merging with previous ones. The home dir config is
 implicitly part of `:config-paths`. To opt out of merging with home dir config
 use `:config-paths ^:replace []` in your project config.
 
-Note that namespace local config must always be quoted: `{:clj-kondo/config
-'{:linters ...}}` and quotes should not appear inside the config.
-
 Look at the [default configuration](../src/clj_kondo/impl/config.clj) for all
 available options.
+
+## Namespace local configuration
+
+Clj-kondo supports configuration on the namespace level, in two ways.
+
+### :config-in-ns
+
+The `:config-in-ns` option can be used to change the configuration while linting
+a specific namespace.
+
+```
+{:config-in-ns {my.namespace {:linters {:unresolved-symbol {:level :off}}}}}
+```
+
+This will silence unresolved symbol errors in the following:
+
+``` clojure
+(ns my.namespace)
+x y z
+```
+
+See [Namespace groups](#namespacegroups) on how to configure multiple namespace
+in one go.
+
+### Metadata config
+
+Clj-kondo supports config changes while linting a namespace via namespace
+metadata. The same example as above, but via metadata:
+
+``` clojure
+(ns my.namespace
+  {:clj-kondo/config '{:linters {:unresolved-symbol {:level :off}}}})
+x y z
+```
+Note that namespace local config must always be quoted on the outside:
+
+`{:clj-kondo/config '{:linters ...}}`
+
+Quotes should not appear inside the config.
 
 ## Unrecognized macros
 
@@ -284,8 +324,17 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 Sometimes it is desirable to configure a group of namespaces in one go. This can be done by creating namespace groups:
 
 ``` clojure
-
+{:ns-groups [{:pattern "foo\\..*" :name foo-group}]}
 ```
+
+Each group consists of a pattern (evaluated by `re-pattern`) and a `:name` (symbol).
+
+Namespace groups can be used in the following configurations:
+
+- In the `:discouraged-var` linter: `{foo-group/some-var {:message "..."}}`
+- In `:config-in-ns`: `{foo-group {:linters {:unresolved-symbol {:level :off}}}}`
+
+Namespace groups can be extended to more linters. Please make an issue to request this.
 
 ## Example configurations
 
