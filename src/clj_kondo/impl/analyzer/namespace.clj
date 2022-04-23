@@ -400,15 +400,6 @@
                                (when (some-> metadata :doc str)
                                  (some docstring/docs-from-meta ns-name-metas)))
         global-config (:global-config ctx)
-        local-config (-> ns-meta :clj-kondo/config)
-        local-config (if (and (seq? local-config) (= 'quote (first local-config)))
-                       (second local-config)
-                       local-config)
-        merged-config (if local-config (config/merge-config! global-config local-config)
-                          global-config)
-        ctx (if local-config
-              (assoc ctx :config merged-config)
-              ctx)
         ns-name (or
                  (when-let [?name (sexpr ns-name-expr)]
                    (if (symbol? ?name) ?name
@@ -419,6 +410,21 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
+        config-in-ns (let [config-in-ns (:config-in-ns global-config)]
+                       (get config-in-ns ns-name))
+        local-config (-> ns-meta :clj-kondo/config)
+        local-config (if (and (seq? local-config) (= 'quote (first local-config)))
+                       (second local-config)
+                       local-config)
+        merged-config (if config-in-ns
+                        (config/merge-config! global-config config-in-ns)
+                        global-config)
+        merged-config (if local-config
+                        (config/merge-config! merged-config local-config)
+                        merged-config)
+        ctx (if (or config-in-ns local-config)
+              (assoc ctx :config merged-config)
+              ctx)
         _ (when (and (not= "<stdin>" filename)
                      (not= 'user ns-name)
                      (not (identical? :off (-> ctx :config :linters :namespace-name-mismatch :level))))
@@ -487,7 +493,7 @@
                       (merge-with into
                                   analyzed-require-clauses
                                   refer-clj))
-             local-config (assoc :config merged-config)
+             (or config-in-ns local-config) (assoc :config merged-config)
              (identical? :clj lang) (update :qualify-ns
                                             #(assoc % 'clojure.core 'clojure.core))
              (identical? :cljs lang) (update :qualify-ns
