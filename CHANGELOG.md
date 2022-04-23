@@ -9,7 +9,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1618](https://github.com/clj-kondo/clj-kondo/issues/1618): new `:config-in-ns` configuration option. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#config-in-ns).
 - Support `:ns-groups` configuration option. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#namespace-groups)
 - [#1657](https://github.com/clj-kondo/clj-kondo/issues/1657): support bindings with same name in `clojure.core.match`
-- [#1659](https://github.com/clj-kondo/clj-kondo/issues/1659): fix alse positive unused import
+- [#1659](https://github.com/clj-kondo/clj-kondo/issues/1659): fix false positive unused import
 - [#1649](https://github.com/clj-kondo/clj-kondo/issues/1649): dot (`.`) should
   be unresolved when not in fn position
 
