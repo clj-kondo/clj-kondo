@@ -354,7 +354,9 @@
                   single-logical-operand-error
                   (and call?
                        (not (utils/linter-disabled? call :single-logical-operand))
-                       (lint-single-logical-operand call))]]
+                       (lint-single-logical-operand call))
+                  fn-sym (symbol (str fn-ns)
+                                 (str fn-name))]]
       (when arity-error?
         (findings/reg-finding!
          ctx
@@ -382,7 +384,7 @@
                                 :col col
                                 :type :private-call
                                 :message (format "#'%s is private"
-                                                 (str (:ns called-fn) "/" (:name called-fn)))}))
+                                                 (str fn-sym))}))
       (when-let [deprecated (:deprecated called-fn)]
         (when-not
             (or
@@ -391,8 +393,7 @@
              (utils/linter-disabled? call :deprecated-var)
              (config/deprecated-var-excluded
               (:config call)
-              (symbol (str fn-ns)
-                      (str fn-name))
+              fn-sym
               caller-ns-sym in-def))
           (findings/reg-finding! ctx
                                  {:filename filename
@@ -414,6 +415,15 @@
                                               :filename filename
                                               :type :redundant-fn-wrapper
                                               :message "Redundant fn wrapper")))))
+      (when-let [cfg (get-in config [:linters :discouraged-var fn-sym])]
+        (findings/reg-finding! ctx {:filename filename
+                                    :row row
+                                    :end-row end-row
+                                    :col col
+                                    :end-col end-col
+                                    :type :discouraged-var
+                                    :message (or (:message cfg)
+                                                 (str "Discouraged var: " fn-sym))}))
       (let [ctx (assoc ctx :filename filename)]
         (when call?
           (lint-specific-calls!
