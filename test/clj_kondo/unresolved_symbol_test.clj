@@ -247,3 +247,9 @@
 (deftest cljs-property-access-test
   (is (empty? (lint! "(defn editable? [coll] (satisfies? cljs.core.IEditableCollection coll))"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest unresolved-dot-symbol-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 11, :level :error, :message "Unresolved symbol: ."})
+   (lint! "(or false . true)"
+          '{:linters {:unresolved-symbol {:level :error}}})))
