@@ -298,7 +298,7 @@ jobs:
           key: v1-dependencies-{{ checksum "deps.edn" }}
   docker:
     docker:
-      - image: circleci/buildpack-deps:stretch
+      - image: circleci/clojure:lein-2.9.8
     steps:
       - checkout
       - run:
