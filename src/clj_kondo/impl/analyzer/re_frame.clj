@@ -41,7 +41,7 @@
   [ctx expr ns]
   (let [kns (keyword ns)
         [farg & args :as children] (next (:children expr))]
-    (if (identical? :vector (utils/tag farg))
+    (if (and farg (identical? :vector (utils/tag farg)))
       (let [[subscription-id & subscription-params] (:children farg)]
         (common/analyze-children (assoc-in ctx [:context kns :subscription-ref] true) [subscription-id])
         (when subscription-params
@@ -69,7 +69,7 @@
   [ctx expr ns]
   (let [kns (keyword ns)
         [farg & _args :as _children] (next (:children expr))]
-    (when (identical? :vector (utils/tag farg))
+    (when (and farg (identical? :vector (utils/tag farg)))
       (let [[event-id & _event-params] (:children farg)]
         (common/analyze-children (assoc-in ctx [:context kns :event-ref] true) [event-id])))))
 
@@ -105,8 +105,9 @@
   x)
 
 (defmethod analyze-dispatch-type :dispatch-n [ctx fq-def x]
-  (let [disp-kw (:k (first x))]
-    (when (identical? :vector (utils/tag (second x)))
+  (let [disp-kw (:k (first x))
+        second-x (second x)]
+    (when (and second-x (identical? :vector (utils/tag second-x)))
       (doseq [dispatch-vector (:children (second x))]
         (analyze-dispatch-event-id ctx {:children (cons disp-kw [dispatch-vector])} (str (namespace fq-def)))))
     x))

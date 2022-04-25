@@ -84,3 +84,19 @@
   (let [id @(rf/subscribe subscription)]     ;; <------ is here used
     [:h4 id]))"
                      '{:linters {:unused-binding {:level :error}}}))))
+
+(deftest npe-issue-1669-test
+  (is (empty? (lint! "
+(ns gakki.events
+  (:require [re-frame.core :refer [reg-event-fx trim-v]]
+            [gakki.util.logging :as log]))
+
+(reg-event-fx
+  :player/check-output-device
+  [trim-v]
+  (fn [_ _]
+    (log/debug \"Default output device may have changed...\")
+    {:dispatch-later [{:ms 250 :dispatch [::check-output-device]}
+                      {:ms 500 :dispatch [::check-output-device]}]}))
+"
+                     '{:linters {:unused-binding {:level :error}}}))))
