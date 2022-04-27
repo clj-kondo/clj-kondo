@@ -172,20 +172,21 @@
                                    m)
                                opt-expr-children (:children opt-expr)]
                            (run! #(utils/handle-ignore ctx %) opt-expr-children)
-                           (run! #(namespace/reg-var-usage! ctx current-ns-name
-                                                            (let [m (meta %)]
-                                                              (assoc m
-                                                                     :type :use
-                                                                     :name (with-meta (sexpr %) m)
-                                                                     :resolved-ns ns-name
-                                                                     :ns current-ns-name
-                                                                     :refer true
-                                                                     :lang lang
-                                                                     :base-lang base-lang
-                                                                     :filename filename
-                                                                     :config config
-                                                                     :expr %)))
-                                 opt-expr-children)
+                           (when (:analyze-var-usages? ctx)
+                             (run! #(namespace/reg-var-usage! ctx current-ns-name
+                                                              (let [m (meta %)]
+                                                                (assoc m
+                                                                       :type :use
+                                                                       :name (with-meta (sexpr %) m)
+                                                                       :resolved-ns ns-name
+                                                                       :ns current-ns-name
+                                                                       :refer true
+                                                                       :lang lang
+                                                                       :base-lang base-lang
+                                                                       :filename filename
+                                                                       :config config
+                                                                       :expr %)))
+                                   opt-expr-children))
                            (swap! (:used-namespaces ctx) update (:base-lang ctx) conj ns-name)
                            (update m :referred into
                                    (map #(with-meta (sexpr %)

@@ -119,6 +119,7 @@
         files (atom 0)
         findings (atom [])
         analysis-cfg (get-in config [:output :analysis])
+        analyze-var-usages? (get analysis-cfg :var-usages true)
         analyze-locals? (get analysis-cfg :locals)
         analyze-keywords? (get analysis-cfg :keywords)
         analyze-protocol-impls? (get analysis-cfg :protocol-impls)
@@ -132,8 +133,8 @@
                             (not skip-lint))
                    (atom (cond-> {:namespace-definitions []
                                   :namespace-usages []
-                                  :var-definitions []
-                                  :var-usages []}
+                                  :var-definitions []}
+                           analyze-var-usages? (assoc :var-usages [])
                            analyze-locals? (assoc :locals []
                                                   :local-usages [])
                            analyze-keywords? (assoc :keywords [])
@@ -163,6 +164,7 @@
              :used-namespaces used-nss
              :ignores (atom {})
              :id-gen (when analyze-locals? (atom 0))
+             :analyze-var-usages? analyze-var-usages?
              :analyze-locals? analyze-locals?
              :analyze-protocol-impls? analyze-protocol-impls?
              :analyze-keywords? analyze-keywords?

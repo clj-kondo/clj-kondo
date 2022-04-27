@@ -904,6 +904,14 @@
         :name bound-fn,
         :from foo,
         :to clojure.core}]
+     var-usages))
+  (let [{:keys [:var-usages]}
+        (analyze "(ns foo)
+                  (defn foo [x] x)
+                  (def bar foo)"
+                 {:config {:output {:analysis {:var-usages false}}}})]
+    (assert-submaps
+     '[]
      var-usages)))
 
 (deftest hooks-custom-defined-by-test

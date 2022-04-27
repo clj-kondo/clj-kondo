@@ -43,6 +43,14 @@ Built-in and custom hook can add arbitrary data to the analysis using a
 `:keywords`. You can opt-in to the entire context map using `:context true` or
 select certain keys using `:context [:re-frame.core]`.
 
+## Limited analysis
+
+Similarly, analysis can be limited when using clj-kondo to conduct quick scans.
+When using these expert options, you should not expect linters to behave
+correctly anymore.
+
+- `:var-usages`: when falsy skip `:var-usages` described below
+
 # Data
 
 The analysis output consists of a map with:
