@@ -912,6 +912,27 @@
                  {:config {:output {:analysis {:var-usages false}}}})]
     (assert-submaps
      '[]
+     var-usages))
+  (let [{:keys [:var-definitions
+                :var-usages]}
+        (analyze "(ns foo)
+                  (defn foo [x] (inc x))
+                  (def bar foo)"
+                 {:config {:output {:analysis {:var-definitions {:shallow true}}}}})]
+    (assert-submaps ;; var definitions are analyzed
+     '[{:fixed-arities #{1},
+        :ns foo,
+        :name foo,
+        :defined-by clojure.core/defn}
+       {:ns foo,
+        :name bar,
+        :defined-by clojure.core/def}]
+     var-definitions)
+    (assert-submaps ;; but their bodies aren't
+     '[{:name defn,
+        :to clojure.core}
+       {:name def,
+        :to clojure.core}]
      var-usages)))
 
 (deftest hooks-custom-defined-by-test

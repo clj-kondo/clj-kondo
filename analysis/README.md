@@ -45,11 +45,29 @@ select certain keys using `:context [:re-frame.core]`.
 
 ## Limited analysis
 
-Similarly, analysis can be limited when using clj-kondo to conduct quick scans.
-When using these expert options, you should not expect linters to behave
-correctly anymore.
+Similarly, analysis can be limited to use clj-kondo to conduct quick scans. When
+using these expert options, you should not expect linters to behave correctly
+anymore.
 
 - `:var-usages`: when falsy skip `:var-usages` described below
+- `:var-definitions`
+  - `:shallow true`: analyze `:var-definitions`, but skip their bodies
+
+If you analyze var definitions shallowly, anything within the body of a form
+listed below will be skipped. That means that if you define a var within another
+`defn` (a [discouraged](https://guide.clojure.style/#dont-def-vars-inside-fns)
+practice), it won't be analyzed.
+
+- def
+- defn
+- defrecord
+- defmethod
+- plumatic schema: fn, def, defn, defmethod, defrecord
+- protocol-impls
+- fn
+- letfn
+- fn*
+- bound-fn
 
 # Data
 

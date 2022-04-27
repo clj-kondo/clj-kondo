@@ -120,6 +120,7 @@
         findings (atom [])
         analysis-cfg (get-in config [:output :analysis])
         analyze-var-usages? (get analysis-cfg :var-usages true)
+        analyze-var-defs-shallowly? (get-in analysis-cfg [:var-definitions :shallow])
         analyze-locals? (get analysis-cfg :locals)
         analyze-keywords? (get analysis-cfg :keywords)
         analyze-protocol-impls? (get analysis-cfg :protocol-impls)
@@ -174,6 +175,7 @@
              :analysis-var-meta analysis-var-meta
              :analysis-ns-meta analysis-ns-meta
              :analyze-meta? analyze-meta?
+             :analyze-var-defs-shallowly? analyze-var-defs-shallowly?
              :analysis-context analysis-context
              ;; set of files which should not be flushed into cache
              ;; most notably hook configs, as they can conflict with original sources

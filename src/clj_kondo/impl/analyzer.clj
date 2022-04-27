@@ -424,6 +424,9 @@
         ctx (-> ctx
                 (assoc :fn-args (:children arg-vec))
                 (assoc :body-children-count (count children)))
+        children (if (:analyze-var-defs-shallowly? ctx)
+                   []
+                   children)
         [parsed return-tag]
         (if (or macro? return-tag)
           [(analyze-children ctx children) return-tag]
@@ -1056,6 +1059,9 @@
                                (when (some-> metadata :doc str)
                                  (some docstring/docs-from-meta var-name-node-meta-nodes)))
         ctx (assoc ctx :in-def var-name :def-meta metadata :defmulti? defmulti?)
+        children (if (:analyze-var-defs-shallowly? ctx)
+                   []
+                   children)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
                             (= 1 (count children)))
