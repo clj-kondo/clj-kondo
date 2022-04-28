@@ -115,7 +115,7 @@
          path [base-lang lang ns-sym]
          temp? (:temp metadata)
          config (:config ctx)]
-     (when (and (:output-analysis? ctx)
+     (when (and (:analysis ctx)
                 (not temp?))
        (analysis/reg-var! ctx filename expr-row expr-col
                           ns-sym var-sym

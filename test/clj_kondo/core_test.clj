@@ -87,6 +87,27 @@
            (:analysis new-style)))
     (is (nil? (:analysis (res {:analysis false :output {:analysis {:locals true}}}))))))
 
+(deftest analyze-project-skeleton-test
+  (let [{:keys [analysis findings]}
+        (with-in-str "(ns my-ns (:require [clojure.set :as set])) (defn foo [a] a) (defn bar [] (foo 1))"
+          (clj-kondo/run!
+           {:lint ["-"]
+            :config {:analysis {:var-usages false
+                                :var-definitions {:shallow true}}}
+            :skip-lint true}))]
+    (is (empty? findings))
+    (is (empty? (:var-usages analysis)))
+    (assert-submaps
+     '[{:name my-ns}]
+     (:namespace-definitions analysis))
+    (assert-submaps
+     '[{:from my-ns, :to clojure.set, :alias set}]
+     (:namespace-usages analysis))
+    (assert-submaps
+     '[{:fixed-arities #{1}, :ns my-ns, :name foo, :defined-by clojure.core/defn}
+       {:fixed-arities #{0}, :ns my-ns, :name bar, :defined-by clojure.core/defn}]
+     (:var-definitions analysis))))
+
 (deftest analysis-findings-interaction-test
   (testing "github issue 1246")
   (let [res (with-in-str "(fn [{:keys [a] :or {a 1}}] a)"
@@ -156,8 +177,7 @@
                {:lint [(file-path "corpus" "invalid_arity")]
                 :copy-configs true
                 :skip-lint true
-                :parallel true
-                :config {:analysis true}})]
+                :parallel true})]
       (is (empty? (:findings res)))
       (is (empty? (:analysis res))))))
 

@@ -45,9 +45,9 @@ select certain keys using `:context [:re-frame.core]`.
 
 ## Limited analysis
 
-Similarly, analysis can be limited to use clj-kondo to conduct quick scans. When
-using these expert options, you should not expect linters to behave correctly
-anymore.
+Similarly, analysis can be limited. This is useful to quickly scan a file or
+project. When using these expert options, you should not expect linters to
+behave correctly. As such, consider using them with `:skip-lint true`.
 
 - `:var-usages`: when falsy skip `:var-usages` described below
 - `:var-definitions`

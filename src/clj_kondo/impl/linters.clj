@@ -297,7 +297,7 @@
                   recursive? (and
                               (= fn-ns caller-ns-sym)
                               (= fn-name in-def))
-                  _ (when (:output-analysis? ctx)
+                  _ (when (:analysis ctx)
                       (when-not (:interop? call)
                         (analysis/reg-usage! (assoc ctx :context (:context call))
                                              filename

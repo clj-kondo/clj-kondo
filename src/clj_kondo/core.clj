@@ -22,7 +22,7 @@
         output (cond-> {:findings findings}
                  (:summary output-cfg)
                  (assoc :summary summary)
-                 (or (:analysis config) (:analysis output-cfg))
+                 analysis
                  (assoc :analysis analysis))]
     (case fmt
       :text
@@ -125,8 +125,7 @@
         analyze-java-class-defs? (some-> analysis-cfg :java-class-definitions)
         analyze-java-class-usages? (some-> analysis-cfg :java-class-usages)
         analyze-meta? (or analysis-var-meta analysis-ns-meta)
-        analysis (when (and analysis-cfg
-                            (not skip-lint))
+        analysis (when analysis-cfg
                    (atom (cond-> {:namespace-definitions []
                                   :namespace-usages []
                                   :var-definitions []}
@@ -156,7 +155,6 @@
              :findings findings
              :namespaces (atom {})
              :analysis analysis
-             :output-analysis? (boolean analysis-cfg)
              :cache-dir cache-dir
              :used-namespaces used-nss
              :ignores (atom {})
@@ -181,28 +179,31 @@
              :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
              :debug debug}
         lang (or lang :clj)
+        ;; primary file analysis and initial lint
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
                                      ctx) lint lang filename)
         ;;_ (prn (some-> analysis deref :java-class-usages))
         ;; _ (prn :used-nss @used-nss)
-        idacs (when-not skip-lint
+        idacs (when (or dependencies (not skip-lint) analysis)
                 (-> (core-impl/index-defs-and-calls ctx)
                     (cache/sync-cache cfg-dir cache-dir)
                     (overrides)))
-        _ (when (and dependencies (not skip-lint) (not analysis))
-            ;; analysis is called from lint-var-usage, this can probably happen somewhere else
-            (l/lint-var-usage ctx idacs))
-        _ (when-not (or dependencies
-                        skip-lint)
-            (l/lint-var-usage ctx idacs)
-            (l/lint-unused-namespaces! ctx)
-            (l/lint-unused-private-vars! ctx)
-            (l/lint-bindings! ctx)
-            (l/lint-unresolved-symbols! ctx)
-            (l/lint-unresolved-vars! ctx)
-            (l/lint-unused-imports! ctx)
-            (l/lint-unresolved-namespaces! ctx))
+        _ (when-not dependencies
+            (if skip-lint
+              (when analysis
+                ;; Still need to call l/lint-var-usages, to have analysis/reg-usage! called.
+                ;; Would be more consistent to invert relationship, calling linter from analysis.
+                (l/lint-var-usage ctx idacs))
+              (do
+                (l/lint-var-usage ctx idacs)
+                (l/lint-unused-namespaces! ctx)
+                (l/lint-unused-private-vars! ctx)
+                (l/lint-bindings! ctx)
+                (l/lint-unresolved-symbols! ctx)
+                (l/lint-unresolved-vars! ctx)
+                (l/lint-unused-imports! ctx)
+                (l/lint-unresolved-namespaces! ctx))))
         _ (when custom-lint-fn
             (binding [utils/*ctx* ctx]
               (custom-lint-fn (cond->
@@ -226,7 +227,7 @@
      {:findings all-findings
       :config config
       :summary summary}
-      (and analysis-cfg (not skip-lint))
+      analysis
       (assoc :analysis @analysis))))
 
 (defn merge-configs

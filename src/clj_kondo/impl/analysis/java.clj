@@ -47,7 +47,7 @@
   (-> ctx :config ))
 
 (defn analyze-class-defs? [ctx]
-  (:analyze-java-class-defs? ctx))
+  (and (:analysis ctx) (:analyze-java-class-defs? ctx)))
 
 (defn reg-class-def! [ctx {:keys [jar entry file]}]
   (when (analyze-class-defs? ctx)
@@ -67,7 +67,8 @@
                             (str jar ":" entry))}))))
 
 (defn analyze-class-usages? [ctx]
-  (and (:analyze-java-class-usages? ctx)
+  (and (:analysis ctx)
+       (:analyze-java-class-usages? ctx)
        (identical? :clj (:lang ctx))))
 
 (defn reg-class-usage!

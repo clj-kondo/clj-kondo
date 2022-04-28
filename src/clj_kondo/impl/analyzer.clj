@@ -2605,7 +2605,7 @@
   (let [init-ns (when-not (= :edn lang)
                   (analyze-ns-decl (-> ctx
                                        (assoc-in [:config :analysis] false)
-                                       (assoc :output-analysis? false))
+                                       (dissoc :analysis))
                                    (parse-string "(ns user)")))
         init-ctx (assoc ctx
                         :ns init-ns
