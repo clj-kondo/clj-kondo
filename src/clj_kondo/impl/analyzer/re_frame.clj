@@ -148,13 +148,11 @@
 (comment
   (require '[clj-kondo.core :as clj-kondo])
   (-> (with-in-str "(require '[re-frame.core :as re-frame]) (re-frame/reg-sub ::foo (fn [_]))"
-        (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:output {:analysis {:context true
-                                                                              :keywords true}}}}))
+        (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:analysis {:context true
+                                                                     :keywords true}}}))
       :analysis :keywords)
 
   (-> (with-in-str "(require '[re-frame.core :as re-frame]) (re-frame/reg-sub ::foo (fn [x] (inc x)))"
-        (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:output {:analysis {:context true
-                                                                              :keywords true}}}}))
-      :analysis :var-usages)
-
-  )
+        (clj-kondo/run! {:lang :cljs :lint ["-"] :config {:analysis {:context true
+                                                                     :keywords true}}}))
+      :analysis :var-usages))

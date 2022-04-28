@@ -6,7 +6,7 @@
 (defn -main [var & paths]
   (let [[var-ns var-name] (map symbol (str/split var #"/"))
         analysis (:analysis (clj-kondo/run! {:lint paths
-                                             :config {:output {:analysis true}}}))
+                                             :config {:analysis true}}))
         {:keys [var-definitions var-usages]} analysis
         defined (keep (fn [{:keys [ns name] :as d}]
                         (when (and (= var-ns ns)

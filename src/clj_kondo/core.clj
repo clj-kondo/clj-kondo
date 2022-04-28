@@ -18,7 +18,12 @@
   subject to change."
   [{:keys [:config :findings :summary :analysis]}]
   (let [output-cfg (:output config)
-        fmt (or (:format output-cfg) :text)]
+        fmt (or (:format output-cfg) :text)
+        output (cond-> {:findings findings}
+                 (:summary output-cfg)
+                 (assoc :summary summary)
+                 (or (:analysis config) (:analysis output-cfg))
+                 (assoc :analysis analysis))]
     (case fmt
       :text
       (do
@@ -35,19 +40,9 @@
               (println (format "errors: %s, warnings: %s" error warning))))))
       ;; avoid loading clojure.pprint or bringing in additional libs for printing to EDN for now
       :edn
-      (let [output (cond-> {:findings findings}
-                     (:summary output-cfg)
-                     (assoc :summary summary)
-                     (:analysis output-cfg)
-                     (assoc :analysis analysis))]
-        (prn output))
+      (prn output)
       :json
-      (println (cheshire/generate-string
-                (cond-> {:findings findings}
-                  (:summary output-cfg)
-                  (assoc :summary summary)
-                  (:analysis output-cfg)
-                  (assoc :analysis analysis))))))
+      (println (cheshire/generate-string output))))
   (flush)
   nil)
 
@@ -118,7 +113,7 @@
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
         files (atom 0)
         findings (atom [])
-        analysis-cfg (get-in config [:output :analysis])
+        analysis-cfg (get config :analysis (get-in config [:output :analysis]))
         analyze-var-usages? (get analysis-cfg :var-usages true)
         analyze-var-defs-shallowly? (get-in analysis-cfg [:var-definitions :shallow])
         analyze-locals? (get analysis-cfg :locals)
@@ -161,6 +156,7 @@
              :findings findings
              :namespaces (atom {})
              :analysis analysis
+             :output-analysis? (boolean analysis-cfg)
              :cache-dir cache-dir
              :used-namespaces used-nss
              :ignores (atom {})
@@ -210,14 +206,14 @@
         _ (when custom-lint-fn
             (binding [utils/*ctx* ctx]
               (custom-lint-fn (cond->
-                                  {:config config
-                                   :reg-finding!
-                                   (fn [m]
-                                     (findings/reg-finding!
-                                      (assoc utils/*ctx*
-                                             :lang (or (:lang m)
-                                                       (core-impl/lang-from-file
-                                                        (:filename m) lang))) m))}
+                               {:config config
+                                :reg-finding!
+                                (fn [m]
+                                  (findings/reg-finding!
+                                   (assoc utils/*ctx*
+                                          :lang (or (:lang m)
+                                                    (core-impl/lang-from-file
+                                                     (:filename m) lang))) m))}
                                 analysis-cfg
                                 (assoc :analysis @analysis)))))
         all-findings @findings
@@ -227,9 +223,9 @@
         duration (- (System/currentTimeMillis) start-time)
         summary (assoc summary :duration duration :files @files)]
     (cond->
-        {:findings all-findings
-         :config config
-         :summary summary}
+     {:findings all-findings
+      :config config
+      :summary summary}
       (and analysis-cfg (not skip-lint))
       (assoc :analysis @analysis))))
 

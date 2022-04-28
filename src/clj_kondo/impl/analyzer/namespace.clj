@@ -501,7 +501,7 @@
              (identical? :cljs lang) (update :qualify-ns
                                              #(assoc % 'cljs.core 'cljs.core
                                                      'clojure.core 'cljs.core)))]
-    (when (-> ctx :config :output :analysis)
+    (when (:output-analysis? ctx)
       (when (java/analyze-class-usages? ctx)
         (doseq [[k v] imports]
           (java/reg-class-usage! ctx (str v "." k) (assoc (meta k) :import true))))
@@ -558,7 +558,7 @@
     (let [analyzed
           (analyze-require-clauses ctx ns-name [[require-node libspecs]])]
       (namespace/reg-required-namespaces! ctx ns-name analyzed)
-      (when (-> ctx :config :output :analysis)
+      (when (:output-analysis? ctx)
         (doseq [req (:required analyzed)]
           (let [{:keys [row col end-row end-col alias]} (meta req)
                 meta-alias (meta alias)]

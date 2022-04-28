@@ -108,7 +108,7 @@
 
 (deftest analyze-input-test
   (let [analyze (fn [^String source]
-                  (let [ctx {:config {:linters {:syntax {:level :error}} :output {:analysis true :format :edn}}
+                  (let [ctx {:config {:linters {:syntax {:level :error}} :output {:format :edn} :analysis true}
                              :filename "-"
                              :base-lang :clj
                              :lang :clj

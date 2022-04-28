@@ -3,11 +3,11 @@
             [clj-kondo.core :as clj-kondo]))
 
 (defn -main [& paths]
-  (let [analysis (:analysis (clj-kondo/run! {:lint paths :config {:output {:analysis true}}}))
+  (let [analysis (:analysis (clj-kondo/run! {:lint paths :config {:analysis true}}))
         {:keys [:var-definitions :var-usages]} analysis
         private-var-defs (->> var-definitions
-                               (filter :private)
-                               (group-by (juxt :ns :name)))
+                              (filter :private)
+                              (group-by (juxt :ns :name)))
         private-var-usages (->> var-usages
                                 (filter (fn [{:keys [:to :name]}]
                                           (contains? private-var-defs [to name])))

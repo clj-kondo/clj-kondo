@@ -15,13 +15,13 @@
       input
       (clj-kondo/run! (merge
                        {:lint ["-"]
-                        :config {:output {:analysis true}}}
+                        :config {:analysis true}}
                        config))))))
 
 (deftest locals-analysis-test
-  (let [a (analyze "#(inc %1 %&)" {:config {:output {:analysis {:locals true}}}})]
+  (let [a (analyze "#(inc %1 %&)" {:config {:analysis {:locals true}}})]
     (is (= [] (:locals a) (:local-usages a))))
-  (let [a (analyze "(areduce [] i j 0 (+ i j))" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(areduce [] i j 0 (+ i j))" {:config {:analysis {:locals true}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]
     (assert-submaps
@@ -30,7 +30,7 @@
      (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use))))
-  (let [a (analyze "(defn x [a] (let [a a] a) a)" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(defn x [a] (let [a a] a) a)" {:config {:analysis {:locals true}}})
         [first-a second-a] (:locals a)
         [first-use second-use third-use] (:local-usages a)]
     (assert-submaps
@@ -39,7 +39,7 @@
      (:locals a))
     (is (= (:id first-a) (:id first-use) (:id third-use)))
     (is (= (:id second-a) (:id second-use))))
-  (let [a (analyze "(defn x ([a] a) ([b c] (+ b c)))" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(defn x ([a] a) ([b c] (+ b c)))" {:config {:analysis {:locals true}}})
         [first-a first-b first-c] (:locals a)
         [a-use b-use c-use] (:local-usages a)]
     (assert-submaps
@@ -50,14 +50,14 @@
     (is (= (:id first-a) (:id a-use)))
     (is (= (:id first-b) (:id b-use)))
     (is (= (:id first-c) (:id c-use))))
-  (let [a (analyze "(as-> {} $ $)" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(as-> {} $ $)" {:config {:analysis {:locals true}}})
         [first-a] (:locals a)
         [first-use] (:local-usages a)]
     (assert-submaps
      [{:end-col 11 :scope-end-col 14}]
      (:locals a))
     (is (= (:id first-a) (:id first-use))))
-  (let [a (analyze "(letfn [(a [b] b)] a)" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(letfn [(a [b] b)] a)" {:config {:analysis {:locals true}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]
     (assert-submaps
@@ -66,7 +66,7 @@
      (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use))))
-  (let [a (analyze "(letfn [(a ([b] b) ([c d] (+ c d)))] a)" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(letfn [(a ([b] b) ([c d] (+ c d)))] a)" {:config {:analysis {:locals true}}})
         [first-a first-b first-c first-d] (:locals a)
         [first-use second-use third-use fourth-use] (:local-usages a)]
     (assert-submaps
@@ -79,7 +79,7 @@
     (is (= (:id first-b) (:id second-use)))
     (is (= (:id first-c) (:id third-use)))
     (is (= (:id first-d) (:id fourth-use))))
-  (let [a (analyze "(let [a 0] (let [a a] a))" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(let [a 0] (let [a a] a))" {:config {:analysis {:locals true}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]
     (assert-submaps
@@ -88,7 +88,7 @@
      (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use))))
-  (let [a (analyze "(let [a 0 a a] a)" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(let [a 0 a a] a)" {:config {:analysis {:locals true}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]
     (assert-submaps
@@ -97,7 +97,7 @@
      (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use))))
-  (let [a (analyze "(if-let [a 0] a a)" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(if-let [a 0] a a)" {:config {:analysis {:locals true}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]
     (assert-submaps
@@ -105,7 +105,7 @@
      (:locals a))
     (is (= (:id first-a) (:id first-use)))
     (is (= nil second-a second-use)))
-  (let [a (analyze "(for [a [123] :let [a a] :when a] a)" {:config {:output {:analysis {:locals true}}}})
+  (let [a (analyze "(for [a [123] :let [a a] :when a] a)" {:config {:analysis {:locals true}}})
         [first-a second-a] (:locals a)
         [first-use second-use third-use] (:local-usages a)]
     (assert-submaps
@@ -116,7 +116,7 @@
     (is (= (:id first-a) (:id first-use)))
     (is (= (:id second-a) (:id second-use) (:id third-use))))
   (testing "local usages are reported with correct positions"
-    (let [ana (analyze "(let [x (set 1 2 3)] (+ x 1))" {:config {:output {:analysis {:locals true}}}})
+    (let [ana (analyze "(let [x (set 1 2 3)] (+ x 1))" {:config {:analysis {:locals true}}})
           [x] (:locals ana)]
       (assert-submaps
        [{:row 1, :col 25,
@@ -128,7 +128,7 @@
          :id 1}]
        (:local-usages ana))))
   (testing "Names are reported in binding usages when called as fn"
-    (let [ana (analyze "(let [x #(set 1 2 3)] (x 1))" {:config {:output {:analysis {:locals true}}}})
+    (let [ana (analyze "(let [x #(set 1 2 3)] (x 1))" {:config {:analysis {:locals true}}})
           [x] (:locals ana)]
       (assert-submaps
        [{:row 1, :col 23,
@@ -140,17 +140,17 @@
          :id 1}]
        (:local-usages ana))))
   (testing "generated nodes should not be included on analysis"
-    (let [ana (analyze "(cond-> {:a 1 :b 2} true (merge {}))" {:config {:output {:analysis {:locals true}}}})]
+    (let [ana (analyze "(cond-> {:a 1 :b 2} true (merge {}))" {:config {:analysis {:locals true}}})]
       (is (empty? (:locals ana)))
       (is (empty? (:local-usages ana))))
-    (let [ana (analyze "(doto {:a 1 :b 2} (merge {}))" {:config {:output {:analysis {:locals true}}}})]
+    (let [ana (analyze "(doto {:a 1 :b 2} (merge {}))" {:config {:analysis {:locals true}}})]
       (is (empty? (:locals ana)))
       (is (empty? (:local-usages ana))))))
 
 (deftest deftype-locals-test
   (let [{:keys [:locals :local-usages]}
         (analyze "(deftype Foo [a b c] clojure.lang.IFn (invoke [_] [a b]))"
-                 {:config {:output {:analysis {:locals true}}}})]
+                 {:config {:analysis {:locals true}}})]
     ;; (clj-kondo.impl.utils/stderr :locals (pr-str locals))
     (assert-submaps '[{:end-row 1, :scope-end-row 1, :name a, :scope-end-col 58, :filename "<stdin>", :str "a", :col 15, :id 1, :end-col 16, :row 1}
                       {:end-row 1, :scope-end-row 1, :name b, :scope-end-col 58, :filename "<stdin>", :str "b", :col 17, :id 2, :end-col 18, :row 1} {:end-row 1, :scope-end-row 1, :name c, :scope-end-col 58, :filename "<stdin>", :str "c", :col 19, :id 3, :end-col 20, :row 1}
@@ -169,7 +169,7 @@
 
   (^Bla other-thing [_ a b]
     456
-    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+    789))" {:config {:analysis {:protocol-impls true}}})]
       (assert-submaps
        []
        protocol-impls)))
@@ -196,7 +196,7 @@
     123)
   (^Bla d-method [_ a b]
     456
-    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+    789))" {:config {:analysis {:protocol-impls true}}})]
       (assert-submaps
        '[{:protocol-name AProtocol
           :protocol-ns user
@@ -247,7 +247,7 @@
                          "    456"
                          "    789))"]
                         (string/join "\n"))
-                   {:config {:output {:analysis {:protocol-impls true}}}})]
+                   {:config {:analysis {:protocol-impls true}}})]
       (assert-submaps
        '[{:protocol-name AProtocol
           :protocol-ns some-ns
@@ -289,7 +289,7 @@
     123)
   (^Bla d-method [_ a b]
     456
-    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+    789))" {:config {:analysis {:protocol-impls true}}})]
       (assert-submaps
        '[{:protocol-name AProtocol
           :protocol-ns user
@@ -346,7 +346,7 @@
     123)
   (^Bla b-method [_ a b]
     456
-    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+    789))" {:config {:analysis {:protocol-impls true}}})]
       (assert-submaps
        '[{:protocol-name AProtocol
           :protocol-ns user
@@ -406,7 +406,7 @@
     123)
   (^Bla d-method [_ a b]
     456
-    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+    789))" {:config {:analysis {:protocol-impls true}}})]
       (assert-submaps
        '[{:protocol-name AProtocol
           :protocol-ns user
@@ -464,7 +464,7 @@
     123)
   (^Bla d-method [_ a b]
     456
-    789))" {:config {:output {:analysis {:protocol-impls true}}}})]
+    789))" {:config {:analysis {:protocol-impls true}}})]
       (assert-submaps
        '[{:protocol-name AProtocol
           :protocol-ns user
@@ -524,7 +524,7 @@
     123)
   (^Bla d-method [_ a b]
     456
-    789))" {:lang :cljs, :config {:output {:analysis {:protocol-impls true}}}})]
+    789))" {:lang :cljs, :config {:analysis {:protocol-impls true}}})]
       (assert-submaps
        '[{:protocol-name AProtocol
           :protocol-ns user
@@ -567,35 +567,35 @@
 ​
 (defmethod my-multi :some-value
   [_]
-  :bar)" {:config {:output {:analysis true}}})]
+  :bar)" {:config {:analysis true}})]
       (assert-submaps
-        '[{:name my-multi
-           :defined-by clojure.core/defmulti
-           :ns user
-           :name-row 2 :name-col 11 :name-end-row 2 :name-end-col 19
-           :row 2 :col 1 :end-row 2 :end-col 30}]
-        var-definitions)
+       '[{:name my-multi
+          :defined-by clojure.core/defmulti
+          :ns user
+          :name-row 2 :name-col 11 :name-end-row 2 :name-end-col 19
+          :row 2 :col 1 :end-row 2 :end-col 30}]
+       var-definitions)
       (assert-submaps
-        '[{:name defmulti}
-          {}
-          {:name defmethod}
-          {:name my-multi
-           :from user
-           :to user
-           :defmethod true
-           :name-row 4 :name-col 12 :name-end-row 4 :name-end-col 20
-           :row 4 :col 12 :end-row 4 :end-col 20}]
-        var-usages))))
+       '[{:name defmulti}
+         {}
+         {:name defmethod}
+         {:name my-multi
+          :from user
+          :to user
+          :defmethod true
+          :name-row 4 :name-col 12 :name-end-row 4 :name-end-col 20
+          :row 4 :col 12 :end-row 4 :end-col 20}]
+       var-usages))))
 
 (deftest name-position-test
-  (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:output {:analysis {:locals true}}}})]
+  (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:analysis {:locals true}}})]
     (assert-submaps
      '[{:name foo :name-row 1 :name-col 7 :name-end-row 1 :name-end-col 10 :end-row 1 :end-col 18}]
      var-definitions)
     (assert-submaps
      '[{:name foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17} {}]
      var-usages))
-  (let [{:keys [:var-definitions :var-usages]} (analyze "(defprotocol Foo (bar [])) Foo bar" {:config {:output {:analysis {:locals true}}}})]
+  (let [{:keys [:var-definitions :var-usages]} (analyze "(defprotocol Foo (bar [])) Foo bar" {:config {:analysis {:locals true}}})]
     (assert-submaps
      '[{:name Foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17 :end-row 1 :end-col 27}
        {:name bar :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22 :end-row 1 :end-col 27}]
@@ -613,7 +613,7 @@
         :name-row 1,
         :name-col 32}]
      var-usages))
-  (let [{:keys [:namespace-definitions :namespace-usages]} (analyze "(ns foo (:require [bar :as b :refer [x]] [clojure [string :as str]]))" {:config {:output {:analysis {:locals true}}}})]
+  (let [{:keys [:namespace-definitions :namespace-usages]} (analyze "(ns foo (:require [bar :as b :refer [x]] [clojure [string :as str]]))" {:config {:analysis {:locals true}}})]
     (assert-submaps
      '[{:name foo
         :row 1,
@@ -645,7 +645,7 @@
         :name-end-row 1
         :name-end-col 58}]
      namespace-usages))
-  (let [{:keys [:var-definitions :var-usages]} (analyze "(def a (atom nil)) (:foo @a)" {:config {:output {:analysis {:locals true}}}})]
+  (let [{:keys [:var-definitions :var-usages]} (analyze "(def a (atom nil)) (:foo @a)" {:config {:analysis {:locals true}}})]
     (assert-submaps
      '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7 :end-row 1 :end-col 19}]
      var-definitions)
@@ -655,7 +655,7 @@
 
 (deftest scope-usage-test
   (testing "when the var-usage is called as function"
-    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (foo 2)" {:config {:output {:analysis true}}})]
+    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (foo 2)" {:config {:analysis true}})]
       (is (some #(= % '{:fixed-arities #{1}
                         :name-end-col 22
                         :name-end-row 1
@@ -672,7 +672,7 @@
                         :to user})
                 var-usages))))
   (testing "when the var-usage is not called as function"
-    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) foo" {:config {:output {:analysis true}}})]
+    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) foo" {:config {:analysis true}})]
       (is (some #(= % '{:fixed-arities #{1}
                         :name-end-col 21
                         :name-end-row 1
@@ -688,7 +688,7 @@
                         :to user})
                 var-usages))))
   (testing "when the var-usage call is unknown"
-    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:output {:analysis true}}})]
+    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:analysis true}})]
       (is (some #(= % '{:name-end-row 1
                         :name-end-col 22
                         :name-row 1
@@ -909,7 +909,7 @@
         (analyze "(ns foo)
                   (defn foo [x] x)
                   (def bar foo)"
-                 {:config {:output {:analysis {:var-usages false}}}})]
+                 {:config {:analysis {:var-usages false}}})]
     (assert-submaps
      '[]
      var-usages))
@@ -918,7 +918,7 @@
         (analyze "(ns foo)
                   (defn foo [x] (inc x))
                   (def bar foo)"
-                 {:config {:output {:analysis {:var-definitions {:shallow true}}}}})]
+                 {:config {:analysis {:var-definitions {:shallow true}}}})]
     (assert-submaps ;; var definitions are analyzed
      '[{:fixed-arities #{1},
         :ns foo,
@@ -942,7 +942,7 @@
       :defined-by user/defflow}]
    (:var-definitions
     (analyze "(user/defflow foobar)"
-             {:config {:output {:analysis {:keywords true}}
+             {:config {:analysis {:keywords true}
                        :hooks {:__dangerously-allow-string-hooks__ true
                                :analyze-call
                                {'user/defflow
@@ -977,7 +977,7 @@
                     (defprotocol A (f3 [g] \"doc\") (f4 [h] [i i']))
                     (defrecord A [j k])
                     (defmacro f5 [l m])"
-                   {:config {:output {:analysis {:arglists true}}}})]
+                   {:config {:analysis {:arglists true}}})]
       (assert-submaps
        '[{:name f1,
           :defined-by clojure.core/defn
@@ -1118,10 +1118,9 @@
 (defn- ana-var-meta [s cfg]
   (-> (with-in-str s
         (clj-kondo/run! {:lint ["-"] :config
-                         {:output
-                          {:analysis
-                           {:var-definitions
-                            cfg}}}}))
+                         {:analysis
+                          {:var-definitions
+                           cfg}}}))
       :analysis :var-definitions first))
 
 (defn- ana-def-expected [m]
@@ -1155,8 +1154,7 @@
                                 :name-end-col 24})
              (-> (with-in-str "(def ^:no-doc ^:other x true)"
                    (clj-kondo/run! {:lint ["-"] :config
-                                    {:output
-                                     {:analysis true}}}))
+                                    {:analysis true}}))
                  :analysis :var-definitions first))))
     (testing "we don't clobber :user-meta"
       (is (= (ana-def-expected {:meta {:user-meta :foo-bar}
@@ -1332,10 +1330,9 @@
 (defn- ana-ns-meta [s cfg]
   (-> (with-in-str s
         (clj-kondo/run! {:lint ["-"] :config
-                         {:output
-                          {:analysis
-                           {:namespace-definitions
-                            cfg}}}}))
+                         {:analysis
+                          {:namespace-definitions
+                           cfg}}}))
       :analysis :namespace-definitions first))
 
 (defn- ana-ns-expected [m]
@@ -1432,8 +1429,7 @@
                              :end-col 49})
            (-> (with-in-str "(ns ^:my-meta1 ^:my-meta2 ^:my-meta3 my.ns.here)"
                  (clj-kondo/run! {:lint ["-"] :config
-                                  {:output
-                                   {:analysis true}}}))
+                                  {:analysis true}}))
                :analysis :namespace-definitions first)))))
 
 (deftest derived-doc
@@ -1544,8 +1540,8 @@
 (re-frame/reg-event-db ::bar (fn [x] (dec x)))
 "
                              (clj-kondo/run! {:lang :cljs :lint ["-"] :config
-                                              {:output {:analysis {:context [:re-frame.core]
-                                                                   :keywords true}}}}))
+                                              {:analysis {:context [:re-frame.core]
+                                                          :keywords true}}}))
                            :analysis)
               usages (:var-usages analysis)
               keywords (:keywords analysis)
@@ -1558,9 +1554,9 @@
               foo-def-usage (some #(when (= 'foo-def (:name %)) %) usages)
               foo-def-re-frame-id (-> foo-def-usage :context :re-frame.core :in-id)
               foo-def-k (some (fn [k]
-                            (when (some-> k :context :re-frame.core :id (= foo-def-re-frame-id))
-                              k))
-                          keywords)
+                                (when (some-> k :context :re-frame.core :id (= foo-def-re-frame-id))
+                                  k))
+                              keywords)
               dec-usage (some #(when (= 'dec (:name %)) %) usages)
               dec-re-frame-id (-> dec-usage :context :re-frame.core :in-id)
               dec-k (some (fn [k]
@@ -1599,8 +1595,8 @@
 (defn barfn [] @(rf/subscribe [:a]))
 "
                          (clj-kondo/run! {:lang :cljs :lint ["-"] :config
-                                          {:output {:analysis {:context [:re-frame.core]
-                                                               :keywords true}}}}))
+                                          {:analysis {:context [:re-frame.core]
+                                                      :keywords true}}}))
                        :analysis)
           usages (:var-usages analysis)
           keywords (:keywords analysis)
@@ -1664,7 +1660,7 @@
   foo/my-other)
 "
                            (clj-kondo/run! {:lang :clj :lint ["-"] :config
-                                            {:output {:analysis true}}}))
+                                            {:analysis true}}))
                          :analysis)
             usages (:var-usages analysis)
             my-func-usage (some #(when (= 'my-func (:name %)) %) usages)
@@ -1729,7 +1725,7 @@
        my-other])
 "
                            (clj-kondo/run! {:lang :clj :lint ["-"] :config
-                                            {:output {:analysis true}}}))
+                                            {:analysis true}}))
                          :analysis)
             usages (:var-usages analysis)
             my-func-usage (some #(when (= 'my-func (:name %)) %) usages)
@@ -1786,7 +1782,7 @@
 
 (deftest re-frame-dispatch-reg-event-fx-test
   (let [analysis (:analysis (with-in-str
-"(ns foo (:require [re-frame.core :as rf]))
+                              "(ns foo (:require [re-frame.core :as rf]))
 (rf/reg-event-db :foo (fn [db [_ arg1]] (dissoc db arg1)))
 (rf/reg-event-db :other-foo (fn [db [_ arg1 arg2]] (assoc db arg1 arg2)))
 
@@ -1797,8 +1793,8 @@
 (rf/reg-event-fx :later-dispatch (fn [{:keys [db]} [_ arg1]] {:fx [[:dispatch-later {:ms 10 :dispatch [:foo (:bar arg1)]}]]}))
 (rf/reg-event-fx :multiple-dispatch (fn [{:keys [db]} [_ arg1 arg2]] {:fx [[:dispatch-n [[:foo (:bar arg1)] [:other-foo arg1 arg2]]]]}))"
                               (clj-kondo/run! {:lang :cljs :lint ["-"] :config
-                                               {:output {:analysis {:context [:re-frame.core]
-                                                                    :keywords true}}}})))
+                                               {:analysis {:context [:re-frame.core]
+                                                           :keywords true}}})))
         keywords (:keywords analysis)
         simple-dispatch-id (some (partial re-frame-id "simple-dispatch") keywords)
         fx-dispatch-id (some (partial re-frame-id "fx-dispatch") keywords)
@@ -1832,21 +1828,21 @@
                             (= multiple-dispatch-id (-> % :context :re-frame.core :in-id))
                             (some-> % :context :re-frame.core :event-ref)) %) keywords)))
     (testing "keyword used as param in a dispatch not resulting in subscription-ref"
-        (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= simple-dispatch-id))) %) keywords))
-        (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= fx-dispatch-id))) %) keywords))
-        (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= later-dispatch-id))) %) keywords))
-        (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= multiple-dispatch-id))) %) keywords))
-        (is (not-any? #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :event-ref)) %) keywords)))))
+      (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= simple-dispatch-id))) %) keywords))
+      (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= fx-dispatch-id))) %) keywords))
+      (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= later-dispatch-id))) %) keywords))
+      (is (some #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :in-id (= multiple-dispatch-id))) %) keywords))
+      (is (not-any? #(when (and (= "bar" (:name %)) (some-> % :context :re-frame.core :event-ref)) %) keywords)))))
 
 (deftest re-frame-inject-cofx-test
   (let [analysis (:analysis (with-in-str
-"(ns foo (:require [re-frame.core :as rf]))
+                              "(ns foo (:require [re-frame.core :as rf]))
 (rf/reg-cofx :foo (fn [cofx _] (assoc :cofx :bar :goo)))
 (rf/reg-event-fx :use-foo [(rf/inject-cofx :foo)] (fn [{:keys [db bar]}] {:db (assoc db :lolfoo bar)}))
 "
                               (clj-kondo/run! {:lang :cljs :lint ["-"] :config
-                                               {:output {:analysis {:context [:re-frame.core]
-                                                                    :keywords true}}}})))
+                                               {:analysis {:context [:re-frame.core]
+                                                           :keywords true}}})))
         keywords (:keywords analysis)
         foo-cofx-id (some (partial re-frame-id "foo") keywords)
         use-foo-id (some (partial re-frame-id "use-foo") keywords)]

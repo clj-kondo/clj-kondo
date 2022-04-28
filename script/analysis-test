@@ -4,7 +4,7 @@ echo "Analysis test (emit readable EDN)"
 rm -rf /tmp/kondo-test-analysis
 mkdir -p /tmp/kondo-test-analysis
 
-clojure -M:clj-kondo --config '{:output {:analysis {:locals true :keywords true :arglists true} :format :edn}}' --lint "$(clojure -Spath -A:cljs)" > /tmp/kondo-test-analysis/out.edn
+clojure -M:clj-kondo --config '{:output {:format :edn} :analysis {:locals true :keywords true :arglists true}}' --lint "$(clojure -Spath -A:cljs)" > /tmp/kondo-test-analysis/out.edn
 
 set -eo pipefail
 

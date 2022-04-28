@@ -5,7 +5,7 @@ writing tools and linters that are not yet in clj-kondo itself. To get this
 data, use the following configuration:
 
 ``` shellsession
-{:output {:analysis true}}
+{:analysis true}
 ```
 
 When using clj-kondo from the command line, the analysis data will be exported
@@ -16,7 +16,7 @@ with `{:output {:format ...}}` set to `:json` or `:edn`.
 Further analysis can be returned by providing `:analysis` with a map of options:
 
 ``` shellsession
-{:output {:analysis {... ...}}
+{:analysis {... ...}
 ```
 
 - `:locals`: when truthy return `:locals` and `:local-usages` described below
@@ -197,7 +197,7 @@ Example output after linting this code:
 ```
 
 ``` clojure
-$ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}}'
+$ clj-kondo --lint /tmp/foo.clj --config '{:output {:format :edn}, :analysis true}'
 | jet --pretty --query ':analysis'
 
 {:namespace-definitions [{:filename "/tmp/foo.clj",

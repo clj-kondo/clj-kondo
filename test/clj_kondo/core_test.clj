@@ -74,12 +74,25 @@
       (is (zero? warning))
       (is (zero? info)))))
 
+(deftest backwards-compatibility-with-analysis-in-output-config-test
+  (let [res (fn [config]
+              (with-in-str "(fn [a] a)"
+                (clj-kondo/run!
+                 {:lint ["-"]
+                  :config config})))
+        old-style (res {:output {:analysis {:locals true}}})
+        new-style (res {:analysis {:locals true}})]
+    (is (seq (:analysis new-style)))
+    (is (= (:analysis old-style)
+           (:analysis new-style)))
+    (is (nil? (:analysis (res {:analysis false :output {:analysis {:locals true}}}))))))
+
 (deftest analysis-findings-interaction-test
   (testing "github issue 1246")
   (let [res (with-in-str "(fn [{:keys [a] :or {a 1}}] a)"
               (clj-kondo/run!
                {:lint ["-"]
-                :config {:output {:analysis {:locals true}}
+                :config {:analysis {:locals true}
                          :linters {:unused-bindings {:level :warning}}}}))]
     (is (empty? (:findings res)))))
 
@@ -108,7 +121,7 @@
        {:lint   [(if file? (str code) "-")]
         :lang lang
         :config {:linters {:org.acme/forbidden-var {:level :error}}
-                 :output {:analysis true}}
+                 :analysis true}
         :custom-lint-fn (fn [{:keys [analysis reg-finding!]}]
                           (let [evals (filter #(and (= 'clojure.core (:to %))
                                                     (= 'eval (:name %))) (:var-usages analysis))]
@@ -144,7 +157,7 @@
                 :copy-configs true
                 :skip-lint true
                 :parallel true
-                :config {:output {:analysis true}}})]
+                :config {:analysis true}})]
       (is (empty? (:findings res)))
       (is (empty? (:analysis res))))))
 

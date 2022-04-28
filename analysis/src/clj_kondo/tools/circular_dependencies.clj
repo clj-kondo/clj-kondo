@@ -4,7 +4,7 @@
 
 (defn -main [& paths]
   (let [analysis (:analysis (clj-kondo/run! {:lint paths
-                                             :config {:output {:analysis true}}}))
+                                             :config {:analysis true}}))
         {:keys [:namespace-usages]} analysis]
     (reduce (fn [graph {:keys [:from :to :filename :row :col]}]
               (try (dep/depend graph from to)

@@ -248,7 +248,7 @@ children))]
                                                  (let [child (second (:children node))
                                                        new-node (assoc child :context {:my-hook {:can-set-context true}})]
                                                    {:node new-node}))"}}
-                         :output {:analysis {:keywords true :context true}}}}))
+                         :analysis {:keywords true :context true}}}))
             {:keys [keywords]} analysis
             a-keyword (some #(when (= "a" (:name %))
                                %) keywords)
@@ -272,7 +272,7 @@ children))]
                                                          new-node (assoc child :context {:my-hook {:can-set-context true}})]
                                                      {:node new-node
                                                       :context {:yolo true}}))"}}
-                         :output {:analysis {:keywords true :context true}}}}))
+                         :analysis {:keywords true :context true}}}))
             {:keys [keywords]} analysis
             a-keyword (some #(when (= "a" (:name %))
                                %) keywords)
