@@ -18,12 +18,7 @@
   subject to change."
   [{:keys [:config :findings :summary :analysis]}]
   (let [output-cfg (:output config)
-        fmt (or (:format output-cfg) :text)
-        output (cond-> {:findings findings}
-                 (:summary output-cfg)
-                 (assoc :summary summary)
-                 analysis
-                 (assoc :analysis analysis))]
+        fmt (or (:format output-cfg) :text)]
     (case fmt
       :text
       (do
@@ -40,9 +35,19 @@
               (println (format "errors: %s, warnings: %s" error warning))))))
       ;; avoid loading clojure.pprint or bringing in additional libs for printing to EDN for now
       :edn
-      (prn output)
+      (let [output (cond-> {:findings findings}
+                     (:summary output-cfg)
+                     (assoc :summary summary)
+                     analysis
+                     (assoc :analysis analysis))]
+        (prn output))
       :json
-      (println (cheshire/generate-string output))))
+      (println (cheshire/generate-string
+                (cond-> {:findings findings}
+                  (:summary output-cfg)
+                  (assoc :summary summary)
+                  analysis
+                  (assoc :analysis analysis))))))
   (flush)
   nil)
 
