@@ -3,7 +3,8 @@
 
 (defn -main [& paths]
   (let [analysis (:analysis (clj-kondo/run! {:lint paths
-                                             :config {:output {:analysis true}}}))
+                                             :config {:analysis {:var-usages false}}
+                                             :skip-lint true}))
         {:keys [:var-definitions]} analysis]
     (doseq [{:keys [:ns :name :private :doc]} var-definitions]
       (when (and (not private)

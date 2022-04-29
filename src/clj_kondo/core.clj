@@ -38,7 +38,7 @@
       (let [output (cond-> {:findings findings}
                      (:summary output-cfg)
                      (assoc :summary summary)
-                     (:analysis output-cfg)
+                     analysis
                      (assoc :analysis analysis))]
         (prn output))
       :json
@@ -46,7 +46,7 @@
                 (cond-> {:findings findings}
                   (:summary output-cfg)
                   (assoc :summary summary)
-                  (:analysis output-cfg)
+                  analysis
                   (assoc :analysis analysis))))))
   (flush)
   nil)
@@ -118,7 +118,9 @@
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
         files (atom 0)
         findings (atom [])
-        analysis-cfg (get-in config [:output :analysis])
+        analysis-cfg (get config :analysis (get-in config [:output :analysis]))
+        analyze-var-usages? (get analysis-cfg :var-usages true)
+        analyze-var-defs-shallowly? (get-in analysis-cfg [:var-definitions :shallow])
         analyze-locals? (get analysis-cfg :locals)
         analyze-keywords? (get analysis-cfg :keywords)
         analyze-protocol-impls? (get analysis-cfg :protocol-impls)
@@ -128,12 +130,11 @@
         analyze-java-class-defs? (some-> analysis-cfg :java-class-definitions)
         analyze-java-class-usages? (some-> analysis-cfg :java-class-usages)
         analyze-meta? (or analysis-var-meta analysis-ns-meta)
-        analysis (when (and analysis-cfg
-                            (not skip-lint))
+        analysis (when analysis-cfg
                    (atom (cond-> {:namespace-definitions []
                                   :namespace-usages []
-                                  :var-definitions []
-                                  :var-usages []}
+                                  :var-definitions []}
+                           analyze-var-usages? (assoc :var-usages [])
                            analyze-locals? (assoc :locals []
                                                   :local-usages [])
                            analyze-keywords? (assoc :keywords [])
@@ -163,6 +164,7 @@
              :used-namespaces used-nss
              :ignores (atom {})
              :id-gen (when analyze-locals? (atom 0))
+             :analyze-var-usages? analyze-var-usages?
              :analyze-locals? analyze-locals?
              :analyze-protocol-impls? analyze-protocol-impls?
              :analyze-keywords? analyze-keywords?
@@ -172,6 +174,7 @@
              :analysis-var-meta analysis-var-meta
              :analysis-ns-meta analysis-ns-meta
              :analyze-meta? analyze-meta?
+             :analyze-var-defs-shallowly? analyze-var-defs-shallowly?
              :analysis-context analysis-context
              ;; set of files which should not be flushed into cache
              ;; most notably hook configs, as they can conflict with original sources
@@ -181,39 +184,42 @@
              :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
              :debug debug}
         lang (or lang :clj)
+        ;; primary file analysis and initial lint
         _ (core-impl/process-files (if parallel
                                      (assoc ctx :parallel parallel)
                                      ctx) lint lang filename)
         ;;_ (prn (some-> analysis deref :java-class-usages))
         ;; _ (prn :used-nss @used-nss)
-        idacs (when-not skip-lint
+        idacs (when (or dependencies (not skip-lint) analysis)
                 (-> (core-impl/index-defs-and-calls ctx)
                     (cache/sync-cache cfg-dir cache-dir)
                     (overrides)))
-        _ (when (and dependencies (not skip-lint) (not analysis))
-            ;; analysis is called from lint-var-usage, this can probably happen somewhere else
-            (l/lint-var-usage ctx idacs))
-        _ (when-not (or dependencies
-                        skip-lint)
-            (l/lint-var-usage ctx idacs)
-            (l/lint-unused-namespaces! ctx)
-            (l/lint-unused-private-vars! ctx)
-            (l/lint-bindings! ctx)
-            (l/lint-unresolved-symbols! ctx)
-            (l/lint-unresolved-vars! ctx)
-            (l/lint-unused-imports! ctx)
-            (l/lint-unresolved-namespaces! ctx))
+        _ (when-not dependencies
+            (if skip-lint
+              (when analysis
+                ;; Still need to call l/lint-var-usages, to have analysis/reg-usage! called.
+                ;; Would be more consistent to invert relationship, calling linter from analysis.
+                (l/lint-var-usage ctx idacs))
+              (do
+                (l/lint-var-usage ctx idacs)
+                (l/lint-unused-namespaces! ctx)
+                (l/lint-unused-private-vars! ctx)
+                (l/lint-bindings! ctx)
+                (l/lint-unresolved-symbols! ctx)
+                (l/lint-unresolved-vars! ctx)
+                (l/lint-unused-imports! ctx)
+                (l/lint-unresolved-namespaces! ctx))))
         _ (when custom-lint-fn
             (binding [utils/*ctx* ctx]
               (custom-lint-fn (cond->
-                                  {:config config
-                                   :reg-finding!
-                                   (fn [m]
-                                     (findings/reg-finding!
-                                      (assoc utils/*ctx*
-                                             :lang (or (:lang m)
-                                                       (core-impl/lang-from-file
-                                                        (:filename m) lang))) m))}
+                               {:config config
+                                :reg-finding!
+                                (fn [m]
+                                  (findings/reg-finding!
+                                   (assoc utils/*ctx*
+                                          :lang (or (:lang m)
+                                                    (core-impl/lang-from-file
+                                                     (:filename m) lang))) m))}
                                 analysis-cfg
                                 (assoc :analysis @analysis)))))
         all-findings @findings
@@ -223,10 +229,10 @@
         duration (- (System/currentTimeMillis) start-time)
         summary (assoc summary :duration duration :files @files)]
     (cond->
-        {:findings all-findings
-         :config config
-         :summary summary}
-      (and analysis-cfg (not skip-lint))
+     {:findings all-findings
+      :config config
+      :summary summary}
+      analysis
       (assoc :analysis @analysis))))
 
 (defn merge-configs

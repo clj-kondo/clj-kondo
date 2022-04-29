@@ -204,7 +204,6 @@
   to call-specific linters."
   [ctx idacs]
   (let [config (:config ctx)
-        output-analysis? (-> config :output :analysis)
         linted-namespaces (:linted-namespaces idacs)]
     ;; (prn :from-cache from-cache)
     (doseq [ns (namespace/list-namespaces ctx)
@@ -298,7 +297,7 @@
                   recursive? (and
                               (= fn-ns caller-ns-sym)
                               (= fn-name in-def))
-                  _ (when output-analysis?
+                  _ (when (:analysis ctx)
                       (when-not (:interop? call)
                         (analysis/reg-usage! (assoc ctx :context (:context call))
                                              filename

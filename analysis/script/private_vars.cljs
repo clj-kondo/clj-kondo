@@ -6,7 +6,7 @@
             [clojure.set :as set]))
 
 (defn -main [& paths]
-  (let [out (:out (apply sh "clj-kondo" "--config" "{:output {:analysis true :format :edn}}"
+  (let [out (:out (apply sh "clj-kondo" "--config" "{:output {:format :edn}, :analysis true}"
                          "--lint" paths))
         analysis (:analysis (edn/read-string out))
         {:keys [:var-definitions :var-usages]} analysis

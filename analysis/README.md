@@ -5,7 +5,7 @@ writing tools and linters that are not yet in clj-kondo itself. To get this
 data, use the following configuration:
 
 ``` shellsession
-{:output {:analysis true}}
+{:analysis true}
 ```
 
 When using clj-kondo from the command line, the analysis data will be exported
@@ -16,7 +16,7 @@ with `{:output {:format ...}}` set to `:json` or `:edn`.
 Further analysis can be returned by providing `:analysis` with a map of options:
 
 ``` shellsession
-{:output {:analysis {... ...}}
+{:analysis {... ...}
 ```
 
 - `:locals`: when truthy return `:locals` and `:local-usages` described below
@@ -42,6 +42,32 @@ Built-in and custom hook can add arbitrary data to the analysis using a
 `:context` map. This context map will currently appear in `:var-usages` and
 `:keywords`. You can opt-in to the entire context map using `:context true` or
 select certain keys using `:context [:re-frame.core]`.
+
+## Limited analysis
+
+Similarly, analysis can be limited. This is useful to quickly scan a file or
+project. When using these expert options, you should not expect linters to
+behave correctly. As such, consider using them with `:skip-lint true`.
+
+- `:var-usages`: when falsy skip `:var-usages` described below
+- `:var-definitions`
+  - `:shallow true`: analyze `:var-definitions`, but skip their bodies
+
+If you analyze var definitions shallowly, anything within the body of a form
+listed below will be skipped. That means that if you define a var within another
+`defn` (a [discouraged](https://guide.clojure.style/#dont-def-vars-inside-fns)
+practice), it won't be analyzed.
+
+- def
+- defn
+- defrecord
+- defmethod
+- plumatic schema: fn, def, defn, defmethod, defrecord
+- protocol-impls
+- fn
+- letfn
+- fn*
+- bound-fn
 
 # Data
 
@@ -171,7 +197,7 @@ Example output after linting this code:
 ```
 
 ``` clojure
-$ clj-kondo --lint /tmp/foo.clj --config '{:output {:analysis true :format :edn}}'
+$ clj-kondo --lint /tmp/foo.clj --config '{:output {:format :edn}, :analysis true}'
 | jet --pretty --query ':analysis'
 
 {:namespace-definitions [{:filename "/tmp/foo.clj",

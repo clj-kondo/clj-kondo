@@ -172,20 +172,21 @@
                                    m)
                                opt-expr-children (:children opt-expr)]
                            (run! #(utils/handle-ignore ctx %) opt-expr-children)
-                           (run! #(namespace/reg-var-usage! ctx current-ns-name
-                                                            (let [m (meta %)]
-                                                              (assoc m
-                                                                     :type :use
-                                                                     :name (with-meta (sexpr %) m)
-                                                                     :resolved-ns ns-name
-                                                                     :ns current-ns-name
-                                                                     :refer true
-                                                                     :lang lang
-                                                                     :base-lang base-lang
-                                                                     :filename filename
-                                                                     :config config
-                                                                     :expr %)))
-                                 opt-expr-children)
+                           (when (:analyze-var-usages? ctx)
+                             (run! #(namespace/reg-var-usage! ctx current-ns-name
+                                                              (let [m (meta %)]
+                                                                (assoc m
+                                                                       :type :use
+                                                                       :name (with-meta (sexpr %) m)
+                                                                       :resolved-ns ns-name
+                                                                       :ns current-ns-name
+                                                                       :refer true
+                                                                       :lang lang
+                                                                       :base-lang base-lang
+                                                                       :filename filename
+                                                                       :config config
+                                                                       :expr %)))
+                                   opt-expr-children))
                            (swap! (:used-namespaces ctx) update (:base-lang ctx) conj ns-name)
                            (update m :referred into
                                    (map #(with-meta (sexpr %)
@@ -500,7 +501,7 @@
              (identical? :cljs lang) (update :qualify-ns
                                              #(assoc % 'cljs.core 'cljs.core
                                                      'clojure.core 'cljs.core)))]
-    (when (-> ctx :config :output :analysis)
+    (when (:analysis ctx)
       (when (java/analyze-class-usages? ctx)
         (doseq [[k v] imports]
           (java/reg-class-usage! ctx (str v "." k) (assoc (meta k) :import true))))
@@ -557,7 +558,7 @@
     (let [analyzed
           (analyze-require-clauses ctx ns-name [[require-node libspecs]])]
       (namespace/reg-required-namespaces! ctx ns-name analyzed)
-      (when (-> ctx :config :output :analysis)
+      (when (:analysis ctx)
         (doseq [req (:required analyzed)]
           (let [{:keys [row col end-row end-col alias]} (meta req)
                 meta-alias (meta alias)]

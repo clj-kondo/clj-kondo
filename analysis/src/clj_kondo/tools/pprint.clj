@@ -13,7 +13,7 @@
     (let [format (case format "edn" :edn "table" :table)
           analysis (:analysis (clj-kondo/run!
                                {:lint paths :config
-                                {:output {:analysis true}}}))
+                                {:analysis true}}))
           {:keys [:namespace-definitions
                   :namespace-usages
                   :var-definitions

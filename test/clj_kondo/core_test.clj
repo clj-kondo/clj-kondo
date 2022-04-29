@@ -74,12 +74,46 @@
       (is (zero? warning))
       (is (zero? info)))))
 
+(deftest backwards-compatibility-with-analysis-in-output-config-test
+  (let [res (fn [config]
+              (with-in-str "(fn [a] a)"
+                (clj-kondo/run!
+                 {:lint ["-"]
+                  :config config})))
+        old-style (res {:output {:analysis {:locals true}}})
+        new-style (res {:analysis {:locals true}})]
+    (is (seq (:analysis new-style)))
+    (is (= (:analysis old-style)
+           (:analysis new-style)))
+    (is (nil? (:analysis (res {:analysis false :output {:analysis {:locals true}}}))))))
+
+(deftest analyze-project-skeleton-test
+  (let [{:keys [analysis findings]}
+        (with-in-str "(ns my-ns (:require [clojure.set :as set])) (defn foo [a] a) (defn bar [] (foo 1))"
+          (clj-kondo/run!
+           {:lint ["-"]
+            :config {:analysis {:var-usages false
+                                :var-definitions {:shallow true}}}
+            :skip-lint true}))]
+    (is (empty? findings))
+    (is (empty? (:var-usages analysis)))
+    (assert-submaps
+     '[{:name my-ns}]
+     (:namespace-definitions analysis))
+    (assert-submaps
+     '[{:from my-ns, :to clojure.set, :alias set}]
+     (:namespace-usages analysis))
+    (assert-submaps
+     '[{:fixed-arities #{1}, :ns my-ns, :name foo, :defined-by clojure.core/defn}
+       {:fixed-arities #{0}, :ns my-ns, :name bar, :defined-by clojure.core/defn}]
+     (:var-definitions analysis))))
+
 (deftest analysis-findings-interaction-test
   (testing "github issue 1246")
   (let [res (with-in-str "(fn [{:keys [a] :or {a 1}}] a)"
               (clj-kondo/run!
                {:lint ["-"]
-                :config {:output {:analysis {:locals true}}
+                :config {:analysis {:locals true}
                          :linters {:unused-bindings {:level :warning}}}}))]
     (is (empty? (:findings res)))))
 
@@ -108,7 +142,7 @@
        {:lint   [(if file? (str code) "-")]
         :lang lang
         :config {:linters {:org.acme/forbidden-var {:level :error}}
-                 :output {:analysis true}}
+                 :analysis true}
         :custom-lint-fn (fn [{:keys [analysis reg-finding!]}]
                           (let [evals (filter #(and (= 'clojure.core (:to %))
                                                     (= 'eval (:name %))) (:var-usages analysis))]
@@ -143,8 +177,7 @@
                {:lint [(file-path "corpus" "invalid_arity")]
                 :copy-configs true
                 :skip-lint true
-                :parallel true
-                :config {:output {:analysis true}}})]
+                :parallel true})]
       (is (empty? (:findings res)))
       (is (empty? (:analysis res))))))
 

@@ -321,7 +321,7 @@
 
 ;;;; threadpool
 
-(defn lint-task [ctx ^java.util.concurrent.LinkedBlockingDeque deque dev?]
+(defn analyze-task [ctx ^java.util.concurrent.LinkedBlockingDeque deque dev?]
   (loop []
     (when-let [group (.pollFirst deque)]
       (try
@@ -331,7 +331,7 @@
                              (prn e))))
       (recur))))
 
-(defn parallel-lint [ctx sources dev?]
+(defn parallel-analyze [ctx sources dev?]
   (let [source-groups (group-by :group-id sources)
         source-groups (filter seq (vals source-groups))
         deque     (java.util.concurrent.LinkedBlockingDeque. ^java.util.List source-groups)
@@ -342,7 +342,7 @@
     (dotimes [_ cnt]
       (.execute es
                 (bound-fn []
-                  (lint-task ctx deque dev?)
+                  (analyze-task ctx deque dev?)
                   (.countDown latch))))
     (.await latch)
     (.shutdown es)))
@@ -365,7 +365,7 @@
   (swap! (:files ctx) inc)
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
-    (when-not (:skip-lint ctx)
+    (when (or (:analysis ctx) (not (:skip-lint ctx)))
       (ana/analyze-input ctx filename uri source lang dev?))))
 
 (defn process-file [ctx path default-language canonical? filename]
@@ -486,8 +486,9 @@
         canonical? (-> ctx :config :output :canonical-paths)]
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (and (:parallel ctx)
-               (not (:skip-lint ctx)))
-      (parallel-lint ctx @(:sources ctx) dev?))
+               (or (:analysis ctx)
+                   (not (:skip-lint ctx))))
+      (parallel-analyze ctx @(:sources ctx) dev?))
     (when (and cache-dir (:dependencies ctx))
       (doseq [[mark path] @(:mark-linted ctx)]
         (let [skip-file (io/file cache-dir "skip" mark)]

@@ -14,9 +14,9 @@
    (:analysis
     (clj-kondo/run! (merge
                      {:lint paths
-                      :config {:output {:canonical-paths true
-                                        :analysis {:java-class-definitions true
-                                                   :java-class-usages true}}}}
+                      :config {:output {:canonical-paths true}
+                               :analysis {:java-class-definitions true
+                                          :java-class-usages true}}}
                      config)))))
 
 (deftest jar-classes-test

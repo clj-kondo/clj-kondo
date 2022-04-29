@@ -424,6 +424,9 @@
         ctx (-> ctx
                 (assoc :fn-args (:children arg-vec))
                 (assoc :body-children-count (count children)))
+        children (if (:analyze-var-defs-shallowly? ctx)
+                   []
+                   children)
         [parsed return-tag]
         (if (or macro? return-tag)
           [(analyze-children ctx children) return-tag]
@@ -1056,6 +1059,9 @@
                                (when (some-> metadata :doc str)
                                  (some docstring/docs-from-meta var-name-node-meta-nodes)))
         ctx (assoc ctx :in-def var-name :def-meta metadata :defmulti? defmulti?)
+        children (if (:analyze-var-defs-shallowly? ctx)
+                   []
+                   children)
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
                             (= 1 (count children)))
@@ -1649,35 +1655,36 @@
                     arg-count)]
     (cond var?
           (let [{:keys [:row :end-row :col :end-col]} (meta f)]
-            (namespace/reg-var-usage! ctx ns-name
-                                      {:type :call
-                                       :resolved-ns resolved-namespace
-                                       :ns ns-name
-                                       :name (with-meta
-                                               (or resolved-name fsym)
-                                               (meta fsym))
-                                       :alias resolved-alias
-                                       :unresolved? unresolved?
-                                       :unresolved-ns unresolved-ns
-                                       :clojure-excluded? clojure-excluded?
-                                       :arity arg-count
-                                       :row row
-                                       :end-row end-row
-                                       :col col
-                                       :end-col end-col
-                                       :base-lang (:base-lang ctx)
-                                       :lang (:lang ctx)
-                                       :filename (:filename ctx)
-                                       ;; save some memory during dependencies
-                                       :expr (when-not (:dependencies ctx) expr)
-                                       :simple? (simple-symbol? fsym)
-                                       :callstack (:callstack ctx)
-                                       :config (:config ctx)
-                                       :top-ns (:top-ns ctx)
-                                       ;; :arg-types (:arg-types ctx)
-                                       :interop? interop?
-                                       :resolved-core? resolved-core?
-                                       :in-def (:in-def ctx)}))
+            (when (:analyze-var-usages? ctx)
+              (namespace/reg-var-usage! ctx ns-name
+                                        {:type :call
+                                         :resolved-ns resolved-namespace
+                                         :ns ns-name
+                                         :name (with-meta
+                                                 (or resolved-name fsym)
+                                                 (meta fsym))
+                                         :alias resolved-alias
+                                         :unresolved? unresolved?
+                                         :unresolved-ns unresolved-ns
+                                         :clojure-excluded? clojure-excluded?
+                                         :arity arg-count
+                                         :row row
+                                         :end-row end-row
+                                         :col col
+                                         :end-col end-col
+                                         :base-lang (:base-lang ctx)
+                                         :lang (:lang ctx)
+                                         :filename (:filename ctx)
+                                         ;; save some memory during dependencies
+                                         :expr (when-not (:dependencies ctx) expr)
+                                         :simple? (simple-symbol? fsym)
+                                         :callstack (:callstack ctx)
+                                         :config (:config ctx)
+                                         :top-ns (:top-ns ctx)
+                                         ;; :arg-types (:arg-types ctx)
+                                         :interop? interop?
+                                         :resolved-core? resolved-core?
+                                         :in-def (:in-def ctx)})))
           arity (let [{:keys [:fixed-arities :varargs-min-arity]} arity
                       config (:config ctx)
                       callstack (:callstack ctx)]
@@ -1876,7 +1883,8 @@
                       expanded (assoc expanded :visited [resolved-namespace resolved-name])]
                 ;;;; This registers the original call when the new node does not
                 ;;;; refer to the same call, so we still get arity linting
-                  (when-not same-call?
+                  (when (and (:analyze-var-usages? ctx)
+                             (not same-call?))
                     (namespace/reg-var-usage!
                      ctx ns-name {:type :call
                                   :resolved-ns resolved-namespace
@@ -2214,7 +2222,8 @@
                                  in-def (assoc :in-def in-def)
                                  ret-tag (assoc :ret ret-tag))]
                       (when id (reg-call ctx call id))
-                      (namespace/reg-var-usage! ctx ns-name call)
+                      (when (:analyze-var-usages? ctx)
+                        (namespace/reg-var-usage! ctx ns-name call))
                       (when-not unresolved?
                         (namespace/reg-used-namespace! ctx
                                                        ns-name
@@ -2594,8 +2603,9 @@
   [{:keys [:base-lang :lang :config] :as ctx}
    expressions]
   (let [init-ns (when-not (= :edn lang)
-                  (analyze-ns-decl (assoc-in ctx
-                                             [:config :output :analysis] false)
+                  (analyze-ns-decl (-> ctx
+                                       (assoc-in [:config :analysis] false)
+                                       (dissoc :analysis))
                                    (parse-string "(ns user)")))
         init-ctx (assoc ctx
                         :ns init-ns

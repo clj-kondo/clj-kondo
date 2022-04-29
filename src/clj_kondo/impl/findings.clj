@@ -51,11 +51,12 @@
   [ctx m]
   (let [dependencies (:dependencies ctx)
         findings (:findings ctx)
+        skip-lint? (:skip-lint ctx)
         config (:config ctx)
         tp (:type m)
         level (or (:level m)
                   (-> config :linters tp :level))]
-    (when (and level (not (identical? :off level)) (not dependencies))
+    (when (and level (not (identical? :off level)) (not dependencies) (not skip-lint?))
       (when-not (ignored? ctx m tp)
         (let [m (assoc m :level level)]
           (swap! findings conj m)

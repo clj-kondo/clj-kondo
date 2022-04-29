@@ -7,7 +7,7 @@
   (if (empty? paths)
     (println "Provide paths for analysis.")
     (let [analysis (:analysis (clj-kondo/run! {:lint paths
-                                               :config {:output {:analysis true}}}))
+                                               :config {:analysis true}}))
           {:keys [:var-definitions :var-usages]} analysis
           defined-vars (set (map (juxt :ns :name) var-definitions))
           used-vars (set (map (juxt :to :name) var-usages))

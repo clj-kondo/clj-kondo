@@ -11,14 +11,14 @@
    (:analysis
     (with-in-str code
       (clj-kondo/run! (merge {:lint ["-"]
-                              :config {:output {:canonical-paths true
-                                                :analysis {:keywords true}}}}
+                              :config {:output {:canonical-paths true}
+                                       :analysis {:keywords true}}}
                              config))))))
 
 (deftest keyword-analysis-test
   (testing "standalone keywords with top-level require"
     (let [a (analyze "(require '[bar :as b]) :kw :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
-                     {:config {:output {:analysis {:keywords true}}}})]
+                     {:config {:analysis {:keywords true}}})]
       (assert-submaps
        '[{:name "as"}
          {:name "kw"}
@@ -33,7 +33,7 @@
        (:keywords a))))
   (testing "standalone keywords"
     (let [a (analyze "(ns foo (:require [bar :as b])) :kw :2foo :x/xkwa ::x/xkwb ::fookwa :foo/fookwb ::foo/fookwc :bar/barkwa ::b/barkwb ::bar/barkwc"
-                     {:config {:output {:analysis {:keywords true}}}})]
+                     {:config {:analysis {:keywords true}}})]
       (assert-submaps
        '[{:name "require"}
          {:name "as"}
@@ -55,7 +55,7 @@
                           "       :bar/keys [e :f]\n"
                           "       :keys [g :h ::i :foo/j :bar/k ::b/l ::bar/m :x/n ::y/o foo/j]\n"
                           "       p :p q ::q r ::b/r s :bar/s t :x/t} {}])")
-                     {:config {:output {:analysis {:keywords true}}}})]
+                     {:config {:analysis {:keywords true}}})]
       (assert-submaps
        '[{:name "require"}
          {:name "as"}
@@ -87,7 +87,7 @@
        (:keywords a))))
   (testing "clojure.spec.alpha/def can add :reg"
     (let [a (analyze "(require '[clojure.spec.alpha :as s]) (s/def ::kw (inc))"
-                     {:config {:output {:analysis {:keywords true}}}})]
+                     {:config {:analysis {:keywords true}}})]
       (assert-submaps
        '[{:name "as"}
          {:name "kw" :reg clojure.spec.alpha/def}]
@@ -101,7 +101,7 @@
                       (rf/reg-sub-raw ::e (constantly {}))
                       (rf/reg-fx ::f (constantly {}))
                       (rf/reg-cofx ::g (constantly {}))"
-                     {:config {:output {:analysis {:keywords true}}}})]
+                     {:config {:analysis {:keywords true}}})]
       (assert-submaps
        '[{:name "as"}
          {:name "a" :reg re-frame.core/reg-event-db}
@@ -114,14 +114,14 @@
        (:keywords a))))
   (testing ":lint-as re-frame.core function will add :reg with the source full qualified ns"
     (let [a (analyze "(user/mydef ::kw (constantly {}))"
-                     {:config {:output {:analysis {:keywords true}}
+                     {:config {:analysis {:keywords true}
                                :lint-as '{user/mydef re-frame.core/reg-event-fx}}})]
       (assert-submaps
        '[{:name "kw" :reg user/mydef}]
        (:keywords a))))
   (testing "hooks can add :reg"
     (let [a (analyze "(user/mydef ::kw (inc))"
-                     {:config {:output {:analysis {:keywords true}}
+                     {:config {:analysis {:keywords true}
                                :hooks {:__dangerously-allow-string-hooks__ true
                                        :analyze-call
                                        {'user/mydef
@@ -139,13 +139,13 @@
     (let [a (analyze "(ns foo (:require [clojure.data.xml :as xml]))
                       (xml/alias-uri 'pom \"http://maven.apache.org/POM/4.0.0\")
                       ::pom/foo"
-                     {:config {:output {:analysis {:keywords true}}}})]
+                     {:config {:analysis {:keywords true}}})]
       (is (edn/read-string (str a)))))
   (testing "namespaced maps"
     (testing "auto-resolved namespace"
       (let [a (analyze "(ns foo (:require [clojure.data.xml :as xml]))
                       #::xml{:a 1}"
-                       {:config {:output {:analysis {:keywords true}}}})]
+                       {:config {:analysis {:keywords true}}})]
         (assert-submaps
          '[{:name "require"}
            {:name "as"}
@@ -154,7 +154,7 @@
     (testing "non-autoresolved namespace"
       (let [a (analyze "(ns foo (:require [clojure.data.xml :as xml]))
                       #:xml{:a 1}"
-                       {:config {:output {:analysis {:keywords true}}}})]
+                       {:config {:analysis {:keywords true}}})]
         (assert-submaps
          '[{:name "require"}
            {:name "as"}
@@ -163,13 +163,13 @@
     ;; Don't use assertmap here to make sure ns is absent
     (testing "no namespace for key :a"
       (let [a (analyze "#:xml{:_/a 1}"
-                       {:config {:output {:analysis {:keywords true}}}})]
+                       {:config {:analysis {:keywords true}}})]
         (is (= '[{:row 1, :col 7, :end-row 1, :end-col 11, :name "a", :filename "<stdin>" :from user}]
                (:keywords a)))))
     ;; Don't use assertmap here to make sure ns is absent
     (testing "no namespace for key :b"
       (let [a (analyze "#:xml{:a {:b 1}}"
-                       {:config {:output {:analysis {:keywords true}}}})]
+                       {:config {:analysis {:keywords true}}})]
         (is (= '[{:row 1, :col 7, :end-row 1, :end-col 9, :ns xml, :name "a", :filename "<stdin>" :namespace-from-prefix true :from user}
                  {:row 1, :col 11, :end-row 1, :end-col 13, :name "b", :filename "<stdin>" :from user}]
                (:keywords a)))))
@@ -179,7 +179,7 @@
                         #:d{:e 1 :_/f 2 :g/h 3 ::i 4}
                         {:j/k 5 :l 6 ::m 7}
                         #::set{:a 1}"
-                       {:config {:output {:analysis {:keywords true}}}})]
+                       {:config {:analysis {:keywords true}}})]
         (assert-submaps
          '[{:name "require"}
            {:name "as"}

@@ -20,8 +20,8 @@
               instaparse.core/defparser         clojure.core/def
               athens.common.sentry/defntrace    clojure.core/defn}
     ;; trigger full re-frame analysis to test it for lint regressions
-    :output {:analysis {:context [:re-frame.core]
-                        :keywords true}}})
+    :analysis {:context [:re-frame.core]
+               :keywords true}})
 
 (deftest re-frame-athens-lint-test
   (fs/with-temp-dir [tmp {}]
@@ -56,8 +56,8 @@
                  (clj-kondo/run!
                   {:lang :cljs
                    :lint "-"
-                   :config {:output {:analysis {:context [:re-frame.core]
-                                                :keywords true}}}}))))))
+                   :config {:analysis {:context [:re-frame.core]
+                                       :keywords true}}}))))))
 
 (deftest re-frame-analysis-dispatch-n-w-conditionals-test
   (is (empty? (:findings
@@ -73,8 +73,8 @@
                  (clj-kondo/run!
                   {:lang :cljs
                    :lint "-"
-                   :config {:output {:analysis {:context [:re-frame.core]
-                                                :keywords true}}}}))))))
+                   :config {:analysis {:context [:re-frame.core]
+                                       :keywords true}}}))))))
 
 (deftest subscribe-arguments-are-used-test
   (is (empty? (lint! "

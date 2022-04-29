@@ -4,7 +4,7 @@
 (defn -main [n & paths]
   (let [n (Integer. n)
         analysis (:analysis (clj-kondo/run! {:lint paths
-                                             :config {:output {:analysis true}}}))
+                                             :config {:analysis true}}))
         {:keys [:var-usages]} analysis
         vars (map (juxt :to :name) var-usages)
         freqs (frequencies vars)
