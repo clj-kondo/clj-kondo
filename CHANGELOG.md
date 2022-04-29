@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- [#1674](https://github.com/clj-kondo/clj-kondo/pull/1674): config options to limit analysis of var-usages and bodies of var-definitions. Can be used to get a quick overview of a project's namespaces and vars, without analyzing their details.
+
 ## 2022.04.25
 
 - [#1669](https://github.com/clj-kondo/clj-kondo/issues/1669): fix re-frame analysis problem causing file to be not parsed
