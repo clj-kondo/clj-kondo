@@ -117,7 +117,7 @@
                              :namespaces (atom {})
                              :ignores (atom {})
                              :bindings {}}]
-                    (ana/analyze-input ctx "test.clj" "file:test.clj" source :clj false)
+                    (ana/analyze-input ctx "test.clj" "file:test.clj" 0 source :clj false)
                     ctx))]
     (testing "unmatched delimiters"
       (is (= [{:type :syntax
