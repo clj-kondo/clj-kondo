@@ -102,6 +102,7 @@
            :dependencies
            :copy-configs
            :custom-lint-fn
+           :file-analyzed-fn
            :skip-lint
            :debug]
     :or {cache true}}]
@@ -162,6 +163,7 @@
              :analysis analysis
              :cache-dir cache-dir
              :used-namespaces used-nss
+             :file-analyzed-fn file-analyzed-fn
              :ignores (atom {})
              :id-gen (when analyze-locals? (atom 0))
              :analyze-var-usages? analyze-var-usages?

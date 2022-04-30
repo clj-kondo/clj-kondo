@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :refer [path-separator]]
-   [clj-kondo.test-utils :refer [file-path file-separator assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submaps file-path file-separator]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -153,6 +153,13 @@
                                                     :end-col (:name-end-col e)
                                                     :type :org.acme/forbidden-var))))))}))))
 
+(defn file-analyzed-fn [paths lang file-analyzed-fn]
+  (clj-kondo/run!
+    {:lint paths
+     :lang lang
+     :config {:analysis true}
+     :file-analyzed-fn file-analyzed-fn}))
+
 (deftest custom-lint-fn-test
   (testing "custom-lint reg a new finding and reg-finding! return the new finding"
     ;; TODO
@@ -180,6 +187,17 @@
                 :parallel true})]
       (is (empty? (:findings res)))
       (is (empty? (:analysis res))))))
+
+(deftest filename-callback-fn-test
+  (testing "ignore hints return nil during reg-finding! for clj files"
+    (let [res (file-analyzed-fn
+                ["corpus"]
+                :clj
+                (fn [{:keys [uri filename total-files]}]
+                  (is uri)
+                  (is filename)
+                  (is (= 108 total-files))))]
+      (is (boolean res)))))
 
 ;;;; Scratch
 

@@ -321,18 +321,19 @@
 
 ;;;; threadpool
 
-(defn analyze-task [ctx ^java.util.concurrent.LinkedBlockingDeque deque dev?]
+(defn analyze-task [ctx ^java.util.concurrent.LinkedBlockingDeque deque total-files dev?]
   (loop []
     (when-let [group (.pollFirst deque)]
       (try
         (doseq [{:keys [:filename :source :lang :uri]} group]
-          (ana/analyze-input ctx filename uri source lang dev?))
+          (ana/analyze-input ctx filename uri total-files source lang dev?))
         (catch Exception e (binding [*out* *err*]
                              (prn e))))
       (recur))))
 
 (defn parallel-analyze [ctx sources dev?]
-  (let [source-groups (group-by :group-id sources)
+  (let [total-files (count sources)
+        source-groups (group-by :group-id sources)
         source-groups (filter seq (vals source-groups))
         deque     (java.util.concurrent.LinkedBlockingDeque. ^java.util.List source-groups)
         _ (reset! (:sources ctx) []) ;; clean up garbage
@@ -342,7 +343,7 @@
     (dotimes [_ cnt]
       (.execute es
                 (bound-fn []
-                  (analyze-task ctx deque dev?)
+                  (analyze-task ctx deque total-files dev?)
                   (.countDown latch))))
     (.await latch)
     (.shutdown es)))
@@ -361,14 +362,14 @@
 (defn classpath? [f]
   (str/includes? f path-separator))
 
-(defn schedule [ctx {:keys [:filename :source :lang :uri] :as m} dev?]
+(defn schedule [ctx {:keys [:filename :source :lang :uri :total-files] :as m} dev?]
   (swap! (:files ctx) inc)
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
     (when (or (:analysis ctx) (not (:skip-lint ctx)))
-      (ana/analyze-input ctx filename uri source lang dev?))))
+      (ana/analyze-input ctx filename uri total-files source lang dev?))))
 
-(defn process-file [ctx path default-language canonical? filename]
+(defn process-file [ctx path default-language canonical? filename total-files]
   (let [seen-files (:seen-files ctx)]
     (try
       (let [path (str path) ;; always assume path to be a string in the body of
@@ -395,10 +396,12 @@
                            (.exists skip-entry)
                            (= path (slurp skip-entry)))
                     (utils/stderr "[clj-kondo]" jar-name "was already linted, skipping")
-                    (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
-                                         dev?)
-                              (sources-from-jar ctx file canonical?))
-                        (swap! (:mark-linted ctx) conj [skip-mark path]))))
+                    (let [sources (sources-from-jar ctx file canonical?)]
+                      (run! #(schedule ctx (assoc %
+                                                  :lang (lang-from-file (:filename %) default-language)
+                                                  :total-files (+ total-files (count sources)))
+                                       dev?)
+                            sources))))
                 ;; assume normal source file
                 (let [fn (if canonical?
                            canonical
@@ -408,11 +411,15 @@
                     (schedule ctx {:filename fn
                                    :uri (->uri nil nil fn)
                                    :source (slurp file)
-                                   :lang (lang-from-file path default-language)}
+                                   :lang (lang-from-file path default-language)
+                                   :total-files (+ total-files 1)}
                               dev?)))))
             ;; assume directory
-            (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
-                  (sources-from-dir ctx file canonical?)))
+            (let [sources (sources-from-dir ctx file canonical?)]
+              (run! #(schedule ctx (assoc %
+                                          :lang (lang-from-file (:filename %) default-language)
+                                          :total-files (+ total-files (count sources))) dev?)
+                    sources)))
           (= "-" path)
           (schedule ctx {:filename (or filename "<stdin>")
                          :source (slurp *in*)
@@ -420,9 +427,10 @@
                                  (lang-from-file filename default-language)
                                  default-language)} dev?)
           (classpath? path)
-          (run! #(process-file ctx % default-language canonical? filename)
-                (str/split path
-                           (re-pattern path-separator)))
+          (let [paths (str/split path
+                                 (re-pattern path-separator))]
+            (run! #(process-file ctx % default-language canonical? filename (count paths))
+                  paths))
           :else
           (when-not (:skip-lint ctx)
             (findings/reg-finding! ctx
@@ -484,7 +492,7 @@
         ctx (assoc ctx :detected-configs (atom [])
                    :mark-linted (atom []))
         canonical? (-> ctx :config :output :canonical-paths)]
-    (run! #(process-file ctx % default-lang canonical? filename) files)
+    (run! #(process-file ctx % default-lang canonical? filename 0) files)
     (when (and (:parallel ctx)
                (or (:analysis ctx)
                    (not (:skip-lint ctx))))
