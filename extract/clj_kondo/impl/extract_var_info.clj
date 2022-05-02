@@ -60,6 +60,8 @@
        :files (atom 0)
        :findings (atom [])
        :ignores (atom {})
+       :entries-to-call (atom {})
+       :entries-call-count (atom {})
        :namespaces namespaces
        :used-namespaces (atom {:clj #{}
                                :cljs #{}
@@ -84,6 +86,8 @@
        :files (atom 0)
        :findings (atom [])
        :ignores (atom {})
+       :entries-to-call (atom {})
+       :entries-call-count (atom {})
        :namespaces namespaces
        :used-namespaces (atom {:clj #{}
                                :cljs #{}

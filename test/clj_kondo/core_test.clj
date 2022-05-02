@@ -153,12 +153,14 @@
                                                     :end-col (:name-end-col e)
                                                     :type :org.acme/forbidden-var))))))}))))
 
-(defn file-analyzed-fn [paths lang file-analyzed-fn]
+(defn on-progress-update-fn [paths lang on-progress-update-fn extra-config]
   (clj-kondo/run!
+   (merge
     {:lint paths
      :lang lang
      :config {:analysis true}
-     :file-analyzed-fn file-analyzed-fn}))
+     :on-progress-update-fn on-progress-update-fn}
+    extra-config)))
 
 (deftest custom-lint-fn-test
   (testing "custom-lint reg a new finding and reg-finding! return the new finding"
@@ -188,16 +190,51 @@
       (is (empty? (:findings res)))
       (is (empty? (:analysis res))))))
 
-(deftest filename-callback-fn-test
-  (testing "ignore hints return nil during reg-finding! for clj files"
-    (let [res (file-analyzed-fn
-                ["corpus"]
-                :clj
-                (fn [{:keys [uri filename total-files]}]
-                  (is uri)
-                  (is filename)
-                  (is (= 108 total-files))))]
-      (is (boolean res)))))
+(deftest on-progress-update-fn-test
+  (testing "we call the callback fn for all given entries"
+    (let [calls (atom [])
+          res (on-progress-update-fn
+               ["corpus/use.clj"
+                "corpus/case.clj"
+                "corpus/schema"]
+               :clj
+               (fn [entry-map]
+                 (swap! calls conj entry-map))
+               {})]
+      (is res)
+      (is (= [{:entry "corpus/use.clj"}
+              {:entry "corpus/case.clj"}
+              {:entry "corpus/schema"}]
+             @calls))))
+  (testing "when lint is classpath"
+    (let [calls (atom [])
+          res (on-progress-update-fn
+               [(str/join
+                 path-separator
+                 ["corpus/invalid_arity" "corpus/private"])]
+               :clj
+               (fn [entry-map]
+                 (swap! calls conj entry-map))
+               {})]
+      (is res)
+      (is (= [{:entry "corpus/invalid_arity"}
+              {:entry "corpus/private"}]
+             @calls))))
+  (testing "when parallel"
+    (let [calls (atom [])
+          res (on-progress-update-fn
+               ["corpus/use.clj"
+                "corpus/case.clj"
+                "corpus/schema"]
+               :clj
+               (fn [entry-map]
+                 (swap! calls conj entry-map))
+               {:parallel true})]
+      (is res)
+      (is (= #{{:entry "corpus/case.clj"}
+               {:entry "corpus/schema"}
+               {:entry "corpus/use.clj"}}
+             (set @calls))))))
 
 ;;;; Scratch
 
