@@ -2701,13 +2701,13 @@
         (throw e)
         (run! #(findings/reg-finding! ctx %) (->findings e filename))))
     (finally
+      (swap! files inc)
       (let [output-cfg (:output config)]
         (when (and (= :text (:format output-cfg))
                    (:progress output-cfg))
           (binding [*out* *err*]
             (print ".") (flush))))
       (when file-analyzed-fn
-        (swap! files inc)
         (file-analyzed-fn {:filename filename
                            :uri (->uri nil nil filename)
                            :total-files total-files
