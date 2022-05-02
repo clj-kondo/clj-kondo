@@ -202,15 +202,17 @@
                 (fn [entry-map]
                   (swap! calls conj entry-map))
                 {})]
-      (is res)
+      (is (= 6 (:files (:summary res))))
       (assert-submaps
         #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 6}
           {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 6}
-          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 6}
+          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 6}
           {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 6}
-          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 6}
-          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 6}}
-        (set @calls))))
+          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 6}
+          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 6}}
+        (set @calls))
+      (is (every? #(and (int? (:total-files %))
+                        (<= (:total-files %) 6)) @calls))))
   (testing "when lint is classpath"
     (let [calls (atom [])
           res (file-analyzed-fn
@@ -221,14 +223,16 @@
                 (fn [entry-map]
                   (swap! calls conj entry-map))
                 {})]
-      (is res)
+      (is (= 5 (:files (:summary res))))
       (assert-submaps
-        #{{:filename "corpus/invalid_arity/calls.clj" :uri #"file:/.*/corpus/invalid_arity/calls.clj" :total-files 5}
+        #{{:filename "corpus/invalid_arity/defs.clj" :uri #"file:/.*/corpus/invalid_arity/defs.clj" :total-files 5}
           {:filename "corpus/invalid_arity/order.clj" :uri #"file:/.*/corpus/invalid_arity/order.clj" :total-files 5}
-          {:filename "corpus/invalid_arity/defs.clj" :uri #"file:/.*/corpus/invalid_arity/defs.clj" :total-files 5}
+          {:filename "corpus/invalid_arity/calls.clj" :uri #"file:/.*/corpus/invalid_arity/calls.clj" :total-files 5}
           {:filename "corpus/private/private_calls.clj" :uri #"file:/.*/corpus/private/private_calls.clj" :total-files 5}
           {:filename "corpus/private/private_defs.clj" :uri  #"file:/.*/corpus/private/private_defs.clj" :total-files 5}}
-        (set @calls))))
+        (set @calls))
+      (is (every? #(and (int? (:total-files %))
+                        (<= (:total-files %) 5)) @calls))))
   (testing "when parallel"
     (let [calls (atom [])
           res (file-analyzed-fn
@@ -240,15 +244,17 @@
                 (fn [entry-map]
                   (swap! calls conj entry-map))
                 {:parallel true})]
-      (is res)
+      (is (= 6 (:files (:summary res))))
       (assert-submaps
         #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 6}
+          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 6}
           {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 6}
-          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 6}
           {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 6}
-          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 6}
-          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 6}}
-        (set @calls)))))
+          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 6}
+          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 6}}
+        (set @calls))
+      (is (every? #(and (int? (:total-files %))
+                        (<= (:total-files %) 6)) @calls)))))
 
 ;;;; Scratch
 

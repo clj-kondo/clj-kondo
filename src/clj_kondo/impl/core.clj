@@ -411,7 +411,6 @@
        (reduce + 0)))
 
 (defn schedule [ctx {:keys [:filename :source :lang :uri] :as m} dev?]
-  (swap! (:files ctx) inc)
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
     (when (or (:analysis ctx) (not (:skip-lint ctx)))
