@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :refer [path-separator]]
-   [clj-kondo.test-utils :refer [assert-submaps file-path file-separator normalize-filename]]
+   [clj-kondo.test-utils :refer [assert-submaps file-path file-separator]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
