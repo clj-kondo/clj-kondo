@@ -361,16 +361,23 @@
 (defn classpath? [f]
   (str/includes? f path-separator))
 
-(defn ^:private entries-from-jar-count [^java.io.File jar-file]
+(defn ^:private analyzable-filename? [filename ctx]
+  (let [cfg-dir (:config-dir ctx)]
+    (and (source-file? filename)
+         (not (and cfg-dir
+                   (str/includes? filename "clj-kondo.exports"))))))
+
+(defn ^:private entries-from-jar-count [^java.io.File jar-file ctx]
   (with-open [jar (JarFile. jar-file)]
     (->> (.entries jar)
          enumeration-seq
-         (filter (fn [^JarFile$JarFileEntry x]
-                   (and (not (.isDirectory x))
-                        (source-file? (.getName x)))))
+         (filter (fn [^JarFile$JarFileEntry entry]
+                   (let [entry-name (.getName entry)]
+                     (and (not (.isDirectory entry))
+                          (analyzable-filename? entry-name ctx)))))
          count)))
 
-(defn ^:private files-count [paths]
+(defn ^:private files-count [paths ctx]
   (->> paths
        (map (fn [path]
               (let [path (str path)
@@ -380,7 +387,7 @@
                 (cond
                   (and file-path
                        (str/ends-with? file-path ".jar"))
-                  (entries-from-jar-count file)
+                  (entries-from-jar-count file ctx)
 
                   (and file-path
                        (.isFile file))
@@ -391,14 +398,14 @@
                        (filter (fn [^java.io.File f]
                                  (and (.canRead f)
                                       (.isFile f)
-                                      (source-file? (.getCanonicalPath f)))))
+                                      (analyzable-filename? (.getCanonicalPath f) ctx))))
                        count)
 
                   (= "-" path)
                   1
 
                   (classpath? path)
-                  (files-count (str/split path (re-pattern path-separator)))
+                  (files-count (str/split path (re-pattern path-separator)) ctx)
 
                   :else 0))))
        (reduce + 0)))
@@ -526,7 +533,7 @@
         ctx (assoc ctx :detected-configs (atom [])
                    :mark-linted (atom [])
                    :total-files (when (:file-analyzed-fn ctx)
-                                  (files-count files)))
+                                  (files-count files ctx)))
         canonical? (-> ctx :config :output :canonical-paths)]
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (and (:parallel ctx)
