@@ -36,7 +36,8 @@
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
-     linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
+     linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings
+     ->uri]]
    [clojure.set :as set]
    [clojure.string :as str]
    [sci.core :as sci]))
@@ -2655,7 +2656,7 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config] :as ctx} filename uri input lang dev?]
+  [{:keys [:config :file-analyzed-fn :total-files] :as ctx} filename uri input lang dev?]
   (when (:debug ctx)
     (utils/stderr "[clj-kondo] Linting file:" filename))
   (try
@@ -2704,7 +2705,11 @@
         (when (and (= :text (:format output-cfg))
                    (:progress output-cfg))
           (binding [*out* *err*]
-            (print ".") (flush)))))))
+            (print ".") (flush))))
+      (when file-analyzed-fn
+        (file-analyzed-fn {:filename filename
+                           :uri (->uri nil nil filename)
+                           :total-files total-files})))))
 
 ;;;; Scratch
 

@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :refer [path-separator]]
-   [clj-kondo.test-utils :refer [file-path file-separator assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submaps file-path file-separator]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -153,6 +153,15 @@
                                                     :end-col (:name-end-col e)
                                                     :type :org.acme/forbidden-var))))))}))))
 
+(defn file-analyzed-fn [paths lang file-analyzed-fn extra-config]
+  (clj-kondo/run!
+   (merge
+    {:lint paths
+     :lang lang
+     :config {:analysis true}
+     :file-analyzed-fn file-analyzed-fn}
+    extra-config)))
+
 (deftest custom-lint-fn-test
   (testing "custom-lint reg a new finding and reg-finding! return the new finding"
     ;; TODO
@@ -180,6 +189,64 @@
                 :parallel true})]
       (is (empty? (:findings res)))
       (is (empty? (:analysis res))))))
+
+(deftest file-analyzed-fn-test
+  (testing "we call the callback fn for all given entries"
+    (let [calls (atom [])
+          res (file-analyzed-fn
+                ["corpus/use.clj"
+                 "corpus/case.clj"
+                 "corpus/schema"]
+                :clj
+                (fn [entry-map]
+                  (swap! calls conj entry-map))
+                {})]
+      (is res)
+      (assert-submaps
+        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 6}
+          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 6}
+          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 6}
+          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 6}
+          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 6}
+          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 6}}
+        (set @calls))))
+  (testing "when lint is classpath"
+    (let [calls (atom [])
+          res (file-analyzed-fn
+                [(str/join
+                   path-separator
+                   ["corpus/invalid_arity" "corpus/private"])]
+                :clj
+                (fn [entry-map]
+                  (swap! calls conj entry-map))
+                {})]
+      (is res)
+      (assert-submaps
+        #{{:filename "corpus/invalid_arity/calls.clj" :uri #"file:/.*/corpus/invalid_arity/calls.clj" :total-files 5}
+          {:filename "corpus/invalid_arity/order.clj" :uri #"file:/.*/corpus/invalid_arity/order.clj" :total-files 5}
+          {:filename "corpus/invalid_arity/defs.clj" :uri #"file:/.*/corpus/invalid_arity/defs.clj" :total-files 5}
+          {:filename "corpus/private/private_calls.clj" :uri #"file:/.*/corpus/private/private_calls.clj" :total-files 5}
+          {:filename "corpus/private/private_defs.clj" :uri  #"file:/.*/corpus/private/private_defs.clj" :total-files 5}}
+        (set @calls))))
+  (testing "when parallel"
+    (let [calls (atom [])
+          res (file-analyzed-fn
+                ["corpus/use.clj"
+                 "corpus/case.clj"
+                 "corpus/schema"]
+                :clj
+                (fn [entry-map]
+                  (swap! calls conj entry-map))
+                {:parallel true})]
+      (is res)
+      (assert-submaps
+        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 6}
+          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 6}
+          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 6}
+          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 6}
+          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 6}
+          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 6}}
+        (set @calls)))))
 
 ;;;; Scratch
 

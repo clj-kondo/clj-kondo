@@ -361,6 +361,48 @@
 (defn classpath? [f]
   (str/includes? f path-separator))
 
+(defn ^:private entries-from-jar-count [^java.io.File jar-file]
+  (with-open [jar (JarFile. jar-file)]
+    (->> (.entries jar)
+         enumeration-seq
+         (filter (fn [^JarFile$JarFileEntry x]
+                   (and (not (.isDirectory x))
+                        (source-file? (.getName x)))))
+         count)))
+
+(defn ^:private files-count [paths]
+  (->> paths
+       (map (fn [path]
+              (let [path (str path)
+                    file (io/file path)
+                    file-path (when (.exists file)
+                                (.getCanonicalPath file))]
+                (cond
+                  (and file-path
+                       (str/ends-with? file-path ".jar"))
+                  (entries-from-jar-count file)
+
+                  (and file-path
+                       (.isFile file))
+                  1
+
+                  file-path
+                  (->> (file-seq file)
+                       (filter (fn [^java.io.File f]
+                                 (and (.canRead f)
+                                      (.isFile f)
+                                      (source-file? (.getCanonicalPath f)))))
+                       count)
+
+                  (= "-" path)
+                  1
+
+                  (classpath? path)
+                  (files-count (str/split path (re-pattern path-separator)))
+
+                  :else 0))))
+       (reduce + 0)))
+
 (defn schedule [ctx {:keys [:filename :source :lang :uri] :as m} dev?]
   (swap! (:files ctx) inc)
   (if (:parallel ctx)
@@ -427,8 +469,8 @@
           (when-not (:skip-lint ctx)
             (findings/reg-finding! ctx
                                    {:filename (if canonical?
-                                              ;; canonical path on weird file
-                                              ;; crashes on Windows
+                                                ;; canonical path on weird file
+                                                ;; crashes on Windows
                                                 (try (.getCanonicalPath file)
                                                      (catch Exception _ path))
                                                 path)
@@ -482,7 +524,9 @@
   (let [ctx (assoc ctx :seen-files (atom #{}))
         cache-dir (:cache-dir ctx)
         ctx (assoc ctx :detected-configs (atom [])
-                   :mark-linted (atom []))
+                   :mark-linted (atom [])
+                   :total-files (when (:file-analyzed-fn ctx)
+                                  (files-count files)))
         canonical? (-> ctx :config :output :canonical-paths)]
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (and (:parallel ctx)

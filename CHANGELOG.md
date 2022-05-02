@@ -5,6 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#1674](https://github.com/clj-kondo/clj-kondo/pull/1674): config options to limit analysis of var-usages and bodies of var-definitions. Can be used to get a quick overview of a project's namespaces and vars, without analyzing their details.
+- [#1676](https://github.com/clj-kondo/clj-kondo/pull/1674): Add support for custom function to be called for progress update, `:file-analyzed-fn`.
 
 ## 2022.04.25
 
