@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :refer [path-separator]]
-   [clj-kondo.test-utils :refer [assert-submaps file-path file-separator]]
+   [clj-kondo.test-utils :refer [assert-submaps file-path file-separator normalize-filename]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -208,7 +208,9 @@
                {:filename "corpus/schema/defmethod.clj" :files-count 6}
                {:filename "corpus/schema/defrecord.clj" :files-count 6}
                {:filename "corpus/schema/defs.clj" :files-count 6}}
-             (set @calls)))))
+             (->> @calls
+                  (map #(update % :filename normalize-filename))
+                  set)))))
   (testing "when lint is classpath"
     (let [calls (atom [])
           res (file-analyzed-fn
@@ -225,7 +227,9 @@
                {:filename "corpus/invalid_arity/defs.clj" :files-count 5}
                {:filename "corpus/private/private_calls.clj" :files-count 5}
                {:filename "corpus/private/private_defs.clj" :files-count 5}}
-             (set @calls)))))
+             (->> @calls
+                  (map #(update % :filename normalize-filename))
+                  set)))))
   (testing "when parallel"
     (let [calls (atom [])
           res (file-analyzed-fn
@@ -243,7 +247,9 @@
                {:filename "corpus/schema/defmethod.clj" :files-count 6}
                {:filename "corpus/schema/defrecord.clj" :files-count 6}
                {:filename "corpus/schema/defs.clj" :files-count 6}}
-             (set @calls))))))
+             (->> @calls
+                  (map #(update % :filename normalize-filename))
+                  set))))))
 
 ;;;; Scratch
 
