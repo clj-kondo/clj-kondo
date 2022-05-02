@@ -153,13 +153,13 @@
                                                     :end-col (:name-end-col e)
                                                     :type :org.acme/forbidden-var))))))}))))
 
-(defn on-progress-update-fn [paths lang on-progress-update-fn extra-config]
+(defn file-analyzed-fn [paths lang file-analyzed-fn extra-config]
   (clj-kondo/run!
    (merge
     {:lint paths
      :lang lang
      :config {:analysis true}
-     :on-progress-update-fn on-progress-update-fn}
+     :file-analyzed-fn file-analyzed-fn}
     extra-config)))
 
 (deftest custom-lint-fn-test
@@ -190,10 +190,10 @@
       (is (empty? (:findings res)))
       (is (empty? (:analysis res))))))
 
-(deftest on-progress-update-fn-test
+(deftest file-analyzed-fn-test
   (testing "we call the callback fn for all given entries"
     (let [calls (atom [])
-          res (on-progress-update-fn
+          res (file-analyzed-fn
                ["corpus/use.clj"
                 "corpus/case.clj"
                 "corpus/schema"]
@@ -202,13 +202,16 @@
                  (swap! calls conj entry-map))
                {})]
       (is res)
-      (is (= [{:entry "corpus/use.clj"}
-              {:entry "corpus/case.clj"}
-              {:entry "corpus/schema"}]
+      (is (= [{:filename "corpus/use.clj" :files-count 6}
+              {:filename "corpus/case.clj" :files-count 6}
+              {:filename "corpus/schema/calls.clj" :files-count 6}
+              {:filename "corpus/schema/defmethod.clj" :files-count 6}
+              {:filename "corpus/schema/defrecord.clj" :files-count 6}
+              {:filename "corpus/schema/defs.clj" :files-count 6}]
              @calls))))
   (testing "when lint is classpath"
     (let [calls (atom [])
-          res (on-progress-update-fn
+          res (file-analyzed-fn
                [(str/join
                  path-separator
                  ["corpus/invalid_arity" "corpus/private"])]
@@ -217,23 +220,29 @@
                  (swap! calls conj entry-map))
                {})]
       (is res)
-      (is (= [{:entry "corpus/invalid_arity"}
-              {:entry "corpus/private"}]
+      (is (= [{:filename "corpus/invalid_arity/calls.clj" :files-count 5}
+              {:filename "corpus/invalid_arity/order.clj" :files-count 5}
+              {:filename "corpus/invalid_arity/defs.clj" :files-count 5}
+              {:filename "corpus/private/private_calls.clj" :files-count 5}
+              {:filename "corpus/private/private_defs.clj" :files-count 5}]
              @calls))))
   (testing "when parallel"
     (let [calls (atom [])
-          res (on-progress-update-fn
-               ["corpus/use.clj"
-                "corpus/case.clj"
-                "corpus/schema"]
-               :clj
-               (fn [entry-map]
-                 (swap! calls conj entry-map))
-               {:parallel true})]
+          res (file-analyzed-fn
+                ["corpus/use.clj"
+                 "corpus/case.clj"
+                 "corpus/schema"]
+                :clj
+                (fn [entry-map]
+                  (swap! calls conj entry-map))
+                {:parallel true})]
       (is res)
-      (is (= #{{:entry "corpus/case.clj"}
-               {:entry "corpus/schema"}
-               {:entry "corpus/use.clj"}}
+      (is (= #{{:filename "corpus/use.clj" :files-count 6}
+               {:filename "corpus/case.clj" :files-count 6}
+               {:filename "corpus/schema/calls.clj" :files-count 6}
+               {:filename "corpus/schema/defmethod.clj" :files-count 6}
+               {:filename "corpus/schema/defrecord.clj" :files-count 6}
+               {:filename "corpus/schema/defs.clj" :files-count 6}}
              (set @calls))))))
 
 ;;;; Scratch

@@ -2652,17 +2652,10 @@
                       filename ", "
                       (or (.getMessage ex) (str ex)))}])))
 
-(defn notify-progress [filename {:keys [on-progress-update-fn entries-to-call entries-call-count]}]
-  (when on-progress-update-fn
-    (when-let [entry (get @entries-to-call filename)]
-      (swap! entries-call-count update entry dec)
-      (when (= 0 (get @entries-call-count entry))
-        (on-progress-update-fn {:entry entry})))))
-
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config] :as ctx} filename uri input lang dev?]
+  [{:keys [:config :file-analyzed-fn :files-count] :as ctx} filename uri input lang dev?]
   (when (:debug ctx)
     (utils/stderr "[clj-kondo] Linting file:" filename))
   (try
@@ -2711,7 +2704,10 @@
         (when (and (= :text (:format output-cfg))
                    (:progress output-cfg))
           (binding [*out* *err*]
-            (print ".") (flush)))))))
+            (print ".") (flush))))
+      (when file-analyzed-fn
+        (file-analyzed-fn {:filename filename
+                           :files-count @files-count})))))
 
 ;;;; Scratch
 

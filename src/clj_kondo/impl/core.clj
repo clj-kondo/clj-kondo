@@ -326,8 +326,7 @@
     (when-let [group (.pollFirst deque)]
       (try
         (doseq [{:keys [:filename :source :lang :uri]} group]
-          (ana/analyze-input ctx filename uri source lang dev?)
-          (ana/notify-progress filename ctx))
+          (ana/analyze-input ctx filename uri source lang dev?))
         (catch Exception e (binding [*out* *err*]
                              (prn e))))
       (recur))))
@@ -362,19 +361,53 @@
 (defn classpath? [f]
   (str/includes? f path-separator))
 
-(defn schedule [ctx {:keys [:filename :source :lang :uri :entry] :as m} dev?]
+(defn ^:private entries-from-jar [^java.io.File jar-file]
+  (with-open [jar (JarFile. jar-file)]
+    (->> (.entries jar)
+         enumeration-seq
+         (filter (fn [^JarFile$JarFileEntry x]
+                   (and (not (.isDirectory x))
+                        (source-file? (.getName x))))))))
+
+(defn ^:private files-count [paths]
+  (->> paths
+       (map (fn [path]
+              (let [path (str path)
+                    file (io/file path)
+                    canonical (when (.exists file)
+                                (.getCanonicalPath file))]
+                (cond
+                  (and canonical
+                       (str/ends-with? canonical ".jar"))
+                  (count (entries-from-jar file))
+
+                  (and canonical
+                       (.isFile file))
+                  1
+
+                  canonical
+                  (->> (file-seq file)
+                       (filter (fn [^java.io.File f]
+                                 (and (.canRead f)
+                                      (.isFile f)
+                                      (source-file? (.getCanonicalPath f)))))
+                       count)
+
+                  (= "-" path)
+                  1
+
+                  (classpath? path)
+                  (files-count (str/split path (re-pattern path-separator)))
+
+                  :else 0))))
+       (reduce + 0)))
+
+(defn schedule [ctx {:keys [:filename :source :lang :uri] :as m} dev?]
   (swap! (:files ctx) inc)
-  (swap! (:entries-to-call ctx) assoc filename entry)
   (if (:parallel ctx)
-    (do
-      (swap! (:sources ctx) conj m)
-      (when entry
-        (swap! (:entries-call-count ctx) update entry #(inc (or % 0)))))
-    (do
-      (when (or (:analysis ctx) (not (:skip-lint ctx)))
-        (ana/analyze-input ctx filename uri source lang dev?))
-      (when (and entry (not (:parallel ctx)))
-        (ana/notify-progress filename ctx)))))
+    (swap! (:sources ctx) conj m)
+    (when (or (:analysis ctx) (not (:skip-lint ctx)))
+      (ana/analyze-input ctx filename uri source lang dev?))))
 
 (defn process-file [ctx path default-language canonical? filename]
   (let [seen-files (:seen-files ctx)]
@@ -389,46 +422,38 @@
             debug (:debug ctx)]
         (cond
           canonical ;; implies the file exiss
-          (do
-            (when-not (:parallel ctx)
-              (swap! (:entries-call-count ctx) assoc path 1))
-            (if (.isFile file)
-              (when-not (seen? canonical seen-files debug)
-                (if (str/ends-with? canonical ".jar")
-                  ;; process jar file
-                  (let [jar-name (.getName file)
-                        config-hash (force (:config-hash ctx))
-                        cache-dir (:cache-dir ctx)
-                        skip-mark (str jar-name "." config-hash)
-                        skip-entry (when cache-dir (io/file cache-dir "skip" skip-mark))]
-                    (if (and cache-dir (:dependencies ctx)
-                             (not (str/includes? jar-name "SNAPSHOT"))
-                             (.exists skip-entry)
-                             (= path (slurp skip-entry)))
-                      (utils/stderr "[clj-kondo]" jar-name "was already linted, skipping")
-                      (do (run! #(schedule ctx (assoc %
-                                                      :lang (lang-from-file (:filename %) default-language)
-                                                      :entry path)
-                                           dev?)
-                                (sources-from-jar ctx file canonical?))
-                          (swap! (:mark-linted ctx) conj [skip-mark path]))))
-                  ;; assume normal source file
-                  (let [fn (if canonical?
-                             canonical
-                             path)]
-                    (if (str/ends-with? canonical ".java")
-                      (java/reg-class-def! ctx {:file canonical})
-                      (schedule ctx {:filename fn
-                                     :uri (->uri nil nil fn)
-                                     :source (slurp file)
-                                     :lang (lang-from-file path default-language)
-                                     :entry path}
-                                dev?)))))
-              ;; assume directory
-              (run! #(schedule ctx (assoc %
-                                          :lang (lang-from-file (:filename %) default-language)
-                                          :entry path) dev?)
-                    (sources-from-dir ctx file canonical?))))
+          (if (.isFile file)
+            (when-not (seen? canonical seen-files debug)
+              (if (str/ends-with? canonical ".jar")
+                ;; process jar file
+                (let [jar-name (.getName file)
+                      config-hash (force (:config-hash ctx))
+                      cache-dir (:cache-dir ctx)
+                      skip-mark (str jar-name "." config-hash)
+                      skip-entry (when cache-dir (io/file cache-dir "skip" skip-mark))]
+                  (if (and cache-dir (:dependencies ctx)
+                           (not (str/includes? jar-name "SNAPSHOT"))
+                           (.exists skip-entry)
+                           (= path (slurp skip-entry)))
+                    (utils/stderr "[clj-kondo]" jar-name "was already linted, skipping")
+                    (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
+                                         dev?)
+                              (sources-from-jar ctx file canonical?))
+                        (swap! (:mark-linted ctx) conj [skip-mark path]))))
+                ;; assume normal source file
+                (let [fn (if canonical?
+                           canonical
+                           path)]
+                  (if (str/ends-with? canonical ".java")
+                    (java/reg-class-def! ctx {:file canonical})
+                    (schedule ctx {:filename fn
+                                   :uri (->uri nil nil fn)
+                                   :source (slurp file)
+                                   :lang (lang-from-file path default-language)}
+                              dev?)))))
+            ;; assume directory
+            (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
+                  (sources-from-dir ctx file canonical?)))
           (= "-" path)
           (schedule ctx {:filename (or filename "<stdin>")
                          :source (slurp *in*)
@@ -500,6 +525,8 @@
         ctx (assoc ctx :detected-configs (atom [])
                    :mark-linted (atom []))
         canonical? (-> ctx :config :output :canonical-paths)]
+    (when (:file-analyzed-fn ctx)
+      (reset! (:files-count ctx) (files-count files)))
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (and (:parallel ctx)
                (or (:analysis ctx)
