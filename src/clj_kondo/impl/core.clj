@@ -406,11 +406,12 @@
                              (.exists skip-entry)
                              (= path (slurp skip-entry)))
                       (utils/stderr "[clj-kondo]" jar-name "was already linted, skipping")
-                      (run! #(schedule ctx (assoc %
-                                                  :lang (lang-from-file (:filename %) default-language)
-                                                  :entry path)
-                                       dev?)
-                            (sources-from-jar ctx file canonical?))))
+                      (do (run! #(schedule ctx (assoc %
+                                                      :lang (lang-from-file (:filename %) default-language)
+                                                      :entry path)
+                                           dev?)
+                                (sources-from-jar ctx file canonical?))
+                          (swap! (:mark-linted ctx) conj [skip-mark path]))))
                   ;; assume normal source file
                   (let [fn (if canonical?
                              canonical
