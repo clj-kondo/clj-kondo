@@ -361,31 +361,32 @@
 (defn classpath? [f]
   (str/includes? f path-separator))
 
-(defn ^:private entries-from-jar [^java.io.File jar-file]
+(defn ^:private entries-from-jar-count [^java.io.File jar-file]
   (with-open [jar (JarFile. jar-file)]
     (->> (.entries jar)
          enumeration-seq
          (filter (fn [^JarFile$JarFileEntry x]
                    (and (not (.isDirectory x))
-                        (source-file? (.getName x))))))))
+                        (source-file? (.getName x)))))
+         count)))
 
 (defn ^:private files-count [paths]
   (->> paths
        (map (fn [path]
               (let [path (str path)
                     file (io/file path)
-                    canonical (when (.exists file)
+                    file-path (when (.exists file)
                                 (.getCanonicalPath file))]
                 (cond
-                  (and canonical
-                       (str/ends-with? canonical ".jar"))
-                  (count (entries-from-jar file))
+                  (and file-path
+                       (str/ends-with? file-path ".jar"))
+                  (entries-from-jar-count file)
 
-                  (and canonical
+                  (and file-path
                        (.isFile file))
                   1
 
-                  canonical
+                  file-path
                   (->> (file-seq file)
                        (filter (fn [^java.io.File f]
                                  (and (.canRead f)
