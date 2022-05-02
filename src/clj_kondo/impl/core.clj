@@ -524,10 +524,10 @@
   (let [ctx (assoc ctx :seen-files (atom #{}))
         cache-dir (:cache-dir ctx)
         ctx (assoc ctx :detected-configs (atom [])
-                   :mark-linted (atom []))
+                   :mark-linted (atom [])
+                   :total-files (when (:file-analyzed-fn ctx)
+                                  (files-count files)))
         canonical? (-> ctx :config :output :canonical-paths)]
-    (when (:file-analyzed-fn ctx)
-      (reset! (:files-count ctx) (files-count files)))
     (run! #(process-file ctx % default-lang canonical? filename) files)
     (when (and (:parallel ctx)
                (or (:analysis ctx)

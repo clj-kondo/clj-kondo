@@ -163,7 +163,6 @@
              :analysis analysis
              :cache-dir cache-dir
              :used-namespaces used-nss
-             :files-count (atom 0)
              :file-analyzed-fn file-analyzed-fn
              :ignores (atom {})
              :id-gen (when analyze-locals? (atom 0))

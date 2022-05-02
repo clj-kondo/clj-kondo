@@ -202,12 +202,12 @@
                   (swap! calls conj entry-map))
                 {})]
       (is res)
-      (is (= #{{:filename "corpus/use.clj" :files-count 6}
-               {:filename "corpus/case.clj" :files-count 6}
-               {:filename "corpus/schema/calls.clj" :files-count 6}
-               {:filename "corpus/schema/defmethod.clj" :files-count 6}
-               {:filename "corpus/schema/defrecord.clj" :files-count 6}
-               {:filename "corpus/schema/defs.clj" :files-count 6}}
+      (is (= #{{:filename "corpus/use.clj" :total-files 6}
+               {:filename "corpus/case.clj" :total-files 6}
+               {:filename "corpus/schema/calls.clj" :total-files 6}
+               {:filename "corpus/schema/defmethod.clj" :total-files 6}
+               {:filename "corpus/schema/defrecord.clj" :total-files 6}
+               {:filename "corpus/schema/defs.clj" :total-files 6}}
              (->> @calls
                   (map #(update % :filename normalize-filename))
                   set)))))
@@ -222,11 +222,11 @@
                   (swap! calls conj entry-map))
                 {})]
       (is res)
-      (is (= #{{:filename "corpus/invalid_arity/calls.clj" :files-count 5}
-               {:filename "corpus/invalid_arity/order.clj" :files-count 5}
-               {:filename "corpus/invalid_arity/defs.clj" :files-count 5}
-               {:filename "corpus/private/private_calls.clj" :files-count 5}
-               {:filename "corpus/private/private_defs.clj" :files-count 5}}
+      (is (= #{{:filename "corpus/invalid_arity/calls.clj" :total-files 5}
+               {:filename "corpus/invalid_arity/order.clj" :total-files 5}
+               {:filename "corpus/invalid_arity/defs.clj" :total-files 5}
+               {:filename "corpus/private/private_calls.clj" :total-files 5}
+               {:filename "corpus/private/private_defs.clj" :total-files 5}}
              (->> @calls
                   (map #(update % :filename normalize-filename))
                   set)))))
@@ -241,12 +241,12 @@
                   (swap! calls conj entry-map))
                 {:parallel true})]
       (is res)
-      (is (= #{{:filename "corpus/use.clj" :files-count 6}
-               {:filename "corpus/case.clj" :files-count 6}
-               {:filename "corpus/schema/calls.clj" :files-count 6}
-               {:filename "corpus/schema/defmethod.clj" :files-count 6}
-               {:filename "corpus/schema/defrecord.clj" :files-count 6}
-               {:filename "corpus/schema/defs.clj" :files-count 6}}
+      (is (= #{{:filename "corpus/use.clj" :total-files 6}
+               {:filename "corpus/case.clj" :total-files 6}
+               {:filename "corpus/schema/calls.clj" :total-files 6}
+               {:filename "corpus/schema/defmethod.clj" :total-files 6}
+               {:filename "corpus/schema/defrecord.clj" :total-files 6}
+               {:filename "corpus/schema/defs.clj" :total-files 6}}
              (->> @calls
                   (map #(update % :filename normalize-filename))
                   set))))))

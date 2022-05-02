@@ -2655,7 +2655,7 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config :file-analyzed-fn :files-count] :as ctx} filename uri input lang dev?]
+  [{:keys [:config :file-analyzed-fn :total-files] :as ctx} filename uri input lang dev?]
   (when (:debug ctx)
     (utils/stderr "[clj-kondo] Linting file:" filename))
   (try
@@ -2707,7 +2707,7 @@
             (print ".") (flush))))
       (when file-analyzed-fn
         (file-analyzed-fn {:filename filename
-                           :files-count @files-count})))))
+                           :total-files total-files})))))
 
 ;;;; Scratch
 
