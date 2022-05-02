@@ -36,7 +36,8 @@
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [symbol-call node->line parse-string tag select-lang deep-merge one-of
-     linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
+     linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings
+     ->uri]]
    [clojure.set :as set]
    [clojure.string :as str]
    [sci.core :as sci]))
@@ -2707,6 +2708,7 @@
             (print ".") (flush))))
       (when file-analyzed-fn
         (file-analyzed-fn {:filename filename
+                           :uri (->uri nil nil filename)
                            :total-files total-files})))))
 
 ;;;; Scratch
