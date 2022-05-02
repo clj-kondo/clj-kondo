@@ -196,7 +196,8 @@
           res (file-analyzed-fn
                 ["corpus/use.clj"
                  "corpus/case.clj"
-                 "corpus/schema"]
+                 "corpus/schema"
+                 "corpus/exports/dir"]
                 :clj
                 (fn [entry-map]
                   (swap! calls conj entry-map))
@@ -233,7 +234,8 @@
           res (file-analyzed-fn
                 ["corpus/use.clj"
                  "corpus/case.clj"
-                 "corpus/schema"]
+                 "corpus/schema"
+                 "corpus/exports/dir"]
                 :clj
                 (fn [entry-map]
                   (swap! calls conj entry-map))
