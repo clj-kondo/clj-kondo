@@ -194,38 +194,38 @@
   (testing "we call the callback fn for all given entries"
     (let [calls (atom [])
           res (file-analyzed-fn
-               ["corpus/use.clj"
-                "corpus/case.clj"
-                "corpus/schema"]
-               :clj
-               (fn [entry-map]
-                 (swap! calls conj entry-map))
-               {})]
+                ["corpus/use.clj"
+                 "corpus/case.clj"
+                 "corpus/schema"]
+                :clj
+                (fn [entry-map]
+                  (swap! calls conj entry-map))
+                {})]
       (is res)
-      (is (= [{:filename "corpus/use.clj" :files-count 6}
-              {:filename "corpus/case.clj" :files-count 6}
-              {:filename "corpus/schema/calls.clj" :files-count 6}
-              {:filename "corpus/schema/defmethod.clj" :files-count 6}
-              {:filename "corpus/schema/defrecord.clj" :files-count 6}
-              {:filename "corpus/schema/defs.clj" :files-count 6}]
-             @calls))))
+      (is (= #{{:filename "corpus/use.clj" :files-count 6}
+               {:filename "corpus/case.clj" :files-count 6}
+               {:filename "corpus/schema/calls.clj" :files-count 6}
+               {:filename "corpus/schema/defmethod.clj" :files-count 6}
+               {:filename "corpus/schema/defrecord.clj" :files-count 6}
+               {:filename "corpus/schema/defs.clj" :files-count 6}}
+             (set @calls)))))
   (testing "when lint is classpath"
     (let [calls (atom [])
           res (file-analyzed-fn
-               [(str/join
-                 path-separator
-                 ["corpus/invalid_arity" "corpus/private"])]
-               :clj
-               (fn [entry-map]
-                 (swap! calls conj entry-map))
-               {})]
+                [(str/join
+                   path-separator
+                   ["corpus/invalid_arity" "corpus/private"])]
+                :clj
+                (fn [entry-map]
+                  (swap! calls conj entry-map))
+                {})]
       (is res)
-      (is (= [{:filename "corpus/invalid_arity/calls.clj" :files-count 5}
-              {:filename "corpus/invalid_arity/order.clj" :files-count 5}
-              {:filename "corpus/invalid_arity/defs.clj" :files-count 5}
-              {:filename "corpus/private/private_calls.clj" :files-count 5}
-              {:filename "corpus/private/private_defs.clj" :files-count 5}]
-             @calls))))
+      (is (= #{{:filename "corpus/invalid_arity/calls.clj" :files-count 5}
+               {:filename "corpus/invalid_arity/order.clj" :files-count 5}
+               {:filename "corpus/invalid_arity/defs.clj" :files-count 5}
+               {:filename "corpus/private/private_calls.clj" :files-count 5}
+               {:filename "corpus/private/private_defs.clj" :files-count 5}}
+             (set @calls)))))
   (testing "when parallel"
     (let [calls (atom [])
           res (file-analyzed-fn
