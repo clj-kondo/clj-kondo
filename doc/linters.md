@@ -1235,9 +1235,7 @@ You can report duplicate warnings using:
 
 *Keyword:* `:unused-namespace`.
 
-*Description:* warns on required but unused namespace. Namespaces without `:as`
-or `:refer` are assumed to be loaded for side effects, e.g. for clojure.spec or
-defining a protocol or multi-method.
+*Description:* warns on required but unused namespace.
 
 *Default level:* `:warning`.
 
@@ -1269,6 +1267,14 @@ A regex is also supported:
 ```
 
 This will exclude all namespaces ending with `.specs`.
+
+Namespaces without `:as` or `:refer` are assumed to be loaded for side effects,
+e.g. for clojure.spec or defining a protocol or multi-method, so the following
+will not trigger a warning:
+
+``` clojure
+(ns foo (:require [foo.specs]))
+```
 
 ### Unused private var
 
