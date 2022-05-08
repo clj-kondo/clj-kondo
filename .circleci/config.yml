@@ -316,23 +316,4 @@ jobs:
 workflows:
   version: 2
   ci:
-    jobs:
-      - jvm
-      - linux
-      - linux-static
-      - mac
-      - deploy:
-          filters:
-            branches:
-              only: master
-          requires:
-            - jvm
-            - linux
-      - docker:
-          filters:
-            branches:
-              only: master
-          requires:
-            - jvm
-            - linux
-            - linux-static
+    jobs: []
