@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  native:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    strategy:
+      matrix:
+        include:
+          - os: macos-12
+            name: macos
+            static: false
+         #- os: ubuntu-latest
+         #  name: linux
+         #  static: false
+         #- os: ubuntu-latest
+         #  name: linux
+         #  static: true
+    runs-on: ${{ matrix.os }}
+    env:
+      LEIN_ROOT: "true"
+      CLJ_KONDO_PLATFORM: linux # used in release script
+      CLJ_KONDO_TEST_ENV: native
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Cache deps
+        uses: actions/cache@v2
+        id: cache-deps
+        with:
+          path: ~/.m2/repository
+          key: v1-dependencies-${{ hashFiles('deps.edn') }}
+          restore-keys: v1-dependencies-
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@5.0
+        with:
+          cli: 1.10.3.855
+          lein: 2.9.8
+          bb: 0.8.2
+
+      - name: Setup GraalVM
+        if: "matrix.static == false"
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.1.0'
+          java-version: '11'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup GraalVM+musl
+        if: "matrix.static == true"
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.1.0'
+          java-version: '11'
+          components: 'native-image'
+          native-image-musl: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install native dev tools
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install build-essential zlib1g-dev
+
+      - name: Build native image
+        if: "matrix.static == false"
+        run: script/compile
+
+      - name: Build static native image
+        if: "matrix.static == true"
+        env:
+          CLJ_KONDO_STATIC: "true"
+          CLJ_KONDO_MUSL: "true"
+        run: script/compile
+
+      - name: Test binary
+        run: script/test
+
+      - name: Performace Report
+        run: .circleci/script/performance
+
+      - name: Release
+        run: .circleci/script/release
+
+      - name: clj-kondo version
+        id: clj-kondo-version
+        run: |
+          CLJ_KONDO_VERSION=$(cat resources/CLJ_KONDO_VERSION)
+          echo "##[set-output name=version;]${CLJ_KONDO_VERSION}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          path: clj-kondo
+          name: clj-kondo-${{ steps.clj-kondo-version.outputs.version }}-${{ matrix.name }}-amd64
+
+      - name: Upload static artifact
+        if: "matrix.static == true"
+        uses: actions/upload-artifact@v2
+        with:
+          path: clj-kondo
+          name: clj-kondo-${{ steps.clj-kondo-version.outputs.version }}-${{ matrix.name }}-static-amd64

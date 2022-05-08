@@ -320,7 +320,7 @@ workflows:
       - jvm
       - linux
       - linux-static
-      - mac
+     #- mac # TODO: Enable it when Actions is not needed
       - deploy:
           filters:
             branches:
