@@ -316,4 +316,23 @@ jobs:
 workflows:
   version: 2
   ci:
-    jobs: []
+    jobs:
+      - jvm
+      - linux
+      - linux-static
+     #- mac # TODO: Enable it when Actions is not needed
+      - deploy:
+          filters:
+            branches:
+              only: master
+          requires:
+            - jvm
+            - linux
+      - docker:
+          filters:
+            branches:
+              only: master
+          requires:
+            - jvm
+            - linux
+            - linux-static
