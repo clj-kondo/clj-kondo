@@ -349,6 +349,127 @@ repeat that expression `n` times (where `n` is a large number like
 1000000). Then lint the file with `clj-kondo --lint` and measure
 timing. The `time` macro is also available within hooks code.
 
+### Refreshing with tools.namespace
+
+Out of the box, `tools.namespace/refresh(-all)` will attempt to reload all
+namespaces that are in Clojure source files (`.clj` etc.) in _directories_ (i.e.
+not jars) on the classpath. As clj-kondo allows defining hooks in `.clj` files,
+these will be attempted to be also loaded. This can be problematic as a) these
+hooks are normally not intended to be loaded in the project, only in the
+clj-kondo process b) they are normally placed in a location different to where
+Clojure would expect them based on their namespace name.
+
+Example:
+
+```shell
+clj -Srepro -Sdeps \
+ '{:deps {org.clojure/tools.namespace {:mvn/version "1.2.0"} seancorfield/next.jdbc {:git/url "https://github.com/seancorfield/next-jdbc/" :git/sha "24bf1dbaa441d62461f980e9f880df5013f295dd"}}}' \
+ -M -e "((requiring-resolve 'clojure.tools.namespace.repl/refresh-all))"
+```
+
+The above will result in a loading error although the configuration loaded from
+the referenced lib is valid according to clj-kondo.
+
+```
+Could not locate
+  hooks/com/github/seancorfield/next_jdbc__init.class,
+  hooks/com/github/seancorfield/next_jdbc.clj or
+  hooks/com/github/seancorfield/next_jdbc.cljc on classpath.
+Please check that namespaces with dashes use underscores in the Clojure file name.
+```
+
+There is an
+existing [ask.clojure question](https://ask.clojure.org/index.php/11434/could-namespace-refresh-sophisticated-directory-filtering)
+about this.
+
+A workaround is to explicitly set the directories `tools.namespace` will search
+for Clojure namespaces using `clojure.tools.namespace.repl/set-refresh-dirs`.
+
+To try and still be as broad as possible with the search (as is the default),
+the following could be an option:
+
+```clojure
+(defn remove-clj-kondo-exports-from-tools-ns-refresh-dirs
+  "A potential issue from using this is that if the directory containing the clj-kondo.exports folder
+  also directly contains to-be-reloaded clojure source files, those will no longer be reloaded."
+  []
+  (->> (clojure.java.classpath/classpath-directories)
+       (mapcat
+        (fn [^File classpath-directory]
+          (let [children   (.listFiles classpath-directory)
+                directory? #(.isDirectory ^File %)
+                clj-kondo-exports?
+                           #(= "clj-kondo.exports" (.getName ^File %))
+                has-clj-kondo-exports
+                           (some (every-pred clj-kondo-exports? directory?) children)]
+            (if has-clj-kondo-exports
+              (->> children
+                   (filter directory?)
+                   (remove clj-kondo-exports?))
+              [classpath-directory]))))
+       (apply clojure.tools.namespace.repl/set-refresh-dirs)))
+
+;; call in user.clj
+(remove-clj-kondo-exports-from-tools-ns-refresh-dirs)
+```
+
+### Compatibility with tools.build compilation
+
+Similar to the previous point about `tools.namespace`, compiling a project that
+has hooks defined in `.clj` files on its classpath with `tools.build` might run
+into issues if one wants to let `tools.build` find as many namespaces to
+compile as possible (by setting `:src-dirs (:classpath-roots basis)`). See
+some discussion about this
+in [this Clojurians thread](https://clojurians.slack.com/archives/C02B5GHQWP4/p1651685386479149).
+
+```shell
+cat <<EOF > deps.edn
+{:deps {seancorfield/next.jdbc
+        {:git/url "https://github.com/seancorfield/next-jdbc/"
+         :git/sha "24bf1dbaa441d62461f980e9f880df5013f295dd"}}
+ :aliases
+ {:build
+  {:paths []
+   :deps
+   {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf"}}}}}
+EOF
+
+clj -Srepro -M:build -e \
+ "(let [basis ((requiring-resolve 'clojure.tools.build.api/create-basis))] ((requiring-resolve 'clojure.tools.build.api/compile-clj) {:basis basis :src-dirs (:classpath-roots basis) :class-dir \"classes\"}))"
+```
+
+Results in:
+
+```
+Execution error (FileNotFoundException) at user/eval136$fn (compile.clj:17).
+Could not locate hooks/com/github/seancorfield/next_jdbc__init.class,
+hooks/com/github/seancorfield/next_jdbc.clj or
+hooks/com/github/seancorfield/next_jdbc.cljc on classpath.
+Please check that namespaces with dashes use underscores in the Clojure file name.
+```
+
+A workaround is to copy and tweak namespace discovery from `tools.build`:
+
+```clojure
+(require
+ '[clojure.tools.build.api :as b]
+ '[clojure.tools.build.tasks.compile-clj :as compile-clj])
+
+(defn with-safe-ns-compile
+  "Attempts to obtain a collection of namespaces that are safe to call
+  (compile) on and associates it under :ns-compile"
+  [{:keys [basis sort] :or {sort :topo} :as compile-clj-opts}]
+  (let [clj-paths (mapv b/resolve-path (:classpath-roots basis))]
+    (->> (case sort
+           :topo (#'compile-clj/nses-in-topo clj-paths)
+           :bfs (#'compile-clj/nses-in-bfs clj-paths)
+           (throw (ex-info "Invalid :sort in compile-clj task" {:sort sort})))
+         
+         ;; Adjust pred to your own needs
+         (filterv #(re-find #"^(my-namespace-prefix|other-safe-prefix)\." (name %)))
+         (assoc compile-clj-opts :ns-compile))))
+```
+
 ## Refer to exported config within project
 
 To refer to the exported config for a project within that same project, you can use:
