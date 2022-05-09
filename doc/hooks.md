@@ -10,15 +10,15 @@ Hooks receive Clojure code as rewrite-clj nodes, not only for performance reason
 also because rewrite-clj nodes carry the line and row numbers for every Clojure element.
 Note that when we refer to a "rewrite-clj node", we are referring to clj-kondo's version of rewrite-clj node.
 Clj-kondo's version of [rewrite-clj](https://github.com/xsc/rewrite-clj) is catered to its use case,
-includes some bug fixes, but most notably: strips away all whitespace.
+includes some bug fixes, but most notably: strips away all whitespace, and only provides access to (a limited subset of) its [Node](https://github.com/clj-commons/rewrite-clj/blob/main/doc/01-user-guide.adoc#node-api) [API](https://cljdoc.org/d/rewrite-clj/rewrite-clj/1.0.767-alpha/api/rewrite-clj.node)
 
 A hook can leverage the `clj-kondo.hooks-api` namespace for transformation and analysis of rewrite-clj nodes.
 
 API functions for producing nodes:
 
-- `list-node`: produce a new list node from a seqable nodes.
+- `list-node`: produce a new list node from a seqable of nodes.
 - `vector-node`: produce a new vector node from a seqable of nodes.
-<!-- - `map-node`: produce a new map node from a seqable of nodes-->
+- `map-node`: produce a new map node from a seqable of nodes
 - `keyword-node`: produce a new keyword. Use `(api/keyword-node :foo)` for a
   normal keyword and `(api/keyword-node :foo true)` to produce a node for
   `::foo`.
@@ -64,6 +64,45 @@ It receives Clojure macro (or function) call code as input in the form of a rewr
 
 - Transform the code to teach clj-kondo about its effect.
 - Inspect call arguments and emit findings about them.
+
+## Clojure code as rewrite-clj nodes
+
+If you develop a hook you will likely need some familiarity with rewrite-clj node structure.
+A couple of examples might help:
+
+`(my-macro 1 2 3)` becomes:
+
+- a list node with `:children`:
+  - token node `my-macro`
+  - token node `1`
+  - token node `2`
+  - token node `3`
+
+`(my-lib/with-bound [a 1 {:with-bound/setting true}] (inc a))` becomes:
+
+- a list node with `:children`
+  - token node `my-lib/with-bound`
+  - vector node with `:children`
+    - token-node `a`
+    - token-node `1`
+    - map node with `:children`
+      - keyword node `:with-bound/setting`
+      - token node `true`
+  - list node
+    - token node `inc`
+    - token node `a`
+
+Clj-kondo uses a different approach to metadata than the original rewrite-clj
+library. Metadata nodes are stored in the `:meta` key on nodes correponding to
+the values carrying the metadata:
+
+`^:foo ^:bar []` becomes:
+
+- a vector node with `:meta`
+  - a seq of nodes with:
+    - keyword node `:foo`
+    - keyword node `:bar`
+
 
 ### Transformation
 
@@ -155,6 +194,11 @@ bindings and will give warnings customized to this macro.
 Analyze-call hooks can also be used to create custom lint warnings, without
 transforming the original rewrite-clj node.
 
+This is done either by simply throwing an error within the hook, or instead 
+calling `reg-finding!`. They are similar, but the latter allows for defining 
+precise details, including naming the linter type and defining the range to
+report the diagnostics for (eg where to render "squigglies").
+
 This is an example for re-frame's `dispatch` function which checks if the
 dispatched event used a qualified keyword.
 
@@ -213,44 +257,6 @@ Additionally, the finding has `:row`, `:col`, `:end-row` and `:end-col`, derived
 from the node's metadata to show the finding at the appropriate location.
 
 <img src="../screenshots/re-frame-hook.png"/>
-
-## Clojure code as rewrite-clj nodes
-
-If you develop a hook you will likely need some familiarity with rewrite-clj node structure.
-A couple of examples might help:
-
-`(my-macro 1 2 3)` becomes:
-
-- a list node with `:children`:
-  - token node `my-macro`
-  - token node `1`
-  - token node `2`
-  - token node `3`
-
-`(my-lib/with-bound [a 1 {:with-bound/setting true}] (inc a))` becomes:
-
-- a list node with `:children`
-  - token node `my-lib/with-bound`
-  - vector node with `:children`
-    - token-node `a`
-    - token-node `1`
-    - map node with `:children`
-      - keyword node `:with-bound/setting`
-      - token node `true`
-  - list node
-    - token node `inc`
-    - token node `a`
-
-Clj-kondo uses a different approach to metadata than the original rewrite-clj
-library. Metadata nodes are stored in the `:meta` key on nodes correponding to
-the values carrying the metadata:
-
-`^:foo ^:bar []` becomes:
-
-- a vector node with `:meta`
-  - a seq of nodes with:
-    - keyword node `:foo`
-    - keyword node `:bar`
 
 ## Macroexpand
 
