@@ -1276,6 +1276,13 @@ will not trigger a warning:
 (ns foo (:require [foo.specs]))
 ```
 
+If you'd like to have namespaces without `:as` or `:refer` trigger
+warnings, you can enable this by setting the `:simple-libspec` option
+
+``` clojure
+{:linters {:unused-namespace {:simple-libspec true}}}
+```
+
 ### Unused private var
 
 *Keyword:* `:unused-private-var`.
