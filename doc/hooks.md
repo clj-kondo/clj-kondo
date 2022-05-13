@@ -10,7 +10,7 @@ Hooks receive Clojure code as rewrite-clj nodes, not only for performance reason
 also because rewrite-clj nodes carry the line and row numbers for every Clojure element.
 Note that when we refer to a "rewrite-clj node", we are referring to clj-kondo's version of rewrite-clj node.
 Clj-kondo's version of [rewrite-clj](https://github.com/xsc/rewrite-clj) is catered to its use case,
-includes some bug fixes, but most notably: strips away all whitespace, and only provides access to (a limited subset of) its [Node](https://github.com/clj-commons/rewrite-clj/blob/main/doc/01-user-guide.adoc#node-api) [API](https://cljdoc.org/d/rewrite-clj/rewrite-clj/1.0.767-alpha/api/rewrite-clj.node)
+includes some bug fixes, but most notably: strips away all whitespace.
 
 A hook can leverage the `clj-kondo.hooks-api` namespace for transformation and analysis of rewrite-clj nodes.
 
