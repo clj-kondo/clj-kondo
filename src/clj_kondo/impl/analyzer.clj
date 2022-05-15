@@ -1974,11 +1974,9 @@
                               ctx (assoc ctx :in-comment true)]
                           (analyze-children ctx children))
                         (-> some->)
-                        (do (macroexpand/lint-redundant-calls! ctx expr)
-                            (analyze-expression** ctx (macroexpand/expand-> ctx expr)))
+                        (analyze-expression** ctx (macroexpand/expand-> ctx expr))
                         (->> some->>)
-                        (do (macroexpand/lint-redundant-calls! ctx expr)
-                            (analyze-expression** ctx (macroexpand/expand->> ctx expr)))
+                        (analyze-expression** ctx (macroexpand/expand->> ctx expr))
                         doto
                         (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                         reify (analyze-reify ctx expr defined-by)
@@ -1995,10 +1993,9 @@
                         (amap)
                         (analyze-amap ctx expr)
                         (cond-> cond->>)
-                        (do (macroexpand/lint-redundant-calls! ctx expr)
-                            (analyze-expression** ctx (macroexpand/expand-cond->
-                                                        ctx expr
-                                                        resolved-as-name)))
+                        (analyze-expression** ctx (macroexpand/expand-cond->
+                                                   ctx expr
+                                                   resolved-as-name))
                         (let let* for doseq dotimes with-open with-local-vars)
                         (analyze-like-let ctx expr)
                         letfn

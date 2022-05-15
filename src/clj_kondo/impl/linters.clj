@@ -4,7 +4,6 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
@@ -14,6 +13,25 @@
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
+
+(defn lint-redundant-calls! [ctx expr]
+  (let [config (:config ctx)
+        level (-> config :linters :redundant-call :level)]
+    (when-not (identical? :off level)
+      (let [children (:children expr)
+            [sym _expr & clauses] children
+            sym (sexpr sym)
+            m (meta expr)]
+        (when (zero? (count clauses))
+          (findings/reg-finding!
+            ctx
+            {:message (format "Single arg use of %s always returns the arg itself" sym)
+             :row (:row m)
+             :col (:col m)
+             :end-row (:end-row m)
+             :end-col (:end-col m)
+             :filename (:filename ctx)
+             :type :redundant-call}))))))
 
 (defn lint-cond-constants! [ctx conditions]
   (loop [[condition & rest-conditions] conditions]
@@ -76,7 +94,7 @@
         (->> expr :children
              next
              (take-nth 2))]
-    (macroexpand/lint-redundant-calls! ctx expr)
+    (lint-redundant-calls! ctx expr)
     (when-not (lint-cond-even-number-of-forms! ctx expr)
       (when (seq conditions)
         (lint-cond-constants! ctx conditions)
@@ -131,9 +149,16 @@
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
-      ([clojure.core partial] [clojure.core comp] [clojure.core merge]
-       [cljs.core partial] [cljs.core comp] [cljs.core merge])
-      (macroexpand/lint-redundant-calls! ctx (:expr call))
+      ([clojure.core ->] [cljs.core ->]
+       [clojure.core ->>] [cljs.core ->>]
+       [clojure.core cond->] [cljs.core cond->]
+       [clojure.core cond->>] [cljs.core cond->>]
+       [clojure.core some->] [cljs.core some->]
+       [cljs.core some->>] [clojure.core some->>]
+       [clojure.core partial] [cljs.core partial]
+       [clojure.core comp] [cljs.core comp]
+       [clojure.core merge] [cljs.core merge])
+      (lint-redundant-calls! ctx (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)
