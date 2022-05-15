@@ -4,6 +4,7 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
@@ -75,6 +76,7 @@
         (->> expr :children
              next
              (take-nth 2))]
+    (macroexpand/lint-redundant-calls! ctx expr)
     (when-not (lint-cond-even-number-of-forms! ctx expr)
       (when (seq conditions)
         (lint-cond-constants! ctx conditions)
@@ -129,6 +131,9 @@
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
+      ([clojure.core partial] [clojure.core comp] [clojure.core merge]
+       [cljs.core partial] [cljs.core comp] [cljs.core merge])
+      (macroexpand/lint-redundant-calls! ctx (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)

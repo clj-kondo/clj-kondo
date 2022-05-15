@@ -1008,7 +1008,7 @@
                     ctx processed-fns)
         parsed-fns (map #(analyze-fn-body ctx %) (mapcat :bodies processed-fns))
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
-    (concat (mapcat (comp :parsed) parsed-fns) analyzed-children)))
+    (concat (mapcat :parsed parsed-fns) analyzed-children)))
 
 (declare analyze-defmethod)
 
@@ -1974,9 +1974,11 @@
                               ctx (assoc ctx :in-comment true)]
                           (analyze-children ctx children))
                         (-> some->)
-                        (analyze-expression** ctx (macroexpand/expand-> ctx expr))
+                        (do (macroexpand/lint-redundant-calls! ctx expr)
+                            (analyze-expression** ctx (macroexpand/expand-> ctx expr)))
                         (->> some->>)
-                        (analyze-expression** ctx (macroexpand/expand->> ctx expr))
+                        (do (macroexpand/lint-redundant-calls! ctx expr)
+                            (analyze-expression** ctx (macroexpand/expand->> ctx expr)))
                         doto
                         (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                         reify (analyze-reify ctx expr defined-by)
@@ -1993,9 +1995,10 @@
                         (amap)
                         (analyze-amap ctx expr)
                         (cond-> cond->>)
-                        (analyze-expression** ctx (macroexpand/expand-cond->
-                                                   ctx expr
-                                                   resolved-as-name))
+                        (do (macroexpand/lint-redundant-calls! ctx expr)
+                            (analyze-expression** ctx (macroexpand/expand-cond->
+                                                        ctx expr
+                                                        resolved-as-name)))
                         (let let* for doseq dotimes with-open with-local-vars)
                         (analyze-like-let ctx expr)
                         letfn

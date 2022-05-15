@@ -121,7 +121,8 @@
               :namespace-name-mismatch {:level :error}
               :non-arg-vec-return-type-hint {:level :warning}
               :keyword-binding {:level :off}
-              :discouraged-var {:level :warning}}
+              :discouraged-var {:level :warning}
+              :redundant-call {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

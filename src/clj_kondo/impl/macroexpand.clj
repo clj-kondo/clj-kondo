@@ -1,7 +1,8 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.utils :refer [parse-string tag sexpr vector-node list-node token-node]]
    [clojure.walk :as walk]))
 
 (defn with-meta-of [x y]
@@ -9,6 +10,22 @@
         m* (:meta y)
         x (if m* (assoc x :meta m*) x)]
     (with-meta x m)))
+
+(defn lint-redundant-calls! [ctx expr]
+  (let [children (:children expr)
+        [sym _expr & clauses] children
+        sym (sexpr sym)
+        m (meta expr)]
+    (when (zero? (count clauses))
+      (findings/reg-finding!
+        ctx
+        {:message (format "Single arg use of %s always returns the arg itself" sym)
+         :row (:row m)
+         :col (:col m)
+         :end-row (:end-row m)
+         :end-col (:end-col m)
+         :filename (:filename ctx)
+         :type :redundant-call}))))
 
 (defn expand-> [_ctx expr]
   (let [expr expr
