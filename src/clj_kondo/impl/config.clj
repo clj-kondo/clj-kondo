@@ -1,7 +1,8 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [deep-merge map-vals]]))
+   [clj-kondo.impl.utils :refer [deep-merge map-vals]]
+   [clojure.set :as set]))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
@@ -122,7 +123,9 @@
               :non-arg-vec-return-type-hint {:level :warning}
               :keyword-binding {:level :off}
               :discouraged-var {:level :warning}
-              :redundant-call {:level :warning}}
+              :redundant-call {:level :off
+                               #_#_:exclude #{clojure.core/->}
+                               #_#_:include #{clojure.core/conj!}}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
@@ -371,6 +374,27 @@
         (let [{:keys [:exclude #_:include]} cfg]
           (or (not exclude)
               (contains? exclude sym)))))))
+
+(def redundant-call-included?
+  (let [redundant-call-vars '#{clojure.core/-> cljs.core/->
+                               clojure.core/->> cljs.core/->>
+                               clojure.core/cond-> cljs.core/cond->
+                               clojure.core/cond->> cljs.core/cond->>
+                               clojure.core/some-> cljs.core/some->
+                               clojure.core/some->> cljs.core/some->>
+                               clojure.core/partial cljs.core/partial
+                               clojure.core/comp cljs.core/comp
+                               clojure.core/merge cljs.core/merge}
+        delayed-cfg (fn [config]
+                      (let [cfg (get-in config [:linters :redundant-call])
+                            include (some-> (:include cfg) set)
+                            exclude (some-> (:exclude cfg) set)]
+                        (-> redundant-call-vars
+                            (set/union include)
+                            (set/difference exclude))))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config sym]
+      (contains? (delayed-cfg config) sym))))
 
 (defn ns-group* [config ns-name]
   (or (some (fn [{:keys [pattern

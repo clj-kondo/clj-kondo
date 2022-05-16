@@ -1078,30 +1078,24 @@ foo/foo ;; this does use the private var
     (is (seq (lint! "(ns foo (:require [cats.core :as m])) (m/->>= (right {}) (select-keys))"))))
   (testing "with CLJC"
     (is (empty? (lint! "(-> 1 #?(:clj inc :cljs inc))" "--lang" "cljc")))
-    (assert-submaps
-     [{:file "<stdin>",
-       :row 1,
-       :col 1,
-       :level :warning,
-       :message "Single arg use of -> always returns the arg itself"}
-      {:file "<stdin>",
-       :row 1,
-       :col 15,
-       :level :error,
-       :message "java.lang.Math/pow is called with 1 arg but expects 2"}]
-     (lint! "(-> 1 #?(:clj (Math/pow)))" "--lang" "cljc")))
+    (assert-submap
+     {:file "<stdin>",
+      :row 1,
+      :col 15,
+      :level :error,
+      :message "java.lang.Math/pow is called with 1 arg but expects 2"}
+     (first (lint! "(-> 1 #?(:clj (Math/pow)))" "--lang" "cljc"))))
   (testing "with type hints"
-    (assert-submaps
-     [{:file "<stdin>",
-       :row 1,
-       :col 60,
-       :level :error,
-       :message "clojure.string/includes? is called with 1 arg but expects 2"}]
-     (lint! "(ns foo (:require [clojure.string])) (-> \"foo\" ^String str clojure.string/includes?)"))
-    (assert-submaps
-     [{:file "<stdin>", :row 1, :col 1, :level :warning, :message "Single arg use of -> always returns the arg itself"}
-      {:file "<stdin>", :row 1, :col 12, :level :error, :message "duplicate key :a"}]
-     (lint! "(-> ^{:a 1 :a 2} [1 2 3])")))
+    (assert-submap
+     {:file "<stdin>",
+      :row 1,
+      :col 60,
+      :level :error,
+      :message "clojure.string/includes? is called with 1 arg but expects 2"}
+     (first (lint! "(ns foo (:require [clojure.string])) (-> \"foo\" ^String str clojure.string/includes?)")))
+    (assert-submap
+     {:file "<stdin>", :row 1, :col 12, :level :error, :message "duplicate key :a"}
+     (first (lint! "(-> ^{:a 1 :a 2} [1 2 3])"))))
   (testing "macroexpansion of anon fn literal"
     (assert-submaps
      '({:file "<stdin>",

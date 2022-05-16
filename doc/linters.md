@@ -824,14 +824,24 @@ because of an explicit or implicit do as the direct parent s-expression.
 *Keyword*: `:redundant-call`
 
 *Description:* warn on redundant calls. The warning arises when a single argument
-is passed to a (clojure.core) function or macro that that returns its arguments.
+is passed to a function or macro that that returns its arguments.
 
-Functions/macros that trigger this lint:
+`clojure.core` and `cljs.core` functions and macros that trigger this lint:
 * `->`, `->>`
 * `cond->`, `cond->>`
 * `some->`, `some->>`
 * `comp`, `partial`
 * `merge`
+
+*Config:*
+
+``` clojure
+{:linters {:redundant-call {:exclude #{clojure.core/->}
+                            :include #{clojure.core/conj!}}}}
+```
+
+Use `:exclude` to suppress warnings for the built-in list. Use `:include` to
+warn on additional vars.
 
 *Example trigger:* `(-> 1)`.
 
@@ -1062,7 +1072,7 @@ This will disable the warning in:
 
 *Example trigger:* `(let [_x 0] _x)`.
 
-*Example message:* `Using binding marked as unused: _x'
+*Example message:* `Using binding marked as unused: _x`
 
 These warnings can be enabled by setting the level to `:warning` or
 `:error` in your config.
