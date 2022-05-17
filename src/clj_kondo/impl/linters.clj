@@ -426,6 +426,18 @@
                                     :type :discouraged-var
                                     :message (or (:message cfg)
                                                  (str "Discouraged var: " fn-sym))}))
+      (when (and called-fn
+                 (not (identical? :off (-> call-config :linters :redundant-call)))
+                 (= 1 (:arity call))
+                 (config/redundant-call-included? call-config fn-sym))
+        (findings/reg-finding!
+          ctx {:filename filename
+               :row row
+               :end-row end-row
+               :col col
+               :end-col end-col
+               :type :redundant-call
+               :message (format "Single arg use of %s always returns the arg itself" fn-sym)}))
       (let [ctx (assoc ctx :filename filename)]
         (when call?
           (lint-specific-calls!

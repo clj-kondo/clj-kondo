@@ -1008,7 +1008,7 @@
                     ctx processed-fns)
         parsed-fns (map #(analyze-fn-body ctx %) (mapcat :bodies processed-fns))
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
-    (concat (mapcat (comp :parsed) parsed-fns) analyzed-children)))
+    (concat (mapcat :parsed parsed-fns) analyzed-children)))
 
 (declare analyze-defmethod)
 
