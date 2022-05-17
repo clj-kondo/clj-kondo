@@ -425,12 +425,12 @@ As an example, let's add [clj-kondo/config](#sample-exports) as a dependency.
                               :sha "c37c13ea09b6aaf23db3a7a9a0574f422bb0b4c2"}}}
     ```
 2. Ensure a `.clj-kondo` directory exists, if necessary:
-    ```Shell
-    mkdir .clj-kondo
     ```
-3. And then invoke clj-kondo like so:
-    ```shellsession
-    $ clj-kondo --copy-configs --dependencies --lint "$(clojure -Spath)"
+    $ mkdir .clj-kondo
+    ```
+3. Then ask clj-kondo to copy configs like so:
+    ```
+    $ clj-kondo --lint "$(clojure -Spath)" --copy-configs --skip-lint
     Configs copied:
     - .clj-kondo/clj-kondo/better-cond
     - .clj-kondo/clj-kondo/claypoole
@@ -438,8 +438,15 @@ As an example, let's add [clj-kondo/config](#sample-exports) as a dependency.
     - .clj-kondo/clj-kondo/rum
     - .clj-kondo/clj-kondo/slingshot
     ```
+4. Now enrichen clj-kondo's linting cache via:
+    ```
+    $ clj-kondo --lint $(clojure -Spath) --dependencies --parallel
+    ```
 4. That's it, your linting experience for your library dependencies is now augmented.
-
+You can now lint your project as normal, for example:
+    ```
+    $ clj-kondo --lint src:test
+    ```
 Clj-kondo configurations are only copied when both of these requirements are met:
 
 - There is a `.clj-kondo` directory in your project.
@@ -447,9 +454,7 @@ This directory is where clj-kondo will copy configs.
 - The `--copy-configs` flag is present.
 This tells clj-kondo to copy clj-kondo configs from dependencies while linting.
 
-Typically, you will:
-- include the `--dependencies` option to suppress lint warnings.
-- want to check copied configs into version control with your project.
+Typically, you will want to check copied configs into version control with your project.
 
 ## Deprecations
 

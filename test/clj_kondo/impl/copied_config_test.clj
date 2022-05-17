@@ -1,4 +1,4 @@
-(ns clj-kondo.impl.inactive-config-test
+(ns clj-kondo.impl.copied-config-test
   (:require [babashka.fs :as fs]
             [clj-kondo.impl.core :as core-impl]
             [clj-kondo.impl.utils :as utils]
