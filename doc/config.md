@@ -416,42 +416,40 @@ For example, if the `claypoole` library itself wanted to export config, it would
 
 ### Importing
 
-When invoked with the appropriate arguments, clj-kondo will inform you of any inactive imported clj-kondo configs from your project dependencies and instruct you how to activate them.
-As an example, let's add [clj-kondo/config](#sample-exports) that has some clj-kondo exports as a dependency to demonstrate:
+Clj-kondo, when asked, will copy clj-kondo configs found in library dependencies.
+As an example, let's add [clj-kondo/config](#sample-exports) as a dependency.
 
 1. Include `clj-kondo/config` in your `deps.edn`:
     ```Clojure
     {:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config"
-                              :sha "e2e156c53c6c228fee7242629b41013f3e55051d"}}}
+                              :sha "c37c13ea09b6aaf23db3a7a9a0574f422bb0b4c2"}}}
     ```
-2. Ensure a `.clj-kondo` directory exists.
+2. Ensure a `.clj-kondo` directory exists, if necessary:
+    ```Shell
+    mkdir .clj-kondo
+    ```
 3. And then invoke clj-kondo like so:
     ```shellsession
     $ clj-kondo --copy-configs --dependencies --lint "$(clojure -Spath)"
-    Imported config to .clj-kondo/clj-kondo/claypoole. To activate, add "clj-kondo/claypoole" to :config-paths in .clj-kondo/config.edn.
-    Imported config to .clj-kondo/clj-kondo/mockery. To activate, add "clj-kondo/mockery" to :config-paths in .clj-kondo/config.edn.
-    Imported config to .clj-kondo/clj-kondo/rum. To activate, add "clj-kondo/rum" to :config-paths in .clj-kondo/config.edn.
-    Imported config to .clj-kondo/clj-kondo/slingshot. To activate, add "clj-kondo/slingshot" to :config-paths in .clj-kondo/config.edn.
+    Configs copied:
+    - .clj-kondo/clj-kondo/better-cond
+    - .clj-kondo/clj-kondo/claypoole
+    - .clj-kondo/clj-kondo/mockery
+    - .clj-kondo/clj-kondo/rum
+    - .clj-kondo/clj-kondo/slingshot
     ```
-4. To activate the claypoole clj-kondo config from the example above, you would edit
-your project's `.clj-kondo/config.edn` `:config-paths` as instructed:
+4. That's it, your linting experience for your library dependencies is now augmented.
 
-    ``` shellsession
-    {:config-paths ["clj-kondo/claypoole"]}
-    ```
-
-    Note: Windows users should also use the forward slash as the directory separator character in `:config-paths` to ensure their configs also work on Linux and macOS.
-
-Typically, you'll want to check imported configs into version control with your project.
-
-Clj-kondo configurations are only automatically imported when all of these requirements are met:
+Clj-kondo configurations are only copied when both of these requirements are met:
 
 - There is a `.clj-kondo` directory in your project.
-This directory is where clj-kondo will copy import configs.
-- The `--dependencies` flag is present.
-This tells clj-kondo to not output findings because you are only linting dependencies to populate the cache.
+This directory is where clj-kondo will copy configs.
 - The `--copy-configs` flag is present.
-This tells clj-kondo to import clj-kondo configs from dependencies while linting.
+This tells clj-kondo to copy clj-kondo configs from dependencies while linting.
+
+Typically, you will:
+- include the `--dependencies` option to suppress lint warnings.
+- want to check copied configs into version control with your project.
 
 ## Deprecations
 

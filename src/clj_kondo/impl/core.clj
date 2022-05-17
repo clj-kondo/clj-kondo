@@ -11,7 +11,6 @@
                                            ->uri]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
-   [clojure.set :as set]
    [clojure.string :as str])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
@@ -496,35 +495,28 @@
                                         :row 0
                                         :message "Could not process file."})))))))
 
-(defn inactive-config-imports [ctx]
+(defn copied-config-paths [ctx]
   (when-let [cfg-dir (io/file (:config-dir ctx))]
-    (when-let [new-configs (-> (set/difference (->> ctx
-                                                    :detected-configs
-                                                    deref
-                                                    (map utils/unixify-path)
-                                                    set)
-                                               (->> ctx
-                                                    :config
-                                                    :config-paths
-                                                    (map utils/unixify-path)
-                                                    set))
-                               vec
-                               sort
-                               seq)]
-      (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
-                               (.relativize (.normalize (.toPath (.getAbsoluteFile (io/file "."))))
-                                            (.normalize (.toPath cfg-dir)))
-                               cfg-dir))]
-        (for [new-config new-configs]
-          {:imported-config (-> (io/file rel-cfg-dir new-config) str utils/unixify-path)
-           :suggested-config-path (str \" new-config \")
-           :config-file (-> (io/file rel-cfg-dir "config.edn") str utils/unixify-path)})))))
+    (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
+                             (.relativize (.normalize (.toPath (.getAbsoluteFile (io/file "."))))
+                                          (.normalize (.toPath cfg-dir)))
+                             cfg-dir))]
+      (->> ctx
+           :detected-configs
+           deref
+           (map #(->> % (io/file rel-cfg-dir) str utils/unixify-path))
+           sort
+           distinct
+           seq))))
 
-(defn print-inactive-config-imports [inactives]
+(defn print-copied-configs [imports]
   (binding [*out* *err*]
-    (doseq [{:keys [imported-config suggested-config-path config-file]} inactives]
-      (println (format "Imported config to %s. To activate, add %s to :config-paths in %s."
-                       imported-config suggested-config-path config-file)))))
+    (if (seq imports)
+      (do
+        (println "Configs copied:")
+        (doseq [i imports]
+          (println (str "- " i))))
+      (println "No configs copied."))))
 
 (defn process-files [ctx files default-lang filename]
   (let [ctx (assoc ctx :seen-files (atom #{}))
@@ -544,7 +536,8 @@
         (let [skip-file (io/file cache-dir "skip" mark)]
           (io/make-parents skip-file)
           (spit skip-file path))))
-    (print-inactive-config-imports (inactive-config-imports ctx))))
+    (when (:copy-configs ctx)
+      (print-copied-configs (copied-config-paths ctx)))))
 
 ;;;; index defs and calls by language and namespace
 
