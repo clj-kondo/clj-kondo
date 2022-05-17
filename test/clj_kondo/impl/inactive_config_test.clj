@@ -4,73 +4,46 @@
             [clj-kondo.impl.utils :as utils]
             [clojure.test :refer [deftest is testing]]))
 
-(deftest inactive-import-configs-test
+(deftest copied-configs-resolution-test
   (testing "no findings"
     (testing "when clj-kondo :config-dir is not present"
-      (is (nil? (core-impl/inactive-config-imports {:detected-configs (atom ["cfg1" "cfg2"])
-                                                    :config {:config-paths ["cfg3" "cfg4"]}}))))
-    (testing "when clj-kondo :config-paths already specify :detected-configs"
-      (is (nil? (core-impl/inactive-config-imports {:config-dir "cfg-dir"
-                                                    :detected-configs (atom ["cfg1" "cfg2"])
-                                                    :config {:config-paths ["cfg1" "cfg2"]}})))))
-  (testing "when there were no :detected-configs"
-    (is (nil? (core-impl/inactive-config-imports {:config-dir "cfg-dir"
-                                                  :detected-configs (atom [])
-                                                  :config {:config-paths ["cfg1" "cfg2"]}}))))
-  (testing "findings when there are :detected-configs"
-    (testing "and clj-kondo config has no :config-paths"
-      (is (= [{:imported-config "cfg-dir/cfg1" :suggested-config-path "\"cfg1\"" :config-file "cfg-dir/config.edn"}
-              {:imported-config "cfg-dir/cfg2" :suggested-config-path "\"cfg2\"" :config-file "cfg-dir/config.edn"}]
-             (core-impl/inactive-config-imports {:config-dir "cfg-dir"
-                                                 :detected-configs (atom ["cfg1" "cfg2"])
-                                                 :config {}}))))
-    (testing "and clj-kondo :config-paths is empty"
-      (is (= [{:imported-config "cfg-dir/cfg1" :suggested-config-path "\"cfg1\"" :config-file "cfg-dir/config.edn"}
-              {:imported-config "cfg-dir/cfg2" :suggested-config-path "\"cfg2\"" :config-file "cfg-dir/config.edn"}]
-             (core-impl/inactive-config-imports {:config-dir "cfg-dir"
-                                                 :detected-configs (atom ["cfg1" "cfg2"])
-                                                 :config {:config-paths []}}))))
-    (testing "and clj-kondo :config-paths does not overlap with :detected-configs"
-      (is (= [{:imported-config "cfg-dir/cfg1" :suggested-config-path "\"cfg1\"" :config-file "cfg-dir/config.edn"}
-              {:imported-config "cfg-dir/cfg2" :suggested-config-path "\"cfg2\"" :config-file "cfg-dir/config.edn"}]
-             (core-impl/inactive-config-imports {:config-dir "cfg-dir"
-                                                 :detected-configs (atom ["cfg1" "cfg2"])
-                                                 :config {:config-paths ["cfg4" "cfg5"]}}))))
-    (testing "and clj-kondo :config-paths has some overlap with :detected-configs"
-      (is (= [{:imported-config "cfg-dir/cfg1" :suggested-config-path "\"cfg1\"" :config-file "cfg-dir/config.edn"}
-              {:imported-config "cfg-dir/cfg2" :suggested-config-path "\"cfg2\"" :config-file "cfg-dir/config.edn"}]
-             (core-impl/inactive-config-imports {:config-dir "cfg-dir"
-                                                 :detected-configs (atom ["cfg1" "cfg2" "cfg3" "cfg6"])
-                                                 :config {:config-paths ["cfg3" "cfg4" "cfg5" "cfg6"]}}))))
+      (is (nil? (core-impl/copied-config-paths {:detected-configs (atom ["cfg1" "cfg2"])}))))
+    (testing "when no configs are copied"
+      (is (nil? (core-impl/copied-config-paths {:config-dir "cfg-dir"
+                                                :detected-configs (atom [])})))))
+  (testing "found copied configs"
     (testing "are sorted"
-      (is (= [{:imported-config "cfg-dir/cfg/b" :suggested-config-path "\"cfg/b\"" :config-file "cfg-dir/config.edn"}
-              {:imported-config "cfg-dir/cfg/c" :suggested-config-path "\"cfg/c\"" :config-file "cfg-dir/config.edn"}
-              {:imported-config "cfg-dir/cfg/w" :suggested-config-path "\"cfg/w\"" :config-file "cfg-dir/config.edn"}
-              {:imported-config "cfg-dir/cfg/z" :suggested-config-path "\"cfg/z\"" :config-file "cfg-dir/config.edn"}]
-             (core-impl/inactive-config-imports {:config-dir "cfg-dir"
-                                                 :detected-configs (atom ["cfg/c" "cfg/z" "cfg/b" "cfg/w"])
-                                                 :config {}}))))
+      (is (= ["cfg-dir/cfg/b"
+              "cfg-dir/cfg/c"
+              "cfg-dir/cfg/w"
+              "cfg-dir/cfg/z"]
+             (core-impl/copied-config-paths {:config-dir "cfg-dir"
+                                             :detected-configs (atom ["cfg/c" "cfg/z" "cfg/b" "cfg/w"])}))))
     (testing "returns config-dir relative to current dir"
-      (is (= [{:imported-config "cfg-dir/cfg1" :suggested-config-path "\"cfg1\"" :config-file "cfg-dir/config.edn"}]
-             (core-impl/inactive-config-imports {:config-dir (str (fs/absolutize "cfg-dir"))
-                                                 :detected-configs (atom ["cfg1"])
-                                                 :config {}}))))
+      (is (= ["cfg-dir/cfg1"]
+             (core-impl/copied-config-paths {:config-dir (str (fs/absolutize "cfg-dir"))
+                                             :detected-configs (atom ["cfg1"])}))))
     (when utils/windows?
       (testing "unixifies all paths on Windows"
-        (is (= [{:imported-config "cfg-dir/cfg/c" :suggested-config-path "\"cfg/c\"" :config-file "cfg-dir/config.edn"}
-                {:imported-config "cfg-dir/cfg/z" :suggested-config-path "\"cfg/z\"" :config-file "cfg-dir/config.edn"}]
-               (core-impl/inactive-config-imports {:config-dir (str (fs/absolutize "cfg-dir"))
-                                                   :detected-configs (atom ["cfg\\c" "cfg\\z" "cfg\\b" "cfg\\w"])
-                                                   :config {:config-paths ["cfg\\w" "cfg/b"]}})))))))
+        (is (= ["cfg-dir/cfg/b" "cfg-dir/cfg/c" "cfg-dir/cfg/w" "cfg-dir/cfg/z"]
+               (core-impl/copied-config-paths {:config-dir (str (fs/absolutize "cfg-dir"))
+                                               :detected-configs (atom ["cfg\\c" "cfg\\z" "cfg\\b" "cfg\\w"])})))))))
 
-
-(deftest print-inactive-import-configs-test
-  (is (= (str "Imported config to cfg/a/b. To activate, add \"a/b\" to :config-paths in cfg/config.edn." (System/getProperty "line.separator")
-              "Imported config to cfg/c/d. To activate, add \"c/d\" to :config-paths in cfg/config.edn." (System/getProperty "line.separator"))
+(deftest print-copied-configs-test
+  (is (= (apply str (interleave
+                     ["Configs copied:"
+                      "- cfg/a/b"
+                      "- cfg/c/d"]
+                     (repeat (System/getProperty "line.separator"))))
          (let [s (new java.io.StringWriter)]
            (binding [*err* s]
-             (core-impl/print-inactive-config-imports
-              [{:imported-config "cfg/a/b" :suggested-config-path "\"a/b\"" :config-file "cfg/config.edn"}
-               {:imported-config "cfg/c/d" :suggested-config-path "\"c/d\"" :config-file "cfg/config.edn"}]))
+             (core-impl/print-copied-configs
+              ["cfg/a/b" "cfg/c/d"]))
            (str s)))))
 
+(deftest print-no-copied-configs-test
+  (is (= (str "No configs copied." (System/getProperty "line.separator"))
+         (let [s (new java.io.StringWriter)]
+           (binding [*err* s]
+             (core-impl/print-copied-configs []))
+           (str s)))))
