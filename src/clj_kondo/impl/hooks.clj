@@ -102,11 +102,11 @@
       {}
       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
 
-(defn annotate [node meta]
+(defn annotate [node original-meta]
   (walk/postwalk (fn [node]
                    (if (map? node)
                      (-> node
-                         (with-meta meta)
+                         (with-meta (merge original-meta (meta node)))
                          mark-generate)
                      node)) node))
 
@@ -117,6 +117,7 @@
         coerced (coerce res)
         annotated (annotate coerced (meta node))
         lifted (meta/lift-meta-content2 *ctx* annotated)]
+    (prn :lifted lifted (meta lifted))
     ;;
     lifted))
 
