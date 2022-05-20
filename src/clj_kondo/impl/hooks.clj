@@ -143,9 +143,8 @@
                       (vreset! !!last-meta m))
                     node)
                   (if (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-                    (do
-                      (with-meta node
-                        @!!last-meta))
+                    (with-meta node
+                      @!!last-meta)
                     node)))
              node)))
 
