@@ -41,7 +41,8 @@
     (let [mta (meta value)]
       (if (empty? mta)
         node
-        (update node :meta lconj (coerce mta))))
+        (vary-meta (update node :meta lconj (coerce mta))
+                   merge mta)))
     node))
 
 ;; ## Tokens

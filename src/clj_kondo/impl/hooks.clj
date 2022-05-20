@@ -1,15 +1,15 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
-  (:require [clj-kondo.impl.cache :as cache]
-            [clj-kondo.impl.findings :as findings]
-            [clj-kondo.impl.metadata :as meta]
-            [clj-kondo.impl.rewrite-clj.node :as node]
-            [clj-kondo.impl.utils :as utils :refer [assoc-some vector-node list-node
-                                                    sexpr token-node keyword-node
-                                                    string-node map-node map-vals *ctx*]]
-            [clojure.java.io :as io]
-            [clojure.walk :as walk]
-            [sci.core :as sci])
+  (:require
+   [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.metadata :as meta]
+   [clj-kondo.impl.rewrite-clj.node :as node]
+   [clj-kondo.impl.utils :as utils :refer [*ctx* assoc-some keyword-node
+                                           list-node map-node map-vals sexpr
+                                           string-node token-node vector-node]]
+   [clojure.java.io :as io]
+   [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)
@@ -102,13 +102,52 @@
       {}
       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
 
+(defn walk
+  "Traverses form, an arbitrary data structure.  inner and outer are
+  functions.  Applies inner to each element of form, building up a
+  data structure of the same type, then applies outer to the result.
+  Recognizes all Clojure data structures. Consumes seqs as with doall."
+
+  {:added "1.1"}
+  [inner outer form]
+  (cond
+    (list? form) (outer (apply list (map inner form)))
+    (instance? clojure.lang.IMapEntry form)
+    (outer (clojure.lang.MapEntry/create (inner (key form)) (inner (val form))))
+    (seq? form) (outer (doall (map inner form)))
+    (instance? clojure.lang.IRecord form)
+    (outer (reduce (fn [r x] (conj r (inner x))) form form))
+    (coll? form) (outer (into (empty form) (map inner form)))
+    :else (outer form)))
+
+(defn prewalk
+  "Prewalk with metadata preservation. Does not prewalk :sci.impl/op nodes."
+  [f form]
+  (walk (partial prewalk f) identity (f form)))
+
+(defn postwalk
+  "Performs a depth-first, post-order traversal of form.  Calls f on
+  each sub-form, uses f's return value in place of the original.
+  Recognizes all Clojure data structures. Consumes seqs as with doall."
+  {:added "1.1"}
+  [f form]
+  (walk (partial postwalk f) f form))
+
 (defn annotate [node original-meta]
-  (walk/postwalk (fn [node]
-                   (if (map? node)
-                     (-> node
-                         (with-meta (merge original-meta (meta node)))
-                         mark-generate)
-                     node)) node))
+  (let [!!last-meta (volatile! original-meta)]
+    (prewalk (fn [node]
+                (if (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
+                         (identical? :list (utils/tag node)))
+                  (do
+                    (when-let [m (meta node)]
+                      (vreset! !!last-meta m))
+                    node)
+                  (if (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+                    (do
+                      (with-meta node
+                        @!!last-meta))
+                    node)))
+             node)))
 
 (defn -macroexpand [macro node bindings]
   (let [call (sexpr node)
@@ -117,12 +156,11 @@
         coerced (coerce res)
         annotated (annotate coerced (meta node))
         lifted (meta/lift-meta-content2 *ctx* annotated)]
-    (prn :lifted lifted (meta lifted))
     ;;
     lifted))
 
 #_(defmacro macroexpand [macro node]
-  `(clj-kondo.hooks-api/-macroexpand (deref (var ~macro)) ~node))
+    `(clj-kondo.hooks-api/-macroexpand (deref (var ~macro)) ~node))
 
 (def ans (sci/create-ns 'clj-kondo.hooks-api nil))
 
