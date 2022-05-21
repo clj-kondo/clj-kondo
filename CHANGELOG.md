@@ -9,6 +9,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1692](https://github.com/clj-kondo/clj-kondo/pull/1692): new linter `:redundant-call` - warns when a function or macro call with 1 given argument returns the argument.
 - [#1697](https://github.com/clj-kondo/clj-kondo/issues/1697): update docs and messaging around importing configs ([@lread](https://github.com/lread))
 - [#1700](https://github.com/clj-kondo/clj-kondo/issues/1700): allow discouraged var on non-analyzed (closed source) vars
+- [#1703](https://github.com/clj-kondo/clj-kondo/issues/1703): update built-in cache with newest CLJ (1.11.1) and CLJS (1.11.54) versions
 
 ## 2022.04.25
 
