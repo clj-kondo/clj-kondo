@@ -232,7 +232,7 @@
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns fn-name unresolved? refer-alls)
                   #_#__(when (not call?)
-                      (clojure.pprint/pprint (dissoc call :config)))
+                         (clojure.pprint/pprint (dissoc call :config)))
                   name-meta (meta fn-name)
                   name-row (:row name-meta)
                   name-col (:col name-meta)
@@ -252,8 +252,8 @@
                        (assoc call
                               :row name-row
                               :col name-col
-                                :end-row name-end-row
-                                :end-col name-end-col)
+                              :end-row name-end-row
+                              :end-col name-end-col)
                        call))
                     true)
                   ;; we can determine if the call was made to another
@@ -317,7 +317,26 @@
                                                     :name-end-row name-end-row
                                                     :name-end-col name-end-col
                                                     :end-row end-row
-                                                    :end-col end-col))))]
+                                                    :end-col end-col))))
+                  call-config (:config call)
+                  fn-sym (symbol (str resolved-ns)
+                                 (str fn-name))
+                  _
+                  (let [discouraged-var-config
+                             (get-in (:config call) [:linters :discouraged-var])]
+                    (when-not (empty? (dissoc discouraged-var-config :level))
+                      (let [fn-lookup-sym (symbol (str (config/ns-group call-config resolved-ns))
+                                                  (str fn-name))
+                            ]
+                        (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
+                          (findings/reg-finding! ctx {:filename filename
+                                                      :row row
+                                                      :end-row end-row
+                                                      :col col
+                                                      :end-col end-col
+                                                      :type :discouraged-var
+                                                      :message (or (:message cfg)
+                                                                   (str "Discouraged var: " fn-sym))})))))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?
@@ -353,12 +372,7 @@
                   single-logical-operand-error
                   (and call?
                        (not (utils/linter-disabled? call :single-logical-operand))
-                       (lint-single-logical-operand call))
-                  fn-sym (symbol (str fn-ns)
-                                 (str fn-name))
-                  call-config (:config call)
-                  fn-lookup-sym (symbol (str (config/ns-group call-config fn-ns))
-                                        (str fn-name))]]
+                       (lint-single-logical-operand call))]]
       (when arity-error?
         (findings/reg-finding!
          ctx
@@ -417,27 +431,18 @@
                                               :filename filename
                                               :type :redundant-fn-wrapper
                                               :message "Redundant fn wrapper")))))
-      (when-let [cfg (get-in (:config call) [:linters :discouraged-var fn-lookup-sym])]
-        (findings/reg-finding! ctx {:filename filename
-                                    :row row
-                                    :end-row end-row
-                                    :col col
-                                    :end-col end-col
-                                    :type :discouraged-var
-                                    :message (or (:message cfg)
-                                                 (str "Discouraged var: " fn-sym))}))
       (when (and called-fn
                  (not (identical? :off (-> call-config :linters :redundant-call)))
                  (= 1 (:arity call))
                  (config/redundant-call-included? call-config fn-sym))
         (findings/reg-finding!
-          ctx {:filename filename
-               :row row
-               :end-row end-row
-               :col col
-               :end-col end-col
-               :type :redundant-call
-               :message (format "Single arg use of %s always returns the arg itself" fn-sym)}))
+         ctx {:filename filename
+              :row row
+              :end-row end-row
+              :col col
+              :end-col end-col
+              :type :redundant-call
+              :message (format "Single arg use of %s always returns the arg itself" fn-sym)}))
       (let [ctx (assoc ctx :filename filename)]
         (when call?
           (lint-specific-calls!
@@ -641,14 +646,14 @@
                 (str (first children))
                 (str expr))]
         (findings/reg-finding!
-          ctx
-          {:type :unresolved-var
-           :filename filename
-           :message (str "Unresolved var: " n)
-           :row (:row v)
-           :col (:col v)
-           :end-row (:end-row v)
-           :end-col (:end-col v)})))))
+         ctx
+         {:type :unresolved-var
+          :filename filename
+          :message (str "Unresolved var: " n)
+          :row (:row v)
+          :col (:col v)
+          :end-row (:end-row v)
+          :end-col (:end-col v)})))))
 
 (defn lint-unused-imports!
   [ctx]
@@ -679,14 +684,14 @@
             :let [m (meta un)
                   filename (:filename m)]]
       (findings/reg-finding!
-        ctx
-        {:type :unresolved-namespace
-         :filename filename
-         :message (str "Unresolved namespace " un ". Are you missing a require?")
-         :row (:row m)
-         :col (:col m)
-         :end-row (:end-row m)
-         :end-col (:end-col m)}))))
+       ctx
+       {:type :unresolved-namespace
+        :filename filename
+        :message (str "Unresolved namespace " un ". Are you missing a require?")
+        :row (:row m)
+        :col (:col m)
+        :end-row (:end-row m)
+        :end-col (:end-col m)}))))
 
 ;;;; scratch
 
