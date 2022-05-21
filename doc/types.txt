@@ -418,7 +418,7 @@ list* {1 {:ret :seq}}
 update-in {:varargs {:ret #{:associative}, :min-arity 3}}
 *' {0 {:ret :pos-int}}
 mix-collection-hash {2 {:ret :int, :args (:int :int)}}
-re-find {2 {:ret :seq}}
+re-find {2 {:ret #{:string :vector}}}
 run! {2 {:ret :nil}}
 print-sequential {6 {:args (:nilable/string nil :nilable/string :nilable/string nil nil)}}
 not {1 {:ret #{:boolean}}}
