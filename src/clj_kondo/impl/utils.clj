@@ -46,6 +46,9 @@
       (when (symbol? ?sym)
         ?sym))))
 
+(defn keyword-node? [n]
+  (instance? clj_kondo.impl.rewrite_clj.node.keyword.KeywordNode n))
+
 (defn node->keyword
   "Returns keyword from node, if it contains any."
   [node]
