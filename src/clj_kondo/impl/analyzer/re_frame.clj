@@ -71,7 +71,8 @@
         [farg & _args :as _children] (next (:children expr))]
     (when (and farg (identical? :vector (utils/tag farg)))
       (let [[event-id & _event-params] (:children farg)]
-        (common/analyze-children (assoc-in ctx [:context kns :event-ref] true) [event-id])))))
+        (when (utils/keyword-node? event-id)
+          (common/analyze-children (assoc-in ctx [:context kns :event-ref] true) [event-id]))))))
 
 (defn analyze-dispatch
   "Analyzes re-frame dispatch call.
