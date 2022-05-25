@@ -101,3 +101,33 @@
                       {:ms 500 :dispatch [::check-output-device]}]}))
 "
                      '{:linters {:unused-binding {:level :error}}}))))
+
+
+(deftest issue-1704-test
+  ;; passes without the fix
+  (testing "no keyword/re-frame analysis"
+    (is (empty? (lint! "
+(ns example
+  (:require [re-frame.core :as re-frame]))
+
+(re-frame/reg-event-fx
+ :foo/bar
+ (fn [_ [_my-arg]]
+   {:fx [[:dispatch [:foo]]]}))"
+                       '{:linters {:unused-binding {:level :error}}}))))
+  (testing "with re-frame and keyword analysis on"
+    (is (empty? (:findings
+                 (with-in-str
+                   "
+(ns example
+  (:require [re-frame.core :as re-frame]))
+
+(re-frame/reg-event-fx
+ :foo/bar
+ (fn [_ [my-arg]]
+   {:fx [[:dispatch [my-arg]]]}))"
+                   (clj-kondo/run!
+                    {:lang :cljs
+                     :lint "-"
+                     :config {:analysis {:context [:re-frame.core]
+                                         :keywords true}}})))))))
