@@ -4,4 +4,3 @@
     entry: clj-kondo --lint
     language: system
     types: [clojure]
-    require_serial: true
