@@ -49,9 +49,7 @@ Also check out these resources:
 
 ### pre-commit framework
 
-`clj-kondo` is supported by the pre-commit framework for managing git commit hooks.
-
-To enable, add to your .pre-commit-config.yaml:
+`clj-kondo` is supported by the pre-commit framework for managing git commit hooks. To enable, add to your `.pre-commit-config.yaml`:
 
 ```yaml
 - repo: https://github.com/clj-kondo/clj-kondo
