@@ -47,6 +47,10 @@ Also check out these resources:
 - [lein-githooks](https://github.com/gmorpheme/lein-githooks)
 - [Clojureverse pre-commit hook discussion](https://clojureverse.org/t/what-is-the-preferred-way-to-add-a-pre-commit-hook-to-re-frame-project/5305/4)
 
+### pre-commit framework
+
+`clj-kondo` is supported by the pre-commit framework for managing git commit hooks. Check out [pre-commit](https://pre-commit.com/) for additional resources.
+
 ## GitHub
 
 A number of [GitHub Actions](https://github.com/features/actions) that use `clj-kondo` are available:
