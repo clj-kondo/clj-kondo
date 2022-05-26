@@ -221,10 +221,12 @@ children))]
 
 (deftest macroexpand2-test
   (assert-submaps
-   '({:file "corpus/macroexpand2.cljs", :row 19, :col 10, :level :error, :message "Unresolved symbol: foobar"}
-     {:file "corpus/macroexpand2.cljs", :row 31, :col 3, :level :error, :message "Expected: number, received: string."}
-     {:file "corpus/macroexpand2.cljs", :row 31, :col 3, :level :error, :message "Expected: number, received: keyword."}
-     {:file "corpus/macroexpand2.cljs", :row 37, :col 3, :level :error, :message "Expected: number, received: string."} {:file "corpus/macroexpand2.cljs", :row 37, :col 3, :level :error, :message "Expected: number, received: nil."})
+   '({:file "corpus/macroexpand2.cljs", :row 20, :col 10, :level :error, :message "Unresolved symbol: foobar"}
+     {:file "corpus/macroexpand2.cljs", :row 32, :col 3, :level :error, :message "Expected: number, received: string."}
+     {:file "corpus/macroexpand2.cljs", :row 32, :col 3, :level :error, :message "Expected: number, received: keyword."}
+     {:file "corpus/macroexpand2.cljs", :row 38, :col 3, :level :error, :message "Expected: number, received: string."}
+     {:file "corpus/macroexpand2.cljs", :row 38, :col 3, :level :error, :message "Expected: number, received: nil."}
+     {:file "corpus/macroexpand2.cljs", :row 43, :col 1, :level :warning, :message "Unused private var macroexpand2/private-var"})
    (let [results (lint! (io/file "corpus" "macroexpand2.cljs")
                         {:linters {:unresolved-symbol {:level :error}
                                    :unused-binding {:level :warning}
