@@ -264,8 +264,8 @@ The `:macroexpand` hook can be used to expand the s-expression representation of
 the rewrite-clj nodes using a macro in the configuration. After macroexpansion,
 clj-kondo coerces the s-expression back into rewrite-clj nodes. That makes this
 feature easier to use than `:analyze-call`, but comes at the cost of loss of
-precision with respect to locations: all lint warnings will be reported at the
-call site of the macro. Similar rules to `:analyze-hook` apply to this feature:
+precision with respect to locations: some lint warnings will be reported at a
+parent node location. Similar rules to `:analyze-hook` apply to this feature:
 the macro in the config doesn't have to be the same as the original macro, as
 long as it expands in syntactically sane expressions. The config macros, like
 `:analyze-call` hooks, are running in SCI and have a subset of Clojure
@@ -315,7 +315,8 @@ This should get rid of the unresolved symbols.
 ### Subtleties of `:macroexpand`
 
 There are several special cases to watch out for when using the `:macroexpand` feature.
-  - It is recommended to put your macroexpansion code into a file / namespace
+
+- It is recommended to put your macroexpansion code into a file / namespace
   with the same name as the original macro.  E.g., if your macro `foo` is
   defined in a namespace named `bar` then the `(defmacro foo ...)` must sit in
   the file `.clj-kondo/bar.clj`.  Furthermore, if the namespace is `my-app.bar`,
