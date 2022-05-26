@@ -1782,6 +1782,15 @@
     (when args
       (analyze-children ctx args))))
 
+(def with-precision-bindings
+  (zipmap '[CEILING, FLOOR, HALF_UP, HALF_DOWN, HALF_EVEN, UP, DOWN, UNNECESSARY]
+          (repeat {})))
+
+(defn- analyze-with-precision [ctx _expr children]
+  (analyze-children (utils/ctx-with-bindings ctx
+                                             with-precision-bindings)
+                    children))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -2066,6 +2075,7 @@
                           (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                           (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
                           (exists?) (analyze-cljs-exists? ctx expr)
+                          (with-precision) (analyze-with-precision ctx expr children)
                           ;; catch-all
                           (case [resolved-as-namespace resolved-as-name]
                             [clj-kondo.lint-as def-catch-all]

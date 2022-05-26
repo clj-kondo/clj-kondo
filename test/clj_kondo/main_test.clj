@@ -1819,10 +1819,13 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "
 (exists? foo.bar/baz)"
-                     {:linters {:unresolved-namespace {:level :error}}}
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unresolved-namespace {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "(def ^{:macro true} foo (fn* [_ _] (map (fn* []) [])))")))
-  (is (empty? (lint! "::f._al"))))
+  (is (empty? (lint! "::f._al")))
+  (is (empty? (lint! "(with-precision 6 :rounding CEILING (+ 3.5555555M 1))"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest tagged-literal-test
   (is (empty?
