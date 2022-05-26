@@ -10,6 +10,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1697](https://github.com/clj-kondo/clj-kondo/issues/1697): update docs and messaging around importing configs ([@lread](https://github.com/lread))
 - [#1700](https://github.com/clj-kondo/clj-kondo/issues/1700): allow discouraged var on non-analyzed (closed source) vars
 - [#1703](https://github.com/clj-kondo/clj-kondo/issues/1703): update built-in cache with newest CLJ (1.11.1) and CLJS (1.11.54) versions
+- [#1705](https://github.com/clj-kondo/clj-kondo/issues/1705): add pre-commit utility support via .pre-commit-hooks.yaml
 
 ## 2022.04.25
 
