@@ -1,0 +1,6 @@
+-   id: clj-kondo
+    name: clj-kondo
+    description: '`clj-kondo` is a command-line utility for enforcing style consistency across Clojure projects.'
+    entry: clj-kondo --lint
+    language: system
+    types: [clojure]

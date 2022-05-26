@@ -101,7 +101,30 @@
                       symbol)
         ctor-node (with-meta-of (token-node ctor-name)
                     ctor-node)]
-    (list-node (list* (token-node 'new) ctor-node children))))
+    (with-meta-of (list-node (list* (token-node 'new) ctor-node children))
+      expr)))
+
+(defn expand-method-invocation
+  [_ctx expr]
+  (let [[meth-node invoked & args] (:children expr)
+        meth (:value meth-node)
+        meth-name (str meth)
+        meth (-> meth-name
+                 (subs 1)
+                 symbol)
+        meth-node (with-meta-of (token-node meth)
+                    meth-node)]
+    (with-meta-of (list-node (list* (token-node '.) invoked meth-node args))
+      expr)))
+
+(defn expand-double-dot
+  [_ctx expr]
+  (loop [[x form & more] (rest (:children expr))]
+    (let [node (with-meta-of (list-node [(token-node '.) x form])
+                 expr)]
+      (if more
+        (recur (cons node more) )
+        node))))
 
 (defn find-children
   "Recursively filters children by pred"

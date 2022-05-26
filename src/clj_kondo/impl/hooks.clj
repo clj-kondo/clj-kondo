@@ -40,7 +40,7 @@
         (:classpath *ctx*)))
 
 (defn keyword-node? [n]
-  (instance? clj_kondo.impl.rewrite_clj.node.keyword.KeywordNode n))
+  (utils/keyword-node? n))
 
 (defn string-node? [n]
   (instance? clj_kondo.impl.rewrite_clj.node.string.StringNode n))

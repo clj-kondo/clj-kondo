@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.findings
-  {:no-doc true})
+  {:no-doc true}
+  (:require [clj-kondo.impl.utils :as utils]))
 
 ;; ignore  row 1, col 21, end-row 1, end-col 31
 ;; finding row 1, col 26, end-row 1, end-col 30
@@ -61,6 +62,14 @@
         (let [m (assoc m :level level)]
           (swap! findings conj m)
           m)))))
+
+(defn warn-reflection [ctx expr]
+  (when (:warn-only-on-interop ctx)
+    (reg-finding!
+     ctx (utils/node->line (:filename ctx)
+                           expr
+                           :warn-on-reflection
+                           "Var *warn-on-reflection* is not set in this namespace."))))
 
 ;;;; Scratch
 

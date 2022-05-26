@@ -50,6 +50,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Redefined var](#redefined-var)
     - [Redundant do](#redundant-do)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
+    - [Redundant call](#redundant-call)
     - [Redundant expression](#redundant-expression)
     - [Redundant let](#redundant-let)
     - [Refer](#refer)
@@ -72,6 +73,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused private var](#unused-private-var)
     - [Unused referred var](#unused-referred-var)
     - [Use](#use)
+    - [Warn on reflection](#warn-on-reflection)
 
 <!-- markdown-toc end -->
 
@@ -1369,3 +1371,26 @@ it. That can be done as follows:
 
 This linter is closely tied to [Refer All](#refer-all). Namespaces configured to
 suppress the `:refer-all` warning will also suppress the `:use` warning.
+
+### Warn on reflection
+
+*Keyword:* `:warn-on-reflection`
+
+*Description:* warns about not setting `*warn-on-reflection*` to true in Clojure
+namespaces. Defaults to only warning when doing interop.
+
+*Default level:* `:off`
+
+*Example trigger:* `(.length "hello")`
+
+*Example message:* `Var *warn-on-reflection* is not set in this namespace.`
+
+*Config:*
+
+``` clojure
+:warn-on-reflection {:level :off
+                     :warn-only-on-interop true}
+```
+
+The value of `:warn-only-on-interop` can be set to `false` to always warn in
+Clojure namespaces.
