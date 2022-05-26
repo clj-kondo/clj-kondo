@@ -1769,6 +1769,18 @@
   (run! #(analyze-usages2 (ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace]) %)
         (next (:children expr))))
 
+(defn- analyze-instance-invocation [ctx children]
+  ;; see https://clojure.org/reference/java_interop#dot
+  (let [[instance meth & args] children]
+    (if instance (analyze-expression** ctx instance)
+        ;; TODO, warning, instance is required
+        nil
+        )
+    (when (and meth (identical? :list (utils/tag meth)) (not args))
+      (analyze-children ctx (rest (:children meth))))
+    (when args
+      (analyze-children ctx args))))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -1993,7 +2005,10 @@
                           reify (analyze-reify ctx expr defined-by)
                           (extend-protocol extend-type) (analyze-extend-type ctx expr defined-by)
                           (specify!) (analyze-specify! ctx expr defined-by)
-                          (. .. proxy defcurried)
+
+                          (.) (analyze-instance-invocation ctx children)
+                          (..) (analyze-expression** ctx (macroexpand/expand-double-dot ctx expr))
+                          (proxy defcurried)
                           ;; don't lint calls in these expressions, only register them as used vars
                           (analyze-children (ctx-with-linters-disabled ctx [:invalid-arity
                                                                             :unresolved-symbol
