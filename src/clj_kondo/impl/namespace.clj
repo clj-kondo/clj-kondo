@@ -502,13 +502,15 @@
                                       (str/join "." (butlast (str/split fq #"\.")))]))))
                            (find (:imports ns) ns-sym))]
               (reg-used-import! ctx name-sym ns-name package class-name expr)
+              (prn :dude)
               {:interop? true
                :ns (symbol (str package "." class-name))
                :name (symbol (name name-sym))})
             (if (identical? :clj lang)
               (if (and (not (one-of ns* ["clojure.core"]))
                        (class-name? ns*))
-                (do (java/reg-class-usage! ctx ns* (meta expr))
+                (do (prn :yala)
+                    (java/reg-class-usage! ctx ns* (meta expr))
                     {:interop? true})
                 {:name (symbol (name name-sym))
                  :unresolved? true
@@ -581,11 +583,14 @@
                  (if (and (not referred-all-ns)
                           (class-name? name-sym))
                    (do (java/reg-class-usage! ctx (str name-sym) (meta expr))
+                       (prn :yyyy)
                        {:interop? true})
-                   {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                    :name name-sym
-                    :unresolved? true
-                    :clojure-excluded? clojure-excluded?}))))))))))
+                   (do
+                     (prn :yaaa)
+                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                      :name name-sym
+                      :unresolved? true
+                      :clojure-excluded? clojure-excluded?})))))))))))
 
 ;;;; Scratch
 

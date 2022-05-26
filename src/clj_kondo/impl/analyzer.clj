@@ -2661,6 +2661,26 @@
     (utils/stderr "[clj-kondo] Linting file:" filename))
   (try
     (let [reader-exceptions (atom [])
+          [only-warn-on-interop warn-on-reflect-enabled? :as reflect-opts]
+          (when (identical? :clj lang)
+            (let [cfg (-> config :linters :warn-on-reflection)]
+              (when-not (identical? :off (:level cfg))
+                (let [only-on-interop (:warn-only-on-interop cfg)
+                      has-setting? (str/includes? input "*warn-on-reflection*")]
+                  (when (and (not has-setting?)
+                             (not only-on-interop))
+                    (findings/reg-finding!
+                     ctx {:message "Var *warn-on-reflection* is not set in this namespace."
+                          :filename filename
+                          :type :warn-on-reflection
+                          :row 1 :col 1 :end-row 1 :end-col 1}))
+                  [only-on-interop
+                   (str/includes? input "*warn-on-reflection*")]))))
+          ctx (if reflect-opts
+                (assoc ctx
+                       :warn-on-reflect-enabled warn-on-reflect-enabled?
+                       :only-warn-on-interop only-warn-on-interop)
+                ctx)
           parsed (binding [*reader-exceptions* reader-exceptions]
                    (p/parse-string input))
           fname (fs/file-name filename)
