@@ -136,16 +136,17 @@
 (defn annotate [node original-meta]
   (let [!!last-meta (volatile! original-meta)]
     (prewalk (fn [node]
-                (if (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
-                         (identical? :list (utils/tag node)))
+               (cond
+                 (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
+                      (identical? :list (utils/tag node)))
                   (do
                     (when-let [m (meta node)]
-                      (vreset! !!last-meta m))
+                      (vreset! !!last-meta (select-keys m [:row :end-row :col :end-col])))
                     node)
-                  (if (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-                    (with-meta node
-                      @!!last-meta)
-                    node)))
+                  (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+                  (with-meta node
+                    (merge @!!last-meta (meta node)))
+                  :else node))
              node)))
 
 (defn -macroexpand [macro node bindings]
