@@ -39,11 +39,11 @@
   [node value]
   (if (instance? clojure.lang.IMeta value)
     (let [mta (meta value)]
-      (if-not mta
-        node
+      (if mta
         (with-meta
           (update node :meta lconj (coerce mta))
-          mta)))
+          mta)
+        node))
     node))
 
 ;; ## Tokens
