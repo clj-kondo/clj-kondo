@@ -9,7 +9,8 @@
                                            list-node map-node map-vals sexpr
                                            string-node token-node vector-node]]
    [clojure.java.io :as io]
-   [sci.core :as sci])
+   [sci.core :as sci]
+   [clojure.walk :as walk])
   (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)
@@ -102,52 +103,21 @@
       {}
       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
 
-(defn walk
-  "Traverses form, an arbitrary data structure.  inner and outer are
-  functions.  Applies inner to each element of form, building up a
-  data structure of the same type, then applies outer to the result.
-  Recognizes all Clojure data structures. Consumes seqs as with doall."
-
-  {:added "1.1"}
-  [inner outer form]
-  (cond
-    (list? form) (outer (apply list (map inner form)))
-    (instance? clojure.lang.IMapEntry form)
-    (outer (clojure.lang.MapEntry/create (inner (key form)) (inner (val form))))
-    (seq? form) (outer (doall (map inner form)))
-    (instance? clojure.lang.IRecord form)
-    (outer (reduce (fn [r x] (conj r (inner x))) form form))
-    (coll? form) (outer (into (empty form) (map inner form)))
-    :else (outer form)))
-
-(defn prewalk
-  "Prewalk with metadata preservation. Does not prewalk :sci.impl/op nodes."
-  [f form]
-  (walk (partial prewalk f) identity (f form)))
-
-(defn postwalk
-  "Performs a depth-first, post-order traversal of form.  Calls f on
-  each sub-form, uses f's return value in place of the original.
-  Recognizes all Clojure data structures. Consumes seqs as with doall."
-  {:added "1.1"}
-  [f form]
-  (walk (partial postwalk f) f form))
-
 (defn annotate [node original-meta]
   (let [!!last-meta (volatile! original-meta)]
-    (prewalk (fn [node]
-               (cond
-                 (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
-                      (identical? :list (utils/tag node)))
-                  (do
-                    (when-let [m (meta node)]
-                      (vreset! !!last-meta (select-keys m [:row :end-row :col :end-col])))
-                    node)
-                  (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-                  (with-meta node
-                    (merge @!!last-meta (meta node)))
-                  :else node))
-             node)))
+    (walk/prewalk (fn [node]
+                    (cond
+                      (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
+                           (identical? :list (utils/tag node)))
+                      (do
+                        (when-let [m (meta node)]
+                          (vreset! !!last-meta (select-keys m [:row :end-row :col :end-col])))
+                        node)
+                      (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+                      (with-meta node
+                        (merge @!!last-meta (meta node)))
+                      :else node))
+                  node)))
 
 (defn -macroexpand [macro node bindings]
   (let [call (sexpr node)
