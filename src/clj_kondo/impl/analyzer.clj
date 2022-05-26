@@ -1771,12 +1771,7 @@
 
 (defn- analyze-instance-invocation [ctx expr children]
   ;; see https://clojure.org/reference/java_interop#dot
-  (when (:warn-only-on-interop ctx)
-    (findings/reg-finding!
-     ctx (node->line (:filename ctx)
-                     expr
-                     :warn-on-reflection
-                     "Var *warn-on-reflection* is not set in this namespace.")))
+  (findings/warn-reflection ctx expr)
   (let [[instance meth & args] children]
     (if instance (analyze-expression** ctx instance)
         ;; TODO, warning, instance is required

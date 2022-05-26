@@ -16,4 +16,8 @@
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 23, :level :warning, :message "Var *warn-on-reflection* is not set in this namespace."})
    (lint! "(ns foo) (defn foo [] (.foo ))"
+          '{:linters {:warn-on-reflection {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 23, :level :warning, :message "Var *warn-on-reflection* is not set in this namespace."})
+   (lint! "(ns foo) (defn foo [] (Thread/sleep 100))"
           '{:linters {:warn-on-reflection {:level :warning}}})))
