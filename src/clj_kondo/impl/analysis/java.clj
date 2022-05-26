@@ -72,7 +72,6 @@
 
 (defn reg-class-usage!
   [ctx class-name loc+data]
-  (prn :dude)
   (when (analyze-class-usages? ctx)
     (swap! (:analysis ctx)
            update :java-class-usages conj

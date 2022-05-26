@@ -103,6 +103,18 @@
                     ctor-node)]
     (list-node (list* (token-node 'new) ctor-node children))))
 
+(defn expand-method-invocation
+  [_ctx expr]
+  (let [[meth-node invoked & args] (:children expr)
+        meth (:value meth-node)
+        meth-name (str meth)
+        meth (-> meth-name
+                 (subs 1)
+                 symbol)
+        meth-node (with-meta-of (token-node meth)
+                    meth-node)]
+    (list-node (list* (token-node '.) invoked meth-node args))))
+
 (defn find-children
   "Recursively filters children by pred"
   [pred children]
