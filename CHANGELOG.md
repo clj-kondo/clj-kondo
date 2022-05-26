@@ -16,6 +16,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1705](https://github.com/clj-kondo/clj-kondo/issues/1705): add pre-commit utility support via `.pre-commit-hooks.yaml`
 - [#1701](https://github.com/clj-kondo/clj-kondo/issues/1701): preserve locations in seqs and symbols in `:macroexpand` hook
 - [#1685](https://github.com/clj-kondo/clj-kondo/issues/1685): Support `.clj_kondo` hook extension
+- #1670: parse error on auto-resolved keyword for current ns
 
 ## 2022.04.25
 

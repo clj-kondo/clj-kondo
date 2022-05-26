@@ -73,7 +73,7 @@
                        :name (:name resolved)
                        :alias (when-not (:alias destructuring) (:alias resolved))
                        :ns (or (:ns destructuring) (:ns resolved))))))
-     (when (and keyword-val (:namespaced? expr))
+     (when (and keyword-val (:namespaced? expr) (namespace keyword-val))
        (let [symbol-val (kw->sym keyword-val)
              {resolved-ns :ns}
              (namespace/resolve-name ctx false ns-name symbol-val nil)]
@@ -83,7 +83,7 @@
                                           resolved-ns)
            (namespace/reg-unresolved-namespace! ctx ns-name
                                                 (with-meta (symbol (namespace symbol-val))
-                                                           (meta expr)))))))))
+                                                  (meta expr)))))))))
 
 (defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)

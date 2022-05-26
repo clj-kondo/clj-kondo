@@ -1821,7 +1821,8 @@ foo/foo ;; this does use the private var
 (exists? foo.bar/baz)"
                      {:linters {:unresolved-namespace {:level :error}}}
                      "--lang" "cljs")))
-  (is (empty? (lint! "(def ^{:macro true} foo (fn* [_ _] (map (fn* []) [])))"))))
+  (is (empty? (lint! "(def ^{:macro true} foo (fn* [_ _] (map (fn* []) [])))")))
+  (is (empty? (lint! "::f._al"))))
 
 (deftest tagged-literal-test
   (is (empty?
