@@ -2081,6 +2081,7 @@
                             [schema.core defrecord]
                             (analyze-schema ctx 'defrecord expr 'schema.core/defrecord)
                             ([clojure.test deftest]
+                             [clojure.test deftest-]
                              [cljs.test deftest])
                             (test/analyze-deftest ctx expr defined-by
                                                   resolved-as-namespace resolved-as-name)
