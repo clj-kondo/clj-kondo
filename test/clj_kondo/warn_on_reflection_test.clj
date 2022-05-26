@@ -14,6 +14,6 @@
           '{:linters {:warn-on-reflection {:level :warning
                                            :warn-only-on-interop false}}}))
   (assert-submaps
-   []
-   (prn (lint! "(ns foo) (defn foo [] (.foo ))"
-               '{:linters {:warn-on-reflection {:level :warning}}}))))
+   '({:file "<stdin>", :row 1, :col 23, :level :warning, :message "Var *warn-on-reflection* is not set in this namespace."})
+   (lint! "(ns foo) (defn foo [] (.foo ))"
+          '{:linters {:warn-on-reflection {:level :warning}}})))

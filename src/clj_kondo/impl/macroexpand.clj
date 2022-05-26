@@ -101,7 +101,8 @@
                       symbol)
         ctor-node (with-meta-of (token-node ctor-name)
                     ctor-node)]
-    (list-node (list* (token-node 'new) ctor-node children))))
+    (with-meta-of (list-node (list* (token-node 'new) ctor-node children))
+      expr)))
 
 (defn expand-method-invocation
   [_ctx expr]
@@ -113,13 +114,14 @@
                  symbol)
         meth-node (with-meta-of (token-node meth)
                     meth-node)]
-    (list-node (list* (token-node '.) invoked meth-node args))))
+    (with-meta-of (list-node (list* (token-node '.) invoked meth-node args))
+      expr)))
 
 (defn expand-double-dot
   [_ctx expr]
   (loop [[x form & more] (rest (:children expr))]
-    (let [node (list-node [(token-node '.) x form])
-          ]
+    (let [node (with-meta-of (list-node [(token-node '.) x form])
+                 expr)]
       (if more
         (recur (cons node more) )
         node))))

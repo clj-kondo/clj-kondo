@@ -1769,8 +1769,14 @@
   (run! #(analyze-usages2 (ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace]) %)
         (next (:children expr))))
 
-(defn- analyze-instance-invocation [ctx children]
+(defn- analyze-instance-invocation [ctx expr children]
   ;; see https://clojure.org/reference/java_interop#dot
+  (when (:warn-only-on-interop ctx)
+    (findings/reg-finding!
+     ctx (node->line (:filename ctx)
+                     expr
+                     :warn-on-reflection
+                     "Var *warn-on-reflection* is not set in this namespace.")))
   (let [[instance meth & args] children]
     (if instance (analyze-expression** ctx instance)
         ;; TODO, warning, instance is required
@@ -2006,7 +2012,7 @@
                           (extend-protocol extend-type) (analyze-extend-type ctx expr defined-by)
                           (specify!) (analyze-specify! ctx expr defined-by)
 
-                          (.) (analyze-instance-invocation ctx children)
+                          (.) (analyze-instance-invocation ctx expr children)
                           (..) (analyze-expression** ctx (macroexpand/expand-double-dot ctx expr))
                           (proxy defcurried)
                           ;; don't lint calls in these expressions, only register them as used vars
@@ -2691,8 +2697,9 @@
           (when (identical? :clj lang)
             (let [cfg (-> config :linters :warn-on-reflection)]
               (when-not (identical? :off (:level cfg))
-                (let [only-on-interop (:warn-only-on-interop cfg)
-                      has-setting? (str/includes? input "*warn-on-reflection*")]
+                (let [has-setting? (str/includes? input "*warn-on-reflection*")
+                      only-on-interop (when-not has-setting?
+                                        (:warn-only-on-interop cfg))]
                   (when (and (not has-setting?)
                              (not only-on-interop))
                     (findings/reg-finding!
@@ -2705,7 +2712,7 @@
           ctx (if reflect-opts
                 (assoc ctx
                        :warn-on-reflect-enabled warn-on-reflect-enabled?
-                       :only-warn-on-interop only-warn-on-interop)
+                       :warn-only-on-interop only-warn-on-interop)
                 ctx)
           parsed (binding [*reader-exceptions* reader-exceptions]
                    (p/parse-string input))
