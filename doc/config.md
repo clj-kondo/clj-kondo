@@ -144,6 +144,8 @@ Some linters are not enabled by default. Right now these linters are:
 - `:docstring-no-summary`: warn when first line of docstring is not a complete sentence.
 - `:docstring-leading-trailing-whitespace`: warn when docstring has leading or trailing whitespace.
 - `:used-underscored-binding`: warn when a underscored (ie marked as unused) binding is used.
+- `:warn-on-reflection`: warns about not setting `*warn-on-reflection*` to true in Clojure
+namespaces.
 
 You can enable these linters by setting the `:level`:
 
