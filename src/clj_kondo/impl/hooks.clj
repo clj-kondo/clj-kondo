@@ -36,8 +36,10 @@
 (defn find-file-on-classpath ^java.io.File
   [base-path]
   (some (fn [cp-entry]
-          (let [f (io/file cp-entry base-path)]
-            (when (.exists f) f)))
+          (some (fn [ext]
+                  (let [f (io/file cp-entry (str base-path "." ext))]
+                    (when (.exists f) f)))
+                ["clj_kondo" "clj"]))
         (:classpath *ctx*)))
 
 (defn keyword-node? [n]
@@ -163,8 +165,7 @@
                        'System java.lang.System}
              :load-fn (fn [{:keys [:namespace]}]
                         (let [^String ns-str (munge (name namespace))
-                              base-path (.replace ns-str "." "/")
-                              base-path (str base-path ".clj")]
+                              base-path (.replace ns-str "." "/")]
                           (if-let [f (find-file-on-classpath base-path)]
                             {:file (.getAbsolutePath f)
                              :source (slurp f)}
