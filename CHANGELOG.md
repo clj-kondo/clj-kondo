@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1703](https://github.com/clj-kondo/clj-kondo/issues/1703): update built-in cache with newest CLJ (1.11.1) and CLJS (1.11.54) versions
 - [#1704](https://github.com/clj-kondo/clj-kondo/issues/1704): fix re-frame analysis bug
 - [#1705](https://github.com/clj-kondo/clj-kondo/issues/1705): add pre-commit utility support via `.pre-commit-hooks.yaml`
+- [#1701](https://github.com/clj-kondo/clj-kondo/issues/1701): preserve locations in seqs and symbols in `:macroexpand` hook
 
 ## 2022.04.25
 
