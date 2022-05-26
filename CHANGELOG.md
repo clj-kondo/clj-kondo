@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1670](https://github.com/clj-kondo/clj-kondo/issues/1670): parse error on auto-resolved keyword for current ns
 - [#1672](https://github.com/clj-kondo/clj-kondo/issues/1672): support `clojure.test/deftest-`
 - [#1678](https://github.com/clj-kondo/clj-kondo/issues/1678): support `with-precision`
+- Public `clj-kondo.hooks-api` API ns for JVM REPL usage
 
 ## 2022.04.25
 
