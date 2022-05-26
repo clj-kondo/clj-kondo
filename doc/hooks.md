@@ -6,10 +6,11 @@ Hooks are a way to enhance linting via user provided code.
 
 Hooks are interpreted using the [Small Clojure Interpreter](https://github.com/borkdude/sci).
 
-Hooks receive Clojure code as rewrite-clj nodes, not only for performance reasons, but
-also because rewrite-clj nodes carry the line and row numbers for every Clojure element.
-Note that when we refer to a "rewrite-clj node", we are referring to clj-kondo's version of rewrite-clj node.
-Clj-kondo's version of [rewrite-clj](https://github.com/xsc/rewrite-clj) is catered to its use case,
+Hooks receive Clojure code as rewrite-clj nodes, not only for performance
+reasons, but also because rewrite-clj nodes carry the line and row numbers for
+every Clojure element.  Note that when we refer to a "rewrite-clj node", we are
+referring to clj-kondo's version of rewrite-clj node.  Clj-kondo's version of
+[rewrite-clj](https://github.com/xsc/rewrite-clj) is catered to its use case,
 includes some bug fixes, but most notably: strips away all whitespace.
 
 A hook can leverage the `clj-kondo.hooks-api` namespace for transformation and analysis of rewrite-clj nodes.
@@ -356,7 +357,12 @@ repeat that expression `n` times (where `n` is a large number like
 1000000). Then lint the file with `clj-kondo --lint` and measure
 timing. The `time` macro is also available within hooks code.
 
+
 ### Refreshing with tools.namespace
+
+Note: the following refers to `v2022.04.25` and earlier. Newer versions support
+the `.clj_kondo` extension for hooks which won't cause any confusion with tools
+that try to load `.clj` files.
 
 Out of the box, `tools.namespace/refresh(-all)` will attempt to reload all
 namespaces that are in Clojure source files (`.clj` etc.) in _directories_ (i.e.
@@ -421,6 +427,10 @@ the following could be an option:
 ```
 
 ### Compatibility with tools.build compilation
+
+Note: the following refers to `v2022.04.25` and earlier. Newer versions support
+the `.clj_kondo` extension for hooks which won't cause any confusion with tools
+that try to load `.clj` files.
 
 Similar to the previous point about `tools.namespace`, compiling a project that
 has hooks defined in `.clj` files on its classpath with `tools.build` might run
