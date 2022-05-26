@@ -18,15 +18,13 @@
 (defn tag [expr]
   (node/tag expr))
 
-(defn sexpr [expr]
-  (node/sexpr expr))
-
 (def map-node seq/map-node)
 (def vector-node seq/vector-node)
 (def list-node seq/list-node)
 (def token-node token/token-node)
 (def keyword-node k/keyword-node)
 (def string-node node-string/string-node)
+(def sexpr node/sexpr)
 
 (defn list-node? [n]
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)

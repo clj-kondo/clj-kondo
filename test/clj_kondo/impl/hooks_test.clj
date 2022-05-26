@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.hooks-test
   (:require
+   [clj-kondo.hooks-api :as hooks-api]
    [clj-kondo.impl.core :as core]
-   [clj-kondo.impl.hooks :as hooks-api]
    [clj-kondo.impl.utils :as utils :refer [parse-string *ctx*]]
    [clj-kondo.test-utils :refer [lint! make-dirs with-temp-dir]]
    [clojure.java.io :as io]
