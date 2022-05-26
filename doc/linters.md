@@ -50,6 +50,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Redefined var](#redefined-var)
     - [Redundant do](#redundant-do)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
+    - [Redundant call](#redundant-call)
     - [Redundant expression](#redundant-expression)
     - [Redundant let](#redundant-let)
     - [Refer](#refer)
@@ -72,6 +73,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused private var](#unused-private-var)
     - [Unused referred var](#unused-referred-var)
     - [Use](#use)
+    - [Warn on reflection](#warn-on-reflection)
 
 <!-- markdown-toc end -->
 
