@@ -125,7 +125,9 @@
               :discouraged-var {:level :warning}
               :redundant-call {:level :off
                                #_#_:exclude #{clojure.core/->}
-                               #_#_:include #{clojure.core/conj!}}}
+                               #_#_:include #{clojure.core/conj!}}
+              :warn-on-reflection {:level :off
+                                   :warn-only-on-interop true}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
