@@ -5,6 +5,8 @@
             [clj-kondo.impl.linters.edn-utils :as edn-utils]
             [clj-kondo.impl.utils :refer [sexpr node->line]]))
 
+(set! *warn-on-reflection* true)
+
 (def expected-linter-keys (set (keys (:linters default-config))))
 
 (defn lint-map-vals [ctx node-map ks]

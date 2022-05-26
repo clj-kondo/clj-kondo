@@ -11,6 +11,8 @@
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]))
 
+(set! *warn-on-reflection* true)
+
 ;;;; Public API
 
 (defn print!

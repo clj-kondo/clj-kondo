@@ -6,6 +6,8 @@
     [node->line tag one-of tag sexpr]]
    [datalog.parser :as datalog]))
 
+(set! *warn-on-reflection* true)
+
 (defn analyze-datalog [ctx expr]
   (let [children (next (:children expr))
         query-raw (first children)

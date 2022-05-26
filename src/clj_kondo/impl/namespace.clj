@@ -502,7 +502,7 @@
                                       (str/join "." (butlast (str/split fq #"\.")))]))))
                            (find (:imports ns) ns-sym))]
               (reg-used-import! ctx name-sym ns-name package class-name expr)
-              (findings/warn-reflection ctx expr)
+              (when call? (findings/warn-reflection ctx expr))
               {:interop? true
                :ns (symbol (str package "." class-name))
                :name (symbol (name name-sym))})
@@ -510,7 +510,7 @@
               (if (and (not (one-of ns* ["clojure.core"]))
                        (class-name? ns*))
                 (do (java/reg-class-usage! ctx ns* (meta expr))
-                    (findings/warn-reflection ctx expr)
+                    (when call? (findings/warn-reflection ctx expr))
                     {:interop? true})
                 {:name (symbol (name name-sym))
                  :unresolved? true
@@ -553,7 +553,7 @@
                               (find (:imports ns) fs))
                             (find (:imports ns) name-sym)))]
              (reg-used-import! ctx name-sym ns-name package name-sym* expr)
-             (findings/warn-reflection ctx expr)
+             (when call? (findings/warn-reflection ctx expr))
              {:ns package
               :interop? true
               :name name-sym*})
@@ -584,7 +584,7 @@
                  (if (and (not referred-all-ns)
                           (class-name? name-sym))
                    (do (java/reg-class-usage! ctx (str name-sym) (meta expr))
-                       (findings/warn-reflection ctx expr)
+                       (when call? (findings/warn-reflection ctx expr))
                        {:interop? true})
                    {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
                     :name name-sym

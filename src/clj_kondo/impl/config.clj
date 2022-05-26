@@ -4,6 +4,8 @@
    [clj-kondo.impl.utils :refer [deep-merge map-vals]]
    [clojure.set :as set]))
 
+(set! *warn-on-reflection* true)
+
 (def default-config
   '{;; no linting inside calls to these functions/macros
     ;; note that you will still get an arity error when calling the fn/macro itself incorrectly

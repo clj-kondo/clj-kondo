@@ -65,11 +65,14 @@
 
 (defn warn-reflection [ctx expr]
   (when (:warn-only-on-interop ctx)
-    (reg-finding!
-     ctx (utils/node->line (:filename ctx)
-                           expr
-                           :warn-on-reflection
-                           "Var *warn-on-reflection* is not set in this namespace."))))
+    (when-not (some #(and (= (:filename ctx)
+                             (:filename %))
+                          (= :warn-on-reflection (:type %))) @(:findings ctx))
+      (reg-finding!
+       ctx (utils/node->line (:filename ctx)
+                             expr
+                             :warn-on-reflection
+                             "Var *warn-on-reflection* is not set in this namespace.")))))
 
 ;;;; Scratch
 

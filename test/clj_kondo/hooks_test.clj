@@ -6,6 +6,8 @@
    [clojure.string :as str]
    [clojure.test :refer [deftest testing is]]))
 
+(set! *warn-on-reflection* true)
+
 (deftest macroexpand-test
   (assert-submaps
    '({:file "corpus/macroexpand.clj", :row 16, :col 7, :level :error, :message "Expected: number, received: keyword."}

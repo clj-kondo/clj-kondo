@@ -32,4 +32,8 @@
  :output {:exclude-files ["src/clj_kondo/impl/rewrite_clj_patch.clj"]}
  :hooks {:analyze-call {clj-kondo.impl.utils/one-of macroexpand.one-of/one-of}}
  ;; we don't use this in clj-kondo since we need to exclude certain configs for testing
- :auto-load-configs false}
+ :auto-load-configs false
+ :ns-groups [{:pattern ".*-test"
+              :name test-namespaces}]
+ :config-in-ns {test-namespaces {:linters {:warn-on-reflection {:level :off}}}}
+ }
