@@ -11,6 +11,8 @@
    [clojure.java.io :as io]
    [clojure.string :as str]))
 
+(set! *warn-on-reflection* true)
+
 ;;; export rewrite-clj functions
 
 (defn tag [expr]

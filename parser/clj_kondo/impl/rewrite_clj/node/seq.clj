@@ -15,7 +15,9 @@
     tag)
   (printable-only? [_] false)
   (sexpr [this]
-    (seq-fn (node/sexprs children)))
+    ;; (prn (meta this))
+    (with-meta (seq-fn (node/sexprs children))
+      (meta this)))
   (length [_]
     (+ wrap-length (node/sum-lengths children)))
   (string [this]

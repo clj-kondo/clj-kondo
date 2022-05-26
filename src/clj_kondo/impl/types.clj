@@ -12,6 +12,8 @@
     [tag sexpr]]
    [clojure.string :as str]))
 
+(set! *warn-on-reflection* true)
+
 (def built-in-specs
   {'clojure.core clojure-core
    'cljs.core cljs-core

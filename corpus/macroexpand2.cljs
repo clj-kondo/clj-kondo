@@ -2,7 +2,8 @@
   {:clj-kondo/config
    '{:hooks
      {:macroexpand {macroexpand2/$ macroexpand2/$
-                    macroexpand2/form-env-macro macroexpand2/form-env-macro}}}})
+                    macroexpand2/form-env-macro macroexpand2/form-env-macro
+                    macroexpand2/private-defn macroexpand2/private-defn}}}})
 
 (def sh (js/require "shelljs"))
 
@@ -35,3 +36,8 @@
   ;; Expected number, received keyword
   y
   (form-env-macro (inc x)))
+
+(defmacro private-defn [sym]
+  `(defn ~(with-meta sym {:private true}) []))
+
+(private-defn private-var)

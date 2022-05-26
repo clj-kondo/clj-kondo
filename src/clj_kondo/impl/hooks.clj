@@ -1,15 +1,16 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
-  (:require [clj-kondo.impl.cache :as cache]
-            [clj-kondo.impl.findings :as findings]
-            [clj-kondo.impl.metadata :as meta]
-            [clj-kondo.impl.rewrite-clj.node :as node]
-            [clj-kondo.impl.utils :as utils :refer [assoc-some vector-node list-node
-                                                    sexpr token-node keyword-node
-                                                    string-node map-node map-vals *ctx*]]
-            [clojure.java.io :as io]
-            [clojure.walk :as walk]
-            [sci.core :as sci])
+  (:require
+   [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.metadata :as meta]
+   [clj-kondo.impl.rewrite-clj.node :as node]
+   [clj-kondo.impl.utils :as utils :refer [*ctx* assoc-some keyword-node
+                                           list-node map-node map-vals sexpr
+                                           string-node token-node vector-node]]
+   [clojure.java.io :as io]
+   [clojure.walk :as walk]
+   [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)
@@ -102,13 +103,21 @@
       {}
       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
 
-(defn annotate [node meta]
-  (walk/postwalk (fn [node]
-                   (if (map? node)
-                     (-> node
-                         (with-meta meta)
-                         mark-generate)
-                     node)) node))
+(defn annotate [node original-meta]
+  (let [!!last-meta (volatile! original-meta)]
+    (walk/prewalk (fn [node]
+                    (cond
+                      (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
+                           (identical? :list (utils/tag node)))
+                      (do
+                        (when-let [m (meta node)]
+                          (vreset! !!last-meta (select-keys m [:row :end-row :col :end-col])))
+                        node)
+                      (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+                      (with-meta node
+                        (merge @!!last-meta (meta node)))
+                      :else node))
+                  node)))
 
 (defn -macroexpand [macro node bindings]
   (let [call (sexpr node)
@@ -121,7 +130,7 @@
     lifted))
 
 #_(defmacro macroexpand [macro node]
-  `(clj-kondo.hooks-api/-macroexpand (deref (var ~macro)) ~node))
+    `(clj-kondo.hooks-api/-macroexpand (deref (var ~macro)) ~node))
 
 (def ans (sci/create-ns 'clj-kondo.hooks-api nil))
 

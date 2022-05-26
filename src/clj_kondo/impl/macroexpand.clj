@@ -4,6 +4,8 @@
    [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]
    [clojure.walk :as walk]))
 
+(set! *warn-on-reflection* true)
+
 (defn with-meta-of [x y]
   (let [m (meta y)
         m* (:meta y)
