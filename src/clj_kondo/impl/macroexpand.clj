@@ -116,15 +116,13 @@
     (list-node (list* (token-node '.) invoked meth-node args))))
 
 (defn expand-double-dot
-  [ctx expr]
-  (let [[_ x form & more] (:children expr)
-        node (list-node [(token-node '.) x form])
-        node (if more
-               (expand-double-dot ctx
-                                  (list-node (list*
-                                              (token-node '..) node more)))
-               node)]
-    node))
+  [_ctx expr]
+  (loop [[x form & more] (rest (:children expr))]
+    (let [node (list-node [(token-node '.) x form])
+          ]
+      (if more
+        (recur (cons node more) )
+        node))))
 
 (defn find-children
   "Recursively filters children by pred"
