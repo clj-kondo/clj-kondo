@@ -9,8 +9,8 @@
                                            list-node map-node map-vals sexpr
                                            string-node token-node vector-node]]
    [clojure.java.io :as io]
-   [sci.core :as sci]
-   [clojure.walk :as walk])
+   [clojure.walk :as walk]
+   [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)
