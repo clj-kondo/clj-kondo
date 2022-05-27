@@ -342,8 +342,112 @@ Here are some tips and tricks for developing hooks.
 ### Debugging
 
 For debugging the output of a hook function, you can use `println` or `prn`. To
-get a sense of what a newly generated node looks like, you can use `(prn
-(api/sexpr node))`.
+get a sense of what a newly generated node looks like, you can use `(prn (api/sexpr node))`.
+
+### Developing hooks in the REPL
+
+For developing hooks in a JVM REPL, clj-kondo when used as a JVM library,
+exposes the `clj-kondo.hooks-api` namespace:
+
+``` Clojure
+$ clj
+Clojure 1.11.0
+user=> (require '[clj-kondo.hooks-api :as api])
+nil
+user=> (defn my-hook [{:keys [node]}] {:node (api/list-node (list* (rest (:children node))))})
+#'user/my-hook
+```
+
+The JVM namespace exposes additional functions for development:
+
+- `parse-string`: parses an s-expression to a node
+
+``` Clojure
+user=> (def node (api/parse-string "(+ 1 2 3)"))
+#'user/node
+user=> (str (:node (my-hook {:node node})))
+"(1 2 3)"
+```
+
+To load hook code that is in a `.clj-kondo` directory, not on the classpath, you
+can use `load-file` and then test the hook function. Suppose the is a file
+`.clj-kondo/hooks/one_of.clj`:
+
+``` Clojure
+(ns hooks.one-of
+  (:require [clj-kondo.hooks-api :as api]))
+
+(defn one-of [{:keys [node]}]
+  (let [[matchee matches] (rest (:children node))
+        new-node (api/list-node
+                  [(api/token-node 'case)
+                   matchee
+                   (with-meta (api/list-node (:children matches))
+                     (meta matches))
+                   matchee])]
+    {:node new-node}))
+
+```
+
+Load this file in the JVM repl:
+
+``` Clojure
+user=> (load-file ".clj-kondo/hooks/one_of.clj")
+#'hooks.one-of/one-of
+```
+
+and then call the hook function:
+
+``` Clojure
+user=> (hooks.one-of/one-of {:node (api/parse-string "(one-of x [1 2 3])")})
+{:node <list: (case x (1 2 3) x)>}
+```
+
+To run clj-kondo on the hook code, use the `clj-kondo.core` namespace:
+
+``` Clojure
+user=> (require '[clj-kondo.core :as clj-kondo])
+nil
+user=> (def code "(require '[clj-kondo.impl.utils :as u]) (u/one-of 1 [1 2 3])")
+nil
+user=> (:findings (with-in-str code (clj-kondo/run! {:lint ["-"]})))
+[]
+```
+
+The hook code is executed in a SCI context. Once a hook namespace is loaded in
+the SCI context, it will not be reloaded, for performance reasons. To facilitate
+reloading, the JVM hooks API exposes the dynamic var `*reload*` which can be set
+to `true`:
+
+``` Clojure
+user=> (binding [api/*reload* true]
+         (:findings (with-in-str code (clj-kondo/run! {:lint ["-"]}))))
+[]
+```
+
+The dynamic var should not be set to `true` in production usage.
+
+For `:macroexpand` hooks, the JVM api offers the `api/macroexpand` function. Suppose we have a file `.clj-kondo/hooks/one_of.clj` with a macro:
+
+``` Clojure
+(ns hooks.one-of
+  (:require [clj-kondo.hooks-api :as api]))
+
+(defmacro one-of [elt coll]
+  `(case ~elt ~(seq coll) ~elt nil))
+```
+
+You can call `api/macroexpand` like this:
+
+``` Clojure
+user=> (str (api/macroexpand #'hooks.one-of/one-of* (api/parse-string "(one-of 1 [1 2 3])") {}))
+"(clojure.core/case 1 (1 2 3) 1 nil)"
+```
+
+So, provide the macro _var_` as the first argument, a node as the second
+argument and bindings (local variables in scope of the macro call) as the third
+argument. The return value from the macro call is a node that has been
+reconstructed from the s-expression that the macro returned.
 
 ### Performance
 
@@ -481,7 +585,7 @@ A workaround is to copy and tweak namespace discovery from `tools.build`:
            :topo (#'compile-clj/nses-in-topo clj-paths)
            :bfs (#'compile-clj/nses-in-bfs clj-paths)
            (throw (ex-info "Invalid :sort in compile-clj task" {:sort sort})))
-         
+
          ;; Adjust pred to your own needs
          (filterv #(re-find #"^(my-namespace-prefix|other-safe-prefix)\." (name %)))
          (assoc compile-clj-opts :ns-compile))))

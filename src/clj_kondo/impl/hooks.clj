@@ -2,10 +2,8 @@
   {:no-doc true}
   (:require
    [clj-kondo.hooks-api :as api]
-   [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.utils :as utils :refer [*ctx*]]
    [clojure.java.io :as io]
-   [clojure.walk :as walk]
    [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
@@ -28,32 +26,6 @@
                     (when (.exists f) f)))
                 ["clj_kondo" "clj"]))
         (:classpath *ctx*)))
-
-(defn annotate [node original-meta]
-  (let [!!last-meta (volatile! original-meta)]
-    (walk/prewalk (fn [node]
-                    (cond
-                      (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
-                           (identical? :list (utils/tag node)))
-                      (do
-                        (when-let [m (meta node)]
-                          (vreset! !!last-meta (select-keys m [:row :end-row :col :end-col])))
-                        node)
-                      (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-                      (with-meta node
-                        (merge @!!last-meta (meta node)))
-                      :else node))
-                  node)))
-
-(defn -macroexpand [macro node bindings]
-  (let [call (api/sexpr node)
-        args (rest call)
-        res (apply macro call bindings args)
-        coerced (api/coerce res)
-        annotated (annotate coerced (meta node))
-        lifted (meta/lift-meta-content2 *ctx* annotated)]
-    ;;
-    lifted))
 
 #_(defmacro macroexpand [macro node]
     `(clj-kondo.hooks-api/-macroexpand (deref (var ~macro)) ~node))
@@ -127,7 +99,9 @@
                                       x)
                                     ;; x is a function symbol
                                     (let [ns (namespace x)]
-                                      (format "(require '%s)\n%s" ns x)))]
+                                      (format "(require '%s %s)\n%s" ns
+                                              (if api/*reload* :reload "")
+                                              x)))]
                          (binding [*ctx* ctx]
                            ;; require isn't thread safe in SCI
                            (locking load-lock (sci/eval-string* sci-ctx code)))))
@@ -139,13 +113,16 @@
                                         x)
                                       ;; x is a function symbol
                                       (let [ns (namespace x)]
-                                        (format "(require '%s)\n(deref (var %s))" ns x)))
+                                        (format "(require '%s %s)\n(deref (var %s))"
+                                                ns
+                                                (if api/*reload* :reload "")
+                                                x)))
                                macro (binding [*ctx* ctx]
                                        (locking load-lock
                                          ;; require isn't thread safe in SCI
                                          (sci/eval-string* sci-ctx code)))]
                            (fn [{:keys [node]}]
-                             {:node (-macroexpand macro node (:bindings *ctx*))})))))))
+                             {:node (api/macroexpand macro node (:bindings *ctx*))})))))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"
@@ -154,5 +131,7 @@
                    (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
                      (println e)))
                  nil)))
-        delayed-cfg (memoize-without-ctx delayed-cfg)]
+        delayed-cfg (if api/*reload*
+                      delayed-cfg
+                      (memoize-without-ctx delayed-cfg))]
     delayed-cfg))

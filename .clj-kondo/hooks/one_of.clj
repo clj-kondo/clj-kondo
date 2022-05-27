@@ -1,6 +1,6 @@
 ;; (one-of x [foo bar]), foo bar are literal symbols
 
-(ns macroexpand.one-of
+(ns hooks.one-of
   (:require [clj-kondo.hooks-api :as api]))
 
 (defn one-of [{:keys [node]}]

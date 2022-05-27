@@ -2,9 +2,12 @@
   (:require
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.parser :as parser]
-   [clj-kondo.impl.utils :as utils]))
+   [clj-kondo.impl.utils :as utils]
+   [clojure.walk :as walk])
+  (:refer-clojure :exclude [macroexpand]))
 
 (defn- mark-generate [node]
   (assoc node :clj-kondo.impl/generated true))
@@ -98,3 +101,32 @@
       merge
       {}
       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
+
+(def ^:dynamic *reload*)
+
+(defn- annotate [node original-meta]
+  (let [!!last-meta (volatile! original-meta)]
+    (walk/prewalk (fn [node]
+                    (cond
+                      (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
+                           (identical? :list (utils/tag node)))
+                      (do
+                        (when-let [m (meta node)]
+                          (vreset! !!last-meta (select-keys m [:row :end-row :col :end-col])))
+                        node)
+                      (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+                      (with-meta node
+                        (merge @!!last-meta (meta node)))
+                      :else node))
+                  node)))
+
+(defn macroexpand [macro node bindings]
+  (let [call (sexpr node)
+        args (rest call)
+        res (apply macro call bindings args)
+        coerced (coerce res)
+        annotated (annotate coerced (meta node))
+        lifted (meta/lift-meta-content2 utils/*ctx* annotated)]
+    ;;
+    lifted))
+
