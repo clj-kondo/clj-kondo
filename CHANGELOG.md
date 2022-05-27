@@ -2,10 +2,12 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.05.27
 
 - [#686](https://github.com/clj-kondo/clj-kondo/issues/686): new `:warn-on-reflection` linter. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#warn-on-reflection).
 - [#1692](https://github.com/clj-kondo/clj-kondo/pull/1692): new linter `:redundant-call` - warns when a function or macro call with 1 given argument returns the argument. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#redundant-call).
+- All new JVM `clj-kondo.hooks-api` API ns for REPL usage. See
+  [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/hooks.md#developing-hooks-in-the-repl).
 
 - [#1674](https://github.com/clj-kondo/clj-kondo/pull/1674): config options to limit analysis of var-usages and bodies of var-definitions. Can be used to get a quick overview of a project's namespaces and vars, without analyzing their details.
 - [#1676](https://github.com/clj-kondo/clj-kondo/pull/1674): Add support for custom function to be called for progress update, `:file-analyzed-fn`.
@@ -19,7 +21,6 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1670](https://github.com/clj-kondo/clj-kondo/issues/1670): parse error on auto-resolved keyword for current ns
 - [#1672](https://github.com/clj-kondo/clj-kondo/issues/1672): support `clojure.test/deftest-`
 - [#1678](https://github.com/clj-kondo/clj-kondo/issues/1678): support `with-precision`
-- Public `clj-kondo.hooks-api` API ns for JVM REPL usage
 
 ## 2022.04.25
 
