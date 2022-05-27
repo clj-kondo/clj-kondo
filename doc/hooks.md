@@ -370,7 +370,7 @@ user=> (str (:node (my-hook {:node node})))
 ```
 
 To load hook code that is in a `.clj-kondo` directory, not on the classpath, you
-can use `load-file` and then test the hook function. Suppose the is a file
+can use `load-file` and then test the hook function. Suppose there is a file
 `.clj-kondo/hooks/one_of.clj`:
 
 ``` Clojure
