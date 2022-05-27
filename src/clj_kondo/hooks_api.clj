@@ -127,7 +127,7 @@
                  (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
                  (-> (with-meta node
                        (merge @!!last-meta (meta node)))
-                     #_mark-generate)
+                     mark-generate)
                  :else node))
              node)))
 
