@@ -10,4 +10,6 @@
                  (when (contains? &env 'x) :foo)])))
 
 (defmacro private-defn [sym]
-  `(defn ~(with-meta sym {:private true}) []))
+  `(defn ~(with-meta sym {:private true}) []
+     ;; redundant stuff that should not be reported :)
+     (do (let [] (let [])))))

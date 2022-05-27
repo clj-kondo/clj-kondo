@@ -5,8 +5,7 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.parser :as parser]
-   [clj-kondo.impl.utils :as utils]
-   [clojure.walk :as walk])
+   [clj-kondo.impl.utils :as utils])
   (:refer-clojure :exclude [macroexpand]))
 
 (defn- mark-generate [node]
@@ -104,21 +103,33 @@
 
 (def ^:dynamic *reload*)
 
+(defn walk
+  [inner outer form]
+  (cond
+    (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node form)
+    (outer (update form :children #(mapv inner %)))
+    :else (outer form)))
+
+(defn prewalk
+  [f form]
+  (walk (partial prewalk f) identity (f form)))
+
 (defn- annotate [node original-meta]
   (let [!!last-meta (volatile! original-meta)]
-    (walk/prewalk (fn [node]
-                    (cond
-                      (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
-                           (identical? :list (utils/tag node)))
-                      (do
-                        (when-let [m (meta node)]
-                          (vreset! !!last-meta (select-keys m [:row :end-row :col :end-col])))
-                        node)
-                      (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-                      (with-meta node
-                        (merge @!!last-meta (meta node)))
-                      :else node))
-                  node)))
+    (prewalk (fn [node]
+               (cond
+                 (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
+                      (identical? :list (utils/tag node)))
+                 (do
+                   (when-let [m (meta node)]
+                     (vreset! !!last-meta (select-keys m [:row :end-row :col :end-col])))
+                   (mark-generate node))
+                 (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+                 (-> (with-meta node
+                       (merge @!!last-meta (meta node)))
+                     #_mark-generate)
+                 :else node))
+             node)))
 
 (defn macroexpand [macro node bindings]
   (let [call (sexpr node)
@@ -129,4 +140,3 @@
         lifted (meta/lift-meta-content2 utils/*ctx* annotated)]
     ;;
     lifted))
-
