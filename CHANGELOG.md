@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2022.05.28
+
+- Fix false positive redundant do's from `:macroexpand` hooks (regression in 2022.05.27)
+
 ## 2022.05.27
 
 - [#686](https://github.com/clj-kondo/clj-kondo/issues/686): new `:warn-on-reflection` linter. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#warn-on-reflection).
