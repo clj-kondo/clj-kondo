@@ -414,10 +414,10 @@ user=> (:findings (with-in-str code (clj-kondo/run! {:lint ["-"]})))
 []
 ```
 
-The hook code is executed in a SCI context. Once a hook namespace is loaded in
-the SCI context, it will not be reloaded, for performance reasons. To facilitate
-reloading, the JVM hooks API exposes the dynamic var `*reload*` which can be set
-to `true`:
+When clj-kondo runs hooks, they are executed in a SCI context. Once a hook
+namespace is loaded in the SCI context, it will not be reloaded, for performance
+reasons. To facilitate reloading, the JVM hooks API exposes the dynamic var
+`*reload*` which can be set to `true`:
 
 ``` Clojure
 user=> (binding [api/*reload* true]
