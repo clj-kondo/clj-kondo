@@ -346,8 +346,8 @@ get a sense of what a newly generated node looks like, you can use `(prn (api/se
 
 ### Developing hooks in the REPL
 
-For developing hooks in a JVM REPL, clj-kondo when used as a JVM library,
-exposes the `clj-kondo.hooks-api` namespace:
+For developing hooks in a JVM REPL, clj-kondo exposes the `clj-kondo.hooks-api`
+namespace:
 
 ``` Clojure
 $ clj
