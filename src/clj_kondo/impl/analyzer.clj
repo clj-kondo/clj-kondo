@@ -1777,8 +1777,12 @@
         ;; TODO, warning, instance is required
         nil
         )
-    (when (and meth (identical? :list (utils/tag meth)) (not args))
-      (analyze-children ctx (rest (:children meth))))
+    (when meth
+      (if (and (identical? :list (utils/tag meth)) (not args))
+        (let [[meth & children] (:children meth)]
+          (analysis/reg-instance-invocation! ctx meth)
+          (analyze-children ctx children))
+        (analysis/reg-instance-invocation! ctx meth)))
     (when args
       (analyze-children ctx args))))
 

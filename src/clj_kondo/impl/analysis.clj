@@ -151,3 +151,21 @@
                 :col (:col method-meta)
                 :end-row (:end-row method-meta)
                 :end-col (:end-col method-meta)})))))
+
+(defn reg-instance-invocation!
+  [ctx method-name-node]
+  (when (:analyze-instance-invocations? ctx)
+    (when-let [analysis (:analysis ctx)]
+      (let [method-meta (meta method-name-node)
+            k :instance-invocations]
+        (when k
+          (swap! analysis update k conj
+                 (cond->
+                     {:method-name (str method-name-node)
+                      :filename (:filename ctx)
+                      :name-row (:row method-meta)
+                      :name-col (:col method-meta)
+                      :name-end-row (:end-row method-meta)
+                      :name-end-col (:end-col method-meta)}
+                   (= :cljc (:base-lang ctx))
+                   (assoc :lang (:lang ctx)))))))))

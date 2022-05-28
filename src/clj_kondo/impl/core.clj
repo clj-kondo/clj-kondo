@@ -175,7 +175,7 @@
 
 (defn source-file? [filename]
   (when-let [[_ ext] (re-find #"\.(\w+)$" filename)]
-    (one-of (keyword ext) [:clj :cljs :cljc :edn])))
+    (one-of (keyword ext) [:clj :cljs :cljc :edn :clj_kondo])))
 
 (defn config-dir
   ([] (config-dir

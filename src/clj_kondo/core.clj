@@ -127,6 +127,7 @@
         analyze-locals? (get analysis-cfg :locals)
         analyze-keywords? (get analysis-cfg :keywords)
         analyze-protocol-impls? (get analysis-cfg :protocol-impls)
+        analyze-instance-invocations? (get analysis-cfg :instance-invocations)
         analysis-var-meta (some-> analysis-cfg :var-definitions :meta)
         analysis-ns-meta (some-> analysis-cfg :namespace-definitions :meta)
         analysis-context (some-> analysis-cfg :context)
@@ -143,7 +144,8 @@
                            analyze-keywords? (assoc :keywords [])
                            analyze-protocol-impls? (assoc :protocol-impls [])
                            analyze-java-class-defs? (assoc :java-class-definitions [])
-                           analyze-java-class-usages? (assoc :java-class-usages []))))
+                           analyze-java-class-usages? (assoc :java-class-usages [])
+                           analyze-instance-invocations? (assoc :instance-invocations []))))
         used-nss (atom {:clj #{}
                         :cljs #{}
                         :cljc #{}})
@@ -179,6 +181,7 @@
              :analysis-ns-meta analysis-ns-meta
              :analyze-meta? analyze-meta?
              :analyze-var-defs-shallowly? analyze-var-defs-shallowly?
+             :analyze-instance-invocations? analyze-instance-invocations?
              :analysis-context analysis-context
              ;; set of files which should not be flushed into cache
              ;; most notably hook configs, as they can conflict with original sources
