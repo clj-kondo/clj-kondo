@@ -2,6 +2,11 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2022.05.29
+
+- Support `:instance-invocations` analysis bucket
+- Copy `.clj_kondo` files from configs
+
 ## 2022.05.28
 
 - Fix false positive redundant do's from `:macroexpand` hooks (regression in 2022.05.27)
