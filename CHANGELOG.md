@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2022.05.31
+
+- Ensure every node has a location when returning from `:macroexpand`
+
 ## 2022.05.29
 
 - Support `:instance-invocations` analysis bucket
