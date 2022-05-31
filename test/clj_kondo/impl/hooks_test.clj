@@ -70,3 +70,13 @@ there
                    (hooks-api/ns-analysis 'baz))
                  (binding [*ctx* {:cache-dir full-cache-dir}]
                    (hooks-api/ns-analysis 'baz {:lang :cljs})))))))))
+
+(deftest macroexpand-locations-test
+  (let [node (parse-string "(foo.bar/baz 1 (2 3 x))")
+        m (meta node)
+        sexpr (hooks-api/sexpr node)
+        sexpr `(do (let [~'x 1] ~sexpr))
+        node (hooks-api/coerce sexpr)
+        node (#'hooks-api/annotate node m)
+        nodes (tree-seq :children :children node)]
+    (is (every? (comp :row meta) nodes))))
