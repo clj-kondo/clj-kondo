@@ -120,10 +120,16 @@
                (cond
                  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
                       (identical? :list (utils/tag node)))
-                 (do
-                   (when-let [m (meta node)]
-                     (vreset! !!last-meta (select-keys m [:row :end-row :col :end-col])))
-                   (mark-generate node))
+                 (if-let [m (meta node)]
+                   (if-let [m (not-empty (select-keys m [:row :end-row :col :end-col]))]
+                     (do (vreset! !!last-meta m)
+                         (mark-generate node))
+                     (-> (with-meta node
+                           (merge @!!last-meta (meta node)))
+                         mark-generate))
+                   (-> (with-meta node
+                         (merge @!!last-meta (meta node)))
+                       mark-generate))
                  (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
                  (-> (with-meta node
                        (merge @!!last-meta (meta node)))
