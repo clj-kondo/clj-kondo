@@ -125,6 +125,7 @@
               :non-arg-vec-return-type-hint {:level :warning}
               :keyword-binding {:level :off}
               :discouraged-var {:level :warning}
+              :discouraged-ns {:level :warning}
               :redundant-call {:level :off
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}

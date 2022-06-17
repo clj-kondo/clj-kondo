@@ -9,6 +9,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1714](https://github.com/clj-kondo/clj-kondo/issues/1714): fix recur arity for `defrecord`, `deftype` and `definterface`
 - [#1718](https://github.com/clj-kondo/clj-kondo/issues/1718): make unsorted namespaces linter case-insensitive
 - [#1722](https://github.com/clj-kondo/clj-kondo/issues/1722): suppress redundant do in `.cljc` for just one language
+- [#1721](https://github.com/clj-kondo/clj-kondo/issues/1721): new `:discouraged-ns` linter. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-ns).
 
 ## 2022.05.31
 

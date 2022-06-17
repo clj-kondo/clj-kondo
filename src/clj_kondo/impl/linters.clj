@@ -336,7 +336,24 @@
                                                       :end-col end-col
                                                       :type :discouraged-var
                                                       :message (or (:message cfg)
-                                                                   (str "Discouraged var: " fn-sym))})))))]
+                                                                   (str "Discouraged var: " fn-sym))})))))
+                  _
+                  (let [discouraged-ns-config
+                        (get-in (:config call) [:linters :discouraged-ns])
+                        var-ns (config/ns-group call-config resolved-ns)]
+                    (when-not (empty? (dissoc discouraged-ns-config :level))
+                      (when-let [{:keys [message in]
+                                  :or {in (constantly true)
+                                       message (str "Discouraged namespace: " var-ns)}}
+                                 (get discouraged-ns-config var-ns)]
+                        (when (in var-ns)
+                          (findings/reg-finding! ctx {:filename filename
+                                                      :row row
+                                                      :end-row end-row
+                                                      :col col
+                                                      :end-col end-col
+                                                      :type :discouraged-ns
+                                                      :message message})))))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?
@@ -510,6 +527,29 @@
            ctx
            (node->line filename node
                        finding-type msg)))))))
+
+(defn lint-discouraged-namespaces!
+  [ctx]
+  (let [config (:config ctx)]
+    (doseq [ns (namespace/list-namespaces ctx)
+            required (:required ns)
+            :let [required (config/ns-group config required)
+                  ns-config (get-in config [:linters :discouraged-ns required])]
+            :when ns-config
+            :let [{:keys [message in]
+                   :or {message (str "Discouraged namespace: " required)
+                        in (constantly true)}} ns-config
+                  m (meta required)]]
+      (when (in (:name ns))
+        (findings/reg-finding!
+         ctx
+         {:type :unresolved-namespace
+          :filename (:filename m)
+          :message message
+          :row (:row m)
+          :col (:col m)
+          :end-row (:end-row m)
+          :end-col (:end-col m)})))))
 
 (defn lint-bindings!
   [ctx]
