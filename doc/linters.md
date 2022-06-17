@@ -402,6 +402,27 @@ With the configuration above:
 (require '[clojure.java.jdbc :as j])
 ```
 
+Modifier `:from` may be given to activate linter only for usages of the discouraged namespace from the listed namespaces.
+
+```clojure
+{:linters {:discouraged-ns {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"
+                                               :from #{app.adapter.jdbc-next}}}}}
+```
+
+*Example trigger:*
+
+With the configuration above:
+
+```clojure
+;; Does not trigger the warning
+(ns app.adapter.jdbc
+  (:require [clojure.java.jdbc :as jdbc]))
+
+;; Triggers the warning
+(ns app.adapter.jdbc-next
+  (:require [clojure.java.jdbc :as jdbc]))
+```
+
 ### Docstring blank
 
 *Keyword:* `:docstring-blank`.

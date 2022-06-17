@@ -16,4 +16,9 @@
      {:file "<stdin>", :row 1, :col 15, :level :warning, :message "deprecated namespace"})
    (lint! "(defn foo [x] (satisfies? Datafy x))"
           '{:ns-groups [{:pattern "(cljs|clojure).core" :name core}]
-            :linters  {:discouraged-ns {core {:message "deprecated namespace"}}}})))
+            :linters  {:discouraged-ns {core {:message "deprecated namespace"}}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 79, :level :warning, :message "namespace foo is required but never used"})
+   (lint! "(ns foo) (defn x []) (ns bar (:require [foo :as f])) (f/x) (ns baz (:require [foo :as f]))"
+          '{:linters  {:discouraged-ns {foo {:from #{baz}
+                                             :message "deprecated namespace"}}}})))
