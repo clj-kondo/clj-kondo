@@ -56,7 +56,11 @@
         config (:config ctx)
         tp (:type m)
         level (or (:level m)
-                  (-> config :linters tp :level))]
+                  (-> config :linters tp :level))
+        base-lang (:base-lang ctx)
+        m (cond-> m
+            (identical? :cljc base-lang)
+            (assoc :cljc true))]
     (when (and level (not (identical? :off level)) (not dependencies) (not skip-lint?))
       (when-not (ignored? ctx m tp)
         (let [m (assoc m :level level)]

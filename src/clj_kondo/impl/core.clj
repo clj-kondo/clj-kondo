@@ -229,9 +229,9 @@
                                              (not (str/includes? nm "$"))
                                              (not (str/ends-with? nm "__init.class")))
                                     (java/reg-class-def! ctx {:jar (if canonical?
-                                                                          (str (.getCanonicalPath jar-file))
-                                                                          (str jar-file))
-                                                                   :entry nm})))
+                                                                     (str (.getCanonicalPath jar-file))
+                                                                     (str jar-file))
+                                                              :entry nm})))
                                 (source-file? nm)))) entries)]
       ;; Important that we close the `JarFile` so this has to be strict see GH
       ;; issue #542. Maybe it makes sense to refactor loading source using
@@ -609,7 +609,14 @@
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
         remove-output (not-empty (-> config :output :exclude-files))]
-    (for [f findings
+    (for [[[_filename _row _col type cljc] findings] findings
+          :when (or (not cljc)
+                    ;; given that it's cljc, the finding should not be of redundant-do
+                    (not= :redundant-do type)
+                    ;; given that it's redundant-do, it should have two
+                    ;; findings in the same spot
+                    (> (count findings) 1))
+          f findings
           :let [filename (:filename f)
                 tp (:type f)
                 level (:level f)]
