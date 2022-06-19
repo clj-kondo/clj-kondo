@@ -7,6 +7,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1726](https://github.com/clj-kondo/clj-kondo/issues/1726): fix invalidad arity warning for `sequence` with `map` multi-arity transducer
 - [#1715](https://github.com/clj-kondo/clj-kondo/issues/1715): fix false positive warning for `recur` not in tail position with `core.async alt!!`
 - [#1714](https://github.com/clj-kondo/clj-kondo/issues/1714): fix recur arity for `defrecord`, `deftype` and `definterface`
+- [#1718](https://github.com/clj-kondo/clj-kondo/issues/1718): make unsorted namespaces linter case-insensitive
+- [#1722](https://github.com/clj-kondo/clj-kondo/issues/1722): suppress redundant do in `.cljc` for just one language
 
 ## 2022.05.31
 
