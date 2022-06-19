@@ -230,7 +230,8 @@
                                 analysis-cfg
                                 (assoc :analysis @analysis)))))
         all-findings @findings
-        all-findings (core-impl/filter-findings config all-findings)
+        grouped-findings (group-by (juxt :filename :row :col :type :cljc) all-findings)
+        all-findings (core-impl/filter-findings config grouped-findings)
         all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))
         summary (core-impl/summarize all-findings)
         duration (- (System/currentTimeMillis) start-time)

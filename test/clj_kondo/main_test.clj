@@ -99,7 +99,15 @@
   (is (empty? (lint! "#(do :foo :bar)"
                      {:linters {:redundant-expression {:level :off}}})))
   (is (empty? (lint! "#(do (prn %1 %2 true) %1)")))
-  (is (empty? (lint! "(let [x (do (println 1) 1)] x)"))))
+  (is (empty? (lint! "(let [x (do (println 1) 1)] x)")))
+  (is (empty? (lint! "(let [_ nil]
+  #?(:cljs
+     (do
+       (println 1)
+       (println 2))
+     :clj (println 3)))
+"
+                     "--lang" "cljc"))))
 
 (deftest cljc-test
   (assert-submaps
