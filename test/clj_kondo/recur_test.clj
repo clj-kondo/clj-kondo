@@ -22,5 +22,19 @@
   (testing "recur is in tail position"
     (is (empty? (lint! "(fn [] (if true (recur) 3))" linter-config)))
     (is (empty? (lint! "(fn [x] (case x 1 (recur (inc x)) 2 :the-end))" linter-config)))
-    (is (empty? (lint! "(loop [x 10] (cond-> (dec x) (pos? x) (recur)))" linter-config)))))
+    (is (empty? (lint! "(loop [x 10] (cond-> (dec x) (pos? x) (recur)))" linter-config))))
+  (testing "alt! and alt!!"
+    (is (empty? (lint! "(require '[clojure.core.async :as async])
+
+(defn f []
+  (loop []
+    (async/alt!!
+      (async/chan)
+      ([x]
+       (if x
+         (async/alt!!
+           (async/chan)
+           ([_]
+            (recur)))
+         nil)))))" linter-config)))))
 

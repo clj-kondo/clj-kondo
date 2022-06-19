@@ -932,7 +932,8 @@
   (loop [callstack callstack]
     (when-let [cse (first callstack)]
       (if (not (one-of (second cse)
-                       [-> ->> some-> some->> doto cond->]))
+                       [-> ->> some-> some->> doto cond->
+                        alt! alt!!]))
         cse
         (recur (rest callstack))))))
 
