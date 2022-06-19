@@ -1662,13 +1662,15 @@
                                                        keep keep-indexed])
         arg-count (if (and transducer-eligable?
                            (zero? arg-count)) ;; transducer
-                    1
+                    (if (and (= 'clojure.core hof-ns-name)
+                             (= 'map hof-resolved-name))
+                      nil 1)
                     arg-count)]
     (cond var?
           (let [{:keys [:row :end-row :col :end-col]} (meta f)]
             (when (:analyze-var-usages? ctx)
               (namespace/reg-var-usage! ctx ns-name
-                                        {:type :call
+                                        {:type (if arg-count :call :usage)
                                          :resolved-ns resolved-namespace
                                          :ns ns-name
                                          :name (with-meta
@@ -1696,20 +1698,21 @@
                                          :interop? interop?
                                          :resolved-core? resolved-core?
                                          :in-def (:in-def ctx)})))
-          arity (let [{:keys [:fixed-arities :varargs-min-arity]} arity
-                      config (:config ctx)
-                      callstack (:callstack ctx)]
-                  (when-not (config/skip? config :invalid-arity callstack)
-                    (let [filename (:filename ctx)]
-                      (when-not (linter-disabled? ctx :invalid-arity)
-                        (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
-                          (let [fst-ana (first fana)
-                                fn-name (or fsym (:name fst-ana))]
-                            (findings/reg-finding!
-                             ctx
-                             (node->line filename f
-                                         :invalid-arity
-                                         (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
+          (and arity arg-count)
+          (let [{:keys [:fixed-arities :varargs-min-arity]} arity
+                config (:config ctx)
+                callstack (:callstack ctx)]
+            (when-not (config/skip? config :invalid-arity callstack)
+              (let [filename (:filename ctx)]
+                (when-not (linter-disabled? ctx :invalid-arity)
+                  (when-not (arity-match? fixed-arities varargs-min-arity arg-count)
+                    (let [fst-ana (first fana)
+                          fn-name (or fsym (:name fst-ana))]
+                      (findings/reg-finding!
+                       ctx
+                       (node->line filename f
+                                   :invalid-arity
+                                   (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
     (when (and (not (utils/linter-disabled? ctx :reduce-without-init))
                (= 'reduce hof-resolved-name)
                (or (= 'clojure.core hof-ns-name)
