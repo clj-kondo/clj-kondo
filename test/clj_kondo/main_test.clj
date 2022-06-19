@@ -1223,7 +1223,29 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "#(recur)")))
   (is (empty? (lint! "(ns foo (:require [clojure.core.async :refer [thread]])) (thread (recur))")))
   (is (empty? (lint! "(ns clojure.core.async) (defmacro thread [& body]) (thread (when true (recur)))")))
-  (is (empty? (lint! "(fn* ^:static cons [x seq] (recur 1 2))"))))
+  (is (empty? (lint! "(fn* ^:static cons [x seq] (recur 1 2))")))
+  (is (empty? (lint! "
+(defprotocol IFoo (-foo [_]))
+(defrecord Foo [] IFoo (-foo [_]
+                         (let [_f (fn [x] (recur x))]
+                           (recur))))
+(deftype FooType [] java.lang.Runnable (run [_]
+                                         (let [_f (fn [x] (recur x))]
+                                           (recur))))
+(reify IFoo (-foo [_] (let [_f (fn [x] (recur x))]
+                       (loop [x 1] (recur x))
+                       (recur))))
+(extend-protocol
+    IFoo
+  Number
+  (-foo [this]
+    (recur this)))
+
+(extend-type
+    Number
+  IFoo
+  (-foo [this]
+    (recur this)))"))))
 
 (deftest lint-as-test
   (assert-submaps
