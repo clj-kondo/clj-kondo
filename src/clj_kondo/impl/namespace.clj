@@ -68,7 +68,8 @@
                                       (pr-str raw-ns)
                                       (str raw-ns))
                              :else (str ns))
-                branch (:branch m)]
+                branch (:branch m)
+                raw-ns (str/lower-case raw-ns)]
             (cond branch
                   (recur last-processed-ns (next ns-list))
                   (pos? (compare last-processed-ns raw-ns))

@@ -2796,7 +2796,10 @@ foo/baz
        :clj [[com.fulcrologic.fulcro.dom-server]])))"
 
                        {:linters {:unsorted-required-namespaces {:level :warning}}}
-                       "--lang" "cljc")))))
+                       "--lang" "cljc"))))
+  (testing "case insensitivity"
+    (is (empty? (lint! "(ns foo (:require bar Bar))"
+                       {:linters {:unsorted-required-namespaces {:level :warning}}})))))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
