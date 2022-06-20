@@ -28,12 +28,28 @@
 (defn read []
   (bencode/read-bencode stdin))
 
+(defn print* [& args]
+  (with-out-str
+    (apply clj-kondo/print! args)))
+
 (def lookup
   {'pod.borkdude.clj-kondo/merge-configs clj-kondo/merge-configs
-   'pod.borkdude.clj-kondo/print* (fn [& args]
-                                    (with-out-str
-                                      (apply clj-kondo/print! args)))
-   'pod.borkdude.clj-kondo/run! clj-kondo/run!})
+   'clj-kondo.core/merge-configs clj-kondo/merge-configs
+   'pod.borkdude.clj-kondo/print* print*
+   'clj-kondo.core/print* print*
+   'pod.borkdude.clj-kondo/run! clj-kondo/run!
+   'clj-kondo.core/run! clj-kondo/run!})
+
+(defn pod-ns [name]
+  {"name" name
+   "vars" [{"name" "merge-configs"}
+           {"name" "print*"}
+           {"name" "print!"
+            "code" "
+(defn print! [run-output]
+  (print (print* run-output))
+  (flush))"}
+           {"name" "run!"}]})
 
 (defn run-pod []
   (loop []
@@ -49,15 +65,8 @@
               id (or id "unknown")]
           (case op
             :describe (do (write {"format" "edn"
-                                  "namespaces" [{"name" "pod.borkdude.clj-kondo"
-                                                 "vars" [{"name" "merge-configs"}
-                                                         {"name" "print*"}
-                                                         {"name" "print!"
-                                                          "code" "
-(defn print! [run-output]
-  (print (print* run-output))
-  (flush))"}
-                                                         {"name" "run!"}]}]
+                                  "namespaces" [(pod-ns "pod.borkdude.clj-kondo")
+                                                (pod-ns "clj-kondo.core")]
                                   "id" id})
                           (recur))
             :invoke (do (try

@@ -8,7 +8,7 @@
                 ["clojure" "-M:clj-kondo/dev"]))
 
 (pods/load-pod pod-spec)
-(require '[pod.borkdude.clj-kondo :as clj-kondo])
+(require '[clj-kondo.core :as clj-kondo])
 
 (deftest pod-test
   (is (= '{:linters {:unresolved-symbol {:exclude [(foo1.bar) (foo2.bar)]}}}
@@ -17,3 +17,6 @@
           '{:linters {:unresolved-symbol {:exclude [(foo2.bar)]}}})))
   (is (str/includes? (with-out-str (clj-kondo/print! (clj-kondo/run! {:lint ["src"]})))
                      "errors")))
+
+(when (= *file* (System/getProperty "babashka.file"))
+  (clojure.test/run-tests 'clj-kondo.pod-test))
