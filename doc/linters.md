@@ -394,6 +394,18 @@ Use edn/read-string instead of read-string
 
 The matching namespace symbol may be given a group name using a regex pattern.
 
+```clojure
+{:ns-groups [{:pattern "clojure\\.java\\.jdbc.*"
+              :name jdbc-legacy}]
+ :linters {:discouraged-namespace {jdbc-legacy {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}
+```
+
+Add `:discouraged-namespace` linter into `:config-in-ns` to specify that specific namespaces are discouraged to be used in some namespace of ns-group.
+
+```clojure
+{:config-in-ns {app.jdbc {:linters {:discouraged-namespace {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}}}
+```
+
 *Example trigger:*
 
 With the configuration above:
