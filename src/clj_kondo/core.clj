@@ -215,7 +215,8 @@
                 (l/lint-unresolved-symbols! ctx)
                 (l/lint-unresolved-vars! ctx)
                 (l/lint-unused-imports! ctx)
-                (l/lint-unresolved-namespaces! ctx))))
+                (l/lint-unresolved-namespaces! ctx)
+                (l/lint-discouraged-namespaces! ctx))))
         _ (when custom-lint-fn
             (binding [utils/*ctx* ctx]
               (custom-lint-fn (cond->

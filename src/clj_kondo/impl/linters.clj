@@ -511,6 +511,25 @@
            (node->line filename node
                        finding-type msg)))))))
 
+(defn lint-discouraged-namespaces!
+  [ctx]
+  (let [config (:config ctx)]
+    (doseq [ns (namespace/list-namespaces ctx)
+            ns-sym (:required ns)
+            :let [ns-config (:config ns)
+                  config (or ns-config config)
+                  config-ns-sym (config/ns-group config ns-sym)
+                  linter-config (get-in config [:linters :discouraged-namespace config-ns-sym])]
+            :when (some? linter-config)
+            :let [{:keys [message]
+                   :or {message (str "Discouraged namespace: " ns-sym)}} linter-config
+                  m (meta ns-sym)
+                  filename (:filename m)]]
+      (findings/reg-finding!
+       ctx
+       (-> (node->line filename ns-sym :discouraged-namespace message)
+           (assoc :ns (export-ns-sym ns-sym)))))))
+
 (defn lint-bindings!
   [ctx]
   (doseq [ns (namespace/list-namespaces ctx)]

@@ -19,6 +19,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Bb.edn Unexpected key](#bbedn-unexpected-key)
     - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
     - [Discouraged var](#discouraged-var)
+    - [Discouraged namespace](#discouraged-namespace)
     - [Docstring blank](#docstring-blank)
     - [Docstring no summary](#docstring-no-summary)
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
@@ -349,7 +350,7 @@ Docstring missing for task: a
 
 ### Discouraged var
 
-*Keyword*: `:discouraged-var`*
+*Keyword*: `:discouraged-var`
 
 *Description:* warn on the usage of a var that is discouraged to be used.
 
@@ -375,6 +376,42 @@ With the configuration above:
 
 ```
 Use edn/read-string instead of read-string
+```
+
+### Discouraged namespace
+
+*Keyword*: `:discouraged-namespace`
+
+*Description:* warn on the require or usage of a namespace that is discouraged to be used.
+
+*Default level:* `:warning`
+
+*Config:*
+
+```clojure
+{:linters {:discouraged-namespace {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}
+```
+
+The matching namespace symbol may be given a group name using a regex pattern.
+
+```clojure
+{:ns-groups [{:pattern "clojure\\.java\\.jdbc.*"
+              :name jdbc-legacy}]
+ :linters {:discouraged-namespace {jdbc-legacy {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}
+```
+
+Add `:discouraged-namespace` linter into `:config-in-ns` to specify that specific namespaces are discouraged to be used in some namespace of ns-group.
+
+```clojure
+{:config-in-ns {app.jdbc {:linters {:discouraged-namespace {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}}}
+```
+
+*Example trigger:*
+
+With the configuration above:
+
+```clojure
+(require '[clojure.java.jdbc :as j])
 ```
 
 ### Docstring blank
