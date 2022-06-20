@@ -19,7 +19,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Bb.edn Unexpected key](#bbedn-unexpected-key)
     - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
     - [Discouraged var](#discouraged-var)
-    - [Discouraged ns](#discouraged-ns)
+    - [Discouraged namespace](#discouraged-namespace)
     - [Docstring blank](#docstring-blank)
     - [Docstring no summary](#docstring-no-summary)
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
@@ -378,9 +378,9 @@ With the configuration above:
 Use edn/read-string instead of read-string
 ```
 
-### Discouraged ns
+### Discouraged namespace
 
-*Keyword*: `:discouraged-ns`
+*Keyword*: `:discouraged-namespace`
 
 *Description:* warn on the require or usage of a namespace that is discouraged to be used.
 
@@ -389,7 +389,7 @@ Use edn/read-string instead of read-string
 *Config:*
 
 ```clojure
-{:linters {:discouraged-ns {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}
+{:linters {:discouraged-namespace {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}
 ```
 
 The matching namespace symbol may be given a group name using a regex pattern.
@@ -400,27 +400,6 @@ With the configuration above:
 
 ```clojure
 (require '[clojure.java.jdbc :as j])
-```
-
-Modifier `:from` may be given to activate linter only for usages of the discouraged namespace from the listed namespaces.
-
-```clojure
-{:linters {:discouraged-ns {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"
-                                               :from #{app.adapter.jdbc-next}}}}}
-```
-
-*Example trigger:*
-
-With the configuration above:
-
-```clojure
-;; Does not trigger the warning
-(ns app.adapter.jdbc
-  (:require [clojure.java.jdbc :as jdbc]))
-
-;; Triggers the warning
-(ns app.adapter.jdbc-next
-  (:require [clojure.java.jdbc :as jdbc]))
 ```
 
 ### Docstring blank
