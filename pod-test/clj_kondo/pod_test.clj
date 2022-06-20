@@ -17,3 +17,6 @@
           '{:linters {:unresolved-symbol {:exclude [(foo2.bar)]}}})))
   (is (str/includes? (with-out-str (clj-kondo/print! (clj-kondo/run! {:lint ["src"]})))
                      "errors")))
+
+(when (= *file* (System/getProperty "babashka.file"))
+  (clojure.test/run-tests 'clj-kondo.pod-test))

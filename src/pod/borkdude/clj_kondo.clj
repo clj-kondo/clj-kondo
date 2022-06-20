@@ -40,7 +40,7 @@
    'pod.borkdude.clj-kondo/run! clj-kondo/run!
    'clj-kondo.core/run! clj-kondo/run!})
 
-(def pod-ns [name]
+(defn pod-ns [name]
   {"name" name
    "vars" [{"name" "merge-configs"}
            {"name" "print*"}
