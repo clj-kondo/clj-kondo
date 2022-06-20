@@ -8,7 +8,7 @@
                 ["clojure" "-M:clj-kondo/dev"]))
 
 (pods/load-pod pod-spec)
-(require '[pod.borkdude.clj-kondo :as clj-kondo])
+(require '[clj-kondo.core :as clj-kondo])
 
 (deftest pod-test
   (is (= '{:linters {:unresolved-symbol {:exclude [(foo1.bar) (foo2.bar)]}}}
