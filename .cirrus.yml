@@ -11,7 +11,7 @@ task:
     CLJ_KONDO_TEST_ENV: native
     GITHUB_TOKEN: ENCRYPTED[a616fae871722a21c7dfbabdf4c226f4601dc31dab23d594c7a448760a0af4b195f252d3528f688c7899a3efa672a101]
   script: |
-    sudo .circleci/script/install-clojure
+    sudo .circleci/script/install-clojure /usr/local
     sudo bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
     sudo .circleci/script/install-leiningen
 
