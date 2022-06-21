@@ -9,18 +9,22 @@ task:
     CLJ_KONDO_PLATFORM: macos # used in release script
     CLJ_KONDO_ARCH: aarch64
     CLJ_KONDO_TEST_ENV: native
-    GITHUB_TOKEN: ENCRYPTED[d6ff8cdc392157f211c754fa0763875434d1bfde0c00a05e48ba9470003a76c14c9213adb80623f81e13f2f0fa8fbd57]
+    GITHUB_TOKEN: ENCRYPTED[a616fae871722a21c7dfbabdf4c226f4601dc31dab23d594c7a448760a0af4b195f252d3528f688c7899a3efa672a101]
   script: |
     sudo .circleci/script/install-clojure
     sudo bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
     sudo .circleci/script/install-leiningen
 
+    pushd ~
     if ! [ -d graalvm-ce-java11-22.1.0 ]; then
       curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.1.0/graalvm-ce-java11-darwin-amd64-22.1.0.tar.gz
       tar xzf graalvm-ce-java11-darwin-amd64-22.1.0.tar.gz
     fi
+    popd
 
     export PATH=$GRAALVM_HOME/bin:$PATH
+    export JAVA_HOME=$GRAALVM_HOME
+
     java -version
 
     script/compile
