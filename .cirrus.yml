@@ -29,12 +29,13 @@ task:
 
     script/compile
 
-    script/test
-
     VERSION=$(cat resources/CLJ_KONDO_VERSION)
     arch=${CLJ_KONDO_ARCH:-amd64}
     archive="clj-kondo-$VERSION-$CLJ_KONDO_PLATFORM-$arch.zip"
     zip "$archive" clj-kondo
     bb release-artifact "$archive" || true
+
+    script/test
+
   binaries_artifacts:
     path: "clj-kondo-*.zip"
