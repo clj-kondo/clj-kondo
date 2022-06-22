@@ -26,16 +26,23 @@
 
 (defn format-output [config]
   (if-let [^String pattern (-> config :output :pattern)]
-    (fn [filename row col level message]
+    (fn [{:keys [:filename :row :col :level :message :type] :as _finding}]
       (-> pattern
           (str/replace "{{filename}}" filename)
           (str/replace "{{row}}" (str row))
           (str/replace "{{col}}" (str col))
           (str/replace "{{level}}" (name level))
           (str/replace "{{LEVEL}}" (str/upper-case (name level)))
-          (str/replace "{{message}}" message)))
-    (fn [filename row col level message]
-      (str filename ":" row ":" col ": " (name level) ": " message))))
+          (str/replace "{{message}}" message)
+          (str/replace "{{type}}" (str type))))
+    (fn [{:keys [:filename :row :col :level :message :type] :as _finding}]
+      (str filename ":"
+           row ":"
+           col ": "
+           (name level) ": "
+           message
+           (when (-> config :output :show-rule-name-in-message)
+             (str " [" type "]"))))))
 
 ;;;; process config
 

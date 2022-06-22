@@ -27,10 +27,8 @@
         (when (:progress output-cfg) (binding [*out* *err*]
                                        (println)))
         (let [format-fn (core-impl/format-output config)]
-          (doseq [{:keys [:filename :message
-                          :level :row :col] :as _finding}
-                  findings]
-            (println (format-fn filename row col level message)))
+          (doseq [finding findings]
+            (println (format-fn finding)))
           (when (:summary output-cfg)
             (let [{:keys [:error :warning :duration]} summary]
               (printf "linting took %sms, " duration)

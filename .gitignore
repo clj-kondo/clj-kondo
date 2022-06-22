@@ -68,6 +68,10 @@ performance.txt
 clj-kondo*.snap
 .planck_cache
 
+# IntelliJ
+.idea
+*.iml
+
 .DS_Store
 !corpus/**/*.jar
 !corpus/java/classes/foo/bar/AwesomeClass.class

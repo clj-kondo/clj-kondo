@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- [#698](https://github.com/clj-kondo/clj-kondo/issues/698): output rule name with new output option `:show-rule-name-in-message true`. See example in [config guide](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#show-rule-name-in-message).
+
 ## 2022.06.22
 
 - [#1721](https://github.com/clj-kondo/clj-kondo/issues/1721): new `:discouraged-namespace` linter. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-namespace).
