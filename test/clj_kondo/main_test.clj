@@ -1680,6 +1680,25 @@ foo/foo ;; this does use the private var
           parsed (cheshire/parse-string output true)]
       (is (map? parsed)))))
 
+(deftest show-rule-name-in-message-output-test
+  (letfn [(run-main [config]
+            (->> (main "--cache" "false" "--lint" "-" "--config" config)
+                 (with-out-str)
+                 (with-in-str "(inc)(dec)")
+                 (str/split-lines)
+                 ;; dropping the 'linting took' line
+                 (drop-last)))]
+    (testing "with :show-rule-name-in-message true"
+      (doseq [output-line (run-main "{:output {:show-rule-name-in-message true}}")
+              :let [[_ begin] (re-matches #".*(<stdin>:\d+:\d+).*" output-line)]]
+        (testing (str "output line '" begin "' ")
+          (is (str/ends-with? output-line "[:invalid-arity]") "has rule name"))))
+    (testing "with :show-rule-name-in-message false"
+      (doseq [output-line (run-main "{:output {:show-rule-name-in-message false}}")
+              :let [[_ begin] (re-matches  #".*(<stdin>:\d+:\d+).*" output-line)]]
+        (testing (str "output line '" begin "' ")
+          (is (not (str/ends-with? output-line "[:invalid-arity]")) "doesn't have rule name"))))))
+
 (deftest defprotocol-test
   (assert-submaps
    '({:file "corpus/defprotocol.clj",

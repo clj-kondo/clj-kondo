@@ -30,6 +30,7 @@ Table of contents:
         - [Include and exclude files from the output](#include-and-exclude-files-from-the-output)
         - [Show progress bar while linting](#show-progress-bar-while-linting)
         - [Output canonical file paths](#output-canonical-file-paths)
+        - [Display rule name in text output](#show-rule-name-in-message)
     - [Namespace groups](#namespace-groups)
     - [Example configurations](#example-configurations)
     - [Exporting and importing configuration](#exporting-and-importing-configuration)
@@ -318,6 +319,30 @@ file when you lint a classpath.
 $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 /Users/borkdude/dev/clj-kondo/corpus/cljc/datascript.cljc:8:1: error: datascript.db/seqable? is called with 2 args but expects 1
 (rest of the output omitted)
+```
+
+### Show rule name in message
+
+Adding `'{:output {:show-rule-name-in-message true}}` will append rule name to the output line for each reported finding.
+
+By default, this configuration is set to `false`.
+
+Output example with default `false`:
+
+```shell
+$ echo '(def x (def x 1))' | clj-kondo --lint -
+<stdin>:1:1: warning: redefined var #'user/x
+<stdin>:1:8: warning: inline def
+linting took 22ms, errors: 0, warnings: 2
+```
+
+Output example with `{:output {:show-rule-name-in-message true}}`:
+
+```shell
+$ echo '(def x (def x 1))' | clj-kondo --config '{:output {:show-rule-name-in-message true}}' --lint -
+<stdin>:1:1: warning: redefined var #'user/x [:redefined-var]
+<stdin>:1:8: warning: inline def [:inline-def]
+linting took 9ms, errors: 0, warnings: 2
 ```
 
 ## Namespace groups
