@@ -2,7 +2,7 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.06.22
 
 - [#1721](https://github.com/clj-kondo/clj-kondo/issues/1721): new `:discouraged-namespace` linter. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-namespace).
 - [#1728](https://github.com/clj-kondo/clj-kondo/issues/1728) New macOS aarch64 (M1-compatible) binary
