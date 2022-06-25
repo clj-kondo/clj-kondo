@@ -790,7 +790,12 @@
         {:arities
          {1
           {:args [{:op :keys, :req {:a :int}}],
-           :ret {:op :keys, :req {:user/a :string}}}}}}}}}})
+           :ret {:op :keys, :req {:user/a :string}}}}}
+        fun4
+        {:arities
+         {1
+          {:args [{:op :keys, :req {:a :int} :nilable true}],
+           :ret {:op :keys, :req {:a :string}}}}}}}}}})
 
 (deftest keyword-resolution-test
   (testing "keyword call"
@@ -905,6 +910,25 @@
   (defn fun2 [m] (:a m))
   (fun2 (fun2 {:a 23})))"
             config-2))))
+
+(deftest nilable-map-test
+  (testing "pass nil to a nilable map"
+    (assert-submaps
+      []
+      (lint! "
+(do
+  (defn fun4 [m] (:a m))
+  (fun4 nil))"
+             config-2)))
+
+  (testing "pass invalid map to a nilable map"
+    (assert-submaps
+      [{:file "<stdin>", :row 4, :col 9, :level :error, :message "Missing required key: :a"}]
+      (lint! "
+(do
+  (defn fun4 [m] (:a m))
+  (fun4 {}))"
+             config-2))))
 
 (deftest misc-false-positives-test
   (is (empty? (lint! "(even? ('a {'a 10}))" config)))
