@@ -5,6 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#698](https://github.com/clj-kondo/clj-kondo/issues/698): output rule name with new output option `:show-rule-name-in-message true`. See example in [config guide](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#show-rule-name-in-message).
+- [#1735](https://github.com/clj-kondo/clj-kondo/issues/1735) Add support for nilable map type specs
 
 ## 2022.06.22
 
