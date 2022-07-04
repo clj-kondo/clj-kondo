@@ -1688,6 +1688,7 @@
              {:name 'my-func
               :ns 'api
               :defined-by 'potemkin/import-vars
+              :imported-ns 'foo
               :row 10
               :col 1
               :end-row 12
@@ -1701,6 +1702,7 @@
              {:name 'my-other
               :ns 'api
               :defined-by 'potemkin/import-vars
+              :imported-ns 'foo
               :row 10
               :col 1
               :end-row 12
@@ -1757,6 +1759,7 @@
              {:name 'my-func
               :ns 'api
               :defined-by 'potemkin/import-vars
+              :imported-ns 'foo
               :row 10
               :col 1
               :end-row 12
@@ -1770,6 +1773,7 @@
              {:name 'my-other
               :ns 'api
               :defined-by 'potemkin/import-vars
+              :imported-ns 'foo
               :row 10
               :col 1
               :end-row 12
