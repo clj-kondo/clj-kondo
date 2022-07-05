@@ -7,6 +7,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#698](https://github.com/clj-kondo/clj-kondo/issues/698): output rule name with new output option `:show-rule-name-in-message true`. See example in [config guide](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#show-rule-name-in-message).
 - [#1735](https://github.com/clj-kondo/clj-kondo/issues/1735) Add support for nilable map type specs
 - [#1744](https://github.com/clj-kondo/clj-kondo/issues/1744) Expose `:imported-ns` in analysis of vars imported by potemkin
+- [#1746](https://github.com/clj-kondo/clj-kondo/issues/1746) Printing deps.edn error to stdout
 
 ## 2022.06.22
 
