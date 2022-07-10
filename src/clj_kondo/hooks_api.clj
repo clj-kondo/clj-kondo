@@ -1,12 +1,13 @@
 (ns clj-kondo.hooks-api
-  (:require [clj-kondo.impl.cache :as cache]
-            [clj-kondo.impl.findings :as findings]
-            [clj-kondo.impl.metadata :as meta]
-            [clj-kondo.impl.rewrite-clj.node :as node]
-            [clj-kondo.impl.rewrite-clj.parser :as parser]
-            [clj-kondo.impl.utils :as utils]
-            clojure.pprint
-            [sci.core :as sci])
+  (:require
+   [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.metadata :as meta]
+   [clj-kondo.impl.rewrite-clj.node :as node]
+   [clj-kondo.impl.rewrite-clj.parser :as parser]
+   [clj-kondo.impl.utils :as utils]
+   clojure.pprint
+   [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
 (defn- mark-generate [node]
