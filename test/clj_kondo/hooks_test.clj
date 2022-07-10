@@ -304,9 +304,7 @@ foo/defdoced \"
           name
           (api/string-node
             (with-out-str (pprint/pprint value)))
-          value))
-        _ (println (api/string-node
-            (with-out-str (pprint/pprint value))))]
+          value))]
     {:node new-node}))
 \"
 
