@@ -1,10 +1,10 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
-  (:require
-   [clj-kondo.hooks-api :as api]
-   [clj-kondo.impl.utils :as utils :refer [*ctx*]]
-   [clojure.java.io :as io]
-   [sci.core :as sci])
+  (:require [clj-kondo.hooks-api :as api]
+            [clj-kondo.impl.utils :as utils :refer [*ctx*]]
+            [clojure.java.io :as io]
+            clojure.pprint
+            [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)
@@ -53,6 +53,7 @@
 
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
+                          'clojure.pprint {'pprint api/pprint}
                           'clj-kondo.hooks-api api-ns}
              :classes {'java.io.Exception Exception
                        'java.lang.System System}
