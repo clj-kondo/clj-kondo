@@ -1,4 +1,5 @@
 (ns aaaa-this-has-to-be-first.pprint
+  {:clj-kondo/config '{:linters {:private-call {:level :off}}}}
   (:require [clojure.pprint :as pprint]))
 
 (defonce patched? (volatile! false))
@@ -43,6 +44,7 @@
                 (pprint/write-out object))
               (binding [*out* base-writer]
                 (pr object)))
+            #_:clj-kondo/ignore
             (if (nil? optval)
               (.toString ^java.io.StringWriter base-writer))))))))
 
