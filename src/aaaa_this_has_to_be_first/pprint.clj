@@ -1,8 +1,6 @@
 (ns aaaa-this-has-to-be-first.pprint
   (:require [clojure.pprint :as pprint]))
 
-(prn :loading-patches-bitches!)
-
 (defonce patched? (volatile! false))
 
 (when-not @patched?

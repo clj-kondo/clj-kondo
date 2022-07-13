@@ -2,6 +2,7 @@
   {:no-doc true}
   (:gen-class)
   (:require
+   [aaaa-this-has-to-be-first.because-patches]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :as core-impl]
    [clojure.string :as str
