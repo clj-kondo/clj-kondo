@@ -1,6 +1,7 @@
 (ns clj-kondo.core
   (:refer-clojure :exclude [run!])
   (:require
+   [aaaa-this-has-to-be-first.because-patches]
    [cheshire.core :as cheshire]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :refer [merge-config!]]
