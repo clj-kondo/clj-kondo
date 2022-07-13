@@ -53,6 +53,7 @@
 
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
+                          'clojure.pprint {'pprint api/pprint}
                           'clj-kondo.hooks-api api-ns}
              :classes {'java.io.Exception Exception
                        'java.lang.System System}

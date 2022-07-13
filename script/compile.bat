@@ -14,7 +14,10 @@ set PATH=%GRAALVM_HOME%\bin;%PATH%
 dir %GRAALVM_HOME%\bin
 
 set /P CLJ_KONDO_VERSION=< resources\CLJ_KONDO_VERSION
+
 echo Building clj-kondo %CLJ_KONDO_VERSION%
+
+set CLJ_KONDO_NATIVE=true
 
 call lein with-profiles +clojure-1.10.2 do clean, uberjar
 if %errorlevel% neq 0 exit /b %errorlevel%

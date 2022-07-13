@@ -5,7 +5,9 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.parser :as parser]
-   [clj-kondo.impl.utils :as utils])
+   [clj-kondo.impl.utils :as utils]
+   [clojure.pprint]
+   [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
 (defn- mark-generate [node]
@@ -146,3 +148,7 @@
         lifted (meta/lift-meta-content2 utils/*ctx* annotated)]
     ;;
     lifted))
+
+(defn pprint [& args]
+  (binding [*out* @sci/out]
+    (apply clojure.pprint/pprint args)))

@@ -283,3 +283,38 @@ children))]
             context (:context a-keyword)]
         (is a-keyword)
         (is (= {:my-hook {:can-set-context true}, :yolo true} context))))))
+
+(deftest pprint-test
+  ;; this doesn't test the output
+  ;; however, the "no empty docstring" linter would catch the error
+  ;; if there was no output
+  (testing "hook code supports pprint"
+    (let [res (lint! "
+      
+(ns bar
+  {:clj-kondo/config
+    '{:hooks {:analyze-call {
+foo/defdoced \"
+
+(require '[clj-kondo.hooks-api :as api])
+(require '[clojure.pprint :as pprint])
+
+(fn [{:keys [:node]}]
+  (let [[_defdoced name value] (:children node)
+        new-node (api/list-node
+        (list
+          (api/token-node 'def)
+          name
+          (api/string-node
+            (with-out-str (pprint/pprint value)))
+          value))]
+    {:node new-node}))
+\"
+
+}}}}
+  (:require [foo :refer [defdoced]]))
+
+(defdoced mysuperthing {:a 1 :b 2 :c {:d 3 :e 4}})
+"
+                     {:hooks {:__dangerously-allow-string-hooks__ true}})]
+      (is (empty? res)))))
