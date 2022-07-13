@@ -1,4 +1,4 @@
 (ns aaaa-this-has-to-be-first.because-patches)
 
-(when (System/getProperty "com.oracle.graalvm.isaot")
+(when (System/getenv "CLJ_KONDO_NATIVE")
   (require '[aaaa-this-has-to-be-first.pprint]))
