@@ -20,5 +20,9 @@
   {
     "name": "java.lang.reflect.AccessibleObject",
     "methods" : [{"name":"canAccess"}]
+  },
+
+  { "name": "java.io.StringWriter",
+    "allPublicConstructors": true
   }
 ]

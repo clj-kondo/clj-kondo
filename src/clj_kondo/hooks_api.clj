@@ -6,7 +6,7 @@
    [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.parser :as parser]
    [clj-kondo.impl.utils :as utils]
-   clojure.pprint
+   [clojure.pprint]
    [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
