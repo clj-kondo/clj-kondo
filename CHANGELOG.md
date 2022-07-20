@@ -4,6 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1755](https://github.com/clj-kondo/clj-kondo/issues/1755): Fix false positive invalid-arity when using mapcat transducer in sequence with multiple collections
 - [#1749](https://github.com/clj-kondo/clj-kondo/issues/1749): expose `clojure.pprint/pprint` to the hooks API
 - [#698](https://github.com/clj-kondo/clj-kondo/issues/698): output rule name with new output option `:show-rule-name-in-message true`. See example in [config guide](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#show-rule-name-in-message).
 - [#1735](https://github.com/clj-kondo/clj-kondo/issues/1735) Add support for nilable map type specs
