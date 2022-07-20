@@ -312,6 +312,7 @@
                                                     :alias (:alias call)
                                                     :refer (:refer call)
                                                     :defmethod (:defmethod call)
+                                                    :dispatch-val (:dispatch-val call)
                                                     :name-row name-row
                                                     :name-col name-col
                                                     :name-end-row name-end-row

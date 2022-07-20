@@ -32,6 +32,7 @@
                                :refer
                                :alias
                                :defmethod
+                               :dispatch-val
                                :name-row
                                :name-col
                                :name-end-row

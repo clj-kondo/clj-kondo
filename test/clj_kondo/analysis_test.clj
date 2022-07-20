@@ -564,7 +564,7 @@
   (testing "defmulti and defmethod"
     (let [{:keys [:var-usages :var-definitions]} (analyze "
 (defmulti my-multi :some-key)
-​
+
 (defmethod my-multi :some-value
   [_]
   :bar)" {:config {:analysis true}})]
@@ -577,12 +577,12 @@
        var-definitions)
       (assert-submaps
        '[{:name defmulti}
-         {}
          {:name defmethod}
          {:name my-multi
           :from user
           :to user
           :defmethod true
+          :dispatch-val :some-value
           :name-row 4 :name-col 12 :name-end-row 4 :name-end-col 20
           :row 4 :col 12 :end-row 4 :end-col 20}]
        var-usages))))

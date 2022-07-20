@@ -210,6 +210,7 @@
                                                     :ns ns-name
                                                     :alias resolved-alias
                                                     :defmethod (:defmethod ctx)
+                                                    :dispatch-val (:dispatch-val ctx)
                                                     :unresolved? unresolved?
                                                     :clojure-excluded? clojure-excluded?
                                                     :row row
