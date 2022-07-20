@@ -1666,7 +1666,8 @@
         arg-count (if (and transducer-eligable?
                            (zero? arg-count)) ;; transducer
                     (if (and (= 'clojure.core hof-ns-name)
-                             (= 'map hof-resolved-name))
+                             (or (= 'map hof-resolved-name)
+                                 (= 'mapcat hof-resolved-name)))
                       nil 1)
                     arg-count)]
     (cond var?
