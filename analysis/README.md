@@ -126,7 +126,7 @@ The analysis output consists of a map with:
   - `:lang`: if usage occurred in a `.cljc` file, the language in which the call
     was resolved: `:clj` or `:cljs`
   - `:defmethod`: true when the usage is a defmethod
-  - `:dispatch-val`: the dispatch val of a defmethod
+  - `:dispatch-val-str`: the dispatch val of a defmethod, represented as a string
   - several attributes of the used var: `:private`, `:macro`, `:fixed-arities`,
     `:varargs-min-arity`, `:deprecated`.
 
