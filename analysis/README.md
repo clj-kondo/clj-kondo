@@ -125,6 +125,8 @@ The analysis output consists of a map with:
   - `:arity`: if the usage was a function call, the amount of arguments passed
   - `:lang`: if usage occurred in a `.cljc` file, the language in which the call
     was resolved: `:clj` or `:cljs`
+  - `:defmethod`: true when the usage is a defmethod
+  - `:dispatch-val-str`: the dispatch val of a defmethod, represented as a string
   - several attributes of the used var: `:private`, `:macro`, `:fixed-arities`,
     `:varargs-min-arity`, `:deprecated`.
 

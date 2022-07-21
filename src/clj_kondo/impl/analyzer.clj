@@ -1389,7 +1389,10 @@
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
         [method-name-node dispatch-val-node & fn-tail] children
-        _ (analyze-usages2 (assoc ctx :defmethod true) method-name-node)
+        _ (analyze-usages2 (assoc ctx
+                                  :defmethod true,
+                                  :dispatch-val-str (pr-str (sexpr dispatch-val-node)))
+                           method-name-node)
         _ (analyze-expression** ctx dispatch-val-node)]
     (analyze-fn ctx {:children (cons nil fn-tail)})))
 
