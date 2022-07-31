@@ -3156,6 +3156,12 @@ foo/")))
             (>= (+ a b) a))"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
+(deftest special-form-test
+  (is (empty?
+       (lint! "(defn new [] :foo)
+               (new js/Date 2022 1 1 1 1)"
+              "--lang" "cljs"))))
+
 ;;;; Scratch
 
 (comment
