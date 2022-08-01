@@ -462,12 +462,14 @@
           (recur rest-exprs))))))
 
 (defn extract-arity-info [ctx parsed-bodies]
-  (reduce (fn [acc {:keys [:fixed-arity :varargs? :min-arity :ret :args :arg-vec]}]
+  (reduce (fn [acc {:keys [:fixed-arity :varargs? :min-arity :ret :args :arg-vec
+                           :arglist-str]}]
             (let [arg-tags (when (some identity args)
                              args)
                   v (assoc-some {}
                                 :ret ret :min-arity min-arity
-                                :args arg-tags)]
+                                :args arg-tags
+                                :arglist-str arglist-str)]
               (if varargs?
                 (assoc acc :varargs v)
                 (do
@@ -838,10 +840,12 @@
   (let [arities (map #(analyze-fn-arity ctx %) bodies)
         fixed-arities (set (keep (comp :fixed-arity :arity) arities))
         varargs-min-arity (some #(when (:varargs? (:arity %))
-                                   (:min-arity (:arity %))) arities)]
+                                   (:min-arity (:arity %))) arities)
+        arglist-strs (vec (keep :arglist-str arities))]
     (cond-> {}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
-      varargs-min-arity (assoc :varargs-min-arity varargs-min-arity))))
+      varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
+      (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
 
 (defn analyze-fn [ctx expr]
   (let [ctx (assoc ctx :seen-recur? (volatile! nil))
@@ -875,12 +879,14 @@
           (extract-arity-info ctx parsed-bodies))
         fixed-arities (when arities (into #{} (filter number?) (keys arities)))
         varargs-min-arity (when arities (get-in arities [:varargs :min-arity]))
+        arglist-strs (when arities (into [] (keep :arglist-str) (vals arities)))
         parsed-bodies (mapcat :parsed parsed-bodies)]
     (with-meta parsed-bodies
       (when arities
-        {:arity {:fixed-arities fixed-arities
-                 :varargs-min-arity varargs-min-arity}
-         :arities arities}))))
+        (cond-> {:arity {:fixed-arities fixed-arities
+                         :varargs-min-arity varargs-min-arity}
+                 :arities arities}
+          (seq arglist-strs) (assoc-in [:arity :arglist-strs] arglist-strs))))))
 
 (defn analyze-alias [ctx expr]
   (let [ns (:ns ctx)
@@ -1089,6 +1095,7 @@
                                       :doc docstring
                                       :defined-by defined-by
                                       :fixed-arities (:fixed-arities arity)
+                                      :arglist-strs (:arglist-strs arity)
                                       :varargs-min-arity (:varargs-min-arity arity)
                                       :arities (:arities init-meta))))
     (docstring/lint-docstring! ctx doc-node docstring)
