@@ -11,6 +11,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1744](https://github.com/clj-kondo/clj-kondo/issues/1744) Expose `:imported-ns` in analysis of vars imported by potemkin
 - [#1746](https://github.com/clj-kondo/clj-kondo/issues/1746) Printing deps.edn error to stdout
 - [#1716](https://github.com/clj-kondo/clj-kondo/issues/1716) Include dispatch-val in analysis of defmethod
+- [#1760](https://github.com/clj-kondo/clj-kondo/issues/1760) Add :arglist-strs support for functions defined with fn
 
 ## 2022.06.22
 
