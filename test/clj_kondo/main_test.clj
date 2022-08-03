@@ -69,7 +69,8 @@
   (gen/let [_chain-size 2
             _command-chain 2]
     1))
-"))))
+")))
+  (is (empty? (lint! "(let [#?@(:clj [x 1])] #?(:clj x))" "--lang" "cljc"))))
 
 (deftest redundant-do-test
   (assert-submaps

@@ -617,12 +617,15 @@
         filter-output (not-empty (-> config :output :include-files))
         remove-output (not-empty (-> config :output :exclude-files))]
     (for [[[_filename _row _col type cljc] findings] findings
-          :when (or (not cljc)
-                    ;; given that it's cljc, the finding should not be of redundant-do
-                    (not= :redundant-do type)
-                    ;; given that it's redundant-do, it should have two
-                    ;; findings in the same spot
-                    (> (count findings) 1))
+          :when (or
+                 ;; always pass when not .cljc
+                 (not cljc)
+                 ;; always pass when it's not one of these
+                 (and (not= :redundant-do type)
+                      (not= :redundant-call type)
+                      (not= :redundant-let type))
+                 ;; but if we get here, then the amount of findings has to be bigger than 1
+                 (> (count findings) 1))
           f findings
           :let [filename (:filename f)
                 tp (:type f)

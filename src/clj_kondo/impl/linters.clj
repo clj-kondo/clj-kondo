@@ -217,7 +217,7 @@
             :let [fn-name (:name call)
                   caller-ns-sym (:ns call)
                   call-lang (:lang call)
-                  ctx (assoc ctx :lang call-lang)
+                  ctx (assoc ctx :lang call-lang :base-lang base-lang)
                   caller-ns (get-in @(:namespaces ctx)
                                     [base-lang call-lang caller-ns-sym])
                   resolved-ns (:resolved-ns call)
@@ -324,7 +324,7 @@
                                  (str fn-name))
                   _
                   (let [discouraged-var-config
-                             (get-in (:config call) [:linters :discouraged-var])]
+                        (get-in (:config call) [:linters :discouraged-var])]
                     (when-not (empty? (dissoc discouraged-var-config :level))
                       (let [fn-lookup-sym (symbol (str (config/ns-group call-config resolved-ns))
                                                   (str fn-name))
@@ -345,7 +345,6 @@
                            (contains? refer-alls
                                       fn-ns))
                       (namespace/reg-referred-all-var! (assoc ctx
-                                                              :base-lang base-lang
                                                               :lang call-lang)
                                                        caller-ns-sym fn-ns fn-name))
                   arities (:arities called-fn)
@@ -437,13 +436,14 @@
                  (= 1 (:arity call))
                  (config/redundant-call-included? call-config fn-sym))
         (findings/reg-finding!
-         ctx {:filename filename
-              :row row
-              :end-row end-row
-              :col col
-              :end-col end-col
-              :type :redundant-call
-              :message (format "Single arg use of %s always returns the arg itself" fn-sym)}))
+         ctx
+         {:filename filename
+          :row row
+          :end-row end-row
+          :col col
+          :end-col end-col
+          :type :redundant-call
+          :message (format "Single arg use of %s always returns the arg itself" fn-sym)}))
       (let [ctx (assoc ctx :filename filename)]
         (when call?
           (lint-specific-calls!

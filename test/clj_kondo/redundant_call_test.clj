@@ -43,3 +43,11 @@
       (assert-submaps
        [{:level :warning :message "Single arg use of clojure.core/dec always returns the arg itself"}]
        (lint! "(inc 1) (dec 1) (-> 1)" cfg)))))
+
+(deftest redundant-call-in-cljc-test
+  (is (= 2 (count (lint! "(-> 1)"
+                         config
+                         "--lang" "cljc"))))
+  (is (empty? (lint! "(-> 1 #?(:clj inc))"
+                     config
+                     "--lang" "cljc"))))
