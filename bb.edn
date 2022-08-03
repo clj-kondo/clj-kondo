@@ -5,6 +5,6 @@
          :sha "cf082df46a648178d1904e9cbcb787d8136a35c6"}}
  :tasks {extract (shell "script/extract-var-info")
          test (shell "script/test")
-         bump-release (shell "script/bump-version release")
-         bump-post-release (shell "script/bump-version post-release")
+         bump-release (shell "script/bump_version release")
+         bump-post-release (shell "script/bump_version post-release")
          release-artifact clj-kondo.release-artifact/release}}
