@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1760](https://github.com/clj-kondo/clj-kondo/issues/1760) Add `:arglist-strs` support for functions defined with fn
 - [#1731](https://github.com/clj-kondo/clj-kondo/issues/1731): prioritize special form in name resolving
 - [#1739](https://github.com/clj-kondo/clj-kondo/issues/1739): Namespaced map type check fix
+- Fix [#1737](https://github.com/clj-kondo/clj-kondo/issues/1737): config-in-ns for specific namespace + ns-group override
 
 ## 2022.06.22
 

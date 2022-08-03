@@ -11,3 +11,11 @@
             :config-in-ns {dude-group {:linters {:unresolved-symbol {:level :off}}}}
             :linters  {:unresolved-symbol {:level :error}
                        :type-mismatch {:level :error}}})))
+
+(deftest config-in-ns-override-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 25, :level :warning, :message "No"})
+   (lint! "(ns my.namespace) x y z (assoc nil :foo :bar)"
+          '{:ns-groups [{:pattern "my.*" :name mine}]
+            :config-in-ns {mine {:linters {:discouraged-var {clojure.core/assoc {:message "No"}}}}
+                           my.namespace {:linters {:unresolved-symbol {:level :off}}}}})))

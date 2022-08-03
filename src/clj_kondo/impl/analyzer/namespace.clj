@@ -413,7 +413,9 @@
                  'user)
         ns-group (config/ns-group global-config ns-name)
         config-in-ns (let [config-in-ns (:config-in-ns global-config)]
-                       (get config-in-ns ns-group))
+                       (config/merge-config!
+                        (get config-in-ns ns-group)
+                        (get config-in-ns ns-name)))
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))
                        (second local-config)
