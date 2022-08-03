@@ -2,7 +2,7 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.08.03
 
 - [#1755](https://github.com/clj-kondo/clj-kondo/issues/1755): Fix false positive invalid-arity when using mapcat transducer in sequence with multiple collections
 - [#1749](https://github.com/clj-kondo/clj-kondo/issues/1749): expose `clojure.pprint/pprint` to the hooks API
