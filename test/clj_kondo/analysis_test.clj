@@ -976,7 +976,8 @@
                     (defn f2 ([e] e) ([f f'] f))
                     (defprotocol A (f3 [g] \"doc\") (f4 [h] [i i']))
                     (defrecord A [j k])
-                    (defmacro f5 [l m])"
+                    (defmacro f5 [l m])
+                    (def f6 (fn [n] n))"
                    {:config {:analysis {:arglists true}}})]
       (assert-submaps
        '[{:name f1,
@@ -1001,8 +1002,11 @@
           :arglist-strs ["[m]"]}
          {:name f5
           :defined-by clojure.core/defmacro
-          :arglist-strs ["[l m]"]}]
-       var-definitions))))
+          :arglist-strs ["[l m]"]}
+         {:name f6,
+          :defined-by clojure.core/def
+          :arglist-strs ["[n]"]}]
+        var-definitions))))
 
 (deftest analysis-is-valid-edn-test
   (testing "solution for GH-476, CLJS with string require"
