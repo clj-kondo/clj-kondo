@@ -934,6 +934,41 @@
   (is (empty? (lint! "(even? ('a {'a 10}))" config)))
   (is (empty? (lint! "(keyword (re-find (re-matcher #\"foo\" \"foo\")))" config))))
 
+(deftest map-namespace-test
+  (testing "#::ns{:key :val} syntax"
+   (is (empty? (lint! "
+(ns test-ns (:require [some-ns :as s]))
+(defn x [y] y)
+(x #::s{:thing 1})"
+                      '{:linters
+                        {:type-mismatch
+                         {:level :error
+                          :namespaces
+                          {test-ns
+                           {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}}))))
+  (testing "#:ns{:key :val} syntax"
+   (is (empty? (lint! "
+(ns test-ns)
+(defn x [y] y)
+(x #:some-ns{:thing 1})"
+                      '{:linters
+                        {:type-mismatch
+                         {:level :error
+                          :namespaces
+                          {test-ns
+                           {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}}))))
+  (testing "{::ns/key :val} syntax"
+   (is (empty? (lint! "
+(ns test-ns (:require [some-ns :as s]))
+(defn x [y] y)
+(x {::s/thing 1})"
+                      '{:linters
+                        {:type-mismatch
+                         {:level :error
+                          :namespaces
+                          {test-ns
+                           {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}})))))
+
 ;;;; Scratch
 
 (comment
