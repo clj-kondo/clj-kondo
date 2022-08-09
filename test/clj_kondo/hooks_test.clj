@@ -151,11 +151,11 @@
                         (:children node)))))\"}}}}
  (:require [foo :refer [hook]]))
 
-(hook [] (inc 1) 1 \"\n\")"
+(hook [] (inc 1) 1 \"\")"
                      {:hooks {:__dangerously-allow-string-hooks__ true}}))
           tags (str/split (subs s 1 (dec (count s))) #":")]
       (is (= tags 
-             ["token" "vector" "list" "token" "multi-line"])))))
+             ["token" "vector" "list" "token" "token"])))))
 
 (deftest config-test
   (when-not native?
