@@ -46,6 +46,7 @@
    'list-node api/list-node
    'list-node? api/list-node?
    'sexpr api/sexpr
+   'tag api/tag
    'reg-finding! api/reg-finding!
    'reg-keyword! api/reg-keyword!
    'coerce api/coerce

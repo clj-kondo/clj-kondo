@@ -53,6 +53,9 @@
 (defn sexpr [expr]
   (node/sexpr expr))
 
+(defn tag [n]
+  (node/tag n))
+
 (defn reg-finding! [m]
   (let [ctx utils/*ctx*
         filename (:filename ctx)]

@@ -136,6 +136,27 @@
                                "\"<stdin>\""
                                "true\n"])))))))
 
+(deftest tags-test
+  (when-not native?
+    (let [s (with-out-str (lint! "
+(ns bar
+ {:clj-kondo/config
+  '{:hooks 
+    {:analyze-call 
+     {foo/hook \"
+      (require '[clj-kondo.hooks-api :as api])
+      (fn [{:keys [node]}]
+        (println (clojure.string/join 
+                   (map #(api/tag %) 
+                        (:children node)))))\"}}}}
+ (:require [foo :refer [hook]]))
+
+(hook [] (inc 1) 1 \"\n\")"
+                     {:hooks {:__dangerously-allow-string-hooks__ true}}))
+          tags (str/split (subs s 1 (dec (count s))) #":")]
+      (is (= tags 
+             ["token" "vector" "list" "token" "multi-line"])))))
+
 (deftest config-test
   (when-not native?
     (let [s (with-out-str (lint! "

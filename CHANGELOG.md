@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2022.08.09 
+
+- [#1768](https://github.com/clj-kondo/clj-kondo/issues/1768): Expose a `tag` function in `clj-kondo.hooks-api`
+
 ## 2022.08.03
 
 - [#1755](https://github.com/clj-kondo/clj-kondo/issues/1755): Fix false positive invalid-arity when using mapcat transducer in sequence with multiple collections
