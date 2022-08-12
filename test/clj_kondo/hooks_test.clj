@@ -146,16 +146,13 @@
      {foo/hook \"
       (require '[clj-kondo.hooks-api :as api])
       (fn [{:keys [node]}]
-        (println (clojure.string/join 
-                   (map #(api/tag %) 
-                        (:children node)))))\"}}}}
+        (println (map api/tag (:children node))))\"}}}}
  (:require [foo :refer [hook]]))
 
-(hook [] (inc 1) 1 \"\")"
-                     {:hooks {:__dangerously-allow-string-hooks__ true}}))
-          tags (str/split (subs s 1 (dec (count s))) #":")]
-      (is (= tags 
-             ["token" "vector" "list" "token" "token"])))))
+(hook [] (inc 1) 1 \"\n\")"
+                     {:hooks {:__dangerously-allow-string-hooks__ true}}))]
+      (is (= (read-string s) 
+             [:token :vector :list :token :multi-line])))))
 
 (deftest config-test
   (when-not native?
