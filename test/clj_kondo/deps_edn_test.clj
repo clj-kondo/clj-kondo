@@ -170,6 +170,19 @@
     (is (empty? (lint! (str deps-edn)
                        "--filename" "deps.edn")))))
 
+(deftest inferred-git-urls-test
+  (testing "valid inferred git dep urls produce no lint warnings"
+    (let [deps-edn '{:deps {com.github.somebody/a-project {:git/sha "..."}
+                            io.bitbucket.user/other-project {:git/sha "..."}
+                            ht.sr.person/third-project {:git/sha "..."}}}]
+      (is (empty? (lint! (str deps-edn) "--filename" "deps.edn")))))
+  (testing "invalid inferred git dep urls produce a lint warning"
+    (let [deps-edn '{:deps {invalid.url/project {:git/sha "..."}}}]
+      (assert-submaps
+       '({:file "deps.edn", :row 1, :col 30, :level :warning, :message "Missing required key: :mvn/version, :git/url or :local/root."})
+       (lint! (str deps-edn)
+              "--filename" "deps.edn")))))
+
 (deftest depend-on-undefined-task-test
   (let [bb-edn '{:tasks
                  {run {:paths ["script"]

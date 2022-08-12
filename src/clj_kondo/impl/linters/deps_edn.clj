@@ -70,7 +70,8 @@
     (let [lib (str lib)]
       (when (or
              (str/starts-with? lib "io.")
-             (str/starts-with? lib "com."))
+             (str/starts-with? lib "com.")
+             (str/starts-with? lib "ht.sr."))
         lib))))
 
 (defn lint-dep-coord [ctx lib node]
