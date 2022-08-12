@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## 2022.08.12
+
+- [#1774](https://github.com/clj-kondo/clj-kondo/issues/1774): Add support for sourcehut inferred git dep urls for the Clojure CLI
+
 ## 2022.08.09 
 
 - [#1768](https://github.com/clj-kondo/clj-kondo/issues/1768): Expose a `tag` function in `clj-kondo.hooks-api`
