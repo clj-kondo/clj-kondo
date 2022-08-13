@@ -22,6 +22,8 @@
 (set! *warn-on-reflection* true)
 (def valid-ns-name? (some-fn symbol? string?))
 
+(def empty-spec? (every-pred sequential? empty?))
+
 (defn- prefix-spec?
   "Adapted from clojure.tools.namespace"
   [form]
@@ -43,13 +45,10 @@
   [ctx prefix libspec-expr]
   (let [libspec-expr (meta/lift-meta-content2 ctx libspec-expr)
         children (:children libspec-expr)
-        form (sexpr libspec-expr)]
+        form (sexpr libspec-expr)
+        find-fn! #(findings/reg-finding! ctx (node->line (:filename ctx) libspec-expr :syntax %))]
     (cond (prefix-spec? form)
-          (do (when prefix
-                (findings/reg-finding! ctx (node->line (:filename ctx)
-                                                       libspec-expr
-                                                       :syntax
-                                                       "Prefix lists can only have two levels.")))
+          (do (when prefix (find-fn! "Prefix lists can only have two levels."))
               (mapcat (fn [f]
                         (normalize-libspec ctx
                                            (symbol (str (when prefix (str prefix "."))
@@ -65,12 +64,9 @@
                                        form))]
             (when (and prefix
                        (str/includes? (str form) "."))
-              (findings/reg-finding! ctx
-                                     (node->line (:filename ctx)
-                                                 libspec-expr
-                                                 :syntax
-                                                 (format "found lib name '%s' containing period with prefix '%s'. lib names inside prefix lists must not contain periods."
-                                                         form prefix))))
+              (find-fn!
+                (format "found lib name '%s' containing period with prefix '%s'. lib names inside prefix lists must not contain periods."
+                        form prefix)))
             [(with-meta (token-node full-form)
                (cond-> (assoc (meta libspec-expr)
                               :raw-name form)
@@ -78,6 +74,8 @@
                  (assoc :prefix prefix)))])
           (keyword? form)  ; Some people write (:require ... :reload-all)
           nil
+          (empty-spec? form)
+          (do (find-fn! "require form is invalid: clauses must not be empty") nil)
           :else
           (throw (ex-info "Unparsable namespace form"
                           {:reason ::unparsable-ns-form
@@ -265,12 +263,18 @@
                           imported-nodes (rest children)
                           imported (keep #(coerce-class-symbol ctx %) imported-nodes)]
                       (run! #(utils/handle-ignore ctx %) imported-nodes)
-                      (when (empty? imported-nodes)
-                        (findings/reg-finding!
-                         ctx
-                         (node->line
-                          (:filename ctx) java-package-name-node
-                          :syntax "Expected: package name followed by classes.")))
+                      (cond (empty? children)
+                            (findings/reg-finding!
+                              ctx
+                              (node->line
+                                (:filename ctx) libspec-expr
+                                :syntax "import form is invalid: clauses must not be empty"))
+                            (empty? imported-nodes)
+                            (findings/reg-finding!
+                              ctx
+                              (node->line
+                                (:filename ctx) java-package-name-node
+                                :syntax "Expected: package name followed by classes.")))
                       (into {} (for [i imported]
                                  [i java-package])))
     :token (let [package+class (:value libspec-expr)
@@ -542,9 +546,7 @@
   "For now we only support the form (require '[...])"
   [ctx expr]
   (let [ns-name (-> ctx :ns :name)
-        children (:children expr)
-        require-node (first children)
-        children (next children)
+        [require-node & children] (:children expr)
         [libspecs non-quoted-children]
         (utils/keep-remove #(let [t (tag %)]
                               (or (when (= :quote t)
@@ -555,6 +557,12 @@
                                                                  utils/symbol-from-token)))
                                       (second children)))))
                            children)]
+    (when (some-> children first sexpr empty-spec?)
+      (findings/reg-finding!
+        ctx
+        (node->line (:filename ctx) 
+                    (first children)
+                    :syntax "require form is invalid: clauses must not be empty")))
     (when (:analyze-keywords? ctx)
       (run! #(usages/analyze-usages2 ctx % {:quote? true}) libspecs))
     (let [analyzed

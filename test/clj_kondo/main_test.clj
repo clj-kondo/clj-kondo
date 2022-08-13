@@ -2838,7 +2838,21 @@ foo/baz
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 61, :level :error, :message "Expected: class symbol"}
      {:file "<stdin>", :row 1, :col 68, :level :error, :message "Expected: class symbol"})
-   (lint! "(ns circle.http.api.v2.context (:import [circle.http.defapi :refer [defapi-with-auth]]))")))
+   (lint! "(ns circle.http.api.v2.context (:import [circle.http.defapi :refer [defapi-with-auth]]))"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 18, :level :error, :message "import form is invalid: clauses must not be empty"})
+   (lint! "(ns foo (:import ()))"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 10, :level :error, :message "import form is invalid: clauses must not be empty"})
+   (lint! "(import '())")))
+
+(deftest empty-require
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 19, :level :error, :message "require form is invalid: clauses must not be empty"})
+   (lint! "(ns foo (:require []))"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 11, :level :error, :message "require form is invalid: clauses must not be empty"})
+   (lint! "(require '[])")))
 
 (deftest unquoted-namespace-config-test
   (assert-submaps '({:file "<stdin>", :row 4, :col 14, :level :warning, :message "Unsorted namespace: bar.foo"})
