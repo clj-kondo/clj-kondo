@@ -2735,13 +2735,26 @@ foo/baz
 
 
 (deftest consistent-alias-test
-  (assert-submaps
-   [{:file "<stdin>", :row 1, :col 39,
-     :level :warning, :message #"Inconsistent.*str.*x"}]
-   (lint! "(ns foo (:require [clojure.string :as x])) x/join"
-          {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))
-  (is (empty? (lint! "(ns foo (:require [clojure.string])) clojure.string/join"
-                     {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))))
+  (testing "symbol namespaces"
+    (assert-submaps
+     [{:file  "<stdin>", :row     1, :col 39,
+       :level :warning,  :message #"Inconsistent.*str.*x"}]
+     (lint! "(ns foo (:require [clojure.string :as x])) x/join"
+            {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))
+    (is (empty? (lint! "(ns foo (:require [clojure.string])) clojure.string/join"
+                       {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))))
+  (testing "string namespaces"
+    (assert-submaps
+     [{:file  "<stdin>", :row     1, :col 32,
+       :level :warning,  :message #"Inconsistent.*react.*r"}]
+     (lint! "(ns foo (:require [\"react\" :as r])) r/StrictMode"
+            {:linters {:consistent-alias {:aliases '{react react}}}})))
+  (testing "scoped namespaces"
+    (assert-submaps
+     [{:file  "<stdin>", :row     1, :col 52,
+       :level :warning,  :message #"Inconsistent.*accordion.*acc"}]
+     (lint! "(ns foo (:require [\"@radix-ui/react-accordion\" :as acc])) acc/Root"
+            {:linters {:consistent-alias {:aliases '{"@radix-ui/react-accordion" accordion}}}}))))
 
 (deftest unsorted-required-namespaces-test
   (assert-submaps

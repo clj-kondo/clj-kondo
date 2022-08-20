@@ -83,7 +83,9 @@
 
 (defn lint-alias-consistency [ctx ns-name alias]
   (let [config (:config ctx)]
-    (when-let [expected-alias (get-in config [:linters :consistent-alias :aliases ns-name])]
+    (when-let [expected-alias (or
+                               (get-in config [:linters :consistent-alias :aliases ns-name])
+                               (get-in config [:linters :consistent-alias :aliases (str ns-name)]))]
       (when-not (= expected-alias alias)
         (findings/reg-finding!
          ctx
