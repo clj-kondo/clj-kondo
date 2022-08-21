@@ -82,10 +82,9 @@
                            :form form})))))
 
 (defn lint-alias-consistency [ctx ns-name alias]
-  (let [config (:config ctx)]
-    (when-let [expected-alias (or
-                               (get-in config [:linters :consistent-alias :aliases ns-name])
-                               (get-in config [:linters :consistent-alias :aliases (str ns-name)]))]
+  (let [consistent-aliases (get-in ctx [:config :linters :consistent-alias :aliases])]
+    (when-let [expected-alias (or (get consistent-aliases ns-name)
+                                  (get consistent-aliases (str ns-name)))]
       (when-not (= expected-alias alias)
         (findings/reg-finding!
          ctx
