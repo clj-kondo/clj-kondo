@@ -4,6 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1780](https://github.com/clj-kondo/clj-kondo/issues/1780): Can not use NPM dependency namespaces beginning with "@" in consistent-linter alias
 - [#1771](https://github.com/clj-kondo/clj-kondo/issues/1771): don't crash on empty ns clauses: `(require '[])` and `(import '())` 
 - [#1774](https://github.com/clj-kondo/clj-kondo/issues/1774): Add support for sourcehut inferred git dep urls for the Clojure CLI
 - [#1768](https://github.com/clj-kondo/clj-kondo/issues/1768): Expose a `tag` function in `clj-kondo.hooks-api`
