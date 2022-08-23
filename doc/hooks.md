@@ -351,7 +351,7 @@ For developing hooks in a JVM REPL, clj-kondo exposes the `clj-kondo.hooks-api`
 namespace:
 
 ``` Clojure
-$ clj
+$ clj -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version "LATEST"}}}'
 Clojure 1.11.0
 user=> (require '[clj-kondo.hooks-api :as api])
 nil
