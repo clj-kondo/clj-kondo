@@ -8,6 +8,7 @@
    [clj-kondo.impl.rewrite-clj.node.string :as node-string]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.parser :as p]
+   [clojure.java.io :as io]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -377,7 +378,7 @@
   (cond file (when (fs/exists? file)
                (str (.toURI (fs/file file))))
         (and jar entry)
-        (str "jar:file:" (fs/canonicalize jar) "!/" entry)))
+        (str "jar:" (.toURI (io/file jar)) "!/" entry)))
 
 (defn file-ext [fn]
   (when-let [last-dot (str/last-index-of fn ".")]
