@@ -378,7 +378,7 @@
   (cond file (when (fs/exists? file)
                (str (.toURI (fs/file file))))
         (and jar entry)
-        (str "jar:file:" (.toURI (io/file jar)) "!/" entry)))
+        (str "jar:" (.toURI (io/file jar)) "!/" entry)))
 
 (defn file-ext [fn]
   (when-let [last-dot (str/last-index-of fn ".")]
