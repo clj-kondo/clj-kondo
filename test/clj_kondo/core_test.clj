@@ -211,7 +211,7 @@
           {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 7}
           {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 7}
           {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 7}
-          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 7}}
+          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 7}}
         (set @calls))
       (is (every? #(and (int? (:total-files %))
                         (<= (:total-files %) 7)) @calls))))
@@ -239,15 +239,15 @@
   (testing "when parallel"
     (let [calls (atom [])
           res (file-analyzed-fn
-               ["corpus/use.clj"
-                "corpus/case.clj"
-                "corpus/schema"
-                "corpus/exports/dir"
-                "corpus/withcljdir.jar"]
-               :clj
-               (fn [entry-map]
-                 (swap! calls conj entry-map))
-               {:parallel true})]
+                ["corpus/use.clj"
+                 "corpus/case.clj"
+                 "corpus/schema"
+                 "corpus/exports/dir"
+                 "corpus/withcljdir.jar"]
+                :clj
+                (fn [entry-map]
+                  (swap! calls conj entry-map))
+                {:parallel true})]
       (is (= 7 (:files (:summary res))))
       (assert-submaps
         #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 7}
@@ -256,7 +256,7 @@
           {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 7}
           {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 7}
           {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 7}
-          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 7}}
+          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 7}}
         (set @calls))
       (is (every? #(and (int? (:total-files %))
                         (<= (:total-files %) 7)) @calls)))))
