@@ -443,7 +443,7 @@
                                     ^String (.replace "/" ".")
                                     ;; Windows, but do unconditionally, see issue 1607
                                     (.replace "\\" "."))
-                  munged-ns (str (munge ns-name))]
+                  munged-ns (str (namespace-munge ns-name))]
               (when (and filename*
                          (not (str/ends-with? filename* munged-ns)))
                 (when-not (some (fn [m]
