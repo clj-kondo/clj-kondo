@@ -17,6 +17,16 @@
           '{:linters {:namespace-name-mismatch {:level :error}}}))
 
   (assert-submaps
+    '()
+    (lint! (io/file "corpus" "namespace_name_mismatch" "correct_file_with_+_sign.clj")
+           '{:linters {:namespace-name-mismatch {:level :error}}}))
+
+  (assert-submaps
+    '()
+    (lint! (io/file "corpus" "namespace_name_mismatch" "correct_file_with_+_sign.cljs")
+           '{:linters {:namespace-name-mismatch {:level :error}}}))
+
+  (assert-submaps
    '({:file "corpus/namespace_name_mismatch/wrong_file.clj",
       :row 1,
       :col 5,
