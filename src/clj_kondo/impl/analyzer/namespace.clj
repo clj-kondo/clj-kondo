@@ -416,7 +416,7 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
-        ns-group (config/ns-group global-config ns-name)
+        ns-group (config/ns-group global-config ns-name filename)
         config-in-ns (let [config-in-ns (:config-in-ns global-config)]
                        (config/merge-config!
                         (get config-in-ns ns-group)
