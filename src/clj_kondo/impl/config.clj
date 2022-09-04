@@ -404,11 +404,14 @@
     (fn [config sym]
       (contains? (delayed-cfg config) sym))))
 
-(defn ns-group* [config ns-name]
+(defn ns-group* [config ns-name filename]
   (or (some (fn [{:keys [pattern
+                         filename-pattern
                          name]}]
-              (when (and (string? pattern) (symbol? name)
-                         (re-matches (re-pattern pattern) (str ns-name)))
+              (when (or (and (string? pattern) (symbol? name)
+                             (re-matches (re-pattern pattern) (str ns-name)))
+                        (and (string? filename-pattern) (symbol? name)
+                             (re-matches (re-pattern filename-pattern) filename)))
                 name))
             (:ns-groups config))
       ns-name))

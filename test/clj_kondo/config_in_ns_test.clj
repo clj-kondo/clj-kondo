@@ -1,6 +1,7 @@
 (ns clj-kondo.config-in-ns-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submaps lint!]]
+   [clojure.java.io :as io]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest config-in-ns-test
@@ -19,3 +20,9 @@
           '{:ns-groups [{:pattern "my.*" :name mine}]
             :config-in-ns {mine {:linters {:discouraged-var {clojure.core/assoc {:message "No"}}}}
                            my.namespace {:linters {:unresolved-symbol {:level :off}}}}})))
+
+(deftest config-in-ns-file-pattern-test
+  (is (empty?
+       (lint! (io/file "corpus" "config_in_ns" "my_custom_ns.clj")
+              '{:ns-groups [{:filename-pattern ".*config_in_ns.*" :name mine}]
+                :config-in-ns {mine {:linters {:unused-private-var {:level :off}}}}}))))
