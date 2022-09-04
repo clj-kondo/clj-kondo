@@ -24,5 +24,5 @@
 (deftest config-in-ns-file-pattern-test
   (is (empty?
        (lint! (io/file "corpus" "config_in_ns" "my_custom_ns.clj")
-              '{:ns-groups [{:filename-pattern ".*/config_in_ns/.*" :name mine}]
+              '{:ns-groups [{:filename-pattern ".*config_in_ns.*" :name mine}]
                 :config-in-ns {mine {:linters {:unused-private-var {:level :off}}}}}))))
