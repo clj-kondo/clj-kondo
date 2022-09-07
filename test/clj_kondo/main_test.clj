@@ -1690,7 +1690,7 @@ foo/foo ;; this does use the private var
                  ;; dropping the 'linting took' line
                  (drop-last)))]
     (testing "with :show-rule-name-in-message true"
-      (doseq [output-line (run-main "{:output {:show-rule-name-in-message true}}")
+      (doseq [output-line (run-main "{:output {:linter-name true}}")
               :let [[_ begin] (re-matches #".*(<stdin>:\d+:\d+).*" output-line)]]
         (testing (str "output line '" begin "' ")
           (is (str/ends-with? output-line "[:invalid-arity]") "has rule name"))))

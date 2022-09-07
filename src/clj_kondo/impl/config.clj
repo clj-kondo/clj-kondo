@@ -154,9 +154,9 @@
              ;; the output pattern can be altered using a template. use {{LEVEL}} to print the level in capitals.
              ;; the default template looks like this:
              ;; :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"
-             ;; if below :show-rule-name-in-message is set to true, type (linter name) of reported the finding
+             ;; if below :linter-name is set to true, type (linter name) of reported the finding
              ;; is appended to the end of the default pattern as " [{{type}}]"
-             :show-rule-name-in-message false
+             :linter-name false
              :canonical-paths false}}) ;; set to true to see absolute file paths and jar files
 
 (defn merge-config!

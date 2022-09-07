@@ -321,9 +321,9 @@ $ clj-kondo --lint corpus --config '{:output {:canonical-paths true}}'
 (rest of the output omitted)
 ```
 
-### Show rule name in message
+### Show linter name in message
 
-Adding `'{:output {:show-rule-name-in-message true}}` will append rule name to the output line for each reported finding.
+Adding `'{:output {:linter-name true}}` will append rule name to the output line for each reported finding.
 
 By default, this configuration is set to `false`.
 
@@ -336,10 +336,10 @@ $ echo '(def x (def x 1))' | clj-kondo --lint -
 linting took 22ms, errors: 0, warnings: 2
 ```
 
-Output example with `{:output {:show-rule-name-in-message true}}`:
+Output example with `{:output {:linter-name true}}`:
 
 ```shell
-$ echo '(def x (def x 1))' | clj-kondo --config '{:output {:show-rule-name-in-message true}}' --lint -
+$ echo '(def x (def x 1))' | clj-kondo --config '{:output {:linter-name true}}' --lint -
 <stdin>:1:1: warning: redefined var #'user/x [:redefined-var]
 <stdin>:1:8: warning: inline def [:inline-def]
 linting took 9ms, errors: 0, warnings: 2

@@ -25,24 +25,26 @@
 (def cache-version "v1")
 
 (defn format-output [config]
-  (if-let [^String pattern (-> config :output :pattern)]
-    (fn [{:keys [:filename :row :col :level :message :type] :as _finding}]
-      (-> pattern
-          (str/replace "{{filename}}" filename)
-          (str/replace "{{row}}" (str row))
-          (str/replace "{{col}}" (str col))
-          (str/replace "{{level}}" (name level))
-          (str/replace "{{LEVEL}}" (str/upper-case (name level)))
-          (str/replace "{{message}}" message)
-          (str/replace "{{type}}" (str type))))
-    (fn [{:keys [:filename :row :col :level :message :type] :as _finding}]
-      (str filename ":"
-           row ":"
-           col ": "
-           (name level) ": "
-           message
-           (when (-> config :output :show-rule-name-in-message)
-             (str " [" type "]"))))))
+  (let [output-cfg (:output config)]
+    (if-let [^String pattern (-> output-cfg :pattern)]
+      (fn [{:keys [:filename :row :col :level :message :type] :as _finding}]
+        (-> pattern
+            (str/replace "{{filename}}" filename)
+            (str/replace "{{row}}" (str row))
+            (str/replace "{{col}}" (str col))
+            (str/replace "{{level}}" (name level))
+            (str/replace "{{LEVEL}}" (str/upper-case (name level)))
+            (str/replace "{{message}}" message)
+            (str/replace "{{type}}" (str type))))
+      (fn [{:keys [:filename :row :col :level :message :type] :as _finding}]
+        (str filename ":"
+             row ":"
+             col ": "
+             (name level) ": "
+             message
+             (when (or (-> output-cfg :show-rule-name-in-message)
+                       (:linter-name output-cfg))
+               (str " [" type "]")))))))
 
 ;;;; process config
 
