@@ -25,6 +25,7 @@ API functions for producing nodes:
   `::foo`.
 - `string-node`: produce a new node for a single string or multiple strings (passed as seq)
 - `token-node`: produce a new token node. Used for all remaining tokens (mainly used for symbols or nil).
+- `tag`: return the tag keyword for a node
 
 Each producing function has a predicate counterpart for checking a type of node:
 
