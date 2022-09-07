@@ -308,7 +308,7 @@ children))]
   ;; if there was no output
   (testing "hook code supports pprint"
     (let [res (lint! "
-      
+
 (ns bar
   {:clj-kondo/config
     '{:hooks {:analyze-call {
@@ -335,4 +335,36 @@ foo/defdoced \"
 (defdoced mysuperthing {:a 1 :b 2 :c {:d 3 :e 4}})
 "
                      {:hooks {:__dangerously-allow-string-hooks__ true}})]
+      (is (empty? res)))))
+
+(deftest foo-test
+  (testing "hook code supports pprint"
+    (let [res (lint! "
+
+(ns my-ns
+  {:clj-kondo/config
+    '{:hooks {:analyze-call {
+my-ns/special-map \"
+
+(require '[clj-kondo.hooks-api :as hooks])
+
+(fn
+  [{{[_ & args] :children} :node}]
+  (let [[_map-type m] (if (= (count args) 1)
+                       [(first args) (hooks/map-node [])]
+                       args)]
+    {:node m}))
+\"
+
+}}}})
+
+(defmacro special-map [_map-type m]
+  m)
+
+(defn x []
+  (let [num-cans 2]
+    (assoc (special-map :world-map {:description (format \"%d cans\" num-cans)}) :wow :ok)))
+"
+                     {:hooks {:__dangerously-allow-string-hooks__ true}
+                      :linters {:type-mismatch {:level :error}}})]
       (is (empty? res)))))
