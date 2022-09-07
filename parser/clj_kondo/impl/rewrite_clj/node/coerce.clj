@@ -48,6 +48,7 @@
 
 ;; ## Tokens
 
+;; fallback
 (extend-protocol NodeCoerceable
   Object
   (coerce [v]
@@ -86,6 +87,9 @@
   (coerce [sq]
     (seq-node vector-node sq))
   clojure.lang.IPersistentList
+  (coerce [sq]
+    (seq-node list-node sq))
+  clojure.lang.LazySeq
   (coerce [sq]
     (seq-node list-node sq))
   clojure.lang.Cons

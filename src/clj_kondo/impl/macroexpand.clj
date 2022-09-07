@@ -175,8 +175,7 @@
         has-first-arg? (= '%1 (first args))]
     (with-meta
       (list-node [(token-node 'fn*) arg-list
-                  fn-body #_(if has-first-arg?
-                    let-expr fn-body)])
+                  fn-body])
       (assoc m :clj-kondo.impl/fn-has-first-arg has-first-arg?))))
 
 (defn expand-do-template [_ctx node]
