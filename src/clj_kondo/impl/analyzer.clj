@@ -2569,12 +2569,14 @@
 
                           (types/add-arg-type-from-expr ctx expr ret-tag)
                           (types/add-arg-type-from-expr ctx expr))
-                        (let [ret (analyze-call ctx {:arg-count arg-count
+                        (let [id (or (:id expr) (gensym))
+                              expr (assoc expr :id id)
+                              ret (analyze-call ctx {:arg-count arg-count
                                                      :full-fn-name full-fn-name
                                                      :row row
                                                      :col col
                                                      :expr expr})
-                              maybe-call (first ret)]
+                              maybe-call (some #(when (= id (:id %)) %) ret)]
                           (if (identical? :call (:type maybe-call))
                             (types/add-arg-type-from-call ctx maybe-call expr)
                             (types/add-arg-type-from-expr ctx expr))
@@ -2602,7 +2604,6 @@
                         (analyze-children ctx children)))))
                 ;; catch-all
                 (do
-                  ;; (prn "--" expr (types/add-arg-type-from-expr ctx expr))
                   (types/add-arg-type-from-expr ctx expr)
                   (let [ctx (update ctx :callstack conj [nil t])]
                     (analyze-children ctx children))))))
