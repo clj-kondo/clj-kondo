@@ -2434,11 +2434,15 @@
   (let [children (:children expr)
         tag-expr (first children)
         tag (:value tag-expr)
+        default-cfg-in-tag {:linters {:unresolved-symbol {:level :off}
+                                      :invalid-arity {:level :off}}}
         ctx (if (and (identical? :cljs (:lang ctx))
                      (= 'js tag))
               ctx
-              (ctx-with-linters-disabled ctx [:unresolved-symbol
-                                              :invalid-arity]))
+              (if-let [config (get-in ctx [:config :config-in-tag tag])]
+                (update ctx :config utils/deep-merge default-cfg-in-tag config)
+                (ctx-with-linters-disabled ctx [:unresolved-symbol
+                                                :invalid-arity])))
         children (rest children)]
     (analyze-children ctx children)))
 
