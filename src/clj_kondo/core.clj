@@ -198,8 +198,9 @@
         ;; _ (prn :used-nss @used-nss)
         idacs (when (or dependencies (not skip-lint) analysis)
                 (-> (core-impl/index-defs-and-calls ctx)
+                    (overrides)
                     (cache/sync-cache cfg-dir cache-dir)
-                    (overrides)))
+                    ))
         _ (when-not dependencies
             (if skip-lint
               (when analysis

@@ -392,7 +392,6 @@ replace {1 {:ret :transducer}}
 unchecked-int {1 {:args (:nilable/number)}}
 bound-fn* {1 {:ret :fn}}
 prn {:varargs {:ret #{:nil}, :min-arity 0}}
-defn {:varargs {:ret :list, :min-arity 3}}
 extends? {2 {:ret :boolean}}
 agent-errors {1 {:ret #{:list :nil}}}
 float {1 {:args (:nilable/number)}}
@@ -450,7 +449,6 @@ subvec {2 {:ret :vector}}
 partial {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}, :varargs {:ret :fn, :min-arity 4}}
 replicate {2 {:ret :seq}}
 unchecked-byte {1 {:args (:nilable/number)}}
-defmacro {:varargs {:ret :list, :min-arity 3}}
 every-pred {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 distinct? {1 {:ret :boolean}, 2 {:ret :boolean}}
 pos-int? {1 {:ret #{:nil :boolean}}}
