@@ -1,10 +1,6 @@
 (ns clj-kondo.impl.overrides
   {:no-doc true})
 
-;; TODO: we can do this more intelligently. E.g. only override when we actually
-;; have linted clojure.core and ont he way to the cache override it, so the
-;; transit will contain the right info and we don't have to do this at runtime.
-
 (defn override-clojure-core [idacs]
   (if (get-in idacs '[:clj :defs clojure.core])
     (-> idacs
