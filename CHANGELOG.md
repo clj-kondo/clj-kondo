@@ -2,15 +2,20 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.09.08
 
+-`:config-in-call` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#config-in-call)
+- [#1127](https://github.com/clj-kondo/clj-kondo/issues/1127): `:config-in-tag` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#config-in-tag)
 - [#1791](https://github.com/clj-kondo/clj-kondo/issues/1791): Fix issue with namespace-name-mismatch on namespaces with + sign (and others)
 - [#1782](https://github.com/clj-kondo/clj-kondo/issues/1782): Fix issue with jar URI missreporting to `file-analyzed-fn`, bump babashka/fs to 0.1.11
 - [#1780](https://github.com/clj-kondo/clj-kondo/issues/1780): Can not use NPM dependency namespaces beginning with "@" in consistent-linter alias
-- [#1771](https://github.com/clj-kondo/clj-kondo/issues/1771): don't crash on empty ns clauses: `(require '[])` and `(import '())` 
+- [#1771](https://github.com/clj-kondo/clj-kondo/issues/1771): don't crash on empty ns clauses: `(require '[])` and `(import '())`
 - [#1774](https://github.com/clj-kondo/clj-kondo/issues/1774): Add support for sourcehut inferred git dep urls for the Clojure CLI
 - [#1768](https://github.com/clj-kondo/clj-kondo/issues/1768): Expose a `tag` function in `clj-kondo.hooks-api`
-- [#1790](https://github.com/clj-kondo/clj-kondo/issues/1790): Add support for `:filename-pattern` in `:ns-group` 
+- [#1790](https://github.com/clj-kondo/clj-kondo/issues/1790): Add support for `:filename-pattern` in `:ns-group`
+- [#1773](https://github.com/clj-kondo/clj-kondo/issues/1773): false positive type mismatch warning with hook
+- [#1779](https://github.com/clj-kondo/clj-kondo/issues/1779): lazy-seq should be coerced a list node
+- [#1764](https://github.com/clj-kondo/clj-kondo/issues/1764): store overrides in cache and don't run them at runtime
 
 ## 2022.08.03
 
