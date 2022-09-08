@@ -20,6 +20,8 @@ Table of contents:
         - [Ignore warnings in an expression](#ignore-warnings-in-an-expression)
         - [Lint a custom macro like a built-in macro](#lint-a-custom-macro-like-a-built-in-macro)
         - [Override config in comment forms](#override-config-in-comment-forms)
+        - [:config-in-call](#config-in-call)
+        - [:config-in-tag](#config-in-tag)
         - [Ignore the contents of comment forms](#ignore-the-contents-of-comment-forms)
         - [Disable auto-load-configs](#disable-auto-load-configs)
     - [Available linters](#available-linters)
@@ -30,7 +32,7 @@ Table of contents:
         - [Include and exclude files from the output](#include-and-exclude-files-from-the-output)
         - [Show progress bar while linting](#show-progress-bar-while-linting)
         - [Output canonical file paths](#output-canonical-file-paths)
-        - [Display rule name in text output](#show-rule-name-in-message)
+        - [Show linter name in message](#show-linter-name-in-message)
     - [Namespace groups](#namespace-groups)
     - [Example configurations](#example-configurations)
     - [Exporting and importing configuration](#exporting-and-importing-configuration)
@@ -225,6 +227,44 @@ When you have custom `def` or `defn`-like macros and you can't find a supported 
 ```clojure
 {:config-in-comment {:linters {:unresolved-namespace {:level :off}}}}
 ```
+
+### :config-in-call
+
+The `config-in-call` configuration option lets you tweak configuration within calls.
+
+E.g. given this macro:
+
+``` Clojure
+(ns my-ns)
+
+(defmacro ignore [& _body])
+
+(ignore x y z)
+```
+
+you can ignore unresolved symbols using:
+
+``` Clojure
+{:config-in-call {my-ns/ignore {:linters {:unresolved-symbol {:level :off}}}}}
+```
+
+### :config-in-tag
+
+The `config-in-tag` configuration option lets you tweak configuration within
+reader tags. By default, unresolved symbols and invalid arity calls are ignored
+in reader tags since they can do arbitrary transformations at read time. E.g. this will not give an error:
+
+``` Clojure
+#jsx [:foo {:href x}]
+```
+
+To get unresolved symbol warnings back, use:
+
+``` Clojure
+{:config-in-tag {jsx {:linters {:unresolved-symbol {:level :error}}}}}
+```
+
+
 
 ### Ignore the contents of comment forms
 
