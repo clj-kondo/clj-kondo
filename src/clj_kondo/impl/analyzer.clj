@@ -2430,12 +2430,13 @@
        ctx
        (node->line (:filename ctx) expr :not-a-function (str "a " typ " is not a function"))))))
 
+(def default-cfg-in-tag {:linters {:unresolved-symbol {:level :off}
+                                   :invalid-arity {:level :off}}})
+
 (defn analyze-reader-macro [ctx expr]
   (let [children (:children expr)
         tag-expr (first children)
         tag (:value tag-expr)
-        default-cfg-in-tag {:linters {:unresolved-symbol {:level :off}
-                                      :invalid-arity {:level :off}}}
         ctx (if (and (identical? :cljs (:lang ctx))
                      (= 'js tag))
               ctx
