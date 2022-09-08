@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## 2022.09.08
 
--`:config-in-call` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#config-in-call)
+- `:config-in-call` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#config-in-call)
 - [#1127](https://github.com/clj-kondo/clj-kondo/issues/1127): `:config-in-tag` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#config-in-tag)
 - [#1791](https://github.com/clj-kondo/clj-kondo/issues/1791): Fix issue with namespace-name-mismatch on namespaces with + sign (and others)
 - [#1782](https://github.com/clj-kondo/clj-kondo/issues/1782): Fix issue with jar URI missreporting to `file-analyzed-fn`, bump babashka/fs to 0.1.11
