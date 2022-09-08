@@ -130,7 +130,9 @@
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}
               :warn-on-reflection {:level :off
-                                   :warn-only-on-interop true}}
+                                   :warn-only-on-interop true}
+              :line-length {:level :warning
+                            :max-line-length nil}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

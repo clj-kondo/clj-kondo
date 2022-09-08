@@ -65,6 +65,7 @@ It suggests several style guide recommendations, such as:
 * rules from Stuart Sierra's [how to ns](https://stuartsierra.com/2016/clojure-how-to-ns.html)
 * use `:else` as the catch-all test expression in `cond` (see [Clojure style guide](https://github.com/bbatsov/clojure-style-guide#else-keyword-in-cond))
 * use `seq` instead of `(not (empty? ,,,))` (see [Clojure style guide](https://github.com/bbatsov/clojure-style-guide#nil-punning))
+* don't make your lines too long (see [Clojure style guide](https://github.com/bbatsov/clojure-style-guide#80-character-limits))
 
 <img src="screenshots/wrong-arity.png" width="50%" align="right">
 

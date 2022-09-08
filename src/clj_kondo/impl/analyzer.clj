@@ -2757,6 +2757,15 @@
                  "data_readers.cljc")
                 (ctx-with-linters-disabled ctx [:unresolved-namespace])
                 ctx)]
+      (when-let [max-line-length (-> config :linters :line-length :max-line-length)]
+        (doseq [[row line] (map-indexed vector (str/split-lines input))
+                :let [line-length (count line)]
+                :when (< max-line-length line-length)]
+          (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
+                                      :filename filename
+                                      :type     :line-length
+                                      :row      (inc row)
+                                      :col      (inc max-line-length)})))
       (doseq [e @reader-exceptions]
         (if dev?
           (throw e)
