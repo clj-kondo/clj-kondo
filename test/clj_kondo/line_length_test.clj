@@ -1,8 +1,8 @@
 (ns clj-kondo.line-length-test
   (:require
-    [clj-kondo.test-utils :refer [lint! assert-submaps]]
-    [clojure.test :refer [deftest is testing]]
-    [clojure.string :as string]))
+   [clj-kondo.test-utils :refer [assert-submaps lint!]]
+   [clojure.string :as string]
+   [clojure.test :refer [deftest is testing]]))
 
 (def short-line "(+ 1 2 3)")
 (def short-lines "(+ 1 2 3)\n(+ 42 3.14159265358979 'TAU)\n")
