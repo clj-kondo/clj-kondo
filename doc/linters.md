@@ -35,6 +35,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
     - [Loop without recur](#loop-without-recur)
+    - [Line length](#line-length)
     - [Keyword in binding vector](#keyword-in-binding-vector)
     - [Main without gen-class](#main-without-gen-class)
     - [Misplaced docstring](#misplaced-docstring)
@@ -639,6 +640,30 @@ why this can be problematic.
 *Example trigger:* `(loop [])`.
 
 *Example message:* `Loop without recur.`
+
+### Line length
+
+*Keyword:* `:line-length`.
+
+*Description:* warn when lines are longer than a configured length.
+
+*Default level:* `:warning`.
+
+*Default line length:* `:max-line-length` is `nil` by default, which disables line length linting.
+
+*Config:*
+
+The line length linter needs to know how long you are prepared to allow your lines to be. This configuration:
+
+``` clojure
+{:linters {:line-length {:max-line-length 120}}}
+```
+
+will produce this warning:
+
+``` clojure
+Line is longer than 120 characters.
+```
 
 ### Keyword in binding vector
 
