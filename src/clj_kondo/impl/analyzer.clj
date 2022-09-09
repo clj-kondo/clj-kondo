@@ -2430,6 +2430,9 @@
        ctx
        (node->line (:filename ctx) expr :not-a-function (str "a " typ " is not a function"))))))
 
+(def default-cfg-in-tag {:linters {:unresolved-symbol {:level :off}
+                                   :invalid-arity {:level :off}}})
+
 (defn analyze-reader-macro [ctx expr]
   (let [children (:children expr)
         tag-expr (first children)
@@ -2437,8 +2440,10 @@
         ctx (if (and (identical? :cljs (:lang ctx))
                      (= 'js tag))
               ctx
-              (ctx-with-linters-disabled ctx [:unresolved-symbol
-                                              :invalid-arity]))
+              (if-let [config (get-in ctx [:config :config-in-tag tag])]
+                (update ctx :config utils/deep-merge default-cfg-in-tag config)
+                (ctx-with-linters-disabled ctx [:unresolved-symbol
+                                                :invalid-arity])))
         children (rest children)]
     (analyze-children ctx children)))
 
