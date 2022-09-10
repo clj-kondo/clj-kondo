@@ -2,9 +2,24 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [deep-merge map-vals]]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
    [clojure.set :as set]))
 
 (set! *warn-on-reflection* true)
+
+(def linters-config
+  (-> (io/resource "clj_kondo/config/defaults.edn")
+      slurp
+      edn/read-string))
+
+(def linters-defaults
+  (->> linters-config
+       (map #(let [[k {:keys [default-level config-default]}] %
+                   config (cond-> {:level default-level}
+                            config-default (merge config-default))]
+               [k config]))
+       (into {})))
 
 (def default-config
   '{;; no linting inside calls to these functions/macros
