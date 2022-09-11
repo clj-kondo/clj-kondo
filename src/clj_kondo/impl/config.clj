@@ -22,134 +22,16 @@
        (into {})))
 
 (def default-config
-  '{;; no linting inside calls to these functions/macros
-    ;; note that you will still get an arity error when calling the fn/macro itself incorrectly
-    :skip-args [#_clojure.core/comment #_cljs.core/comment]
-    :skip-comments false ;; convenient shorthand for :skip-args [clojure.core/comment cljs.core/comment]
-    ;; linter level can be tweaked by setting :level to :error, :warn or :info (or any other keyword)
-    ;; all linters are enabled by default, but can be turned off by setting :level to :off.
-    ;; :config-in-comment {} config override for comment blocks
-    :linters {:invalid-arity {:level :error
-                              :skip-args [#_riemann.test/test-stream]}
-              :conflicting-fn-arity {:level :error}
-              :not-a-function {:level :error
-                               :skip-args [#_user/foo]}
-              :private-call {:level :error}
-              :inline-def {:level :warning}
-              :redundant-do {:level :warning}
-              :redundant-let {:level :warning}
-              :cond-else {:level :warning}
-              :syntax {:level :error}
-              :file {:level :error}
-              :missing-test-assertion {:level :warning}
-              :conflicting-alias {:level :error}
-              :duplicate-map-key {:level :error}
-              :duplicate-set-key {:level :error}
-              :missing-map-value {:level :error}
-              :redefined-var {:level :warning}
-              :unreachable-code {:level :warning}
-              :datalog-syntax {:level :error}
-              :unbound-destructuring-default {:level :warning}
-              :used-underscored-binding {:level :off}
-              :unused-binding {:level :warning
-                               :exclude-destructured-keys-in-fn-args false
-                               :exclude-destructured-as false
-                               :exclude-defmulti-args false
-                               ,}
-              :unsorted-required-namespaces {:level :off}
-              :unused-namespace {:level :warning
-                                 ;; don't warn about these namespaces:
-                                 :exclude [#_clj-kondo.impl.var-info-gen]
-                                 :simple-libspec false}
-
-              :unresolved-symbol {:level :error
-                                  :exclude [;; ignore globally:
-                                            #_js*
-                                            ;; ignore occurrences of service and event in call to riemann.streams/where:
-                                            #_(riemann.streams/where [service event])
-                                            ;; ignore all unresolved symbols in one-of:
-                                            #_(clj-kondo.impl.utils/one-of)
-                                            (user/defproject) ;; ignore project.clj's defproject
-                                            (clojure.test/are [thrown? thrown-with-msg?])
-                                            (cljs.test/are [thrown? thrown-with-msg?])
-                                            (clojure.test/is [thrown? thrown-with-msg?])
-                                            (cljs.test/is [thrown? thrown-with-msg?])]}
-              :unresolved-var {:level :warning}
-              :unresolved-namespace {:level :warning
-                                     :exclude [#_foo.bar]}
-                                               ;; for example: foo.bar is always loaded in a user profile
-              :reduce-without-init {:level :off
-                                    :exclude [#_foo.bar/baz]}
-              :misplaced-docstring {:level :warning}
-              :not-empty? {:level :warning}
-              :deprecated-var {:level :warning
-                               #_:exclude
-                               #_{foo.foo/deprecated-fn
-                                  ;; suppress warnings in the following namespaces
-                                  {:namespaces [foo.bar "bar\\.*"]
-                                   ;; or in these definitions:
-                                   :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}
-              :unused-referred-var {:level :warning
-                                    :exclude {#_#_taoensso.timbre [debug]}}
-              :unused-private-var {:level :warning}
-              :duplicate-require {:level :warning}
-              :refer {:level :off
-                      #_:exclude
-                      #_[clojure.test]
-                      }
-              :refer-all {:level :warning
-                          :exclude #{}}
-              :use {:level :warning}
-              :missing-else-branch {:level :warning}
-              :duplicate-case-test-constant {:level :error}
-              :quoted-case-test-constant {:level :warning}
-              :type-mismatch {:level :error}
-              :missing-docstring {:level :off}
-              :docstring-blank {:level :warning}
-              :docstring-no-summary {:level :off}
-              :docstring-leading-trailing-whitespace {:level :off}
-              :consistent-alias {:level :warning
-                                 ;; warn when alias for clojure.string is
-                                 ;; different from str
-                                 :aliases {#_clojure.string #_str}}
-              :unused-import {:level :warning}
-              :single-operand-comparison {:level :warning}
-              :single-logical-operand {:level :warning}
-              :single-key-in {:level :off}
-              :missing-clause-in-try {:level :warning}
-              :missing-body-in-when {:level :warning}
-              :hook {:level :error}
-              :format {:level :error}
-              :shadowed-var {:level :off
-                             #_#_:suggestions {clojure.core/type tajpu
-                                               clojure.core/name nomspaco}
-                             #_#_:exclude [frequencies]
-                             #_#_:include [name]}
-              :deps.edn {:level :warning}
-              :bb.edn-undefined-task {:level :error}
-              :bb.edn-cyclic-task-dependency {:level :error}
-              :bb.edn-unexpected-key {:level :warning}
-              :bb.edn-task-missing-docstring {:level :off}
-              :clj-kondo-config {:level :warning}
-              :redundant-expression {:level :warning}
-              :loop-without-recur {:level :warning}
-              :unexpected-recur {:level :error}
-              :main-without-gen-class {:level :off}
-              :redundant-fn-wrapper {:level :off}
-              :namespace-name-mismatch {:level :error}
-              :non-arg-vec-return-type-hint {:level :warning}
-              :keyword-binding {:level :off}
-              :discouraged-var {:level :warning}
-              :discouraged-namespace {:level :warning}
-              :redundant-call {:level :off
-                               #_#_:exclude #{clojure.core/->}
-                               #_#_:include #{clojure.core/conj!}}
-              :warn-on-reflection {:level :off
-                                   :warn-only-on-interop true}
-              :line-length {:level :warning
-                            :max-line-length nil}}
-    ;; :hooks {:macroexpand ... :analyze-call ...}
-    :lint-as {cats.core/->= clojure.core/->
+  {;; no linting inside calls to these functions/macros
+   ;; note that you will still get an arity error when calling the fn/macro itself incorrectly
+   :skip-args [#_clojure.core/comment #_cljs.core/comment]
+   :skip-comments false ;; convenient shorthand for :skip-args [clojure.core/comment cljs.core/comment]
+   ;; linter level can be tweaked by setting :level to :error, :warn or :info (or any other keyword)
+   ;; all linters are enabled by default, but can be turned off by setting :level to :off.
+   ;; :config-in-comment {} config override for comment blocks
+   :linters linters-defaults
+   ;; :hooks {:macroexpand ... :analyze-call ...}
+   :lint-as '{cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
               rewrite-clj.custom-zipper.core/defn-switchable clojure.core/defn
               clojure.core.async/go-loop clojure.core/loop
@@ -159,22 +41,22 @@
               schema.core/defschema clojure.core/def
               compojure.core/defroutes clojure.core/def
               compojure.core/let-routes clojure.core/let}
-    ;; :auto-load-configs true
-    ;; :analysis ;; what to analyze and whether to output it
-    :output {:format :text ;; or :edn, or :json
-             :summary true ;; include summary in output
-             ;; set to truthy to print progress while linting, only applicable to output :text
-             :progress false
-             ;; output can be filtered and removed by regex on filename. empty options leave the output untouched.
-             :include-files [] #_["^src" "^test"]
-             :exclude-files [] #_["^cljs/core"]
-             ;; the output pattern can be altered using a template. use {{LEVEL}} to print the level in capitals.
-             ;; the default template looks like this:
-             ;; :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"
-             ;; if below :linter-name is set to true, type (linter name) of reported the finding
-             ;; is appended to the end of the default pattern as " [{{type}}]"
-             :linter-name false
-             :canonical-paths false}}) ;; set to true to see absolute file paths and jar files
+   ;; :auto-load-configs true
+   ;; :analysis ;; what to analyze and whether to output it
+   :output {:format :text ;; or :edn, or :json
+            :summary true ;; include summary in output
+            ;; set to truthy to print progress while linting, only applicable to output :text
+            :progress false
+            ;; output can be filtered and removed by regex on filename. empty options leave the output untouched.
+            :include-files [] #_["^src" "^test"]
+            :exclude-files [] #_["^cljs/core"]
+            ;; the output pattern can be altered using a template. use {{LEVEL}} to print the level in capitals.
+            ;; the default template looks like this:
+            ;; :pattern "{{filename}}:{{row}}:{{col}}: {{level}}: {{message}}"
+            ;; if below :linter-name is set to true, type (linter name) of reported the finding
+            ;; is appended to the end of the default pattern as " [{{type}}]"
+            :linter-name false
+            :canonical-paths false}}) ;; set to true to see absolute file paths and jar files
 
 (defn merge-config!
   ([])
