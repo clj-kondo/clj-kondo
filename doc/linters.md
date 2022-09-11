@@ -1,42 +1,39 @@
-## Linters
+# Linters
 
-This page contains an overview of all available linters and their corresponding
-configuration. For general configurations options, go [here](config.md).
+This page contains an overview of all available linters and their corresponding configuration. For general configurations options, go [here](config.md).
 
-<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
 - [Linters](#linters)
+    - [Bb.edn cyclic task dependency](#bbedn-cyclic-task-dependency)
+    - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
+    - [Bb.edn dependency on undefined task](#bbedn-dependency-on-undefined-task)
+    - [Bb.edn Unexpected key](#bbedn-unexpected-key)
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
     - [Conflicting-alias](#conflicting-alias)
+    - [Conflicting arity](#conflicting-arity)
     - [Consistent-alias](#consistent-alias)
     - [Datalog syntax](#datalog-syntax)
     - [Deprecated var](#deprecated-var)
     - [Deps.edn](#depsedn)
-    - [Bb.edn dependency on undefined task](#bbedn-dependency-on-undefined-task)
-    - [Bb.edn cyclic task dependency](#bbedn-cyclic-task-dependency)
-    - [Bb.edn Unexpected key](#bbedn-unexpected-key)
-    - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
-    - [Discouraged var](#discouraged-var)
     - [Discouraged namespace](#discouraged-namespace)
+    - [Discouraged var](#discouraged-var)
     - [Docstring blank](#docstring-blank)
-    - [Docstring no summary](#docstring-no-summary)
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
+    - [Docstring no summary](#docstring-no-summary)
+    - [Duplicate case test constant](#duplicate-case-test-constant)
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
-    - [Duplicate case test constant](#duplicate-case-test-constant)
-    - [Quoted case test constant](#quoted-case-test-constant)
     - [File](#file)
     - [Format](#format)
+    - [Hook](#hook)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
-    - [Conflicting arity](#conflicting-arity)
-    - [Reduce without initial value](#reduce-without-initial-value)
-    - [Loop without recur](#loop-without-recur)
-    - [Line length](#line-length)
     - [Keyword in binding vector](#keyword-in-binding-vector)
+    - [Line length](#line-length)
+    - [Loop without recur](#loop-without-recur)
     - [Main without gen-class](#main-without-gen-class)
     - [Misplaced docstring](#misplaced-docstring)
     - [Missing body in when](#missing-body-in-when)
@@ -47,1394 +44,1726 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing test assertion](#missing-test-assertion)
     - [Namespace name mismatch](#namespace-name-mismatch)
     - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
+    - [Not a function](#not-a-function)
     - [Not empty?](#not-empty)
     - [Private call](#private-call)
+    - [Quoted case test constant](#quoted-case-test-constant)
     - [Redefined var](#redefined-var)
-    - [Redundant do](#redundant-do)
-    - [Redundant fn wrapper](#redundant-fn-wrapper)
+    - [Reduce without initial value](#reduce-without-initial-value)
     - [Redundant call](#redundant-call)
+    - [Redundant do](#redundant-do)
     - [Redundant expression](#redundant-expression)
+    - [Redundant fn wrapper](#redundant-fn-wrapper)
     - [Redundant let](#redundant-let)
     - [Refer](#refer)
     - [Refer all](#refer-all)
-    - [Single key in](#single-key-in)
-    - [Single operand comparison](#single-operand-comparison)
     - [Shadowed var](#shadowed-var)
+    - [Single key in](#single-key-in)
+    - [Single logical operand](#single-logical-operand)
+    - [Single operand comparison](#single-operand-comparison)
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
-    - [Unused binding](#unused-binding)
-    - [Used underscored bindings](#used-underscored-bindings)
+    - [Unexpected recur](#unexpected-recur)
     - [Unreachable code](#unreachable-code)
-    - [Unused import](#unused-import)
     - [Unresolved namespace](#unresolved-namespace)
     - [Unresolved symbol](#unresolved-symbol)
     - [Unresolved var](#unresolved-var)
     - [Unsorted required namespaces](#unsorted-required-namespaces)
+    - [Unused binding](#unused-binding)
+    - [Unused import](#unused-import)
     - [Unused namespace](#unused-namespace)
     - [Unused private var](#unused-private-var)
     - [Unused referred var](#unused-referred-var)
     - [Use](#use)
+    - [Used underscored bindings](#used-underscored-bindings)
     - [Warn on reflection](#warn-on-reflection)
 
-<!-- markdown-toc end -->
-
-### Clj-kondo config
-
-*Keyword:* `:clj-kondo-config`
-
-*Description:* warn on common errors in `.clj-kondo/config` files
-
-*Default level:* `:warning`
-
-*Example trigger:*
-
-`.clj-kondo/config.edn`:
-
-``` clojure
-{:linters {:foo 1}}
-```
-
-*Example message:*: `Unexpected linter name: :foo`.
-
-### Cond-else
-
-*Keyword:* `:cond-else`.
-
-*Description:* warn on `cond` with a different constant for the else branch than `:else`.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(cond (odd? (rand-int 10)) :foo :default :bar)`.
-
-*Example message:* `use :else as the catch-all test expression in cond`.
-
-### Conflicting-alias
-
-*Keyword:* `:conflicting-alias`.
-
-*Description:* warn on conflicting alias.
-
-*Default level:* `:error`.
-
-*Example trigger:*
-
-``` clojure
-(require '[clojure.string :as s]
-         '[clojure.spec.alpha :as s])
-```
-
-*Example message:* `Conflicting alias for clojure.spec.alpha`.
-
-### Consistent-alias
-
-*Keyword:* `:consistent-alias`
-
-*Description:* Sometimes it's desirable to have a consistent alias for certain
-namespaces in a project. E.g. in the below code it could be desirable if every
-alias for `old.api` was `old-api`:
-
-*Default level:* `:warning`.
-
-*Example trigger:*
-
-``` clojure
-(ns foo (:require [new.api :as api]))
-(ns bar (:require [old.api :as old-api]))
-(ns baz (:require [old.api :as api]))
-```
-
-*Config:*
-
-The consistent alias linter needs pre-configured aliases for namespaces that
-should have a consistent alias. This configuration:
-
-``` clojure
-{:linters {:consistent-alias {:aliases {old.api old-api}}}}
-```
-
-will produce this warning:
-
-``` clojure
-Inconsistent alias. Expected old-api instead of api.
-```
-
-### Datalog syntax
-
-*Keyword:* `:datalog-syntax`.
-
-*Description:* warn on invalid datalog syntax. This linter is implemented using
-[io.lambdaforge/datalog-parser](https://github.com/lambdaforge/datalog-parser). Also
-see this [blog
-post](https://lambdaforge.io/2019/11/08/clj-kondo-datalog-support.html).
-
-*Default level:* `:error`.
-
-*Example trigger:*
-
-``` clojure
-(ns user (:require [datahike.api :refer [q]]))
-
-(q '[:find ?a :where [?b :foo _]] 42)
-```
-
-*Example message:* `Query for unknown vars: [?a]`.
-
-### Deprecated var
-
-*Keyword:* `:deprecated-var`.
-
-*Description:* warn on usage of var that is deprecated.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(def ^:deprecated x) x`
-
-Example warning: `#'user/x is deprecated`.
-
-*Config:*
-
-Say you have the following function:
-
-``` clojure
-(ns app.foo)
-(defn foo {:deprecated "1.9.0"} [])
-```
-
-and you still want to be able to call it without getting a warning, for example
-in function in the same namespace which is also deprecated:
-
-``` clojure
-(defn bar {:deprecated "1.9.0"} []
-  (foo))
-```
-
-or in test code:
-
-``` clojure
-(ns app.foo-test
-  (:require
-   [app.foo :refer [foo]]
-   [clojure.test :refer [deftest is]]))
-
-(deftest foo-test [] (is (nil? (foo))))
-```
-
-To achieve this, use this config:
-
-``` clojure
-{:linters
- {:deprecated-var
-  {:exclude
-   {app.foo/foo
-    {:defs [app.foo/bar]
-     :namespaces [app.foo-test]}}}}}
-```
-
-A regex is also permitted, e.g. to exclude all test namespaces:
-
-``` clojure
-{:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
-```
-
-### Deps.edn
-
-*Keyword:* `:deps.edn`
-
-*Description:* warn on common errors in `deps.edn` and `bb.edn` files.
-
-*Default level:* `:warning`
-
-*Example trigger:*
-
-`deps.edn`:
-
-``` clojure
-{:deps {foo/bar "2020.10.11"}}
-```
-
-*Example message:*
-
-```
-Expected map, found: java.lang.String
-```
-
-### Bb.edn dependency on undefined task
-
-*Keyword:* `:bb.edn-undefined-task`
-
-*Description:* warn on taks undefined task dependencies in `bb.edn` files.
-
-*Default level:* `:error`
-
-*Example trigger:*
-
-`bb.edn`:
-
-``` clojure
-{:tasks {run {:depends [compile]}}}
-```
-
-*Example message:*
-
-```
-Depending on undefined task: compile
-```
-
-### Bb.edn cyclic task dependency
+## Bb.edn cyclic task dependency
 
 *Keyword:* `:bb.edn-cyclic-task-dependency`
 
-*Description:* warn on cyclic dependencies `bb.edn` files.
+*Description:* Checks for cyclic dependencies in `bb.edn` files.
 
 *Default level:* `:error`
 
 *Example trigger:*
 
-`bb.edn`:
+```clojure
 
-``` clojure
-{:tasks {a {:depends [b]
-            :task (println "a")}
-         b {:depends [a]}}}
+  {:tasks {a {:depends [b]
+              :task (println "a")}
+           b {:depends [a]}}}
+  
 ```
 
-*Example message:*
+*Example message:* `Cyclic task dependency: a -> b -> a`
 
-```
-Cyclic task dependency: a -> b -> a
-```
-
-### Bb.edn Unexpected key
-
-*Keyword:* `:bb.edn-unexpected-key`
-
-*Description:* warn on unexpected keys in bb.edn
-
-*Default level:* `:warning`
-
-*Example trigger:*
-
-`bb.edn`:
-
-``` clojure
-{:requires [[babashka.fs :as fs]]}
-```
-
-*Example message:*
-
-```
-Global :requires belong in the :tasks map.
-```
-
-### Bb.edn task docstring missing
+## Bb.edn task docstring missing
 
 *Keyword:* `:bb.edn-task-missing-docstring`
 
-*Description:* warn on missing docstring for map tasks.
+*Description:* Checks for missing docstring for map tasks in `bb.edn` files.
 
 *Default level:* `:off`
 
 *Example trigger:*
 
-`bb.edn`:
-
-``` clojure
+```clojure
 {:tasks {a {:task (call-fn}]}
 ```
 
-*Example message:*
+*Example message:* `Docstring missing for task: a`
 
-```
-Docstring missing for task: a
-```
+## Bb.edn dependency on undefined task
 
-### Discouraged var
+*Keyword:* `:bb.edn-undefined-task`
 
-*Keyword*: `:discouraged-var`
+*Description:* Checks for undefined task dependencies in `bb.edn` files.
 
-*Description:* warn on the usage of a var that is discouraged to be used.
-
-*Default level:* `:warning`
-
-*Config:*
-
-``` clojure
-{:linters {:discouraged-var {clojure.core/read-string {:message "Use edn/read-string instead of read-string"}}}}
-```
-
-The matching namespace symbol may be given a group name using a regex pattern.
+*Default level:* `:error`
 
 *Example trigger:*
 
-With the configuration above:
+```clojure
+{:tasks {run {:depends [compile]}}}
+```
 
-``` clojure
+*Example message:* `Depending on undefined task: compile`
+
+## Bb.edn Unexpected key
+
+*Keyword:* `:bb.edn-unexpected-key`
+
+*Description:* Checks for unexpected keys in `bb.edn` files.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+{:requires [[babashka.fs :as fs]]}
+```
+
+*Example message:* `Global :requires belong in the :tasks map.`
+
+## Clj-kondo config
+
+*Keyword:* `:clj-kondo-config`
+
+*Description:* Checks for common errors in `.clj-kondo/config` files.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+{:linters {:foo 1}}
+```
+
+*Example message:* `Unexpected linter name: :foo`
+
+## Cond-else
+
+*Keyword:* `:cond-else`
+
+*Description:* Prefer `:else` as `cond` default branch.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(cond (odd? (rand-int 10)) :foo :default :bar)
+```
+
+*Example message:* `use :else as the catch-all test expression in cond`
+
+## Conflicting-alias
+
+*Keyword:* `:conflicting-alias`
+
+*Description:* Checks for conflicting alias.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+
+  (require '[clojure.string :as s]
+           '[clojure.spec.alpha :as s])
+  
+```
+
+*Example message:* `Conflicting alias for clojure.spec.alpha`
+
+## Conflicting arity
+
+*Keyword:* `:conflicting-fn-arity`
+
+*Description:* Warns when an overloaded function defines multiple argument vectors with the same arity.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+(fn ([x] x) ([y]) x)
+```
+
+*Example message:* `More than one function overload with arity 2.`
+
+## Consistent-alias
+
+*Keyword:* `:consistent-alias`
+
+*Description:* Checks namespace aliases against the provided map of namespace to alias.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+
+  (ns foo (:require [new.api :as api]))
+  (ns bar (:require [old.api :as old-api]))
+  (ns baz (:require [old.api :as api]))
+  
+```
+
+*Example message:* `Inconsistent alias. Expected old-api instead of api.`
+
+*Config:*
+
+
+  The consistent alias linter needs pre-configured aliases for namespaces that
+  should have a consistent alias. This configuration:
+
+  ``` clojure
+  {:linters {:consistent-alias {:aliases {old.api old-api}}}}
+  ```
+
+  will produce this warning:
+
+  ``` clojure
+  Inconsistent alias. Expected old-api instead of api.
+  ```
+  
+
+*Config "spec":* `{:aliases {symbol? symbol?}}`
+
+## Datalog syntax
+
+*Keyword:* `:datalog-syntax`
+
+*Description:* Checks for invalid datalog syntax. This linter is implemented using [io.lambdaforge/datalog-parser](https://github.com/lambdaforge/datalog-parser). Also see this [blog post](https://lambdaforge.io/2019/11/08/clj-kondo-datalog-support.html).
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+
+  (ns user (:require [datahike.api :refer [q]]))
+  (q '[:find ?a :where [?b :foo _]] 42)
+  
+```
+
+*Example message:* `Query for unknown vars: [?a]`
+
+## Deprecated var
+
+*Keyword:* `:deprecated-var`
+
+*Description:* Avoid using deprecated vars.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(def ^:deprecated x) x
+```
+
+*Example message:* `#'user/x is deprecated`
+
+*Config:*
+
+
+  Say you have the following function:
+
+  ``` clojure
+  (ns app.foo)
+  (defn foo {:deprecated "1.9.0"} [])
+  ```
+
+  and you still want to be able to call it without getting a warning, for example
+  in function in the same namespace which is also deprecated:
+
+  ``` clojure
+  (defn bar {:deprecated "1.9.0"} []
+    (foo))
+  ```
+
+  or in test code:
+
+  ``` clojure
+  (ns app.foo-test
+    (:require
+     [app.foo :refer [foo]]
+     [clojure.test :refer [deftest is]]))
+
+  (deftest foo-test [] (is (nil? (foo))))
+  ```
+
+  To achieve this, use this config:
+
+  ``` clojure
+  {:linters
+   {:deprecated-var
+    {:exclude
+     {app.foo/foo
+      {:defs [app.foo/bar]
+       :namespaces [app.foo-test]}}}}}
+  ```
+
+  A regex is also permitted, e.g. to exclude all test namespaces:
+
+  ``` clojure
+  {:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
+  ```
+  
+
+*Config "spec":* `{:exclude {symbol? {:namespaces [(s/or symbol? string?)], :defs [(s/or symbol? string?)]}}}`
+
+## Deps.edn
+
+*Keyword:* `:deps.edn`
+
+*Description:* Checks for common errors in `deps.edn` and `bb.edn` files.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+{:deps {foo/bar "2020.10.11"}}
+```
+
+*Example message:* `Expected map, found: java.lang.String`
+
+## Discouraged namespace
+
+*Keyword:* `:discouraged-namespace`
+
+*Description:* Avoid requiring or using provided namespaces.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(require '[clojure.java.jdbc :as jdbc])
+```
+
+*Example message:* `Use next.jdbc instead of clojure.java.jdbc`
+
+*Config:*
+
+
+  ```clojure
+  {:linters {:discouraged-namespace {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}
+  ```
+
+  The matching namespace symbol may be given a group name using a regex pattern.
+
+  ```clojure
+  {:ns-groups [{:pattern "clojure\.java\.jdbc.*"
+                :name jdbc-legacy}]
+   :linters {:discouraged-namespace {jdbc-legacy {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}
+  ```
+
+  Add `:discouraged-namespace` linter into `:config-in-ns` to specify that specific namespaces are discouraged to be used in some namespace of ns-group.
+
+  ```clojure
+  {:config-in-ns {app.jdbc {:linters {:discouraged-namespace {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}}}
+  ```
+  
+
+*Config "spec":* `{symbol? {:message string?}}`
+
+## Discouraged var
+
+*Keyword:* `:discouraged-var`
+
+*Description:* Avoid using specified vars.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
 (read-string "(+ 1 2 3)")
 ```
 
-*Example message:*
-
-```
-Use edn/read-string instead of read-string
-```
-
-### Discouraged namespace
-
-*Keyword*: `:discouraged-namespace`
-
-*Description:* warn on the require or usage of a namespace that is discouraged to be used.
-
-*Default level:* `:warning`
+*Example message:* `Use edn/read-string instead of read-string`
 
 *Config:*
 
-```clojure
-{:linters {:discouraged-namespace {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}
-```
 
-The matching namespace symbol may be given a group name using a regex pattern.
+  ``` clojure
+  {:linters {:discouraged-var {clojure.core/read-string {:message "Use edn/read-string instead of read-string"}}}}
+  ```
 
-```clojure
-{:ns-groups [{:pattern "clojure\\.java\\.jdbc.*"
-              :name jdbc-legacy}]
- :linters {:discouraged-namespace {jdbc-legacy {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}
-```
+  The matching namespace symbol may be given a group name using a regex pattern.
+  
 
-Add `:discouraged-namespace` linter into `:config-in-ns` to specify that specific namespaces are discouraged to be used in some namespace of ns-group.
+*Config "spec":* `{symbol? {:message string?}}`
 
-```clojure
-{:config-in-ns {app.jdbc {:linters {:discouraged-namespace {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}}}
-```
+## Docstring blank
+
+*Keyword:* `:docstring-blank`
+
+*Description:* Avoid blank docstring.
+
+*Default level:* `:warning`
 
 *Example trigger:*
 
-With the configuration above:
-
 ```clojure
-(require '[clojure.java.jdbc :as j])
+(defn foo "" [a b] 1)
 ```
 
-### Docstring blank
+*Example message:* `Docstring should not be blank.`
 
-*Keyword:* `:docstring-blank`.
+## Docstring leading trailing whitespace
 
-*Description:* warn on blank docstring.
+*Keyword:* `:docstring-leading-trailing-whitespace`
 
-*Default level:* `:warning`.
+*Description:* Checks docstring for leading or trailing whitespace.
 
-*Example trigger:* `(defn foo "" [a b] 1)`
+*Default level:* `:off`
 
-*Example message:* `Docstring should not be blank.`.
+*Example trigger:*
 
-### Docstring no summary
-
-*Keyword:* `:docstring-no-summary`.
-
-*Description:* warn when first _line_ of docstring is not a complete
-sentence. This linter is based on the community [style
-guide](https://guide.clojure.style/#docstring-summary).
-
-Explanation by Bozhidar Batsov:
-
-> The idea is simple - each docstring should start with a one-line
-> sentence. This minimizes the work tools have to do to extract some meaningful
-> summary of what a var does (and as a bonus - it plays great with the Emacs
-> minibuffer, that happens to have a height of 1 line).
-
-*Default level:* `:off`.
-
-*Example trigger:* `(defn foo "not a sentence" [a b] 1)`
-
-*Example message:* `First line of the docstring should be a capitalized sentence ending with punctuation.`
-
-### Docstring leading trailing whitespace
-
-*Keyword:* `:docstring-leading-trailing-whitespace`.
-
-*Description:* warn when docstring has leading or trailing whitespace
-
-*Default level:* `:off`.
-
-*Example trigger:* `(defn foo "Has trailing whitespace.\n" [a b] 1)`
+```clojure
+(defn foo "Has trailing whitespace.
+" [a b] 1)
+```
 
 *Example message:* `Docstring should not have leading or trailing whitespace.`
 
-### Duplicate map key
+## Docstring no summary
 
-*Keyword:* `:duplicate-map-key`.
+*Keyword:* `:docstring-no-summary`
 
-*Description:* warn on duplicate key in map.
+*Description:* 
+  Warn when first _line_ of docstring is not a complete sentence. This linter is based on the community [style guide](https://guide.clojure.style/#docstring-summary).
 
-*Default level:* `:error`.
+  Explanation by Bozhidar Batsov:
 
-*Example trigger:* `{:a 1 :a 2}`
+  > The idea is simple - each docstring should start with a one-line
+  > sentence. This minimizes the work tools have to do to extract some meaningful
+  > summary of what a var does (and as a bonus - it plays great with the Emacs
+  > minibuffer, that happens to have a height of 1 line).
+  
 
-*Example message:* `duplicate key :a`.
-
-### Duplicate require
-
-*Keyword:* `:duplicate-require`.
-
-*Description:* warns on namespace that has been required more than once within a namespace.
+*Default level:* `:off`
 
 *Example trigger:*
 
-``` clojure
-(ns foo
-  (:require [clojure.string :as str]
-            [clojure.string :as str]))
+```clojure
+(defn foo "not a sentence" [a b] 1)
+```
+
+*Example message:* `First line of the docstring should be a capitalized sentence ending with punctuation.`
+
+## Duplicate case test constant
+
+*Keyword:* `:duplicate-case-test-constant`
+
+*Description:* Checks for duplicate case test constants.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+(case x :a 1 :b 2 :a 3)
+```
+
+*Example message:* `Duplicate case test constant: :a`
+
+## Duplicate map key
+
+*Keyword:* `:duplicate-map-key`
+
+*Description:* Checks for duplicate key in map literals.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+{:a 1 :a 2}
+```
+
+*Example message:* `duplicate key :a`
+
+## Duplicate require
+
+*Keyword:* `:duplicate-require`
+
+*Description:* Checks for namespace that has been required more than once within a namespace.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+
+  (ns foo
+    (:require [clojure.string :as str]
+              [clojure.string :as str]))
+  
 ```
 
 *Example message:* `duplicate require of clojure.string`
 
-### Duplicate set key
+## Duplicate set key
 
-*Keyword:* `:duplicate-set-key`.
+*Keyword:* `:duplicate-set-key`
 
-*Description:* similar to `:duplicate-map-key` but for sets.
+*Description:* Checks for duplicate values in set literals.
 
-*Example trigger:* `#{:a :a}`
+*Default level:* `:error`
 
-*Example message:* `duplicate set element :a`.
-
-### Duplicate case test constant
-
-*Keyword:* `:duplicate-case-test-constant`.
-
-*Description:* identify duplicate case test constants.
-
-*Default level:* `:error`.
-
-*Example trigger:* `(case x :a 1 :b 2 :a 3)`
-
-*Example message:* `Duplicate case test constant: :a`.
-
-### Quoted case test constant
-
-*Keyword:* `:quoted-case-test-constant`.
-
-*Description:* warn when encountering quoted test case constants.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(case x 'a 1 :b 2)`
-
-*Example message:* `Case test is compile time constant and should not be quoted.`
-
-### File
-
-*Keyword:* `:file`.
-
-*Description:* warn on error while reading file.
-
-*Default level:* `:error`.
-
-*Example trigger:* `clj-kondo --lint foo.clje`.
-
-*Example message:* `file does not exist`.
-
-### Format
-
-*Keyword:* `:format`.
-
-*Description:* warn on unexpected amount of arguments in `format`.
-
-*Default level:* `:error`.
-
-*Example trigger:* `(format "%s" 1 2)`.
-
-*Example message:* `Format string expects 1 arguments instead of 2.`.
-
-### Inline def
-
-*Keyword:* `:inline-def`.
-
-*Description:* warn on non-toplevel usage of `def` (and `defn`, etc.).
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(defn foo [] (def x 1))`.
-
-*Example message:* `inline def`.
-
-### Invalid arity
-
-**Keyword:** `:invalid-arity`.
-
-*Description:* warn when a function (or macro) is called with an invalid amount of
-arguments.
-
-*Default level:* `:error`.
-
-*Example trigger:* `(inc)`.
-
-*Example message:* `clojure.core/inc is called with 0 args but expects 1`.
-
-*Config:*
-
-Some macros rewrite their arguments and therefore can cause false positive arity
-errors. Imagine the following silly macro:
-
-``` clojure
-(ns silly-macros)
-
-(defmacro with-map [m [fn & args]]
-  `(~fn ~m ~@args))
-```
-
-which you can call like:
-
-``` clojure
-(silly-macros/with-map {:a 1 :d 2} (select-keys [:a :b :c])) ;;=> {:a 1}
-```
-
-Normally a call to this macro will give an invalid arity error for `(select-keys
-[:a :b :c])`, but not when you use the following configuration:
-
-``` clojure
-{:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
-```
-
-### Conflicting arity
-
-**Keyword:** `:conflicting-fn-arity`.
-
-*Description:* warn when an overloaded function defines multiple argument vectors with the same arity.
-
-*Default level:* `:error`.
-
-*Example trigger:* `(fn ([x] x) ([y]) x)`.
-
-*Example message:* `More than one function overload with arity 2.`.
-
-### Reduce without initial value
-
-**Keyword:** `:reduce-without-init`.
-
-*Description:* warn when reduce is called without an explicit initial
-value. Read [this
-article](https://purelyfunctional.tv/issues/purelyfunctional-tv-newsletter-313-always-use-the-3-argument-version-of-reduce/)
-why this can be problematic.
-
-*Default level:* `:off`.
-
-*Example trigger:* `(reduce max [])`.
-
-*Example message:* `Reduce called without explicit initial value.`
-
-*Config:* to suppress the above warning:
+*Example trigger:*
 
 ```clojure
-{:linters {:reduce-without-init {:exclude [clojure.core/max cljs.core/max]}}}
+#{:a :a}
 ```
 
-### Loop without recur
+*Example message:* `duplicate set element :a`
 
-*Keyword:* `:loop-without-recur`.
+## File
 
-*Description:* warn when loop does not contain recur.
+*Keyword:* `:file`
 
-*Default level:* `:warning`.
+*Description:* Checks that the target file exists.
 
-*Example trigger:* `(loop [])`.
+*Default level:* `:error`
 
-*Example message:* `Loop without recur.`
+*Example trigger:*
 
-### Line length
+```clojure
+clj-kondo --lint foo.clje
+```
 
-*Keyword:* `:line-length`.
+*Example message:* `file does not exist`
 
-*Description:* warn when lines are longer than a configured length.
+## Format
 
-*Default level:* `:warning`.
+*Keyword:* `:format`
 
-*Default line length:* `:max-line-length` is `nil` by default, which disables line length linting.
+*Description:* Checks for correct amount of arguments in `format`.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+(format "%s" 1 2)
+```
+
+*Example message:* `Format string expects 1 arguments instead of 2.`
+
+## Hook
+
+*Keyword:* `:hook`
+
+*Description:* Checks that clj-kondo custom hooks execute correctly.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+(ns foo) (defn fixed-arity [{:keys [:node]}] {:a :sexpr 1})
+```
+
+*Example message:* `WARNING: error while trying to read hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).`
+
+## Inline def
+
+*Keyword:* `:inline-def`
+
+*Description:* Checks for non-toplevel usage of `def` (and `defn`, etc.).
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(defn foo [] (def x 1))
+```
+
+*Example message:* `inline def`
+
+## Invalid arity
+
+*Keyword:* `:invalid-arity`
+
+*Description:* Checks that functions and macros are called with the correct amount of arguments.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+(inc)
+```
+
+*Example message:* `clojure.core/inc is called with 0 args but expects 1`
 
 *Config:*
 
-The line length linter needs to know how long you are prepared to allow your lines to be. This configuration:
 
-``` clojure
-{:linters {:line-length {:max-line-length 120}}}
+  Some macros rewrite their arguments and therefore can cause false positive arity errors. Imagine the following silly macro:
+
+  ``` clojure
+  (ns silly-macros)
+
+  (defmacro with-map [m [fn & args]]
+    `(~fn ~m ~@args))
+  ```
+
+  which you can call like:
+
+  ``` clojure
+  (silly-macros/with-map {:a 1 :d 2} (select-keys [:a :b :c])) ;;=> {:a 1}
+  ```
+
+  Normally a call to this macro will give an invalid arity error for `(select-keys [:a :b :c])`, but not when you use the following configuration:
+
+  ``` clojure
+  {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
+  ```
+  
+
+*Config "spec":* `{:skip-args [qualified-symbol?]}`
+
+## Keyword in binding vector
+
+*Keyword:* `:keyword-binding`
+
+*Description:* Checks for keywords in a `:keys` binding vector.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+(let [{:keys [:a]} {:a 1}] a)
 ```
-
-will produce this warning:
-
-``` clojure
-Line is longer than 120 characters.
-```
-
-### Keyword in binding vector
-
-**Keyword:** `:keyword-binding`
-
-*Description:* warn when a keyword is used in a `:keys` binding vector
-
-*Default level:* `:off`.
-
-*Example trigger:* `(let [{:keys [:a]} {:a 1}] a)`.
 
 *Example message:* `Keyword binding should be a symbol: :a`
 
-### Main without gen-class
+## Line length
 
-*Keyword:* `:main-without-gen-class`.
+*Keyword:* `:line-length`
 
-*Description:* warn when -main function is present without corresponding `:gen-class`.
+*Description:* Check that lines are not longer than a configured length.
 
-*Default level:* `:off`.
-
-*Example trigger:* `(ns foo) (defn -main [& _args])`.
-
-*Example message:* `Main function without gen-class.`
-
-### Misplaced docstring
-
-*Keyword:* `:misplaced-docstring`.
-
-*Description:* warn when docstring appears after argument vector instead of before.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(defn foo [] "cool fn" 1)`.
-
-*Example message:* `Misplaced docstring.`
-
-### Missing body in when
-
-*Keyword:* `:missing-body-in-when`.
-
-*Description:* warn when `when` is called only with a condition.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(when true)`.
-
-*Example message:* `Missing body in when`.
-
-### Missing clause in try
-
-*Keyword:* `:missing-clause-in-try`.
-
-*Description:* warn when `try` expression misses `catch` or `finally` clause.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(try 1)`.
-
-*Example message:* `Missing catch or finally in try.`
-
-### Missing docstring
-
-*Keyword:* `:missing-docstring`.
-
-*Description:* warn when public var misses docstring.
-
-*Default level:* `:off`.
-
-*Example trigger:* `(defn foo [] 1)`.
-
-*Example message:* `Missing docstring.`
-
-### Missing else branch
-
-*Keyword:* `:missing-else-branch`.
-
-*Description:* warns about missing else branch in `if` expression.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(if :foo :bar)`.
-
-*Example message:* `Missing else branch..`
-
-### Missing map value
-
-*Keyword:* `:missing-map-value`.
-
-*Description:* warn on key with uneven amount of elements, i.e. one of the keys
-misses a value.
-
-*Default level:* `:error`.
-
-*Example trigger:* `{:a 1 :b}`
-
-*Example message:* `missing value for key :b`.
-
-### Missing test assertion
-
-*Keyword:* `:missing-test-assertion`.
-
-*Description:* warn on `deftest` expression without test assertion.
-
-*Default level:* `:warning`.
+*Default level:* `:warning`
 
 *Example trigger:*
 
-``` clojure
-(require '[clojure.test :as test])
-(test/deftest foo (pos? 1))
+```clojure
+<An 81 character line with :max-line-length of 80>
 ```
 
-*Example message:* `missing test assertion`.
-
-### Namespace name mismatch
-
-*Keyword:* `:namespace-name-mismatch`.
-
-*Description:* warn when the namespace in the `ns` form does not
-correspond with the file name of the file.
-
-*Default level:* `:off`.
-
-*Example trigger:* a file named `foo.clj` containing a namespace `(ns bar)`.
-
-*Example message:* `Namespace name does not match file name: bar`
-
-### Non-arg vec return type hint
-
-*Keyword:* `:non-arg-vec-return-type-hint`.
-
-*Description:* warn when a return type in `defn` is not placed on the argument vector (CLJ only).
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(defn ^String foo [] "cool fn")`.
-
-*Example message:* `Prefer placing return type hint on arg vector: String`
-
-Read [this](https://github.com/clj-kondo/clj-kondo/issues/1331) issue for more background information on this linter.
-
-### Not empty?
-
-*Keyword:* `:not-empty?`
-
-*Description:* warn on `(not (empty? ...))` idiom. According to the docstring of `empty?` `seq` is prefered.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(not (empty? []))`
-
-*Example message:* `use the idiom (seq x) rather than (not (empty? x))`.
-
-### Private call
-
-Keyword `:private-call`.
-
-*Description:* warn when private var is used. The name of this linter should be
-renamed to "private usage" since it will warn on usage of private vars and not
-only inside calls.
-
-*Default level:* `:error`.
-
-*Example trigger:*
-
-``` clojure
-(ns foo) (defn- f [])
-
-(ns bar (:require [foo]))
-(foo/f)
-```
-
-*Example message:* `#'foo/f is private`.
-
-To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write:
-
-``` shellsession
-#_{:clj-kondo/ignore [:private-call]}
-(foo/f)
-```
-
-### Redefined var
-
-*Keyword:* `:redefined-var`.
-
-*Description:* warn on redefind var.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(def x 1) (def x 2)`
-
-*Example message:* `redefined var #'user/x`.
-
-### Redundant do
-
-*Keyword:* `:redundant-do`.
-
-*Description:* warn on usage of do that is redundant. The warning usually arises
-because of an explicit or implicit do as the direct parent s-expression.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(defn foo [] (do 1))`.
-
-*Example message:* `redundant do`.
-
-### Redundant fn wrapper
-
-*Keyword*: `:redundant-fn-wrapper`
-
-*Description:* warn on redundant function wrapper.
-
-*Default level:* `:off`.
-
-*Example trigger:* `#(inc %)`.
-
-*Example message:* `Redundant fn wrapper`.
-
-### Redundant call
-
-*Keyword*: `:redundant-call`
-
-*Description:* warn on redundant calls. The warning arises when a single argument
-is passed to a function or macro that that returns its arguments.
-
-`clojure.core` and `cljs.core` functions and macros that trigger this lint:
-* `->`, `->>`
-* `cond->`, `cond->>`
-* `some->`, `some->>`
-* `comp`, `partial`
-* `merge`
+*Example message:* `Line is longer than 80 characters.`
 
 *Config:*
 
-``` clojure
-{:linters {:redundant-call {:exclude #{clojure.core/->}
-                            :include #{clojure.core/conj!}}}}
+
+  `:max-line-length` is `nil` by default, which disables line length linting.
+
+  The line length linter needs to know how long you are prepared to allow your lines to be. This configuration:
+
+  ``` clojure
+  {:linters {:line-length {:max-line-length 120}}}
+  ```
+
+  will produce this warning:
+
+  ``` clojure
+  Line is longer than 120 characters.
+  ```
+  
+
+*Config default:* `{:max-line-length nil}`
+
+## Loop without recur
+
+*Keyword:* `:loop-without-recur`
+
+*Description:* Checks that loop contains recur.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(loop [])
 ```
 
-Use `:exclude` to suppress warnings for the built-in list. Use `:include` to
-warn on additional vars.
+*Example message:* `Loop without recur.`
 
-*Example trigger:* `(-> 1)`.
+## Main without gen-class
 
-*Example message:* `Single arg use of -> always returns the arg itself`.
+*Keyword:* `:main-without-gen-class`
 
-### Redundant expression
+*Description:* Checks that `:gen-class` is present in namespaces that have a `-main` function.
 
-*Keyword*: `:redundant-expression`
+*Default level:* `:off`
 
-*Description:* warn on redundant expression.
+*Example trigger:*
 
-*Example trigger:* `(do 1 2)`.
+```clojure
+(ns foo) (defn -main [& _args])
+```
 
-*Example message:* `Redundant expression: 1`.
+*Example message:* `Main function without gen-class.`
 
-### Redundant let
+## Misplaced docstring
 
-*Keyword:* `:redundant-let`.
+*Keyword:* `:misplaced-docstring`
 
-*Description:* warn on usage of let that is redundant. The warning usually arises
-because directly nested lets.
+*Description:* Checks if docstring appears after argument vector instead of before.
 
-*Default level:* `:warning`.
+*Default level:* `:warning`
 
-*Example trigger:* `(let [x 1] (let [y 2] (+ x y)))`.
+*Example trigger:*
+
+```clojure
+(defn foo [] "cool fn" 1)
+```
+
+*Example message:* `Misplaced docstring.`
+
+## Missing body in when
+
+*Keyword:* `:missing-body-in-when`
+
+*Description:* Checks if `when` is called only with a condition.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(when true)
+```
+
+*Example message:* `Missing body in when.`
+
+## Missing clause in try
+
+*Keyword:* `:missing-clause-in-try`
+
+*Description:* Checks if `try` expression is missing `catch` or `finally` clause.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(try 1)
+```
+
+*Example message:* `Missing catch or finally in try.`
+
+## Missing docstring
+
+*Keyword:* `:missing-docstring`
+
+*Description:* Checks if public var is missing docstring.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+(defn foo [] 1)
+```
+
+*Example message:* `Missing docstring.`
+
+## Missing else branch
+
+*Keyword:* `:missing-else-branch`
+
+*Description:* Checks for missing else branch in `if` expressions.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(if :foo :bar)
+```
+
+*Example message:* `Missing else branch.`
+
+## Missing map value
+
+*Keyword:* `:missing-map-value`
+
+*Description:* Checks for map literal with an uneven amount of elements, i.e. one of the keys is missing a value.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+{:a 1 :b}
+```
+
+*Example message:* `Missing value for key :b`
+
+## Missing test assertion
+
+*Keyword:* `:missing-test-assertion`
+
+*Description:* Checks that `deftest` expression has test assertion.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(require '[clojure.test :as test]) (test/deftest foo (pos? 1))
+```
+
+*Example message:* `Missing test assertion`
+
+## Namespace name mismatch
+
+*Keyword:* `:namespace-name-mismatch`
+
+*Description:* Checks that the namespace in the `ns` form corresponds with the file name of the file.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+
+  ;; file named `foo.clj`
+  (ns bar)
+  
+```
+
+*Example message:* `Namespace name does not match file name: bar`
+
+## Non-arg vec return type hint
+
+*Keyword:* `:non-arg-vec-return-type-hint`
+
+*Description:* 
+  Checks that a return type type hint in `defn` is placed on the argument vector (CLJ only).
+
+  Read [this](https://github.com/clj-kondo/clj-kondo/issues/1331) issue for more background information on this linter.
+  
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(defn ^String foo [] "cool fn")
+```
+
+*Example message:* `Prefer placing return type hint on arg vector: String`
+
+## Not a function
+
+*Keyword:* `:not-a-function`
+
+*Description:* Avoid using booleans, strings, chars, or numbers in function position.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+(true 1)
+```
+
+*Example message:* `A boolean is not a function`
+
+*Config "spec":* `{:skip-args [qualified-symbol?]}`
+
+## Not empty?
+
+*Keyword:* `:not-empty?`
+
+*Description:* Prefer `(seq ...)` over `(not (empty? ...))`.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(not (empty? []))
+```
+
+*Example message:* `use the idiom (seq x) rather than (not (empty? x))`
+
+## Private call
+
+*Keyword:* `:private-call`
+
+*Description:* Avoid using private vars.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+
+  (ns foo) (defn- f [])
+  (ns bar (:require [foo]))
+  (foo/f)
+  
+```
+
+*Example message:* `#'foo/f is private`
+
+## Quoted case test constant
+
+*Keyword:* `:quoted-case-test-constant`
+
+*Description:* Avoid quoted test case constants.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(case x 'a 1 :b 2)
+```
+
+*Example message:* `Case test is compile time constant and should not be quoted.`
+
+## Redefined var
+
+*Keyword:* `:redefined-var`
+
+*Description:* Avoid redefining vars.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(def x 1) (def x 2)
+```
+
+*Example message:* `redefined var #'user/x`
+
+## Reduce without initial value
+
+*Keyword:* `:reduce-without-init`
+
+*Description:* 
+  Avoid using `reduce` without an explicit initial value.
+
+  Read [this article](https://purelyfunctional.tv/issues/purelyfunctional-tv-newsletter-313-always-use-the-3-argument-version-of-reduce/) why leaving it out can be problematic.
+  
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+(reduce max [])
+```
+
+*Example message:* `Reduce called without explicit initial value.`
+
+*Config:*
+
+
+  To suppress the warning for a specific reducing function:
+
+  ```clojure
+  {:linters {:reduce-without-init {:exclude [clojure.core/max cljs.core/max]}}}
+  ```
+  
+
+*Config "spec":* `{:exclude [qualified-symbol?]}`
+
+## Redundant call
+
+*Keyword:* `:redundant-call`
+
+*Description:* 
+  Avoid redundant calls.
+
+  The warning arises when a single argument is passed to a known function or macro that that returns its arguments.
+
+  `clojure.core` and `cljs.core` functions and macros that trigger this lint:
+  * `->`, `->>`
+  * `cond->`, `cond->>`
+  * `some->`, `some->>`
+  * `comp`, `partial`
+  * `merge`
+  
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+(-> 1)
+```
+
+*Example message:* `Single arg use of -> always returns the arg itself.`
+
+*Config:*
+
+
+  Use `:exclude` to suppress warnings for the built-in list. Use `:include` to
+  warn on additional vars.
+
+  ```clojure
+  {:linters {:redundant-call {:exclude #{clojure.core/->}
+                              :include #{clojure.core/conj!}}}}
+  ```clojure
+  
+
+*Config "spec":* `{:exclude #{qualified-symbol?}, :include #{qualified-symbol?}}`
+
+## Redundant do
+
+*Keyword:* `:redundant-do`
+
+*Description:* Avoid redundant `do` calls.
+
+  The warning usually arises because of an explicit or implicit do as the direct parent s-expression.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(defn foo [] (do 1))
+```
+
+*Example message:* `redundant do`
+
+## Redundant expression
+
+*Keyword:* `:redundant-expression`
+
+*Description:* Avoid redundant expressions.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(do 1 2)
+```
+
+*Example message:* `Redundant expression: 1`
+
+## Redundant fn wrapper
+
+*Keyword:* `:redundant-fn-wrapper`
+
+*Description:* Avoid redundant function wrappers.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+#(inc %)
+```
+
+*Example message:* `Redundant fn wrapper`
+
+## Redundant let
+
+*Keyword:* `:redundant-let`
+
+*Description:* 
+  Avoid redundant `let` calls.
+
+  The warning usually arises because directly nested lets.
+  
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(let [x 1] (let [y 2] (+ x y)))
+```
 
 *Example message:* `Redundant let expression.`
 
-### Refer
+## Refer
 
 *Keyword:* `:refer`
 
-*Description:* warns when `:refer` is used. This can be used when one wants to
-enforce usage of aliases.
+*Description:* 
+  Avoid using `:refer`.
 
-*Default level:* `:off`.
+  This can be used when one wants to enforce usage of aliases.
+  
 
-*Example trigger:* `(ns foo (:require [clojure.set :refer [union]]))`.
+*Default level:* `:off`
 
-Example warning: `require with :refer`.
-
-*Config:* to suppress the above warning:
+*Example trigger:*
 
 ```clojure
-{:linters {:refer {:exclude [clojure.set]}}}
+(ns foo (:require [clojure.set :refer [union]]))
 ```
 
-### Refer all
+*Example message:* `require with :refer`
+
+*Config:*
+
+
+  Suppress warnings for given namespaces.
+
+  Config example:
+  ```clojure
+  {:linters {:refer {:exclude [clojure.set]}}}
+  ```
+  
+
+*Config "spec":* `{:exclude [symbol?]}`
+
+## Refer all
 
 *Keyword:* `:refer-all`
 
-*Description:* warns when `:refer :all` is used.
+*Description:* Avoid using `:refer :all`.
 
-*Default level:* `:warning`.
+*Default level:* `:warning`
 
-*Example trigger:* `(ns foo (:require [clojure.set :refer :all]))`.
-
-*Example message:* `use alias or :refer`.
-
-*Config:* to suppress the above warning:
+*Example trigger:*
 
 ```clojure
-{:linters {:refer-all {:exclude [clojure.set]}}}
+(ns foo (:require [clojure.set :refer :all]))
 ```
 
-### Single key in
+*Example message:* `use alias or :refer`
 
-*Keyword:* `:single-key-in`.
+*Config:*
 
-*Description:* warn on associative path function with a single value path.
 
-*Default level:* `:off`.
+  Suppress warnings for given namespaces.
 
-*Example trigger:* `(get-in {:a 1} [:a])`.
+  Config example:
+  ```clojure
+  {:linters {:refer {:exclude [clojure.set]}}}
+  ```
+  
 
-*Example message:* `get-in with single key.`
+*Config "spec":* `{:exclude [symbol?]}`
 
-### Single operand comparison
+## Shadowed var
 
-*Keyword:* `:single-operand-comparison`.
+*Keyword:* `:shadowed-var`
 
-*Description:* warn on comparison with only one argument.
+*Description:* Check if var is shadowed by local.
 
-*Default level:* `:warning`.
+*Default level:* `:off`
 
-*Example trigger:* `(< 1)`.
+*Example trigger:*
 
-*Example message:* `Single operand use of clojure.core/< is always true.`
-
-### Shadowed var
-
-*Keyword:* `:shadowed-var`.
-
-*Description:* warn on var that is shadowed by local.
-
-*Default level:* `:off`.
-
-*Example trigger:* `(def x 1) (let [x 2] x)`.
+```clojure
+(def x 1) (let [x 2] x)
+```
 
 *Example message:* `Shadowed var: user/x.`
 
 *Config:*
 
-``` clojure
-{:linters {:shadowed-var {:level :warning
-                          :exclude [ns]
-                          :suggest {name nom}}}}
+
+  Use `:exclude` to suppress warnings for specific binding names. Use `:include` to warn only for specific names.
+
+  To avoid shadowing core vars you can also use `:refer-clojure` + `:exclude` in the `ns` form.
+  
+
+*Config "spec":* `{:exclude [symbol?], :include [symbol?], :suggestions {symbol? symbol?}}`
+
+## Single key in
+
+*Keyword:* `:single-key-in`
+
+*Description:* Avoid using an associative path function with a single value path.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+(get-in {:a 1} [:a])
 ```
 
-``` clojure
-(fn [name] name)
-     ^--- Shadowed var: clojure.core/name. Suggestion: nom
+*Example message:* `get-in with single key.`
+
+## Single logical operand
+
+*Keyword:* `:single-logical-operand`
+
+*Description:* Avoid calling `and` or `or` with only one argument.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(and 1)
 ```
 
-Use `:exclude` to suppress warnings for specific binding names. Use `:include`
-to warn only for specific names.
+*Example message:* `Single arg use of clojure.core/and always returns the arg itself.`
 
-To avoid shadowing core vars you can also use `:refer-clojure` + `:exclude` in
-the `ns` form.
+## Single operand comparison
 
-### Syntax
+*Keyword:* `:single-operand-comparison`
 
-*Keyword:* `:syntax`.
+*Description:* Avoid calling comparison function with only one argument.
 
-*Description:* warn on invalid syntax.
+*Default level:* `:warning`
 
-*Default level:* `:warning`.
+*Example trigger:*
 
-*Example trigger:* `[)`.
-
-Example messages:
-
-```
-Mismatched bracket: found an opening [ and a closing ) on line 1
-Mismatched bracket: found an opening [ on line 1 and a closing )
+```clojure
+(< 1)
 ```
 
-### Type mismatch
+*Example message:* `Single operand use of clojure.core/< is always true.`
 
-*Keyword:* `:type-mismatch`.
+## Syntax
 
-*Description:* warn on type mismatches, e.g. passing a keyword where a number is expected.
+*Keyword:* `:syntax`
 
-*Default level:* `:error`.
+*Description:* Reject invalid syntax.
 
-*Example trigger:* `(inc :foo)`
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+#(#())
+```
+
+*Example message:* `Nested #()s are not allowed.`
+
+## Type mismatch
+
+*Keyword:* `:type-mismatch`
+
+*Description:* 
+  Check for type mismatches.
+
+  For example, passing a keyword where a number is expected.
+
+  You can add or override type annotations. See [types.md](https://github.com/clj-kondo/clj-kondo/blob/master/doc/types.md).
+  
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+(inc :foo)
+```
 
 *Example message:* `Expected: number, received: keyword.`
 
-*Config:*
+## Unbound destructuring default
 
-You can add or override type annotations. See
-[types.md](https://github.com/clj-kondo/clj-kondo/blob/master/doc/types.md).
+*Keyword:* `:unbound-destructuring-default`
 
-### Unbound destructuring default
+*Description:* Check if binding in `:or` occurs in destructuring.
 
-*Keyword:* `:unbound-destructuring-default`.
+*Default level:* `:warning`
 
-*Description:* warn on binding in `:or` which does not occur in destructuring.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(let [{:keys [:i] :or {i 2 j 3}} {}] i)`
-
-*Example message:* `j is not bound in this destructuring form`.
-
-### Unused binding
-
-*Keyword:* `:unused-binding`.
-
-*Description:* warn on unused binding.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(let [x 1] (prn :foo))`
-
-*Example message:* `unused binding x`.
-
-*Config:*
-
-To exclude unused bindings from being reported, start their names with
-underscores: `_x`.
-
-To exclude warnings about key-destructured function arguments, use:
-
-``` clojure
-{:linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}
-```
-
-This will disable warnings for the following example:
-
-``` clojure
-(defn f [{:keys [:a :b :c]} d])
-```
-
-To disable warnings about `:as` bindings (which can be useful for
-documentation), use:
+*Example trigger:*
 
 ```clojure
-{:linters {:unused-binding {:exclude-destructured-as true}}}
+(let [{:keys [:i] :or {i 2 j 3}} {}] i)
 ```
 
-This will disable the warning in:
+*Example message:* `j is not bound in this destructuring form.`
 
-``` clojure
-(defn f [{:keys [a b c] :as g}] a b c)
+## Unexpected recur
+
+*Keyword:* `:unexpected-recur`
+
+*Description:* Reject using `recur` in a non-tail position.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+(loop [] (recur) 1)
 ```
 
-To exclude warnings about defmulti dispatch function arguments, use:
+*Example message:* `Recur can only be used in tail position.`
 
-``` clojure
-{:linters {:unused-binding {:exclude-defmulti-args true}}}
-```
+## Unreachable code
 
-This will disable the warning in:
-
-``` clojure
-(defmulti f (fn [a b] a))
-```
-
-### Used underscored bindings
-
-*Keyword:* `:used-underscored-binding`.
-
-*Description:* warn when a underscored (ie marked as unused) binding is used.
-
-*Default level:* `:off`.
-
-*Example trigger:* `(let [_x 0] _x)`.
-
-*Example message:* `Using binding marked as unused: _x`
-
-These warnings can be enabled by setting the level to `:warning` or
-`:error` in your config.
-
-``` clojure
-{:linters {:used-underscored-binding {:level :warning}}}
-```
-
-### Unreachable code
-
-*Keyword:* `:unreachable-code`.
+*Keyword:* `:unreachable-code`
 
 *Description:* warn on unreachable code.
 
-*Default level:* `:warning`.
+*Default level:* `:warning`
 
-*Example trigger:* `(cond :else 1 (odd? 1) 2)`.
+*Example trigger:*
 
-*Example message:* `unreachable code`.
+```clojure
+(cond :else 1 (odd? 1) 2)
+```
 
-### Unused import
+*Example message:* `unreachable code`
 
-*Keyword:* `:unused-import`.
+## Unresolved namespace
 
-*Description:* warn on unused import.
+*Keyword:* `:unresolved-namespace`
 
-*Default level:* `:warning`.
+*Description:* Check if the namespace of a qualified symbol is required in the `ns` form.
 
-*Example trigger:* `(ns foo (:import [java.util UUID]))`.
+*Default level:* `:warning`
 
-*Example message:* `Unused import UUID.`
+*Example trigger:*
 
-### Unresolved namespace
-
-*Keyword:* `:unresolved-namespace`.
-
-*Default level:* `:error`.
-
-*Example trigger:* `foo.bar/baz`.
+```clojure
+foo.bar/baz
+```
 
 *Example message:* `Unresolved namespace foo.bar. Are you missing a require?`
 
-*Config:* use `:exclude [foo.bar]` to suppress the above warning.
+*Config:*
 
-You can report duplicate warnings using:
 
-``` clojure
-{:linters {:unresolved-namespace {:report-duplicates true}}}
+  Use `:exclude [foo.bar]` to suppress warnings for the namespace `foo.bar`.
+
+  Use `:report-duplicates true` to raise a lint warning for every occurence instead of the first in each file.
+  
+
+*Config "spec":* `{:exclude [symbol?], :report-duplicates boolean?}`
+
+## Unresolved symbol
+
+*Keyword:* `:unresolved-symbol`
+
+*Description:* Reject unresolved symbols.
+
+*Default level:* `:error`
+
+*Example trigger:*
+
+```clojure
+x
 ```
 
-### Unresolved symbol
-
-*Keyword:* `:unresolved-symbol`.
-
-*Default level:* `:error`.
-
-*Example trigger:* `x`.
-
-*Example message:* `Unresolved symbol: x`.
+*Example message:* `Unresolved symbol: x`
 
 *Config:*
 
-In the following code, `match?` is a test assert expression brought in by `matcher-combinators.test`.
-We don't want it to be reported as an unresolved symbol.
 
-``` clojure
-(ns foo
-  (:require [clojure.test :refer [deftest is]]
-            [matcher-combinators.test]))
+  In the following code, `match?` is a test assert expression brought in by `matcher-combinators.test`. We don't want it to be reported as an unresolved symbol.
 
-(deftest my-test
-  (is (match? [1 odd?] [1 3])))
+  ``` clojure
+  (ns foo
+    (:require [clojure.test :refer [deftest is]]
+              [matcher-combinators.test]))
+
+  (deftest my-test
+    (is (match? [1 odd?] [1 3])))
+  ```
+
+  The necessary config:
+
+  ``` clojure
+  {:linters
+    {:unresolved-symbol
+      {:exclude [(clojure.test/is [match?])]}}}
+  ```
+
+  If you want to exclude unresolved symbols from being reported:
+  - for all symbols under calls to `clojure.test/is`, omit the vector of symbols: `:exclude [(clojure.test/is)]`
+  - for symbol `match?` globally for your project, specify only the vector of symbols: `:exclude [match?]`
+
+  Sometimes vars are introduced by executing macros, e.g. when using [HugSQL](https://github.com/layerware/hugsql)'s `def-db-fns`. You can suppress warnings about these vars by using `declare`. Example:
+
+  ``` clojure
+  (ns hugsql-example
+    (:require [hugsql.core :as hugsql]))
+
+  (declare select-things)
+
+  ;; this will define a var #'select-things:
+  (hugsql/def-db-fns "select_things.sql")
+
+  (defn get-my-things [conn params]
+    (select-things conn params))
+  ```
+
+  If the amount of symbols introduced by HugSQL becomes too unwieldy, consider
+  introducing a separate namespace in which HugSQL generates the vars:
+  `foo.db.hugsql`. You can then refer to this namespace from `foo.db` with
+  `(require '[foo.db.hugsql :as sql]) (sql/insert! ...)` and clj-kondo will not
+  complain about this.
+
+  Furthermore, the `:lint-as` option can help treating certain macros like
+  built-in ones. This is in clj-kondo's own config:
+
+  ``` clojure
+  :lint-as {me.raynes.conch/programs clojure.core/declare
+            me.raynes.conch/let-programs clojure.core/let}
+  ```
+
+  and helps preventing false positive unresolved symbols in this code:
+
+  ``` clojure
+  (ns foo (:require [me.raynes.conch :refer [programs let-programs]]))
+
+  (programs rm mkdir echo mv)
+  (let-programs [clj-kondo "./clj-kondo"]
+    ,,,)
+  ```
+
+  You can report duplicate warnings using:
+
+  ``` clojure
+  {:linters {:unresolved-symbol {:report-duplicates true}}}
+  ```
+  
+
+*Config default:* `{:exclude [(user/defproject) (clojure.test/are [thrown? thrown-with-msg?]) (cljs.test/are [thrown? thrown-with-msg?]) (clojure.test/is [thrown? thrown-with-msg?]) (cljs.test/is [thrown? thrown-with-msg?])], :report-duplicates false}`
+
+*Config "spec":* `{:exclude [(s/or (symbol?) (symbol? [symbol?]))], :report-duplicates boolean?}`
+
+## Unresolved var
+
+*Keyword:* `:unresolved-var`
+
+*Description:* Checks for unresolved vars from other namespaces.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(require '[clojure.set :as set]) (set/onion)
 ```
 
-The necessary config:
-
-``` clojure
-{:linters
-  {:unresolved-symbol
-    {:exclude [(clojure.test/is [match?])]}}}
-```
-
-If you want to exclude unresolved symbols from being reported:
-- for all symbols under calls to `clojure.test/is`, omit the vector of symbols: `:exclude [(clojure.test/is)]`
-- for symbol `match?` globally for your project, specify only the vector of symbols: `:exclude [match?]`
-
-Sometimes vars are introduced by executing macros, e.g. when using [HugSQL](https://github.com/layerware/hugsql)'s `def-db-fns`. You can suppress warnings about these vars by using `declare`. Example:
-
-``` clojure
-(ns hugsql-example
-  (:require [hugsql.core :as hugsql]))
-
-(declare select-things)
-
-;; this will define a var #'select-things:
-(hugsql/def-db-fns "select_things.sql")
-
-(defn get-my-things [conn params]
-  (select-things conn params))
-```
-
-If the amount of symbols introduced by HugSQL becomes too unwieldy, consider
-introducing a separate namespace in which HugSQL generates the vars:
-`foo.db.hugsql`. You can then refer to this namespace from `foo.db` with
-`(require '[foo.db.hugsql :as sql]) (sql/insert! ...)` and clj-kondo will not
-complain about this.
-
-Furthermore, the `:lint-as` option can help treating certain macros like
-built-in ones. This is in clj-kondo's own config:
-
-``` clojure
-:lint-as {me.raynes.conch/programs clojure.core/declare
-          me.raynes.conch/let-programs clojure.core/let}
-```
-
-and helps preventing false positive unresolved symbols in this code:
-
-``` clojure
-(ns foo (:require [me.raynes.conch :refer [programs let-programs]]))
-
-(programs rm mkdir echo mv)
-(let-programs [clj-kondo "./clj-kondo"]
-  ,,,)
-```
-
-You can report duplicate warnings using:
-
-``` clojure
-{:linters {:unresolved-symbol {:report-duplicates true}}}
-```
-
-### Unresolved var
-
-*Keyword:* `:unresolved-var`.
-
-*Description:* warns on unresolved var from other namespace.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(require '[clojure.set :as set]) (set/onion)`.
-
-*Example message:* `Unresolved var: set/onion`.
+*Example message:* `Unresolved var: set/onion`
 
 *Config:*
 
-Given this example:
 
-``` clojure
-(ns foo)
-(defmacro gen-vars [& names]) (gen-vars x y z)
+  Given this example:
 
-(ns bar (:require foo))
-foo/x
-(foo/y)
+  ``` clojure
+  (ns foo)
+  (defmacro gen-vars [& names]) (gen-vars x y z)
+
+  (ns bar (:require foo))
+  foo/x
+  (foo/y)
+  ```
+
+  you can exclude warnings for all unresolved vars from namespace `foo` using:
+
+  ``` clojure
+  {:linters {:unresolved-var {:exclude [foo]}}}
+  ```
+
+  or exclude a selection of unresolved vars using qualified symbols:
+
+  ``` clojure
+  {:linters {:unresolved-var {:exclude [foo/x]}}}
+  ```
+
+  You can report duplicate warnings using:
+
+  ``` clojure
+  {:linters {:unresolved-var {:report-duplicates true}}}
+  ```
+  
+
+*Config "spec":* `{:exclude [symbol?], :report-duplicates boolean?}`
+
+## Unsorted required namespaces
+
+*Keyword:* `:unsorted-required-namespaces`
+
+*Description:* Checks if libspecs in `ns` and `require` forms are sorted alphabetically..
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+(ns foo (:require b a))
 ```
 
-you can exclude warnings for all unresolved vars from namespace `foo` using:
+*Example message:* `Unsorted namespace: a`
 
-``` clojure
-{:linters {:unresolved-var {:exclude [foo]}}}
+## Unused binding
+
+*Keyword:* `:unused-binding`
+
+*Description:* Check for unused bindings.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(let [x 1] (prn :foo))
 ```
 
-or exclude a selection of unresolved vars using qualified symbols:
-
-``` clojure
-{:linters {:unresolved-var {:exclude [foo/x]}}}
-```
-
-You can report duplicate warnings using:
-
-``` clojure
-{:linters {:unresolved-var {:report-duplicates true}}}
-```
-
-### Unsorted required namespaces
-
-*Keyword:* `:unsorted-required-namespaces`.
-
-*Description:* warns on non-alphabetically sorted libspecs in `ns` and `require` forms.
-
-*Default level:* `:off`.
-
-*Example trigger:* `(ns foo (:require b a))`.
-
-*Example message:* `Unsorted namespace: a`.
-
-### Unused namespace
-
-*Keyword:* `:unused-namespace`.
-
-*Description:* warns on required but unused namespace.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(ns foo (:require [bar :as b]))`.
-
-*Example message:* `namespace bar is required but never used`.
+*Example message:* `unused binding x`
 
 *Config:*
 
-Given this example:
 
-``` clojure
-(ns foo (:require [foo.specs :as specs]))
+  To exclude unused bindings from being reported, start their names with
+  underscores: `_x`.
+
+  To exclude warnings about key-destructured function arguments, use:
+
+  ``` clojure
+  {:linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}
+  ```
+
+  This will disable warnings for the following example:
+
+  ``` clojure
+  (defn f [{:keys [:a :b :c]} d])
+  ```
+
+  To disable warnings about `:as` bindings (which can be useful for
+  documentation), use:
+
+  ```clojure
+  {:linters {:unused-binding {:exclude-destructured-as true}}}
+  ```
+
+  This will disable the warning in:
+
+  ``` clojure
+  (defn f [{:keys [a b c] :as g}] a b c)
+  ```
+
+  To exclude warnings about defmulti dispatch function arguments, use:
+
+  ``` clojure
+  {:linters {:unused-binding {:exclude-defmulti-args true}}}
+  ```
+
+  This will disable the warning in:
+
+  ``` clojure
+  (defmulti f (fn [a b] a))
+  ```
+  
+
+*Config default:* `{:exclude-destructured-keys-in-fn-args false, :exclude-destructured-as false, :exclude-defmulti-args false}`
+
+*Config "spec":* `{:exclude-destructured-keys-in-fn-args boolean?, :exclude-destructured-as boolean?, :exclude-defmulti-args boolean?}`
+
+## Unused import
+
+*Keyword:* `:unused-import`
+
+*Description:* Check for unused imports.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(ns foo (:import [java.util UUID]))
 ```
 
-you will get a warning about `foo.specs` being unused.
+*Example message:* `Unused import UUID.`
 
-To suppress this, you can either leave out the alias `specs` if it isn't used
-anywhere in the namespace or use this config:
+## Unused namespace
 
-``` clojure
-{:linters {:unused-namespace {:exclude [foo.specs]}}}
+*Keyword:* `:unused-namespace`
+
+*Description:* Check for required but unused namespaces.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(ns foo (:require [bar :as b]))
 ```
 
-A regex is also supported:
+*Example message:* `Namespace bar is required but never used.`
 
-``` clojure
-{:linters {:unused-namespace {:exclude [".*\\.specs$"]}}}
-```
+*Config:*
 
-This will exclude all namespaces ending with `.specs`.
 
-Namespaces without `:as` or `:refer` are assumed to be loaded for side effects,
-e.g. for clojure.spec or defining a protocol or multi-method, so the following
-will not trigger a warning:
+  Given this example:
 
-``` clojure
-(ns foo (:require [foo.specs]))
-```
+  ``` clojure
+  (ns foo (:require [foo.specs :as specs]))
+  ```
 
-If you'd like to have namespaces without `:as` or `:refer` trigger
-warnings, you can enable this by setting the `:simple-libspec` option
+  you will get a warning about `foo.specs` being unused.
 
-``` clojure
-{:linters {:unused-namespace {:simple-libspec true}}}
-```
+  To suppress this, you can either leave out the alias `specs` if it isn't used
+  anywhere in the namespace or use this config:
 
-### Unused private var
+  ``` clojure
+  {:linters {:unused-namespace {:exclude [foo.specs]}}}
+  ```
 
-*Keyword:* `:unused-private-var`.
+  A regex is also supported:
+
+  ``` clojure
+  {:linters {:unused-namespace {:exclude [".*\.specs$"]}}}
+  ```
+
+  This will exclude all namespaces ending with `.specs`.
+
+  Namespaces without `:as` or `:refer` are assumed to be loaded for side effects,
+  e.g. for clojure.spec or defining a protocol or multi-method, so the following
+  will not trigger a warning:
+
+  ``` clojure
+  (ns foo (:require [foo.specs]))
+  ```
+
+  If you'd like to have namespaces without `:as` or `:refer` trigger
+  warnings, you can enable this by setting the `:simple-libspec` option
+
+  ``` clojure
+  {:linters {:unused-namespace {:simple-libspec true}}}
+  ```
+  
+
+*Config default:* `{:simple-libspec false}`
+
+*Config "spec":* `{:exclude [(s/or symbol? string?)], :simple-libspec boolean?}`
+
+## Unused private var
+
+*Keyword:* `:unused-private-var`
 
 *Description:* warns on unused private vars.
 
-*Default level:* `:warning`.
+*Default level:* `:warning`
 
-*Example trigger:* `(ns foo) (defn- f [])`
+*Example trigger:*
+
+```clojure
+(ns foo) (defn- f [])
+```
 
 *Example message:* `Unused private var foo/f`
 
 *Config:*
 
-To suppress the above warning:
 
-``` clojure
-{:linters {:unused-private-var {:exclude [foo/f]}}}
-```
+  To suppress the warning:
 
-### Unused referred var
+  ``` clojure
+  {:linters {:unused-private-var {:exclude [foo/f]}}}
+  ```
+  
 
-*Keyword:* `:unused-referred-var`.
+*Config "spec":* `{:exclude [qualified-symbol?]}`
+
+## Unused referred var
+
+*Keyword:* `:unused-referred-var`
 
 *Description:* warns about unused referred vars.
 
-*Default level:* `:warning`.
+*Default level:* `:warning`
 
-*Example trigger:* `(ns foo (:require [clojure.set :refer [union]]))`.
+*Example trigger:*
 
-*Example message:* `#'clojure.set/union is referred but never used`.
+```clojure
+(ns foo (:require [clojure.set :refer [union]]))
+```
+
+*Example message:* `#'clojure.set/union is referred but never used`
 
 *Config:*
 
-Imagine you want to have `taoensso.timbre/debug` available in all of your
-namespaces. Even when you don't use it, you don't want to get a warning about
-it. That can be done as follows:
 
-``` clojure
-{:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
-```
+  Imagine you want to have `taoensso.timbre/debug` available in all of your
+  namespaces. Even when you don't use it, you don't want to get a warning about
+  it. That can be done as follows:
 
-### Use
+  ``` clojure
+  {:linters {:unused-referred-var {:exclude {taoensso.timbre [debug]}}}}
+  ```
+  
 
-*Keyword:* `:use`.
+*Config "spec":* `{:exclude {symbol? [symbol?]}}`
+
+## Use
+
+*Keyword:* `:use`
 
 *Description:* warns about `:use` or `use`.
 
-*Default level:* `:warning`.
+*Default level:* `:warning`
 
-*Example trigger:* `(ns foo (:use [clojure.set]))`.
+*Example trigger:*
 
-*Example message:* `use :require with alias or :refer`.
+```clojure
+(ns foo (:use [clojure.set]))
+```
+
+*Example message:* `use :require with alias or :refer`
 
 *Config:*
 
-This linter is closely tied to [Refer All](#refer-all). Namespaces configured to
-suppress the `:refer-all` warning will also suppress the `:use` warning.
 
-### Warn on reflection
+  This linter is closely tied to [Refer All](#refer-all). Namespaces configured to suppress the `:refer-all` warning will also suppress the `:use` warning.
+  
+
+## Used underscored bindings
+
+*Keyword:* `:used-underscored-binding`
+
+*Description:* warn when a underscored (ie marked as unused) binding is used.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+(let [_x 0] _x)
+```
+
+*Example message:* `Using binding marked as unused: _x`
+
+## Warn on reflection
 
 *Keyword:* `:warn-on-reflection`
 
@@ -1443,16 +1772,18 @@ namespaces. Defaults to only warning when doing interop.
 
 *Default level:* `:off`
 
-*Example trigger:* `(.length "hello")`
+*Example trigger:*
+
+```clojure
+(.length foo)
+```
 
 *Example message:* `Var *warn-on-reflection* is not set in this namespace.`
 
 *Config:*
 
-``` clojure
-:warn-on-reflection {:level :off
-                     :warn-only-on-interop true}
-```
+The value of `:warn-only-on-interop` can be set to `false` to always warn in Clojure namespaces.
 
-The value of `:warn-only-on-interop` can be set to `false` to always warn in
-Clojure namespaces.
+*Config default:* `{:warn-only-on-interop true}`
+
+*Config "spec":* `{:warn-only-on-interop boolean?}`

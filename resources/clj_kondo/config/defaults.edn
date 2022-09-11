@@ -12,7 +12,7 @@
   }
 
  :bb.edn-task-missing-docstring
- {:name "Bb.edn task missing docstring"
+ {:name "Bb.edn task docstring missing"
   :default-level :off
   :description "Checks for missing docstring for map tasks in `bb.edn` files."
   :example-trigger "{:tasks {a {:task (call-fn}]}"
@@ -20,7 +20,7 @@
   }
 
  :bb.edn-undefined-task
- {:name "Bb.edn undefined task"
+ {:name "Bb.edn dependency on undefined task"
   :default-level :error
   :description "Checks for undefined task dependencies in `bb.edn` files."
   :example-trigger "{:tasks {run {:depends [compile]}}}"
@@ -28,7 +28,7 @@
   }
 
  :bb.edn-unexpected-key
- {:name "Bb.edn unexpected key"
+ {:name "Bb.edn Unexpected key"
   :default-level :warning
   :description "Checks for unexpected keys in `bb.edn` files."
   :example-trigger "{:requires [[babashka.fs :as fs]]}"
@@ -36,7 +36,7 @@
   }
 
  :clj-kondo-config
- {:name "Clj kondo config"
+ {:name "Clj-kondo config"
   :default-level :warning
   :description "Checks for common errors in `.clj-kondo/config` files."
   :example-trigger "{:linters {:foo 1}}"
@@ -52,7 +52,7 @@
   }
 
  :conflicting-alias
- {:name "Conflicting alias"
+ {:name "Conflicting-alias"
   :default-level :error
   :description "Checks for conflicting alias."
   :example-trigger
@@ -64,7 +64,7 @@
   }
 
  :conflicting-fn-arity
- {:name "Conflicting fn arity"
+ {:name "Conflicting arity"
   :default-level :error
   :description "Warns when an overloaded function defines multiple argument vectors with the same arity."
   :example-trigger "(fn ([x] x) ([y]) x)"
@@ -72,7 +72,7 @@
   }
 
  :consistent-alias
- {:name "Consistent alias"
+ {:name "Consistent-alias"
   :default-level :warning
   :description "Checks namespace aliases against the provided map of namespace to alias."
   :example-trigger
@@ -357,7 +357,7 @@
   }
 
  :keyword-binding
- {:name "Keyword binding"
+ {:name "Keyword in binding vector"
   :default-level :off
   :description "Checks for keywords in a `:keys` binding vector."
   :example-trigger "(let [{:keys [:a]} {:a 1}] a)"
@@ -398,7 +398,7 @@
   }
 
  :main-without-gen-class
- {:name "Main without gen class"
+ {:name "Main without gen-class"
   :default-level :off
   :description "Checks that `:gen-class` is present in namespaces that have a `-main` function."
   :example-trigger "(ns foo) (defn -main [& _args])"
@@ -474,7 +474,7 @@
   }
 
  :non-arg-vec-return-type-hint
- {:name "Non arg vec return type hint"
+ {:name "Non-arg vec return type hint"
   :default-level :warning
   :description
   "
@@ -534,7 +534,7 @@
   }
 
  :reduce-without-init
- {:name "Reduce without init"
+ {:name "Reduce without initial value"
   :default-level :off
   :description
   "
@@ -1070,7 +1070,7 @@
   }
 
  :used-underscored-binding
- {:name "Used underscored binding"
+ {:name "Used underscored bindings"
   :default-level :off
   :description "warn when a underscored (ie marked as unused) binding is used."
   :example-trigger "(let [_x 0] _x)"
