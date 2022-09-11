@@ -29,13 +29,15 @@
          (str/join "\n"))))
 
 (defn strip-indentation [string]
-  (if (= \n (first string))
-    (let [indentation (- (count string) (inc (count (str/triml string))))
+  (if (= \newline (first string))
+    (let [indentation (abs (- (count string) (inc (count (str/triml string)))))
           lines (->> string
                      (str/split-lines)
-                     (map #(subs % indentation))
-                     (map str/trim)
-                     (str/join "\n"))]
+                     (rest)
+                     (butlast)
+                     (map #(when (seq %) (subs % indentation)))
+                     (str/join "\n")
+                     (str/trim))]
       lines)
     string))
 
@@ -45,7 +47,7 @@
                            config-spec config-description config-default]} lint]]
          (->> [(format "## %s" (:name lint))
                (format "*Keyword:* `%s`" lint-kw)
-               (format "*Description:* %s" description)
+               (format "*Description:* %s" (strip-indentation description))
                (format "*Default level:* `%s`" default-level)
                (when-not (str/blank? example-trigger)
                  (format "*Example trigger:*\n\n```clojure\n%s\n```"
