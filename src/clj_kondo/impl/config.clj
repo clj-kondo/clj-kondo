@@ -1,25 +1,34 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
   (:require
+   [clj-kondo.impl.config.linters :refer [config]]
    [clj-kondo.impl.utils :refer [deep-merge map-vals]]
-   [clojure.edn :as edn]
-   [clojure.java.io :as io]
    [clojure.set :as set]))
 
 (set! *warn-on-reflection* true)
 
-(def linters-config
-  (-> (io/resource "clj_kondo/config/defaults.edn")
-      slurp
-      edn/read-string))
-
 (def linters-defaults
-  (->> linters-config
-       (map #(let [[k {:keys [default-level config-default]}] %
-                   config (cond-> {:level default-level}
-                            config-default (merge config-default))]
-               [k config]))
-       (into {})))
+  (persistent!
+    (reduce-kv
+      (fn [m k {:keys [default-level config-default]}]
+        (let [config (assoc config-default :level default-level)]
+          (assoc! m k config)))
+      (transient {})
+      config)))
+
+; How long does it take to parse and create?
+; (time
+;   (def linters-defaults ,,,))
+; "Elapsed time: 0.408665 msecs"
+; "Elapsed time: 0.05315 msecs"
+; "Elapsed time: 0.046483 msecs"
+; "Elapsed time: 0.060007 msecs"
+; "Elapsed time: 0.05014 msecs"
+; "Elapsed time: 0.050276 msecs"
+; "Elapsed time: 0.047954 msecs"
+; "Elapsed time: 0.051251 msecs"
+; "Elapsed time: 0.059908 msecs"
+; "Elapsed time: 0.033013 msecs"
 
 (def default-config
   {;; no linting inside calls to these functions/macros

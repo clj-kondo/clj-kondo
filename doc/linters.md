@@ -432,8 +432,7 @@ The matching namespace symbol may be given a group name using a regex pattern.
 *Example trigger:*
 
 ```clojure
-(defn foo "Has trailing whitespace.
-" [a b] 1)
+(defn foo "Has trailing whitespace. " [a b] 1)
 ```
 
 *Example message:* `Docstring should not have leading or trailing whitespace.`
@@ -1000,8 +999,7 @@ The warning arises when a single argument is passed to a known function or macro
 
 *Config:*
 
-Use `:exclude` to suppress warnings for the built-in list. Use `:include` to
-warn on additional vars.
+Use `:exclude` to suppress warnings for the built-in list. Use `:include` to warn on additional vars.
 
 ```clojure
 {:linters {:redundant-call {:exclude #{clojure.core/->}
@@ -1016,7 +1014,7 @@ warn on additional vars.
 
 *Description:* Avoid redundant `do` calls.
 
-  The warning usually arises because of an explicit or implicit do as the direct parent s-expression.
+The warning usually arises because of an explicit or implicit do as the direct parent s-expression.
 
 *Default level:* `:warning`
 
@@ -1701,8 +1699,7 @@ This linter is closely tied to [Refer All](#refer-all). Namespaces configured to
 
 *Keyword:* `:warn-on-reflection`
 
-*Description:* warns about not setting `*warn-on-reflection*` to true in Clojure
-namespaces. Defaults to only warning when doing interop.
+*Description:* warns about not setting `*warn-on-reflection*` to true in Clojure namespaces. Defaults to only warning when doing interop.
 
 *Default level:* `:off`
 

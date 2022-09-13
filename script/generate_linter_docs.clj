@@ -2,13 +2,13 @@
 
 (ns generate-linter-docs
   (:require
-   [clojure.edn :as edn]
    [clojure.string :as str]))
 
-(def linters-config
-  (->> (slurp "resources/clj_kondo/config/defaults.edn")
-      edn/read-string
-      (sort-by first)))
+(load-file "src/clj_kondo/impl/config/linters.clj")
+
+(require '[clj-kondo.impl.config.linters :as linters])
+
+(def linters-config (sort-by first linters/config))
 
 (defn build-intro []
   "# Linters\n\nThis page contains an overview of all available linters and their corresponding configuration. For general configurations options, go [here](config.md).")
