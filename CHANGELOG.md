@@ -4,6 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1460](https://github.com/clj-kondo/clj-kondo/issues/1460): Add a linter for incorrect `:require` options
 - [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): Add a linter for line length
 
 ## 2022.09.08
