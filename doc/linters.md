@@ -546,6 +546,18 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `Format string expects 1 arguments instead of 2.`.
 
+### Incorrect :require Option
+
+*Keyword:* `:incorrect-require-option`
+
+*Description:* warn on unknown `:require` option pairs.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(ns foo (:require [bar :s b]))`.
+
+*Example message:* `unknown :require option: ':s b'`.
+
 ### Inline def
 
 *Keyword:* `:inline-def`.

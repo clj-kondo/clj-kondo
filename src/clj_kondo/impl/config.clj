@@ -132,7 +132,8 @@
               :warn-on-reflection {:level :off
                                    :warn-only-on-interop true}
               :line-length {:level :warning
-                            :max-line-length nil}}
+                            :max-line-length nil}
+              :incorrect-require-option {:level :error}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

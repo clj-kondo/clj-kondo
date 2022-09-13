@@ -441,6 +441,15 @@ foo/foo ;; this does use the private var
                               foo.bar]))"
                   {:linters {:unused-namespace {:level :off}}})))))
 
+(deftest incorrect-require-option-test
+  (is (= '({:file "<stdin>",
+            :row 1,
+            :col 24,
+            :level :error,
+            :message "unknown :require option: ':s b'"})
+         (lint! "(ns foo (:require [bar :s b]))"
+                {:linters {:incorrect-require-option {:level :error}}}))))
+
 (deftest rename-test
   (testing "the renamed function isn't available under the referred name"
     (assert-submaps

@@ -221,8 +221,19 @@
                        (update :excluded into (set (keys opt)))
                        ;; for :refer it is sufficient to pretend they were never referred
                        (update :referred set/difference (set (keys opt))))))
-                (recur (nnext children)
-                       m)))
+                (do (findings/reg-finding!
+                      ctx
+                      (node->line
+                        filename
+                        child-expr
+                        :incorrect-require-option
+                        (format "unknown %srequire option: '%s %s'"
+                                (if require-sym
+                                  "" ":")
+                                child-k
+                                opt-expr)))
+                    (recur (nnext children)
+                           m))))
             (let [{:keys [:as :referred :excluded :referred-all :renamed]} m
                   referred (if (and referred-all
                                     (identical? :clj base-lang))
