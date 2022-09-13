@@ -1791,9 +1791,6 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! (io/file "corpus" "core.rrb-vector.clj")
                      {:linters {:unresolved-symbol {:level :error}}})))
-  ;; don't crash in this example. maybe in the future have better syntax checking for ns
-  ;; see GH-497
-  (is (empty? (lint! "(ns circleci.rollcage.test-core (:require [clojure.test :refer :refer [deftest]]))")))
   (is (empty? (lint! "(defn get-email [{email :email :as user :or {email user}}] email)"
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns repro (:require [clojure.string :refer [starts-with?]]))
