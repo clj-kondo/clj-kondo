@@ -35,12 +35,12 @@
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
-    [symbol-call node->line parse-string tag select-lang deep-merge one-of
-     linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
+    [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
+     one-of parse-string select-lang sexpr string-from-token symbol-call tag tag]]
+   [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [sci.core :as sci]
-   [clojure.java.io :as io]))
+   [sci.core :as sci]))
 
 (set! *warn-on-reflection* true)
 
