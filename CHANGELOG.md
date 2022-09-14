@@ -5,6 +5,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): Add a linter for line length
+- [#1807](https://github.com/clj-kondo/clj-kondo/issues/1807): false positive with map transducer in cljs
+- [#1806](https://github.com/clj-kondo/clj-kondo/issues/1806): false positive recur mismatch with letfn
 
 ## 2022.09.08
 
