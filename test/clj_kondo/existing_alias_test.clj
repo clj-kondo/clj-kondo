@@ -4,39 +4,42 @@
             [clojure.test :refer [deftest is testing]]))
 
 (deftest single-alias-test
-  (is (= '({:file "corpus/existing_aliases/single_alias.clj",
-            :row 4,
-            :col 1,
-            :level :warning,
-            :message "An alias is defined for baz.qux: q"})
-         (lint! (io/file "corpus" "existing_aliases" "single_alias.clj")
-                {:linters {:existing-alias {:level :warning}}}))))
+  (let [file (io/file "corpus" "existing_aliases" "single_alias.clj")]
+    (is (= [{:file (str file),
+             :row 4,
+             :col 1,
+             :level :warning,
+             :message "An alias is defined for baz.qux: q"}]
+           (lint! file {:linters {:existing-alias {:level :warning}}})))))
 
 (deftest multiple-aliases-test
-  (is (= '({:file "corpus/existing_aliases/multiple_aliases.clj",
-            :row 5,
-            :col 1,
-            :level :warning,
-            :message "Multiple aliases are defined for baz.qux: q, qq"})
-         (lint! (io/file "corpus" "existing_aliases" "multiple_aliases.clj")
-                {:linters {:duplicate-require {:level :off}
-                           :existing-alias {:level :warning}}}))))
+  (let [path (io/file "corpus" "existing_aliases" "multiple_aliases.clj")]
+    (is (= [{:file (str path),
+             :row 5,
+             :col 1,
+             :level :warning,
+             :message "Multiple aliases are defined for baz.qux: q, qq"}]
+           (lint! path
+                  {:linters {:duplicate-require {:level :off}
+                             :existing-alias {:level :warning}}})))))
 
 (deftest excluded-alias-test
-  (is (= '({:file "corpus/existing_aliases/excluded_alias.clj",
-            :row 5,
-            :col 1,
-            :level :warning,
-            :message "An alias is defined for baz.qux: q"})
-         (lint! (io/file "corpus" "existing_aliases" "excluded_alias.clj")
-                '{:linters {:existing-alias {:level :warning
-                                             :exclude [clojure.string]}}}))))
+  (let [path (io/file "corpus" "existing_aliases" "excluded_alias.clj")]
+    (is (= [{:file (str path),
+             :row 5,
+             :col 1,
+             :level :warning,
+             :message "An alias is defined for baz.qux: q"}]
+           (lint! path
+                  '{:linters {:existing-alias {:level :warning
+                                               :exclude [clojure.string]}}})))))
 
 (deftest as-alias-test
-  (is (= '({:file "corpus/existing_aliases/as_alias_example.clj",
-            :row 4,
-            :col 11,
-            :level :warning,
-            :message "An alias is defined for baz.qux: q"})
-         (lint! (io/file "corpus" "existing_aliases" "as_alias_example.clj")
-                {:linters {:existing-alias {:level :warning}}}))))
+  (let [path (io/file "corpus" "existing_aliases" "as_alias_example.clj")]
+    (is (= [{:file (str path),
+             :row 4,
+             :col 11,
+             :level :warning,
+             :message "An alias is defined for baz.qux: q"}]
+           (lint! path
+                  {:linters {:existing-alias {:level :warning}}})))))
