@@ -10,3 +10,8 @@
             :message "Unknown :require option: ':s b'"})
          (lint! "(ns foo (:require [bar :s b]))"
                 {:linters {:unknown-require-option {:level :warning}}}))))
+
+(deftest ignorable-test
+  (is (= '()
+         (lint! "(ns foo (:require #_:clj-kondo/ignore [bar :s b]))"
+                {:linters {:unknown-require-option {:level :warning}}}))))
