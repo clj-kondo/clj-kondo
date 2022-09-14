@@ -226,8 +226,8 @@
                       (node->line
                         filename
                         child-expr
-                        :incorrect-require-option
-                        (format "unknown %srequire option: '%s %s'"
+                        :unknown-require-option
+                        (format "Unknown %srequire option: '%s %s'"
                                 (if require-sym
                                   "" ":")
                                 child-k

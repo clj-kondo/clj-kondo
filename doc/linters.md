@@ -63,6 +63,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
+    - [Unknown :require option](#unknown-require-option)
     - [Unused binding](#unused-binding)
     - [Used underscored bindings](#used-underscored-bindings)
     - [Unreachable code](#unreachable-code)
@@ -545,18 +546,6 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(format "%s" 1 2)`.
 
 *Example message:* `Format string expects 1 arguments instead of 2.`.
-
-### Incorrect :require Option
-
-*Keyword:* `:incorrect-require-option`
-
-*Description:* warn on unknown `:require` option pairs.
-
-*Default level:* `:error`.
-
-*Example trigger:* `(ns foo (:require [bar :s b]))`.
-
-*Example message:* `unknown :require option: ':s b'`.
 
 ### Inline def
 
@@ -1156,6 +1145,18 @@ These warnings can be enabled by setting the level to `:warning` or
 ``` clojure
 {:linters {:used-underscored-binding {:level :warning}}}
 ```
+
+### Unknown :require option
+
+*Keyword:* `:unknown-require-option`
+
+*Description:* warn on unknown `:require` option pairs.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(ns foo (:require [bar :s b]))`.
+
+*Example message:* `Unknown :require option: ':s b'`.
 
 ### Unreachable code
 

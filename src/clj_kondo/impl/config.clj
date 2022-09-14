@@ -36,6 +36,7 @@
               :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}
               :used-underscored-binding {:level :off}
+              :unknown-require-option {:level :warning}
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false
                                :exclude-destructured-as false
@@ -132,8 +133,7 @@
               :warn-on-reflection {:level :off
                                    :warn-only-on-interop true}
               :line-length {:level :warning
-                            :max-line-length nil}
-              :incorrect-require-option {:level :error}}
+                            :max-line-length nil}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
