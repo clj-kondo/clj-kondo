@@ -31,3 +31,12 @@
          (lint! (io/file "corpus/existing_aliases/excluded_alias.clj")
                 '{:linters {:existing-alias {:level :warning
                                              :exclude [clojure.string]}}}))))
+
+(deftest as-alias-test
+  (is (= '({:file "corpus/existing_aliases/as_alias_example.clj",
+            :row 4,
+            :col 11,
+            :level :warning,
+            :message "An alias is defined for baz.qux: q"})
+         (lint! (io/file "corpus/existing_aliases/as_alias_example.clj")
+                {:linters {:existing-alias {:level :warning}}}))))

@@ -5,7 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): Add a linter for line length
-- [#1800](https://github.com/clj-kondo/clj-kondo/issues/1800): Add `:existing-alias`, a linter that checks qualified symbols to see if they're using an existing alias.
+- [#1800](https://github.com/clj-kondo/clj-kondo/issues/1800): Add `:existing-alias`, a linter that checks qualified symbols and keywords to see if they're using an existing alias.
 
 ## 2022.09.08
 

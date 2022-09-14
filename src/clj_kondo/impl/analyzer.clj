@@ -1879,35 +1879,8 @@
                                                                (symbol (name full-fn-name))])
                                   children))
               :else
-              (let [full-name-ns-sym (some-> full-fn-name namespace symbol)
-                    check-existing-alias? (and full-name-ns-sym
-                                               (not (linter-disabled? ctx :existing-alias))
-                                               (not (config/existing-alias-excluded?
-                                                      config full-name-ns-sym)))
-                    ns->aliases (when check-existing-alias?
-                                  (persistent!
-                                    (reduce-kv
-                                      (fn [m k v]
-                                        (let [existing (get m v #{})]
-                                          (assoc! m v (conj existing k))))
-                                      (transient {})
-                                      (:aliases ns))))
-                    _ (when-let [existing (and check-existing-alias?
-                                               (ns->aliases full-name-ns-sym))]
-                        (findings/reg-finding!
-                          ctx
-                          (node->line
-                            (:filename ctx)
-                            expr
-                            :existing-alias
-                            (format "%s defined for %s: %s"
-                                    (if (= 1 (count existing))
-                                      "An alias is"
-                                      "Multiple aliases are")
-                                    full-name-ns-sym
-                                    (if (= 1 (count existing))
-                                      (first existing)
-                                      (str/join ", " (sort existing)))))))
+              (let [_ (when-let [full-name-ns-sym (some-> full-fn-name namespace symbol)]
+                        (linters/lint-existing-alias ctx expr full-name-ns-sym))
                     [resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
                             [[ns n]

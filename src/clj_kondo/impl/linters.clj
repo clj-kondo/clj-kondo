@@ -7,7 +7,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
-   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr tag export-ns-sym]]
+   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr tag export-ns-sym linter-disabled?]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -712,6 +712,37 @@
         :col (:col m)
         :end-row (:end-row m)
         :end-col (:end-col m)}))))
+
+(defn lint-existing-alias
+  [ctx expr ns-sym]
+  (let [check-existing-alias? (and (not (linter-disabled? ctx :existing-alias))
+                                   (not (config/existing-alias-excluded?
+                                          (:config ctx)
+                                          ns-sym)))
+        ns->aliases (when check-existing-alias?
+                      (persistent!
+                        (reduce-kv
+                          (fn [m k v]
+                            (let [existing (get m v #{})]
+                              (assoc! m v (conj existing k))))
+                          (transient {})
+                          (:aliases (:ns ctx)))))]
+    (when-let [existing (and check-existing-alias?
+                             (ns->aliases ns-sym))]
+      (findings/reg-finding!
+        ctx
+        (node->line
+          (:filename ctx)
+          expr
+          :existing-alias
+          (format "%s defined for %s: %s"
+                  (if (= 1 (count existing))
+                    "An alias is"
+                    "Multiple aliases are")
+                  ns-sym
+                  (if (= 1 (count existing))
+                    (first existing)
+                    (str/join ", " (sort existing)))))))))
 
 ;;;; scratch
 

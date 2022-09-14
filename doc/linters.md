@@ -526,7 +526,7 @@ Explanation by Bozhidar Batsov:
 
 *Keyword:* `:existing-alias`.
 
-*Description:* warn when the namespace of a qualified symbol has a defined alias.
+*Description:* warn when the namespace of a qualified symbol or keyword has a defined alias.
 
 *Default level:* `:warning`.
 
