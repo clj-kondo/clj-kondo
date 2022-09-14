@@ -9,7 +9,7 @@
             :col 1,
             :level :warning,
             :message "An alias is defined for baz.qux: q"})
-         (lint! (io/file "corpus/existing_aliases/single_alias.clj")
+         (lint! (io/file "corpus" "existing_aliases" "single_alias.clj")
                 {:linters {:existing-alias {:level :warning}}}))))
 
 (deftest multiple-aliases-test
@@ -18,7 +18,7 @@
             :col 1,
             :level :warning,
             :message "Multiple aliases are defined for baz.qux: q, qq"})
-         (lint! (io/file "corpus/existing_aliases/multiple_aliases.clj")
+         (lint! (io/file "corpus" "existing_aliases" "multiple_aliases.clj")
                 {:linters {:duplicate-require {:level :off}
                            :existing-alias {:level :warning}}}))))
 
@@ -28,7 +28,7 @@
             :col 1,
             :level :warning,
             :message "An alias is defined for baz.qux: q"})
-         (lint! (io/file "corpus/existing_aliases/excluded_alias.clj")
+         (lint! (io/file "corpus" "existing_aliases" "excluded_alias.clj")
                 '{:linters {:existing-alias {:level :warning
                                              :exclude [clojure.string]}}}))))
 
@@ -38,5 +38,5 @@
             :col 11,
             :level :warning,
             :message "An alias is defined for baz.qux: q"})
-         (lint! (io/file "corpus/existing_aliases/as_alias_example.clj")
+         (lint! (io/file "corpus" "existing_aliases" "as_alias_example.clj")
                 {:linters {:existing-alias {:level :warning}}}))))
