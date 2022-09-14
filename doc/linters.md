@@ -63,6 +63,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
+    - [Unknown :require option](#unknown-require-option)
     - [Unused binding](#unused-binding)
     - [Used underscored bindings](#used-underscored-bindings)
     - [Unreachable code](#unreachable-code)
@@ -1144,6 +1145,18 @@ These warnings can be enabled by setting the level to `:warning` or
 ``` clojure
 {:linters {:used-underscored-binding {:level :warning}}}
 ```
+
+### Unknown :require option
+
+*Keyword:* `:unknown-require-option`
+
+*Description:* warn on unknown `:require` option pairs.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(ns foo (:require [bar :s b]))`.
+
+*Example message:* `Unknown :require option: :s`.
 
 ### Unreachable code
 
