@@ -227,11 +227,10 @@
                         filename
                         child-expr
                         :unknown-require-option
-                        (format "Unknown %srequire option: '%s %s'"
+                        (format "Unknown %srequire option: %s"
                                 (if require-sym
                                   "" ":")
-                                child-k
-                                opt-expr)))
+                                child-k)))
                     (recur (nnext children)
                            m))))
             (let [{:keys [:as :referred :excluded :referred-all :renamed]} m

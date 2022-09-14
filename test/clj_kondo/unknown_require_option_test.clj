@@ -7,7 +7,7 @@
             :row 1,
             :col 24,
             :level :warning,
-            :message "Unknown :require option: ':s b'"})
+            :message "Unknown :require option: :s"})
          (lint! "(ns foo (:require [bar :s b]))"
                 {:linters {:unknown-require-option {:level :warning}}}))))
 
