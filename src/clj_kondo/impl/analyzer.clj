@@ -1675,7 +1675,8 @@
                                                        keep keep-indexed])
         arg-count (if (and transducer-eligable?
                            (zero? arg-count)) ;; transducer
-                    (if (and (= 'clojure.core hof-ns-name)
+                    (if (and (or (= 'clojure.core hof-ns-name)
+                                 (= 'cljs.core hof-ns-name))
                              (or (= 'map hof-resolved-name)
                                  (= 'mapcat hof-resolved-name)))
                       nil 1)
