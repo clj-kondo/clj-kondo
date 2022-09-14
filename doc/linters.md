@@ -1156,7 +1156,7 @@ These warnings can be enabled by setting the level to `:warning` or
 
 *Example trigger:* `(ns foo (:require [bar :s b]))`.
 
-*Example message:* `Unknown :require option: ':s b'`.
+*Example message:* `Unknown :require option: :s`.
 
 ### Unreachable code
 
