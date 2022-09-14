@@ -39,7 +39,8 @@
      linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
    [clojure.set :as set]
    [clojure.string :as str]
-   [sci.core :as sci]))
+   [sci.core :as sci]
+   [clojure.java.io :as io]))
 
 (set! *warn-on-reflection* true)
 
@@ -2762,15 +2763,19 @@
                  "data_readers.cljc")
                 (ctx-with-linters-disabled ctx [:unresolved-namespace])
                 ctx)]
-      (when-let [max-line-length (-> config :linters :line-length :max-line-length)]
-        (doseq [[row line] (map-indexed vector (str/split-lines input))
-                :let [line-length (count line)]
-                :when (< max-line-length line-length)]
-          (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
-                                      :filename filename
-                                      :type     :line-length
-                                      :row      (inc row)
-                                      :col      (inc max-line-length)})))
+      (let [line-length-conf (-> config :linters :line-length)]
+        (when (not (identical? :off (:level line-length-conf)))
+          (when-let [max-line-length (:max-line-length line-length-conf)]
+            (with-open [rdr (io/reader (java.io.StringReader. input))]
+              (run! (fn [[row line]]
+                      (let [line-length (count line)]
+                        (when (< max-line-length line-length)
+                          (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
+                                                      :filename filename
+                                                      :type     :line-length
+                                                      :row      (inc row)
+                                                      :col      (inc max-line-length)}))))
+                    (map-indexed vector (line-seq rdr)))))))
       (doseq [e @reader-exceptions]
         (if dev?
           (throw e)
