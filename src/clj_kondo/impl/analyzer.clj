@@ -1008,19 +1008,22 @@
                              [(:value name-expr) v]))
                          name-exprs))
         ctx (ctx-with-bindings ctx bindings)
+        protocol-fn (:protocol-fn ctx)
+        ctx* (dissoc ctx :protocol-fn)
         processed-fns (for [f fns
                             :let [children (:children f)
                                   fn-name (:value (first children))
-                                  bodies (fn-bodies ctx (next children) f)
-                                  arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)]]
+                                  bodies (fn-bodies ctx* (next children) f)
+                                  arity (fn-arity (assoc ctx* :skip-reg-binding? true) bodies)]]
                         {:name fn-name
                          :arity arity
                          :bodies bodies})
-        ctx (reduce (fn [ctx pf]
+        ctx* (reduce (fn [ctx pf]
                       (assoc-in ctx [:arities (:name pf)]
                                 (:arity pf)))
-                    ctx processed-fns)
-        parsed-fns (map #(analyze-fn-body ctx %) (mapcat :bodies processed-fns))
+                    ctx* processed-fns)
+        parsed-fns (map #(analyze-fn-body ctx* %) (mapcat :bodies processed-fns))
+        ctx (assoc ctx* :protocol-fn protocol-fn)
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
     (concat (mapcat :parsed parsed-fns) analyzed-children)))
 
