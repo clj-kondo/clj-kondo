@@ -79,7 +79,7 @@
              {resolved-ns :ns}
              (namespace/resolve-name ctx false ns-name symbol-val nil)]
          (if resolved-ns
-           (do (linters/lint-existing-alias ctx expr resolved-ns)
+           (do (linters/lint-existing-alias ctx expr symbol-val)
                (namespace/reg-used-namespace! ctx
                                               (-> ns :name)
                                               resolved-ns))

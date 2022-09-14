@@ -8,7 +8,8 @@
    [missing.test.assertions]))
 
 (deftest invalid-arity-test
-  (let [linted (lint! (io/file "corpus" "invalid_arity"))
+  (let [linted (lint! (io/file "corpus" "invalid_arity")
+                      {:linters {:existing-alias {:level :off}}})
         row-col-files (sort-by (juxt :file :row :col)
                                (map #(select-keys % [:row :col :file])
                                     linted))]

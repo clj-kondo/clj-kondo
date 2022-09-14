@@ -8,7 +8,8 @@
    [clojure.tools.deps.alpha :as deps]))
 
 (def config
-  '{:linters {:unresolved-namespace {:exclude [clojure.string]}
+  '{:linters {:existing-alias {:level :off}
+              :unresolved-namespace {:exclude [clojure.string]}
               :unresolved-symbol    {:exclude [random-uuid
                                                goog.DEBUG
                                                (com.rpl.specter/recursive-path)]}

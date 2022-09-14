@@ -32,6 +32,10 @@
 
 ;;; end export
 
+(defn generated-token
+  [token]
+  (vary-meta (token/token-node token) assoc :clj-kondo.impl/generated true))
+
 (defn print-err! [& strs]
   (binding [*out* *err*]
     (apply println strs))

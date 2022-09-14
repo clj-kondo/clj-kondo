@@ -13,7 +13,7 @@
         :children
         (fn [[_ name-expr & body]]
           (list*
-           (utils/token-node 'clojure.core/defn)
+           (utils/generated-token 'clojure.core/defn)
            (when name-expr (vary-meta name-expr
                                       assoc
                                       :linted-as (symbol (str resolved-as-ns) (str resolved-as-name))
@@ -33,7 +33,7 @@
 
 (defn analyze-are [ctx resolved-namespace expr]
   (let [[_ argv expr & args] (:children expr)
-        is-expr (utils/list-node [(utils/token-node (symbol (str resolved-namespace) "is")) expr])
+        is-expr (utils/list-node [(utils/generated-token (symbol (str resolved-namespace) "is")) expr])
         new-node (macros/expand-do-template ctx
                                             (utils/list-node (list* nil
                                                                     argv

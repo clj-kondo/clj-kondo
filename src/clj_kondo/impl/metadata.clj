@@ -65,5 +65,5 @@
 ;;;; Scratch
 
 (comment
-  (meta (lift-meta-content2 {:findings (atom [])} (clj-kondo.impl.utils/parse-string "^{:a 1 :a 2} []")))
+  (meta (lift-meta-content2 {:findings (atom [])} (utils/parse-string "^{:a 1 :a 2} []")))
   )
