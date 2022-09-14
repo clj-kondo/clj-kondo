@@ -522,6 +522,31 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `Case test is compile time constant and should not be quoted.`
 
+### Existing alias
+
+*Keyword:* `:existing-alias`.
+
+*Description:* warn when the namespace of a qualified symbol has a defined alias.
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+```
+(ns foo
+  (:require [clojure.string :as str]))
+
+(clojure.string/join ", " (range 10))
+```
+
+*Example message:* `An alias is defined for clojure.string: str`.
+
+*Config:* to suppress the above warning:
+
+```clojure
+{:linters {:existing-alias {:exclude [clojure.string]}}}
+```
+
 ### File
 
 *Keyword:* `:file`.
