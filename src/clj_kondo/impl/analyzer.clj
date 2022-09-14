@@ -35,8 +35,9 @@
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
-    [symbol-call node->line parse-string tag select-lang deep-merge one-of
-     linter-disabled? tag sexpr string-from-token assoc-some ctx-with-bindings]]
+    [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
+     one-of parse-string select-lang sexpr string-from-token symbol-call tag tag]]
+   [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
    [sci.core :as sci]))
@@ -1007,19 +1008,22 @@
                              [(:value name-expr) v]))
                          name-exprs))
         ctx (ctx-with-bindings ctx bindings)
+        protocol-fn (:protocol-fn ctx)
+        ctx* (dissoc ctx :protocol-fn)
         processed-fns (for [f fns
                             :let [children (:children f)
                                   fn-name (:value (first children))
-                                  bodies (fn-bodies ctx (next children) f)
-                                  arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)]]
+                                  bodies (fn-bodies ctx* (next children) f)
+                                  arity (fn-arity (assoc ctx* :skip-reg-binding? true) bodies)]]
                         {:name fn-name
                          :arity arity
                          :bodies bodies})
-        ctx (reduce (fn [ctx pf]
+        ctx* (reduce (fn [ctx pf]
                       (assoc-in ctx [:arities (:name pf)]
                                 (:arity pf)))
-                    ctx processed-fns)
-        parsed-fns (map #(analyze-fn-body ctx %) (mapcat :bodies processed-fns))
+                    ctx* processed-fns)
+        parsed-fns (map #(analyze-fn-body ctx* %) (mapcat :bodies processed-fns))
+        ctx (assoc ctx* :protocol-fn protocol-fn)
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
     (concat (mapcat :parsed parsed-fns) analyzed-children)))
 
@@ -2762,15 +2766,19 @@
                  "data_readers.cljc")
                 (ctx-with-linters-disabled ctx [:unresolved-namespace])
                 ctx)]
-      (when-let [max-line-length (-> config :linters :line-length :max-line-length)]
-        (doseq [[row line] (map-indexed vector (str/split-lines input))
-                :let [line-length (count line)]
-                :when (< max-line-length line-length)]
-          (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
-                                      :filename filename
-                                      :type     :line-length
-                                      :row      (inc row)
-                                      :col      (inc max-line-length)})))
+      (let [line-length-conf (-> config :linters :line-length)]
+        (when (not (identical? :off (:level line-length-conf)))
+          (when-let [max-line-length (:max-line-length line-length-conf)]
+            (with-open [rdr (io/reader (java.io.StringReader. input))]
+              (run! (fn [[row line]]
+                      (let [line-length (count line)]
+                        (when (< max-line-length line-length)
+                          (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
+                                                      :filename filename
+                                                      :type     :line-length
+                                                      :row      (inc row)
+                                                      :col      (inc max-line-length)}))))
+                    (map-indexed vector (line-seq rdr)))))))
       (doseq [e @reader-exceptions]
         (if dev?
           (throw e)

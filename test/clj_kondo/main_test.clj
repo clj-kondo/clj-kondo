@@ -1254,7 +1254,8 @@ foo/foo ;; this does use the private var
     Number
   IFoo
   (-foo [this]
-    (recur this)))"))))
+    (recur this)))")))
+  (is (empty? (lint! "(defrecord Foo [] clojure.lang.ILookup (valAt [_ _] (letfn [(_foo [_x] (recur 1))])))"))))
 
 (deftest lint-as-test
   (assert-submaps
