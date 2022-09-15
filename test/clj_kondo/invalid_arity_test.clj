@@ -150,6 +150,7 @@
   (is (empty? (lint! "(reduce (fn [acc e]) [1 2 3])")))
   (is (empty? (lint! "(sequence (map (fn [_ _])) (range 10) (range 10))")))
   (is (empty? (lint! "(sequence (mapcat (fn [_ _])) (range 10) (range 10))")))
+  (is (empty? (lint! "(map (fn [_results _cols]))" "--lang" "cljs")))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 6, :level :error,
       :message "clojure.core/inc is called with 2 args but expects 1"})
