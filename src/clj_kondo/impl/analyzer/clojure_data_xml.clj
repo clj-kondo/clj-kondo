@@ -1,21 +1,21 @@
 (ns clj-kondo.impl.analyzer.clojure-data-xml
   (:require [clj-kondo.impl.analyzer.common :as common]
-            [clj-kondo.impl.utils :as utils :refer [list-node generated-token]]))
+            [clj-kondo.impl.utils :as utils :refer [list-node token-node]]))
 
 (set! *warn-on-reflection* true)
 
 (defn ->alias-node [alias-node]
   (let [sexpr (utils/sexpr alias-node)]
     (cond (string? sexpr)
-          (list-node [(generated-token 'quote)
-                      (generated-token (symbol sexpr))])
+          (list-node [(token-node 'quote)
+                      (token-node (symbol sexpr))])
           (and (list? sexpr)
                (= 'quote (first sexpr)))
-          (list-node [(generated-token 'quote)
-                      (generated-token (symbol (str (second sexpr))))])
+          (list-node [(token-node 'quote)
+                      (token-node (symbol (str (second sexpr))))])
           (keyword? sexpr)
-          (list-node [(generated-token 'quote)
-                      (generated-token (symbol (name sexpr)))])
+          (list-node [(token-node 'quote)
+                      (token-node (symbol (name sexpr)))])
           :else alias-node)))
 
 (defn encode-uri [^String uri]
@@ -35,21 +35,21 @@
               uri (uri-symbol ns-str)]
           (common/analyze-expression** ctx
                                        (list-node
-                                        [(generated-token 'alias)
+                                        [(token-node 'alias)
                                          (->alias-node alias-node)
-                                         (list-node [(generated-token 'quote)
-                                                     (generated-token uri)])]))
+                                         (list-node [(token-node 'quote)
+                                                     (token-node uri)])]))
           (recur (nnext children)))))))
 
 (defn analyze-export-api [ctx node]
   (let [children (rest (:children node))
         new-node (utils/list-node
-                  (list* (generated-token 'do)
+                  (list* (utils/token-node 'do)
                          (map (fn [exported-var-node]
                                 (let [qualified-sym (:value exported-var-node)
                                       unqualified-sym (symbol (name qualified-sym))]
-                                  (utils/list-node [(generated-token 'clojure.core/def)
-                                                    (generated-token unqualified-sym)
+                                  (utils/list-node [(utils/token-node 'clojure.core/def)
+                                                    (utils/token-node unqualified-sym)
                                                     exported-var-node])))
                               children)))]
     (common/analyze-expression** ctx new-node)))

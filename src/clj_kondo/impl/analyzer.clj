@@ -1884,9 +1884,7 @@
                                                                (symbol (name full-fn-name))])
                                   children))
               :else
-              (let [_ (when (namespace full-fn-name)
-                        (linters/lint-existing-alias ctx expr full-fn-name))
-                    [resolved-as-namespace resolved-as-name _lint-as?]
+              (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
                             [[ns n]
                              (config/lint-as config

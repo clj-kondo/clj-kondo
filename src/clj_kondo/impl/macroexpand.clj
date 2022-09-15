@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node generated-token]]
+   [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]
    [clojure.walk :as walk]))
 
 (set! *warn-on-reflection* true)
@@ -59,18 +59,18 @@
         thread-sym (case resolved-as-name
                      cond-> 'clojure.core/->
                      cond->> 'clojure.core/->>)
-        g (with-meta-of (generated-token (gensym))
-            (vary-meta start-expr assoc :clj-kondo.impl/generated true))
+        g (with-meta-of (token-node (gensym))
+            (with-meta start-expr (assoc (meta start-expr) :clj-kondo.impl/generated true)))
         steps (map (fn [[t step]]
-                     (list-node [(generated-token 'if)
+                     (list-node [(token-node 'if)
                                  t
                                  (list-node
-                                  [(generated-token thread-sym)
+                                  [(token-node thread-sym)
                                    g
                                    step])
                                  g]))
                    (partition 2 clauses))
-        ret (list-node [(generated-token 'clojure.core/let)
+        ret (list-node [(token-node 'clojure.core/let)
                         (vector-node
                          (list* g start-expr
                                 (interleave (repeat g) (butlast steps))))
@@ -79,11 +79,10 @@
 
 (defn expand-doto [_ctx expr]
   (let [[_doto x & forms] (:children expr)
-        gx (with-meta-of (generated-token (gensym "_"))
+        gx (with-meta-of (token-node (gensym "_"))
              (with-meta x (assoc (meta x) :clj-kondo.impl/generated true)))
         ret (list-node
-             (list* (generated-token 'clojure.core/let)
-                    (vector-node [gx x])
+             (list* (token-node 'clojure.core/let) (vector-node [gx x])
                     (map (fn [f]
                            (with-meta-of
                              (let [t (tag f)]
@@ -102,9 +101,9 @@
         ctor-name (-> ctor-name
                       (subs 0 (dec (count ctor-name)))
                       symbol)
-        ctor-node (with-meta-of (generated-token ctor-name)
+        ctor-node (with-meta-of (token-node ctor-name)
                     ctor-node)]
-    (with-meta-of (list-node (list* (generated-token 'new) ctor-node children))
+    (with-meta-of (list-node (list* (token-node 'new) ctor-node children))
       expr)))
 
 (defn expand-method-invocation
@@ -115,15 +114,15 @@
         meth (-> meth-name
                  (subs 1)
                  symbol)
-        meth-node (with-meta-of (generated-token meth)
+        meth-node (with-meta-of (token-node meth)
                     meth-node)]
-    (with-meta-of (list-node (list* (generated-token '.) invoked meth-node args))
+    (with-meta-of (list-node (list* (token-node '.) invoked meth-node args))
       expr)))
 
 (defn expand-double-dot
   [_ctx expr]
   (loop [[x form & more] (rest (:children expr))]
-    (let [node (with-meta-of (list-node [(generated-token '.) x form])
+    (let [node (with-meta-of (list-node [(token-node '.) x form])
                  expr)]
       (if more
         (recur (cons node more) )
@@ -167,7 +166,7 @@
                          :row row
                          :col (inc col)))
         arg-list (vector-node
-                  (map #(with-meta (generated-token %)
+                  (map #(with-meta (token-node %)
                           {:clj-kondo/mark-used true
                            :clj-kondo/skip-reg-binding true})
                        (if varargs?
@@ -175,7 +174,7 @@
                          args)))
         has-first-arg? (= '%1 (first args))]
     (with-meta
-      (list-node [(generated-token 'fn*) arg-list
+      (list-node [(token-node 'fn*) arg-list
                   fn-body])
       (assoc m :clj-kondo.impl/fn-has-first-arg has-first-arg?))))
 
@@ -185,7 +184,7 @@
         argv (:children argv)
         new-node
         (if (pos? c) ;; prevent infinite partition
-          (list-node (list* (generated-token 'do)
+          (list-node (list* (token-node 'do)
                             (map (fn [a] (walk/postwalk-replace (zipmap argv a) expr))
                                  (partition c values))))
           expr)
@@ -205,5 +204,5 @@
   (expand-> {} (parse-string "(-> 1 inc inc inc)"))
   (expand->> {} (parse-string "(->> 1 inc inc inc)"))
   (= (parse-string "%")
-     (generated-token '%))
+     (token-node '%))
   )

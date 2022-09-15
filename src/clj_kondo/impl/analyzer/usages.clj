@@ -5,7 +5,6 @@
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.linters :as linters]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some symbol-token?]]
@@ -79,10 +78,9 @@
              {resolved-ns :ns}
              (namespace/resolve-name ctx false ns-name symbol-val nil)]
          (if resolved-ns
-           (do (linters/lint-existing-alias ctx expr symbol-val)
-               (namespace/reg-used-namespace! ctx
-                                              (-> ns :name)
-                                              resolved-ns))
+           (namespace/reg-used-namespace! ctx
+                                          (-> ns :name)
+                                          resolved-ns)
            (namespace/reg-unresolved-namespace! ctx ns-name
                                                 (with-meta (symbol (namespace symbol-val))
                                                   (meta expr)))))))))

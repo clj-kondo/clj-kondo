@@ -33,13 +33,3 @@
            (lint! path
                   '{:linters {:existing-alias {:level :warning
                                                :exclude [clojure.string]}}})))))
-
-(deftest as-alias-test
-  (let [path (io/file "corpus" "existing_aliases" "as_alias_example.clj")]
-    (is (= [{:file (str path),
-             :row 4,
-             :col 11,
-             :level :warning,
-             :message "An alias is defined for baz.qux: q"}]
-           (lint! path
-                  {:linters {:existing-alias {:level :warning}}})))))

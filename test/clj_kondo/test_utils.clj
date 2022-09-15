@@ -10,11 +10,11 @@
 
 (set! *warn-on-reflection* true)
 
-(defmethod clojure.test/report :begin-test-var [m]
+(defmethod t/report :begin-test-var [m]
   (println "===" (-> m :var meta :name))
   (println))
 
-(defmethod clojure.test/report :end-test-var [_m]
+(defmethod t/report :end-test-var [_m]
   (when-let [rc *report-counters*]
     (when-let [{:keys [:fail :error]} @rc]
       (when (and (= "true" (System/getenv "CLJ_KONDO_FAIL_FAST"))

@@ -464,6 +464,39 @@
           sym))
       sym)))
 
+(defn lint-existing-alias
+  "Check if the given symbol is qualified and isn't using an `:as` or `:as-alias` alias."
+  [ctx expr ns-sym]
+  ;; Reasons to not check the given symbol:
+  ;; * it's already using an existing alias
+  ;; * this lint is disabled
+  ;; * this lint is configured to exclude the given namespace
+  (when-not (or (contains? (:aliases (:ns ctx)) ns-sym)
+                (linter-disabled? ctx :existing-alias)
+                (config/existing-alias-excluded? (:config ctx) ns-sym))
+    (let [ns->aliases (persistent!
+                        (reduce-kv
+                          (fn [m k v]
+                            (let [existing (get m v #{})]
+                              (assoc! m v (conj existing k))))
+                          (transient {})
+                          (:aliases (:ns ctx))))]
+      (when-let [existing (ns->aliases ns-sym)]
+        (findings/reg-finding!
+          ctx
+          (node->line
+            (:filename ctx)
+            expr
+            :existing-alias
+            (format "%s defined for %s: %s"
+                    (if (= 1 (count existing))
+                      "An alias is"
+                      "Multiple aliases are")
+                    ns-sym
+                    (if (= 1 (count existing))
+                      (first existing)
+                      (str/join ", " (sort existing))))))))))
+
 (defn resolve-name
   [ctx call? ns-name name-sym expr]
   (let [lang (:lang ctx)
@@ -477,6 +510,7 @@
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)
                                  ns-sym))]
+              (lint-existing-alias ctx expr ns-sym)
               (let [core? (or (= 'clojure.core ns*)
                               (= 'cljs.core ns*))
                     var-name (symbol
