@@ -7,7 +7,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
-   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr tag export-ns-sym linter-disabled?]]
+   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr tag export-ns-sym]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
