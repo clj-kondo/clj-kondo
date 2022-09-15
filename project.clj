@@ -15,7 +15,7 @@
                  [io.lambdaforge/datalog-parser "0.1.9"]
                  [cheshire/cheshire "5.11.0"]
                  [nrepl/bencode "1.1.0"]
-                 [org.babashka/sci "0.3.2"]
+                 [org.babashka/sci "0.4.33"]
                  [babashka/fs "0.1.11"]
                  [org.ow2.asm/asm "9.2"]]
   ;; :global-vars {*print-namespace-maps* false}
