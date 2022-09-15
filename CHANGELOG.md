@@ -8,6 +8,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1460](https://github.com/clj-kondo/clj-kondo/issues/1460): Add a linter for unknown `:require` options
 - [#1807](https://github.com/clj-kondo/clj-kondo/issues/1807): false positive with map transducer in cljs
 - [#1806](https://github.com/clj-kondo/clj-kondo/issues/1806): false positive recur mismatch with letfn
+- [#1810](https://github.com/clj-kondo/clj-kondo/issues/1810): Fix printing error map as additional error
 
 ## 2022.09.08
 
