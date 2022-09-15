@@ -227,9 +227,7 @@
                         filename
                         child-expr
                         :unknown-require-option
-                        (format "Unknown %srequire option: %s"
-                                (if require-sym
-                                  "" ":")
+                        (format "Unknown require option: %s"
                                 child-k)))
                     (recur (nnext children)
                            m))))
