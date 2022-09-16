@@ -2857,6 +2857,11 @@ foo/baz
    '({:file "<stdin>", :row 1, :col 10, :level :error, :message "import form is invalid: clauses must not be empty"})
    (lint! "(import '())")))
 
+(deftest expected-class-symbol-test
+  (is (empty?
+        (with-out-str
+          (lint! "(ns circle.http.api.v2.context (:import [circle.http.defapi :refer [defapi-with-auth]]))")))))
+
 (deftest empty-require
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 19, :level :error, :message "require form is invalid: clauses must not be empty"})
