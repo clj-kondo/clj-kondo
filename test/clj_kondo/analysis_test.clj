@@ -591,7 +591,8 @@
   (let [{:keys [:var-definitions]}
         (analyze "(ns clojure.core) (def defn- :compare-override-attributes)"
                  {:lang :clj
-                  :config {:analysis {:var-definitions {:meta true}}}})]
+                  :config {:analysis {:var-definitions {:meta true}}}
+                  :cache false})]
     (assert-submaps
      '[{:ns clojure.core
         :name defn-
@@ -601,14 +602,16 @@
   (let [{:keys [:var-definitions]}
         (analyze "(ns cljs.core) (def array :compare-override-attributes)"
                  {:lang :cljs
-                  :config {:analysis {:var-definitions {:meta true}}}})]
+                  :config {:analysis {:var-definitions {:meta true}}}
+                  :cache false})]
     (assert-submaps
      '[{:varargs-min-arity 0}]
      var-definitions))
   (let [{:keys [:var-definitions]}
         (analyze "(ns cljs.core) (def defn- :compare-override-attributes)"
                  {:lang :cljc
-                  :config {:analysis {:var-definitions {:meta true}}}})]
+                  :config {:analysis {:var-definitions {:meta true}}}
+                  :cache false})]
     (assert-submaps
      '[{:ns cljs.core
         :name defn-
