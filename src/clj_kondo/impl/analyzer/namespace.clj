@@ -340,7 +340,7 @@
                          {ns-name ns-name}
                          analyzed)
      :aliases (into {} (comp (filter :as) (map (juxt :as :ns))) analyzed)
-     :ns->aliases (when-not (-> ctx :config :linters :existing-alias :level
+     :ns->aliases (when-not (-> ctx :config :linters :aliased-namespace-symbol :level
                                 (identical? :off))
                     (reduce
                       (fn [acc sc]

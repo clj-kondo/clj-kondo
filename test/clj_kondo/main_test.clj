@@ -152,7 +152,7 @@
      {:file "corpus/private/private_calls.clj", :row 4, :col 1, :level :error, :message "#'private.private-defs/private is private"}
      {:file "corpus/private/private_calls.clj", :row 5, :col 1, :level :error, :message "#'private.private-defs/private-by-meta is private"}
      {:file "corpus/private/private_calls.clj", :row 6, :col 6, :level :error, :message "#'private.private-defs/private is private"})
-   (lint! (io/file "corpus" "private") {:linters {:existing-alias {:level :off}}}))
+   (lint! (io/file "corpus" "private")))
   (assert-submaps
    '({:file "<stdin>", :row 6, :col 1, :level :error, :message "#'foo/foo is private"})
    (lint! "(ns foo) (defn- foo [])

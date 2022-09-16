@@ -1,3 +1,2 @@
-{:linters {:existing-alias {:level :off}
-           :invalid-arity {:level :off}
+{:linters {:invalid-arity {:level :off}
            :unused-binding {:level :off}}}

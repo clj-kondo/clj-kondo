@@ -7,6 +7,7 @@ configuration. For general configurations options, go [here](config.md).
 **Table of Contents**
 
 - [Linters](#linters)
+    - [Aliased namespace symbol](#aliased-namespace-symbol)
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
     - [Conflicting-alias](#conflicting-alias)
@@ -79,6 +80,31 @@ configuration. For general configurations options, go [here](config.md).
     - [Warn on reflection](#warn-on-reflection)
 
 <!-- markdown-toc end -->
+
+### Aliased namespace symbol
+
+*Keyword:* `:aliased-namespace-symbol`.
+
+*Description:* warn when the namespace of a qualified symbol has a defined alias.
+
+*Default level:* `:off`.
+
+*Example trigger:*
+
+```
+(ns foo
+  (:require [clojure.string :as str]))
+
+(clojure.string/join ", " (range 10))
+```
+
+*Example message:* `An alias is defined for clojure.string: str`.
+
+*Config:* to suppress the above warning:
+
+```clojure
+{:linters {:aliased-namespace-symbol {:exclude [clojure.string]}}}
+```
 
 ### Clj-kondo config
 
@@ -522,31 +548,6 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(case x 'a 1 :b 2)`
 
 *Example message:* `Case test is compile time constant and should not be quoted.`
-
-### Existing alias
-
-*Keyword:* `:existing-alias`.
-
-*Description:* warn when the namespace of a qualified symbol has a defined alias.
-
-*Default level:* `:warning`.
-
-*Example trigger:*
-
-```
-(ns foo
-  (:require [clojure.string :as str]))
-
-(clojure.string/join ", " (range 10))
-```
-
-*Example message:* `An alias is defined for clojure.string: str`.
-
-*Config:* to suppress the above warning:
-
-```clojure
-{:linters {:existing-alias {:exclude [clojure.string]}}}
-```
 
 ### File
 
