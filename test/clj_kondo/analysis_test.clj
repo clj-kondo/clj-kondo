@@ -587,6 +587,39 @@
           :row 4 :col 12 :end-row 4 :end-col 20}]
        var-usages))))
 
+(deftest overrides-test
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns clojure.core) (def defn- :compare-override-attributes)"
+                 {:lang :clj
+                  :config {:analysis {:var-definitions {:meta true}}}})]
+    (assert-submaps
+     '[{:ns clojure.core
+        :name defn-
+        :macro true
+        :varargs-min-arity 2}]
+     var-definitions))
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns cljs.core) (def array :compare-override-attributes)"
+                 {:lang :cljs
+                  :config {:analysis {:var-definitions {:meta true}}}})]
+    (assert-submaps
+     '[{:varargs-min-arity 0}]
+     var-definitions))
+  (let [{:keys [:var-definitions]}
+        (analyze "(ns cljs.core) (def defn- :compare-override-attributes)"
+                 {:lang :cljc
+                  :config {:analysis {:var-definitions {:meta true}}}})]
+    (assert-submaps
+     '[{:ns cljs.core
+        :name defn-
+        :macro true
+        :varargs-min-arity 2}
+       {:ns cljs.core
+        :name defn-
+        :macro true
+        :varargs-min-arity 2}]
+     var-definitions)))
+
 (deftest name-position-test
   (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:analysis {:locals true}}})]
     (assert-submaps
