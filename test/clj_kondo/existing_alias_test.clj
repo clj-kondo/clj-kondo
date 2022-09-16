@@ -25,37 +25,28 @@
 
 (deftest excluded-alias-test
   (let [path (io/file "corpus" "existing_aliases" "excluded_alias.clj")]
-    (is (empty?
-          (lint! path
-                 {:linters {:existing-alias {:level :warning
-                                              :exclude ['clojure.string]}}})))))
+    (is (empty? (lint! path
+                       {:linters {:existing-alias {:level :warning
+                                                   :exclude ['clojure.string]}}})))))
 
-(deftest dont-check-analyze-call-hook
-  (is (empty? (lint!
-                (str "(ns analyze-call-hook (:require [clojure.core :as cc]))\n"
-                     "(defn new-> [x f] (f x))\n"
-                     "(new-> 1 inc)")
-                {:linters ^:replace {:existing-alias {:level :warning}}
-                 :hooks
-                 {:__dangerously-allow-string-hooks__ true
-                  :analyze-call
-                  {'analyze-call-hook/new->
-                   (str "(require '[clj-kondo.hooks-api :as api])\n"
-                        "(defn new-> [{:keys [node]}]\n"
-                        "  (let [children (rest (:children node))\n"
-                        "        node (list* (api/token-node 'clojure.core/->) children)]\n"
-                        "    {:node (api/list-node node)}))")}}}))))
+(deftest dont-check-analyze-call-hook-test
+  (let [path (io/file "corpus" "existing_aliases" "analyze_call_hook.clj")
+        hook (slurp (io/file "corpus" "existing_aliases" "analyze_call_hook_str.clj"))]
+    (is (empty? (lint! path
+                       {:linters {:existing-alias {:level :warning}}
+                        :hooks {:__dangerously-allow-string-hooks__ true
+                                :analyze-call {'analyze-call-hook/new-> hook}}})))))
 
-(deftest dont-check-macroexpansion
-  (is (empty? (lint!
-                (str "(ns macroexpansion (:require [clojure.core :as cc]))\n"
-                     "(defn new-> [x f] (f x))\n"
-                     "(new-> 1 inc)")
-                {:linters ^:replace {:existing-alias {:level :warning}}
-                 :hooks
-                 {:__dangerously-allow-string-hooks__ true
-                  :macroexpand
-                  {'macroexpansion/new->
-                   (str "(require '[clj-kondo.hooks-api :as api])\n"
-                        "(defmacro new-> [x f]\n"
-                        "  (list 'clojure.core/-> x f))")}}}))))
+(deftest dont-check-macroexpand-hook-test
+  (let [path (io/file "corpus" "existing_aliases" "macroexpansion.clj")
+        hook (slurp (io/file "corpus" "existing_aliases" "macroexpansion_str.clj"))]
+    (is (empty? (lint! path
+                       {:linters {:existing-alias {:level :warning}}
+                        :hooks {:__dangerously-allow-string-hooks__ true
+                                :macroexpand {'macroexpansion/new-> hook}}})))))
+
+(deftest expanded-by-clj-kondo-test
+  (let [path (io/file "corpus" "existing_aliases" "expanded_by_clj_kondo.clj")]
+    (is (empty? (lint! path
+                       {:linters {:existing-alias {:level :warning}
+                                  :unresolved-symbol {:level :error}}})))))
