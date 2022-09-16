@@ -340,6 +340,18 @@
                          {ns-name ns-name}
                          analyzed)
      :aliases (into {} (comp (filter :as) (map (juxt :as :ns))) analyzed)
+     :ns->aliases (when-not (-> ctx :config :linters :aliased-namespace-symbol :level
+                                (identical? :off))
+                    (reduce
+                      (fn [acc sc]
+                        (let [n (:ns sc)
+                              as (:as sc)
+                              existing (or (acc n) #{})]
+                          (if as
+                            (assoc acc n (conj existing as))
+                            acc)))
+                      {}
+                      analyzed))
      :referred-vars (into {} (mapcat :referred analyzed))
      :refer-alls refer-alls
      :used-namespaces

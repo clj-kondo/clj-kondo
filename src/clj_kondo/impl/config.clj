@@ -132,6 +132,8 @@
                                #_#_:include #{clojure.core/conj!}}
               :warn-on-reflection {:level :off
                                    :warn-only-on-interop true}
+              :aliased-namespace-symbol {:level :off
+                                         :exclude #{#_clojure.string}}
               :line-length {:level :warning
                             :max-line-length nil}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
@@ -406,6 +408,15 @@
         delayed-cfg (memoize delayed-cfg)]
     (fn [config sym]
       (contains? (delayed-cfg config) sym))))
+
+(def aliased-namespace-symbol-excluded?
+  (let [delayed-cfg (fn [config]
+                      (let [syms (get-in config [:linters :aliased-namespace-symbol :exclude])]
+                        (set syms)))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config sym-ns]
+      (let [excluded (delayed-cfg config)]
+        (contains? excluded sym-ns)))))
 
 (defn ns-group* [config ns-name filename]
   (or (some (fn [{:keys [pattern
