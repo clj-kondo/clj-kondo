@@ -259,9 +259,10 @@
   (if-let [v (:value node)]
     (with-meta v
       (meta node))
-    (findings/reg-finding!
-     ctx
-     (node->line (:filename ctx) node :syntax "Expected: class symbol"))))
+    (do (findings/reg-finding!
+          ctx
+          (node->line (:filename ctx) node :syntax "Expected: class symbol"))
+        nil)))
 
 (defn analyze-import [ctx _ns-name libspec-expr]
   (utils/handle-ignore ctx libspec-expr)
