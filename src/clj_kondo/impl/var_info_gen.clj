@@ -1828,7 +1828,6 @@ clojure.core/aget
 clojure.core/alength
 clojure.core/all-ns
 clojure.core/any?
-clojure.core/apply
 clojure.core/array-map
 clojure.core/assoc
 clojure.core/assoc-in
@@ -1904,7 +1903,6 @@ clojure.core/empty?
 clojure.core/ensure-reduced
 clojure.core/enumeration-seq
 clojure.core/even?
-clojure.core/every?
 clojure.core/ex-cause
 clojure.core/ex-data
 clojure.core/ex-info
@@ -1913,7 +1911,6 @@ clojure.core/false?
 clojure.core/ffirst
 clojure.core/file-seq
 clojure.core/filter
-clojure.core/filterv
 clojure.core/find
 clojure.core/find-keyword
 clojure.core/first
@@ -1929,7 +1926,6 @@ clojure.core/future?
 clojure.core/gensym
 clojure.core/get
 clojure.core/get-in
-clojure.core/group-by
 clojure.core/halt-when
 clojure.core/hash
 clojure.core/hash-map
@@ -1979,14 +1975,10 @@ clojure.core/map-entry?
 clojure.core/map-indexed
 clojure.core/map?
 clojure.core/mapcat
-clojure.core/mapv
 clojure.core/max
-clojure.core/max-key
 clojure.core/merge
-clojure.core/merge-with
 clojure.core/meta
 clojure.core/min
-clojure.core/min-key
 clojure.core/mix-collection-hash
 clojure.core/mod
 clojure.core/name
@@ -1998,9 +1990,7 @@ clojure.core/nfirst
 clojure.core/nil?
 clojure.core/nnext
 clojure.core/not
-clojure.core/not-any?
 clojure.core/not-empty
-clojure.core/not-every?
 clojure.core/not=
 clojure.core/nth
 clojure.core/nthnext
@@ -2046,8 +2036,6 @@ clojure.core/read-string
 clojure.core/reader-conditional
 clojure.core/reader-conditional?
 clojure.core/record?
-clojure.core/reduce
-clojure.core/reduce-kv
 clojure.core/reduced?
 clojure.core/reductions
 clojure.core/rem
@@ -2080,12 +2068,8 @@ clojure.core/simple-keyword?
 clojure.core/simple-symbol?
 clojure.core/some
 clojure.core/some?
-clojure.core/sort
-clojure.core/sort-by
 clojure.core/sorted-map
-clojure.core/sorted-map-by
 clojure.core/sorted-set
-clojure.core/sorted-set-by
 clojure.core/sorted?
 clojure.core/special-symbol?
 clojure.core/split-at
@@ -2140,7 +2124,6 @@ clojure.core/uri?
 clojure.core/uuid?
 clojure.core/val
 clojure.core/vals
-clojure.core/vary-meta
 clojure.core/vec
 clojure.core/vector
 clojure.core/vector-of
@@ -2281,9 +2264,6 @@ clojure.data.json/write-str
 clojure.data.priority-map/->PersistentPriorityMap
 clojure.data.priority-map/priority->set-of-items
 clojure.data.priority-map/priority-map
-clojure.data.priority-map/priority-map-by
-clojure.data.priority-map/priority-map-keyfn
-clojure.data.priority-map/priority-map-keyfn-by
 clojure.data.priority-map/rsubseq
 clojure.data.priority-map/subseq
 clojure.java.io/as-file
@@ -2385,7 +2365,6 @@ clojure.set/map-invert
 clojure.set/project
 clojure.set/rename
 clojure.set/rename-keys
-clojure.set/select
 clojure.set/subset?
 clojure.set/superset?
 clojure.set/union
@@ -2399,8 +2378,6 @@ clojure.string/join
 clojure.string/last-index-of
 clojure.string/lower-case
 clojure.string/re-quote-replacement
-clojure.string/replace
-clojure.string/replace-first
 clojure.string/reverse
 clojure.string/split
 clojure.string/split-lines

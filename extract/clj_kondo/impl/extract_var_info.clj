@@ -108,7 +108,8 @@
   (reduce-kv (fn [acc sym info]
                (if (or (:warn-if-ret-val-unused info)
                        (:pure-fn info)
-                       (:pure-fn-if-fn-args-pure info))
+                       (:lazy info) ;; unrealized laziness = unused value
+                       #_(:pure-fn-if-fn-args-pure info))
                  (conj acc sym)
                  acc))
              #{} var-info))

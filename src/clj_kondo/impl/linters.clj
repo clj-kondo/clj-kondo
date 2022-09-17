@@ -456,8 +456,7 @@
       (when call?
         (when-let [idx (:idx call)]
           (when (and (< idx (dec (:len call)))
-                     (contains? var-info/unused-values fn-sym)
-                     )
+                     (contains? var-info/unused-values fn-sym))
             (let [unused-value-conf (-> config :linters :unused-value)]
               (when-not (identical? :off (:level unused-value-conf))
                 (let [parent-call (second (:callstack call))
