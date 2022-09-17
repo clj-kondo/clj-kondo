@@ -7,7 +7,8 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
-   [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some symbol-token?]]
+   [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some
+                                           symbol-token?]]
    [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
@@ -56,7 +57,8 @@
        (let [{:keys [:destructuring-expr :keys-destructuring?
                      :keys-destructuring-ns-modifier?]} opts
              current-ns (some-> ns-name symbol)
-             destructuring (when destructuring-expr (resolve-keyword ctx destructuring-expr current-ns))
+             destructuring (when destructuring-expr (resolve-keyword ctx destructuring-expr
+                                                                     current-ns))
              resolved (resolve-keyword ctx expr current-ns)]
          (analysis/reg-keyword-usage!
            ctx
@@ -186,7 +188,8 @@
                                         (str/ends-with? symbol-str "."))
                                  (namespace/resolve-name ctx true ns-name
                                                          (symbol (subs symbol-str
-                                                                       0 (dec (count symbol-str)))) expr)
+                                                                       0 (dec (count symbol-str))))
+                                                         expr)
                                  v))
                              v))
                          m (meta expr)
@@ -223,9 +226,12 @@
                                                     :filename (:filename ctx)
                                                     :unresolved-symbol-disabled?
                                                     (or syntax-quote?
-                                                        ;; e.g. usage of clojure.core, clojure.string, etc in (:require [...])
-                                                        (= symbol-val (get (:qualify-ns ns) symbol-val)))
-                                                    :private-access? (or syntax-quote? (:private-access? ctx))
+                                                        ;; e.g. usage of clojure.core,
+                                                        ;; clojure.string, etc in (:require [...])
+                                                        (= symbol-val (get (:qualify-ns ns)
+                                                                           symbol-val)))
+                                                    :private-access? (or syntax-quote?
+                                                                         (:private-access? ctx))
                                                     :callstack (:callstack ctx)
                                                     :config (:config ctx)
                                                     :in-def (:in-def ctx)
@@ -256,7 +262,8 @@
                          (when redundant?
                            (findings/reg-finding! ctx (assoc (meta expr)
                                                              :type :redundant-expression
-                                                             :message (str "Redundant expression: " (str expr))
+                                                             :message (str "Redundant expression: "
+                                                                           (str expr))
                                                              :filename (:filename ctx))))))))
                  (when (:k expr)
                      (analyze-keyword ctx expr opts))))
