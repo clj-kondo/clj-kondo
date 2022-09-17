@@ -825,7 +825,7 @@
                                                         :analyzed))]
         (lint-two-forms-binding-vector! ctx call bv)
         (concat (:analyzed bindings)
-                (analyze-expression** ctx condition)
+                (analyze-expression** (update ctx :callstack conj [:vector]) condition)
                 (if if?
                   ;; in the case of if, the binding is only valid in the first expression
                   (concat
