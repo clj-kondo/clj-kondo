@@ -18,8 +18,8 @@
 
 (def deps {:deps {'org.clojure/clojure {:mvn/version clj-version}
                   'org.clojure/clojurescript {:mvn/version cljs-version}}
-            :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
-                        "clojars" {:url "https://repo.clojars.org/"}}})
+           :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                       "clojars" {:url "https://repo.clojars.org/"}}})
 
 (deps/resolve-deps deps nil)
 
