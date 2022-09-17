@@ -1,27 +1,32 @@
 (ns clj-kondo.aliased-namespace-test
-  (:require [clj-kondo.test-utils :refer [lint!]]
+  (:require [clj-kondo.test-utils :refer [lint! assert-submaps]]
             [clojure.java.io :as io]
             [clojure.test :refer [deftest is testing]]))
 
 (deftest single-alias-test
-  (let [file (io/file "corpus" "aliased_namespaces" "single_alias.clj")]
-    (is (= [{:file (str file),
-             :row 4,
-             :col 1,
-             :level :warning,
-             :message "An alias is defined for baz.qux: q"}]
-           (lint! file {:linters {:aliased-namespace-symbol {:level :warning}}})))))
+  (assert-submaps [{:row 4,
+                    :col 2,
+                    :level :warning,
+                    :message "An alias is defined for baz.qux: q"}
+                   {:file "<stdin>", :row 5, :col 1, :level :warning,
+                    :message "An alias is defined for baz.qux: q"}]
+                  (lint! "(ns single-alias
+  (:require [baz.qux :as q]))
+
+(baz.qux/some-fn 1 2 3)
+baz.qux/some-fn
+" {:linters {:aliased-namespace-symbol {:level :warning}}})))
 
 (deftest multiple-aliases-test
   (let [path (io/file "corpus" "aliased_namespaces" "multiple_aliases.clj")]
-    (is (= [{:file (str path),
-             :row 5,
-             :col 1,
-             :level :warning,
-             :message "Multiple aliases are defined for baz.qux: q, qq"}]
-           (lint! path
-                  {:linters {:duplicate-require {:level :off}
-                             :aliased-namespace-symbol {:level :warning}}})))))
+    (assert-submaps [{:file (str path),
+                      :row 5,
+                      :col 2,
+                      :level :warning,
+                      :message "Multiple aliases are defined for baz.qux: q, qq"}]
+                    (lint! path
+                           {:linters {:duplicate-require {:level :off}
+                                      :aliased-namespace-symbol {:level :warning}}}))))
 
 (deftest excluded-alias-test
   (let [path (io/file "corpus" "aliased_namespaces" "excluded_alias.clj")]

@@ -1619,9 +1619,10 @@
         arg-count (count args)]
     (when-not (= percent-count
                  arg-count)
-      (findings/reg-finding! ctx (node->line (:filename ctx) format-str-node :format
-                                             (format "Format string expects %s arguments instead of %s."
-                                                     percent-count arg-count))))))
+      (findings/reg-finding! ctx
+                             (node->line (:filename ctx) format-str-node :format
+                                         (format "Format string expects %s arguments instead of %s."
+                                                 percent-count arg-count))))))
 
 (defn analyze-format [ctx expr]
   (let [children (next (:children expr))
