@@ -55,10 +55,10 @@
                                                        :name def
                                                        :macro true
                                                        :fixed-arities #{1 2 3}})
-        (assoc-in '[:cljc :defs cljs.core :clj defn ] '{:ns cljs.core
-                                                        :name defn
-                                                        :macro true
-                                                        :varargs-min-arity 2})
+        (assoc-in '[:cljc :defs cljs.core :clj defn] '{:ns cljs.core
+                                                       :name defn
+                                                       :macro true
+                                                       :varargs-min-arity 2})
         (assoc-in '[:cljc :defs cljs.core :cljs defn] '{:ns cljs.core
                                                         :name defn
                                                         :macro true

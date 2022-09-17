@@ -4,6 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1758](https://github.com/clj-kondo/clj-kondo/issues/1758): Overrides don't get applied to var-definitions during analysis
 - [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): Add a linter for line length
 - [#1460](https://github.com/clj-kondo/clj-kondo/issues/1460): Add a linter for unknown `:require` options
 - [#1807](https://github.com/clj-kondo/clj-kondo/issues/1807): false positive with map transducer in cljs
