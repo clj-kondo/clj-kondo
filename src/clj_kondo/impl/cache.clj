@@ -137,7 +137,7 @@
 (defn sync-cache*
   "Reads required namespaces from cache and combines them with the
   namespaces we linted in this run."
-  [idacs config-dir cache-dir]
+  [idacs _config-dir cache-dir]
   ;; first load all idacs so we can resolve types
   (let [idacs (assoc idacs :linted-namespaces #{})
         idacs
@@ -153,13 +153,7 @@
                               :clj [:clj :cljc]))))
                 idacs
                 [:clj :cljs :cljc])]
-    (reduce (fn [idacs lang]
-              (update-in idacs [lang :defs]
-                         (fn [defs]
-                           (update-defs idacs config-dir cache-dir lang defs)))
-              idacs)
-            idacs
-            [:clj :cljs :cljc])))
+    idacs))
 
 (defn sync-cache [idacs config-dir cache-dir]
   (if cache-dir
