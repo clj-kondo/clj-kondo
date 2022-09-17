@@ -7,7 +7,8 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
-   [clj-kondo.impl.utils :as utils :refer [node->line constant? sexpr tag export-ns-sym]]
+   [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym node->line
+                                           sexpr tag]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -453,8 +454,34 @@
           (when-not (or arity-error? skip-arity-check?)
             (lint-arg-types! ctx idacs call called-fn))))
       (when call?
-        (prn called-fn)
-        (prn (:idx call) (:len call))))))
+        (when-let [idx (:idx call)]
+          (when (and (< idx (dec (:len call)))
+                     (contains? var-info/unused-values fn-sym)
+                     )
+            (let [unused-value-conf (-> config :linters :unused-value)]
+              (when-not (identical? :off (:level unused-value-conf))
+                (let [parent-call (second (:callstack call))
+                      core? (utils/one-of (first parent-call) [clojure.core cljs.core])
+                      core-sym (when core?
+                                 (second parent-call))
+                      unused?
+                      (and core?
+                           (utils/one-of core-sym [do fn defn defn-
+                                                   let when-let loop binding with-open
+                                                   doseq try when when-not when-first
+                                                   when-some future]))]
+                  (when unused?
+                    (findings/reg-finding!
+                     ctx
+                     {:filename filename
+                      :row row
+                      :end-row end-row
+                      :col col
+                      :end-col end-col
+                      :type :unused-value
+                      :message "Unused value"})))))))
+        #_(prn called-fn)
+        #_(prn (:idx call) (:len call))))))
 
 (defn lint-unused-namespaces!
   [ctx]

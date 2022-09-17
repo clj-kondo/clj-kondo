@@ -135,7 +135,8 @@
               :aliased-namespace-symbol {:level :off
                                          :exclude #{#_clojure.string}}
               :line-length {:level :warning
-                            :max-line-length nil}}
+                            :max-line-length nil}
+              :unused-value {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
