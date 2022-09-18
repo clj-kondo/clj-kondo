@@ -136,7 +136,7 @@
                                          :exclude #{#_clojure.string}}
               :line-length {:level :warning
                             :max-line-length nil}
-              :unused-value {:level :warning}}
+              :unused-value {:level :off}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
