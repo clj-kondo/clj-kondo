@@ -455,8 +455,7 @@
             (lint-arg-types! ctx idacs call called-fn))))
       (when call?
         (when-let [idx (:idx call)]
-          (when (and (< idx (dec (:len call)))
-                     (contains? var-info/unused-values fn-sym))
+          (when (contains? var-info/unused-values fn-sym)
             (let [unused-value-conf (-> config :linters :unused-value)]
               (when-not (identical? :off (:level unused-value-conf))
                 (let [parent-call (second (:callstack call))
@@ -465,6 +464,10 @@
                                  (second parent-call))
                       unused?
                       (and core?
+                           (or
+                            ;; doseq always return nil
+                            (utils/one-of core-sym [doseq])
+                            (< idx (dec (:len call))))
                            (utils/one-of core-sym [do fn defn defn-
                                                    let when-let loop binding with-open
                                                    doseq try when when-not when-first

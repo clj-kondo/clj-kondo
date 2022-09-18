@@ -3,7 +3,7 @@
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.test :refer [deftest is testing]]))
 
-(deftest unused-value-test-test
+(deftest unused-value-simple-expressions-test
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 5, :level :warning, :message "Unused value: 1"})
    (lint! "(do 1 2) " {:linters {:unused-value {:level :warning}}}))
@@ -62,3 +62,21 @@
       {:post [(member % (quote (true false :dont-know)))]}
       (list t1 t2 default))
     (declare disjoint?))" {:linters {:unused-value {:level :warning}}}))))
+
+(deftest unused-value-calls-test
+  (testing "unused pure function call"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value"})
+     (lint! "(defn foo [] (update {} :dude 1) 1)" {:linters {:unused-value {:level :warning}}})))
+  (testing "unused lazy seq"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value"})
+     (lint! "(defn foo [] (map inc [1 2 3]) 1)" {:linters {:unused-value {:level :warning}}})))
+  (testing "unused transient call"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value"})
+     (lint! "(defn foo [] (assoc! (transient {}) :dude 1) 1)" {:linters {:unused-value {:level :warning}}})))
+  (testing "unused in doseq"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Unused value"})
+     (lint! "(doseq [x [1 2 3]] (assoc! (transient {}) x 1))" {:linters {:unused-value {:level :warning}}}))))

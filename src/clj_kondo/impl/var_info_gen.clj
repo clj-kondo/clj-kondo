@@ -1830,6 +1830,7 @@ clojure.core/all-ns
 clojure.core/any?
 clojure.core/array-map
 clojure.core/assoc
+clojure.core/assoc!
 clojure.core/assoc-in
 clojure.core/associative?
 clojure.core/bigdec
@@ -1877,6 +1878,7 @@ clojure.core/compare
 clojure.core/completing
 clojure.core/concat
 clojure.core/conj
+clojure.core/conj!
 clojure.core/cons
 clojure.core/contains?
 clojure.core/count
@@ -1890,6 +1892,7 @@ clojure.core/delay?
 clojure.core/denominator
 clojure.core/disj
 clojure.core/dissoc
+clojure.core/dissoc!
 clojure.core/distinct
 clojure.core/distinct?
 clojure.core/double
@@ -2010,6 +2013,7 @@ clojure.core/partition-by
 clojure.core/peek
 clojure.core/pmap
 clojure.core/pop
+clojure.core/pop!
 clojure.core/pos-int?
 clojure.core/pos?
 clojure.core/qualified-ident?
@@ -2294,9 +2298,6 @@ clojure.java.jdbc/result-set-read-column
 clojure.java.jdbc/result-set-seq
 clojure.java.jdbc/sql-value
 clojure.java.jdbc/string-array
-clojure.java.jdbc/with-db-connection
-clojure.java.jdbc/with-db-metadata
-clojure.java.jdbc/with-db-transaction
 clojure.main/err->msg
 clojure.main/ex-str
 clojure.main/ex-triage
