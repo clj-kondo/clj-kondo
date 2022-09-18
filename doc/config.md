@@ -149,6 +149,7 @@ Some linters are not enabled by default. Right now these linters are:
 - `:used-underscored-binding`: warn when a underscored (ie marked as unused) binding is used.
 - `:warn-on-reflection`: warns about not setting `*warn-on-reflection*` to true in Clojure
 namespaces.
+- `:unused-value`: warns about unused values.
 
 You can enable these linters by setting the `:level`:
 
