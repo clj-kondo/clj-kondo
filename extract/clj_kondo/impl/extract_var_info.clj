@@ -18,8 +18,8 @@
 
 (def deps {:deps {'org.clojure/clojure {:mvn/version clj-version}
                   'org.clojure/clojurescript {:mvn/version cljs-version}}
-            :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
-                        "clojars" {:url "https://repo.clojars.org/"}}})
+           :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                       "clojars" {:url "https://repo.clojars.org/"}}})
 
 (deps/resolve-deps deps nil)
 
@@ -38,6 +38,7 @@
 
   (def default-fq-imports '%s)
 
+  (def unused-values '%s)
 ")
 
 (defn eastwood-var-info
@@ -103,6 +104,16 @@
         (for [[k v] clojure.lang.RT/DEFAULT_IMPORTS]
           [k (symbol (.getName ^Class v))])))
 
+(defn extract-unused-values [var-info]
+  (reduce-kv (fn [acc sym info]
+               (if (or (:warn-if-ret-val-unused info)
+                       (:pure-fn info)
+                       (:lazy info) ;; unrealized laziness = unused value
+                       #_(:pure-fn-if-fn-args-pure info))
+                 (conj acc sym)
+                 acc))
+             #{} var-info))
+
 (defn print-set-sorted [s]
   (format "#{%s}"
           (str/join "\n" (sort s))))
@@ -133,11 +144,13 @@
         clojure-core-syms (into clojure-core-syms-eastwood extracted-core-vars)
         cljs-core-vars (extract-cljs-core-vars)
         default-java-imports (extract-default-imports)
+        unused-values (extract-unused-values var-info)
         code (format code-template predicates-by-ns
                      (print-set-sorted clojure-core-syms)
                      (print-set-sorted cljs-core-vars)
                      (print-map-sorted default-java-imports)
-                     (print-set-sorted (vals default-java-imports)))]
+                     (print-set-sorted (vals default-java-imports))
+                     (print-set-sorted unused-values))]
     (spit "src/clj_kondo/impl/var_info_gen.clj" code)))
 
 ;;;; Scratch

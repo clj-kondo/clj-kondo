@@ -91,7 +91,9 @@
               :shadowed-var {:level :off}
               :loop-without-recur {:level :off}
               :redundant-fn-wrapper {:level :off}
-              :namespace-name-mismatch {:level :off}}})
+              :namespace-name-mismatch {:level :off}
+              :line-length {:level :off}
+              :unused-value {:level :off}}})
 
 (defn lint-jvm!
   ([input]

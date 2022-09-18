@@ -2070,8 +2070,8 @@ foo/foo ;; this does use the private var
   ;; for now this is empty, but in the next version we might warn about the
   ;; string "dude" being a discarded value
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Redundant expression: \"dude\""})
-   (lint! "(defn f \"dude\" [x] \"dude\" x)")))
+   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Unused value: \"dude\""})
+   (lint! "(defn f \"dude\" [x] \"dude\" x)" {:linters {:unused-value {:level :warning}}})))
 
 (deftest defn-syntax-test
   (assert-submaps '({:file "<stdin>",

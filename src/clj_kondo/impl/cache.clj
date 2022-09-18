@@ -156,8 +156,7 @@
     (reduce (fn [idacs lang]
               (update-in idacs [lang :defs]
                          (fn [defs]
-                           (update-defs idacs config-dir cache-dir lang defs)))
-              idacs)
+                           (update-defs idacs config-dir cache-dir lang defs))))
             idacs
             [:clj :cljs :cljc])))
 

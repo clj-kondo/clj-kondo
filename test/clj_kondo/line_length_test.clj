@@ -29,22 +29,27 @@
                        :level :warning
                        :message "Line is longer than 2 characters."
                        :row 1
-                       :col 3}) (lint! short-line '{:linters {:line-length {:max-line-length 2}}}))
+                       :col 3}) (lint! short-line '{:linters {:line-length {:max-line-length 2
+                                                                            :level :warning}}}))
     (assert-submaps '({:file "<stdin>"
                        :level :warning
                        :message "Line is longer than 2 characters."
                        :row 1
-                       :col 3}) (lint! short-line '{:linters {:line-length {:max-line-length 2}}}  "--lang" "cljs")))
+                       :col 3}) (lint! short-line '{:linters {:line-length {:max-line-length 2
+                                                                            :level :warning}}}
+                                       "--lang" "cljs")))
 
   (testing "test linting long lines"
-    (is (empty? (lint! multi-line '{:linters {:line-length {:max-line-length 8000}}})))
+    (is (empty? (lint! multi-line '{:linters {:line-length {:max-line-length 8000
+                                                            :level :warning}}})))
     (assert-submaps
       '({:file    "<stdin>"
          :level   :warning
          :message "Line is longer than 80 characters."
          :row     1
          :col     81})
-      (lint! long-line '{:linters {:line-length {:max-line-length 80}}}))
+      (lint! long-line '{:linters {:line-length {:max-line-length 80
+                                                 :level :warning}}}))
     (assert-submaps
       '({:file    "<stdin>"
          :level   :warning
@@ -56,4 +61,5 @@
          :message "Line is longer than 120 characters."
          :row     5
          :col     121})
-      (lint! multi-line '{:linters {:line-length {:max-line-length 120}}}))))
+      (lint! multi-line '{:linters {:line-length {:max-line-length 120
+                                                  :level :warning}}}))))

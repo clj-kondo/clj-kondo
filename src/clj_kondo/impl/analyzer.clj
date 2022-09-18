@@ -825,7 +825,7 @@
                                                         :analyzed))]
         (lint-two-forms-binding-vector! ctx call bv)
         (concat (:analyzed bindings)
-                (analyze-expression** ctx condition)
+                (analyze-expression** (update ctx :callstack conj [:vector]) condition)
                 (if if?
                   ;; in the case of if, the binding is only valid in the first expression
                   (concat
@@ -1019,9 +1019,9 @@
                          :arity arity
                          :bodies bodies})
         ctx* (reduce (fn [ctx pf]
-                      (assoc-in ctx [:arities (:name pf)]
-                                (:arity pf)))
-                    ctx* processed-fns)
+                       (assoc-in ctx [:arities (:name pf)]
+                                 (:arity pf)))
+                     ctx* processed-fns)
         parsed-fns (map #(analyze-fn-body ctx* %) (mapcat :bodies processed-fns))
         ctx (assoc ctx* :protocol-fn protocol-fn)
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
@@ -1795,7 +1795,9 @@
     (analyze-extend-type ctx {:children children} defined-by)))
 
 (defn analyze-cljs-exists? [ctx expr]
-  (run! #(analyze-usages2 (ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace]) %)
+  (run! #(analyze-usages2
+          (ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace])
+          %)
         (next (:children expr))))
 
 (defn- analyze-instance-invocation [ctx expr children]
@@ -1979,7 +1981,9 @@
                                     :top-ns (:top-ns ctx)
                                     :arg-types arg-types
                                     :interop? interop?
-                                    :resolved-core? resolved-core?}))
+                                    :resolved-core? resolved-core?
+                                    :idx (:idx ctx)
+                                    :len (:len ctx)}))
                   ;;;; This registers the namespace as used, to prevent unused warnings
                     (namespace/reg-used-namespace! ctx
                                                    ns-name
@@ -2001,7 +2005,8 @@
                                         (let [generated? (:clj-kondo.impl/generated expr)]
                                           (cons (with-meta [resolved-namespace* resolved-name]
                                                   (cond-> expr-meta
-                                                    generated? (assoc :clj-kondo.impl/generated true))) cs))))
+                                                    generated?
+                                                    (assoc :clj-kondo.impl/generated true))) cs))))
                               (update ctx :callstack conj [nil nil]))
                         resolved-as-clojure-var-name
                         (when (one-of resolved-as-namespace [clojure.core cljs.core])
@@ -2012,7 +2017,8 @@
                               ctx)
                         defined-by (or (:defined-by ctx)
                                        (when (and resolved-as-name resolved-as-namespace)
-                                         (symbol (name resolved-as-namespace) (name resolved-as-name))))
+                                         (symbol (name resolved-as-namespace)
+                                                 (name resolved-as-name))))
                         analyzed
                         (case resolved-as-clojure-var-name
                           ns
@@ -2152,13 +2158,15 @@
                              [clojure.spec.gen.alpha lazy-prims])
                             (analyze-declare ctx expr defined-by)
                             [potemkin import-vars]
-                            (potemkin/analyze-import-vars ctx expr ctx-with-linters-disabled 'potemkin/import-vars)
+                            (potemkin/analyze-import-vars ctx expr ctx-with-linters-disabled
+                                                          'potemkin/import-vars)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
                              [cljs.core.async alt!] [cljs.core.async alt!!])
-                            (core-async/analyze-alt! (assoc ctx
-                                                            :analyze-expression** analyze-expression**
-                                                            :extract-bindings extract-bindings)
-                                                     expr)
+                            (core-async/analyze-alt!
+                             (assoc ctx
+                                    :analyze-expression** analyze-expression**
+                                    :extract-bindings extract-bindings)
+                             expr)
                             ([clojure.core.async defblockingop])
                             (analyze-defn ctx expr defined-by)
                             ([clojure.core.reducers defcurried])
@@ -2208,16 +2216,20 @@
                              [re-frame.core reg-sub-raw]
                              [re-frame.core reg-fx]
                              [re-frame.core reg-cofx])
-                            (re-frame/analyze-reg ctx expr (symbol (str resolved-namespace) (str resolved-name)))
+                            (re-frame/analyze-reg
+                             ctx expr
+                             (symbol (str resolved-namespace) (str resolved-name)))
                             ([re-frame.core subscribe])
                             (re-frame/analyze-subscribe ctx expr (str resolved-namespace))
                             ([re-frame.core dispatch]
                              [re-frame.core dispatch-sync])
                             (re-frame/analyze-dispatch ctx expr (str resolved-namespace))
                             ([re-frame.core reg-sub])
-                            (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace) (str resolved-name)))
+                            (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace)
+                                                                       (str resolved-name)))
                             ([re-frame.core reg-event-fx])
-                            (re-frame/analyze-reg-event-fx ctx expr (symbol (str resolved-namespace) (str resolved-name)))
+                            (re-frame/analyze-reg-event-fx ctx expr (symbol (str resolved-namespace)
+                                                                            (str resolved-name)))
                             ([re-frame.core inject-cofx])
                             (re-frame/analyze-inject-cofx ctx expr (str resolved-namespace))
                             ;; catch-all
@@ -2287,7 +2299,9 @@
                                         :interop? interop?
                                         :resolved-core? resolved-core?
                                         :redundant-fn-wrapper-parent-loc
-                                        redundant-fn-wrapper-parent-loc}
+                                        redundant-fn-wrapper-parent-loc
+                                        :idx (:idx ctx)
+                                        :len (:len ctx)}
                             ret-tag (or (:ret m)
                                         (types/ret-tag-from-call ctx proto-call expr))
                             call (cond-> proto-call

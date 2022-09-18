@@ -54,7 +54,6 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant do](#redundant-do)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
     - [Redundant call](#redundant-call)
-    - [Redundant expression](#redundant-expression)
     - [Redundant let](#redundant-let)
     - [Refer](#refer)
     - [Refer all](#refer-all)
@@ -76,6 +75,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused namespace](#unused-namespace)
     - [Unused private var](#unused-private-var)
     - [Unused referred var](#unused-referred-var)
+    - [Unused value](#unused-value)
     - [Use](#use)
     - [Warn on reflection](#warn-on-reflection)
 
@@ -938,16 +938,6 @@ warn on additional vars.
 
 *Example message:* `Single arg use of -> always returns the arg itself`.
 
-### Redundant expression
-
-*Keyword*: `:redundant-expression`
-
-*Description:* warn on redundant expression.
-
-*Example trigger:* `(do 1 2)`.
-
-*Example message:* `Redundant expression: 1`.
-
 ### Redundant let
 
 *Keyword:* `:redundant-let`.
@@ -1152,6 +1142,21 @@ This will disable the warning in:
 ``` clojure
 (defmulti f (fn [a b] a))
 ```
+
+### Unused value
+
+*Keyword*: `:unused-value`
+
+*Description:* warn on unused value: constants, unrealized lazy values, pure functions and transient ops (`assoc!`, `conj!` etc).
+
+*Example triggers*:
+
+- `(do 1 2)`
+- `(do (map inc [1 2 3]) 2)`
+- `(do (assoc {} :foo :bar) 2)`
+- `(do (assoc! (transient {}) :foo :bar) 2)`
+
+*Example message:* `Unused value: 1`.
 
 ### Used underscored bindings
 
