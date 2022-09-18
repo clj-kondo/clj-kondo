@@ -1285,8 +1285,9 @@
               fixed-arities (into #{}
                                   (comp transduce-arity-vecs (map #(count (:children %))))
                                   arities)]
+          (utils/handle-ignore ctx c)
           (namespace/reg-var!
-           ctx ns-name fn-name expr
+           ctx ns-name fn-name c #_expr
            (assoc-some (meta c)
                        :doc docstring
                        :arglist-strs arglist-strs

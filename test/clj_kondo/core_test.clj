@@ -45,7 +45,8 @@
                                           ["corpus/invalid_arity" "corpus/private"])]}))
             filenames (->> findings
                            (map :filename)
-                           (map #(str/split % (re-pattern (java.util.regex.Pattern/quote file-separator))))
+                           (map #(str/split % (re-pattern (java.util.regex.Pattern/quote
+                                                           file-separator))))
                            (map #(take 2 %))
                            set)]
         (is (= '#{("corpus" "invalid_arity") ("corpus" "private")}
@@ -141,7 +142,8 @@
       (clj-kondo/run!
        {:lint   [(if file? (str code) "-")]
         :lang lang
-        :config {:linters {:org.acme/forbidden-var {:level :error}}
+        :config {:linters {:org.acme/forbidden-var {:level :error}
+                           :org.acme/no-define-var {:level :error}}
                  :analysis true}
         :custom-lint-fn (fn [{:keys [analysis reg-finding!]}]
                           (let [evals (filter #(and (= 'clojure.core (:to %))
@@ -151,7 +153,12 @@
                                (reg-finding! (assoc (select-keys e [:filename :row :end-row :col :end-col])
                                                     :end-row (:name-end-row e)
                                                     :end-col (:name-end-col e)
-                                                    :type :org.acme/forbidden-var))))))}))))
+                                                    :type :org.acme/forbidden-var))))
+                            (doseq [v (:var-definitions analysis)
+                                    :when (= 'yolo (:name v))]
+                              (reg-callback
+                               (reg-finding! (assoc (select-keys v [:filename :row :end-row :col :end-col])
+                                                    :type :org.acme/no-define-var))))))}))))
 
 (defn file-analyzed-fn [paths lang file-analyzed-fn extra-config]
   (clj-kondo/run!
@@ -163,9 +170,7 @@
     extra-config)))
 
 (deftest custom-lint-fn-test
-  (testing "custom-lint reg a new finding and reg-finding! return the new finding"
-    ;; TODO
-    #_:clj-kondo/ignore
+ (testing "custom-lint reg a new finding and reg-finding! return the new finding"
     (let [res (custom-linter "(eval '(+ 1 2 3))" :clj #(is %))]
       (is (= [{:filename "<stdin>", :row 1, :col 1, :end-row 1, :end-col 6,
                :type :org.acme/forbidden-var, :level :error}]
@@ -178,6 +183,11 @@
       (is (empty? (:findings res)))))
   (testing "ignore hints return nil during reg-finding! for cljc files"
     (let [res (custom-linter (io/file "corpus/custom_lint_fn_ignore.cljc") :cljc #(is (not %)))]
+      (is (empty? (:findings res)))))
+  (testing "ignore hints on protocol var"
+    (let [res (custom-linter "(defprotocol Foo
+                                #_:clj-kondo/ignore
+                                (yolo [_]))" :clj #(is (not %)))]
       (is (empty? (:findings res))))))
 
 (deftest run-skip-lint

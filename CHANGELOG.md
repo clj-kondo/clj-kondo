@@ -12,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1810](https://github.com/clj-kondo/clj-kondo/issues/1810): Fix printing error map as additional error
 - [#1812](https://github.com/clj-kondo/clj-kondo/issues/1812): Inconsistent handling of location metadata sometimes produces nil values
 - [#1800](https://github.com/clj-kondo/clj-kondo/issues/1800): Add `:aliased-namespace-symbol`, a linter that checks qualified symbols to see if they're using an existing alias.
+- [#1805](https://github.com/clj-kondo/clj-kondo/issues/1805): Ignore hints not being considered on protocol vars
 
 ## 2022.09.08
 
