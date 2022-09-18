@@ -10,25 +10,25 @@
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src" "parser" "inlined"]
-  :dependencies [[org.clojure/clojure "1.11.1"]
-                 [com.cognitect/transit-clj "1.0.329"]
-                 [io.lambdaforge/datalog-parser "0.1.11"]
+  :dependencies [[org.clojure/clojure "1.9.0"]
+                 [com.cognitect/transit-clj "1.0.324"]
+                 [io.lambdaforge/datalog-parser "0.1.9"]
                  [cheshire/cheshire "5.11.0"]
                  [nrepl/bencode "1.1.0"]
                  [org.babashka/sci "0.4.33"]
                  [babashka/fs "0.1.11"]
-                 [org.ow2.asm/asm "9.3"]]
+                 [org.ow2.asm/asm "9.2"]]
   ;; :global-vars {*print-namespace-maps* false}
-  :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.11.1"]]}
-             :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.11.1"]]}
-             :test {:dependencies [[org.clojure/clojurescript "1.11.60"]
+  :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
+             :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
+             :test {:dependencies [[org.clojure/clojurescript "1.11.54"]
                                    [clj-commons/conch "0.9.2"]
-                                   [jonase/eastwood "1.3.0"]
+                                   [jonase/eastwood "1.2.2"]
                                    [borkdude/missing.test.assertions "0.0.2"]
-                                   [babashka/process "0.1.7"]
-                                   [org.clojure/tools.deps.alpha "0.14.1222"]]
+                                   [babashka/process "0.1.0"]
+                                   [org.clojure/tools.deps.alpha "0.12.1048"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
-             :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.4"]]
+             :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.0"]]
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.spec.skip-macros=true"]
                        :main clj-kondo.main
