@@ -17,12 +17,6 @@ jobs:
           - os: macos-12
             name: macos
             static: false
-         #- os: ubuntu-latest
-         #  name: linux
-         #  static: false
-         #- os: ubuntu-latest
-         #  name: linux
-         #  static: true
     runs-on: ${{ matrix.os }}
     env:
       LEIN_ROOT: "true"
@@ -30,12 +24,12 @@ jobs:
       CLJ_KONDO_TEST_ENV: native
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
       - name: Cache deps
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: cache-deps
         with:
           path: ~/.m2/repository
@@ -43,7 +37,7 @@ jobs:
           restore-keys: v1-dependencies-
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@5.0
+        uses: DeLaGuardo/setup-clojure@9.5
         with:
           cli: 1.10.3.855
           lein: 2.9.8
@@ -101,7 +95,7 @@ jobs:
           echo "##[set-output name=version;]${CLJ_KONDO_VERSION}"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: clj-kondo
           name: clj-kondo-${{ steps.clj-kondo-version.outputs.version }}-${{ matrix.name }}-amd64
