@@ -261,8 +261,8 @@
                                                     when-some future]))]
                          (when redundant?
                            (findings/reg-finding! ctx (assoc (meta expr)
-                                                             :type :redundant-expression
-                                                             :message (str "Redundant expression: "
+                                                             :type :unused-value
+                                                             :message (str "Unused value: "
                                                                            (str expr))
                                                              :filename (:filename ctx))))))))
                  (when (:k expr)
