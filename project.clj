@@ -23,7 +23,7 @@
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
              :test {:dependencies [[org.clojure/clojurescript "1.11.54"]
                                    [clj-commons/conch "0.9.2"]
-                                   [jonase/eastwood "1.2.2"]
+                                   [jonase/eastwood "1.3.0"]
                                    [borkdude/missing.test.assertions "0.0.2"]
                                    [babashka/process "0.1.0"]
                                    [org.clojure/tools.deps.alpha "0.12.1048"]]
