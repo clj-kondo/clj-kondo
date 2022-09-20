@@ -78,9 +78,7 @@
           (do (find-fn! "require form is invalid: clauses must not be empty") nil)
           :else
           (do
-            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx) libspec-expr :syntax (format "Unparsable libspec %s" form)))
+            (find-fn! (format "Unparsable libspec %s" form))
             (throw
              (ex-info
               "Unparsable namespace form. Is there a syntax error in a require call somewhere in the file?"
