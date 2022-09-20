@@ -35,7 +35,9 @@ Each producing function has a predicate counterpart for checking a type of node:
 Other API functions:
 
 - `sexpr`: turns a node into a Clojure s-expression. Useful for analyzing concrete values.
-<!-- - `reg-keyword!`: indicates that a keyword's analysis should be mared as a definition. Expects the keyword node and either true or the fully-qualified call that registered it.-->
+- `reg-keyword!`: indicates that a keyword's analysis should be marked as a
+  definition. Expects the keyword node and either `true` or the fully-qualified
+  function that registered it. This can be used to implement keyword navigation for `clojure-lsp`.
 - `tag`: returns node's tag, can be used as a dispatch function for multimethods, if you want your hook to be opened for extension.
 - `reg-finding!`: registers a finding. Expects a map with:
   - `:message`: the lint message
