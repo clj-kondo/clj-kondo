@@ -77,9 +77,15 @@
           (empty-spec? form)
           (do (find-fn! "require form is invalid: clauses must not be empty") nil)
           :else
-          (throw (ex-info "Unparsable namespace form"
-                          {:reason ::unparsable-ns-form
-                           :form form})))))
+          (do
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx) libspec-expr :syntax (format "Unparsable libspec %s" form)))
+            (throw
+             (ex-info
+              "Unparsable namespace form. Is there a syntax error in a require call somewhere in the file?"
+              {:reason ::unparsable-ns-form
+               :form (do (println form) form)}))))))
 
 (defn lint-alias-consistency [ctx ns-name alias]
   (let [consistent-aliases (get-in ctx [:config :linters :consistent-alias :aliases])]

@@ -8,5 +8,5 @@
     (main "--lint" "-" "--lang" "cljs"))
   (with-in-str "(defn foo [x] (instance? cljs.core.Var x))"
     (main "--lint" "-" "--lang" "cljs"))
-  )
-
+  (with-in-str "(ns foo) (require '[lol oh-no :as])"
+    (main "--lint" "-" "--lang" "clj")))
