@@ -85,7 +85,7 @@
              (ex-info
               "Unparsable namespace form. Is there a syntax error in a require call somewhere in the file?"
               {:reason ::unparsable-ns-form
-               :form (do (println form) form)}))))))
+               :form form}))))))
 
 (defn lint-alias-consistency [ctx ns-name alias]
   (let [consistent-aliases (get-in ctx [:config :linters :consistent-alias :aliases])]
