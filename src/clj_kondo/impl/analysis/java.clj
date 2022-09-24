@@ -36,13 +36,14 @@
   (let [fname (entry->class-name file)
         fname (str/replace fname "\\" ".")
         class-name (last (str/split fname #"\."))]
-    (binding [*in* (io/reader file)]
-      (loop []
-        (if-let [next-line (read-line)]
-          (if-let [[_ package] (re-matches #"\s*package\s+(\S*)\s*;\s*" next-line)]
-            (str package "." class-name)
-            (recur))
-          class-name)))))
+    (with-open [file-reader (io/reader file)]
+      (binding [*in* file-reader]
+        (loop []
+          (if-let [next-line (read-line)]
+            (if-let [[_ package] (re-matches #"\s*package\s+(\S*)\s*;\s*" next-line)]
+              (str package "." class-name)
+              (recur))
+            class-name))))))
 
 (defn java-class-def-analysis? [ctx]
   (-> ctx :config ))
