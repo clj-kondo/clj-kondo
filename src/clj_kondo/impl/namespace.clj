@@ -558,7 +558,7 @@
                  :unresolved-ns ns-sym})
               (if cljs?
                 ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
-                (when-not (one-of ns* ["js" "goog" "cljs.core"
+                (when-not (one-of ns* ["js" "goog"
                                        "Math" "String"])
                   {:name (symbol (name name-sym))
                    :unresolved? true
