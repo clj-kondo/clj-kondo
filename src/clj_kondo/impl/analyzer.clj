@@ -240,20 +240,17 @@
                         (str "unsupported binding form " expr))))
          :vector (let [children (:children expr)
                        all-tokens? (every? #(identical? :token %) (map :tag children))
-                       as-binding? (identical? :as (some-> (butlast children)
-                                                           last
-                                                           :k
-                                                           name
-                                                           keyword))
-                       exclude-as? (and as-binding?
-                                        (-> ctx :config :linters :unused-binding
-                                            :exclude-destructured-as))
-                       as-sym (when exclude-as? (last children))
+                       exclude-as? (-> ctx :config :linters :unused-binding
+                                       :exclude-destructured-as)
+                       as-sym (when exclude-as?
+                                (let [[as as-sym] (drop (- (count children) 2) children)]
+                                  (when (identical? :as (:k as))
+                                    as-sym)))
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
                            (if all-tokens?
                              (map #(extract-bindings ctx % scoped-expr opts) children)
                              (-> (reduce (fn [[ctx acc] expr]
-                                           (let [ctx (if (and exclude-as? (= expr as-sym))
+                                           (let [ctx (if (and as-sym (= expr as-sym))
                                                        (assoc ctx :mark-bindings-used? true)
                                                        ctx)
                                                  bnds (extract-bindings ctx expr scoped-expr opts)]
