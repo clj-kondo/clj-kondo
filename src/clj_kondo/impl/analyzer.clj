@@ -248,13 +248,12 @@
                        exclude-as? (and as-binding?
                                         (-> ctx :config :linters :unused-binding
                                             :exclude-destructured-as))
-                       [_as as-var] (when exclude-as?
-                                      (drop (- (count children) 2) children))
+                       as-sym (when exclude-as? (last children))
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
                            (if all-tokens?
                              (map #(extract-bindings ctx % scoped-expr opts) children)
                              (-> (reduce (fn [[ctx acc] expr]
-                                           (let [ctx (if (and exclude-as? (= expr as-var))
+                                           (let [ctx (if (and exclude-as? (= expr as-sym))
                                                        (assoc ctx :mark-bindings-used? true)
                                                        ctx)
                                                  bnds (extract-bindings ctx expr scoped-expr opts)]
