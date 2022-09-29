@@ -1129,6 +1129,8 @@ This will disable the warning in:
 
 ``` clojure
 (defn f [{:keys [a b c] :as g}] a b c)
+
+(defn g [[a :as b]] a)
 ```
 
 To exclude warnings about defmulti dispatch function arguments, use:

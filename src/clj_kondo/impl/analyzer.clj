@@ -240,15 +240,28 @@
                         (str "unsupported binding form " expr))))
          :vector (let [children (:children expr)
                        all-tokens? (every? #(identical? :token %) (map :tag children))
+                       as-binding? (identical? :as (some-> (butlast children)
+                                                           last
+                                                           :k
+                                                           name
+                                                           keyword))
+                       exclude-as? (and as-binding?
+                                        (-> ctx :config :linters :unused-binding
+                                            :exclude-destructured-as))
+                       [_as as-var] (when exclude-as?
+                                      (drop (- (count children) 2) children))
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
                            (if all-tokens?
                              (map #(extract-bindings ctx % scoped-expr opts) children)
                              (-> (reduce (fn [[ctx acc] expr]
-                                           (let [bnds (extract-bindings ctx expr scoped-expr opts)]
+                                           (let [ctx (if (and exclude-as? (= expr as-var))
+                                                       (assoc ctx :mark-bindings-used? true)
+                                                       ctx)
+                                                 bnds (extract-bindings ctx expr scoped-expr opts)]
                                              [(ctx-with-bindings ctx bnds) (conj! acc bnds)]))
                                          [ctx
                                           (transient [])]
-                                         (:children expr))
+                                         children)
                                  second
                                  persistent!)))
                        tags (map :tag (map meta v))
