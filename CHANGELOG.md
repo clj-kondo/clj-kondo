@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1800](https://github.com/clj-kondo/clj-kondo/issues/1800): Add `:aliased-namespace-symbol`, a linter that checks qualified symbols to see if they're using an existing alias.
 - [#1805](https://github.com/clj-kondo/clj-kondo/issues/1805): Ignore hints not being considered on protocol vars
 - [#1819](https://github.com/clj-kondo/clj-kondo/issues/1819): Fix "Too many open files" in java class definition analysis caused by files not being closed
+- [#1821](https://github.com/clj-kondo/clj-kondo/issues/1821): Include vectors in `:unused-binding` config `:exclude-destructured-as` flag.
 
 ## 2022.09.08
 
