@@ -4,17 +4,17 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#1758](https://github.com/clj-kondo/clj-kondo/issues/1758): Overrides don't get applied to var-definitions during analysis
-- [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): Add a linter for line length
-- [#1460](https://github.com/clj-kondo/clj-kondo/issues/1460): Add a linter for unknown `:require` options ([@noahtheduke](https://github.com/noahtheduke))
+- [#1758](https://github.com/clj-kondo/clj-kondo/issues/1758): Overrides don't get applied to var-definitions during analysis ([@sheluchin](https://github.com/sheluchin))
+- [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): Add a linter for line length ([@ourkwest](https://github.com/ourkwest))
+- [#1460](https://github.com/clj-kondo/clj-kondo/issues/1460): Add a linter for unknown `:require` options ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1807](https://github.com/clj-kondo/clj-kondo/issues/1807): false positive with map transducer in cljs
 - [#1806](https://github.com/clj-kondo/clj-kondo/issues/1806): false positive recur mismatch with letfn
-- [#1810](https://github.com/clj-kondo/clj-kondo/issues/1810): Fix printing error map as additional error
-- [#1812](https://github.com/clj-kondo/clj-kondo/issues/1812): Inconsistent handling of location metadata sometimes produces nil values
-- [#1800](https://github.com/clj-kondo/clj-kondo/issues/1800): Add `:aliased-namespace-symbol`, a linter that checks qualified symbols to see if they're using an existing alias. ([@noahtheduke](https://github.com/noahtheduke))
+- [#1810](https://github.com/clj-kondo/clj-kondo/issues/1810): Fix printing error map as additional error ([@NoahTheDuke](https://github.com/NoahTheDuke))
+- [#1812](https://github.com/clj-kondo/clj-kondo/issues/1812): Inconsistent handling of location metadata sometimes produces `nil` values ([@sheluchin](https://github.com/sheluchin))
+- [#1800](https://github.com/clj-kondo/clj-kondo/issues/1800): Add `:aliased-namespace-symbol`, a linter that checks qualified symbols to see if they're using an existing alias. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1805](https://github.com/clj-kondo/clj-kondo/issues/1805): Ignore hints not being considered on protocol vars
-- [#1819](https://github.com/clj-kondo/clj-kondo/issues/1819): Fix "Too many open files" in java class definition analysis caused by files not being closed
-- [#1821](https://github.com/clj-kondo/clj-kondo/issues/1821): Include vectors in `:unused-binding` config `:exclude-destructured-as` flag. ([@noahtheduke](https://github.com/noahtheduke))
+- [#1819](https://github.com/clj-kondo/clj-kondo/issues/1819): Fix "Too many open files" in java class definition analysis caused by files not being closed ([@rsauex](https://github.com/rsauex))
+- [#1821](https://github.com/clj-kondo/clj-kondo/issues/1821): Include vectors in `:unused-binding` config `:exclude-destructured-as` flag. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 
 ## 2022.09.08
 
