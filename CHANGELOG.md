@@ -4,6 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- New linter: `:unused-value` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-value). See issues [#611](https://github.com/clj-kondo/clj-kondo/issues/611) and [#1258](https://github.com/clj-kondo/clj-kondo/issues/1258).
 - [#1758](https://github.com/clj-kondo/clj-kondo/issues/1758): Overrides don't get applied to var-definitions during analysis ([@sheluchin](https://github.com/sheluchin))
 - [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): Add a linter for line length ([@ourkwest](https://github.com/ourkwest))
 - [#1460](https://github.com/clj-kondo/clj-kondo/issues/1460): Add a linter for unknown `:require` options ([@NoahTheDuke](https://github.com/NoahTheDuke))
