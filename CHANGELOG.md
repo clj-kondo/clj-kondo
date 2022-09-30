@@ -6,13 +6,13 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#611](https://github.com/clj-kondo/clj-kondo/issues/611): New linter: `:unused-value` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-value). Also see issue [#1258](https://github.com/clj-kondo/clj-kondo/issues/1258).
 - [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): New linter: `:line-length` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#line-length) ([@ourkwest](https://github.com/ourkwest))
+- [#1460](https://github.com/clj-kondo/clj-kondo/issues/1460): New linter: `:unknown-require-option` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unknown-require-option). ([@NoahTheDuke](https://github.com/NoahTheDuke))
+- [#1800](https://github.com/clj-kondo/clj-kondo/issues/1800): New linter: `:aliased-namespace-symbol` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#aliased-namespace-symbol). ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1758](https://github.com/clj-kondo/clj-kondo/issues/1758): Overrides don't get applied to var-definitions during analysis ([@sheluchin](https://github.com/sheluchin))
-- [#1460](https://github.com/clj-kondo/clj-kondo/issues/1460): Add a linter for unknown `:require` options ([@NoahTheDuke](https://github.com/NoahTheDuke))
-- [#1807](https://github.com/clj-kondo/clj-kondo/issues/1807): false positive with map transducer in cljs
-- [#1806](https://github.com/clj-kondo/clj-kondo/issues/1806): false positive recur mismatch with letfn
+- [#1807](https://github.com/clj-kondo/clj-kondo/issues/1807): False positive with map transducer in cljs
+- [#1806](https://github.com/clj-kondo/clj-kondo/issues/1806): False positive recur mismatch with letfn
 - [#1810](https://github.com/clj-kondo/clj-kondo/issues/1810): Fix printing error map as additional error ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1812](https://github.com/clj-kondo/clj-kondo/issues/1812): Inconsistent handling of location metadata sometimes produces `nil` values ([@sheluchin](https://github.com/sheluchin))
-- [#1800](https://github.com/clj-kondo/clj-kondo/issues/1800): Add `:aliased-namespace-symbol`, a linter that checks qualified symbols to see if they're using an existing alias. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1805](https://github.com/clj-kondo/clj-kondo/issues/1805): Ignore hints not being considered on protocol vars
 - [#1819](https://github.com/clj-kondo/clj-kondo/issues/1819): Fix "Too many open files" in java class definition analysis caused by files not being closed ([@rsauex](https://github.com/rsauex))
 - [#1821](https://github.com/clj-kondo/clj-kondo/issues/1821): Include vectors in `:unused-binding` config `:exclude-destructured-as` flag. ([@NoahTheDuke](https://github.com/NoahTheDuke))
