@@ -522,7 +522,9 @@
                     var-name (symbol
                               ;; account for interop
                               (str/replace (str (name name-sym))
-                                           #"\.$" ""))]
+                                           #"\.$" ""))
+                    resolved-core? (and core?
+                                        (var-info/core-sym? lang var-name))]
                 (cond->
                     {:ns ns*
                      :name var-name}
@@ -531,7 +533,7 @@
                   (assoc :alias ns-sym)
 
                   core?
-                  (assoc :resolved-core? (var-info/core-sym? lang var-name)))))
+                  (assoc :resolved-core? resolved-core?))))
             (when-let [[class-name package]
                        (or (when (identical? :clj lang)
                              (or (when-let [[class fq] (find var-info/default-import->qname ns-sym)]

@@ -275,6 +275,7 @@
                                         (or (> row-call row-called-fn)
                                             (and (= row-call row-called-fn)
                                                  (> (:col call) (:col called-fn)))))))
+                  _ (prn :valid-call? valid-call?)
                   _ (when (and (not unresolved-symbol)
                                (not valid-call?))
                       (namespace/reg-unresolved-symbol!
@@ -328,8 +329,7 @@
                         (get-in (:config call) [:linters :discouraged-var])]
                     (when-not (empty? (dissoc discouraged-var-config :level))
                       (let [fn-lookup-sym (symbol (str (config/ns-group call-config resolved-ns filename))
-                                                  (str fn-name))
-                            ]
+                                                  (str fn-name))]
                         (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
                           (findings/reg-finding! ctx {:filename filename
                                                       :row row
@@ -748,4 +748,8 @@
 ;;;; scratch
 
 (comment
+  (defn foo [])
+  (defn bar [])
+  (defn baz [])
+  (defn xxxxxxxxxxx)
   )
