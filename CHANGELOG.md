@@ -5,8 +5,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#611](https://github.com/clj-kondo/clj-kondo/issues/611): New linter: `:unused-value` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-value). Also see issue [#1258](https://github.com/clj-kondo/clj-kondo/issues/1258).
+- [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): New linter: `:line-length` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#line-length) ([@ourkwest](https://github.com/ourkwest))
 - [#1758](https://github.com/clj-kondo/clj-kondo/issues/1758): Overrides don't get applied to var-definitions during analysis ([@sheluchin](https://github.com/sheluchin))
-- [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): Add a linter for line length ([@ourkwest](https://github.com/ourkwest))
 - [#1460](https://github.com/clj-kondo/clj-kondo/issues/1460): Add a linter for unknown `:require` options ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1807](https://github.com/clj-kondo/clj-kondo/issues/1807): false positive with map transducer in cljs
 - [#1806](https://github.com/clj-kondo/clj-kondo/issues/1806): false positive recur mismatch with letfn
