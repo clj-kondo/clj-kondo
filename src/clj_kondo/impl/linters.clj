@@ -275,7 +275,6 @@
                                         (or (> row-call row-called-fn)
                                             (and (= row-call row-called-fn)
                                                  (> (:col call) (:col called-fn)))))))
-                  _ (prn :valid-call? valid-call?)
                   _ (when (and (not unresolved-symbol)
                                (not valid-call?))
                       (namespace/reg-unresolved-symbol!
@@ -748,8 +747,5 @@
 ;;;; scratch
 
 (comment
-  (defn foo [])
-  (defn bar [])
-  (defn baz [])
-  (defn xxxxxxxxxxx)
+
   )

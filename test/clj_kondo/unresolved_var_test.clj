@@ -73,6 +73,15 @@ bar/x (bar/y)
      '({:file "<stdin>", :row 10, :col 8, :level :error, :message "Unresolved var: bar/y"})
      (lint! prog (assoc-in cfg [:linters :unresolved-var :exclude] '[foo bar/x])))))
 
+(deftest cljs-var-and-interop-test
+  (lint! "(ns main
+  (:require [cljs.nodejs :as node]))
+
+(println node/process.env)"
+         '{:linters {:unresolved-symbol {:level :error}
+                     :unresolved-var {:level :error}}}
+         "--lang" "cljs"))
+
 (deftest built-in-namespaces-test
   (testing "fmap is not reported but xfmap is"
     (assert-submaps '({:file "<stdin>", :row 1, :col 54, :level :error, :message "Unresolved var: gen/xfmap"})
