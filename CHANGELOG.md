@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+...
+
 ## 2022.10.05
 
 - [#611](https://github.com/clj-kondo/clj-kondo/issues/611): New linter: `:unused-value` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-value). Also see issue [#1258](https://github.com/clj-kondo/clj-kondo/issues/1258).
