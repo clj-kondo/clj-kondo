@@ -1352,7 +1352,13 @@ foo/foo ;; this does use the private var
                      :col 5,
                      :level :error,
                      :message "namespace name expected"})
-                  (lint! "(ns \"hello\")")))
+                  (lint! "(ns \"hello\")"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 19, :level :error, :message "Unparsable libspec: [foo oh-no :as]"})
+   (lint! "(ns foo (:require [foo oh-no :as]))" {:linters {:syntax {:level :error}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 11, :level :error, :message "Unparsable libspec: [foo oh-no :as]"})
+   (lint! "(require '[foo oh-no :as])" {:linters {:syntax {:level :error}}})))
 
 (deftest call-as-use-test
   (is (empty?

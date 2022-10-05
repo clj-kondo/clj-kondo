@@ -65,8 +65,8 @@
             (when (and prefix
                        (str/includes? (str form) "."))
               (find-fn!
-                (format "found lib name '%s' containing period with prefix '%s'. lib names inside prefix lists must not contain periods."
-                        form prefix)))
+               (format "found lib name '%s' containing period with prefix '%s'. lib names inside prefix lists must not contain periods."
+                       form prefix)))
             [(with-meta (token-node full-form)
                (cond-> (assoc (meta libspec-expr)
                               :raw-name form)
@@ -78,12 +78,8 @@
           (do (find-fn! "require form is invalid: clauses must not be empty") nil)
           :else
           (do
-            (find-fn! (format "Unparsable libspec %s" form))
-            (throw
-             (ex-info
-              "Unparsable namespace form. Is there a syntax error in a require call somewhere in the file?"
-              {:reason ::unparsable-ns-form
-               :form form}))))))
+            (find-fn! (format "Unparsable libspec: %s" form))
+            nil))))
 
 (defn lint-alias-consistency [ctx ns-name alias]
   (let [consistent-aliases (get-in ctx [:config :linters :consistent-alias :aliases])]
@@ -201,10 +197,11 @@
                 (recur
                  (nnext children)
                  (assoc m
-                        :as (with-meta opt
-                              (cond-> (meta opt-expr)
-                                (identical? :as-alias child-k)
-                                (assoc :as-alias true)))))
+                        :as (when opt
+                              (with-meta opt
+                                (cond-> (meta opt-expr)
+                                  (identical? :as-alias child-k)
+                                  (assoc :as-alias true))))))
                 ;; shadow-cljs:
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default
@@ -226,13 +223,13 @@
                        ;; for :refer it is sufficient to pretend they were never referred
                        (update :referred set/difference (set (keys opt))))))
                 (do (findings/reg-finding!
-                      ctx
-                      (node->line
-                        filename
-                        child-expr
-                        :unknown-require-option
-                        (format "Unknown require option: %s"
-                                child-k)))
+                     ctx
+                     (node->line
+                      filename
+                      child-expr
+                      :unknown-require-option
+                      (format "Unknown require option: %s"
+                              child-k)))
                     (recur (nnext children)
                            m))))
             (let [{:keys [:as :referred :excluded :referred-all :renamed]} m
@@ -264,8 +261,8 @@
     (with-meta v
       (meta node))
     (do (findings/reg-finding!
-          ctx
-          (node->line (:filename ctx) node :syntax "Expected: class symbol"))
+         ctx
+         (node->line (:filename ctx) node :syntax "Expected: class symbol"))
         nil)))
 
 (defn analyze-import [ctx _ns-name libspec-expr]
@@ -279,16 +276,16 @@
                       (run! #(utils/handle-ignore ctx %) imported-nodes)
                       (cond (empty? children)
                             (findings/reg-finding!
-                              ctx
-                              (node->line
-                                (:filename ctx) libspec-expr
-                                :syntax "import form is invalid: clauses must not be empty"))
+                             ctx
+                             (node->line
+                              (:filename ctx) libspec-expr
+                              :syntax "import form is invalid: clauses must not be empty"))
                             (empty? imported-nodes)
                             (findings/reg-finding!
-                              ctx
-                              (node->line
-                                (:filename ctx) java-package-name-node
-                                :syntax "Expected: package name followed by classes.")))
+                             ctx
+                             (node->line
+                              (:filename ctx) java-package-name-node
+                              :syntax "Expected: package name followed by classes.")))
                       (into {} (for [i imported]
                                  [i java-package])))
     :token (let [package+class (:value libspec-expr)
@@ -347,15 +344,15 @@
      :ns->aliases (when-not (-> ctx :config :linters :aliased-namespace-symbol :level
                                 (identical? :off))
                     (reduce
-                      (fn [acc sc]
-                        (let [n (:ns sc)
-                              as (:as sc)
-                              existing (or (acc n) #{})]
-                          (if as
-                            (assoc acc n (conj existing as))
-                            acc)))
-                      {}
-                      analyzed))
+                     (fn [acc sc]
+                       (let [n (:ns sc)
+                             as (:as sc)
+                             existing (or (acc n) #{})]
+                         (if as
+                           (assoc acc n (conj existing as))
+                           acc)))
+                     {}
+                     analyzed))
      :referred-vars (into {} (mapcat :referred analyzed))
      :refer-alls refer-alls
      :used-namespaces
@@ -585,10 +582,10 @@
                            children)]
     (when (some-> children first sexpr empty-spec?)
       (findings/reg-finding!
-        ctx
-        (node->line (:filename ctx) 
-                    (first children)
-                    :syntax "require form is invalid: clauses must not be empty")))
+       ctx
+       (node->line (:filename ctx)
+                   (first children)
+                   :syntax "require form is invalid: clauses must not be empty")))
     (when (:analyze-keywords? ctx)
       (run! #(usages/analyze-usages2 ctx % {:quote? true}) libspecs))
     (let [analyzed
