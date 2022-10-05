@@ -2,7 +2,7 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.10.05
 
 - [#611](https://github.com/clj-kondo/clj-kondo/issues/611): New linter: `:unused-value` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#unused-value). Also see issue [#1258](https://github.com/clj-kondo/clj-kondo/issues/1258).
 - [#1794](https://github.com/clj-kondo/clj-kondo/issues/1794): New linter: `:line-length` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#line-length) ([@ourkwest](https://github.com/ourkwest))
@@ -19,6 +19,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1818](https://github.com/clj-kondo/clj-kondo/issues/1818): unresolved var when using interop on var in CLJS
 - [#1817](https://github.com/clj-kondo/clj-kondo/issues/1817): improve warning with invalid require libspec ([@benjamin-asdf](https://github.com/benjamin-asdf))
 - [#1801](https://github.com/clj-kondo/clj-kondo/issues/1801): Missing docstring fix for `deftype` in CLJS
+- Bump GraalVM to 22.2.0 for native-image
+- Bump SCI to 0.4.33
 
 ## 2022.09.08
 

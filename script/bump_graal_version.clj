@@ -30,7 +30,8 @@
    ".circleci/config.yml"
    "appveyor.yml"
    "project.clj.template"
-   "project.clj"])
+   "project.clj"
+   ".cirrus.yml"])
 
 ;; We might have to keep changing these from
 ;; time to time whenever the version is bumped
@@ -38,9 +39,9 @@
 ;; OR
 ;;
 ;; We could have them as environment variables
-(def current-graal-version "20.2.0")
+(def current-graal-version "22.0.0.2")
 (def current-java-version "java11")
-(def valid-graal-bumps ["19.3.2" "20.1.0" "20.2.0" "20.3.0" "21.0.0"])
+
 (def valid-java-bumps ["java8" "java11"])
 
 (def cl-options
@@ -80,11 +81,9 @@
   (let [new-graal-version (:graal args)
         new-java-version (:java args)]
     (when (not (nil? new-graal-version))
-      (if (is-valid-bump? new-graal-version valid-graal-bumps)
-        (do
-          (println "Performing Graal bump...")
-          (bump-current current-graal-version new-graal-version))
-        (show-error new-graal-version)))
+      (println "Performing Graal bump...")
+      (bump-current current-graal-version new-graal-version)
+      (show-error new-graal-version))
     (when (not (nil? new-java-version))
       (if (is-valid-bump? new-java-version valid-java-bumps)
         (do
