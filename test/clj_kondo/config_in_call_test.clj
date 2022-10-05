@@ -13,8 +13,11 @@
                        ;; undocumented
                        :config-in-call {clojure.core/comment
                                         {:linters {:unresolved-namespace {:level :off}}}}})))
-  (is (empty? (lint! "(comment (clojure.string/join [1 2 3]))"
+  (is (empty? (lint! "(comment (clojure.string/join [1 2 3])
+                               (require '[clojure.string :as str]))"
                      '{:linters {:unresolved-symbol {:level :error}
-                                 :unresolved-namespace {:level :error}}
+                                 :unresolved-namespace {:level :error}
+                                 :unused-namespace {:level :error}}
                        ;; documented
-                       :config-in-comment {:linters {:unresolved-namespace {:level :off}}}}))))
+                       :config-in-comment {:linters {:unresolved-namespace {:level :off}
+                                                     :unused-namespace {:level :off}}}}))))

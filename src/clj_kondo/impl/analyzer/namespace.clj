@@ -42,7 +42,7 @@
 
 (defn normalize-libspec
   "Adapted from clojure.tools.namespace."
-  [ctx prefix libspec-expr]
+  [ctx prefix libspec-expr unused-namespace-disabled?]
   (let [libspec-expr (meta/lift-meta-content2 ctx libspec-expr)
         children (:children libspec-expr)
         form (sexpr libspec-expr)
@@ -53,11 +53,13 @@
                         (normalize-libspec ctx
                                            (symbol (str (when prefix (str prefix "."))
                                                         (first form)))
-                                           f))
+                                           f
+                                           unused-namespace-disabled?))
                       (rest children)))
           (option-spec? form)
           [(with-meta
-             (vector-node (into (normalize-libspec ctx prefix (first children)) (rest children)))
+             (vector-node (into (normalize-libspec ctx prefix (first children) unused-namespace-disabled?)
+                                (rest children)))
              (meta libspec-expr))]
           (valid-ns-name? form)
           (let [full-form (symbol (str (when prefix (str prefix "."))
@@ -69,7 +71,8 @@
                        form prefix)))
             [(with-meta (token-node full-form)
                (cond-> (assoc (meta libspec-expr)
-                              :raw-name form)
+                              :raw-name form
+                              :unused-namespace-disabled unused-namespace-disabled?)
                  prefix
                  (assoc :prefix prefix)))])
           (keyword? form)  ; Some people write (:require ... :reload-all)
@@ -298,10 +301,11 @@
 
 (defn analyze-require-clauses [ctx ns-name kw+libspecs]
   (let [lang (:lang ctx)
+        unused-namespace-disabled? (identical? :off (-> ctx :config :linters :unused-namespace :level))
         analyzed
         (map (fn [[require-kw libspecs]]
                (for [libspec-expr libspecs
-                     normalized-libspec-expr (normalize-libspec ctx nil libspec-expr)
+                     normalized-libspec-expr (normalize-libspec ctx nil libspec-expr unused-namespace-disabled?)
                      analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
                  analyzed))
              kw+libspecs)

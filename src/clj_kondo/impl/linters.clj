@@ -493,6 +493,7 @@
                   unused (set/difference
                           (set required)
                           (set used-namespaces))
+                  unused (remove (comp :unused-namespace-disabled meta) unused)
                   referred-vars (:referred-vars ns)
                   used-referred-vars (:used-referred-vars ns)
                   refer-alls (:refer-alls ns)
