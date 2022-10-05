@@ -1592,7 +1592,7 @@ foo/foo ;; this does use the private var
                        :row 1
                        :level :warning,
                        :message "j is not bound in this destructuring form"})
-                    (lint! input))))
+                    (lint! input {:linters {:unused-binding {:level :warning}}}))))
 
 (deftest output-test
   (is (str/starts-with?

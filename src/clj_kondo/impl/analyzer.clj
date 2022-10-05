@@ -158,13 +158,16 @@
            keys-destructuring? (:keys-destructuring? opts)
            expr (lift-meta-content* ctx expr)
            t (tag expr)
-           mark-used? (or
-                       (when (and keys-destructuring? fn-args?)
-                         (-> ctx :config :linters :unused-binding
-                             :exclude-destructured-keys-in-fn-args))
-                       (and (:defmulti? ctx)
-                            (-> ctx :config :linters :unused-binding
-                                :exclude-defmulti-args)))
+           mark-used?
+           (or (:mark-bindings-used? ctx)
+               (let [unused-binding-cfg (-> ctx :config :linters :unused-binding)]
+                 (or (when (and keys-destructuring? fn-args?)
+                       (-> unused-binding-cfg
+                           :exclude-destructured-keys-in-fn-args))
+                     (and (:defmulti? ctx)
+                          (-> unused-binding-cfg
+                              :exclude-defmulti-args))
+                     (identical? :off (:level unused-binding-cfg)))))
            ctx (cond-> ctx
                  mark-used? (assoc :mark-bindings-used? mark-used?))]
        (case t

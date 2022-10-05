@@ -573,8 +573,10 @@
           ctx (assoc ctx :lang (:lang ns))]
       (when-not (identical? :off (-> ctx :config :linters :used-underscored-binding :level))
         (doseq [binding (into #{}
-                              (comp (remove :clj-kondo.impl/generated)
-                                    (filter #(str/starts-with? (str (:name %)) "_")))
+                              (comp
+                               (remove :clj-kondo/mark-used)
+                               (remove :clj-kondo.impl/generated)
+                               (filter #(str/starts-with? (str (:name %)) "_")))
                               (:used-bindings ns))]
           (findings/reg-finding!
            ctx
@@ -589,10 +591,12 @@
         (let [bindings (:bindings ns)
               used-bindings (:used-bindings ns)
               diff (set/difference bindings used-bindings)
+              diff (remove :clj-kondo/mark-used diff)
               defaults (:destructuring-defaults ns)]
           (doseq [binding diff]
             (let [nm (:name binding)]
               (when-not (str/starts-with? (str nm) "_")
+                ;; (prn binding)
                 (findings/reg-finding!
                  ctx
                  {:type :unused-binding
