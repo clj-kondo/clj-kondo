@@ -17,6 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1819](https://github.com/clj-kondo/clj-kondo/issues/1819): Fix "Too many open files" in java class definition analysis caused by files not being closed ([@rsauex](https://github.com/rsauex))
 - [#1821](https://github.com/clj-kondo/clj-kondo/issues/1821): Include vectors in `:unused-binding` config `:exclude-destructured-as` flag. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1818](https://github.com/clj-kondo/clj-kondo/issues/1818): unresolved var when using interop on var in CLJS
+- [#1817](https://github.com/clj-kondo/clj-kondo/issues/1817): improve warning with invalid require libspec ([@benjamin-asdf](https://github.com/benjamin-asdf))
 
 ## 2022.09.08
 
