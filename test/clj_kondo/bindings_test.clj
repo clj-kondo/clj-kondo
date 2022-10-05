@@ -283,6 +283,10 @@
                        '{:linters {:unused-binding
                                    {:level :warning
                                     :exclude-destructured-as true}}})))
+    (is (empty? (lint! "(defn f [[a :as config]] a)"
+                       '{:linters {:unused-binding
+                                   {:level :warning
+                                    :exclude-destructured-as true}}})))
     (testing "still shows unused bindings not in as "
       (assert-submaps '({:file "<stdin>"
                          :row 1
