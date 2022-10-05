@@ -519,16 +519,16 @@
               (lint-aliased-namespace ctx expr ns-sym)
               (let [core? (or (= 'clojure.core ns*)
                               (= 'cljs.core ns*))
-                    var-name (symbol
-                              ;; account for interop
-                              (str/replace (str (name name-sym))
-                                           #"\.$" ""))
+                    [var-name interop] (if cljs?
+                                         (str/split (name name-sym) #"\." 2)
+                                         [(name name-sym)])
+                    var-name (symbol var-name)
                     resolved-core? (and core?
                                         (var-info/core-sym? lang var-name))]
                 (cond->
                     {:ns ns*
-                     :name var-name}
-
+                     :name var-name
+                     :interop? (and cljs? (boolean interop))}
                   (contains? (:aliases ns) ns-sym)
                   (assoc :alias ns-sym)
 
