@@ -164,11 +164,13 @@
                                 (when-let [defined-by (or (:linted-as metadata)
                                                           (:defined-by metadata))]
                                   (or
-                                   (= 'clojure.test/deftest defined-by)
-                                   (= 'clojure.core/deftype defined-by)
-                                   (= 'clojure.core/defrecord defined-by)
-                                   (= 'clojure.core/defprotocol defined-by)
-                                   (= 'clojure.core/definterface defined-by)))))
+                                   (one-of defined-by [clojure.test/deftest
+                                                       clojure.core/deftype
+                                                       clojure.core/defrecord
+                                                       clojure.core/defprotocol
+                                                       clojure.core/definterface])
+                                   (when (identical? :cljs lang)
+                                     (one-of defined-by [cljs.core/deftype]))))))
                       (findings/reg-finding!
                        ctx
                        (node->line filename

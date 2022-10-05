@@ -18,6 +18,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1821](https://github.com/clj-kondo/clj-kondo/issues/1821): Include vectors in `:unused-binding` config `:exclude-destructured-as` flag. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1818](https://github.com/clj-kondo/clj-kondo/issues/1818): unresolved var when using interop on var in CLJS
 - [#1817](https://github.com/clj-kondo/clj-kondo/issues/1817): improve warning with invalid require libspec ([@benjamin-asdf](https://github.com/benjamin-asdf))
+- [#1801](https://github.com/clj-kondo/clj-kondo/issues/1801): Missing docstring fix for `deftype` in CLJS
 
 ## 2022.09.08
 
