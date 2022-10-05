@@ -81,8 +81,9 @@
              ctx
              (parse-string "(ns clj-kondo.impl.utils {:no-doc true} (:require [rewrite-clj.parser :as p]))
 "))]
-      (is (= '{:ns rewrite-clj.parser :name parse-string :alias p}
-             (resolve-name ctx false 'clj-kondo.impl.utils 'p/parse-string nil))))
+      (assert-submap
+       '{:ns rewrite-clj.parser :name parse-string :alias p}
+       (resolve-name ctx false 'clj-kondo.impl.utils 'p/parse-string nil)))
     (testing "referring to unknown namespace alias"
       (let [ctx {:namespaces (atom {})
                  :findings (atom [])
@@ -99,9 +100,9 @@
                 (parse-string "(ns clj-kondo.impl.utils (:require [clojure.core]))
 (clojure.core/inc 1)
 "))]
-        (is (=
-             '{:ns clojure.core :name inc :resolved-core? true}
-             (resolve-name ctx false 'clj-kondo.impl.utils 'clojure.core/inc nil)))))))
+        (assert-submap
+         '{:ns clojure.core :name inc :resolved-core? true}
+         (resolve-name ctx false 'clj-kondo.impl.utils 'clojure.core/inc nil))))))
 
 (comment
   (t/run-tests)
