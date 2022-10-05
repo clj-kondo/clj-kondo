@@ -328,8 +328,7 @@
                         (get-in (:config call) [:linters :discouraged-var])]
                     (when-not (empty? (dissoc discouraged-var-config :level))
                       (let [fn-lookup-sym (symbol (str (config/ns-group call-config resolved-ns filename))
-                                                  (str fn-name))
-                            ]
+                                                  (str fn-name))]
                         (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
                           (findings/reg-finding! ctx {:filename filename
                                                       :row row
@@ -748,4 +747,5 @@
 ;;;; scratch
 
 (comment
+
   )

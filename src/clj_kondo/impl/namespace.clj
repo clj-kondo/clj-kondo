@@ -519,19 +519,21 @@
               (lint-aliased-namespace ctx expr ns-sym)
               (let [core? (or (= 'clojure.core ns*)
                               (= 'cljs.core ns*))
-                    var-name (symbol
-                              ;; account for interop
-                              (str/replace (str (name name-sym))
-                                           #"\.$" ""))]
+                    [var-name interop] (if cljs?
+                                         (str/split (name name-sym) #"\." 2)
+                                         [(name name-sym)])
+                    var-name (symbol var-name)
+                    resolved-core? (and core?
+                                        (var-info/core-sym? lang var-name))]
                 (cond->
                     {:ns ns*
-                     :name var-name}
-
+                     :name var-name
+                     :interop? (and cljs? (boolean interop))}
                   (contains? (:aliases ns) ns-sym)
                   (assoc :alias ns-sym)
 
                   core?
-                  (assoc :resolved-core? (var-info/core-sym? lang var-name)))))
+                  (assoc :resolved-core? resolved-core?))))
             (when-let [[class-name package]
                        (or (when (identical? :clj lang)
                              (or (when-let [[class fq] (find var-info/default-import->qname ns-sym)]
@@ -558,7 +560,7 @@
                  :unresolved-ns ns-sym})
               (if cljs?
                 ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
-                (when-not (one-of ns* ["js" "goog" "cljs.core"
+                (when-not (one-of ns* ["js" "goog"
                                        "Math" "String"])
                   {:name (symbol (name name-sym))
                    :unresolved? true
