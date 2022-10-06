@@ -1140,7 +1140,7 @@
       (and varargs-min-arity (>= arg-count varargs-min-arity))))
 
 (defn redundant-fn-wrapper [ctx callstack children interop?]
-  (let [fn-args (:fn-args ctx)]
+  (when-let [fn-args (:fn-args ctx)]
     (when (and
             (not (identical? :off (-> ctx :config :linters :redundant-fn-wrapper :level)))
             (not (:extend-type ctx))
