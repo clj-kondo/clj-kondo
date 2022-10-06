@@ -4,6 +4,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1831](https://github.com/clj-kondo/clj-kondo/issues/1831): Fix `:redundant-fn-wrapper` not applying to keywords or let-bound vars.
+
 ...
 
 ## 2022.10.05
