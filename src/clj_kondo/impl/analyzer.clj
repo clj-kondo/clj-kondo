@@ -1139,6 +1139,23 @@
   (or (contains? fixed-arities arg-count)
       (and varargs-min-arity (>= arg-count varargs-min-arity))))
 
+(defn redundant-fn-wrapper [ctx callstack children interop?]
+  (let [fn-args (:fn-args ctx)]
+    (when (and
+            (not (identical? :off (-> ctx :config :linters :redundant-fn-wrapper :level)))
+            (not (:extend-type ctx))
+            (not interop?)
+            (= 1 (:fn-body-count ctx))
+            (= 1 (:body-children-count ctx))
+            (= (count children) (count fn-args))
+            (one-of (first callstack) [[clojure.core fn]
+                                       [clojure.core fn*]
+                                       [cljs.core fn]
+                                       [cljs.core fn*]])
+            (= (map #(str/replace % #"^%$" "%1") children)
+               (map str fn-args)))
+      (:fn-parent-loc ctx))))
+
 (defn analyze-binding-call [ctx fn-name binding expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)
@@ -1174,6 +1191,13 @@
                                        (node->line filename expr
                                                    :invalid-arity
                                                    (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))))
+    (when-let [fn-parent-loc (redundant-fn-wrapper ctx callstack (rest children) false)]
+      (findings/reg-finding!
+        ctx
+        (assoc fn-parent-loc
+               :filename (:filename ctx)
+               :type :redundant-fn-wrapper
+               :message "Redundant fn wrapper")))
     (let [types (:types binding-info)
           children (rest children)
           type (get types (count children))
@@ -2269,21 +2293,7 @@
                                                      ctx-context
                                                      node-context)]
                                         context))
-                            fn-args (:fn-args ctx)
-                            redundant-fn-wrapper-parent-loc
-                            (when (and
-                                   (not (:extend-type ctx))
-                                   (not interop?)
-                                   (= 1 (:fn-body-count ctx))
-                                   (= 1 (:body-children-count ctx))
-                                   (= (count children) (count fn-args))
-                                   (one-of (first prev-callstack) [[clojure.core fn]
-                                                                   [clojure.core fn*]
-                                                                   [cljs.core fn]
-                                                                   [cljs.core fn*]])
-                                   (= (map #(str/replace % #"^%$" "%1") children)
-                                      (map str fn-args)))
-                              (:fn-parent-loc ctx))
+                            fn-parent-loc (redundant-fn-wrapper ctx prev-callstack children interop?)
                             proto-call {:type :call
                                         :context context
                                         :resolved-ns resolved-namespace
@@ -2311,8 +2321,7 @@
                                         :simple? (simple-symbol? full-fn-name)
                                         :interop? interop?
                                         :resolved-core? resolved-core?
-                                        :redundant-fn-wrapper-parent-loc
-                                        redundant-fn-wrapper-parent-loc
+                                        :redundant-fn-wrapper-parent-loc fn-parent-loc
                                         :idx (:idx ctx)
                                         :len (:len ctx)}
                             ret-tag (or (:ret m)
@@ -2417,7 +2426,14 @@
                                  (node->line (:filename ctx) expr :invalid-arity
                                              (format "keyword :%s is called with %s args but expects 1 or 2"
                                                      kw-str
-                                                     arg-count))))))))
+                                                     arg-count))))))
+    (when-let [fn-parent-loc (redundant-fn-wrapper ctx callstack (rest (:children expr)) false)]
+      (findings/reg-finding!
+        ctx
+        (assoc fn-parent-loc
+               :filename (:filename ctx)
+               :type :redundant-fn-wrapper
+               :message "Redundant fn wrapper")))))
 
 (defn lint-map-call! [ctx _the-map arg-count expr]
   (let [callstack (:callstack ctx)

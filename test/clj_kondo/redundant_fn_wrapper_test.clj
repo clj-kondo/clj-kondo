@@ -8,7 +8,13 @@
    (lint! "#(inc %)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Redundant fn wrapper"})
-   (lint! "#(inc %1)" {:linters {:redundant-fn-wrapper {:level :warning}}})))
+   (lint! "#(inc %1)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
+  (assert-submaps
+    '({:file "<stdin>", :row 1, :col 6, :level :warning, :message "Redundant fn wrapper"})
+    (lint! "(map #(:a %) uuids)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
+  (assert-submaps
+    '({:file "<stdin>", :row 1, :col 19, :level :warning, :message "Redundant fn wrapper"})
+   (lint! "(let [i inc] (map #(i %) uuids))" {:linters {:redundant-fn-wrapper {:level :warning}}})))
 
 (deftest no-redundant-fn-wrapper-test
   (is (empty?
