@@ -31,6 +31,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Quoted case test constant](#quoted-case-test-constant)
     - [File](#file)
     - [Format](#format)
+    - [Include macros checking](#include-macros-checking)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
@@ -572,6 +573,38 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(format "%s" 1 2)`.
 
 *Example message:* `Format string expects 1 arguments instead of 2.`.
+
+### Include macros checking
+
+*Keyword:* `:include-macros`.
+
+*Description:* warn when `:include-macros` option is not `true` literal, or used in
+a `.clj` file.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(ns foo (:require [bar :include-macros :s]))`.
+
+*Example message:* `:include-macros only accepts true: :s`
+
+*Example trigger:*
+
+```clojure
+;; foo.clj
+(ns foo (:require [bar :include-macros true]))
+```
+
+*Example message:* `Unknown :require option: :include-macros`
+
+*Config:* To suppress the warning in `.clj` files:
+
+```clojure
+{:linters {:include-macros {:allow-clojure true}}}
+;; or more generally
+{:linters {:unknown-require-option {:level :off}}}
+```
+
+See also [Unknown :require option](#unknown-require-option).
 
 ### Inline def
 

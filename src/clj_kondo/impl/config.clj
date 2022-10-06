@@ -37,6 +37,9 @@
               :unbound-destructuring-default {:level :warning}
               :used-underscored-binding {:level :off}
               :unknown-require-option {:level :warning}
+              :include-macros {:level :warning
+                               ;; Don't warn if used in clj file
+                               #_#_:allow-clojure true}
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false
                                :exclude-destructured-as false

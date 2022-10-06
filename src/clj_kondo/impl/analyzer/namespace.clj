@@ -225,6 +225,28 @@
                        (update :excluded into (set (keys opt)))
                        ;; for :refer it is sufficient to pretend they were never referred
                        (update :referred set/difference (set (keys opt))))))
+                :include-macros
+                (do
+                  (if (or (= :cljs lang)
+                          (-> config :linters :include-macros :allow-clojure))
+                    (when-not (true? opt)
+                      (findings/reg-finding!
+                        ctx
+                        (node->line
+                          filename
+                          child-expr
+                          :include-macros
+                          (format ":invalid-macros only accepts true: %s" opt))))
+                    (findings/reg-finding!
+                      ctx
+                      (node->line
+                        filename
+                        child-expr
+                        :unknown-require-option
+                        (format "Unknown require option: %s"
+                                child-k))))
+                  (recur (nnext children)
+                         m))
                 (do (findings/reg-finding!
                      ctx
                      (node->line

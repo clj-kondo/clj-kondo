@@ -5,6 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#1831](https://github.com/clj-kondo/clj-kondo/issues/1831): Add `:redundant-fn-wrapper` support for keyword and binding calls ([@NoahTheDuke](https://github.com/NoahTheDuke))
+- [#1830](https://github.com/clj-kondo/clj-kondo/issues/1830): New linter: `:include-macros` - see [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#include-macros-checking). Fixes warning on `:include-macros` in cljs. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 
 ...
 
