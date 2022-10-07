@@ -139,9 +139,12 @@
                       @!!last-meta)
                     mark-generate))
                  (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-                 (-> (with-meta node
-                       (merge @!!last-meta (meta node)))
-                     mark-generate)
+                 (let [m (meta node)]
+                   (if (:row m)
+                     node
+                     (-> (with-meta node
+                           (merge @!!last-meta m))
+                         mark-generate)))
                  :else node))
              node)))
 
