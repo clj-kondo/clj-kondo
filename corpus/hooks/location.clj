@@ -1,5 +1,5 @@
-(ns bar
-  {:clj-kondo/config '{:hooks {:analyze-call {foo/foo "
+(ns location
+  {:clj-kondo/config '{:hooks {:analyze-call {hooks-location-test/foo "
 
 (require '[clj-kondo.hooks-api :as api])
 
@@ -7,6 +7,7 @@
   {:node (api/list-node
     (list* (api/token-node 'inc)
            (rest (:children node))))})"}}}}
-  (:require [foo]))
+  (:require [hooks-location-test :as foo]))
 
 (foo/foo "foo")
+(foo/foo 1 2 3)

@@ -40,7 +40,8 @@
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [sci.core :as sci]))
+   [sci.core :as sci]
+   [clj-kondo.hooks-api :as hooks-api]))
 
 (set! *warn-on-reflection* true)
 
@@ -1974,7 +1975,8 @@
                           ctx)]
                 (if-let [expanded (and transformed
                                        (:node transformed))]
-                  (let [[new-name-node new-arg-count]
+                  (let [expanded (hooks-api/annotate expanded expr-meta)
+                        [new-name-node new-arg-count]
                         (when (utils/list-node? expanded)
                           (when-let [children (:children expanded)]
                             [(first children)

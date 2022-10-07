@@ -995,8 +995,8 @@
   (assert-submaps
    '[{:row 1
       :end-row 1
-      :col 15
-      :end-col 21}]
+      :col 1
+      :end-col 22}]
    (:var-definitions
     (analyze "(user/defflow foobar)"
              {:config {:analysis {:keywords true}

@@ -98,10 +98,10 @@
   ([{:keys [:base-lang :lang :filename :namespaces :top-level? :top-ns] :as ctx}
     ns-sym var-sym expr metadata]
    (let [m (meta expr)
-         expr-row (or (:row m) (:row metadata))
-         expr-col (or (:col m) (:col metadata))
-         expr-end-row (or (:end-row m) (:end-row metadata))
-         expr-end-col (or (:end-col m) (:end-col metadata))
+         expr-row (:row m)
+         expr-col (:col m)
+         expr-end-row (:end-row m)
+         expr-end-col (:end-col m)
          metadata (assoc metadata
                          :ns ns-sym
                          :name var-sym
