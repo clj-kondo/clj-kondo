@@ -27,7 +27,7 @@
        :row 1,
        :col 24,
        :level :error,
-       :message "require form is invalid: :invalid-macros only accepts true"})
+       :message "Require form is invalid: :invalid-macros only accepts true"})
     (lint! "(ns foo (:require [bar :include-macros :s]))"
            {:linters {:unknown-require-option {:level :warning}}}
            "--lang" "cljs")))
@@ -53,7 +53,7 @@
        :row 1,
        :col 24,
        :level :error,
-       :message "require form is invalid: :invalid-macros only accepts true"})
+       :message "Require form is invalid: :invalid-macros only accepts true"})
     (lint! "(ns foo (:require [bar :include-macros :s]))"
            {:linters {:unknown-require-option {:level :warning}}}
            "--lang" "cljc")))
