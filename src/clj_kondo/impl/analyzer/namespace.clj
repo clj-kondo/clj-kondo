@@ -227,16 +227,15 @@
                        (update :referred set/difference (set (keys opt))))))
                 :include-macros
                 (do
-                  (if (or (= :cljs lang)
-                          (-> config :linters :include-macros :allow-clojure))
+                  (if (#{:cljc :cljs} base-lang)
                     (when-not (true? opt)
                       (findings/reg-finding!
                         ctx
                         (node->line
                           filename
                           child-expr
-                          :include-macros
-                          (format ":invalid-macros only accepts true: %s" opt))))
+                          :syntax
+                          "require form is invalid: :invalid-macros only accepts true")))
                     (findings/reg-finding!
                       ctx
                       (node->line
