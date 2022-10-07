@@ -36,7 +36,7 @@
               :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}
               :used-underscored-binding {:level :off}
-              :unknown-require-option {:level :warning}
+              :unknown-require-option {:level :off}
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false
                                :exclude-destructured-as false
