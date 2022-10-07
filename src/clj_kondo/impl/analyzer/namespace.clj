@@ -235,7 +235,7 @@
                           filename
                           child-expr
                           :syntax
-                          "require form is invalid: :invalid-macros only accepts true")))
+                          "Require form is invalid: :invalid-macros only accepts true")))
                     (findings/reg-finding!
                       ctx
                       (node->line
