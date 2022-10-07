@@ -79,7 +79,8 @@
   metadata. Hence their location is lost when converting a rewrite-clj node into
   a sexpr. This is why we started using rewrite-clj directly."
     (assert-submaps
-     '({:file "corpus/hooks/location.clj", :row 12, :col 10, :level :error, :message "Expected: number, received: string."})
+     '({:file "corpus/hooks/location.clj", :row 12, :col 10, :level :error, :message "Expected: number, received: string."}
+       {:file "corpus/hooks/location.clj", :row 13, :col 1, :level :error, :message "clojure.core/inc is called with 3 args but expects 1"})
      (lint! (io/file "corpus" "hooks" "location.clj")
             {:hooks {:__dangerously-allow-string-hooks__ true}
              :linters {:type-mismatch {:level :error}}}

@@ -119,7 +119,9 @@
   [f form]
   (walk (partial prewalk f) identity (f form)))
 
-(defn- annotate [node original-meta]
+(defn annotate
+  {:no-doc true}
+  [node original-meta]
   (let [!!last-meta (volatile! original-meta)]
     (prewalk (fn [node]
                (cond
@@ -132,9 +134,10 @@
                      (-> (with-meta node
                            (merge @!!last-meta (meta node)))
                          mark-generate))
-                   (-> (with-meta node
-                         (merge @!!last-meta (meta node)))
-                       mark-generate))
+                   (->
+                    (with-meta node
+                      @!!last-meta)
+                    mark-generate))
                  (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
                  (-> (with-meta node
                        (merge @!!last-meta (meta node)))
