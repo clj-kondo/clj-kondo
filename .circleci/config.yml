@@ -390,6 +390,7 @@ workflows:
     jobs:
       - jvm
       - linux
+      - linux-aarch64
       - linux-static
       - mac
       - deploy:
