@@ -347,7 +347,7 @@ jobs:
           destination: release
   deploy:
     docker:
-      - image: circleci/clojure:lein-2.8.1
+      - image: cimg/clojure:1.11.1-openjdk-17.0
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
@@ -369,7 +369,7 @@ jobs:
           key: v1-dependencies-{{ checksum "deps.edn" }}
   docker:
     docker:
-      - image: circleci/clojure:lein-2.9.8
+      - image: cimg/clojure:1.11.1-openjdk-17.0
     steps:
       - checkout
       - run:
