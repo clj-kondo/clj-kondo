@@ -69,7 +69,7 @@ jobs:
               rm -rf /home/circleci/.gitconfig
       - restore_cache:
           keys:
-            - linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+            - linux-amd64-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - run:
           name: Install Clojure
           command: |
@@ -117,8 +117,78 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
             - ~/graalvm-ce-java17-22.2.0
+          key: linux-amd64-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+      - store_artifacts:
+          path: /tmp/release
+          destination: release
+  linux-aarch64:
+    machine:
+      enabled: true
+      image: ubuntu-2004:current
+    resource_class: arm.medium
+    working_directory: ~/repo
+    environment:
+      LEIN_ROOT: "true"
+      GRAALVM_HOME: /home/circleci/graalvm-ce-java17-22.2.0
+      CLJ_KONDO_PLATFORM: linux # used in release script
+      CLJ_KONDO_ARCH: aarch64 # used in release script
+      CLJ_KONDO_STATIC: "true"
+      CLJ_KONDO_TEST_ENV: native
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - linux-aarch64-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+      - run:
+          name: Install Clojure
+          command: |
+            wget https://download.clojure.org/install/linux-install-1.11.1.1165.sh
+            chmod +x linux-install-1.11.1.1165.sh
+            sudo ./linux-install-1.11.1.1165.sh
+      - run:
+          name: Install bb
+          command: |
+            sudo bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
+      - run:
+          name: Install native dev tools
+          command: |
+            sudo apt-get update
+            sudo apt-get -y install build-essential zlib1g-dev
+      - run:
+          name: Download GraalVM
+          command: |
+            cd ~
+            if ! [ -d graalvm-ce-java17-22.2.0 ]; then
+              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/downloads/vm-22.2.0/graalvm-ce-java17-linux-aarch64-22.2.0.tar.gz
+              tar xzf graalvm-ce-java17-linux-aarch64-22.2.0.tar.gz
+            fi
+      - run:
+          name: Build binary
+          command: |
+            script/compile
+          no_output_timeout: 30m
+      - run:
+          name: Run tests
+          command: |
+            script/test
+      - run:
+          name: Performance report
+          command: |
+            .circleci/script/performance
+      - run:
+          name: Release
+          command: |
+            .circleci/script/release
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - release
+      - save_cache:
+          paths:
+            - ~/.m2
+            - ~/graalvm-ce-java17-22.2.0
+          key: linux-aarch64-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
           destination: release
