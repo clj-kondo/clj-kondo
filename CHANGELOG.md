@@ -6,6 +6,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#1831](https://github.com/clj-kondo/clj-kondo/issues/1831): Add `:redundant-fn-wrapper` support for keyword and binding calls ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1830](https://github.com/clj-kondo/clj-kondo/issues/1830): Fix warning on `:include-macros` in cljs and cljc. Make `:unknown-require-option` default to `:off`. ([@NoahTheDuke](https://github.com/NoahTheDuke))
+- [#1238](https://github.com/clj-kondo/clj-kondo/issues/1238): Build a linux/aarch64 executable in CI
 
 ...
 
