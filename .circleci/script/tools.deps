@@ -24,7 +24,8 @@ rm -rf /tmp/proj
 mkdir -p /tmp/proj
 cd /tmp/proj
 
-github_user=${CIRCLE_PR_USERNAME:-borkdude}
+github_user=${CIRCLE_PR_USERNAME} # for PRs
+github_user=${CIRCLE_PROJECT_USERNAME:-borkdude} # for non-PR forks
 clojure -Sdeps "{:deps {clj-kondo {:git/url \"https://github.com/$github_user/clj-kondo\" :sha \"$CIRCLE_SHA1\"}}}" \
         -m clj-kondo.main --lint /home/circleci/repo/src /home/circleci/repo/test
 
