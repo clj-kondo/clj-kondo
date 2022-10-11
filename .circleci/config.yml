@@ -160,7 +160,7 @@ jobs:
           command: |
             cd ~
             if ! [ -d graalvm-ce-java17-22.2.0 ]; then
-              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/downloads/vm-22.2.0/graalvm-ce-java17-linux-aarch64-22.2.0.tar.gz
+              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-linux-aarch64-22.2.0.tar.gz
               tar xzf graalvm-ce-java17-linux-aarch64-22.2.0.tar.gz
             fi
       - run:
