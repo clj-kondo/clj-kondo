@@ -7,7 +7,7 @@ jobs:
   jvm:
     docker:
       # specify the version you desire here
-      - image: circleci/clojure:openjdk-11-lein-2.9.6-bullseye
+      - image: cimg/clojure:1.11.1-openjdk-17.0
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
@@ -25,9 +25,9 @@ jobs:
       - run:
           name: Install Clojure
           command: |
-            wget -nc https://download.clojure.org/install/linux-install-1.10.3.855.sh
-            chmod +x linux-install-1.10.3.855.sh
-            sudo ./linux-install-1.10.3.855.sh
+            wget -nc https://download.clojure.org/install/linux-install-1.11.1.1165.sh
+            chmod +x linux-install-1.11.1.1165.sh
+            sudo ./linux-install-1.11.1.1165.sh
       - run:
           name: Install bb
           command: |
@@ -53,12 +53,13 @@ jobs:
 
   linux:
     docker:
-      - image: circleci/clojure:openjdk-11-lein-2.9.6-bullseye
+      - image: cimg/clojure:1.11.1-openjdk-17.0
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_HOME: /home/circleci/graalvm-ce-java11-22.2.0
+      GRAALVM_HOME: /home/circleci/graalvm-ce-java17-22.2.0
       CLJ_KONDO_PLATFORM: linux # used in release script
+      CLJ_KONDO_ARCH: amd64 # used in release script
       CLJ_KONDO_TEST_ENV: native
     steps:
       - checkout
@@ -72,9 +73,9 @@ jobs:
       - run:
           name: Install Clojure
           command: |
-            wget https://download.clojure.org/install/linux-install-1.10.2.796.sh
-            chmod +x linux-install-1.10.2.796.sh
-            sudo ./linux-install-1.10.2.796.sh
+            wget https://download.clojure.org/install/linux-install-1.11.1.1165.sh
+            chmod +x linux-install-1.11.1.1165.sh
+            sudo ./linux-install-1.11.1.1165.sh
       - run:
           name: Install bb
           command: |
@@ -88,9 +89,9 @@ jobs:
           name: Download GraalVM
           command: |
             cd ~
-            if ! [ -d graalvm-ce-java11-22.2.0 ]; then
-              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java11-linux-amd64-22.2.0.tar.gz
-              tar xzf graalvm-ce-java11-linux-amd64-22.2.0.tar.gz
+            if ! [ -d graalvm-ce-java17-22.2.0 ]; then
+              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-linux-amd64-22.2.0.tar.gz
+              tar xzf graalvm-ce-java17-linux-amd64-22.2.0.tar.gz
             fi
       - run:
           name: Build binary
@@ -116,8 +117,8 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-java11-22.2.0
           key: linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+            - ~/graalvm-ce-java17-22.2.0
       - store_artifacts:
           path: /tmp/release
           destination: release
