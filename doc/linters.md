@@ -1151,7 +1151,7 @@ This will disable the warning in:
 
 *Description:* warn on unused value: constants, unrealized lazy values, pure functions and transient ops (`assoc!`, `conj!` etc).
 
-*Default level:* `:off`.
+*Default level:* `:warning`.
 
 *Example triggers*:
 
