@@ -8,7 +8,7 @@
 [![project chat](https://img.shields.io/badge/slack-join_chat-brightgreen.svg)](https://clojurians.slack.com/messages/CHY97NXE2)
 [![twitter](https://img.shields.io/badge/twitter-%23cljkondo-blue)](https://twitter.com/search?q=%23cljkondo&src=typed_query&f=live)
 
-A static analyzer linter and for Clojure code that sparks joy.
+A static analyzer and linter for Clojure code that sparks joy.
 
 <img src="screenshots/demo.png" width="50%" align="right">
 
