@@ -8,7 +8,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1830](https://github.com/clj-kondo/clj-kondo/issues/1830): Fix warning on `:include-macros` in `.cljs` and `.cljc`. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1238](https://github.com/clj-kondo/clj-kondo/issues/1238): Build a linux/aarch64 executable in CI ([cap10morgan](https://github.com/cap10morgan))
 - Add `:exclude` option to `:redundant-fn-wrapper`
-
+- Enable `:unused-value` by default
 
 ...
 
