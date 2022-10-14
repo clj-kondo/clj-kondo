@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+...
+
 ## 2022.10.14
 
 - [#1831](https://github.com/clj-kondo/clj-kondo/issues/1831): Add `:redundant-fn-wrapper` support for keyword and binding calls ([@NoahTheDuke](https://github.com/NoahTheDuke))
@@ -10,8 +14,6 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Add `:exclude` option to `:redundant-fn-wrapper`
 - Enable `:unused-value` by default
 - Publish `.sha256` files along with released artifacts
-
-...
 
 ## 2022.10.05
 
