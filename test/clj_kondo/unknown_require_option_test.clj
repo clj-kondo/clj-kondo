@@ -57,3 +57,15 @@
     (lint! "(ns foo (:require [bar :include-macros :s]))"
            {:linters {:unknown-require-option {:level :warning}}}
            "--lang" "cljc")))
+
+(deftest exclude-test
+  (is (empty?
+       (lint! "(ns foo (:require [bar :foobar true]))"
+              {:linters {:unknown-require-option {:level :warning
+                                                  :exclude [:foobar]}
+                         }}))))
+
+(deftest disabled-test
+  (is (empty?
+       (lint! "(ns foo (:require [bar :foobar true]))"
+              {:linters {:unknown-require-option {:level :off}}}))))

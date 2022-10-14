@@ -1193,6 +1193,8 @@ These warnings can be enabled by setting the level to `:warning` or
 
 *Example message:* `Unknown :require option: :s`.
 
+*Config:* use `:exclude [:s]` to suppress the above warning.
+
 ### Unreachable code
 
 *Keyword:* `:unreachable-code`.

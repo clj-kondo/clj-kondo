@@ -108,7 +108,9 @@
         use? (= :use require-kw)
         libspec-meta (meta libspec-expr)
         config (:config ctx)
-        lint-refers? (not (identical? :off (-> config :linters :refer :level)))]
+        linters (:linters config)
+        lint-refers? (not (identical? :off (-> linters :refer :level)))
+        unknown-require-option-config (-> linters :unknown-require-option)]
     (if-let [s (symbol-from-token libspec-expr)]
       [{:type :require
         :referred-all (when use? require-kw-expr)
@@ -236,24 +238,26 @@
                           child-expr
                           :syntax
                           "Require form is invalid: :invalid-macros only accepts true")))
-                    (findings/reg-finding!
-                      ctx
-                      (node->line
+                    (when-not (contains? (set (:exclude unknown-require-option-config)) child-k)
+                      (findings/reg-finding!
+                       ctx
+                       (node->line
+                        filename
+                        child-expr
+                        :unknown-require-option
+                        (format "Unknown require option: %s"
+                                child-k)))))
+                  (recur (nnext children)
+                         m))
+                (do (when-not (contains? (set (:exclude unknown-require-option-config)) child-k)
+                      (findings/reg-finding!
+                       ctx
+                       (node->line
                         filename
                         child-expr
                         :unknown-require-option
                         (format "Unknown require option: %s"
                                 child-k))))
-                  (recur (nnext children)
-                         m))
-                (do (findings/reg-finding!
-                     ctx
-                     (node->line
-                      filename
-                      child-expr
-                      :unknown-require-option
-                      (format "Unknown require option: %s"
-                              child-k)))
                     (recur (nnext children)
                            m))))
             (let [{:keys [:as :referred :excluded :referred-all :renamed]} m
