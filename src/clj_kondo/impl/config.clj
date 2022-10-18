@@ -419,6 +419,19 @@
       (let [excluded (delayed-cfg config)]
         (contains? excluded sym-ns)))))
 
+(def used-underscored-binding-excluded?
+  (let [delayed-cfg (fn [config]
+                      (let [excluded (get-in config [:linters :used-underscored-binding :exclude])
+                            syms (set (filter symbol? excluded))
+                            regexes (map re-pattern (filter string? excluded))]
+                        {:syms syms :regexes regexes}))
+        delayed-cfg (memoize delayed-cfg)]
+    (fn [config binding-sym]
+      (let [{:keys [:syms :regexes]} (delayed-cfg config)]
+        (or (contains? syms binding-sym)
+            (let [binding-str (str binding-sym)]
+              (boolean (some #(re-find % binding-str) regexes))))))))
+
 (defn ns-group* [config ns-name filename]
   (or (some (fn [{:keys [pattern
                          filename-pattern

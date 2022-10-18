@@ -4,6 +4,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1842](https://github.com/clj-kondo/clj-kondo/issues/1842): Add exclude to `:used-underscored-binding` ([@staifa](https://github.com/staifa))
+
 ...
 
 ## 2022.10.14
