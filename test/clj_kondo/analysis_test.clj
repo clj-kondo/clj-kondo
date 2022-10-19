@@ -992,24 +992,25 @@
                                      "     :defined-by 'user/defflow}))")}}}}))))
 
 (deftest hooks-derived-location-test
-  (assert-submaps
-   '[{:ns user,
-      :name foobar,
-      :derived-location true}]
-   (:var-definitions
-    (analyze "(user/defflow foobar)"
-             {:config {:analysis {:keywords true}
-                       :hooks {:__dangerously-allow-string-hooks__ true
-                               :analyze-call
-                               {'user/defflow
-                                (str "(require '[clj-kondo.hooks-api :as api])"
-                                     "(fn [{:keys [:node]}]"
-                                     "  (let [[test-name] (rest (:children node))"
-                                     "       new-node (api/list-node"
-                                     "                 [(api/token-node 'def)"
-                                     "                  test-name])]"
-                                     "   {:node new-node"
-                                     "    }))")}}}}))))
+  (let [{:keys [var-definitions]}
+        (analyze "(user/defflow foobar)"
+                 {:config {:analysis {:keywords true}
+                           :hooks {:__dangerously-allow-string-hooks__ true
+                                   :analyze-call
+                                   {'user/defflow
+                                    (str "(require '[clj-kondo.hooks-api :as api])"
+                                         "(fn [{:keys [:node]}]"
+                                         "  (let [[test-name] (rest (:children node))"
+                                         "       new-node (api/list-node"
+                                         "                 [(api/token-node 'def)"
+                                         "                  test-name])]"
+                                         "   {:node new-node"
+                                         "    }))")}}}})]
+    (assert-submaps
+     '[{:ns user,
+        :name foobar,
+        :derived-location true}]
+     var-definitions)))
 
 (deftest hooks-custom-missing-meta-test
   (assert-submaps
@@ -1083,7 +1084,7 @@
          {:name f6,
           :defined-by clojure.core/def
           :arglist-strs ["[n]"]}]
-        var-definitions))))
+       var-definitions))))
 
 (deftest analysis-is-valid-edn-test
   (testing "solution for GH-476, CLJS with string require"
