@@ -992,30 +992,63 @@
                                      "     :defined-by 'user/defflow}))")}}}}))))
 
 (deftest hooks-derived-location-test
-  (let [{:keys [var-definitions var-usages]}
-        (analyze "(user/defflow foobar)"
-                 {:config {:analysis {:keywords true}
-                           :hooks {:__dangerously-allow-string-hooks__ true
-                                   :analyze-call
-                                   {'user/defflow
-                                    (str "(require '[clj-kondo.hooks-api :as api])"
-                                         "(fn [{:keys [:node]}]"
-                                         "  (let [[test-name] (rest (:children node))"
-                                         "       new-node (api/list-node"
-                                         "                 [(api/token-node 'def)"
-                                         "                  test-name])]"
-                                         "   {:node new-node"
-                                         "    }))")}}}})]
-    (assert-submaps
-     '[{:ns user,
-        :name foobar,
-        :derived-location true}]
-     var-definitions)
-    (assert-submaps
-     '[{:name defflow}
-       {:name def :derived-location true}]
-     var-usages))
-  )
+  (testing "without custom with-meta"
+    (let [{:keys [var-definitions var-usages]}
+          (analyze "(user/defflow foobar)"
+                   {:config {:analysis {:keywords true}
+                             :hooks {:__dangerously-allow-string-hooks__ true
+                                     :analyze-call
+                                     {'user/defflow
+                                      (str "(require '[clj-kondo.hooks-api :as api])"
+                                           "(fn [{:keys [:node]}]"
+                                           "  (let [[test-name] (rest (:children node))"
+                                           "       new-node (api/list-node"
+                                           "                 [(api/token-node 'def)"
+                                           "                  test-name])]"
+                                           "   {:node new-node"
+                                           "    }))")}}}})]
+      (assert-submaps
+        '[{:ns user,
+           :name foobar,
+           :derived-location nil ;; should this be true ? if so, it will break clojure-lsp since clojure-lsp would ignore this element wrongly
+           :derived-name-location nil}]
+        var-definitions)
+      (assert-submaps
+        '[{:name defflow}
+          {:name def
+           :derived-location true
+           :derived-name-location true
+           :row 1 :col 1 :end-row 1 :end-col 22
+           :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 22}]
+        var-usages)))
+  (testing "with custom with-meta"
+    (let [{:keys [var-definitions var-usages]}
+          (analyze "(user/defflow foobar)"
+                   {:config {:analysis {:keywords true}
+                             :hooks {:__dangerously-allow-string-hooks__ true
+                                     :analyze-call
+                                     {'user/defflow
+                                      (str "(require '[clj-kondo.hooks-api :as api])"
+                                           "(fn [{:keys [:node]}]"
+                                           "  (let [[test-name] (rest (:children node))"
+                                           "       new-node (api/list-node"
+                                           "                 [(api/token-node 'def)"
+                                           "                  test-name])]"
+                                           "   {:node (with-meta new-node {:row 10 :col 11 :end-row 12 :end-col 13})"
+                                           "    }))")}}}})]
+      (assert-submaps
+        '[{:ns user,
+           :name foobar,
+           :derived-location nil
+           :derived-name-location nil}]
+        var-definitions)
+      (assert-submaps
+        '[{:name defflow}
+          {:name def
+           :derived-name-location true
+           :row 10 :col 11 :end-row 12 :end-col 13
+           :name-row 10 :name-col 11 :name-end-row 12 :name-end-col 13}]
+        var-usages))))
 
 (deftest hooks-custom-missing-meta-test
   (assert-submaps
