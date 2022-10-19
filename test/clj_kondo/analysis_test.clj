@@ -1048,7 +1048,8 @@
            :derived-name-location true
            :row 10 :col 11 :end-row 12 :end-col 13
            :name-row 10 :name-col 11 :name-end-row 12 :name-end-col 13}]
-        var-usages))))
+        var-usages)
+      (is (not (:derived-location (second var-usages)))))))
 
 (deftest hooks-custom-missing-meta-test
   (assert-submaps
