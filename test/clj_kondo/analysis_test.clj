@@ -992,7 +992,7 @@
                                      "     :defined-by 'user/defflow}))")}}}}))))
 
 (deftest hooks-derived-location-test
-  (let [{:keys [var-definitions]}
+  (let [{:keys [var-definitions var-usages]}
         (analyze "(user/defflow foobar)"
                  {:config {:analysis {:keywords true}
                            :hooks {:__dangerously-allow-string-hooks__ true
@@ -1010,7 +1010,12 @@
      '[{:ns user,
         :name foobar,
         :derived-location true}]
-     var-definitions)))
+     var-definitions)
+    (assert-submaps
+     '[{:name defflow}
+       {:name def :derived-location true}]
+     var-usages))
+  )
 
 (deftest hooks-custom-missing-meta-test
   (assert-submaps

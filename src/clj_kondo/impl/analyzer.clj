@@ -1751,7 +1751,8 @@
                                          ;; :arg-types (:arg-types ctx)
                                          :interop? interop?
                                          :resolved-core? resolved-core?
-                                         :in-def (:in-def ctx)})))
+                                         :in-def (:in-def ctx)
+                                         :derived-location (:derived-location (meta expr))})))
           (and arity arg-count)
           (let [{:keys [:fixed-arities :varargs-min-arity]} arity
                 config (:config ctx)
@@ -2022,7 +2023,8 @@
                                     :interop? interop?
                                     :resolved-core? resolved-core?
                                     :idx (:idx ctx)
-                                    :len (:len ctx)}))
+                                    :len (:len ctx)
+                                    :derived-location (:derived-location expr-meta)}))
                   ;;;; This registers the namespace as used, to prevent unused warnings
                     (namespace/reg-used-namespace! ctx
                                                    ns-name
@@ -2325,7 +2327,8 @@
                                         :resolved-core? resolved-core?
                                         :redundant-fn-wrapper-parent-loc fn-parent-loc
                                         :idx (:idx ctx)
-                                        :len (:len ctx)}
+                                        :len (:len ctx)
+                                        :derived-location (:derived-location expr-meta)}
                             ret-tag (or (:ret m)
                                         (types/ret-tag-from-call ctx proto-call expr))
                             call (cond-> proto-call

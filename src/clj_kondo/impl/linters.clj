@@ -319,7 +319,8 @@
                                                     :name-end-row name-end-row
                                                     :name-end-col name-end-col
                                                     :end-row end-row
-                                                    :end-col end-col))))
+                                                    :end-col end-col
+                                                    :derived-location (:derived-location call)))))
                   call-config (:config call)
                   fn-sym (symbol (str resolved-ns)
                                  (str fn-name))
