@@ -991,6 +991,26 @@
                                      "   {:node (with-meta new-node (meta node))"
                                      "     :defined-by 'user/defflow}))")}}}}))))
 
+(deftest hooks-derived-location-test
+  (assert-submaps
+   '[{:ns user,
+      :name foobar,
+      :derived-location true}]
+   (:var-definitions
+    (analyze "(user/defflow foobar)"
+             {:config {:analysis {:keywords true}
+                       :hooks {:__dangerously-allow-string-hooks__ true
+                               :analyze-call
+                               {'user/defflow
+                                (str "(require '[clj-kondo.hooks-api :as api])"
+                                     "(fn [{:keys [:node]}]"
+                                     "  (let [[test-name] (rest (:children node))"
+                                     "       new-node (api/list-node"
+                                     "                 [(api/token-node 'def)"
+                                     "                  test-name])]"
+                                     "   {:node new-node"
+                                     "    }))")}}}}))))
+
 (deftest hooks-custom-missing-meta-test
   (assert-submaps
    '[{:row 1

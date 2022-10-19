@@ -112,7 +112,8 @@
                          :row expr-row
                          :col expr-col
                          :end-row expr-end-row
-                         :end-col expr-end-col)
+                         :end-col expr-end-col
+                         :derived-location (:derived-location m))
          path [base-lang lang ns-sym]
          temp? (:temp metadata)
          config (:config ctx)]
