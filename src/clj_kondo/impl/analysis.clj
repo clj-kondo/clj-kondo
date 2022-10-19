@@ -39,7 +39,8 @@
                                :name-end-row
                                :name-end-col
                                :end-row
-                               :end-col]))
+                               :end-col
+                               :derived-location]))
                 :arity arity
                 :lang lang
                 :from-var in-def
@@ -54,7 +55,7 @@
                                     :protocol-ns :protocol-name
                                     :imported-ns
                                     :name-row :name-col :name-end-col :name-end-row
-                                    :arglist-strs :end-row :end-col])
+                                    :arglist-strs :end-row :end-col :derived-location])
           overrides (overrides/overrides (case base-lang
                                            :clj '{:clj {:defs {clojure.core {}}}}
                                            :cljs '{:cljs {:defs {cljs.core {}}}}
@@ -113,7 +114,7 @@
   (when (and analysis
              (not (:clj-kondo.impl/generated binding)))
     (swap! analysis update :locals conj
-           (assoc-some (select-keys binding [:name :str :id :row :col :end-row :end-col :scope-end-col :scope-end-row])
+           (assoc-some (select-keys binding [:name :str :id :row :col :end-row :end-col :scope-end-col :scope-end-row :derived-location])
                        :filename filename
                        :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))))))
 
@@ -121,7 +122,7 @@
   (when (and analysis
              (not (:clj-kondo.impl/generated binding)))
     (swap! analysis update :local-usages conj
-           (assoc-some (select-keys usage [:id :row :col :end-row :end-col :name-row :name-col :name-end-row :name-end-col])
+           (assoc-some (select-keys usage [:id :row :col :end-row :end-col :name-row :name-col :name-end-row :name-end-col :derived-location])
                        :name (:name binding)
                        :filename filename
                        :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
@@ -134,7 +135,8 @@
              (assoc-some (select-keys usage [:row :col :end-row :end-col :alias :ns
                                              :keys-destructuring
                                              :keys-destructuring-ns-modifier
-                                             :reg :auto-resolved :namespace-from-prefix])
+                                             :reg :auto-resolved :namespace-from-prefix
+                                             :derived-location])
                          :name (name (:name usage))
                          :filename filename
                          :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
@@ -162,14 +164,16 @@
                 :row (:row method-meta)
                 :col (:col method-meta)
                 :end-row (:end-row method-meta)
-                :end-col (:end-col method-meta)})))))
+                :end-col (:end-col method-meta)
+                :derived-location (:derived-location method-meta)})))))
 
 (defn reg-instance-invocation!
   [ctx method-name-node]
   (when (:analyze-instance-invocations? ctx)
     (when-let [analysis (:analysis ctx)]
       (let [method-meta (meta method-name-node)
-            k :instance-invocations]
+            k :instance-invocations
+            derived-location (:derived-location method-meta)]
         (when k
           (swap! analysis update k conj
                  (cond->
@@ -180,4 +184,5 @@
                       :name-end-row (:end-row method-meta)
                       :name-end-col (:end-col method-meta)}
                    (= :cljc (:base-lang ctx))
-                   (assoc :lang (:lang ctx)))))))))
+                   (assoc :lang (:lang ctx))
+                   derived-location (assoc :derived-location true))))))))
