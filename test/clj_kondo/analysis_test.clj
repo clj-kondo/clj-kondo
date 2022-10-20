@@ -1010,8 +1010,10 @@
       (assert-submaps
         '[{:ns user,
            :name foobar,
-           :derived-location nil ;; should this be true ? if so, it will break clojure-lsp since clojure-lsp would ignore this element wrongly
-           :derived-name-location nil}]
+           :derived-location true
+           :derived-name-location true
+           :row 1 :col 1 :end-row 1 :end-col 22
+           :name-row 1 :name-col 15 :name-end-row 1 :name-end-col 21}]
         var-definitions)
       (assert-submaps
         '[{:name defflow}

@@ -122,14 +122,18 @@
 (defn annotate
   {:no-doc true}
   [node original-meta]
-  (let [!!last-meta (volatile! (assoc original-meta :derived-location true))]
+  (let [!!last-meta (volatile! (assoc original-meta
+                                      :derived-location true
+                                      :derived-name-location true))]
     (prewalk (fn [node]
                (cond
                  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
                       (identical? :list (utils/tag node)))
                  (if-let [m (meta node)]
                    (if-let [m (not-empty (select-keys m [:row :end-row :col :end-col]))]
-                     (do (vreset! !!last-meta (assoc m :derived-location true))
+                     (do (vreset! !!last-meta (assoc m
+                                                     :derived-location true
+                                                     :derived-name-location true))
                          (mark-generate node))
                      (-> (with-meta node
                            (merge @!!last-meta (meta node)))
