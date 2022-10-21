@@ -40,7 +40,8 @@
                                :name-end-col
                                :end-row
                                :end-col
-                               :derived-location]))
+                               :derived-location
+                               :derived-name-location]))
                 :arity arity
                 :lang lang
                 :from-var in-def

@@ -1016,8 +1016,7 @@
         '[{:name defflow}
           {:name def
            :derived-location true
-           ;; TODO :derived-name-location for `def`, since the `def` node was generated
-           ;; :derived-name-location true
+           :derived-name-location true
            :row 1 :col 1 :end-row 1 :end-col 22
            :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 22}]
         var-usages)))
@@ -1045,9 +1044,7 @@
       (assert-submaps
         '[{:name defflow}
           {:name def
-           ;; TODO :derived-name-location for `def`, since the `def` node was generated
-           ;; :derived-name-location true
-           :derived-name-location :submap/missing
+           :derived-name-location true
            :row 10 :col 11 :end-row 12 :end-col 13
            :name-row 10 :name-col 11 :name-end-row 12 :name-end-col 13
            :derived-location :submap/missing}]
