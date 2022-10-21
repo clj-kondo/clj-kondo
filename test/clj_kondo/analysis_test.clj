@@ -1016,8 +1016,7 @@
         '[{:name defflow}
           {:name def
            :derived-location true
-           ;; TODO:
-           ;; :derived-name-location true
+           ;; no :derived-name-location since name node was re-used with original metada
            :row 1 :col 1 :end-row 1 :end-col 22
            :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 22}]
         var-usages)))
