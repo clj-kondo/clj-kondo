@@ -50,12 +50,12 @@
                 filename row col ns nom attrs]
   (when analysis
     (let [raw-attrs attrs
-          attrs (select-keys attrs [:private :macro :fixed-arities :varargs-min-arity
+          attrs (select-some attrs [:private :macro :fixed-arities :varargs-min-arity
                                     :doc :added :deprecated :test :export :defined-by
                                     :protocol-ns :protocol-name
                                     :imported-ns
                                     :name-row :name-col :name-end-col :name-end-row
-                                    :arglist-strs :end-row :end-col :derived-location])
+                                    :arglist-strs :end-row :end-col])
           overrides (overrides/overrides (case base-lang
                                            :clj '{:clj {:defs {clojure.core {}}}}
                                            :cljs '{:cljs {:defs {cljs.core {}}}}

@@ -1008,16 +1008,16 @@
                                            "   {:node new-node"
                                            "    }))")}}}})]
       (assert-submaps
-        '[{:ns user,
-           :name foobar,
-           :derived-location nil ;; should this be true ? if so, it will break clojure-lsp since clojure-lsp would ignore this element wrongly
-           :derived-name-location nil}]
-        var-definitions)
+       '[{:ns user,
+          :name foobar
+          :derived-location :submap/missing}]
+       var-definitions)
       (assert-submaps
         '[{:name defflow}
           {:name def
            :derived-location true
-           :derived-name-location true
+           ;; TODO:
+           ;; :derived-name-location true
            :row 1 :col 1 :end-row 1 :end-col 22
            :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 22}]
         var-usages)))
@@ -1039,17 +1039,18 @@
       (assert-submaps
         '[{:ns user,
            :name foobar,
-           :derived-location nil
-           :derived-name-location nil}]
+           :derived-location :submap/missing
+           :derived-name-location :submap/missing}]
         var-definitions)
       (assert-submaps
         '[{:name defflow}
           {:name def
-           :derived-name-location true
+           ;; TODO:
+           ;;:derived-name-location true
            :row 10 :col 11 :end-row 12 :end-col 13
-           :name-row 10 :name-col 11 :name-end-row 12 :name-end-col 13}]
-        var-usages)
-      (is (not (:derived-location (second var-usages)))))))
+           :name-row 10 :name-col 11 :name-end-row 12 :name-end-col 13
+           :derived-location :submap/missing}]
+        var-usages))))
 
 (deftest hooks-custom-missing-meta-test
   (assert-submaps
