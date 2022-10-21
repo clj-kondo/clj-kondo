@@ -991,6 +991,96 @@
                                      "   {:node (with-meta new-node (meta node))"
                                      "     :defined-by 'user/defflow}))")}}}}))))
 
+(deftest hooks-derived-location-test
+  (testing "without custom with-meta"
+    (testing "generated def var-usage"
+      (let [{:keys [var-definitions var-usages]}
+            (analyze "(user/defflow foobar)"
+                     {:config {:analysis {:keywords true}
+                               :hooks {:__dangerously-allow-string-hooks__ true
+                                       :analyze-call
+                                       {'user/defflow
+                                        (str '(require '[clj-kondo.hooks-api :as api])
+                                             '(fn [{:keys [:node]}]
+                                                (let [[test-name] (rest (:children node))
+                                                      new-node (api/list-node
+                                                                 [(api/token-node 'def)
+                                                                  test-name])]
+                                                  {:node new-node})))}}}})]
+        (assert-submaps
+          '[{:ns user,
+             :name foobar
+             :derived-location :submap/missing}]
+          var-definitions)
+        (assert-submaps
+          '[{:name defflow}
+            {:name def
+             :derived-location true
+             :derived-name-location true
+             :row 1 :col 1 :end-row 1 :end-col 22
+             :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 22}]
+          var-usages)))
+    (testing "generated keyword and let var-usage"
+      (let [{:keys [var-definitions var-usages keywords]}
+            (analyze "(user/deflet my-k)"
+                     {:config {:analysis {:keywords true}
+                               :hooks {:__dangerously-allow-string-hooks__ true
+                                       :analyze-call
+                                       {'user/deflet
+                                        (str
+                                          '(require '[clj-kondo.hooks-api :as api])
+                                          '(fn [{:keys [node]}]
+                                             (let [[my-k] (rest (:children node))
+                                                   new-node (api/list-node
+                                                              [(api/token-node 'let)
+                                                               (api/vector-node [(api/token-node '_)
+                                                                                 (api/keyword-node (keyword (api/sexpr my-k)))])])]
+                                               {:node new-node})))}}}})]
+        (assert-submaps
+          '[{:name "my-k"
+             :row 1 :col 1 :end-row 1 :end-col 19
+             :derived-location true
+             :derived-name-location :submap/missing}]
+          keywords)
+        (is (empty? var-definitions))
+        (assert-submaps
+          '[{:name deflet}
+            {:name let
+             :derived-location true
+             :derived-name-location true
+             :row 1 :col 1 :end-row 1 :end-col 19
+             :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 19}]
+          var-usages))))
+  (testing "with custom with-meta"
+    (let [{:keys [var-definitions var-usages]}
+          (analyze "(user/defflow foobar)"
+                   {:config {:analysis {:keywords true}
+                             :hooks {:__dangerously-allow-string-hooks__ true
+                                     :analyze-call
+                                     {'user/defflow
+                                      (str '(require '[clj-kondo.hooks-api :as api])
+                                           '(fn [{:keys [:node]}]
+                                              (let [[test-name] (rest (:children node))
+                                                    new-node (api/list-node
+                                                               [(api/token-node 'def)
+                                                                test-name])]
+                                                {:node (with-meta new-node {:row 10 :col 11 :end-row 12 :end-col 13})
+                                                 })))}}}})]
+      (assert-submaps
+        '[{:ns user,
+           :name foobar,
+           :derived-location :submap/missing
+           :derived-name-location :submap/missing}]
+        var-definitions)
+      (assert-submaps
+        '[{:name defflow}
+          {:name def
+           :derived-name-location true
+           :row 10 :col 11 :end-row 12 :end-col 13
+           :name-row 10 :name-col 11 :name-end-row 12 :name-end-col 13
+           :derived-location :submap/missing}]
+        var-usages))))
+
 (deftest hooks-custom-missing-meta-test
   (assert-submaps
    '[{:row 1
@@ -1063,7 +1153,7 @@
          {:name f6,
           :defined-by clojure.core/def
           :arglist-strs ["[n]"]}]
-        var-definitions))))
+       var-definitions))))
 
 (deftest analysis-is-valid-edn-test
   (testing "solution for GH-476, CLJS with string require"
