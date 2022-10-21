@@ -578,7 +578,9 @@
                                (remove :clj-kondo/mark-used)
                                (remove :clj-kondo.impl/generated)
                                (filter #(str/starts-with? (str (:name %)) "_")))
-                              (:used-bindings ns))]
+                              (:used-bindings ns))
+                :when (not (config/used-underscored-binding-excluded? (:config ctx)
+                                                                      (:name binding)))]
           (findings/reg-finding!
            ctx
            {:type :used-underscored-binding
