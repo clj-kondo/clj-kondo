@@ -1181,6 +1181,22 @@ These warnings can be enabled by setting the level to `:warning` or
 {:linters {:used-underscored-binding {:level :warning}}}
 ```
 
+To suppress the above warning:
+
+``` clojure
+{:linters {:used-underscored-binding {:level :warning
+                                      :exclude [_x]}}}
+```
+
+A regex is also supported:
+
+``` clojure
+{:linters {:used-underscored-binding {:level :warning
+                                      :exclude ["^_x.*$"]}}}
+```
+
+This will exclude all bindings starting with `_x`.
+
 ### Unknown :require option
 
 *Keyword:* `:unknown-require-option`

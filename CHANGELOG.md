@@ -4,6 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1842](https://github.com/clj-kondo/clj-kondo/issues/1842): Add exclude to `:used-underscored-binding` ([@staifa](https://github.com/staifa))
 - [#1840](https://github.com/clj-kondo/clj-kondo/issues/1840): Fix warning in `.cljs` and `.cljc` for `:aliased-namespace-symbol` in interop calls. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 
 ## 2022.10.14
