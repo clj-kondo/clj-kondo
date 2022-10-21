@@ -6,6 +6,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#1842](https://github.com/clj-kondo/clj-kondo/issues/1842): Add exclude to `:used-underscored-binding` ([@staifa](https://github.com/staifa))
 - [#1840](https://github.com/clj-kondo/clj-kondo/issues/1840): Fix warning in `.cljs` and `.cljc` for `:aliased-namespace-symbol` in interop calls. ([@NoahTheDuke](https://github.com/NoahTheDuke))
+- [#1845](https://github.com/clj-kondo/clj-kondo/issues/1845): add `:derived-location` to analysis when location is derived from parent node
 
 ## 2022.10.14
 
