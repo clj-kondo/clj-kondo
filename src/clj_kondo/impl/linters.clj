@@ -328,7 +328,8 @@
                   _
                   (let [discouraged-var-config
                         (get-in (:config call) [:linters :discouraged-var])]
-                    (when-not (empty? (dissoc discouraged-var-config :level))
+                    (when-not (or (identical? :off (:level discouraged-var-config))
+                                  (empty? (dissoc discouraged-var-config :level)))
                       (let [fn-lookup-sym (symbol (str (config/ns-group call-config resolved-ns filename))
                                                   (str fn-name))]
                         (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
