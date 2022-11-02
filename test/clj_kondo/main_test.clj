@@ -1971,7 +1971,7 @@ foo/foo ;; this does use the private var
   (+ 1 2 3))")))
   (is (empty? (lint! (io/file "corpus" "with_redefs.clj"))))
   (testing "binding is linted the same way as with-redefs"
-    (is (empty? (lint! "(ns foo) (def ^:private ^:dynamic foo) foo (ns bar (:require [foo])) (binding [foo/foo 2])")))))
+    (is (empty? (lint! "(ns foo) (def ^:private ^:dynamic *foo*) *foo* (ns bar (:require [foo])) (binding [foo/*foo* 2])")))))
 
 (deftest file-error-test
   (assert-submaps '({:file "not-existing.clj",
