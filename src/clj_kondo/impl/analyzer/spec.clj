@@ -1,11 +1,11 @@
 (ns clj-kondo.impl.analyzer.spec
   {:no-doc true}
   (:require
-     [clj-kondo.impl.analyzer.common :as common]
-     [clj-kondo.impl.findings :as findings]
-     [clj-kondo.impl.linters.keys :as keys]
-     [clj-kondo.impl.namespace :as namespace]
-     [clj-kondo.impl.utils :as utils]))
+   [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.linters.keys :as keys]
+   [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.utils :as utils]))
 
 (defn analyze-fdef [{:keys [:analyze-children :ns] :as ctx} expr]
   (let [[sym-expr & body] (next (:children expr))
@@ -25,10 +25,10 @@
             (namespace/reg-used-namespace! ctx ns-nm resolved-ns)
             ;; revisit this when needed
             #_(findings/reg-finding! ctx
-                                   (utils/node->line (:filename ctx)
-                                                     sym-expr
-                                                     :unresolved-symbol
-                                                     (str "Unresolved symbol: " sym)))))))
+                                     (utils/node->line (:filename ctx)
+                                                       sym-expr
+                                                       :unresolved-symbol
+                                                       (str "Unresolved symbol: " sym)))))))
     (analyze-children ctx body)))
 
 (defn analyze-def [ctx expr fq-def]
@@ -36,7 +36,8 @@
         reg-val (if (:k name-expr)
                   (assoc name-expr :reg fq-def)
                   name-expr)]
-    (common/analyze-children ctx (cons reg-val body))))
+    (common/analyze-expression** (utils/ctx-with-linter-disabled ctx :unresolved-symbol) reg-val)
+    (common/analyze-children ctx body)))
 
 (defn analyze-keys [ctx expr]
   (let [body (next (:children expr))]

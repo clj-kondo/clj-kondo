@@ -118,26 +118,13 @@
       (analyze-expression** prev-ctx v)
       (analyze-expression** ctx v))))
 
-(defn ctx-with-linter-disabled [ctx linter]
-  (assoc-in ctx [:config :linters linter :level] :off))
-
-(defn ctx-with-linters-disabled [ctx linters]
-  (let [config (get ctx :config)
-        linters-config (get config :linters)
-        linters-config (reduce (fn [linters linter]
-                                 (assoc-in linters [linter :level] :off))
-                               linters-config linters)
-        config (assoc config :linters linters-config)
-        ctx (assoc ctx :config config)]
-    ctx))
-
 (defn lift-meta-content*
   "Used within extract-bindings. Disables unresolved symbols while
   linting metadata."
   [{:keys [:lang] :as ctx} expr]
   (meta/lift-meta-content2
    (if (= :cljs lang)
-     (ctx-with-linter-disabled ctx :unresolved-symbol)
+     (utils/ctx-with-linter-disabled ctx :unresolved-symbol)
      ctx)
    expr))
 
@@ -613,7 +600,7 @@
         matched-val (first children)
         [test-ctx test-opts]
         (if (identical? :cljs (:lang ctx))
-          [(ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
+          [(utils/ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
            nil]
           [ctx {:quote? true}])]
     (analyze-expression** ctx matched-val)
@@ -1143,18 +1130,18 @@
 (defn redundant-fn-wrapper [ctx callstack children interop?]
   (when-let [fn-args (:fn-args ctx)]
     (when (and
-            (not (identical? :off (-> ctx :config :linters :redundant-fn-wrapper :level)))
-            (not (:extend-type ctx))
-            (not interop?)
-            (= 1 (:fn-body-count ctx))
-            (= 1 (:body-children-count ctx))
-            (= (count children) (count fn-args))
-            (one-of (first callstack) [[clojure.core fn]
-                                       [clojure.core fn*]
-                                       [cljs.core fn]
-                                       [cljs.core fn*]])
-            (= (map #(str/replace % #"^%$" "%1") children)
-               (map str fn-args)))
+           (not (identical? :off (-> ctx :config :linters :redundant-fn-wrapper :level)))
+           (not (:extend-type ctx))
+           (not interop?)
+           (= 1 (:fn-body-count ctx))
+           (= 1 (:body-children-count ctx))
+           (= (count children) (count fn-args))
+           (one-of (first callstack) [[clojure.core fn]
+                                      [clojure.core fn*]
+                                      [cljs.core fn]
+                                      [cljs.core fn*]])
+           (= (map #(str/replace % #"^%$" "%1") children)
+              (map str fn-args)))
       (:fn-parent-loc ctx))))
 
 (defn analyze-binding-call [ctx fn-name binding expr]
@@ -1194,11 +1181,11 @@
                                                    (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))))
     (when-let [fn-parent-loc (redundant-fn-wrapper ctx callstack (rest children) false)]
       (findings/reg-finding!
-        ctx
-        (assoc fn-parent-loc
-               :filename (:filename ctx)
-               :type :redundant-fn-wrapper
-               :message "Redundant fn wrapper")))
+       ctx
+       (assoc fn-parent-loc
+              :filename (:filename ctx)
+              :type :redundant-fn-wrapper
+              :message "Redundant fn wrapper")))
     (let [types (:types binding-info)
           children (rest children)
           type (get types (count children))
@@ -1312,7 +1299,7 @@
                   docstring (string-from-token (last children))
                   doc-node (when docstring
                              (last children))]]
-      (let [ctx (ctx-with-linter-disabled ctx :unresolved-symbol)]
+      (let [ctx (utils/ctx-with-linter-disabled ctx :unresolved-symbol)]
         (run! #(analyze-usages2 ctx %) arities))
       (when fn-name
         (let [arglist-strs (when (:analyze-arglists? ctx)
@@ -1471,7 +1458,7 @@
                               forms-exprs))))
 
 (defn analyze-memfn [ctx expr]
-  (analyze-children (ctx-with-linter-disabled ctx :unresolved-symbol)
+  (analyze-children (utils/ctx-with-linter-disabled ctx :unresolved-symbol)
                     (next (:children expr))))
 
 (defn analyze-empty?
@@ -1523,7 +1510,7 @@
   "Analyzes (new Foo ...) constructor call."
   [ctx expr]
   (let [[_ ctor-node & children] (:children expr)]
-    (analyze-usages2 (ctx-with-linter-disabled ctx :unresolved-symbol) ctor-node)
+    (analyze-usages2 (utils/ctx-with-linter-disabled ctx :unresolved-symbol) ctor-node)
     (analyze-children ctx children)))
 
 (defn analyze-set!
@@ -1548,7 +1535,7 @@
         body (next children)]
     ;;  NOTE: because of lazy evaluation we need to use dorun!
     (let [ctx (update ctx :callstack conj [nil :vector])]
-      (dorun (analyze-children (ctx-with-linter-disabled ctx :private-call)
+      (dorun (analyze-children (utils/ctx-with-linter-disabled ctx :private-call)
                                lhs))
       (dorun (analyze-children ctx rhs)))
     (analyze-children ctx body)))
@@ -1560,11 +1547,11 @@
                        (meta/lift-meta-content2 ctx))
         name-sym (:value name-expr)
         body (next children)
-        ctx (ctx-with-linters-disabled ctx [:invalid-arity
-                                            :unresolved-symbol
-                                            :type-mismatch
-                                            :private-call
-                                            :missing-docstring])]
+        ctx (utils/ctx-with-linters-disabled ctx [:invalid-arity
+                                                  :unresolved-symbol
+                                                  :type-mismatch
+                                                  :private-call
+                                                  :missing-docstring])]
     (namespace/reg-var! ctx ns-name name-sym (meta expr))
     (run! #(analyze-usages2 ctx %) body)))
 
@@ -1835,7 +1822,7 @@
 
 (defn analyze-cljs-exists? [ctx expr]
   (run! #(analyze-usages2
-          (ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace])
+          (utils/ctx-with-linters-disabled ctx [:unresolved-symbol :unresolved-namespace])
           %)
         (next (:children expr))))
 
@@ -2100,9 +2087,9 @@
                           (..) (analyze-expression** ctx (macroexpand/expand-double-dot ctx expr))
                           (proxy defcurried)
                           ;; don't lint calls in these expressions, only register them as used vars
-                          (analyze-children (ctx-with-linters-disabled ctx [:invalid-arity
-                                                                            :unresolved-symbol
-                                                                            :type-mismatch])
+                          (analyze-children (utils/ctx-with-linters-disabled ctx [:invalid-arity
+                                                                                  :unresolved-symbol
+                                                                                  :type-mismatch])
                                             children)
                           (proxy-super)
                           (analyze-proxy-super ctx expr)
@@ -2199,7 +2186,7 @@
                              [clojure.spec.gen.alpha lazy-prims])
                             (analyze-declare ctx expr defined-by)
                             [potemkin import-vars]
-                            (potemkin/analyze-import-vars ctx expr ctx-with-linters-disabled
+                            (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
                                                           'potemkin/import-vars)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
                              [cljs.core.async alt!] [cljs.core.async alt!!])
@@ -2434,11 +2421,11 @@
                                                      arg-count))))))
     (when-let [fn-parent-loc (redundant-fn-wrapper ctx callstack (rest (:children expr)) false)]
       (findings/reg-finding!
-        ctx
-        (assoc fn-parent-loc
-               :filename (:filename ctx)
-               :type :redundant-fn-wrapper
-               :message "Redundant fn wrapper")))))
+       ctx
+       (assoc fn-parent-loc
+              :filename (:filename ctx)
+              :type :redundant-fn-wrapper
+              :message "Redundant fn wrapper")))))
 
 (defn lint-map-call! [ctx _the-map arg-count expr]
   (let [callstack (:callstack ctx)
@@ -2496,8 +2483,8 @@
               ctx
               (if-let [config (get-in ctx [:config :config-in-tag tag])]
                 (update ctx :config utils/deep-merge default-cfg-in-tag config)
-                (ctx-with-linters-disabled ctx [:unresolved-symbol
-                                                :invalid-arity])))
+                (utils/ctx-with-linters-disabled ctx [:unresolved-symbol
+                                                      :invalid-arity])))
         children (rest children)]
     (analyze-children ctx children)))
 
@@ -2814,7 +2801,7 @@
           ctx (case fname
                 ("data_readers.clj"
                  "data_readers.cljc")
-                (ctx-with-linters-disabled ctx [:unresolved-namespace])
+                (utils/ctx-with-linters-disabled ctx [:unresolved-namespace])
                 ctx)]
       (let [line-length-conf (-> config :linters :line-length)]
         (when (not (identical? :off (:level line-length-conf)))

@@ -8,6 +8,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1840](https://github.com/clj-kondo/clj-kondo/issues/1840): Fix warning in `.cljs` and `.cljc` for `:aliased-namespace-symbol` in interop calls. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1845](https://github.com/clj-kondo/clj-kondo/issues/1845): add `:derived-location` to analysis when location is derived from parent node
 - [#1853](https://github.com/clj-kondo/clj-kondo/issues/1853): fix `:level :off` not being respected in `:discouraged-var` configs that are merged in.
+- [#1855](https://github.com/clj-kondo/clj-kondo/issues/1855): accept symbol in addition to keyword in `clojure.spec.alpha/def` name position
 
 ## 2022.10.14
 
