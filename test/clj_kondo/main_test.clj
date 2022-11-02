@@ -1776,7 +1776,8 @@ foo/foo ;; this does use the private var
       :message "clojure.core/inc is called with 0 args but expects 1"})
    (lint! (io/file "corpus" "defmulti.clj")
           '{:linters {:unused-binding {:level :warning}
-                      :unresolved-symbol {:level :error}}})))
+                      :unresolved-symbol {:level :error}}}))
+  (is (empty? (lint! "(defmulti foo)"))))
 
 (deftest misc-false-positives-test
   (is (empty? (lint! "(cond-> 1 true (as-> x (inc x)))")))

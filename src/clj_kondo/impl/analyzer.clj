@@ -1063,6 +1063,7 @@
                    (first children))
         [child & children] (if docstring (next children) children)
         [extra-meta extra-meta-node children] (if (and defmulti?
+                                                       child
                                                        (identical? :map (utils/tag child)))
                                                 [(sexpr child) child children]
                                                 [nil nil (cons child children)])
