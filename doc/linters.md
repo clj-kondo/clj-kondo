@@ -15,10 +15,11 @@ configuration. For general configurations options, go [here](config.md).
     - [Datalog syntax](#datalog-syntax)
     - [Deprecated var](#deprecated-var)
     - [Deps.edn](#depsedn)
-    - [Bb.edn dependency on undefined task](#bbedn-dependency-on-undefined-task)
-    - [Bb.edn cyclic task dependency](#bbedn-cyclic-task-dependency)
-    - [Bb.edn Unexpected key](#bbedn-unexpected-key)
-    - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
+    - [Bb.edn](#bbedn)
+        - [Bb.edn dependency on undefined task](#bbedn-dependency-on-undefined-task)
+        - [Bb.edn cyclic task dependency](#bbedn-cyclic-task-dependency)
+        - [Bb.edn Unexpected key](#bbedn-unexpected-key)
+        - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
     - [Discouraged var](#discouraged-var)
     - [Discouraged namespace](#discouraged-namespace)
     - [Docstring blank](#docstring-blank)
@@ -63,9 +64,10 @@ configuration. For general configurations options, go [here](config.md).
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
-    - [Unknown :require option](#unknown-require-option)
     - [Unused binding](#unused-binding)
+    - [Unused value](#unused-value)
     - [Used underscored bindings](#used-underscored-bindings)
+    - [Unknown :require option](#unknown-require-option)
     - [Unreachable code](#unreachable-code)
     - [Unused import](#unused-import)
     - [Unresolved namespace](#unresolved-namespace)
@@ -75,7 +77,6 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused namespace](#unused-namespace)
     - [Unused private var](#unused-private-var)
     - [Unused referred var](#unused-referred-var)
-    - [Unused value](#unused-value)
     - [Use](#use)
     - [Warn on reflection](#warn-on-reflection)
 
@@ -286,7 +287,9 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 Expected map, found: java.lang.String
 ```
 
-### Bb.edn dependency on undefined task
+### Bb.edn
+
+#### Bb.edn dependency on undefined task
 
 *Keyword:* `:bb.edn-undefined-task`
 
@@ -308,7 +311,7 @@ Expected map, found: java.lang.String
 Depending on undefined task: compile
 ```
 
-### Bb.edn cyclic task dependency
+#### Bb.edn cyclic task dependency
 
 *Keyword:* `:bb.edn-cyclic-task-dependency`
 
@@ -332,7 +335,7 @@ Depending on undefined task: compile
 Cyclic task dependency: a -> b -> a
 ```
 
-### Bb.edn Unexpected key
+#### Bb.edn Unexpected key
 
 *Keyword:* `:bb.edn-unexpected-key`
 
@@ -354,7 +357,7 @@ Cyclic task dependency: a -> b -> a
 Global :requires belong in the :tasks map.
 ```
 
-### Bb.edn task docstring missing
+#### Bb.edn task docstring missing
 
 *Keyword:* `:bb.edn-task-missing-docstring`
 
@@ -536,6 +539,32 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(case x :a 1 :b 2 :a 3)`
 
 *Example message:* `Duplicate case test constant: :a`.
+
+### Dynamic vars
+
+#### Dynamic var not earmuffed
+
+*Keyword:* `:dynamic-var-not-earmuffed`
+
+*Description:* warn when dynamic var doesn't have an earmuffed name.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(def ^:dynamic foo)`
+
+*Example message:* `"Var is declared dynamic but name is not earmuffed: foo"`
+
+#### Earmuffed var not dynamic
+
+*Keyword:* `:earmuffed-var-not-dynamic`
+
+*Description:* warn when var with earmuffed name isn't declared dynamic.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(def *foo*)`
+
+*Example message:* `"Var has earmuffed name but is not declared dynamic: *foo*"`
 
 ### Quoted case test constant
 

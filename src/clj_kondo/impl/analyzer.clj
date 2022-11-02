@@ -41,7 +41,8 @@
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [sci.core :as sci]))
+   [sci.core :as sci]
+   [clj-kondo.impl.rewrite-clj.node :as node]))
 
 (set! *warn-on-reflection* true)
 
@@ -1049,6 +1050,7 @@
   (let [children (next (:children expr))
         raw-var-name-node (first children)
         var-name-node-meta-nodes (:meta raw-var-name-node)
+        _ (utils/handle-ignore ctx raw-var-name-node)
         var-name-node (meta/lift-meta-content2 ctx raw-var-name-node)
         metadata (meta var-name-node)
         var-name (:value var-name-node)
@@ -1088,7 +1090,22 @@
         init-meta (some-> def-init meta)
         ;; :args and :ret is are the type related keys
         ;; together this is called :arities in reg-var!
-        arity (when init-meta (:arity init-meta))]
+        arity (when init-meta (:arity init-meta))
+        var-name-str (str var-name)
+        earmuffed? (and (str/starts-with? var-name-str "*")
+                        (str/ends-with? var-name-str "*"))]
+    (if (:dynamic metadata)
+      (when (not earmuffed?)
+        (findings/reg-finding!
+         ctx
+         (utils/node->line (:filename ctx) var-name-node
+                           :dynamic-var-not-earmuffed
+                           (str "Var is declared dynamic but name is not earmuffed: " var-name-str))))
+      (when earmuffed?
+        (findings/reg-finding! ctx
+                               (utils/node->line (:filename ctx) var-name-node
+                                                 :earmuffed-var-not-dynamic
+                                                 (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
       (namespace/reg-var! ctx (-> ctx :ns :name)
                           var-name
