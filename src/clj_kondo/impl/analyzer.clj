@@ -1120,7 +1120,8 @@
        def (analyze-def ctx expr defined-by)
        defn (analyze-defn ctx expr defined-by)
        defmethod (analyze-defmethod ctx expr)
-       defrecord (analyze-defrecord ctx expr defined-by))
+       defrecord
+       (analyze-defrecord ctx expr defined-by))
      (analyze-children ctx schemas))))
 
 (defn arity-match? [fixed-arities varargs-min-arity arg-count]
