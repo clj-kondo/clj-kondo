@@ -13,3 +13,16 @@
 
 ->StampedNames
 map->StampedNames
+
+(s/defrecord Record2
+    [_]
+  {:a s/Int
+   :b s/Int}) ;; ok
+
+(s/defrecord ErrorRecord
+    [x]
+  {(s/optional-key :a) s/Int
+   (s/optional-key :b) s/Int} ;; ok
+  (fn [x] x) ;; extra validator
+  clojure.lang.IFn
+  (applyTo [_ xs] (apply + x xs)))
