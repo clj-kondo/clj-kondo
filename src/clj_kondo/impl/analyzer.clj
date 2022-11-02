@@ -41,8 +41,7 @@
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [sci.core :as sci]
-   [clj-kondo.impl.rewrite-clj.node :as node]))
+   [sci.core :as sci]))
 
 (set! *warn-on-reflection* true)
 
