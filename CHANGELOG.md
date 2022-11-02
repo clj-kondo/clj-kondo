@@ -2,7 +2,7 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.11.02
 
 - [#1846](https://github.com/clj-kondo/clj-kondo/issues/1846): new linters: `:earmuffed-var-not-dymamic` and `:dynamic-var-not-earmuffed`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#dynamic-vars).
 - [#1842](https://github.com/clj-kondo/clj-kondo/issues/1842): Add `:exclude` option to `:used-underscored-binding` ([@staifa](https://github.com/staifa))
