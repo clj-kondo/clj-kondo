@@ -35,3 +35,5 @@
 (require '[spec-keys :as sk]) ;; namespace is used because of below s/keys call
 
 (s/keys :req [::sk/my-key])
+
+(s/def foobar int?) ;; no unresolved-symbol

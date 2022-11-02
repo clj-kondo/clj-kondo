@@ -389,6 +389,19 @@
     (subs fn 0 last-dot)
     fn))
 
+(defn ctx-with-linter-disabled [ctx linter]
+  (assoc-in ctx [:config :linters linter :level] :off))
+
+(defn ctx-with-linters-disabled [ctx linters]
+  (let [config (get ctx :config)
+        linters-config (get config :linters)
+        linters-config (reduce (fn [linters linter]
+                                 (assoc-in linters [linter :level] :off))
+                               linters-config linters)
+        config (assoc config :linters linters-config)
+        ctx (assoc ctx :config config)]
+    ctx))
+
 ;;;; Scratch
 
 (comment
