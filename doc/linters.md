@@ -851,6 +851,10 @@ correspond with the file name of the file.
 
 *Example message:* `Namespace name does not match file name: bar`
 
+*Example trigger:* a folder/file containing dashes instead of underscores, example: `example-namespace/foo.clj` containing a namespace `(ns example-namespace.foo)`.
+
+*Example message:* `Namespace name does not match file name: example-namespace.foo`
+
 ### Non-arg vec return type hint
 
 *Keyword:* `:non-arg-vec-return-type-hint`.
