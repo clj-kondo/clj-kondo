@@ -973,10 +973,16 @@
   (testing "type of def used elsewhere"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 19, :level :error, :message "Expected: number, received: keyword."})
-     (lint! "(def x :foo) (inc :foo)"
+     (lint! "(def x :foo) (inc x)"
             '{:linters
               {:type-mismatch
-               {:level :error}}}))))
+               {:level :error}}})))
+  (testing "dynamic vars are excluded, as they are often initialized to nil but bound to something else later"
+    (is (empty?
+         (lint! "(def ^:dynamic *x* nil) (inc x)"
+                '{:linters
+                  {:type-mismatch
+                   {:level :error}}})))))
 
 ;;;; Scratch
 
