@@ -58,6 +58,15 @@ Also check out these resources:
       - id: clj-kondo
 ```
 
+To run the `clj-kondo` hook via Docker add the following instead:
+
+```yaml
+- repo: https://github.com/clj-kondo/clj-kondo
+    rev: v2022.04.25
+    hooks:
+      - id: clj-kondo-docker
+```
+
 Check out [pre-commit](https://pre-commit.com/) for additional resources.
 
 ## GitHub
@@ -69,7 +78,7 @@ A number of [GitHub Actions](https://github.com/features/actions) that use `clj-
 
 ### Linter Output Integration
 
-Github Actions can integrate with clj-kondo output using a custom output pattern. To enable this, set `clj-kondo`'s config to: 
+Github Actions can integrate with clj-kondo output using a custom output pattern. To enable this, set `clj-kondo`'s config to:
 
 ``` edn
 {:output {:pattern "::{{level}} file={{filename}},line={{row}},col={{col}}::{{message}}"}}
