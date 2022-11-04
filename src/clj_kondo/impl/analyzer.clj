@@ -1110,7 +1110,7 @@
                                                  (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
       (let [tag (when-not dynamic?
-                  (some-> (:arg-types ctx) deref first))]
+                  (some-> (:arg-types ctx) deref first :tag))]
         (namespace/reg-var! ctx (-> ctx :ns :name)
                             var-name
                             expr
