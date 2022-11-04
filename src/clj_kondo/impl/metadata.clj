@@ -40,7 +40,8 @@
                     type-hint-bindings
                   cljs?
                   (assoc 'js {}
-                         'number {}))))
+                         'number {})))
+               (assoc :arg-types (atom [])))
            ;; use dorun to force analysis, we don't use the end result!
            _ (if only-usage?
                (run! #(dorun (common/analyze-usages2 meta-ctx %))
