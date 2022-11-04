@@ -1108,19 +1108,20 @@
                                                  :earmuffed-var-not-dynamic
                                                  (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
-      (namespace/reg-var! ctx (-> ctx :ns :name)
-                          var-name
-                          expr
-                          (assoc-some metadata
-                                      :user-meta (when (:analysis-var-meta ctx)
-                                                   (conj (:user-meta metadata) extra-meta))
-                                      :doc docstring
-                                      :defined-by defined-by
-                                      :fixed-arities (:fixed-arities arity)
-                                      :arglist-strs (:arglist-strs arity)
-                                      :varargs-min-arity (:varargs-min-arity arity)
-                                      :arities (:arities init-meta)
-                                      :tag (first @(:arg-types ctx)))))
+      (let [tag (some-> (:arg-types ctx) deref first)]
+        (namespace/reg-var! ctx (-> ctx :ns :name)
+                            var-name
+                            expr
+                            (assoc-some metadata
+                                        :user-meta (when (:analysis-var-meta ctx)
+                                                     (conj (:user-meta metadata) extra-meta))
+                                        :doc docstring
+                                        :defined-by defined-by
+                                        :fixed-arities (:fixed-arities arity)
+                                        :arglist-strs (:arglist-strs arity)
+                                        :varargs-min-arity (:varargs-min-arity arity)
+                                        :arities (:arities init-meta)
+                                        :tag tag))))
     (docstring/lint-docstring! ctx doc-node docstring)
     (when-not def-init
       ;; this was something else than core/def
