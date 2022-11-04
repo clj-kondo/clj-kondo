@@ -143,7 +143,6 @@
 
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
-    (prn :arg-typs @arg-types called-fn)
     (let [arg-types @arg-types
           tags (map #(tu/resolve-arg-type idacs %) arg-types)]
       (types/lint-arg-types ctx called-fn arg-types tags call))))

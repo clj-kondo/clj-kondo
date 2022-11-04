@@ -2580,7 +2580,9 @@
                   expr (assoc expr :id id)
                   _ (analyze-usages2 ctx expr)
                   usage (get @(:calls-by-id ctx) id)]
-              (types/add-arg-type-from-expr ctx (or usage expr))
+              (if usage
+                (types/add-arg-type-from-usage ctx usage expr)
+                (types/add-arg-type-from-expr ctx expr))
               nil)))
         :list
         (if-let [function (some->>

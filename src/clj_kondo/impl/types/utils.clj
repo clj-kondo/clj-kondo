@@ -96,6 +96,9 @@
                                          ;; resolved-tag may be a :call that still needs resolving
                                          (resolve-arg-type idacs resolved-tag seen-calls))))
                                    (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
+                       (when-let [usage (:usage arg-type)]
+                         (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))]
+                           (resolve-arg-type idacs resolved)))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
                            {:type :map
