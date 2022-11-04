@@ -26,7 +26,8 @@
      (analyze-ns-decl
       {:lang :clj
        :namespaces (atom {})
-       :used-namespaces (atom {})}
+       :used-namespaces (atom {})
+       :calls-by-id (atom {})}
       (parse-string "(ns ^{:doc \"hello\"} foo)"))))
   (testing "string namespaces should be allowed in require"
     (assert-submap
@@ -65,7 +66,8 @@
              :namespaces (atom {})
              :findings (atom [])
              :base-lang :clj
-             :lang :clj}
+             :lang :clj
+             :calls-by-id (atom {})}
         _ (analyze-ns-decl
            ctx
            (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
@@ -88,7 +90,8 @@
       (let [ctx {:namespaces (atom {})
                  :findings (atom [])
                  :base-lang :clj
-                 :lang :clj}
+                 :lang :clj
+                 :calls-by-id (atom {})}
             _ (analyze-ns-decl
                ctx
                (parse-string "(ns clj-kondo.impl.utils {:no-doc true})
