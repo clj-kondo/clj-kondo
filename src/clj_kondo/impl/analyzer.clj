@@ -1094,8 +1094,9 @@
         arity (when init-meta (:arity init-meta))
         var-name-str (str var-name)
         earmuffed? (and (str/starts-with? var-name-str "*")
-                        (str/ends-with? var-name-str "*"))]
-    (if (:dynamic metadata)
+                        (str/ends-with? var-name-str "*"))
+        dynamic? (:dynamic metadata)]
+    (if dynamic?
       (when (not earmuffed?)
         (findings/reg-finding!
          ctx
@@ -1108,7 +1109,8 @@
                                                  :earmuffed-var-not-dynamic
                                                  (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
-      (let [tag (some-> (:arg-types ctx) deref first)]
+      (let [tag (when-not dynamic?
+                  (some-> (:arg-types ctx) deref first))]
         (namespace/reg-var! ctx (-> ctx :ns :name)
                             var-name
                             expr

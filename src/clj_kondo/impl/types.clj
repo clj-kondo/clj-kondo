@@ -263,10 +263,17 @@
                       {:tag (get v nm)}))))))))))
 
 (defn tag-from-usage
-  [_ctx usage _expr]
+  [ctx usage _expr]
   ;; Note, we need to return maps here because we are adding row and col later on.
   (when-not (:unresolved? usage)
-    {:usage (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name])}))
+    (let [called-ns (:resolved-ns usage)
+          called-name (:name usage)
+          conf (config/type-mismatch-config (:config ctx) called-ns called-name)
+          tag (:tag conf)]
+      (if tag
+        {:tag tag}
+        {:usage (or tag
+                    (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name]))}))))
 
 (defn keyword
   "Converts tagged item into single keyword, if possible."
