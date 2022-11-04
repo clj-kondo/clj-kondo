@@ -11,7 +11,8 @@
   ([s] (lifted-meta s nil))
   ([s cfg]
    (meta (meta/lift-meta-content2 (merge {:lang :clj
-                                          :namespaces (atom {})}
+                                          :namespaces (atom {})
+                                          :calls-by-id (atom {})}
                                          cfg)
                                   (parse-string s)))))
 
@@ -70,7 +71,8 @@
              :ignores (atom {})
              :base-lang :clj
              :lang :clj
-             :bindings {}}]
+             :bindings {}
+             :calls-by-id (atom {})}]
     (assoc ctx :ns (analyze-ns-decl ctx (parse-string "(ns user)")))))
 
 (deftest extract-bindings-test
