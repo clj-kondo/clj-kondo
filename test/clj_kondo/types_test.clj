@@ -969,6 +969,15 @@
                           {test-ns
                            {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}})))))
 
+(deftest def-type-mismatch-test
+  (testing "type of def used elsewhere"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 19, :level :error, :message "Expected: number, received: keyword."})
+     (lint! "(def x :foo) (inc :foo)"
+            '{:linters
+              {:type-mismatch
+               {:level :error}}}))))
+
 ;;;; Scratch
 
 (comment
