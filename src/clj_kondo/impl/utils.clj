@@ -9,6 +9,7 @@
    [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.parser :as p]
    [clojure.java.io :as io]
+   [clojure.pprint :as pprint]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -365,14 +366,14 @@
 (defn log [& xs]
   (.println System/err (str/join " " xs)))
 
-;; (require 'clojure.pprint)
-
-;; (defn where-am-i [depth]
-;;   (let [ks [:fileName :lineNumber :className]]
-;;     (clojure.pprint/print-table
-;;      ks
-;;      (map (comp #(select-keys % ks) bean)
-;;           (take depth (.getStackTrace (Thread/currentThread)))))))
+(defn where-am-i
+  ([] (where-am-i 10))
+  ([depth]
+   (let [ks [:fileName :lineNumber :className]]
+     (pprint/print-table
+      ks
+      (map (comp #(select-keys % ks) bean)
+           (take depth (.getStackTrace (Thread/currentThread))))))))
 
 (defn ->uri [jar entry file]
   (cond file (when (fs/exists? file)
@@ -401,6 +402,11 @@
         config (assoc config :linters linters-config)
         ctx (assoc ctx :config config)]
     ctx))
+
+(defn reg-call [ctx call id]
+  (when id
+    (swap! (:calls-by-id ctx) assoc id call))
+  nil)
 
 ;;;; Scratch
 

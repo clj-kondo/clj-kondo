@@ -262,6 +262,19 @@
                     (when-let [v (:val t)]
                       {:tag (get v nm)}))))))))))
 
+(defn tag-from-usage
+  [ctx usage _expr]
+  ;; Note, we need to return maps here because we are adding row and col later on.
+  (when-not (:unresolved? usage)
+    (let [called-ns (:resolved-ns usage)
+          called-name (:name usage)
+          conf (config/type-mismatch-config (:config ctx) called-ns called-name)
+          tag (:type conf)]
+      (if tag
+        {:tag tag}
+        {:usage (or tag
+                    (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name]))}))))
+
 (defn keyword
   "Converts tagged item into single keyword, if possible."
   [maybe-tag]
@@ -325,6 +338,15 @@
                                    :col (:col call)
                                    :end-row (:end-row call)
                                    :end-col (:end-col call))))))
+
+(defn add-arg-type-from-usage [ctx usage expr]
+  (when-let [arg-types (:arg-types ctx)]
+    (swap! arg-types conj (when-let [r (tag-from-usage ctx usage expr)]
+                            (assoc r
+                                   :row (:row usage)
+                                   :col (:col usage)
+                                   :end-row (:end-row usage)
+                                   :end-col (:end-col usage))))))
 
 (defn args-spec-from-arities [arities arity]
   (when-let [called-arity (or (get arities arity)

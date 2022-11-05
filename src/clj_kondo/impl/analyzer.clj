@@ -591,7 +591,12 @@
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
-                   :added (:added var-meta))))
+                   :added (:added var-meta)
+                   :type (when (one-of defined-by [clojure.core/defn
+                                                   cljs.core/defn
+                                                   clojure.core/defn-
+                                                   cljs.core/defn-])
+                           :fn))))
     (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
 
@@ -1085,15 +1090,18 @@
         def-init (when (and (or (= 'clojure.core/def defined-by)
                                 (= 'cljs.core/def defined-by))
                             (= 1 (count children)))
-                   (analyze-expression** ctx (first children)))
+                   (or (analyze-expression** ctx (first children))
+                       ;; prevent analysis of only child more than once
+                       []))
         init-meta (some-> def-init meta)
         ;; :args and :ret is are the type related keys
         ;; together this is called :arities in reg-var!
         arity (when init-meta (:arity init-meta))
         var-name-str (str var-name)
         earmuffed? (and (str/starts-with? var-name-str "*")
-                        (str/ends-with? var-name-str "*"))]
-    (if (:dynamic metadata)
+                        (str/ends-with? var-name-str "*"))
+        dynamic? (:dynamic metadata)]
+    (if dynamic?
       (when (not earmuffed?)
         (findings/reg-finding!
          ctx
@@ -1106,18 +1114,21 @@
                                                  :earmuffed-var-not-dynamic
                                                  (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
-      (namespace/reg-var! ctx (-> ctx :ns :name)
-                          var-name
-                          expr
-                          (assoc-some metadata
-                                      :user-meta (when (:analysis-var-meta ctx)
-                                                   (conj (:user-meta metadata) extra-meta))
-                                      :doc docstring
-                                      :defined-by defined-by
-                                      :fixed-arities (:fixed-arities arity)
-                                      :arglist-strs (:arglist-strs arity)
-                                      :varargs-min-arity (:varargs-min-arity arity)
-                                      :arities (:arities init-meta))))
+      (let [type (when-not dynamic?
+                   (some-> (:arg-types ctx) deref first :tag))]
+        (namespace/reg-var! ctx (-> ctx :ns :name)
+                            var-name
+                            expr
+                            (assoc-some metadata
+                                        :user-meta (when (:analysis-var-meta ctx)
+                                                     (conj (:user-meta metadata) extra-meta))
+                                        :doc docstring
+                                        :defined-by defined-by
+                                        :fixed-arities (:fixed-arities arity)
+                                        :arglist-strs (:arglist-strs arity)
+                                        :varargs-min-arity (:varargs-min-arity arity)
+                                        :arities (:arities init-meta)
+                                        :type type))))
     (docstring/lint-docstring! ctx doc-node docstring)
     (when-not def-init
       ;; this was something else than core/def
@@ -1519,10 +1530,6 @@
                    linter
                    msg)))
     (analyze-children ctx args false)))
-
-(defn reg-call [{:keys [:calls-by-id]} call id]
-  (swap! calls-by-id assoc id call)
-  nil)
 
 (defn analyze-constructor
   "Analyzes (new Foo ...) constructor call."
@@ -2340,7 +2347,7 @@
                                    id (assoc :id id)
                                    in-def (assoc :in-def in-def)
                                    ret-tag (assoc :ret ret-tag))]
-                        (when id (reg-call ctx call id))
+                        (utils/reg-call ctx call id)
                         (when (:analyze-var-usages? ctx)
                           (namespace/reg-var-usage! ctx ns-name call))
                         (when-not unresolved?
@@ -2397,8 +2404,7 @@
                id (assoc :id id)
                in-def (assoc :in-def in-def)
                ret-tag (assoc :ret ret-tag))]
-    (when id
-      (reg-call ctx call id))
+    (utils/reg-call ctx call id)
     (if m
       (with-meta (cons call analyzed)
         m)
@@ -2509,6 +2515,8 @@
 (defn analyze-expression**
   [{:keys [:bindings :lang] :as ctx}
    {:keys [:children] :as expr}]
+  ;; (prn :expr expr)
+  ;; (utils/where-am-i 20)
   (when expr
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
@@ -2521,7 +2529,8 @@
       ;; map's type is added in :map handler below
       ;; namespaced map's type is added when going through analyze-expression** via analyze-namespaced-map
       ;; list and quote are handled specially because of return types
-      (when-not (one-of t [:namespaced-map :map :list :quote])
+      (when-not (one-of t [:namespaced-map :map :list :quote :token])
+        ;; TODO: add types for all token cases!
         (types/add-arg-type-from-expr ctx expr))
       (case t
         :quote (let [ctx (assoc ctx :quoted true)]
@@ -2572,9 +2581,17 @@
         :token
         (if (:quoted ctx)
           (when (:k expr)
-            (usages/analyze-keyword ctx expr))
+            (usages/analyze-keyword ctx expr)
+            (types/add-arg-type-from-expr ctx expr))
           (when-not (= :edn (:lang ctx))
-            (analyze-usages2 ctx expr)))
+            (let [id (gensym)
+                  expr (assoc expr :id id)
+                  _ (analyze-usages2 ctx expr)
+                  usage (get @(:calls-by-id ctx) id)]
+              (if usage
+                (types/add-arg-type-from-usage ctx usage expr)
+                (types/add-arg-type-from-expr ctx expr))
+              nil)))
         :list
         (if-let [function (some->>
                            (first children)
