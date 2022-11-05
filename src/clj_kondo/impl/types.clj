@@ -269,7 +269,7 @@
     (let [called-ns (:resolved-ns usage)
           called-name (:name usage)
           conf (config/type-mismatch-config (:config ctx) called-ns called-name)
-          tag (:tag conf)]
+          tag (:type conf)]
       (if tag
         {:tag tag}
         {:usage (or tag

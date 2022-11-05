@@ -997,7 +997,13 @@
           (is (every? :row lints))
           (assert-submaps
            '({:file "<stdin>", :level :error, :message "Expected: number, received: function."})
-           lints))))))
+           lints))))
+    (testing "override with config"
+      (let [lints (lint! "(ns foo) (def x) (inc x)"
+                         (assoc-in config [:linters :type-mismatch :namespaces] '{foo {x {:type :keyword}}} ))]
+        (assert-submaps
+         '({:file "<stdin>", :row 1, :col 23, :level :error, :message "Expected: number, received: keyword."})
+         lints)))))
 
 ;;;; Scratch
 
