@@ -5,9 +5,8 @@
 
 (defmacro form-env-macro [_]
   (list* 'clojure.core/+
-         (list* 'clojure.core/+
-                [(when (= 'form-env-macro (first &form)) "foo")
-                 (when (contains? &env 'x) :foo)])))
+         [(when (= 'form-env-macro (first &form)) "foo")
+          (when (contains? &env 'x) :foo)]))
 
 (defmacro private-defn [sym]
   `(defn ~(with-meta sym {:private true}) []
