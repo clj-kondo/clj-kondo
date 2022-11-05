@@ -47,7 +47,7 @@
                             t)
                           seen-calls))
                        (when-let [t (:type arg-type)]
-                         (when (identical? t :map)
+                         (if (identical? t :map)
                            (if-let [[kw-call & rest-kw-calls] (seq (:kw-calls arg-type))]
                              (let [resolved-tag (-> arg-type :val (get kw-call) :tag)]
                                (cond
@@ -62,7 +62,8 @@
 
                                  :else
                                  resolved-tag))
-                             arg-type)))
+                             t)
+                           (resolve-arg-type idacs t seen-calls)))
                        (when-let [call (:call arg-type)]
                          (when-not (contains? seen-calls call)
                            (let [arity (:arity call)]

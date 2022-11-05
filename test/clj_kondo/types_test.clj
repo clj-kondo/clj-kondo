@@ -2,7 +2,8 @@
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps]]
    [clojure.java.io :as io]
-   [clojure.test :as t :refer [deftest is testing]]))
+   [clojure.test :as t :refer [deftest is testing]]
+   [clojure.string :as str]))
 
 (deftest type-mismatch-test
   (assert-submaps
@@ -534,13 +535,13 @@
 
 (defn x [y] y)
 (x {::s/thing 1})"
-              '{:linters
-                {:type-mismatch
-                 {:level :error
-                  :namespaces
-                  {test-ns
-                   {x {:arities {1 {:args [{:op :keys, :req {:other-ns/thing :any
-                                                             :some-ns/thing :any}}]}}}}}}}})))
+          '{:linters
+            {:type-mismatch
+             {:level :error
+              :namespaces
+              {test-ns
+               {x {:arities {1 {:args [{:op :keys, :req {:other-ns/thing :any
+                                                         :some-ns/thing :any}}]}}}}}}}})))
 
 (deftest if-let-test
   (assert-submaps
@@ -566,15 +567,15 @@
    (lint! "(defn foo [x] (cond x :foo :else 'bar)) (inc (foo 1))"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps
-      '({:file "<stdin>", :row 1, :col 45, :level :error, :message "Expected: number, received: symbol or keyword or nil."})
-      (lint! "(defn foo [x] (cond x :foo x 'symbol)) (inc (foo 1))"
-             {:linters {:type-mismatch {:level :error}}})))
+   '({:file "<stdin>", :row 1, :col 45, :level :error, :message "Expected: number, received: symbol or keyword or nil."})
+   (lint! "(defn foo [x] (cond x :foo x 'symbol)) (inc (foo 1))"
+          {:linters {:type-mismatch {:level :error}}})))
 
 (deftest and-test
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 44, :level :error, :message "Expected: number, received: keyword or nil or boolean."})
    (lint! "(defn foo [_] true) (defn bar [_] :k) (inc (and (foo 1) (bar 2)))"
-              {:linters {:type-mismatch {:level :error}}})))
+          {:linters {:type-mismatch {:level :error}}})))
 
 (deftest return-type-inference-test
   (testing "Function return types"
@@ -719,9 +720,9 @@
    (lint! "(let [name \"foo\"] (name :foo))"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps
-    '({:file "<stdin>", :row 1, :col 18, :level :error, :message "Number cannot be called as a function."})
-    (lint! "(let [x (inc 2)] (x 2))"
-           {:linters {:type-mismatch {:level :error}}}))
+   '({:file "<stdin>", :row 1, :col 18, :level :error, :message "Number cannot be called as a function."})
+   (lint! "(let [x (inc 2)] (x 2))"
+          {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 23, :level :error, :message "String or nil cannot be called as a function."})
    (lint! "(defn foo [^String x] (x))"
@@ -914,21 +915,21 @@
 (deftest nilable-map-test
   (testing "pass nil to a nilable map"
     (assert-submaps
-      []
-      (lint! "
+     []
+     (lint! "
 (do
   (defn fun4 [m] (:a m))
   (fun4 nil))"
-             config-2)))
+            config-2)))
 
   (testing "pass invalid map to a nilable map"
     (assert-submaps
-      [{:file "<stdin>", :row 4, :col 9, :level :error, :message "Missing required key: :a"}]
-      (lint! "
+     [{:file "<stdin>", :row 4, :col 9, :level :error, :message "Missing required key: :a"}]
+     (lint! "
 (do
   (defn fun4 [m] (:a m))
   (fun4 {}))"
-             config-2))))
+            config-2))))
 
 (deftest misc-false-positives-test
   (is (empty? (lint! "(even? ('a {'a 10}))" config)))
@@ -936,38 +937,38 @@
 
 (deftest map-namespace-test
   (testing "#::ns{:key :val} syntax"
-   (is (empty? (lint! "
+    (is (empty? (lint! "
 (ns test-ns (:require [some-ns :as s]))
 (defn x [y] y)
 (x #::s{:thing 1})"
-                      '{:linters
-                        {:type-mismatch
-                         {:level :error
-                          :namespaces
-                          {test-ns
-                           {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}}))))
+                       '{:linters
+                         {:type-mismatch
+                          {:level :error
+                           :namespaces
+                           {test-ns
+                            {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}}))))
   (testing "#:ns{:key :val} syntax"
-   (is (empty? (lint! "
+    (is (empty? (lint! "
 (ns test-ns)
 (defn x [y] y)
 (x #:some-ns{:thing 1})"
-                      '{:linters
-                        {:type-mismatch
-                         {:level :error
-                          :namespaces
-                          {test-ns
-                           {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}}))))
+                       '{:linters
+                         {:type-mismatch
+                          {:level :error
+                           :namespaces
+                           {test-ns
+                            {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}}))))
   (testing "{::ns/key :val} syntax"
-   (is (empty? (lint! "
+    (is (empty? (lint! "
 (ns test-ns (:require [some-ns :as s]))
 (defn x [y] y)
 (x {::s/thing 1})"
-                      '{:linters
-                        {:type-mismatch
-                         {:level :error
-                          :namespaces
-                          {test-ns
-                           {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}})))))
+                       '{:linters
+                         {:type-mismatch
+                          {:level :error
+                           :namespaces
+                           {test-ns
+                            {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}})))))
 
 (deftest def-type-mismatch-test
   (let [config '{:linters
@@ -985,7 +986,18 @@
     (testing "dynamic vars are excluded, as they are often initialized to nil but bound to something else later"
       (is (empty?
            (lint! "(def ^:dynamic *x* nil) (inc x)"
-                  config))))))
+                  config))))
+    (testing "defn now has var of type :fn"
+      (doseq [sym ['defn 'defn-]
+              lang ["clj" "cljc"]]
+        (let [lints (lint! (str/replace "(defn foo [] :foo) (inc foo)"
+                                        "defn" (str sym))
+                           config
+                           "--lang" lang)]
+          (is (every? :row lints))
+          (assert-submaps
+           '({:file "<stdin>", :level :error, :message "Expected: number, received: function."})
+           lints))))))
 
 ;;;; Scratch
 

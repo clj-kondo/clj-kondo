@@ -591,7 +591,12 @@
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
-                   :added (:added var-meta))))
+                   :added (:added var-meta)
+                   :type (when (one-of defined-by [clojure.core/defn
+                                                   cljs.core/defn
+                                                   clojure.core/defn-
+                                                   cljs.core/defn-])
+                           :fn))))
     (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
 
@@ -1109,8 +1114,8 @@
                                                  :earmuffed-var-not-dynamic
                                                  (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
-      (let [tag (when-not dynamic?
-                  (some-> (:arg-types ctx) deref first :tag))]
+      (let [type (when-not dynamic?
+                   (some-> (:arg-types ctx) deref first :tag))]
         (namespace/reg-var! ctx (-> ctx :ns :name)
                             var-name
                             expr
@@ -1123,7 +1128,7 @@
                                         :arglist-strs (:arglist-strs arity)
                                         :varargs-min-arity (:varargs-min-arity arity)
                                         :arities (:arities init-meta)
-                                        :tag tag))))
+                                        :type type))))
     (docstring/lint-docstring! ctx doc-node docstring)
     (when-not def-init
       ;; this was something else than core/def

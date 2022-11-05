@@ -565,7 +565,7 @@
                                 :macro :private :deprecated
                                 :fixed-arities :varargs-min-arity
                                 :name :ns :top-ns :imported-ns :imported-var
-                                :arities :tag])))
+                                :arities :type])))
             vars))
 
 (defn namespaces->indexed [namespaces]
