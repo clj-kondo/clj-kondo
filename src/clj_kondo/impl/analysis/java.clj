@@ -73,12 +73,19 @@
        (identical? :clj (:lang ctx))))
 
 (defn reg-class-usage!
-  [ctx class-name loc+data]
-  (when (analyze-class-usages? ctx)
-    (swap! (:analysis ctx)
-           update :java-class-usages conj
-           (merge {:class class-name
-                   :uri (:uri ctx)
-                   :filename (:filename ctx)}
-                  loc+data)))
+  ([ctx class-name loc+data]
+   (reg-class-usage! ctx class-name loc+data nil))
+  ([ctx class-name loc+data name-meta]
+   (when (analyze-class-usages? ctx)
+     (swap! (:analysis ctx)
+            update :java-class-usages conj
+            (merge {:class class-name
+                    :uri (:uri ctx)
+                    :filename (:filename ctx)}
+                   loc+data
+                   (when name-meta
+                     {:name-row (:row name-meta)
+                      :name-col (:col name-meta)
+                      :name-end-row (:end-row name-meta)
+                      :name-end-col (:end-col name-meta)})))))
   nil)
