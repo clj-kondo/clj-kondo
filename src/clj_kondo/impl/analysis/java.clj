@@ -87,5 +87,5 @@
                      {:name-row (:row name-meta)
                       :name-col (:col name-meta)
                       :name-end-row (:end-row name-meta)
-                      :name-end-col (:end-col name-meta)})))))
-  nil)
+                      :name-end-col (:end-col name-meta)}))))
+   nil))
