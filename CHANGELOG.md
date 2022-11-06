@@ -5,6 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#609](https://github.com/clj-kondo/clj-kondo/issues/609): typecheck var usage, e.g. `(def x :foo) (inc :foo)` will now give a warning
+- [#1867](https://github.com/clj-kondo/clj-kondo/issues/1867): add name metadata to class usage
 
 ## 2022.11.02
 

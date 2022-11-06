@@ -112,7 +112,8 @@
       {:class "java.util.Date", :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 13, :col 1, :end-row 13, :end-col 15}
       {:class "java.io.File", :uri #"file:.*corpus/java/usages.clj",
-       :filename #"corpus/java/usages.clj", :row 14, :col 1, :end-row 14, :end-col 42}]
+       :filename #"corpus/java/usages.clj", :row 14, :col 1, :end-row 14, :end-col 42
+       :name-col 2 :name-end-col 29, :name-end-row 14, :name-row 14}]
      java-class-usages)))
 
 (comment
