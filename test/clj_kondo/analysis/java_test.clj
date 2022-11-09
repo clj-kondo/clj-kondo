@@ -38,7 +38,7 @@
     (assert-submap2
      {:class "clojure.lang.RT",
       :uri #"jar:file:.*\.clj",
-      :filename #".*\.clj2"}
+      :filename #".*\.clj"}
      rt-usage)
     (is (every? number? ((juxt :row
                                :col
