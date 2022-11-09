@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submap assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submap2 assert-submaps2]]
    #_[clojure.edn :as edn]
    #_[clojure.string :as string]
    [clojure.test :as t :refer [deftest is testing]]
@@ -30,12 +30,12 @@
                         %) java-class-definitions)
         rt-usage (some #(when (= (:class %) "clojure.lang.RT")
                           %) java-class-usages)]
-    (assert-submap
+    (assert-submap2
      {:class "clojure.lang.RT",
       :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class",
       :filename #"\.class"}
      rt-def)
-    (assert-submap
+    (assert-submap2
      {:class "clojure.lang.RT",
       :uri #"jar:file:.*\.clj",
       :filename #".*\.clj"}
@@ -47,20 +47,20 @@
 
 (deftest local-classes-test
   (let [{:keys [:java-class-definitions]} (analyze ["corpus/java/classes"])]
-    (assert-submaps
+    (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class",
         :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}]
      java-class-definitions))
   (let [{:keys [:java-class-definitions]} (analyze ["corpus/java/sources"])]
-    (assert-submaps
+    (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
         :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
      java-class-definitions))
   (testing "linting just one java source"
     (let [{:keys [:java-class-definitions]} (analyze ["corpus/java/sources/foo/bar/AwesomeClass.java"])]
-      (assert-submaps
+      (assert-submaps2
        '[{:class "foo.bar.AwesomeClass",
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
           :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
@@ -69,7 +69,7 @@
 (deftest class-usages-test
   (let [{:keys [:java-class-usages :var-usages]} (analyze ["corpus/java/usages.clj"])]
     (is (= '(try fn new import) (map :name var-usages)))
-    (assert-submaps
+    (assert-submaps2
      [{:class "clojure.lang.PersistentVector", :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 1, :col 40, :end-row 1, :end-col 56
        :import true}

@@ -20,7 +20,9 @@
              }}
            :reduce-without-init {:level :warning}
            :missing-docstring {:level :off}
-           :unsorted-required-namespaces {:level :warning}}
+           :unsorted-required-namespaces {:level :warning}
+           ;; for  nubank/matcher-combinators
+           :unresolved-symbol {:exclude [(clojure.test/is [match?])]}}
  :lint-as {me.raynes.conch/programs clojure.core/declare
            me.raynes.conch/let-programs clojure.core/let
            datalog.parser.type/deftrecord clojure.core/defrecord
@@ -36,4 +38,5 @@
  :ns-groups [{:pattern ".*-test"
               :name test-namespaces}]
  :config-in-ns {test-namespaces {:linters {:warn-on-reflection {:level :off}}}}
+
  }

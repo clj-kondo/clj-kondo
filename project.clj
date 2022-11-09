@@ -26,7 +26,8 @@
                                    [jonase/eastwood "1.3.0"]
                                    [borkdude/missing.test.assertions "0.0.2"]
                                    [babashka/process "0.1.0"]
-                                   [org.clojure/tools.deps.alpha "0.12.1048"]]
+                                   [org.clojure/tools.deps.alpha "0.12.1048"]
+                                   [nubank/matcher-combinators "3.5.1" :exclusions [midje/midje]]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.0"]]
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
