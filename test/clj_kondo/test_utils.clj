@@ -6,6 +6,7 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing *report-counters*]]
+   [matcher-combinators.test]
    [me.raynes.conch :refer [let-programs programs] :as sh]))
 
 (set! *warn-on-reflection* true)
@@ -67,6 +68,33 @@
                   maps# (vec res#)))
       (doseq [m# maps#]
         (is (some #(submap? m# %) res#) (str "No superset of " m# " found"))))))
+
+(defn normalize-map-paths
+  "Any value with a key of `:file` or `:filename` is assumed to be a string path.
+  NOTE: we don't walk map `m`, we only look at root key-values."
+  [m]
+  (reduce (fn [m k]
+            (if (k m)
+              (update m k normalize-filename)
+              m))
+          m
+          [:file :filename]))
+
+(defmacro assert-submap2
+  "A new version of assert-submap that uses nubank's matcher-combinators.
+  Matcher-combinators does a nice job of highlighting the difference in actual vs expected."
+  [expected actual]
+  `(let [actual# ~actual
+         expected# ~expected]
+     (is (~'match? expected# (normalize-map-paths actual#)))))
+
+(defmacro assert-submaps2
+  "A new version of assert-submaps that uses nubank's matcher-combinators.
+  Matcher-combinators does a nice job of highlighting the difference in actual vs expected."
+  [expected actual]
+  `(let [actual# ~actual
+         expected# ~expected]
+     (is (~'match? expected# (map normalize-map-paths actual#)))))
 
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the
