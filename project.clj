@@ -15,19 +15,19 @@
                  [io.lambdaforge/datalog-parser "0.1.9"]
                  [cheshire/cheshire "5.11.0"]
                  [nrepl/bencode "1.1.0"]
-                 [org.babashka/sci "0.5.34"]
+                 [org.babashka/sci "0.5.35"]
                  [babashka/fs "0.1.11"]
                  [org.ow2.asm/asm "9.2"]]
   ;; :global-vars {*print-namespace-maps* false}
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
-             :test {:dependencies [[org.clojure/clojurescript "1.11.54"]
+             :test {:dependencies [[nubank/matcher-combinators "3.5.1"]
+                                   [org.clojure/clojurescript "1.11.54"]
                                    [clj-commons/conch "0.9.2"]
-                                   [jonase/eastwood "1.3.0"]
-                                   [borkdude/missing.test.assertions "0.0.2"]
-                                   [babashka/process "0.1.0"]
                                    [org.clojure/tools.deps.alpha "0.12.1048"]
-                                   [nubank/matcher-combinators "3.5.1" :exclusions [midje/midje]]]
+                                   [jonase/eastwood "1.3.0"]
+                                   [babashka/process "0.1.0"]
+                                   [borkdude/missing.test.assertions "0.0.2"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.0"]]
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
