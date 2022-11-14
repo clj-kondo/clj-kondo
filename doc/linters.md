@@ -29,6 +29,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate case test constant](#duplicate-case-test-constant)
+    - [Duplicate field name](#duplicate-field-name)
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
@@ -542,6 +543,18 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(case x :a 1 :b 2 :a 3)`
 
 *Example message:* `Duplicate case test constant: :a`.
+
+### Duplicate field name
+
+*Keyword:* `:duplicate-field-name`.
+
+*Description:* identify duplicate fields in deftype/defrecord fields definition.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(deftype T [x y z y])`
+
+*Example message:* `Duplicate field name: y`.
 
 ### Dynamic vars
 
