@@ -1437,6 +1437,15 @@
         ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
     (when-not (= "definterface" (name defined-by))
+      (when-not (identical? :off (-> ctx :config :linters :duplicate-field :level))
+        (doseq [[_ fields] (group-by identity (:children binding-vector))]
+          (when (> (count fields) 1)
+            (doseq [field fields]
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) field
+                           :duplicate-field
+                           "duplicate field"))))))
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
                           (assoc-some metadata
                                       :arglist-strs (when arglists?

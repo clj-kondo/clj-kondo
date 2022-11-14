@@ -49,7 +49,7 @@
                                  :simple-libspec false}
 
               :unresolved-symbol {:level :error
-                                  :exclude [;; ignore globally:
+                                  :exclude [ ;; ignore globally:
                                             #_js*
                                             ;; ignore occurrences of service and event in call to riemann.streams/where:
                                             #_(riemann.streams/where [service event])
@@ -63,7 +63,7 @@
               :unresolved-var {:level :warning}
               :unresolved-namespace {:level :warning
                                      :exclude [#_foo.bar]}
-                                               ;; for example: foo.bar is always loaded in a user profile
+              ;; for example: foo.bar is always loaded in a user profile
               :reduce-without-init {:level :off
                                     :exclude [#_foo.bar/baz]}
               :misplaced-docstring {:level :warning}
@@ -138,7 +138,8 @@
                             :max-line-length nil}
               :unused-value {:level :warning}
               :dynamic-var-not-earmuffed {:level :warning}
-              :earmuffed-var-not-dynamic {:level :warning}}
+              :earmuffed-var-not-dynamic {:level :warning}
+              :duplicate-field {:level :error}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
