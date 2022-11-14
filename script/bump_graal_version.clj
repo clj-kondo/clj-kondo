@@ -31,7 +31,8 @@
    "appveyor.yml"
    "project.clj.template"
    "project.clj"
-   ".cirrus.yml"])
+   ".cirrus.yml"
+   ".github/worksflows/ci.yml"])
 
 ;; We might have to keep changing these from
 ;; time to time whenever the version is bumped
