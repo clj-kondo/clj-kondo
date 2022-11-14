@@ -1445,7 +1445,7 @@
                ctx
                (node->line (:filename ctx) field
                            :duplicate-field
-                           "duplicate field"))))))
+                           (format "Duplicate field name: %s" (:value field))))))))
       (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
                           (assoc-some metadata
                                       :arglist-strs (when arglists?
