@@ -39,7 +39,7 @@
 ;; OR
 ;;
 ;; We could have them as environment variables
-(def current-graal-version "22.0.0.2")
+(def current-graal-version "22.2.0")
 (def current-java-version "java11")
 
 (def valid-java-bumps ["java8" "java11"])
