@@ -122,8 +122,9 @@
 (defn expand-double-dot
   [_ctx expr]
   (loop [[x form & more] (rest (:children expr))]
-    (let [node (with-meta-of (list-node [(token-node '.) x form])
-                 expr)]
+    (let [node (-> (with-meta-of (list-node [(token-node '.) x form])
+                     expr)
+                   (vary-meta assoc :skip-analysis true))]
       (if more
         (recur (cons node more) )
         node))))

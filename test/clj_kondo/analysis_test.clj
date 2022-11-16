@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submap assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submap assert-submaps assert-submaps2]]
    [clojure.edn :as edn]
    [clojure.string :as string]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -1004,22 +1004,22 @@
                                              '(fn [{:keys [:node]}]
                                                 (let [[test-name] (rest (:children node))
                                                       new-node (api/list-node
-                                                                 [(api/token-node 'def)
-                                                                  test-name])]
+                                                                [(api/token-node 'def)
+                                                                 test-name])]
                                                   {:node new-node})))}}}})]
         (assert-submaps
-          '[{:ns user,
-             :name foobar
-             :derived-location :submap/missing}]
-          var-definitions)
+         '[{:ns user,
+            :name foobar
+            :derived-location :submap/missing}]
+         var-definitions)
         (assert-submaps
-          '[{:name defflow}
-            {:name def
-             :derived-location true
-             :derived-name-location true
-             :row 1 :col 1 :end-row 1 :end-col 22
-             :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 22}]
-          var-usages)))
+         '[{:name defflow}
+           {:name def
+            :derived-location true
+            :derived-name-location true
+            :row 1 :col 1 :end-row 1 :end-col 22
+            :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 22}]
+         var-usages)))
     (testing "generated keyword and let var-usage"
       (let [{:keys [var-definitions var-usages keywords]}
             (analyze "(user/deflet my-k)"
@@ -1028,29 +1028,29 @@
                                        :analyze-call
                                        {'user/deflet
                                         (str
-                                          '(require '[clj-kondo.hooks-api :as api])
-                                          '(fn [{:keys [node]}]
-                                             (let [[my-k] (rest (:children node))
-                                                   new-node (api/list-node
-                                                              [(api/token-node 'let)
-                                                               (api/vector-node [(api/token-node '_)
-                                                                                 (api/keyword-node (keyword (api/sexpr my-k)))])])]
-                                               {:node new-node})))}}}})]
+                                         '(require '[clj-kondo.hooks-api :as api])
+                                         '(fn [{:keys [node]}]
+                                            (let [[my-k] (rest (:children node))
+                                                  new-node (api/list-node
+                                                            [(api/token-node 'let)
+                                                             (api/vector-node [(api/token-node '_)
+                                                                               (api/keyword-node (keyword (api/sexpr my-k)))])])]
+                                              {:node new-node})))}}}})]
         (assert-submaps
-          '[{:name "my-k"
-             :row 1 :col 1 :end-row 1 :end-col 19
-             :derived-location true
-             :derived-name-location :submap/missing}]
-          keywords)
+         '[{:name "my-k"
+            :row 1 :col 1 :end-row 1 :end-col 19
+            :derived-location true
+            :derived-name-location :submap/missing}]
+         keywords)
         (is (empty? var-definitions))
         (assert-submaps
-          '[{:name deflet}
-            {:name let
-             :derived-location true
-             :derived-name-location true
-             :row 1 :col 1 :end-row 1 :end-col 19
-             :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 19}]
-          var-usages))))
+         '[{:name deflet}
+           {:name let
+            :derived-location true
+            :derived-name-location true
+            :row 1 :col 1 :end-row 1 :end-col 19
+            :name-row 1 :name-col 1 :name-end-row 1 :name-end-col 19}]
+         var-usages))))
   (testing "with custom with-meta"
     (let [{:keys [var-definitions var-usages]}
           (analyze "(user/defflow foobar)"
@@ -1062,24 +1062,24 @@
                                            '(fn [{:keys [:node]}]
                                               (let [[test-name] (rest (:children node))
                                                     new-node (api/list-node
-                                                               [(api/token-node 'def)
-                                                                test-name])]
+                                                              [(api/token-node 'def)
+                                                               test-name])]
                                                 {:node (with-meta new-node {:row 10 :col 11 :end-row 12 :end-col 13})
                                                  })))}}}})]
       (assert-submaps
-        '[{:ns user,
-           :name foobar,
-           :derived-location :submap/missing
-           :derived-name-location :submap/missing}]
-        var-definitions)
+       '[{:ns user,
+          :name foobar,
+          :derived-location :submap/missing
+          :derived-name-location :submap/missing}]
+       var-definitions)
       (assert-submaps
-        '[{:name defflow}
-          {:name def
-           :derived-name-location true
-           :row 10 :col 11 :end-row 12 :end-col 13
-           :name-row 10 :name-col 11 :name-end-row 12 :name-end-col 13
-           :derived-location :submap/missing}]
-        var-usages))))
+       '[{:name defflow}
+         {:name def
+          :derived-name-location true
+          :row 10 :col 11 :end-row 12 :end-col 13
+          :name-row 10 :name-col 11 :name-end-row 12 :name-end-col 13
+          :derived-location :submap/missing}]
+       var-usages))))
 
 (deftest hooks-custom-missing-meta-test
   (assert-submaps
@@ -2006,6 +2006,29 @@
       (is (some #(when (and (= "foo" (:name %))
                             (= use-foo-id (-> % :context :re-frame.core :in-id))
                             (some-> % :context :re-frame.core :cofx-ref)) %) keywords)))))
+
+(deftest internal-macro-expand-test
+  (let [analysis (:analysis (with-in-str
+                              "(.. \"foo\" .length)"
+                              (clj-kondo/run! {:lang :cljs :lint ["-"] :config
+                                               {:analysis true}})))
+        var-usages (:var-usages analysis)]
+    (assert-submaps2 '[{:fixed-arities #{2},
+                        :end-row 1,
+                        :name-end-col 4,
+                        :name-end-row 1,
+                        :name-row 1,
+                        :name ..,
+                        :from user,
+                        :macro true,
+                        :col 1,
+                        :name-col 2,
+                        :end-col 19,
+                        :arity 2,
+                        :varargs-min-arity 2,
+                        :row 1,
+                        :to cljs.core}]
+                     var-usages)))
 
 (comment
   (context-test)
