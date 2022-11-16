@@ -268,4 +268,8 @@
      :message "Unresolved symbol: Exception"}]
    (lint! "String Exception"
           '{:linters {:unresolved-symbol {:level :error}}}
-          "--lang" "cljs")))
+          "--lang" "cljs"))
+  (is (empty?
+       (lint! "(deftype Foo [] Object (toString [_] \"hello\"))"
+              '{:linters {:unresolved-symbol {:level :error}}}
+              "--lang" "cljs"))))
