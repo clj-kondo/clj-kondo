@@ -8,6 +8,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1867](https://github.com/clj-kondo/clj-kondo/issues/1867): add name metadata to class usage
 - [#1875](https://github.com/clj-kondo/clj-kondo/issues/1875): add `:duplicate-field-name` linter for deftype and defrecord definitions.
 - [#1883](https://github.com/clj-kondo/clj-kondo/issues/1883): constructor usage should have name-col in analysis
+- [#1874](https://github.com/clj-kondo/clj-kondo/issues/1874): fix name of fully qualified class usage
 
 ## 2022.11.02
 
