@@ -272,4 +272,9 @@
   (is (empty?
        (lint! "(deftype Foo [] Object (toString [_] \"hello\"))"
               '{:linters {:unresolved-symbol {:level :error}}}
-              "--lang" "cljs"))))
+              "--lang" "cljs")))
+  (testing "type hints are ignored in CLJS, so writing .cljc files is less cumbersome"
+    (is (empty?
+         (lint! "(defn foo ^String [x] x)"
+                '{:linters {:unresolved-symbol {:level :error}}}
+                "--lang" "cljc")))))
