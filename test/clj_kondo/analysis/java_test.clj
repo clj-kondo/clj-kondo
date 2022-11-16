@@ -68,7 +68,7 @@
 
 (deftest class-usages-test
   (let [{:keys [:java-class-usages :var-usages]} (analyze ["corpus/java/usages.clj"])]
-    (is (= '(try fn new import) (map :name var-usages)))
+    (is (= '(try fn new import new) (map :name var-usages)))
     (assert-submaps2
      [{:class "clojure.lang.PersistentVector", :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 1, :col 40, :end-row 1, :end-col 56
@@ -91,7 +91,7 @@
       {:class "java.lang.Thread"
        :uri #"file:.*corpus/java/usages.clj"
        :filename #"corpus/java/usages.clj"
-       :row 6 :col 2 :end-row 6 :end-col 9
+       :row 6 :col 1 :end-row 6 :end-col 18
        :name-row 6 :name-col 2 :name-end-row 6 :name-end-col 9}
       {:end-row 7, :name-end-col 17, :name-end-row 7, :name-row 7,
        :filename #"corpus/java/usages.clj", :col 1,
@@ -113,11 +113,21 @@
        :filename #"corpus/java/usages.clj", :row 13, :col 1, :end-row 13, :end-col 15}
       {:class "java.io.File", :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 14, :col 1, :end-row 14, :end-col 42
-       :name-col 2 :name-end-col 29, :name-end-row 14, :name-row 14}]
+       :name-col 2 :name-end-col 29, :name-end-row 14, :name-row 14}
+      {:class "java.io.File",
+       :filename #"corpus/java/usages.clj"
+       :uri #"file:.*corpus/java/usages.clj"
+       :row 15,
+       :col 1,
+       :end-row 15,
+       :end-col 22
+       :name-row 15
+       :name-col 2}]
      java-class-usages)))
 
 (comment
 
   #_(assert-submap {:filename #"\.class"} {:filename "/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar:clojure/lang/RT.class"})
   #_(:filename rt-def)
+
   )

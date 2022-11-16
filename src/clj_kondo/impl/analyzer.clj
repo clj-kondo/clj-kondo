@@ -1544,7 +1544,8 @@
   "Analyzes (new Foo ...) constructor call."
   [ctx expr]
   (let [[_ ctor-node & children] (:children expr)]
-    (analyze-usages2 (utils/ctx-with-linter-disabled ctx :unresolved-symbol) ctor-node)
+    (analyze-usages2 (assoc (utils/ctx-with-linter-disabled ctx :unresolved-symbol)
+                            :constructor-expr expr) ctor-node)
     (analyze-children ctx children)))
 
 (defn analyze-set!
