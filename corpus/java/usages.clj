@@ -13,3 +13,4 @@ foo.bar.Baz/EMPTY
 java.util.Date
 (java.io.File/createTempFile "foo" "bar")
 (java.io.File. "foo")
+(java.lang.String. "foo")

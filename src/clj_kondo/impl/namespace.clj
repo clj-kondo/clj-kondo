@@ -548,9 +548,12 @@
                                    ;; TODO: fix in default-import->qname
                                    [class (str/replace fq (str/re-quote-replacement (str "." class)) "")])
                                  (when-let [fq (get var-info/default-fq-imports ns-sym)]
-                                   (let [fq (str fq)]
-                                     [(last (str/split fq #"\."))
-                                      (str/join "." (butlast (str/split fq #"\.")))]))))
+                                   (let [fq (str fq)
+                                         splitted (split-on-dots fq)
+                                         package (symbol (str/join "." (butlast splitted)))
+                                         name* (symbol (last splitted))]
+                                     [name*
+                                      package]))))
                            (find (:imports ns) ns-sym))]
               (reg-used-import! ctx name-sym ns-name package class-name expr)
               (when call? (findings/warn-reflection ctx expr))
@@ -600,12 +603,17 @@
               {:ns (:name ns)
                :name name-sym})
             (when-let [[name-sym* package]
-                       (or (when-let [[class fq] (find var-info/default-import->qname name-sym)]
-                             ;; TODO: fix in default-import->qname
-                             [class (str/replace fq (str/re-quote-replacement (str "." class)) "")])
+                       (or (when (identical? :clj lang)
+                             (when-let [[class fq] (find var-info/default-import->qname name-sym)]
+                               ;; TODO: fix in default-import->qname
+                               [class (str/replace fq (str/re-quote-replacement (str "." class)) "")]))
                            ;; (find var-info/default-import->qname name-sym)
-                           (when-let [v (get var-info/default-fq-imports name-sym)]
-                             [v v])
+                           (when (identical? :clj lang)
+                             (when-let [v (get var-info/default-fq-imports name-sym)]
+                               (let [splitted (split-on-dots v)
+                                     package (symbol (str/join "." (butlast splitted)))
+                                     name* (symbol (last splitted))]
+                                 [name* package])))
                            (if cljs?
                              ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
                              (let [fs (first-segment name-sym)]

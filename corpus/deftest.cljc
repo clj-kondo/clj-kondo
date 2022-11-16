@@ -16,7 +16,7 @@
     :baz true?))
 
 (deftest thrown-test
-  (is (thrown? Exception :foo))
+  (is (thrown? #?(:clj Exception :cljs js/Error) :foo))
   (are [x] (thrown? Exception x) :foo))
 
 (deftest thown-with-msg-test
