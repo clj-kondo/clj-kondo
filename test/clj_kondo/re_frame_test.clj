@@ -11,7 +11,8 @@
   '{:linters {:unresolved-namespace {:exclude [clojure.string]}
               :unresolved-symbol    {:exclude [random-uuid
                                                goog.DEBUG
-                                               (com.rpl.specter/recursive-path)]}
+                                               (com.rpl.specter/recursive-path)
+                                               String]}
               :unused-referred-var  {:exclude {clojure.test [is deftest testing]}}
               :redundant-call {:level :off}
               :unsorted-required-namespaces {:level :warning}}

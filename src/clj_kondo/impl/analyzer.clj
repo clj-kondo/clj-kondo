@@ -1368,7 +1368,9 @@
           ;; special way, as there is a single protocol being extented
           ;; to multiple records/types.
           (do
-            (analyze-expression** ctx c)
+            (when-not (and (identical? :cljs (:lang ctx))
+                           (= 'Object sym))
+              (analyze-expression** ctx c))
             (recur (case (name defined-by)
                      "extend-protocol" (if (nil? current-protocol)
                                          ;; extend-protocol has the protocol name as

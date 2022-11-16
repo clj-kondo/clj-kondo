@@ -1,9 +1,9 @@
 (ns clj-kondo.unresolved-symbol-test
   (:require
-    [clj-kondo.test-utils :refer [lint! assert-submaps]]
-    [clojure.edn :as edn]
-    [clojure.java.io :as io]
-    [clojure.test :refer [deftest is testing]]))
+   [clj-kondo.test-utils :refer [lint! assert-submaps2] :rename {assert-submaps2 assert-submaps}]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
+   [clojure.test :refer [deftest is testing]]))
 
 (deftest unresolved-symbol-test
   (assert-submaps
@@ -23,18 +23,18 @@
      (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}")))
   (testing "unresolved symbol is reported multiple times if configured"
     (assert-submaps
-      '({:file "<stdin>",
-         :row 1,
-         :col 2,
-         :level :error,
-         :message "Unresolved symbol: x"}
-        {:file "<stdin>",
-         :row 1,
-         :col 5,
-         :level :error,
-         :message "Unresolved symbol: x"} )
-      (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}"
-             {:linters {:unresolved-symbol {:report-duplicates true}}})))
+     '({:file "<stdin>",
+        :row 1,
+        :col 2,
+        :level :error,
+        :message "Unresolved symbol: x"}
+       {:file "<stdin>",
+        :row 1,
+        :col 5,
+        :level :error,
+        :message "Unresolved symbol: x"} )
+     (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}"
+            {:linters {:unresolved-symbol {:report-duplicates true}}})))
   (assert-submaps
    '({:file "corpus/unresolved_symbol.clj",
       :row 11,
@@ -253,3 +253,28 @@
    '({:file "<stdin>", :row 1, :col 11, :level :error, :message "Unresolved symbol: ."})
    (lint! "(or false . true)"
           '{:linters {:unresolved-symbol {:level :error}}})))
+
+(deftest unresolved-class-in-cljs-test
+  (assert-submaps
+   [{:file "<stdin>",
+     :row 1,
+     :col 1,
+     :level :error,
+     :message "Unresolved symbol: String"}
+    {:file "<stdin>",
+     :row 1,
+     :col 8,
+     :level :error,
+     :message "Unresolved symbol: Exception"}]
+   (lint! "String Exception"
+          '{:linters {:unresolved-symbol {:level :error}}}
+          "--lang" "cljs"))
+  (is (empty?
+       (lint! "(deftype Foo [] Object (toString [_] \"hello\"))"
+              '{:linters {:unresolved-symbol {:level :error}}}
+              "--lang" "cljs")))
+  (testing "type hints are ignored in CLJS, so writing .cljc files is less cumbersome"
+    (is (empty?
+         (lint! "(defn foo ^String [x] x)"
+                '{:linters {:unresolved-symbol {:level :error}}}
+                "--lang" "cljc")))))

@@ -1,7 +1,7 @@
 (ns clj-kondo.test-test
   (:require
    [clj-kondo.core :as clj-kondo]
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [assert-submaps lint!]]
    [clojure.java.io :as io]
    [clojure.test :refer [deftest is]]))
 

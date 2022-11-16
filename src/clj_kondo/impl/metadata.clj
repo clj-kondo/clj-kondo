@@ -25,11 +25,7 @@
                        (keep #(utils/select-lang % lang) meta-list)
                        meta-list)
            cljs? (identical? :cljs lang)
-           maybe-type-hint (and cljs? (utils/symbol-from-token node))
-           ignore-type-hint? (and cljs?
-                                  maybe-type-hint
-                                  (contains? (:bindings ctx) maybe-type-hint))
-           ctx (if ignore-type-hint?
+           ctx (if cljs?
                  (assoc-in ctx [:config :linters :unresolved-symbol :level] :off)
                  ctx)
            meta-ctx
