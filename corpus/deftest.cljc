@@ -17,7 +17,7 @@
 
 (deftest thrown-test
   (is (thrown? #?(:clj Exception :cljs js/Error) :foo))
-  (are [x] (thrown? Exception x) :foo))
+  (are [x] (thrown? #?(:clj Exception :cljs js/Error) x) :foo))
 
 (deftest thown-with-msg-test
   (is (thrown-with-msg?
