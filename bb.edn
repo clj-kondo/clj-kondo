@@ -2,9 +2,16 @@
  :deps {borkdude/gh-release-artifact
         #_{:local/root "../gh-release-artifact"}
         {:git/url "https://github.com/borkdude/gh-release-artifact"
-         :git/sha "ce060c12a25b552b864dc90f8fb344a2eb91ea9d"}}
+         :git/sha "ce060c12a25b552b864dc90f8fb344a2eb91ea9d"}
+        }
  :tasks {extract (shell "script/extract-var-info")
          test (shell "script/test")
          bump-release (shell "script/bump_version release")
          bump-post-release (shell "script/bump_version post-release")
-         release-artifact clj-kondo.release-artifact/release}}
+         release-artifact clj-kondo.release-artifact/release
+         quickdoc {:doc "Invoke quickdoc"
+                   :extra-deps {io.github.borkdude/quickdoc {:git/sha "62dd3c6a828c3a5e61bae6ca80c8ba4781356a67"}}
+                   :task (exec 'quickdoc.api/quickdoc)
+                   :exec-args {:git/branch "master"
+                               :github/repo "https://github.com/clj-kondo/clj-kondo"
+                               :source-paths ["src/clj_kondo/core.clj"]}}}}
