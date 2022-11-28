@@ -91,21 +91,21 @@
   produce those findings. This map can be passed to `print!` to print
   to `*out*`. Alpha, subject to change.
   "
-  [{:keys [:lint
-           :lang
-           :filename
-           :cache
-           :cache-dir
-           :config
-           :config-dir
-           :parallel
-           :no-warnings
-           :dependencies
-           :copy-configs
-           :custom-lint-fn
-           :file-analyzed-fn
-           :skip-lint
-           :debug]
+  [{:keys [lint
+           lang
+           filename
+           cache
+           cache-dir
+           config
+           config-dir
+           parallel
+           no-warnings
+           dependencies
+           copy-configs
+           custom-lint-fn
+           file-analyzed-fn
+           skip-lint
+           debug]
     :or {cache true}}]
   (let [start-time (System/currentTimeMillis)
         cfg-dir

@@ -63,21 +63,21 @@ Returns the configuration for `cfg-dir` merged with home,
 
 (run!
  {:keys
-  [:lint
-   :lang
-   :filename
-   :cache
-   :cache-dir
-   :config
-   :config-dir
-   :parallel
-   :no-warnings
-   :dependencies
-   :copy-configs
-   :custom-lint-fn
-   :file-analyzed-fn
-   :skip-lint
-   :debug],
+  [lint
+   lang
+   filename
+   cache
+   cache-dir
+   config
+   config-dir
+   parallel
+   no-warnings
+   dependencies
+   copy-configs
+   custom-lint-fn
+   file-analyzed-fn
+   skip-lint
+   debug],
   :or {cache true}})
 ```
 
