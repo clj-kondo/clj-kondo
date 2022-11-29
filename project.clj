@@ -12,7 +12,7 @@
   :source-paths ["src" "parser" "inlined"]
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [com.cognitect/transit-clj "1.0.324"]
-                 [io.lambdaforge/datalog-parser "0.1.9"]
+                 [io.replikativ/datalog-parser "0.2.25"]
                  [cheshire/cheshire "5.11.0"]
                  [nrepl/bencode "1.1.0"]
                  [org.babashka/sci "0.5.35"]
