@@ -67,7 +67,7 @@
 
 (deftest extra-config-paths-test
   (when-not native?
-    (let [old-home (System/getProperty "user.home")
+    (let [user-home (System/getProperty "user.home")
           project-cfg-dir (str (Files/createTempDirectory
                                  "clj_kondo"
                                  (into-array java.nio.file.attribute.FileAttribute [])))
@@ -98,7 +98,19 @@
                {:level :error, :message "unused binding y"})
              (lint!
                src
+               "--config-dir" project-cfg-dir
+               "--config" {:linters {:unused-binding {:level :warning}}})))
+          (testing "namespace local config overrides :extra-config-paths"
+            (spit project-cfg-file
+                  (assoc project-cfg :extra-config-paths [cfg-path]))
+            (assert-submaps
+             '({:level :warning, :message "unused binding x"}
+               {:level :warning, :message "unused binding y"})
+             (lint!
+               "(ns foo
+                  {:clj-kondo/config '{:linters {:unused-binding {:level :warning}}}})
+                (let [x 1 y 2])"
                "--config-dir" project-cfg-dir))))
         (finally
           (fs/delete-tree project-cfg-dir)
-          (System/setProperty "user.home" old-home))))))
+          (System/setProperty "user.home" user-home))))))
