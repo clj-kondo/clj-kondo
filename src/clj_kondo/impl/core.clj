@@ -61,10 +61,9 @@
 (defn opts [^java.io.File cfg-file]
   (let [include #(read-fn cfg-file read-edn-file %)]
     {:readers
-     {'include include
+     {'include include}}))
       ;;'include-edn include
       ;;'include-string #(read-fn cfg-file slurp %)
-      }}))
 
 (defn read-edn-file [^java.io.File f]
   (try (edn/read-string (opts f) (slurp f))
@@ -96,7 +95,8 @@
      (process-cfg-dir dir cfg)))
   ([dir cfg]
    (let [cfg (assoc cfg :classpath [dir])]
-     (resolve-config-paths dir cfg))))
+     (config/merge-config! (resolve-config-paths dir :config-paths cfg)
+                           (resolve-config-paths dir :extra-config-paths cfg)))))
 
 (defn sanitize-path [cfg-dir path]
   (let [f (io/file path)]
@@ -120,13 +120,15 @@
   "Takes config from .clj-kondo/config.edn (or other cfg-dir),
   inspects :config-paths, merges configs from left to right with cfg
   last."
-  [cfg-dir cfg]
-  (if-let [config-paths (seq (:config-paths cfg))]
+  [cfg-dir p-key cfg]
+  (if-let [config-paths (seq (p-key cfg))]
     (if-let [paths (sanitize-paths cfg-dir config-paths)]
       (let [configs (map process-cfg-dir paths)
             merged (reduce config/merge-config! nil configs)
-            ;; cfg is merged last
-            cfg (config/merge-config! merged cfg)]
+            ;; extra-configs are merged last if present, otherwise cfg is merged last
+            cfg (if (= :config-paths p-key)
+                  (config/merge-config! merged cfg)
+                  (config/merge-config! cfg merged))]
         cfg)
       cfg)
     cfg))
@@ -163,10 +165,13 @@
         config
         (reduce config/merge-config!
                 config/default-config
-                (cons
-                 (when-not skip-home? (home-config))
-                 (cons (when cfg-dir (process-cfg-dir cfg-dir local-config))
-                       (map read-config configs))))]
+                ;; sort moves the config with :extra-config-paths to last position
+                ;; in the sequence, so it overrides the other configs
+                (sort-by :extra-config-paths
+                 (cons
+                  (when-not skip-home? (home-config))
+                  (cons (when cfg-dir (process-cfg-dir cfg-dir local-config))
+                        (map read-config configs)))))]
     (cond-> config
       cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
 

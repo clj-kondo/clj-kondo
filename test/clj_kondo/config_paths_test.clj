@@ -64,3 +64,41 @@
                            "--config-dir" (.getPath (io/file "corpus" ".clj-kondo"))
                            "--config" (pr-str '{:auto-load-configs false})))))
             (finally (fs/delete config-file))))))))
+
+(deftest extra-config-paths-test
+  (when-not native?
+    (let [old-home (System/getProperty "user.home")
+          project-cfg-dir (str (Files/createTempDirectory
+                                 "clj_kondo"
+                                 (into-array java.nio.file.attribute.FileAttribute [])))
+          src "(ns foo) (let [x 1 y 2])"]
+      (try
+        (System/setProperty "user.home" (str project-cfg-dir "/home"))
+        (let [cfg-file (io/file project-cfg-dir "foo" "config.edn")
+              cfg-path (str project-cfg-dir "/foo")
+              project-cfg-file (io/file project-cfg-dir "config.edn")
+              project-cfg {:linters {:unused-binding {:level :warning}}
+                           :config-paths [cfg-path]}]
+          (io/make-parents cfg-file)
+          (spit cfg-file {:linters {:unused-binding {:level :error}}})
+          (testing ":config-paths don't override project config"
+            (spit project-cfg-file project-cfg)
+            (assert-submaps
+             '({:level :warning, :message "unused binding x"}
+               {:level :warning, :message "unused binding y"})
+             (lint!
+               src
+               "--config-dir" project-cfg-dir
+               "--config" {:linters {:unused-binding {:level :warning}}})))
+          (testing ":extra-config-paths override project config"
+            (spit project-cfg-file
+                  (assoc project-cfg :extra-config-paths [cfg-path]))
+            (assert-submaps
+             '({:level :error, :message "unused binding x"}
+               {:level :error, :message "unused binding y"})
+             (lint!
+               src
+               "--config-dir" project-cfg-dir))))
+        (finally
+          (fs/delete-tree project-cfg-dir)
+          (System/setProperty "user.home" old-home))))))

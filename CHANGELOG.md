@@ -10,6 +10,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1883](https://github.com/clj-kondo/clj-kondo/issues/1883): constructor usage should have name-col in analysis
 - [#1874](https://github.com/clj-kondo/clj-kondo/issues/1874): fix name of fully qualified class usage
 - [#1876](https://github.com/clj-kondo/clj-kondo/issues/1876): suppress . analysis from .. macroexpansion
+- [#1891](https://github.com/clj-kondo/clj-kondo/issues/1891): add `:extra-config-paths` config option to override project config
 
 ## 2022.11.02
 
