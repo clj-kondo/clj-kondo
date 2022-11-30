@@ -81,28 +81,28 @@
                            :config-paths [cfg-path]}]
           (io/make-parents cfg-file)
           (spit cfg-file {:linters {:unused-binding {:level :error}}})
+          (spit project-cfg-file project-cfg)
           (testing ":config-paths don't override project config"
-            (spit project-cfg-file project-cfg)
             (assert-submaps
              '({:level :warning, :message "unused binding x"}
                {:level :warning, :message "unused binding y"})
              (lint!
                src
-               "--config-dir" project-cfg-dir
-               "--config" {:linters {:unused-binding {:level :warning}}})))
+               {:linters (with-meta {} {:replace true})}
+               "--config-dir" project-cfg-dir)))
+          (spit project-cfg-file
+                (assoc project-cfg :extra-config-paths [cfg-path]))
           (testing ":extra-config-paths override project config"
-            (spit project-cfg-file
-                  (assoc project-cfg :extra-config-paths [cfg-path]))
             (assert-submaps
              '({:level :error, :message "unused binding x"}
                {:level :error, :message "unused binding y"})
              (lint!
                src
-               "--config-dir" project-cfg-dir
-               "--config" {:linters {:unused-binding {:level :warning}}})))
+               {:linters (with-meta {} {:replace true})}
+               "--config-dir" project-cfg-dir)))
+          (testing "command line config overrides :extra-config-paths"
+            (is (empty? (lint! src "--config-dir" project-cfg-dir))))
           (testing "namespace local config overrides :extra-config-paths"
-            (spit project-cfg-file
-                  (assoc project-cfg :extra-config-paths [cfg-path]))
             (assert-submaps
              '({:level :warning, :message "unused binding x"}
                {:level :warning, :message "unused binding y"})

@@ -165,13 +165,10 @@
         config
         (reduce config/merge-config!
                 config/default-config
-                ;; sort moves the config with :extra-config-paths to last position
-                ;; in the sequence, so it overrides the other configs
-                (sort-by :extra-config-paths
-                 (cons
-                  (when-not skip-home? (home-config))
-                  (cons (when cfg-dir (process-cfg-dir cfg-dir local-config))
-                        (map read-config configs)))))]
+                (cons
+                 (when-not skip-home? (home-config))
+                 (cons (when cfg-dir (process-cfg-dir cfg-dir local-config))
+                       (map read-config configs))))]
     (cond-> config
       cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
 
