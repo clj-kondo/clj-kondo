@@ -61,9 +61,10 @@
 (defn opts [^java.io.File cfg-file]
   (let [include #(read-fn cfg-file read-edn-file %)]
     {:readers
-     {'include include}}))
+     {'include include
       ;;'include-edn include
       ;;'include-string #(read-fn cfg-file slurp %)
+      }}))
 
 (defn read-edn-file [^java.io.File f]
   (try (edn/read-string (opts f) (slurp f))
