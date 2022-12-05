@@ -68,7 +68,7 @@
 
 (deftest class-usages-test
   (let [{:keys [:java-class-usages :var-usages]} (analyze ["corpus/java/usages.clj"])]
-    (is (= '(try fn new import new new) (map :name var-usages)))
+    (is (= '(try fn new import) (map :name var-usages)))
     (assert-submaps2
      [{:class "clojure.lang.PersistentVector", :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 1, :col 40, :end-row 1, :end-col 56
