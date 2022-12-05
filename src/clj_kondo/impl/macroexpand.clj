@@ -103,8 +103,9 @@
                       symbol)
         ctor-node (with-meta-of (token-node ctor-name)
                     ctor-node)]
-    (with-meta-of (list-node (list* (token-node 'new) ctor-node children))
-      expr)))
+    (-> (with-meta-of (list-node (list* (token-node 'new) ctor-node children))
+          expr)
+        (vary-meta assoc :skip-analysis true))))
 
 (defn expand-method-invocation
   [_ctx expr]
