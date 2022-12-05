@@ -2028,7 +2028,16 @@
                         :varargs-min-arity 2,
                         :row 1,
                         :to cljs.core}]
-                     var-usages)))
+                     var-usages))
+  (let [analysis (:analysis (with-in-str
+                              "(String. \"dude\")"
+                              (clj-kondo/run! {:lint ["-"] :config {:analysis {:java-class-usages true}}})))
+        var-usages (:var-usages analysis)
+        java-class-usages (:java-class-usages analysis)]
+    (is (empty? var-usages))
+    (assert-submaps2
+     [{:class "java.lang.String"}]
+     java-class-usages)))
 
 (comment
   (context-test)
