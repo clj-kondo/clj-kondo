@@ -12,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1876](https://github.com/clj-kondo/clj-kondo/issues/1876): suppress . analysis from .. macroexpansion
 - [#1877](https://github.com/clj-kondo/clj-kondo/issues/1876): suppress `new` analysis from `(String. x)` expansion
 - [#1888](https://github.com/clj-kondo/clj-kondo/issues/1876): use `namespace-munge` for resolving hook files rather than `munge`
+- [#1896](https://github.com/clj-kondo/clj-kondo/issues/1896): don't consider `**`, `***` etc. to be a dynamic vars
 
 ## 2022.11.02
 

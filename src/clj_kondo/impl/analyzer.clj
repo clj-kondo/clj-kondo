@@ -1098,8 +1098,7 @@
         ;; together this is called :arities in reg-var!
         arity (when init-meta (:arity init-meta))
         var-name-str (str var-name)
-        earmuffed? (and (str/starts-with? var-name-str "*")
-                        (str/ends-with? var-name-str "*"))
+        earmuffed? (re-matches #"\*+[^\*]+\*+" var-name-str)
         dynamic? (:dynamic metadata)]
     (if dynamic?
       (when (not earmuffed?)

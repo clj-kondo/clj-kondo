@@ -10,6 +10,9 @@
   (is (empty?
        (lint! "(def *foo* 1)" {:linters {:earmuffed-var-not-dynamic {:level :off}}})))
   (is (empty?
+       (lint! "(def ** 1) (def *** 2)"
+              {:linters {:earmuffed-var-not-dynamic {:level :warning}}})))
+  (is (empty?
        (lint! "#_:clj-kondo/ignore (def *foo* 1)"
               {:linters {:earmuffed-var-not-dynamic {:level :warning}}})))
   (is (empty?
