@@ -96,8 +96,8 @@
      (process-cfg-dir dir cfg)))
   ([dir cfg]
    (let [cfg (assoc cfg :classpath [dir])]
-     (config/merge-config! (resolve-config-paths dir :config-paths cfg)
-                           (resolve-config-paths dir :extra-config-paths cfg)))))
+     (->> (resolve-config-paths dir :config-paths cfg)
+          (resolve-config-paths dir :extra-config-paths)))))
 
 (defn sanitize-path [cfg-dir path]
   (let [f (io/file path)]
