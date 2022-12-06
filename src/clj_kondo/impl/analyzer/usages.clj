@@ -117,6 +117,7 @@
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
   ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
+   (prn :expr expr)
    (let [ns (:ns ctx)
          dependencies (:dependencies ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
@@ -269,7 +270,7 @@
                                                                            (str expr))
                                                              :filename (:filename ctx))))))))
                  (when (:k expr)
-                     (analyze-keyword ctx expr opts))))
+                   (analyze-keyword ctx expr opts))))
              :reader-macro
              (doall (mapcat
                      #(analyze-usages2 ctx %

@@ -187,3 +187,6 @@
                    (= :cljc (:base-lang ctx))
                    (assoc :lang (:lang ctx))
                    derived-location (assoc :derived-location true))))))))
+
+(defn analyze-quoted-symbol [ctx expr]
+ (prn :expr expr))
