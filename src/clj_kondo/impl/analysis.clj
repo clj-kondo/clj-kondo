@@ -142,7 +142,7 @@
                          :filename filename
                          :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
                          :from-var (:in-def ctx)
-                         :from (get-in ctx [:ns :name])
+                         :from (-> ctx :ns :name)
                          :context (select-context (:analysis-context ctx) usage))))))
 
 (defn reg-protocol-impl!
@@ -189,4 +189,14 @@
                    derived-location (assoc :derived-location true))))))))
 
 (defn analyze-quoted-symbol [ctx expr]
- (prn :expr expr))
+  (when (:analyze-quoted-symbols? ctx)
+    (let [sym (:value expr)]
+      (when-let [analysis (:analysis ctx)]
+        (let [loc (meta expr)
+              data (assoc loc :symbol sym)
+              ns (-> ctx :ns :name)
+              data (assoc data
+                          :from ns :filename (:filename ctx)
+                          :lang (when (= :cljc (:base-lang ctx)) (:lang ctx)))]
+          (swap! analysis update :quoted-symbols conj data))
+        nil))))

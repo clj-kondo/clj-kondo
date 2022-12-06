@@ -2524,17 +2524,15 @@
     (analyze-children ctx children)))
 
 (defn analyze-expression**
-  [{:keys [:bindings :lang] :as ctx}
-   {:keys [:children] :as expr}]
-  ;; (prn :expr expr)
-  ;; (utils/where-am-i 20)
+  [{:keys [bindings lang] :as ctx}
+   {:keys [children] :as expr}]
   (when expr
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
                  (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
                  expr)
           t (tag expr)
-          {:keys [:row :col]} (meta expr)
+          {:keys [row col]} (meta expr)
           arg-count (count (rest children))]
       (utils/handle-ignore ctx expr)
       ;; map's type is added in :map handler below
@@ -2594,8 +2592,7 @@
           (do (when (:k expr)
                 (usages/analyze-keyword ctx expr)
                 (types/add-arg-type-from-expr ctx expr))
-              (when (:analyze-quoted-symbols? ctx)
-                (analysis/analyze-quoted-symbol ctx expr)))
+              (analysis/analyze-quoted-symbol ctx expr))
           (when-not (= :edn (:lang ctx))
             (let [id (gensym)
                   expr (assoc expr :id id)
