@@ -98,7 +98,7 @@
            cache-dir
            config
            config-dir
-           config-paths-env
+           extra-config-paths
            parallel
            no-warnings
            dependencies
@@ -117,7 +117,7 @@
         ;; for backward compatibility non-sequential config should be wrapped into collection
         config (core-impl/resolve-config cfg-dir
                                          (if (sequential? config) config [config])
-                                         config-paths-env
+                                         extra-config-paths
                                          debug)
         classpath (:classpath config)
         config (dissoc config :classpath)
