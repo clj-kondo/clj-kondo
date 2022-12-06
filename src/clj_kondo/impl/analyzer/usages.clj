@@ -61,20 +61,20 @@
                                                                      current-ns))
              resolved (resolve-keyword ctx expr current-ns)]
          (analysis/reg-keyword-usage!
-           ctx
-           (:filename ctx)
-           (assoc-some (meta expr)
-                       :context (utils/deep-merge
-                                 (:context ctx)
-                                 (:context expr))
-                       :reg (:reg expr)
-                       :keys-destructuring keys-destructuring?
-                       :keys-destructuring-ns-modifier keys-destructuring-ns-modifier?
-                       :auto-resolved (:namespaced? expr)
-                       :namespace-from-prefix (when (:namespace-from-prefix resolved) true)
-                       :name (:name resolved)
-                       :alias (when-not (:alias destructuring) (:alias resolved))
-                       :ns (or (:ns destructuring) (:ns resolved))))))
+          ctx
+          (:filename ctx)
+          (assoc-some (meta expr)
+                      :context (utils/deep-merge
+                                (:context ctx)
+                                (:context expr))
+                      :reg (:reg expr)
+                      :keys-destructuring keys-destructuring?
+                      :keys-destructuring-ns-modifier keys-destructuring-ns-modifier?
+                      :auto-resolved (:namespaced? expr)
+                      :namespace-from-prefix (when (:namespace-from-prefix resolved) true)
+                      :name (:name resolved)
+                      :alias (when-not (:alias destructuring) (:alias resolved))
+                      :ns (or (:ns destructuring) (:ns resolved))))))
      (when (and keyword-val (:namespaced? expr) (namespace keyword-val))
        (let [symbol-val (kw->sym keyword-val)
              {resolved-ns :ns}
@@ -155,18 +155,20 @@
                      expr-meta (meta expr)]
                  (if-let [b (when (and simple? (not syntax-quote?))
                               (get (:bindings ctx) symbol-val))]
-                   (namespace/reg-used-binding! ctx
-                                                (-> ns :name)
-                                                b
-                                                (when (:analyze-locals? ctx)
-                                                  (assoc-some expr-meta
-                                                              :name-row (:row expr-meta)
-                                                              :name-col (:col expr-meta)
-                                                              :name-end-row (:end-row expr-meta)
-                                                              :name-end-col (:end-col expr-meta)
-                                                              :name symbol-val
-                                                              :filename (:filename ctx)
-                                                              :str (:string-value expr))))
+                   (do
+                     (prn :yoooo (prn expr))
+                     (namespace/reg-used-binding! ctx
+                                                  (-> ns :name)
+                                                  b
+                                                  (when (:analyze-locals? ctx)
+                                                    (assoc-some expr-meta
+                                                                :name-row (:row expr-meta)
+                                                                :name-col (:col expr-meta)
+                                                                :name-end-row (:end-row expr-meta)
+                                                                :name-end-col (:end-col expr-meta)
+                                                                :name symbol-val
+                                                                :filename (:filename ctx)
+                                                                :str (:string-value expr)))))
                    (let [{resolved-ns :ns
                           resolved-name :name
                           resolved-alias :alias
@@ -245,17 +247,48 @@
                            (namespace/reg-var-usage! ctx ns-name
                                                      usage)
                            (utils/reg-call ctx usage (:id expr))
-                           nil))))))
-               (do
-                 ;; (prn (type (utils/sexpr expr)) (:callstack ctx) (:len ctx) (:idx ctx))
+                           nil)))
+
+                     nil))
                  (when-let [idx (:idx ctx)]
+                   ;;(prn :binding idx)
                    (let [len (:len ctx)]
                      (when (< idx (dec len))
+                       (prn :uuuuu)
                        (let [parent-call (first (:callstack ctx))
                              core? (one-of (first parent-call) [clojure.core cljs.core])
                              core-sym (when core?
                                         (second parent-call))
                              generated? (:clj-kondo.impl/generated expr)
+                             _ (prn :udude)
+                             redundant?
+                             (and (not generated?)
+                                  core?
+                                  (not (:clj-kondo.impl/generated (meta parent-call)))
+                                  (one-of core-sym [do fn defn defn-
+                                                    let when-let loop binding with-open
+                                                    doseq try when when-not when-first
+                                                    when-some future]))]
+                         (when redundant?
+                           (findings/reg-finding! ctx (assoc (meta expr)
+                                                             :type :unused-value
+                                                             :message (str "Unused value: "
+                                                                           (str expr))
+                                                             :filename (:filename ctx)))))))))
+               (do
+                 ;; (prn (type (utils/sexpr expr)) (:callstack ctx) (:len ctx) (:idx ctx))
+                 (prn :uolo (:idx ctx) expr)
+                 (when-let [idx (:idx ctx)]
+                   (prn :yoxxxx idx)
+                   (let [len (:len ctx)]
+                     (when (< idx (dec len))
+                       (prn :uuuuu)
+                       (let [parent-call (first (:callstack ctx))
+                             core? (one-of (first parent-call) [clojure.core cljs.core])
+                             core-sym (when core?
+                                        (second parent-call))
+                             generated? (:clj-kondo.impl/generated expr)
+                             _ (prn :udude)
                              redundant?
                              (and (not generated?)
                                   core?
@@ -271,7 +304,7 @@
                                                                            (str expr))
                                                              :filename (:filename ctx))))))))
                  (when (:k expr)
-                     (analyze-keyword ctx expr opts))))
+                   (analyze-keyword ctx expr opts))))
              :reader-macro
              (doall (mapcat
                      #(analyze-usages2 ctx %
