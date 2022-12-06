@@ -205,6 +205,8 @@
                                                       resolved-ns)
                        (when (:analyze-var-usages? ctx)
                          (let [usage {:type :use
+                                      :idx (:idx ctx)
+                                      :len (:len ctx)
                                       :name (with-meta
                                               resolved-name
                                               m)

@@ -457,37 +457,38 @@
            call called-fn)
           (when-not (or arity-error? skip-arity-check?)
             (lint-arg-types! ctx idacs call called-fn))))
-      (when call?
-        (when-let [idx (:idx call)]
-          (when (contains? var-info/unused-values fn-sym)
-            (let [unused-value-conf (-> config :linters :unused-value)]
-              (when-not (identical? :off (:level unused-value-conf))
-                (let [parent-call (second (:callstack call))
-                      core? (utils/one-of (first parent-call) [clojure.core cljs.core])
-                      core-sym (when core?
-                                 (second parent-call))
-                      unused?
-                      (and core?
-                           (or
-                            ;; doseq always return nil
-                            (utils/one-of core-sym [doseq])
-                            (< idx (dec (:len call))))
-                           (utils/one-of core-sym [do fn defn defn-
-                                                   let when-let loop binding with-open
-                                                   doseq try when when-not when-first
-                                                   when-some future]))]
-                  (when unused?
-                    (findings/reg-finding!
-                     ctx
-                     {:filename filename
-                      :row row
-                      :end-row end-row
-                      :col col
-                      :end-col end-col
-                      :type :unused-value
-                      :message "Unused value"})))))))
-        #_(prn called-fn)
-        #_(prn (:idx call) (:len call))))))
+      (when-let [idx (:idx call)]
+        (when (or (not call?)
+                  (contains? var-info/unused-values fn-sym))
+          (let [unused-value-conf (-> config :linters :unused-value)]
+            (when-not (identical? :off (:level unused-value-conf))
+              (let [parent-call (let [cs (:callstack call)]
+                                  (if call?
+                                    (second cs)
+                                    (first cs)))
+                    core? (utils/one-of (first parent-call) [clojure.core cljs.core])
+                    core-sym (when core?
+                               (second parent-call))
+                    unused?
+                    (and core?
+                         (or
+                          ;; doseq always return nil
+                          (utils/one-of core-sym [doseq])
+                          (< idx (dec (:len call))))
+                         (utils/one-of core-sym [do fn defn defn-
+                                                 let when-let loop binding with-open
+                                                 doseq try when when-not when-first
+                                                 when-some future]))]
+                (when unused?
+                  (findings/reg-finding!
+                   ctx
+                   {:filename filename
+                    :row row
+                    :end-row end-row
+                    :col col
+                    :end-col end-col
+                    :type :unused-value
+                    :message "Unused value"}))))))))))
 
 (defn lint-unused-namespaces!
   [ctx]
