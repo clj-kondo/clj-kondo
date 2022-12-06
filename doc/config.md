@@ -53,6 +53,9 @@ Clj-kondo can be configured in several ways:
 - `:config-paths` in project `config.edn`: a list of directories that provide additional config.
 - `:extra-config-paths` in project `config.edn`: a list of directories that provide additional config
   which overrides project config in `.clj-kondo/config.edn`.
+- `CLJ_KONDO_EXTRA_CONFIG_PATHS` environment variable: a list of directories that provide additional
+  config which overrides `:extra-config-paths`.
+  Example: `export CLJ_KONDO_EXTRA_CONFIG_PATHS="[\"~/.config/my-conf-dir\"]"`
 - command line `--config` file or EDN arguments.
 - namespace local config using `:clj-kondo/config` metadata in the namespace form (see below).
 
@@ -62,6 +65,7 @@ The configurations are merged in the following order, where a later config overr
 - `:config-paths` in project config
 - project config
 - `:extra-config-paths` in project config
+- `CLJ_KONDO_EXTRA_CONFIG_PATHS` environment variable
 - command line config
 - namespace local config
 

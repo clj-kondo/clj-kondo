@@ -134,7 +134,7 @@
       cfg)
     cfg))
 
-(defn resolve-config [^java.io.File cfg-dir configs debug]
+(defn resolve-config [^java.io.File cfg-dir configs cfg-paths-env debug]
   (let [local-config (when cfg-dir
                        (let [f (io/file cfg-dir "config.edn")]
                          (when (.exists f)
@@ -166,10 +166,16 @@
         config
         (reduce config/merge-config!
                 config/default-config
-                (cons
-                 (when-not skip-home? (home-config))
-                 (cons (when cfg-dir (process-cfg-dir cfg-dir local-config))
-                       (map read-config configs))))]
+                (concat
+                 (list
+                  (when-not skip-home? (home-config))
+                  (when cfg-dir (process-cfg-dir cfg-dir local-config))
+                  (when cfg-paths-env
+                    (resolve-config-paths cfg-dir
+                                          :config-paths-env
+                                          (assoc local-config
+                                                 :config-paths-env cfg-paths-env))))
+                 (map read-config configs)))]
     (cond-> config
       cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
 

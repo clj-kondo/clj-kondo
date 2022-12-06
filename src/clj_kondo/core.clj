@@ -98,6 +98,7 @@
            cache-dir
            config
            config-dir
+           config-paths-env
            parallel
            no-warnings
            dependencies
@@ -114,7 +115,10 @@
               :else
               (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
         ;; for backward compatibility non-sequential config should be wrapped into collection
-        config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]) debug)
+        config (core-impl/resolve-config cfg-dir
+                                         (if (sequential? config) config [config])
+                                         config-paths-env
+                                         debug)
         classpath (:classpath config)
         config (dissoc config :classpath)
         cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
@@ -255,7 +259,9 @@
   ([cfg-dir]
    (resolve-config cfg-dir {}))
   ([cfg-dir config]
-   (core-impl/resolve-config cfg-dir config false)))
+   (resolve-config cfg-dir config nil))
+  ([cfg-dir config cfg-paths-env]
+   (core-impl/resolve-config cfg-dir config cfg-paths-env false)))
 
 (defn config-hash
   "Return the hash of the provided clj-kondo config."

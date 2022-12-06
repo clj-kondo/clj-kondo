@@ -114,6 +114,7 @@ Options:
      :lang default-lang
      :config (get opts "--config")
      :config-dir (last (get opts "--config-dir"))
+     :config-paths-env (System/getenv "CLJ_KONDO_EXTRA_CONFIG_PATHS")
      :version (contains? opts "--version")
      :help (contains? opts "--help")
      :pod (= "true" (System/getenv "BABASHKA_POD"))
