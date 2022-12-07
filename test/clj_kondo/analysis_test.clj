@@ -2039,6 +2039,58 @@
      [{:class "java.lang.String"}]
      java-class-usages)))
 
+(deftest definterface-test
+  (testing "For now we treat definterface like defprotocol, but this might change in the future, if we need to"
+    (let [analysis (:analysis (with-in-str
+                                "(definterface IFoo (foo [_])) (defrecord Foo [] IFoo (foo [_ _]))"
+                                (clj-kondo/run! {:lint ["-"] :config
+                                                 {:analysis {:protocol-impls true}}})))
+          var-defs (:var-definitions analysis)
+          var-defs-iface (filter #(= 'clojure.core/definterface (:defined-by %)) var-defs)
+          protocol-impls (:protocol-impls analysis)
+          foo-usages (filter #(= 'foo (:method-name %)) protocol-impls)]
+      (assert-submaps2 '({:end-row 1,
+                          :name-end-col 19,
+                          :name-end-row 1,
+                          :name-row 1,
+                          :ns user,
+                          :name IFoo,
+                          :defined-by clojure.core/definterface,
+                          :col 1,
+                          :name-col 15,
+                          :end-col 30,
+                          :row 1}
+                         {:fixed-arities #{1},
+                          :end-row 1,
+                          :name-end-col 24,
+                          :protocol-ns user,
+                          :name-end-row 1,
+                          :name-row 1,
+                          :ns user,
+                          :name foo,
+                          :defined-by clojure.core/definterface,
+                          :protocol-name IFoo,
+                          :col 20,
+                          :name-col 21,
+                          :end-col 29,
+                          :row 1})
+                       var-defs-iface)
+      (assert-submaps2 '({:impl-ns user,
+                          :end-row 1,
+                          :derived-location nil,
+                          :name-end-col 58,
+                          :protocol-ns user,
+                          :name-end-row 1,
+                          :method-name foo,
+                          :name-row 1,
+                          :defined-by clojure.core/defrecord,
+                          :protocol-name IFoo,
+                          :col 54,
+                          :name-col 55,
+                          :end-col 65,
+                          :row 1})
+                       foo-usages))))
+
 (comment
   (context-test)
   )

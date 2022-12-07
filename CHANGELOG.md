@@ -15,6 +15,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1896](https://github.com/clj-kondo/clj-kondo/issues/1896): don't consider `**`, `***` etc. to be a dynamic vars
 - [#1899](https://github.com/clj-kondo/clj-kondo/issues/1899): treat var or local reference as unused value when not in tail position
 - [#1903](https://github.com/clj-kondo/clj-kondo/issues/1903): int can be cast to double
+- [#1871](https://github.com/clj-kondo/clj-kondo/issues/1871): clj-kondo marks args in `definterface` as unused
+- [#1879](https://github.com/clj-kondo/clj-kondo/issues/1879): analyze `definterface` more similarly to `defprotocol` for lsp-navigation
 
 ## 2022.11.02
 
