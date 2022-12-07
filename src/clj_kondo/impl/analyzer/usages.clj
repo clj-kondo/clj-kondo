@@ -205,8 +205,6 @@
                                                       resolved-ns)
                        (when (:analyze-var-usages? ctx)
                          (let [usage {:type :use
-                                      :idx (:idx ctx)
-                                      :len (:len ctx)
                                       :name (with-meta
                                               resolved-name
                                               m)
@@ -248,8 +246,8 @@
                            nil)))
 
                      nil))
+                 ;; this is a symbol, either binding or var reference
                  (when-let [idx (:idx ctx)]
-                   ;;(prn :binding idx)
                    (let [len (:len ctx)]
                      (when (< idx (dec len))
                        (let [parent-call (first (:callstack ctx))
@@ -272,7 +270,7 @@
                                                                            (str expr))
                                                              :filename (:filename ctx)))))))))
                (do
-                 ;; (prn (type (utils/sexpr expr)) (:callstack ctx) (:len ctx) (:idx ctx))
+                 ;; this everything but a symbol token, including keywords
                  (when-let [idx (:idx ctx)]
                    (let [len (:len ctx)]
                      (when (< idx (dec len))
