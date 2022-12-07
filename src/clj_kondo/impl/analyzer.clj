@@ -1298,7 +1298,7 @@
               "Missing catch or finally in try")))
           analyzed)))))
 
-(defn analyze-defprotocol [{:keys [:ns] :as ctx} expr]
+(defn analyze-defprotocol [{:keys [ns] :as ctx} expr defined-by]
   ;; for syntax, see https://clojure.org/reference/protocols#_basics
   (let [children (next (:children expr))
         name-node (first children)
@@ -1314,7 +1314,7 @@
       (namespace/reg-var! ctx ns-name protocol-name expr
                           (assoc-some (meta name-node)
                                       :doc docstring
-                                      :defined-by 'clojure.core/defprotocol)))
+                                      :defined-by defined-by)))
     (docstring/lint-docstring! ctx doc-node docstring)
     (doseq [c (next children)
             :when (= :list (tag c)) ;; skip first docstring
@@ -1327,6 +1327,8 @@
                   docstring (string-from-token (last children))
                   doc-node (when docstring
                              (last children))]]
+      ;; This is here for analyzing usages of type hints, but it also causes
+      ;; false positives in the analysis, so we can improve this
       (let [ctx (utils/ctx-with-linter-disabled ctx :unresolved-symbol)]
         (run! #(analyze-usages2 ctx %) arities))
       (when fn-name
@@ -1350,7 +1352,7 @@
                        :fixed-arities fixed-arities
                        :protocol-ns ns-name
                        :protocol-name protocol-name
-                       :defined-by 'clojure.core/defprotocol))
+                       :defined-by defined-by))
           (docstring/lint-docstring! ctx doc-node docstring))))))
 
 (defn analyze-protocol-impls [ctx defined-by ns-name children]
@@ -1416,7 +1418,7 @@
             (recur current-protocol (rest children) protocol-ns protocol-name)))))))
 
 (defn analyze-defrecord
-  "Analyzes defrecord, deftype and definterface."
+  "Analyzes defrecord and deftype."
   [{:keys [:ns] :as ctx} expr defined-by]
   (let [ns-name (:name ns)
         children (:children expr)
@@ -1426,32 +1428,30 @@
         metadata (meta name-node)
         metadata (assoc metadata :defined-by defined-by)
         record-name (:value name-node)
-        bindings? (not= "definterface" (name defined-by))
-        binding-vector (when bindings? (second children))
-        field-count (when bindings? (count (:children binding-vector)))
-        bindings (when bindings? (extract-bindings (assoc ctx
-                                                          :mark-bindings-used? true)
-                                                   binding-vector
-                                                   expr
-                                                   {}))
-        arglists? (and bindings? (:analyze-arglists? ctx))
+        binding-vector (second children)
+        field-count (count (:children binding-vector))
+        bindings (extract-bindings (assoc ctx
+                                          :mark-bindings-used? true)
+                                   binding-vector
+                                   expr
+                                   {})
+        arglists? (:analyze-arglists? ctx)
         ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr metadata)
-    (when-not (= "definterface" (name defined-by))
-      (when-not (identical? :off (-> ctx :config :linters :duplicate-field :level))
-        (doseq [[_ fields] (group-by identity (:children binding-vector))]
-          (when (> (count fields) 1)
-            (doseq [field fields]
-              (findings/reg-finding!
-               ctx
-               (node->line (:filename ctx) field
-                           :duplicate-field
-                           (format "Duplicate field name: %s" (:value field))))))))
-      (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
-                          (assoc-some metadata
-                                      :arglist-strs (when arglists?
-                                                      [(str binding-vector)])
-                                      :fixed-arities #{field-count})))
+    (when-not (identical? :off (-> ctx :config :linters :duplicate-field :level))
+      (doseq [[_ fields] (group-by identity (:children binding-vector))]
+        (when (> (count fields) 1)
+          (doseq [field fields]
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx) field
+                         :duplicate-field
+                         (format "Duplicate field name: %s" (:value field))))))))
+    (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
+                        (assoc-some metadata
+                                    :arglist-strs (when arglists?
+                                                    [(str binding-vector)])
+                                    :fixed-arities #{field-count}))
     (when (= "defrecord" (name defined-by))
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                           expr (assoc-some metadata
@@ -2100,8 +2100,8 @@
                           (do (lint-inline-def! ctx expr)
                               (analyze-defn ctx expr defined-by))
                           defmethod (analyze-defmethod ctx expr)
-                          defprotocol (analyze-defprotocol ctx expr)
-                          (defrecord deftype definterface) (analyze-defrecord ctx expr defined-by)
+                          (definterface defprotocol) (analyze-defprotocol ctx expr defined-by)
+                          (defrecord deftype) (analyze-defrecord ctx expr defined-by)
                           comment
                           (let [cfg (:config-in-comment config)
                                 ctx (if cfg

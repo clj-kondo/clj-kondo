@@ -2675,6 +2675,10 @@ foo/baz
 (defprotocol ^:private Foo (foo [this]))
 (definterface ^:private SessionStore3)"))))
 
+(deftest definterface-test
+  (is (empty? (lint! "(definterface Foo (foo [x]) (bar [x]))"
+                     {:linters {:unused-binding {:level :warning}}}))))
+
 (deftest cond->test
   (assert-submaps
    '({:file "<stdin>",
