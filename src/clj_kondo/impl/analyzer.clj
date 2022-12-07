@@ -2524,8 +2524,8 @@
     (analyze-children ctx children)))
 
 (defn analyze-expression**
-  [{:keys [:bindings :lang] :as ctx}
-   {:keys [:children] :as expr}]
+  [{:keys [bindings lang] :as ctx}
+   {:keys [children] :as expr}]
   ;; (prn :expr expr)
   ;; (utils/where-am-i 20)
   (when expr
@@ -2534,7 +2534,7 @@
                  (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
                  expr)
           t (tag expr)
-          {:keys [:row :col]} (meta expr)
+          {:keys [row col]} (meta expr)
           arg-count (count (rest children))]
       (utils/handle-ignore ctx expr)
       ;; map's type is added in :map handler below
@@ -2658,7 +2658,6 @@
                                        (get bindings full-fn-name))]
                       (if binding
                         (if-let [ret-tag (:ret (analyze-binding-call ctx full-fn-name binding expr))]
-
                           (types/add-arg-type-from-expr ctx expr ret-tag)
                           (types/add-arg-type-from-expr ctx expr))
                         (let [id (or (:id expr) (gensym))

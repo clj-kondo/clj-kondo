@@ -1,6 +1,6 @@
 (ns clj-kondo.unused-value-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps2] :rename {assert-submaps2 assert-submaps}]
    [clojure.test :refer [deftest is testing]]))
 
 (deftest unused-value-simple-expressions-test
@@ -80,3 +80,13 @@
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Unused value"})
      (lint! "(doseq [x [1 2 3]] (assoc! (transient {}) x 1))" {:linters {:unused-value {:level :warning}}}))))
+
+(deftest unused-value-var-refs-test
+  (testing "unused var ref"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value: update"})
+     (lint! "(defn foo [] update 1)" {:linters {:unused-value {:level :warning}}})))
+  (testing "unused local ref"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 15, :level :warning, :message "Unused value: x"})
+     (lint! "(defn foo [x] x 1)" {:linters {:unused-value {:level :warning}}}))))

@@ -61,20 +61,20 @@
                                                                      current-ns))
              resolved (resolve-keyword ctx expr current-ns)]
          (analysis/reg-keyword-usage!
-           ctx
-           (:filename ctx)
-           (assoc-some (meta expr)
-                       :context (utils/deep-merge
-                                 (:context ctx)
-                                 (:context expr))
-                       :reg (:reg expr)
-                       :keys-destructuring keys-destructuring?
-                       :keys-destructuring-ns-modifier keys-destructuring-ns-modifier?
-                       :auto-resolved (:namespaced? expr)
-                       :namespace-from-prefix (when (:namespace-from-prefix resolved) true)
-                       :name (:name resolved)
-                       :alias (when-not (:alias destructuring) (:alias resolved))
-                       :ns (or (:ns destructuring) (:ns resolved))))))
+          ctx
+          (:filename ctx)
+          (assoc-some (meta expr)
+                      :context (utils/deep-merge
+                                (:context ctx)
+                                (:context expr))
+                      :reg (:reg expr)
+                      :keys-destructuring keys-destructuring?
+                      :keys-destructuring-ns-modifier keys-destructuring-ns-modifier?
+                      :auto-resolved (:namespaced? expr)
+                      :namespace-from-prefix (when (:namespace-from-prefix resolved) true)
+                      :name (:name resolved)
+                      :alias (when-not (:alias destructuring) (:alias resolved))
+                      :ns (or (:ns destructuring) (:ns resolved))))))
      (when (and keyword-val (:namespaced? expr) (namespace keyword-val))
        (let [symbol-val (kw->sym keyword-val)
              {resolved-ns :ns}
@@ -243,9 +243,34 @@
                            (namespace/reg-var-usage! ctx ns-name
                                                      usage)
                            (utils/reg-call ctx usage (:id expr))
-                           nil))))))
+                           nil)))
+
+                     nil))
+                 ;; this is a symbol, either binding or var reference
+                 (when-let [idx (:idx ctx)]
+                   (let [len (:len ctx)]
+                     (when (< idx (dec len))
+                       (let [parent-call (first (:callstack ctx))
+                             core? (one-of (first parent-call) [clojure.core cljs.core])
+                             core-sym (when core?
+                                        (second parent-call))
+                             generated? (:clj-kondo.impl/generated expr)
+                             redundant?
+                             (and (not generated?)
+                                  core?
+                                  (not (:clj-kondo.impl/generated (meta parent-call)))
+                                  (one-of core-sym [do fn defn defn-
+                                                    let when-let loop binding with-open
+                                                    doseq try when when-not when-first
+                                                    when-some future]))]
+                         (when redundant?
+                           (findings/reg-finding! ctx (assoc (meta expr)
+                                                             :type :unused-value
+                                                             :message (str "Unused value: "
+                                                                           (str expr))
+                                                             :filename (:filename ctx)))))))))
                (do
-                 ;; (prn (type (utils/sexpr expr)) (:callstack ctx) (:len ctx) (:idx ctx))
+                 ;; this everything but a symbol token, including keywords
                  (when-let [idx (:idx ctx)]
                    (let [len (:len ctx)]
                      (when (< idx (dec len))
@@ -269,7 +294,7 @@
                                                                            (str expr))
                                                              :filename (:filename ctx))))))))
                  (when (:k expr)
-                     (analyze-keyword ctx expr opts))))
+                   (analyze-keyword ctx expr opts))))
              :reader-macro
              (doall (mapcat
                      #(analyze-usages2 ctx %

@@ -462,7 +462,8 @@
           (when (contains? var-info/unused-values fn-sym)
             (let [unused-value-conf (-> config :linters :unused-value)]
               (when-not (identical? :off (:level unused-value-conf))
-                (let [parent-call (second (:callstack call))
+                (let [parent-call (let [cs (:callstack call)]
+                                    (second cs))
                       core? (utils/one-of (first parent-call) [clojure.core cljs.core])
                       core-sym (when core?
                                  (second parent-call))
@@ -485,9 +486,7 @@
                       :col col
                       :end-col end-col
                       :type :unused-value
-                      :message "Unused value"})))))))
-        #_(prn called-fn)
-        #_(prn (:idx call) (:len call))))))
+                      :message "Unused value"})))))))))))
 
 (defn lint-unused-namespaces!
   [ctx]
