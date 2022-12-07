@@ -148,8 +148,12 @@
     (Number java.lang.Number) :nilable/number
     (int long) :int
     (Integer java.lang.Integer Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
-    (float double) :double
-    (Float Double java.lang.Float java.lang.Double) :nilable/double
+    (float double) #{:double
+                     ;; can be auto-cast to
+                     :float
+                     ;; can be auto-cast to
+                     :int}
+    (Float Double java.lang.Float java.lang.Double) #{:double :float :int :nil}
     (CharSequence java.lang.CharSequence) :nilable/char-sequence
     (String java.lang.String) :nilable/string ;; as this is now way to
     ;; express non-nilable,

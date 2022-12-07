@@ -444,7 +444,9 @@
                          {:linters {:type-mismatch {:level :error}}}))))
     (testing "byte returns number"
       (is (empty? (lint! "(+ (byte 32) 1)"
-                         {:linters {:type-mismatch {:level :error}}}))))))
+                         {:linters {:type-mismatch {:level :error}}}))))
+    (testing (is (empty? (lint! "(defn foo [^double x] x) (foo 1)"
+                                {:linters {:type-mismatch {:level :error}}}))))))
 
 (deftest map-spec-test
   (testing "map spec"
