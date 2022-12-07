@@ -82,7 +82,11 @@
      (lint! "(doseq [x [1 2 3]] (assoc! (transient {}) x 1))" {:linters {:unused-value {:level :warning}}}))))
 
 (deftest unused-value-var-refs-test
-  (testing "unused pure function call"
+  (testing "unused var ref"
     (assert-submaps
-     '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value"})
-     (lint! "(defn foo [] update 1)" {:linters {:unused-value {:level :warning}}}))))
+     '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value: update"})
+     (lint! "(defn foo [] update 1)" {:linters {:unused-value {:level :warning}}})))
+  (testing "unused local ref"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 15, :level :warning, :message "Unused value: x"})
+     (lint! "(defn foo [x] x 1)" {:linters {:unused-value {:level :warning}}}))))

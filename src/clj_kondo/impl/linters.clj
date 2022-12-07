@@ -459,14 +459,11 @@
             (lint-arg-types! ctx idacs call called-fn))))
       (when call?
         (when-let [idx (:idx call)]
-          (when (or (not call?)
-                    (contains? var-info/unused-values fn-sym))
+          (when (contains? var-info/unused-values fn-sym)
             (let [unused-value-conf (-> config :linters :unused-value)]
               (when-not (identical? :off (:level unused-value-conf))
                 (let [parent-call (let [cs (:callstack call)]
-                                    (if call?
-                                      (second cs)
-                                      (first cs)))
+                                    (second cs))
                       core? (utils/one-of (first parent-call) [clojure.core cljs.core])
                       core-sym (when core?
                                  (second parent-call))

@@ -155,20 +155,18 @@
                      expr-meta (meta expr)]
                  (if-let [b (when (and simple? (not syntax-quote?))
                               (get (:bindings ctx) symbol-val))]
-                   (do
-                     (prn :yoooo (prn expr))
-                     (namespace/reg-used-binding! ctx
-                                                  (-> ns :name)
-                                                  b
-                                                  (when (:analyze-locals? ctx)
-                                                    (assoc-some expr-meta
-                                                                :name-row (:row expr-meta)
-                                                                :name-col (:col expr-meta)
-                                                                :name-end-row (:end-row expr-meta)
-                                                                :name-end-col (:end-col expr-meta)
-                                                                :name symbol-val
-                                                                :filename (:filename ctx)
-                                                                :str (:string-value expr)))))
+                   (namespace/reg-used-binding! ctx
+                                                (-> ns :name)
+                                                b
+                                                (when (:analyze-locals? ctx)
+                                                  (assoc-some expr-meta
+                                                              :name-row (:row expr-meta)
+                                                              :name-col (:col expr-meta)
+                                                              :name-end-row (:end-row expr-meta)
+                                                              :name-end-col (:end-col expr-meta)
+                                                              :name symbol-val
+                                                              :filename (:filename ctx)
+                                                              :str (:string-value expr))))
                    (let [{resolved-ns :ns
                           resolved-name :name
                           resolved-alias :alias
@@ -254,13 +252,11 @@
                    ;;(prn :binding idx)
                    (let [len (:len ctx)]
                      (when (< idx (dec len))
-                       (prn :uuuuu)
                        (let [parent-call (first (:callstack ctx))
                              core? (one-of (first parent-call) [clojure.core cljs.core])
                              core-sym (when core?
                                         (second parent-call))
                              generated? (:clj-kondo.impl/generated expr)
-                             _ (prn :udude)
                              redundant?
                              (and (not generated?)
                                   core?
@@ -277,18 +273,14 @@
                                                              :filename (:filename ctx)))))))))
                (do
                  ;; (prn (type (utils/sexpr expr)) (:callstack ctx) (:len ctx) (:idx ctx))
-                 (prn :uolo (:idx ctx) expr)
                  (when-let [idx (:idx ctx)]
-                   (prn :yoxxxx idx)
                    (let [len (:len ctx)]
                      (when (< idx (dec len))
-                       (prn :uuuuu)
                        (let [parent-call (first (:callstack ctx))
                              core? (one-of (first parent-call) [clojure.core cljs.core])
                              core-sym (when core?
                                         (second parent-call))
                              generated? (:clj-kondo.impl/generated expr)
-                             _ (prn :udude)
                              redundant?
                              (and (not generated?)
                                   core?
