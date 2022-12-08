@@ -2,7 +2,7 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## 2022.12.08
 
 - [#609](https://github.com/clj-kondo/clj-kondo/issues/609): typecheck var usage, e.g. `(def x :foo) (inc :foo)` will now give a warning
 - [#1867](https://github.com/clj-kondo/clj-kondo/issues/1867): add name metadata to class usage
@@ -17,6 +17,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1903](https://github.com/clj-kondo/clj-kondo/issues/1903): int can be cast to double
 - [#1871](https://github.com/clj-kondo/clj-kondo/issues/1871): clj-kondo marks args in `definterface` as unused
 - [#1879](https://github.com/clj-kondo/clj-kondo/issues/1879): analyze `definterface` more similarly to `defprotocol` for lsp-navigation
+- [#1907](https://github.com/clj-kondo/clj-kondo/issues/1907): add `hooks-api/generated-node?` function to check if a node was generated
+- [#1887](https://github.com/clj-kondo/clj-kondo/issues/1887), use `re-find` for ns groups rather than re-matches
 
 ## 2022.11.02
 
