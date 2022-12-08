@@ -51,7 +51,7 @@
    'reg-keyword! api/reg-keyword!
    'coerce api/coerce
    'ns-analysis api/ns-analysis
-   'generated? api/generated?})
+   'generated-node? api/generated-node?})
 
 (def sci-ctx
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
