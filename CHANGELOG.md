@@ -6,7 +6,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## 2022.12.08
 
-- [#609](https://github.com/clj-kondo/clj-kondo/issues/609): typecheck var usage, e.g. `(def x :foo) (inc :foo)` will now give a warning
+- [#609](https://github.com/clj-kondo/clj-kondo/issues/609): typecheck var usage, e.g. `(def x :foo) (inc x)` will now give a warning
 - [#1867](https://github.com/clj-kondo/clj-kondo/issues/1867): add name metadata to class usage
 - [#1875](https://github.com/clj-kondo/clj-kondo/issues/1875): add `:duplicate-field-name` linter for deftype and defrecord definitions.
 - [#1883](https://github.com/clj-kondo/clj-kondo/issues/1883): constructor usage should have name-col in analysis
