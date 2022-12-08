@@ -394,7 +394,7 @@ Sometimes it is desirable to configure a group of namespaces in one go. This can
 {:ns-groups [{:pattern "foo\\..*" :name foo-group}]}
 ```
 
-Each group consists of a pattern (evaluated by `re-pattern`) and a `:name` (symbol).
+Each group consists of a pattern (evaluated by `re-pattern` and matched with `re-find`) and a `:name` (symbol).
 
 Namespace groups can be used in the following configurations:
 

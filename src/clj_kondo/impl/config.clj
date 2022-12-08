@@ -440,9 +440,9 @@
                          filename-pattern
                          name]}]
               (when (or (and (string? pattern) (symbol? name)
-                             (re-matches (re-pattern pattern) (str ns-name)))
+                             (re-find (re-pattern pattern) (str ns-name)))
                         (and (string? filename-pattern) (symbol? name)
-                             (re-matches (re-pattern filename-pattern) filename)))
+                             (re-find (re-pattern filename-pattern) filename)))
                 name))
             (:ns-groups config))
       ns-name))
