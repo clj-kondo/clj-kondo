@@ -74,7 +74,9 @@ case "$(uname -m)" in
            ;;
     *) arch=amd64
        # always use static image on linux
-       static_suffix="-static"
+       if [[ "$platform" == "linux" ]]; then
+          static_suffix="-static"
+       fi
        ;;
 esac
 
