@@ -7,7 +7,7 @@ jobs:
   jvm:
     docker:
       # specify the version you desire here
-      - image: cimg/clojure:1.11.1-openjdk-17.0
+      - image: cimg/clojure@sha256:8298383d7753a2305663403871c31f238c3c5f0200e13f2394e32d4598a9fdf2
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
@@ -53,7 +53,7 @@ jobs:
 
   linux:
     docker:
-      - image: cimg/clojure:1.11.1-openjdk-17.0
+      - image: cimg/clojure@sha256:8298383d7753a2305663403871c31f238c3c5f0200e13f2394e32d4598a9fdf2 # fix for #1909
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
@@ -347,7 +347,7 @@ jobs:
           destination: release
   deploy:
     docker:
-      - image: cimg/clojure:1.11.1-openjdk-17.0
+      - image: cimg/clojure@sha256:8298383d7753a2305663403871c31f238c3c5f0200e13f2394e32d4598a9fdf2
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
@@ -369,7 +369,7 @@ jobs:
           key: v1-dependencies-{{ checksum "deps.edn" }}
   docker:
     docker:
-      - image: cimg/clojure:1.11.1-openjdk-17.0
+      - image: cimg/clojure@sha256:8298383d7753a2305663403871c31f238c3c5f0200e13f2394e32d4598a9fdf2
     steps:
       - checkout
       - run:
