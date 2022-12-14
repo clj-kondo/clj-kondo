@@ -293,4 +293,7 @@
                      {:linters {:unresolved-symbol {:level :error}}})))
 
   (is (empty? (lint! "(ns foo) (comment (identity (bar))) (defn bar [])"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+
+  (is (empty? (lint! "(ns foo) (comment bar) (def bar :baz)"
                      {:linters {:unresolved-symbol {:level :error}}}))))
