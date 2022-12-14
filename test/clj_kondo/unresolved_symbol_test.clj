@@ -278,3 +278,6 @@
          (lint! "(defn foo ^String [x] x)"
                 '{:linters {:unresolved-symbol {:level :error}}}
                 "--lang" "cljc")))))
+
+(deftest forward-reference-comment-test
+  (is (empty? (lint! "(ns foo) (comment (bar)) (defn bar [])"))))
