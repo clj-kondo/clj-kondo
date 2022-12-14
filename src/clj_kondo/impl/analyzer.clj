@@ -1922,6 +1922,7 @@
              resolved-name :name
              resolved-alias :alias
              unresolved? :unresolved?
+             allow-forward-reference? :allow-forward-reference?
              unresolved-ns :unresolved-ns
              clojure-excluded? :clojure-excluded?
              interop? :interop?
@@ -2330,6 +2331,7 @@
                                                 (meta full-fn-name))
                                         :alias resolved-alias
                                         :unresolved? unresolved?
+                                        :allow-forward-reference? allow-forward-reference?
                                         :unresolved-ns unresolved-ns
                                         :clojure-excluded? clojure-excluded?
                                         :arity arg-count

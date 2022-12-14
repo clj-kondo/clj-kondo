@@ -656,9 +656,10 @@
                         {:interop? true})
                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
                      :name name-sym
-                     :unresolved? (not (utils/one-of (first (:callstack ctx))
-                                                     [[clojure.core comment]
-                                                      [cljs.core comment]]))
+                     :unresolved? true
+                     :allow-forward-reference? (utils/one-of (first (:callstack ctx))
+                                                             [[clojure.core comment]
+                                                              [cljs.core comment]])
                      :clojure-excluded? clojure-excluded?})))))))))))
 
 ;;;; Scratch
