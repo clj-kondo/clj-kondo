@@ -213,6 +213,7 @@
             :let [;; _ (clojure.pprint/pprint (dissoc call :config))
                   call? (= :call (:type call))
                   unresolved? (:unresolved? call)
+                  allow-forward-reference? (:allow-forward-reference? call)
                   unresolved-ns (:unresolved-ns call)]
             :when (not unresolved-ns)
             :let [fn-name (:name call)
@@ -246,6 +247,7 @@
                              (contains? linted-namespaces resolved-ns)
                              (not (:resolved-core? call))
                              ;; the var could be :refer-all'ed, in this case unresolved? is true
+                             (not allow-forward-reference?)
                              (not unresolved?))
                     (namespace/reg-unresolved-var!
                      ctx caller-ns-sym resolved-ns fn-name
@@ -268,7 +270,9 @@
                                    (not= (:top-ns call) (:top-ns called-fn)))
                   row-called-fn (:row called-fn)
                   row-call (:row call)
-                  valid-call? (or (not unresolved?)
+                  valid-call? (or (and allow-forward-reference?
+                                       called-fn)
+                                  (not unresolved?)
                                   (when called-fn
                                     (or different-file?
                                         (not row-called-fn)
@@ -281,10 +285,10 @@
                        ctx caller-ns-sym fn-name
                        (if call?
                          (assoc call
-                                :row name-row
-                                :col name-col
-                                :end-row name-end-row
-                                :end-col name-end-col)
+                                :row (or name-row row)
+                                :col (or name-col col)
+                                :end-row (or name-end-row end-row)
+                                :end-col (or name-end-col end-col))
                          call)))
                   ;; row (:row call)
                   ;; col (:col call)

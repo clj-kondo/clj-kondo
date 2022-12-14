@@ -32,7 +32,7 @@
         :row 1,
         :col 5,
         :level :error,
-        :message "Unresolved symbol: x"} )
+        :message "Unresolved symbol: x"})
      (lint! "(x)(x)" "--config" "{:linters {:unresolved-symbol {:level :error}}}"
             {:linters {:unresolved-symbol {:report-duplicates true}}})))
   (assert-submaps
@@ -278,3 +278,44 @@
          (lint! "(defn foo ^String [x] x)"
                 '{:linters {:unresolved-symbol {:level :error}}}
                 "--lang" "cljc")))))
+
+
+(deftest forward-reference-comment-test
+  (assert-submaps
+   [{:row 1,
+     :col 20,
+     :level :error,
+     :message "Unresolved symbol: baz"}]
+   (lint! "(ns foo) (comment (baz))"
+          {:linters {:unresolved-symbol {:level :error}}}))
+
+  (assert-submaps
+   [{:row 1,
+     :col 19,
+     :level :error,
+     :message "Unresolved symbol: baz"}]
+   (lint! "(ns foo) (comment baz)"
+          {:linters {:unresolved-symbol {:level :error}}}))
+
+  (assert-submaps
+   [{:row 1,
+     :col 24,
+     :level :error,
+     :message "Unresolved symbol: square"}]
+   (lint! "(ns foo) (comment (map square [1 2 3]))"
+          {:linters {:unresolved-symbol {:level :error}}}))
+
+  (is (empty? (lint! "(ns foo) (comment (bar)) (defn bar [])"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+
+  (is (empty? (lint! "(ns foo) (comment (identity (bar))) (defn bar [])"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+
+  (is (empty? (lint! "(ns foo) (comment bar) (def bar :baz)"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+
+  (is (empty? (lint! "(ns foo) (comment bar) (def bar :baz)"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+
+  (is (empty? (lint! "(ns foo) (comment (map square [1 2 3])) (defn square [x] (* x x))"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
