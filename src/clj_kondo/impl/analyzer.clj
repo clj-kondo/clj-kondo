@@ -1755,6 +1755,7 @@
                                                  (meta fsym))
                                          :alias resolved-alias
                                          :unresolved? unresolved?
+                                         :allow-forward-reference? (:in-comment ctx)
                                          :unresolved-ns unresolved-ns
                                          :clojure-excluded? clojure-excluded?
                                          :arity arg-count
