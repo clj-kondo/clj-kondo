@@ -285,10 +285,10 @@
                        ctx caller-ns-sym fn-name
                        (if call?
                          (assoc call
-                                :row name-row
-                                :col name-col
-                                :end-row name-end-row
-                                :end-col name-end-col)
+                                :row (or name-row row)
+                                :col (or name-col col)
+                                :end-row (or name-end-row end-row)
+                                :end-col (or name-end-col end-col))
                          call)))
                   ;; row (:row call)
                   ;; col (:col call)

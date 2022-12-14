@@ -297,10 +297,21 @@
    (lint! "(ns foo) (comment baz)"
           {:linters {:unresolved-symbol {:level :error}}}))
 
+  (assert-submaps
+   [{:row 1,
+     :col 24,
+     :level :error,
+     :message "Unresolved symbol: square"}]
+   (lint! "(ns foo) (comment (map square [1 2 3]))"
+          {:linters {:unresolved-symbol {:level :error}}}))
+
   (is (empty? (lint! "(ns foo) (comment (bar)) (defn bar [])"
                      {:linters {:unresolved-symbol {:level :error}}})))
 
   (is (empty? (lint! "(ns foo) (comment (identity (bar))) (defn bar [])"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+
+  (is (empty? (lint! "(ns foo) (comment bar) (def bar :baz)"
                      {:linters {:unresolved-symbol {:level :error}}})))
 
   (is (empty? (lint! "(ns foo) (comment bar) (def bar :baz)"
