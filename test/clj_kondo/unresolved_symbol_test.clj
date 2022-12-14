@@ -279,6 +279,7 @@
                 '{:linters {:unresolved-symbol {:level :error}}}
                 "--lang" "cljc")))))
 
+
 (deftest forward-reference-comment-test
   (assert-submaps
    [{:row 1,
@@ -289,4 +290,7 @@
           {:linters {:unresolved-symbol {:level :error}}}))
 
   (is (empty? (lint! "(ns foo) (comment (bar)) (defn bar [])"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+
+  (is (empty? (lint! "(ns foo) (comment (identity (bar))) (defn bar [])"
                      {:linters {:unresolved-symbol {:level :error}}}))))

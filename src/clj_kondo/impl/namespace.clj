@@ -657,9 +657,7 @@
                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
                      :name name-sym
                      :unresolved? true
-                     :allow-forward-reference? (utils/one-of (first (:callstack ctx))
-                                                             [[clojure.core comment]
-                                                              [cljs.core comment]])
+                     :allow-forward-reference? (:in-comment ctx)
                      :clojure-excluded? clojure-excluded?})))))))))))
 
 ;;;; Scratch
