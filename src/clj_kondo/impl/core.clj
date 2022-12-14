@@ -625,7 +625,8 @@
                  ;; always pass when it's not one of these
                  (and (not= :redundant-do type)
                       (not= :redundant-call type)
-                      (not= :redundant-let type))
+                      (not= :redundant-let type)
+                      (not= :single-logical-operand type))
                  ;; but if we get here, then the amount of findings has to be bigger than 1
                  (> (count findings) 1))
           f findings
