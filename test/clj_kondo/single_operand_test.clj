@@ -67,3 +67,10 @@
   (doseq [lang ["clj" "cljs"]]
     (is (empty? (lint! "(and 1 2)" "--lang" lang)) "and with > 1 arg is ok")
     (is (empty? (lint! "(or 1 2 3)" "--lang" lang)) "or with > 1 arg is ok")))
+
+(deftest reader-conditional-test
+  (is (empty? (lint! "(let [scope *ns*]
+                 (or (#{:default} scope)
+                     #?(:clj (keyword? scope))))"
+                     {:linters {:single-logical-operand {:level :warning}}}
+                     "--lang" "cljc"))))
