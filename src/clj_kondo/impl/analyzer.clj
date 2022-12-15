@@ -2610,7 +2610,7 @@
         (if-let [function (some->>
                            (first children)
                            (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
-          (if (or (:quoted ctx) (= :edn (:lang ctx)))
+          (if (or #_(:quoted ctx) (= :edn (:lang ctx)))
             (analyze-children ctx children)
             (let [t (tag function)]
               (case t
