@@ -32,7 +32,7 @@ else
     against=$(git hash-object -t tree /dev/null)
 fi
 
-if !(git diff --cached --name-only --diff-filter=AM $against | grep -E '.clj[cs]?$' | xargs clj-kondo --lint)
+if !(git diff --cached --name-only --diff-filter=AM $against | grep -E '.clj[cs]?$' | xargs --no-run-if-empty clj-kondo --lint)
 then
     echo
     echo "Error: new clj-kondo errors found. Please fix them and retry the commit."
