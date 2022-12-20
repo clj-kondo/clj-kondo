@@ -4,10 +4,13 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 [Clj-kondo](https://github.com/clj-kondo/clj-kondo): static analyzer and linter for Clojure code that sparks joy ✨
 
-## 2022.12.10
+## Unreleased
 
 - [#1914](https://github.com/clj-kondo/clj-kondo/issues/1914): Don't warn about single arg use when there's a second arg in a reader conditional ([@mk](https://github.com/mk))
 - [#1912](https://github.com/clj-kondo/clj-kondo/issues/1912): Allow forward references in `comment` forms ([@mk](https://github.com/mk))
+
+## 2022.12.10
+
 - [#1909](https://github.com/clj-kondo/clj-kondo/issues/1909): lower requirement on `glibc` in dynamic linux binary to 2.31 by using fixed version of CircleCI image
 
 ## 2022.12.08
