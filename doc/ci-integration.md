@@ -75,6 +75,7 @@ A number of [GitHub Actions](https://github.com/features/actions) that use `clj-
 
 - [setup-clj-kondo](https://github.com/marketplace/actions/setup-clj-kondo)
 - [clojure-lint-action](https://github.com/marketplace/actions/clj-kondo-checks)
+- [MegaLinter](https://github.com/marketplace/actions/megalinter): 100% open-source linters aggregator [embedding clj-kondo](https://megalinter.io/latest/descriptors/clojure_clj_kondo/)
 
 ### Linter Output Integration
 
