@@ -64,6 +64,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Check max glibc version
+          command: script/check_glibc.sh
+      - run:
           name: Get rid of erroneous git config
           command: |
               rm -rf /home/circleci/.gitconfig
@@ -137,6 +140,9 @@ jobs:
       CLJ_KONDO_TEST_ENV: native
     steps:
       - checkout
+      - run:
+          name: Check max glibc version
+          command: script/check_glibc.sh
       - restore_cache:
           keys:
             - linux-aarch64-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
