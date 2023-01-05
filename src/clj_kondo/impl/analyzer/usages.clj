@@ -134,7 +134,7 @@
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)]
      (if (and (= 1 syntax-quote-level) unquote-tag?)
        (common/analyze-expression** ctx expr)
-       (if quote?
+       (if (or quote? (= :edn (:lang ctx)))
          (do (when (:k expr)
                (analyze-keyword ctx expr opts))
              (doall (mapcat

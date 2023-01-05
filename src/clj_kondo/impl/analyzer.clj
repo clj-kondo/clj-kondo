@@ -2597,15 +2597,14 @@
           (when (:k expr)
             (usages/analyze-keyword ctx expr)
             (types/add-arg-type-from-expr ctx expr))
-          (when-not (= :edn (:lang ctx))
-            (let [id (gensym)
-                  expr (assoc expr :id id)
-                  _ (analyze-usages2 ctx expr)
-                  usage (get @(:calls-by-id ctx) id)]
-              (if usage
-                (types/add-arg-type-from-usage ctx usage expr)
-                (types/add-arg-type-from-expr ctx expr))
-              nil)))
+          (let [id (gensym)
+                expr (assoc expr :id id)
+                _ (analyze-usages2 ctx expr)
+                usage (get @(:calls-by-id ctx) id)]
+            (if usage
+              (types/add-arg-type-from-usage ctx usage expr)
+              (types/add-arg-type-from-expr ctx expr))
+            nil))
         :list
         (if-let [function (some->>
                            (first children)
