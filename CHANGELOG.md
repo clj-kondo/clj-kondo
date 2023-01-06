@@ -42,7 +42,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1855](https://github.com/clj-kondo/clj-kondo/issues/1855): accept symbol in addition to keyword in `clojure.spec.alpha/def` name position
 - [#1844](https://github.com/clj-kondo/clj-kondo/issues/1844): support extra schema in `schema.core/defrecord`
 - [#1720](https://github.com/clj-kondo/clj-kondo/issues/1720): prevent parse error on defmulti without args
-- [#1863](https://github.com/clj-kondo/clj-kondo/issues/1863): Added `clj-kondo-docker` pre-commiti hook.
+- [#1863](https://github.com/clj-kondo/clj-kondo/issues/1863): Added `clj-kondo-docker` pre-commit hook.
 
 ## 2022.10.14
 
