@@ -210,6 +210,22 @@ clj-kondo or some other unexpected error beyond the control of clj-kondo.
 
 ## [Companies](doc/companies.md) using clj-kondo
 
+## Macros
+
+As clj-kondo is a static analyzer is does not need a runtime (JVM, browser,
+Node.js, etc.). It doesn't execute your code. As such it can be a faster
+alternative to linters that do use a runtime, like
+[eastwood](https://github.com/jonase/eastwood). This approach comes with the
+limitation that clj-kondo cannot execute your macros as macros can use arbitrary
+features from a runtime. Clj-kondo has support for clojure core macros and some
+popular libraries from the community. Macros that are not supported out of the
+box can be supported using
+[configuration](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#unrecognized-macros). For
+many libraries there is already a configuration available that you can
+[import](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#importing). Also
+check out clj-kondo [configs](https://github.com/clj-kondo/configs) which
+contains configurations for third party libraries.
+
 ## Babashka pod
 
 Clj-kondo can be invoked as a [babashka
@@ -279,7 +295,7 @@ Support this project with your organization. Your logo will show up here with a 
 
 ## License
 
-Copyright © 2019 Michiel Borkent
+Copyright © 2019 - 2023 Michiel Borkent
 
 Distributed under the EPL License, same as Clojure. See LICENSE.
 
