@@ -224,7 +224,7 @@ box can be supported using
 of the ways to configure macros is to write
 [hooks](https://github.com/clj-kondo/clj-kondo/blob/master/doc/hooks.md) for
 them (also see this
-[blogpost](https://github.com/clj-kondo/clj-kondo/blob/master/doc/hooks.md).
+[blogpost](https://blog.michielborkent.nl/clj-kondo-hooks.html)).
 For many libraries there is already a configuration available that you can
 [import](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#importing). Also
 check out clj-kondo [configs](https://github.com/clj-kondo/configs) which
