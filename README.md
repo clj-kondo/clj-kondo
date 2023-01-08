@@ -220,8 +220,12 @@ limitation that clj-kondo cannot execute your macros as macros can use arbitrary
 features from a runtime. Clj-kondo has support for clojure core macros and some
 popular libraries from the community. Macros that are not supported out of the
 box can be supported using
-[configuration](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#unrecognized-macros). For
-many libraries there is already a configuration available that you can
+[configuration](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#unrecognized-macros). One
+of the ways to configure macros is to write
+[hooks](https://github.com/clj-kondo/clj-kondo/blob/master/doc/hooks.md) for
+them (also see this
+[blogpost](https://github.com/clj-kondo/clj-kondo/blob/master/doc/hooks.md).
+For many libraries there is already a configuration available that you can
 [import](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#importing). Also
 check out clj-kondo [configs](https://github.com/clj-kondo/configs) which
 contains configurations for third party libraries.
