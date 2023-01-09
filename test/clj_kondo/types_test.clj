@@ -972,6 +972,20 @@
                            {test-ns
                             {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}})))))
 
+(deftest req+op-test
+  (testing "req + op rest"
+    (is (empty? (lint! "
+(ns test-ns)
+(defn x [m x] [m x])
+(x {:keys [:foo :bar]} 1)"
+                       '{:linters
+                         {:type-mismatch
+                          {:level :error
+                           :namespaces
+                           {test-ns
+                            {x {:arities {2 {:args [{:op :keys, :req {:keys {:op :rest, :spec :keyword}}}
+                                                    :any]}}}}}}}})))))
+
 (deftest def-type-mismatch-test
   (let [config '{:linters
                  {:type-mismatch

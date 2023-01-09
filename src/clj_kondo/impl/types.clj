@@ -117,6 +117,7 @@
     :else (get labels k)))
 
 (defn match? [k target]
+  (prn :k k :target target)
   (cond
     (or (identical? k target)
         (identical? k :any)
