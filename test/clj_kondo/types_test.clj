@@ -974,17 +974,20 @@
 
 (deftest req+op-test
   (testing "req + op rest"
-    (is (empty? (lint! "
+    (let [sw (java.io.StringWriter.)]
+      (binding [*err* sw]
+        (is (empty? (lint! "
 (ns test-ns)
 (defn x [m x] [m x])
 (x {:keys [:foo :bar]} 1)"
-                       '{:linters
-                         {:type-mismatch
-                          {:level :error
-                           :namespaces
-                           {test-ns
-                            {x {:arities {2 {:args [{:op :keys, :req {:keys {:op :rest, :spec :keyword}}}
-                                                    :any]}}}}}}}})))))
+                           '{:linters
+                             {:type-mismatch
+                              {:level :error
+                               :namespaces
+                               {test-ns
+                                {x {:arities {2 {:args [{:op :keys, :req {:keys {:op :rest, :spec :keyword}}}
+                                                        :any]}}}}}}}})))
+        (is (str/includes? (str sw) "WARNING"))))))
 
 (deftest def-type-mismatch-test
   (let [config '{:linters
