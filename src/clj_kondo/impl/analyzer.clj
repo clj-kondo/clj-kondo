@@ -2593,7 +2593,7 @@
                          has-first-arg? (update :bindings assoc '% {}))
                        expanded-node)))
         :token
-        (if (or (= :edn (:lang ctx))
+        (if (or (= :edn lang)
                 (:quoted ctx))
           (when (:k expr)
             (usages/analyze-keyword ctx expr)
