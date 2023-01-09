@@ -1,6 +1,6 @@
 (ns clj-kondo.types-test
   (:require
-   [clj-kondo.test-utils :refer [assert-submaps lint!]]
+   [clj-kondo.test-utils :as tu :refer [assert-submaps lint!]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -971,6 +971,24 @@
                            :namespaces
                            {test-ns
                             {x {:arities {1 {:args [{:op :keys, :req {:some-ns/thing :any}}]}}}}}}}})))))
+
+(deftest req+op-test
+  (when-not tu/native?
+    (testing "req + op rest"
+      (let [sw (java.io.StringWriter.)]
+        (binding [*err* sw]
+          (is (empty? (lint! "
+(ns test-ns)
+(defn x [m x] [m x])
+(x {:keys [:foo :bar]} 1)"
+                             '{:linters
+                               {:type-mismatch
+                                {:level :error
+                                 :namespaces
+                                 {test-ns
+                                  {x {:arities {2 {:args [{:op :keys, :req {:keys {:op :rest, :spec :keyword}}}
+                                                          :any]}}}}}}}})))
+          (is (str/includes? (str sw) "WARNING")))))))
 
 (deftest def-type-mismatch-test
   (let [config '{:linters

@@ -9,6 +9,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1914](https://github.com/clj-kondo/clj-kondo/issues/1914): Don't warn about single arg use when there's a second arg in a reader conditional ([@mk](https://github.com/mk))
 - [#1912](https://github.com/clj-kondo/clj-kondo/issues/1912): Allow forward references in `comment` forms ([@mk](https://github.com/mk))
 - [#1926](https://github.com/clj-kondo/clj-kondo/issues/1926#issuecomment-1372759773): Add keyword analysis for edn files.
+- [#1922](https://github.com/clj-kondo/clj-kondo/issues/1922): don't crash on invalid type specification
 
 ## 2022.12.10
 
