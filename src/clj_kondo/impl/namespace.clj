@@ -362,10 +362,10 @@
                                          :name-end-col (or (:end-col name-meta) (:end-col loc)))))))
 
 (defn reg-unresolved-namespace!
-  [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as _ctx} ns-sym unresolved-ns]
+  [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as ctx} ns-sym unresolved-ns]
   (when-not
    (or
-    (identical? :off (-> config :linters :unresolved-namespace :level))
+    (utils/linter-disabled? ctx :unresolved-namespace)
     (config/unresolved-namespace-excluded config unresolved-ns)
        ;; unresolved namespaces in an excluded unresolved symbols call are not reported
     (config/unresolved-symbol-excluded config callstack :dummy))
