@@ -4,10 +4,15 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 [Clj-kondo](https://github.com/clj-kondo/clj-kondo): static analyzer and linter for Clojure code that sparks joy ✨
 
-## 2022.12.10
+## Unreleased
 
 - [#1914](https://github.com/clj-kondo/clj-kondo/issues/1914): Don't warn about single arg use when there's a second arg in a reader conditional ([@mk](https://github.com/mk))
 - [#1912](https://github.com/clj-kondo/clj-kondo/issues/1912): Allow forward references in `comment` forms ([@mk](https://github.com/mk))
+- [#1926](https://github.com/clj-kondo/clj-kondo/issues/1926#issuecomment-1372759773): Add keyword analysis for edn files.
+- [#1922](https://github.com/clj-kondo/clj-kondo/issues/1922): don't crash on invalid type specification
+
+## 2022.12.10
+
 - [#1909](https://github.com/clj-kondo/clj-kondo/issues/1909): lower requirement on `glibc` in dynamic linux binary to 2.31 by using fixed version of CircleCI image
 
 ## 2022.12.08
@@ -38,7 +43,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1855](https://github.com/clj-kondo/clj-kondo/issues/1855): accept symbol in addition to keyword in `clojure.spec.alpha/def` name position
 - [#1844](https://github.com/clj-kondo/clj-kondo/issues/1844): support extra schema in `schema.core/defrecord`
 - [#1720](https://github.com/clj-kondo/clj-kondo/issues/1720): prevent parse error on defmulti without args
-- [#1863](https://github.com/clj-kondo/clj-kondo/issues/1863): Added `clj-kondo-docker` pre-commiti hook.
+- [#1863](https://github.com/clj-kondo/clj-kondo/issues/1863): Added `clj-kondo-docker` pre-commit hook.
 
 ## 2022.10.14
 
