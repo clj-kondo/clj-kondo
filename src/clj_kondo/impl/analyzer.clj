@@ -2547,8 +2547,7 @@
         ;; TODO: add types for all token cases!
         (types/add-arg-type-from-expr ctx expr))
       (case t
-        :quote (let [ctx (-> (assoc ctx :quoted true)
-                             (utils/ctx-with-linters-disabled [:unresolved-symbol :invalid-arity :type-mismatch]))]
+        :quote (let [ctx (assoc ctx :quoted true)]
                  (types/add-arg-type-from-expr ctx (first (:children expr)))
                  (analyze-children ctx children))
         :syntax-quote (analyze-usages2 (assoc ctx :arg-types nil) expr)
@@ -2595,7 +2594,7 @@
                        expanded-node)))
         :token
         (if (or (= :edn lang)
-                #_(:quoted ctx))
+                (:quoted ctx))
           (when (:k expr)
             (usages/analyze-keyword ctx expr)
             (types/add-arg-type-from-expr ctx expr))
@@ -2611,7 +2610,7 @@
         (if-let [function (some->>
                            (first children)
                            (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
-          (if (or #_(:quoted ctx) (= :edn lang))
+          (if (or (:quoted ctx) (= :edn lang))
             (analyze-children ctx children)
             (let [t (tag function)]
               (case t
