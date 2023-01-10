@@ -2091,6 +2091,24 @@
                           :row 1})
                        foo-usages))))
 
+(deftest quoted-var-usage-test
+  (let [analysis (:analysis (with-in-str
+                              "(requiring-resolve 'clojure.set/union)"
+                              (clj-kondo/run! {:lint ["-"] :config
+                                               {:analysis true}})))
+        var-usages (:var-usages analysis)]
+    (assert-submaps2
+     ['{:row 1,
+        :col 21,
+        :from user,
+        :to clojure.set,
+        :name union,
+        :end-row 1,
+        :end-col 38,
+        :lang :clj}
+      {:name 'requiring-resolve}]
+     var-usages)))
+
 (comment
   (context-test)
   )
