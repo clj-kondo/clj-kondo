@@ -24,5 +24,17 @@
       [{:name "a" :row 1 :col 2 :end-row 1 :end-col 4 :filename (.getCanonicalPath file)}
        {:name "b" :row 1 :col 7 :end-row 1 :end-col 9 :filename (.getCanonicalPath file)}
        {:name "foo" :row 1 :col 10 :end-row 1 :end-col 14 :filename (.getCanonicalPath file)}
-       {:name "c" :row 1 :col 15 :end-row 1 :end-col 17 :filename (.getCanonicalPath file)}]}
+       {:name "c" :row 1 :col 15 :end-row 1 :end-col 17 :filename (.getCanonicalPath file)}
+       {:name "exec-fn" :row 2 :col 2}]}
+     analysis)
+    (assert-submap2
+     {:var-usages
+      [{:filename (.getCanonicalPath file)
+        :row 2,
+        :col 11,
+        :to 'clojure.core,
+        :name 'inc,
+        :end-row 2,
+        :end-col 27,
+        :lang :edn}]}
      analysis)))
