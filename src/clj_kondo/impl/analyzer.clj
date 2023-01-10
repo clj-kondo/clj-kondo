@@ -2526,6 +2526,8 @@
         children (rest children)]
     (analyze-children ctx children)))
 
+#_(requiring-resolve 'clojure.set/union)
+
 (defn analyze-expression**
   [{:keys [bindings lang] :as ctx}
    {:keys [children] :as expr}]
@@ -2595,9 +2597,18 @@
         :token
         (if (or (= :edn lang)
                 (:quoted ctx))
-          (when (:k expr)
-            (usages/analyze-keyword ctx expr)
-            (types/add-arg-type-from-expr ctx expr))
+          (if (:k expr)
+            (do (usages/analyze-keyword ctx expr)
+                (types/add-arg-type-from-expr ctx expr))
+            (when-let [sym (utils/symbol-from-token expr)]
+              (when (qualified-symbol? sym)
+                (let [m (meta expr)
+                      {:keys [row col]} m]
+                  (analysis/reg-usage!
+                   ctx
+                   (:filename ctx) row col (-> ctx :ns :name)
+                   (symbol (namespace sym))
+                   (symbol (name sym)) nil lang (:in-def ctx) (assoc (meta expr) :quoted true))))))
           (let [id (gensym)
                 expr (assoc expr :id id)
                 _ (analyze-usages2 ctx expr)
