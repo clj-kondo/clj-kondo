@@ -201,7 +201,8 @@
      (case x# (~@elements) x# nil)))
 
 (defn linter-disabled? [ctx linter]
-  (= :off (get-in ctx [:config :linters linter :level])))
+  (let [level (get-in ctx [:config :linters linter :level])]
+    (or (not level) (= :off level))))
 
 (defn ctx-with-bindings [ctx bindings]
   (update ctx :bindings (fn [b]

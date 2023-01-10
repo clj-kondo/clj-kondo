@@ -142,10 +142,11 @@
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
-  (when-let [arg-types (:arg-types call)]
-    (let [arg-types @arg-types
-          tags (map #(tu/resolve-arg-type idacs %) arg-types)]
-      (types/lint-arg-types ctx called-fn arg-types tags call))))
+  (when-not (:quoted call)
+    (when-let [arg-types (:arg-types call)]
+      (let [arg-types @arg-types
+            tags (map #(tu/resolve-arg-type idacs %) arg-types)]
+        (types/lint-arg-types ctx called-fn arg-types tags call)))))
 
 (defn show-arities [fixed-arities varargs-min-arity]
   (let [fas (vec (sort fixed-arities))

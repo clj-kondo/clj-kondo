@@ -2354,7 +2354,8 @@
                                         :redundant-fn-wrapper-parent-loc fn-parent-loc
                                         :idx (:idx ctx)
                                         :len (:len ctx)
-                                        :derived-location (:derived-location expr-meta)}
+                                        :derived-location (:derived-location expr-meta)
+                                        :quoted (:quoted ctx)}
                             ret-tag (or (:ret m)
                                         (types/ret-tag-from-call ctx proto-call expr))
                             call (cond-> proto-call
@@ -2551,7 +2552,8 @@
       (case t
         :quote (let [ctx (assoc ctx :quoted true)]
                  (types/add-arg-type-from-expr ctx (first (:children expr)))
-                 (analyze-children ctx children))
+                 (analyze-children (update-in ctx [:config :linters] (fn [linters]
+                                                                       (select-keys linters [:syntax :duplicate-map-key]))) children))
         :syntax-quote (analyze-usages2 (assoc ctx :arg-types nil) expr)
         :var (analyze-children (assoc ctx :private-access? true)
                                (:children expr))
@@ -2621,7 +2623,7 @@
         (if-let [function (some->>
                            (first children)
                            (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
-          (if (or (:quoted ctx) (= :edn lang))
+          (if (or #_(:quoted ctx) (= :edn lang))
             (analyze-children ctx children)
             (let [t (tag function)]
               (case t

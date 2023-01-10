@@ -295,8 +295,9 @@
 
 (defn reg-unresolved-symbol!
   [ctx ns-sym sym {:keys [:base-lang :lang :config
-                          :callstack] :as sym-info}]
-  (when-not (or (:unresolved-symbol-disabled? sym-info)
+                          :callstack quoted] :as sym-info}]
+  (when-not (or quoted
+                (:unresolved-symbol-disabled? sym-info)
                 (config/unresolved-symbol-excluded config
                                                    callstack sym)
                 (let [symbol-name (name sym)]
