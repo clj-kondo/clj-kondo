@@ -47,6 +47,28 @@
                 :from-var in-def
                 :context (select-context (:analysis-context ctx) ctx)))))))
 
+(defn reg-symbol! [ctx filename from-ns symbol lang metadata]
+  (when (:analyze-symbols? ctx)
+    (let [analysis (:analysis ctx)]
+      (swap! analysis update :symbols conj
+             (assoc-some
+              (merge
+               {:filename filename
+                :from from-ns
+                :symbol symbol}
+               (select-some metadata
+                            [:row :col
+                             :name-row
+                             :name-col
+                             :name-end-row
+                             :name-end-col
+                             :end-row
+                             :end-col
+                             :derived-location
+                             :derived-name-location]))
+              :lang lang
+              :context (select-context (:analysis-context ctx) ctx))))))
+
 (defn reg-var! [{:keys [:analysis-var-meta :analysis :base-lang :lang] :as _ctx}
                 filename row col ns nom attrs]
   (when analysis

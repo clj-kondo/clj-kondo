@@ -2095,19 +2095,17 @@
   (let [analysis (:analysis (with-in-str
                               "(requiring-resolve 'clojure.set/union)"
                               (clj-kondo/run! {:lint ["-"] :config
-                                               {:analysis true}})))
-        var-usages (:var-usages analysis)]
+                                               {:analysis {:symbols true}}})))
+        symbols (:symbols analysis)]
     (assert-submaps2
      ['{:row 1,
         :col 21,
         :from user,
-        :to clojure.set,
-        :name union,
+        :symbol clojure.set/union
         :end-row 1,
         :end-col 38,
-        :lang :clj}
-      {:name 'requiring-resolve}]
-     var-usages)))
+        :lang :clj}]
+     symbols)))
 
 (comment
   (context-test)

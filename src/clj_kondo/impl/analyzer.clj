@@ -2601,14 +2601,13 @@
             (do (usages/analyze-keyword ctx expr)
                 (types/add-arg-type-from-expr ctx expr))
             (when-let [sym (utils/symbol-from-token expr)]
-              (when (qualified-symbol? sym)
-                (let [m (meta expr)
-                      {:keys [row col]} m]
-                  (analysis/reg-usage!
-                   ctx
-                   (:filename ctx) row col (-> ctx :ns :name)
-                   (symbol (namespace sym))
-                   (symbol (name sym)) nil lang (:in-def ctx) (assoc (meta expr) :quoted true))))))
+              (when (and (:analyze-symbols? ctx)
+                         (qualified-symbol? sym))
+                (analysis/reg-symbol!
+                 ctx
+                 (:filename ctx) (-> ctx :ns :name)
+                 sym
+                 lang (meta expr)))))
           (let [id (gensym)
                 expr (assoc expr :id id)
                 _ (analyze-usages2 ctx expr)
