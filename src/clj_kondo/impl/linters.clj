@@ -511,14 +511,16 @@
                   ctx (if ns-config (assoc ctx :config config) ctx)
                   ctx (assoc ctx :lang (:lang ns))]]
       (doseq [ns-sym unused]
-        (when-not (config/unused-namespace-excluded config ns-sym)
-          (let [m (meta ns-sym)
-                filename (:filename m)]
-            (findings/reg-finding!
-             ctx
-             (-> (node->line filename ns-sym :unused-namespace
-                             (format "namespace %s is required but never used" ns-sym))
-                 (assoc :ns (export-ns-sym ns-sym)))))))
+        (let [ns-meta (meta ns-sym)]
+          (when-not (or (config/unused-namespace-excluded config ns-sym)
+                        (some-> ns-meta :alias meta :as-alias))
+            (let [m (meta ns-sym)
+                  filename (:filename m)]
+              (findings/reg-finding!
+               ctx
+               (-> (node->line filename ns-sym :unused-namespace
+                               (format "namespace %s is required but never used" ns-sym))
+                   (assoc :ns (export-ns-sym ns-sym))))))))
       (doseq [[k v] referred-vars]
         (let [var-ns (:ns v)]
           (when-not

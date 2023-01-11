@@ -11,6 +11,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1926](https://github.com/clj-kondo/clj-kondo/issues/1926#issuecomment-1372759773): Add keyword analysis for edn files.
 - [#1922](https://github.com/clj-kondo/clj-kondo/issues/1922): don't crash on invalid type specification
 - [#1902](https://github.com/clj-kondo/clj-kondo/issues/1902): provide `:symbols` analysis for navigation to symbols in quoted forms or EDN files. See [docs]().
+- [#1939](https://github.com/clj-kondo/clj-kondo/issues/1939): no longer warn on unused namespace that was only used with `:as-alias`
 
 ## 2022.12.10
 
