@@ -12,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1922](https://github.com/clj-kondo/clj-kondo/issues/1922): don't crash on invalid type specification
 - [#1902](https://github.com/clj-kondo/clj-kondo/issues/1902): provide `:symbols` analysis for navigation to symbols in quoted forms or EDN files. See [docs]().
 - [#1939](https://github.com/clj-kondo/clj-kondo/issues/1939): no longer warn on unused namespace that was only used with `:as-alias`
+- [#1911](https://github.com/clj-kondo/clj-kondo/issues/1911): missing test assertion linter doesn't work in CLJS
 
 ## 2022.12.10
 

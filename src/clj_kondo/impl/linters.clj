@@ -138,7 +138,10 @@
     (when (= 'if (:name call))
       (lint-missing-else-branch ctx (:expr call)))
 
-    (when (get-in var-info/predicates [called-ns called-name])
+    (when
+        (get-in var-info/predicates [(if (= 'cljs.core called-ns)
+                                       'clojure.core
+                                       called-ns) called-name])
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
