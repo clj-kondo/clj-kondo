@@ -49,23 +49,28 @@
 
 (defn reg-symbol! [ctx filename from-ns symbol lang metadata]
   (when (:analyze-symbols? ctx)
-    (let [analysis (:analysis ctx)]
+    (let [analysis (:analysis ctx)
+          extra-meta (select-some metadata
+                                  [:row :col
+                                   :name-row
+                                   :name-col
+                                   :name-end-row
+                                   :name-end-col
+                                   :end-row
+                                   :end-col
+                                   :derived-location
+                                   :derived-name-location
+                                   :to :name])
+          to-ns (:to extra-meta)
+          extra-meta
+          (cond-> extra-meta to-ns (assoc :to (export-ns-sym to-ns)))]
       (swap! analysis update :symbols conj
              (assoc-some
               (merge
                {:filename filename
                 :from from-ns
                 :symbol symbol}
-               (select-some metadata
-                            [:row :col
-                             :name-row
-                             :name-col
-                             :name-end-row
-                             :name-end-col
-                             :end-row
-                             :end-col
-                             :derived-location
-                             :derived-name-location]))
+               extra-meta)
               :lang lang
               :context (select-context (:analysis-context ctx) ctx))))))
 

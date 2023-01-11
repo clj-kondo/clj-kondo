@@ -2603,11 +2603,17 @@
             (when-let [sym (utils/symbol-from-token expr)]
               (when (and (:analyze-symbols? ctx)
                          (qualified-symbol? sym))
-                (analysis/reg-symbol!
-                 ctx
-                 (:filename ctx) (-> ctx :ns :name)
-                 sym
-                 lang (meta expr)))))
+                (let [the-ns-name (-> ctx :ns :name)
+                      resolved (namespace/resolve-name ctx false the-ns-name sym expr)
+                      resolved-extra (when-not (or (:unresolved? resolved)
+                                                   (:interop? resolved))
+                                       {:to (:ns resolved)
+                                        :name (:name resolved)})]
+                  (analysis/reg-symbol!
+                   ctx
+                   (:filename ctx) (-> ctx :ns :name)
+                   sym
+                   lang (merge (meta expr) resolved-extra))))))
           (let [id (gensym)
                 expr (assoc expr :id id)
                 _ (analyze-usages2 ctx expr)

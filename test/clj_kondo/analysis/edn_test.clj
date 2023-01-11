@@ -12,7 +12,7 @@
    (clj-kondo/run! (merge
                      {:lint paths
                       :config {:output {:canonical-paths true}
-                               :analysis {:keywords true}}}
+                               :analysis {:keywords true :symbols true}}}
                      config))))
 
 (deftest edn-keyword-analysis-test
@@ -28,13 +28,6 @@
        {:name "exec-fn" :row 2 :col 2}]}
      analysis)
     (assert-submap2
-     {:var-usages
-      [{:filename (.getCanonicalPath file)
-        :row 2,
-        :col 11,
-        :to 'clojure.core,
-        :name 'inc,
-        :end-row 2,
-        :end-col 27,
-        :lang :edn}]}
+     {:symbols
+      [{:symbol 'clojure.core/inc :row 2 :col 11 :end-row 2 :end-col 27 :filename (.getCanonicalPath file)}]}
      analysis)))
