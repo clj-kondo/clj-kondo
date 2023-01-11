@@ -183,6 +183,7 @@ The analysis output consists of a map with:
   - `:row`, `:col`, `:end-row`, `:end-col`, the range of the symbol.
   - `:symbol`: the symbol itself
   - `:from`: the namespace from which the var was used
+  - `:name`: the name of the symbol
   - `:to`: the namespace the symbol might refer to, if the namespace of the
     symbol can be resolved in the `:from` namespace (e.g. via an alias or via
     the namespace itself)
