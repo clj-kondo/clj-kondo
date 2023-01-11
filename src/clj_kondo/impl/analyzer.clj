@@ -2595,33 +2595,35 @@
                          has-first-arg? (update :bindings assoc '% {}))
                        expanded-node)))
         :token
-        (if (or (= :edn lang)
-                (:quoted ctx))
-          (if (:k expr)
-            (do (usages/analyze-keyword ctx expr)
+        (let [edn? (= :edn lang)]
+          (if (or edn?
+                  (:quoted ctx))
+            (if (:k expr)
+              (do (usages/analyze-keyword ctx expr)
+                  (types/add-arg-type-from-expr ctx expr))
+              (when-let [sym (utils/symbol-from-token expr)]
+                (when (and (:analyze-symbols? ctx)
+                           (qualified-symbol? sym))
+                  (let [resolved-extra (when-not edn?
+                                         (let [the-ns-name (-> ctx :ns :name)
+                                               resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
+                                           (when-not (or (:unresolved? resolved)
+                                                         (:interop? resolved))
+                                             {:to (:ns resolved)
+                                              :name (:name resolved)})))]
+                    (analysis/reg-symbol!
+                     ctx
+                     (:filename ctx) (-> ctx :ns :name)
+                     sym
+                     lang (merge (meta expr) resolved-extra))))))
+            (let [id (gensym)
+                  expr (assoc expr :id id)
+                  _ (analyze-usages2 ctx expr)
+                  usage (get @(:calls-by-id ctx) id)]
+              (if usage
+                (types/add-arg-type-from-usage ctx usage expr)
                 (types/add-arg-type-from-expr ctx expr))
-            (when-let [sym (utils/symbol-from-token expr)]
-              (when (and (:analyze-symbols? ctx)
-                         (qualified-symbol? sym))
-                (let [the-ns-name (-> ctx :ns :name)
-                      resolved (namespace/resolve-name ctx false the-ns-name sym expr)
-                      resolved-extra (when-not (or (:unresolved? resolved)
-                                                   (:interop? resolved))
-                                       {:to (:ns resolved)
-                                        :name (:name resolved)})]
-                  (analysis/reg-symbol!
-                   ctx
-                   (:filename ctx) (-> ctx :ns :name)
-                   sym
-                   lang (merge (meta expr) resolved-extra))))))
-          (let [id (gensym)
-                expr (assoc expr :id id)
-                _ (analyze-usages2 ctx expr)
-                usage (get @(:calls-by-id ctx) id)]
-            (if usage
-              (types/add-arg-type-from-usage ctx usage expr)
-              (types/add-arg-type-from-expr ctx expr))
-            nil))
+              nil)))
         :list
         (if-let [function (some->>
                            (first children)
