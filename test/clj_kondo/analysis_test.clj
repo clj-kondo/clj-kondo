@@ -2091,6 +2091,39 @@
                           :row 1})
                        foo-usages))))
 
+(deftest quoted-var-usage-test
+  (let [analysis (:analysis (with-in-str
+                              "(requiring-resolve 'clojure.set/union)"
+                              (clj-kondo/run! {:lint ["-"] :config
+                                               {:analysis {:symbols true}}})))
+        symbols (:symbols analysis)]
+    (assert-submaps2
+     ['{:row 1,
+        :col 21,
+        :from user,
+        :symbol clojure.set/union
+        :end-row 1,
+        :end-col 38,
+        :lang :clj}]
+     symbols))
+  (testing "symbols is resolved against environment"
+    (let [analysis (:analysis (with-in-str
+                                "(ns dude (:require [clojure.set])) (requiring-resolve 'clojure.set/union)"
+                                (clj-kondo/run! {:lint ["-"] :config
+                                                 {:analysis {:symbols true}}})))
+          symbols (:symbols analysis)]
+      (assert-submaps2
+       ['{:row 1,
+          :col 56,
+          :from dude,
+          :symbol clojure.set/union
+          :end-row 1,
+          :end-col 73,
+          :lang :clj
+          :to clojure.set
+          :name union}]
+       symbols))))
+
 (comment
   (context-test)
   )

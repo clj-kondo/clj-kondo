@@ -133,6 +133,7 @@
         analyze-java-class-defs? (some-> analysis-cfg :java-class-definitions)
         analyze-java-class-usages? (some-> analysis-cfg :java-class-usages)
         analyze-meta? (or analysis-var-meta analysis-ns-meta)
+        analyze-symbols? (some-> analysis-cfg :symbols)
         analysis (when analysis-cfg
                    (atom (cond-> {:namespace-definitions []
                                   :namespace-usages []
@@ -144,7 +145,8 @@
                            analyze-protocol-impls? (assoc :protocol-impls [])
                            analyze-java-class-defs? (assoc :java-class-definitions [])
                            analyze-java-class-usages? (assoc :java-class-usages [])
-                           analyze-instance-invocations? (assoc :instance-invocations []))))
+                           analyze-instance-invocations? (assoc :instance-invocations [])
+                           analyze-symbols? (assoc :symbols []))))
         used-nss (atom {:clj #{}
                         :cljs #{}
                         :cljc #{}})
@@ -182,6 +184,7 @@
              :analyze-var-defs-shallowly? analyze-var-defs-shallowly?
              :analyze-instance-invocations? analyze-instance-invocations?
              :analysis-context analysis-context
+             :analyze-symbols? analyze-symbols?
              ;; set of files which should not be flushed into cache
              ;; most notably hook configs, as they can conflict with original sources
              ;; NOTE: we don't allow this to be changed in namespace local

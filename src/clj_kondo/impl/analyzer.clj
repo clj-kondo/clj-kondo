@@ -2526,6 +2526,8 @@
         children (rest children)]
     (analyze-children ctx children)))
 
+#_(requiring-resolve 'clojure.set/union)
+
 (defn analyze-expression**
   [{:keys [bindings lang] :as ctx}
    {:keys [children] :as expr}]
@@ -2595,9 +2597,23 @@
         :token
         (if (or (= :edn lang)
                 (:quoted ctx))
-          (when (:k expr)
-            (usages/analyze-keyword ctx expr)
-            (types/add-arg-type-from-expr ctx expr))
+          (if (:k expr)
+            (do (usages/analyze-keyword ctx expr)
+                (types/add-arg-type-from-expr ctx expr))
+            (when-let [sym (utils/symbol-from-token expr)]
+              (when (and (:analyze-symbols? ctx)
+                         (qualified-symbol? sym))
+                (let [the-ns-name (-> ctx :ns :name)
+                      resolved (namespace/resolve-name ctx false the-ns-name sym expr)
+                      resolved-extra (when-not (or (:unresolved? resolved)
+                                                   (:interop? resolved))
+                                       {:to (:ns resolved)
+                                        :name (:name resolved)})]
+                  (analysis/reg-symbol!
+                   ctx
+                   (:filename ctx) (-> ctx :ns :name)
+                   sym
+                   lang (merge (meta expr) resolved-extra))))))
           (let [id (gensym)
                 expr (assoc expr :id id)
                 _ (analyze-usages2 ctx expr)
@@ -2610,7 +2626,7 @@
         (if-let [function (some->>
                            (first children)
                            (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
-          (if (or (:quoted ctx) (= :edn (:lang ctx)))
+          (if (or (:quoted ctx) (= :edn lang))
             (analyze-children ctx children)
             (let [t (tag function)]
               (case t

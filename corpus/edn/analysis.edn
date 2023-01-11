@@ -1,1 +1,2 @@
-{:a 1 :b :foo :c bar}
+{:a 1 :b :foo :c bar
+ :exec-fn clojure.core/inc}

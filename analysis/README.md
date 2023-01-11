@@ -23,6 +23,7 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 - `:keywords`: when truthy return `:keywords` described below
 - `:arglists`: when truthy return `:arglists` on `:var-definitions`
 - `:protocol-impls`: when truthy return `:protocol-impls` described below
+- `:symbols`: when truthy, return `:symbols` described below
 
 ### Metadata
 
@@ -176,6 +177,15 @@ The analysis output consists of a map with:
   - `impl-ns`, the namespace of the implementation of the protocol.
   - `method-name`, the method name of the implementation.
   - `defined-by`, the symbol that defines this, e.g. `clojure.core/defrecord`.
+
+- `:symbols`, a list of (namespaced) symbols that occur in quoted forms or EDN, i.e., they do not refer to vars or interop:
+  - `filename`
+  - `:row`, `:col`, `:end-row`, `:end-col`, the range of the symbol.
+  - `:symbol`: the symbol itself
+  - `:from`: the namespace from which the var was used
+  - `:to`: the namespace the symbol might refer to, if the namespace of the
+    symbol can be resolved in the `:from` namespace (e.g. via an alias or via
+    the namespace itself)
 
 Example output after linting this code:
 
