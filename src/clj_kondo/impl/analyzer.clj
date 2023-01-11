@@ -2604,13 +2604,14 @@
               (when-let [sym (utils/symbol-from-token expr)]
                 (when (and (:analyze-symbols? ctx)
                            (qualified-symbol? sym))
-                  (let [resolved-extra (when-not edn?
-                                         (let [the-ns-name (-> ctx :ns :name)
-                                               resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
-                                           (when-not (or (:unresolved? resolved)
-                                                         (:interop? resolved))
-                                             {:to (:ns resolved)
-                                              :name (:name resolved)})))]
+                  (let [resolved-extra (or (when-not edn?
+                                             (let [the-ns-name (-> ctx :ns :name)
+                                                   resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
+                                               (when-not (or (:unresolved? resolved)
+                                                             (:interop? resolved))
+                                                 {:to (:ns resolved)
+                                                  :name (:name resolved)})))
+                                           {:name (symbol (name sym))})]
                     (analysis/reg-symbol!
                      ctx
                      (:filename ctx) (-> ctx :ns :name)
