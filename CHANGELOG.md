@@ -4,14 +4,23 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 [Clj-kondo](https://github.com/clj-kondo/clj-kondo): static analyzer and linter for Clojure code that sparks joy ✨
 
+<!-- Dev checklist: -->
+
+<!-- - [ ] script/bump_version release -->
+<!-- - [ ] clj-kondo lsp: bb publish -->
+<!-- - [ ] github release -->
+<!-- - [ ] homebrew: ./update-clj-kondo -->
+<!-- - [ ] clj-kondo pod -->
+<!-- - [ ] script/bump_version post-release -->
+
 ## 2023.01.12
 
-- [#1742](https://github.com/clj-kondo/clj-kondo/issues/1742): new linter `:aliased-namespace-var-usage`: warn on var usage from namespaces that were used with `:as-alias`. See [docs]().
+- [#1742](https://github.com/clj-kondo/clj-kondo/issues/1742): new linter `:aliased-namespace-var-usage`: warn on var usage from namespaces that were used with `:as-alias`. See [demo](https://twitter.com/borkdude/status/1613524896625340417/photo/1).
 - [#1914](https://github.com/clj-kondo/clj-kondo/issues/1914): Don't warn about single arg use when there's a second arg in a reader conditional ([@mk](https://github.com/mk))
 - [#1912](https://github.com/clj-kondo/clj-kondo/issues/1912): Allow forward references in `comment` forms ([@mk](https://github.com/mk))
-- [#1926](https://github.com/clj-kondo/clj-kondo/issues/1926#issuecomment-1372759773): Add keyword analysis for edn files.
+- [#1926](https://github.com/clj-kondo/clj-kondo/issues/1926): Add keyword analysis for edn files.
 - [#1922](https://github.com/clj-kondo/clj-kondo/issues/1922): don't crash on invalid type specification
-- [#1902](https://github.com/clj-kondo/clj-kondo/issues/1902): provide `:symbols` analysis for navigation to symbols in quoted forms or EDN files. See [docs]().
+- [#1902](https://github.com/clj-kondo/clj-kondo/issues/1902): provide `:symbols` analysis for navigation to symbols in quoted forms or EDN files. See [demo](https://twitter.com/borkdude/status/1612773780589355008).
 - [#1939](https://github.com/clj-kondo/clj-kondo/issues/1939): no longer warn on unused namespace that was only used with `:as-alias`
 - [#1911](https://github.com/clj-kondo/clj-kondo/issues/1911): missing test assertion linter doesn't work in CLJS
 - [#1891](https://github.com/clj-kondo/clj-kondo/issues/1891): support `CLJ_KONDO_EXTRA_CONFIG_DIR` environment variable to enable extra linters after project config
