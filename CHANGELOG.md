@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 [Clj-kondo](https://github.com/clj-kondo/clj-kondo): static analyzer and linter for Clojure code that sparks joy ✨
 
-## Unreleased
+## 2023.01.12
 
 - [#1742](https://github.com/clj-kondo/clj-kondo/issues/1742): new linter `:aliased-namespace-var-usage`: warn on var usage from namespaces that were used with `:as-alias`. See [docs]().
 - [#1914](https://github.com/clj-kondo/clj-kondo/issues/1914): Don't warn about single arg use when there's a second arg in a reader conditional ([@mk](https://github.com/mk))
