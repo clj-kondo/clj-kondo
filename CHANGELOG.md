@@ -13,11 +13,13 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] clj-kondo pod -->
 <!-- - [ ] script/bump_version post-release -->
 
+## Unreleased
+
 ## 2023.01.12
 
 - [#1742](https://github.com/clj-kondo/clj-kondo/issues/1742): new linter `:aliased-namespace-var-usage`: warn on var usage from namespaces that were used with `:as-alias`. See [demo](https://twitter.com/borkdude/status/1613524896625340417/photo/1).
 - [#1914](https://github.com/clj-kondo/clj-kondo/issues/1914): Don't warn about single arg use when there's a second arg in a reader conditional ([@mk](https://github.com/mk))
-- [#1912](https://github.com/clj-kondo/clj-kondo/issues/1912): Allow forward references in `comment` forms ([@mk](https://github.com/mk))
+- [#1912](https://github.com/clj-kondo/clj-kondo/issues/1912): Allow forward references in `comment` forms ([@mk](https://github.com/mk)). See [demo](https://twitter.com/borkdude/status/1603028023565062145).
 - [#1926](https://github.com/clj-kondo/clj-kondo/issues/1926): Add keyword analysis for edn files.
 - [#1922](https://github.com/clj-kondo/clj-kondo/issues/1922): don't crash on invalid type specification
 - [#1902](https://github.com/clj-kondo/clj-kondo/issues/1902): provide `:symbols` analysis for navigation to symbols in quoted forms or EDN files. See [demo](https://twitter.com/borkdude/status/1612773780589355008).
