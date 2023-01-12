@@ -59,6 +59,7 @@ The configurations are merged in the following order, where a later config overr
 - home dir config
 - `:config-paths` in project config
 - project config
+- `CLJ_KONDO_EXTRA_CONFIG_DIR` environment variable
 - command line config
 - namespace local config
 
