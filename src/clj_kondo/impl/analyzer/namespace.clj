@@ -350,8 +350,7 @@
                                acc))
                            {}
                            analyzed)
-        required-namespaces (map (fn [req]
-                                   (:ns req)) analyzed)]
+        required-namespaces (map :ns analyzed)]
     {:required required-namespaces
      :qualify-ns (reduce (fn [acc sc]
                            (let [n (:ns sc)
