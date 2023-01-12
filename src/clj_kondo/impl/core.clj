@@ -163,10 +163,13 @@
         config
         (reduce config/merge-config!
                 config/default-config
-                (cons
-                 (when-not skip-home? (home-config))
-                 (cons (when cfg-dir (process-cfg-dir cfg-dir local-config))
-                       (map read-config configs))))]
+                (concat
+                 [(when-not skip-home? (home-config))]
+                 [(when cfg-dir (process-cfg-dir cfg-dir local-config))]
+                 [(when-let [extra-config-dir (System/getenv "CLJ_KONDO_EXTRA_CONFIG_DIR")]
+                    (process-cfg-dir extra-config-dir))]
+                 ;; command line config
+                 (map read-config configs)))]
     (cond-> config
       cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
 
