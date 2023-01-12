@@ -8,6 +8,7 @@ configuration. For general configurations options, go [here](config.md).
 
 - [Linters](#linters)
     - [Aliased namespace symbol](#aliased-namespace-symbol)
+    - [Aliased namespace var usage](#aliased-namespace-var-usage)
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
     - [Conflicting-alias](#conflicting-alias)
@@ -110,6 +111,25 @@ configuration. For general configurations options, go [here](config.md).
 ```clojure
 {:linters {:aliased-namespace-symbol {:exclude [clojure.string]}}}
 ```
+
+### Aliased namespace var usage
+
+*Keyword:* `:aliased-namespace-var-usage`.
+
+*Description:* warn when a var from a namespace that was used with `:as-alias` is used.
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+```
+(ns foo
+  (:require [clojure.data.xml :as-alias xml]))
+
+(xml/parse-str "<foo/>")
+```
+
+*Example message:* `Namespace only aliased but wasn't loaded: clojure.data.xml`
 
 ### Clj-kondo config
 

@@ -5,7 +5,7 @@
    [clj-kondo.main :refer [main]]
    [clj-kondo.test-utils :as tu :refer
     [lint! assert-submaps assert-submap submap?
-     make-dirs rename-path remove-dir]]
+     make-dirs rename-path remove-dir assert-submaps2]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -3131,11 +3131,19 @@ foo/")))
   (is (empty? (lint! "(loop [] (recur))" {:linters {:loop-without-recur {:level :warning}}}))))
 
 (deftest as-alias-test
-  (assert-submaps
+  (assert-submaps2
    '(#_{:file "<stdin>", :row 1, :col 20, :level :warning, :message "namespace foo.bar is required but never used"}
      {:file "<stdin>", :row 1, :col 44, :level :warning, :message "Unresolved namespace fx. Are you missing a require?"})
    (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fx/bar"))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fb/bar"))))
+
+(deftest as-aliased-var-usage-test
+  (assert-submaps2
+   [{:row 1, :col 44, :level :warning, :message "Namespace only aliased but wasn't loaded: foo.bar"}]
+   (lint! "(ns foo (:require [foo.bar :as-alias fb])) fb/bar"))
+  (assert-submaps2
+   [{:row 1, :col 45, :level :warning, :message "Namespace only aliased but wasn't loaded: foo.bar"}]
+   (lint! "(ns foo (:require [foo.bar :as-alias fb])) (fb/bar)")))
 
 (deftest ns-unmap-test
   (assert-submaps

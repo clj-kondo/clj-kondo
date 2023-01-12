@@ -268,7 +268,7 @@
                              referred)]
               (when as (lint-alias-consistency ctx ns-name as))
               [{:type :require
-                :ns ns-name
+                :ns (vary-meta ns-name assoc :alias as)
                 :as as
                 :require-kw require-kw
                 :excluded excluded
@@ -350,9 +350,7 @@
                                acc))
                            {}
                            analyzed)
-        required-namespaces (map (fn [req]
-                                   (vary-meta (:ns req)
-                                              #(assoc % :alias (:as req)))) analyzed)]
+        required-namespaces (map :ns analyzed)]
     {:required required-namespaces
      :qualify-ns (reduce (fn [acc sc]
                            (let [n (:ns sc)

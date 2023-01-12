@@ -139,7 +139,8 @@
               :unused-value {:level :warning}
               :dynamic-var-not-earmuffed {:level :warning}
               :earmuffed-var-not-dynamic {:level :warning}
-              :duplicate-field {:level :error}}
+              :duplicate-field {:level :error}
+              :aliased-namespace-var-usage {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
