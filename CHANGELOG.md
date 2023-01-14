@@ -15,6 +15,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1920](https://github.com/clj-kondo/clj-kondo/issues/1920): new linter `:def-fn`: warn when using `fn` inside `def`, or `fn` inside `let` inside `def` ([@andreyorst](https://github.com/andreyorst)).
+
 ## 2023.01.12
 
 - [#1742](https://github.com/clj-kondo/clj-kondo/issues/1742): new linter `:aliased-namespace-var-usage`: warn on var usage from namespaces that were used with `:as-alias`. See [demo](https://twitter.com/borkdude/status/1613524896625340417/photo/1).
