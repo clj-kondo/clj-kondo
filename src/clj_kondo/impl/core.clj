@@ -18,9 +18,9 @@
 
 (def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))
 
-(def version
+(defn version []
   (str/trim
-   (slurp (io/resource "CLJ_KONDO_VERSION"))))
+    (slurp (io/resource "CLJ_KONDO_VERSION"))))
 
 (def cache-version "v1")
 

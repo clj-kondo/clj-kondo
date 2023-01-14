@@ -14,7 +14,7 @@
 ;;;; printing
 
 (defn- print-version []
-  (println (str "clj-kondo v" core-impl/version)))
+  (println (str "clj-kondo v" (core-impl/version))))
 
 (defn- print-help []
   (print-version)
@@ -57,7 +57,7 @@ Options:
     warning, error.  The default level if unspecified is warning.
 
   --debug: print debug information.
-" core-impl/version))
+" (core-impl/version)))
   nil)
 
 ;;;; parse command line options
