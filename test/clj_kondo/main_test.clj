@@ -35,25 +35,24 @@
     (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang))))))
 
 (deftest def-fn-test
-  (let [linted (lint! "(def x (fn [] 1))")
-        row-col (map #(select-keys % [:row :col :file]) linted)]
-    (assert-submaps
-     '({:row 1, :col 8, :file "<stdin>"}
-       {:row 1, :col 9, :file "<stdin>"})
-     row-col)
-    (is (= #{"consider using 'defn' instead of 'fn' inside 'def'"}
-           (set (map :message linted)))))
-  (let [linted (lint! "(def x (let [y 1] (fn [] y)))")
-        row-col (map #(select-keys % [:row :col :file]) linted)]
-    (assert-submaps
-     '({:row 1, :col 19, :file "<stdin>"}
-       {:row 1, :col 20, :file "<stdin>"})
-     row-col)
-    (is (= #{"consider using 'defn' inside 'let' instead of 'fn' inside 'let' inside 'def'"}
-           (set (map :message linted)))))
-  (doseq [lang [:clj :cljs]]
-    (is (empty? (lint! "(def x [(fn [] 1)])" "--lang" (name lang))))
-    (is (empty? (lint! "(def x (let [x 1] [(fn [] x)]))" "--lang" (name lang))))))
+  (let [config {:linters {:def-fn {:level :warn}}}]
+    (let [linted (lint! "(def x (fn [] 1))" config)
+          row-col (map #(select-keys % [:row :col]) linted)]
+      (assert-submaps
+       '({:row 1, :col 8})
+       row-col)
+      (is (= #{"consider using 'defn' instead of 'fn' inside 'def'"}
+             (set (map :message linted)))))
+    (let [linted (lint! "(def x (let [y 1] (fn [] y)))" config)
+          row-col (map #(select-keys % [:row :col]) linted)]
+      (assert-submaps
+       '({:row 1, :col 19})
+       row-col)
+      (is (= #{"consider using 'defn' inside 'let' instead of 'fn' inside 'let' inside 'def'"}
+             (set (map :message linted)))))
+    (doseq [lang [:clj :cljs]]
+      (is (empty? (lint! "(def x [(fn [] 1)])" "--lang" (name lang) "--config" (pr-str config))))
+      (is (empty? (lint! "(def x (let [x 1] [(fn [] x)]))" "--lang" (name lang) "--config" (pr-str config)))))))
 
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))

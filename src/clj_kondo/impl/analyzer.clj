@@ -865,6 +865,17 @@
           (and (let? parent) (def? extra-parent))
           :def-let-fn)))
 
+(defn- reg-def-fn! [ctx expr filename kind]
+  (findings/reg-finding!
+   ctx
+   (node->line
+    filename
+    expr
+    :def-fn
+    (case kind
+      :def-fn "consider using 'defn' instead of 'fn' inside 'def'"
+      :def-let-fn "consider using 'defn' inside 'let' instead of 'fn' inside 'let' inside 'def'"))))
+
 (defn analyze-fn [ctx expr]
   (let [ctx (assoc ctx :seen-recur? (volatile! nil))
         protocol-fn (:protocol-fn expr)
@@ -900,15 +911,7 @@
         arglist-strs (when arities (into [] (keep :arglist-str) (vals arities)))
         parsed-bodies (mapcat :parsed parsed-bodies)]
     (when-let [kind (def-fn? ctx)]
-      (findings/reg-finding!
-       ctx
-       (node->line
-        filename
-        expr
-        :def-fn
-        (case kind
-          :def-fn "consider using 'defn' instead of 'fn' inside 'def'"
-          :def-let-fn "consider using 'defn' inside 'let' instead of 'fn' inside 'let' inside 'def'"))))
+      (reg-def-fn! ctx expr filename kind))
     (with-meta parsed-bodies
       (when arities
         (cond-> {:arity {:fixed-arities fixed-arities
