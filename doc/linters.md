@@ -656,8 +656,8 @@ Explanation by Bozhidar Batsov:
 
 *Example messages:*
 
-- `consider using 'defn' instead of 'fn' inside 'def'`
-- `consider using 'defn' inside 'let' instead of 'fn' inside 'let' inside 'def'`
+- `Use defn instead of def + fn`
+- `Use let + defn instead of def + let + fn`
 
 *Config:*
 

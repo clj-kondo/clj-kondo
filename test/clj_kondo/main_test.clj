@@ -41,14 +41,14 @@
       (assert-submaps
        '({:row 1, :col 8})
        row-col)
-      (is (= #{"consider using 'defn' instead of 'fn' inside 'def'"}
+      (is (= #{"Use defn instead of def + fn"}
              (set (map :message linted)))))
     (let [linted (lint! "(def x (let [y 1] (fn [] y)))" config)
           row-col (map #(select-keys % [:row :col]) linted)]
       (assert-submaps
        '({:row 1, :col 19})
        row-col)
-      (is (= #{"consider using 'defn' inside 'let' instead of 'fn' inside 'let' inside 'def'"}
+      (is (= #{"Use let + defn instead of def + let + fn"}
              (set (map :message linted)))))
     (doseq [lang [:clj :cljs]]
       (is (empty? (lint! "(def x [(fn [] 1)])" "--lang" (name lang) "--config" (pr-str config))))

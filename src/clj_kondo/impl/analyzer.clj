@@ -866,16 +866,15 @@
           :def-let-fn)))
 
 (defn- reg-def-fn! [ctx expr filename kind]
-  (when-not (linter-disabled? ctx :def-fn)
-    (findings/reg-finding!
-     ctx
-     (node->line
-      filename
-      expr
-      :def-fn
-      (case kind
-        :def-fn "consider using 'defn' instead of 'fn' inside 'def'"
-        :def-let-fn "consider using 'defn' inside 'let' instead of 'fn' inside 'let' inside 'def'")))))
+  (findings/reg-finding!
+   ctx
+   (node->line
+    filename
+    expr
+    :def-fn
+    (case kind
+      :def-fn "Use defn instead of def + fn"
+      :def-let-fn "Use let + defn instead of def + let + fn"))))
 
 (defn analyze-fn [ctx expr]
   (let [ctx (assoc ctx :seen-recur? (volatile! nil))
@@ -911,7 +910,8 @@
         varargs-min-arity (when arities (get-in arities [:varargs :min-arity]))
         arglist-strs (when arities (into [] (keep :arglist-str) (vals arities)))
         parsed-bodies (mapcat :parsed parsed-bodies)]
-    (when-let [kind (def-fn? ctx)]
+    (when-let [kind (and (not (linter-disabled? ctx :def-fn))
+                         (def-fn? ctx))]
       (reg-def-fn! ctx expr filename kind))
     (with-meta parsed-bodies
       (when arities
