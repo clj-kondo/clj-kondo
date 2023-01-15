@@ -852,6 +852,26 @@
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
 
+(def ^:private def?
+  '#{[clojure.core def] [cljs.core def]})
+
+(def ^:private let?
+  '#{[clojure.core let] [cljs.core let]})
+
+(defn- def-fn? [{:keys [callstack]}]
+  (let [[_ parent extra-parent] callstack]
+    (or (def? parent)
+        (and (let? parent) (def? extra-parent)))))
+
+(defn- reg-def-fn! [ctx expr filename]
+  (findings/reg-finding!
+   ctx
+   (node->line
+    filename
+    expr
+    :def-fn
+    "Use defn instead of def + fn")))
+
 (defn analyze-fn [ctx expr]
   (let [ctx (assoc ctx :seen-recur? (volatile! nil))
         protocol-fn (:protocol-fn expr)
@@ -886,6 +906,9 @@
         varargs-min-arity (when arities (get-in arities [:varargs :min-arity]))
         arglist-strs (when arities (into [] (keep :arglist-str) (vals arities)))
         parsed-bodies (mapcat :parsed parsed-bodies)]
+    (when (and (not (linter-disabled? ctx :def-fn))
+               (def-fn? ctx))
+      (reg-def-fn! ctx expr filename))
     (with-meta parsed-bodies
       (when arities
         (cond-> {:arity {:fixed-arities fixed-arities

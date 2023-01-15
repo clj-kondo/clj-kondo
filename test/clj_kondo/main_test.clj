@@ -34,6 +34,26 @@
     (is (empty? (lint! "(defmacro foo [] `(def x 1))" "--lang" (name lang))))
     (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang))))))
 
+(deftest def-fn-test
+  (let [config {:linters {:def-fn {:level :warn}}}]
+    (let [linted (lint! "(def x (fn [] 1))" config)
+          row-col (map #(select-keys % [:row :col]) linted)]
+      (assert-submaps
+       '({:row 1, :col 8})
+       row-col)
+      (is (= #{"Use defn instead of def + fn"}
+             (set (map :message linted)))))
+    (let [linted (lint! "(def x (let [y 1] (fn [] y)))" config)
+          row-col (map #(select-keys % [:row :col]) linted)]
+      (assert-submaps
+       '({:row 1, :col 19})
+       row-col)
+      (is (= #{"Use defn instead of def + fn"}
+             (set (map :message linted)))))
+    (doseq [lang [:clj :cljs]]
+      (is (empty? (lint! "(def x [(fn [] 1)])" "--lang" (name lang) "--config" (pr-str config))))
+      (is (empty? (lint! "(def x (let [x 1] [(fn [] x)]))" "--lang" (name lang) "--config" (pr-str config)))))))
+
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
         row-col-files (map #(select-keys % [:row :col :file])
