@@ -647,6 +647,11 @@ Explanation by Bozhidar Batsov:
 `def` and `fn` with optional `let` in-between. In almost all cases
 `defn` can be used instead which has the benefit of adding `:arglists` metadata to vars.
 
+The practice of using `defn` instead of `def` + `fn` has the following benefits:
+
+- `:argslists*` metadata on the var
+- more readable stacktraces
+
 *Default level:* `:off`.
 
 *Example triggers:*
