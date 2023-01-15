@@ -37,7 +37,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Quoted case test constant](#quoted-case-test-constant)
     - [File](#file)
     - [Format](#format)
-    - [Idiomatic closures](#idiomatic-closures)
+    - [Def + fn instead of defn](#def--fn-instead-of-defn)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
@@ -639,21 +639,20 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `Format string expects 1 arguments instead of 2.`.
 
-### Idiomatic closures
+### Def + fn instead of defn
 
 *Keyword:* `:def-fn`.
 
 *Description:* tells about closures defined with the combination of
 `def` and `fn` with optional `let` in-between. In almost all cases
-`defn` can be used instead. Since `defn` always binds at the top
-level, it can be used inside a top-level `let`.
+`defn` can be used instead which has the benefit of adding `:arglists` metadata to vars.
 
 *Default level:* `:off`.
 
 *Example triggers:*
 
-- `(def f (fn [] nil))`
-- `(def f (let [y 1] (fn [x] (+ x y))))`
+- `(def f (fn [] nil))` which can be written as: `(defn f [] nil)`).
+- `(def f (let [y 1] (fn [x] (+ x y))))`  which can be written as `(let [y 1] (defn f [x] (+ x y)))`.
 
 *Example messages:*
 
@@ -662,7 +661,7 @@ level, it can be used inside a top-level `let`.
 *Config:*
 
 ``` clojure
-{:linters {:def-fn {:level :info}}}
+{:linters {:def-fn {:level :warning}}}
 ```
 
 ### Inline def
