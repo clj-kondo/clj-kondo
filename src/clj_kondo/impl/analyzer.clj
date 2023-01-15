@@ -852,11 +852,11 @@
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
 
-(def ^:private def?
-  '#{[clojure.core def] [cljs.core def]})
+(defn- def? [x]
+  (one-of x [[clojure.core def] [cljs.core def]]))
 
-(def ^:private let?
-  '#{[clojure.core let] [cljs.core let]})
+(defn- let? [x]
+  (one-of x [[clojure.core let] [cljs.core let]]))
 
 (defn- def-fn? [{:keys [callstack]}]
   (let [[_ parent extra-parent] callstack]
