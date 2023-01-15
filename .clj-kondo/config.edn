@@ -22,7 +22,8 @@
            :missing-docstring {:level :off}
            :unsorted-required-namespaces {:level :warning}
            ;; for  nubank/matcher-combinators
-           :unresolved-symbol {:exclude [(clojure.test/is [match?])]}}
+           :unresolved-symbol {:exclude [(clojure.test/is [match?])]}
+           :def-fn {:level :warning}}
  :lint-as {me.raynes.conch/programs clojure.core/declare
            me.raynes.conch/let-programs clojure.core/let
            datalog.parser.type/deftrecord clojure.core/defrecord
