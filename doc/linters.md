@@ -37,6 +37,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Quoted case test constant](#quoted-case-test-constant)
     - [File](#file)
     - [Format](#format)
+    - [Idiomatic closures](#idiomatic-closures)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
@@ -637,6 +638,32 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(format "%s" 1 2)`.
 
 *Example message:* `Format string expects 1 arguments instead of 2.`.
+
+### Idiomatic closures
+
+*Keyword:* `:def-fn`.
+
+*Description:* tells about closures defined with the combination of
+`def` and `fn` with optional `let` in-between. In almost all cases
+`defn` can be used instead.
+
+*Default level:* `:off`.
+
+*Example triggers:*
+
+- `(def f (fn [] nil))`
+- `(def f (let [y 1] (fn [x] (+ x y))))`
+
+*Example messages:*
+
+- `consider using 'defn' instead of 'fn' inside 'def'`
+- `consider using 'defn' inside 'let' instead of 'fn' inside 'let' inside 'def'`
+
+*Config:*
+
+``` clojure
+{:linters {:def-fn {:level :info}}}
+```
 
 ### Inline def
 
