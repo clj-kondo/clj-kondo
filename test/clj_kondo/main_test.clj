@@ -48,7 +48,7 @@
       (assert-submaps
        '({:row 1, :col 19})
        row-col)
-      (is (= #{"Use let + defn instead of def + let + fn"}
+      (is (= #{"Use defn instead of def + fn"}
              (set (map :message linted)))))
     (doseq [lang [:clj :cljs]]
       (is (empty? (lint! "(def x [(fn [] 1)])" "--lang" (name lang) "--config" (pr-str config))))

@@ -645,7 +645,8 @@ Explanation by Bozhidar Batsov:
 
 *Description:* tells about closures defined with the combination of
 `def` and `fn` with optional `let` in-between. In almost all cases
-`defn` can be used instead.
+`defn` can be used instead. Since `defn` always binds at the top
+level, it can be used inside a top-level `let`.
 
 *Default level:* `:off`.
 
@@ -657,7 +658,6 @@ Explanation by Bozhidar Batsov:
 *Example messages:*
 
 - `Use defn instead of def + fn`
-- `Use let + defn instead of def + let + fn`
 
 *Config:*
 
