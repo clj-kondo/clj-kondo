@@ -664,6 +664,10 @@ Explanation by Bozhidar Batsov:
 {:linters {:def-fn {:level :warning}}}
 ```
 
+*More info:*
+
+See [issue](https://github.com/clj-kondo/clj-kondo/issues/1920).
+
 ### Inline def
 
 *Keyword:* `:inline-def`.
