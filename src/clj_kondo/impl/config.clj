@@ -219,223 +219,208 @@
 (defn lint-as [config v]
   (get (lint-as-config config) v))
 
-(def unused-namespace-excluded
-  (let [delayed-cfg (fn [config]
-                      (let [excluded (get-in config [:linters :unused-namespace :exclude])
-                            syms (set (filter symbol? excluded))
-                            regexes (map re-pattern (filter string? excluded))]
-                        {:syms syms :regexes regexes}))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config ns-sym]
-      (let [{:keys [:syms :regexes]} (delayed-cfg config)]
-        (or (contains? syms ns-sym)
-            (let [ns-str (str ns-sym)]
-              (boolean (some #(re-find % ns-str) regexes))))))))
+(let [delayed-cfg (fn [config]
+                    (let [excluded (get-in config [:linters :unused-namespace :exclude])
+                          syms (set (filter symbol? excluded))
+                          regexes (map re-pattern (filter string? excluded))]
+                      {:syms syms :regexes regexes}))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn unused-namespace-excluded [config ns-sym]
+    (let [{:keys [:syms :regexes]} (delayed-cfg config)]
+      (or (contains? syms ns-sym)
+          (let [ns-str (str ns-sym)]
+            (boolean (some #(re-find % ns-str) regexes)))))))
 
-(def unused-referred-var-excluded
-  (let [delayed-cfg (fn [config]
-                      (let [excluded (get-in config [:linters :unused-referred-var :exclude])]
-                        (map-vals set excluded)))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config ns-sym var-sym]
-      (let [excluded (delayed-cfg config)]
-        (when-let [vars (get excluded ns-sym)]
-          (contains? vars var-sym))))))
+(let [delayed-cfg (fn [config]
+                    (let [excluded (get-in config [:linters :unused-referred-var :exclude])]
+                      (map-vals set excluded)))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn unused-referred-var-excluded [config ns-sym var-sym]
+    (let [excluded (delayed-cfg config)]
+      (when-let [vars (get excluded ns-sym)]
+        (contains? vars var-sym)))))
 
-(def unresolved-namespace-excluded
-  (let [delayed-cfg (fn [config]
-                      (set (get-in config [:linters :unresolved-namespace :exclude])))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config ns-sym]
-      (let [excluded (delayed-cfg config)]
-        (contains? excluded ns-sym)))))
+(let [delayed-cfg (fn [config]
+                    (set (get-in config [:linters :unresolved-namespace :exclude])))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn unresolved-namespace-excluded [config ns-sym]
+    (let [excluded (delayed-cfg config)]
+      (contains? excluded ns-sym))))
 
-(def unresolved-symbol-excluded
-  (let [delayed-cfg
-        (fn [config]
-          (let [excluded (get-in config [:linters :unresolved-symbol :exclude])
-                syms (set (filter symbol? excluded))
-                calls (filter list? excluded)]
-            {:excluded syms
-             :excluded-in
-             (reduce (fn [acc [fq-name excluded]]
-                       (let [ns-nm (symbol (namespace fq-name))
-                             var-name (symbol (name fq-name))]
-                         (update acc [ns-nm var-name]
-                                 (fn [old]
-                                   (cond (nil? old)
-                                         (if excluded
-                                           (set excluded)
-                                           identity)
-                                         (set? old)
-                                         (if excluded
-                                           (into old excluded)
-                                           old)
-                                         :else identity)))))
-                     {} calls)}))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config callstack sym]
-      (let [{:keys [:excluded :excluded-in]} (delayed-cfg config)]
-        (or (contains? excluded sym)
-            (some #(when-let [check-fn (get excluded-in %)]
-                     ;; e.g. for user/defproject, check-fn is identity, so any
-                     ;; truthy value will be excluded inside of that
-                     (check-fn sym))
-                  callstack))))))
+(let [delayed-cfg
+      (fn [config]
+        (let [excluded (get-in config [:linters :unresolved-symbol :exclude])
+              syms (set (filter symbol? excluded))
+              calls (filter list? excluded)]
+          {:excluded syms
+           :excluded-in
+           (reduce (fn [acc [fq-name excluded]]
+                     (let [ns-nm (symbol (namespace fq-name))
+                           var-name (symbol (name fq-name))]
+                       (update acc [ns-nm var-name]
+                               (fn [old]
+                                 (cond (nil? old)
+                                       (if excluded
+                                         (set excluded)
+                                         identity)
+                                       (set? old)
+                                       (if excluded
+                                         (into old excluded)
+                                         old)
+                                       :else identity)))))
+                   {} calls)}))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn unresolved-symbol-excluded [config callstack sym]
+    (let [{:keys [:excluded :excluded-in]} (delayed-cfg config)]
+      (or (contains? excluded sym)
+          (some #(when-let [check-fn (get excluded-in %)]
+                   ;; e.g. for user/defproject, check-fn is identity, so any
+                   ;; truthy value will be excluded inside of that
+                   (check-fn sym))
+                callstack)))))
 
-(def unresolved-var-excluded
-  (let [delayed-cfg
-        (fn [config]
-          (let [excluded (get-in config [:linters :unresolved-var :exclude])
-                vars (into #{} (comp (filter qualified-symbol?)
-                                     (map fq-sym->vec))
-                           excluded)
-                nss (into #{} (filter simple-symbol?)
-                          excluded)]
-            {:excluded-vars vars
-             :excluded-nss nss}))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config ns-sym fn-sym]
-      (let [cfg (delayed-cfg config)]
-        (or (contains? (:excluded-nss cfg) ns-sym)
-            (contains? (:excluded-vars cfg) [ns-sym fn-sym]))))))
+(let [delayed-cfg
+      (fn [config]
+        (let [excluded (get-in config [:linters :unresolved-var :exclude])
+              vars (into #{} (comp (filter qualified-symbol?)
+                                   (map fq-sym->vec))
+                         excluded)
+              nss (into #{} (filter simple-symbol?)
+                        excluded)]
+          {:excluded-vars vars
+           :excluded-nss nss}))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn unresolved-var-excluded [config ns-sym fn-sym]
+    (let [cfg (delayed-cfg config)]
+      (or (contains? (:excluded-nss cfg) ns-sym)
+          (contains? (:excluded-vars cfg) [ns-sym fn-sym])))))
 
-(def deprecated-var-excluded
-  (let [delayed-cfg (fn [config var-sym]
-                      (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])
-                            namespaces (:namespaces excluded)
-                            namespace-regexes (map re-pattern (filter string? namespaces))
-                            namespace-syms (set (filter symbol? namespaces))
-                            defs (:defs excluded)
-                            def-regexes (map re-pattern (filter string? defs))
-                            def-syms (set (filter symbol? defs))]
-                        {:namespace-regexes namespace-regexes
-                         :namespace-syms namespace-syms
-                         :def-regexes def-regexes
-                         :def-syms def-syms}))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config var-sym excluded-ns excluded-in-def]
-      (let [{:keys [:namespace-regexes :namespace-syms
-                    :def-regexes :def-syms]} (delayed-cfg config var-sym)]
-        (or (when excluded-in-def
-              (let [excluded-in-def (symbol (str excluded-ns) (str excluded-in-def))]
-                (or (contains? def-syms excluded-in-def)
-                    (let [excluded-in-def-str (str excluded-in-def)]
-                      (boolean (some #(re-find % excluded-in-def-str) def-regexes))))))
-            (contains? namespace-syms excluded-ns)
-            (let [ns-str (str excluded-ns)]
-              (boolean (some #(re-find % ns-str) namespace-regexes))))))))
+(let [delayed-cfg (fn [config var-sym]
+                    (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])
+                          namespaces (:namespaces excluded)
+                          namespace-regexes (map re-pattern (filter string? namespaces))
+                          namespace-syms (set (filter symbol? namespaces))
+                          defs (:defs excluded)
+                          def-regexes (map re-pattern (filter string? defs))
+                          def-syms (set (filter symbol? defs))]
+                      {:namespace-regexes namespace-regexes
+                       :namespace-syms namespace-syms
+                       :def-regexes def-regexes
+                       :def-syms def-syms}))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn deprecated-var-excluded [config var-sym excluded-ns excluded-in-def]
+    (let [{:keys [:namespace-regexes :namespace-syms
+                  :def-regexes :def-syms]} (delayed-cfg config var-sym)]
+      (or (when excluded-in-def
+            (let [excluded-in-def (symbol (str excluded-ns) (str excluded-in-def))]
+              (or (contains? def-syms excluded-in-def)
+                  (let [excluded-in-def-str (str excluded-in-def)]
+                    (boolean (some #(re-find % excluded-in-def-str) def-regexes))))))
+          (contains? namespace-syms excluded-ns)
+          (let [ns-str (str excluded-ns)]
+            (boolean (some #(re-find % ns-str) namespace-regexes)))))))
 
-(def type-mismatch-config
-  (let [delayed-cfg
-        (fn [config var-ns var-name]
-          ;; (prn (get-in config [:linters :type-mismatch :namespaces 'foo 'foo]))
-          (get-in config [:linters :type-mismatch :namespaces var-ns var-name]))
-        delayed-cfg (memoize delayed-cfg)]
-    delayed-cfg))
+(let [delayed-cfg
+      (fn [config var-ns var-name]
+        ;; (prn (get-in config [:linters :type-mismatch :namespaces 'foo 'foo]))
+        (get-in config [:linters :type-mismatch :namespaces var-ns var-name]))
+      delayed-cfg (memoize delayed-cfg)]
+  (def type-mismatch-config delayed-cfg))
 
-(def unused-private-var-excluded
-  (let [delayed-cfg
-        (fn [config]
-          (let [syms (get-in config [:linters :unused-private-var :exclude])
-                vecs (fq-syms->vecs syms)]
-            (set vecs)))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config ns-nm var-name]
-      (contains? (delayed-cfg config) [ns-nm var-name]))))
+(let [delayed-cfg
+      (fn [config]
+        (let [syms (get-in config [:linters :unused-private-var :exclude])
+              vecs (fq-syms->vecs syms)]
+          (set vecs)))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn unused-private-var-excluded [config ns-nm var-name]
+    (contains? (delayed-cfg config) [ns-nm var-name])))
 
-(def refer-excluded?
-  (let [delayed-cfg (fn [config]
-                      (let [syms (get-in config [:linters :refer :exclude])]
-                        (set syms)))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config referred-ns]
-      (let [excluded (delayed-cfg config)]
-        (contains? excluded referred-ns)))))
+(let [delayed-cfg (fn [config]
+                    (let [syms (get-in config [:linters :refer :exclude])]
+                      (set syms)))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn refer-excluded? [config referred-ns]
+    (let [excluded (delayed-cfg config)]
+      (contains? excluded referred-ns))))
 
-(def refer-all-excluded?
-  (let [delayed-cfg (fn [config]
-                      (let [syms (get-in config [:linters :refer-all :exclude])]
-                        (set syms)))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config referred-all-ns]
-      (let [excluded (delayed-cfg config)]
-        (contains? excluded referred-all-ns)))))
+(let [delayed-cfg (fn [config]
+                    (let [syms (get-in config [:linters :refer-all :exclude])]
+                      (set syms)))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn refer-all-excluded? [config referred-all-ns]
+    (let [excluded (delayed-cfg config)]
+      (contains? excluded referred-all-ns))))
 
-(def shadowed-var-excluded?
-  (let [delayed-cfg (fn [config]
-                      (let [cfg (get-in config [:linters :shadowed-var])
-                            exclude (some-> (:exclude cfg) set)
-                            include (some-> (:include cfg) set)]
-                        (cond-> nil
-                          exclude (assoc :exclude exclude)
-                          include (assoc :include include))))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config sym]
-      (when-let [cfg (delayed-cfg config)]
-        (let [{:keys [:exclude :include]} cfg]
-          (if include
-            (not (contains? include sym))
-            (or (not exclude)
-                (contains? exclude sym))))))))
-
-(def reduce-without-init-excluded?
-  (let [delayed-cfg (fn [config]
-                      (let [cfg (get-in config [:linters :reduce-without-init])
-                            exclude (some-> (:exclude cfg) set)
-                            #_#_include (some-> (:include cfg) set)]
-                        (cond-> nil
-                          exclude (assoc :exclude exclude)
-                          #_#_include (assoc :include include))))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config sym]
-      (when-let [cfg (delayed-cfg config)]
-        (let [{:keys [:exclude #_:include]} cfg]
+(let [delayed-cfg (fn [config]
+                    (let [cfg (get-in config [:linters :shadowed-var])
+                          exclude (some-> (:exclude cfg) set)
+                          include (some-> (:include cfg) set)]
+                      (cond-> nil
+                        exclude (assoc :exclude exclude)
+                        include (assoc :include include))))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn shadowed-var-excluded? [config sym]
+    (when-let [cfg (delayed-cfg config)]
+      (let [{:keys [:exclude :include]} cfg]
+        (if include
+          (not (contains? include sym))
           (or (not exclude)
               (contains? exclude sym)))))))
 
-(def redundant-call-included?
-  (let [redundant-call-vars '#{clojure.core/-> cljs.core/->
-                               clojure.core/->> cljs.core/->>
-                               clojure.core/cond-> cljs.core/cond->
-                               clojure.core/cond->> cljs.core/cond->>
-                               clojure.core/some-> cljs.core/some->
-                               clojure.core/some->> cljs.core/some->>
-                               clojure.core/partial cljs.core/partial
-                               clojure.core/comp cljs.core/comp
-                               clojure.core/merge cljs.core/merge}
-        delayed-cfg (fn [config]
-                      (let [cfg (get-in config [:linters :redundant-call])
-                            include (some-> (:include cfg) set)
-                            exclude (some-> (:exclude cfg) set)]
-                        (-> redundant-call-vars
-                            (set/union include)
-                            (set/difference exclude))))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config sym]
-      (contains? (delayed-cfg config) sym))))
+(let [delayed-cfg (fn [config]
+                    (let [cfg (get-in config [:linters :reduce-without-init])
+                          exclude (some-> (:exclude cfg) set)
+                          #_#_include (some-> (:include cfg) set)]
+                      (cond-> nil
+                        exclude (assoc :exclude exclude)
+                        #_#_include (assoc :include include))))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn reduce-without-init-excluded? [config sym]
+    (when-let [cfg (delayed-cfg config)]
+      (let [{:keys [:exclude #_:include]} cfg]
+        (or (not exclude)
+            (contains? exclude sym))))))
 
-(def aliased-namespace-symbol-excluded?
-  (let [delayed-cfg (fn [config]
-                      (let [syms (get-in config [:linters :aliased-namespace-symbol :exclude])]
-                        (set syms)))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config sym-ns]
-      (let [excluded (delayed-cfg config)]
-        (contains? excluded sym-ns)))))
+(let [redundant-call-vars '#{clojure.core/-> cljs.core/->
+                             clojure.core/->> cljs.core/->>
+                             clojure.core/cond-> cljs.core/cond->
+                             clojure.core/cond->> cljs.core/cond->>
+                             clojure.core/some-> cljs.core/some->
+                             clojure.core/some->> cljs.core/some->>
+                             clojure.core/partial cljs.core/partial
+                             clojure.core/comp cljs.core/comp
+                             clojure.core/merge cljs.core/merge}
+      delayed-cfg (fn [config]
+                    (let [cfg (get-in config [:linters :redundant-call])
+                          include (some-> (:include cfg) set)
+                          exclude (some-> (:exclude cfg) set)]
+                      (-> redundant-call-vars
+                          (set/union include)
+                          (set/difference exclude))))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn redundant-call-included? [config sym]
+    (contains? (delayed-cfg config) sym)))
 
-(def used-underscored-binding-excluded?
-  (let [delayed-cfg (fn [config]
-                      (let [excluded (get-in config [:linters :used-underscored-binding :exclude])
-                            syms (set (filter symbol? excluded))
-                            regexes (map re-pattern (filter string? excluded))]
-                        {:syms syms :regexes regexes}))
-        delayed-cfg (memoize delayed-cfg)]
-    (fn [config binding-sym]
-      (let [{:keys [:syms :regexes]} (delayed-cfg config)]
-        (or (contains? syms binding-sym)
-            (let [binding-str (str binding-sym)]
-              (boolean (some #(re-find % binding-str) regexes))))))))
+(let [delayed-cfg (fn [config]
+                    (let [syms (get-in config [:linters :aliased-namespace-symbol :exclude])]
+                      (set syms)))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn aliased-namespace-symbol-excluded? [config sym-ns]
+    (let [excluded (delayed-cfg config)]
+      (contains? excluded sym-ns))))
+
+(let [delayed-cfg (fn [config]
+                    (let [excluded (get-in config [:linters :used-underscored-binding :exclude])
+                          syms (set (filter symbol? excluded))
+                          regexes (map re-pattern (filter string? excluded))]
+                      {:syms syms :regexes regexes}))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn used-underscored-binding-excluded? [config binding-sym]
+    (let [{:keys [:syms :regexes]} (delayed-cfg config)]
+      (or (contains? syms binding-sym)
+          (let [binding-str (str binding-sym)]
+            (boolean (some #(re-find % binding-str) regexes)))))))
 
 (defn ns-group* [config ns-name filename]
   (or (some (fn [{:keys [pattern
