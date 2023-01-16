@@ -13,10 +13,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] clj-kondo pod -->
 <!-- - [ ] script/bump_version post-release -->
 
-## Unreleased
+## 2023.01.16
 
 - [#1920](https://github.com/clj-kondo/clj-kondo/issues/1920): new linter `:def-fn`: warn when using `fn` inside `def`, or `fn` inside `let` inside `def` ([@andreyorst](https://github.com/andreyorst)).
 - [#1949](https://github.com/clj-kondo/clj-kondo/issues/1949): `:aliased-namespace-var-usage` gives erroneous output for keywords
+- Add test for [#1944](https://github.com/clj-kondo/clj-kondo/issues/1944) (already worked)
+- Don't reload SCI namespace on every hook usage
 
 ## 2023.01.12
 
