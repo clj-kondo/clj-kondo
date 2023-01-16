@@ -1,7 +1,7 @@
 (ns clj-kondo.hooks-test
   (:require
    [clj-kondo.core :as clj-kondo]
-   [clj-kondo.test-utils :refer [lint! assert-submaps native?]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2 native?]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [deftest testing is]]))
@@ -142,8 +142,8 @@
     (let [s (with-out-str (lint! "
 (ns bar
  {:clj-kondo/config
-  '{:hooks 
-    {:analyze-call 
+  '{:hooks
+    {:analyze-call
      {foo/hook \"
       (require '[clj-kondo.hooks-api :as api])
       (fn [{:keys [node]}]
@@ -151,8 +151,8 @@
  (:require [foo :refer [hook]]))
 
 (hook [] (inc 1) 1 \"\n\")"
-                     {:hooks {:__dangerously-allow-string-hooks__ true}}))]
-      (is (= (read-string s) 
+                                 {:hooks {:__dangerously-allow-string-hooks__ true}}))]
+      (is (= (read-string s)
              [:token :vector :list :token :multi-line])))))
 
 (deftest config-test
@@ -197,8 +197,8 @@
 
 (hook 1 2 3)
 #_:clj-kondo/ignore (hook 1 2 3)"
-                   {:hooks {:__dangerously-allow-string-hooks__ true}
-                    :linters {:foo {:level :error}}})]
+                     {:hooks {:__dangerously-allow-string-hooks__ true}
+                      :linters {:foo {:level :error}}})]
       (assert-submaps '({:file "<stdin>", :row 10, :col 1, :level :error, :message "Yolo"}) res))))
 
 (deftest redundant-do-let-test
@@ -369,3 +369,20 @@ my-ns/special-map \"
                      {:hooks {:__dangerously-allow-string-hooks__ true}
                       :linters {:type-mismatch {:level :error}}})]
       (is (empty? res)))))
+
+(deftest new-test
+  (assert-submaps2
+   [{:file "corpus/hooks/new.clj",
+     :row 3,
+     :col 1,
+     :level :warning,
+     :message "Interop is no good! false"}
+    {:file "corpus/hooks/new.clj",
+     :row 4,
+     :col 1,
+     :level :warning,
+     :message "Interop is no good! true"}]
+   (lint! (io/file "corpus" "hooks" "new.clj")
+          '{:linters {:interop {:level :warning}}
+            :hooks {:analyze-call {clojure.core/new hooks.new/new}}}
+          "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))))

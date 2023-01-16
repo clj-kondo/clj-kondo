@@ -116,7 +116,7 @@
       {}
       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
 
-(def ^:dynamic *reload*)
+(def ^:dynamic *reload* false)
 
 (defn walk
   [inner outer form]
