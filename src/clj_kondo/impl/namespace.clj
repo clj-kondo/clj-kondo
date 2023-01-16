@@ -516,18 +516,19 @@
 (defn lint-as-aliased-usage
   "Check if a namespace symbol has an existing `:as` alias."
   [ctx ns-sym name-sym expr]
-  (let [expr (if (meta name-sym)
-               name-sym expr)]
-    (when-let [ns-sym (get (:aliases (:ns ctx)) ns-sym)]
-      (when (some-> ns-sym meta :alias meta :as-alias)
-        (findings/reg-finding!
-         ctx
-         (node->line
-          (:filename ctx)
-          expr
-          :aliased-namespace-var-usage
-          (format "Namespace only aliased but wasn't loaded: %s"
-                  ns-sym)))))))
+  (when expr
+    (let [expr (if (meta name-sym)
+                 name-sym expr)]
+      (when-let [ns-sym (get (:aliases (:ns ctx)) ns-sym)]
+        (when (some-> ns-sym meta :alias meta :as-alias)
+          (findings/reg-finding!
+           ctx
+           (node->line
+            (:filename ctx)
+            expr
+            :aliased-namespace-var-usage
+            (format "Namespace only aliased but wasn't loaded: %s"
+                    ns-sym))))))))
 
 (defn resolve-name
   [ctx call? ns-name name-sym expr]
