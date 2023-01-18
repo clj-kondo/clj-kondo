@@ -1998,7 +1998,8 @@
                               ;;;; Expand macro using user-provided function
                                   (let [filename (:filename ctx)]
                                     (binding [utils/*ctx* ctx]
-                                      (sci/binding [sci/out *out*]
+                                      (sci/binding [sci/out *out*
+                                                    sci/err *err*]
                                         (try (hook-fn {:node expr
                                                        :cljc (identical? :cljc base-lang)
                                                        :lang lang

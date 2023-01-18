@@ -13,6 +13,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] clj-kondo pod -->
 <!-- - [ ] script/bump_version post-release -->
 
+## Unreleased
+
+- [#1956](https://github.com/clj-kondo/clj-kondo/issues/1956): enable printing to `*err*` in hooks
+
 ## 2023.01.16
 
 - [#1920](https://github.com/clj-kondo/clj-kondo/issues/1920): new linter `:def-fn`: warn when using `fn` inside `def`, or `fn` inside `let` inside `def` ([@andreyorst](https://github.com/andreyorst)).
