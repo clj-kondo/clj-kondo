@@ -30,3 +30,11 @@
             '{:ns-groups [{:pattern "closed\\..*"
                            :name closed}]
               :linters {:discouraged-namespace {closed {}}}}))))
+
+(deftest ignore-test
+  (testing "ignore in ns form"
+    (is (empty?
+         (lint! "(ns foo (:require #_:clj-kondo/ignore [closed.source :as s])) (s/foo)"
+                '{:ns-groups [{:pattern "closed\\..*"
+                               :name closed}]
+                  :linters {:discouraged-namespace {closed {}}}})))))
