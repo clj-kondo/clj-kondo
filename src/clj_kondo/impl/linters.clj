@@ -563,6 +563,7 @@
     (doseq [ns (namespace/list-namespaces ctx)
             ns-sym (:required ns)
             :let [ns-config (:config ns)
+                  lang (:lang ns)
                   m (meta ns-sym)
                   filename (:filename m)
                   config (or ns-config config)
@@ -570,7 +571,8 @@
                   linter-config (get-in config [:linters :discouraged-namespace config-ns-sym])]
             :when (some? linter-config)
             :let [{:keys [message]
-                   :or {message (str "Discouraged namespace: " ns-sym)}} linter-config]]
+                   :or {message (str "Discouraged namespace: " ns-sym)}} linter-config
+                  ctx (assoc ctx :lang lang)]]
       (findings/reg-finding!
        ctx
        (-> (node->line filename ns-sym :discouraged-namespace message)
