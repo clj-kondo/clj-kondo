@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1943](https://github.com/clj-kondo/clj-kondo/issues/1943): allow `:discouraged-namespace` to be suppressed with `#_:clj-kondo/ignore`
 - [#1942](https://github.com/clj-kondo/clj-kondo/issues/1942): prioritize specific namespace over ns-groups for `:discouraged-namespace` linter
 - [#1959](https://github.com/clj-kondo/clj-kondo/issues/1959): analyze custom `defn` properly
+- Fix [#1961](https://github.com/clj-kondo/clj-kondo/issues/1961): be lenient with unexpected type
 
 ## 2023.01.16
 
