@@ -2124,6 +2124,29 @@
           :name union}]
        symbols))))
 
+(deftest custom-defn-test
+  (let [analysis (:analysis (with-in-str
+                              "(ns foo (:refer-clojure :exclude [defn]))
+                               (defmacro defn [& args])"
+                              (clj-kondo/run! {:lint ["-"] :config
+                                               {:analysis true}})))
+        var-defs (:var-definitions analysis)]
+    (assert-submaps2
+     '[{:end-row 2,
+        :name-end-col 46,
+        :name-end-row 2,
+        :name-row 2,
+        :ns foo,
+        :name defn,
+        :defined-by clojure.core/defmacro,
+        :macro true,
+        :col 32,
+        :name-col 42,
+        :end-col 56,
+        :varargs-min-arity 0,
+        :row 2}]
+     var-defs)))
+
 (comment
   (context-test)
   )

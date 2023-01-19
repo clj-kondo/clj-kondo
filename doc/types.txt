@@ -20,49 +20,49 @@ ex->data {2 {:ret :associative}}
 remote-prepl {:varargs {:min-arity 4, :args (:nilable/string nil nil nil nil nil)}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.math.transit.json  ===
-next-after {2 {:ret :double, :args (:double :double)}}
-to-radians {1 {:ret :double, :args (:double)}}
-log {1 {:ret :double, :args (:double)}}
-acos {1 {:ret :double, :args (:double)}}
-to-degrees {1 {:ret :double, :args (:double)}}
-floor {1 {:ret :double, :args (:double)}}
-atan2 {2 {:ret :double, :args (:double :double)}}
-hypot {2 {:ret :double, :args (:double :double)}}
-tanh {1 {:ret :double, :args (:double)}}
+next-after {2 {:ret #{:double :int :float}, :args (#{:double :int :float} #{:double :int :float})}}
+to-radians {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+log {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+acos {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+to-degrees {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+floor {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+atan2 {2 {:ret #{:double :int :float}, :args (#{:double :int :float} #{:double :int :float})}}
+hypot {2 {:ret #{:double :int :float}, :args (#{:double :int :float} #{:double :int :float})}}
+tanh {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
 floor-mod {2 {:ret :int, :args (:int :int)}}
-ceil {1 {:ret :double, :args (:double)}}
-atan {1 {:ret :double, :args (:double)}}
+ceil {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+atan {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
 multiply-exact {2 {:ret :int, :args (:int :int)}}
-expm1 {1 {:ret :double, :args (:double)}}
-get-exponent {1 {:args (:double)}}
+expm1 {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+get-exponent {1 {:args (#{:double :int :float})}}
 add-exact {2 {:ret :int, :args (:int :int)}}
-cos {1 {:ret :double, :args (:double)}}
-log10 {1 {:ret :double, :args (:double)}}
-tan {1 {:ret :double, :args (:double)}}
-cbrt {1 {:ret :double, :args (:double)}}
-sqrt {1 {:ret :double, :args (:double)}}
+cos {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+log10 {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+tan {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+cbrt {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+sqrt {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
 decrement-exact {1 {:ret :int, :args (:int)}}
-next-down {1 {:ret :double, :args (:double)}}
-pow {2 {:ret :double, :args (:double :double)}}
-next-up {1 {:ret :double, :args (:double)}}
-exp {1 {:ret :double, :args (:double)}}
+next-down {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+pow {2 {:ret #{:double :int :float}, :args (#{:double :int :float} #{:double :int :float})}}
+next-up {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+exp {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
 subtract-exact {2 {:ret :int, :args (:int :int)}}
-cosh {1 {:ret :double, :args (:double)}}
-scalb {2 {:ret :double, :args (:double nil)}}
-log1p {1 {:ret :double, :args (:double)}}
-asin {1 {:ret :double, :args (:double)}}
-copy-sign {2 {:ret :double, :args (:double :double)}}
-round {1 {:ret :int, :args (:double)}}
+cosh {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+scalb {2 {:ret #{:double :int :float}, :args (#{:double :int :float} nil)}}
+log1p {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+asin {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+copy-sign {2 {:ret #{:double :int :float}, :args (#{:double :int :float} #{:double :int :float})}}
+round {1 {:ret :int, :args (#{:double :int :float})}}
 negate-exact {1 {:ret :int, :args (:int)}}
-IEEE-remainder {2 {:ret :double, :args (:double :double)}}
-sinh {1 {:ret :double, :args (:double)}}
-rint {1 {:ret :double, :args (:double)}}
-ulp {1 {:ret :double, :args (:double)}}
-sin {1 {:ret :double, :args (:double)}}
+IEEE-remainder {2 {:ret #{:double :int :float}, :args (#{:double :int :float} #{:double :int :float})}}
+sinh {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+rint {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+ulp {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
+sin {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
 increment-exact {1 {:ret :int, :args (:int)}}
-random {0 {:ret :double}}
+random {0 {:ret #{:double :int :float}}}
 floor-div {2 {:ret :int, :args (:int :int)}}
-signum {1 {:ret :double, :args (:double)}}
+signum {1 {:ret #{:double :int :float}, :args (#{:double :int :float})}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.gen.alpha.transit.json  ===
 qualified? {1 {:ret :boolean}}
@@ -279,11 +279,11 @@ ex-triage {1 {:ret :associative}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.data.json.transit.json  ===
 codepoint-clause {1 {:ret #{:vector}}}
 slow-read-string {2 {:args (nil :nilable/string)}}
-write-double {3 {:args (:nilable/double nil nil)}}
+write-double {3 {:args (#{:double :int :float :nil} nil nil)}}
 write-str {:varargs {:ret :nilable/string, :min-arity 1}}
 read-integer {1 {:args (:nilable/string)}}
 write-string {3 {:args (:nilable/char-sequence nil nil)}}
-write-float {3 {:args (:nilable/double nil nil)}}
+write-float {3 {:args (#{:double :int :float :nil} nil nil)}}
 read-decimal {2 {:args (:nilable/string nil)}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.xml.transit.json  ===
@@ -338,7 +338,7 @@ rand-int {1 {:ret :int}}
 map {1 {:ret :fn}, 2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}, :varargs {:ret :seq, :min-arity 4}}
 juxt {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 < {1 {:ret :boolean}}
-NaN? {1 {:args (:double)}}
+NaN? {1 {:args (#{:double :int :float})}}
 make-hierarchy {0 {:ret {:type :map, :val {:parents {:row 5557, :col 16, :end-row 5557, :end-col 18, :tag {:type :map, :val {}}}, :descendants {:row 5557, :col 32, :end-row 5557, :end-col 34, :tag {:type :map, :val {}}}, :ancestors {:row 5557, :col 46, :end-row 5557, :end-col 48, :tag {:type :map, :val {}}}}}}}
 keep {1 {:ret :fn}, 2 {:ret :seq}}
 unchecked-long {1 {:args (:nilable/number)}}
@@ -402,7 +402,7 @@ reductions {2 {:ret :seq}}
 hash-set {0 {:ret :set}}
 emit-hinted-impl {2 {:ret :vector}}
 strip-ns {1 {:ret #{:symbol :keyword}}}
-parse-double {1 {:ret :nilable/double, :args (:nilable/string)}}
+parse-double {1 {:ret #{:double :int :float :nil}, :args (:nilable/string)}}
 assoc-in {3 {:ret #{:associative}}}
 memoize {1 {:ret :fn}}
 simple-keyword? {1 {:ret #{:nil :boolean}}}
@@ -434,7 +434,7 @@ distinct {0 {:ret :fn}, 1 {:ret :seq}}
 partition {2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}}
 data-reader-urls {0 {:ret :seq}}
 mapv {3 {:ret :vector}, 4 {:ret :vector}, :varargs {:ret :vector, :min-arity 4}}
-infinite? {1 {:args (:double)}}
+infinite? {1 {:args (#{:double :int :float})}}
 partition-all {1 {:ret :fn, :args (:int)}, 2 {:ret :seq}, 3 {:ret :seq}}
 partition-by {1 {:ret :fn}, 2 {:ret :seq}}
 derive {2 {:ret :nil}}
