@@ -17,6 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#1956](https://github.com/clj-kondo/clj-kondo/issues/1956): enable printing to `*err*` in hooks
 - [#1943](https://github.com/clj-kondo/clj-kondo/issues/1943): allow `:discouraged-namespace` to be suppressed with `#_:clj-kondo/ignore`
+- [#1942](https://github.com/clj-kondo/clj-kondo/issues/1942): prioritize specific namespace over ns-groups for `:discouraged-namespace` linter
 
 ## 2023.01.16
 
