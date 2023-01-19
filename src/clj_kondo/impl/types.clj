@@ -14,6 +14,42 @@
 
 (set! *warn-on-reflection* true)
 
+(def known-types
+  #{:string
+    :char-sequence
+    :seqable
+    :int
+    :number
+    :pos-int
+    :nat-int
+    :neg-int
+    :double
+    :byte
+    :vector
+    :sequential
+    :associative
+    :coll
+    :ifn
+    :stack
+    :map
+    :nil
+    :set
+    :fn
+    :keyword
+    :symbol
+    :transducer
+    :list
+    :seq
+    :sorted-map
+    :boolean
+    :atom
+    :regex
+    :char
+    :seqable-or-transducer
+    :throwable
+    :any
+    :float})
+
 (def built-in-specs
   {'clojure.core clojure-core
    'cljs.core cljs-core
@@ -63,7 +99,6 @@
    :map #{:sorted-map}})
 
 (def misc-types #{:boolean :atom :regex :char})
-
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
@@ -118,22 +153,24 @@
 
 (defn match? [k target]
   (cond
-    (or (identical? k target)
-        (identical? k :any)
-        (identical? target :any)
-        (contains? (get is-a-relations k) target)
-        (contains? (get could-be-relations k) target)) true
-    (identical? k :nil) (or (nilable? target)
-                            (identical? :seqable target))
+    (and (keyword? k)
+         (or (identical? k target)
+             (identical? k :any)
+             (identical? target :any)
+             (contains? (get is-a-relations k) target)
+             (contains? (get could-be-relations k) target)
+             (let [k (unnil k)
+                   target (unnil target)]
+               (or
+                (identical? k target)
+                (contains? (get is-a-relations k) target)
+                (contains? (get could-be-relations k) target)))
+             (and (identical? k :nil) (or (nilable? target)
+                                          (identical? :seqable target))))) true
     (map? k) (recur (:type k) target)
     (set? k) (some #(match? % target) k)
-    :else
-    (let [k (unnil k)
-          target (unnil target)]
-      (or
-       (identical? k target)
-       (contains? (get is-a-relations k) target)
-       (contains? (get could-be-relations k) target)))))
+    :else false
+    ))
 
 ;; TODO: we could look more intelligently at the source of the tag, e.g. if it
 ;; is not a third party String type
