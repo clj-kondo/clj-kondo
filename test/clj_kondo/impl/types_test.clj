@@ -47,7 +47,8 @@
     (is (= #{} (types-utils/union-type)))))
 
 (deftest lenient-match-test
-  (is (types/match? ::unknown-type :string)))
+  (is (types/match? ::unknown-type :string))
+  (is (types/match? :string :nilable/any)))
 
 ;;;; Scratch
 

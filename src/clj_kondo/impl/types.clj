@@ -153,23 +153,26 @@
 
 (defn match? [actual expected]
   (cond
-    (and (keyword? actual)
-         (or (identical? actual expected)
-             (identical? actual :any)
-             (identical? expected :any)
-             (contains? (get is-a-relations actual) expected)
-             (contains? (get could-be-relations actual) expected)
-             (let [k (unnil actual)
-                   target (unnil expected)]
-               (or
-                (identical? k target)
-                (contains? (get is-a-relations k) target)
-                (contains? (get could-be-relations k) target)))
-             (and (identical? actual :nil) (or (nilable? expected)
-                                          (identical? :seqable expected))))) true
+    (keyword? actual)
+    (or (identical? actual expected)
+        (identical? actual :any)
+        (identical? expected :any)
+        (contains? (get is-a-relations actual) expected)
+        (contains? (get could-be-relations actual) expected)
+        (let [k (unnil actual)
+              target (unnil expected)]
+          (or
+           (identical? k target)
+           ;; :nilable/any, ah well..
+           (identical? :any target)
+           (contains? (get is-a-relations k) target)
+           (contains? (get could-be-relations k) target)
+           ;; lenient: someone emitted an unexpected type
+           (not (contains? known-types k))))
+        (and (identical? actual :nil) (or (nilable? expected)
+                                          (identical? :seqable expected))))
     (map? actual) (recur (:type actual) expected)
-    (set? actual) (some #(match? % expected) actual)
-    :else (not (contains? known-types (unnil actual)))))
+    (set? actual) (some #(match? % expected) actual)))
 
 ;; TODO: we could look more intelligently at the source of the tag, e.g. if it
 ;; is not a third party String type
