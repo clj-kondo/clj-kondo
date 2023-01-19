@@ -4,7 +4,7 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.overrides :as overrides]
-   [clj-kondo.impl.utils :refer [assoc-some export-ns-sym select-some]]))
+   [clj-kondo.impl.utils :as utils :refer [assoc-some export-ns-sym select-some]]))
 
 (defn select-context [selector ctx]
   (when selector
@@ -84,14 +84,16 @@
                                     :imported-ns
                                     :name-row :name-col :name-end-col :name-end-row
                                     :arglist-strs :end-row :end-col])
-          overrides (overrides/overrides (case base-lang
-                                           :clj '{:clj {:defs {clojure.core {}}}}
-                                           :cljs '{:cljs {:defs {cljs.core {}}}}
-                                           :cljc '{:cljc {:defs {cljs.core {}}}}))
-          attr-overrides (get-in overrides (case base-lang
-                                             :clj `[:clj :defs clojure.core ~nom]
-                                             :cljs `[:cljs :defs cljs.core ~nom]
-                                             :cljc `[:cljc :defs cljs.core ~lang ~nom]))
+          overrides (when (utils/one-of ns [clojure.core cljs.core])
+                      (overrides/overrides (case base-lang
+                                             :clj '{:clj {:defs {clojure.core {}}}}
+                                             :cljs '{:cljs {:defs {cljs.core {}}}}
+                                             :cljc '{:cljc {:defs {cljs.core {}}}})))
+          attr-overrides (when (utils/one-of ns [clojure.core cljs.core])
+                           (get-in overrides (case base-lang
+                                               :clj `[:clj :defs clojure.core ~nom]
+                                               :cljs `[:cljs :defs cljs.core ~nom]
+                                               :cljc `[:cljc :defs cljs.core ~lang ~nom])))
           attrs (merge attrs attr-overrides)]
       (swap! analysis update :var-definitions conj
              (assoc-some
