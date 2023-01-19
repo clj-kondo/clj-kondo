@@ -1,6 +1,6 @@
 (ns clj-kondo.discouraged-namespace-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest discouraged-namespace-test
@@ -38,3 +38,28 @@
                 '{:ns-groups [{:pattern "closed\\..*"
                                :name closed}]
                   :linters {:discouraged-namespace {closed {}}}})))))
+
+(deftest ns-groups-test
+  (testing "ns-groups"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 12, :level :warning, :message "Discouraged namespace: closed.source"})
+     (lint! "(require '[closed.source :as s]) (s/foo)"
+            '{:ns-groups [{:pattern "closed\\..*"
+                           :name closed}]
+              :linters {:discouraged-namespace {closed {}}}})))
+  (testing "ns-groups"
+    (assert-submaps2
+     [{:row 1,
+       :col 12,
+       :level :warning,
+       :message "Use next.jdbc instead of clojure.java.jdbc"}]
+     (lint! "(require '[clojure.java.jdbc])"
+            '{:ns-groups
+              [{:pattern "^metabase\\.db\\..*"
+                :name    db-namespaces}
+               {:pattern "^clojure\\.java\\.jdbc.*"
+                :name    jdbc-legacy}
+               {:pattern "^clojure\\."
+                :name    clojure-core-namespaces}]
+              :linters {:discouraged-namespace
+                        {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}))))

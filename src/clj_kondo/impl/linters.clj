@@ -568,7 +568,9 @@
                   filename (:filename m)
                   config (or ns-config config)
                   config-ns-sym (config/ns-group config ns-sym filename)
-                  linter-config (get-in config [:linters :discouraged-namespace config-ns-sym])]
+                  linter-config (get-in config [:linters :discouraged-namespace])
+                  linter-config (or (get linter-config ns-sym)
+                                    (get linter-config config-ns-sym))]
             :when (some? linter-config)
             :let [{:keys [message]
                    :or {message (str "Discouraged namespace: " ns-sym)}} linter-config
