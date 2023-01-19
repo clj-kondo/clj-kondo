@@ -151,26 +151,25 @@
     (str (get labels (unnil k)) " or nil")
     :else (get labels k)))
 
-(defn match? [k target]
+(defn match? [actual expected]
   (cond
-    (and (keyword? k)
-         (or (identical? k target)
-             (identical? k :any)
-             (identical? target :any)
-             (contains? (get is-a-relations k) target)
-             (contains? (get could-be-relations k) target)
-             (let [k (unnil k)
-                   target (unnil target)]
+    (and (keyword? actual)
+         (or (identical? actual expected)
+             (identical? actual :any)
+             (identical? expected :any)
+             (contains? (get is-a-relations actual) expected)
+             (contains? (get could-be-relations actual) expected)
+             (let [k (unnil actual)
+                   target (unnil expected)]
                (or
                 (identical? k target)
                 (contains? (get is-a-relations k) target)
                 (contains? (get could-be-relations k) target)))
-             (and (identical? k :nil) (or (nilable? target)
-                                          (identical? :seqable target))))) true
-    (map? k) (recur (:type k) target)
-    (set? k) (some #(match? % target) k)
-    :else false
-    ))
+             (and (identical? actual :nil) (or (nilable? expected)
+                                          (identical? :seqable expected))))) true
+    (map? actual) (recur (:type actual) expected)
+    (set? actual) (some #(match? % expected) actual)
+    :else (not (contains? known-types (unnil actual)))))
 
 ;; TODO: we could look more intelligently at the source of the tag, e.g. if it
 ;; is not a third party String type
