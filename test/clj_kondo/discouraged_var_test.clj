@@ -30,7 +30,7 @@
         '{:linters  {:discouraged-var {clojure.core/satisfies? {:message "Too slow"}}}}))))
 
 (deftest namespace-matches-multiple-ns-groups-test
-  (testing "ns-groups"
+  (testing "merged config in x.core namespace"
     (let [test-fn (fn [conf]
                     (assert-submaps2
                      '({:file "<stdin>", :row 3, :col 3, :level :warning, :message "Please don't eval stuff"}
@@ -49,12 +49,12 @@
           conf-fn (fn [ns-groups]
                     (tu/template
                      '{:linters
-                      {:discouraged-var
-                       {clojure.core/eval {:message "Please don't eval stuff"}}}
+                       {:discouraged-var
+                        {clojure.core/eval {:message "Please don't eval stuff"}}}
 
                        :ns-groups ::ns-groups
-                      :config-in-ns
-                      {core-namespaces
+                       :config-in-ns
+                       {core-namespaces
                         {:linters
                          {:discouraged-var
                           {clojure.core/println {:message "Use log"}}}}
@@ -65,4 +65,12 @@
                           {clojure.core/printf {:message "Use logf"}}}}}}
                      {::ns-groups ns-groups}))]
       (test-fn (conf-fn ns-groups))
-      (test-fn (conf-fn (reverse ns-groups))))))
+      (test-fn (conf-fn (reverse ns-groups)))))
+  (testing "multiple matched discouraged vars via ns-groups"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 15, :level :warning, :message "Way too slow"}
+       {:file "<stdin>", :row 1, :col 15, :level :warning, :message "Too slow"})
+     (lint! "(defn foo [x] (satisfies? Datafy x))"
+            '{:ns-groups [{:pattern "(cljs|clojure).core" :name core}]
+              :linters  {:discouraged-var {core/satisfies? {:message "Too slow"}
+                                           clojure.core/satisfies? {:message "Way too slow"}}}}))))

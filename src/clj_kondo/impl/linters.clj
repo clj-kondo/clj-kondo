@@ -339,18 +339,19 @@
                         (get-in (:config call) [:linters :discouraged-var])]
                     (when-not (or (identical? :off (:level discouraged-var-config))
                                   (empty? (dissoc discouraged-var-config :level)))
-                      (let [fn-lookup-sym (symbol (str (or (first (config/ns-groups call-config resolved-ns filename))
-                                                           resolved-ns))
-                                                  (str fn-name))]
-                        (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
-                          (findings/reg-finding! ctx {:filename filename
-                                                      :row row
-                                                      :end-row end-row
-                                                      :col col
-                                                      :end-col end-col
-                                                      :type :discouraged-var
-                                                      :message (or (:message cfg)
-                                                                   (str "Discouraged var: " fn-sym))})))))]
+                      (let [candidates (cons (symbol (str resolved-ns) (str fn-name))
+                                             (map #(symbol (str %) (str fn-name))
+                                                  (config/ns-groups call-config resolved-ns filename)))]
+                        (doseq [fn-lookup-sym candidates]
+                          (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
+                            (findings/reg-finding! ctx {:filename filename
+                                                        :row row
+                                                        :end-row end-row
+                                                        :col col
+                                                        :end-col end-col
+                                                        :type :discouraged-var
+                                                        :message (or (:message cfg)
+                                                                     (str "Discouraged var: " fn-sym))}))))))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?
