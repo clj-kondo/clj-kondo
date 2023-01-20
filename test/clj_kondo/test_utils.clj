@@ -87,7 +87,7 @@
   [expected actual]
   `(let [actual# ~actual
          expected# ~expected]
-     (is (~'match? expected# (normalize-map-paths actual#)))))
+     (is (~'match? (normalize-map-paths expected#) (normalize-map-paths actual#)))))
 
 (defmacro assert-submaps2
   "A new version of assert-submaps that uses nubank's matcher-combinators.
@@ -95,7 +95,7 @@
   [expected actual]
   `(let [actual# ~actual
          expected# ~expected]
-     (is (~'match? expected# (map normalize-map-paths actual#)))))
+     (is (~'match? (normalize-map-paths expected#) (map normalize-map-paths actual#)))))
 
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the
