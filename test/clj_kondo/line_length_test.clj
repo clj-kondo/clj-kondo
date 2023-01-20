@@ -21,10 +21,14 @@
   (testing "test linting short lines"
     (is (empty? (lint! short-line)))
     (is (empty? (lint! short-line "--lang" "cljs")))
-    (is (empty? (lint! short-line '{:linters {:line-length {:max-line-length 80}}})))
-    (is (empty? (lint! short-line '{:linters {:line-length {:max-line-length 80}}} "--lang" "cljs")))
-    (is (empty? (lint! short-lines '{:linters {:line-length {:max-line-length 80}}})))
-    (is (empty? (lint! short-lines '{:linters {:line-length {:max-line-length 80}}} "--lang" "cljs")))
+    (is (empty? (lint! short-line '{:linters {:line-length {:max-line-length 80
+                                                            :level :warning}}})))
+    (is (empty? (lint! short-line '{:linters {:line-length {:max-line-length 80
+                                                            :level :warning}}} "--lang" "cljs")))
+    (is (empty? (lint! short-lines '{:linters {:line-length {:max-line-length 80
+                                                             :level :warning}}})))
+    (is (empty? (lint! short-lines '{:linters {:line-length {:max-line-length 80
+                                                             :level :warning}}} "--lang" "cljs")))
     (assert-submaps '({:file "<stdin>"
                        :level :warning
                        :message "Line is longer than 2 characters."
@@ -63,3 +67,9 @@
          :col     121})
       (lint! multi-line '{:linters {:line-length {:max-line-length 120
                                                   :level :warning}}}))))
+
+(deftest long-line-with-impossible-to-shorten-token-test
+  (is (empty? (lint! " ;; https://clojurians-log.clojureverse.org/clojure-spec/2017-08-12/1502573905.650871"
+                     '{:linters {:line-length {:max-line-length 80
+                                               :level :warning
+                                               :exclude-token-length 75}}}))))

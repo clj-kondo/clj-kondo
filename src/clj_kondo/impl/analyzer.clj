@@ -2901,11 +2901,15 @@
               (run! (fn [[row line]]
                       (let [line-length (count line)]
                         (when (< max-line-length line-length)
-                          (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
-                                                      :filename filename
-                                                      :type     :line-length
-                                                      :row      (inc row)
-                                                      :col      (inc max-line-length)}))))
+                          (let [exclude-token-length (:foo line-length-conf)]
+                            (when (or (not exclude-token-length)
+                                      (let [tokens (str/split line #"\s")]
+                                        (some #(> (count %) exclude-token-length) tokens)))
+                              (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
+                                                          :filename filename
+                                                          :type     :line-length
+                                                          :row      (inc row)
+                                                          :col      (inc max-line-length)}))))))
                     (map-indexed vector (line-seq rdr)))))))
       (doseq [e @reader-exceptions]
         (if dev?
