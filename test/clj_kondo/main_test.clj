@@ -3164,7 +3164,11 @@ foo/")))
   (assert-submaps2
    [{:row 1, :col 45, :level :warning, :message "Namespace only aliased but wasn't loaded: foo.bar"}]
    (lint! "(ns foo (:require [foo.bar :as-alias fb])) (fb/bar)"))
-  (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fb/bar"))))
+  (assert-submaps2
+   [{:file "<stdin>", :row 1, :col 47, :level :warning, :message "Namespace only aliased but wasn't loaded: foo.bar"}]
+   (lint! "(ns foo (:require [foo.bar :as-alias fb])) `[~fb/bar]"))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fb/bar")))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) `fb/bar"))))
 
 (deftest ns-unmap-test
   (assert-submaps

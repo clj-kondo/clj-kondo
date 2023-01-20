@@ -521,14 +521,17 @@
                  name-sym expr)]
       (when-let [ns-sym (get (:aliases (:ns ctx)) ns-sym)]
         (when (some-> ns-sym meta :alias meta :as-alias)
-          (findings/reg-finding!
-           ctx
-           (node->line
-            (:filename ctx)
-            expr
-            :aliased-namespace-var-usage
-            (format "Namespace only aliased but wasn't loaded: %s"
-                    ns-sym))))))))
+          (let [sql (:syntax-quote-level ctx)]
+            (when (or (not sql)
+                      (zero? sql))
+              (findings/reg-finding!
+               ctx
+               (node->line
+                (:filename ctx)
+                expr
+                :aliased-namespace-var-usage
+                (format "Namespace only aliased but wasn't loaded: %s"
+                        ns-sym))))))))))
 
 (defn resolve-name
   [ctx call? ns-name name-sym expr]

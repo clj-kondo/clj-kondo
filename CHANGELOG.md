@@ -21,6 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1959](https://github.com/clj-kondo/clj-kondo/issues/1959): analyze custom `defn` properly
 - [#1961](https://github.com/clj-kondo/clj-kondo/issues/1961): be lenient with unexpected type
 - [#1945](https://github.com/clj-kondo/clj-kondo/issues/1945): support merging of multiple ns-group configs
+- [#1962](https://github.com/clj-kondo/clj-kondo/issues/1962): don't emit warning for aliased namespace var usage in syntax-quote
 
 ## 2023.01.16
 
