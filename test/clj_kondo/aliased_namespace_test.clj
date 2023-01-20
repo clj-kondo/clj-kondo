@@ -23,13 +23,13 @@ baz.qux/some-fn
                                 :unused-namespace {:level :off}}}))))
 
 (deftest multiple-aliases-test
-  (let [path (str (io/file "corpus" "aliased_namespaces" "multiple_aliases.clj"))]
-    (assert-submaps2 [{:file path
+  (let [path (io/file "corpus" "aliased_namespaces" "multiple_aliases.clj")]
+    (assert-submaps2 [{:file (str path)
                        :row 5,
                        :col 2,
                        :level :warning,
                        :message "Multiple aliases are defined for baz.qux: q, qq"}]
-                     (lint! (str path)
+                     (lint! path
                             {:linters {:duplicate-require {:level :off}
                                        :aliased-namespace-symbol {:level :warning}}}))))
 
