@@ -258,10 +258,7 @@
          (remove-dir test-dir#)))))
 
 (defn template [expr replacement-map]
-  (walk/postwalk
-   (fn [expr]
-     (if-let [[_ v] (find replacement-map expr)]
-       v expr)) expr))
+  (walk/postwalk-replace replacement-map expr))
 
 ;;;; Scratch
 
