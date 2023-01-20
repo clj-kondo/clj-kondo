@@ -1367,6 +1367,20 @@ This will exclude all bindings starting with `_x`.
 
 *Config:* use `:exclude [foo.bar]` to suppress the above warning.
 
+You can check syntax-quoted symbols to make sure they use a resolved namespace with:
+
+```clojure
+{:linters {:unresolved-namespace {:syntax-quote true}}}
+```
+
+which will print an error if given
+
+```clojure
+(ns foo)
+
+`bar/x
+```
+
 You can report duplicate warnings using:
 
 ``` clojure

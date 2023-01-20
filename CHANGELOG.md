@@ -14,6 +14,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] script/bump_version post-release -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#1968](https://github.com/clj-kondo/clj-kondo/issues/1968): Add `:syntax-quote` to `:unresolved-namespace` linter to check syntax-quoted forms that are meant to fully-resolve. ([@NoahTheDuke](https://github.com/NoahTheDuke))
+
 ## 2023.01.20
 
 - [#1956](https://github.com/clj-kondo/clj-kondo/issues/1956): enable printing to `*err*` in hooks

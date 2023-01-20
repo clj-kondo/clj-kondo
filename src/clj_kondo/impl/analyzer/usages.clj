@@ -245,7 +245,12 @@
                                                      usage)
                            (utils/reg-call ctx usage (:id expr))
                            nil)))
-
+                     (when (and unresolved?
+                                (get-in ctx [:config :linters :unresolved-namespace :syntax-quote]))
+                       (namespace/reg-unresolved-namespace!
+                         ctx ns-name
+                         (with-meta (symbol (namespace symbol-val))
+                                    (meta expr))))
                      nil))
                  ;; this is a symbol, either binding or var reference
                  (when-let [idx (:idx ctx)]

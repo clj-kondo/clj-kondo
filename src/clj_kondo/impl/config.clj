@@ -63,7 +63,8 @@
                                             (cljs.test/is [thrown? thrown-with-msg?])]}
               :unresolved-var {:level :warning}
               :unresolved-namespace {:level :warning
-                                     :exclude [#_foo.bar]}
+                                     :exclude [#_foo.bar]
+                                     :syntax-quote false}
               ;; for example: foo.bar is always loaded in a user profile
               :reduce-without-init {:level :off
                                     :exclude [#_foo.bar/baz]}
