@@ -13,7 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] clj-kondo pod -->
 <!-- - [ ] script/bump_version post-release -->
 
-## Unreleased
+## 2023.01.20
 
 - [#1956](https://github.com/clj-kondo/clj-kondo/issues/1956): enable printing to `*err*` in hooks
 - [#1943](https://github.com/clj-kondo/clj-kondo/issues/1943): allow `:discouraged-namespace` to be suppressed with `#_:clj-kondo/ignore`
