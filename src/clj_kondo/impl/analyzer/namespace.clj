@@ -58,9 +58,9 @@
                       (rest children)))
           (option-spec? form)
           [(with-meta
-             (vector-node (into (normalize-libspec ctx prefix (first children) unused-namespace-disabled?)
-                                (rest children)))
-             (meta libspec-expr))]
+            (vector-node (into (normalize-libspec ctx prefix (first children) unused-namespace-disabled?)
+                               (rest children)))
+            (meta libspec-expr))]
           (valid-ns-name? form)
           (let [full-form (symbol (str (when prefix (str prefix "."))
                                        form))]
@@ -70,11 +70,11 @@
                (format "found lib name '%s' containing period with prefix '%s'. lib names inside prefix lists must not contain periods."
                        form prefix)))
             [(with-meta (token-node full-form)
-               (cond-> (assoc (meta libspec-expr)
-                              :raw-name form
-                              :unused-namespace-disabled unused-namespace-disabled?)
-                 prefix
-                 (assoc :prefix prefix)))])
+                        (cond-> (assoc (meta libspec-expr)
+                                       :raw-name form
+                                       :unused-namespace-disabled unused-namespace-disabled?)
+                          prefix
+                          (assoc :prefix prefix)))])
           (keyword? form)  ; Some people write (:require ... :reload-all)
           nil
           (empty-spec? form)
@@ -115,8 +115,8 @@
       [{:type :require
         :referred-all (when use? require-kw-expr)
         :ns (with-meta s
-              (assoc libspec-meta
-                     :filename filename))}]
+                       (assoc libspec-meta
+                              :filename filename))}]
       (let [[ns-name-expr & option-exprs] (:children libspec-expr)
             ns-name (:value ns-name-expr)
             ns-name (if (= :cljs lang)
@@ -126,10 +126,10 @@
                         ns-name)
                       ns-name)
             ns-name (with-meta ns-name
-                      (assoc (meta (first (:children libspec-expr)))
-                             :filename filename
-                             :raw-name (-> (meta ns-name-expr) :raw-name)
-                             :branch (:branch libspec-meta)))
+                               (assoc (meta (first (:children libspec-expr)))
+                                      :filename filename
+                                      :raw-name (-> (meta ns-name-expr) :raw-name)
+                                      :branch (:branch libspec-meta)))
             self-require? (and
                            (= :cljc base-lang)
                            (= :cljs lang)
@@ -194,7 +194,7 @@
                            (swap! (:used-namespaces ctx) update (:base-lang ctx) conj ns-name)
                            (update m :referred into
                                    (map #(with-meta (sexpr %)
-                                           (meta %))) opt-expr-children))
+                                                    (meta %))) opt-expr-children))
                          (= :all opt)
                          (assoc m :referred-all opt-expr)
                          :else m)))
@@ -204,15 +204,15 @@
                  (assoc m
                         :as (when opt
                               (with-meta opt
-                                (cond-> (meta opt-expr)
-                                  (identical? :as-alias child-k)
-                                  (assoc :as-alias true))))))
+                                         (cond-> (meta opt-expr)
+                                           (identical? :as-alias child-k)
+                                           (assoc :as-alias true))))))
                 ;; shadow-cljs:
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default
                 (recur (nnext children)
                        (update m :referred conj (with-meta opt
-                                                  (meta opt-expr))))
+                                                           (meta opt-expr))))
                 :exclude
                 (recur
                  (nnext children)
@@ -232,12 +232,12 @@
                   (if (#{:cljc :cljs} base-lang)
                     (when-not (true? opt)
                       (findings/reg-finding!
-                        ctx
-                        (node->line
-                          filename
-                          child-expr
-                          :syntax
-                          "Require form is invalid: :invalid-macros only accepts true")))
+                       ctx
+                       (node->line
+                        filename
+                        child-expr
+                        :syntax
+                        "Require form is invalid: :invalid-macros only accepts true")))
                     (when-not (contains? (set (:exclude unknown-require-option-config)) child-k)
                       (findings/reg-finding!
                        ctx
@@ -287,7 +287,7 @@
 (defn coerce-class-symbol [ctx node]
   (if-let [v (:value node)]
     (with-meta v
-      (meta node))
+               (meta node))
     (do (findings/reg-finding!
          ctx
          (node->line (:filename ctx) node :syntax "Expected: class symbol"))
@@ -320,7 +320,7 @@
                  splitted (-> package+class name (str/split #"\."))
                  java-package (symbol (str/join "." (butlast splitted)))
                  imported (with-meta (symbol (last splitted))
-                            (meta libspec-expr))]
+                                     (meta libspec-expr))]
              {imported java-package})
     nil))
 
@@ -465,11 +465,11 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
-        ns-group (config/ns-group global-config ns-name filename)
+        ns-groups (config/ns-groups global-config ns-name filename)
         config-in-ns (let [config-in-ns (:config-in-ns global-config)]
-                       (config/merge-config!
-                        (get config-in-ns ns-group)
-                        (get config-in-ns ns-name)))
+                       (apply config/merge-config!
+                              (concat (map #(get config-in-ns %) ns-groups)
+                                      [(get config-in-ns ns-name)])))
         local-config (-> ns-meta :clj-kondo/config)
         local-config (if (and (seq? local-config) (= 'quote (first local-config)))
                        (second local-config)

@@ -1,6 +1,6 @@
 (ns clj-kondo.types-test
   (:require
-   [clj-kondo.test-utils :as tu :refer [assert-submaps lint!]]
+   [clj-kondo.test-utils :as tu :refer [assert-submaps assert-submaps2 lint!]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -731,7 +731,7 @@
           {:linters {:type-mismatch {:level :error}}})))
 
 (deftest def+fn-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 37, :level :error, :message "Expected: number, received: keyword."}
      {:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: string or nil, received: keyword."})
    (lint! "(def x (fn [^String _x] :foo)) (inc (x :foo))"

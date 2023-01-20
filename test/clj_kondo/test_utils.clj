@@ -5,7 +5,8 @@
    [clj-kondo.main :as main :refer [main]]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing *report-counters*]]
+   [clojure.test :as t :refer [*report-counters* deftest is testing]]
+   [clojure.walk :as walk]
    [matcher-combinators.test]
    [me.raynes.conch :refer [let-programs programs] :as sh]))
 
@@ -75,7 +76,10 @@
   [m]
   (reduce (fn [m k]
             (if (k m)
-              (update m k normalize-filename)
+              (update m k (fn [v]
+                            (if (regex? v)
+                              v
+                              (normalize-filename v))))
               m))
           m
           [:file :filename]))
@@ -86,7 +90,7 @@
   [expected actual]
   `(let [actual# ~actual
          expected# ~expected]
-     (is (~'match? expected# (normalize-map-paths actual#)))))
+     (is (~'match? (normalize-map-paths expected#) (normalize-map-paths actual#)))))
 
 (defmacro assert-submaps2
   "A new version of assert-submaps that uses nubank's matcher-combinators.
@@ -94,7 +98,7 @@
   [expected actual]
   `(let [actual# ~actual
          expected# ~expected]
-     (is (~'match? expected# (map normalize-map-paths actual#)))))
+     (is (~'match? (map normalize-map-paths expected#) (map normalize-map-paths actual#)))))
 
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the
@@ -253,12 +257,12 @@
        (finally
          (remove-dir test-dir#)))))
 
+(defn template [expr replacement-map]
+  (walk/postwalk-replace replacement-map expr))
+
 ;;;; Scratch
 
 (comment
-  (let-programs [clj-kondo "./clj-kondo"]
-    (apply clj-kondo "--cache" ["--lint" "-" {:in "(defn foo [x] x) (foo 1 2 3)"}]))
-
-  (lint-native! "(defn foo [x] x) (foo 1 2 3)")
-  (lint-native! (io/file "test"))
+  (template '{:linters {:unresolved-symbol {:exclude [::foo y z]}}}
+            '{::foo x})
   )
