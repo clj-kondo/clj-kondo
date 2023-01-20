@@ -178,7 +178,9 @@
        (let [cfg (cond-> cfg
                    (contains? (:linters cfg) :if)
                    (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
-         (deep-merge cfg* cfg)))))
+         (deep-merge cfg* cfg))))
+  ([cfg* cfg & cfgs]
+   (reduce merge-config! cfg* (cons cfg cfgs))))
 
 (defn fq-sym->vec [fq-sym]
   (if-let [ns* (namespace fq-sym)]

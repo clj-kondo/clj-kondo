@@ -7,7 +7,8 @@
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing *report-counters*]]
    [matcher-combinators.test]
-   [me.raynes.conch :refer [let-programs programs] :as sh]))
+   [me.raynes.conch :refer [let-programs programs] :as sh]
+   [clojure.walk :as walk]))
 
 (set! *warn-on-reflection* true)
 
@@ -253,12 +254,15 @@
        (finally
          (remove-dir test-dir#)))))
 
+(defn template [expr replacement-map]
+  (walk/postwalk
+   (fn [expr]
+     (if-let [[_ v] (find replacement-map expr)]
+       v expr)) expr))
+
 ;;;; Scratch
 
 (comment
-  (let-programs [clj-kondo "./clj-kondo"]
-    (apply clj-kondo "--cache" ["--lint" "-" {:in "(defn foo [x] x) (foo 1 2 3)"}]))
-
-  (lint-native! "(defn foo [x] x) (foo 1 2 3)")
-  (lint-native! (io/file "test"))
+  (template '{:linters {:unresolved-symbol {:exclude [::foo y z]}}}
+            '{::foo x})
   )

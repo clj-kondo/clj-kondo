@@ -21,9 +21,7 @@
      (lint! "(ns foo.bar (:require [closed.source :as s])) (s/baz)"
             '{:config-in-ns {foo.bar {:linters
                                       {:discouraged-namespace
-                                       {closed.source {:message "Don't use `closed.source`"}}}}}}))))
-
-(deftest foo-test
+                                       {closed.source {:message "Don't use `closed.source`"}}}}}})))
   (testing "ns-groups"
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 12, :level :warning, :message "Discouraged namespace: closed.source"})
