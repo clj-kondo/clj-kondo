@@ -1,6 +1,6 @@
 (ns clj-kondo.config-in-ns-test
   (:require
-   [clj-kondo.test-utils :refer [assert-submaps lint!]]
+   [clj-kondo.test-utils :refer [assert-submaps assert-submaps2 lint!]]
    [clojure.java.io :as io]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -14,7 +14,7 @@
                        :type-mismatch {:level :error}}})))
 
 (deftest config-in-ns-override-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 25, :level :warning, :message "No"})
    (lint! "(ns my.namespace) x y z (assoc nil :foo :bar)"
           '{:ns-groups [{:pattern "my.*" :name mine}]

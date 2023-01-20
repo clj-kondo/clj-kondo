@@ -1,5 +1,5 @@
 (ns clj-kondo.aliased-namespace-test
-  (:require [clj-kondo.test-utils :refer [lint! assert-submaps]]
+  (:require [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
             [clojure.java.io :as io]
             [clojure.test :refer [deftest is testing]]))
 
@@ -24,14 +24,14 @@ baz.qux/some-fn
 
 (deftest multiple-aliases-test
   (let [path (io/file "corpus" "aliased_namespaces" "multiple_aliases.clj")]
-    (assert-submaps [{:file (str path),
-                      :row 5,
-                      :col 2,
-                      :level :warning,
-                      :message "Multiple aliases are defined for baz.qux: q, qq"}]
-                    (lint! path
-                           {:linters {:duplicate-require {:level :off}
-                                      :aliased-namespace-symbol {:level :warning}}}))))
+    (assert-submaps2 [{:file (str path),
+                       :row 5,
+                       :col 2,
+                       :level :warning,
+                       :message "Multiple aliases are defined for baz.qux: q, qq"}]
+                     (lint! path
+                            {:linters {:duplicate-require {:level :off}
+                                       :aliased-namespace-symbol {:level :warning}}}))))
 
 (deftest excluded-alias-test
   (let [path (io/file "corpus" "aliased_namespaces" "excluded_alias.clj")]

@@ -422,19 +422,18 @@
           (let [binding-str (str binding-sym)]
             (boolean (some #(re-find % binding-str) regexes)))))))
 
-(defn ns-group* [config ns-name filename]
-  (or (some (fn [{:keys [pattern
-                         filename-pattern
-                         name]}]
-              (when (or (and (string? pattern) (symbol? name)
-                             (re-find (re-pattern pattern) (str ns-name)))
-                        (and (string? filename-pattern) (symbol? name)
-                             (re-find (re-pattern filename-pattern) filename)))
-                name))
-            (:ns-groups config))
-      ns-name))
+(defn ns-groups* [config ns-name filename]
+  (keep (fn [{:keys [pattern
+                     filename-pattern
+                     name]}]
+          (when (or (and (string? pattern) (symbol? name)
+                         (re-find (re-pattern pattern) (str ns-name)))
+                    (and (string? filename-pattern) (symbol? name)
+                         (re-find (re-pattern filename-pattern) filename)))
+            name))
+        (:ns-groups config)))
 
-(def ns-group (memoize ns-group*))
+(def ns-groups (memoize ns-groups*))
 
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]

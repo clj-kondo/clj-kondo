@@ -339,7 +339,8 @@
                         (get-in (:config call) [:linters :discouraged-var])]
                     (when-not (or (identical? :off (:level discouraged-var-config))
                                   (empty? (dissoc discouraged-var-config :level)))
-                      (let [fn-lookup-sym (symbol (str (config/ns-group call-config resolved-ns filename))
+                      (let [fn-lookup-sym (symbol (str (or (first (config/ns-groups call-config resolved-ns filename))
+                                                           resolved-ns))
                                                   (str fn-name))]
                         (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
                           (findings/reg-finding! ctx {:filename filename
@@ -567,12 +568,11 @@
                   m (meta ns-sym)
                   filename (:filename m)
                   config (or ns-config config)
-                  config-ns-sym (config/ns-group config ns-sym filename)
-                  linter-config (get-in config [:linters :discouraged-namespace])
-                  linter-config (or (get linter-config ns-sym)
-                                    (get linter-config config-ns-sym))]
-            :when (some? linter-config)
-            :let [{:keys [message]
+                  ns-groups (config/ns-groups config ns-sym filename)
+                  linter-configs (keep #(get-in config [:linters :discouraged-namespace %]) (concat ns-groups [ns-sym]))]
+            :when (seq linter-configs)
+            :let [linter-config (apply config/merge-config! linter-configs)
+                  {:keys [message]
                    :or {message (str "Discouraged namespace: " ns-sym)}} linter-config
                   ctx (assoc ctx :lang lang)]]
       (findings/reg-finding!
