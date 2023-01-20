@@ -95,7 +95,7 @@
   [expected actual]
   `(let [actual# ~actual
          expected# ~expected]
-     (is (~'match? (normalize-map-paths expected#) (map normalize-map-paths actual#)))))
+     (is (~'match? (map normalize-map-paths expected#) (map normalize-map-paths actual#)))))
 
 (defn parse-output
   "Parses linting output and prints everything that doesn't match the
