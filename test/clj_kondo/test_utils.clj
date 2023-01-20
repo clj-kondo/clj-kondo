@@ -5,10 +5,10 @@
    [clj-kondo.main :as main :refer [main]]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing *report-counters*]]
+   [clojure.test :as t :refer [*report-counters* deftest is testing]]
+   [clojure.walk :as walk]
    [matcher-combinators.test]
-   [me.raynes.conch :refer [let-programs programs] :as sh]
-   [clojure.walk :as walk]))
+   [me.raynes.conch :refer [let-programs programs] :as sh]))
 
 (set! *warn-on-reflection* true)
 
