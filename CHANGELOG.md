@@ -12,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] homebrew: ./update-clj-kondo -->
 <!-- - [ ] clj-kondo pod -->
 <!-- - [ ] script/bump_version post-release -->
+<!-- - [ ] update carve -->
 
 ## 2023.01.20
 
