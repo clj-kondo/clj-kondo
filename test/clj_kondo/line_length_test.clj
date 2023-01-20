@@ -68,8 +68,11 @@
       (lint! multi-line '{:linters {:line-length {:max-line-length 120
                                                   :level :warning}}}))))
 
-(deftest long-line-with-impossible-to-shorten-token-test
+(deftest exclusions-test
   (is (empty? (lint! " ;; https://clojurians-log.clojureverse.org/clojure-spec/2017-08-12/1502573905.650871"
-                     '{:linters {:line-length {:max-line-length 80
+                     '{:linters {:line-length {:exclude-urls true
                                                :level :warning
-                                               :exclude-token-length 75}}}))))
+                                               :max-line-length 80}}})))
+  (is (empty? (lint! " ;; :ll/ok"
+                     '{:linters {:line-length {:exclude-pattern ";; :ll/ok"
+                                               :level :warning}}}))))

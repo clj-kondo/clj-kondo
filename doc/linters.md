@@ -792,6 +792,22 @@ will produce this warning:
 Line is longer than 120 characters.
 ```
 
+*Config:*
+
+To exclude lines with URLs use: `:exclude-urls true`
+
+```clojure
+{:linters {:line-length {:max-line-length 120
+                         :exclude-urls true}}}
+```
+
+To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";; :ll/ok"`:
+
+```clojure
+{:linters {:line-length {:max-line-length 120
+                         :exclude-pattern ";; :ll/ok"}}}
+```
+
 ### Keyword in binding vector
 
 **Keyword:** `:keyword-binding`

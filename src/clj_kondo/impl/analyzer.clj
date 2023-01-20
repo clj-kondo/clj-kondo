@@ -2897,20 +2897,24 @@
       (let [line-length-conf (-> config :linters :line-length)]
         (when (not (identical? :off (:level line-length-conf)))
           (when-let [max-line-length (:max-line-length line-length-conf)]
-            (with-open [rdr (io/reader (java.io.StringReader. input))]
-              (run! (fn [[row line]]
-                      (let [line-length (count line)]
-                        (when (< max-line-length line-length)
-                          (let [exclude-token-length (:foo line-length-conf)]
-                            (when (or (not exclude-token-length)
-                                      (let [tokens (str/split line #"\s")]
-                                        (some #(> (count %) exclude-token-length) tokens)))
-                              (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
-                                                          :filename filename
-                                                          :type     :line-length
-                                                          :row      (inc row)
-                                                          :col      (inc max-line-length)}))))))
-                    (map-indexed vector (line-seq rdr)))))))
+            (let [exclude-urls (:exclude-urls line-length-conf)
+                  exclude-pattern (:exclude-pattern line-length-conf)
+                  exclude-pattern (when exclude-pattern
+                                    (re-pattern exclude-pattern))]
+              (with-open [rdr (io/reader (java.io.StringReader. input))]
+                (run! (fn [[row line]]
+                        (let [line-length (count line)]
+                          (when (and (< max-line-length line-length)
+                                     (or (not exclude-urls)
+                                         (not (str/includes? line "http")))
+                                     (or (not exclude-pattern)
+                                         (not (re-find exclude-pattern line))))
+                            (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
+                                                        :filename filename
+                                                        :type     :line-length
+                                                        :row      (inc row)
+                                                        :col      (inc max-line-length)}))))
+                      (map-indexed vector (line-seq rdr))))))))
       (doseq [e @reader-exceptions]
         (if dev?
           (throw e)
