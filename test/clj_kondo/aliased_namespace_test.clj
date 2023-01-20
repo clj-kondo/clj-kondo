@@ -23,7 +23,7 @@ baz.qux/some-fn
                                 :unused-namespace {:level :off}}}))))
 
 (deftest multiple-aliases-test
-  (let [path (io/file "corpus" "aliased_namespaces" "multiple_aliases.clj")]
+  (let [path (str (io/file "corpus" "aliased_namespaces" "multiple_aliases.clj"))]
     (assert-submaps2 [{:file path
                        :row 5,
                        :col 2,
