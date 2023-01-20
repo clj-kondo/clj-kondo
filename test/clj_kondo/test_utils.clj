@@ -76,7 +76,10 @@
   [m]
   (reduce (fn [m k]
             (if (k m)
-              (update m k normalize-filename)
+              (update m k (fn [v]
+                            (if (regex? v)
+                              v
+                              (normalize-filename v))))
               m))
           m
           [:file :filename]))
