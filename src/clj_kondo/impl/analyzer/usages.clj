@@ -176,8 +176,14 @@
                           resolved-core? :resolved-core?
                           :as _m}
                          (let [v (namespace/resolve-name ctx false ns-name symbol-val expr)]
-                           (when-not syntax-quote?
-                             (when-let [n (:unresolved-ns v)]
+                           (when-let [n (:unresolved-ns v)]
+                             (if syntax-quote?
+                               (when (and (-> ctx :config :linters :unresolved-namespace :syntax-quote)
+                                          symbol-val)
+                                 (namespace/reg-unresolved-namespace!
+                                  ctx ns-name
+                                  (with-meta n
+                                    (meta expr))))
                                (namespace/reg-unresolved-namespace!
                                 ctx ns-name
                                 (with-meta n
@@ -245,14 +251,7 @@
                                                      usage)
                            (utils/reg-call ctx usage (:id expr))
                            nil)))
-                     (when (and unresolved?
-                                (-> ctx :config :linters :unresolved-namespace :syntax-quote)
-                                symbol-val
-                                (not-empty (namespace symbol-val)))
-                       (namespace/reg-unresolved-namespace!
-                         ctx ns-name
-                         (with-meta (symbol (namespace symbol-val))
-                                    (meta expr))))
+
                      nil))
                  ;; this is a symbol, either binding or var reference
                  (when-let [idx (:idx ctx)]
