@@ -246,7 +246,9 @@
                            (utils/reg-call ctx usage (:id expr))
                            nil)))
                      (when (and unresolved?
-                                (get-in ctx [:config :linters :unresolved-namespace :syntax-quote]))
+                                (-> ctx :config :linters :unresolved-namespace :syntax-quote)
+                                symbol-val
+                                (not-empty (namespace symbol-val)))
                        (namespace/reg-unresolved-namespace!
                          ctx ns-name
                          (with-meta (symbol (namespace symbol-val))

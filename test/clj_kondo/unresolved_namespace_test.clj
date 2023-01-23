@@ -57,4 +57,5 @@ x/bar ;; <- no warning")))
   (is (empty? (lint! "
 (require (quote [clojure.string :as str]))
 (str/join 1 [1 2 3])
-"))))
+")))
+  (is (empty? (lint! "`x" {:linters {:unresolved-namespace {:syntax-quote true}}}))))
