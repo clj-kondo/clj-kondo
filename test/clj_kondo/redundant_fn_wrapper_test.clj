@@ -28,4 +28,11 @@
               {:linters {:redundant-fn-wrapper {:level :warning}}})))
   (is (empty?
        (lint! "(fn [x] {:pre [(odd? x)]} (- x))"
+              {:linters {:redundant-fn-wrapper {:level :warning}}})))
+  (is (empty?
+       (lint! "(let [nsm {}]
+                 (fn [sym]
+                   `(.println
+                      (RT/errPrintWriter)
+                      ~(nsm sym))))"
               {:linters {:redundant-fn-wrapper {:level :warning}}}))))
