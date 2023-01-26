@@ -131,7 +131,10 @@
                                       unquote-tag? (dec syntax-quote-level)
                                       :else syntax-quote-level)
          syntax-quote? (or syntax-quote? syntax-quote-tag?)
-         ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)]
+         ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
+         ctx (if syntax-quote-tag?
+               (update ctx :callstack #(cons [:syntax-quote] %))
+               ctx)]
      (if (and (= 1 syntax-quote-level) unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?

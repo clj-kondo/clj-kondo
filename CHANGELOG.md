@@ -15,6 +15,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update clj-kondo-bb -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#1971](https://github.com/clj-kondo/clj-kondo/issues/1971): false positive `:redundant-fn-wrapper` with syntax-quoted body
+
 ## 2023.01.20
 
 - [#1956](https://github.com/clj-kondo/clj-kondo/issues/1956): enable printing to `*err*` in hooks
