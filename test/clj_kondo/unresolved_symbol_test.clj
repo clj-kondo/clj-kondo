@@ -1,6 +1,6 @@
 (ns clj-kondo.unresolved-symbol-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps2] :rename {assert-submaps2 assert-submaps}]
+   [clj-kondo.test-utils :refer [assert-submaps2 lint!] :rename {assert-submaps2 assert-submaps}]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.test :refer [deftest is testing]]))
@@ -123,6 +123,15 @@
                        '{:linters {:unresolved-symbol {:level :error
                                                        :exclude [(clojure.test/is [foo?])
                                                                  (clojure.test/is [bar?])]}}}))))
+  (testing "unknown java class"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 11, :level :error, :message "Unresolved symbol: Foo"})
+     (lint! "(ns foo) (Foo 1)"
+            '{:linters {:unresolved-symbol {:level :error}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 11, :level :error, :message "Unresolved symbol: Foo"})
+     (lint! "(ns foo) (Foo. 1)"
+            '{:linters {:unresolved-symbol {:level :error}}})))
   ;; Preventing false positives
   (is (empty? (lint! "slurp"
                      '{:linters {:unresolved-symbol {:level :error}}})))
@@ -241,8 +250,13 @@
  (:foo x))
 
 " '{:linters {:unresolved-symbol {:exclude [(slingshot.slingshot/try+)]}}})))
-  (is (empty? (lint! "(def ^name.fraser.neil.plaintext.diff_match_patch dmp (diff_match_patch.))"
-                     '{:linters {:unresolved-symbol {:level :error}}}))))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 56, :level :error, :message "Unresolved symbol: diff_match_patch"})
+   (lint! "(def ^name.fraser.neil.plaintext.diff_match_patch dmp (diff_match_patch.))"
+          '{:linters {:unresolved-symbol {:level :error}}}))
+  (testing "known java classes"
+    (is (empty? (lint! "(String. \"a\")"
+                       '{:linters {:unresolved-symbol {:level :error}}})))))
 
 (deftest cljs-property-access-test
   (is (empty? (lint! "(defn editable? [coll] (satisfies? cljs.core.IEditableCollection coll))"
@@ -278,7 +292,6 @@
          (lint! "(defn foo ^String [x] x)"
                 '{:linters {:unresolved-symbol {:level :error}}}
                 "--lang" "cljc")))))
-
 
 (deftest forward-reference-comment-test
   (assert-submaps
