@@ -250,10 +250,8 @@
  (:foo x))
 
 " '{:linters {:unresolved-symbol {:exclude [(slingshot.slingshot/try+)]}}})))
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 56, :level :error, :message "Unresolved symbol: diff_match_patch"})
-   (lint! "(def ^name.fraser.neil.plaintext.diff_match_patch dmp (diff_match_patch.))"
-          '{:linters {:unresolved-symbol {:level :error}}}))
+  (is (empty? (lint! "(def ^name.fraser.neil.plaintext.diff_match_patch dmp 1)"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
   (testing "known java classes"
     (is (empty? (lint! "(String. \"a\")"
                        '{:linters {:unresolved-symbol {:level :error}}})))))
