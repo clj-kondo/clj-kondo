@@ -18,6 +18,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#1971](https://github.com/clj-kondo/clj-kondo/issues/1971): false positive `:redundant-fn-wrapper` with syntax-quoted body
+- [#1984](https://github.com/clj-kondo/clj-kondo/issues/1984): lint java constructor calls as unresolved-symbol when using dot notation.
 
 ## 2023.01.20
 
