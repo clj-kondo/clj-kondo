@@ -138,7 +138,7 @@
               :line-length {:level :warning
                             :max-line-length nil}
               :unused-value {:level :warning}
-              :dynamic-var-not-earmuffed {:level :warning}
+              :dynamic-var-not-earmuffed {:level :off}
               :earmuffed-var-not-dynamic {:level :warning}
               :duplicate-field {:level :error}
               :aliased-namespace-var-usage {:level :warning}}

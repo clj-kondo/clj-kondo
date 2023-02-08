@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#1971](https://github.com/clj-kondo/clj-kondo/issues/1971): false positive `:redundant-fn-wrapper` with syntax-quoted body
 - [#1984](https://github.com/clj-kondo/clj-kondo/issues/1984): lint java constructor calls as unresolved-symbol when using dot notation.
+- [#1970](https://github.com/clj-kondo/clj-kondo/issues/1970): `:dynamic-var-not-earmuffed` should be opt-in
 
 ## 2023.01.20
 
