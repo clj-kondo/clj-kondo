@@ -2913,7 +2913,9 @@
                                                         :filename filename
                                                         :type     :line-length
                                                         :row      (inc row)
-                                                        :col      (inc max-line-length)}))))
+                                                        :end-row  (inc row)
+                                                        :col      (inc max-line-length)
+                                                        :end-col  (count line)}))))
                       (map-indexed vector (line-seq rdr))))))))
       (doseq [e @reader-exceptions]
         (if dev?
