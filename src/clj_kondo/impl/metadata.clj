@@ -15,7 +15,18 @@
           :else {:tag s})))
 
 (def type-hint-bindings
-  '{void {} objects {}})
+  "From https://clojure.org/reference/java_interop#TypeAliases"
+  (zipmap '[int ints
+            long longs
+            float floats
+            double doubles
+            void
+            short shorts
+            boolean boolean
+            byte bytes
+            char chars
+            objects]
+          (repeat {})))
 
 (defn lift-meta-content2
   ([ctx node] (lift-meta-content2 ctx node false))

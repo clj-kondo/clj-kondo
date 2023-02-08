@@ -330,3 +330,12 @@
 
   (is (empty? (lint! "(ns foo) (comment (map square [1 2 3])) (defn square [x] (* x x))"
                      {:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest primitive-type-hints-test
+  (is (empty? (lint! "(ns my-app
+  (:refer-clojure :exclude [double int]))
+
+(defn scalb
+  [x exp]
+  (Math/scalb ^double x ^int exp))"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
