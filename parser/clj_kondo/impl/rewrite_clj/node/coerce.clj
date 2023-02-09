@@ -58,7 +58,7 @@
 
 (extend-protocol NodeCoerceable
   nil
-  (coerce [v]
+  (coerce [_v]
     (token-node nil)))
 
 (extend-protocol NodeCoerceable

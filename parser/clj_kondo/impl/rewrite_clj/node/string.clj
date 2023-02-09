@@ -13,7 +13,7 @@
   [lines]
   (string/join "\n" lines))
 
-(defrecord StringNode [lines]
+(defrecord StringNode [lines raw-string]
   node/Node
   (tag [_]
     (if (next lines)
@@ -22,10 +22,11 @@
   (printable-only? [_]
     false)
   (sexpr [_]
-    (join-lines
-      (map
-        (comp edn/read-string wrap-string)
-        lines)))
+    (or raw-string
+        (join-lines
+         (map
+          (comp edn/read-string wrap-string)
+          lines))))
   (length [_]
     (+ 2 (reduce + (map count lines))))
   (string [_]
@@ -42,7 +43,11 @@
 (defn string-node
   "Create node representing a string value.
    Takes either a seq of strings or a single one."
-  [lines]
-  (if (string? lines)
-    (->StringNode [lines])
-    (->StringNode lines)))
+  ([lines]
+   (if (string? lines)
+     (->StringNode [lines] lines)
+     (->StringNode lines nil)))
+  ([lines raw-string]
+   (if (string? lines)
+     (->StringNode [lines] raw-string)
+     (->StringNode lines raw-string))))
