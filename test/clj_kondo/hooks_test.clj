@@ -386,3 +386,10 @@ my-ns/special-map \"
           '{:linters {:interop {:level :warning}}
             :hooks {:analyze-call {clojure.core/new hooks.new/new}}}
           "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))))
+
+(deftest issue-1987-coerce-sexpr-roundtrip-test
+  (is (empty?
+       (lint! (io/file "corpus" "hooks" "coerce_sexpr_roundtrip.clj")
+              '{:linters {:interop {:level :warning}}
+                :hooks {:macroexpand {clojure.core/new hooks.new/new-macroexpand}}}
+              "--config-dir" (.getPath (io/file "corpus" ".clj-kondo"))))))
