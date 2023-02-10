@@ -1,0 +1,2 @@
+{:linters {:discouraged-var {clojure.core/println {:message "Don't print!"}}}
+ :hooks {:analyze-call {my-print/my-print hooks/my-print}}}
