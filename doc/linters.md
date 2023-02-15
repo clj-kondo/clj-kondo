@@ -418,7 +418,13 @@ Docstring missing for task: a
 {:linters {:discouraged-var {clojure.core/read-string {:message "Use edn/read-string instead of read-string"}}}}
 ```
 
-The matching namespace symbol may be given a group name using a regex pattern.
+The matching namespace symbol may be given a group name using a regex
+pattern. The warning can be made undone on the namespace level (e.g. via
+`:config-in-ns` or ns metadata) by providing `:level` on the var level:
+
+``` clojure
+{:linters {:discouraged-var {clojure.core/read-string {:level :off}}}}
+```
 
 *Example trigger:*
 
