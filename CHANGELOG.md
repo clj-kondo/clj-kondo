@@ -23,6 +23,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1972](https://github.com/clj-kondo/clj-kondo/issues/1972): type hint aliases should not result in unresolved symbol
 - [#1951](https://github.com/clj-kondo/clj-kondo/issues/1951): include end locations in `:line-length` linter
 - [#1987](https://github.com/clj-kondo/clj-kondo/issues/1987): Fix escaping of regex literal string in `:macroexpand`
+- [#1980](https://github.com/clj-kondo/clj-kondo/issues/1980): make support for ignoring warnings in generated hooks explicit
 
 ## 2023.01.20
 

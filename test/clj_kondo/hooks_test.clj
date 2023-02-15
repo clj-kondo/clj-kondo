@@ -393,3 +393,8 @@ my-ns/special-map \"
               '{:linters {:interop {:level :warning}}
                 :hooks {:macroexpand {clojure.core/new hooks.new/new-macroexpand}}}
               "--config-dir" (.getPath (io/file "corpus" ".clj-kondo"))))))
+
+(deftest issue-1980-ignore-with-hook-test
+  (is (empty?
+       (lint! (io/file "corpus" "issue-1980")
+              "--config-dir" (.getPath (io/file "corpus" "issue-1980" ".clj-kondo"))))))
