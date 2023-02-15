@@ -1611,7 +1611,7 @@
                                                   :type-mismatch
                                                   :private-call
                                                   :missing-docstring])]
-    (namespace/reg-var! ctx ns-name (with-meta name-sym (meta name-expr)) expr (meta name-expr))
+    (namespace/reg-var! ctx ns-name name-sym expr (meta name-expr))
     (run! #(analyze-usages2 ctx %) body)))
 
 (defn analyze-when [ctx expr]
