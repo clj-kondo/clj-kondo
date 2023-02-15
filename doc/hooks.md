@@ -453,6 +453,30 @@ argument and bindings (local variables in scope of the macro call) as the third
 argument. The return value from the macro call is a node that has been
 reconstructed from the s-expression that the macro returned.
 
+### Ignore warnings in nodes
+
+To ignore warnings in generated nodes, you can apply `:clj-kondo/ignore`
+metadata to them, similar to how you would write it
+[here](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#ignore-warnings-in-an-expression).
+
+For example, when your lint configuration has `{:linters {:discouraged-var {clojure.core/println {:message "Don't print!"}}}}`, the following generated code would trigger a warning:
+
+``` clojure
+(ns hooks
+  (:require [clj-kondo.hooks-api :as api]))
+
+(defn my-print [{:keys [node]}]
+  {:node (api/list-node (list* (api/token-node 'clojure.core/println) (rest (:children node))))})
+```
+
+You can prevent that using:
+
+``` clojure
+(defn my-print [{:keys [node]}]
+  {:node (vary-meta (api/list-node (list* (api/token-node 'clojure.core/println) (rest (:children node))))
+           assoc :clj-kondo/ignore [:discouraged-var])})
+```
+
 ### Performance
 
 Less code to process will result in faster linting. If only one hook is used in
