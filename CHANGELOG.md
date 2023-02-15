@@ -25,6 +25,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1987](https://github.com/clj-kondo/clj-kondo/issues/1987): Fix escaping of regex literal string in `:macroexpand`
 - [#1980](https://github.com/clj-kondo/clj-kondo/issues/1980): make support for ignoring warnings in generated hooks explicit
 - [#1979](https://github.com/clj-kondo/clj-kondo/issues/1979): allow `:level :off` in `:discouraged-var` config on var level
+- [#1995](https://github.com/clj-kondo/clj-kondo/issues/1995): `clj-kondo.lint-as/def-catch-all` doesn't emit locations, fixes navigation for lsp
 
 ## 2023.01.20
 

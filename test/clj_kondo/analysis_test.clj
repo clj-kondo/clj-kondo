@@ -687,7 +687,13 @@
      var-definitions)
     (assert-submaps
      '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
-     var-usages)))
+     var-usages))
+  (let [{:keys [var-definitions]} (analyze "(require '[defn-spec]) (defn-spec/defn a foobar baz)" '{:config {:lint-as {defn-spec/defn clj-kondo.lint-as/def-catch-all}
+                                                                                                             :analysis true}})]
+    (assert-submaps2
+     '[{:name-row 1 :name-col 40 :name-end-row 1 :name-end-col 41 :end-row 1 :col 24 :end-col 53
+        :name a}]
+     var-definitions)))
 
 (deftest scope-usage-test
   (testing "when the var-usage is called as function"
