@@ -344,14 +344,15 @@
                                                   (config/ns-groups call-config resolved-ns filename)))]
                         (doseq [fn-lookup-sym candidates]
                           (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
-                            (findings/reg-finding! ctx {:filename filename
-                                                        :row row
-                                                        :end-row end-row
-                                                        :col col
-                                                        :end-col end-col
-                                                        :type :discouraged-var
-                                                        :message (or (:message cfg)
-                                                                     (str "Discouraged var: " fn-sym))}))))))]
+                            (when-not (identical? :off (:level cfg))
+                              (findings/reg-finding! ctx {:filename filename
+                                                          :row row
+                                                          :end-row end-row
+                                                          :col col
+                                                          :end-col end-col
+                                                          :type :discouraged-var
+                                                          :message (or (:message cfg)
+                                                                       (str "Discouraged var: " fn-sym))})))))))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and  ;; unresolved?

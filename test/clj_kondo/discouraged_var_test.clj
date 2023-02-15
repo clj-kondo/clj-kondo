@@ -27,7 +27,18 @@
        (lint!
         (str "(ns foo {:clj-kondo/config {:linters {:discouraged-var {:level :off}}}})\n"
              "(satisfies? Datafy 5)")
-        '{:linters  {:discouraged-var {clojure.core/satisfies? {:message "Too slow"}}}}))))
+        '{:linters  {:discouraged-var {clojure.core/satisfies? {:message "Too slow"}}}})))
+  (is (empty?
+       (lint!
+        (str "(ns foo {:clj-kondo/config '{:linters {:discouraged-var {clojure.core/satisfies? {:level :off}}}}})\n"
+             "(satisfies? Datafy 5)")
+        '{:linters {:discouraged-var {clojure.core/satisfies? {:message "Too slow"}}}})))
+  (is (empty?
+       (lint!
+        (str "(ns foo)\n"
+             "(satisfies? Datafy 5)")
+        '{:linters {:discouraged-var {clojure.core/satisfies? {:message "Too slow"}}}
+          :config-in-ns {foo {:linters {:discouraged-var {clojure.core/satisfies? {:level :off}}}}}}))))
 
 (deftest namespace-matches-multiple-ns-groups-test
   (testing "merged config in x.core namespace"
@@ -66,7 +77,7 @@
                      {::ns-groups ns-groups}))]
       (test-fn (conf-fn ns-groups))
       (test-fn (conf-fn (reverse ns-groups)))))
-  (testing "multiple matched discouraged vars via ns-groups"
+  (testing "multiple matched discouraged vars via ns-groups (this behavior isn't specified and we might be overtesting here)"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 15, :level :warning, :message "Way too slow"}
        {:file "<stdin>", :row 1, :col 15, :level :warning, :message "Too slow"})
