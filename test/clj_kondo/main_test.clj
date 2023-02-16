@@ -2161,7 +2161,14 @@ foo/foo ;; this does use the private var
         :col 19
         :level :error
         :message "Function arguments should be wrapped in vector."})
-     (lint! "(defn oopsie ([]) ({:not :good}))"))))
+     (lint! "(defn oopsie ([]) ({:not :good}))"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 16
+        :level :error
+        :message "Only one varargs binding allowed but got: xs, ys"})
+     (lint! "(defn foo [x y & xs ys] [x y xs ys])"))))
 
 (deftest not-empty?-test
   (assert-submaps

@@ -337,13 +337,22 @@
 
 ;;;; function arity
 
-(defn analyze-arity [sexpr]
-  (loop [[arg & rest-args] sexpr
+(defn analyze-arity [ctx arg-vec]
+  (loop [[arg & rest-args] (:children arg-vec)
          arity 0]
     (if arg
-      (if (= '& arg)
-        {:min-arity arity
-         :varargs? true}
+      (if (= '& (:value arg))
+        (do
+          (when-not (= 1 (count rest-args))
+            (findings/reg-finding!
+             ctx
+             (assoc (meta arg)
+                    :filename (:filename ctx)
+                    :type :syntax
+                    :message (str "Only one varargs binding allowed but got: "
+                                  (str/join ", " rest-args)))))
+          {:min-arity arity
+           :varargs? true})
         (recur rest-args
                (inc arity)))
       {:fixed-arity arity})))
@@ -361,8 +370,7 @@
         (let [arg-bindings (extract-bindings ctx arg-vec body {:fn-args? true})
               {return-tag :tag
                arg-tags :tags} (meta arg-bindings)
-              arg-list (sexpr arg-vec)
-              arity (analyze-arity arg-list)
+              arity (analyze-arity ctx arg-vec)
               ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
                            :arity arity
                            :analyzed-arg-vec (:analyzed arg-bindings)
