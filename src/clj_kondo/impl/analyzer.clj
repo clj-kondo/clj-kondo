@@ -2555,8 +2555,6 @@
 (defn analyze-expression**
   [{:keys [bindings lang] :as ctx}
    {:keys [children] :as expr}]
-  ;; (prn :expr expr)
-  ;; (utils/where-am-i 20)
   (when expr
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))

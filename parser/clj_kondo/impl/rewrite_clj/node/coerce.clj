@@ -38,10 +38,14 @@
 (defn- node-with-meta
   [node value]
   (if (instance? clojure.lang.IMeta value)
-    (let [mta (meta value)]
+    (let [mta (meta value)
+          ;; if metadata contains other key than location key, we add it to :meta so it will be analyzed
+          other? (some #(not (contains? #{:row :end-row :col :end-col} %)) (keys mta))]
       (if mta
         (with-meta
-          (update node :meta lconj (coerce mta))
+          (if other?
+            (update node :meta lconj (coerce mta))
+            node)
           mta)
         node))
     node))
