@@ -346,7 +346,7 @@
           (when-not (= 1 (count rest-args))
             (findings/reg-finding!
              ctx
-             (assoc (meta (first rest-args))
+             (assoc (meta (second rest-args))
                     :filename (:filename ctx)
                     :type :syntax
                     :message (str "Only one varargs binding allowed but got: "
