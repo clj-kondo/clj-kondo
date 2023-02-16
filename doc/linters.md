@@ -1215,6 +1215,18 @@ You can add or override type annotations. See
 
 *Example message:* `j is not bound in this destructuring form`.
 
+### Uninitialized var
+
+*Keyword:* `:uninitialized-var`
+
+*Description:* warn on var without initial value
+
+*Default level:* `:off` (will become `:warning` in the future)
+
+*Example trigger:* `(def x)`
+
+*Example message:* `Uninitialized var`
+
 ### Unused binding
 
 *Keyword:* `:unused-binding`.

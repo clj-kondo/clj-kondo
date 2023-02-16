@@ -1101,6 +1101,8 @@
         core-def? (one-of (first (:callstack ctx)) [[clojure.core def] [cljs.core def]])
         _ (when (and core-def? children)
             (findings/reg-finding! ctx (utils/node->line (:filename ctx) expr :invalid-arity "Too many arguments to def")))
+        _ (when-not child
+            (findings/reg-finding! ctx (utils/node->line (:filename ctx) expr :uninitialized-var "Uninitialized var")))
         [extra-meta extra-meta-node children] (if (and defmulti?
                                                        child
                                                        (identical? :map (utils/tag child)))
