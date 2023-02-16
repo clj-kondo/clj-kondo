@@ -2165,7 +2165,7 @@ foo/foo ;; this does use the private var
     (assert-submaps2
      '({:file "<stdin>"
         :row 1
-        :col 16
+        :col 18
         :level :error
         :message "Only one varargs binding allowed but got: xs, ys"})
      (lint! "(defn foo [x y & xs ys] [x y xs ys])"))))
