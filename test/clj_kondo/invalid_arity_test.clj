@@ -1,7 +1,7 @@
 (ns clj-kondo.invalid-arity-test
   (:require
    [clj-kondo.test-utils :refer
-    [lint! assert-submaps]]
+    [lint! assert-submaps assert-submaps2]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
@@ -181,3 +181,13 @@
    '({:file "corpus/def_fn.clj", :row 12, :col 1, :level :error,
       :message "def-fn/cons is called with 3 args but expects 2"})
    (lint! (io/file "corpus/def_fn.clj"))))
+
+(deftest def-test
+  (assert-submaps2
+   [{:row 1,
+     :col 1,
+     :level :error,
+     :message "Too many arguments to def"}]
+   (lint! "(def x 1 2)"))
+  (is (empty? (lint! "(def x)")))
+  (is (empty? (lint! "(def x \"foo\" 1)"))))

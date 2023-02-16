@@ -1093,12 +1093,14 @@
         children (next children)
         docstring (when (> (count children) 1)
                     (string-from-token (first children)))
-
         defmulti? (or (= 'clojure.core/defmulti defined-by)
                       (= 'cljs.core/defmulti defined-by))
         doc-node (when docstring
                    (first children))
         [child & children] (if docstring (next children) children)
+        core-def? (one-of (first (:callstack ctx)) [[clojure.core def] [cljs.core def]])
+        _ (when (and core-def? children)
+            (findings/reg-finding! ctx (utils/node->line (:filename ctx) expr :invalid-arity "Too many arguments to def")))
         [extra-meta extra-meta-node children] (if (and defmulti?
                                                        child
                                                        (identical? :map (utils/tag child)))
@@ -1118,8 +1120,7 @@
         children (if (:analyze-var-defs-shallowly? ctx)
                    []
                    children)
-        def-init (when (and (or (= 'clojure.core/def defined-by)
-                                (= 'cljs.core/def defined-by))
+        def-init (when (and core-def?
                             (= 1 (count children)))
                    (or (analyze-expression** ctx (first children))
                        ;; prevent analysis of only child more than once
