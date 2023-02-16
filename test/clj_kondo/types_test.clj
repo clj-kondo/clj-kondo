@@ -802,15 +802,15 @@
 
 (deftest keyword-resolution-test
   (testing "keyword call"
-    (assert-submaps
+    (assert-submaps2
      [{:row 1 :col 6 :message (expected-message :number :string)}]
      (lint! "(inc (:a {:a \"foo\"}))" config)))
   (testing "nested keyword call"
-    (assert-submaps
+    (assert-submaps2
      [{:row 1 :col 6 :message (expected-message :number :string)}]
      (lint! "(inc (:a {:a (:b {:b \"foo\"})}))" config)))
   (testing "inferred type"
-    (assert-submaps
+    (assert-submaps2
      [{:row 4 :col 8 :message (expected-message :number :string)}]
      (lint! "
 (do
@@ -825,7 +825,7 @@
   (+ 1 (:a (:a (fun2 {:a 41})))))"
                 config))))
   (testing "nested inferred type with different keywords"
-    (assert-submaps
+    (assert-submaps2
      [{:row 4 :col 8 :message (expected-message :number :string)}]
      (lint! "
 (do
@@ -833,7 +833,7 @@
   (+ 1 (:a (:b (fun2 {:a 41})))))"
             config)))
   (testing "inferred type for explicit namespaced keyword"
-    (assert-submaps
+    (assert-submaps2
      [{:row 4 :col 8 :message (expected-message :number :string)}]
      (lint! "
 (do
@@ -841,7 +841,7 @@
   (+ 1 (:eita/a (fun2 {:a 41}))))"
             config)))
   (testing "inferred type for implict namespaced keyword"
-    (assert-submaps
+    (assert-submaps2
      [{:row 6 :col 8 :message (expected-message :number :string)}]
      (lint! "
 (ns foo)
@@ -851,7 +851,7 @@
   (+ 1 (::a (fun2 {:a 41}))))"
             config)))
   (testing "manually typed function"
-    (assert-submaps
+    (assert-submaps2
      [{:row 4 :col 8 :message (expected-message :number :string)}]
      (lint! "
 (do
@@ -859,7 +859,7 @@
   (+ 1 (:a (fun2 {:a 41}))))"
             config-2)))
   (testing "manually typed function for explicit namespaced keyword"
-    (assert-submaps
+    (assert-submaps2
      [{:row 4 :col 8 :message (expected-message :number :string)}]
      (lint! "
 (do
@@ -867,7 +867,7 @@
   (+ 1 (:user/a (fun3 {:a 41}))))"
             config-2)))
   (testing "manually typed function for implicit namespaced keyword"
-    (assert-submaps
+    (assert-submaps2
      [{:row 4 :col 8 :message (expected-message :number :string)}]
      (lint! "
 (do
@@ -1024,6 +1024,16 @@
         (assert-submaps
          '({:file "<stdin>", :row 1, :col 23, :level :error, :message "Expected: number, received: keyword."})
          lints)))))
+
+(deftest issue-1978-varargs-false-positive-test
+  (is (empty? (lint! "(defn foo
+  ([x] x)
+  ([^String a-ns
+    a-name & xs]
+   (str a-ns a-name xs)))
+
+(foo 1)"
+                     config))))
 
 ;;;; Scratch
 

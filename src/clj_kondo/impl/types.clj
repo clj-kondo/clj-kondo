@@ -255,6 +255,15 @@
     {:type :map
      :val (zipmap ks vtags)}))
 
+(defn called-arity [arities arity]
+  (or (get arities arity)
+      (when-let [v (:varargs arities)]
+        (if-let [ma (:min-arity v)]
+          (when (>= arity ma)
+            v)
+          ;; :min-arity isn't present, the arities were specified by a user
+          v))))
+
 (defn ret-tag-from-call
   [ctx call _expr]
   ;; Note, we need to return maps here because we are adding row and col later on.
@@ -271,8 +280,8 @@
                           (get-in built-in-specs [called-ns called-name]))]
                   (or
                    (when-let [a (:arities spec)]
-                     (when-let [called-arity (or (get a (:arity call)) (:varargs a))]
-                       (when-let [t (:ret called-arity)]
+                     (when-let [ca (called-arity a (:arity call))]
+                       (when-let [t (:ret ca)]
                          {:tag t})))
                    (if-let [fn-spec (:fn spec)]
                      (when-let [t (fn-spec @arg-types)]
@@ -392,9 +401,8 @@
                                    :end-col (:end-col usage))))))
 
 (defn args-spec-from-arities [arities arity]
-  (when-let [called-arity (or (get arities arity)
-                              (:varargs arities))]
-    (when-let [s (:args called-arity)]
+  (when-let [ca (called-arity arities arity)]
+    (when-let [s (:args ca)]
       (vec s))))
 
 (defn tag->label [x]
