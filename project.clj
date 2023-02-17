@@ -15,7 +15,7 @@
                  [io.replikativ/datalog-parser "0.2.25"]
                  [cheshire/cheshire "5.11.0"]
                  [nrepl/bencode "1.1.0"]
-                 [org.babashka/sci "0.6.37"]
+                 [org.babashka/sci "0.7.38"]
                  [babashka/fs "0.1.11"]
                  [org.ow2.asm/asm "9.2"]]
   ;; :global-vars {*print-namespace-maps* false}
