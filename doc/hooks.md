@@ -50,10 +50,10 @@ Other API functions:
   of var definitions keyed by defined symbol. The value for each symbol is a
   subset of the values provide by the top level `:analysis` option."  Arglists:
   `[ns-sym]`, `[ns-sym {:keys [lang]}]`.
-- `resolve`: Takes a map of `:name`, a symbol and `:call`, an optional boolean
+- `resolve`: Takes a map of `:name`, a symbol (including the namespace if present) and `:call`, an optional boolean
   indicating if the symbol was used in a function call. Returns a map with
   `:ns`, the resolved namespace of the symbol, if it referred to a var, and
-  `:name`, the same as the input. See `corpus/issue-1996` for a test case that demonstrates the usage of `api/resolve`
+  `:name`, the name of the var without the namespace. See `corpus/issue-1996` for a test case that demonstrates the usage of `api/resolve`
 
 The namespaces `clojure.core`, `clojure.set` and `clojure.string` are also available.
 Use `println` or `prn` for debugging and `time` to measure performance.
