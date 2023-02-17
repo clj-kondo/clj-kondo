@@ -3,10 +3,10 @@
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
+   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.parser :as parser]
    [clj-kondo.impl.utils :as utils]
-   [clj-kondo.impl.namespace :as namespace]
    [clojure.pprint]
    [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand resolve]))

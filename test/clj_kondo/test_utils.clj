@@ -1,6 +1,7 @@
 (ns clj-kondo.test-utils
   (:require
    [clj-kondo.impl.config :as conf]
+   [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.utils :refer [deep-merge]]
    [clj-kondo.main :as main :refer [main]]
    [clojure.java.io :as io]
@@ -8,8 +9,7 @@
    [clojure.test :as t :refer [*report-counters* deftest is testing]]
    [clojure.walk :as walk]
    [matcher-combinators.test]
-   [me.raynes.conch :refer [let-programs programs] :as sh]
-   [clj-kondo.impl.hooks :as hooks]))
+   [me.raynes.conch :refer [let-programs programs] :as sh]))
 
 (set! *warn-on-reflection* true)
 
