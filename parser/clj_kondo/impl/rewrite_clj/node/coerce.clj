@@ -68,7 +68,7 @@
 (extend-protocol NodeCoerceable
   String
   (coerce [v]
-    (string-node/string-node v)))
+    (token-node v)))
 
 (extend-protocol NodeCoerceable
   clojure.lang.Keyword
