@@ -1,0 +1,1 @@
+{:hooks {:analyze-call {my-test/my-test hooks/my-test}}}

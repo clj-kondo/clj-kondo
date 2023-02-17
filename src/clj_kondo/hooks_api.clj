@@ -6,9 +6,10 @@
    [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.parser :as parser]
    [clj-kondo.impl.utils :as utils]
+   [clj-kondo.impl.namespace :as namespace]
    [clojure.pprint]
    [sci.core :as sci])
-  (:refer-clojure :exclude [macroexpand]))
+  (:refer-clojure :exclude [macroexpand resolve]))
 
 (defn- mark-generate [node]
   (assoc node :clj-kondo.impl/generated true))
@@ -171,3 +172,10 @@
 (defn pprint [& args]
   (binding [*out* @sci/out]
     (apply clojure.pprint/pprint args)))
+
+(defn resolve [{:keys [name call]}]
+  (let [ctx utils/*ctx*
+        ret (namespace/resolve-name ctx call (-> ctx :ns :name) name nil)]
+    (select-keys ret [:ns :name])))
+
+;; ctx call? ns-name name-sym expr

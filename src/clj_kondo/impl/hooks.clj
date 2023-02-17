@@ -51,9 +51,10 @@
    'reg-keyword! api/reg-keyword!
    'coerce api/coerce
    'ns-analysis api/ns-analysis
-   'generated-node? api/generated-node?})
+   'generated-node? api/generated-node?
+   'resolve api/resolve})
 
-(def sci-ctx
+(defn initial-ctx []
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
                           'clojure.pprint {'pprint api/pprint}
                           'clj-kondo.hooks-api api-ns}
@@ -70,6 +71,12 @@
                             (binding [*out* *err*]
                               (println "WARNING: file" base-path "not found while loading hook")
                               nil))))}))
+
+(def sci-ctx
+  (initial-ctx))
+
+(defn reset-ctx! []
+  (alter-var-root #'sci-ctx (constantly (initial-ctx))))
 
 (defn memoize-without-ctx
   [f]

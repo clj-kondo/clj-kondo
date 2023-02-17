@@ -8,7 +8,8 @@
    [clojure.test :as t :refer [*report-counters* deftest is testing]]
    [clojure.walk :as walk]
    [matcher-combinators.test]
-   [me.raynes.conch :refer [let-programs programs] :as sh]))
+   [me.raynes.conch :refer [let-programs programs] :as sh]
+   [clj-kondo.impl.hooks :as hooks]))
 
 (set! *warn-on-reflection* true)
 
@@ -134,6 +135,7 @@
   ([input]
    (lint-jvm! input "--lang" "clj"))
   ([input & args]
+   (hooks/reset-ctx!)
    (let [[config args]
          (let [m (first args)]
            (if (map? m)

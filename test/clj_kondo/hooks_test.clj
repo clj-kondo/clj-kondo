@@ -398,3 +398,9 @@ my-ns/special-map \"
   (is (empty?
        (lint! (io/file "corpus" "issue-1980")
               "--config-dir" (.getPath (io/file "corpus" "issue-1980" ".clj-kondo"))))))
+
+(deftest resolve-in-hook-test
+  (assert-submaps2
+   '({:file "corpus/issue-1996/src/my_test.clj", :row 8, :col 2, :level :warning, :message "Don't use with-redefs"})
+   (lint! (io/file "corpus" "issue-1996" "src")
+          "--config-dir" (.getPath (io/file "corpus" "issue-1996" ".clj-kondo")))))

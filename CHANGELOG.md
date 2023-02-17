@@ -6,6 +6,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 <!-- Dev checklist: -->
 
+<!-- - [ ] fill in empty doc links in changelogs -->
 <!-- - [ ] script/bump_version release -->
 <!-- - [ ] clj-kondo lsp: bb publish -->
 <!-- - [ ] github release -->
@@ -20,6 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1976](https://github.com/clj-kondo/clj-kondo/issues/1976): warn about using multiple bindings after varargs (`&`) symbol in fn syntax
 - Add arity checks for code `def`
 - [#1954](https://github.com/clj-kondo/clj-kondo/issues/1954): new `:uninitialized-var` linter. See [docs]().
+- [#1996](https://github.com/clj-kondo/clj-kondo/issues/1996): expose `hooks-api/resolve`. See [docs]().
 - [#1971](https://github.com/clj-kondo/clj-kondo/issues/1971): false positive `:redundant-fn-wrapper` with syntax-quoted body
 - [#1984](https://github.com/clj-kondo/clj-kondo/issues/1984): lint java constructor calls as unresolved-symbol when using dot notation.
 - [#1970](https://github.com/clj-kondo/clj-kondo/issues/1970): `:dynamic-var-not-earmuffed` should be opt-in
