@@ -16,6 +16,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update clj-kondo-bb -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+...
+
 ## 2023.02.17
 
 - [#1976](https://github.com/clj-kondo/clj-kondo/issues/1976): warn about using multiple bindings after varargs (`&`) symbol in fn syntax
