@@ -70,6 +70,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
+    - [Uninitialized var](#uninitialized-var)
     - [Unused binding](#unused-binding)
     - [Unused value](#unused-value)
     - [Used underscored bindings](#used-underscored-bindings)
