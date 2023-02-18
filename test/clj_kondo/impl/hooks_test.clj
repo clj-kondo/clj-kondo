@@ -18,7 +18,24 @@ there
   (is (hooks-api/token-node? (parse-string "1")))
   (is (hooks-api/vector-node? (parse-string "[1]")))
   (is (hooks-api/list-node? (parse-string "(+ 1 2 3)")))
-  #_(is (hooks-api/map-node? (parse-string "{:a 1}"))))
+  (is (hooks-api/set-node? (parse-string "#{1 2 3}")))
+  (is (hooks-api/map-node? (parse-string "{:a 1}"))))
+
+(deftest predicate-matches-constructor-test
+  (is (hooks-api/keyword-node?
+       (hooks-api/keyword-node :foo)))
+  (is (hooks-api/string-node?
+       (hooks-api/string-node "hello")))
+  (is (hooks-api/token-node?
+       (hooks-api/token-node 'foo)))
+  (is (hooks-api/vector-node?
+       (hooks-api/vector-node [1 2 3])))
+  (is (hooks-api/list-node?
+       (hooks-api/list-node '(1 2 3))))
+  (is (hooks-api/set-node?
+       (hooks-api/set-node #{1 2 3})))
+  (is (hooks-api/map-node?
+       (hooks-api/map-node {:a 1}))))
 
 
 (deftest ns-analysis-test

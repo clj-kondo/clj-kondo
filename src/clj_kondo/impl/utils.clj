@@ -22,6 +22,7 @@
 (def map-node seq/map-node)
 (def vector-node seq/vector-node)
 (def list-node seq/list-node)
+(def set-node seq/set-node)
 (def token-node token/token-node)
 (def keyword-node k/keyword-node)
 (def string-node node-string/string-node)
@@ -30,6 +31,10 @@
 (defn list-node? [n]
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :list (tag n))))
+
+(defn set-node? [n]
+  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
+       (identical? :set (tag n))))
 
 ;;; end export
 

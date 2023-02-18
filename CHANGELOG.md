@@ -20,6 +20,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ...
 
+- [#1999](https://github.com/clj-kondo/clj-kondo/issues/1999): add
+  `hooks-api/set-node` and `hooks-api/set-node?`.
+
 ## 2023.02.17
 
 - [#1976](https://github.com/clj-kondo/clj-kondo/issues/1976): warn about using multiple bindings after varargs (`&`) symbol in fn syntax

@@ -55,6 +55,10 @@
 
 (def list-node (comp mark-generate utils/list-node))
 
+(def set-node? utils/set-node?)
+
+(def set-node (comp mark-generate utils/set-node))
+
 (defn map-node? [n]
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :map (utils/tag n))))
