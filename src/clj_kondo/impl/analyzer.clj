@@ -39,6 +39,7 @@
     [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
      one-of parse-string select-lang sexpr string-from-token symbol-call tag tag]]
    [clojure.java.io :as io]
+   [clojure.walk :as clojure.walk]
    [clojure.set :as set]
    [clojure.string :as str]
    [sci.core :as sci]))
@@ -547,6 +548,16 @@
         var-meta (if meta-node2-meta
                    (merge var-meta meta-node2-meta)
                    var-meta)
+        config (:clj-kondo/config var-meta)
+        config (if (and (seq? config)
+                        (= 'quote (first config)))
+                 (second config)
+                 config)
+        config (when config (clojure.walk/postwalk-replace {'?var (symbol (str ns-name) (str fn-name))} config))
+        cfg-dir (-> ctx :config :cfg-dir)
+        _ (when (and config cfg-dir)
+            (spit (doto (io/file cfg-dir "_exports" (str (munge ns-name) "." (name (:lang ctx))) "config.edn")
+                    (io/make-parents)) config))
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         deprecated (:deprecated var-meta)
