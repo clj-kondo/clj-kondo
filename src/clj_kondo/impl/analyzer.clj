@@ -39,9 +39,9 @@
     [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
      one-of parse-string select-lang sexpr string-from-token symbol-call tag tag]]
    [clojure.java.io :as io]
-   [clojure.walk :as clojure.walk]
    [clojure.set :as set]
    [clojure.string :as str]
+   [clojure.walk :as clojure.walk]
    [sci.core :as sci]))
 
 (set! *warn-on-reflection* true)
