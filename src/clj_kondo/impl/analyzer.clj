@@ -1749,7 +1749,9 @@
                                             [2 2 3]
                                             (and core-ns?
                                                  (or (= 'swap! hof-resolved-name)
-                                                     (= 'swap-vals! hof-resolved-name)))
+                                                     (= 'swap-vals! hof-resolved-name)
+                                                     (= 'send hof-resolved-name)
+                                                     (= 'send-off hof-resolved-name)))
                                             [1 1 2]
                                             :else
                                             [0 0 1])
@@ -1780,7 +1782,7 @@
         var? (and fsym (not binding))
         arg-count (cond (one-of resolved-as-name [map mapv mapcat])
                         (count f-args)
-                        (one-of resolved-as-name [update update-in swap! swap-vals!])
+                        (one-of resolved-as-name [update update-in send send-off swap! swap-vals!])
                         (inc (count f-args))
                         (one-of resolved-as-name [reduce map-indexed keep-indexed]) 2
                         :else 1)
@@ -2225,7 +2227,8 @@
                           (map mapv filter filterv remove reduce
                                every? not-every? some not-any? mapcat iterate
                                max-key min-key group-by partition-by map-indexed
-                               keep keep-indexed update update-in swap! swap-vals!)
+                               keep keep-indexed update update-in swap! swap-vals!
+                               send send-off)
                           (analyze-hof ctx expr resolved-as-name resolved-namespace resolved-name)
                           (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                           (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
