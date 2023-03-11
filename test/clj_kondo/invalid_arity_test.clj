@@ -183,6 +183,12 @@
    (lint! "(update {:a [1]} :a (fn [_ x] x))"))
   (assert-submaps2
    [{:row 1,
+     :col 26,
+     :level :error,
+     :message "fn is called with 1 arg but expects 2"}]
+   (lint! "(update-in {:a [1]} [:a] (fn [_ x] x))"))
+  (assert-submaps2
+   [{:row 1,
      :col 19,
      :level :error,
      :message "fn is called with 1 arg but expects 2"}]
