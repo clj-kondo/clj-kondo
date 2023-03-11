@@ -1745,7 +1745,8 @@
                      (= 'cljs.core hof-ns-name))
         [prepending-n f-pos f-args-n] (cond (and core-ns?
                                                  (or (= 'update hof-resolved-name)
-                                                     (= 'update-in hof-resolved-name)))
+                                                     (= 'update-in hof-resolved-name)
+                                                     (= 'send-via hof-resolved-name)))
                                             [2 2 3]
                                             (and core-ns?
                                                  (or (= 'swap! hof-resolved-name)
@@ -1782,7 +1783,7 @@
         var? (and fsym (not binding))
         arg-count (cond (one-of resolved-as-name [map mapv mapcat])
                         (count f-args)
-                        (one-of resolved-as-name [update update-in send send-off swap! swap-vals!])
+                        (one-of resolved-as-name [update update-in send send-off send-via swap! swap-vals!])
                         (inc (count f-args))
                         (one-of resolved-as-name [reduce map-indexed keep-indexed]) 2
                         :else 1)
@@ -2228,7 +2229,7 @@
                                every? not-every? some not-any? mapcat iterate
                                max-key min-key group-by partition-by map-indexed
                                keep keep-indexed update update-in swap! swap-vals!
-                               send send-off)
+                               send send-off send-via)
                           (analyze-hof ctx expr resolved-as-name resolved-namespace resolved-name)
                           (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                           (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
