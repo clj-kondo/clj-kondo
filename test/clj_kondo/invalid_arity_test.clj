@@ -183,10 +183,40 @@
    (lint! "(update {:a [1]} :a (fn [_ x] x))"))
   (assert-submaps2
    [{:row 1,
+     :col 26,
+     :level :error,
+     :message "fn is called with 1 arg but expects 2"}]
+   (lint! "(update-in {:a [1]} [:a] (fn [_ x] x))"))
+  (assert-submaps2
+   [{:row 1,
      :col 19,
      :level :error,
      :message "fn is called with 1 arg but expects 2"}]
-   (lint! "(swap! (atom nil) (fn [old extra] n))")))
+   (lint! "(swap! (atom nil) (fn [old extra] n))"))
+  (assert-submaps2
+   [{:row 1,
+     :col 24,
+     :level :error,
+     :message "fn is called with 1 arg but expects 2"}]
+   (lint! "(swap-vals! (atom nil) (fn [old extra] n))"))
+  (assert-submaps2
+   [{:row 1,
+     :col 19,
+     :level :error,
+     :message "fn is called with 1 arg but expects 2"}]
+   (lint! "(send (agent nil) (fn [old extra] n))"))
+  (assert-submaps2
+   [{:row 1,
+     :col 23,
+     :level :error,
+     :message "fn is called with 1 arg but expects 2"}]
+   (lint! "(send-off (agent nil) (fn [old extra] n))"))
+  (assert-submaps2
+   [{:row 1,
+     :col 55,
+     :level :error,
+     :message "fn is called with 1 arg but expects 2"}]
+   (lint! "(send-via clojure.lang.Agent/soloExecutor (agent nil) (fn [old extra] n))")))
 
 (deftest def+fn-test
   (assert-submaps

@@ -18,7 +18,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2003](https://github.com/clj-kondo/clj-kondo/issues/2003): detect invalid arity call for function passed to `update` and `swap!`
+- [#2003](https://github.com/clj-kondo/clj-kondo/issues/2003): detect invalid arity call for function passed to `update`, `update-in`, `swap!`, `swap-vals!`, `send`, `send-off`, and `send-via`.
 - [#1999](https://github.com/clj-kondo/clj-kondo/issues/1999): add
   `hooks-api/set-node` and `hooks-api/set-node?`.
 
