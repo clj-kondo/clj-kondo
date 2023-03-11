@@ -1743,12 +1743,18 @@
   (let [children (next (:children expr))
         core-ns? (or (= 'clojure.core hof-ns-name)
                      (= 'cljs.core hof-ns-name))
-        [prepending f f-args] (if (and core-ns?
-                                       (= 'update hof-resolved-name))
-                                [(take 2 children)
-                                 (nth children 2 nil)
-                                 (drop 3 children)]
-                                [nil (first children) (rest children)])
+        [prepending-n f-pos f-args-n] (cond (and core-ns?
+                                                 (= 'update hof-resolved-name))
+                                            [2 2 3]
+                                            (and core-ns?
+                                                 (= 'swap! hof-resolved-name))
+                                            [1 1 2]
+                                            :else
+                                            [0 0 1])
+        [prepending f f-args] [(take prepending-n children)
+                               (nth children f-pos nil)
+                               (drop f-args-n children)]
+        ;; _ (prn :prepending prepending :f f :f-args f-args)
         _ (analyze-children ctx prepending false)
         fana (analyze-expression** ctx f)
         fsym (utils/symbol-from-token f)
@@ -1772,7 +1778,7 @@
         var? (and fsym (not binding))
         arg-count (cond (one-of resolved-as-name [map mapv mapcat])
                         (count f-args)
-                        (one-of resolved-as-name [update])
+                        (one-of resolved-as-name [update swap!])
                         (inc (count f-args))
                         (one-of resolved-as-name [reduce map-indexed keep-indexed]) 2
                         :else 1)
@@ -1911,8 +1917,7 @@
   (let [[instance meth & args] children]
     (if instance (analyze-expression** ctx instance)
         ;; TODO, warning, instance is required
-        nil
-        )
+        nil)
     (when meth
       (if (and (identical? :list (utils/tag meth)) (not args))
         (let [[meth & children] (:children meth)]
@@ -1995,9 +2000,9 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                            [[ns n]
-                             (config/lint-as config
-                                             [resolved-namespace resolved-name])]
+                         [[ns n]
+                          (config/lint-as config
+                                          [resolved-namespace resolved-name])]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -2218,7 +2223,7 @@
                           (map mapv filter filterv remove reduce
                                every? not-every? some not-any? mapcat iterate
                                max-key min-key group-by partition-by map-indexed
-                               keep keep-indexed update)
+                               keep keep-indexed update swap!)
                           (analyze-hof ctx expr resolved-as-name resolved-namespace resolved-name)
                           (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                           (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
@@ -2270,7 +2275,7 @@
                             (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
                                                           'potemkin/import-vars)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
-                             [cljs.core.async alt!] [cljs.core.async alt!!])
+                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
                              (assoc ctx
                                     :analyze-expression** analyze-expression**
@@ -2926,13 +2931,13 @@
                                          (not (str/includes? line "http")))
                                      (or (not exclude-pattern)
                                          (not (re-find exclude-pattern line))))
-                            (findings/reg-finding! ctx {:message  (str "Line is longer than " max-line-length " characters.")
+                            (findings/reg-finding! ctx {:message (str "Line is longer than " max-line-length " characters.")
                                                         :filename filename
-                                                        :type     :line-length
-                                                        :row      (inc row)
-                                                        :end-row  (inc row)
-                                                        :col      (inc max-line-length)
-                                                        :end-col  (count line)}))))
+                                                        :type :line-length
+                                                        :row (inc row)
+                                                        :end-row (inc row)
+                                                        :col (inc max-line-length)
+                                                        :end-col (count line)}))))
                       (map-indexed vector (line-seq rdr))))))))
       (doseq [e @reader-exceptions]
         (if dev?
@@ -2954,7 +2959,7 @@
           (when (identical? :edn lang)
             (case fname
               "deps.edn" (deps-edn/lint-deps-edn ctx (first (:children parsed)))
-              "bb.edn"   (deps-edn/lint-bb-edn ctx (first (:children parsed)))
+              "bb.edn" (deps-edn/lint-bb-edn ctx (first (:children parsed)))
               "config.edn" (when (and (fs/exists? filename)
                                       (-> (fs/parent filename)
                                           (fs/file-name)
