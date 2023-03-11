@@ -1741,7 +1741,15 @@
 
 (defn analyze-hof [ctx expr resolved-as-name hof-ns-name hof-resolved-name]
   (let [children (next (:children expr))
-        f (first children)
+        core-ns? (or (= 'clojure.core hof-ns-name)
+                     (= 'cljs.core hof-ns-name))
+        [prepending f f-args] (if (and core-ns?
+                                       (= 'update hof-resolved-name))
+                                [(take 2 children)
+                                 (nth children 2)
+                                 (drop 3 children)]
+                                [nil (first children) (rest children)])
+        _ (analyze-children ctx prepending false)
         fana (analyze-expression** ctx f)
         fsym (utils/symbol-from-token f)
         binding (get (:bindings ctx) fsym)
@@ -1762,17 +1770,17 @@
          :as _m} (when var?
                    (resolve-name ctx true ns-name fsym nil))
         var? (and fsym (not binding))
-        args (rest children)
         arg-count (cond (one-of resolved-as-name [map mapv mapcat])
-                        (count args)
+                        (count f-args)
+                        (one-of resolved-as-name [update])
+                        (inc (count f-args))
                         (one-of resolved-as-name [reduce map-indexed keep-indexed]) 2
                         :else 1)
         transducer-eligable? (one-of resolved-as-name [map filter remove mapcat map-indexed
                                                        keep keep-indexed])
         arg-count (if (and transducer-eligable?
                            (zero? arg-count)) ;; transducer
-                    (if (and (or (= 'clojure.core hof-ns-name)
-                                 (= 'cljs.core hof-ns-name))
+                    (if (and core-ns?
                              (or (= 'map hof-resolved-name)
                                  (= 'mapcat hof-resolved-name)))
                       nil 1)
@@ -1843,7 +1851,7 @@
                    :reduce-without-init
                    "Reduce called without explicit initial value.")))
     (concat fana
-            (analyze-children ctx args false))))
+            (analyze-children ctx f-args false))))
 
 (defn analyze-ns-unmap [ctx base-lang lang ns-name expr]
   (let [[ns-expr sym-expr :as children] (rest (:children expr))]
@@ -2210,7 +2218,7 @@
                           (map mapv filter filterv remove reduce
                                every? not-every? some not-any? mapcat iterate
                                max-key min-key group-by partition-by map-indexed
-                               keep keep-indexed)
+                               keep keep-indexed update)
                           (analyze-hof ctx expr resolved-as-name resolved-namespace resolved-name)
                           (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                           (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)

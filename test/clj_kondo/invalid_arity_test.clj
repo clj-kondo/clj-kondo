@@ -174,7 +174,14 @@
    (lint! "(map-indexed (fn [e]) [1 2 3])"))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 7, :level :error, :message "fn is called with 1 arg but expects 2"})
-   (lint! "(some (fn [i e]) [1 2 3])")))
+   (lint! "(some (fn [i e]) [1 2 3])"))
+  (assert-submaps2
+   [{:row 1,
+     :col 21,
+     :level :error,
+     :message "fn is called with 1 arg but expects 2"}]
+   (lint! "(update {:a [1]} :a (fn [_ x] x))"))
+  )
 
 (deftest def+fn-test
   (assert-submaps
