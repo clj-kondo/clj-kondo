@@ -1746,7 +1746,7 @@
         [prepending f f-args] (if (and core-ns?
                                        (= 'update hof-resolved-name))
                                 [(take 2 children)
-                                 (nth children 2)
+                                 (nth children 2 nil)
                                  (drop 3 children)]
                                 [nil (first children) (rest children)])
         _ (analyze-children ctx prepending false)
