@@ -24,6 +24,10 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 - `:arglists`: when truthy return `:arglists` on `:var-definitions`
 - `:protocol-impls`: when truthy return `:protocol-impls` described below
 - `:symbols`: when truthy, return `:symbols` described below
+- `:java-class-definitions`: when truthy, return `:java-class-definitions` as described below.
+- `:java-class-usages`: when truthy, return `:java-class-usages` as described below.
+- `:java-member-definitions`: when truthy, return `:java-member-definitions` as described below.
+- `:instance-invocations`: when truthy, return `:instance-invocations` as described below.
 
 ### Metadata
 
@@ -187,6 +191,29 @@ The analysis output consists of a map with:
   - `:to`: the namespace the symbol might refer to, if the namespace of the
     symbol can be resolved in the `:from` namespace (e.g. via an alias or via
     the namespace itself)
+
+- `:java-class-definitions`, a list of maps with:
+  - `:class`: full qualified class name.
+  - `:uri`: file URI of this class.
+  - `filename`
+- `:java-member-definitions`, a list of maps with:
+  - `:class`: full qualified class name of this member.
+  - `:uri`: file URI of the class.
+  - `:name`: name of this member.
+  - `:parameter-types`: list of strings of each parameter type if member is a method.
+  - `:return-type`: a string representing the return type if member is a method.
+  - `:type`: a string representing the type of this member if member is a field.
+  - `:flags`: a set of keywords that classify this member, like final, static, field, method, public.
+- `:java-class-usages`, a list of maps with:
+  - `:class`: full qualified class name.
+  - `:uri`: file URI of this class.
+  - `filename`
+  - `:row`, `:col`, `:end-row`, `:end-col`, the range of the usage.
+  - `:name-row`, `:name-col`, `:name-end-row`, `:name-end-col` the name range of the usage. 
+- `:instance-invocations`, a list of maps with:
+  - `filename`
+  - `:method-name`: name of the method.
+  - `:name-row`, `:name-col`, `:name-end-row`, `:name-end-col` the name range of the invocation. 
 
 Example output after linting this code:
 
