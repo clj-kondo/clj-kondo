@@ -81,14 +81,15 @@
 
 (defn reg-class-def! [ctx {:keys [^JarFile jar ^JarFile$JarFileEntry entry filename ^File file]}]
   (when (analyze-class-defs? ctx)
-    (with-open [class-is (or (and jar entry (.getInputStream jar entry))
-                             (io/input-stream filename))]
-      (let [uri (if jar
-                  (->uri (str (.getCanonicalPath file)) (.getName entry) nil)
-                  (->uri nil nil filename))]
+    (let [uri (if jar
+                (->uri (str (.getCanonicalPath file)) (.getName entry) nil)
+                (->uri nil nil filename))
+          class-is (or (and jar entry (.getInputStream jar entry))
+                       (io/input-stream filename))]
+      (with-open [is ^InputStream class-is]
         (if (and (str/ends-with? filename ".class")
                  (:analyze-java-member-defs? ctx))
-          (doseq [[class-name class-info] (class-is->class-info class-is)]
+          (doseq [[class-name class-info] (class-is->class-info is)]
             (swap! (:analysis ctx)
                    update :java-class-definitions conj
                    {:class class-name
