@@ -1,13 +1,21 @@
 (ns clj-kondo.impl.analysis.java
-  (:require [clj-kondo.impl.utils :refer [->uri]]
-            [clojure.java.io :as io]
-            [clojure.string :as str])
-  (:import (org.objectweb.asm ClassReader)))
+  (:require
+   [clj-kondo.impl.utils :refer [->uri]]
+   [clojure.java.io :as io]
+   [clojure.string :as str])
+  (:import
+   [java.io File InputStream]
+   [java.util.jar JarFile JarFile$JarFileEntry]
+   (org.objectweb.asm
+    ClassReader
+    ClassVisitor
+    Opcodes
+    Type)))
 
 (set! *warn-on-reflection* true)
 
-(defn file->bytes [file]
-  (with-open [xin (io/input-stream file)
+(defn ^:private input-stream->bytes ^bytes [^InputStream input-stream]
+  (with-open [xin input-stream
               xout (java.io.ByteArrayOutputStream.)]
     (io/copy xin xout)
     (.toByteArray xout)))
@@ -19,18 +27,40 @@
       (str/replace ".class" "")
       (str/replace ".java" "")))
 
-(defn class->class-name [class-file]
-  (let [bytes (file->bytes class-file)
-        ;; we use ASM for reading the fully qualified class name hand-made
-        ;; solutions, if we ever want to get rid of ASM:
-        ;; https://stackoverflow.com/questions/1649674/resolve-class-name-from-bytecode/1650442#comment115293993_1650442
-        ;; https://stackoverflow.com/a/52332101/6264 Also see working example in
-        ;; Clojure
-        ;; https://gist.github.com/borkdude/d02dc3ff1d03d09351e768964983a46b
-        rdr (new ClassReader ^bytes bytes)
-        class-name (.getClassName rdr)
-        class-name (str/replace class-name "/" ".")]
-    class-name))
+(def ^:private opcode->flags
+  {Opcodes/ACC_PUBLIC #{:public}
+   Opcodes/ALOAD #{:public :field :static}
+   Opcodes/SIPUSH #{:public :field :final}
+   Opcodes/LCONST_0 #{:public :method :static}})
+
+(defn ^:private class-is->class-info
+  "Parse class-bytes using ASM."
+  [^InputStream class-is]
+  (let [class-reader (ClassReader. (input-stream->bytes class-is))
+        class-name (str/replace (.getClassName class-reader) "/" ".")
+        result* (atom {class-name {:members []}})]
+    (.accept
+     class-reader
+     (proxy [ClassVisitor] [Opcodes/ASM9]
+       (visitField [access ^String name ^String desc signature value]
+         (let [flags (opcode->flags access)]
+           (when (:public flags)
+             (swap! result* update-in [class-name :members] conj
+                    {:name name
+                     :flags (conj flags :field)
+                     :type (.getClassName (Type/getType desc))})))
+         nil)
+       (visitMethod [access ^String name ^String desc signature exceptions]
+         (let [flags (opcode->flags access)]
+           (when (:public flags)
+             (swap! result* update-in [class-name :members] conj
+                    {:name name
+                     :parameter-types (mapv #(.getClassName ^Type %) (Type/getArgumentTypes desc))
+                     :flags (conj flags :method)
+                     :return-type (.getClassName (Type/getReturnType desc))})))
+         nil))
+     ClassReader/SKIP_DEBUG)
+    @result*))
 
 (defn source->class-name [file]
   (let [fname (entry->class-name file)
@@ -45,28 +75,39 @@
               (recur))
             class-name))))))
 
-(defn java-class-def-analysis? [ctx]
-  (-> ctx :config ))
-
 (defn analyze-class-defs? [ctx]
   (:analyze-java-class-defs? ctx))
 
-(defn reg-class-def! [ctx {:keys [jar entry file]}]
+(defn reg-class-def! [ctx {:keys [^JarFile jar ^JarFile$JarFileEntry entry filename ^File file]}]
   (when (analyze-class-defs? ctx)
-    (when-let [class-name (if entry
-                            (entry->class-name entry)
-                            (when file
-                              (cond
-                                (str/ends-with? file ".class")
-                                (class->class-name file)
-                                (str/ends-with? file ".java")
-                                (source->class-name file))))]
-      (swap! (:analysis ctx)
-             update :java-class-definitions conj
-             {:class class-name
-              :uri (->uri jar entry file)
-              :filename (or file
-                            (str jar ":" entry))}))))
+    (let [class-is (or (and jar entry (.getInputStream jar entry))
+                       (io/input-stream filename))
+          uri (if jar
+                (->uri (str (.getCanonicalPath file)) (.getName entry) nil)
+                (->uri nil nil filename))]
+      (if (and (str/ends-with? filename ".class")
+               (:analyze-java-member-defs? ctx))
+        (doseq [[class-name class-info] (class-is->class-info class-is)]
+          (swap! (:analysis ctx)
+                 update :java-class-definitions conj
+                 {:class class-name
+                  :uri uri
+                  :filename filename})
+          (doseq [member (:members class-info)]
+            (swap! (:analysis ctx)
+                   update :java-member-definitions conj
+                   (merge {:class class-name
+                           :uri uri}
+                          member))))
+        (when-let [class-name (if entry
+                                (entry->class-name entry)
+                                (when (str/ends-with? filename ".java")
+                                  (source->class-name filename)))]
+          (swap! (:analysis ctx)
+                 update :java-class-definitions conj
+                 {:class class-name
+                  :uri uri
+                  :filename filename}))))))
 
 (defn analyze-class-usages? [ctx]
   (and (:analyze-java-class-usages? ctx)
