@@ -3,8 +3,6 @@
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
    [clj-kondo.test-utils :refer [assert-submap2 assert-submaps2]]
-   #_[clojure.edn :as edn]
-   #_[clojure.string :as string]
    [clojure.test :as t :refer [deftest is testing]]
    [clojure.tools.deps.alpha :as deps]))
 
@@ -16,7 +14,8 @@
                      {:lint paths
                       :config {:output {:canonical-paths true}
                                :analysis {:java-class-definitions true
-                                          :java-class-usages true}}}
+                                          :java-class-usages true
+                                          :java-member-definitions true}}}
                      config)))))
 
 (deftest jar-classes-test
@@ -25,11 +24,15 @@
                            "clojars" {:url "https://repo.clojars.org/"}}}
         jar (-> (deps/resolve-deps deps nil)
                 (get-in ['org.clojure/clojure :paths 0]))
-        {:keys [:java-class-definitions :java-class-usages]} (analyze [jar])
+        {:keys [java-class-definitions java-class-usages java-member-definitions]} (analyze [jar])
         rt-def (some #(when (= (:class %) "clojure.lang.RT")
                         %) java-class-definitions)
         rt-usage (some #(when (= (:class %) "clojure.lang.RT")
-                          %) java-class-usages)]
+                          %) java-class-usages)
+        keys-rt-member-def (some #(when (and (= (:class %) "clojure.lang.RT")
+                                             (= (:name %) "keys"))
+                                    %) java-member-definitions)]
+
     (assert-submap2
      {:class "clojure.lang.RT",
       :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class",
@@ -40,26 +43,69 @@
       :uri #"jar:file:.*\.clj",
       :filename #".*\.clj"}
      rt-usage)
+    (assert-submap2
+     {:class "clojure.lang.RT"
+      :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class"
+      :name "keys"
+      :parameter-types ["java.lang.Object"]
+      :flags #{:method :public :static}
+      :return-type "clojure.lang.ISeq"}
+     keys-rt-member-def)
     (is (every? number? ((juxt :row
                                :col
                                :end-row
                                :end-col) rt-usage)))))
 
 (deftest local-classes-test
-  (let [{:keys [:java-class-definitions]} (analyze ["corpus/java/classes"])]
+  (let [{:keys [java-class-definitions java-member-definitions]} (analyze ["corpus/java/classes"])]
     (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class",
         :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}]
-     java-class-definitions))
-  (let [{:keys [:java-class-definitions]} (analyze ["corpus/java/sources"])]
+     java-class-definitions)
+    (assert-submaps2
+     '[{:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
+        :name "bar1"
+        :flags #{:public :field}
+        :type "java.lang.Double"}
+       {:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
+        :name "bar2"
+        :flags #{:public :field :final}
+        :type "java.lang.Double"}
+       {:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
+        :name "bar3"
+        :flags #{:public :field :static}
+        :type "java.lang.Double"}
+       {:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
+        :name "<init>"
+        :flags #{:public :method}
+        :parameter-types ["double"]
+        :return-type "void"}
+       {:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
+        :name "coolSum1"
+        :flags #{:public :method}
+        :parameter-types ["double" "double"]
+        :return-type "int"}
+       {:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
+        :name "coolParse"
+        :flags #{:public :static :method}
+        :parameter-types ["java.util.List"]
+        :return-type "java.io.File[]"}]
+     java-member-definitions))
+  (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources"])]
     (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
         :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
      java-class-definitions))
   (testing "linting just one java source"
-    (let [{:keys [:java-class-definitions]} (analyze ["corpus/java/sources/foo/bar/AwesomeClass.java"])]
+    (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources/foo/bar/AwesomeClass.java"])]
       (assert-submaps2
        '[{:class "foo.bar.AwesomeClass",
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
@@ -138,6 +184,4 @@
 (comment
 
   #_(assert-submap {:filename #"\.class"} {:filename "/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar:clojure/lang/RT.class"})
-  #_(:filename rt-def)
-
-  )
+  #_(:filename rt-def))
