@@ -27,7 +27,7 @@
       (str/replace ".class" "")
       (str/replace ".java" "")))
 
-(def ^:private opcode->flags
+(defn ^:private opcode->flags []
   {Opcodes/ACC_PUBLIC #{:public}
    Opcodes/ALOAD #{:public :field :static}
    Opcodes/SIPUSH #{:public :field :final}
@@ -38,7 +38,8 @@
   [^InputStream class-is]
   (let [class-reader (ClassReader. (input-stream->bytes class-is))
         class-name (str/replace (.getClassName class-reader) "/" ".")
-        result* (atom {class-name {:members []}})]
+        result* (atom {class-name {:members []}})
+        opcode->flags (opcode->flags)]
     (.accept
      class-reader
      (proxy [ClassVisitor] [Opcodes/ASM9]
@@ -80,34 +81,34 @@
 
 (defn reg-class-def! [ctx {:keys [^JarFile jar ^JarFile$JarFileEntry entry filename ^File file]}]
   (when (analyze-class-defs? ctx)
-    (let [class-is (or (and jar entry (.getInputStream jar entry))
-                       (io/input-stream filename))
-          uri (if jar
-                (->uri (str (.getCanonicalPath file)) (.getName entry) nil)
-                (->uri nil nil filename))]
-      (if (and (str/ends-with? filename ".class")
-               (:analyze-java-member-defs? ctx))
-        (doseq [[class-name class-info] (class-is->class-info class-is)]
-          (swap! (:analysis ctx)
-                 update :java-class-definitions conj
-                 {:class class-name
-                  :uri uri
-                  :filename filename})
-          (doseq [member (:members class-info)]
+    (with-open [class-is (or (and jar entry (.getInputStream jar entry))
+                             (io/input-stream filename))]
+      (let [uri (if jar
+                  (->uri (str (.getCanonicalPath file)) (.getName entry) nil)
+                  (->uri nil nil filename))]
+        (if (and (str/ends-with? filename ".class")
+                 (:analyze-java-member-defs? ctx))
+          (doseq [[class-name class-info] (class-is->class-info class-is)]
             (swap! (:analysis ctx)
-                   update :java-member-definitions conj
-                   (merge {:class class-name
-                           :uri uri}
-                          member))))
-        (when-let [class-name (if entry
-                                (entry->class-name entry)
-                                (when (str/ends-with? filename ".java")
-                                  (source->class-name filename)))]
-          (swap! (:analysis ctx)
-                 update :java-class-definitions conj
-                 {:class class-name
-                  :uri uri
-                  :filename filename}))))))
+                   update :java-class-definitions conj
+                   {:class class-name
+                    :uri uri
+                    :filename filename})
+            (doseq [member (:members class-info)]
+              (swap! (:analysis ctx)
+                     update :java-member-definitions conj
+                     (merge {:class class-name
+                             :uri uri}
+                            member))))
+          (when-let [class-name (if entry
+                                  (entry->class-name entry)
+                                  (when (str/ends-with? filename ".java")
+                                    (source->class-name filename)))]
+            (swap! (:analysis ctx)
+                   update :java-class-definitions conj
+                   {:class class-name
+                    :uri uri
+                    :filename filename})))))))
 
 (defn analyze-class-usages? [ctx]
   (and (:analyze-java-class-usages? ctx)
