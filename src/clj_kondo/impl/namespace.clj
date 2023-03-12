@@ -127,6 +127,20 @@
               (let [vars (:vars ns)
                     prev-var (get vars var-sym)
                     prev-declared? (:declared prev-var)]
+                (when-let [clashing-vars (let [var-name (name var-sym)
+                                               low-name (str/lower-case var-name)]
+                                           (->> vars
+                                                (keys)
+                                                (filter #(let [other-name (name %)]
+                                                           (and (not= var-name other-name)
+                                                                (= low-name (str/lower-case other-name)))))
+                                                (seq)))]
+                  (findings/reg-finding!
+                   ctx
+                   (node->line filename
+                               expr
+                               :var-same-except-case
+                               (str var-sym " differs only in case from " (str/join ", " clashing-vars)))))
                 ;; declare is idempotent
                 (when (and top-level?
                            (not (:declared metadata))

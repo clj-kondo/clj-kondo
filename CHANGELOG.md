@@ -21,6 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2003](https://github.com/clj-kondo/clj-kondo/issues/2003): detect invalid arity call for function passed to `update`, `update-in`, `swap!`, `swap-vals!`, `send`, `send-off`, and `send-via`.
 - [#1999](https://github.com/clj-kondo/clj-kondo/issues/1999): add
   `hooks-api/set-node` and `hooks-api/set-node?`.
+- [#2009](https://github.com/clj-kondo/clj-kondo/issues/2007): new `:var-same-except-case` linter: warn when vars have names that differ only in case.
 
 ## 2023.02.17
 
