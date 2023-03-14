@@ -92,6 +92,20 @@
                    path deep-merge ns)
             path)))
 
+(defn- own-class-file?
+  [{:keys [linted-as defined-by fixed-arities]}]
+  (when-let [defined-by (or linted-as defined-by)]
+    (or (one-of defined-by [clojure.core/defn
+                            clojure.core/defn-
+                            clojure.core/definline
+                            clojure.core/defmacro
+                            clojure.core/deftype])
+        (and (one-of defined-by [clojure.core/defrecord
+                                 clojure.core/defprotocol
+                                 clojure.core/definterface])
+             ;; only want the top-level name, not any methods or constructors:
+             (not fixed-arities)))))
+
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
@@ -127,20 +141,21 @@
               (let [vars (:vars ns)
                     prev-var (get vars var-sym)
                     prev-declared? (:declared prev-var)]
-                (when-let [clashing-vars (let [var-name (name var-sym)
-                                               low-name (str/lower-case var-name)]
-                                           (->> vars
-                                                (keys)
-                                                (filter #(let [other-name (name %)]
-                                                           (and (not= var-name other-name)
-                                                                (= low-name (str/lower-case other-name)))))
-                                                (seq)))]
-                  (findings/reg-finding!
-                   ctx
-                   (node->line filename
-                               expr
-                               :var-same-except-case
-                               (str var-sym " differs only in case from " (str/join ", " clashing-vars)))))
+                (when (own-class-file? metadata)
+                  (when-let [clashing-vars (let [var-name (name var-sym)
+                                                 low-name (str/lower-case var-name)]
+                                             (seq (sequence (comp (filter own-class-file?)
+                                                                  (map :name)
+                                                                  (map name)
+                                                                  (filter (partial not= var-name))
+                                                                  (filter #(= low-name (str/lower-case %))))
+                                                            (vals vars))))]
+                    (findings/reg-finding!
+                     ctx
+                     (node->line filename
+                                 expr
+                                 :var-same-except-case
+                                 (str var-sym " differs only in case from " (str/join ", " clashing-vars))))))
                 ;; declare is idempotent
                 (when (and top-level?
                            (not (:declared metadata))
