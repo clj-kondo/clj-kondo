@@ -16,8 +16,8 @@
           '{:linters {:var-same-except-case {:level :error}}}))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 19, :level :error,
-      :message "Foo differs only in case from foo"})
-   (lint! "(deftype Foo [_]) (defn- foo [] 1)"
+      :message "foo differs only in case from Foo"})
+   (lint! "(deftype Foo [_]) (defn- foo [] 1) (defn use-foo [] (foo))"
           '{:linters {:var-same-except-case {:level :error}}}))
   ;; avoiding false positives
   (is (empty?
