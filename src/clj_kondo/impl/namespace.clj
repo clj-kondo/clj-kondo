@@ -146,36 +146,22 @@
               (let [vars (:vars ns)
                     prev-var (get vars var-sym)
                     prev-declared? (:declared prev-var)]
-                (when (own-class-file1? metadata)
-                  (when-let [clashing-vars (let [var-name (name var-sym)
-                                                 low-name (str/lower-case var-name)]
-                                             (seq (sequence (comp (filter own-class-file1?)
-                                                                  (map :name)
-                                                                  (map name)
-                                                                  (filter (partial not= var-name))
-                                                                  (filter #(= low-name (str/lower-case %))))
-                                                            (vals vars))))]
-                    (findings/reg-finding!
-                     ctx
-                     (node->line filename
-                                 expr
-                                 :var-same-except-case
-                                 (str var-sym " differs only in case from " (str/join ", " clashing-vars))))))
-                (when (own-class-file2? metadata)
-                  (when-let [clashing-vars (let [var-name (name var-sym)
-                                                 low-name (str/lower-case var-name)]
-                                             (seq (sequence (comp (filter own-class-file2?)
-                                                                  (map :name)
-                                                                  (map name)
-                                                                  (filter (partial not= var-name))
-                                                                  (filter #(= low-name (str/lower-case %))))
-                                                            (vals vars))))]
-                    (findings/reg-finding!
-                     ctx
-                     (node->line filename
-                                 expr
-                                 :var-same-except-case
-                                 (str var-sym " differs only in case from " (str/join ", " clashing-vars))))))
+                (doseq [own-class-file? [own-class-file1? own-class-file2?]]
+                  (when (own-class-file? metadata)
+                    (when-let [clashing-vars (let [var-name (name var-sym)
+                                                   low-name (str/lower-case var-name)]
+                                               (seq (sequence (comp (filter own-class-file?)
+                                                                    (map :name)
+                                                                    (map name)
+                                                                    (filter (partial not= var-name))
+                                                                    (filter #(= low-name (str/lower-case %))))
+                                                              (vals vars))))]
+                      (findings/reg-finding!
+                       ctx
+                       (node->line filename
+                                   expr
+                                   :var-same-except-case
+                                   (str var-sym " differs only in case from " (str/join ", " clashing-vars)))))))
                 ;; declare is idempotent
                 (when (and top-level?
                            (not (:declared metadata))
