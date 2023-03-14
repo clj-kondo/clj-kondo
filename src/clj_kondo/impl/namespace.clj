@@ -92,19 +92,24 @@
                    path deep-merge ns)
             path)))
 
-(defn- own-class-file?
+(defn- own-class-file1?
+  "Var will be written to its own class file in the same dir as this ns on compilation."
+  [{:keys [linted-as defined-by]}]
+  (when-let [defined-by (or linted-as defined-by)]
+    (one-of defined-by [clojure.core/defn
+                        clojure.core/defn-
+                        clojure.core/definline
+                        clojure.core/defmacro])))
+
+(defn- own-class-file2?
+  "Var will be written to its own class file in a subdirectory of this ns on compilation."
   [{:keys [linted-as defined-by fixed-arities]}]
   (when-let [defined-by (or linted-as defined-by)]
-    (or (one-of defined-by [clojure.core/defn
-                            clojure.core/defn-
-                            clojure.core/definline
-                            clojure.core/defmacro
-                            clojure.core/deftype])
-        (and (one-of defined-by [clojure.core/defrecord
-                                 clojure.core/defprotocol
-                                 clojure.core/definterface])
-             ;; only want the top-level name, not any methods or constructors:
-             (not fixed-arities)))))
+    (and (one-of defined-by [clojure.core/defrecord
+                             clojure.core/defprotocol
+                             clojure.core/definterface
+                             clojure.core/deftype])
+         (not fixed-arities))))
 
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
@@ -141,10 +146,25 @@
               (let [vars (:vars ns)
                     prev-var (get vars var-sym)
                     prev-declared? (:declared prev-var)]
-                (when (own-class-file? metadata)
+                (when (own-class-file1? metadata)
                   (when-let [clashing-vars (let [var-name (name var-sym)
                                                  low-name (str/lower-case var-name)]
-                                             (seq (sequence (comp (filter own-class-file?)
+                                             (seq (sequence (comp (filter own-class-file1?)
+                                                                  (map :name)
+                                                                  (map name)
+                                                                  (filter (partial not= var-name))
+                                                                  (filter #(= low-name (str/lower-case %))))
+                                                            (vals vars))))]
+                    (findings/reg-finding!
+                     ctx
+                     (node->line filename
+                                 expr
+                                 :var-same-except-case
+                                 (str var-sym " differs only in case from " (str/join ", " clashing-vars))))))
+                (when (own-class-file2? metadata)
+                  (when-let [clashing-vars (let [var-name (name var-sym)
+                                                 low-name (str/lower-case var-name)]
+                                             (seq (sequence (comp (filter own-class-file2?)
                                                                   (map :name)
                                                                   (map name)
                                                                   (filter (partial not= var-name))
