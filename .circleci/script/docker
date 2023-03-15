@@ -3,6 +3,7 @@
 set -eo pipefail
 
 image_name="cljkondo/clj-kondo"
+ghcr_image_name="ghcr.io/clj-kondo/clj-kondo"
 image_tag=$(cat resources/CLJ_KONDO_VERSION)
 latest_tag="latest"
 
@@ -19,28 +20,35 @@ fi
 if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     echo "Building Docker image $image_name:$image_tag"
     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+    echo "$GHCR_TOKEN" | docker login -u "$CONTAINER_REGISTRY_USER" --password-stdin
     unzip "/tmp/release/clj-kondo-${image_tag}-linux-${CLJ_KONDO_ARCH}.zip"
-    docker build -t "$image_name" -f Dockerfile.ci .
+    docker build -t "$image_name" -t "$ghcr_image_name" -f Dockerfile.ci .
     docker tag "$image_name:$latest_tag" "$image_name:$image_tag"
+    docker tag "$ghcr_image_name:$latest_tag" "$ghcr_image_name:$image_tag"
     rm -f clj-kondo
     if [[ $snapshot == "false" ]]; then
         unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-${CLJ_KONDO_ARCH}.zip"
-        docker build -t "$image_name:alpine" -f Dockerfile.alpine .
+        docker build -t "$image_name:alpine" -t "$ghcr_image_name:alpine" -f Dockerfile.alpine .
         docker tag "$image_name:alpine" "$image_name:$image_tag-alpine"
+        docker tag "$ghcr_image_name:alpine" "$ghcr_image_name:$image_tag-alpine"
     fi
     # only update latest when it's not a SNAPSHOT version
     if [ "false" = "$snapshot" ]; then
-        echo "Pushing image $image_name:$latest_tag"
+        echo "Pushing images $image_name:$latest_tag $image_name:$latest_tag"
         docker push "$image_name:$latest_tag"
-        echo "Pushing image $image_name:alpine"
-        docker push "$image_name:alpine"
+        docker push "$ghcr_image_name:$latest_tag"
+        echo "Pushing images $image_name:alpine"
+        docker push "$image_name:alpine $ghcr_image_name:alpine"
+        docker push "$ghcr_image_name:alpine"
     fi
     # update the version tag, even if it's a SNAPSHOT version
-    echo "Pushing image $image_name:$image_tag"
+    echo "Pushing image $image_name:$image_tag $ghcr_image_name:$image_tag"
     docker push "$image_name:$image_tag"
+    docker push "$ghcr_image_name:$image_tag"
     # only push alpine when non-snapshot
     if [[ $snapshot == "false" ]]; then
         docker push "$image_name:$image_tag-alpine"
+        docker push "$ghcr_image_name:$image_tag-alpine"
     fi
 else
     echo "Not publishing Docker image"
