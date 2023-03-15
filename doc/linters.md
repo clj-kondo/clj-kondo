@@ -58,6 +58,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Not empty?](#not-empty)
     - [Private call](#private-call)
     - [Redefined var](#redefined-var)
+    - [Var same name except case](#var-same-name-except-case)
     - [Redundant do](#redundant-do)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
     - [Redundant call](#redundant-call)
@@ -1011,6 +1012,19 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 *Example trigger:* `(def x 1) (def x 2)`
 
 *Example message:* `redefined var #'user/x`.
+
+
+### Var same name except case
+
+*Keyword:* `:var-same-name-except-case`.
+
+*Description:* warn on vars that share the same name with different case (only in Clojure mode) as these could cause clashing class file names on case insensitive filesystems.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(defmacro One [] 1) (defn one [] 1)`
+
+*Example message:* `warning: one differs only in case from One`.
 
 ### Redundant do
 

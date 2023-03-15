@@ -148,15 +148,16 @@
                     prev-declared? (:declared prev-var)
                     classfiles (:classfiles ns)
                     classfile (var-classfile metadata)]
-                (when-let [clashing-vars (->> (get classfiles classfile)
-                                              (remove #{var-sym})
-                                              (seq))]
-                  (findings/reg-finding!
-                   ctx
-                   (node->line filename
-                               expr
-                               :var-same-except-case
-                               (str var-sym " differs only in case from " (str/join ", " clashing-vars)))))
+                (when (identical? :clj lang)
+                  (when-let [clashing-vars (->> (get classfiles classfile)
+                                                (remove #{var-sym})
+                                                (seq))]
+                    (findings/reg-finding!
+                     ctx
+                     (node->line filename
+                                 expr
+                                 :var-same-name-except-case
+                                 (str var-sym " differs only in case from " (str/join ", " clashing-vars))))))
                 ;; declare is idempotent
                 (when (and top-level?
                            (not (:declared metadata))

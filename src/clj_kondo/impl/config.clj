@@ -33,7 +33,7 @@
               :duplicate-set-key {:level :error}
               :missing-map-value {:level :error}
               :redefined-var {:level :warning}
-              :var-same-except-case {:level :warning}
+              :var-same-name-except-case {:level :warning}
               :unreachable-code {:level :warning}
               :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}
