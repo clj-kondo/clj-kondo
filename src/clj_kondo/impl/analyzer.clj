@@ -2983,7 +2983,8 @@
                                       (-> (fs/parent filename)
                                           (fs/file-name)
                                           (= ".clj-kondo")))
-                             (lint-config/lint-config ctx (first (:children parsed))))))
+                             (lint-config/lint-config ctx (first (:children parsed))))
+              nil))
           (when-let [cfg-dir (-> ctx :config :cfg-dir)]
             (when-let [configs (-> ctx :inline-configs deref seq)]
               (let [config (apply config/merge-config! configs)]
