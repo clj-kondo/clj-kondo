@@ -42,7 +42,8 @@
    [clojure.set :as set]
    [clojure.string :as str]
    [clojure.walk :as clojure.walk]
-   [sci.core :as sci]))
+   [sci.core :as sci]
+   [clojure.walk :as walk]))
 
 (set! *warn-on-reflection* true)
 
@@ -548,14 +549,29 @@
         var-meta (if meta-node2-meta
                    (merge var-meta meta-node2-meta)
                    var-meta)
-        config (:clj-kondo/config var-meta)
-        config (if (and (seq? config)
-                        (= 'quote (first config)))
-                 (second config)
-                 config)
-        config (when config (clojure.walk/postwalk-replace {'?var (symbol (str ns-name) (str fn-name))} config))
-        _ (when config
-            (swap! (:inline-configs ctx) conj config))
+        ;; config (when config (clojure.walk/postwalk-replace {'?var (symbol (str ns-name) (str fn-name))} config))
+        unquote (fn [coll]
+                  (walk/postwalk (fn [x]
+                                   (if (and (seq? x)
+                                            (= 'quote (first x)))
+                                     (second x)
+                                     x))
+                                 coll))
+        _ (when true #_ config
+            (let [fq-sym (symbol (str ns-name) (str fn-name))
+                  {:clj-kondo/keys [config lint-as ignore]} var-meta
+                  config (cond-> nil
+                           config (assoc-in [:config-in-call fq-sym] (unquote config))
+                           lint-as (assoc-in [:lint-as fq-sym] (unquote lint-as))
+                           ignore (update-in [:config-in-call fq-sym :linters]
+                                             (fn [linters]
+                                               (reduce (fn [linters k]
+                                                         (assoc-in linters [k :level] :off))
+                                                       linters
+                                                       (if (true? ignore)
+                                                         (keys linters)
+                                                         ignore)))))]
+              (when config (swap! (:inline-configs ctx) conj config))))
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         deprecated (:deprecated var-meta)
@@ -2948,7 +2964,9 @@
                        :warn-on-reflect-enabled warn-on-reflect-enabled?
                        :warn-only-on-interop only-warn-on-interop)
                 ctx)
-          ctx (assoc ctx :inline-configs (atom []))
+          ctx (assoc ctx
+                     :inline-configs (atom [])
+                     :main-ns (atom nil))
           parsed (binding [*reader-exceptions* reader-exceptions]
                    (p/parse-string input))
           fname (fs/file-name filename)
@@ -2986,12 +3004,16 @@
                              (lint-config/lint-config ctx (first (:children parsed))))
               nil))
           (when-let [cfg-dir (-> ctx :config :cfg-dir)]
-            (when-let [configs (-> ctx :inline-configs deref seq)]
-              (let [config (apply config/merge-config! configs)]
-                (spit (doto (io/file cfg-dir "inline-configs" (str (namespace-munge (-> filename
-                                                                                        (str/replace "/" "_")
-                                                                                        (str/replace "." "_")))) "config.edn")
-                        (io/make-parents)) config))))
+            (when-let [main-ns @(:main-ns ctx)]
+              (let [configs (-> ctx :inline-configs deref seq)
+                    inline-file (io/file cfg-dir "inline-configs"
+                                         (str (namespace-munge main-ns)
+                                              (when-let [ext (fs/extension (:filename ctx))]
+                                                (str "." ext)) ) "config.edn")]
+                (if (and (not configs) (fs/exists? inline-file))
+                  (fs/delete-tree (fs/parent inline-file))
+                  (spit (doto inline-file
+                          (io/make-parents)) (apply config/merge-config! configs))))))
           nil)))
     (catch Exception e
       (if dev?

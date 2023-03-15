@@ -465,6 +465,8 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
+        _ (when-not (= 'user ns-name)
+            (reset! (:main-ns ctx) ns-name))
         ns-groups (config/ns-groups global-config ns-name filename)
         config-in-ns (let [config-in-ns (:config-in-ns global-config)]
                        (apply config/merge-config!
