@@ -92,6 +92,25 @@
                    path deep-merge ns)
             path)))
 
+(defn- var-classfile
+  [{:keys [linted-as defined-by fixed-arities ns name]}]
+  (when-let [defined-by (or linted-as defined-by)]
+    (cond
+      (one-of defined-by [clojure.core/defn
+                          clojure.core/defn-
+                          clojure.core/definline
+                          clojure.core/defmacro])
+      (-> name clojure.core/name str/lower-case)
+
+      (and (one-of defined-by [clojure.core/defrecord
+                               clojure.core/defprotocol
+                               clojure.core/definterface
+                               clojure.core/deftype])
+           (not fixed-arities))
+      (str (-> ns clojure.core/name str/lower-case)
+           "/"
+           (->> name clojure.core/name str/lower-case)))))
+
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
@@ -126,7 +145,19 @@
             (fn [ns]
               (let [vars (:vars ns)
                     prev-var (get vars var-sym)
-                    prev-declared? (:declared prev-var)]
+                    prev-declared? (:declared prev-var)
+                    classfiles (:classfiles ns)
+                    classfile (var-classfile metadata)]
+                (when (identical? :clj lang)
+                  (when-let [clashing-vars (->> (get classfiles classfile)
+                                                (remove #{var-sym})
+                                                (seq))]
+                    (findings/reg-finding!
+                     ctx
+                     (node->line filename
+                                 expr
+                                 :var-same-name-except-case
+                                 (str "Var name " var-sym " differs only in case from: " (str/join ", " clashing-vars))))))
                 ;; declare is idempotent
                 (when (and top-level?
                            (not (:declared metadata))
@@ -191,13 +222,18 @@
                                        expr
                                        :main-without-gen-class
                                        "Main function without gen-class.")))))))
-                (update ns :vars assoc
-                        var-sym
-                        (assoc
-                         (merge metadata (select-keys
-                                          prev-var
-                                          [:row :col :end-row :end-col]))
-                         :top-ns top-ns))))))))
+                (-> ns
+                    (update :vars assoc
+                            var-sym
+                            (assoc
+                             (merge metadata (select-keys
+                                              prev-var
+                                              [:row :col :end-row :end-col]))
+                             :top-ns top-ns))
+                    (assoc :classfiles
+                           (if classfile
+                             (update classfiles classfile (fnil conj []) var-sym)
+                             classfiles)))))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
