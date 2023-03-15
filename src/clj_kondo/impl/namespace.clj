@@ -92,24 +92,24 @@
                    path deep-merge ns)
             path)))
 
-(defn- own-class-file1?
-  "Var will be written to its own class file in the same dir as this ns on compilation."
-  [{:keys [linted-as defined-by]}]
+(defn- var-classfile
+  [{:keys [linted-as defined-by fixed-arities ns name]}]
   (when-let [defined-by (or linted-as defined-by)]
-    (one-of defined-by [clojure.core/defn
-                        clojure.core/defn-
-                        clojure.core/definline
-                        clojure.core/defmacro])))
+    (cond
+      (one-of defined-by [clojure.core/defn
+                          clojure.core/defn-
+                          clojure.core/definline
+                          clojure.core/defmacro])
+      (-> name clojure.core/name str/lower-case)
 
-(defn- own-class-file2?
-  "Var will be written to its own class file in a subdirectory of this ns on compilation."
-  [{:keys [linted-as defined-by fixed-arities]}]
-  (when-let [defined-by (or linted-as defined-by)]
-    (and (one-of defined-by [clojure.core/defrecord
-                             clojure.core/defprotocol
-                             clojure.core/definterface
-                             clojure.core/deftype])
-         (not fixed-arities))))
+      (and (one-of defined-by [clojure.core/defrecord
+                               clojure.core/defprotocol
+                               clojure.core/definterface
+                               clojure.core/deftype])
+           (not fixed-arities))
+      (str (-> ns clojure.core/name str/lower-case)
+           "/"
+           (->> name clojure.core/name str/lower-case)))))
 
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
@@ -145,23 +145,18 @@
             (fn [ns]
               (let [vars (:vars ns)
                     prev-var (get vars var-sym)
-                    prev-declared? (:declared prev-var)]
-                (doseq [own-class-file? [own-class-file1? own-class-file2?]]
-                  (when (own-class-file? metadata)
-                    (when-let [clashing-vars (let [var-name (name var-sym)
-                                                   low-name (str/lower-case var-name)]
-                                               (seq (sequence (comp (filter own-class-file?)
-                                                                    (map :name)
-                                                                    (map name)
-                                                                    (filter (partial not= var-name))
-                                                                    (filter #(= low-name (str/lower-case %))))
-                                                              (vals vars))))]
-                      (findings/reg-finding!
-                       ctx
-                       (node->line filename
-                                   expr
-                                   :var-same-except-case
-                                   (str var-sym " differs only in case from " (str/join ", " clashing-vars)))))))
+                    prev-declared? (:declared prev-var)
+                    classfiles (:classfiles ns)
+                    classfile (var-classfile metadata)]
+                (when-let [clashing-vars (->> (get classfiles classfile)
+                                              (remove #{var-sym})
+                                              (seq))]
+                  (findings/reg-finding!
+                   ctx
+                   (node->line filename
+                               expr
+                               :var-same-except-case
+                               (str var-sym " differs only in case from " (str/join ", " clashing-vars)))))
                 ;; declare is idempotent
                 (when (and top-level?
                            (not (:declared metadata))
@@ -226,13 +221,18 @@
                                        expr
                                        :main-without-gen-class
                                        "Main function without gen-class.")))))))
-                (update ns :vars assoc
-                        var-sym
-                        (assoc
-                         (merge metadata (select-keys
-                                          prev-var
-                                          [:row :col :end-row :end-col]))
-                         :top-ns top-ns))))))))
+                (-> ns
+                    (update :vars assoc
+                            var-sym
+                            (assoc
+                             (merge metadata (select-keys
+                                              prev-var
+                                              [:row :col :end-row :end-col]))
+                             :top-ns top-ns))
+                    (assoc :classfiles
+                           (if classfile
+                             (update classfiles classfile (fnil conj []) var-sym)
+                             classfiles)))))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
