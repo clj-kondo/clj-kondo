@@ -2846,11 +2846,17 @@
                  ns
                  rest-parsed))
         ;; catch-all
-        (do (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed))
-            (recur
-             ctx
-             ns
-             rest-parsed)))
+        ;; TODO: don't merge inline-configs we've already seen
+        (let [extra-configs (seq @(:inline-configs ctx))
+              config (:config ctx)
+              config (if extra-configs
+                       (apply config/merge-config! config extra-configs)
+                       config)]
+          (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed))
+          (recur
+           (assoc ctx :config config)
+           ns
+           rest-parsed)))
       (assoc ctx :ns ns))))
 
 (defn analyze-expressions
