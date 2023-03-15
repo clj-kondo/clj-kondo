@@ -1024,7 +1024,7 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 
 *Example trigger:* `(defmacro One [] 1) (defn one [] 1)`
 
-*Example message:* `warning: one differs only in case from One`.
+*Example message:* `warning: Var name one differs only in case from: One`.
 
 ### Redundant do
 

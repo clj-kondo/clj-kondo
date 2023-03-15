@@ -157,7 +157,7 @@
                      (node->line filename
                                  expr
                                  :var-same-name-except-case
-                                 (str var-sym " differs only in case from " (str/join ", " clashing-vars))))))
+                                 (str "Var name " var-sym " differs only in case from: " (str/join ", " clashing-vars))))))
                 ;; declare is idempotent
                 (when (and top-level?
                            (not (:declared metadata))
