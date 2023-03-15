@@ -407,9 +407,6 @@ workflows:
             - jvm
             - linux
       - docker:
-          filters:
-            branches:
-              only: master
           requires:
             - jvm
             - linux
