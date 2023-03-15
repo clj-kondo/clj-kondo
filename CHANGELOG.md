@@ -22,6 +22,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1999](https://github.com/clj-kondo/clj-kondo/issues/1999): add
   `hooks-api/set-node` and `hooks-api/set-node?`.
 - [#1983](https://github.com/clj-kondo/clj-kondo/issues/1983): add support for java member analysis, via new `java-member-definitions` bucket.
+- [#2011](https://github.com/clj-kondo/clj-kondo/issues/2011): push images to GHCR ([@lispyclouds](https://github.com/lispyclouds))
 - [#2009](https://github.com/clj-kondo/clj-kondo/issues/2007): new `:var-same-name-except-case` linter: warn when vars have names that differ only in case.
 
 ## 2023.02.17
