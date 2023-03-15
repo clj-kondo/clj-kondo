@@ -41,9 +41,8 @@
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [clojure.walk :as clojure.walk]
-   [sci.core :as sci]
-   [clojure.walk :as walk]))
+   [clojure.walk :as walk]
+   [sci.core :as sci]))
 
 (set! *warn-on-reflection* true)
 
