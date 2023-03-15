@@ -243,7 +243,7 @@
                   name-col (:col name-meta)
                   name-end-row (:end-row name-meta)
                   name-end-col (:end-col name-meta)
-                  unresolved-symbol
+                  unresolved-var
                   (when (and (not called-fn)
                              (not (:interop? call))
                              row col end-row end-col
@@ -282,7 +282,7 @@
                                         (or (> row-call row-called-fn)
                                             (and (= row-call row-called-fn)
                                                  (> (:col call) (:col called-fn)))))))
-                  _ (when (and (not unresolved-symbol)
+                  _ (when (and (not unresolved-var)
                                (not valid-call?))
                       (namespace/reg-unresolved-symbol!
                        ctx caller-ns-sym fn-name
