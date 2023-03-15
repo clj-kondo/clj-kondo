@@ -554,10 +554,8 @@
                  (second config)
                  config)
         config (when config (clojure.walk/postwalk-replace {'?var (symbol (str ns-name) (str fn-name))} config))
-        cfg-dir (-> ctx :config :cfg-dir)
-        _ (when (and config cfg-dir)
-            (spit (doto (io/file cfg-dir "_exports" (str (munge ns-name) "." (name (:lang ctx))) "config.edn")
-                    (io/make-parents)) config))
+        _ (when config
+            (swap! (:inline-configs ctx) conj config))
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         deprecated (:deprecated var-meta)
@@ -2896,6 +2894,31 @@
                       filename ", "
                       (or (.getMessage ex) (str ex)))}])))
 
+(defn- lint-line-length [ctx config filename input]
+  (let [line-length-conf (-> config :linters :line-length)]
+        (when (not (identical? :off (:level line-length-conf)))
+          (when-let [max-line-length (:max-line-length line-length-conf)]
+            (let [exclude-urls (:exclude-urls line-length-conf)
+                  exclude-pattern (:exclude-pattern line-length-conf)
+                  exclude-pattern (when exclude-pattern
+                                    (re-pattern exclude-pattern))]
+              (with-open [rdr (io/reader (java.io.StringReader. input))]
+                (run! (fn [[row line]]
+                        (let [line-length (count line)]
+                          (when (and (< max-line-length line-length)
+                                     (or (not exclude-urls)
+                                         (not (str/includes? line "http")))
+                                     (or (not exclude-pattern)
+                                         (not (re-find exclude-pattern line))))
+                            (findings/reg-finding! ctx {:message (str "Line is longer than " max-line-length " characters.")
+                                                        :filename filename
+                                                        :type :line-length
+                                                        :row (inc row)
+                                                        :end-row (inc row)
+                                                        :col (inc max-line-length)
+                                                        :end-col (count line)}))))
+                      (map-indexed vector (line-seq rdr)))))))))
+
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
@@ -2925,6 +2948,7 @@
                        :warn-on-reflect-enabled warn-on-reflect-enabled?
                        :warn-only-on-interop only-warn-on-interop)
                 ctx)
+          ctx (assoc ctx :inline-configs (atom []))
           parsed (binding [*reader-exceptions* reader-exceptions]
                    (p/parse-string input))
           fname (fs/file-name filename)
@@ -2933,29 +2957,7 @@
                  "data_readers.cljc")
                 (utils/ctx-with-linters-disabled ctx [:unresolved-namespace])
                 ctx)]
-      (let [line-length-conf (-> config :linters :line-length)]
-        (when (not (identical? :off (:level line-length-conf)))
-          (when-let [max-line-length (:max-line-length line-length-conf)]
-            (let [exclude-urls (:exclude-urls line-length-conf)
-                  exclude-pattern (:exclude-pattern line-length-conf)
-                  exclude-pattern (when exclude-pattern
-                                    (re-pattern exclude-pattern))]
-              (with-open [rdr (io/reader (java.io.StringReader. input))]
-                (run! (fn [[row line]]
-                        (let [line-length (count line)]
-                          (when (and (< max-line-length line-length)
-                                     (or (not exclude-urls)
-                                         (not (str/includes? line "http")))
-                                     (or (not exclude-pattern)
-                                         (not (re-find exclude-pattern line))))
-                            (findings/reg-finding! ctx {:message (str "Line is longer than " max-line-length " characters.")
-                                                        :filename filename
-                                                        :type :line-length
-                                                        :row (inc row)
-                                                        :end-row (inc row)
-                                                        :col (inc max-line-length)
-                                                        :end-col (count line)}))))
-                      (map-indexed vector (line-seq rdr))))))))
+      (lint-line-length ctx config filename input)
       (doseq [e @reader-exceptions]
         (if dev?
           (throw e)
@@ -2981,8 +2983,15 @@
                                       (-> (fs/parent filename)
                                           (fs/file-name)
                                           (= ".clj-kondo")))
-                             (lint-config/lint-config ctx (first (:children parsed))))
-              nil)))))
+                             (lint-config/lint-config ctx (first (:children parsed))))))
+          (when-let [cfg-dir (-> ctx :config :cfg-dir)]
+            (when-let [configs (-> ctx :inline-configs deref seq)]
+              (let [config (apply config/merge-config! configs)]
+                (spit (doto (io/file cfg-dir "inline-configs" (str (namespace-munge (-> filename
+                                                                                        (str/replace "/" "_")
+                                                                                        (str/replace "." "_")))) "config.edn")
+                        (io/make-parents)) config))))
+          nil)))
     (catch Exception e
       (if dev?
         (throw e)
