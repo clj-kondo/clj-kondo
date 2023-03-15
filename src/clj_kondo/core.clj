@@ -132,6 +132,7 @@
         analysis-context (some-> analysis-cfg :context)
         analyze-java-class-defs? (some-> analysis-cfg :java-class-definitions)
         analyze-java-class-usages? (some-> analysis-cfg :java-class-usages)
+        analyze-java-member-defs? (some-> analysis-cfg :java-member-definitions)
         analyze-meta? (or analysis-var-meta analysis-ns-meta)
         analyze-symbols? (some-> analysis-cfg :symbols)
         analysis (when analysis-cfg
@@ -145,6 +146,7 @@
                            analyze-protocol-impls? (assoc :protocol-impls [])
                            analyze-java-class-defs? (assoc :java-class-definitions [])
                            analyze-java-class-usages? (assoc :java-class-usages [])
+                           analyze-java-member-defs? (assoc :java-member-definitions [])
                            analyze-instance-invocations? (assoc :instance-invocations [])
                            analyze-symbols? (assoc :symbols []))))
         used-nss (atom {:clj #{}
@@ -178,6 +180,7 @@
              :analyze-arglists? (get analysis-cfg :arglists)
              :analyze-java-class-defs? analyze-java-class-defs?
              :analyze-java-class-usages? analyze-java-class-usages?
+             :analyze-java-member-defs? analyze-java-member-defs?
              :analysis-var-meta analysis-var-meta
              :analysis-ns-meta analysis-ns-meta
              :analyze-meta? analyze-meta?

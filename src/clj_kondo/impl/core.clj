@@ -240,10 +240,13 @@
                                   (when (and (java/analyze-class-defs? ctx)
                                              (not (str/includes? nm "$"))
                                              (not (str/ends-with? nm "__init.class")))
-                                    (java/reg-class-def! ctx {:jar (if canonical?
-                                                                     (str (.getCanonicalPath jar-file))
-                                                                     (str jar-file))
-                                                              :entry nm})))
+                                    (java/reg-class-def! ctx {:jar jar
+                                                              :entry x
+                                                              :filename (str (if canonical?
+                                                                               (str (.getCanonicalPath jar-file))
+                                                                               (str jar-file))
+                                                                             ":" nm)
+                                                              :file jar-file})))
                                 (source-file? nm)))) entries)]
       ;; Important that we close the `JarFile` so this has to be strict see GH
       ;; issue #542. Maybe it makes sense to refactor loading source using
@@ -313,7 +316,7 @@
                                    (java/analyze-class-defs? ctx)
                                    (or (str/ends-with? nm ".class")
                                        (str/ends-with? nm ".java")))
-                          (java/reg-class-def! ctx {:file nm}))
+                          (java/reg-class-def! ctx {:filename nm}))
                       source? (and is-file? (source-file? nm))]
                   (if (and cfg-dir source?
                            (str/includes? path "clj-kondo.exports"))
@@ -465,8 +468,9 @@
                 (let [fn (if canonical?
                            canonical
                            path)]
-                  (if (str/ends-with? canonical ".java")
-                    (java/reg-class-def! ctx {:file canonical})
+                  (if (or (str/ends-with? canonical ".java")
+                          (str/ends-with? canonical ".class"))
+                    (java/reg-class-def! ctx {:filename canonical})
                     (schedule ctx {:filename fn
                                    :uri (->uri nil nil fn)
                                    :source (slurp file)
