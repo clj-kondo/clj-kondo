@@ -12,6 +12,7 @@
   ([s cfg]
    (meta (meta/lift-meta-content2 (merge {:lang :clj
                                           :namespaces (atom {})
+                                          :main-ns (atom nil)
                                           :calls-by-id (atom {})}
                                          cfg)
                                   (parse-string s)))))
@@ -72,7 +73,8 @@
              :base-lang :clj
              :lang :clj
              :bindings {}
-             :calls-by-id (atom {})}]
+             :calls-by-id (atom {})
+             :main-ns (atom nil)}]
     (assoc ctx :ns (analyze-ns-decl ctx (parse-string "(ns user)")))))
 
 (deftest extract-bindings-test
@@ -119,8 +121,9 @@
                              :findings (atom [])
                              :namespaces (atom {})
                              :ignores (atom {})
-                             :bindings {}}]
-                    (ana/analyze-input ctx "test.clj" "file:test.clj" source :clj false)
+                             :bindings {}
+                             :main-ns (atom nil)}]
+                    (ana/analyze-input (assoc ctx :filename "test.clj") "test.clj" "file:test.clj" source :clj false)
                     ctx))]
     (testing "unmatched delimiters"
       (is (= [{:type :syntax

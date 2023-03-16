@@ -2946,97 +2946,99 @@
   [{:keys [:config :file-analyzed-fn :total-files :files] :as ctx} filename uri input lang dev?]
   (when (:debug ctx)
     (utils/stderr "[clj-kondo] Linting file:" filename))
-  (try
-    (let [reader-exceptions (atom [])
-          [only-warn-on-interop warn-on-reflect-enabled? :as reflect-opts]
-          (when (identical? :clj lang)
-            (let [cfg (-> config :linters :warn-on-reflection)]
-              (when-not (identical? :off (:level cfg))
-                (let [has-setting? (str/includes? input "*warn-on-reflection*")
-                      only-on-interop (when-not has-setting?
-                                        (:warn-only-on-interop cfg))]
-                  (when (and (not has-setting?)
-                             (not only-on-interop))
-                    (findings/reg-finding!
-                     ctx {:message "Var *warn-on-reflection* is not set in this namespace."
-                          :filename filename
-                          :type :warn-on-reflection
-                          :row 1 :col 1 :end-row 1 :end-col 1}))
-                  [only-on-interop
-                   (str/includes? input "*warn-on-reflection*")]))))
-          ctx (if reflect-opts
-                (assoc ctx
-                       :warn-on-reflect-enabled warn-on-reflect-enabled?
-                       :warn-only-on-interop only-warn-on-interop)
-                ctx)
-          ctx (assoc ctx
-                     :inline-configs (atom [])
-                     :main-ns (atom nil))
-          parsed (binding [*reader-exceptions* reader-exceptions]
-                   (p/parse-string input))
-          fname (fs/file-name filename)
-          ctx (case fname
-                ("data_readers.clj"
-                 "data_readers.cljc")
-                (utils/ctx-with-linters-disabled ctx [:unresolved-namespace])
-                ctx)]
-      (lint-line-length ctx config filename input)
-      (doseq [e @reader-exceptions]
-        (if dev?
-          (throw e)
-          (run! #(findings/reg-finding! ctx %) (->findings e filename))))
-      (case lang
-        :cljc
-        (let [cljc-config (:cljc config)
-              features (or (:features cljc-config)
-                           [:clj :cljs])]
-          (doseq [lang features]
-            (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
-                                 (:children (select-lang parsed lang)))))
-        (:clj :cljs :edn)
-        (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename
-                         :uri uri)]
-          (analyze-expressions ctx (:children parsed))
-          ;; analyze-expressions should go first in order to process ignores
-          (when (identical? :edn lang)
-            (case fname
-              "deps.edn" (deps-edn/lint-deps-edn ctx (first (:children parsed)))
-              "bb.edn" (deps-edn/lint-bb-edn ctx (first (:children parsed)))
-              "config.edn" (when (and (fs/exists? filename)
-                                      (-> (fs/parent filename)
-                                          (fs/file-name)
-                                          (= ".clj-kondo")))
-                             (lint-config/lint-config ctx (first (:children parsed))))
-              nil))
-          (when-let [cfg-dir (-> ctx :config :cfg-dir)]
-            (when-let [main-ns @(:main-ns ctx)]
-              (let [configs (-> ctx :inline-configs deref seq)
-                    inline-file (io/file cfg-dir "inline-configs"
-                                         (str (namespace-munge main-ns)
-                                              (when-let [ext (fs/extension (:filename ctx))]
-                                                (str "." ext)) ) "config.edn")]
-                (if configs
-                  (spit (doto inline-file
-                          (io/make-parents)) (apply config/merge-config! configs))
-                  (when (fs/exists? inline-file)
-                    (fs/delete-tree (fs/parent inline-file)))))))
-          nil)))
-    (catch Exception e
-      (if dev?
-        (throw e)
-        (run! #(findings/reg-finding! ctx %) (->findings e filename))))
-    (finally
-      (swap! files inc)
-      (let [output-cfg (:output config)]
-        (when (and (= :text (:format output-cfg))
-                   (:progress output-cfg))
-          (binding [*out* *err*]
-            (print ".") (flush))))
-      (when file-analyzed-fn
-        (file-analyzed-fn {:filename filename
-                           :uri uri
-                           :total-files total-files
-                           :files-done @files})))))
+  (let [ctx (assoc ctx :filename filename)]
+    (binding [utils/*ctx* ctx]
+      (try
+        (let [reader-exceptions (atom [])
+              [only-warn-on-interop warn-on-reflect-enabled? :as reflect-opts]
+              (when (identical? :clj lang)
+                (let [cfg (-> config :linters :warn-on-reflection)]
+                  (when-not (identical? :off (:level cfg))
+                    (let [has-setting? (str/includes? input "*warn-on-reflection*")
+                          only-on-interop (when-not has-setting?
+                                            (:warn-only-on-interop cfg))]
+                      (when (and (not has-setting?)
+                                 (not only-on-interop))
+                        (findings/reg-finding!
+                         ctx {:message "Var *warn-on-reflection* is not set in this namespace."
+                              :filename filename
+                              :type :warn-on-reflection
+                              :row 1 :col 1 :end-row 1 :end-col 1}))
+                      [only-on-interop
+                       (str/includes? input "*warn-on-reflection*")]))))
+              ctx (if reflect-opts
+                    (assoc ctx
+                           :warn-on-reflect-enabled warn-on-reflect-enabled?
+                           :warn-only-on-interop only-warn-on-interop)
+                    ctx)
+              ctx (assoc ctx
+                         :inline-configs (atom [])
+                         :main-ns (atom nil))
+              parsed (binding [*reader-exceptions* reader-exceptions]
+                       (p/parse-string input))
+              fname (fs/file-name filename)
+              ctx (case fname
+                    ("data_readers.clj"
+                     "data_readers.cljc")
+                    (utils/ctx-with-linters-disabled ctx [:unresolved-namespace])
+                    ctx)]
+          (lint-line-length ctx config filename input)
+          (doseq [e @reader-exceptions]
+            (if dev?
+              (throw e)
+              (run! #(findings/reg-finding! ctx %) (->findings e filename))))
+          (case lang
+            :cljc
+            (let [cljc-config (:cljc config)
+                  features (or (:features cljc-config)
+                               [:clj :cljs])]
+              (doseq [lang features]
+                (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
+                                     (:children (select-lang parsed lang)))))
+            (:clj :cljs :edn)
+            (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename
+                             :uri uri)]
+              (analyze-expressions ctx (:children parsed))
+              ;; analyze-expressions should go first in order to process ignores
+              (when (identical? :edn lang)
+                (case fname
+                  "deps.edn" (deps-edn/lint-deps-edn ctx (first (:children parsed)))
+                  "bb.edn" (deps-edn/lint-bb-edn ctx (first (:children parsed)))
+                  "config.edn" (when (and (fs/exists? filename)
+                                          (-> (fs/parent filename)
+                                              (fs/file-name)
+                                              (= ".clj-kondo")))
+                                 (lint-config/lint-config ctx (first (:children parsed))))
+                  nil))
+              (when-let [cfg-dir (-> ctx :config :cfg-dir)]
+                (when-let [main-ns @(:main-ns ctx)]
+                  (let [configs (-> ctx :inline-configs deref seq)
+                        inline-file (io/file cfg-dir "inline-configs"
+                                             (str (namespace-munge main-ns)
+                                                  (when-let [ext (fs/extension (:filename ctx))]
+                                                    (str "." ext)) ) "config.edn")]
+                    (if configs
+                      (spit (doto inline-file
+                              (io/make-parents)) (apply config/merge-config! configs))
+                      (when (fs/exists? inline-file)
+                        (fs/delete-tree (fs/parent inline-file)))))))
+              nil)))
+        (catch Exception e
+          (if dev?
+            (throw e)
+            (run! #(findings/reg-finding! ctx %) (->findings e filename))))
+        (finally
+          (swap! files inc)
+          (let [output-cfg (:output config)]
+            (when (and (= :text (:format output-cfg))
+                       (:progress output-cfg))
+              (binding [*out* *err*]
+                (print ".") (flush))))
+          (when file-analyzed-fn
+            (file-analyzed-fn {:filename filename
+                               :uri uri
+                               :total-files total-files
+                               :files-done @files})))))))
 
 ;;;; Scratch
 

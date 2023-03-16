@@ -17,7 +17,8 @@
    (analyze-ns-decl
     {:lang :clj
      :namespaces (atom {})
-     :used-namespaces (atom {})}
+     :used-namespaces (atom {})
+     :main-ns (atom nil)}
     (parse-string "(ns foo (:require [bar :as baz :refer [quux]])
                               (:refer-clojure :exclude [get assoc time]))")))
   (testing "namespace name with metadata is properly recognized"
@@ -27,7 +28,8 @@
       {:lang :clj
        :namespaces (atom {})
        :used-namespaces (atom {})
-       :calls-by-id (atom {})}
+       :calls-by-id (atom {})
+       :main-ns (atom nil)}
       (parse-string "(ns ^{:doc \"hello\"} foo)"))))
   (testing "string namespaces should be allowed in require"
     (assert-submap
@@ -38,7 +40,8 @@
      (analyze-ns-decl
       {:lang :clj
        :namespaces (atom {})
-       :used-namespaces (atom {})}
+       :used-namespaces (atom {})
+       :main-ns (atom nil)}
       (parse-string "(ns foo (:require [\"bar\" :as baz]))"))))
   (testing ":require with simple symbol"
     (assert-submap
@@ -47,7 +50,8 @@
      (analyze-ns-decl
       {:lang :clj
        :namespaces (atom {})
-       :used-namespaces (atom {})}
+       :used-namespaces (atom {})
+       :main-ns (atom nil)}
       (parse-string "(ns foo (:require bar))"))))
   (testing ":require with :refer :all"
     (assert-submap
@@ -57,7 +61,8 @@
      (analyze-ns-decl {:lang :clj
                        :namespaces (atom {})
                        :findings (atom [])
-                       :used-namespaces (atom {})}
+                       :used-namespaces (atom {})
+                       :main-ns (atom nil)}
                       (parse-string "(ns foo (:require [bar :refer :all]
                                        [baz :refer :all :rename {baz-fn renamed-fn}]))")))))
 
@@ -67,7 +72,8 @@
              :findings (atom [])
              :base-lang :clj
              :lang :clj
-             :calls-by-id (atom {})}
+             :calls-by-id (atom {})
+             :main-ns (atom nil)}
         _ (analyze-ns-decl
            ctx
            (parse-string "(ns foo (:require [bar :as baz :refer [quux]]))"))]
@@ -91,7 +97,8 @@
                  :findings (atom [])
                  :base-lang :clj
                  :lang :clj
-                 :calls-by-id (atom {})}
+                 :calls-by-id (atom {})
+                 :main-ns (atom nil)}
             _ (analyze-ns-decl
                ctx
                (parse-string "(ns clj-kondo.impl.utils {:no-doc true})

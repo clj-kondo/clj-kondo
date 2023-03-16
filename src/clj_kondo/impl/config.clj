@@ -1,7 +1,8 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [deep-merge map-vals]]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
    [clojure.set :as set]))
 
 (set! *warn-on-reflection* true)
@@ -42,8 +43,7 @@
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false
                                :exclude-destructured-as false
-                               :exclude-defmulti-args false
-                               ,}
+                               :exclude-defmulti-args false}
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
@@ -51,7 +51,7 @@
                                  :simple-libspec false}
 
               :unresolved-symbol {:level :error
-                                  :exclude [ ;; ignore globally:
+                                  :exclude [;; ignore globally:
                                             #_js*
                                             ;; ignore occurrences of service and event in call to riemann.streams/where:
                                             #_(riemann.streams/where [service event])
@@ -83,8 +83,7 @@
               :duplicate-require {:level :warning}
               :refer {:level :off
                       #_:exclude
-                      #_[clojure.test]
-                      }
+                      #_[clojure.test]}
               :refer-all {:level :warning
                           :exclude #{}}
               :use {:level :warning}
@@ -192,14 +191,20 @@
                     {:type :clj-kondo/config}))))
 
 (defn fq-syms->vecs
-  ([fq-syms]
-   (keep (fn [fq-sym]
+  [fq-syms]
+  (keep (fn [fq-sym]
           (when (symbol? fq-sym)
-            (when-let [ns* (namespace fq-sym)]
+            (if-let [ns* (namespace fq-sym)]
               [(symbol ns*) (symbol (name fq-sym))]
-              #_(throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
-                              {:type :clj-kondo/config})))))
-        fq-syms)))
+              (do (findings/reg-finding! utils/*ctx*
+                                         {:type :clj-kondo-config
+                                          :level :warning
+                                          :row 0
+                                          :col 0
+                                          :message (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                                          :filename (:filename utils/*ctx*)})
+                  nil))))
+        fq-syms))
 
 (defn skip-args*
   ([config linter]
