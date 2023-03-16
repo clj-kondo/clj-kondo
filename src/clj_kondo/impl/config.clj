@@ -172,6 +172,21 @@
              :linter-name false
              :canonical-paths false}}) ;; set to true to see absolute file paths and jar files
 
+(defn expand-ignore
+  ":ignore true / [:unresolved-symbol] can only be used in
+  config-in-call, config-in-ns and ns metadata."
+  [cfg]
+  (if-let [ignore (:ignore cfg)]
+    (let [linters (:linters cfg)
+          linters (reduce (fn [linters k]
+                            (assoc-in linters [k :level] :off))
+                          linters
+                          (if (true? ignore)
+                            (keys (:linters default-config))
+                            ignore))]
+      (assoc cfg :linters linters))
+    cfg))
+
 (defn merge-config!
   ([])
   ([cfg] cfg)

@@ -562,14 +562,8 @@
                   config (cond-> nil
                            config (assoc-in [:config-in-call fq-sym] (unquote config))
                            lint-as (assoc-in [:lint-as fq-sym] (unquote lint-as))
-                           ignore (update-in [:config-in-call fq-sym :linters]
-                                             (fn [linters]
-                                               (reduce (fn [linters k]
-                                                         (assoc-in linters [k :level] :off))
-                                                       linters
-                                                       (if (true? ignore)
-                                                         (keys linters)
-                                                         ignore)))))]
+                           ignore (assoc-in [:config-in-call fq-sym :ignore] ignore))]
+              ;; TODO: expand config :ignore annotation from disk to only in memory
               (when config (swap! (:inline-configs ctx) conj config))))
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
@@ -2009,6 +2003,8 @@
             expr-meta (meta expr)
             cfg (when-let [in-call-cfg (:config-in-call config)]
                   (get in-call-cfg (symbol (str resolved-namespace) (str resolved-name))))
+            cfg (when cfg
+                  (config/expand-ignore cfg))
             ctx (if cfg
                   (update ctx :config config/merge-config! cfg)
                   ctx)
