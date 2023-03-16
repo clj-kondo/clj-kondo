@@ -3017,7 +3017,7 @@
                                              (str (namespace-munge main-ns)
                                                   (when-let [ext (fs/extension (:filename ctx))]
                                                     (str "." ext)) ) "config.edn")]
-                    (if configs
+                    (if (and configs (not (false? (:auto-load-configs config))))
                       (spit (doto inline-file
                               (io/make-parents)) (apply config/merge-config! configs))
                       (when (fs/exists? inline-file)
