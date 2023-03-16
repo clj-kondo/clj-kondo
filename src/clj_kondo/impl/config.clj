@@ -187,8 +187,14 @@
 (defn fq-sym->vec [fq-sym]
   (if-let [ns* (namespace fq-sym)]
     [(symbol ns*) (symbol (name fq-sym))]
-    (throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
-                    {:type :clj-kondo/config}))))
+    (do (findings/reg-finding! utils/*ctx*
+                               {:type :clj-kondo-config
+                                :level :warning
+                                :row 0
+                                :col 0
+                                :message (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                                :filename (:filename utils/*ctx*)})
+        'clj-kondo/unknown-var)))
 
 (defn fq-syms->vecs
   [fq-syms]
