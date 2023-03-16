@@ -3015,10 +3015,11 @@
                                          (str (namespace-munge main-ns)
                                               (when-let [ext (fs/extension (:filename ctx))]
                                                 (str "." ext)) ) "config.edn")]
-                (if (and (not configs) (fs/exists? inline-file))
-                  (fs/delete-tree (fs/parent inline-file))
+                (if configs
                   (spit (doto inline-file
-                          (io/make-parents)) (apply config/merge-config! configs))))))
+                          (io/make-parents)) (apply config/merge-config! configs))
+                  (when (fs/exists? inline-file)
+                    (fs/delete-tree (fs/parent inline-file)))))))
           nil)))
     (catch Exception e
       (if dev?
