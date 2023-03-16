@@ -20,6 +20,7 @@
    [clj-kondo.impl.analyzer.spec :as spec]
    [clj-kondo.impl.analyzer.test :as test]
    [clj-kondo.impl.analyzer.usages :as usages :refer [analyze-usages2]]
+   [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.docstring :as docstring]
    [clj-kondo.impl.findings :as findings]
@@ -556,15 +557,15 @@
                                      (second x)
                                      x))
                                  coll))
-        _ (when true #_ config
-            (let [fq-sym (symbol (str ns-name) (str fn-name))
-                  {:clj-kondo/keys [config lint-as ignore]} var-meta
-                  config (cond-> nil
-                           config (assoc-in [:config-in-call fq-sym] (unquote config))
-                           lint-as (assoc-in [:lint-as fq-sym] (unquote lint-as))
-                           ignore (assoc-in [:config-in-call fq-sym :ignore] ignore))]
+        _ (when true #_config
+                (let [fq-sym (symbol (str ns-name) (str fn-name))
+                      {:clj-kondo/keys [config lint-as ignore]} var-meta
+                      config (cond-> nil
+                               config (assoc-in [:config-in-call fq-sym] (unquote config))
+                               lint-as (assoc-in [:lint-as fq-sym] (unquote lint-as))
+                               ignore (assoc-in [:config-in-call fq-sym :ignore] ignore))]
               ;; TODO: expand config :ignore annotation from disk to only in memory
-              (when config (swap! (:inline-configs ctx) conj config))))
+                  (when config (swap! (:inline-configs ctx) conj config))))
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         deprecated (:deprecated var-meta)
@@ -2913,28 +2914,28 @@
 
 (defn- lint-line-length [ctx config filename input]
   (let [line-length-conf (-> config :linters :line-length)]
-        (when (not (identical? :off (:level line-length-conf)))
-          (when-let [max-line-length (:max-line-length line-length-conf)]
-            (let [exclude-urls (:exclude-urls line-length-conf)
-                  exclude-pattern (:exclude-pattern line-length-conf)
-                  exclude-pattern (when exclude-pattern
-                                    (re-pattern exclude-pattern))]
-              (with-open [rdr (io/reader (java.io.StringReader. input))]
-                (run! (fn [[row line]]
-                        (let [line-length (count line)]
-                          (when (and (< max-line-length line-length)
-                                     (or (not exclude-urls)
-                                         (not (str/includes? line "http")))
-                                     (or (not exclude-pattern)
-                                         (not (re-find exclude-pattern line))))
-                            (findings/reg-finding! ctx {:message (str "Line is longer than " max-line-length " characters.")
-                                                        :filename filename
-                                                        :type :line-length
-                                                        :row (inc row)
-                                                        :end-row (inc row)
-                                                        :col (inc max-line-length)
-                                                        :end-col (count line)}))))
-                      (map-indexed vector (line-seq rdr)))))))))
+    (when (not (identical? :off (:level line-length-conf)))
+      (when-let [max-line-length (:max-line-length line-length-conf)]
+        (let [exclude-urls (:exclude-urls line-length-conf)
+              exclude-pattern (:exclude-pattern line-length-conf)
+              exclude-pattern (when exclude-pattern
+                                (re-pattern exclude-pattern))]
+          (with-open [rdr (io/reader (java.io.StringReader. input))]
+            (run! (fn [[row line]]
+                    (let [line-length (count line)]
+                      (when (and (< max-line-length line-length)
+                                 (or (not exclude-urls)
+                                     (not (str/includes? line "http")))
+                                 (or (not exclude-pattern)
+                                     (not (re-find exclude-pattern line))))
+                        (findings/reg-finding! ctx {:message (str "Line is longer than " max-line-length " characters.")
+                                                    :filename filename
+                                                    :type :line-length
+                                                    :row (inc row)
+                                                    :end-row (inc row)
+                                                    :col (inc max-line-length)
+                                                    :end-col (count line)}))))
+                  (map-indexed vector (line-seq rdr)))))))))
 
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
@@ -3012,10 +3013,13 @@
                         inline-file (io/file cfg-dir "inline-configs"
                                              (str (namespace-munge main-ns)
                                                   (when-let [ext (fs/extension (:filename ctx))]
-                                                    (str "." ext)) ) "config.edn")]
+                                                    (str "." ext))) "config.edn")]
                     (if (and configs (not (false? (:auto-load-configs config))))
-                      (spit (doto inline-file
-                              (io/make-parents)) (apply config/merge-config! configs))
+                      (cache/with-cache ;; lock config dir for concurrent writes
+                        cfg-dir
+                        10
+                        (spit (doto inline-file
+                                (io/make-parents)) (apply config/merge-config! configs)))
                       (when (fs/exists? inline-file)
                         (fs/delete-tree (fs/parent inline-file)))))))
               nil)))
