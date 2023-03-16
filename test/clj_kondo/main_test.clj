@@ -1287,7 +1287,7 @@ foo/foo ;; this does use the private var
    (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
           '{:lint-as {foo/my-defn clojure.core/defn}}))
   (assert-submaps2
-   '[{:level :error, :message #"fully qualified symbol"}]
+   '[{:level :warning, :message #"fully qualified symbol"}]
    (lint! "(require '[foo.bar]) (foo.bar/when-let)" '{:lint-as {foo.bar/when-let when-let}}))
   (is (empty?
        (lint! "(ns foo) (defmacro deftest [name & body] `(defn ~name [] ~@body)) (deftest foo)"
