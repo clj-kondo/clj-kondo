@@ -326,40 +326,40 @@ foo/foo ;; this does use the private var
                  (first (lint! "(ns my-cljs (:require [clojure.set :refer [difference]]))
     (difference)" "--lang" "cljs"))))
 
-(deftest built-in-java-test
-  (is (= {:file "<stdin>",
-          :row 1,
-          :col 1,
-          :level :error,
-          :message "java.lang.Thread/sleep is called with 3 args but expects 1 or 2"}
-         (first (lint! "(Thread/sleep 1 2 3)" "--lang" "clj"))))
-  (is (= {:file "<stdin>",
-          :row 1,
-          :col 1,
-          :level :error,
-          :message "java.lang.Thread/sleep is called with 3 args but expects 1 or 2"}
-         (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "clj"))))
-  (is (= {:file "<stdin>",
-          :row 1,
-          :col 1,
-          :level :error,
-          :message "java.lang.Math/pow is called with 3 args but expects 2"}
-         (first (lint! "(Math/pow 1 2 3)" "--lang" "clj"))))
-  (is (= {:file "<stdin>",
-          :row 1,
-          :col 1,
-          :level :error,
-          :message "java.math.BigInteger/valueOf is called with 3 args but expects 1"}
-         (first (lint! "(BigInteger/valueOf 1 2 3)" "--lang" "clj"))))
-  (assert-submap {:message #"java.lang.Thread"}
-                 (first (lint! "(java.lang.Thread/sleep 1 2 3)"
-                               "--lang" "cljs")))
-  (is (= {:file "<stdin>",
-          :row 1,
-          :col 9,
-          :level :error,
-          :message "java.lang.Thread/sleep is called with 3 args but expects 1 or 2"}
-         (first (lint! "#?(:clj (java.lang.Thread/sleep 1 2 3))" "--lang" "cljc")))))
+#_(deftest built-in-java-test
+    (is (= {:file "<stdin>",
+            :row 1,
+            :col 1,
+            :level :error,
+            :message "java.lang.Thread/sleep is called with 3 args but expects 1 or 2"}
+           (first (lint! "(Thread/sleep 1 2 3)" "--lang" "clj"))))
+    (is (= {:file "<stdin>",
+            :row 1,
+            :col 1,
+            :level :error,
+            :message "java.lang.Thread/sleep is called with 3 args but expects 1 or 2"}
+           (first (lint! "(java.lang.Thread/sleep 1 2 3)" "--lang" "clj"))))
+    (is (= {:file "<stdin>",
+            :row 1,
+            :col 1,
+            :level :error,
+            :message "java.lang.Math/pow is called with 3 args but expects 2"}
+           (first (lint! "(Math/pow 1 2 3)" "--lang" "clj"))))
+    (is (= {:file "<stdin>",
+            :row 1,
+            :col 1,
+            :level :error,
+            :message "java.math.BigInteger/valueOf is called with 3 args but expects 1"}
+           (first (lint! "(BigInteger/valueOf 1 2 3)" "--lang" "clj"))))
+    (assert-submap {:message #"java.lang.Thread"}
+                   (first (lint! "(java.lang.Thread/sleep 1 2 3)"
+                                 "--lang" "cljs")))
+    (is (= {:file "<stdin>",
+            :row 1,
+            :col 9,
+            :level :error,
+            :message "java.lang.Thread/sleep is called with 3 args but expects 1 or 2"}
+           (first (lint! "#?(:clj (java.lang.Thread/sleep 1 2 3))" "--lang" "cljc")))))
 
 (deftest resolve-core-ns-test
   (assert-submap '{:file "<stdin>",
@@ -1107,13 +1107,14 @@ foo/foo ;; this does use the private var
     (is (seq (lint! "(ns foo (:require [cats.core :as m])) (m/->>= (right {}) (select-keys))"))))
   (testing "with CLJC"
     (is (empty? (lint! "(-> 1 #?(:clj inc :cljs inc))" "--lang" "cljc")))
-    (assert-submap
-     {:file "<stdin>",
-      :row 1,
-      :col 15,
-      :level :error,
-      :message "java.lang.Math/pow is called with 1 arg but expects 2"}
-     (first (lint! "(-> 1 #?(:clj (Math/pow)))" "--lang" "cljc"))))
+    (assert-submaps2
+     [{:row 1,
+       :col 5,
+       :level :error,
+       :message "Expected: number, received: keyword."}]
+     (lint! "(-> :foo #?(:clj (inc)))"
+            {:linters {:type-mismatch {:level :error}}}
+            "--lang" "cljc")))
   (testing "with type hints"
     (assert-submap
      {:file "<stdin>",
@@ -1900,6 +1901,8 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(def ^{:macro true} foo (fn* [_ _] (map (fn* []) [])))")))
   (is (empty? (lint! "::f._al")))
   (is (empty? (lint! "(with-precision 6 :rounding CEILING (+ 3.5555555M 1))"
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(aget (into-array [1 2 3]) 0 1 2)"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest tagged-literal-test

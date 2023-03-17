@@ -1383,7 +1383,9 @@
                                   arities)]
           (utils/handle-ignore ctx c)
           (namespace/reg-var!
-           ctx ns-name fn-name c #_expr
+           (cond-> ctx
+             (= 'clojure.core/definterface defined-by)
+             (assoc :skip-reg-var true)) ns-name fn-name c
            (assoc-some (meta c)
                        :doc docstring
                        :arglist-strs arglist-strs

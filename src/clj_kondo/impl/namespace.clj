@@ -141,99 +141,100 @@
        (analysis/reg-var! ctx filename expr-row expr-col
                           ns-sym var-sym
                           metadata))
-     (swap! namespaces update-in path
-            (fn [ns]
-              (let [vars (:vars ns)
-                    prev-var (get vars var-sym)
-                    prev-declared? (:declared prev-var)
-                    classfiles (:classfiles ns)
-                    classfile (var-classfile metadata)]
-                (when (identical? :clj lang)
-                  (when-let [clashing-vars (->> (get classfiles classfile)
-                                                (remove #{var-sym})
-                                                (seq))]
-                    (findings/reg-finding!
-                     ctx
-                     (node->line filename
-                                 expr
-                                 :var-same-name-except-case
-                                 (str "Var name " var-sym " differs only in case from: " (str/join ", " clashing-vars))))))
-                ;; declare is idempotent
-                (when (and top-level?
-                           (not (:declared metadata))
-                           (not (:in-comment ctx)))
-                  (when-not (= 'clojure.core/definterface (:defined-by metadata))
-                    (when-let [redefined-ns
-                               (or (when-let [meta-v prev-var]
-                                     (when-not (or
-                                                (:temp meta-v)
-                                                prev-declared?)
-                                       ns-sym))
-                                   (when-let [qv (get (:referred-vars ns) var-sym)]
-                                     (:ns qv))
-                                   (let [core-ns (case lang
-                                                   :clj 'clojure.core
-                                                   :cljs 'cljs.core)]
-                                     (when (and (not= ns-sym core-ns)
-                                                (not (contains? (:clojure-excluded ns) var-sym))
-                                                (var-info/core-sym? lang var-sym))
-                                       core-ns)))]
+     (when-not (:skip-reg-var ctx)
+       (swap! namespaces update-in path
+              (fn [ns]
+                (let [vars (:vars ns)
+                      prev-var (get vars var-sym)
+                      prev-declared? (:declared prev-var)
+                      classfiles (:classfiles ns)
+                      classfile (var-classfile metadata)]
+                  (when (identical? :clj lang)
+                    (when-let [clashing-vars (->> (get classfiles classfile)
+                                                  (remove #{var-sym})
+                                                  (seq))]
                       (findings/reg-finding!
                        ctx
                        (node->line filename
                                    expr
-                                   :redefined-var
-                                   (if (= ns-sym redefined-ns)
-                                     (str "redefined var #'" redefined-ns "/" var-sym)
-                                     (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
-                  (when-not temp?
-                    (when (and (not (identical? :off (-> config :linters :missing-docstring :level)))
-                               (not (:private metadata))
-                               (not (:doc metadata))
-                               (not (:test metadata))
-                               (not temp?)
-                               (not (:imported-var metadata))
-                               (not
-                                (when-let [defined-by (or (:linted-as metadata)
-                                                          (:defined-by metadata))]
-                                  (or
-                                   (one-of defined-by [clojure.test/deftest
-                                                       clojure.core/deftype
-                                                       clojure.core/defrecord
-                                                       clojure.core/defprotocol
-                                                       clojure.core/definterface])
-                                   (when (identical? :cljs lang)
-                                     (one-of defined-by [cljs.core/deftype
-                                                         cljs.core/defprotocol]))))))
-                      (findings/reg-finding!
-                       ctx
-                       (node->line filename
-                                   expr
-                                   :missing-docstring
-                                   "Missing docstring.")))
-                    (when (and (identical? :clj lang)
-                               (= '-main var-sym))
-                      ;; TODO: and lang = :clj
-                      (when-not (:gen-class ns)
-                        (when-not (identical? :off (-> config :linters :main-without-gen-class :level))
-                          (findings/reg-finding!
-                           ctx
-                           (node->line filename
-                                       expr
-                                       :main-without-gen-class
-                                       "Main function without gen-class.")))))))
-                (-> ns
-                    (update :vars assoc
-                            var-sym
-                            (assoc
-                             (merge metadata (select-keys
-                                              prev-var
-                                              [:row :col :end-row :end-col]))
-                             :top-ns top-ns))
-                    (assoc :classfiles
-                           (if classfile
-                             (update classfiles classfile (fnil conj []) var-sym)
-                             classfiles)))))))))
+                                   :var-same-name-except-case
+                                   (str "Var name " var-sym " differs only in case from: " (str/join ", " clashing-vars))))))
+                  ;; declare is idempotent
+                  (when (and top-level?
+                             (not (:declared metadata))
+                             (not (:in-comment ctx)))
+                    (when-not (= 'clojure.core/definterface (:defined-by metadata))
+                      (when-let [redefined-ns
+                                 (or (when-let [meta-v prev-var]
+                                       (when-not (or
+                                                  (:temp meta-v)
+                                                  prev-declared?)
+                                         ns-sym))
+                                     (when-let [qv (get (:referred-vars ns) var-sym)]
+                                       (:ns qv))
+                                     (let [core-ns (case lang
+                                                     :clj 'clojure.core
+                                                     :cljs 'cljs.core)]
+                                       (when (and (not= ns-sym core-ns)
+                                                  (not (contains? (:clojure-excluded ns) var-sym))
+                                                  (var-info/core-sym? lang var-sym))
+                                         core-ns)))]
+                        (findings/reg-finding!
+                         ctx
+                         (node->line filename
+                                     expr
+                                     :redefined-var
+                                     (if (= ns-sym redefined-ns)
+                                       (str "redefined var #'" redefined-ns "/" var-sym)
+                                       (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
+                    (when-not temp?
+                      (when (and (not (identical? :off (-> config :linters :missing-docstring :level)))
+                                 (not (:private metadata))
+                                 (not (:doc metadata))
+                                 (not (:test metadata))
+                                 (not temp?)
+                                 (not (:imported-var metadata))
+                                 (not
+                                  (when-let [defined-by (or (:linted-as metadata)
+                                                            (:defined-by metadata))]
+                                    (or
+                                     (one-of defined-by [clojure.test/deftest
+                                                         clojure.core/deftype
+                                                         clojure.core/defrecord
+                                                         clojure.core/defprotocol
+                                                         clojure.core/definterface])
+                                     (when (identical? :cljs lang)
+                                       (one-of defined-by [cljs.core/deftype
+                                                           cljs.core/defprotocol]))))))
+                        (findings/reg-finding!
+                         ctx
+                         (node->line filename
+                                     expr
+                                     :missing-docstring
+                                     "Missing docstring.")))
+                      (when (and (identical? :clj lang)
+                                 (= '-main var-sym))
+                        ;; TODO: and lang = :clj
+                        (when-not (:gen-class ns)
+                          (when-not (identical? :off (-> config :linters :main-without-gen-class :level))
+                            (findings/reg-finding!
+                             ctx
+                             (node->line filename
+                                         expr
+                                         :main-without-gen-class
+                                         "Main function without gen-class.")))))))
+                  (-> ns
+                      (update :vars assoc
+                              var-sym
+                              (assoc
+                               (merge metadata (select-keys
+                                                prev-var
+                                                [:row :col :end-row :end-col]))
+                               :top-ns top-ns))
+                      (assoc :classfiles
+                             (if classfile
+                               (update classfiles classfile (fnil conj []) var-sym)
+                               classfiles))))))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}

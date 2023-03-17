@@ -77,21 +77,11 @@ successful? {1 {:ret #{:nil :boolean}}}
 testing-vars-str {1 {:ret :string}}
 run-tests {0 {:ret :associative}, :varargs {:ret :associative, :min-arity 0}}
 
-===  resources/clj_kondo/impl/cache/built_in/clj/java.math.BigInteger.transit.json  ===
-
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Math.transit.json  ===
-
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.CharSequence.transit.json  ===
-
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.datafy.transit.json  ===
 sortmap {1 {:ret :sorted-map}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.shell.transit.json  ===
 parse-args {1 {:ret :vector}}
-
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Double.transit.json  ===
-
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Thread.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.specs.alpha.transit.json  ===
 even-number-of-forms? {1 {:ret :boolean}}
@@ -171,8 +161,6 @@ maybe-impl {2 {:ret :associative}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.stacktrace.transit.json  ===
 print-throwable {1 {:ret #{:nil}}}
 
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.System.transit.json  ===
-
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.string.transit.json  ===
 ends-with? {2 {:args (:nilable/char-sequence :nilable/string)}}
 replace-first-char {3 {:args (:nilable/char-sequence :nilable/char nil)}}
@@ -206,8 +194,6 @@ subset? {2 {:ret #{:nil :boolean}}}
 rename {2 {:ret :set}}
 project {2 {:ret :set}}
 
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Boolean.transit.json  ===
-
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.io.transit.json  ===
 append? {1 {:ret :boolean}}
 
@@ -236,8 +222,6 @@ parse-int {1 {:args (:nilable/string)}}
 read-instant-calendar {1 {:args (:nilable/char-sequence)}}
 read-instant-date {1 {:args (:nilable/char-sequence)}}
 parse-timestamp {2 {:args (nil :nilable/char-sequence)}}
-
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Long.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.tools.reader.transit.json  ===
 unquote-splicing? {1 {:ret #{:nil :boolean}}}
@@ -292,12 +276,6 @@ read-decimal {2 {:args (:nilable/string nil)}}
 cat {1 {:ret :fn}}
 monoid {2 {:ret :fn}}
 
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.String.transit.json  ===
-
-===  resources/clj_kondo/impl/cache/built_in/clj/java.math.BigDecimal.transit.json  ===
-
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Character.transit.json  ===
-
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.reflect.transit.json  ===
 access-flag {1 {:ret {:type :map, :val {:name {:row 57, :col 10, :end-row 57, :end-col 14}, :flag {:row 57, :col 21, :end-row 57, :end-col 25}, :contexts {:row 57, :col 36, :end-row 57, :end-col 64}}}}}
 declared-constructors {1 {:ret :set}}
@@ -305,8 +283,6 @@ parse-method-descriptor {1 {:ret {:type :map, :val {:parameter-types {:row 193, 
 field-descriptor->class-symbol {1 {:args (:nilable/string)}}
 declared-fields {1 {:ret :set}}
 declared-methods {1 {:ret :set}}
-
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Integer.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.edn.transit.json  ===
 
@@ -494,8 +470,6 @@ parse-long {1 {:ret :nilable/int, :args (:nilable/string)}}
 atom-diff {2 {:ret #{:vector}}}
 diff-associative-key {3 {:ret :vector}}
 diff-sequential {2 {:ret :vector}}
-
-===  resources/clj_kondo/impl/cache/built_in/clj/java.lang.Byte.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.tap.transit.json  ===
 
