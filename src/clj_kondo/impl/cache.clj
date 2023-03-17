@@ -63,6 +63,8 @@
             (transit/write writer ns-data)
             (io/copy (.toByteArray bos) file)))))))
 
+(def ^:dynamic *lock-file-name* "lock")
+
 (defmacro with-cache
   "Tries to lock cache in the scope of `body`. Retries `max-retries`
   times while sleeping (2^retry)*25 ms in between. If not succeeded
@@ -71,7 +73,7 @@
   `(let [cache-dir# ~cache-dir]
      (if-not cache-dir#
        (do ~@body)
-       (let [lock-file# (io/file cache-dir# "lock")]
+       (let [lock-file# (io/file cache-dir# *lock-file-name*)]
          (io/make-parents lock-file#)
          (with-open [raf# (RandomAccessFile. lock-file# "rw")
                      channel# (.getChannel raf#)]

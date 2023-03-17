@@ -3004,11 +3004,12 @@
                                                   (when-let [ext (fs/extension (:filename ctx))]
                                                     (str "." ext))) "config.edn")]
                     (if (and configs (not (false? (:auto-load-configs config))))
-                      (cache/with-cache ;; lock config dir for concurrent writes
-                        cfg-dir
-                        10
-                        (spit (doto inline-file
-                                (io/make-parents)) (apply config/merge-config! configs)))
+                      (binding [cache/*lock-file-name* ".lock"]
+                        (cache/with-cache ;; lock config dir for concurrent writes
+                          cfg-dir
+                          10
+                          (spit (doto inline-file
+                                  (io/make-parents)) (apply config/merge-config! configs))))
                       (when (fs/exists? inline-file)
                         (fs/delete-tree (fs/parent inline-file)))))))
               nil)))
