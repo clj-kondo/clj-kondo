@@ -1,8 +1,11 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
+  (:refer-clojure :exclude [unquote])
   (:require
-   [clj-kondo.impl.utils :refer [deep-merge map-vals]]
-   [clojure.set :as set]))
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
+   [clojure.set :as set]
+   [clojure.walk :as walk]))
 
 (set! *warn-on-reflection* true)
 
@@ -42,8 +45,7 @@
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false
                                :exclude-destructured-as false
-                               :exclude-defmulti-args false
-                               ,}
+                               :exclude-defmulti-args false}
               :unsorted-required-namespaces {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
@@ -51,7 +53,7 @@
                                  :simple-libspec false}
 
               :unresolved-symbol {:level :error
-                                  :exclude [ ;; ignore globally:
+                                  :exclude [;; ignore globally:
                                             #_js*
                                             ;; ignore occurrences of service and event in call to riemann.streams/where:
                                             #_(riemann.streams/where [service event])
@@ -83,8 +85,7 @@
               :duplicate-require {:level :warning}
               :refer {:level :off
                       #_:exclude
-                      #_[clojure.test]
-                      }
+                      #_[clojure.test]}
               :refer-all {:level :warning
                           :exclude #{}}
               :use {:level :warning}
@@ -173,6 +174,21 @@
              :linter-name false
              :canonical-paths false}}) ;; set to true to see absolute file paths and jar files
 
+(defn expand-ignore
+  ":ignore true / [:unresolved-symbol] can only be used in
+  config-in-call, config-in-ns and ns metadata."
+  [cfg]
+  (if-let [ignore (:ignore cfg)]
+    (let [linters (:linters cfg)
+          linters (reduce (fn [linters k]
+                            (assoc-in linters [k :level] :off))
+                          linters
+                          (if (true? ignore)
+                            (keys (:linters default-config))
+                            ignore))]
+      (assoc cfg :linters linters))
+    cfg))
+
 (defn merge-config!
   ([])
   ([cfg] cfg)
@@ -188,17 +204,30 @@
 (defn fq-sym->vec [fq-sym]
   (if-let [ns* (namespace fq-sym)]
     [(symbol ns*) (symbol (name fq-sym))]
-    (throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
-                    {:type :clj-kondo/config}))))
+    (do (findings/reg-finding! utils/*ctx*
+                               {:type :clj-kondo-config
+                                :level :warning
+                                :row 0
+                                :col 0
+                                :message (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                                :filename (:filename utils/*ctx*)})
+        'clj-kondo/unknown-var)))
 
 (defn fq-syms->vecs
-  ([fq-syms]
-   (map (fn [fq-sym]
-          (if-let [ns* (namespace fq-sym)]
-            [(symbol ns*) (symbol (name fq-sym))]
-            (throw (ex-info (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
-                            {:type :clj-kondo/config}))))
-        fq-syms)))
+  [fq-syms]
+  (keep (fn [fq-sym]
+          (when (symbol? fq-sym)
+            (if-let [ns* (namespace fq-sym)]
+              [(symbol ns*) (symbol (name fq-sym))]
+              (do (findings/reg-finding! utils/*ctx*
+                                         {:type :clj-kondo-config
+                                          :level :warning
+                                          :row 0
+                                          :col 0
+                                          :message (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                                          :filename (:filename utils/*ctx*)})
+                  nil))))
+        fq-syms))
 
 (defn skip-args*
   ([config linter]
@@ -439,6 +468,15 @@
         (:ns-groups config)))
 
 (def ns-groups (memoize ns-groups*))
+
+(defn unquote [coll]
+  (walk/postwalk
+   (fn [x]
+     (if (and (seq? x)
+              (= 'quote (first x)))
+       (second x)
+       x))
+   coll))
 
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]

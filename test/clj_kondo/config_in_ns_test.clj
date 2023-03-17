@@ -13,6 +13,20 @@
             :linters  {:unresolved-symbol {:level :error}
                        :type-mismatch {:level :error}}})))
 
+(deftest config-in-ns-ignore-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 23, :level :error, :message "Expected: number, received: keyword."})
+   (lint! "(ns dude2) x y z (inc :foo)"
+          '{:config-in-ns {dude2 {:ignore [:unresolved-symbol]}}
+            :linters  {:unresolved-symbol {:level :error}
+                       :type-mismatch {:level :error}}}))
+  (assert-submaps
+   []
+   (lint! "(ns dude2) x y z (inc :foo)"
+          '{:config-in-ns {dude2 {:ignore true}}
+            :linters  {:unresolved-symbol {:level :error}
+                       :type-mismatch {:level :error}}})))
+
 (deftest config-in-ns-override-test
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 25, :level :warning, :message "No"})

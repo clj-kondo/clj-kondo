@@ -1278,7 +1278,7 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(defrecord Foo [] clojure.lang.ILookup (valAt [_ _] (letfn [(_foo [_x] (recur 1))])))"))))
 
 (deftest lint-as-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 93,
@@ -1286,8 +1286,8 @@ foo/foo ;; this does use the private var
       :message "foo/foo is called with 3 args but expects 1"})
    (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
           '{:lint-as {foo/my-defn clojure.core/defn}}))
-  (assert-submaps
-   '[{:level :error, :message #"fully qualified symbol"}]
+  (assert-submaps2
+   '[{:level :warning, :message #"fully qualified symbol"}]
    (lint! "(require '[foo.bar]) (foo.bar/when-let)" '{:lint-as {foo.bar/when-let when-let}}))
   (is (empty?
        (lint! "(ns foo) (defmacro deftest [name & body] `(defn ~name [] ~@body)) (deftest foo)"

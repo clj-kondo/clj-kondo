@@ -465,15 +465,19 @@
                                     :syntax
                                     "namespace name expected"))))
                  'user)
+        _ (when-not (= 'user ns-name)
+            (reset! (:main-ns ctx) ns-name))
         ns-groups (config/ns-groups global-config ns-name filename)
         config-in-ns (let [config-in-ns (:config-in-ns global-config)]
                        (apply config/merge-config!
                               (concat (map #(get config-in-ns %) ns-groups)
                                       [(get config-in-ns ns-name)])))
-        local-config (-> ns-meta :clj-kondo/config)
-        local-config (if (and (seq? local-config) (= 'quote (first local-config)))
-                       (second local-config)
-                       local-config)
+        config-in-ns (config/expand-ignore config-in-ns)
+        local-config (let [{:clj-kondo/keys [config ignore]} ns-meta]
+                       (cond-> config
+                         ignore (assoc :ignore ignore)))
+        local-config (config/unquote local-config)
+        local-config (config/expand-ignore local-config)
         merged-config (if config-in-ns
                         (config/merge-config! global-config config-in-ns)
                         global-config)

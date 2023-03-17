@@ -81,3 +81,6 @@ corpus/config_dir/.cache
 clj-kondo.build_artifacts.txt
 /.clj-kondo/rewrite-clj
 .clj-kondo/marick
+corpus/namespace_config/.clj-kondo/inline-configs
+.lock
+corpus/.clj-kondo/inline-configs
