@@ -297,6 +297,20 @@ you can ignore unresolved symbols using:
 {:config-in-call {my-ns/ignore {:linters {:unresolved-symbol {:level :off}}}}}
 ```
 
+Since clj-kondo 2023.03.17 a shorter notation is supported to suppress linters:
+
+``` Clojure
+{:config-in-call {my-ns/ignore {:ignore [:unresolved-symbol]}}}
+```
+
+to suppress a specific linter or:
+
+``` Clojure
+{:config-in-call {my-ns/ignore {:ignore true}}}
+```
+
+to suppress all warnings.
+
 ### :config-in-tag
 
 The `config-in-tag` configuration option lets you tweak configuration within
@@ -312,8 +326,6 @@ To get unresolved symbol warnings back, use:
 ``` Clojure
 {:config-in-tag {jsx {:linters {:unresolved-symbol {:level :error}}}}}
 ```
-
-
 
 ### Ignore the contents of comment forms
 
