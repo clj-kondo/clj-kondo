@@ -10,9 +10,13 @@
   (is (empty? (lint! "(comment (clojure.string/join [1 2 3]))"
                      '{:linters {:unresolved-symbol {:level :error}
                                  :unresolved-namespace {:level :error}}
-                       ;; undocumented
                        :config-in-call {clojure.core/comment
                                         {:linters {:unresolved-namespace {:level :off}}}}})))
+  (is (empty? (lint! "(comment (clojure.string/join [1 2 3]))"
+                     '{:linters {:unresolved-symbol {:level :error}
+                                 :unresolved-namespace {:level :error}}
+                       :config-in-call {clojure.core/comment
+                                        {:ignore [:unresolved-namespace]}}})))
   (is (empty? (lint! "(comment (clojure.string/join [1 2 3])
                                (require '[clojure.string :as str])
                                (let [x 1] 1))"
