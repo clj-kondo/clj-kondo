@@ -20,12 +20,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#2010](https://github.com/clj-kondo/clj-kondo/issues/2010): Support inline macro configuration. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#inline-macro-configuration)
 - [#2010](https://github.com/clj-kondo/clj-kondo/issues/2010): Short syntax to disable linters: `{:ignore [:unresolved-symbol]}` or `{:ignore true}`, valid in ns-metadata, `:config-in-ns`, `:config-in-call`
-- [#2009](https://github.com/clj-kondo/clj-kondo/issues/2007): new `:var-same-name-except-case` linter: warn when vars have names that differ only in case.
+- [#2009](https://github.com/clj-kondo/clj-kondo/issues/2007): new `:var-same-name-except-case` linter: warn when vars have names that differ only in case (important for AOT compilation and case-insensitive filesystems) ([@emlyn](https://github.com/emlyn)).
 - [#1269](https://github.com/clj-kondo/clj-kondo/issues/1269): warn on `:jvm-opts` in top level of `deps.edn`
-- [#2003](https://github.com/clj-kondo/clj-kondo/issues/2003): detect invalid arity call for function passed to `update`, `update-in`, `swap!`, `swap-vals!`, `send`, `send-off`, and `send-via`.
+- [#2003](https://github.com/clj-kondo/clj-kondo/issues/2003): detect invalid arity call for function passed to `update`, `update-in`, `swap!`, `swap-vals!`, `send`, `send-off`, and `send-via` ([@jakemcc](https://github.com/jakemcc)).
 - [#1983](https://github.com/clj-kondo/clj-kondo/issues/1983): add support for java member analysis, via new `java-member-definitions` bucket ([@ericdallo](https://github.com/ericdallo)).
 - [#1999](https://github.com/clj-kondo/clj-kondo/issues/1999): add
-  `hooks-api/set-node` and `hooks-api/set-node?`.
+  `hooks-api/set-node` and `hooks-api/set-node?` ([@sritchie](https://github.com/sritchie)).
 - [#1997](https://github.com/clj-kondo/clj-kondo/issues/1997): False positive on `clojure.core/aget` with more than two args
 - [#2011](https://github.com/clj-kondo/clj-kondo/issues/2011): push images to GHCR ([@lispyclouds](https://github.com/lispyclouds))
 - [#2001](https://github.com/clj-kondo/clj-kondo/issues/2001): false positive `:misplaced-docstring` in `clojure.test/deftest`
