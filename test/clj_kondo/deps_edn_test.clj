@@ -1,5 +1,5 @@
 (ns clj-kondo.deps-edn-test
-  (:require [clj-kondo.test-utils :refer [lint! assert-submaps]]
+  (:require [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
             [clojure.test :refer [deftest testing is]]))
 
 (deftest paths-test
@@ -238,3 +238,15 @@
      (lint! (str bb-edn)
             '{:linters {:bb.edn-task-missing-docstring {:level :warning}}}
             "--filename" "bb.edn"))))
+
+(deftest global-jvm-opts-test
+  (let [deps-edn "{:jvm-opts [\"foo\"]}"]
+    (assert-submaps2
+     [{:file "deps.edn",
+       :row 1,
+       :col 12,
+       :level :warning,
+       :message
+       "Global :jvm-opts not supported (only in aliases)"}]
+     (lint! (str deps-edn)
+            "--filename" "deps.edn"))))

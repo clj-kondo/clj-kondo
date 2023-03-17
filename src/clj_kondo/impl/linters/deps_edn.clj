@@ -253,9 +253,18 @@
       (binding [*out* *err*]
         (println "ERROR: " (.getMessage e))))))
 
+(defn- lint-deps-edn-top-level-jvm-opts [ctx node]
+  (when-let [node (:jvm-opts node)]
+    (findings/reg-finding! ctx
+                           (node->line (:filename ctx)
+                                       node
+                                       :deps.edn
+                                       "Global :jvm-opts not supported (only in aliases)"))))
+
 (defn lint-deps-edn [ctx expr]
   (try
     (let [deps-edn (edn-utils/sexpr-keys expr)
+          _ (lint-deps-edn-top-level-jvm-opts ctx deps-edn)
           _ (lint-deps-edn-paths ctx (:paths deps-edn))
           deps (:deps deps-edn)
           _ (lint-deps ctx (edn-utils/node-map deps))
