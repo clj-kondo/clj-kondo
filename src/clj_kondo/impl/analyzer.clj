@@ -549,23 +549,13 @@
         var-meta (if meta-node2-meta
                    (merge var-meta meta-node2-meta)
                    var-meta)
-        ;; config (when config (clojure.walk/postwalk-replace {'?var (symbol (str ns-name) (str fn-name))} config))
-        unquote (fn [coll]
-                  (walk/postwalk (fn [x]
-                                   (if (and (seq? x)
-                                            (= 'quote (first x)))
-                                     (second x)
-                                     x))
-                                 coll))
-        _ (when true #_config
-                (let [fq-sym (symbol (str ns-name) (str fn-name))
-                      {:clj-kondo/keys [config lint-as ignore]} var-meta
-                      config (cond-> nil
-                               config (assoc-in [:config-in-call fq-sym] (unquote config))
-                               lint-as (assoc-in [:lint-as fq-sym] (unquote lint-as))
-                               ignore (assoc-in [:config-in-call fq-sym :ignore] ignore))]
-              ;; TODO: expand config :ignore annotation from disk to only in memory
-                  (when config (swap! (:inline-configs ctx) conj config))))
+        _ (let [fq-sym (symbol (str ns-name) (str fn-name))
+                {:clj-kondo/keys [config lint-as ignore]} var-meta
+                config (cond-> nil
+                         config (assoc-in [:config-in-call fq-sym] (config/unquote config))
+                         lint-as (assoc-in [:lint-as fq-sym] (config/unquote lint-as))
+                         ignore (assoc-in [:config-in-call fq-sym :ignore] ignore))]
+            (when config (swap! (:inline-configs ctx) conj config)))
         macro? (or (= "defmacro" call)
                    (:macro var-meta))
         deprecated (:deprecated var-meta)

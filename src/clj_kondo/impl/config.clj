@@ -1,9 +1,11 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
+  (:refer-clojure :exclude [unquote])
   (:require
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
-   [clojure.set :as set]))
+   [clojure.set :as set]
+   [clojure.walk :as walk]))
 
 (set! *warn-on-reflection* true)
 
@@ -466,6 +468,15 @@
         (:ns-groups config)))
 
 (def ns-groups (memoize ns-groups*))
+
+(defn unquote [coll]
+  (walk/postwalk
+   (fn [x]
+     (if (and (seq? x)
+              (= 'quote (first x)))
+       (second x)
+       x))
+   coll))
 
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]
