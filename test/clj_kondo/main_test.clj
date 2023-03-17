@@ -69,7 +69,7 @@
   (testing "linters still work in areas where arity linter is are disabled"
     (assert-submaps '({:file "<stdin>", :row 1, :col 43, :level :warning, :message #"Redundant let"})
                     (lint! "(reify Object (toString [this] (let [y 1] (let [x y] x))))")))
-  (assert-submaps [{:row 1, :col 1 :message #"Redundant let"} ](lint! "(let [] 1)"))
+  (assert-submaps [{:row 1, :col 1 :message #"Redundant let"}] (lint! "(let [] 1)"))
   (is (empty? (lint! "(let [x 2] `(let [y# 3]))")))
   (is (empty? (lint! "(let [x 2] '(let [y 3]))")))
   (is (empty? (lint! "(let [x 2] (let [y 1]) (let [y 2]))")))
@@ -236,7 +236,7 @@ foo/foo ;; this does use the private var
     (testing "the exit code is 2 when fail-level is warning and warnings are detected"
       (is (= 2 (with-in-str "(do (do 1))" (main "--fail-level" "warning" "--lint" "-")))))
     (testing "the exit code is 3 when fail-level is error and errors are detected"
-      (is (= 3 (with-in-str  "(defn foo []) (foo 1)" (main "--fail-level" "error" "--lint" "-")))))))
+      (is (= 3 (with-in-str "(defn foo []) (foo 1)" (main "--fail-level" "error" "--lint" "-")))))))
 
 (deftest cond-test
   (doseq [lang [:clj :cljs :cljc]]
@@ -564,7 +564,7 @@ foo/foo ;; this does use the private var
         :row 1,
         :col 1,
         :level :warning,
-        :message  "Reduce called without explicit initial value."})
+        :message "Reduce called without explicit initial value."})
      (lint! "(reduce max [])"
             {:linters {:reduce-without-init {:level :warning}}}))
     (is (empty? (lint! "(reduce + [1 2 3])"
@@ -1624,7 +1624,7 @@ foo/foo ;; this does use the private var
        (str/starts-with?
         (with-in-str ""
           (with-out-str
-            (main "--cache" "false"  "--lint" "-" "--config" "{:output {:summary false}}")))
+            (main "--cache" "false" "--lint" "-" "--config" "{:output {:summary false}}")))
         "linting took")))
   (is (= '({:filename "<stdin>",
             :row 1,
@@ -1655,7 +1655,7 @@ foo/foo ;; this does use the private var
           summary? [true false]]
     (let [output (with-in-str "(inc)(dec)"
                    (with-out-str
-                     (main "--cache" "false"  "--lint" "-" "--config"
+                     (main "--cache" "false" "--lint" "-" "--config"
                            (format "{:output {:format %s :summary %s}}"
                                    output-format summary?))))
           parsed (parse-fn output)]
@@ -1697,7 +1697,7 @@ foo/foo ;; this does use the private var
   (testing "JSON output escapes special characters"
     (let [output (with-in-str "{\"foo\" 1 \"foo\" 1}"
                    (with-out-str
-                     (main "--cache" "false"  "--lint" "-" "--config"
+                     (main "--cache" "false" "--lint" "-" "--config"
                            (format "{:output {:format %s}}" :json))))
           parsed (cheshire/parse-string output true)]
       (is (map? parsed)))
@@ -1723,7 +1723,7 @@ foo/foo ;; this does use the private var
           (is (str/ends-with? output-line "[:invalid-arity]") "has rule name"))))
     (testing "with :show-rule-name-in-message false"
       (doseq [output-line (run-main "{:output {:show-rule-name-in-message false}}")
-              :let [[_ begin] (re-matches  #".*(<stdin>:\d+:\d+).*" output-line)]]
+              :let [[_ begin] (re-matches #".*(<stdin>:\d+:\d+).*" output-line)]]
         (testing (str "output line '" begin "' ")
           (is (not (str/ends-with? output-line "[:invalid-arity]")) "doesn't have rule name"))))))
 
@@ -1909,8 +1909,7 @@ foo/foo ;; this does use the private var
               "--lang" "cljs")))
   (is (empty?
        (lint! "(set! *default-data-reader-fn* tagged-literal)
-               #read-thing ([1 2 3] 4 5 6 (inc :foo))"
-              )))
+               #read-thing ([1 2 3] 4 5 6 (inc :foo))")))
   (is (empty?
        (lint! "(let [foo \"2022-02-10\"
                     bar #time/date foo]
@@ -2012,45 +2011,45 @@ foo/foo ;; this does use the private var
 
 (deftest spec-test
   (assert-submaps
-   [{:file    "corpus/spec_syntax.clj",
-     :row     9,
-     :col     9,
-     :level   :error,
+   [{:file "corpus/spec_syntax.clj",
+     :row 9,
+     :col 9,
+     :level :error,
      :message "expected symbol"}
-    {:file    "corpus/spec_syntax.clj",
-     :row     9,
-     :col     11,
-     :level   :error,
+    {:file "corpus/spec_syntax.clj",
+     :row 9,
+     :col 11,
+     :level :error,
      :message "missing value for key :args"}
-    {:file    "corpus/spec_syntax.clj",
-     :row     11,
-     :col     13,
-     :level   :error,
+    {:file "corpus/spec_syntax.clj",
+     :row 11,
+     :col 13,
+     :level :error,
      :message "unknown option :xargs"}
-    #_{:file    "corpus/spec_syntax.clj",
-       :row     20,
-       :col     9,
-       :level   :error,
+    #_{:file "corpus/spec_syntax.clj",
+       :row 20,
+       :col 9,
+       :level :error,
        :message "Unresolved symbol: xstr/starts-with?"}
-    {:file    "corpus/spec_syntax.clj",
-     :row     30,
-     :col     15,
-     :level   :error,
+    {:file "corpus/spec_syntax.clj",
+     :row 30,
+     :col 15,
+     :level :error,
      :message "unknown option ::opt"}
-    {:file    "corpus/spec_syntax.clj",
-     :row     31,
-     :col     15,
-     :level   :error,
+    {:file "corpus/spec_syntax.clj",
+     :row 31,
+     :col 15,
+     :level :error,
      :message "unknown option ::opt-un"}
-    {:file    "corpus/spec_syntax.clj",
-     :row     32,
-     :col     15,
-     :level   :error,
+    {:file "corpus/spec_syntax.clj",
+     :row 32,
+     :col 15,
+     :level :error,
      :message "unknown option ::req"}
-    {:file    "corpus/spec_syntax.clj",
-     :row     33,
-     :col     15,
-     :level   :error,
+    {:file "corpus/spec_syntax.clj",
+     :row 33,
+     :col 15,
+     :level :error,
      :message "unknown option ::req-un"}]
    (lint! (io/file "corpus" "spec_syntax.clj")
           '{:linters {:unresolved-symbol {:level :error}
@@ -2513,8 +2512,8 @@ foo"))))
       (rename-path ".clj-kondo.bak" ".clj-kondo")))
   (testing "aliases"
     (assert-submaps
-     ' ({:file "<stdin>", :row 9, :col 10, :level :error, :message "clojure.string/starts-with? is called with 0 args but expects 2"}
-        {:file "<stdin>", :row 9, :col 27, :level :error, :message "Unresolved var: i/x"})
+     '({:file "<stdin>", :row 9, :col 10, :level :error, :message "clojure.string/starts-with? is called with 0 args but expects 2"}
+       {:file "<stdin>", :row 9, :col 27, :level :error, :message "Unresolved var: i/x"})
      (lint! "
 (ns importing-ns
   (:require [potemkin :refer [import-vars]]
@@ -2578,7 +2577,7 @@ foo/baz
 (defn foo [])
 (potemkin/import-vars [foo foo])
 "))
-  (is (empty? (lint!"
+  (is (empty? (lint! "
 (ns foo (:require [bar])) (require '[potemkin]) (potemkin/import-vars [bar x])
 (ns bar (:require [foo] [potemkin])) (potemkin/import-vars [foo x])"))))
 
@@ -2773,22 +2772,22 @@ foo/baz
 (deftest consistent-alias-test
   (testing "symbol namespaces"
     (assert-submaps
-     [{:file  "<stdin>", :row     1, :col 39,
-       :level :warning,  :message #"Inconsistent.*str.*x"}]
+     [{:file "<stdin>", :row 1, :col 39,
+       :level :warning, :message #"Inconsistent.*str.*x"}]
      (lint! "(ns foo (:require [clojure.string :as x])) x/join"
             {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))
     (is (empty? (lint! "(ns foo (:require [clojure.string])) clojure.string/join"
                        {:linters {:consistent-alias {:aliases '{clojure.string str}}}}))))
   (testing "string namespaces"
     (assert-submaps
-     [{:file  "<stdin>", :row     1, :col 32,
-       :level :warning,  :message #"Inconsistent.*react.*r"}]
+     [{:file "<stdin>", :row 1, :col 32,
+       :level :warning, :message #"Inconsistent.*react.*r"}]
      (lint! "(ns foo (:require [\"react\" :as r])) r/StrictMode"
             {:linters {:consistent-alias {:aliases '{react react}}}})))
   (testing "scoped namespaces"
     (assert-submaps
-     [{:file  "<stdin>", :row     1, :col 52,
-       :level :warning,  :message #"Inconsistent.*accordion.*acc"}]
+     [{:file "<stdin>", :row 1, :col 52,
+       :level :warning, :message #"Inconsistent.*accordion.*acc"}]
      (lint! "(ns foo (:require [\"@radix-ui/react-accordion\" :as acc])) acc/Root"
             {:linters {:consistent-alias {:aliases '{"@radix-ui/react-accordion" accordion}}}}))))
 
@@ -2897,8 +2896,8 @@ foo/baz
 
 (deftest expected-class-symbol-test
   (is (empty?
-        (with-out-str
-          (lint! "(ns circle.http.api.v2.context (:import [circle.http.defapi :refer [defapi-with-auth]]))")))))
+       (with-out-str
+         (lint! "(ns circle.http.api.v2.context (:import [circle.http.defapi :refer [defapi-with-auth]]))")))))
 
 (deftest empty-require
   (assert-submaps
@@ -3073,9 +3072,9 @@ foo/baz
                     "--config-dir" (.getPath (io/file "corpus" "config_dir"))))))
 
 (deftest cljc-features-test
-  (is (seq  (lint! "(set! *warn-on-reflection* true)"
-                   {:linters {:unresolved-symbol {:level :error}}}
-                   "--lang" "cljc")))
+  (is (seq (lint! "(set! *warn-on-reflection* true)"
+                  {:linters {:unresolved-symbol {:level :error}}}
+                  "--lang" "cljc")))
   (is (empty? (lint! "(set! *warn-on-reflection* true)"
                      {:cljc {:features [:clj]}
                       :linters {:unresolved-symbol {:level :error}}}
@@ -3244,6 +3243,17 @@ foo/")))
                (new js/Date 2022 1 1 1 1)"
               "--lang" "cljs"))))
 
+(deftest ignore-config-test
+  (assert-submaps2
+   [{:row 1,
+     :col 9,
+     :level :warning,
+     :message "unused binding x"}]
+   (lint! "x (let [x x])"
+          {:linters {:unresolved-symbol {:level :off}
+                     :unused-binding {:level :warning}}
+           :ignore [:unresolved-symbol]})))
+
 ;;;; Scratch
 
 (comment
@@ -3251,5 +3261,4 @@ foo/")))
   (redundant-let-test)
   (redundant-do-test)
   (exit-code-test)
-  (t/run-tests)
-  )
+  (t/run-tests))

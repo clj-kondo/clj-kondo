@@ -169,7 +169,8 @@
                  [(when-let [extra-config-dir (System/getenv "CLJ_KONDO_EXTRA_CONFIG_DIR")]
                     (process-cfg-dir extra-config-dir))]
                  ;; command line config
-                 (map read-config configs)))]
+                 (map read-config configs)))
+        config (config/expand-ignore config)]
     (cond-> config
       cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
 

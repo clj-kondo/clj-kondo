@@ -143,7 +143,7 @@ configurations:
 
 ### Inline macro configuration
 
-Since clj-kondo 2023.03.17 you can use metadata on the macro as a way to configure the behavior to macro _calls_:
+Since clj-kondo 2023.03.17 you can use metadata on the macro as a way to configure the behavior of macro _calls_:
 
 ``` Clojure
 (defmacro with-foo
@@ -164,8 +164,11 @@ Since clj-kondo 2023.03.17 you can use metadata on the macro as a way to configu
 (matcher {:a 1} {?a 1} (inc :foo)) ;; no warning in usage of macro
 ```
 
+Additionally `:clj-kondo/config` key is supported where you can supply a
+configuration that will be applied within macro calls.
+
 The metadata configuration on macros is automatically exported to
-`.clj_kondo/inline-configs/macro_namespace.clj/config.edn` when linting the file.
+`.clj-kondo/inline-configs/macro_namespace.clj/config.edn` when linting the file.
 
 ## Options
 
@@ -182,6 +185,29 @@ linting took 10ms, errors: 1, warnings: 0
 $ echo '(select-keys [:a])' | clj-kondo --lint - --config '{:linters {:invalid-arity {:level :off}}}'
 linting took 10ms, errors: 0, warnings: 0
 ```
+
+Since clj-kondo 2023.03.17 a shorter notation is supported:
+
+``` Clojure
+{:ignore [:unresolved-symbol]}
+```
+
+to suppress one or more linters, or:
+
+``` Clojure
+{:ignore true}
+```
+
+to suppress all linters.
+
+See also:
+
+- [:config-in-ns](#config-in-ns)
+- [:config-in-call](#config-in-call)
+- [:config-in-tag](#config-in-tag)
+- [ignore warnings in an expression](#ignore-warnings-in-an-expression)
+
+for fine-grained configuration.
 
 ### Enable optional linters
 
