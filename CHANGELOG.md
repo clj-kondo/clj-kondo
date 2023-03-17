@@ -16,7 +16,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update clj-kondo-bb -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2023.03.17
 
 - [#2010](https://github.com/clj-kondo/clj-kondo/issues/2010): Support inline macro configuration. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#inline-macro-configuration)
 - [#2010](https://github.com/clj-kondo/clj-kondo/issues/2010): Short syntax to disable linters: `{:ignore [:unresolved-symbol]}` or `{:ignore true}`, valid in ns-metadata, `:config-in-ns`, `:config-in-call`
