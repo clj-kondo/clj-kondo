@@ -80,7 +80,7 @@ Clj-kondo supports configuration on the namespace level, in two ways.
 The `:config-in-ns` option can be used to change the configuration while linting
 a specific namespace.
 
-```
+``` clojure
 {:config-in-ns {my.namespace {:linters {:unresolved-symbol {:level :off}}}}}
 ```
 
@@ -93,6 +93,20 @@ x y z
 
 See [Namespace groups](#namespace-groups) on how to configure multiple namespace
 in one go.
+
+Since clj-kondo 2023.03.17 you can use a shorter notation to disable multiple linters inside of a namespace:
+
+``` clojure
+{:config-in-ns {my.namespace {:ignore [:unresolved-namespace]}}}
+```
+
+to suppress specific linters or
+
+``` clojure
+{:config-in-ns {my.namespace {:ignore true}}}
+```
+
+to suppress all linters inside of that namespace.
 
 ### Metadata config
 
@@ -110,6 +124,13 @@ Note that namespace local config must always be quoted on the outside:
 
 Quotes should not appear inside the config.
 
+Since clj-kondo 2023.03.17, you can use a shorter notation to suppress linters in namespace:
+
+`{:clj-kondo/ignore [:unresolved-symbol]}`
+
+to suppress certain linters within a namespace or simply `{:clj-kondo/ignore
+true}` to suppress them all.
+
 ## Unrecognized macros
 
 Clj-kondo only expands a selected set of macros from clojure.core and some
@@ -119,6 +140,32 @@ configurations:
 - [`:lint-as`](#lint-a-custom-macro-like-a-built-in-macro)
 - [`:unresolved-symbol`](./linters.md#unresolved-symbol)
 - [`:hooks`](#hooks)
+
+### Inline macro configuration
+
+Since clj-kondo 2023.03.17 you can use metadata on the macro as a way to configure the behavior to macro _calls_:
+
+``` Clojure
+(defmacro with-foo
+  {:clj-kondo/lint-as 'clojure.core/let}
+  [bnds & body]
+  `(let [~@bnds]
+     ~@body))
+
+(with-foo [a 1]
+  a) ;; no warning, macro configured as clojure.core/let
+
+(defmacro matcher
+  {:clj-kondo/ignore [:unresolved-symbol :type-mismatch]}
+  [m match-expr & body]
+  ;; dummy
+  [m match-expr body])
+
+(matcher {:a 1} {?a 1} (inc :foo)) ;; no warning in usage of macro
+```
+
+The metadata configuration on macros is automatically exported to
+`.clj_kondo/inline-configs/macro_namespace.clj/config.edn` when linting the file.
 
 ## Options
 
