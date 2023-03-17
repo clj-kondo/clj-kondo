@@ -2077,14 +2077,18 @@ foo/foo ;; this does use the private var
    (lint! "{:&::before 1 :&::before 1}")))
 
 (deftest misplaced-docstring-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 13,
-      :level :warning,
-      :message "Misplaced docstring."})
-   (lint! "(defn f [x] \"dude\" x)"
-          {:linters {:redundant-expression {:level :off}}}))
+  (doseq [lang ["clj" "cljs"]]
+    (testing
+     (str "misplaced docstring: " lang)
+      (assert-submaps
+       '({:file "<stdin>",
+          :row 1,
+          :col 13,
+          :level :warning,
+          :message "Misplaced docstring."})
+       (lint! "(defn f [x] \"dude\" x)"
+              {:linters {:redundant-expression {:level :off}}}
+              "--lang" lang))))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
@@ -2096,6 +2100,8 @@ foo/foo ;; this does use the private var
           \" [x y])"
           {:linters {:redundant-expression {:level :off}}}))
   (is (empty? (lint! "(defn f [x] \"dude\")")))
+  (is (empty? (lint! "(require '[clojure.test :as test])
+                      (test/deftest foo-test \"this-aint-a-docstring\" (test/is (= 4 5)))")))
   ;; for now this is empty, but in the next version we might warn about the
   ;; string "dude" being a discarded value
   (assert-submaps

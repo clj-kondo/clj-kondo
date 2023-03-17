@@ -422,10 +422,16 @@
         children (if pre-post-map (next children) children)
         _
         (let [t (when first-child (tag first-child))]
+          ;;(prn (first (:callstack ctx)))
           (cond (and (not docstring)
                      (not one-child?)
                      (one-of t [:token :multi-line])
-                     (string-from-token first-child))
+                     (string-from-token first-child)
+                     (one-of (first (:callstack ctx))
+                             [[clojure.core defn]
+                              [cljs.core defn]
+                              [clojure.core defn-]
+                              [cljs.core defn-]]))
                 (findings/reg-finding! ctx
                                        (node->line (:filename ctx)
                                                    first-child

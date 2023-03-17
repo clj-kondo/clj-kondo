@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1983](https://github.com/clj-kondo/clj-kondo/issues/1983): add support for java member analysis, via new `java-member-definitions` bucket.
 - [#1997](https://github.com/clj-kondo/clj-kondo/issues/1997): False positive on `clojure.core.aget` with more than two args
 - [#2011](https://github.com/clj-kondo/clj-kondo/issues/2011): push images to GHCR ([@lispyclouds](https://github.com/lispyclouds))
+- [#2001](https://github.com/clj-kondo/clj-kondo/issues/2001): false positive `:misplaced-docstring` in `clojure.test/deftest`
 
 ## 2023.02.17
 
