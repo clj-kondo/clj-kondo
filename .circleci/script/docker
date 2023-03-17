@@ -38,7 +38,7 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
         docker push "$image_name:$latest_tag"
         docker push "$ghcr_image_name:$latest_tag"
         echo "Pushing images $image_name:alpine"
-        docker push "$image_name:alpine $ghcr_image_name:alpine"
+        docker push "$image_name:alpine"
         docker push "$ghcr_image_name:alpine"
     fi
     # update the version tag, even if it's a SNAPSHOT version
