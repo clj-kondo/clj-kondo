@@ -20,12 +20,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#2010](https://github.com/clj-kondo/clj-kondo/issues/2010): Support inline macro configuration. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#inline-macro-configuration)
 - [#2010](https://github.com/clj-kondo/clj-kondo/issues/2010): Short syntax to disable linters: `{:ignore [:unresolved-symbol]}` or `{:ignore true}`, valid in ns-metadata, `:config-in-ns`, `:config-in-call`
-- [#2009](https://github.com/clj-kondo/clj-kondo/issues/2007): new `:var-same-name-except-case` linter: warn when vars have names that differ only in case (important for AOT compilation and case-insensitive filesystems) ([@emlyn](https://github.com/emlyn)).
+- [#2009](https://github.com/clj-kondo/clj-kondo/issues/2009): new `:var-same-name-except-case` linter: warn when vars have names that differ only in case (important for AOT compilation and case-insensitive filesystems) ([@emlyn](https://github.com/emlyn)).
 - [#1269](https://github.com/clj-kondo/clj-kondo/issues/1269): warn on `:jvm-opts` in top level of `deps.edn`
 - [#2003](https://github.com/clj-kondo/clj-kondo/issues/2003): detect invalid arity call for function passed to `update`, `update-in`, `swap!`, `swap-vals!`, `send`, `send-off`, and `send-via` ([@jakemcc](https://github.com/jakemcc)).
 - [#1983](https://github.com/clj-kondo/clj-kondo/issues/1983): add support for java member analysis, via new `java-member-definitions` bucket ([@ericdallo](https://github.com/ericdallo)).
-- [#1999](https://github.com/clj-kondo/clj-kondo/issues/1999): add
-  `hooks-api/set-node` and `hooks-api/set-node?` ([@sritchie](https://github.com/sritchie)).
+- [#1999](https://github.com/clj-kondo/clj-kondo/issues/1999): add `hooks-api/set-node` and `hooks-api/set-node?` ([@sritchie](https://github.com/sritchie)).
 - [#1997](https://github.com/clj-kondo/clj-kondo/issues/1997): False positive on `clojure.core/aget` with more than two args
 - [#2011](https://github.com/clj-kondo/clj-kondo/issues/2011): push images to GHCR ([@lispyclouds](https://github.com/lispyclouds))
 - [#2001](https://github.com/clj-kondo/clj-kondo/issues/2001): false positive `:misplaced-docstring` in `clojure.test/deftest`
@@ -90,8 +89,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1883](https://github.com/clj-kondo/clj-kondo/issues/1883): constructor usage should have name-col in analysis
 - [#1874](https://github.com/clj-kondo/clj-kondo/issues/1874): fix name of fully qualified class usage
 - [#1876](https://github.com/clj-kondo/clj-kondo/issues/1876): suppress . analysis from .. macroexpansion
-- [#1877](https://github.com/clj-kondo/clj-kondo/issues/1876): suppress `new` analysis from `(String. x)` expansion
-- [#1888](https://github.com/clj-kondo/clj-kondo/issues/1876): use `namespace-munge` for resolving hook files rather than `munge`
+- [#1877](https://github.com/clj-kondo/clj-kondo/issues/1877): suppress `new` analysis from `(String. x)` expansion
+- [#1888](https://github.com/clj-kondo/clj-kondo/issues/1888): use `namespace-munge` for resolving hook files rather than `munge`
 - [#1896](https://github.com/clj-kondo/clj-kondo/issues/1896): don't consider `**`, `***` etc. to be a dynamic vars
 - [#1899](https://github.com/clj-kondo/clj-kondo/issues/1899): treat var or local reference as unused value when not in tail position
 - [#1903](https://github.com/clj-kondo/clj-kondo/issues/1903): int can be cast to double
@@ -201,7 +200,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - All new JVM `clj-kondo.hooks-api` API ns for REPL usage. See
   [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/hooks.md#developing-hooks-in-the-repl).
 - [#1674](https://github.com/clj-kondo/clj-kondo/pull/1674): config options to limit analysis of var-usages and bodies of var-definitions. Can be used to get a quick overview of a project's namespaces and vars, without analyzing their details.
-- [#1676](https://github.com/clj-kondo/clj-kondo/pull/1674): Add support for custom function to be called for progress update, `:file-analyzed-fn`.
+- [#1676](https://github.com/clj-kondo/clj-kondo/pull/1676): Add support for custom function to be called for progress update, `:file-analyzed-fn`.
 - [#1697](https://github.com/clj-kondo/clj-kondo/issues/1697): update docs and messaging around importing configs ([@lread](https://github.com/lread))
 - [#1700](https://github.com/clj-kondo/clj-kondo/issues/1700): allow discouraged var on non-analyzed (closed source) vars
 - [#1703](https://github.com/clj-kondo/clj-kondo/issues/1703): update built-in cache with newest CLJ (1.11.1) and CLJS (1.11.54) versions
@@ -289,7 +288,7 @@ Analysis:
   redundant fn wrappers, like `#(inc %)`. See
   [docs](doc/linters.md#redundant-fn-wrapper). This linter of `:off` by default
   but may be enabled by default in future versions after more testing.
-- [#1549](https://github.com/clj-kondo/clj-kondo/issues/1560): lint task definition keys in `bb.edn` ([@mknoszlig](https://github.com/mknoszlig))
+- [#1560](https://github.com/clj-kondo/clj-kondo/issues/1560): lint task definition keys in `bb.edn` ([@mknoszlig](https://github.com/mknoszlig))
 - [#1484](https://github.com/clj-kondo/clj-kondo/issues/1484): Add analysis information about protocol implementations. ([@ericdallo](https://github.com/ericdallo))
 
 ### Fixed
