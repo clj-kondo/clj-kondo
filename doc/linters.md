@@ -593,7 +593,7 @@ Explanation by Bozhidar Batsov:
 
 *Description:* warn when dynamic var doesn't have an earmuffed name.
 
-*Default level:* `:warning`.
+*Default level:* `:off`.
 
 *Example trigger:* `(def ^:dynamic foo)`
 
@@ -937,7 +937,7 @@ misses a value.
 *Description:* warn when the namespace in the `ns` form does not
 correspond with the file name of the file.
 
-*Default level:* `:off`.
+*Default level:* `:error`.
 
 *Example trigger:* a file named `foo.clj` containing a namespace `(ns bar)`.
 
