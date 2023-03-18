@@ -593,7 +593,7 @@ Explanation by Bozhidar Batsov:
 
 *Description:* warn when dynamic var doesn't have an earmuffed name.
 
-*Default level:* `:warning`.
+*Default level:* `:off`.
 
 *Example trigger:* `(def ^:dynamic foo)`
 
