@@ -53,7 +53,7 @@ to clojure-lsp has the following benefits:
 - Linting still works for files outside of projects
 - You can use a newer version of clj-kondo than what is bundled with clojure-lsp
 
-When doing so, it's recommended to disable diagnostica via lsp-mode:
+When doing so, it's recommended to disable diagnostics via lsp-mode:
 
 ``` elisp
 (setq lsp-diagnostics-provider :none)
