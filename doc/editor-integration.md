@@ -64,7 +64,7 @@ clojure(script), if so, feel free to submit a PR. You will miss out on one
 linter though: `:clojure-lsp/unused-public-var`. Note that you can still use
 `clojure-lsp` on the command line to find those or use [carve](https://github.com/borkdude/carve).
 
-I do recommend using clojure-lsp (with `lsp-mode`) since it provides the following additional features (based on clj-kondo's analysis)
+I do recommend using clojure-lsp (with `lsp-mode`) since it provides the following additional features (based on clj-kondo's analysis):
 
 - project initialization (analyze dependencies first, copy library configurations)
 - navigation
