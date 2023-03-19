@@ -40,7 +40,7 @@ For Spacemacs, check [here](#spacemacs) or get [flymake-kondor](https://github.c
 <!--     (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))) -->
 <!-- ``` -->
 
-### clojure-lsp + lsp-mode
+### clojure-lsp
 
 The [clojure-lsp](https://github.com/clojure-lsp/clojure-lsp) project bundles
 clj-kondo as its analyzer and linter. When using it, there is no need to install
@@ -58,6 +58,9 @@ When doing so, it's recommended to disable diagnostica via lsp-mode:
 ``` elisp
 (setq lsp-diagnostics-provider :none)
 ```
+
+Maybe there is a way to only disable the diagnostics provider for
+clojure(script), if so, feel free to submit a PR.
 
 ## Visual Studio Code
 
