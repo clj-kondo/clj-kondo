@@ -11,33 +11,52 @@ For integrating with Emacs, see
 
 For Spacemacs, check [here](#spacemacs) or get [flymake-kondor](https://github.com/turbo-cafe/flymake-kondor) if you are using flymake.
 
-### LSP server
+<!-- ### LSP server -->
 
-Emacs has the [lsp-mode](https://github.com/emacs-lsp/lsp-mode) where you can configure multiple LSP servers for different programming languages.
-To use `clj-kondo` as an LSP server, you can configure the `lsp-mode` server command to point to the `clj-kondo` lsp-server jar. Note that the LSP server does not provide features other than diagnostics.
+<!-- Emacs has the [lsp-mode](https://github.com/emacs-lsp/lsp-mode) where you can configure multiple LSP servers for different programming languages. -->
+<!-- To use `clj-kondo` as an LSP server, you can configure the `lsp-mode` server command to point to the `clj-kondo` lsp-server jar. Note that the LSP server does not provide features other than diagnostics. -->
 
-For Spacemacs, see the [clj-kondo via LSP](https://practicalli.github.io/spacemacs/install-spacemacs/clj-kondo-via-lsp.html) article, which includes the use of an external script as the custom lsp command.
+<!-- For Spacemacs, see the [clj-kondo via LSP](https://practicalli.github.io/spacemacs/install-spacemacs/clj-kondo-via-lsp.html) article, which includes the use of an external script as the custom lsp command. -->
 
-For Emacs, use the instructions below.
+<!-- For Emacs, use the instructions below. -->
 
-1. Download the latest clj-kondo LSP server jar to your system. Go to the
-   [Github releases](https://github.com/clj-kondo/clj-kondo/releases) and look
-   for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided
-   since version `2019.11.23`.
+<!-- 1. Download the latest clj-kondo LSP server jar to your system. Go to the -->
+<!--    [Github releases](https://github.com/clj-kondo/clj-kondo/releases) and look -->
+<!--    for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided -->
+<!--    since version `2019.11.23`. -->
 
-2. Configure your `lsp-mode` pointing to the clj-kondo lsp server jar that you downloaded, like the example below:
+<!-- 2. Configure your `lsp-mode` pointing to the clj-kondo lsp server jar that you downloaded, like the example below: -->
 
-```lisp
-(use-package lsp-mode
-  :ensure t
-  :hook ((clojure-mode . lsp))
-  :commands lsp
-  :custom
-  ((lsp-clojure-server-command '("java" "-jar" "/home/user/clj-kondo/clj-kondo-lsp-server.jar")))
-  :config
-  (dolist (m '(clojure-mode
-               clojurescript-mode))
-    (add-to-list 'lsp-language-id-configuration `(,m . "clojure"))))
+<!-- ```lisp -->
+<!-- (use-package lsp-mode -->
+<!--   :ensure t -->
+<!--   :hook ((clojure-mode . lsp)) -->
+<!--   :commands lsp -->
+<!--   :custom -->
+<!--   ((lsp-clojure-server-command '("java" "-jar" "/home/user/clj-kondo/clj-kondo-lsp-server.jar"))) -->
+<!--   :config -->
+<!--   (dolist (m '(clojure-mode -->
+<!--                clojurescript-mode)) -->
+<!--     (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))) -->
+<!-- ``` -->
+
+### clojure-lsp + lsp-mode
+
+The [clojure-lsp](https://github.com/clojure-lsp/clojure-lsp) project bundles
+clj-kondo as its analyzer and linter. When using it, there is no need to install
+clj-kondo separately, although I found that using
+[flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo) in addition
+to clojure-lsp has the following benefits:
+
+- The feedback is less laggy / more instantaneous
+- The squiggles are less overwhelming (only the first character of an expression rather than the whole expression)
+- Linting still works for files outside of projects
+- You can use a newer version of clj-kondo than what is bundled with clojure-lsp
+
+When doing so, it's recommended to disable diagnostica via lsp-mode:
+
+``` elisp
+(setq lsp-diagnostics-provider :none)
 ```
 
 ## Visual Studio Code
