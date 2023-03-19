@@ -62,6 +62,16 @@ When doing so, it's recommended to disable diagnostics via lsp-mode:
 Maybe there is a way to only disable the diagnostics provider for
 clojure(script), if so, feel free to submit a PR.
 
+I do recommend using clojure-lsp (with `lsp-mode`) since it provides the following additional features (based on clj-kondo's analysis)
+
+- project initialization (analyze dependencies first, copy library configurations)
+- navigation
+- refactoring (renaming, etc)
+- lens-mode (see the number of references and tests), enable with: `(setq lsp-lens-enable t)`
+- call hierarchy
+
+and more.
+
 ## Visual Studio Code
 
 ### clj-kondo extension
