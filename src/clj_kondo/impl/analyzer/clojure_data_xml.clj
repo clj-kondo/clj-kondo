@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.analyzer.clojure-data-xml
+  {:no-doc true}
   (:require [clj-kondo.impl.analyzer.common :as common]
             [clj-kondo.impl.utils :as utils :refer [list-node token-node]]))
 

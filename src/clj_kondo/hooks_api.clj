@@ -1,4 +1,5 @@
 (ns clj-kondo.hooks-api
+  {:no-doc true}
   (:require
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.findings :as findings]

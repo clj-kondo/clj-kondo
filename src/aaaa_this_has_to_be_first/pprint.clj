@@ -1,5 +1,6 @@
 (ns aaaa-this-has-to-be-first.pprint
-  {:clj-kondo/config '{:linters {:private-call {:level :off}}}}
+  {:no-doc true
+   :clj-kondo/config '{:linters {:private-call {:level :off}}}}
   (:require [clojure.pprint :as pprint]))
 
 (defonce patched? (volatile! false))

@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.linters.config
   "Linting of clj-kondo's own configuration"
+  {:no-doc true}
   (:require [clj-kondo.impl.config :refer [default-config]]
             [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.linters.edn-utils :as edn-utils]

@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.docstring
+  {:no-doc true}
   (:require [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.utils :refer [node->line tag node->keyword string-from-token]]
             [clojure.string :as str]))

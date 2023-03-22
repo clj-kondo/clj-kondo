@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.linters.deps-edn
   "Linter for deps.edn and bb.edn file contents."
+  {:no-doc true}
   (:require [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.linters.edn-utils :as edn-utils]
             [clj-kondo.impl.utils :refer [sexpr node->line]]
