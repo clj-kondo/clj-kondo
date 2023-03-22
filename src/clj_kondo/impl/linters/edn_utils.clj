@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.linters.edn-utils
+  {:no-doc true}
   (:require [clj-kondo.impl.utils :refer [sexpr]]))
 
 (set! *warn-on-reflection* true)

@@ -1,4 +1,5 @@
 (ns clj-kondo.impl.analysis.java
+  {:no-doc true}
   (:require
    [clj-kondo.impl.utils :refer [->uri]]
    [clojure.java.io :as io]
