@@ -356,7 +356,7 @@ $ clj -M:unused-vars src
 ### Unused vars
 
 ``` shellsession
-$ clj -m clj-kondo.tools.unused-vars src
+$ clj -M -m clj-kondo.tools.unused-vars src
 The following vars are unused:
 clj-kondo.tools.namespace-graph/-main
 clj-kondo.tools.unused-vars/-main
@@ -388,7 +388,7 @@ Example code:
 ```
 
 ``` shellsession
-$ clj -m clj-kondo.tools.private-vars /tmp/private.clj
+$ clj -M -m clj-kondo.tools.private-vars /tmp/private.clj
 /tmp/private.clj:4:8 warning: foo/bar is private but never used
 /tmp/private.clj:8:1 warning: foo/foo is private and cannot be accessed from namespace bar
 ```
@@ -413,7 +413,7 @@ $ clj -M -m clj-kondo.tools.namespace-graph src
 ### Find var
 
 ``` shellsession
-$ clj -m clj-kondo.tools.find-var clj-kondo.core/run! src ../src
+$ clj -M -m clj-kondo.tools.find-var clj-kondo.core/run! src ../src
 clj-kondo.core/run! is defined at ../src/clj_kondo/core.clj:51:7
 clj-kondo.core/run! is used at ../src/clj_kondo/core.clj:120:12
 clj-kondo.core/run! is used at ../src/clj_kondo/main.clj:81:44
@@ -425,7 +425,7 @@ clj-kondo.core/run! is used at src/clj_kondo/tools/unused_vars.clj:9:31
 ### Popular vars
 
 ``` shellsession
-$ clj -m clj-kondo.tools.popular-vars 10 ../src
+$ clj -M -m clj-kondo.tools.popular-vars 10 ../src
 clojure.core/let: 196
 clojure.core/defn: 183
 clojure.core/when: 115
@@ -441,7 +441,7 @@ clojure.core/first: 62
 ### Missing docstrings
 
 ``` shellsession
-$ clj -m clj-kondo.tools.missing-docstrings ../src
+$ clj -M -m clj-kondo.tools.missing-docstrings ../src
 clj-kondo.impl.findings/reg-finding!: missing docstring
 clj-kondo.impl.findings/reg-findings!: missing docstring
 clj-kondo.impl.namespace/reg-var!: missing docstring
@@ -463,7 +463,7 @@ Example code:
 ```
 
 ```
-$ clj -m clj-kondo.tools.circular-dependencies /tmp/circular.clj
+$ clj -M -m clj-kondo.tools.circular-dependencies /tmp/circular.clj
 /tmp/circular.clj:3:17: circular dependendy from namespace b to a
 /tmp/circular.clj:5:17: circular dependendy from namespace c to a
 ```
@@ -473,3 +473,33 @@ $ clj -m clj-kondo.tools.circular-dependencies /tmp/circular.clj
 See [this](https://github.com/yannvanhalewyn/analyze-re-frame-usage-with-clj-kondo) repo.
 
 Also see this [gist](https://gist.github.com/roman01la/c6a2e4db8d74f89789292002794a7142).
+
+### AST
+
+Produce an AST from clj-kondo analysis and rewrite-clj nodes.
+
+Example code:
+
+``` clojure
+(defn foo [x] x)
+(defn bar [x] (foo x))
+```
+
+``` shell
+$ clj -M -m clj-kondo.tools.ast /tmp/example.clj
+```
+
+``` clojure
+{:children
+ ({:children
+   ({:sexpr defn, :var-usage true}
+    {:sexpr foo, :var true}
+    {:children ({:sexpr x, :local true})}
+    {:sexpr x, :local-usage true})}
+  {:children
+   ({:sexpr defn, :var-usage true}
+    {:sexpr bar, :var true}
+    {:children ({:sexpr x, :local true})}
+    {:children
+     ({:sexpr foo, :var-usage true} {:sexpr x, :local-usage true})})})}
+```
