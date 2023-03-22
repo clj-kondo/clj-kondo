@@ -1,3 +1,4 @@
 {:deps {clj-kondo/clj-kondo {:local/root ".."}
         aysylu/loom {:mvn/version "1.0.2"}
-        com.stuartsierra/dependency {:mvn/version "0.2.0"}}}
+        com.stuartsierra/dependency {:mvn/version "0.2.0"}
+        rewrite-clj/rewrite-clj {:mvn/version "1.1.46"}}}
