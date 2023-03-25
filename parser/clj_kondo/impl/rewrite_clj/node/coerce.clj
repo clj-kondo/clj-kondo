@@ -18,7 +18,7 @@
              [token :refer [token-node]]
              [whitespace :as ws]]
             [clj-kondo.impl.rewrite-clj.parser.utils :as pu]
-            [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as r])
+            [clj-kondo.impl.rewrite-clj.reader :as reader])
   (:import [clj_kondo.impl.rewrite_clj.node.comment CommentNode]
            [clj_kondo.impl.rewrite_clj.node.forms FormsNode]
            [clj_kondo.impl.rewrite_clj.node.integer IntNode]
@@ -72,7 +72,7 @@
   (coerce [v]
     (string-node/string-node
      (pu/read-string-data
-      (r/indexing-push-back-reader (java.io.StringReader. (pr-str v)))))))
+      (reader/string-reader (pr-str v))))))
 
 (extend-protocol NodeCoerceable
   clojure.lang.Keyword
