@@ -1058,6 +1058,8 @@ because of an explicit or implicit do as the direct parent s-expression.
 *Description:* warn on redundant calls. The warning arises when a single argument
 is passed to a function or macro that that returns its arguments.
 
+*Default level:* `:off`.
+
 `clojure.core` and `cljs.core` functions and macros that trigger this lint:
 * `->`, `->>`
 * `cond->`, `cond->>`
