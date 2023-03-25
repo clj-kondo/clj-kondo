@@ -391,7 +391,8 @@ my-ns/special-map \"
   (is (empty?
        (lint! (io/file "corpus" "hooks" "coerce_sexpr_roundtrip.clj")
               '{:linters {:interop {:level :warning}}
-                :hooks {:macroexpand {clojure.core/new hooks.new/new-macroexpand}}}
+                :hooks {:macroexpand {clojure.core/new hooks.new/new-macroexpand
+                                      myns/defmodel hooks.roundtrip/defmodel}}}
               "--config-dir" (.getPath (io/file "corpus" ".clj-kondo"))))))
 
 (deftest issue-1980-ignore-with-hook-test

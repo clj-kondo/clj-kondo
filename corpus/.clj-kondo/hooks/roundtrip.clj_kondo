@@ -1,0 +1,5 @@
+(ns hooks.roundtrip)
+
+(defmacro defmodel
+  [model _table-name]
+  `(def ~model "Docstring." ~(keyword (name model))))

@@ -16,7 +16,9 @@
                           set-node
                           map-node]]
              [token :refer [token-node]]
-             [whitespace :as ws]])
+             [whitespace :as ws]]
+            [clj-kondo.impl.rewrite-clj.parser.utils :as pu]
+            [clj-kondo.impl.rewrite-clj.reader :as reader])
   (:import [clj_kondo.impl.rewrite_clj.node.comment CommentNode]
            [clj_kondo.impl.rewrite_clj.node.forms FormsNode]
            [clj_kondo.impl.rewrite_clj.node.integer IntNode]
@@ -68,7 +70,9 @@
 (extend-protocol NodeCoerceable
   String
   (coerce [v]
-    (token-node v)))
+    (string-node/string-node
+     (pu/read-string-data
+      (reader/string-reader (pr-str v))))))
 
 (extend-protocol NodeCoerceable
   clojure.lang.Keyword
