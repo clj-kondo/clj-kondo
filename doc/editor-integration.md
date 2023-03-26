@@ -43,29 +43,8 @@ For Spacemacs, check [here](#spacemacs) or get [flymake-kondor](https://github.c
 ### clojure-lsp
 
 The [clojure-lsp](https://github.com/clojure-lsp/clojure-lsp) project bundles
-clj-kondo as its analyzer and linter. When using it, there is no need to install
-clj-kondo separately, although I found that using
-[flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo) in addition
-to clojure-lsp has the following benefits:
-
-- The feedback is less laggy / more instantaneous
-- The squiggles are less overwhelming (only the first character of an expression rather than the whole expression)
-- Linting still works for files outside of projects
-- You can use a newer version of clj-kondo than what is bundled with clojure-lsp
-
-When doing so, it's recommended to disable diagnostics via lsp-mode:
-
-``` elisp
-(setq lsp-diagnostics-provider :none)
-```
-
-Maybe there is a way to only disable the diagnostics provider for
-clojure(script), if so, feel free to submit a PR to improve these docs. You will
-miss out on one linter though: `:clojure-lsp/unused-public-var`. Note that you
-can still use `clojure-lsp` on the command line to find those or use
-[carve](https://github.com/borkdude/carve).
-
-I do recommend using clojure-lsp (with `lsp-mode`) since it provides the following additional features (based on clj-kondo's analysis):
+clj-kondo as its analyzer and linter. It completes clj-kondo with the following
+features:
 
 - project initialization (analyze dependencies first, copy library configurations)
 - navigation
@@ -74,6 +53,42 @@ I do recommend using clojure-lsp (with `lsp-mode`) since it provides the followi
 - call hierarchy
 
 and more.
+
+This section assumes that you are using the `lsp-mode` emacs package, although
+`eglot` should also work.
+
+When using clojure-lsp, there is no need to install clj-kondo separately,
+although you can still do that via
+[flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo). You may do
+this for the following reasons:
+
+
+- Linting still works for files outside of projects
+- You can use a newer version of clj-kondo than what is bundled with clojure-lsp (e.g. for development)
+- More immediate feedback (although this can be tuned with lsp-mode, read below)
+
+When doing so, it's recommended to disable diagnostics via lsp-mode:
+
+``` elisp
+(setq lsp-diagnostics-provider :none)
+```
+
+When you find that clj-kondo's feedback via clojure-lsp is less instantaneous,
+try tuning the following setting in emacs:
+
+``` elisp
+(setq lsp-idle-delay 0.05) ;; defaults to 0.2
+```
+
+When you find that the squiggles are a bit too much, tune the clojure-lsp
+`config.edn` (not clj-kondo's `config.edn`!) as follows:
+
+``` clojure
+{:diagnostics {:range-type :simple}}
+```
+
+See the [clj-kondo](https://clojure-lsp.io/settings/#clj-kondo) section in
+clojure-lsp's documentation for more info.
 
 ## Visual Studio Code
 
