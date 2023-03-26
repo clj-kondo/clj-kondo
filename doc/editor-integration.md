@@ -54,8 +54,9 @@ features:
 
 and more.
 
-This section assumes that you are using the `lsp-mode` emacs package, although
-`eglot` should also work.
+This section assumes that you are using the `lsp-mode` emacs package and
+mentions `lsp-`-mode specific settings. If you are usign `eglot`, a different
+emacs lsp client, those settings don't apply.
 
 When using clojure-lsp, there is no need to install clj-kondo separately,
 although you can still do that via
