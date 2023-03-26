@@ -100,7 +100,8 @@ On the other hand, I find lens-mode pretty useful:
 ```
 
 See the [clj-kondo](https://clojure-lsp.io/settings/#clj-kondo) section in
-clojure-lsp's documentation for more info.
+clojure-lsp's documentation for more info. Also see [lsp-mode
+settings](https://emacs-lsp.github.io/lsp-mode/page/settings/mode/).
 
 To run a specific combination of clojure-lsp and clj-kondo in a JVM, rather than
 in a native binary, you can make a script like the following and add it to your
