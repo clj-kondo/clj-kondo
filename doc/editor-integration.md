@@ -87,8 +87,48 @@ When you find that the squiggles are a bit too much, tune the clojure-lsp
 {:diagnostics {:range-type :simple}}
 ```
 
+Personally, I found the breadcrumb too distracting and I disabled it with:
+
+``` elisp
+(setq lsp-headerline-breadcrumb-enable nil)
+```
+
+On the other hand, I find lens-mode pretty useful:
+
+``` elisp
+(setq lsp-lens-enable t)
+```
+
 See the [clj-kondo](https://clojure-lsp.io/settings/#clj-kondo) section in
 clojure-lsp's documentation for more info.
+
+To run a specific combination of clojure-lsp and clj-kondo in a JVM, rather than
+in a native binary, you can make a script like the following and add it to your
+path:
+
+`~/bin/clojure-lsp-dev`:
+``` clojure
+#!/usr/bin/env bash
+
+clj -Sdeps '{:aliases
+              {:lsp
+                {:replace-paths []
+                 :replace-deps
+                  {org.clojure/clojure {:mvn/version "1.11.1"}
+                   clj-kondo/clj-kondo {:local/root "/Users/borkdude/dev/clj-kondo"}
+                   clojure-lsp/clojure-lsp {:local/root "/Users/borkdude/dev/clojure-lsp/cli"}
+                   cider/cider-nrepl {:mvn/version "0.28.6"}}}}}' \
+                       -M:lsp -m clojure-lsp.main "$@"
+```
+
+The configure the following in emacs:
+
+``` elisp
+(setq lsp-clojure-custom-server-command '("/Users/borkdude/bin/clojure-lsp-dev"))
+```
+
+I use the above to always run my local version of clj-kondo and clojure-lsp,
+along with an nREPL server for hacking from a REPL.
 
 ## Visual Studio Code
 
