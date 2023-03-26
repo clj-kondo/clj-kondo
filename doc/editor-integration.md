@@ -58,6 +58,10 @@ This section assumes that you are using the `lsp-mode` emacs package and
 mentions `lsp-`-mode specific settings. If you are usign `eglot`, a different
 emacs lsp client, those settings don't apply.
 
+As of 26th of March 2023, some of the below recommendations are only availably
+via the clojure-lsp master branch. See the end of this section how to run that
+locally.
+
 When using clojure-lsp, there is no need to install clj-kondo separately,
 although you can still do that via
 [flycheck-clj-kondo](https://github.com/borkdude/flycheck-clj-kondo). You may do
