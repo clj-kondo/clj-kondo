@@ -105,7 +105,7 @@ settings](https://emacs-lsp.github.io/lsp-mode/page/settings/mode/).
 
 To run a specific combination of clojure-lsp and clj-kondo in a JVM, rather than
 in a native binary, you can make a script like the following and add it to your
-path:
+path. Change the paths as necessary.
 
 `~/bin/clojure-lsp-dev`:
 ``` clojure
