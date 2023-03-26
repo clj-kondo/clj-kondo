@@ -64,7 +64,9 @@ this for the following reasons:
 
 
 - Linting still works for files outside of projects
-- You can use a newer version of clj-kondo than what is bundled with clojure-lsp (e.g. for development)
+- You can use a newer version of clj-kondo than what is bundled with clojure-lsp
+  (e.g. for development, also see bash script below to accomplish this with
+  clojure-lsp + clj-kondo in a JVM)
 - More immediate feedback (can be tuned with lsp-mode, read below)
 - Squiggles are less noisy (can be tuned with clojure-lsp, read below)
 
