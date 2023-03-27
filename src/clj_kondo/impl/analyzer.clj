@@ -2584,6 +2584,20 @@
 (def default-cfg-in-tag {:linters {:unresolved-symbol {:level :off}
                                    :invalid-arity {:level :off}}})
 
+(defn lint-discouraged-tags!
+  [ctx tag-expr]
+  (let [discouraged-tag-config (get-in ctx [:config :linters :discouraged-tag])
+        tag (:value tag-expr)]
+    (when-not (or (identical? :off (:level discouraged-tag-config))
+                  (empty? (dissoc discouraged-tag-config :level)))
+      (when-let [cfg (get discouraged-tag-config tag)]
+        (findings/reg-finding! ctx
+                               (node->line (:filename ctx)
+                                           tag-expr
+                                           :discouraged-tag
+                                           (or (:message cfg)
+                                               (str "Discouraged tag literal: " tag))))))))
+
 (defn analyze-reader-macro [ctx expr]
   (let [children (:children expr)
         tag-expr (first children)
@@ -2596,6 +2610,7 @@
                 (utils/ctx-with-linters-disabled ctx [:unresolved-symbol
                                                       :invalid-arity])))
         children (rest children)]
+    (lint-discouraged-tags! ctx tag-expr)
     (analyze-children ctx children)))
 
 #_(requiring-resolve 'clojure.set/union)
