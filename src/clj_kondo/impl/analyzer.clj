@@ -2592,11 +2592,13 @@
                   (empty? (dissoc discouraged-tag-config :level)))
       (when-let [cfg (get discouraged-tag-config tag)]
         (findings/reg-finding! ctx
-                               (node->line (:filename ctx)
-                                           tag-expr
-                                           :discouraged-tag
-                                           (or (:message cfg)
-                                               (str "Discouraged tag literal: " tag))))))))
+                               (assoc-some (node->line (:filename ctx)
+                                                       tag-expr
+                                                       :discouraged-tag
+                                                       (or (:message cfg)
+                                                           (str "Discouraged tag literal: " tag)))
+                                           :level
+                                           (:level cfg)))))))
 
 (defn analyze-reader-macro [ctx expr]
   (let [children (:children expr)
