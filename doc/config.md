@@ -523,6 +523,12 @@ Remember that your exported clj-kondo config is to help users of your library li
 An exported config will, in most cases, be different from your local `.clj-kondo/config.edn`.
 The local config will typically also contain personal preferences and internal lint rules.
 
+To activate the exported configuration in your local project, you can add the following to `.clj-kondo/config.edn`:
+
+``` Clojure
+{:config-paths ["../resources/clj-kondo.exports/<your-org>/<your-libname>"]}
+```
+
 ### Sample Exports
 
 The clj-kondo team has provided config exports for some popular libraries in the [clj-kondo/config](https://github.com/clj-kondo/config) repo.
