@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2026](https://github.com/clj-kondo/clj-kondo/issues/2026): coercing string did not create StringNode, but TokenNode, lead to false positive `Too many arguments to def`
+- [#2030](https://github.com/clj-kondo/clj-kondo/issues/2030): Add a new `:discouraged-tag` linter for discouraged tag literals. See the [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-tag).
 
 ## 2023.03.17
 

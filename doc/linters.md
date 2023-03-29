@@ -23,6 +23,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
     - [Discouraged var](#discouraged-var)
     - [Discouraged namespace](#discouraged-namespace)
+    - [Discouraged tag](#discouraged-tag)
     - [Docstring blank](#docstring-blank)
     - [Docstring no summary](#docstring-no-summary)
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
@@ -476,6 +477,34 @@ With the configuration above:
 
 ```clojure
 (require '[clojure.java.jdbc :as j])
+```
+
+### Discouraged tag
+
+*Keyword:* `:discouraged-tag`
+
+*Description:* warn on the usage of a tagged literal that is discouraged to be used.
+
+*Default level:* `:warning`
+
+*Config:*
+
+```clojure
+{:linters {:discouraged-tag {inst {:message "Prefer #java-time/instant" }}}}
+```
+
+*Example trigger:*
+
+Given the above configuration:
+
+```clojure
+{:date #inst "2020"}
+```
+
+*Example message:*
+
+```
+Prefer #java-time/instant
 ```
 
 ### Docstring blank
