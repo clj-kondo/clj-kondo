@@ -2035,25 +2035,30 @@ foo/foo ;; this does use the private var
        :level :error,
        :message "Unresolved symbol: xstr/starts-with?"}
     {:file "corpus/spec_syntax.clj",
-     :row 30,
+     :row 31,
      :col 15,
      :level :error,
      :message "unknown option ::opt"}
     {:file "corpus/spec_syntax.clj",
-     :row 31,
+     :row 32,
      :col 15,
      :level :error,
      :message "unknown option ::opt-un"}
     {:file "corpus/spec_syntax.clj",
-     :row 32,
+     :row 33,
      :col 15,
      :level :error,
      :message "unknown option ::req"}
     {:file "corpus/spec_syntax.clj",
-     :row 33,
+     :row 34,
      :col 15,
      :level :error,
-     :message "unknown option ::req-un"}]
+     :message "unknown option ::req-un"}
+    {:file "corpus/spec_syntax.clj",
+     :row 35,
+     :col 15,
+     :level :error,
+     :message "unknown option ::gen"}]
    (lint! (io/file "corpus" "spec_syntax.clj")
           '{:linters {:unresolved-symbol {:level :error}
                       :unused-namespace {:level :error}}})))

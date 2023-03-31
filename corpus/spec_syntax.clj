@@ -26,11 +26,13 @@
               :opt-un [::a]
               :req [::a]
               :req-un [::a]
-              ;; unkown
+              :gen (fn [])
+              ;; unknown
               ::opt [::a]
               ::opt-un [::a]
               ::req [::a]
-              ::req-un [::a]))
+              ::req-un [::a]
+              ::gen (fn [])))
 
 (require '[spec-keys :as sk]) ;; namespace is used because of below s/keys call
 
