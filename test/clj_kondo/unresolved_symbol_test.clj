@@ -3,6 +3,7 @@
    [clj-kondo.test-utils :refer [assert-submaps2 lint!] :rename {assert-submaps2 assert-submaps}]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
+   [clojure.string :as str]
    [clojure.test :refer [deftest is testing]]))
 
 (deftest unresolved-symbol-test
@@ -339,3 +340,19 @@
   [x exp]
   (Math/scalb ^double x ^int exp))"
                      {:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest exclude-patterns-test
+  (assert-submaps
+   '({:file "<stdin>", :row 3, :col 38, :level :error, :message "Unresolved symbol: x"})
+   (lint! (str/join "\n"
+                    (map pr-str '[(ns scratch)
+
+                                  (defmacro match
+                                    {:clj-kondo/config
+                                     '{:linters {:unresolved-symbol {:exclude-patterns ["^\\?"]}}}}
+                                    [& _xs])
+
+                                  (match {:foo ?foo} {:foo :bar}
+                                         [?foo x])]))
+          {:linters {:unresolved-symbol {:exclude-patterns ["^\\?"]
+                                         :level :error}}})))
