@@ -1518,6 +1518,25 @@ You can report duplicate warnings using:
 {:linters {:unresolved-symbol {:report-duplicates true}}}
 ```
 
+#### :exclude-patterns
+
+Since v2023.04.??+ (to be released) you can use `:exclude-patterns` to suppress symbols by regex patterns (as strings, processed via `re-find`):
+
+``` clojure
+(ns scratch)
+
+(defmacro match
+  {:clj-kondo/config
+   '{:linters {:unresolved-symbol {:exclude-patterns ["^\\?"]}}}}
+  [& _xs])
+
+(match {:foo ?foo} {:foo :bar}
+       [?foo x])
+```
+
+In the above example, only `x` is reported as an unresolved symbol, while
+symbols starting with a question mark are not reported.
+
 ### Unresolved var
 
 *Keyword:* `:unresolved-var`.

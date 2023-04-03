@@ -284,7 +284,9 @@
 
 (let [delayed-cfg
       (fn [config]
-        (let [excluded (get-in config [:linters :unresolved-symbol :exclude])
+        (let [unresolved-symbol-config (get-in config [:linters :unresolved-symbol])
+              excluded (get unresolved-symbol-config :exclude)
+              exclude-patterns (get unresolved-symbol-config :exclude-patterns)
               syms (set (filter symbol? excluded))
               calls (filter list? excluded)]
           {:excluded syms
@@ -303,16 +305,19 @@
                                          (into old excluded)
                                          old)
                                        :else identity)))))
-                   {} calls)}))
+                   {} calls)
+           :exclude-patterns (map #(re-pattern (str %)) exclude-patterns)}))
       delayed-cfg (memoize delayed-cfg)]
   (defn unresolved-symbol-excluded [config callstack sym]
-    (let [{:keys [:excluded :excluded-in]} (delayed-cfg config)]
+    (let [{:keys [:excluded :excluded-in exclude-patterns]} (delayed-cfg config)]
       (or (contains? excluded sym)
           (some #(when-let [check-fn (get excluded-in %)]
                    ;; e.g. for user/defproject, check-fn is identity, so any
                    ;; truthy value will be excluded inside of that
                    (check-fn sym))
-                callstack)))))
+                callstack)
+          (let [sym-str (str sym)]
+            (some #(re-find % sym-str) exclude-patterns))))))
 
 (let [delayed-cfg
       (fn [config]
