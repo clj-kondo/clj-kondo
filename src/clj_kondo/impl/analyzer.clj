@@ -874,8 +874,12 @@
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
 
-(defn- reify? [x]
-  (one-of x [[clojure.core reify] [cljs.core reify] [cljs.core specify!]]))
+(defn- fn-form? [x]
+  (one-of x [[clojure.core fn] [cljs.core fn]
+             [clojure.core fn*] [cljs.core fn*]
+             [clojure.core bound-fn]
+             [clojure.core bound-fn*]
+             [schema.core fn]]))
 
 (defn- def? [x]
   (one-of x [[clojure.core def] [cljs.core def]]))
@@ -885,7 +889,7 @@
 
 (defn- def-fn? [{:keys [callstack]}]
   (let [[current parent extra-parent] callstack]
-    (and (not (reify? current))
+    (and (fn-form? current)
          (or (def? parent)
              (and (let? parent) (def? extra-parent))))))
 
