@@ -52,7 +52,8 @@
              (set (map :message linted)))))
     (doseq [lang [:clj :cljs]]
       (is (empty? (lint! "(def x [(fn [] 1)])" "--lang" (name lang) "--config" (pr-str config))))
-      (is (empty? (lint! "(def x (let [x 1] [(fn [] x)]))" "--lang" (name lang) "--config" (pr-str config)))))))
+      (is (empty? (lint! "(def x (let [x 1] [(fn [] x)]))" "--lang" (name lang) "--config" (pr-str config))))
+      (is (empty? (lint! "(def x (reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config)))))))
 
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
