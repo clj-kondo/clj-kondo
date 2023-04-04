@@ -874,12 +874,8 @@
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
 
-(defn- fn-form? [x]
-  (one-of x [[clojure.core fn] [cljs.core fn]
-             [clojure.core fn*] [cljs.core fn*]
-             [clojure.core bound-fn]
-             [clojure.core bound-fn*]
-             [schema.core fn]]))
+(defn- protocol-method? [x]
+  (one-of x [[nil :protocol-method]]))
 
 (defn- def? [x]
   (one-of x [[clojure.core def] [cljs.core def]]))
@@ -889,7 +885,7 @@
 
 (defn- def-fn? [{:keys [callstack]}]
   (let [[current parent extra-parent] callstack]
-    (and (fn-form? current)
+    (and (not (protocol-method? current))
          (or (def? parent)
              (and (let? parent) (def? extra-parent))))))
 
