@@ -1473,7 +1473,7 @@
             (meta/lift-meta-content2 ctx protocol-method-name)
             (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
                         (assoc c :protocol-fn (and (not= "extend-protocol" def-by)
-                                                       (not= "extend-type" def-by))))
+                                                   (not= "extend-type" def-by))))
             (recur current-protocol (rest children) protocol-ns protocol-name)))))))
 
 (defn analyze-defrecord
