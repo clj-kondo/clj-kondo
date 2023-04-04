@@ -35,25 +35,29 @@
     (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang))))))
 
 (deftest def-fn-test
-  (let [config {:linters {:def-fn {:level :warn}}}]
+  (let [config {:linters {:def-fn {:level :warn}}
+                :lint-as '{some.ns/my-fn clojure.core/fn
+                           some.ns/my-reify clojure.core/reify}}
+        row-col (fn [results] (map #(select-keys % [:row :col]) results))]
     (let [linted (lint! "(def x (fn [] 1))" config)
-          row-col (map #(select-keys % [:row :col]) linted)]
-      (assert-submaps
-       '({:row 1, :col 8})
-       row-col)
+          linted-with-lint-as (lint! "(require '[some.ns :refer [my-fn]])\n(def x (my-fn [] 1))" config)]
+      (assert-submaps '({:row 1, :col 8}) (row-col linted))
+      (assert-submaps '({:row 2, :col 8}) (row-col linted-with-lint-as))
       (is (= #{"Use defn instead of def + fn"}
-             (set (map :message linted)))))
+             (set (map :message linted))
+             (set (map :message linted-with-lint-as)))))
     (let [linted (lint! "(def x (let [y 1] (fn [] y)))" config)
-          row-col (map #(select-keys % [:row :col]) linted)]
-      (assert-submaps
-       '({:row 1, :col 19})
-       row-col)
+          linted-with-lint-as (lint! "(require '[some.ns :refer [my-fn]])\n(def x (let [y 1] (my-fn [] y)))" config)]
+      (assert-submaps '({:row 1, :col 19}) (row-col linted))
+      (assert-submaps '({:row 2, :col 19}) (row-col linted-with-lint-as))
       (is (= #{"Use defn instead of def + fn"}
-             (set (map :message linted)))))
+             (set (map :message linted))
+             (set (map :message linted-with-lint-as)))))
     (doseq [lang [:clj :cljs]]
       (is (empty? (lint! "(def x [(fn [] 1)])" "--lang" (name lang) "--config" (pr-str config))))
       (is (empty? (lint! "(def x (let [x 1] [(fn [] x)]))" "--lang" (name lang) "--config" (pr-str config))))
-      (is (empty? (lint! "(def x (reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config)))))))
+      (is (empty? (lint! "(def x (reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config))))
+      (is (empty? (lint! "(require '[some.ns :refer [my-reify]]) (def x (my-reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config)))))))
 
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
