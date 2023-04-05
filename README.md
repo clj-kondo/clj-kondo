@@ -158,6 +158,7 @@ Build tool specific ways to get a classpath:
 - `lein classpath`
 - `boot with-cp -w -f -`
 - `clojure -Spath`
+- `npx shadow-cljs classpath`
 
 So for `lein` the entire command would be:
 
