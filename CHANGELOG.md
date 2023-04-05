@@ -24,6 +24,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1647](https://github.com/clj-kondo/clj-kondo/issues/1647): support `:exclude-patterns` in `:unresolved-symbol` linter
 - [#2036](https://github.com/clj-kondo/clj-kondo/pull/2036): False positive `:def-fn` on `def` + `reify`
 - [#2024](https://github.com/clj-kondo/clj-kondo/issues/2024): CLJS allows interop in constructor position
+- #2025: support namespace groups with `:unresolved-namespace` linter
 
 ## 2023.03.17
 

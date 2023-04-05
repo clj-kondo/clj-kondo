@@ -487,6 +487,7 @@ Namespace groups can be used in the following configurations:
 - In the `:discouraged-var` linter: `{foo-group/some-var {:message "..."}}`
 - In the `:discouraged-namespace` linter: `{foo-group {:message "..."}}`
 - In `:config-in-ns`: `{foo-group {:linters {:unresolved-symbol {:level :off}}}}`
+- In the `:unresolved-namespace` linter
 
 Namespace groups can be extended to more linters. Please make an issue to request this.
 

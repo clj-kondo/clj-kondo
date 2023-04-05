@@ -53,4 +53,9 @@ x/bar ;; <- no warning")))
   (is (empty? (lint! "
 (require (quote [clojure.string :as str]))
 (str/join 1 [1 2 3])
-"))))
+")))
+  (is
+   (empty?
+    (lint! "(foo-db/dude)"
+           '{:ns-groups [{:name db :pattern "-db$"}]
+             :linters {:unresolved-namespace {:exclude [db]}}}))))
