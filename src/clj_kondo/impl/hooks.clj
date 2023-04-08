@@ -59,7 +59,10 @@
                           'clojure.pprint {'pprint api/pprint}
                           'clj-kondo.hooks-api api-ns}
              :classes {'java.io.Exception Exception
-                       'java.lang.System System}
+                       'java.lang.System System
+                       ;; enable with-in-str:
+                       'java.io.StringReader java.io.StringReader
+                       'clojure.lang.LineNumberingPushbackReader clojure.lang.LineNumberingPushbackReader}
              :imports {'Exception 'java.io.Exception
                        'System java.lang.System}
              :load-fn (fn [{:keys [:namespace]}]

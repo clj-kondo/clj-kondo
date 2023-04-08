@@ -1,28 +1,37 @@
 [
   {
-    "name": "java.lang.Class",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allPublicMethods": true
-  },
+  "name": "java.lang.Class",
+  "allDeclaredConstructors": true,
+  "allPublicConstructors": true,
+  "allDeclaredMethods": true,
+  "allPublicMethods": true
+},
   {
-    "name": "java.lang.Exception",
-    "allPublicConstructors": true,
-    "allPublicFields": true,
-    "allPublicMethods": true
-  },
+  "name": "java.lang.Exception",
+  "allPublicConstructors": true,
+  "allPublicFields": true,
+  "allPublicMethods": true
+},
   {
-    "name": "java.lang.System",
-    "methods": [{"name": "nanoTime"}
-    ]
-  },
+  "name": "java.lang.System",
+  "methods": [{"name": "nanoTime"}
+             ]
+},
   {
-    "name": "java.lang.reflect.AccessibleObject",
-    "methods" : [{"name":"canAccess"}]
-  },
+  "name": "java.lang.reflect.AccessibleObject",
+  "methods" : [{"name":"canAccess"}]
+},
 
   { "name": "java.io.StringWriter",
-    "allPublicConstructors": true
+    "allPublicConstructors": true,
+    "allPublicMethods": true
+  },
+  { "name": "java.io.StringReader",
+    "allPublicConstructors": true,
+    "allPublicMethods": true
+  },
+  { "name": "clojure.lang.LineNumberingPushbackReader",
+    "allPublicConstructors": true,
+    "allPublicMethods": true
   }
 ]
