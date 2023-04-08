@@ -1,4 +1,4 @@
-(ns clj-kondo.aliased-namespace-test
+(ns clj-kondo.aliased-namespace-symbol-test
   (:require [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
             [clojure.java.io :as io]
             [clojure.test :refer [deftest is testing]]))
@@ -60,3 +60,9 @@ baz.qux/some-fn
     (is (empty? (lint! path
                        {:linters {:aliased-namespace-symbol {:level :warning}
                                   :unresolved-symbol {:level :error}}})))))
+
+(deftest disabled-when-analysis-enablede-test
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as-alias str]))
+                        '[:where [(clojure.string/join \",\" [1 2 3])]]"
+                     {:linters {:aliased-namespace-symbol {:level :warning}}
+                      :analysis {:symbols true}}))))

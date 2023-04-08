@@ -577,7 +577,7 @@
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)
         cljs? (identical? :cljs lang)
-        lint? (not (:quoted ctx))]
+        not-quoted? (not (:quoted ctx))]
     (if-let [ns* (namespace name-sym)]
       (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
                     ns*)
@@ -586,7 +586,7 @@
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)
                                  ns-sym))]
-              (when lint?
+              (when not-quoted?
                 (lint-aliased-namespace ctx ns-sym name-sym expr)
                 (lint-as-aliased-usage ctx ns-sym name-sym expr))
               (let [core? (or (= 'clojure.core ns*)
