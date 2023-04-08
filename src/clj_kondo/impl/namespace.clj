@@ -558,7 +558,7 @@
   (when expr
     (let [expr (if (meta name-sym)
                  name-sym expr)]
-      (when-let [ns-sym (get (:aliases (:ns ctx)) ns-sym)]
+      (when-let [ns-sym (get (:qualify-ns (:ns ctx)) ns-sym)]
         (when (some-> ns-sym meta :alias meta :as-alias)
           (let [sql (:syntax-quote-level ctx)]
             (when (or (not sql)
@@ -576,7 +576,8 @@
   [ctx call? ns-name name-sym expr]
   (let [lang (:lang ctx)
         ns (get-namespace ctx (:base-lang ctx) lang ns-name)
-        cljs? (identical? :cljs lang)]
+        cljs? (identical? :cljs lang)
+        not-quoted? (not (:quoted ctx))]
     (if-let [ns* (namespace name-sym)]
       (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
                     ns*)
@@ -585,8 +586,9 @@
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)
                                  ns-sym))]
-              (lint-aliased-namespace ctx ns-sym name-sym expr)
-              (lint-as-aliased-usage ctx ns-sym name-sym expr)
+              (when not-quoted?
+                (lint-aliased-namespace ctx ns-sym name-sym expr)
+                (lint-as-aliased-usage ctx ns-sym name-sym expr))
               (let [core? (or (= 'clojure.core ns*)
                               (= 'cljs.core ns*))
                     [var-name interop] (if cljs?
