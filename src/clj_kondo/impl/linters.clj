@@ -618,8 +618,8 @@
               defaults (:destructuring-defaults ns)]
           (doseq [binding diff]
             (let [nm (:name binding)]
-              (when-not (str/starts-with? (str nm) "_")
-                ;; (prn binding)
+              (when-not (or (str/starts-with? (str nm) "_")
+                            (config/unused-binding-excluded? (:config ctx) nm))
                 (findings/reg-finding!
                  ctx
                  {:type :unused-binding

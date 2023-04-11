@@ -1288,7 +1288,7 @@ You can add or override type annotations. See
 *Config:*
 
 To exclude unused bindings from being reported, start their names with
-underscores: `_x`.
+underscores: `_x` or add regex patterns to `:exclude-patterns []`.
 
 To exclude warnings about key-destructured function arguments, use:
 
@@ -1328,6 +1328,14 @@ This will disable the warning in:
 ``` clojure
 (defmulti f (fn [a b] a))
 ```
+
+To exclude bindings named "this" use:
+
+``` clojure
+{:linters {:unused-binding {:exclude-patterns ["^this"]}}}
+```
+
+Patterns are matched via `re-find`.
 
 ### Unused value
 

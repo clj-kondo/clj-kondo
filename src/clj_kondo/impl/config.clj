@@ -451,6 +451,17 @@
       (contains? excluded sym-ns))))
 
 (let [delayed-cfg (fn [config]
+                    (let [excluded (get-in config [:linters :unused-binding :exclude-patterns])
+                          regexes (map re-pattern (filter string? excluded))]
+                      {:regexes regexes}))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn unused-binding-excluded? [config binding-sym]
+    (let [{:keys [:regexes]} (delayed-cfg config)
+          binding-str (str binding-sym)]
+      (boolean (some (fn [regex]
+                       (re-find regex binding-str)) regexes)))))
+
+(let [delayed-cfg (fn [config]
                     (let [excluded (get-in config [:linters :used-underscored-binding :exclude])
                           syms (set (filter symbol? excluded))
                           regexes (map re-pattern (filter string? excluded))]
