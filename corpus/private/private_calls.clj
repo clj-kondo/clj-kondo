@@ -5,3 +5,5 @@
 (x/private-by-meta)
 (map private [] [] [])
 (map #'private.private-defs/private [] [] []) ;; <- should not be reported
+#_:clj-kondo/ignore (private 1 2 3)
+#_:clj-kondo/ignore private

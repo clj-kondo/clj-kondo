@@ -412,7 +412,9 @@
         (findings/reg-finding! ctx
                                {:filename filename
                                 :row row
+                                :end-row end-row
                                 :col col
+                                :end-col end-col
                                 :type :private-call
                                 :message (format "#'%s is private"
                                                  (str fn-sym))}))
