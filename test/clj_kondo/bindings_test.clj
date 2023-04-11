@@ -241,7 +241,10 @@
   (is (empty?  (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
                       '{:linters {:used-underscored-binding {:level :off}}})))
   (is (empty? (lint! "(doto (Object.) (.method))"
-                     '{:linters {:used-underscored-binding {:level :warning}}}))))
+                     '{:linters {:used-underscored-binding {:level :warning}}})))
+  (is (empty? (lint! "(defmulti foo (fn [this x] x))"
+                     '{:linters {:unused-binding {:level :warning :exclude-patterns ["this"]}}}))))
+
 
 
 (deftest unused-destructuring-default-test
