@@ -28,6 +28,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2039](https://github.com/clj-kondo/clj-kondo/issues/2039): :analysis `:symbols` + `:aliased-namespace-symbol` linter gives false positive in quoted symbol
 - [#2043](https://github.com/clj-kondo/clj-kondo/issues/2043): support ignore annotation on private calls
 - Support `:exclude-pattern` in `:unused-binding`
+- [#2046](https://github.com/clj-kondo/clj-kondo/issues/2046): clj-kondo stuck in loop with multiple :or in destructuring
 
 ## 2023.03.17
 
