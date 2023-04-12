@@ -1,5 +1,7 @@
 (ns clj-kondo.bindings-test
-  (:require [clj-kondo.test-utils :refer [assert-submaps lint!]]
+  (:require [clj-kondo.test-utils :refer [assert-submaps
+                                          assert-submaps2
+                                          lint!]]
             [clojure.test :refer [deftest is testing]]
             [missing.test.assertions]))
 
@@ -370,3 +372,8 @@
                       '{:linters {:used-underscored-binding {:level :off}}})))
   (is (empty? (lint! "(doto (Object.) (.method))"
                      '{:linters {:used-underscored-binding {:level :warning}}}))))
+
+(deftest issue-2046-test
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 26, :level :error, :message "duplicate key :or"})
+   (lint! "(let [{:keys [_x] :or {} :or {}} nil])")))

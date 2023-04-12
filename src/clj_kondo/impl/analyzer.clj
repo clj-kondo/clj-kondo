@@ -295,7 +295,9 @@
                                        (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
                                        (recur rest-kvs res))
                                      ;; analyze or after the rest
-                                     (recur (concat rest-kvs [k v]) res))
+                                     (let [;; prevent infinite loop with multiple :or
+                                           rest-kvs (remove #(= :or (:k %)) rest-kvs)]
+                                       (recur (concat rest-kvs [k v]) res)))
                                    :as (if (-> ctx :config :linters :unused-binding
                                                :exclude-destructured-as)
                                          (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr opts)))
