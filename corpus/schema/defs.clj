@@ -26,3 +26,6 @@
   x)
 
 (s/def foo :- long "a long" 2)
+
+(schema.core/defn baz []
+  (str {:a 1 :b}))

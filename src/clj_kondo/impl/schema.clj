@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.schema
   {:no-doc true}
   (:require
+   [clj-kondo.hooks-api :as hooks]
    [clj-kondo.impl.utils :as utils]))
 
 (defn remove-schemas-from-children [expr]
@@ -9,13 +10,13 @@
         (loop [[fst-child & rest-children] children
                res {:new-children []
                     :schemas []}]
-          (let [sexpr (when fst-child (utils/sexpr fst-child))]
+          (let [expr fst-child]
             (cond (not fst-child)
                   res
-                  (= ':- (utils/sexpr fst-child))
+                  (= ':- (:k expr))
                   (recur (next rest-children)
                          (update res :schemas conj (first rest-children)))
-                  (vector? sexpr)
+                  (= :vector (utils/tag expr))
                   (recur rest-children
                          (let [{:keys [:expr :schemas]} (remove-schemas-from-children fst-child)]
                            (-> res
@@ -39,11 +40,11 @@
                res {:new-children []
                     :schemas []}
                past-arg-schemas false]
-          (let [sexpr (when fst-child (utils/sexpr fst-child))]
+          (let [expr fst-child]
             (cond
               past-arg-schemas
               (if (and (= 'defrecord fn-sym)
-                       (map? sexpr))
+                       (hooks/map-node? expr))
                 (-> res
                     (update :new-children (fn [children]
                                             (into children rest-children)))
@@ -52,21 +53,20 @@
                                             (into (conj children fst-child) rest-children))))
               (not fst-child)
               res
-              (= ':- sexpr)
+              (= ':- (:k expr))
               (recur (next rest-children)
                      (inc index)
                      (update res :schemas conj (first rest-children))
                      past-arg-schemas)
-              (and (vector? sexpr) (not (defmethod-dispatch-val? fn-sym index)))
+              (and (hooks/vector-node? expr) (not (defmethod-dispatch-val? fn-sym index)))
               (let [{:keys [expr schemas]} (remove-schemas-from-children fst-child)]
                 (recur rest-children
                        (inc index)
                        (-> res
                            (update :schemas into schemas)
-                           (update :new-children conj expr)
-                           )
+                           (update :new-children conj expr))
                        true))
-              (seq? sexpr)
+              (hooks/list-node? expr)
               (recur rest-children
                      (inc index)
                      (let [cchildren (:children fst-child)

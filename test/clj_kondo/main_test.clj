@@ -1150,7 +1150,7 @@ foo/foo ;; this does use the private var
         (defmacro let [_]) #(println % {:a})")))))
 
 (deftest schema-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "corpus/schema/calls.clj",
       :row 4,
       :col 1,
@@ -1170,7 +1170,12 @@ foo/foo ;; this does use the private var
       :row 12,
       :col 1,
       :level :error,
-      :message "Invalid function body."})
+      :message "Invalid function body."}
+     {:file "corpus/schema/defs.clj",
+      :row 31,
+      :col 14,
+      :level :error,
+      :message "missing value for key :b"})
    (lint! (io/file "corpus" "schema")
           '{:linters {:unresolved-symbol {:level :error}}}))
   (is (empty? (lint! "(ns foo (:require [schema.core :refer [defschema]])) (defschema foo nil) foo"
