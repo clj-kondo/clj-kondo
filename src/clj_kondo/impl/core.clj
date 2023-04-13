@@ -36,12 +36,15 @@
             (str/replace "{{LEVEL}}" (str/upper-case (name level)))
             (str/replace "{{message}}" message)
             (str/replace "{{type}}" (str type))))
-      (fn [{:keys [:filename :row :col :level :message :type] :as _finding}]
+      (fn [{:keys [:filename :row :col :level :message :type langs] :as _finding}]
         (str filename ":"
              row ":"
              col ": "
              (name level) ": "
              message
+             (when (and (:lang output-cfg)
+                        (seq langs))
+               (str " [" (str/join ", " (map name langs)) "]"))
              (when (or (-> output-cfg :show-rule-name-in-message)
                        (:linter-name output-cfg))
                (str " [" type "]")))))))
@@ -110,9 +113,9 @@
   (keep #(sanitize-path cfg-dir %) paths))
 
 (defn home-config []
-  (let [home-dir  (if-let [xdg-config-home (System/getenv "XDG_CONFIG_HOME")]
-                    (io/file xdg-config-home "clj-kondo")
-                    (io/file (System/getProperty "user.home") ".config" "clj-kondo"))]
+  (let [home-dir (if-let [xdg-config-home (System/getenv "XDG_CONFIG_HOME")]
+                   (io/file xdg-config-home "clj-kondo")
+                   (io/file (System/getProperty "user.home") ".config" "clj-kondo"))]
     (when (.exists home-dir)
       (process-cfg-dir home-dir))))
 
@@ -352,11 +355,11 @@
 (defn parallel-analyze [ctx sources dev?]
   (let [source-groups (group-by :group-id sources)
         source-groups (filter seq (vals source-groups))
-        deque     (java.util.concurrent.LinkedBlockingDeque. ^java.util.List source-groups)
+        deque (java.util.concurrent.LinkedBlockingDeque. ^java.util.List source-groups)
         _ (reset! (:sources ctx) []) ;; clean up garbage
-        cnt       (+ 2 (int (* 0.6 (.. Runtime getRuntime availableProcessors))))
-        latch     (java.util.concurrent.CountDownLatch. cnt)
-        es        (java.util.concurrent.Executors/newFixedThreadPool cnt)]
+        cnt (+ 2 (int (* 0.6 (.. Runtime getRuntime availableProcessors))))
+        latch (java.util.concurrent.CountDownLatch. cnt)
+        es (java.util.concurrent.Executors/newFixedThreadPool cnt)]
     (dotimes [_ cnt]
       (.execute es
                 (bound-fn []
@@ -622,6 +625,13 @@
 
 ;;;; filter/remove output
 
+(defn collapse-cljc-findings [findings]
+  (reduce (fn [acc [_ findings]]
+            (let [langs (keep :lang findings)]
+              (conj acc (assoc (first findings) :langs langs))))
+          []
+          (group-by :message findings)))
+
 (defn filter-findings [config findings]
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
@@ -637,7 +647,7 @@
                       (not= :single-logical-operand type))
                  ;; but if we get here, then the amount of findings has to be bigger than 1
                  (> (count findings) 1))
-          f findings
+          f (collapse-cljc-findings findings)
           :let [filename (:filename f)
                 tp (:type f)
                 level (:level f)]

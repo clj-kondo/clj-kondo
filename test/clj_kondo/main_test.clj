@@ -4,7 +4,7 @@
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.main :refer [main]]
    [clj-kondo.test-utils :as tu :refer
-    [lint! assert-submaps assert-submap submap?
+    [lint! assert-submaps assert-submap assert-submap2 submap?
      make-dirs rename-path remove-dir assert-submaps2]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
@@ -1665,7 +1665,7 @@ foo/foo ;; this does use the private var
                            (format "{:output {:format %s :summary %s}}"
                                    output-format summary?))))
           parsed (parse-fn output)]
-      (assert-submap {:findings
+      (assert-submap2 {:findings
                       [{:type (case output-format :edn :invalid-arity
                                     "invalid-arity"),
                         :filename "<stdin>",

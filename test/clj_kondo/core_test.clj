@@ -2,7 +2,8 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :refer [path-separator]]
-   [clj-kondo.test-utils :refer [assert-submaps file-path file-separator]]
+   [clj-kondo.test-utils :refer [assert-submaps assert-submaps2
+                                 file-path file-separator]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -172,9 +173,9 @@
 (deftest custom-lint-fn-test
  (testing "custom-lint reg a new finding and reg-finding! return the new finding"
     (let [res (custom-linter "(eval '(+ 1 2 3))" :clj #(is %))]
-      (is (= [{:filename "<stdin>", :row 1, :col 1, :end-row 1, :end-col 6,
-               :type :org.acme/forbidden-var, :level :error}]
-             (:findings res)))))
+      (assert-submaps2 [{:filename "<stdin>", :row 1, :col 1, :end-row 1, :end-col 6,
+                         :type :org.acme/forbidden-var, :level :error}]
+                       (:findings res))))
   (testing "ignore hints return nil during reg-finding! for clj files"
     (let [res (custom-linter "#_:clj-kondo/ignore (eval '(+ 1 2 3))" :clj #(is (not %)))]
       (is (empty? (:findings res)))))
