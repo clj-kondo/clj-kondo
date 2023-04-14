@@ -3285,6 +3285,25 @@ foo/")))
                      :unused-binding {:level :warning}}
            :ignore [:unresolved-symbol]})))
 
+(deftest output-langs-test
+  (assert-submaps2
+   [{:file "<stdin>", :row 1, :col 9, :level :error, :message "Unresolved symbol: x [clj]"}
+    {:file "<stdin>", :row 1, :col 17, :level :error, :message "Unresolved symbol: y [cljs]"}]
+   (lint! "#?(:clj x :cljs y)"
+              {:output {:langs true}
+               :linters {:unresolved-symbol {:level :error}}}
+              "--lang" "cljc"))
+  (assert-submaps2
+   [{:file "<stdin>",
+     :row 1,
+     :col 1,
+     :level :error,
+     :message "Unresolved symbol: x"}]
+   (lint! "x"
+          {:output {:langs true}
+           :linters {:unresolved-symbol {:level :error}}}
+          "--lang" "clj")))
+
 ;;;; Scratch
 
 (comment

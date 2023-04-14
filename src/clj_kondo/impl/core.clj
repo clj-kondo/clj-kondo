@@ -42,7 +42,7 @@
              col ": "
              (name level) ": "
              message
-             (when (and (:lang output-cfg)
+             (when (and (:langs output-cfg)
                         (seq langs))
                (str " [" (str/join ", " (map name langs)) "]"))
              (when (or (-> output-cfg :show-rule-name-in-message)
