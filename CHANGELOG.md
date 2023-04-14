@@ -29,6 +29,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2043](https://github.com/clj-kondo/clj-kondo/issues/2043): support ignore annotation on private calls
 - Support `:exclude-pattern` in `:unused-binding`
 - [#2046](https://github.com/clj-kondo/clj-kondo/issues/2046): clj-kondo stuck in loop with multiple :or in destructuring
+- [#2048](https://github.com/clj-kondo/clj-kondo/issues/2048): better linting in `schema.core/defn` with invalid s-exprs
 
 ## 2023.03.17
 
