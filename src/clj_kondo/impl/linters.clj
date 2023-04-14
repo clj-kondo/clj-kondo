@@ -517,7 +517,7 @@
                   ns-config (:config ns)
                   config (or ns-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
-                  ctx (assoc ctx :lang (:lang ns))]]
+                  ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
       (doseq [ns-sym unused]
         (let [ns-meta (meta ns-sym)]
           (when-not (or (config/unused-namespace-excluded config ns-sym)
@@ -578,7 +578,7 @@
             :let [linter-config (apply config/merge-config! linter-configs)
                   {:keys [message]
                    :or {message (str "Discouraged namespace: " ns-sym)}} linter-config
-                  ctx (assoc ctx :lang lang)]]
+                  ctx (assoc ctx :lang lang :base-lang (:base-lang ns))]]
       (findings/reg-finding!
        ctx
        (-> (node->line filename ns-sym :discouraged-namespace message)
@@ -591,7 +591,7 @@
           ctx (if ns-config
                 (assoc ctx :config ns-config)
                 ctx)
-          ctx (assoc ctx :lang (:lang ns))]
+          ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
       (when-not (identical? :off (-> ctx :config :linters :used-underscored-binding :level))
         (doseq [binding (into #{}
                               (comp
@@ -656,12 +656,12 @@
 (defn lint-unused-private-vars!
   [ctx]
   (let [config (:config ctx)]
-    (doseq [{:keys [:filename :vars :used-vars :lang]
+    (doseq [{:keys [:filename :vars :used-vars :base-lang :lang]
              ns-nm :name
              ns-config :config} (namespace/list-namespaces ctx)
             :let [config (or ns-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
-                  ctx (assoc ctx :lang lang)
+                  ctx (assoc ctx :lang lang :base-lang base-lang)
                   vars (vals vars)
                   used-vars (into #{} (comp (filter #(and (= (:ns %) ns-nm)
                                                           (not= (:name %) (:in-def %))))
@@ -694,7 +694,7 @@
   (let [hide-duplicates? (not (get-in ctx [:config :linters :unresolved-symbol :report-duplicates]))]
     (doseq [ns (namespace/list-namespaces ctx)
             :let [lang (:lang ns)
-                  ctx (assoc ctx :lang lang)]
+                  ctx (assoc ctx :lang lang :base-lang (:base-lang ns))]
             [_ vs] (:unresolved-symbols ns)
             v (cond->> vs
                 hide-duplicates? (take 1))]
@@ -715,7 +715,7 @@
   (let [hide-duplicates? (not (get-in ctx [:config :linters :unresolved-var :report-duplicates]))]
     (doseq [ns (namespace/list-namespaces ctx)
             :let [lang (:lang ns)
-                  ctx (assoc ctx :lang lang)]
+                  ctx (assoc ctx :lang lang :base-lang (:base-lang ns))]
             [_ vs] (:unresolved-vars ns)
             v (cond->> vs
                 hide-duplicates? (take 1))]
@@ -740,7 +740,7 @@
           :let [ns-config (:config ns)
                 ctx (if ns-config (assoc ctx :config ns-config)
                         ctx)
-                ctx (assoc ctx :lang (:lang ns))]
+                ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
           :when (not (identical? :off (-> ns-config :linters :unused-import :level)))
           :let [filename (:filename ns)
                 imports (:imports ns)
@@ -756,7 +756,7 @@
   [ctx]
   (let [hide-duplicates? (not (get-in ctx [:config :linters :unresolved-namespace :report-duplicates]))]
     (doseq [ns (namespace/list-namespaces ctx)
-            :let [ctx (assoc ctx :lang (:lang ns))]
+            :let [ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
             [_ uns] (:unresolved-namespaces ns)
             un (cond->> uns
                  hide-duplicates? (take 1))

@@ -472,6 +472,26 @@ $ echo '(def x (def x 1))' | clj-kondo --config '{:output {:linter-name true}}' 
 linting took 9ms, errors: 0, warnings: 2
 ```
 
+### Show language context in .cljc files
+
+Given this example `example.cljc` file:
+``` Clojure
+x
+
+(let #?(:clj [x 1]
+        :cljs [])
+  )
+```
+
+When setting `{:output {:langs true}}` clj-kondo will output the language context for each error in the .cljc file:
+
+``` Clojure
+$ clj-kondo --lint /tmp/example.cljc --config '{:output {:langs true}}'
+/tmp/example.cljc:1:1: error: Unresolved symbol: x [clj, cljs]
+/tmp/example.cljc:3:15: warning: unused binding x [clj]
+linting took 14ms, errors: 1, warnings: 1
+```
+
 ## Namespace groups
 
 Sometimes it is desirable to configure a group of namespaces in one go. This can be done by creating namespace groups:
