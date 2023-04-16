@@ -38,13 +38,6 @@
     (io/copy xin xout)
     (.toByteArray xout)))
 
-(defn entry->class-name [entry]
-  (-> entry
-      (str/replace "/" ".")
-      (str/replace "\\" ".")
-      (str/replace ".class" "")
-      (str/replace ".java" "")))
-
 (defn ^:private opcode->flags []
   {Opcodes/ACC_PUBLIC #{:public}
    Opcodes/ALOAD #{:public :field :static}
@@ -85,19 +78,6 @@
          nil))
      ClassReader/SKIP_DEBUG)
     @result*))
-
-(defn source->class-name [file]
-  (let [fname (entry->class-name file)
-        fname (str/replace fname "\\" ".")
-        class-name (last (str/split fname #"\."))]
-    (with-open [file-reader (io/reader file)]
-      (binding [*in* file-reader]
-        (loop []
-          (if-let [next-line (read-line)]
-            (if-let [[_ package] (re-matches #"\s*package\s+(\S*)\s*;\s*" next-line)]
-              (str package "." class-name)
-              (recur))
-            class-name))))))
 
 (defn ^:private node->flag-member-type [node]
   (condp = (type node)
