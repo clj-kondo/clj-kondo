@@ -16,6 +16,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update clj-kondo-bb -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#2051](https://github.com/clj-kondo/clj-kondo/issues/2051): consider `:unresolved-namespace :exclude` as already required namespaces
+
 ## 2023.04.14
 
 - [#1196](https://github.com/clj-kondo/clj-kondo/issues/1196): show language context in `.cljc` files with `:output {:langs true}`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#show-language-context-in-cljc-files).

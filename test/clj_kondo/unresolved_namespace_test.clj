@@ -1,28 +1,28 @@
 (ns clj-kondo.unresolved-namespace-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps2]]
    [clojure.java.io :as io]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest unresolved-namespace-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 2, :level :warning,
       :message "Unresolved namespace clojure.string. Are you missing a require?"})
    (lint! "(clojure.string/includes? \"foo\" \"o\")"))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 1, :level :warning,
       :message "Unresolved namespace foo. Are you missing a require?"})
    (lint! "::foo/x"))
-  (assert-submaps
-    '({:file "<stdin>", :row 1, :col 2, :level :warning,
-       :message "Unresolved namespace foo. Are you missing a require?"})
-    (lint! "(foo/x) (foo/x)"))
-  (assert-submaps
-    '({:file "<stdin>", :row 1, :col 2, :level :warning,
-       :message "Unresolved namespace foo. Are you missing a require?"}
-      {:file "<stdin>", :row 1, :col 10, :level :warning,
-       :message "Unresolved namespace foo. Are you missing a require?"})
-    (lint! "(foo/x) (foo/x)" {:linters {:unresolved-namespace {:report-duplicates true}}}))
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 2, :level :warning,
+      :message "Unresolved namespace foo. Are you missing a require?"})
+   (lint! "(foo/x) (foo/x)"))
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 2, :level :warning,
+      :message "Unresolved namespace foo. Are you missing a require?"}
+     {:file "<stdin>", :row 1, :col 10, :level :warning,
+      :message "Unresolved namespace foo. Are you missing a require?"})
+   (lint! "(foo/x) (foo/x)" {:linters {:unresolved-namespace {:report-duplicates true}}}))
   ;; avoiding false positives
   (is (empty? (lint! (io/file "project.clj"))))
   (is (empty? (lint! "js/foo" "--lang" "cljs")))
@@ -59,3 +59,14 @@ x/bar ;; <- no warning")))
     (lint! "(foo-db/dude)"
            '{:ns-groups [{:name db :pattern "-db$"}]
              :linters {:unresolved-namespace {:exclude [db]}}}))))
+
+(deftest excluded-implies-already-required
+  (assert-submaps2
+   [{:row 1,
+     :col 1,
+     :level :warning,
+     :message "Do not use join"}]
+   (lint! "(clojure.string/join \",\" [1 2 3])"
+          '{:linters
+            {:discouraged-var {clojure.string/join {:message "Do not use join"}}
+             :unresolved-namespace {:exclude [clojure.string]}}})))

@@ -583,6 +583,8 @@
                     ns*)
             ns-sym (symbol ns*)]
         (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
+                               (when (config/unresolved-namespace-excluded (:config ctx) ns-sym)
+                                 ns-sym)
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)
                                  ns-sym))]
