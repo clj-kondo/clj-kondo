@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2051](https://github.com/clj-kondo/clj-kondo/issues/2051): consider `:unresolved-namespace :exclude` as already required namespaces
+- [#1983](https://github.com/clj-kondo/clj-kondo/issues/1983): produce java-member-definition analysis for `.java` files.
 
 ## 2023.04.14
 
