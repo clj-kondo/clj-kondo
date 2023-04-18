@@ -10,7 +10,7 @@
          bump-post-release (shell "script/bump_version post-release")
          release-artifact clj-kondo.release-artifact/release
          quickdoc {:doc "Invoke quickdoc"
-                   :extra-deps {io.github.borkdude/quickdoc {:git/sha "62dd3c6a828c3a5e61bae6ca80c8ba4781356a67"}}
+                   :extra-deps {io.github.borkdude/quickdoc {:git/sha "32e726cd6d785d00e49d4e614a05f7436d3831c0"}}
                    :task (exec 'quickdoc.api/quickdoc)
                    :exec-args {:git/branch "master"
                                :github/repo "https://github.com/clj-kondo/clj-kondo"
