@@ -14,51 +14,46 @@
 
 
 
-## <a name="clj-kondo.core/config-hash">`config-hash`</a> [:page_facing_up:](https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L260-L265)
-<a name="clj-kondo.core/config-hash"></a>
+## <a name="clj-kondo.core/config-hash">`config-hash`</a><a name="clj-kondo.core/config-hash"></a>
 ``` clojure
 
 (config-hash config)
 ```
 
-
 Return the hash of the provided clj-kondo config.
+<p><sub><a href="https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L266-L271">Source</a></sub></p>
 
-## <a name="clj-kondo.core/merge-configs">`merge-configs`</a> [:page_facing_up:](https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L247-L250)
-<a name="clj-kondo.core/merge-configs"></a>
+## <a name="clj-kondo.core/merge-configs">`merge-configs`</a><a name="clj-kondo.core/merge-configs"></a>
 ``` clojure
 
 (merge-configs & configs)
 ```
 
-
 Returns the merged configuration of c1 with c2.
+<p><sub><a href="https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L253-L256">Source</a></sub></p>
 
-## <a name="clj-kondo.core/print!">`print!`</a> [:page_facing_up:](https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L19-L53)
-<a name="clj-kondo.core/print!"></a>
+## <a name="clj-kondo.core/print!">`print!`</a><a name="clj-kondo.core/print!"></a>
 ``` clojure
 
 (print! {:keys [:config :findings :summary :analysis]})
 ```
 
-
 Prints the result from [`run!`](#clj-kondo.core/run!) to `*out*`. Returns `nil`. Alpha,
   subject to change.
+<p><sub><a href="https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L19-L53">Source</a></sub></p>
 
-## <a name="clj-kondo.core/resolve-config">`resolve-config`</a> [:page_facing_up:](https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L252-L258)
-<a name="clj-kondo.core/resolve-config"></a>
+## <a name="clj-kondo.core/resolve-config">`resolve-config`</a><a name="clj-kondo.core/resolve-config"></a>
 ``` clojure
 
 (resolve-config cfg-dir)
 (resolve-config cfg-dir config)
 ```
 
-
 Returns the configuration for `cfg-dir` merged with home,
   clj-kondo default configs and optional `config` if provided.
+<p><sub><a href="https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L258-L264">Source</a></sub></p>
 
-## <a name="clj-kondo.core/run!">`run!`</a> [:page_facing_up:](https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L55-L245)
-<a name="clj-kondo.core/run!"></a>
+## <a name="clj-kondo.core/run!">`run!`</a><a name="clj-kondo.core/run!"></a>
 ``` clojure
 
 (run!
@@ -80,7 +75,6 @@ Returns the configuration for `cfg-dir` merged with home,
    debug],
   :or {cache true}})
 ```
-
 
 Takes a map with:
 
@@ -120,3 +114,4 @@ Takes a map with:
   produce those findings. This map can be passed to [`print!`](#clj-kondo.core/print!) to print
   to `*out*`. Alpha, subject to change.
   
+<p><sub><a href="https://github.com/clj-kondo/clj-kondo/blob/master/src/clj_kondo/core.clj#L55-L251">Source</a></sub></p>
