@@ -6,7 +6,7 @@
         org.babashka/sci {:mvn/version "0.7.38"}
         babashka/fs {:mvn/version "0.2.16"}
         org.ow2.asm/asm {:mvn/version "9.4"}
-        com.github.javaparser/javaparser-symbol-solver-core {:mvn/version "3.25.2"}}
+        com.github.javaparser/javaparser-core {:mvn/version "3.25.2"}}
  :aliases {:clj-kondo/dev
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
