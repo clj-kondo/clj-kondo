@@ -18,7 +18,7 @@
                  [org.babashka/sci "0.7.38"]
                  [babashka/fs "0.2.16"]
                  [org.ow2.asm/asm "9.4"]
-                 [com.github.javaparser/javaparser-core "3.25.2"]]
+                 [com.github.javaparser/javaparser-symbol-solver-core "3.25.2"]]
   ;; :global-vars {*print-namespace-maps* false}
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}

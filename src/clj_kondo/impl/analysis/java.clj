@@ -6,7 +6,7 @@
    [clojure.set :as set]
    [clojure.string :as str])
   (:import
-   [com.github.javaparser JavaParser Range]
+   [com.github.javaparser JavaParser ParserConfiguration Range]
    [com.github.javaparser.ast
     CompilationUnit
     Modifier
@@ -22,6 +22,8 @@
    [com.github.javaparser.ast.comments Comment]
    [com.github.javaparser.ast.expr SimpleName]
    [com.github.javaparser.metamodel PropertyMetaModel]
+   [com.github.javaparser.symbolsolver JavaSymbolSolver]
+   [com.github.javaparser.symbolsolver.resolution.typesolvers ReflectionTypeSolver]
    [java.io File InputStream]
    [java.util.jar JarFile JarFile$JarFileEntry]
    [org.objectweb.asm
@@ -100,10 +102,10 @@
                    Modifier {:flags (set (map #(modifier-keyword->flag (.getKeyword ^Modifier %)) value-or-list))}
                    Comment (some->> ^Comment value-or-list .asString (hash-map :doc))
                    VariableDeclarator {:name (.asString (.getName ^VariableDeclarator (first value-or-list)))
-                                       :type (.asString (.getType ^VariableDeclarator (first value-or-list)))}
+                                       :type (.describe (.resolve (.getType ^VariableDeclarator (first value-or-list))))}
                    Parameter {:parameters (mapv #(.toString ^Parameter %) value-or-list)}
                    SimpleName {:name (.asString ^SimpleName value-or-list)}
-                   com.github.javaparser.ast.type.Type {:return-type (.asString ^com.github.javaparser.ast.type.Type value-or-list)}
+                   com.github.javaparser.ast.type.Type {:return-type (.describe (.resolve ^com.github.javaparser.ast.type.Type value-or-list))}
                    nil))
         member (reduce merge {} member)]
     (when-not (contains? (:flags member) :private)
@@ -111,9 +113,14 @@
           (merge (some-> node node->location))
           (update :flags set/union #{(node->flag-member-type node)})))))
 
+(defn ^:private ->new-javaparser ^JavaParser []
+  (let [symbol-resolver (JavaSymbolSolver. (ReflectionTypeSolver.))]
+    (JavaParser. (doto (ParserConfiguration.)
+                   (.setSymbolResolver symbol-resolver)))))
+
 (defn ^:private source-is->java-member-definitions [^InputStream source-input-stream]
   (let [modifier-keyword->flag (modifier-keyword->flag)]
-    (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
+    (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (->new-javaparser) source-input-stream)) nil)]
       (reduce
        (fn [classes ^ClassOrInterfaceDeclaration class-or-interface]
          (let [class-name (.get (.getFullyQualifiedName class-or-interface))

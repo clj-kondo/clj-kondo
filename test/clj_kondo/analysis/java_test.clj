@@ -116,19 +116,19 @@
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
           :flags #{:public :field}
           :name "bar1"
-          :type "Double"
+          :type "java.lang.Double"
           :row 12 :col 5 :end-row 12 :end-col 23}
          {:class "foo.bar.AwesomeClass"
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
           :flags #{:public :field :final}
           :name "bar2"
-          :type "Double"
+          :type "java.lang.Double"
           :row 13 :col 5 :end-row 13 :end-col 35}
          {:class "foo.bar.AwesomeClass"
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
           :flags #{:public :static :field :final}
           :name "bar3"
-          :type "Double"
+          :type "java.lang.Double"
           :row 14 :col 5 :end-row 14 :end-col 42}
          {:class "foo.bar.AwesomeClass"
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
@@ -143,7 +143,7 @@
           :flags #{:method :public}
           :parameters ["double a" "double b"]
           :row 20 :col 5 :end-row 22 :end-col 5}
-         {:return-type "File[]"
+         {:return-type "java.io.File[]"
           :name "coolParse"
           :class "foo.bar.AwesomeClass"
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
