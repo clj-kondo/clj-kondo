@@ -159,9 +159,9 @@
        (identical? :clj (:lang ctx))))
 
 (defn reg-class-usage!
-  ([ctx class-name loc+data]
-   (reg-class-usage! ctx class-name loc+data nil))
-  ([ctx class-name loc+data name-meta]
+  ([ctx class-name method-name loc+data]
+   (reg-class-usage! ctx class-name method-name loc+data nil))
+  ([ctx class-name method-name loc+data name-meta]
    (when (analyze-class-usages? ctx)
      (let [constructor-expr (:constructor-expr ctx)
            loc+data* loc+data
@@ -175,6 +175,8 @@
                       :uri (:uri ctx)
                       :filename (:filename ctx)}
                      loc+data
+                     (when method-name
+                       {:method-name method-name})
                      (when name-meta
                        {:name-row (:row name-meta)
                         :name-col (:col name-meta)
