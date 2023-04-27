@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2051](https://github.com/clj-kondo/clj-kondo/issues/2051): consider `:unresolved-namespace :exclude` as already required namespaces
+- [#2056](https://github.com/clj-kondo/clj-kondo/issues/2056): validate collection nodes when constructing and `--debug` is true
 
 ## 2023.04.14
 
