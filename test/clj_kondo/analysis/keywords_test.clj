@@ -129,7 +129,7 @@
                                              "(fn [{n :node}]"
                                              "  (let [c (:children n)]"
                                              "    {:node (a/list-node "
-                                             "             (list* 'do"
+                                             "             (list* (a/token-node 'do)"
                                              "                    (a/reg-keyword! (second c) 'user/mydef)"
                                              "                    (drop 2 c)))}))")}}}})]
       (assert-submaps
