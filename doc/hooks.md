@@ -350,7 +350,12 @@ Here are some tips and tricks for developing hooks.
 ### Debugging
 
 For debugging the output of a hook function, you can use `println` or `prn`. To
-get a sense of what a newly generated node looks like, you can use `(prn (api/sexpr node))`.
+get a sense of what a newly generated node looks like, you can use `(prn
+(api/sexpr node))`.
+
+Also pass `--debug` to the command line or `:debug true` to `clj-kondo/run!` for
+additional debug checks. Do not use `--debug` in production because it affects
+performance.
 
 ### Developing hooks in the REPL
 
