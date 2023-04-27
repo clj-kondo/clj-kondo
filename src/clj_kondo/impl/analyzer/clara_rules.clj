@@ -68,21 +68,17 @@
             fact-results (analyze-children context [fact-node])
             [next-results next-context] (cond
                                           (nil? condition)
-                                          (do
-                                            [[] context])
+                                          [[] context]
 
                                           (contains? #{:not :or :and :exists} (node-value fact-node))
-                                          (do
-                                            (analyze-conditions context condition))
+                                          (analyze-conditions context condition)
 
                                           (and (= (node-type fact-node) :list)
                                                (= :from (-> condition first node-value)))
-                                          (do
-                                            (analyze-conditions context (rest condition)))
+                                          (analyze-conditions context (rest condition))
 
                                           :else
-                                          (do
-                                            (analyze-constraints context condition)))
+                                          (analyze-constraints context condition))
             result-bindings (when result-form
                               (extract-bindings context result-form))
             next-context (ctx-with-bindings next-context result-bindings)]
