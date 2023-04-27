@@ -6,26 +6,23 @@
     [missing.test.assertions]))
 
 (deftest clara-rules-test
-  (is (= [{:file "corpus/clara/rules_test.clj"
-           :row 14
+  (is (= [{:row 14
            :col 11
            :level :on
            :message "Unresolved symbol: ?fact"}
-          {:file "corpus/clara/rules_test.clj"
-           :row 23
+          {:row 23
            :col 18
            :level :on
            :message "Unresolved symbol: foo-yes"}
-          {:file "corpus/clara/rules_test.clj"
-           :row 34
+          {:row 34
            :col 51
            :level :on
            :message "Unresolved symbol: foo-item"}
-          {:file "corpus/clara/rules_test.clj"
-           :row 41
+          {:row 41
            :col 20
            :level :on
            :message "Unresolved symbol: foo-value"}]
-         (lint! (io/file "corpus" "clara" "rules_test.clj")
-                {:linters
-                 {:unresolved-symbol {:level :on}}}))))
+         (for [finding (lint! (io/file "corpus" "clara" "rules_test.clj")
+                              {:linters
+                               {:unresolved-symbol {:level :on}}})]
+           (dissoc finding :file)))))
