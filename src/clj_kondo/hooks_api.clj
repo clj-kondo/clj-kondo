@@ -6,6 +6,7 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.rewrite-clj.node :as node]
+   [clj-kondo.impl.rewrite-clj.node.protocols]
    [clj-kondo.impl.rewrite-clj.parser :as parser]
    [clj-kondo.impl.utils :as utils]
    [clojure.pprint]
@@ -27,6 +28,9 @@
 
 (defn parse-string [s]
   (parser/parse-string s))
+
+(defn node? [n]
+  (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node n))
 
 (defn keyword-node? [n]
   (utils/keyword-node? n))
@@ -50,21 +54,38 @@
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :vector (utils/tag n))))
 
-(def vector-node (comp mark-generate utils/vector-node))
+(def ^:dynamic *reload* false)
+(def ^:dynamic ^:private *debug* false)
+
+(defn assert-children-nodes [children]
+  (when *debug*
+    (when-let [node (some #(when-not (node? %)
+                             %) children)]
+      (throw (new IllegalArgumentException (str "Not a node: " (str node)))))))
+
+(defn vector-node [children]
+  (assert-children-nodes children)
+  (mark-generate (utils/vector-node children)))
 
 (def list-node? utils/list-node?)
 
-(def list-node (comp mark-generate utils/list-node))
+(defn list-node [children]
+  (assert-children-nodes children)
+  (mark-generate (utils/list-node children)))
 
 (def set-node? utils/set-node?)
 
-(def set-node (comp mark-generate utils/set-node))
+(defn set-node [children]
+  (assert-children-nodes children)
+  (mark-generate (utils/set-node children)))
 
 (defn map-node? [n]
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :map (utils/tag n))))
 
-(def map-node (comp mark-generate utils/map-node))
+(defn map-node [children]
+  (assert-children-nodes children)
+  (mark-generate (utils/map-node children)))
 
 (defn sexpr [expr]
   (node/sexpr expr))
@@ -121,8 +142,6 @@
       merge
       {}
       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
-
-(def ^:dynamic *reload* false)
 
 (defn walk
   [inner outer form]
