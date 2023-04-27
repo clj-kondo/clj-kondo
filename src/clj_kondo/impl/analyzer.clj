@@ -6,6 +6,7 @@
    [clj-kondo.hooks-api :as hooks-api]
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.babashka :as babashka]
+   [clj-kondo.impl.analyzer.clara-rules :as clara-rules]
    [clj-kondo.impl.analyzer.clojure-data-xml :as xml]
    [clj-kondo.impl.analyzer.common :refer [common]]
    [clj-kondo.impl.analyzer.compojure :as compojure]
@@ -2331,6 +2332,10 @@
                              [compojure.core context]
                              [compojure.core rfn])
                             (compojure/analyze-compojure-macro ctx expr resolved-as-name)
+                            ([clara.rules defrule])
+                            (clara-rules/analyze-defrule-macro ctx expr)
+                            ([clara.rules defquery])
+                            (clara-rules/analyze-defquery-macro ctx expr)
                             ([clojure.java.jdbc with-db-transaction]
                              [clojure.java.jdbc with-db-connection]
                              [clojure.java.jdbc with-db-metadata]
