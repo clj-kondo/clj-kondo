@@ -2678,6 +2678,12 @@
                                                   :level :error
                                                   :type :syntax
                                                   :message "Nested #()s are not allowed")))
+              (when (identical? :edn lang)
+                (findings/reg-finding! ctx (assoc (meta expr)
+                                                  :filename (:filename ctx)
+                                                  :level :error
+                                                  :type :syntax
+                                                  :message "#()s are not allowed in EDN")))
               (let [expanded-node (macroexpand/expand-fn expr)
                     m (meta expanded-node)
                     has-first-arg? (:clj-kondo.impl/fn-has-first-arg m)]
@@ -2812,6 +2818,16 @@
                     (analyze-children ctx children))))))
           (types/add-arg-type-from-expr ctx expr :list))
         ;; catch-all
+        :regex (do
+                 (when (identical? :edn lang)
+                   (findings/reg-finding! ctx (assoc (meta expr)
+                                                     :filename (:filename ctx)
+                                                     :level :error
+                                                     :type :syntax
+                                                     :message "Regex literals are not allowed in EDN")))
+                 (analyze-children (update ctx
+                                           :callstack #(cons [nil t] %))
+                                   children))
         (analyze-children (update ctx
                                   :callstack #(cons [nil t] %))
                           children)))))
