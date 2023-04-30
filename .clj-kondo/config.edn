@@ -39,5 +39,4 @@
  :ns-groups [{:pattern ".*-test"
               :name test-namespaces}]
  :config-in-ns {test-namespaces {:linters {:warn-on-reflection {:level :off}}}}
-
  }
