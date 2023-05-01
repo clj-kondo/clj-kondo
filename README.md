@@ -91,6 +91,28 @@ Watch the talk:
 
 [![Clj-kondo at ClojuTRE 2019](https://img.youtube.com/vi/MB3vVREkI7s/0.jpg)](https://www.youtube.com/watch?v=MB3vVREkI7s)
 
+## Support :heart:
+
+You can support this project via [Github
+Sponsors](https://github.com/sponsors/borkdude),
+[OpenCollective](https://opencollective.com/clj-kondo),
+[Ko-fi](https://ko-fi.com/borkdude) or indirectly via [Clojurists
+Together](https://www.clojuriststogether.org/).
+
+<details>
+
+<summary>Top sponsors</summary>
+
+- [Clojurists Together](https://clojuriststogether.org/)
+- [Roam Research](https://roamresearch.com/)
+- [Nextjournal](https://nextjournal.com/)
+- [Toyokumo](https://toyokumo.co.jp/)
+- [Cognitect](https://www.cognitect.com/)
+- [Kepler16](https://kepler16.com/)
+- [Adgoji](https://www.adgoji.com/)
+
+</details>
+
 ## [Installation](doc/install.md)
 
 ## [Running on the JVM](doc/jvm.md)
@@ -270,33 +292,6 @@ pod](https://github.com/babashka/babashka.pods).
 - [adgoji](https://www.adgoji.com/) for financial support
 - [Clojurists Together](https://www.clojuriststogether.org/) for sponsoring work
   on hooks
-
-## Contributors
-
-### Code Contributors
-
-This project exists thanks to all the people who contribute. [[Contribute](doc/dev.md)].
-
-<a href="https://github.com/clj-kondo/clj-kondo/graphs/contributors"><img src="https://opencollective.com/clj-kondo/contributors.svg?width=890&button=false" /></a>
-
-### Financial Contributors
-
-#### Github Sponsors
-
-- [Robert Stuttaford](https://github.com/robert-stuttaford)
-
-#### OpenCollective
-Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/clj-kondo/contribute)]
-
-##### Individuals
-
-<a href="https://opencollective.com/clj-kondo"><img src="https://opencollective.com/clj-kondo/individuals.svg?width=890"></a>
-
-##### Organizations
-
-Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/clj-kondo/contribute)]
-
-<a href="https://opencollective.com/clj-kondo/organization/0/website"><img src="https://opencollective.com/clj-kondo/organization/0/avatar.svg"></a>
 
 ## License
 
