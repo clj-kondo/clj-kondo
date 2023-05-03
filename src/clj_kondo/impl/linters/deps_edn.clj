@@ -126,8 +126,7 @@
 
           ;; in this case git/url is inferred from lib
           ;; see https://clojure.org/reference/deps_and_cli#_coord_attributes
-          (and git-url (or (:git/sha form)
-                           (:sha form)))
+          (and git-url sha)
           nil
           ;; no condition met, generic warning
           (findings/reg-finding!
