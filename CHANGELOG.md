@@ -22,6 +22,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2056](https://github.com/clj-kondo/clj-kondo/issues/2056): validate collection nodes when constructing and `--debug` is true
 - [#2058](https://github.com/clj-kondo/clj-kondo/issues/2058): warn about `#()` and `#""` in `.edn` files
 - [#2064](https://github.com/clj-kondo/clj-kondo/issues/2064): False positive when using `:sha` instead of `:git/sha` in combination with git url in `deps.edn`
+- [#2063](https://github.com/clj-kondo/clj-kondo/issues/2063): introduce new `:defined-by*` key which contains the `:lint-as` key rather than value
 
 ## 2023.04.14
 
