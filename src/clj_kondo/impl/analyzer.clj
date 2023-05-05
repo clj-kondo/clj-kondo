@@ -1960,6 +1960,11 @@
                                              with-precision-bindings)
                     children))
 
+(defn- analyze-= [ctx expr]
+  (let [children (rest (:children expr))]
+    
+    (analyze-children ctx children)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -2244,6 +2249,7 @@
                           if (analyze-if ctx expr)
                           new (analyze-constructor ctx expr)
                           set! (analyze-set! ctx expr)
+                          = (analyze-= ctx expr)
                           (with-redefs binding) (analyze-with-redefs ctx expr)
                           (when when-not) (analyze-when ctx expr)
                           (map mapv filter filterv remove reduce
