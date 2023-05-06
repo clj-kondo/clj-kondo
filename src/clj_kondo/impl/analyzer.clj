@@ -1961,8 +1961,10 @@
                     children))
 
 (defn- analyze-= [ctx expr]
-  (let [children (rest (:children expr))]
-    
+  (let [[_lhs _rhs :as children] (rest (:children expr))]
+    #_(when (or (true? (:value lhs))
+              (true? (:value rhs)))
+      (findings/reg-finding! ctx  {:type 1}))
     (analyze-children ctx children)))
 
 (defn analyze-call
