@@ -652,6 +652,18 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `Case test is compile time constant and should not be quoted.`
 
+### Equals true
+
+*Keyword:* `:equals-true`
+
+*Description:* warn on usage of `(= true x)` or `(= x true)` rather than `(true? x)`
+
+*Default level:* `:off`
+
+*Example trigger:* `(fn [x] (= true x))`
+
+*Example message:* `Prefer (true? x) over (= true x)`.
+
 ### File
 
 *Keyword:* `:file`.

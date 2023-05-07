@@ -146,7 +146,8 @@
               :duplicate-field {:level :error}
               :aliased-namespace-var-usage {:level :warning}
               :uninitialized-var {;; will be :warning in a future release
-                                  :level :off}}
+                                  :level :off}
+              :equals-true {:level :off}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
