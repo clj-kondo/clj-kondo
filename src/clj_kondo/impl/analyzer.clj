@@ -1961,10 +1961,14 @@
                     children))
 
 (defn- analyze-= [ctx expr]
-  (let [[_lhs _rhs :as children] (rest (:children expr))]
-    #_(when (or (true? (:value lhs))
-              (true? (:value rhs)))
-      (findings/reg-finding! ctx  {:type 1}))
+  (let [[lhs rhs :as children] (rest (:children expr))]
+    (when (and (= 2 (count children))
+               (or (true? (:value lhs))
+                   (true? (:value rhs))))
+      (findings/reg-finding! ctx (assoc (meta expr)
+                                        :type :equals-true
+                                        :message "Prefer (true? x) over (= true x)"
+                                        :filename (:filename ctx))))
     (analyze-children ctx children)))
 
 (defn analyze-call
