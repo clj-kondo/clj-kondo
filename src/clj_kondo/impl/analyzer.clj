@@ -1981,10 +1981,9 @@
       (when (or plus? minus?)
         (findings/reg-finding! ctx (assoc (meta expr)
                                           :type (if plus? :plus-one :minus-one)
-                                          :message (str (if plus?
-                                                          "Prefer (inc x) over (+ 1 x)"
-                                                          "Prefer (dec x) over (- x 1)")
-                                                        " -- " expr)
+                                          :message (if plus?
+                                                     "Prefer (inc x) over (+ 1 x)"
+                                                     "Prefer (dec x) over (- x 1)")
                                           :filename (:filename ctx)))))
     (analyze-children ctx children false)))
 
