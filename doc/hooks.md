@@ -149,7 +149,7 @@ This is the code for the hook:
 (ns hooks.with-bound
   (:require [clj-kondo.hooks-api :as api]))
 
-(defn with-bound [{:keys [:node]}]
+(defn with-bound [{:keys [node]}]
   (let [[binding-vec & body] (rest (:children node))
         [sym val opts] (:children binding-vec)]
     (when-not (and sym val)
@@ -215,7 +215,7 @@ dispatched event used a qualified keyword.
 (ns hooks.re-frame
   (:require [clj-kondo.hooks-api :as api]))
 
-(defn dispatch [{:keys [:node]}]
+(defn dispatch [{:keys [node]}]
   (let [sexpr (api/sexpr node)
         event (second sexpr)
         kw (first event)]
@@ -254,7 +254,7 @@ The configuration is supplied as a key in the hook argument:
 (defn warn? [linter-params]
   ...)
 
-(defn bar [{:keys [:node :config]}]
+(defn bar [{:keys [node config]}]
   (let [linter-params (-> config :linters :foo/lint-bar :lint)]
     (when (warn? linter-params)
       (api/reg-finding! (assoc (meta node)
@@ -457,7 +457,7 @@ user=> (str (api/macroexpand #'hooks.one-of/one-of* (api/parse-string "(one-of 1
 "(clojure.core/case 1 (1 2 3) 1 nil)"
 ```
 
-So, provide the macro _var_` as the first argument, a node as the second
+So, provide the macro _var_ as the first argument, a node as the second
 argument and bindings (local variables in scope of the macro call) as the third
 argument. The return value from the macro call is a node that has been
 reconstructed from the s-expression that the macro returned.
