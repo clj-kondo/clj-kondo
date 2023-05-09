@@ -36,6 +36,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
     - [Quoted case test constant](#quoted-case-test-constant)
+    - [Equals true](#equals-true)
     - [File](#file)
     - [Format](#format)
     - [Def + fn instead of defn](#def--fn-instead-of-defn)
@@ -47,6 +48,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Line length](#line-length)
     - [Keyword in binding vector](#keyword-in-binding-vector)
     - [Main without gen-class](#main-without-gen-class)
+    - [Minus one](#minus-one)
     - [Misplaced docstring](#misplaced-docstring)
     - [Missing body in when](#missing-body-in-when)
     - [Missing clause in try](#missing-clause-in-try)
@@ -57,6 +59,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Namespace name mismatch](#namespace-name-mismatch)
     - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
     - [Not empty?](#not-empty)
+    - [Plus one](#plus-one)
     - [Private call](#private-call)
     - [Redefined var](#redefined-var)
     - [Var same name except case](#var-same-name-except-case)
@@ -81,6 +84,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused import](#unused-import)
     - [Unresolved namespace](#unresolved-namespace)
     - [Unresolved symbol](#unresolved-symbol)
+        - [:exclude-patterns](#exclude-patterns)
     - [Unresolved var](#unresolved-var)
     - [Unsorted required namespaces](#unsorted-required-namespaces)
     - [Unused namespace](#unused-namespace)
@@ -881,6 +885,25 @@ To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";
 
 *Example message:* `Main function without gen-class.`
 
+### Minus one
+
+*Keyword:* `:minus-one`
+
+*Description:* warn on usages of `-` that can be replaced with `dec`.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+``` clojure
+(def x 1)
+(- x 1)
+```
+
+*Example message:* `Prefer (dec x) over (- x 1)`
+
+Also see `:plus-one`.
+
 ### Misplaced docstring
 
 *Keyword:* `:misplaced-docstring`.
@@ -1014,9 +1037,28 @@ Read [this](https://github.com/clj-kondo/clj-kondo/issues/1331) issue for more b
 
 *Example message:* `use the idiom (seq x) rather than (not (empty? x))`.
 
+### Plus one
+
+*Keyword:* `:plus-one`
+
+*Description:* warn on usages of `+` that can be replaced with `inc`.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+``` clojure
+(def x 1)
+(+ x 1)
+```
+
+*Example message:* `Prefer (inc x) over (+ 1 x)`
+
+Also see `:minus-one`.
+
 ### Private call
 
-Keyword `:private-call`.
+*Keyword*: `:private-call`.
 
 *Description:* warn when private var is used. The name of this linter should be
 renamed to "private usage" since it will warn on usage of private vars and not

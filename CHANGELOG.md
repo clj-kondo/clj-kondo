@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2065](https://github.com/clj-kondo/clj-kondo/issues/2065): new linter `:equals-true`: suggest using `(true? x)` over `(= true x)` (defaults to `:level :off`).
+- [#2066](https://github.com/clj-kondo/clj-kondo/issues/2066): new linters `:plus-one` and `:minus-one`: suggest using `(inc x)` over `(+ x 1)` (and similarly for `dec` and `-`, defaults to `:level :off`)
 - Linter `:uninitialized-var` moved from default `:level :off` to `:warning`
 - [#2051](https://github.com/clj-kondo/clj-kondo/issues/2051): consider `:unresolved-namespace :exclude` as already required namespaces
 - [#2056](https://github.com/clj-kondo/clj-kondo/issues/2056): validate collection nodes when constructing and `--debug` is true

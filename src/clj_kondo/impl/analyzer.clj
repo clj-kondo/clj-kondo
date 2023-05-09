@@ -1969,7 +1969,23 @@
                                         :type :equals-true
                                         :message "Prefer (true? x) over (= true x)"
                                         :filename (:filename ctx))))
-    (analyze-children ctx children)))
+    (analyze-children ctx children false)))
+
+(defn- analyze-+- [ctx sym expr]
+  (let [plus? (= '+ sym)
+        minus? (= '- sym)
+        [lhs rhs :as children] (rest (:children expr))]
+    (when (and (= 2 (count children))
+               (or (and plus? (= 1 (:value lhs)))
+                   (= 1 (:value rhs))))
+      (when (or plus? minus?)
+        (findings/reg-finding! ctx (assoc (meta expr)
+                                          :type (if plus? :plus-one :minus-one)
+                                          :message (if plus?
+                                                     "Prefer (inc x) over (+ 1 x)"
+                                                     "Prefer (dec x) over (- x 1)")
+                                          :filename (:filename ctx)))))
+    (analyze-children ctx children false)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
@@ -2256,6 +2272,7 @@
                           new (analyze-constructor ctx expr)
                           set! (analyze-set! ctx expr)
                           = (analyze-= ctx expr)
+                          (+ -) (analyze-+- ctx resolved-name expr)
                           (with-redefs binding) (analyze-with-redefs ctx expr)
                           (when when-not) (analyze-when ctx expr)
                           (map mapv filter filterv remove reduce
