@@ -1972,14 +1972,19 @@
     (analyze-children ctx children false)))
 
 (defn- analyze-+- [ctx sym expr]
-  (let [[lhs rhs :as children] (rest (:children expr))]
+  (let [plus? (= '+ sym)
+        minus? (= '- sym)
+        [lhs rhs :as children] (rest (:children expr))]
     (when (and (= 2 (count children))
-               (or (= 1 (:value lhs))
+               (or (and plus? (= 1 (:value lhs)))
                    (= 1 (:value rhs))))
-      (when (= '+ sym)
+      (when (or plus? minus?)
         (findings/reg-finding! ctx (assoc (meta expr)
-                                          :type :plus-one
-                                          :message "Prefer (inc x) over (+ 1 x)"
+                                          :type (if plus? :plus-one :minus-one)
+                                          :message (str (if plus?
+                                                          "Prefer (inc x) over (+ 1 x)"
+                                                          "Prefer (dec x) over (- x 1)")
+                                                        " -- " expr)
                                           :filename (:filename ctx)))))
     (analyze-children ctx children false)))
 
