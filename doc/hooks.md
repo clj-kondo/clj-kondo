@@ -457,7 +457,7 @@ user=> (str (api/macroexpand #'hooks.one-of/one-of* (api/parse-string "(one-of 1
 "(clojure.core/case 1 (1 2 3) 1 nil)"
 ```
 
-So, provide the macro _var_` as the first argument, a node as the second
+So, provide the macro _var_ as the first argument, a node as the second
 argument and bindings (local variables in scope of the macro call) as the third
 argument. The return value from the macro call is a node that has been
 reconstructed from the s-expression that the macro returned.
