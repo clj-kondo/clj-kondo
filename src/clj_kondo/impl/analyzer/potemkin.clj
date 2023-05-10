@@ -6,7 +6,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils :refer [token-node]]))
 
-(defn analyze-import-vars [ctx expr ctx-with-linters-disabled defined-by]
+(defn analyze-import-vars [ctx expr ctx-with-linters-disabled defined-by defined-by->lint-as]
   (let [ns (:ns ctx)
         ns-name (:name ns)
         import-groups (next (:children expr))
@@ -41,5 +41,6 @@
                                                             :name-col (:col expr-meta)
                                                             :name-end-row (:end-row expr-meta)
                                                             :name-end-col (:end-col expr-meta)
-                                                            :defined-by defined-by})))
+                                                            :defined-by defined-by
+                                                            :defined-by->lint-as defined-by->lint-as})))
           imported-ns))}]))

@@ -80,8 +80,8 @@
     (let [raw-attrs attrs
           attrs (select-some attrs [:private :macro :fixed-arities :varargs-min-arity
                                     :doc :added :deprecated :test :export
-                                    :defined-by ;; :lint-as defined-by or original
-                                    :defined-by->lint-as ;; always the original
+                                    :defined-by ;; always the original
+                                    :defined-by->lint-as ;; :lint-as defined-by or original
                                     :protocol-ns :protocol-name
                                     :imported-ns
                                     :name-row :name-col :name-end-col :name-end-row

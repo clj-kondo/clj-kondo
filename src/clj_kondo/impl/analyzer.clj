@@ -617,10 +617,11 @@
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
                    :added (:added var-meta)
-                   :type (when (one-of defined-by [clojure.core/defn
-                                                   cljs.core/defn
-                                                   clojure.core/defn-
-                                                   cljs.core/defn-])
+                   :type (when (one-of defined-by->lint-as
+                                       [clojure.core/defn
+                                        cljs.core/defn
+                                        clojure.core/defn-
+                                        cljs.core/defn-])
                            :fn))))
     (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
@@ -1098,7 +1099,6 @@
             (with-meta (meta var-name-node)))))
 
 (defn analyze-def [ctx expr defined-by defined-by->lint-as]
-  ;; (def foo ?docstring ?init)
   (let [children (next (:children expr))
         raw-var-name-node (first children)
         var-name-node-meta-nodes (:meta raw-var-name-node)
@@ -1110,8 +1110,8 @@
         children (next children)
         docstring (when (> (count children) 1)
                     (string-from-token (first children)))
-        defmulti? (or (= 'clojure.core/defmulti defined-by)
-                      (= 'cljs.core/defmulti defined-by))
+        defmulti? (or (= 'clojure.core/defmulti defined-by->lint-as)
+                      (= 'cljs.core/defmulti defined-by->lint-as))
         doc-node (when docstring
                    (first children))
         [child & children] (if docstring (next children) children)
@@ -1367,7 +1367,8 @@
       (namespace/reg-var! ctx ns-name protocol-name expr
                           (assoc-some (meta name-node)
                                       :doc docstring
-                                      :defined-by defined-by)))
+                                      :defined-by defined-by
+                                      :defined-by->lint-as defined-by->lint-as)))
     (docstring/lint-docstring! ctx doc-node docstring)
     (doseq [c (next children)
             :when (= :list (tag c)) ;; skip first docstring
@@ -1395,7 +1396,7 @@
           (utils/handle-ignore ctx c)
           (namespace/reg-var!
            (cond-> ctx
-             (= 'clojure.core/definterface defined-by)
+             (= 'clojure.core/definterface defined-by->lint-as)
              (assoc :skip-reg-var true)) ns-name fn-name c
            (assoc-some (meta c)
                        :doc docstring
@@ -1408,7 +1409,7 @@
                        :protocol-ns ns-name
                        :protocol-name protocol-name
                        :defined-by defined-by
-                       :defined-by defined-by->lint-as))
+                       :defined-by->lint-as defined-by->lint-as))
           (docstring/lint-docstring! ctx doc-node docstring))))))
 
 (defn analyze-protocol-impls [ctx defined-by defined-by->lint-as ns-name children]
@@ -1484,7 +1485,7 @@
         name-node (first children)
         name-node (meta/lift-meta-content2 ctx name-node)
         metadata (meta name-node)
-        metadata (assoc metadata :defined-by defined-by)
+        metadata (assoc metadata :defined-by defined-by :defined-by->lint-as defined-by->lint-as)
         record-name (:value name-node)
         binding-vector (second children)
         field-count (count (:children binding-vector))
@@ -1510,7 +1511,7 @@
                                     :arglist-strs (when arglists?
                                                     [(str binding-vector)])
                                     :fixed-arities #{field-count}))
-    (when (= "defrecord" (name defined-by))
+    (when (= "defrecord" (name defined-by->lint-as))
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                           expr (assoc-some metadata
                                            :arglist-strs (when arglists?
@@ -2192,9 +2193,9 @@
                                          (symbol (name resolved-namespace)
                                                  (name resolved-name))))
                         defined-by->lint-as (or (:defined-by->lint-as ctx)
-                                        (when (and resolved-as-name resolved-as-namespace)
-                                          (symbol (name resolved-as-namespace)
-                                                  (name resolved-as-name))))
+                                                (when (and resolved-as-name resolved-as-namespace)
+                                                  (symbol (name resolved-as-namespace)
+                                                          (name resolved-as-name))))
                         analyzed
                         (case resolved-as-clojure-var-name
                           ns
@@ -2311,8 +2312,7 @@
                             ([clojure.test deftest]
                              [clojure.test deftest-]
                              [cljs.test deftest])
-                            (test/analyze-deftest ctx expr defined-by defined-by->lint-as
-                                                  resolved-as-namespace resolved-as-name)
+                            (test/analyze-deftest ctx expr defined-by defined-by->lint-as)
                             ([clojure.core.match match] [cljs.core.match match])
                             (match/analyze-match ctx expr)
                             [clojure.string replace]
@@ -2338,7 +2338,8 @@
                             (analyze-declare ctx expr defined-by defined-by->lint-as)
                             [potemkin import-vars]
                             (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
-                                                          'potemkin/import-vars)
+                                                          'potemkin/import-vars
+                                                          defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
                                                        [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!

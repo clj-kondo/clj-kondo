@@ -5,7 +5,7 @@
     [clj-kondo.impl.macroexpand :as macros]
     [clj-kondo.impl.utils :as utils]))
 
-(defn analyze-deftest [ctx expr defined-by defined-by->lint-as resolved-as-ns resolved-as-name]
+(defn analyze-deftest [ctx expr defined-by defined-by->lint-as]
   (common/analyze-defn
    ctx
    (-> expr
@@ -16,7 +16,7 @@
            (utils/token-node 'clojure.core/defn)
            (when name-expr (vary-meta name-expr
                                       assoc
-                                      :linted-as (symbol (str resolved-as-ns) (str resolved-as-name))
+                                      :defined-by->lint-as defined-by->lint-as
                                       :defined-by defined-by
                                       :test true))
            (utils/vector-node [])

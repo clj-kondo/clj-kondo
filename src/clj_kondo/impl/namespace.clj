@@ -93,23 +93,23 @@
             path)))
 
 (defn- var-classfile
-  [{:keys [linted-as defined-by fixed-arities ns name]}]
-  (when-let [defined-by (or linted-as defined-by)]
-    (cond
-      (one-of defined-by [clojure.core/defn
-                          clojure.core/defn-
-                          clojure.core/definline
-                          clojure.core/defmacro])
-      (-> name clojure.core/name str/lower-case)
+  [{:keys [defined-by->lint-as fixed-arities ns name]}]
+  (cond
+    (one-of defined-by->lint-as [clojure.core/defn
+                                 clojure.core/defn-
+                                 clojure.core/definline
+                                 clojure.core/defmacro])
+    (-> name clojure.core/name str/lower-case)
 
-      (and (one-of defined-by [clojure.core/defrecord
-                               clojure.core/defprotocol
-                               clojure.core/definterface
-                               clojure.core/deftype])
-           (not fixed-arities))
-      (str (-> ns clojure.core/name str/lower-case)
-           "/"
-           (->> name clojure.core/name str/lower-case)))))
+    (and (one-of defined-by->lint-as
+                 [clojure.core/defrecord
+                  clojure.core/defprotocol
+                  clojure.core/definterface
+                  clojure.core/deftype])
+         (not fixed-arities))
+    (str (-> ns clojure.core/name str/lower-case)
+         "/"
+         (->> name clojure.core/name str/lower-case))))
 
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
@@ -195,8 +195,7 @@
                                  (not temp?)
                                  (not (:imported-var metadata))
                                  (not
-                                  (when-let [defined-by (or (:linted-as metadata)
-                                                            (:defined-by metadata))]
+                                  (when-let [defined-by (:defined-by->lint-as metadata)]
                                     (or
                                      (one-of defined-by [clojure.test/deftest
                                                          clojure.core/deftype
