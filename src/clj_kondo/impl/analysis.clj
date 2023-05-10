@@ -81,7 +81,7 @@
           attrs (select-some attrs [:private :macro :fixed-arities :varargs-min-arity
                                     :doc :added :deprecated :test :export
                                     :defined-by ;; :lint-as defined-by or original
-                                    :defined-by* ;; always the original
+                                    :defined-by->lint-as ;; always the original
                                     :protocol-ns :protocol-name
                                     :imported-ns
                                     :name-row :name-col :name-end-col :name-end-row
@@ -177,7 +177,7 @@
                          :context (select-context (:analysis-context ctx) usage))))))
 
 (defn reg-protocol-impl!
-  [ctx filename impl-ns protocol-ns protocol-name method-node method-name-node defined-by defined-by*]
+  [ctx filename impl-ns protocol-ns protocol-name method-node method-name-node defined-by defined-by->lint-as]
   (when (:analyze-protocol-impls? ctx)
     (when-let [analysis (:analysis ctx)]
       (let [method-meta (meta method-node)
@@ -189,7 +189,7 @@
                 :impl-ns impl-ns
                 :filename filename
                 :defined-by defined-by
-                :defined-by* defined-by*
+                :defined-by->lint-as defined-by->lint-as
                 :name-row (:row method-name-meta)
                 :name-col (:col method-name-meta)
                 :name-end-row (:end-row method-name-meta)

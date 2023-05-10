@@ -1284,13 +1284,13 @@
   (merge {:row 1 :col 1 :end-row 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
           :ns 'user :name 'x
           :defined-by 'clojure.core/def
-          :defined-by* 'clojure.core/def} m))
+          :defined-by->lint-as 'clojure.core/def} m))
 
 (defn- ana-defn-expected [m]
   (merge {:row 1 :col 1 :end-row 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
           :ns 'user :name 'my-fn
           :defined-by 'clojure.core/defn
-          :defined-by* 'clojure.core/defn} m))
+          :defined-by->lint-as 'clojure.core/defn} m))
 
 (deftest meta-var-test
   (testing "def"
@@ -1469,7 +1469,7 @@
                                  :macro true
                                  :name 'my-macro
                                  :defined-by 'clojure.core/defmacro
-                                 :defined-by* 'clojure.core/defmacro
+                                 :defined-by->lint-as 'clojure.core/defmacro
                                  :added :attr2
                                  :deprecated true
                                  :fixed-arities #{0 3}})
@@ -1483,7 +1483,7 @@
                                :name-end-col 59
                                :name 'my-multi
                                :defined-by 'clojure.core/defmulti
-                               :defined-by* 'clojure.core/defmulti
+                               :defined-by->lint-as 'clojure.core/defmulti
                                :added :attr1
                                :deprecated true})
            (ana-var-meta (str "(defmulti ^:deprecated ^{:added :leading :l true} my-multi"
@@ -2166,11 +2166,11 @@
         :name-row 3,
         :ns foo,
         :name foo,
-        :defined-by clojure.core/defn,
+        :defined-by foo/defn,
         :filename "<stdin>",
         :col 32,
         :name-col 38,
-        :defined-by* foo/defn,
+        :defined-by->lint-as clojure.core/defn,
         :end-col 45,
         :row 3}]
      var-defs)))

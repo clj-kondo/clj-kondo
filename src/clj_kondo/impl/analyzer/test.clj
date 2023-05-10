@@ -5,7 +5,7 @@
     [clj-kondo.impl.macroexpand :as macros]
     [clj-kondo.impl.utils :as utils]))
 
-(defn analyze-deftest [ctx expr defined-by defined-by* resolved-as-ns resolved-as-name]
+(defn analyze-deftest [ctx expr defined-by defined-by->lint-as resolved-as-ns resolved-as-name]
   (common/analyze-defn
    ctx
    (-> expr
@@ -22,7 +22,7 @@
            (utils/vector-node [])
            body))))
    defined-by
-   defined-by*))
+   defined-by->lint-as))
 
 (defn analyze-cljs-test-async [ctx expr]
   (let [[binding-expr & rest-children] (rest (:children expr))
