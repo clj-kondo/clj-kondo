@@ -145,8 +145,10 @@
               :earmuffed-var-not-dynamic {:level :warning}
               :duplicate-field {:level :error}
               :aliased-namespace-var-usage {:level :warning}
-              :uninitialized-var {;; will be :warning in a future release
-                                  :level :off}}
+              :uninitialized-var {:level :warning}
+              :equals-true {:level :off}
+              :plus-one {:level :off}
+              :minus-one {:level :off}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
