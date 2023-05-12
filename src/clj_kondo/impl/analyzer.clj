@@ -503,7 +503,7 @@
           parsed-bodies))
 
 (defn analyze-defn
-  [ctx expr defined-by]
+  [ctx expr defined-by defined-by->lint-as]
   (let [ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
@@ -609,6 +609,7 @@
                    :private private?
                    :deprecated deprecated
                    :defined-by defined-by
+                   :defined-by->lint-as defined-by->lint-as
                    :fixed-arities (not-empty fixed-arities)
                    :arglist-strs (when (:analyze-arglists? ctx)
                                    arglist-strs)
@@ -616,10 +617,11 @@
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
                    :added (:added var-meta)
-                   :type (when (one-of defined-by [clojure.core/defn
-                                                   cljs.core/defn
-                                                   clojure.core/defn-
-                                                   cljs.core/defn-])
+                   :type (when (one-of defined-by->lint-as
+                                       [clojure.core/defn
+                                        cljs.core/defn
+                                        clojure.core/defn-
+                                        cljs.core/defn-])
                            :fn))))
     (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
@@ -1096,8 +1098,7 @@
     (some-> var-name
             (with-meta (meta var-name-node)))))
 
-(defn analyze-def [ctx expr defined-by]
-  ;; (def foo ?docstring ?init)
+(defn analyze-def [ctx expr defined-by defined-by->lint-as]
   (let [children (next (:children expr))
         raw-var-name-node (first children)
         var-name-node-meta-nodes (:meta raw-var-name-node)
@@ -1109,8 +1110,8 @@
         children (next children)
         docstring (when (> (count children) 1)
                     (string-from-token (first children)))
-        defmulti? (or (= 'clojure.core/defmulti defined-by)
-                      (= 'cljs.core/defmulti defined-by))
+        defmulti? (or (= 'clojure.core/defmulti defined-by->lint-as)
+                      (= 'cljs.core/defmulti defined-by->lint-as))
         doc-node (when docstring
                    (first children))
         [child & children] (if docstring (next children) children)
@@ -1173,6 +1174,7 @@
                                                      (conj (:user-meta metadata) extra-meta))
                                         :doc docstring
                                         :defined-by defined-by
+                                        :defined-by->lint-as defined-by->lint-as
                                         :fixed-arities (:fixed-arities arity)
                                         :arglist-strs (:arglist-strs arity)
                                         :varargs-min-arity (:varargs-min-arity arity)
@@ -1186,7 +1188,7 @@
 
 (declare analyze-defrecord)
 
-(defn analyze-schema [ctx fn-sym expr defined-by]
+(defn analyze-schema [ctx fn-sym expr defined-by defined-by->lint-as]
   (let [{:keys [:expr :schemas]}
         (schema/expand-schema ctx
                               fn-sym
@@ -1194,11 +1196,11 @@
     (concat
      (case fn-sym
        fn (analyze-fn ctx expr)
-       def (analyze-def ctx expr defined-by)
-       defn (analyze-defn ctx expr defined-by)
+       def (analyze-def ctx expr defined-by defined-by->lint-as)
+       defn (analyze-defn ctx expr defined-by defined-by->lint-as)
        defmethod (analyze-defmethod ctx expr)
        defrecord
-       (analyze-defrecord ctx expr defined-by))
+       (analyze-defrecord ctx expr defined-by defined-by->lint-as))
      (analyze-children ctx schemas))))
 
 (defn arity-match? [fixed-arities varargs-min-arity arg-count]
@@ -1277,7 +1279,7 @@
      ctx
      (node->line (:filename ctx) expr :inline-def "inline def"))))
 
-(defn analyze-declare [ctx expr defined-by]
+(defn analyze-declare [ctx expr defined-by defined-by->lint-as]
   (let [ns-name (-> ctx :ns :name)
         var-name-nodes (next (:children expr))
         var-names (keep (fn [var-name-node]
@@ -1295,7 +1297,8 @@
                                    :name-end-row (:end-row var-name-meta)
                                    :name-end-col (:end-col var-name-meta)
                                    :declared true
-                                   :defined-by defined-by))))))
+                                   :defined-by defined-by
+                                   :defined-by->lint-as defined-by->lint-as))))))
 
 (defn analyze-catch [ctx expr]
   (let [ctx (update ctx :callstack conj [nil 'catch])
@@ -1348,7 +1351,7 @@
               "Missing catch or finally in try")))
           analyzed)))))
 
-(defn analyze-defprotocol [{:keys [ns] :as ctx} expr defined-by]
+(defn analyze-defprotocol [{:keys [ns] :as ctx} expr defined-by defined-by->lint-as]
   ;; for syntax, see https://clojure.org/reference/protocols#_basics
   (let [children (next (:children expr))
         name-node (first children)
@@ -1364,7 +1367,8 @@
       (namespace/reg-var! ctx ns-name protocol-name expr
                           (assoc-some (meta name-node)
                                       :doc docstring
-                                      :defined-by defined-by)))
+                                      :defined-by defined-by
+                                      :defined-by->lint-as defined-by->lint-as)))
     (docstring/lint-docstring! ctx doc-node docstring)
     (doseq [c (next children)
             :when (= :list (tag c)) ;; skip first docstring
@@ -1392,7 +1396,7 @@
           (utils/handle-ignore ctx c)
           (namespace/reg-var!
            (cond-> ctx
-             (= 'clojure.core/definterface defined-by)
+             (= 'clojure.core/definterface defined-by->lint-as)
              (assoc :skip-reg-var true)) ns-name fn-name c
            (assoc-some (meta c)
                        :doc docstring
@@ -1404,10 +1408,11 @@
                        :fixed-arities fixed-arities
                        :protocol-ns ns-name
                        :protocol-name protocol-name
-                       :defined-by defined-by))
+                       :defined-by defined-by
+                       :defined-by->lint-as defined-by->lint-as))
           (docstring/lint-docstring! ctx doc-node docstring))))))
 
-(defn analyze-protocol-impls [ctx defined-by ns-name children]
+(defn analyze-protocol-impls [ctx defined-by defined-by->lint-as ns-name children]
   (let [def-by (name defined-by)]
     (loop [current-protocol nil
            children children
@@ -1462,7 +1467,8 @@
                                              protocol-name
                                              c
                                              protocol-method-name
-                                             defined-by)))
+                                             defined-by
+                                             defined-by->lint-as)))
             ;; protocol-fn-name might contain metadata
             (meta/lift-meta-content2 ctx protocol-method-name)
             (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
@@ -1472,14 +1478,14 @@
 
 (defn analyze-defrecord
   "Analyzes defrecord and deftype."
-  [{:keys [:ns] :as ctx} expr defined-by]
+  [{:keys [:ns] :as ctx} expr defined-by defined-by->lint-as]
   (let [ns-name (:name ns)
         children (:children expr)
         children (next children)
         name-node (first children)
         name-node (meta/lift-meta-content2 ctx name-node)
         metadata (meta name-node)
-        metadata (assoc metadata :defined-by defined-by)
+        metadata (assoc metadata :defined-by defined-by :defined-by->lint-as defined-by->lint-as)
         record-name (:value name-node)
         binding-vector (second children)
         field-count (count (:children binding-vector))
@@ -1505,13 +1511,13 @@
                                     :arglist-strs (when arglists?
                                                     [(str binding-vector)])
                                     :fixed-arities #{field-count}))
-    (when (= "defrecord" (name defined-by))
+    (when (= "defrecord" (name defined-by->lint-as))
       (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
                           expr (assoc-some metadata
                                            :arglist-strs (when arglists?
                                                            ["[m]"])
                                            :fixed-arities #{1})))
-    (analyze-protocol-impls ctx defined-by ns-name (nnext children))))
+    (analyze-protocol-impls ctx defined-by defined-by->lint-as ns-name (nnext children))))
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
@@ -1906,14 +1912,14 @@
 
 (defn analyze-extend-type-children
   "Used for analyzing children of extend-protocol, extend-type, reify and specify! "
-  [ctx children defined-by]
-  (analyze-protocol-impls ctx defined-by (-> ctx :ns :name) children))
+  [ctx children defined-by defined-by->lint-as]
+  (analyze-protocol-impls ctx defined-by defined-by->lint-as (-> ctx :ns :name) children))
 
-(defn analyze-reify [ctx expr defined-by]
+(defn analyze-reify [ctx expr defined-by defined-by->lint-as]
   (let [children (next (:children expr))]
-    (analyze-extend-type-children ctx children defined-by)))
+    (analyze-extend-type-children ctx children defined-by defined-by->lint-as)))
 
-(defn analyze-extend-type [ctx expr defined-by]
+(defn analyze-extend-type [ctx expr defined-by defined-by->lint-as]
   (let [children (next (:children expr))
         ctx (if (identical? :cljs (:lang ctx))
               (update-in ctx [:config :linters :unresolved-symbol :exclude]
@@ -1921,13 +1927,13 @@
                            (conj config
                                  'number 'function 'default 'object 'string)))
               ctx)]
-    (analyze-extend-type-children ctx children defined-by)))
+    (analyze-extend-type-children ctx children defined-by defined-by->lint-as)))
 
-(defn analyze-specify! [ctx expr defined-by]
+(defn analyze-specify! [ctx expr defined-by defined-by->lint-as]
   (let [children (next (:children expr))
         expr (first children)
         _ (analyze-expression** ctx expr)]
-    (analyze-extend-type ctx {:children children} defined-by)))
+    (analyze-extend-type ctx {:children children} defined-by defined-by->lint-as)))
 
 (defn analyze-cljs-exists? [ctx expr]
   (run! #(analyze-usages2
@@ -2183,9 +2189,13 @@
                                      :resolved-as-clojure-var-name resolved-as-clojure-var-name)
                               ctx)
                         defined-by (or (:defined-by ctx)
-                                       (when (and resolved-as-name resolved-as-namespace)
-                                         (symbol (name resolved-as-namespace)
-                                                 (name resolved-as-name))))
+                                       (when (and resolved-name resolved-namespace)
+                                         (symbol (name resolved-namespace)
+                                                 (name resolved-name))))
+                        defined-by->lint-as (or (:defined-by->lint-as ctx)
+                                                (when (and resolved-as-name resolved-as-namespace)
+                                                  (symbol (name resolved-as-namespace)
+                                                          (name resolved-as-name))))
                         analyzed
                         (case resolved-as-clojure-var-name
                           ns
@@ -2195,16 +2205,16 @@
                                     (analyze-children ctx children))
                           alias
                           [(analyze-alias ctx expr)]
-                          declare (analyze-declare ctx expr defined-by)
+                          declare (analyze-declare ctx expr defined-by defined-by->lint-as)
                           (def defonce defmulti goog-define)
                           (do (lint-inline-def! ctx expr)
-                              (analyze-def ctx expr defined-by))
+                              (analyze-def ctx expr defined-by defined-by->lint-as))
                           (defn defn- defmacro definline)
                           (do (lint-inline-def! ctx expr)
-                              (analyze-defn ctx expr defined-by))
+                              (analyze-defn ctx expr defined-by defined-by->lint-as))
                           defmethod (analyze-defmethod ctx expr)
-                          (definterface defprotocol) (analyze-defprotocol ctx expr defined-by)
-                          (defrecord deftype) (analyze-defrecord ctx expr defined-by)
+                          (definterface defprotocol) (analyze-defprotocol ctx expr defined-by defined-by->lint-as)
+                          (defrecord deftype) (analyze-defrecord ctx expr defined-by defined-by->lint-as)
                           comment
                           (let [cfg (:config-in-comment config)
                                 ctx (if cfg
@@ -2218,9 +2228,9 @@
                           (analyze-expression** ctx (macroexpand/expand->> ctx expr))
                           doto
                           (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
-                          reify (analyze-reify ctx expr defined-by)
-                          (extend-protocol extend-type) (analyze-extend-type ctx expr defined-by)
-                          (specify!) (analyze-specify! ctx expr defined-by)
+                          reify (analyze-reify ctx expr defined-by defined-by->lint-as)
+                          (extend-protocol extend-type) (analyze-extend-type ctx expr defined-by defined-by->lint-as)
+                          (specify!) (analyze-specify! ctx expr defined-by defined-by->lint-as)
 
                           (.) (analyze-instance-invocation ctx expr children)
                           (..) (analyze-expression** ctx (macroexpand/expand-double-dot ctx expr))
@@ -2290,20 +2300,19 @@
                             [clj-kondo.lint-as def-catch-all]
                             (analyze-def-catch-all ctx expr)
                             [schema.core fn]
-                            (analyze-schema ctx 'fn expr 'schema.core/fn)
+                            (analyze-schema ctx 'fn expr 'schema.core/fn defined-by->lint-as)
                             [schema.core def]
-                            (analyze-schema ctx 'def expr 'schema.core/def)
+                            (analyze-schema ctx 'def expr 'schema.core/def defined-by->lint-as)
                             [schema.core defn]
-                            (analyze-schema ctx 'defn expr 'schema.core/defn)
+                            (analyze-schema ctx 'defn expr 'schema.core/defn defined-by->lint-as)
                             [schema.core defmethod]
-                            (analyze-schema ctx 'defmethod expr 'schema.core/defmethod)
+                            (analyze-schema ctx 'defmethod expr 'schema.core/defmethod defined-by->lint-as)
                             [schema.core defrecord]
-                            (analyze-schema ctx 'defrecord expr 'schema.core/defrecord)
+                            (analyze-schema ctx 'defrecord expr 'schema.core/defrecord defined-by->lint-as)
                             ([clojure.test deftest]
                              [clojure.test deftest-]
                              [cljs.test deftest])
-                            (test/analyze-deftest ctx expr defined-by
-                                                  resolved-as-namespace resolved-as-name)
+                            (test/analyze-deftest ctx expr defined-by defined-by->lint-as)
                             ([clojure.core.match match] [cljs.core.match match])
                             (match/analyze-match ctx expr)
                             [clojure.string replace]
@@ -2326,10 +2335,11 @@
                             (spec/analyze-keys ctx expr)
                             ([clojure.spec.gen.alpha lazy-combinators]
                              [clojure.spec.gen.alpha lazy-prims])
-                            (analyze-declare ctx expr defined-by)
+                            (analyze-declare ctx expr defined-by defined-by->lint-as)
                             [potemkin import-vars]
                             (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
-                                                          'potemkin/import-vars)
+                                                          'potemkin/import-vars
+                                                          defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
                                                        [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
@@ -2338,9 +2348,9 @@
                                     :extract-bindings extract-bindings)
                              expr)
                             ([clojure.core.async defblockingop])
-                            (analyze-defn ctx expr defined-by)
+                            (analyze-defn ctx expr defined-by defined-by->lint-as)
                             ([clojure.core.reducers defcurried])
-                            (analyze-defn ctx expr defined-by)
+                            (analyze-defn ctx expr defined-by defined-by->lint-as)
                             ([clojure.template do-template])
                             (analyze-expression** ctx (macroexpand/expand-do-template ctx expr))
                             ([datahike.api q]
