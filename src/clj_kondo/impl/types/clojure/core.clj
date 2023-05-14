@@ -158,7 +158,7 @@
    'any? any->boolean
    ;; 544
    'str {:arities {:varargs {:args [{:op :rest
-                                         :spec :any}]
+                                     :spec :any}]
                              :ret :string}}}
    ;; 562
    'symbol? any->boolean
@@ -391,7 +391,7 @@
    ;; 1574 'val
    ;; 1581
    'rseq {:arities {1 {:args [#{:vector :sorted-map}]
-                       :req :seq}}}
+                       :ret :seq}}}
    ;; 1589 'name
    ;; 1597
    'namespace {:arities {1 {:ret :string}}}
