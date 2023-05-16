@@ -86,6 +86,9 @@
             "--filename" "deps.edn")))
   (let [deps-edn '{:deps {io.github.cognitect-labs/test-runner
                           {:git/tag "v0.4.0" :git/sha "334f2e2"}}}]
+    (is (empty? (lint! (binding [*print-namespace-maps* false] (str deps-edn)) "--filename" "deps.edn"))))
+  (let [deps-edn '{:deps {io.github.nextjournal/clerk {:git/url "git@github.com:nextjournal/clerk.git"
+                                                       :sha "e7bb8de0e5322e3029a3843ed60139d5ce1c95ca"}}}]
     (is (empty? (lint! (binding [*print-namespace-maps* false] (str deps-edn)) "--filename" "deps.edn")))))
 
 (deftest git-coordinates-conflicting-keys-test

@@ -12,6 +12,6 @@ dependencies into the container:
 
 To lint stdin:
 
-    echo '(select-keys)' | docker run -i --rm clj-kondo/clj-kondo clj-kondo --lint -
+    echo '(select-keys)' | docker run -i --rm cljkondo/clj-kondo clj-kondo --lint -
 
 You can use the `latest` tag to get the latest non-SNAPSHOT release. See [tags](https://hub.docker.com/r/cljkondo/clj-kondo/tags).

@@ -129,7 +129,8 @@
               :redundant-fn-wrapper {:level :off}
               :namespace-name-mismatch {:level :off}
               :line-length {:level :off}
-              :unused-value {:level :off}}})
+              :unused-value {:level :off}
+              :uninitialized-var {:level :off}}})
 
 (defn lint-jvm!
   ([input]

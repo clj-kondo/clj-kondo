@@ -16,7 +16,8 @@
               :unused-referred-var  {:exclude {clojure.test [is deftest testing]}}
               :redundant-call {:level :off}
               :unused-value {:level :off}
-              :unsorted-required-namespaces {:level :warning}}
+              :unsorted-required-namespaces {:level :warning}
+              :uninitialized-var {:level :off}}
     :lint-as {day8.re-frame.tracing/fn-traced   clojure.core/fn
               day8.re-frame.tracing/defn-traced clojure.core/defn
               reagent.core/with-let             clojure.core/let

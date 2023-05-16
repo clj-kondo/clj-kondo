@@ -31,7 +31,7 @@ there
   (is (hooks-api/vector-node?
        (hooks-api/vector-node [1 2 3])))
   (is (hooks-api/list-node?
-       (hooks-api/list-node '(1 2 3))))
+       (hooks-api/list-node [(hooks-api/coerce '(1 2 3))])))
   (is (hooks-api/set-node?
        (hooks-api/set-node #{1 2 3})))
   (is (hooks-api/map-node?

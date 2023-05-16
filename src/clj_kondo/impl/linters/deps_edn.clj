@@ -78,7 +78,9 @@
 (defn lint-dep-coord [ctx lib node]
   (let [form (sexpr node)
         git-url (or (:git/url form)
-                    (derive-git-url-from-lib lib))]
+                    (derive-git-url-from-lib lib))
+        sha (or (:git/sha form)
+                (:sha form))]
     (if-not (map? form)
       (findings/reg-finding!
        ctx
@@ -97,7 +99,7 @@
                            (str "Non-determistic version."))))
             true)
           (when (:git/url form)
-            (when (and (:git/sha form) (:sha form))
+            (when (and sha (:git/sha form) (:sha form))
               (findings/reg-finding!
                ctx
                (node->line (:filename ctx)
@@ -111,7 +113,7 @@
                            node
                            :deps.edn
                            (str "Conflicting keys :git/tag and :tag."))))
-            (when-not (or (:git/sha form) (:sha form))
+            (when-not sha
               (findings/reg-finding!
                ctx
                (node->line (:filename ctx)
@@ -124,7 +126,7 @@
 
           ;; in this case git/url is inferred from lib
           ;; see https://clojure.org/reference/deps_and_cli#_coord_attributes
-          (and git-url (:git/sha form))
+          (and git-url sha)
           nil
           ;; no condition met, generic warning
           (findings/reg-finding!

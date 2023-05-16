@@ -1671,27 +1671,27 @@ foo/foo ;; this does use the private var
                                    output-format summary?))))
           parsed (parse-fn output)]
       (assert-submap2 {:findings
-                      [{:type (case output-format :edn :invalid-arity
-                                    "invalid-arity"),
-                        :filename "<stdin>",
-                        :row 1,
-                        :col 1,
-                        :end-row 1,
-                        :end-col 6,
-                        :level (case output-format :edn :error
-                                     "error"),
-                        :message "clojure.core/inc is called with 0 args but expects 1"}
-                       {:type (case output-format :edn :invalid-arity
-                                    "invalid-arity"),
-                        :filename "<stdin>",
-                        :row 1,
-                        :col 6,
-                        :end-row 1,
-                        :end-col 11,
-                        :level (case output-format :edn :error
-                                     "error"),
-                        :message "clojure.core/dec is called with 0 args but expects 1"}]}
-                     parsed)
+                       [{:type (case output-format :edn :invalid-arity
+                                     "invalid-arity"),
+                         :filename "<stdin>",
+                         :row 1,
+                         :col 1,
+                         :end-row 1,
+                         :end-col 6,
+                         :level (case output-format :edn :error
+                                      "error"),
+                         :message "clojure.core/inc is called with 0 args but expects 1"}
+                        {:type (case output-format :edn :invalid-arity
+                                     "invalid-arity"),
+                         :filename "<stdin>",
+                         :row 1,
+                         :col 6,
+                         :end-row 1,
+                         :end-col 11,
+                         :level (case output-format :edn :error
+                                      "error"),
+                         :message "clojure.core/dec is called with 0 args but expects 1"}]}
+                      parsed)
       (if summary?
         (assert-submap '{:error 2}
                        (:summary parsed))
@@ -3290,9 +3290,9 @@ foo/")))
    [{:file "<stdin>", :row 1, :col 9, :level :error, :message "Unresolved symbol: x [clj]"}
     {:file "<stdin>", :row 1, :col 17, :level :error, :message "Unresolved symbol: y [cljs]"}]
    (lint! "#?(:clj x :cljs y)"
-              {:output {:langs true}
-               :linters {:unresolved-symbol {:level :error}}}
-              "--lang" "cljc"))
+          {:output {:langs true}
+           :linters {:unresolved-symbol {:level :error}}}
+          "--lang" "cljc"))
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,
@@ -3303,6 +3303,16 @@ foo/")))
           {:output {:langs true}
            :linters {:unresolved-symbol {:level :error}}}
           "--lang" "clj")))
+
+(deftest fn-literal-in-edn-test
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 5, :level :error, :message "#()s are not allowed in EDN"})
+   (lint! "{:a #()}" "--lang" "edn")))
+
+(deftest regex-literal-in-edn-test
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 5, :level :error, :message "Regex literals are not allowed in EDN"})
+   (lint! "{:a #\"\"}" "--lang" "edn")))
 
 ;;;; Scratch
 

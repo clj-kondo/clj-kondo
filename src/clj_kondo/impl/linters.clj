@@ -672,13 +672,14 @@
             :when (:private v)
             :when (not (contains? used-vars var-name))
             :when (not (config/unused-private-var-excluded config ns-nm var-name))
-            :when (not (utils/one-of (:defined-by v)
-                                     [clojure.core/defrecord
-                                      cljs.core/defrecord
-                                      clojure.core/deftype
-                                      cljs.core/deftype
-                                      clojure.core/definterface
-                                      cljs.core/definterface]))]
+            :when
+            (not (utils/one-of (:defined-by->lint-as v)
+                               [clojure.core/defrecord
+                                cljs.core/defrecord
+                                clojure.core/deftype
+                                cljs.core/deftype
+                                clojure.core/definterface
+                                cljs.core/definterface]))]
       (findings/reg-finding!
        ctx
        {:type :unused-private-var

@@ -1282,11 +1282,15 @@
 
 (defn- ana-def-expected [m]
   (merge {:row 1 :col 1 :end-row 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
-          :ns 'user :name 'x :defined-by 'clojure.core/def} m))
+          :ns 'user :name 'x
+          :defined-by 'clojure.core/def
+          :defined-by->lint-as 'clojure.core/def} m))
 
 (defn- ana-defn-expected [m]
   (merge {:row 1 :col 1 :end-row 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
-          :ns 'user :name 'my-fn :defined-by 'clojure.core/defn} m))
+          :ns 'user :name 'my-fn
+          :defined-by 'clojure.core/defn
+          :defined-by->lint-as 'clojure.core/defn} m))
 
 (deftest meta-var-test
   (testing "def"
@@ -1465,6 +1469,7 @@
                                  :macro true
                                  :name 'my-macro
                                  :defined-by 'clojure.core/defmacro
+                                 :defined-by->lint-as 'clojure.core/defmacro
                                  :added :attr2
                                  :deprecated true
                                  :fixed-arities #{0 3}})
@@ -1478,6 +1483,7 @@
                                :name-end-col 59
                                :name 'my-multi
                                :defined-by 'clojure.core/defmulti
+                               :defined-by->lint-as 'clojure.core/defmulti
                                :added :attr1
                                :deprecated true})
            (ana-var-meta (str "(defmulti ^:deprecated ^{:added :leading :l true} my-multi"
@@ -2133,9 +2139,11 @@
 (deftest custom-defn-test
   (let [analysis (:analysis (with-in-str
                               "(ns foo (:refer-clojure :exclude [defn]))
-                               (defmacro defn [& args])"
-                              (clj-kondo/run! {:lint ["-"] :config
-                                               {:analysis true}})))
+                               (defmacro defn [& args])
+                               (defn foo [])"
+                              (clj-kondo/run! {:lint ["-"]
+                                               :config {:analysis true
+                                                        :lint-as '{foo/defn clojure.core/defn}}})))
         var-defs (:var-definitions analysis)]
     (assert-submaps2
      '[{:end-row 2,
@@ -2150,7 +2158,21 @@
         :name-col 42,
         :end-col 56,
         :varargs-min-arity 0,
-        :row 2}]
+        :row 2}
+       {:fixed-arities #{0},
+        :end-row 3,
+        :name-end-col 41,
+        :name-end-row 3,
+        :name-row 3,
+        :ns foo,
+        :name foo,
+        :defined-by foo/defn,
+        :filename "<stdin>",
+        :col 32,
+        :name-col 38,
+        :defined-by->lint-as clojure.core/defn,
+        :end-col 45,
+        :row 3}]
      var-defs)))
 
 (comment

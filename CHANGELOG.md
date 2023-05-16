@@ -18,7 +18,14 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2065](https://github.com/clj-kondo/clj-kondo/issues/2065): new linter `:equals-true`: suggest using `(true? x)` over `(= true x)` (defaults to `:level :off`).
+- [#2066](https://github.com/clj-kondo/clj-kondo/issues/2066): new linters `:plus-one` and `:minus-one`: suggest using `(inc x)` over `(+ x 1)` (and similarly for `dec` and `-`, defaults to `:level :off`)
+- Linter `:uninitialized-var` moved from default `:level :off` to `:warning`
 - [#2051](https://github.com/clj-kondo/clj-kondo/issues/2051): consider `:unresolved-namespace :exclude` as already required namespaces
+- [#2056](https://github.com/clj-kondo/clj-kondo/issues/2056): validate collection nodes when constructing and `--debug` is true
+- [#2058](https://github.com/clj-kondo/clj-kondo/issues/2058): warn about `#()` and `#""` in `.edn` files
+- [#2064](https://github.com/clj-kondo/clj-kondo/issues/2064): False positive when using `:sha` instead of `:git/sha` in combination with git url in `deps.edn`
+- [#2063](https://github.com/clj-kondo/clj-kondo/issues/2063): introduce new `:defined-by->lint-as` key which contains the `:lint-as` value for "defining" var, whereas `:defined-as` now always contains the name of the original "defining var". This is a **BREAKING** change.
 - [#1983](https://github.com/clj-kondo/clj-kondo/issues/1983): produce java-member-definition analysis for `.java` files.
 
 ## 2023.04.14
@@ -788,6 +795,10 @@ Details about releases prior to v2020.09.09 can be found
 [here](https://github.com/clj-kondo/clj-kondo/releases).
 
 ## Breaking changes
+
+### Unreleased
+
+- [#2063](https://github.com/clj-kondo/clj-kondo/issues/2063): introduce new `:defined-by->lint-as` key which contains the `:lint-as` value for "defining" var, whereas `:defined-as` now always contains the name of the original "defining var". This is a **BREAKING** change.
 
 ### 2021.09.25
 
