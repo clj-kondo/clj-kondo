@@ -13,39 +13,40 @@
       (select-keys (:context ctx) selector))))
 
 (defn reg-usage! [ctx filename row col from-ns to-ns var-name arity lang in-def metadata]
-  (let [analysis (:analysis ctx)]
-    (when analysis
-      (let [to-ns (export-ns-sym to-ns)]
-        (swap! analysis update :var-usages conj
-               (assoc-some
-                (merge
-                 {:filename filename
-                  :row row
-                  :col col
-                  :from from-ns
-                  :to to-ns
-                  :name var-name}
-                 (select-some metadata
-                              [:private :macro
-                               :fixed-arities
-                               :varargs-min-arity
-                               :deprecated
-                               :refer
-                               :alias
-                               :defmethod
-                               :dispatch-val-str
-                               :name-row
-                               :name-col
-                               :name-end-row
-                               :name-end-col
-                               :end-row
-                               :end-col
-                               :derived-location
-                               :derived-name-location]))
-                :arity arity
-                :lang lang
-                :from-var in-def
-                :context (select-context (:analysis-context ctx) ctx)))))))
+  (when-not (= :clj-kondo/unknown-namespace to-ns)
+    (let [analysis (:analysis ctx)]
+      (when analysis
+        (let [to-ns (export-ns-sym to-ns)]
+          (swap! analysis update :var-usages conj
+                 (assoc-some
+                  (merge
+                   {:filename filename
+                    :row row
+                    :col col
+                    :from from-ns
+                    :to to-ns
+                    :name var-name}
+                   (select-some metadata
+                                [:private :macro
+                                 :fixed-arities
+                                 :varargs-min-arity
+                                 :deprecated
+                                 :refer
+                                 :alias
+                                 :defmethod
+                                 :dispatch-val-str
+                                 :name-row
+                                 :name-col
+                                 :name-end-row
+                                 :name-end-col
+                                 :end-row
+                                 :end-col
+                                 :derived-location
+                                 :derived-name-location]))
+                  :arity arity
+                  :lang lang
+                  :from-var in-def
+                  :context (select-context (:analysis-context ctx) ctx))))))))
 
 (defn reg-symbol! [ctx filename from-ns symbol lang metadata]
   (when (:analyze-symbols? ctx)

@@ -393,7 +393,6 @@
           static-method-name (when (and (not= name-sym-str (str class-name))
                                         (not (str/includes? name-sym-str ".")))
                                name-sym-str)]
-      (println name-sym-str class-name static-method-name)
       (java/reg-class-usage! ctx
                              (str package "." class-name)
                              static-method-name
@@ -589,7 +588,9 @@
                     ns*)
             ns-sym (symbol ns*)]
         (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                               (when (config/unresolved-namespace-excluded (:config ctx) ns-sym)
+                               (when (or (config/unresolved-namespace-excluded (:config ctx) ns-sym)
+                                         (and (:data-readers ctx)
+                                              (identical? :val (:clj-kondo.internal/map-position expr))))
                                  ns-sym)
                                ;; referring to the namespace we're in
                                (when (= (:name ns) ns-sym)

@@ -2708,7 +2708,13 @@
                              (update :callstack #(cons [nil t] %)))
                          expr)
         :map (do (key-linter/lint-map-keys ctx expr)
-                 (let [children (map (fn [c s]
+                 (let [children (if (:data-readers ctx)
+                                  (map (fn [child k]
+                                         (assoc child :clj-kondo.internal/map-position k))
+                                       children
+                                       (cycle [:key :val]))
+                                  children)
+                       children (map (fn [c s]
                                        (assoc c :id s))
                                      children
                                      (repeatedly gensym))
@@ -3063,7 +3069,9 @@
               ctx (case fname
                     ("data_readers.clj"
                      "data_readers.cljc")
-                    (utils/ctx-with-linters-disabled ctx [:unresolved-namespace])
+                    (utils/ctx-with-linters-disabled
+                     (assoc ctx :data-readers true)
+                     [:unresolved-symbol :unresolved-namespace])
                     ctx)]
           (lint-line-length ctx config filename input)
           (doseq [e @reader-exceptions]
