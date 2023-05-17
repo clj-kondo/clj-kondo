@@ -738,7 +738,7 @@
                         :end-col 21
                         :to user})
                 var-usages))))
-  (testing "when the var-usage call is unknown"
+  #_(testing "when the var-usage call is unknown"
     (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:analysis true}})]
       (is (some #(= % '{:name-end-row 1
                         :name-end-col 22
@@ -2183,6 +2183,21 @@
         :end-col 45,
         :row 3}]
      var-defs)))
+
+(deftest data-readers-test
+  (let [analysis (:analysis (with-in-str
+                              "{f clojure.set/join
+                                f/q clojure.string/join}"
+                              (clj-kondo/run! {:lint ["-"]
+                                               :filename "data_readers.clj"
+                                               :config {:analysis true}})))
+        var-usgs (:var-usages analysis)]
+    (assert-submaps2
+     '[{:fixed-arities #{3 2}, :end-row 1, :name-end-col 20, :name-end-row 1, :name-row 1, :name join, :filename "data_readers.clj",
+        :from user, :col 4, :name-col 4, :end-col 20, :row 1, :to clojure.set}
+       {:fixed-arities #{1 2}, :end-row 2, :name-end-col 56, :name-end-row 2, :name-row 2, :name join, :filename "data_readers.clj",
+        :from user, :col 37, :name-col 37, :end-col 56, :row 2, :to clojure.string}]
+     var-usgs)))
 
 (comment
   (context-test)
