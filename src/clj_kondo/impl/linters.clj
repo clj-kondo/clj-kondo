@@ -641,17 +641,18 @@
               :col (:col default)
               :end-row (:end-row default)
               :end-col (:end-col default)}))))
-      (when-not (identical? :off (-> ctx :config :linters :keyword-binding :level))
-        (doseq [binding (filter :keyword? (:bindings ns))]
-          (findings/reg-finding!
-           ctx
-           {:type :keyword-binding
-            :filename (:filename binding)
-            :message (str "Keyword binding should be a symbol: " (keyword (:name binding)))
-            :row (:row binding)
-            :col (:col binding)
-            :end-row (:end-row binding)
-            :end-col (:end-col binding)}))))))
+      (when (not (identical? :off (-> ctx :config :linters :keyword-binding :level)))
+        (doseq [binding (filter :keyword (:bindings ns))]
+          (when-not (namespace (:keyword binding))
+            (findings/reg-finding!
+             ctx
+             {:type :keyword-binding
+              :filename (:filename binding)
+              :message (str "Keyword binding should be a symbol: " (keyword (:name binding)))
+              :row (:row binding)
+              :col (:col binding)
+              :end-row (:end-row binding)
+              :end-col (:end-col binding)})))))))
 
 (defn lint-unused-private-vars!
   [ctx]

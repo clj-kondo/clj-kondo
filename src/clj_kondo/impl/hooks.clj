@@ -2,10 +2,10 @@
   {:no-doc true}
   (:require
    [clj-kondo.hooks-api :as api]
+   [clj-kondo.impl.config :as config]
    [clj-kondo.impl.utils :as utils :refer [*ctx*]]
    [clojure.java.io :as io]
-   [sci.core :as sci]
-   [clj-kondo.impl.config :as config])
+   [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)

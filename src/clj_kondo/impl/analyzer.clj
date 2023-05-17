@@ -218,7 +218,7 @@
                      m (meta expr)
                      v (cond-> (assoc m
                                       :name s
-                                      :keyword? true
+                                      :keyword k
                                       :filename (:filename ctx))
                          (:analyze-locals? ctx)
                          (-> (assoc :id (swap! (:id-gen ctx) inc)
