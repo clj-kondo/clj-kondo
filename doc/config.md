@@ -508,6 +508,7 @@ Namespace groups can be used in the following configurations:
 - In the `:discouraged-namespace` linter: `{foo-group {:message "..."}}`
 - In `:config-in-ns`: `{foo-group {:linters {:unresolved-symbol {:level :off}}}}`
 - In the `:unresolved-namespace` linter
+- In `:hooks: `:analyze-call` and `:macroexpand`
 
 Namespace groups can be extended to more linters. Please make an issue to request this.
 

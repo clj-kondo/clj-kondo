@@ -1,0 +1,3 @@
+{:hooks {:analyze-call {my-test/my-test hooks/my-test}
+         :macroexpand {my-test/my-test-macro hooks/my-test-macro}}
+ :ns-groups [{:pattern "my-test.*" :name my-test}]}

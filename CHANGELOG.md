@@ -29,6 +29,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1983](https://github.com/clj-kondo/clj-kondo/issues/1983): produce java-member-definition analysis for `.java` files.
 - [#2068](https://github.com/clj-kondo/clj-kondo/issues/2068): include `:or` default in `:local-usages analysis`
 - [#2079](https://github.com/clj-kondo/clj-kondo/issues/2079): analysis for `data_readers.clj`
+- #2067: support `:ns-groups` to be used with `:analyze-call` and `:macroexpand` hooks
 
 ## 2023.04.14
 

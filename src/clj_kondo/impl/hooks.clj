@@ -4,7 +4,8 @@
    [clj-kondo.hooks-api :as api]
    [clj-kondo.impl.utils :as utils :refer [*ctx*]]
    [clojure.java.io :as io]
-   [sci.core :as sci])
+   [sci.core :as sci]
+   [clj-kondo.impl.config :as config])
   (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)
@@ -98,9 +99,14 @@
         (fn [ctx config ns-sym var-sym]
           (try (let [sym (symbol (str ns-sym)
                                  (str var-sym))
-                     hook-cfg (:hooks config)]
+                     hook-cfg (:hooks config)
+                     filename (:filename ctx)]
                  (when hook-cfg
-                   (if-let [x (get-in hook-cfg [:analyze-call sym])]
+                   (if-let [x (or (get-in hook-cfg [:analyze-call sym])
+                                  (some (fn [group-sym]
+                                          (get-in hook-cfg [:analyze-call (symbol (str group-sym)
+                                                                                  (str var-sym))]))
+                                        (config/ns-groups config ns-sym filename)))]
                      ;; we return a function of ctx, so we will never memoize on
                      ;; ctx, which will hold on to all the linting state and
                      ;; creates memory leaks for long lives processes (LSP /
@@ -118,7 +124,11 @@
                          (binding [*ctx* ctx]
                            ;; require isn't thread safe in SCI
                            (locking load-lock (sci/eval-string* sci-ctx code)))))
-                     (when-let [x (get-in hook-cfg [:macroexpand sym])]
+                     (when-let [x (or (get-in hook-cfg [:macroexpand sym])
+                                      (some (fn [group-sym]
+                                              (get-in hook-cfg [:macroexpand (symbol (str group-sym)
+                                                                                     (str var-sym))]))
+                                            (config/ns-groups config ns-sym filename)))]
                        (sci/binding [sci/out *out*
                                      sci/err *err*]
                          (let [code (if (string? x)

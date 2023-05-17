@@ -405,3 +405,10 @@ my-ns/special-map \"
    '({:file "corpus/issue-1996/src/my_test.clj", :row 8, :col 2, :level :warning, :message "Don't use with-redefs"})
    (lint! (io/file "corpus" "issue-1996" "src")
           "--config-dir" (.getPath (io/file "corpus" "issue-1996" ".clj-kondo")))))
+
+(deftest issue-2067-ns-groups-hooks-test
+  (assert-submaps2
+   '({:file "corpus/issue-2067/src/my_test2.clj", :row 11, :col 2, :level :warning, :message "Don't use with-redefs"}
+     {:file "corpus/issue-2067/src/my_test2.clj", :row 14, :col 16, :level :warning, :message "[]"})
+   (lint! (io/file "corpus" "issue-2067" "src")
+          "--config-dir" (.getPath (io/file "corpus" "issue-2067" ".clj-kondo")))))
