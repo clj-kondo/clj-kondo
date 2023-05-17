@@ -102,22 +102,36 @@
             :filename (:filename ctx)
             :type :unbound-destructuring-default})))))
   (doseq [[k v] (partition 2 (:children defaults))]
-    (when-not (and (identical? :token (utils/tag k))
-                   (simple-symbol? (:value k)))
-      (let [m (meta k)]
-        (findings/reg-finding!
-         ctx
-         {:message "Keys in :or should be simple symbols."
-          :row (:row m)
-          :col (:col m)
-          :end-row (:end-row m)
-          :end-col (:end-col m)
-          :filename (:filename ctx)
-          :type :syntax})))
-    (if (= k v)
-      ;; see #915
-      (analyze-expression** prev-ctx v)
-      (analyze-expression** ctx v))))
+    (let [binding (:value k)
+          simple? (and (identical? :token (utils/tag k))
+                       (simple-symbol? binding))]
+      (when-not simple?
+        (let [m (meta k)]
+          (findings/reg-finding!
+           ctx
+           {:message "Keys in :or should be simple symbols."
+            :row (:row m)
+            :col (:col m)
+            :end-row (:end-row m)
+            :end-col (:end-col m)
+            :filename (:filename ctx)
+            :type :syntax})))
+      (if (= k v)
+        ;; see #915
+        (analyze-expression** prev-ctx v)
+        (do
+          (when (and (:analyze-locals? ctx) (not (:clj-kondo/mark-used k)))
+            (let [expr-meta (meta k)
+                  expr-meta (assoc-some expr-meta
+                                        :name-row (:row expr-meta)
+                                        :name-col (:col expr-meta)
+                                        :name-end-row (:end-row expr-meta)
+                                        :name-end-col (:end-col expr-meta)
+                                        :name binding
+                                        :filename (:filename ctx)
+                                        :str (:string-value k))]
+              (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) binding) expr-meta)))
+          (analyze-expression** ctx v))))))
 
 (defn lift-meta-content*
   "Used within extract-bindings. Disables unresolved symbols while

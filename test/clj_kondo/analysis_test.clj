@@ -145,7 +145,16 @@
       (is (empty? (:local-usages ana))))
     (let [ana (analyze "(doto {:a 1 :b 2} (merge {}))" {:config {:analysis {:locals true}}})]
       (is (empty? (:locals ana)))
-      (is (empty? (:local-usages ana))))))
+      (is (empty? (:local-usages ana)))))
+  (testing "or default is analyzed as local usage"
+    (let [ana (analyze "(let [{:keys [a] :or {a 1}}] a)" {:config {:analysis {:locals true}}})]
+      (assert-submaps2
+       '[{:end-row 1, :scope-end-row 1, :name a, :scope-end-col 32, :filename "<stdin>", :str "a", :col 15, :id 1, :end-col 16, :row 1}]
+       (:locals ana))
+      (assert-submaps2
+       '[{:end-row 1, :name-end-col 24, :name-end-row 1, :name-row 1, :name a, :filename "<stdin>", :col 23, :id 1, :name-col 23, :end-col 24, :row 1}
+         {:end-row 1, :name-end-col 31, :name-end-row 1, :name-row 1, :name a, :filename "<stdin>", :col 30, :id 1, :name-col 30, :end-col 31, :row 1}]
+       (:local-usages ana)))))
 
 (deftest deftype-locals-test
   (let [{:keys [:locals :local-usages]}

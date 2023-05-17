@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2064](https://github.com/clj-kondo/clj-kondo/issues/2064): False positive when using `:sha` instead of `:git/sha` in combination with git url in `deps.edn`
 - [#2063](https://github.com/clj-kondo/clj-kondo/issues/2063): introduce new `:defined-by->lint-as` key which contains the `:lint-as` value for "defining" var, whereas `:defined-as` now always contains the name of the original "defining var". This is a **BREAKING** change.
 - [#1983](https://github.com/clj-kondo/clj-kondo/issues/1983): produce java-member-definition analysis for `.java` files.
+- [#2068](https://github.com/clj-kondo/clj-kondo/issues/2068): include `:or` default in `:local-usages analysis
 
 ## 2023.04.14
 
