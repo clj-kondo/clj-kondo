@@ -21,6 +21,11 @@ public class AwesomeClass {
         return (int) a + (int) b;
     }
 
+    /*
+     * Some cool doc
+     * @param filenames
+     * @return list of files
+     */
     public static File[] coolParse(List<String> filenames) {
         return null;
     }

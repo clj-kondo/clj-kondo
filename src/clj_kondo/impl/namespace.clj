@@ -7,10 +7,11 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils
-    :refer [export-ns-sym node->line deep-merge linter-disabled? one-of]]
+    :refer [deep-merge export-ns-sym linter-disabled? node->line one-of]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
-  (:import [java.util StringTokenizer]))
+  (:import
+   [java.util StringTokenizer]))
 
 (set! *warn-on-reflection* true)
 
@@ -318,7 +319,7 @@
            (update ns :imports merge imports)))
   (when (java/analyze-class-usages? ctx)
     (doseq [[k v] imports]
-      (java/reg-class-usage! ctx (str v "." k) (assoc (meta k) :import true)))))
+      (java/reg-class-usage! ctx (str v "." k) nil (assoc (meta k) :import true)))))
 
 (defn class-name? [s]
   (let [^String s (str s)]
@@ -387,9 +388,15 @@
   (when (java/analyze-class-usages? ctx)
     (let [name-meta (meta name-sym)
           loc (or (meta expr)
-                  (meta class-name))]
+                  (meta class-name))
+          name-sym-str (name name-sym)
+          static-method-name (when (and (not= name-sym-str (str class-name))
+                                        (not (str/includes? name-sym-str ".")))
+                               name-sym-str)]
+      (println name-sym-str class-name static-method-name)
       (java/reg-class-usage! ctx
                              (str package "." class-name)
+                             static-method-name
                              (assoc loc
                                     :name-row (or (:row name-meta) (:row loc))
                                     :name-col (or (:col name-meta) (:col loc))
@@ -628,7 +635,7 @@
             (if (identical? :clj lang)
               (if (and (not (one-of ns* ["clojure.core"]))
                        (class-name? ns*))
-                (do (java/reg-class-usage! ctx ns* (meta expr) (meta name-sym))
+                (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym))
                     (when call? (findings/warn-reflection ctx expr))
                     {:interop? true})
                 {:name (symbol (name name-sym))
@@ -714,7 +721,7 @@
                                             (:refer-alls ns))]
                   (if (and (not referred-all-ns)
                            (class-name? name-sym))
-                    (do (java/reg-class-usage! ctx (str name-sym) (meta expr))
+                    (do (java/reg-class-usage! ctx (str name-sym) nil (meta expr))
                         (when call? (findings/warn-reflection ctx expr))
                         {:interop? true})
                     {:ns (or referred-all-ns :clj-kondo/unknown-namespace)

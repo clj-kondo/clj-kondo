@@ -105,12 +105,53 @@
         :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
      java-class-definitions))
   (testing "linting just one java source"
-    (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources/foo/bar/AwesomeClass.java"])]
+    (let [{:keys [java-class-definitions java-member-definitions]} (analyze ["corpus/java/sources/foo/bar/AwesomeClass.java"])]
       (assert-submaps2
        '[{:class "foo.bar.AwesomeClass",
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
           :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
-       java-class-definitions))))
+       java-class-definitions)
+      (assert-submaps2
+       '[{:class "foo.bar.AwesomeClass"
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+          :flags #{:public :field}
+          :name "bar1"
+          :type "Double"
+          :row 12 :col 5 :end-row 12 :end-col 23}
+         {:class "foo.bar.AwesomeClass"
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+          :flags #{:public :field :final}
+          :name "bar2"
+          :type "Double"
+          :row 13 :col 5 :end-row 13 :end-col 35}
+         {:class "foo.bar.AwesomeClass"
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+          :flags #{:public :static :field :final}
+          :name "bar3"
+          :type "Double"
+          :row 14 :col 5 :end-row 14 :end-col 42}
+         {:class "foo.bar.AwesomeClass"
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+          :flags #{:method :public}
+          :name "AwesomeClass"
+          :parameters ["double a"]
+          :row 16 :col 5 :end-row 18 :end-col 5}
+         {:return-type "int"
+          :name "coolSum1"
+          :class "foo.bar.AwesomeClass"
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+          :flags #{:method :public}
+          :parameters ["double a" "double b"]
+          :row 20 :col 5 :end-row 22 :end-col 5}
+         {:return-type "File[]"
+          :name "coolParse"
+          :class "foo.bar.AwesomeClass"
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+          :flags #{:method :public :static}
+          :doc "/*\n     * Some cool doc\n     * @param filenames\n     * @return list of files\n     */"
+          :parameters ["List<String> filenames"]
+          :row 29 :end-row 31 :col 5 :end-col 5}]
+       java-member-definitions))))
 
 (deftest class-usages-test
   (let [{:keys [:java-class-usages :var-usages]} (analyze ["corpus/java/usages.clj"])]
@@ -125,12 +166,14 @@
        :row 3 :col 13 :end-row 3 :end-col 22
        :name-row 3 :name-col 13 :name-end-row 3 :name-end-col 22}
       {:class "java.lang.Thread"
+       :method-name "sleep"
        :uri #"file:.*corpus/java/usages.clj"
        :filename #"corpus/java/usages.clj"
        :row 4 :col 1 :end-row 4 :end-col 13
        :name-row 4 :name-col 1 :name-end-row 4 :name-end-col 13}
       {:class "java.lang.Thread"
        :uri #"file:.*corpus/java/usages.clj"
+       :method-name "sleep"
        :filename #"corpus/java/usages.clj"
        :row 5 :col 1 :end-row 5 :end-col 19
        :name-row 5 :name-col 2 :name-end-row 5 :name-end-col 14}
@@ -148,16 +191,19 @@
        :row 9, :col 24, :end-row 9, :end-col 32, :import true}
       {:end-row 10, :name-end-col 18, :name-end-row 10, :name-row 10,
        :uri #"file:.*corpus/java/usages.clj", :col 1, :class "clojure.lang.Compiler", :name-col 1,
+       :method-name "specials"
        :filename #"corpus/java/usages.clj"
        :end-col 18, :row 10}
       {:class "foo.bar.Baz",
        :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 11, :col 1, :end-row 11, :end-col 12}
       {:class "foo.bar.Baz", :uri #"file:.*corpus/java/usages.clj",
+       :method-name "EMPTY"
        :filename #"corpus/java/usages.clj", :row 12, :col 1, :end-row 12, :end-col 18}
       {:class "java.util.Date", :uri #"file:.*corpus/java/usages.clj",
        :filename #"corpus/java/usages.clj", :row 13, :col 1, :end-row 13, :end-col 15}
       {:class "java.io.File", :uri #"file:.*corpus/java/usages.clj",
+       :method-name "createTempFile"
        :filename #"corpus/java/usages.clj", :row 14, :col 1, :end-row 14, :end-col 42
        :name-col 2 :name-end-col 29, :name-end-row 14, :name-row 14}
       {:class "java.io.File",
