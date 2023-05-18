@@ -7,7 +7,7 @@
 
 (deftest missing-test-assertion-test
   (doseq [lang ["clj" "cljs"]]
-    (let [lint! #(lint! % "--lang" lang )]
+    (let [lint! #(lint! % "--lang" lang)]
       (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest (t/is (odd? 1)))")))
       (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest- (t/is (odd? 1)))")))
       (assert-submaps
@@ -24,7 +24,11 @@
       (assert-submaps
        '({:file "<stdin>", :row 2, :col 49, :level :warning, :message "missing test assertion"})
        (lint! "(ns foo (:require [clojure.test :as t] [clojure.set :as set]))
-     (t/deftest foo (t/testing \"foo\" (let [x 1] (set/subset? #{1 2} #{1 2 3}))))")))))
+     (t/deftest foo (t/testing \"foo\" (let [x 1] (set/subset? #{1 2} #{1 2 3}))))"))
+      (assert-submaps
+       '({:file "<stdin>", :row 2, :col 35, :level :warning, :message "missing test assertion"})
+       (lint! "(ns foo (:require [clojure.test :as t]))
+                   (t/deftest foo (not (= 1 2)))")))))
 
 (deftest redefined-test-test
   (assert-submaps

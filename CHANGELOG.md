@@ -32,6 +32,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2067](https://github.com/clj-kondo/clj-kondo/issues/2067): support `:ns-groups` to be used with `:analyze-call` and `:macroexpand` hooks
 - [#1918](https://github.com/clj-kondo/clj-kondo/issues/1918): ignore keyword bindings with namespaced in `:keyword-binding` linter
 - [#2073](https://github.com/clj-kondo/clj-kondo/issues/2073): `:lint-as clj-kondo.lint-as/def-catch-all` should ignore unresolved namespaces
+- [#2078](https://github.com/clj-kondo/clj-kondo/issues/2078): detect more `:missing-test-assertion` cases, e.g. `(deftest foo (not (= 1 2)))`
 
 ## 2023.04.14
 
