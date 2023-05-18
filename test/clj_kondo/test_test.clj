@@ -28,7 +28,12 @@
       (assert-submaps
        '({:file "<stdin>", :row 2, :col 35, :level :warning, :message "missing test assertion"})
        (lint! "(ns foo (:require [clojure.test :as t]))
-                   (t/deftest foo (not (= 1 2)))")))))
+                   (t/deftest foo (not (= 1 2)))"))
+      (assert-submaps
+       []
+       (lint! "(ns foo (:require [clojure.test :as t]))
+                   (t/deftest foo (t/testing (str \"foo\" 1 2 3)
+                                    (is (not (= 1 2)))))")))))
 
 (deftest redefined-test-test
   (assert-submaps

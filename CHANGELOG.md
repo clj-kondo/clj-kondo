@@ -16,6 +16,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update clj-kondo-bb -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#2083](https://github.com/clj-kondo/clj-kondo/issues/2083): fix regression with `:missing-test-assertion` introduced in 2023.05.18
+
 ## 2023.05.18
 
 - Linter `:uninitialized-var` moved from default `:level :off` to `:warning`

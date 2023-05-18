@@ -81,17 +81,19 @@
         (lint-cond-constants! ctx conditions)
         #_(lint-cond-as-case! filename expr conditions)))))
 
-(defn expected-test-assertion? [callstack]
+(defn expected-test-assertion? [callstack idx]
   (when callstack
     (let [parent (first callstack)]
       (case parent
-        ([clojure.core let] [cljs.core let]) (recur (next callstack))
-        ([clojure.test testing] [cljs.test testing]) (recur (next callstack))
+        ([clojure.core let] [cljs.core let]) (recur (next callstack) nil)
+        ([clojure.test testing] [cljs.test testing]) (if (and idx (zero? idx))
+                                                       false
+                                                       (recur (next callstack) nil))
         ([clojure.test deftest] [cljs.test deftest]) true
         false))))
 
 (defn lint-missing-test-assertion [ctx call]
-  (when (expected-test-assertion? (next (:callstack call)))
+  (when (expected-test-assertion? (next (:callstack call)) (:idx call))
     (findings/reg-finding! ctx
                            (node->line (:filename ctx) (:expr call)
                                        :missing-test-assertion "missing test assertion"))))
