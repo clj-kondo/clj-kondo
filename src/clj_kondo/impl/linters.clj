@@ -11,8 +11,7 @@
                                            sexpr tag]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
-   [clojure.string :as str]
-   [clj-kondo.impl.var-info-gen :as var-info-gen]))
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -140,10 +139,10 @@
       (lint-missing-else-branch ctx (:expr call)))
 
     (when
-        (or (get-in var-info/predicates [(if (= 'cljs.core called-ns)
-                                           'clojure.core
-                                           called-ns) called-name])
-            (contains? var-info/unused-values (symbol (str called-ns) (str called-name))))
+     (or (get-in var-info/predicates [(if (= 'cljs.core called-ns)
+                                        'clojure.core
+                                        called-ns) called-name])
+         (contains? var-info/unused-values (symbol (str called-ns) (str called-name))))
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
