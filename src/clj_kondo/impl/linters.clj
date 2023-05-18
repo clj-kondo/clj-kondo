@@ -138,11 +138,10 @@
     (when (= 'if (:name call))
       (lint-missing-else-branch ctx (:expr call)))
 
-    (when
-     (or (get-in var-info/predicates [(if (= 'cljs.core called-ns)
-                                        'clojure.core
-                                        called-ns) called-name])
-         (contains? var-info/unused-values (symbol (str called-ns) (str called-name))))
+    (when (contains? var-info/unused-values
+                     (symbol (let [cns (str called-ns)]
+                               (if (= cns "cljs.core") "clojure.core" cns))
+                             (str called-name)))
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
@@ -472,7 +471,10 @@
             (lint-arg-types! ctx idacs call called-fn))))
       (when call?
         (when-let [idx (:idx call)]
-          (when (contains? var-info/unused-values fn-sym)
+          (when (contains? var-info/unused-values
+                           (symbol (let [cns (str (:ns called-fn))]
+                                     (if (= cns "cljs.core") "clojure.core" cns))
+                                   (str (:name called-fn))))
             (let [unused-value-conf (-> config :linters :unused-value)]
               (when-not (identical? :off (:level unused-value-conf))
                 (let [parent-call (let [cs (:callstack call)]

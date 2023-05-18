@@ -2,8 +2,6 @@
   "GENERATED, DO NOT EDIT."
   {:no-doc true})
   (in-ns 'clj-kondo.impl.var-info)
-  (def predicates '{clojure.core.memoize #{memoized?}, clojure.java.jdbc #{db-is-rollback-only}, clojure.core.cache #{has?}, clojure.core.async.impl.ioc-macros #{instruction? persistent-value? nested-go? finished?}, clojure.core #{decimal? contains? every? qualified-keyword? satisfies? seq? fn? = vector? thread-bound? any? < NaN? boolean? char? some? inst? future-done? simple-symbol? pos? sequential? neg? reduced? float? set? <= reversible? bound? map? volatile? var? empty? string? uri? double? map-entry? > int? associative? keyword? even? tagged-literal? extends? indexed? counted? future? zero? simple-keyword? not-every? class? future-cancelled? neg-int? sorted? nil? instance? bytes? record? identical? ident? qualified-ident? true? reader-conditional? >= integer? infinite? special-symbol? ratio? delay? ifn? nat-int? chunked-seq? distinct? pos-int? odd? uuid? false? list? simple-ident? == rational? realized? number? not-any? qualified-symbol? seqable? symbol? coll?}, clojure.set #{superset? subset?}, clojure.tools.trace #{traced? traceable?}, clojure.core.async.impl.dispatch #{in-dispatch-thread?}, clojure.string #{ends-with? starts-with? includes? blank?}})
-
 
   (def clojure-core-syms '#{*
 *'

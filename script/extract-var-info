@@ -7,4 +7,3 @@ mkdir -p /tmp/var-info
 source script/extract-versions
 
 clojure -M:extract -m clj-kondo.impl.extract-var-info
-

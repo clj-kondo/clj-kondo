@@ -27,8 +27,6 @@
   \"GENERATED, DO NOT EDIT.\"
   {:no-doc true})
   (in-ns 'clj-kondo.impl.var-info)
-  (def predicates '%s)
-
 
   (def clojure-core-syms '%s)
 
@@ -127,12 +125,12 @@
 
 (defn -main [& _args]
   (let [var-info (eastwood-var-info)
-        predicates (set (keep (fn [[k v]]
+        #_#_predicates (set (keep (fn [[k v]]
                                 (when (:predicate v)
                                   k))
                               var-info))
-        predicates-by-ns (group-by (comp symbol namespace) predicates)
-        predicates-by-ns (zipmap (keys predicates-by-ns)
+        #_#_predicates-by-ns (group-by (comp symbol namespace) predicates)
+        #_#_predicates-by-ns (zipmap (keys predicates-by-ns)
                                  (map (fn [vals]
                                         (set (map (comp symbol name) vals)))
                                       (vals predicates-by-ns)))
@@ -145,7 +143,7 @@
         cljs-core-vars (extract-cljs-core-vars)
         default-java-imports (extract-default-imports)
         unused-values (extract-unused-values var-info)
-        code (format code-template predicates-by-ns
+        code (format code-template #_predicates-by-ns
                      (print-set-sorted clojure-core-syms)
                      (print-set-sorted cljs-core-vars)
                      (print-map-sorted default-java-imports)
