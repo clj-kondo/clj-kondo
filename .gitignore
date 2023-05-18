@@ -85,3 +85,4 @@ corpus/namespace_config/.clj-kondo/inline-configs
 .lock
 corpus/.clj-kondo/inline-configs
 tmp
+.eastwood
