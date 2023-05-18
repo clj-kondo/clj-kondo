@@ -1348,7 +1348,15 @@ foo/foo ;; this does use the private var
 (let [live? true]
   (-> {}
       (plumbing.core/?> live? (assoc :live live?))))
-" '{:lint-as {plumbing.core/?> clojure.core/cond->}}))))
+" '{:lint-as {plumbing.core/?> clojure.core/cond->}})))
+  (is (empty?
+       (lint! "(ns repro
+  {:clj-kondo/config '{:lint-as {repro/defdude clj-kondo.lint-as/def-catch-all}}})
+
+(defmacro defdude [_ & _])
+
+(defdude x
+  x x/c)"))))
 
 (deftest letfn-test
   (assert-submaps '({:file "<stdin>",

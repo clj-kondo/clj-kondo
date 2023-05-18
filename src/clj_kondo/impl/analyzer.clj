@@ -1658,6 +1658,7 @@
         body (next children)
         ctx (utils/ctx-with-linters-disabled ctx [:invalid-arity
                                                   :unresolved-symbol
+                                                  :unresolved-namespace
                                                   :type-mismatch
                                                   :private-call
                                                   :missing-docstring])]
