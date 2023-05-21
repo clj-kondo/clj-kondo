@@ -567,6 +567,12 @@
           {:linters {:type-mismatch {:level :error}
                      :redundant-do {:level :off}}})))
 
+(deftest doto-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: keyword."})
+   (lint! "(inc (doto :foo println))"
+          {:linters {:type-mismatch {:level :error}}})))
+
 (deftest if-let-test
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword."})

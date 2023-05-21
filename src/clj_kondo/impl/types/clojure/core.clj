@@ -690,7 +690,8 @@
                       3 {:args [:vector :nat-int :nat-int]
                          :ret :vector}}}
    ;; 3831 'with-open
-   ;; 3852 'doto
+   ;; 3852 
+   'doto {:fn first}
    ;; 3871 'memfn
    ;; 3884 'time
    ;; 3898 'alength
