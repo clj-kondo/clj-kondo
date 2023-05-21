@@ -560,6 +560,12 @@
               {test-ns
                {x {:arities {1 {:args [{:op :keys, :req {:other-ns/thing :any
                                                          :some-ns/thing :any}}]}}}}}}}})))
+(deftest do-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: keyword."})
+   (lint! "(inc (do 1 :foo))"
+          {:linters {:type-mismatch {:level :error}
+                     :redundant-do {:level :off}}})))
 
 (deftest if-let-test
   (assert-submaps

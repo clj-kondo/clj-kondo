@@ -54,6 +54,7 @@
   {'if {:fn (fn [[_ then else]]
               (tu/union-type then else))}
    'let {:fn last}
+   'do {:fn last}
    ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
