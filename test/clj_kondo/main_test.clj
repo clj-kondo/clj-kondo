@@ -2470,7 +2470,14 @@ foo"))))
 (deftest my-test (is (blank? \"\")))
 "
                        '{:linters {:refer-all {:level :off}
-                                   :unresolved-symbol {:level :error}}})))))
+                                   :unresolved-symbol {:level :error}}}))))
+  (assert-submaps '[{:end-row 3, :refers [deftest is], :type :refer-all, :level :warning, :filename "<stdin>", :col 34, :end-col 38,
+                     :message "use alias or :refer [deftest is]", :row 3}] (:findings (with-in-str "
+(ns deftest-resolve-test
+  (:require [clojure.test :refer :all]))
+
+(deftest my-test (is (= 1 2)))
+" (clj-kondo/run! {:lint ["-"]})))))
 
 (deftest canonical-paths-test
   (testing "single file"

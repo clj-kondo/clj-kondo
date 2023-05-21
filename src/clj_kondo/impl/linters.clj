@@ -554,18 +554,20 @@
               use? (or (= :use k)
                        (= 'use value))
               finding-type (if use? :use :refer-all)
+              referred (sort referred)
               msg (str (format "use %salias or :refer"
                                (if use?
                                  (str (when k ":") "require with ")
                                  ""))
                        (when (seq referred)
                          (format " [%s]"
-                                 (str/join " " (sort referred)))))
+                                 (str/join " " referred))))
               filename (:filename refer-all)]
           (findings/reg-finding!
            ctx
-           (node->line filename node
-                       finding-type msg)))))))
+           (assoc (node->line filename node
+                              finding-type msg)
+                  :refers (vec referred))))))))
 
 (defn lint-discouraged-namespaces!
   [ctx]
