@@ -1321,7 +1321,7 @@ You can add or override type annotations. See
 
 *Description:* warn on var without initial value
 
-*Default level:* `:off` (will become `:warning` in the future)
+*Default level:* `:warning`
 
 *Example trigger:* `(def x)`
 
