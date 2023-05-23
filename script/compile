@@ -20,7 +20,7 @@ args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar"
        "-H:+ReportExceptionStackTraces"
        "--verbose"
        "--no-fallback"
-       "-J-Xmx3g" )
+       "-J-Xmx3g" "$@")
 
 if [ "$CLJ_KONDO_STATIC" = "true" ]; then
     args+=("--static")
