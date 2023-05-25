@@ -1835,7 +1835,11 @@
                              (or (= 'map hof-resolved-name)
                                  (= 'mapcat hof-resolved-name)))
                       nil 1)
-                    arg-count)]
+                    arg-count)
+        ctx (update ctx :callstack
+                    (fn [cs]
+                      (cons [resolved-namespace resolved-name]
+                            cs)))]
     (cond var?
           (let [{:keys [:row :end-row :col :end-col]} (meta f)]
             (when (:analyze-var-usages? ctx)

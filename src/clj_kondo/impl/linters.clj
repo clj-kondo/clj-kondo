@@ -86,10 +86,12 @@
     (let [parent (first callstack)]
       (case parent
         ([clojure.core let] [cljs.core let]) (recur (next callstack) nil)
-        ([clojure.test testing] [cljs.test testing]) (if (and idx (zero? idx))
-                                                       false
-                                                       (recur (next callstack) nil))
-        ([clojure.test deftest] [cljs.test deftest]) true
+        ([clojure.test testing] [cljs.test testing])
+        (if (and idx (zero? idx))
+          false
+          (recur (next callstack) nil))
+        ([clojure.test deftest] [cljs.test deftest])
+        true
         false))))
 
 (defn lint-missing-test-assertion [ctx call]
@@ -139,11 +141,10 @@
     ;; special forms which are not fns
     (when (= 'if (:name call))
       (lint-missing-else-branch ctx (:expr call)))
-
     (when (contains? var-info/unused-values
-                     (symbol (let [cns (str called-ns)]
-                               (if (= cns "cljs.core") "clojure.core" cns))
-                             (str called-name)))
+                   (symbol (let [cns (str called-ns)]
+                             (if (= cns "cljs.core") "clojure.core" cns))
+                           (str called-name)))
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]

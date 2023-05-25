@@ -33,7 +33,10 @@
        []
        (lint! "(ns foo (:require [clojure.test :as t]))
                    (t/deftest foo (t/testing (str \"foo\" 1 2 3)
-                                    (is (not (= 1 2)))))")))))
+                                    (is (not (= 1 2)))))"))
+      (assert-submaps
+       []
+       (lint! "(require '[clojure.test :refer :all]) (deftest foo (swap! (atom 1) inc))")))))
 
 (deftest redefined-test-test
   (assert-submaps
