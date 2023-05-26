@@ -2319,7 +2319,9 @@ foo"))))
   (is (empty? (lint! "(ns ^{:clj-kondo/config
                             '{:linters {:unused-referred-var {:exclude {bar [bar]}}}}}
                           foo (:require [bar :refer [bar] :as b]))
-        (apply b/x 1 2 [3 4])"))))
+        (apply b/x 1 2 [3 4])")))
+  (is (empty? (lint! "(ns foo) (comment (require '[a :refer [shouldnt-warn]]) a/a)"
+                     {:config-in-comment {:linters {:unused-referred-var {:level :off}}}}))))
 
 (deftest duplicate-require-test
   (assert-submaps
