@@ -275,12 +275,14 @@
                 :referred (concat (map (fn [r]
                                          [r {:ns ns-name
                                              :name r
-                                             :filename filename}])
+                                             :filename filename
+                                             :config config}])
                                        referred)
                                   (map (fn [[original-name new-name]]
                                          [new-name {:ns ns-name
                                                     :name original-name
-                                                    :filename filename}])
+                                                    :filename filename
+                                                    :config config}])
                                        renamed))
                 :referred-all referred-all}])))))))
 

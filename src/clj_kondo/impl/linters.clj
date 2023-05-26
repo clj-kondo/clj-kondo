@@ -536,7 +536,9 @@
                                (format "namespace %s is required but never used" ns-sym))
                    (assoc :ns (export-ns-sym ns-sym))))))))
       (doseq [[k v] referred-vars]
-        (let [var-ns (:ns v)]
+        (let [var-ns (:ns v)
+              config (:config v)
+              ctx (assoc ctx :config config)]
           (when-not
            (or (contains? used-referred-vars k)
                (config/unused-referred-var-excluded config var-ns k)
