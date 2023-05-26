@@ -2193,7 +2193,9 @@
                                                :config {:analysis true}})))
         var-usgs (:var-usages analysis)]
     (assert-submaps2
-     '[{:fixed-arities #{3 2}, :end-row 1, :name-end-col 20, :name-end-row 1, :name-row 1, :name join, :filename "data_readers.clj",
+     '[{:name f :from user :filename "data_readers.clj"
+        :to :clj-kondo/unknown-namespace}
+       {:fixed-arities #{3 2}, :end-row 1, :name-end-col 20, :name-end-row 1, :name-row 1, :name join, :filename "data_readers.clj",
         :from user, :col 4, :name-col 4, :end-col 20, :row 1, :to clojure.set}
        {:fixed-arities #{1 2}, :end-row 2, :name-end-col 56, :name-end-row 2, :name-row 2, :name join, :filename "data_readers.clj",
         :from user, :col 37, :name-col 37, :end-col 56, :row 2, :to clojure.string}]
