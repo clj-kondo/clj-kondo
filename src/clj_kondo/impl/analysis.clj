@@ -13,13 +13,12 @@
       (select-keys (:context ctx) selector))))
 
 (defn reg-usage! [ctx filename row col from-ns to-ns var-name arity lang in-def metadata]
-  (when-not (= :clj-kondo/unknown-namespace to-ns)
-    (let [analysis (:analysis ctx)]
-      (when analysis
-        (let [to-ns (export-ns-sym to-ns)]
-          (swap! analysis update :var-usages conj
-                 (assoc-some
-                  (merge
+  (let [analysis (:analysis ctx)]
+    (when analysis
+      (let [to-ns (export-ns-sym to-ns)]
+        (swap! analysis update :var-usages conj
+               (assoc-some
+                 (merge
                    {:filename filename
                     :row row
                     :col col
@@ -43,10 +42,10 @@
                                  :end-col
                                  :derived-location
                                  :derived-name-location]))
-                  :arity arity
-                  :lang lang
-                  :from-var in-def
-                  :context (select-context (:analysis-context ctx) ctx))))))))
+                 :arity arity
+                 :lang lang
+                 :from-var in-def
+                 :context (select-context (:analysis-context ctx) ctx)))))))
 
 (defn reg-symbol! [ctx filename from-ns symbol lang metadata]
   (when (:analyze-symbols? ctx)
