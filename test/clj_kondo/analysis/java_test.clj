@@ -1,22 +1,28 @@
 (ns clj-kondo.analysis.java-test
   (:require
+   [babashka.process :as p]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submap2 assert-submaps2]]
+   [clj-kondo.test-utils :as tu :refer [assert-submap2 assert-submaps2]]
+   [clojure.edn :as edn]
+   [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
    [clojure.tools.deps.alpha :as deps]))
 
-(defn analyze
-  ([paths] (analyze paths nil))
-  ([paths config]
-   (:analysis
-    (clj-kondo/run! (merge
-                     {:lint paths
-                      :config {:output {:canonical-paths true}
-                               :analysis {:java-class-definitions true
-                                          :java-class-usages true
-                                          :java-member-definitions true}}}
-                     config)))))
+(defn analyze [lint]
+  (let [config {:output {:canonical-paths true
+                         :format :edn}
+                :analysis {:java-class-definitions true
+                           :java-class-usages true
+                           :java-member-definitions true}}]
+    (if tu/native?
+      (-> (p/sh "./clj-kondo" "--config" (pr-str config) "--lint" (str/join " " lint))
+          :out
+          edn/read-string
+          :analysis)
+      (:analysis
+       (clj-kondo/run! {:lint lint
+                        :config config})))))
 
 (deftest jar-classes-test
   (let [deps '{:deps {org.clojure/clojure {:mvn/version "1.10.3"}}
@@ -55,6 +61,10 @@
                                :col
                                :end-row
                                :end-col) rt-usage)))))
+
+#_(jar-classes-test)
+#_(analyze ["/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar"])
+
 
 (deftest local-classes-test
   (let [{:keys [java-class-definitions java-member-definitions]} (analyze ["corpus/java/classes"])]
