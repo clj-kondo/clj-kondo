@@ -1,23 +1,30 @@
 (ns clj-kondo.analysis.java-test
   (:require
+   [babashka.process :as p]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submap2 assert-submaps2]]
+   [clj-kondo.test-utils :as tu :refer [assert-submap2 assert-submaps2]]
+   [clojure.edn :as edn]
+   [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
    [clojure.tools.deps.alpha :as deps]))
 
-(defn analyze
-  ([paths] (analyze paths nil))
-  ([paths config]
-   (:analysis
-    (clj-kondo/run! (merge
-                     {:lint paths
-                      :config {:output {:canonical-paths true}
-                               :analysis {:java-class-definitions true
-                                          :java-class-usages true
-                                          :java-member-definitions true}}}
-                     config)))))
+#_(analyze "src")
 
+(defn analyze [lint]
+  (let [config {:output {:canonical-paths true
+                         :format :edn}
+                :analysis {:java-class-definitions true
+                           :java-class-usages true
+                           :java-member-definitions true}}]
+    (if tu/native?
+      (-> (p/shell {:out :string} "./clj-kondo" "--config" (pr-str config) "--lint" (str/join " " lint))
+          :out
+          edn/read-string
+          :analysis)
+      (:analysis
+       (clj-kondo/run! {:lint lint
+                        :config config})))))
 (deftest jar-classes-test
   (let [deps '{:deps {org.clojure/clojure {:mvn/version "1.10.3"}}
                :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
