@@ -33,5 +33,33 @@
   { "name": "clojure.lang.LineNumberingPushbackReader",
     "allPublicConstructors": true,
     "allPublicMethods": true
+  },
+  {
+    "name":"com.github.javaparser.ast.expr.VariableDeclarationExpr",
+    "allDeclaredFields":true
+  },
+  {
+    "name":"com.github.javaparser.ast.Node",
+    "allDeclaredFields":true
+  },
+  {
+    "name":"com.github.javaparser.ast.body.BodyDeclaration",
+    "allDeclaredFields":true
+  },
+  {
+    "name":"com.github.javaparser.ast.body.FieldDeclaration",
+    "allDeclaredFields":true
+  },
+  {
+    "name":"com.github.javaparser.ast.body.ConstructorDeclaration",
+    "allDeclaredFields":true
+  },
+  {
+    "name":"com.github.javaparser.ast.body.CallableDeclaration",
+    "allDeclaredFields":true
+  },
+  {
+    "name":"com.github.javaparser.ast.body.MethodDeclaration",
+    "allDeclaredFields":true
   }
 ]
