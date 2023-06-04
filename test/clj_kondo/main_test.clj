@@ -2737,13 +2737,16 @@ foo/baz
    '({:file "<stdin>", :row 1, :col 8, :level :warning, :message "Unused private var user/foo"}
      {:file "<stdin>", :row 1, :col 29, :level :warning, :message "Unused private var user/bar"})
    (lint! "(defn- foo [] (foo)) (defn- bar ([] (bar 1)) ([_]))"))
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 24, :level :warning, :message "Unused private var user/Foo"}
+     {:file "<stdin>", :row 1, :col 55, :level :warning, :message "Unused private var user/baz"})
+   (lint! "(defprotocol ^:private Foo [] (bar [this]) (^:private baz [this]))"))
   (is (empty? (lint! "(ns foo) (defn- f []) (f)")))
   (is (empty? (lint! "(ns foo) (defn- f [])"
                      '{:linters {:unused-private-var {:exclude [foo/f]}}})))
   (is (empty? (lint! "
 (defrecord ^:private SessionStore [session-service])
 (deftype ^:private SessionStore2 [session-service])
-(defprotocol ^:private Foo (foo [this]))
 (definterface ^:private SessionStore3)"))))
 
 (deftest definterface-test

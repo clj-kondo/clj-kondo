@@ -1369,6 +1369,8 @@
   ;; for syntax, see https://clojure.org/reference/protocols#_basics
   (let [children (next (:children expr))
         name-node (first children)
+        name-node (meta/lift-meta-content2 ctx name-node)
+        name-meta (meta name-node)
         protocol-name (:value name-node)
         ns-name (:name ns)
         docstring (string-from-token (second children))
@@ -1379,7 +1381,9 @@
                               #(when (= :vector (tag %)) %))]
     (when protocol-name
       (namespace/reg-var! ctx ns-name protocol-name expr
-                          (assoc-some (meta name-node)
+                          (assoc-some name-meta
+                                      :user-meta (when (:analysis-var-meta ctx)
+                                                   (:user-meta name-meta))
                                       :doc docstring
                                       :defined-by defined-by
                                       :defined-by->lint-as defined-by->lint-as)))
@@ -1412,7 +1416,9 @@
            (cond-> ctx
              (= 'clojure.core/definterface defined-by->lint-as)
              (assoc :skip-reg-var true)) ns-name fn-name c
-           (assoc-some (meta c)
+           (assoc-some (merge name-meta (meta c))
+                       :user-meta (when (:analysis-var-meta ctx)
+                                    (:user-meta name-meta))
                        :doc docstring
                        :arglist-strs arglist-strs
                        :name-row (:row name-meta)
