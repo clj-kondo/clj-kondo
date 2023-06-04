@@ -1281,13 +1281,17 @@
                   (or (not  (= 'foo (:name usage)))
                       (= 'foo (:from-var usage)))) var-usages))))
 
-(defn- ana-var-meta [s cfg]
-  (-> (with-in-str s
+(defn- ana-vars-meta [s cfg]
+ (-> (with-in-str s
         (clj-kondo/run! {:lint ["-"] :config
                          {:analysis
                           {:var-definitions
                            cfg}}}))
-      :analysis :var-definitions first))
+      :analysis :var-definitions))
+
+(defn- ana-var-meta [s cfg]
+  (-> (ana-vars-meta s cfg)
+      first))
 
 (defn- ana-def-expected [m]
   (merge {:row 1 :col 1 :end-row 1 :name-row 1 :name-end-row 1 :filename "<stdin>"
@@ -1300,6 +1304,12 @@
           :ns 'user :name 'my-fn
           :defined-by 'clojure.core/defn
           :defined-by->lint-as 'clojure.core/defn} m))
+
+(defn- ana-defprotocol-expected [{:keys [row] :as m :or {row 1}}]
+  (merge {:row row :col 1 :end-row row :name-row row :name-end-row row :filename "<stdin>"
+          :ns 'user :name 'MyProto
+          :defined-by 'clojure.core/defprotocol
+          :defined-by->lint-as 'clojure.core/defprotocol} m))
 
 (deftest meta-var-test
   (testing "def"
@@ -1497,7 +1507,52 @@
                                :deprecated true})
            (ana-var-meta (str "(defmulti ^:deprecated ^{:added :leading :l true} my-multi"
                               " {:added :attr1 :a1 true} :dispatch)")
-                         {:meta true})))))
+                         {:meta true}))))
+  (testing "defprotocol"
+    (doseq [opts [{:meta true} {}]]
+      (is (= [(ana-defprotocol-expected (cond-> {:name 'SomeProto
+                                                 :end-row 4
+                                                 :name-col 37
+                                                 :name-end-col 46
+                                                 :end-col 51 }
+                                          (:meta opts) (assoc :meta {:m1 42 :no-doc true})))
+              (ana-defprotocol-expected (cond-> {:name 'private-method
+                                                 :private true
+                                                 :protocol-ns 'user
+                                                 :protocol-name 'SomeProto
+                                                 :fixed-arities #{1}
+                                                 :row 2
+                                                 :col 3
+                                                 :name-col 14
+                                                 :name-end-col 28
+                                                 :end-col 33}
+                                          (:meta opts) (assoc :meta {:private true})))
+              (ana-defprotocol-expected (cond-> {:name 'public-method
+                                                 :protocol-ns 'user
+                                                 :protocol-name 'SomeProto
+                                                 :fixed-arities #{1}
+                                                 :row 3
+                                                 :col 3
+                                                 :name-col 4
+                                                 :name-end-col 17
+                                                 :end-col 22}
+                                          (:meta opts) (assoc :meta nil)))
+              (ana-defprotocol-expected (cond-> {:name 'deprecated-method
+                                                 :deprecated "v1.2"
+                                                 :protocol-ns 'user
+                                                 :protocol-name 'SomeProto
+                                                 :fixed-arities #{2}
+                                                 :row 4
+                                                 :col 3
+                                                 :name-col 26
+                                                 :name-end-col 43
+                                                 :end-col 50}
+                                          (:meta opts) (assoc :meta {:deprecated "v1.2"})))]
+             (ana-vars-meta "(defprotocol ^{:m1 42 :no-doc true} SomeProto
+  (^:private private-method [_])
+  (public-method [_])
+  (^{:deprecated \"v1.2\"} deprecated-method [_ _]))"
+                            opts)) (str "opts " opts)))))
 
 (defn- ana-ns-meta [s cfg]
   (-> (with-in-str s
