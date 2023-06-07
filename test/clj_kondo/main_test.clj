@@ -1299,7 +1299,8 @@ foo/foo ;; this does use the private var
           '{:lint-as {foo/my-defn clojure.core/defn}}))
   (assert-submaps2
    '[{:level :warning, :message #"fully qualified symbol"}]
-   (lint! "(require '[foo.bar]) (foo.bar/when-let)" '{:lint-as {foo.bar/when-let when-let}}))
+   (do (require '[clj-kondo.impl.config] :reload)
+       (lint! "(require '[foo.bar]) (foo.bar/when-let)" '{:lint-as {foo.bar/when-let when-let}})))
   (is (empty?
        (lint! "(ns foo) (defmacro deftest [name & body] `(defn ~name [] ~@body)) (deftest foo)"
               '{:linters {:unresolved-symbol {:level :warning}}
