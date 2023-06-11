@@ -2817,7 +2817,6 @@ foo/baz
    (lint! "(def x 1) (var x) (var) (var y)"
           {:linters {:unresolved-symbol {:level :error}}})))
 
-
 (deftest consistent-alias-test
   (testing "symbol namespaces"
     (assert-submaps
@@ -2982,7 +2981,6 @@ foo/baz
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}}))))
-
 
 (deftest refer-test
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)")))
@@ -3334,6 +3332,10 @@ foo/")))
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 5, :level :error, :message "Regex literals are not allowed in EDN"})
    (lint! "{:a #\"\"}" "--lang" "edn")))
+
+(deftest lint-cljd-files
+  (is (seq (lint! (io/file "corpus" "clojure_dart")
+                  {:linters {:unresolved-symbol {:level :error}}}))))
 
 ;;;; Scratch
 
