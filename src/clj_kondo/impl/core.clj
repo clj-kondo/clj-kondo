@@ -191,7 +191,7 @@
 
 (defn source-file? [filename]
   (when-let [[_ ext] (re-find #"\.(\w+)$" filename)]
-    (one-of (keyword ext) [:clj :cljs :cljc :edn
+    (one-of (keyword ext) [:clj :cljs :cljc :cljd :edn
                            ;; we needed to add this so .clj_kondo files will be
                            ;; copied from imported configs!
                            :clj_kondo])))
