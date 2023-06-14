@@ -188,6 +188,14 @@
         :level :error,
         :message "Expected: string or nil, received: positive integer."})
      (lint! "(defn foo [^String x] x) (foo 1)"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 1,
+        :col 39,
+        :level :error,
+        :message "Expected: list or nil, received: positive integer."})
+     (lint! "(defn foo [^java.util.List x] x) (foo 1)"
             {:linters {:type-mismatch {:level :error}}})))
   (assert-submaps
    '({:file "<stdin>",

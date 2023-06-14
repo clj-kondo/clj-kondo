@@ -201,6 +201,7 @@
     (char) :char
     (Character java.lang.Character) :nilable/char
     (Seqable clojure.lang.Seqable) :seqable
+    (java.util.List) :nilable/list
     nil))
 
 (defn number->tag [v]
