@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#2097](https://github.com/clj-kondo/clj-kondo/issues/2097): analyze and act on `defprotocol` metadata ([@lread](https://github.com/lread))
 - [#2105](https://github.com/clj-kondo/clj-kondo/issues/2105): Consider .cljd files when linting.
+- [#2101](https://github.com/clj-kondo/clj-kondo/issues/2101): false positive with `if-some` + `recur`
 
 ## 2023.05.26
 

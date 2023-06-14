@@ -36,5 +36,13 @@
            (async/chan)
            ([_]
             (recur)))
-         nil)))))" linter-config)))))
+         nil)))))" linter-config))))
+  (testing "if-some"
+    (is (empty? (lint! "(loop []
+  (if true
+    (if-some [_ nil]
+      (recur)
+      1)
+    1))
+" linter-config)))))
 
