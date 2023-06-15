@@ -402,6 +402,28 @@
                                        :syntax
                                        "Invalid function body."))))
 
+(defn- meta-arglists-node->strs
+  "Return arglist-strs for `node` representing arglists metadata value.
+  Returns nil if node does not match expected quoted list of vectors shape, ex: '([x][x y] ...)."
+  [node]
+  (when (and node
+             (= :quote (tag node))
+             (= :list (some-> node :children first tag)))
+    (reduce (fn [acc arg-vec]
+              (if (= :vector (tag arg-vec))
+                (conj acc (str arg-vec))
+                (reduced nil)))
+            []
+            (-> node :children first :children))))
+
+(defn- meta-node->arglist-strs
+  "Returns arglists-strs for `:arglists` in `node` representing metadata map.
+  Returns nil if no `:arglists` found, or found `:arglists` looks invalid."
+  [node]
+  (some-> node
+          (utils/map-node-get-value-node :arglists)
+          meta-arglists-node->strs))
+
 (defn analyze-pre-post-map [ctx expr]
   (let [children (:children expr)]
     (key-linter/lint-map-keys ctx expr)
@@ -611,8 +633,7 @@
         ;; poor naming, this is for type information
         arities (extract-arity-info ctx parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
-        varargs-min-arity (get-in arities [:varargs :min-arity])
-        arglist-strs (mapv :arglist-str parsed-bodies)]
+        varargs-min-arity (get-in arities [:varargs :min-arity])]
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -626,7 +647,9 @@
                    :defined-by->lint-as defined-by->lint-as
                    :fixed-arities (not-empty fixed-arities)
                    :arglist-strs (when (:analyze-arglists? ctx)
-                                   arglist-strs)
+                                   (or (meta-node->arglist-strs meta-node2)
+                                       (meta-node->arglist-strs meta-node)
+                                       (mapv :arglist-str parsed-bodies)))
                    :arities arities
                    :varargs-min-arity varargs-min-arity
                    :doc docstring
@@ -1190,7 +1213,13 @@
                                         :defined-by defined-by
                                         :defined-by->lint-as defined-by->lint-as
                                         :fixed-arities (:fixed-arities arity)
-                                        :arglist-strs (:arglist-strs arity)
+                                        :arglist-strs (when (:analyze-arglists? ctx)
+                                                        ;; match Clojure behaviour for var name meta nodes,
+                                                        ;; it will pick first :arglists, e.g.:
+                                                        ;; ^{:arglists '([x])} ^{:arglists '([y])} z
+                                                        (or (some meta-node->arglist-strs var-name-node-meta-nodes)
+                                                            (meta-node->arglist-strs extra-meta-node)
+                                                            (:arglist-strs arity)))
                                         :varargs-min-arity (:varargs-min-arity arity)
                                         :arities (:arities init-meta)
                                         :type type))))

@@ -21,7 +21,7 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 
 - `:locals`: when truthy return `:locals` and `:local-usages` described below
 - `:keywords`: when truthy return `:keywords` described below
-- `:arglists`: when truthy return `:arglists` on `:var-definitions`
+- `:arglists`: when truthy return `:arglist-strs` on `:var-definitions`
 - `:protocol-impls`: when truthy return `:protocol-impls` described below
 - `:symbols`: when truthy, return `:symbols` described below
 - `:java-class-definitions`: when truthy, return `:java-class-definitions` as described below.
@@ -106,13 +106,13 @@ The analysis output consists of a map with:
   - `:defined-by`: the namespaced symbol which defined this var
 
   Optional:
-  - `:fixed-arities`: a set of fixed arities
-  - `:varargs-min-arity`: the minimal number of arguments of a varargs signature
+  - `:fixed-arities`: a set of fixed arities, unaffected by any `:arglists` metadata overrides
+  - `:varargs-min-arity`: the minimal number of arguments of a varargs signature, unaffected by any `:arglists` metadata overrides
   - common metadata values: `:private`, `:macro`, `:deprecated`, `:doc`, `:added`
   - `:meta` map of requested metadata for var
   - `:lang`: if definition occurred in a `.cljc` file, the language in which the
     definition was done: `:clj` or `:cljs`
-  - `:arglists-str`: a list of each set of args as written
+  - `:arglist-strs`: arg lists as written, or valid looking `:arglists` metadata override, ex. `["[x]" "[x y]"]`
   - `:protocol-ns`, `:protocol-name`: the protocol namespace and name for a protocol method
 
 - `:var-usages`, a list of maps with:

@@ -201,6 +201,16 @@
 (defn map-node-vals [{:keys [:children]}]
   (take-nth 2 (rest children)))
 
+(defn map-node-get-value-node
+  "Return value node from map node matching given keyword `kw`"
+  [{:keys [:children]} kw]
+  (loop [kvs (partition 2 children)]
+    (let [kv (first kvs)]
+      (cond
+        (nil? kv) nil
+        (= kw (node->keyword (first kv))) (second kv)
+        :else (recur (rest kvs))))))
+
 (defmacro one-of [x elements]
   `(let [x# ~x]
      (case x# (~@elements) x# nil)))
@@ -426,4 +436,6 @@
 
 y\""))
   (tag (parse-string "\"xy\""))
-  )
+  (map-node-get-value-node (p/parse-string "{:binky 2 :arglists #_ :ha '([a b c]) :boingo 4}")
+                           :arglists)
+)
