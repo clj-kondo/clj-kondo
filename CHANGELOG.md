@@ -22,6 +22,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2105](https://github.com/clj-kondo/clj-kondo/issues/2105): Consider .cljd files when linting.
 - [#2101](https://github.com/clj-kondo/clj-kondo/issues/2101): false positive with `if-some` + `recur`
 - [#2109](https://github.com/clj-kondo/clj-kondo/issues/2109): `java.util.List` type hint corresponds to `:list` or nil
+- [#2096](https://github.com/clj-kondo/clj-kondo/issues/2096): apply `:arglists` metadata to `:arglist-strs` for analysis data ([@lread](https://github.com/lread))
 
 ## 2023.05.26
 

@@ -5,7 +5,8 @@
    [clj-kondo.test-utils :refer [assert-submap assert-submaps assert-submaps2]]
    [clojure.edn :as edn]
    [clojure.string :as string]
-   [clojure.test :as t :refer [deftest is testing]]))
+   [clojure.test :as t :refer [deftest is testing]]
+   [matcher-combinators.matchers :as m]))
 
 (defn analyze
   ([input] (analyze input nil))
@@ -1132,43 +1133,180 @@
      var-usages)))
 
 (deftest analysis-arglists-test
-  (testing "arglist-strs are present on definitions"
-    (let [{:keys [:var-definitions]}
-          (analyze "(defn f1 [d] d)
-                    (defn f2 ([e] e) ([f f'] f))
-                    (defprotocol A (f3 [g] \"doc\") (f4 [h] [i i']))
-                    (defrecord A [j k])
-                    (defmacro f5 [l m])
-                    (def f6 (fn [n] n))"
-                   {:config {:analysis {:arglists true}}})]
-      (assert-submaps
-       '[{:name f1,
-          :defined-by clojure.core/defn
-          :arglist-strs ["[d]"]}
-         {:name f2,
-          :defined-by clojure.core/defn
-          :arglist-strs ["[e]" "[f f']"]}
-         {:name f3,
-          :defined-by clojure.core/defprotocol
-          :arglist-strs ["[g]"]}
-         {}
-         {:name f4,
-          :defined-by clojure.core/defprotocol
-          :arglist-strs ["[h]" "[i i']"]}
-         {}
-         {:name ->A
-          :defined-by clojure.core/defrecord
-          :arglist-strs ["[j k]"]}
-         {:name map->A
-          :defined-by clojure.core/defrecord
-          :arglist-strs ["[m]"]}
-         {:name f5
-          :defined-by clojure.core/defmacro
-          :arglist-strs ["[l m]"]}
-         {:name f6,
-          :defined-by clojure.core/def
-          :arglist-strs ["[n]"]}]
-       var-definitions))))
+  (doseq [analysis-opts [true {:arglists true}]]
+    (testing (format "analysis opts: %s" analysis-opts)
+      (let [{:keys [:var-definitions]}
+            (analyze "(defn f1 [d] d)
+                      (defn f2 ([e] e) ([f f'] f))
+                      (defprotocol AP (f3 [g] \"doc\") (f4 [h] [i i']))
+                      (defrecord AR [j k])
+                      (defmacro f5 [l m])
+                      (def f6 (fn [n] n))"
+                     {:config {:analysis analysis-opts}})
+            expected (cond->> '[{:name f1,
+                                 :defined-by clojure.core/defn
+                                 :arglist-strs ["[d]"]}
+                                {:name f2,
+                                 :defined-by clojure.core/defn
+                                 :arglist-strs ["[e]" "[f f']"]}
+                                {:name AP}
+                                {:name f3,
+                                 :defined-by clojure.core/defprotocol
+                                 :arglist-strs ["[g]"]}
+                                {:name f4,
+                                 :defined-by clojure.core/defprotocol
+                                 :arglist-strs ["[h]" "[i i']"]}
+                                {:name AR}
+                                {:name ->AR
+                                 :defined-by clojure.core/defrecord
+                                 :arglist-strs ["[j k]"]}
+                                {:name map->AR
+                                 :defined-by clojure.core/defrecord
+                                 :arglist-strs ["[m]"]}
+                                {:name f5
+                                 :defined-by clojure.core/defmacro
+                                 :arglist-strs ["[l m]"]}
+                                {:name f6,
+                                 :defined-by clojure.core/def
+                                 :arglist-strs ["[n]"]}]
+                       (not (:arglists analysis-opts))
+                       (mapv #(assoc % :arglist-strs m/absent)))]
+        (assert-submaps2 expected var-definitions)))))
+
+(deftest analysis-meta-arglists-test
+  (doseq [analysis-opts [true
+                         {:arglists true}
+                         {:arglists true :var-definitions {:meta true}}]]
+    (testing  (format "analysis opts: %s" analysis-opts)
+      (let [{:keys [:var-definitions]}
+            (analyze "(defn fnone [x])
+                      (defn fattr1 {:arglists '([y])} [x] x)
+                      (defn fattr2 ([x] x) ([y y'] y) {:arglists '([y1] [y2 y3])})
+                      (defn fattr-both
+                            {:arglists '([no] [not me])}
+                            ([x] x) ([y y'] y)
+                            {:arglists '([y] [e s])})
+                      (defn fattr-both-last-invalid
+                            {:arglists '([ok] [yes me])}
+                            ([x] x) ([y y'] y)
+                            {:arglists '(oops not valid)})
+                      (defn fattr-both-invalid
+                            {:arglists ([not] [quoted])}
+                            ([x] x) ([y y'] y)
+                            {:arglists '[(oops not valid)]})
+                      (defn fedn-unfriendly-regex
+                            {:arglists '([{:keys [x] :or {x #\"^foobar.*\"}}])}
+                            [x])
+                      (defn fedn-unfriendly-autoresolve
+                            {:arglists '([{:keys [::foo/bar]}])}
+                            [x])
+                      (defn- pdefn {:arglists '([y])} [x] x)
+                      (defmacro mattr2 ([x]) {:arglists '([y])} )
+                      (defmulti ^{:arglists '([some args])} multi foo)
+                      (def ^{:arglists '([d a])} d y)
+                      (def ^{:arglists :fubar} d-invalid)
+                      (def ^:private ^{:doc \"some docs\"} ^{:foo 3 :arglists '([y & more]) :bar 4} dmetas z)
+                      (def ^{:arglists '([me please])} fn1 (fn [x]))"
+                     {:config {:analysis analysis-opts}})
+            expected (cond->> [{:name 'fnone
+                                :defined-by 'clojure.core/defn
+                                :arglist-strs ["[x]"]
+                                :meta nil}
+                               {:name 'fattr1
+                                :defined-by 'clojure.core/defn
+                                :arglist-strs ["[y]"]
+                                :meta {:arglists '(quote [[y]])}}
+                               {:name 'fattr2,
+                                :defined-by 'clojure.core/defn
+                                :arglist-strs ["[y1]" "[y2 y3]"]
+                                :meta {:arglists ''([y1] [y2 y3])}}
+                               {:name 'fattr-both,
+                                :defined-by 'clojure.core/defn
+                                :arglist-strs ["[y]" "[e s]"]
+                                :meta {:arglists ''([y] [e s])}}
+                               {:name 'fattr-both-last-invalid,
+                                :defined-by 'clojure.core/defn
+                                :arglist-strs ["[ok]" "[yes me]"]
+                                :meta {:arglists ''(oops not valid)}}
+                               {:name 'fattr-both-invalid
+                                :defined-by 'clojure.core/defn
+                                :arglist-strs ["[x]" "[y y']"]
+                                :meta {:arglists ''[(oops not valid)]}}
+                               {:name 'fedn-unfriendly-regex
+                                :defined-by 'clojure.core/defn
+                                :arglist-strs ["[{:keys [x] :or {x #\"^foobar.*\"}}]"]
+                                ;; here we see some rewrite-clj node-isms
+                                :meta {:arglists ''([{:keys [x] :or {x (re-pattern "^foobar.*")}}])}}
+                               {:name 'fedn-unfriendly-autoresolve
+                                :defined-by 'clojure.core/defn
+                                :arglist-strs ["[{:keys [::foo/bar]}]"]
+                                ;; some rewrite-clj node-isms here
+                                :meta {:arglists ''([{:keys [:foo/bar]}])}}
+                               {:name 'pdefn
+                                :defined-by 'clojure.core/defn-
+                                :arglist-strs ["[y]"]
+                                :meta {:arglists ''([y])}}
+                               {:name 'mattr2
+                                :defined-by 'clojure.core/defmacro
+                                :arglist-strs ["[y]"]
+                                :meta {:arglists ''([y])}}
+                               {:name 'multi
+                                :defined-by 'clojure.core/defmulti
+                                :arglist-strs ["[some args]"]
+                                :meta {:arglists ''([some args])}}
+                               {:name 'd
+                                :defined-by 'clojure.core/def
+                                :arglist-strs ["[d a]"]
+                                :meta {:arglists ''([d a])}}
+                               {:name 'd-invalid
+                                :defined-by 'clojure.core/def
+                                :arglist-strs m/absent
+                                :meta {:arglists :fubar}}
+                               {:name 'dmetas
+                                :defined-by 'clojure.core/def
+                                :private true
+                                :doc "some docs"
+                                :arglist-strs ["[y & more]"]
+                                :meta {:arglists ''([y & more])}}
+                               {:name 'fn1
+                                :defined-by 'clojure.core/def
+                                :arglist-strs ["[me please]"]
+                                :meta {:arglists ''([me please])}}]
+                       (not (:arglists analysis-opts))
+                       (mapv #(assoc % :arglist-strs m/absent))
+                       (not (-> analysis-opts :var-definitions :meta))
+                       (mapv #(assoc % :meta m/absent)))]
+        (assert-submaps2 expected var-definitions)))))
+
+(deftest arglists-meta-does-not-affect-arities-test
+  ;; arglist meta overrides are considered docs, they should not affect call fn call arities
+  (doseq [override ["{:arglists '([])}"
+                    "{:arglists '([x & args])}"
+                    "{:arglists '([x] [x y])}"]]
+    (testing (format "override: %s" override)
+      (assert-submaps2
+       [{:name 'one
+         :fixed-arities #{0}
+         :varargs-min-arity m/absent}
+        {:name 'two
+         :fixed-arities #{1 2}
+         :varargs-min-arity m/absent}
+        {:name 'vari0
+         :fixed-arities m/absent
+         :varargs-min-arity 0}
+        {:name 'vari1
+         :fixed-arities m/absent
+         :varargs-min-arity 1}
+        {:name 'fn1
+         :fixed-arities #{3}
+         :var-arg-min-arity m/absent}]
+       (-> (analyze (str (format "(defn one %s [])" override)
+                         (format "(defn two %s ([a]) ([b c]))" override)
+                         (format "(defn vari0 %s [& args])" override)
+                         (format "(defn vari1 %s [a & args])" override)
+                         (format "(def ^%s fn1 (fn [x y x]))" override))
+                    {:config {:analysis {:arglists true}}})
+           :var-definitions)))))
 
 (deftest analysis-is-valid-edn-test
   (testing "solution for GH-476, CLJS with string require"
