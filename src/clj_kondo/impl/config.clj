@@ -92,6 +92,7 @@
               :missing-else-branch {:level :warning}
               :duplicate-case-test-constant {:level :error}
               :quoted-case-test-constant {:level :warning}
+              :symbol-case-test-constant {:level :off}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
               :docstring-blank {:level :warning}

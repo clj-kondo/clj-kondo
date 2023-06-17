@@ -690,6 +690,16 @@ foo/foo ;; this does use the private var
     (is (empty? (lint! "(case f :a 1 :b 2)")))
     (is (empty? (lint! "(case f :a 1 :b 2 :a)")))))
 
+(deftest symbol-case-test-constant
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 9, :level :warning, :message "Case test symbol is never evaluated. Mark case with #_{:clj-kondo/ignore [:symbol-case-test-constant]} to get rid of warning."}
+     {:file "<stdin>", :row 1, :col 13, :level :warning, :message "Case test symbol is never evaluated. Mark case with #_{:clj-kondo/ignore [:symbol-case-test-constant]} to get rid of warning."})
+   (lint! "(case 1 x 1 y 2)" {:linters {:symbol-case-test-constant {:level :warning}}}))
+  (assert-submaps
+   []
+   (lint! "#_{:clj-kondo/ignore [:symbol-case-test-constant]}
+           (case 1 x 1 y 2)" {:linters {:symbol-case-test-constant {:level :warning}}})))
+
 (deftest local-bindings-test
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))
   (is (empty? (lint! "(fn [[select-keys x y z]] (select-keys))")))
