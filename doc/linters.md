@@ -139,6 +139,62 @@ configuration. For general configurations options, go [here](config.md).
 
 *Example message:* `Namespace only aliased but wasn't loaded: clojure.data.xml`
 
+### Case
+
+### Case duplicate test
+
+*Keyword:* `:case-duplicate-test`.
+
+*Description:* identify duplicate case test constants.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(case x :a 1 :b 2 :a 3)`
+
+*Example message:* `Duplicate case test constant: :a`.
+
+#### Case quoted test
+
+*Keyword:* `:case-quoted-test`
+
+*Description:* Warn on quoted test constants in `case`, a common mistake when
+users don't yet understand that test constants in case are not evaluated.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+``` clojure
+(case 'x
+  'x 1)
+```
+
+*Example message:* `Case test is compile time constant and should not be quoted.`
+
+#### Case symbol test constant
+
+*Keyword:* `:case-symbol-test`
+
+*Description:* Warn on symbol test constants in `case`. Sometimes this is
+intentional, but often users expect the symbol to be evaluated. To avoid this
+confusion, enable this opt-in linter. Another reason to enable it might this
+extra corner case in
+[CLJS-2209](https://clojure.atlassian.net/browse/CLJS-2209). To opt out after
+enabling this linter, you can prepend the `case` expression with
+`#_{:clj-kondo/ignore [:case-symbol-test]}`.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+``` clojure
+(let [x 1]
+  (case x
+    x 1))
+```
+
+*Example message:* `Case test symbol is compile time constant and is never evaluated.`
+
 ### Clj-kondo config
 
 *Keyword:* `:clj-kondo-config`
@@ -155,7 +211,7 @@ configuration. For general configurations options, go [here](config.md).
 {:linters {:foo 1}}
 ```
 
-*Example message:*: `Unexpected linter name: :foo`.
+*Example message:* `Unexpected linter name: :foo`.
 
 ### Cond-else
 
@@ -593,18 +649,6 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `#{:a :a}`
 
 *Example message:* `duplicate set element :a`.
-
-### Duplicate case test constant
-
-*Keyword:* `:duplicate-case-test-constant`.
-
-*Description:* identify duplicate case test constants.
-
-*Default level:* `:error`.
-
-*Example trigger:* `(case x :a 1 :b 2 :a 3)`
-
-*Example message:* `Duplicate case test constant: :a`.
 
 ### Duplicate field name
 

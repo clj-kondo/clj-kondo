@@ -683,16 +683,22 @@
                 dupe-cands (if list-const? (:children constant) [constant])]
             (loop [[dupe & more] dupe-cands
                    seen-local seen-constants]
-              (when (identical? :quote (:tag constant))
-                (findings/reg-finding!
-                 ctx
-                 (node->line (:filename ctx) dupe :quoted-case-test-constant
-                             "Case test is compile time constant and should not be quoted.")))
+              (let [t (:tag constant)]
+                (when (identical? :quote t)
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx) dupe :case-quoted-test
+                               "Case test is compile time constant and should not be quoted.")))
+                (when (symbol? (:value constant))
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx) dupe :case-symbol-test
+                               "Case test symbol is compile time constant and is never evaluated."))))
               (let [s-dupe (str dupe)]
                 (when (seen-local s-dupe)
                   (findings/reg-finding!
                    ctx
-                   (node->line (:filename ctx) dupe :duplicate-case-test-constant
+                   (node->line (:filename ctx) dupe :case-duplicate-test
                                (format "Duplicate case test constant: %s" s-dupe))))
                 (when (seq more)
                   (recur more (conj seen-local s-dupe)))))
