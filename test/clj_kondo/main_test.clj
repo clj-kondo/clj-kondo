@@ -692,13 +692,13 @@ foo/foo ;; this does use the private var
 
 (deftest symbol-case-test-constant
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 9, :level :warning, :message "Case test symbol is never evaluated. Mark case with #_{:clj-kondo/ignore [:symbol-case-test-constant]} to get rid of warning."}
-     {:file "<stdin>", :row 1, :col 13, :level :warning, :message "Case test symbol is never evaluated. Mark case with #_{:clj-kondo/ignore [:symbol-case-test-constant]} to get rid of warning."})
-   (lint! "(case 1 x 1 y 2)" {:linters {:symbol-case-test-constant {:level :warning}}}))
+   [{:file "<stdin>", :row 1, :col 9, :level :warning, :message "Case test symbol is compile time constant and is never evaluated."}
+    {:file "<stdin>", :row 1, :col 13, :level :warning, :message "Case test symbol is compile time constant and is never evaluated."}]
+   (lint! "(case 1 x 1 y 2)" {:linters {:case-symbol-test {:level :warning}}}))
   (assert-submaps
    []
-   (lint! "#_{:clj-kondo/ignore [:symbol-case-test-constant]}
-           (case 1 x 1 y 2)" {:linters {:symbol-case-test-constant {:level :warning}}})))
+   (lint! "#_{:clj-kondo/ignore [:case-symbol-test]}
+           (case 1 x 1 y 2)" {:linters {:case-symbol-test {:level :warning}}})))
 
 (deftest local-bindings-test
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))

@@ -90,9 +90,9 @@
                           :exclude #{}}
               :use {:level :warning}
               :missing-else-branch {:level :warning}
-              :duplicate-case-test-constant {:level :error}
-              :quoted-case-test-constant {:level :warning}
-              :symbol-case-test-constant {:level :off}
+              :case-duplicate-test {:level :error}
+              :case-quoted-test {:level :warning}
+              :case-symbol-test {:level :off}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
               :docstring-blank {:level :warning}
