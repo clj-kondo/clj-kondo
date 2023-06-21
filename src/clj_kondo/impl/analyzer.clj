@@ -2744,7 +2744,15 @@
         :syntax-quote (analyze-usages2 (assoc ctx :arg-types nil) expr)
         :var (analyze-children (assoc ctx :private-access? true)
                                (:children expr))
-        :reader-macro (analyze-reader-macro ctx expr)
+        :reader-macro (do
+                        (when (and (not (identical? :cljc (:base-lang ctx)))
+                                   (str/starts-with? (-> expr :children first str) "?"))
+                          (findings/reg-finding! ctx (assoc (meta expr)
+                                                            :filename (:filename ctx)
+                                                            :level :error
+                                                            :type :syntax
+                                                            :message "Reader conditionals are only allowed in .cljc files")))
+                        (analyze-reader-macro ctx expr))
         (:unquote :unquote-splicing)
         (analyze-children ctx children)
         :namespaced-map (usages/analyze-namespaced-map
