@@ -14,8 +14,7 @@
 },
   {
   "name": "java.lang.System",
-  "methods": [{"name": "nanoTime"}
-             ]
+  "methods": [{"name": "nanoTime"}]
 },
   {
   "name": "java.lang.reflect.AccessibleObject",
@@ -60,6 +59,10 @@
   },
   {
     "name":"com.github.javaparser.ast.body.MethodDeclaration",
+    "allDeclaredFields":true
+  },
+  {
+    "name":"com.github.javaparser.ast.expr.ArrayCreationExpr",
     "allDeclaredFields":true
   }
 ]
