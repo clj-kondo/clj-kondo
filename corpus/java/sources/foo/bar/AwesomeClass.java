@@ -8,6 +8,7 @@ public class AwesomeClass {
     private String foo1;
     private final  Double foo2 = 1.0;
     private final static Double foo3 = 1.0;
+    private long[] foo4 = new long[2];
 
     public Double bar1;
     public final Double bar2 = 1.0;
