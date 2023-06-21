@@ -111,20 +111,24 @@
           (merge (some-> node node->location))
           (update :flags set/union #{(node->flag-member-type node)})))))
 
-(defn ^:private source-is->java-member-definitions [^InputStream source-input-stream]
+(defn ^:private source-is->java-member-definitions [^InputStream source-input-stream filename]
   (let [modifier-keyword->flag (modifier-keyword->flag)]
-    (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
-      (reduce
-       (fn [classes ^ClassOrInterfaceDeclaration class-or-interface]
-         (let [class-name (.get (.getFullyQualifiedName class-or-interface))
-               members (->> (concat
-                             (.findAll class-or-interface FieldDeclaration)
-                             (.findAll class-or-interface ConstructorDeclaration)
-                             (.findAll class-or-interface MethodDeclaration))
-                            (keep #(node->member % modifier-keyword->flag)))]
-           (assoc classes class-name {:members (vec members)})))
-       {}
-       (.findAll compilation ClassOrInterfaceDeclaration)))))
+    (try
+      (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
+        (reduce
+         (fn [classes ^ClassOrInterfaceDeclaration class-or-interface]
+           (let [class-name (.get (.getFullyQualifiedName class-or-interface))
+                 members (->> (concat
+                               (.findAll class-or-interface FieldDeclaration)
+                               (.findAll class-or-interface ConstructorDeclaration)
+                               (.findAll class-or-interface MethodDeclaration))
+                              (keep #(node->member % modifier-keyword->flag)))]
+             (assoc classes class-name {:members (vec members)})))
+         {}
+         (.findAll compilation ClassOrInterfaceDeclaration)))
+      (catch Throwable e
+        (binding [*out* *err*]
+          (println "Error parsing java file" filename "with error" e))))))
 
 (defn analyze-class-defs? [ctx]
   (:analyze-java-class-defs? ctx))
@@ -139,7 +143,7 @@
           class-by-info (with-open [is ^InputStream class-is]
                           (if (str/ends-with? filename ".class")
                             (class-is->class-info is)
-                            (source-is->java-member-definitions is)))]
+                            (source-is->java-member-definitions is filename)))]
       (doseq [[class-name class-info] class-by-info]
         (swap! (:analysis ctx)
                update :java-class-definitions conj
