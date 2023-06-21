@@ -2147,7 +2147,32 @@
               :name-col 8
               :name-end-row 12
               :name-end-col 16}
-             my-other-definition))))))
+             my-other-definition))))
+    (testing "when using together with in-ns"
+      (let [analysis (-> (with-in-str "
+(ns foo)
+(defn my-func [a] a)
+
+(ns api.chunk1)
+(in-ns 'api)
+
+(import-vars
+  foo/my-func)
+
+(ns api (:require
+  [foo]
+  [potemkin :refer [import-vars]]))
+"
+                           (clj-kondo/run! {:lang :clj :lint ["-"] :config
+                                            {:analysis true}}))
+                         :analysis)
+            usages (:var-usages analysis)
+            my-func-usage (some #(when (= 'my-func (:name %)) %) usages)
+            definitions (:var-definitions analysis)
+            my-func-definition (some #(when (and (= 'my-func (:name %))
+                                                 (= 'api (:ns %))) %) definitions)]
+        (is my-func-usage)
+        (is my-func-definition)))))
 
 (deftest re-frame-dispatch-reg-event-fx-test
   (let [analysis (:analysis (with-in-str
