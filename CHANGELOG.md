@@ -22,10 +22,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Rename `:quoted-case-test-constant` to `:case-quoted-test`
 - Rename `:duplicate-case-test-constant` to `:case-duplicate-test`
 - [#2097](https://github.com/clj-kondo/clj-kondo/issues/2097): analyze and act on `defprotocol` metadata ([@lread](https://github.com/lread))
-- [#2105](https://github.com/clj-kondo/clj-kondo/issues/2105): Consider .cljd files when linting.
+- [#2105](https://github.com/clj-kondo/clj-kondo/issues/2105): Consider `.cljd` files when linting ([@ericdallo](https://github.com/ericdallo))
 - [#2101](https://github.com/clj-kondo/clj-kondo/issues/2101): false positive with `if-some` + `recur`
 - [#2109](https://github.com/clj-kondo/clj-kondo/issues/2109): `java.util.List` type hint corresponds to `:list` or nil
 - [#2096](https://github.com/clj-kondo/clj-kondo/issues/2096): apply `:arglists` metadata to `:arglist-strs` for analysis data ([@lread](https://github.com/lread))
+- [#256](https://github.com/clj-kondo/clj-kondo/issues/256): warn on reader conditional usage in non-cljc files
 
 ## 2023.05.26
 

@@ -159,7 +159,9 @@
   (is (empty? (lint! "(def ^{#?@(:clj [:deprecated \"deprecation message\"])} my-deprecated-var :bla)"
                      "--lang" "cljc")))
   (is (empty? (lint! "^#?(:clj :a :cljsr :b) [1 2 3]"
-                     "--lang" "cljc"))))
+                     "--lang" "cljc")))
+  (assert-submaps [{:row 1, :col 1, :level :error, :message "Reader conditionals are only allowed in .cljc files"}]
+                  (lint! "#?(:clj 1)" "--lang" "clj")))
 
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
