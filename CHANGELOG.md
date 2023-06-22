@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2109](https://github.com/clj-kondo/clj-kondo/issues/2109): `java.util.List` type hint corresponds to `:list` or nil
 - [#2096](https://github.com/clj-kondo/clj-kondo/issues/2096): apply `:arglists` metadata to `:arglist-strs` for analysis data ([@lread](https://github.com/lread))
 - [#256](https://github.com/clj-kondo/clj-kondo/issues/256): warn on reader conditional usage in non-cljc files
+- [#2115](https://github.com/clj-kondo/clj-kondo/issues/2115): false positive `:redundant-fn-wrapper` in CLJS when passing keyword to JS
 
 ## 2023.05.26
 

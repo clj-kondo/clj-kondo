@@ -35,4 +35,8 @@
                    `(.println
                       (RT/errPrintWriter)
                       ~(nsm sym))))"
-              {:linters {:redundant-fn-wrapper {:level :warning}}}))))
+              {:linters {:redundant-fn-wrapper {:level :warning}}})))
+  (is (empty?
+       (lint! "(declare x) (.then x #(:foo %))"
+              {:linters {:redundant-fn-wrapper {:level :warning}}}
+              "--lang" "cljs"))))
