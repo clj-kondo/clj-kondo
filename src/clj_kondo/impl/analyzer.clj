@@ -1269,6 +1269,7 @@
                                       [clojure.core fn*]
                                       [cljs.core fn]
                                       [cljs.core fn*]])
+           (not= '[cljs.core .] (second callstack))
            (= (map #(str/replace % #"^%$" "%1") children)
               (map str fn-args)))
       (:fn-parent-loc ctx))))
