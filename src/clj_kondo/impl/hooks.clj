@@ -154,7 +154,8 @@
                    (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
                      (println e)))
                  nil)))
-        delayed-cfg (if api/*reload*
-                      delayed-cfg
-                      (memoize-without-ctx delayed-cfg))]
-    delayed-cfg))
+        memo-delayed-cfg (memoize-without-ctx delayed-cfg)
+        hook-fn' (fn [& args]
+                   (apply (if api/*reload* delayed-cfg memo-delayed-cfg)
+                          args))]
+    hook-fn'))
