@@ -28,6 +28,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2096](https://github.com/clj-kondo/clj-kondo/issues/2096): apply `:arglists` metadata to `:arglist-strs` for analysis data ([@lread](https://github.com/lread))
 - [#256](https://github.com/clj-kondo/clj-kondo/issues/256): warn on reader conditional usage in non-cljc files
 - [#2115](https://github.com/clj-kondo/clj-kondo/issues/2115): false positive `:redundant-fn-wrapper` in CLJS when passing keyword to JS
+- [#1082](https://github.com/clj-kondo/clj-kondo/issues/1082): protocol methods do not support varargs
 
 ## 2023.05.26
 

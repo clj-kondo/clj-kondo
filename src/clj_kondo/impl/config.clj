@@ -149,7 +149,8 @@
               :uninitialized-var {:level :warning}
               :equals-true {:level :off}
               :plus-one {:level :off}
-              :minus-one {:level :off}}
+              :minus-one {:level :off}
+              :protocol-method-varargs {:level :error}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

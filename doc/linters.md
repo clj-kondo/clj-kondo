@@ -9,6 +9,10 @@ configuration. For general configurations options, go [here](config.md).
 - [Linters](#linters)
     - [Aliased namespace symbol](#aliased-namespace-symbol)
     - [Aliased namespace var usage](#aliased-namespace-var-usage)
+    - [Case](#case)
+    - [Case duplicate test](#case-duplicate-test)
+        - [Case quoted test](#case-quoted-test)
+        - [Case symbol test constant](#case-symbol-test-constant)
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
     - [Conflicting-alias](#conflicting-alias)
@@ -30,7 +34,6 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
-    - [Duplicate case test constant](#duplicate-case-test-constant)
     - [Duplicate field name](#duplicate-field-name)
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
@@ -61,6 +64,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Not empty?](#not-empty)
     - [Plus one](#plus-one)
     - [Private call](#private-call)
+    - [Protocol method varargs](#protocol-method-varargs)
     - [Redefined var](#redefined-var)
     - [Var same name except case](#var-same-name-except-case)
     - [Redundant do](#redundant-do)
@@ -1128,18 +1132,29 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 (foo/f)
 ```
 
+### Protocol method varargs
+
+*Keyword:* `:protocol-method-varargs`.
+
+*Description:* warn on definition of varargs protocol method.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(defprotocol Foo (foo [x & xs]))`
+
+*Example message:* `Protocol methods do not support varargs`.
+
 ### Redefined var
 
 *Keyword:* `:redefined-var`.
 
-*Description:* warn on redefind var.
+*Description:* warn on redefined var.
 
 *Default level:* `:warning`.
 
 *Example trigger:* `(def x 1) (def x 2)`
 
 *Example message:* `redefined var #'user/x`.
-
 
 ### Var same name except case
 

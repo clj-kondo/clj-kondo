@@ -1445,7 +1445,19 @@
                                   (into [] (comp transduce-arity-vecs (map str)))
                                   (not-empty)))
               fixed-arities (into #{}
-                                  (comp transduce-arity-vecs (map #(count (:children %))))
+                                  (comp transduce-arity-vecs
+                                        (map #(let [children (:children %)]
+                                                (run! (fn [child]
+                                                        (when (= '& (:value child))
+                                                          (findings/reg-finding!
+                                                           ctx
+                                                           (node->line
+                                                            (:filename ctx)
+                                                            child
+                                                            :protocol-method-varargs
+                                                            "Protocol methods do not support varargs."))))
+                                                      children)
+                                                (count children))))
                                   arities)]
           (utils/handle-ignore ctx c)
           (namespace/reg-var!
