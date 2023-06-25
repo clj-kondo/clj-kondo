@@ -1773,7 +1773,13 @@ foo/foo ;; this does use the private var
     [clojure.lang IReduceInit]))
 
 (defprotocol Db
-  (-list-resources ^IReduceInit [db type start-id]))"))))
+  (-list-resources ^IReduceInit [db type start-id]))")))
+  (assert-submaps2
+   '({:row 1,
+      :col 26,
+      :level :error,
+      :message "Protocol methods do not support varargs."})
+   (lint! "(defprotocol Foo (foo [x & xs]))")))
 
 (deftest defrecord-test
   (assert-submaps
