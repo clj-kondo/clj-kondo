@@ -584,10 +584,9 @@
     (map-vals (fn [{:keys [filename vars proxied-namespaces deprecated]}]
                 (some-> (assoc-some (format-vars vars)
                                     :proxied-namespaces proxied-namespaces
-                                    :deprecated (if (or (boolean? deprecated)
-                                                        (string? deprecated))
-                                                  deprecated
-                                                  (some? deprecated)))
+                                    :deprecated (cond (boolean? deprecated) (true? deprecated)
+                                                      (string? deprecated) deprecated
+                                                      (some? deprecated) true))
                         (assoc :filename filename)))
               namespaces)))
 
