@@ -444,10 +444,13 @@
                           (when (= :map (tag sc))
                             sc)))))
         _ (when meta-node (common/analyze-expression** ctx meta-node))
-        meta-node-meta (when meta-node (sexpr meta-node))
+        meta-node-meta (when meta-node
+                         (try (sexpr meta-node)
+                              (catch Exception _ nil)))
         ns-meta (if meta-node-meta
                   (merge metadata meta-node-meta)
                   metadata)
+        deprecated (:deprecated ns-meta)
         [doc-node docstring] (or (and meta-node-meta
                                       (:doc meta-node-meta)
                                       (docstring/docs-from-meta meta-node))
@@ -553,7 +556,8 @@
         ns (cond->
                (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
                              :imports imports
-                             :gen-class gen-class?)
+                             :gen-class gen-class?
+                             :deprecated deprecated)
                       (merge-with into
                                   analyzed-require-clauses
                                   refer-clj))
