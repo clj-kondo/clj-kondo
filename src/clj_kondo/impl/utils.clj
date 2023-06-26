@@ -270,6 +270,26 @@
                             (recur (next xs) kept (conj! removed x))))
       [(persistent! kept) (persistent! removed)])))
 
+(defn resolve-ns [idacs base-lang lang ns]
+  (case [base-lang lang]
+    [:clj :clj] (or (get-in idacs [:clj :defs ns])
+                    (get-in idacs [:cljc :defs ns]))
+    [:cljs :cljs] (or (get-in idacs [:cljs :defs ns])
+                      ;; cljs func in another cljc file
+                      (get-in idacs [:cljc :defs ns])
+                      ;; maybe a macro?
+                      (get-in idacs [:clj :defs ns])
+                      (get-in idacs [:cljc :defs ns]))
+    ;; calling a clojure function from cljc
+    [:cljc :clj] (or (get-in idacs [:clj :defs ns])
+                     (get-in idacs [:cljc :defs ns]))
+    ;; calling function in a CLJS conditional from a CLJC file
+    [:cljc :cljs] (or (get-in idacs [:cljs :defs ns])
+                      (get-in idacs [:cljc :defs ns])
+                      ;; could be a macro
+                      (get-in idacs [:clj :defs ns])
+                      (get-in idacs [:cljc :defs ns]))))
+
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
   (let [call-lang (:lang call)
