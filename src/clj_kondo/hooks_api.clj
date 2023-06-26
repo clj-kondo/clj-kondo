@@ -112,7 +112,9 @@
                        :fixed-arities :varargs-min-arity
                        :private :macro]]
     (->> (dissoc analysis :filename :source)
-         (utils/map-vals #(select-keys % selected-keys)))))
+         (utils/map-vals #(if (map? %)
+                            (select-keys % selected-keys)
+                            %)))))
 
 (defn- ns-analysis*
   "Adapt from-cache-1 to provide a uniform return format.
