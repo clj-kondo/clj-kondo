@@ -2310,6 +2310,10 @@ foo")))
 (def ^:deprecated foo)
 foo"))))
 
+(deftest deprecated-namespace-test
+  (assert-submaps '({:file "<stdin>", :row 1, :col 58, :level :warning, :message "Namespace foo is deprecated."})
+                  (lint! "(ns foo {:deprecated true}) (def x 1) (ns bar (:require [foo]))")))
+
 (deftest unused-referred-var-test
   (assert-submaps
    '({:file "corpus/unused_referred_var.clj",

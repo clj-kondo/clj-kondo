@@ -357,6 +357,25 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 {:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
 ```
 
+### Deprecated namespace
+
+*Keyword:* `:deprecated-namespace`.
+
+*Description:* warn on usage of namespace that is deprecated.
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+``` clojure
+(ns foo {:deprecated true})
+(def x 1)
+
+(ns bar (:require [foo]))
+```
+
+Example warning: `Namespace foo is deprecated.`.
+
 ### Deps.edn
 
 *Keyword:* `:deps.edn`

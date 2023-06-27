@@ -507,7 +507,7 @@
                       :message "Unused value"})))))))))))
 
 (defn lint-unused-namespaces!
-  [ctx]
+  [ctx idacs]
   (let [config (:config ctx)]
     (doseq [ns (namespace/list-namespaces ctx)
             :let [required (:required ns)
@@ -524,6 +524,17 @@
                   config (or ns-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
                   ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
+      (doseq [required required]
+        (when-let [depr (:deprecated (utils/resolve-ns idacs (:base-lang ns) (:lang ns) required))]
+          (let [filename (:filename (meta required))]
+            (findings/reg-finding!
+             ctx
+             (node->line filename required :deprecated-namespace
+                         (format "Namespace %s is deprecated%s."
+                                 (str required)
+                                 (if (string? depr)
+                                   (str " since " depr)
+                                   "")))))))
       (doseq [ns-sym unused]
         (let [ns-meta (meta ns-sym)]
           (when-not (or (config/unused-namespace-excluded config ns-sym)

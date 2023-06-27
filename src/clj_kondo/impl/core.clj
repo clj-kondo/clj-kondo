@@ -581,9 +581,12 @@
 
 (defn namespaces->indexed [namespaces]
   (when namespaces
-    (map-vals (fn [{:keys [:filename :vars :proxied-namespaces]}]
+    (map-vals (fn [{:keys [filename vars proxied-namespaces deprecated]}]
                 (some-> (assoc-some (format-vars vars)
-                                    :proxied-namespaces proxied-namespaces)
+                                    :proxied-namespaces proxied-namespaces
+                                    :deprecated (cond (boolean? deprecated) (true? deprecated)
+                                                      (string? deprecated) deprecated
+                                                      (some? deprecated) true))
                         (assoc :filename filename)))
               namespaces)))
 

@@ -79,6 +79,7 @@
                                   {:namespaces [foo.bar "bar\\.*"]
                                    ;; or in these definitions:
                                    :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}
+              :deprecated-namespace {:level :warning}
               :unused-referred-var {:level :warning
                                     :exclude {#_#_taoensso.timbre [debug]}}
               :unused-private-var {:level :warning}
