@@ -30,7 +30,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#256](https://github.com/clj-kondo/clj-kondo/issues/256): warn on reader conditional usage in non-cljc files
 - [#2115](https://github.com/clj-kondo/clj-kondo/issues/2115): false positive `:redundant-fn-wrapper` in CLJS when passing keyword to JS
 - [#1082](https://github.com/clj-kondo/clj-kondo/issues/1082): protocol methods do not support varargs
-- [#2125](https://github.com/clj-kondo/clj-kondo/issues/2125): clj-kondo.hooks-api/*reload* doesn't work as expected
+- [#2125](https://github.com/clj-kondo/clj-kondo/issues/2125): Setting `clj-kondo.hooks-api/*reload*` to true does not lint with the latest hook changes.
 
 ## 2023.05.26
 
