@@ -21,6 +21,7 @@
            :reduce-without-init {:level :warning}
            :missing-docstring {:level :off}
            :unsorted-required-namespaces {:level :warning}
+           :unsorted-imports {:level :warning}
            ;; for  nubank/matcher-combinators
            :unresolved-symbol {:exclude [(clojure.test/is [match?])]}
            :def-fn {:level :warning}}

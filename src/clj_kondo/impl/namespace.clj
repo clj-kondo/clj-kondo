@@ -84,8 +84,9 @@
                                 :unsorted-required-namespaces
                                 (str "Unsorted " (case linter
                                                    :unsorted-imports
+                                                   "namespace: "
                                                    :unsorted-required-namespaces
-                                                   "namespace: " )ns)))
+                                                   "import: ") ns)))
                    :else (recur raw-ns
                                 (next ns-list))))))))))
 
