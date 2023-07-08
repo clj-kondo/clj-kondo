@@ -530,7 +530,7 @@
                           :when import-kw
                           libspec-expr (rest (:children ?import-clause))]
                       libspec-expr)
-        _ (namespace/lint-unsorted-required-namespaces! ctx imports-raw)
+        _ (namespace/lint-unsorted-required-namespaces! ctx imports-raw :unsorted-imports)
         imports
         (apply merge (map #(analyze-import ctx ns-name %) imports-raw))
         refer-clojure-clauses
