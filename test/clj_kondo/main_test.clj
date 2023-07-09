@@ -2939,6 +2939,15 @@ foo/baz
     (is (empty? (lint! "(ns foo (:require bar Bar))"
                        {:linters {:unsorted-required-namespaces {:level :warning}}})))))
 
+(deftest unsorted-imports-test
+  (assert-submaps2
+   [{:file "<stdin>"
+     :row 1
+     :col 33
+     :level :warning
+     :message "Unsorted import: [abar.core Bar]"}]
+   (lint! "(ns foo (:import [bar.core Foo] [abar.core Bar])) Foo Bar" {:linters {:unsorted-imports {:level :warning}}})))
+
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
                   (lint! "(declare x) (set! (.-foo x) 1 2 3)"))

@@ -81,7 +81,7 @@
                     ctx
                     (node->line (:filename ctx)
                                 ns
-                                :unsorted-required-namespaces
+                                linter
                                 (str "Unsorted " (case linter
                                                    :unsorted-required-namespaces
                                                    "namespace: "
