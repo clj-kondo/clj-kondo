@@ -90,3 +90,15 @@
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 15, :level :warning, :message "Unused value: x"})
      (lint! "(defn foo [x] x 1)" {:linters {:unused-value {:level :warning}}}))))
+
+(deftest clojure-test-docstring-test
+  (doseq [lang ["clj" "cljc"]]
+    (assert-submaps
+     []
+     (lint! "(ns test
+  (:require [clojure.test :as t :refer [deftest is]]))
+
+(deftest foo
+  \"not a docstring\"
+  (is ...))" {:linters {:unused-value {:level :warning}}}
+            "--lang" lang))))
