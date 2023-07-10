@@ -92,13 +92,25 @@
      (lint! "(defn foo [x] x 1)" {:linters {:unused-value {:level :warning}}}))))
 
 (deftest clojure-test-docstring-test
-  (doseq [lang ["clj" "cljc"]]
-    (assert-submaps
-     []
-     (lint! "(ns test
+  (doseq [lang ["clj" "cljc"]
+          code ["(ns test
   (:require [clojure.test :as t :refer [deftest is]]))
 
 (deftest foo
-  \"not a docstring\"
-  (is ...))" {:linters {:unused-value {:level :warning}}}
+  (+ 1 2 3)
+  (is (= 1 2)))"
+                "(ns test
+  (:require [clojure.test :as t :refer [deftest is]]))
+
+(deftest foo
+  \"dude\"
+  (is (= 1 2)))"]]
+    (assert-submaps
+     [{:file "<stdin>",
+       :row 5,
+       :col 3,
+       :level :warning,
+       :message #"Unused value"}]
+     (lint! code {:linters {:unused-value {:level :warning}
+                            :missing-test-assertion {:level :off}}}
             "--lang" lang))))

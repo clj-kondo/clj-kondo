@@ -477,19 +477,15 @@
           (let [normalized-sym (symbol (let [cns (str (:ns called-fn))]
                                          (if (= cns "cljs.core") "clojure.core" cns))
                                        (str (:name called-fn)))]
-            (prn :normalized-sym normalized-sym)
             (when (or (contains? var-info/unused-values normalized-sym)
                       (= 'clojure.test/deftest normalized-sym))
               (let [unused-value-conf (-> config :linters :unused-value)]
-                (prn :dude)
                 (when-not (identical? :off (:level unused-value-conf))
-                  (prn :yolo)
                   (let [parent-call (let [cs (:callstack call)]
                                       (second cs))
                         core? (utils/one-of (first parent-call) [clojure.core cljs.core])
                         core-sym (when core?
                                    (second parent-call))
-                        _ (prn :parent-call parent-call)
                         unused?
                         (or (and core?
                                  (or
