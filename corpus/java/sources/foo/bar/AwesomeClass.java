@@ -36,4 +36,11 @@ public class AwesomeClass {
     public static File[] coolParse(List<String> filenames) {
         return null;
     }
+
+    public Foo foo() {
+        class Foo {
+            private int a;
+        }
+        return Foo();
+    }
 }

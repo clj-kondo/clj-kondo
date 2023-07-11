@@ -160,7 +160,14 @@
           :flags #{:method :public :static}
           :doc "/*\n     * Some cool doc\n     * @param filenames\n     * @return list of files\n     */"
           :parameters ["List<String> filenames"]
-          :row 36 :end-row 38 :col 5 :end-col 5}]
+          :row 36 :end-row 38 :col 5 :end-col 5}
+         {:return-type "Foo"
+          :name "foo"
+          :class "foo.bar.AwesomeClass"
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+          :flags #{:method :public}
+          :parameters []
+          :row 40 :end-row 45 :col 5 :end-col 5}]
        java-member-definitions))))
 
 (deftest class-usages-test
