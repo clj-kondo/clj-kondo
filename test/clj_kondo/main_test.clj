@@ -2770,7 +2770,9 @@ foo/baz
   (is (empty? (lint! "
 (defrecord ^:private SessionStore [session-service])
 (deftype ^:private SessionStore2 [session-service])
-(definterface ^:private SessionStore3)"))))
+(definterface ^:private SessionStore3)")))
+  (is (empty? (lint! "(def ^:private _dude 1)")))
+  (is (empty? (lint! "(defonce ^:private _dude 1)"))))
 
 (deftest definterface-test
   (is (empty? (lint! "(definterface Foo (foo [x]) (bar [x]))"
