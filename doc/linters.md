@@ -1804,6 +1804,13 @@ To suppress the above warning:
 {:linters {:unused-private-var {:exclude [foo/f]}}}
 ```
 
+When defining a private var with defonce just for side effects, you can start
+the name with an underscore:
+
+``` clojure
+(defonce ^:private _dude (launch-missiles))
+```
+
 ### Unused referred var
 
 *Keyword:* `:unused-referred-var`.
