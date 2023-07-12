@@ -52,36 +52,43 @@
             (recur (conj aliases as)
                    (rest ns-maps))))))))
 
-(defn lint-unsorted-required-namespaces! [ctx namespaces]
-  (let [config (:config ctx)
-        level (-> config :linters :unsorted-required-namespaces :level)]
-    (when-not (identical? :off level)
-      (loop [last-processed-ns nil
-             ns-list namespaces]
-        (when ns-list
-          (let [ns (first ns-list)
-                m (meta ns)
-                raw-ns (:raw-name m)
-                prefix (:prefix m)
-                raw-ns (cond prefix
-                             (str prefix "." ns)
-                             raw-ns (if (string? raw-ns)
-                                      (pr-str raw-ns)
-                                      (str raw-ns))
-                             :else (str ns))
-                branch (:branch m)
-                raw-ns (str/lower-case raw-ns)]
-            (cond branch
-                  (recur last-processed-ns (next ns-list))
-                  (pos? (compare last-processed-ns raw-ns))
-                  (findings/reg-finding!
-                   ctx
-                   (node->line (:filename ctx)
-                               ns
-                               :unsorted-required-namespaces
-                               (str "Unsorted namespace: " ns)))
-                  :else (recur raw-ns
-                               (next ns-list)))))))))
+(defn lint-unsorted-required-namespaces!
+  ([ctx namespaces]
+   (lint-unsorted-required-namespaces! ctx namespaces :unsorted-required-namespaces))
+  ([ctx namespaces linter]
+   (let [config (:config ctx)
+         level (-> config :linters linter :level)]
+     (when-not (identical? :off level)
+       (loop [last-processed-ns nil
+              ns-list namespaces]
+         (when ns-list
+           (let [ns (first ns-list)
+                 m (meta ns)
+                 raw-ns (:raw-name m)
+                 prefix (:prefix m)
+                 raw-ns (cond prefix
+                              (str prefix "." ns)
+                              raw-ns (if (string? raw-ns)
+                                       (pr-str raw-ns)
+                                       (str raw-ns))
+                              :else (str ns))
+                 branch (:branch m)
+                 raw-ns (str/lower-case raw-ns)]
+             (cond branch
+                   (recur last-processed-ns (next ns-list))
+                   (pos? (compare last-processed-ns raw-ns))
+                   (findings/reg-finding!
+                    ctx
+                    (node->line (:filename ctx)
+                                ns
+                                linter
+                                (str "Unsorted " (case linter
+                                                   :unsorted-required-namespaces
+                                                   "namespace: "
+                                                   :unsorted-imports
+                                                   "import: ") ns)))
+                   :else (recur raw-ns
+                                (next ns-list))))))))))
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces

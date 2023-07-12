@@ -19,6 +19,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Consistent-alias](#consistent-alias)
     - [Datalog syntax](#datalog-syntax)
     - [Deprecated var](#deprecated-var)
+    - [Deprecated namespace](#deprecated-namespace)
     - [Deps.edn](#depsedn)
     - [Bb.edn](#bbedn)
         - [Bb.edn dependency on undefined task](#bbedn-dependency-on-undefined-task)
@@ -90,6 +91,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unresolved symbol](#unresolved-symbol)
         - [:exclude-patterns](#exclude-patterns)
     - [Unresolved var](#unresolved-var)
+    - [Unsorted imports](#unsorted-imports)
     - [Unsorted required namespaces](#unsorted-required-namespaces)
     - [Unused namespace](#unused-namespace)
     - [Unused private var](#unused-private-var)
@@ -1719,6 +1721,18 @@ You can report duplicate warnings using:
 ``` clojure
 {:linters {:unresolved-var {:report-duplicates true}}}
 ```
+
+### Unsorted imports
+
+*Keyword:* `:unsorted-imports`.
+
+*Description:* warns on non-alphabetically sorted imports in `ns` and `require` forms.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(ns foo (:import [foo A] [bar B]))`.
+
+*Example message:* `Unsorted import: [bar B]`.
 
 ### Unsorted required namespaces
 
