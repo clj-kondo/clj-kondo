@@ -31,6 +31,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2115](https://github.com/clj-kondo/clj-kondo/issues/2115): false positive `:redundant-fn-wrapper` in CLJS when passing keyword to JS
 - [#1082](https://github.com/clj-kondo/clj-kondo/issues/1082): protocol methods do not support varargs
 - [#2125](https://github.com/clj-kondo/clj-kondo/issues/2125): Setting `clj-kondo.hooks-api/*reload*` to true does not lint with the latest hook changes.
+- #2135: private vars starting with `_` should not be reported as unused
 
 ## 2023.05.26
 
