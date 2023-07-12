@@ -1720,6 +1720,18 @@ You can report duplicate warnings using:
 {:linters {:unresolved-var {:report-duplicates true}}}
 ```
 
+### Unsorted imports
+
+*Keyword:* `:unsorted-imports`.
+
+*Description:* warns on non-alphabetically sorted imports in `ns` and `require` forms.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(ns foo (:import [foo A] [bar B]))`.
+
+*Example message:* `Unsorted import: [bar B]`.
+
 ### Unsorted required namespaces
 
 *Keyword:* `:unsorted-required-namespaces`.
