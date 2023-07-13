@@ -153,10 +153,13 @@
        (swap! namespaces update-in path
               (fn [ns]
                 (let [vars (:vars ns)
+                      curr-var-count (or (get (:var-counts ns) var-sym) 0)
                       prev-var (get vars var-sym)
                       prev-declared? (:declared prev-var)
                       classfiles (:classfiles ns)
-                      classfile (var-classfile metadata)]
+                      classfile (var-classfile metadata)
+                      hard-def? (and (not (:declared metadata))
+                                     (not (:in-comment ctx)))]
                   (when (identical? :clj lang)
                     (when-let [clashing-vars (->> (get classfiles classfile)
                                                   (remove #{var-sym})
@@ -168,9 +171,7 @@
                                    :var-same-name-except-case
                                    (str "Var name " var-sym " differs only in case from: " (str/join ", " clashing-vars))))))
                   ;; declare is idempotent
-                  (when (and top-level?
-                             (not (:declared metadata))
-                             (not (:in-comment ctx)))
+                  (when (and top-level? hard-def?)
                     (when-not (= 'clojure.core/definterface (:defined-by metadata))
                       (when-let [redefined-ns
                                  (or (when-let [meta-v prev-var]
@@ -187,14 +188,16 @@
                                                   (not (contains? (:clojure-excluded ns) var-sym))
                                                   (var-info/core-sym? lang var-sym))
                                          core-ns)))]
-                        (findings/reg-finding!
-                         ctx
-                         (node->line filename
-                                     expr
-                                     :redefined-var
-                                     (if (= ns-sym redefined-ns)
-                                       (str "redefined var #'" redefined-ns "/" var-sym)
-                                       (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
+                        (when (or (pos? curr-var-count)
+                                  (not= ns-sym redefined-ns))
+                          (findings/reg-finding!
+                           ctx
+                           (node->line filename
+                                       expr
+                                       :redefined-var
+                                       (if (= ns-sym redefined-ns)
+                                         (str "redefined var #'" redefined-ns "/" var-sym)
+                                         (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))))
                     (when-not temp?
                       (when (and (not (identical? :off (-> config :linters :missing-docstring :level)))
                                  (not (:private metadata))
@@ -241,7 +244,9 @@
                       (assoc :classfiles
                              (if classfile
                                (update classfiles classfile (fnil conj []) var-sym)
-                               classfiles))))))))))
+                               classfiles))
+                      (update :var-counts assoc var-sym
+                              (if hard-def? (inc curr-var-count) curr-var-count))))))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
