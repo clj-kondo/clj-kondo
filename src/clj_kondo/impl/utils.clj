@@ -97,7 +97,7 @@
                                           :filename (:filename ctx)
                                           :level :error
                                           :type :syntax
-                                          :message (str "Feature should be a keyword: " k))))
+                                          :message "Feature should be a keyword")))
         (let [kw (:k k)
               default (or default
                           (when (= :default kw)
