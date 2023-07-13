@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.findings
   {:no-doc true}
-  (:require [clj-kondo.impl.utils :as utils]
-            [clj-kondo.impl.analyzer.common :as common]))
+  (:require [clj-kondo.impl.analyzer.common :as common]
+            [clj-kondo.impl.utils :as utils]))
 
 ;; ignore  row 1, col 21, end-row 1, end-col 31
 ;; finding row 1, col 26, end-row 1, end-col 30
