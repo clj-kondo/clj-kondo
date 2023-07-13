@@ -23,3 +23,6 @@
 
 (defn analyze-usages2 [ctx expr]
   ((get @common 'analyze-usages2) ctx expr))
+
+(defn reg-finding! [ctx m]
+  ((get @common 'reg-finding!) ctx m))

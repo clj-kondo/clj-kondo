@@ -33,6 +33,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1082](https://github.com/clj-kondo/clj-kondo/issues/1082): protocol methods do not support varargs
 - [#2125](https://github.com/clj-kondo/clj-kondo/issues/2125): Setting `clj-kondo.hooks-api/*reload*` to true does not lint with the latest hook changes.
 - [#2135](https://github.com/clj-kondo/clj-kondo/issues/2135): private vars starting with `_` should not be reported as unused
+- [#1199](https://github.com/clj-kondo/clj-kondo/issues/1199): warn about reader conditional features that are not keywords, e.g. `#?(:clj 1 2)` (2 is not a keyword)
 
 ## 2023.05.26
 

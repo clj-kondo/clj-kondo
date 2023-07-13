@@ -3370,6 +3370,11 @@ foo/")))
   (is (seq (lint! (io/file "corpus" "clojure_dart")
                   {:linters {:unresolved-symbol {:level :error}}}))))
 
+(deftest feature-keyword-test
+  (assert-submaps
+   '({:file "corpus/feature_syntax.cljc", :row 8, :col 6, :level :error, :message "Feature should be a keyword"})
+   (lint! (io/file "corpus" "feature_syntax.cljc"))))
+
 ;;;; Scratch
 
 (comment

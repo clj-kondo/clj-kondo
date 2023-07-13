@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.findings
   {:no-doc true}
-  (:require [clj-kondo.impl.utils :as utils]))
+  (:require [clj-kondo.impl.analyzer.common :as common]
+            [clj-kondo.impl.utils :as utils]))
 
 ;; ignore  row 1, col 21, end-row 1, end-col 31
 ;; finding row 1, col 26, end-row 1, end-col 30
@@ -67,6 +68,8 @@
         (let [m (assoc m :level level)]
           (swap! findings conj m)
           m)))))
+
+(vswap! common/common assoc 'reg-finding! reg-finding!)
 
 (defn warn-reflection [ctx expr]
   (when (:warn-only-on-interop ctx)
