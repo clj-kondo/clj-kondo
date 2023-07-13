@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
    [babashka.fs :as fs]
+   [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.rewrite-clj.node.keyword :as k]
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
@@ -83,7 +84,7 @@
     splice? (update :children (fn [children]
                                 (map #(attach-branch* % lang) children)))))
 
-(defn process-reader-conditional [node lang splice?]
+(defn process-reader-conditional [ctx node lang splice?]
   (if (and node
            (= :reader-macro (node/tag node))
            (let [sv (-> node :children first :string-value)]
@@ -91,6 +92,12 @@
     (let [children (-> node :children last :children)]
       (loop [[k v & ts] children
              default nil]
+        (when-not (keyword? (:k k))
+          (common/reg-finding! ctx (assoc (meta k)
+                                          :filename (:filename ctx)
+                                          :level :error
+                                          :type :syntax
+                                          :message (str "Feature should be a keyword: " k))))
         (let [kw (:k k)
               default (or default
                           (when (= :default kw)
@@ -104,12 +111,12 @@
 
 (declare select-lang)
 
-(defn select-lang-children [node lang]
+(defn select-lang-children [ctx node lang]
   (if-let [children (:children node)]
     (let [new-children (reduce
                         (fn [acc node]
                           (let [splice? (= "?@" (some-> node :children first :string-value))]
-                            (if-let [processed (select-lang node lang splice?)]
+                            (if-let [processed (select-lang ctx node lang splice?)]
                               (if splice?
                                 (into acc (:children processed))
                                 (conj acc processed))
@@ -121,15 +128,15 @@
     node))
 
 (defn select-lang
-  ([node lang] (select-lang node lang nil))
-  ([node lang splice?]
-   (when-let [processed (process-reader-conditional node lang splice?)]
-     (select-lang-children processed lang))))
+  ([ctx node lang] (select-lang ctx node lang nil))
+  ([ctx node lang splice?]
+   (when-let [processed (process-reader-conditional ctx node lang splice?)]
+     (select-lang-children ctx processed lang))))
 
 (defn node->line [filename node t message]
   #_(when (and (= type :missing-docstring)
-             (not (:row (meta node))))
-    (prn node))
+               (not (:row (meta node))))
+      (prn node))
   (let [m (meta node)]
     {:type t
      :message message
@@ -293,7 +300,7 @@
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
   (let [call-lang (:lang call)
-        base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
+        base-lang (:base-lang call) ;; .cljc, .cljs or .clj file
         unresolved? (:unresolved? call)
         unknown-ns? (identical? fn-ns :clj-kondo/unknown-namespace)
         fn-ns (if unknown-ns? (:ns call) fn-ns)]
@@ -342,7 +349,7 @@
                                   [(case call-lang #_base-lang
                                          :clj 'clojure.core
                                          :cljs 'cljs.core
-                                         :clj1c 'clojure.core)])))))]
+                                         :cljc 'clojure.core)])))))]
      (if-let [imported-ns (:imported-ns called-fn)]
        (or
         (let [imported-var (:imported-var called-fn)
@@ -363,7 +370,7 @@
         m (meta expr)]
     (when-let [ignore-node (:clj-kondo/ignore m)]
       (let [node (if cljc?
-                   (select-lang ignore-node (:lang ctx))
+                   (select-lang ctx ignore-node (:lang ctx))
                    ignore-node)
             ignore (node/sexpr node)
             ignore (if (boolean? ignore) ignore (set ignore))]
@@ -457,5 +464,4 @@
 y\""))
   (tag (parse-string "\"xy\""))
   (map-node-get-value-node (p/parse-string "{:binky 2 :arglists #_ :ha '([a b c]) :boingo 4}")
-                           :arglists)
-)
+                           :arglists))
