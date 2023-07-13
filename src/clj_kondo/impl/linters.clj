@@ -703,7 +703,8 @@
                                 clojure.core/deftype
                                 cljs.core/deftype
                                 clojure.core/definterface
-                                cljs.core/definterface]))]
+                                cljs.core/definterface]))
+            :when (not (str/starts-with? var-name "_"))]
       (findings/reg-finding!
        ctx
        {:type :unused-private-var

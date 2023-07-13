@@ -2770,7 +2770,9 @@ foo/baz
   (is (empty? (lint! "
 (defrecord ^:private SessionStore [session-service])
 (deftype ^:private SessionStore2 [session-service])
-(definterface ^:private SessionStore3)"))))
+(definterface ^:private SessionStore3)")))
+  (is (empty? (lint! "(def ^:private _dude 1)")))
+  (is (empty? (lint! "(defonce ^:private _dude 1)"))))
 
 (deftest definterface-test
   (is (empty? (lint! "(definterface Foo (foo [x]) (bar [x]))"
@@ -2938,6 +2940,15 @@ foo/baz
   (testing "case insensitivity"
     (is (empty? (lint! "(ns foo (:require bar Bar))"
                        {:linters {:unsorted-required-namespaces {:level :warning}}})))))
+
+(deftest unsorted-imports-test
+  (assert-submaps2
+   [{:file "<stdin>"
+     :row 1
+     :col 33
+     :level :warning
+     :message "Unsorted import: [abar.core Bar]"}]
+   (lint! "(ns foo (:import [bar.core Foo] [abar.core Bar])) Foo Bar" {:linters {:unsorted-imports {:level :warning}}})))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
@@ -3358,6 +3369,15 @@ foo/")))
 (deftest lint-cljd-files
   (is (seq (lint! (io/file "corpus" "clojure_dart")
                   {:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest feature-keyword-test
+  (assert-submaps
+   '({:file "corpus/feature_syntax.cljc", :row 8, :col 6, :level :error, :message "Feature should be a keyword"})
+   (lint! (io/file "corpus" "feature_syntax.cljc"))))
+
+(deftest exclude-files-test
+  (is (seq (lint! (io/file "corpus" "feature_syntax.cljc"))))
+  (is (empty? (lint! (io/file "corpus" "feature_syntax.cljc") {:exclude-files "feature_syntax.cljc$"}))))
 
 ;;;; Scratch
 

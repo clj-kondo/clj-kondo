@@ -47,6 +47,7 @@
                                :exclude-destructured-as false
                                :exclude-defmulti-args false}
               :unsorted-required-namespaces {:level :off}
+              :unsorted-imports {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
                                  :exclude [#_clj-kondo.impl.var-info-gen]

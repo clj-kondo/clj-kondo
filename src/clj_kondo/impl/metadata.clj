@@ -33,7 +33,7 @@
   ([{:keys [:analyze-meta? :lang] :as ctx} node only-usage?]
    (if-let [meta-list (:meta node)]
      (let [meta-list (if (identical? :cljc (:base-lang ctx))
-                       (keep #(utils/select-lang % lang) meta-list)
+                       (keep #(utils/select-lang ctx % lang) meta-list)
                        meta-list)
            cljs? (identical? :cljs lang)
            ctx (if cljs?

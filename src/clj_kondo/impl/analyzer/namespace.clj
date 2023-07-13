@@ -524,14 +524,16 @@
                       [require-kw-node (-> ?require-clause :children next)])
         analyzed-require-clauses
         (analyze-require-clauses ctx ns-name kw+libspecs)
+        imports-raw (for [?import-clause clauses
+                          :let [import-kw (some-> ?import-clause :children first :k
+                                                  (= :import))]
+                          :when import-kw
+                          libspec-expr (rest (:children ?import-clause))]
+                      libspec-expr)
+        _ (when (seq imports-raw)
+            (namespace/lint-unsorted-required-namespaces! ctx imports-raw :unsorted-imports))
         imports
-        (apply merge
-               (for [?import-clause clauses
-                     :let [import-kw (some-> ?import-clause :children first :k
-                                             (= :import))]
-                     :when import-kw
-                     libspec-expr (rest (:children ?import-clause))]
-                 (analyze-import ctx ns-name libspec-expr)))
+        (apply merge (map #(analyze-import ctx ns-name %) imports-raw))
         refer-clojure-clauses
         (apply merge-with into
                (for [?refer-clojure (nnext (sexpr expr))
