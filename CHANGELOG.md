@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] clj-kondo pod -->
 <!-- - [ ] script/bump_version post-release -->
 <!-- - [ ] update clj-kondo-bb -->
+<!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
 ## Unreleased
