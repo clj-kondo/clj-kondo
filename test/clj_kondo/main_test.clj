@@ -1428,28 +1428,28 @@ foo/foo ;; this does use the private var
       :level :warning,
       :message "redefined var #'user/foo"})
    (lint! "(defn foo []) (defn foo [])"))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 29,
       :level :warning,
       :message "redefined var #'user/foo"})
    (lint! "(let [bar 42] (def foo bar) (def foo bar))"))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 1,
       :level :warning,
       :message "inc already refers to #'clojure.core/inc"})
    (lint! "(defn inc [])"))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 1,
       :level :warning,
       :message "inc already refers to #'cljs.core/inc"})
    (lint! "(defn inc [])" "--lang" "cljs"))
-  (assert-submaps '({:file "<stdin>",
+  (assert-submaps2 '({:file "<stdin>",
                      :row 1,
                      :col 20,
                      :level :warning,
