@@ -153,10 +153,14 @@
        (swap! namespaces update-in path
               (fn [ns]
                 (let [vars (:vars ns)
+                      curr-var-count (or (get (:var-count ns) var-sym) 0)
                       prev-var (get vars var-sym)
                       prev-declared? (:declared prev-var)
                       classfiles (:classfiles ns)
-                      classfile (var-classfile metadata)]
+                      classfile (var-classfile metadata)
+                      hard-def? (and top-level?
+                                (not (:declared metadata))
+                                (not (:in-comment ctx)))]
                   (when (identical? :clj lang)
                     (when-let [clashing-vars (->> (get classfiles classfile)
                                                   (remove #{var-sym})
@@ -168,9 +172,7 @@
                                    :var-same-name-except-case
                                    (str "Var name " var-sym " differs only in case from: " (str/join ", " clashing-vars))))))
                   ;; declare is idempotent
-                  (when (and top-level?
-                             (not (:declared metadata))
-                             (not (:in-comment ctx)))
+                  (when (and hard-def? (pos? curr-var-count))
                     (when-not (= 'clojure.core/definterface (:defined-by metadata))
                       (when-let [redefined-ns
                                  (or (when-let [meta-v prev-var]
@@ -241,7 +243,9 @@
                       (assoc :classfiles
                              (if classfile
                                (update classfiles classfile (fnil conj []) var-sym)
-                               classfiles))))))))))
+                               classfiles))
+                      (update :var-counts assoc var-sym
+                              (inc curr-var-count))))))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
