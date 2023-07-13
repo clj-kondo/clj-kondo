@@ -17,7 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2023.07.13
 
 - [#2111](https://github.com/clj-kondo/clj-kondo/issues/2111): warn on symbol in case test using new opt-in linter `:case-symbol-test`
 - Rename `:quoted-case-test-constant` to `:case-quoted-test`
