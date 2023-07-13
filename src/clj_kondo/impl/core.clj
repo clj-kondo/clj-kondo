@@ -301,6 +301,10 @@
       (utils/stderr "[clj-kondo] Already seen the file" f "before, skipping"))
     seen?))
 
+(defn excluded? [ctx filename]
+  (when-let [pat (some-> ctx :config :exclude-files re-pattern)]
+    (re-find pat (fs/unixify filename))))
+
 (defn sources-from-dir
   [ctx dir canonical?]
   (let [seen (:seen-files ctx)
@@ -309,7 +313,8 @@
         debug (:debug ctx)]
     (keep (fn [^java.io.File file]
             (let [canonical (.getCanonicalPath file)]
-              (when-not (seen? canonical seen debug)
+              (when-not (or (seen? canonical seen debug)
+                            (excluded? ctx (str file)))
                 (let [path (.getPath file)
                       nm (if canonical?
                            (.getCanonicalPath file)
@@ -437,7 +442,7 @@
     (when (or (:analysis ctx) (not (:skip-lint ctx)))
       (ana/analyze-input ctx filename uri source lang dev?))))
 
-(defn process-file [ctx path default-language canonical? filename]
+(defn process-file [ctx path default-language canonical? filename-fallback]
   (let [seen-files (:seen-files ctx)]
     (try
       (let [path (str path) ;; always assume path to be a string in the body of
@@ -449,9 +454,10 @@
                         (.getCanonicalPath file))
             debug (:debug ctx)]
         (cond
-          canonical ;; implies the file exiss
+          canonical ;; implies the file exist
           (if (.isFile file)
-            (when-not (seen? canonical seen-files debug)
+            (when-not (or (seen? canonical seen-files debug)
+                          (excluded? ctx (str file)))
               (if (str/ends-with? canonical ".jar")
                 ;; process jar file
                 (let [jar-name (.getName file)
@@ -484,13 +490,13 @@
             (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
                   (sources-from-dir ctx file canonical?)))
           (= "-" path)
-          (schedule ctx {:filename (or filename "<stdin>")
+          (schedule ctx {:filename (or filename-fallback "<stdin>")
                          :source (slurp *in*)
-                         :lang (if filename
-                                 (lang-from-file filename default-language)
+                         :lang (if filename-fallback
+                                 (lang-from-file filename-fallback default-language)
                                  default-language)} dev?)
           (classpath? path)
-          (run! #(process-file ctx % default-language canonical? filename)
+          (run! #(process-file ctx % default-language canonical? filename-fallback)
                 (str/split path
                            (re-pattern path-separator)))
           :else

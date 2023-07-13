@@ -3375,6 +3375,10 @@ foo/")))
    '({:file "corpus/feature_syntax.cljc", :row 8, :col 6, :level :error, :message "Feature should be a keyword"})
    (lint! (io/file "corpus" "feature_syntax.cljc"))))
 
+(deftest exclude-files-test
+  (is (seq (lint! (io/file "corpus" "feature_syntax.cljc"))))
+  (is (empty? (lint! (io/file "corpus" "feature_syntax.cljc") {:exclude-files "feature_syntax.cljc$"}))))
+
 ;;;; Scratch
 
 (comment
