@@ -131,6 +131,22 @@ Since clj-kondo 2023.03.17, you can use a shorter notation to suppress linters i
 to suppress certain linters within a namespace or simply `{:clj-kondo/ignore
 true}` to suppress them all.
 
+## Exclude files from being linted
+
+You can prevent files from being linted, using the following configuration:
+
+``` clojure
+{:exclude-files "my_regex.cljc$"}
+```
+
+Note that the string for the `:exclude-files` represents a regex which will be
+executing through `re-find` on the filename. To improve cross-platform behavior
+you must use slashes on all platforms including Windows as the file separator:
+
+``` Clojure
+{:exclude-files "src/my_regex.cljc$"}
+```
+
 ## Unrecognized macros
 
 Clj-kondo only expands a selected set of macros from clojure.core and some
