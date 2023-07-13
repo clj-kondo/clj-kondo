@@ -279,18 +279,23 @@
                    (let [len (:len ctx)]
                      (when (< idx (dec len))
                        (let [parent-call (first (:callstack ctx))
-                             core? (one-of (first parent-call) [clojure.core cljs.core])
-                             core-sym (when core?
-                                        (second parent-call))
+                             parent-call-ns (first parent-call)
+                             core? (one-of parent-call-ns [clojure.core cljs.core])
+                             test? (when-not core?
+                                     (one-of parent-call-ns [clojure.test cljs.test]))
+                             core-sym (second parent-call)
                              generated? (:clj-kondo.impl/generated expr)
                              redundant?
                              (and (not generated?)
-                                  core?
+                                  (or core? test?)
                                   (not (:clj-kondo.impl/generated (meta parent-call)))
-                                  (one-of core-sym [do fn defn defn-
-                                                    let when-let loop binding with-open
-                                                    doseq try when when-not when-first
-                                                    when-some future]))]
+                                  (if core?
+                                    (one-of core-sym [do fn defn defn-
+                                                      let when-let loop binding with-open
+                                                      doseq try when when-not when-first
+                                                      when-some future])
+                                    (when test?
+                                      (one-of core-sym [deftest]))))]
                          (when redundant?
                            (findings/reg-finding! ctx (assoc (meta expr)
                                                              :type :unused-value
