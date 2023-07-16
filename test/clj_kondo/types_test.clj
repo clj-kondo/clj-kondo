@@ -902,7 +902,8 @@
 (do
   (defn fun2 [m] (:b m))
   (+ 1 (:user/a (fun2 {:a 41}))))"
-                       config-2)))))
+                       config-2))))
+  (is (empty? (lint! "(require 'clojure.set) (clojure.set/project [{:foo :bar}] #{:foo})" config-2))))
 
 (deftest function-ret-map-test
   (testing "manually typed function which returns a map"
