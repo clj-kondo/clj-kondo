@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#2143](https://github.com/clj-kondo/clj-kondo/issues/2143): false positive type warning for `clojure.set/project`
+
 ## 2023.07.13
 
 - [#2111](https://github.com/clj-kondo/clj-kondo/issues/2111): warn on symbol in case test using new opt-in linter `:case-symbol-test`
