@@ -375,7 +375,8 @@
       {:fixed-arity arity})))
 
 (defn analyze-fn-arity [ctx body]
-  (if-let [children (not-empty (:children body))]
+  (utils/handle-ignore ctx body)
+  (if-let [children (seq (:children body))]
     (let [arg-vec (first children)
           arg-vec-t (tag arg-vec)]
       (if (not= :vector arg-vec-t)
