@@ -54,14 +54,16 @@
   [config-dir cache-dir lang ns-sym ns-data]
   (let [filename (:filename ns-data)]
     (when-not (skip-write? config-dir filename)
-      (let [file (cache-file cache-dir lang ns-sym)]
-        (with-open [;; first we write to a baos as a workaround for transit-clj #43
-                    bos (java.io.ByteArrayOutputStream. 1024)
-                    os (io/output-stream bos)]
-          (let [writer (transit/writer os :json)]
-            (io/make-parents file)
-            (transit/write writer ns-data)
-            (io/copy (.toByteArray bos) file)))))))
+      (time
+       (dotimes [_ 100]
+         (let [file (cache-file cache-dir lang ns-sym)]
+           (with-open [;; first we write to a baos as a workaround for transit-clj #43
+                       bos (java.io.ByteArrayOutputStream. 1024)
+                       os (io/output-stream bos)]
+             (let [writer (transit/writer os :json)]
+               (io/make-parents file)
+               (transit/write writer ns-data)
+               (io/copy (.toByteArray bos) file)))))))))
 
 (def ^:dynamic *lock-file-name* "lock")
 
