@@ -47,7 +47,7 @@
                                 (.toAbsolutePath))
                             (-> (.toPath config-dir)
                                 (.toAbsolutePath)))
-               #_(catch Exception _ false))) )))
+               #_(catch Exception _ false))))))
 
 (defn no-flush-output-stream
   "See https://github.com/cognitect/transit-clj/issues/43#issuecomment-1650341353"
@@ -64,14 +64,16 @@
   [config-dir cache-dir lang ns-sym ns-data]
   (let [filename (:filename ns-data)]
     (when-not (skip-write? config-dir filename)
-      (let [file (cache-file cache-dir lang ns-sym)
-            _ (io/make-parents file)
-            os (io/output-stream file)]
-        (with-open [;; first we write to a baos as a workaround for transit-clj #43
-                    ;; bos (java.io.ByteArrayOutputStream. 1024)
-                    os (no-flush-output-stream os)]
-          (let [writer (transit/writer os :json)]
-            (transit/write writer ns-data)))))))
+      (time
+       (dotimes [i 1000]
+         (let [file (cache-file cache-dir lang ns-sym)
+               _ (io/make-parents file)
+               os (io/output-stream file)]
+           (with-open [;; first we write to a baos as a workaround for transit-clj #43
+                       ;; bos (java.io.ByteArrayOutputStream. 1024)
+                       os (no-flush-output-stream os)]
+             (let [writer (transit/writer os :json)]
+               (transit/write writer ns-data)))))))))
 
 (def ^:dynamic *lock-file-name* "lock")
 
@@ -189,5 +191,4 @@
   (time (get (from-cache-1 nil :clj 'java.lang.Thread) 'sleep))
 
   (get (from-cache-1 nil :clj 'clojure.core) 'agent-errors)
-  (from-cache-1 nil :clj 'clojure.core.specs.alpha)
-  )
+  (from-cache-1 nil :clj 'clojure.core.specs.alpha))
