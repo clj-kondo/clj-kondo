@@ -47,7 +47,7 @@
                                 (.toAbsolutePath))
                             (-> (.toPath config-dir)
                                 (.toAbsolutePath)))
-               #_(catch Exception _ false))) )))
+               #_(catch Exception _ false))))))
 
 (defn to-cache
   "Writes ns-data to cache-dir. Always use with `with-cache`."
@@ -55,7 +55,7 @@
   (let [filename (:filename ns-data)]
     (when-not (skip-write? config-dir filename)
       (time
-       (dotimes [_ 100]
+       (dotimes [_ 1000]
          (let [file (cache-file cache-dir lang ns-sym)]
            (with-open [;; first we write to a baos as a workaround for transit-clj #43
                        bos (java.io.ByteArrayOutputStream. 1024)
@@ -181,5 +181,4 @@
   (time (get (from-cache-1 nil :clj 'java.lang.Thread) 'sleep))
 
   (get (from-cache-1 nil :clj 'clojure.core) 'agent-errors)
-  (from-cache-1 nil :clj 'clojure.core.specs.alpha)
-  )
+  (from-cache-1 nil :clj 'clojure.core.specs.alpha))
