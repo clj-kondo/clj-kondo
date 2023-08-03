@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
+  (:refer-clojure :exclude [update-vals])
   (:require
    [babashka.fs :as fs]
    [clj-kondo.impl.analyzer.common :as common]
@@ -450,6 +451,22 @@
     (swap! (:calls-by-id ctx) assoc id call))
   nil)
 
+(defn update-vals
+  "m f => {k (f v) ...}
+
+  Given a map m and a function f of 1-argument, returns a new map where the keys of m
+  are mapped to result of applying f to the corresponding values of m."
+  {:added "1.11"}
+  [m f]
+  (with-meta
+    (persistent!
+     (reduce-kv (fn [acc k v] (assoc! acc k (f v)))
+                (if (instance? clojure.lang.IEditableCollection m)
+                  (transient m)
+                  (transient {}))
+                m))
+    (meta m)))
+
 ;;;; Scratch
 
 (comment
@@ -465,3 +482,4 @@ y\""))
   (tag (parse-string "\"xy\""))
   (map-node-get-value-node (p/parse-string "{:binky 2 :arglists #_ :ha '([a b c]) :boingo 4}")
                            :arglists))
+
