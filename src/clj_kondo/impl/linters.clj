@@ -619,6 +619,7 @@
         (doseq [binding (into #{}
                               (comp
                                (remove :clj-kondo/mark-used)
+                               (remove (comp :clj-kondo.impl/generated meta))
                                (remove :clj-kondo.impl/generated)
                                (filter #(str/starts-with? (str (:name %)) "_")))
                               (:used-bindings ns))

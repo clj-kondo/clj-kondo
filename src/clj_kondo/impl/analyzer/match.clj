@@ -8,7 +8,7 @@
   (swap! namespaces update-in [base-lang lang (:name ns) :used-bindings]
          conj
          ;; don't report this binding as unused nor used
-         (assoc binding :clj-kondo.impl/generated true))
+         (vary-meta binding assoc :clj-kondo.impl/generated true))
   nil)
 
 (defn into* [ctx existing-bindings new-bindings]
@@ -23,8 +23,9 @@
     (if (and sym
              (not (contains? (:bindings ctx) sym)))
       (common/extract-bindings ctx expr)
-      (do (common/analyze-expression** ctx expr)
-          nil))))
+      (do
+        (common/analyze-expression** ctx expr)
+        nil))))
 
 (declare analyze-expr)
 

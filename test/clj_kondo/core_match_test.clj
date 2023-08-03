@@ -9,7 +9,8 @@
 %s
 " s)
          {:linters {:unused-binding {:level :warning}
-                    :unresolved-symbol {:level :error}}}))
+                    :unresolved-symbol {:level :error}
+                    :used-underscored-binding {:level :warning}}}))
 
 (deftest core-match-test
   (assert-submaps
@@ -143,3 +144,13 @@
 
 (match-or [\"x\" :dude])
 "))))
+
+(deftest used-underscored-binding-test
+  (is (empty? (lint!! "(declare x y) (match [:name x y]
+  [:name _ _]
+  \"Ok\")")))
+  (assert-submaps
+   '({:file "<stdin>", :row 3, :col 12, :level :warning, :message "Used binding is marked as unused: _"})
+   (lint!! "(declare x y) (match [:name x y]
+  [:name _ _]
+  _)")))
