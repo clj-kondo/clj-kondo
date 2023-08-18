@@ -83,17 +83,19 @@ Options:
     :scalar))
 
 (defn- parse-opts [options]
-  (let [opts (loop [options (mapcat #(str/split % #"=") options)
+  (let [opts (loop [options options
                     opts-map {}
                     current-opt nil]
                (if-let [opt (first options)]
                  (if (starts-with? opt "--")
-                   (recur (rest options)
-                          ;; assoc nil value to indicate opt as explicitly added via cli args
-                          (case (opt-type opt)
-                            :scalar (assoc opts-map opt nil)
-                            :coll (update opts-map opt identity))
-                          opt)
+                   (let [[opt val] (str/split opt #"=" 2)]
+                     (recur (if val (cons val (rest options))
+                                (rest options))
+                            ;; assoc nil value to indicate opt as explicitly added via cli args
+                            (case (opt-type opt)
+                              :scalar (assoc opts-map opt nil)
+                              :coll (update opts-map opt identity))
+                            opt))
                    (recur (rest options)
                           (update opts-map current-opt (fnil conj []) opt)
                           current-opt))
