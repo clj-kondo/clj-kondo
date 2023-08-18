@@ -83,7 +83,7 @@ Options:
     :scalar))
 
 (defn- parse-opts [options]
-  (let [opts (loop [options options
+  (let [opts (loop [options (mapcat #(str/split % #"=") options)
                     opts-map {}
                     current-opt nil]
                (if-let [opt (first options)]
