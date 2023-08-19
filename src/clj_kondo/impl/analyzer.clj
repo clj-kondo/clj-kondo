@@ -600,8 +600,11 @@
                          lint-as (assoc-in [:lint-as fq-sym] (config/unquote lint-as))
                          ignore (assoc-in [:config-in-call fq-sym :ignore] ignore))]
             (when config (swap! (:inline-configs ctx) conj config)))
-        macro? (or (= "defmacro" call)
-                   (:macro var-meta))
+        macro? (when (or (one-of defined-by->lint-as
+                                 [clojure.core/defmacro
+                                  cljs.core/defmacro])
+                         (:macro var-meta))
+                 true)
         deprecated (:deprecated var-meta)
         ctx (if macro?
               (ctx-with-bindings ctx '{&env {}
