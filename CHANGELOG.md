@@ -23,6 +23,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2145](https://github.com/clj-kondo/clj-kondo/issues/2145): support ignore hint on multi-arity branch of function definition
 - [#2147](https://github.com/clj-kondo/clj-kondo/issues/2147): use altenative solution as workaround for https://github.com/cognitect/transit-clj/issues/43
 - [#2152](https://github.com/clj-kondo/clj-kondo/issues/2152): Fix false positive with used-underscored-binding with core.match
+- [#2150](https://github.com/clj-kondo/clj-kondo/issues/2150): allow command line options = as in --fail-level=error
 
 ## 2023.07.13
 
