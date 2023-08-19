@@ -189,6 +189,9 @@
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(defmacro foo [] &env &form)"
                      '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns foo) (declare deathmacro) (deathmacro foo [] &env &form)"
+                     '{:lint-as {foo/deathmacro clojure.core/defmacro}
+                       :linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(let [a (into-array [])] (areduce a i ret 0 (+ ret (aget a i))))"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(this-as x [x x x])"
