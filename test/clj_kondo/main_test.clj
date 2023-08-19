@@ -3380,6 +3380,13 @@ foo/")))
   (is (seq (lint! (io/file "corpus" "feature_syntax.cljc"))))
   (is (empty? (lint! (io/file "corpus" "feature_syntax.cljc") {:exclude-files "feature_syntax.cljc$"}))))
 
+(deftest parse-opts-test
+  (is (= ["src"] (:lint (#'clj-kondo.main/parse-opts ["--lint" "src"]))))
+  (is (= ["src"] (:lint (#'clj-kondo.main/parse-opts ["--lint=src"]))))
+  (is (= ["src" "test"] (:lint (#'clj-kondo.main/parse-opts ["--lint=src" "--lint=test"]))))
+  (is (= "error" (:fail-level (#'clj-kondo.main/parse-opts ["--fail-level" "error"]))))
+  (is (= "error" (:fail-level (#'clj-kondo.main/parse-opts ["--fail-level=error"])))))
+
 ;;;; Scratch
 
 (comment
