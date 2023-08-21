@@ -37,7 +37,7 @@
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
-    [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
+    [assoc-some ctx-with-bindings deep-merge list-node? fn-node? linter-disabled? node->line
      one-of parse-string select-lang sexpr string-from-token symbol-call tag tag]]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -1627,6 +1627,21 @@
             (analyze-children (ctx-with-bindings ctx binding)
                               forms-exprs))))
 
+(defn analyze--> [ctx expr]
+  (let [fn-node (fn fn-node [node]
+                  (or (fn-node? node)
+                      (and (list-node? node)
+                           (contains? '#{fn fn*} (:value (first (:children node)))))))
+        fn-nodes (filter fn-node (nnext (:children expr)))]
+    (run! (fn reg-node! [node]
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx)
+                         node
+                         :threaded-fn-form
+                         "threading a value into the name slot of an anonymous fn")))
+          fn-nodes)))
+
 (defn analyze-memfn [ctx expr]
   (analyze-children (utils/ctx-with-linter-disabled ctx :unresolved-symbol)
                     (next (:children expr))))
@@ -2300,7 +2315,8 @@
                                 ctx (assoc ctx :in-comment true)]
                             (analyze-children ctx children))
                           (-> some->)
-                          (analyze-expression** ctx (macroexpand/expand-> ctx expr))
+                          (do (analyze--> ctx expr)
+                              (analyze-expression** ctx (macroexpand/expand-> ctx expr)))
                           (->> some->>)
                           (analyze-expression** ctx (macroexpand/expand->> ctx expr))
                           doto

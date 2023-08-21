@@ -38,6 +38,10 @@
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :set (tag n))))
 
+(defn fn-node? [n]
+  (and (instance? clj_kondo.impl.rewrite_clj.node.fn.FnNode n)
+       (identical? :fn (tag n))))
+
 ;;; end export
 
 (defn print-err! [& strs]

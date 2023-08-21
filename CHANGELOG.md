@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2159](https://github.com/clj-kondo/clj-kondo/issues/2159): new linter, `:threaded-fn-form`
 - [#2143](https://github.com/clj-kondo/clj-kondo/issues/2143): false positive type warning for `clojure.set/project`
 - [#2145](https://github.com/clj-kondo/clj-kondo/issues/2145): support ignore hint on multi-arity branch of function definition
 - [#2147](https://github.com/clj-kondo/clj-kondo/issues/2147): use altenative solution as workaround for https://github.com/cognitect/transit-clj/issues/43

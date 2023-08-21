@@ -128,6 +128,7 @@
               :unexpected-recur {:level :error}
               :main-without-gen-class {:level :off}
               :redundant-fn-wrapper {:level :off}
+              :threaded-fn-form {:level :warning}
               :namespace-name-mismatch {:level :error}
               :non-arg-vec-return-type-hint {:level :warning}
               :keyword-binding {:level :off}
