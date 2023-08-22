@@ -1639,7 +1639,7 @@
              (node->line (:filename ctx)
                          node
                          :threaded-fn-form
-                         "threading a value into the name slot of an anonymous fn")))
+                         "Threading a value into the name slot of an anonymous fn")))
           fn-nodes)))
 
 (defn analyze-memfn [ctx expr]

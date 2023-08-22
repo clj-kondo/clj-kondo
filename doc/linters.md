@@ -1373,7 +1373,7 @@ Mismatched bracket: found an opening [ on line 1 and a closing )
 
 *Description:* warn when directly supplying a function literal as one of the `forms` (n.b. not the first "expression" argument) to the `->` "thread-first" or `some->` macro. Although this can compile (when a symbol literal is threaded), threading into the `name` slot of an anonymous function is almost always not intended. "Double wrapping" is usually what is intended (e.g. `(-> foo ((fn [x] ...)))`).
 
-*Default level:* `warning`.
+*Default level:* `:off`.
 
 *Example trigger:* `(-> foo (fn [x] (inc x)))`
 
