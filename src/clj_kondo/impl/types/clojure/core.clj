@@ -232,7 +232,7 @@
    'or {:fn (fn [args]
               (reduce tu/union-type #{} args))}
    ;; 867
-   'zero? any->boolean
+   'zero? number->boolean
    ;; 874
    'count {:arities {1 {:args [:seqable]
                         :ret :number}}}
