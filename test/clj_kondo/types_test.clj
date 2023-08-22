@@ -454,7 +454,15 @@
       (is (empty? (lint! "(+ (byte 32) 1)"
                          {:linters {:type-mismatch {:level :error}}}))))
     (testing (is (empty? (lint! "(defn foo [^double x] x) (foo 1)"
-                                {:linters {:type-mismatch {:level :error}}}))))))
+                                {:linters {:type-mismatch {:level :error}}}))))
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 1,
+        :col 8,
+        :level :error,
+        :message #"Expected: number"})
+     (lint! "(zero? \"foo\")"
+            {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest map-spec-test
   (testing "map spec"
