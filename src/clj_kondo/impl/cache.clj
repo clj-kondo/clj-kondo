@@ -69,7 +69,11 @@
             os (io/output-stream file)]
         (with-open [os (no-flush-output-stream os)]
           (let [writer (transit/writer os :json)]
-            (transit/write writer ns-data)))))))
+            (try (transit/write writer ns-data)
+                 (catch Exception e
+                   (binding [*out* *err*]
+                     (println "[clj-kondo] WARNING: could not serialize cache data for namespace" ns-sym))
+                   (throw e)))))))))
 
 (def ^:dynamic *lock-file-name* "lock")
 
