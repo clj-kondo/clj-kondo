@@ -26,6 +26,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2150](https://github.com/clj-kondo/clj-kondo/issues/2150): allow command line options = as in --fail-level=error
 - [#2149](https://github.com/clj-kondo/clj-kondo/issues/2149): `:lint-as clojure.core/defmacro` should suppress `&env` as unresolved symbol
 - [#2161](https://github.com/clj-kondo/clj-kondo/issues/2161): Fix type annotation for `clojure.core/zero?` to number -> boolean
+- [#2165](https://github.com/clj-kondo/clj-kondo/issues/2165): Fix error when serializing type data to cache
 
 ## 2023.07.13
 

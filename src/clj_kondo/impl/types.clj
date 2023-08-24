@@ -250,9 +250,10 @@
         mvals (take-nth 2 (rest children))
         vtags (map (fn [e]
                      (let [t (expr->tag ctx e)
-                           m (meta e)
-                           m (if t (assoc m :tag t) m)]
-                       m)) mvals)]
+                           m (meta e)]
+                       ;; NOTE: be careful to not include any non-serializable data here, see issue #2165
+                       (cond-> (select-keys m [:row :end-row :col :end-col])
+                         t (assoc :tag t)))) mvals)]
     {:type :map
      :val (zipmap ks vtags)}))
 
