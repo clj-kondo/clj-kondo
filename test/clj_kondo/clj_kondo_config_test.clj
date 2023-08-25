@@ -1,6 +1,6 @@
 (ns clj-kondo.clj-kondo-config-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
    [clojure.test :refer [deftest testing is]]))
 
 (deftest unexpected-linter-name-test
@@ -22,3 +22,10 @@
     (assert-submaps
      '({:file ".clj-kondo/config.edn", :row 1, :col 28, :level :warning, :message "Expected a map, but got: int"})
      (lint! "{:linters {:unused-binding 1}}" "--filename" ".clj-kondo/config.edn"))))
+
+(deftest qualified-symbol-test
+  (testing "Top level maps"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Unresolved symbol: x"})
+     (lint! "x" '{:linters {:unresolved-symbol {:exclude [(foo.bar)]
+                                                    :level :error}}}))))

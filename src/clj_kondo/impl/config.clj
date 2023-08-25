@@ -298,19 +298,21 @@
           {:excluded syms
            :excluded-in
            (reduce (fn [acc [fq-name excluded]]
-                     (let [ns-nm (symbol (namespace fq-name))
-                           var-name (symbol (name fq-name))]
-                       (update acc [ns-nm var-name]
-                               (fn [old]
-                                 (cond (nil? old)
-                                       (if excluded
-                                         (set excluded)
-                                         identity)
-                                       (set? old)
-                                       (if excluded
-                                         (into old excluded)
-                                         old)
-                                       :else identity)))))
+                     (if-let [nss (namespace fq-name)]
+                       (let [ns-nm (symbol nss)
+                             var-name (symbol (name fq-name))]
+                         (update acc [ns-nm var-name]
+                                 (fn [old]
+                                   (cond (nil? old)
+                                         (if excluded
+                                           (set excluded)
+                                           identity)
+                                         (set? old)
+                                         (if excluded
+                                           (into old excluded)
+                                           old)
+                                         :else identity))))
+                       acc))
                    {} calls)
            :exclude-patterns (map #(re-pattern (str %)) exclude-patterns)}))
       delayed-cfg (memoize delayed-cfg)]
