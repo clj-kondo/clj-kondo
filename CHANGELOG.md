@@ -21,7 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#2143](https://github.com/clj-kondo/clj-kondo/issues/2143): false positive type warning for `clojure.set/project`
 - [#2145](https://github.com/clj-kondo/clj-kondo/issues/2145): support ignore hint on multi-arity branch of function definition
-- [#2147](https://github.com/clj-kondo/clj-kondo/issues/2147): use altenative solution as workaround for https://github.com/cognitect/transit-clj/issues/43
+- [#2147](https://github.com/clj-kondo/clj-kondo/issues/2147): use alternative solution as workaround for https://github.com/cognitect/transit-clj/issues/43
 - [#2152](https://github.com/clj-kondo/clj-kondo/issues/2152): Fix false positive with used-underscored-binding with core.match
 - [#2150](https://github.com/clj-kondo/clj-kondo/issues/2150): allow command line options = as in --fail-level=error
 - [#2149](https://github.com/clj-kondo/clj-kondo/issues/2149): `:lint-as clojure.core/defmacro` should suppress `&env` as unresolved symbol
