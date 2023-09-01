@@ -1074,6 +1074,7 @@
    ;; 7868 'add-tap
    ;; 7879 'remove-tap
    ;; 7886 'tap>
+   'throw {:arities {1 {:args [:throwable]}}}
    })
 
 (def cljs-core

@@ -1052,6 +1052,12 @@
 (foo 1)"
                      config))))
 
+(deftest issue-2172-throw-test
+  (is (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 8, :level :error, :message "Expected: throwable, received: positive integer."})
+       (lint! "(throw 1)" config)))
+  (is (empty? (lint! "(throw #_:clj-kondo/ignore 1)" config))))
+
 ;;;; Scratch
 
 (comment

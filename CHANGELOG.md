@@ -29,6 +29,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2165](https://github.com/clj-kondo/clj-kondo/issues/2165): Fix error when serializing type data to cache
 - [#2167](https://github.com/clj-kondo/clj-kondo/issues/2167): Don't crash when `:unresolved-symbol` linter config contains unqualified symbol
 - [#2170](https://github.com/clj-kondo/clj-kondo/issues/2170): `:keyword-binding` linter should ignore auto-resolved keywords
+- [#2172](https://github.com/clj-kondo/clj-kondo/issues/2172): detect invalid amount of args and invalid argument type for `throw`
 
 ## 2023.07.13
 

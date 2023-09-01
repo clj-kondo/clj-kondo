@@ -39,7 +39,14 @@
         (update-in '[:clj :defs clojure.core if-let] (fn [var]
                                                        (-> var
                                                            (dissoc :varargs-min-arity)
-                                                           (assoc :fixed-arities #{2 3})))))
+                                                           (assoc :fixed-arities #{2 3}))))
+        (update-in '[:clj :defs clojure.core throw] (fn [var]
+                                                      (-> var
+                                                          (assoc
+                                                           :ns 'clojure.core
+                                                           :name 'throw
+                                                           :macro true
+                                                           :fixed-arities #{1})))))
     idacs))
 
 (defn override-cljs-core [idacs]
@@ -118,7 +125,14 @@
         (update-in '[:cljc :defs cljs.core :cljs if-let] (fn [var]
                                                            (-> var
                                                                (dissoc :varargs-min-arity)
-                                                               (assoc :fixed-arities #{2 3})))))))
+                                                               (assoc :fixed-arities #{2 3}))))
+        (update-in '[:clj :defs cljs.core throw] (fn [var]
+                                                   (-> var
+                                                       (assoc
+                                                        :ns 'clojure.core
+                                                        :name 'throw
+                                                        :macro true
+                                                        :fixed-arities #{1})))))))
 
 (defn overrides
   "Overrides var information. The way this is done looks a bit verbose,
