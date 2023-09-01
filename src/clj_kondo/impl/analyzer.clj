@@ -193,7 +193,8 @@
                          v (cond-> (assoc m
                                           :name s
                                           :filename (:filename ctx)
-                                          :tag t)
+                                          :tag t
+                                          :auto-resolved (:namespaced? expr))
                              (:analyze-locals? ctx)
                              (-> (assoc :id (swap! (:id-gen ctx) inc)
                                         :str (str expr))
@@ -219,7 +220,8 @@
                      v (cond-> (assoc m
                                       :name s
                                       :keyword k
-                                      :filename (:filename ctx))
+                                      :filename (:filename ctx)
+                                      :auto-resolved (:namespaced? expr))
                          (:analyze-locals? ctx)
                          (-> (assoc :id (swap! (:id-gen ctx) inc)
                                     :str (str expr))

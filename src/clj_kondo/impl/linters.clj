@@ -667,7 +667,8 @@
               :end-col (:end-col default)}))))
       (when (not (identical? :off (-> ctx :config :linters :keyword-binding :level)))
         (doseq [binding (filter :keyword (:bindings ns))]
-          (when-not (namespace (:keyword binding))
+          (when-not (or (namespace (:keyword binding))
+                        (:auto-resolved binding))
             (findings/reg-finding!
              ctx
              {:type :keyword-binding

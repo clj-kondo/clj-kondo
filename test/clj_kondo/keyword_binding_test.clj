@@ -31,5 +31,5 @@
   (testing "keywords with namespaced are ignored"
     (assert-submaps2
      [{:file "<stdin>", :row 1, :col 24, :level :warning, :message "Keyword binding should be a symbol: :baz"}]
-     (lint! "(let [{:keys [:foo/bar :baz]} {}] bar)"
+     (lint! "(let [{:keys [:foo/bar :baz ::baz]} {}] bar)"
             {:linters {:keyword-binding {:level :warning}}}))))
