@@ -378,6 +378,14 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 
 Example warning: `Namespace foo is deprecated.`.
 
+*Config:*
+
+To exclude warnings about specific namespaces, use:
+
+``` clojure
+{:linters {:deprecated-namespace {:exclude [the-deprecated.namespace]}}}
+```
+
 ### Deps.edn
 
 *Keyword:* `:deps.edn`
