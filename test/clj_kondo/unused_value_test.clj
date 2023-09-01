@@ -114,3 +114,16 @@
      (lint! code {:linters {:unused-value {:level :warning}
                             :missing-test-assertion {:level :off}}}
             "--lang" lang))))
+
+(deftest issue-2164-test
+  (is (empty? (lint! "(ns repro
+  (:require
+    [clojure.test :refer [deftest is]]))
+
+(let [some-var \"some-value\"]
+  (deftest this-one-is-flagged-as-unused
+    (is (= some-var \"some-value\")))
+
+  (deftest this-one-is-fine
+    (is (= some-var \"some-value\"))))"
+                     {:linters {:unused-value {:level :warning}}}))))
