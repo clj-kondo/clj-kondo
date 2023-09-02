@@ -188,7 +188,11 @@
 (ns bar (:require [foo]))
 `foo/foo ;; this doesn't use the private var, it only uses the ns alias
 foo/foo ;; this does use the private var
-")))
+"))
+  (assert-submaps2
+   '({:file "corpus/my/project/foo.clj", :row 3, :col 8, :level :warning, :message "Unused private var my.project.foo/bar"})
+   (lint! [(io/file "corpus" "data_readers.clj")
+           (io/file "corpus" "my" "project" "foo.clj")])))
 
 (deftest read-error-test
   (testing "when an error happens in one file, the other file is still linted"

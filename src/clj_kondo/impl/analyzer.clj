@@ -3145,7 +3145,7 @@
                      "data_readers.cljc")
                     (utils/ctx-with-linters-disabled
                      (assoc ctx :data-readers true)
-                     [:unresolved-symbol :unresolved-namespace])
+                     [:unresolved-symbol :unresolved-namespace :private-call])
                     ctx)]
           (lint-line-length ctx config filename input)
           (doseq [e @reader-exceptions]
