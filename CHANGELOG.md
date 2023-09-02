@@ -31,7 +31,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2170](https://github.com/clj-kondo/clj-kondo/issues/2170): `:keyword-binding` linter should ignore auto-resolved keywords
 - [#2172](https://github.com/clj-kondo/clj-kondo/issues/2172): detect invalid amount of args and invalid argument type for `throw`
 - [#2164](https://github.com/clj-kondo/clj-kondo/issues/2164): deftest inside let triggers :unused-value
-- #2154: add `:exclude` option to `:deprecated-namespace` linter
+- [#2154](https://github.com/clj-kondo/clj-kondo/issues/2154): add `:exclude` option to `:deprecated-namespace` linter
+- [#2134](https://github.com/clj-kondo/clj-kondo/issues/2134): don't warn on usage of private var in `data_readers.clj(c)`
 
 ## 2023.07.13
 
