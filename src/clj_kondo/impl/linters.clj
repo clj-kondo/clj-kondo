@@ -527,15 +527,16 @@
                   ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
       (doseq [required required]
         (when-let [depr (:deprecated (utils/resolve-ns idacs (:base-lang ns) (:lang ns) required))]
-          (let [filename (:filename (meta required))]
-            (findings/reg-finding!
-             ctx
-             (node->line filename required :deprecated-namespace
-                         (format "Namespace %s is deprecated%s."
-                                 (str required)
-                                 (if (string? depr)
-                                   (str " since " depr)
-                                   "")))))))
+          (when-not (config/deprecated-namespace-excluded? config required)
+            (let [filename (:filename (meta required))]
+              (findings/reg-finding!
+               ctx
+               (node->line filename required :deprecated-namespace
+                           (format "Namespace %s is deprecated%s."
+                                   (str required)
+                                   (if (string? depr)
+                                     (str " since " depr)
+                                     ""))))))))
       (doseq [ns-sym unused]
         (let [ns-meta (meta ns-sym)]
           (when-not (or (config/unused-namespace-excluded config ns-sym)

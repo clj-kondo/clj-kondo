@@ -503,6 +503,14 @@
        x))
    coll))
 
+(let [delayed-config (fn [config]
+                       (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
+                         (set excluded)))
+      delayed-cfg (memoize delayed-config)]
+  (defn deprecated-namespace-excluded? [config required]
+    (let [cfg (delayed-cfg config)]
+      (contains? cfg required))))
+
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]
 ;;     (if (re-matches (re-pattern r) (str full-ns-name))
