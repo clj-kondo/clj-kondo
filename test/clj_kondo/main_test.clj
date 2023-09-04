@@ -1454,21 +1454,21 @@ foo/foo ;; this does use the private var
       :message "inc already refers to #'cljs.core/inc"})
    (lint! "(defn inc [])" "--lang" "cljs"))
   (assert-submaps2 '({:file "<stdin>",
-                     :row 1,
-                     :col 20,
-                     :level :warning,
-                     :message "namespace bar is required but never used"}
-                    {:file "<stdin>",
-                     :row 1,
-                     :col 32,
-                     :level :warning,
-                     :message "#'bar/x is referred but never used"}
-                    {:file "<stdin>",
-                     :row 1,
-                     :col 38,
-                     :level :warning,
-                     :message "x already refers to #'bar/x"})
-                  (lint! "(ns foo (:require [bar :refer [x]])) (defn x [])"))
+                      :row 1,
+                      :col 20,
+                      :level :warning,
+                      :message "namespace bar is required but never used"}
+                     {:file "<stdin>",
+                      :row 1,
+                      :col 32,
+                      :level :warning,
+                      :message "#'bar/x is referred but never used"}
+                     {:file "<stdin>",
+                      :row 1,
+                      :col 38,
+                      :level :warning,
+                      :message "x already refers to #'bar/x"})
+                   (lint! "(ns foo (:require [bar :refer [x]])) (defn x [])"))
   (is (empty? (lint! "(defn foo [])")))
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])")))
   (is (empty? (lint! "(declare foo) (def foo 1)")))
@@ -2352,7 +2352,13 @@ foo"))))
                           foo (:require [bar :refer [bar] :as b]))
         (apply b/x 1 2 [3 4])")))
   (is (empty? (lint! "(ns foo) (comment (require '[a :refer [shouldnt-warn]]) a/a)"
-                     {:config-in-comment {:linters {:unused-referred-var {:level :off}}}}))))
+                     {:config-in-comment {:linters {:unused-referred-var {:level :off}}}})))
+  (testing "no map in config doesn't result in exception"
+    (binding [*err* (java.io.StringWriter.)]
+      (is (lint! "(ns dude (:require [clojure.set :refer [union]]))"
+                 '{:linters {:unused-referred-var {:exclude [clojure.set]}}}))
+      (when-not tu/native?
+        (is (str/includes? (str *err*) "WARNING"))))))
 
 (deftest duplicate-require-test
   (assert-submaps
