@@ -79,6 +79,7 @@ Sponsoring by providing upgraded CI for [babashka](https://babashka.org/) and
 - [SUPREMATIC](https://suprematic.de/company/)
 - [Systematic](https://systematic-app.com)
 - [Takeoff](https://www.takeoff.com)
+- [Thorax](https://www.thorax.nl/)
 - [Ticketless.ai](https://ticketless.ai)
 - [TOYOKUMO, Inc](https://toyokumo.co.jp)
 - [US National Institute of Standards](https://www.nist.gov/)
