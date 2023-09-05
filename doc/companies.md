@@ -47,6 +47,7 @@ Sponsoring by providing upgraded CI for [babashka](https://babashka.org/) and
 - [Codurance](https://www.codurance.com)
 - [Cognician](https://www.cognician.com)
 - [Cohesic](https://cohesic.com)
+- [Crossbeam](https://www.crossbeam.com/)
 - [Datil](https://datil.com/)
 - [Deon Digital](https://deondigital.com)
 - [Dividend Finance](https://www.dividendfinance.com)
