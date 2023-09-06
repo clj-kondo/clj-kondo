@@ -152,7 +152,8 @@
               :equals-true {:level :off}
               :plus-one {:level :off}
               :minus-one {:level :off}
-              :protocol-method-varargs {:level :error}}
+              :protocol-method-varargs {:level :error}
+              :unused-alias {:level :off}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

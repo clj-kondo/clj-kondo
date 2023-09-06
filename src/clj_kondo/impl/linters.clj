@@ -519,6 +519,8 @@
                   unused (remove (comp :unused-namespace-disabled meta) unused)
                   referred-vars (:referred-vars ns)
                   used-referred-vars (:used-referred-vars ns)
+                  used-aliases (:used-aliases ns)
+                  aliases (:aliases ns)
                   refer-alls (:refer-alls ns)
                   refer-all-nss (set (keys refer-alls))
                   ns-config (:config ns)
@@ -583,7 +585,13 @@
            ctx
            (assoc (node->line filename node
                               finding-type msg)
-                  :refers (vec referred))))))))
+                  :refers (vec referred)))))
+      (doseq [alias (keys aliases)]
+        (when-not (contains? used-aliases alias)
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename (meta alias)) alias
+                       :unused-alias (str "Unused alias: " alias))))))))
 
 (defn lint-discouraged-namespaces!
   [ctx]
