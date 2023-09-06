@@ -467,6 +467,9 @@
                 m))
     (meta m)))
 
+(defn mark-generate [node]
+  (assoc node :clj-kondo.impl/generated true))
+
 ;;;; Scratch
 
 (comment

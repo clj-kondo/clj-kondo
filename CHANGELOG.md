@@ -35,6 +35,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2154](https://github.com/clj-kondo/clj-kondo/issues/2154): add `:exclude` option to `:deprecated-namespace` linter
 - [#2134](https://github.com/clj-kondo/clj-kondo/issues/2134): don't warn on usage of private var in `data_readers.clj(c)`
 - [#2148](https://github.com/clj-kondo/clj-kondo/issues/2148): warn on configuration error in `:unused-refeferred-var` linter
+- Expose more vars in `clj-kondo.hooks-api` interpreter namespace
 
 ## 2023.07.13
 

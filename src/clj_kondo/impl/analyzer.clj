@@ -3,7 +3,6 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [babashka.fs :as fs]
-   [clj-kondo.hooks-api :as hooks-api]
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.babashka :as babashka]
    [clj-kondo.impl.analyzer.clojure-data-xml :as xml]
@@ -2187,7 +2186,7 @@
                           ctx)]
                 (if-let [expanded (and transformed
                                        (:node transformed))]
-                  (let [expanded (hooks-api/annotate expanded expr-meta)
+                  (let [expanded (hooks/annotate expanded expr-meta)
                         [new-name-node new-arg-count]
                         (when (utils/list-node? expanded)
                           (when-let [children (:children expanded)]
