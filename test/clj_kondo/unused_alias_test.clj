@@ -15,4 +15,14 @@
       :level :warning,
       :message "Unused alias: bz"})
    (lint! "(ns foo (:require [bar :as-alias b]
-                             [baz :as bz]))" conf)))
+                             [baz :as bz]))" conf))
+  (assert-submaps2
+   '({:file "<stdin>", :row 5, :col 31, :level :warning, :message "Unused alias: u"})
+   (lint! "
+(ns foo (:require [bar :as-alias b]
+                  [baz :as bz]
+                  [quuz :as q]
+                  [unused :as u]))
+`b/dude
+::bz/dude
+q/dude" conf)))
