@@ -617,14 +617,17 @@
                                          [(name name-sym)])
                     var-name (symbol var-name)
                     resolved-core? (and core?
-                                        (var-info/core-sym? lang var-name))]
+                                        (var-info/core-sym? lang var-name))
+                    alias? (contains? (:aliases ns) ns-sym)]
+                (when alias?
+                  (swap! (:namespaces ctx) update-in
+                         [(:base-lang ctx) lang ns-name :used-aliases] conj ns-sym))
                 (cond->
                  {:ns ns*
                   :name var-name
                   :interop? (and cljs? (boolean interop))}
-                  (contains? (:aliases ns) ns-sym)
+                  alias?
                   (assoc :alias ns-sym)
-
                   core?
                   (assoc :resolved-core? resolved-core?))))
             (when-let [[class-name package]
