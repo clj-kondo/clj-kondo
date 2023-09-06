@@ -81,6 +81,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
     - [Uninitialized var](#uninitialized-var)
+    - [Unused alias](#unused-alias)
     - [Unused binding](#unused-binding)
     - [Unused value](#unused-value)
     - [Used underscored bindings](#used-underscored-bindings)
@@ -1414,6 +1415,18 @@ You can add or override type annotations. See
 *Example trigger:* `(def x)`
 
 *Example message:* `Uninitialized var`
+
+### Unused alias
+
+*Keyword:* `:unused-alias`.
+
+*Description:* warn on unused alias introduced in ns form.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(ns foo (:require [foo :as-alias bar]))`
+
+*Example message:* `Unused alias: bar`.
 
 ### Unused binding
 
