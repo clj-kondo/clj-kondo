@@ -715,6 +715,8 @@
             (when cljs?
               (when-let [ns* (get (:qualify-ns ns) name-sym)]
                 (when (some-> (meta ns*) :raw-name string?)
+                  (swap! (:namespaces ctx) update-in
+                         [(:base-lang ctx) lang ns-name :used-aliases] conj name-sym)
                   {:ns ns*
                    :name name-sym})))
             (let [clojure-excluded? (contains? (:clojure-excluded ns)
