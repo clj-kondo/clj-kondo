@@ -25,4 +25,9 @@
                   [unused :as u]))
 `b/dude
 ::bz/dude
-q/dude" conf)))
+q/dude" conf))
+  (testing "using alias as object in CLJS"
+    (is (empty?
+         (lint! "
+(ns foo (:require [\"dayjs\" :as dayjs])) dayjs" conf
+                "--lang" "cljs")))))
