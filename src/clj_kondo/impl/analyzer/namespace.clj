@@ -110,13 +110,26 @@
         config (:config ctx)
         linters (:linters config)
         lint-refers? (not (identical? :off (-> linters :refer :level)))
-        unknown-require-option-config (-> linters :unknown-require-option)]
+        unknown-require-option-config (-> linters :unknown-require-option)
+        req-macros? (= :require-macros require-kw)]
     (if-let [s (symbol-from-token libspec-expr)]
-      [{:type :require
-        :referred-all (when use? require-kw-expr)
-        :ns (with-meta s
-              (assoc libspec-meta
-                     :filename filename))}]
+      (do
+        (when (and (= s current-ns-name)
+                   (not req-macros?)
+                   (not (:in-comment ctx)))
+          (findings/reg-finding!
+           ctx
+           (node->line
+            filename
+            libspec-expr
+            :self-requiring-namespace
+            (str "Namespace is requiring itself: "
+                 s))))
+        [{:type :require
+          :referred-all (when use? require-kw-expr)
+          :ns (with-meta s
+                (assoc libspec-meta
+                       :filename filename))}])
       (let [[ns-name-expr & option-exprs] (:children libspec-expr)
             ns-name (:value ns-name-expr)
             ns-name (if (= :cljs lang)
@@ -130,11 +143,21 @@
                              :filename filename
                              :raw-name (-> (meta ns-name-expr) :raw-name)
                              :branch (:branch libspec-meta)))
-            self-require? (and
-                           (= :cljc base-lang)
-                           (= :cljs lang)
-                           (= current-ns-name ns-name)
-                           (= :require-macros require-kw))]
+            cljs-macros-self-require? (and
+                                       (= :cljc base-lang)
+                                       (= :cljs lang)
+                                       (= current-ns-name ns-name)
+                                       req-macros?)]
+        (when (and (= ns-name current-ns-name)
+                   (not req-macros?)
+                   (not (:in-comment ctx)))
+          (findings/reg-finding!
+           ctx
+           (node->line
+            filename
+            libspec-expr
+            :self-requiring-namespace
+            (str "Namespace is requiring itself: " current-ns-name))))
         (loop [children option-exprs
                m {:as nil
                   :referred #{}
@@ -159,7 +182,7 @@
                                    (str "require with " (str child-k))))))
                   (recur
                    (nnext children)
-                   (cond (and (not self-require?) (sequential? opt))
+                   (cond (and (not cljs-macros-self-require?) (sequential? opt))
                          (let [;; undo referred-all when using :only with :use
                                m (if (and use? (= :only child-k))
                                    (do (findings/reg-finding!
