@@ -75,6 +75,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Refer](#refer)
     - [Refer all](#refer-all)
     - [Single key in](#single-key-in)
+    - [Single logical operand](#single-logical-operand)
     - [Single operand comparison](#single-operand-comparison)
     - [Shadowed var](#shadowed-var)
     - [Syntax](#syntax)
@@ -1314,6 +1315,18 @@ Example warning: `require with :refer`.
 *Example trigger:* `(get-in {:a 1} [:a])`.
 
 *Example message:* `get-in with single key.`
+
+### Single logical operand
+
+*Keyword:* `:single-logical-operand`.
+
+*Description:* warn on single operand logical operators with always the same value.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(and 1)`.
+
+*Example message:* `Single arg use of and always returns the arg itself.`
 
 ### Single operand comparison
 

@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2179](https://github.com/clj-kondo/clj-kondo/issues/2179): consider alias-as-object usage in CLJS for :unused-alias linter
+- [#2184](https://github.com/clj-kondo/clj-kondo/issues/2184): Add missing documentation for :single-logical-operand linter
 
 ## 2023.09.07
 
