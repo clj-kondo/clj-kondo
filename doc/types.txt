@@ -443,7 +443,7 @@ underive {2 {:ret :nil}}
 Throwable->map {1 {:ret :nilable/map}}
 some-fn {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 simple-ident? {1 {:ret #{:nil :boolean}}}
-parse-uuid {1 {:args (:nilable/string)}}
+parse-uuid {1 {:args (:string)}}
 generate-interface {1 {:ret :vector}}
 xml-seq {1 {:ret :seq}}
 byte {1 {:args (:nilable/number)}}
