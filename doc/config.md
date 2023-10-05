@@ -425,10 +425,13 @@ The custom pattern supports these template values:
 |-------------------|-----------------------------------------------------------|
 | `{{filename}}`    | File name                                                 |
 | `{{row}}`         | Row where linter violation starts                         |
+| `{{end-row}}`     | Row where linter violation ends                           |
 | `{{col}}`         | Column where linter violation starts                      |
+| `{{end-col}}`     | Column where linter violation ends                        |
 | `{{level}}`       | Lowercase level of linter warning, one of info,warn,error |
 | `{{LEVEL}}`       | Uppercase variant of `{{level}}`                          |
 | `{{message}}`     | Linter message                                            |
+| `{{type}}`        | Linter violation type                                     |
 
 ### Include and exclude files from the output
 
