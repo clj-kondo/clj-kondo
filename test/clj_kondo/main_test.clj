@@ -942,9 +942,9 @@ foo/foo ;; this does use the private var
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
-           (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}"}
+           (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}_{{end-row}}"}
                                                 :linters {:unresolved-symbol {:level :off}}}))))
-       "WARNING_<stdin>"))
+       "WARNING_<stdin>_1"))
   (is (empty? (lint! "(comment (select-keys))" '{:skip-comments true
                                                  :linters {:unresolved-symbol {:level :off}}})))
   (assert-submap
