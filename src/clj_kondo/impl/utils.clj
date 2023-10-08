@@ -1,7 +1,9 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
+  (:refer-clojure :exclude [update-vals])
   (:require
    [babashka.fs :as fs]
+   [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.rewrite-clj.node.keyword :as k]
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
@@ -83,7 +85,7 @@
     splice? (update :children (fn [children]
                                 (map #(attach-branch* % lang) children)))))
 
-(defn process-reader-conditional [node lang splice?]
+(defn process-reader-conditional [ctx node lang splice?]
   (if (and node
            (= :reader-macro (node/tag node))
            (let [sv (-> node :children first :string-value)]
@@ -91,6 +93,12 @@
     (let [children (-> node :children last :children)]
       (loop [[k v & ts] children
              default nil]
+        (when-not (keyword? (:k k))
+          (common/reg-finding! ctx (assoc (meta k)
+                                          :filename (:filename ctx)
+                                          :level :error
+                                          :type :syntax
+                                          :message "Feature should be a keyword")))
         (let [kw (:k k)
               default (or default
                           (when (= :default kw)
@@ -104,12 +112,12 @@
 
 (declare select-lang)
 
-(defn select-lang-children [node lang]
+(defn select-lang-children [ctx node lang]
   (if-let [children (:children node)]
     (let [new-children (reduce
                         (fn [acc node]
                           (let [splice? (= "?@" (some-> node :children first :string-value))]
-                            (if-let [processed (select-lang node lang splice?)]
+                            (if-let [processed (select-lang ctx node lang splice?)]
                               (if splice?
                                 (into acc (:children processed))
                                 (conj acc processed))
@@ -121,15 +129,15 @@
     node))
 
 (defn select-lang
-  ([node lang] (select-lang node lang nil))
-  ([node lang splice?]
-   (when-let [processed (process-reader-conditional node lang splice?)]
-     (select-lang-children processed lang))))
+  ([ctx node lang] (select-lang ctx node lang nil))
+  ([ctx node lang splice?]
+   (when-let [processed (process-reader-conditional ctx node lang splice?)]
+     (select-lang-children ctx processed lang))))
 
 (defn node->line [filename node t message]
   #_(when (and (= type :missing-docstring)
-             (not (:row (meta node))))
-    (prn node))
+               (not (:row (meta node))))
+      (prn node))
   (let [m (meta node)]
     {:type t
      :message message
@@ -270,10 +278,30 @@
                             (recur (next xs) kept (conj! removed x))))
       [(persistent! kept) (persistent! removed)])))
 
+(defn resolve-ns [idacs base-lang lang ns]
+  (case [base-lang lang]
+    [:clj :clj] (or (get-in idacs [:clj :defs ns])
+                    (get-in idacs [:cljc :defs ns]))
+    [:cljs :cljs] (or (get-in idacs [:cljs :defs ns])
+                      ;; cljs func in another cljc file
+                      (get-in idacs [:cljc :defs ns])
+                      ;; maybe a macro?
+                      (get-in idacs [:clj :defs ns])
+                      (get-in idacs [:cljc :defs ns]))
+    ;; calling a clojure function from cljc
+    [:cljc :clj] (or (get-in idacs [:clj :defs ns])
+                     (get-in idacs [:cljc :defs ns]))
+    ;; calling function in a CLJS conditional from a CLJC file
+    [:cljc :cljs] (or (get-in idacs [:cljs :defs ns])
+                      (get-in idacs [:cljc :defs ns])
+                      ;; could be a macro
+                      (get-in idacs [:clj :defs ns])
+                      (get-in idacs [:cljc :defs ns]))))
+
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
   (let [call-lang (:lang call)
-        base-lang (:base-lang call)  ;; .cljc, .cljs or .clj file
+        base-lang (:base-lang call) ;; .cljc, .cljs or .clj file
         unresolved? (:unresolved? call)
         unknown-ns? (identical? fn-ns :clj-kondo/unknown-namespace)
         fn-ns (if unknown-ns? (:ns call) fn-ns)]
@@ -322,7 +350,7 @@
                                   [(case call-lang #_base-lang
                                          :clj 'clojure.core
                                          :cljs 'cljs.core
-                                         :clj1c 'clojure.core)])))))]
+                                         :cljc 'clojure.core)])))))]
      (if-let [imported-ns (:imported-ns called-fn)]
        (or
         (let [imported-var (:imported-var called-fn)
@@ -343,7 +371,7 @@
         m (meta expr)]
     (when-let [ignore-node (:clj-kondo/ignore m)]
       (let [node (if cljc?
-                   (select-lang ignore-node (:lang ctx))
+                   (select-lang ctx ignore-node (:lang ctx))
                    ignore-node)
             ignore (node/sexpr node)
             ignore (if (boolean? ignore) ignore (set ignore))]
@@ -423,6 +451,25 @@
     (swap! (:calls-by-id ctx) assoc id call))
   nil)
 
+(defn update-vals
+  "m f => {k (f v) ...}
+
+  Given a map m and a function f of 1-argument, returns a new map where the keys of m
+  are mapped to result of applying f to the corresponding values of m."
+  {:added "1.11"}
+  [m f]
+  (with-meta
+    (persistent!
+     (reduce-kv (fn [acc k v] (assoc! acc k (f v)))
+                (if (instance? clojure.lang.IEditableCollection m)
+                  (transient m)
+                  (transient {}))
+                m))
+    (meta m)))
+
+(defn mark-generate [node]
+  (assoc node :clj-kondo.impl/generated true))
+
 ;;;; Scratch
 
 (comment
@@ -437,5 +484,5 @@
 y\""))
   (tag (parse-string "\"xy\""))
   (map-node-get-value-node (p/parse-string "{:binky 2 :arglists #_ :ha '([a b c]) :boingo 4}")
-                           :arglists)
-)
+                           :arglists))
+

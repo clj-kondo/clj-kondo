@@ -64,5 +64,13 @@
   {
     "name":"com.github.javaparser.ast.expr.ArrayCreationExpr",
     "allDeclaredFields":true
+  },
+  {
+    "name":"com.github.javaparser.ast.type.IntersectionType",
+    "allDeclaredFields":true
+  },
+  {
+    "name":"com.github.javaparser.ast.type.UnionType",
+    "allDeclaredFields":true
   }
 ]

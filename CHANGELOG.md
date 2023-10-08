@@ -14,13 +14,45 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] clj-kondo pod -->
 <!-- - [ ] script/bump_version post-release -->
 <!-- - [ ] update clj-kondo-bb -->
+<!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
 ## Unreleased
 
+- [#1804](https://github.com/clj-kondo/clj-kondo/issues/1804): new linter `:self-requiring-namespace`
+- [#2179](https://github.com/clj-kondo/clj-kondo/issues/2179): consider alias-as-object usage in CLJS for :unused-alias linter
+- [#2184](https://github.com/clj-kondo/clj-kondo/issues/2184): Add missing documentation for :single-logical-operand linter
+- [#2187](https://github.com/clj-kondo/clj-kondo/issues/2187): Fix type annotation of argument of `clojure.core/parse-uuid` from nilable/string to string
+- [#2192](https://github.com/clj-kondo/clj-kondo/issues/2192): Support end-row and end-col in :pattern output format
+- [#2195](https://github.com/clj-kondo/clj-kondo/issues/2195): new linter `:uniform-aliasing`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#uniform-aliasing).
+
+## 2023.09.07
+
+- [#1332](https://github.com/clj-kondo/clj-kondo/issues/1332): New linter `:unused-alias`. See [docs](doc/linters.md).
+- [#2143](https://github.com/clj-kondo/clj-kondo/issues/2143): false positive type warning for `clojure.set/project`
+- [#2145](https://github.com/clj-kondo/clj-kondo/issues/2145): support ignore hint on multi-arity branch of function definition
+- [#2147](https://github.com/clj-kondo/clj-kondo/issues/2147): use alternative solution as workaround for https://github.com/cognitect/transit-clj/issues/43
+- [#2152](https://github.com/clj-kondo/clj-kondo/issues/2152): Fix false positive with used-underscored-binding with core.match
+- [#2150](https://github.com/clj-kondo/clj-kondo/issues/2150): allow command line options = as in --fail-level=error
+- [#2149](https://github.com/clj-kondo/clj-kondo/issues/2149): `:lint-as clojure.core/defmacro` should suppress `&env` as unresolved symbol
+- [#2161](https://github.com/clj-kondo/clj-kondo/issues/2161): Fix type annotation for `clojure.core/zero?` to number -> boolean
+- [#2165](https://github.com/clj-kondo/clj-kondo/issues/2165): Fix error when serializing type data to cache
+- [#2167](https://github.com/clj-kondo/clj-kondo/issues/2167): Don't crash when `:unresolved-symbol` linter config contains unqualified symbol
+- [#2170](https://github.com/clj-kondo/clj-kondo/issues/2170): `:keyword-binding` linter should ignore auto-resolved keywords
+- [#2172](https://github.com/clj-kondo/clj-kondo/issues/2172): detect invalid amount of args and invalid argument type for `throw`
+- [#2164](https://github.com/clj-kondo/clj-kondo/issues/2164): deftest inside let triggers :unused-value
+- [#2154](https://github.com/clj-kondo/clj-kondo/issues/2154): add `:exclude` option to `:deprecated-namespace` linter
+- [#2134](https://github.com/clj-kondo/clj-kondo/issues/2134): don't warn on usage of private var in `data_readers.clj(c)`
+- [#2148](https://github.com/clj-kondo/clj-kondo/issues/2148): warn on configuration error in `:unused-refeferred-var` linter
+- Expose more vars in `clj-kondo.hooks-api` interpreter namespace
+
+## 2023.07.13
+
 - [#2111](https://github.com/clj-kondo/clj-kondo/issues/2111): warn on symbol in case test using new opt-in linter `:case-symbol-test`
 - Rename `:quoted-case-test-constant` to `:case-quoted-test`
 - Rename `:duplicate-case-test-constant` to `:case-duplicate-test`
+- [#1230](https://github.com/clj-kondo/clj-kondo/issues/1199): new linter, `:unsorted imports`
+- [#1125](https://github.com/clj-kondo/clj-kondo/issues/1125): new `:deprecated-namespace` linter
 - [#2097](https://github.com/clj-kondo/clj-kondo/issues/2097): analyze and act on `defprotocol` metadata ([@lread](https://github.com/lread))
 - [#2105](https://github.com/clj-kondo/clj-kondo/issues/2105): Consider `.cljd` files when linting ([@ericdallo](https://github.com/ericdallo))
 - [#2101](https://github.com/clj-kondo/clj-kondo/issues/2101): false positive with `if-some` + `recur`
@@ -29,7 +61,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#256](https://github.com/clj-kondo/clj-kondo/issues/256): warn on reader conditional usage in non-cljc files
 - [#2115](https://github.com/clj-kondo/clj-kondo/issues/2115): false positive `:redundant-fn-wrapper` in CLJS when passing keyword to JS
 - [#1082](https://github.com/clj-kondo/clj-kondo/issues/1082): protocol methods do not support varargs
-- [#2195](https://github.com/clj-kondo/clj-kondo/issues/2195): new linter `:uniform-aliasing`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#uniform-aliasing).
+- [#2125](https://github.com/clj-kondo/clj-kondo/issues/2125): Setting `clj-kondo.hooks-api/*reload*` to true does not lint with the latest hook changes.
+- [#2135](https://github.com/clj-kondo/clj-kondo/issues/2135): private vars starting with `_` should not be reported as unused
+- [#1199](https://github.com/clj-kondo/clj-kondo/issues/1199): warn about reader conditional features that are not keywords, e.g. `#?(:clj 1 2)` (2 is not a keyword)
+- [#2132](https://github.com/clj-kondo/clj-kondo/issues/2132): false negative unused value in clojure.test
+- [#1294](https://github.com/clj-kondo/clj-kondo/issues/1294): redefined var comment edge case
 
 ## 2023.05.26
 

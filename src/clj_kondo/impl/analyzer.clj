@@ -3,7 +3,6 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [babashka.fs :as fs]
-   [clj-kondo.hooks-api :as hooks-api]
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.babashka :as babashka]
    [clj-kondo.impl.analyzer.clojure-data-xml :as xml]
@@ -193,7 +192,8 @@
                          v (cond-> (assoc m
                                           :name s
                                           :filename (:filename ctx)
-                                          :tag t)
+                                          :tag t
+                                          :auto-resolved (:namespaced? expr))
                              (:analyze-locals? ctx)
                              (-> (assoc :id (swap! (:id-gen ctx) inc)
                                         :str (str expr))
@@ -219,7 +219,8 @@
                      v (cond-> (assoc m
                                       :name s
                                       :keyword k
-                                      :filename (:filename ctx))
+                                      :filename (:filename ctx)
+                                      :auto-resolved (:namespaced? expr))
                          (:analyze-locals? ctx)
                          (-> (assoc :id (swap! (:id-gen ctx) inc)
                                     :str (str expr))
@@ -375,7 +376,8 @@
       {:fixed-arity arity})))
 
 (defn analyze-fn-arity [ctx body]
-  (if-let [children (not-empty (:children body))]
+  (utils/handle-ignore ctx body)
+  (if-let [children (seq (:children body))]
     (let [arg-vec (first children)
           arg-vec-t (tag arg-vec)]
       (if (not= :vector arg-vec-t)
@@ -599,8 +601,11 @@
                          lint-as (assoc-in [:lint-as fq-sym] (config/unquote lint-as))
                          ignore (assoc-in [:config-in-call fq-sym :ignore] ignore))]
             (when config (swap! (:inline-configs ctx) conj config)))
-        macro? (or (= "defmacro" call)
-                   (:macro var-meta))
+        macro? (when (or (one-of defined-by->lint-as
+                                 [clojure.core/defmacro
+                                  cljs.core/defmacro])
+                         (:macro var-meta))
+                 true)
         deprecated (:deprecated var-meta)
         ctx (if macro?
               (ctx-with-bindings ctx '{&env {}
@@ -2181,7 +2186,7 @@
                           ctx)]
                 (if-let [expanded (and transformed
                                        (:node transformed))]
-                  (let [expanded (hooks-api/annotate expanded expr-meta)
+                  (let [expanded (hooks/annotate expanded expr-meta)
                         [new-name-node new-arg-count]
                         (when (utils/list-node? expanded)
                           (when-let [children (:children expanded)]
@@ -2961,13 +2966,14 @@
 ;; Hack to make a few functions available in a common namespace without
 ;; introducing circular depending namespaces. NOTE: alter-var-root! didn't work
 ;; with GraalVM
-(vreset! common {'analyze-expression** analyze-expression**
-                 'analyze-children analyze-children
-                 'analyze-like-let analyze-like-let
-                 'ctx-with-bindings ctx-with-bindings
-                 'extract-bindings extract-bindings
-                 'analyze-defn analyze-defn
-                 'analyze-usages2 analyze-usages2})
+(vswap! common assoc
+        'analyze-expression** analyze-expression**
+        'analyze-children analyze-children
+        'analyze-like-let analyze-like-let
+        'ctx-with-bindings ctx-with-bindings
+        'extract-bindings extract-bindings
+        'analyze-defn analyze-defn
+        'analyze-usages2 analyze-usages2)
 
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
@@ -3138,7 +3144,7 @@
                      "data_readers.cljc")
                     (utils/ctx-with-linters-disabled
                      (assoc ctx :data-readers true)
-                     [:unresolved-symbol :unresolved-namespace])
+                     [:unresolved-symbol :unresolved-namespace :private-call])
                     ctx)]
           (lint-line-length ctx config filename input)
           (doseq [e @reader-exceptions]
@@ -3152,7 +3158,7 @@
                                [:clj :cljs])]
               (doseq [lang features]
                 (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
-                                     (:children (select-lang parsed lang)))))
+                                     (:children (select-lang ctx parsed lang)))))
             (:clj :cljs :edn)
             (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename
                              :uri uri)]

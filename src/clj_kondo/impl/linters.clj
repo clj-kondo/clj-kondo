@@ -142,9 +142,9 @@
     (when (= 'if (:name call))
       (lint-missing-else-branch ctx (:expr call)))
     (when (contains? var-info/unused-values
-                   (symbol (let [cns (str called-ns)]
-                             (if (= cns "cljs.core") "clojure.core" cns))
-                           (str called-name)))
+                     (symbol (let [cns (str called-ns)]
+                               (if (= cns "cljs.core") "clojure.core" cns))
+                             (str called-name)))
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
@@ -474,40 +474,41 @@
             (lint-arg-types! ctx idacs call called-fn))))
       (when call?
         (when-let [idx (:idx call)]
-          (when (contains? var-info/unused-values
-                           (symbol (let [cns (str (:ns called-fn))]
-                                     (if (= cns "cljs.core") "clojure.core" cns))
-                                   (str (:name called-fn))))
-            (let [unused-value-conf (-> config :linters :unused-value)]
-              (when-not (identical? :off (:level unused-value-conf))
-                (let [parent-call (let [cs (:callstack call)]
-                                    (second cs))
-                      core? (utils/one-of (first parent-call) [clojure.core cljs.core])
-                      core-sym (when core?
-                                 (second parent-call))
-                      unused?
-                      (and core?
-                           (or
-                            ;; doseq always return nil
-                            (utils/one-of core-sym [doseq])
-                            (< idx (dec (:len call))))
-                           (utils/one-of core-sym [do fn defn defn-
-                                                   let when-let loop binding with-open
-                                                   doseq try when when-not when-first
-                                                   when-some future]))]
-                  (when unused?
-                    (findings/reg-finding!
-                     ctx
-                     {:filename filename
-                      :row row
-                      :end-row end-row
-                      :col col
-                      :end-col end-col
-                      :type :unused-value
-                      :message "Unused value"})))))))))))
+          (let [normalized-sym (symbol (let [cns (str (:ns called-fn))]
+                                         (if (= cns "cljs.core") "clojure.core" cns))
+                                       (str (:name called-fn)))]
+            (when (contains? var-info/unused-values normalized-sym)
+              (let [unused-value-conf (-> config :linters :unused-value)]
+                (when-not (identical? :off (:level unused-value-conf))
+                  (let [parent-call (let [cs (:callstack call)]
+                                      (second cs))
+                        core? (utils/one-of (first parent-call) [clojure.core cljs.core])
+                        core-sym (when core?
+                                   (second parent-call))
+                        unused?
+                        (or (and core?
+                                 (or
+                                  ;; doseq always return nil
+                                  (utils/one-of core-sym [doseq])
+                                  (< idx (dec (:len call))))
+                                 (utils/one-of core-sym [do fn defn defn-
+                                                         let when-let loop binding with-open
+                                                         doseq try when when-not when-first
+                                                         when-some future]))
+                            (= '[clojure.test deftest] parent-call))]
+                    (when unused?
+                      (findings/reg-finding!
+                       ctx
+                       {:filename filename
+                        :row row
+                        :end-row end-row
+                        :col col
+                        :end-col end-col
+                        :type :unused-value
+                        :message "Unused value"}))))))))))))
 
 (defn lint-unused-namespaces!
-  [ctx]
+  [ctx idacs]
   (let [config (:config ctx)]
     (doseq [ns (namespace/list-namespaces ctx)
             :let [required (:required ns)
@@ -518,12 +519,26 @@
                   unused (remove (comp :unused-namespace-disabled meta) unused)
                   referred-vars (:referred-vars ns)
                   used-referred-vars (:used-referred-vars ns)
+                  used-aliases (:used-aliases ns)
+                  aliases (:aliases ns)
                   refer-alls (:refer-alls ns)
                   refer-all-nss (set (keys refer-alls))
                   ns-config (:config ns)
                   config (or ns-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
                   ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
+      (doseq [required required]
+        (when-let [depr (:deprecated (utils/resolve-ns idacs (:base-lang ns) (:lang ns) required))]
+          (when-not (config/deprecated-namespace-excluded? config required)
+            (let [filename (:filename (meta required))]
+              (findings/reg-finding!
+               ctx
+               (node->line filename required :deprecated-namespace
+                           (format "Namespace %s is deprecated%s."
+                                   (str required)
+                                   (if (string? depr)
+                                     (str " since " depr)
+                                     ""))))))))
       (doseq [ns-sym unused]
         (let [ns-meta (meta ns-sym)]
           (when-not (or (config/unused-namespace-excluded config ns-sym)
@@ -570,7 +585,13 @@
            ctx
            (assoc (node->line filename node
                               finding-type msg)
-                  :refers (vec referred))))))))
+                  :refers (vec referred)))))
+      (doseq [alias (keys aliases)]
+        (when-not (contains? used-aliases alias)
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename (meta alias)) alias
+                       :unused-alias (str "Unused alias: " alias))))))))
 
 (defn lint-discouraged-namespaces!
   [ctx]
@@ -606,6 +627,7 @@
         (doseq [binding (into #{}
                               (comp
                                (remove :clj-kondo/mark-used)
+                               (remove (comp :clj-kondo.impl/generated meta))
                                (remove :clj-kondo.impl/generated)
                                (filter #(str/starts-with? (str (:name %)) "_")))
                               (:used-bindings ns))
@@ -653,7 +675,8 @@
               :end-col (:end-col default)}))))
       (when (not (identical? :off (-> ctx :config :linters :keyword-binding :level)))
         (doseq [binding (filter :keyword (:bindings ns))]
-          (when-not (namespace (:keyword binding))
+          (when-not (or (namespace (:keyword binding))
+                        (:auto-resolved binding))
             (findings/reg-finding!
              ctx
              {:type :keyword-binding
@@ -690,7 +713,8 @@
                                 clojure.core/deftype
                                 cljs.core/deftype
                                 clojure.core/definterface
-                                cljs.core/definterface]))]
+                                cljs.core/definterface]))
+            :when (not (str/starts-with? var-name "_"))]
       (findings/reg-finding!
        ctx
        {:type :unused-private-var

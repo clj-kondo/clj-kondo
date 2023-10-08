@@ -6,13 +6,16 @@
 (defn reg-used-binding!
   [{:keys [:base-lang :lang :namespaces :ns]} binding]
   (swap! namespaces update-in [base-lang lang (:name ns) :used-bindings]
-         conj binding)
+         conj
+         ;; don't report this binding as unused nor used
+         (vary-meta binding assoc :clj-kondo.impl/generated true))
   nil)
 
 (defn into* [ctx existing-bindings new-bindings]
   (reduce-kv (fn [m k v] (if-let [b (get m k)]
-                           (do (reg-used-binding! ctx b)
-                               (assoc m k v))
+                           (do
+                             (reg-used-binding! ctx b)
+                             (assoc m k v))
                            (assoc m k v))) existing-bindings  new-bindings))
 
 (defn analyze-token [ctx expr]
@@ -20,8 +23,9 @@
     (if (and sym
              (not (contains? (:bindings ctx) sym)))
       (common/extract-bindings ctx expr)
-      (do (common/analyze-expression** ctx expr)
-          nil))))
+      (do
+        (common/analyze-expression** ctx expr)
+        nil))))
 
 (declare analyze-expr)
 

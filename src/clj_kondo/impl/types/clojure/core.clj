@@ -232,7 +232,7 @@
    'or {:fn (fn [args]
               (reduce tu/union-type #{} args))}
    ;; 867
-   'zero? any->boolean
+   'zero? number->boolean
    ;; 874
    'count {:arities {1 {:args [:seqable]
                         :ret :number}}}
@@ -1074,6 +1074,7 @@
    ;; 7868 'add-tap
    ;; 7879 'remove-tap
    ;; 7886 'tap>
+   'throw {:arities {1 {:args [:throwable]}}}
    })
 
 (def cljs-core

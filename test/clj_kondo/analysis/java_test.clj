@@ -127,32 +127,32 @@
           :flags #{:public :field}
           :name "bar1"
           :type "Double"
-          :row 13 :col 5 :end-row 13 :end-col 23}
+          :row 15 :col 5 :end-row 15 :end-col 23}
          {:class "foo.bar.AwesomeClass"
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
           :flags #{:public :field :final}
           :name "bar2"
           :type "Double"
-          :row 14 :col 5 :end-row 14 :end-col 35}
+          :row 16 :col 5 :end-row 16 :end-col 35}
          {:class "foo.bar.AwesomeClass"
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
           :flags #{:public :static :field :final}
           :name "bar3"
           :type "Double"
-          :row 15 :col 5 :end-row 15 :end-col 42}
+          :row 17 :col 5 :end-row 17 :end-col 42}
          {:class "foo.bar.AwesomeClass"
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
           :flags #{:method :public}
           :name "AwesomeClass"
           :parameters ["double a"]
-          :row 17 :col 5 :end-row 19 :end-col 5}
+          :row 19 :col 5 :end-row 21 :end-col 5}
          {:return-type "int"
           :name "coolSum1"
           :class "foo.bar.AwesomeClass"
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
           :flags #{:method :public}
           :parameters ["double a" "double b"]
-          :row 21 :col 5 :end-row 23 :end-col 5}
+          :row 23 :col 5 :end-row 29 :end-col 5}
          {:return-type "File[]"
           :name "coolParse"
           :class "foo.bar.AwesomeClass"
@@ -160,7 +160,14 @@
           :flags #{:method :public :static}
           :doc "/*\n     * Some cool doc\n     * @param filenames\n     * @return list of files\n     */"
           :parameters ["List<String> filenames"]
-          :row 30 :end-row 32 :col 5 :end-col 5}]
+          :row 36 :end-row 38 :col 5 :end-col 5}
+         {:return-type "Foo"
+          :name "foo"
+          :class "foo.bar.AwesomeClass"
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+          :flags #{:method :public}
+          :parameters []
+          :row 40 :end-row 45 :col 5 :end-col 5}]
        java-member-definitions))))
 
 (deftest class-usages-test

@@ -47,6 +47,7 @@
                                :exclude-destructured-as false
                                :exclude-defmulti-args false}
               :unsorted-required-namespaces {:level :off}
+              :unsorted-imports {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
                                  :exclude [#_clj-kondo.impl.var-info-gen]
@@ -79,6 +80,7 @@
                                   {:namespaces [foo.bar "bar\\.*"]
                                    ;; or in these definitions:
                                    :defs [foo.baz/allowed "foo.baz/ign\\.*"]}}}
+              :deprecated-namespace {:level :warning}
               :unused-referred-var {:level :warning
                                     :exclude {#_#_taoensso.timbre [debug]}}
               :unused-private-var {:level :warning}
@@ -151,7 +153,9 @@
               :equals-true {:level :off}
               :plus-one {:level :off}
               :minus-one {:level :off}
-              :protocol-method-varargs {:level :error}}
+              :protocol-method-varargs {:level :error}
+              :unused-alias {:level :off}
+              :self-requiring-namespace {:level :off}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
@@ -273,7 +277,12 @@
 
 (let [delayed-cfg (fn [config]
                     (let [excluded (get-in config [:linters :unused-referred-var :exclude])]
-                      (map-vals set excluded)))
+                      (if (map? excluded)
+                        (map-vals set excluded)
+                        (let [warning "[clj-kondo] WARNING: configuration value in [:linters :referred-var :exclude] should be a map"]
+                          (binding [*out* *err*]
+                            (println warning)
+                            nil)))))
       delayed-cfg (memoize delayed-cfg)]
   (defn unused-referred-var-excluded [config ns-sym var-sym]
     (let [excluded (delayed-cfg config)]
@@ -297,19 +306,21 @@
           {:excluded syms
            :excluded-in
            (reduce (fn [acc [fq-name excluded]]
-                     (let [ns-nm (symbol (namespace fq-name))
-                           var-name (symbol (name fq-name))]
-                       (update acc [ns-nm var-name]
-                               (fn [old]
-                                 (cond (nil? old)
-                                       (if excluded
-                                         (set excluded)
-                                         identity)
-                                       (set? old)
-                                       (if excluded
-                                         (into old excluded)
-                                         old)
-                                       :else identity)))))
+                     (if-let [nss (namespace fq-name)]
+                       (let [ns-nm (symbol nss)
+                             var-name (symbol (name fq-name))]
+                         (update acc [ns-nm var-name]
+                                 (fn [old]
+                                   (cond (nil? old)
+                                         (if excluded
+                                           (set excluded)
+                                           identity)
+                                         (set? old)
+                                         (if excluded
+                                           (into old excluded)
+                                           old)
+                                         :else identity))))
+                       acc))
                    {} calls)
            :exclude-patterns (map #(re-pattern (str %)) exclude-patterns)}))
       delayed-cfg (memoize delayed-cfg)]
@@ -499,6 +510,14 @@
        (second x)
        x))
    coll))
+
+(let [delayed-config (fn [config]
+                       (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
+                         (set excluded)))
+      delayed-cfg (memoize delayed-config)]
+  (defn deprecated-namespace-excluded? [config required]
+    (let [cfg (delayed-cfg config)]
+      (contains? cfg required))))
 
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]

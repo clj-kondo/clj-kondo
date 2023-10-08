@@ -2,9 +2,11 @@
   (:require
    [clj-kondo.hooks-api :as hooks-api]
    [clj-kondo.impl.core :as core]
+   [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.utils :as utils :refer [parse-string *ctx*]]
    [clj-kondo.test-utils :refer [lint! make-dirs with-temp-dir]]
    [clojure.java.io :as io]
+   [clojure.set :as set]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest predicates-test
@@ -41,7 +43,7 @@ there
 (deftest ns-analysis-test
   (testing "ns-analysis is loaded from cache"
     (with-temp-dir [tmp-dir "ns-analysis-test"]
-      (let [test-cache-dir  (.getPath (io/file tmp-dir "test-cache-dir"))
+      (let [test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
             test-source-dir (io/file tmp-dir "test-source-dir")
             foo-clj (io/file test-source-dir "foo.clj")
             bar-cljc (io/file test-source-dir "bar.cljc")
@@ -59,24 +61,24 @@ there
         ;; populate cache
         (lint! test-source-dir "--cache" "true" "--cache-dir" test-cache-dir)
         (let [full-cache-dir (io/file test-cache-dir core/cache-version)]
-          (is (= {:clj {'foo {:ns   'foo
+          (is (= {:clj {'foo {:ns 'foo
                               :name 'foo :fixed-arities #{1}}
-                        'foo-p {:ns                'foo
-                                :name              'foo-p
+                        'foo-p {:ns 'foo
+                                :name 'foo-p
                                 :varargs-min-arity 1
-                                :private           true}
-                        'foo-m {:ns            'foo :name 'foo-m
+                                :private true}
+                        'foo-m {:ns 'foo :name 'foo-m
                                 :fixed-arities #{1}
-                                :macro         true}}}
+                                :macro true}}}
                  (binding [*ctx* {:cache-dir full-cache-dir}]
                    (hooks-api/ns-analysis 'foo))
                  (binding [*ctx* {:cache-dir full-cache-dir}]
                    (hooks-api/ns-analysis 'foo {:lang :clj}))))
-          (is (= {:clj  {'bar-clj {:ns            'bar
-                                   :name          'bar-clj
-                                   :fixed-arities #{0}}}
-                  :cljs {'bar-cljs {:ns            'bar
-                                    :name          'bar-cljs
+          (is (= {:clj {'bar-clj {:ns 'bar
+                                  :name 'bar-clj
+                                  :fixed-arities #{0}}}
+                  :cljs {'bar-cljs {:ns 'bar
+                                    :name 'bar-cljs
                                     :fixed-arities #{0}}}}
                  (binding [*ctx* {:cache-dir full-cache-dir}]
                    (hooks-api/ns-analysis 'bar))
@@ -94,6 +96,13 @@ there
         sexpr (hooks-api/sexpr node)
         sexpr `(do (let [~'x 1] ~sexpr))
         node (hooks-api/coerce sexpr)
-        node (#'hooks-api/annotate node m)
+        node (hooks/annotate node m)
         nodes (tree-seq :children :children node)]
     (is (every? (comp :row meta) nodes))))
+
+(deftest api-ns-includes-public-test
+  (is (= #{'parse-string '*reload*}
+         (set/difference (-> (ns-publics 'clj-kondo.hooks-api)
+                             keys
+                             set)
+                         (set (keys hooks/api-ns))))))

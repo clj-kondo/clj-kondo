@@ -17,7 +17,7 @@
                         :ret :nilable/set}}}
    'select {:arities {2 {:args [:ifn :nilable/set]
                          :ret :nilable/set}}}
-   'project {:arities {2 {:args [:seqable :sequential]
+   'project {:arities {2 {:args [:seqable :seqable]
                           :ret :set}}}
    'rename-keys {:arities {2 {:args [:nilable/map :nilable/map]
                               :ret :nilable/map}}}

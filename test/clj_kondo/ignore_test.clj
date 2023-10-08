@@ -118,3 +118,9 @@ x)"
   #_:clj-kondo/ignore
   (f1 value))
 "))))
+
+(deftest issue-2145-multiple-arities-test
+  (is (empty? (lint! "(defn foo
+  ([p1] (foo p1 \"p2\"))
+  #_{:clj-kondo/ignore [:unused-binding]}
+  ([p1 p2] (println p1 \"not using p2\")))"))))

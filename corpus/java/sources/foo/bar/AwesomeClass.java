@@ -2,6 +2,8 @@ package foo.bar;
 
 import java.io.File;
 import java.util.List;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 public class AwesomeClass {
 
@@ -19,7 +21,11 @@ public class AwesomeClass {
     }
 
     public int coolSum1(double a, double b) {
-        return (int) a + (int) b;
+        try {
+            return (int) a + (int) b;
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            return -1;
+        }
     }
 
     /*
@@ -29,5 +35,12 @@ public class AwesomeClass {
      */
     public static File[] coolParse(List<String> filenames) {
         return null;
+    }
+
+    public Foo foo() {
+        class Foo {
+            private int a;
+        }
+        return Foo();
     }
 }

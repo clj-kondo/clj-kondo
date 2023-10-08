@@ -117,13 +117,14 @@
       (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
         (reduce
          (fn [classes ^ClassOrInterfaceDeclaration class-or-interface]
-           (let [class-name (.get (.getFullyQualifiedName class-or-interface))
-                 members (->> (concat
-                               (.findAll class-or-interface FieldDeclaration)
-                               (.findAll class-or-interface ConstructorDeclaration)
-                               (.findAll class-or-interface MethodDeclaration))
-                              (keep #(node->member % modifier-keyword->flag)))]
-             (assoc classes class-name {:members (vec members)})))
+           (if-let [class-name (.orElse (.getFullyQualifiedName class-or-interface) nil)]
+             (let [members (->> (concat
+                                 (.findAll class-or-interface FieldDeclaration)
+                                 (.findAll class-or-interface ConstructorDeclaration)
+                                 (.findAll class-or-interface MethodDeclaration))
+                                (keep #(node->member % modifier-keyword->flag)))]
+               (assoc classes class-name {:members (vec members)}))
+             classes))
          {}
          (.findAll compilation ClassOrInterfaceDeclaration)))
       (catch Throwable e

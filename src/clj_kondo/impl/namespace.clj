@@ -52,36 +52,43 @@
             (recur (conj aliases as)
                    (rest ns-maps))))))))
 
-(defn lint-unsorted-required-namespaces! [ctx namespaces]
-  (let [config (:config ctx)
-        level (-> config :linters :unsorted-required-namespaces :level)]
-    (when-not (identical? :off level)
-      (loop [last-processed-ns nil
-             ns-list namespaces]
-        (when ns-list
-          (let [ns (first ns-list)
-                m (meta ns)
-                raw-ns (:raw-name m)
-                prefix (:prefix m)
-                raw-ns (cond prefix
-                             (str prefix "." ns)
-                             raw-ns (if (string? raw-ns)
-                                      (pr-str raw-ns)
-                                      (str raw-ns))
-                             :else (str ns))
-                branch (:branch m)
-                raw-ns (str/lower-case raw-ns)]
-            (cond branch
-                  (recur last-processed-ns (next ns-list))
-                  (pos? (compare last-processed-ns raw-ns))
-                  (findings/reg-finding!
-                   ctx
-                   (node->line (:filename ctx)
-                               ns
-                               :unsorted-required-namespaces
-                               (str "Unsorted namespace: " ns)))
-                  :else (recur raw-ns
-                               (next ns-list)))))))))
+(defn lint-unsorted-required-namespaces!
+  ([ctx namespaces]
+   (lint-unsorted-required-namespaces! ctx namespaces :unsorted-required-namespaces))
+  ([ctx namespaces linter]
+   (let [config (:config ctx)
+         level (-> config :linters linter :level)]
+     (when-not (identical? :off level)
+       (loop [last-processed-ns nil
+              ns-list namespaces]
+         (when ns-list
+           (let [ns (first ns-list)
+                 m (meta ns)
+                 raw-ns (:raw-name m)
+                 prefix (:prefix m)
+                 raw-ns (cond prefix
+                              (str prefix "." ns)
+                              raw-ns (if (string? raw-ns)
+                                       (pr-str raw-ns)
+                                       (str raw-ns))
+                              :else (str ns))
+                 branch (:branch m)
+                 raw-ns (str/lower-case raw-ns)]
+             (cond branch
+                   (recur last-processed-ns (next ns-list))
+                   (pos? (compare last-processed-ns raw-ns))
+                   (findings/reg-finding!
+                    ctx
+                    (node->line (:filename ctx)
+                                ns
+                                linter
+                                (str "Unsorted " (case linter
+                                                   :unsorted-required-namespaces
+                                                   "namespace: "
+                                                   :unsorted-imports
+                                                   "import: ") ns)))
+                   :else (recur raw-ns
+                                (next ns-list))))))))))
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
@@ -146,10 +153,13 @@
        (swap! namespaces update-in path
               (fn [ns]
                 (let [vars (:vars ns)
+                      curr-var-count (or (get (:var-counts ns) var-sym) 0)
                       prev-var (get vars var-sym)
                       prev-declared? (:declared prev-var)
                       classfiles (:classfiles ns)
-                      classfile (var-classfile metadata)]
+                      classfile (var-classfile metadata)
+                      hard-def? (and (not (:declared metadata))
+                                     (not (:in-comment ctx)))]
                   (when (identical? :clj lang)
                     (when-let [clashing-vars (->> (get classfiles classfile)
                                                   (remove #{var-sym})
@@ -161,9 +171,7 @@
                                    :var-same-name-except-case
                                    (str "Var name " var-sym " differs only in case from: " (str/join ", " clashing-vars))))))
                   ;; declare is idempotent
-                  (when (and top-level?
-                             (not (:declared metadata))
-                             (not (:in-comment ctx)))
+                  (when (and top-level? hard-def?)
                     (when-not (= 'clojure.core/definterface (:defined-by metadata))
                       (when-let [redefined-ns
                                  (or (when-let [meta-v prev-var]
@@ -180,14 +188,16 @@
                                                   (not (contains? (:clojure-excluded ns) var-sym))
                                                   (var-info/core-sym? lang var-sym))
                                          core-ns)))]
-                        (findings/reg-finding!
-                         ctx
-                         (node->line filename
-                                     expr
-                                     :redefined-var
-                                     (if (= ns-sym redefined-ns)
-                                       (str "redefined var #'" redefined-ns "/" var-sym)
-                                       (str var-sym " already refers to #'" redefined-ns "/" var-sym))))))
+                        (when (or (pos? curr-var-count)
+                                  (not= ns-sym redefined-ns))
+                          (findings/reg-finding!
+                           ctx
+                           (node->line filename
+                                       expr
+                                       :redefined-var
+                                       (if (= ns-sym redefined-ns)
+                                         (str "redefined var #'" redefined-ns "/" var-sym)
+                                         (str var-sym " already refers to #'" redefined-ns "/" var-sym)))))))
                     (when-not temp?
                       (when (and (not (identical? :off (-> config :linters :missing-docstring :level)))
                                  (not (:private metadata))
@@ -234,7 +244,9 @@
                       (assoc :classfiles
                              (if classfile
                                (update classfiles classfile (fnil conj []) var-sym)
-                               classfiles))))))))))
+                               classfiles))
+                      (update :var-counts assoc var-sym
+                              (if hard-def? (inc curr-var-count) curr-var-count))))))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
@@ -605,14 +617,17 @@
                                          [(name name-sym)])
                     var-name (symbol var-name)
                     resolved-core? (and core?
-                                        (var-info/core-sym? lang var-name))]
+                                        (var-info/core-sym? lang var-name))
+                    alias? (contains? (:aliases ns) ns-sym)]
+                (when alias?
+                  (swap! (:namespaces ctx) update-in
+                         [(:base-lang ctx) lang ns-name :used-aliases] conj ns-sym))
                 (cond->
                  {:ns ns*
                   :name var-name
                   :interop? (and cljs? (boolean interop))}
-                  (contains? (:aliases ns) ns-sym)
+                  alias?
                   (assoc :alias ns-sym)
-
                   core?
                   (assoc :resolved-core? resolved-core?))))
             (when-let [[class-name package]
@@ -700,6 +715,8 @@
             (when cljs?
               (when-let [ns* (get (:qualify-ns ns) name-sym)]
                 (when (some-> (meta ns*) :raw-name string?)
+                  (swap! (:namespaces ctx) update-in
+                         [(:base-lang ctx) lang ns-name :used-aliases] conj name-sym)
                   {:ns ns*
                    :name name-sym})))
             (let [clojure-excluded? (contains? (:clojure-excluded ns)

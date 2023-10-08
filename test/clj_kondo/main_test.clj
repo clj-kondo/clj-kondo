@@ -188,7 +188,11 @@
 (ns bar (:require [foo]))
 `foo/foo ;; this doesn't use the private var, it only uses the ns alias
 foo/foo ;; this does use the private var
-")))
+"))
+  (assert-submaps2
+   '({:file "corpus/my/project/foo.clj", :row 3, :col 8, :level :warning, :message "Unused private var my.project.foo/bar"})
+   (lint! [(io/file "corpus" "data_readers.clj")
+           (io/file "corpus" "my" "project" "foo.clj")])))
 
 (deftest read-error-test
   (testing "when an error happens in one file, the other file is still linted"
@@ -938,9 +942,9 @@ foo/foo ;; this does use the private var
   (is (str/starts-with?
        (with-out-str
          (with-in-str "(do 1)"
-           (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}"}
+           (main "--lint" "-" "--config" (str '{:output {:pattern "{{LEVEL}}_{{filename}}_{{end-row}}"}
                                                 :linters {:unresolved-symbol {:level :off}}}))))
-       "WARNING_<stdin>"))
+       "WARNING_<stdin>_1"))
   (is (empty? (lint! "(comment (select-keys))" '{:skip-comments true
                                                  :linters {:unresolved-symbol {:level :off}}})))
   (assert-submap
@@ -1428,50 +1432,51 @@ foo/foo ;; this does use the private var
       :level :warning,
       :message "redefined var #'user/foo"})
    (lint! "(defn foo []) (defn foo [])"))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 29,
       :level :warning,
       :message "redefined var #'user/foo"})
    (lint! "(let [bar 42] (def foo bar) (def foo bar))"))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 1,
       :level :warning,
       :message "inc already refers to #'clojure.core/inc"})
    (lint! "(defn inc [])"))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 1,
       :level :warning,
       :message "inc already refers to #'cljs.core/inc"})
    (lint! "(defn inc [])" "--lang" "cljs"))
-  (assert-submaps '({:file "<stdin>",
-                     :row 1,
-                     :col 20,
-                     :level :warning,
-                     :message "namespace bar is required but never used"}
-                    {:file "<stdin>",
-                     :row 1,
-                     :col 32,
-                     :level :warning,
-                     :message "#'bar/x is referred but never used"}
-                    {:file "<stdin>",
-                     :row 1,
-                     :col 38,
-                     :level :warning,
-                     :message "x already refers to #'bar/x"})
-                  (lint! "(ns foo (:require [bar :refer [x]])) (defn x [])"))
+  (assert-submaps2 '({:file "<stdin>",
+                      :row 1,
+                      :col 20,
+                      :level :warning,
+                      :message "namespace bar is required but never used"}
+                     {:file "<stdin>",
+                      :row 1,
+                      :col 32,
+                      :level :warning,
+                      :message "#'bar/x is referred but never used"}
+                     {:file "<stdin>",
+                      :row 1,
+                      :col 38,
+                      :level :warning,
+                      :message "x already refers to #'bar/x"})
+                   (lint! "(ns foo (:require [bar :refer [x]])) (defn x [])"))
   (is (empty? (lint! "(defn foo [])")))
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])")))
   (is (empty? (lint! "(declare foo) (def foo 1)")))
   (is (empty? (lint! "(def foo 1) (declare foo)")))
   (is (empty? (lint! "(if (odd? 3) (def foo 1) (def foo 2))")))
   (testing "disable linter in comment"
-    (is (empty? (lint! "(comment (def x 1) (def x 2))")))))
+    (is (empty? (lint! "(comment (def x 1) (def x 2))")))
+    (is (empty? (lint! "(comment (def x 1)) (def x 2)")))))
 
 (deftest unreachable-code-test
   (assert-submaps
@@ -2310,6 +2315,13 @@ foo")))
 (def ^:deprecated foo)
 foo"))))
 
+(deftest deprecated-namespace-test
+  (assert-submaps '({:file "<stdin>", :row 1, :col 58, :level :warning, :message "Namespace foo is deprecated."})
+                  (lint! "(ns foo {:deprecated true}) (def x 1) (ns bar (:require [foo]))"))
+  (is (empty?
+       (lint! "(ns foo {:deprecated true}) (def x 1) (ns bar (:require [foo]))"
+              '{:linters {:deprecated-namespace {:exclude [foo]}}}))))
+
 (deftest unused-referred-var-test
   (assert-submaps
    '({:file "corpus/unused_referred_var.clj",
@@ -2340,7 +2352,13 @@ foo"))))
                           foo (:require [bar :refer [bar] :as b]))
         (apply b/x 1 2 [3 4])")))
   (is (empty? (lint! "(ns foo) (comment (require '[a :refer [shouldnt-warn]]) a/a)"
-                     {:config-in-comment {:linters {:unused-referred-var {:level :off}}}}))))
+                     {:config-in-comment {:linters {:unused-referred-var {:level :off}}}})))
+  (testing "no map in config doesn't result in exception"
+    (binding [*err* (java.io.StringWriter.)]
+      (is (lint! "(ns dude (:require [clojure.set :refer [union]]))"
+                 '{:linters {:unused-referred-var {:exclude [clojure.set]}}}))
+      (when-not tu/native?
+        (is (str/includes? (str *err*) "WARNING"))))))
 
 (deftest duplicate-require-test
   (assert-submaps
@@ -2766,7 +2784,9 @@ foo/baz
   (is (empty? (lint! "
 (defrecord ^:private SessionStore [session-service])
 (deftype ^:private SessionStore2 [session-service])
-(definterface ^:private SessionStore3)"))))
+(definterface ^:private SessionStore3)")))
+  (is (empty? (lint! "(def ^:private _dude 1)")))
+  (is (empty? (lint! "(defonce ^:private _dude 1)"))))
 
 (deftest definterface-test
   (is (empty? (lint! "(definterface Foo (foo [x]) (bar [x]))"
@@ -2934,6 +2954,15 @@ foo/baz
   (testing "case insensitivity"
     (is (empty? (lint! "(ns foo (:require bar Bar))"
                        {:linters {:unsorted-required-namespaces {:level :warning}}})))))
+
+(deftest unsorted-imports-test
+  (assert-submaps2
+   [{:file "<stdin>"
+     :row 1
+     :col 33
+     :level :warning
+     :message "Unsorted import: [abar.core Bar]"}]
+   (lint! "(ns foo (:import [bar.core Foo] [abar.core Bar])) Foo Bar" {:linters {:unsorted-imports {:level :warning}}})))
 
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
@@ -3354,6 +3383,22 @@ foo/")))
 (deftest lint-cljd-files
   (is (seq (lint! (io/file "corpus" "clojure_dart")
                   {:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest feature-keyword-test
+  (assert-submaps
+   '({:file "corpus/feature_syntax.cljc", :row 8, :col 6, :level :error, :message "Feature should be a keyword"})
+   (lint! (io/file "corpus" "feature_syntax.cljc"))))
+
+(deftest exclude-files-test
+  (is (seq (lint! (io/file "corpus" "feature_syntax.cljc"))))
+  (is (empty? (lint! (io/file "corpus" "feature_syntax.cljc") {:exclude-files "feature_syntax.cljc$"}))))
+
+(deftest parse-opts-test
+  (is (= ["src"] (:lint (#'clj-kondo.main/parse-opts ["--lint" "src"]))))
+  (is (= ["src"] (:lint (#'clj-kondo.main/parse-opts ["--lint=src"]))))
+  (is (= ["src" "test"] (:lint (#'clj-kondo.main/parse-opts ["--lint=src" "--lint=test"]))))
+  (is (= "error" (:fail-level (#'clj-kondo.main/parse-opts ["--fail-level" "error"]))))
+  (is (= "error" (:fail-level (#'clj-kondo.main/parse-opts ["--fail-level=error"])))))
 
 ;;;; Scratch
 

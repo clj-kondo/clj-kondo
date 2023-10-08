@@ -90,3 +90,40 @@
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 15, :level :warning, :message "Unused value: x"})
      (lint! "(defn foo [x] x 1)" {:linters {:unused-value {:level :warning}}}))))
+
+(deftest clojure-test-docstring-test
+  (doseq [lang ["clj" "cljc"]
+          code ["(ns test
+  (:require [clojure.test :as t :refer [deftest is]]))
+
+(deftest foo
+  (+ 1 2 3)
+  (is (= 1 2)))"
+                "(ns test
+  (:require [clojure.test :as t :refer [deftest is]]))
+
+(deftest foo
+  \"dude\"
+  (is (= 1 2)))"]]
+    (assert-submaps
+     [{:file "<stdin>",
+       :row 5,
+       :col 3,
+       :level :warning,
+       :message #"Unused value"}]
+     (lint! code {:linters {:unused-value {:level :warning}
+                            :missing-test-assertion {:level :off}}}
+            "--lang" lang))))
+
+(deftest issue-2164-test
+  (is (empty? (lint! "(ns repro
+  (:require
+    [clojure.test :refer [deftest is]]))
+
+(let [some-var \"some-value\"]
+  (deftest this-one-is-flagged-as-unused
+    (is (= some-var \"some-value\")))
+
+  (deftest this-one-is-fine
+    (is (= some-var \"some-value\"))))"
+                     {:linters {:unused-value {:level :warning}}}))))

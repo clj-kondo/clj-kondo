@@ -454,7 +454,15 @@
       (is (empty? (lint! "(+ (byte 32) 1)"
                          {:linters {:type-mismatch {:level :error}}}))))
     (testing (is (empty? (lint! "(defn foo [^double x] x) (foo 1)"
-                                {:linters {:type-mismatch {:level :error}}}))))))
+                                {:linters {:type-mismatch {:level :error}}}))))
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 1,
+        :col 8,
+        :level :error,
+        :message #"Expected: number"})
+     (lint! "(zero? \"foo\")"
+            {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest map-spec-test
   (testing "map spec"
@@ -902,7 +910,8 @@
 (do
   (defn fun2 [m] (:b m))
   (+ 1 (:user/a (fun2 {:a 41}))))"
-                       config-2)))))
+                       config-2))))
+  (is (empty? (lint! "(require 'clojure.set) (clojure.set/project [{:foo :bar}] #{:foo})" config-2))))
 
 (deftest function-ret-map-test
   (testing "manually typed function which returns a map"
@@ -1042,6 +1051,12 @@
 
 (foo 1)"
                      config))))
+
+(deftest issue-2172-throw-test
+  (is (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 8, :level :error, :message "Expected: throwable, received: positive integer."})
+       (lint! "(throw 1)" config)))
+  (is (empty? (lint! "(throw #_:clj-kondo/ignore 1)" config))))
 
 ;;;; Scratch
 

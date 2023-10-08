@@ -233,3 +233,11 @@
    (lint! "(def x 1 2)"))
   (is (empty? (lint! "(def x)")))
   (is (empty? (lint! "(def x \"foo\" 1)"))))
+
+(deftest throw-test
+  (assert-submaps2
+   [{:row 1,
+     :col 1,
+     :level :error,
+     :message "clojure.core/throw is called with 2 args but expects 1"}]
+   (lint! "(throw 1 2)")))

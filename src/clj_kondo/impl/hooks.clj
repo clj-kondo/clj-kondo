@@ -3,8 +3,10 @@
   (:require
    [clj-kondo.hooks-api :as api]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.utils :as utils :refer [*ctx*]]
    [clojure.java.io :as io]
+   [clojure.pprint]
    [sci.core :as sci])
   (:refer-clojure :exclude [macroexpand]))
 
@@ -53,11 +55,18 @@
    'coerce api/coerce
    'ns-analysis api/ns-analysis
    'generated-node? api/generated-node?
-   'resolve api/resolve})
+   'resolve api/resolve
+   'set-node api/set-node
+   'set-node? api/set-node?
+   'node? api/node?})
+
+(defn pprint [& args]
+  (binding [*out* @sci/out]
+    (apply clojure.pprint/pprint args)))
 
 (defn initial-ctx []
   (sci/init {:namespaces {'clojure.core {'time (with-meta time* {:sci/macro true})}
-                          'clojure.pprint {'pprint api/pprint}
+                          'clojure.pprint {'pprint pprint}
                           'clj-kondo.hooks-api api-ns}
              :classes {'java.io.Exception Exception
                        'java.lang.System System
@@ -93,6 +102,57 @@
           ret)))))
 
 (def load-lock (Object.))
+
+
+(defn walk
+  [inner outer form]
+  (cond
+    (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node form)
+    (outer (update form :children #(mapv inner %)))
+    :else (outer form)))
+
+(defn prewalk
+  [f form]
+  (walk (partial prewalk f) identity (f form)))
+
+(defn annotate
+  {:no-doc true}
+  [node original-meta]
+  (let [!!last-meta (volatile! (assoc original-meta :derived-location true))]
+    (prewalk (fn [node]
+               (cond
+                 (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
+                      (identical? :list (utils/tag node)))
+                 (if-let [m (meta node)]
+                   (if-let [m (not-empty (select-keys m [:row :end-row :col :end-col]))]
+                     (do (vreset! !!last-meta (assoc m :derived-location true))
+                         (utils/mark-generate node))
+                     (-> (with-meta node
+                           (merge @!!last-meta (meta node)))
+                         utils/mark-generate))
+                   (->
+                    (with-meta node
+                      @!!last-meta)
+                    utils/mark-generate))
+                 (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+                 (let [m (meta node)]
+                   (if (:row m)
+                     node
+                     (-> (with-meta node
+                           (merge @!!last-meta m))
+                         utils/mark-generate)))
+                 :else node))
+             node)))
+
+(defn macroexpand [macro node bindings]
+  (let [call (api/sexpr node)
+        args (rest call)
+        res (apply macro call bindings args)
+        coerced (api/coerce res)
+        annotated (annotate coerced (meta node))
+        lifted (meta/lift-meta-content2 utils/*ctx* annotated)]
+    ;;
+    lifted))
 
 (def hook-fn
   (let [delayed-cfg
@@ -145,7 +205,7 @@
                                          ;; require isn't thread safe in SCI
                                          (sci/eval-string* sci-ctx code)))]
                            (fn [{:keys [node]}]
-                             {:node (api/macroexpand macro node (:bindings *ctx*))})))))))
+                             {:node (macroexpand macro node (:bindings *ctx*))})))))))
                (catch Exception e
                  (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"
@@ -154,7 +214,8 @@
                    (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
                      (println e)))
                  nil)))
-        delayed-cfg (if api/*reload*
-                      delayed-cfg
-                      (memoize-without-ctx delayed-cfg))]
-    delayed-cfg))
+        memo-delayed-cfg (memoize-without-ctx delayed-cfg)
+        hook-fn' (fn [& args]
+                   (apply (if api/*reload* delayed-cfg memo-delayed-cfg)
+                          args))]
+    hook-fn'))

@@ -20,6 +20,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Uniform-aliasing](#uniform-aliasing)
     - [Datalog syntax](#datalog-syntax)
     - [Deprecated var](#deprecated-var)
+    - [Deprecated namespace](#deprecated-namespace)
     - [Deps.edn](#depsedn)
     - [Bb.edn](#bbedn)
         - [Bb.edn dependency on undefined task](#bbedn-dependency-on-undefined-task)
@@ -75,12 +76,14 @@ configuration. For general configurations options, go [here](config.md).
     - [Refer](#refer)
     - [Refer all](#refer-all)
     - [Single key in](#single-key-in)
+    - [Single logical operand](#single-logical-operand)
     - [Single operand comparison](#single-operand-comparison)
     - [Shadowed var](#shadowed-var)
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
     - [Uninitialized var](#uninitialized-var)
+    - [Unused alias](#unused-alias)
     - [Unused binding](#unused-binding)
     - [Unused value](#unused-value)
     - [Used underscored bindings](#used-underscored-bindings)
@@ -91,6 +94,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unresolved symbol](#unresolved-symbol)
         - [:exclude-patterns](#exclude-patterns)
     - [Unresolved var](#unresolved-var)
+    - [Unsorted imports](#unsorted-imports)
     - [Unsorted required namespaces](#unsorted-required-namespaces)
     - [Unused namespace](#unused-namespace)
     - [Unused private var](#unused-private-var)
@@ -375,6 +379,33 @@ A regex is also permitted, e.g. to exclude all test namespaces:
 
 ``` clojure
 {:linters {:deprecated-var {:exclude {app.foo/foo {:namespaces [".*-test$"]}}}}}
+```
+
+### Deprecated namespace
+
+*Keyword:* `:deprecated-namespace`.
+
+*Description:* warn on usage of namespace that is deprecated.
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+``` clojure
+(ns foo {:deprecated true})
+(def x 1)
+
+(ns bar (:require [foo]))
+```
+
+Example warning: `Namespace foo is deprecated.`.
+
+*Config:*
+
+To exclude warnings about specific namespaces, use:
+
+``` clojure
+{:linters {:deprecated-namespace {:exclude [the-deprecated.namespace]}}}
 ```
 
 ### Deps.edn
@@ -1305,6 +1336,18 @@ Example warning: `require with :refer`.
 
 *Example message:* `get-in with single key.`
 
+### Single logical operand
+
+*Keyword:* `:single-logical-operand`.
+
+*Description:* warn on single operand logical operators with always the same value.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(and 1)`.
+
+*Example message:* `Single arg use of and always returns the arg itself.`
+
 ### Single operand comparison
 
 *Keyword:* `:single-operand-comparison`.
@@ -1405,6 +1448,18 @@ You can add or override type annotations. See
 *Example trigger:* `(def x)`
 
 *Example message:* `Uninitialized var`
+
+### Unused alias
+
+*Keyword:* `:unused-alias`.
+
+*Description:* warn on unused alias introduced in ns form.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(ns foo (:require [foo :as-alias bar]))`
+
+*Example message:* `Unused alias: bar`.
 
 ### Unused binding
 
@@ -1721,6 +1776,18 @@ You can report duplicate warnings using:
 {:linters {:unresolved-var {:report-duplicates true}}}
 ```
 
+### Unsorted imports
+
+*Keyword:* `:unsorted-imports`.
+
+*Description:* warns on non-alphabetically sorted imports in `ns` and `require` forms.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(ns foo (:import [foo A] [bar B]))`.
+
+*Example message:* `Unsorted import: [bar B]`.
+
 ### Unsorted required namespaces
 
 *Keyword:* `:unsorted-required-namespaces`.
@@ -1803,6 +1870,13 @@ To suppress the above warning:
 
 ``` clojure
 {:linters {:unused-private-var {:exclude [foo/f]}}}
+```
+
+When defining a private var with defonce just for side effects, you can start
+the name with an underscore:
+
+``` clojure
+(defonce ^:private _dude (launch-missiles))
 ```
 
 ### Unused referred var

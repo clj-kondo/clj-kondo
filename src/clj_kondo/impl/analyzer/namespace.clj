@@ -30,15 +30,15 @@
   (and (sequential? form) ; should be a list, but often is not
        (symbol? (first form))
        (not-any? keyword? form)
-       (< 1 (count form))))  ; not a bare vector like [foo]
+       (< 1 (count form)))) ; not a bare vector like [foo]
 
 (defn- option-spec?
   "Adapted from clojure.tools.namespace"
   [form]
-  (and (sequential? form)  ; should be a vector, but often is not
+  (and (sequential? form) ; should be a vector, but often is not
        (valid-ns-name? (first form))
-       (or (keyword? (second form))  ; vector like [foo :as f]
-           (= 1 (count form)))))  ; bare vector like [foo]
+       (or (keyword? (second form)) ; vector like [foo :as f]
+           (= 1 (count form))))) ; bare vector like [foo]
 
 (defn normalize-libspec
   "Adapted from clojure.tools.namespace."
@@ -58,9 +58,9 @@
                       (rest children)))
           (option-spec? form)
           [(with-meta
-            (vector-node (into (normalize-libspec ctx prefix (first children) unused-namespace-disabled?)
-                               (rest children)))
-            (meta libspec-expr))]
+             (vector-node (into (normalize-libspec ctx prefix (first children) unused-namespace-disabled?)
+                                (rest children)))
+             (meta libspec-expr))]
           (valid-ns-name? form)
           (let [full-form (symbol (str (when prefix (str prefix "."))
                                        form))]
@@ -70,12 +70,12 @@
                (format "found lib name '%s' containing period with prefix '%s'. lib names inside prefix lists must not contain periods."
                        form prefix)))
             [(with-meta (token-node full-form)
-                        (cond-> (assoc (meta libspec-expr)
-                                       :raw-name form
-                                       :unused-namespace-disabled unused-namespace-disabled?)
-                          prefix
-                          (assoc :prefix prefix)))])
-          (keyword? form)  ; Some people write (:require ... :reload-all)
+               (cond-> (assoc (meta libspec-expr)
+                              :raw-name form
+                              :unused-namespace-disabled unused-namespace-disabled?)
+                 prefix
+                 (assoc :prefix prefix)))])
+          (keyword? form) ; Some people write (:require ... :reload-all)
           nil
           (empty-spec? form)
           (do (find-fn! "require form is invalid: clauses must not be empty") nil)
@@ -110,13 +110,26 @@
         config (:config ctx)
         linters (:linters config)
         lint-refers? (not (identical? :off (-> linters :refer :level)))
-        unknown-require-option-config (-> linters :unknown-require-option)]
+        unknown-require-option-config (-> linters :unknown-require-option)
+        req-macros? (= :require-macros require-kw)]
     (if-let [s (symbol-from-token libspec-expr)]
-      [{:type :require
-        :referred-all (when use? require-kw-expr)
-        :ns (with-meta s
-                       (assoc libspec-meta
-                              :filename filename))}]
+      (do
+        (when (and (= s current-ns-name)
+                   (not req-macros?)
+                   (not (:in-comment ctx)))
+          (findings/reg-finding!
+           ctx
+           (node->line
+            filename
+            libspec-expr
+            :self-requiring-namespace
+            (str "Namespace is requiring itself: "
+                 s))))
+        [{:type :require
+          :referred-all (when use? require-kw-expr)
+          :ns (with-meta s
+                (assoc libspec-meta
+                       :filename filename))}])
       (let [[ns-name-expr & option-exprs] (:children libspec-expr)
             ns-name (:value ns-name-expr)
             ns-name (if (= :cljs lang)
@@ -126,15 +139,25 @@
                         ns-name)
                       ns-name)
             ns-name (with-meta ns-name
-                               (assoc (meta (first (:children libspec-expr)))
-                                      :filename filename
-                                      :raw-name (-> (meta ns-name-expr) :raw-name)
-                                      :branch (:branch libspec-meta)))
-            self-require? (and
-                           (= :cljc base-lang)
-                           (= :cljs lang)
-                           (= current-ns-name ns-name)
-                           (= :require-macros require-kw))]
+                      (assoc (meta (first (:children libspec-expr)))
+                             :filename filename
+                             :raw-name (-> (meta ns-name-expr) :raw-name)
+                             :branch (:branch libspec-meta)))
+            cljs-macros-self-require? (and
+                                       (= :cljc base-lang)
+                                       (= :cljs lang)
+                                       (= current-ns-name ns-name)
+                                       req-macros?)]
+        (when (and (= ns-name current-ns-name)
+                   (not req-macros?)
+                   (not (:in-comment ctx)))
+          (findings/reg-finding!
+           ctx
+           (node->line
+            filename
+            libspec-expr
+            :self-requiring-namespace
+            (str "Namespace is requiring itself: " current-ns-name))))
         (loop [children option-exprs
                m {:as nil
                   :referred #{}
@@ -159,7 +182,7 @@
                                    (str "require with " (str child-k))))))
                   (recur
                    (nnext children)
-                   (cond (and (not self-require?) (sequential? opt))
+                   (cond (and (not cljs-macros-self-require?) (sequential? opt))
                          (let [;; undo referred-all when using :only with :use
                                m (if (and use? (= :only child-k))
                                    (do (findings/reg-finding!
@@ -194,7 +217,7 @@
                            (swap! (:used-namespaces ctx) update (:base-lang ctx) conj ns-name)
                            (update m :referred into
                                    (map #(with-meta (sexpr %)
-                                                    (meta %))) opt-expr-children))
+                                           (meta %))) opt-expr-children))
                          (= :all opt)
                          (assoc m :referred-all opt-expr)
                          :else m)))
@@ -204,15 +227,16 @@
                  (assoc m
                         :as (when opt
                               (with-meta opt
-                                         (cond-> (meta opt-expr)
-                                           (identical? :as-alias child-k)
-                                           (assoc :as-alias true))))))
+                                (cond-> (assoc (meta opt-expr)
+                                               :filename (:filename ctx))
+                                  (identical? :as-alias child-k)
+                                  (assoc :as-alias true))))))
                 ;; shadow-cljs:
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default
                 (recur (nnext children)
                        (update m :referred conj (with-meta opt
-                                                           (meta opt-expr))))
+                                                  (meta opt-expr))))
                 :exclude
                 (recur
                  (nnext children)
@@ -289,7 +313,7 @@
 (defn coerce-class-symbol [ctx node]
   (if-let [v (:value node)]
     (with-meta v
-               (meta node))
+      (meta node))
     (do (findings/reg-finding!
          ctx
          (node->line (:filename ctx) node :syntax "Expected: class symbol"))
@@ -322,7 +346,7 @@
                  splitted (-> package+class name (str/split #"\."))
                  java-package (symbol (str/join "." (butlast splitted)))
                  imported (with-meta (symbol (last splitted))
-                                     (meta libspec-expr))]
+                            (meta libspec-expr))]
              {imported java-package})
     nil))
 
@@ -391,7 +415,7 @@
          (into (keys refer-alls))
          (conj ns-name)
          (into (when-not
-                   (-> ctx :config :linters :unused-namespace :simple-libspec)
+                (-> ctx :config :linters :unused-namespace :simple-libspec)
                  (keep (fn [req]
                          (when (and (not (:as req))
                                     (empty? (:referred req)))
@@ -409,6 +433,7 @@
    :destructuring-defaults #{}
    :used-referred-vars #{}
    :used-imports #{}
+   :used-aliases #{}
    :used-vars []
    :unresolved-namespaces {}
    :vars nil
@@ -444,10 +469,13 @@
                           (when (= :map (tag sc))
                             sc)))))
         _ (when meta-node (common/analyze-expression** ctx meta-node))
-        meta-node-meta (when meta-node (sexpr meta-node))
+        meta-node-meta (when meta-node
+                         (try (sexpr meta-node)
+                              (catch Exception _ nil)))
         ns-meta (if meta-node-meta
                   (merge metadata meta-node-meta)
                   metadata)
+        deprecated (:deprecated ns-meta)
         [doc-node docstring] (or (and meta-node-meta
                                       (:doc meta-node-meta)
                                       (docstring/docs-from-meta meta-node))
@@ -521,14 +549,16 @@
                       [require-kw-node (-> ?require-clause :children next)])
         analyzed-require-clauses
         (analyze-require-clauses ctx ns-name kw+libspecs)
+        imports-raw (for [?import-clause clauses
+                          :let [import-kw (some-> ?import-clause :children first :k
+                                                  (= :import))]
+                          :when import-kw
+                          libspec-expr (rest (:children ?import-clause))]
+                      libspec-expr)
+        _ (when (seq imports-raw)
+            (namespace/lint-unsorted-required-namespaces! ctx imports-raw :unsorted-imports))
         imports
-        (apply merge
-               (for [?import-clause clauses
-                     :let [import-kw (some-> ?import-clause :children first :k
-                                             (= :import))]
-                     :when import-kw
-                     libspec-expr (rest (:children ?import-clause))]
-                 (analyze-import ctx ns-name libspec-expr)))
+        (apply merge (map #(analyze-import ctx ns-name %) imports-raw))
         refer-clojure-clauses
         (apply merge-with into
                (for [?refer-clojure (nnext (sexpr expr))
@@ -551,12 +581,13 @@
                    :clojure-excluded (:excluded refer-clojure-clauses)}
         gen-class? (some #(some-> % :children first :k (= :gen-class)) clauses)
         ns (cond->
-               (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
-                             :imports imports
-                             :gen-class gen-class?)
-                      (merge-with into
-                                  analyzed-require-clauses
-                                  refer-clj))
+            (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
+                          :imports imports
+                          :gen-class gen-class?
+                          :deprecated deprecated)
+                   (merge-with into
+                               analyzed-require-clauses
+                               refer-clj))
              (or config-in-ns local-config) (assoc :config merged-config)
              (identical? :clj lang) (update :qualify-ns
                                             #(assoc % 'clojure.core 'clojure.core))
@@ -643,5 +674,4 @@
 
 ;;;; Scratch
 
-(comment
-  )
+(comment)

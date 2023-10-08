@@ -69,8 +69,8 @@ qualified? {1 {:ret :boolean}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.transit.json  ===
 file-position {1 {:ret :vector}}
-file-and-line {2 {:ret #{{:type :map, :val {:file {:row 341, :col 16, :end-row 341, :end-col 32}, :line {:row 341, :col 39, :end-row 341, :end-col 57}}, :row 341, :col 9, :end-row 341, :end-col 58} {:type :map, :val {:file {:row 342, :col 14, :end-row 342, :end-col 17, :tag :nil}, :line {:row 342, :col 24, :end-row 342, :end-col 27, :tag :nil}}, :row 342, :col 7, :end-row 342, :end-col 28}}}}
-stacktrace-file-and-line {1 {:ret #{{:type :map, :val {:file {:row 348, :col 14, :end-row 348, :end-col 30}, :line {:row 348, :col 37, :end-row 348, :end-col 55}}, :row 348, :col 7, :end-row 348, :end-col 56} {:type :map, :val {:file {:row 349, :col 12, :end-row 349, :end-col 15, :tag :nil}, :line {:row 349, :col 22, :end-row 349, :end-col 25, :tag :nil}}, :row 349, :col 5, :end-row 349, :end-col 26}}}}
+file-and-line {2 {:ret #{{:type :map, :val {:file {:row 341, :end-row 341, :col 16, :end-col 32}, :line {:row 341, :end-row 341, :col 39, :end-col 57}}, :row 341, :col 9, :end-row 341, :end-col 58} {:type :map, :val {:file {:row 342, :end-row 342, :col 14, :end-col 17, :tag :nil}, :line {:row 342, :end-row 342, :col 24, :end-col 27, :tag :nil}}, :row 342, :col 7, :end-row 342, :end-col 28}}}}
+stacktrace-file-and-line {1 {:ret #{{:type :map, :val {:file {:row 348, :end-row 348, :col 14, :end-col 30}, :line {:row 348, :end-row 348, :col 37, :end-col 55}}, :row 348, :col 7, :end-row 348, :end-col 56} {:type :map, :val {:file {:row 349, :end-row 349, :col 12, :end-col 15, :tag :nil}, :line {:row 349, :end-row 349, :col 22, :end-col 25, :tag :nil}}, :row 349, :col 5, :end-row 349, :end-col 26}}}}
 compose-fixtures {2 {:ret :fn}}
 function? {1 {:ret #{:nil :boolean}}}
 successful? {1 {:ret #{:nil :boolean}}}
@@ -89,7 +89,7 @@ even-number-of-forms? {1 {:ret :boolean}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.protocols.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.junit.transit.json  ===
-suite-attrs {2 {:ret #{{:type :map, :val {:name {:row 99, :col 22, :end-row 99, :end-col 31}}, :row 101, :col 7, :end-row 101, :end-col 37} {:type :map, :val {:name {:row 99, :col 22, :end-row 99, :end-col 31}}, :row 102, :col 7, :end-row 102, :end-col 12}}}}
+suite-attrs {2 {:ret #{{:type :map, :val {:name {:row 99, :end-row 99, :col 22, :end-col 31}}, :row 101, :col 7, :end-row 101, :end-col 37} {:type :map, :val {:name {:row 99, :end-row 99, :col 22, :end-col 31}}, :row 102, :col 7, :end-row 102, :end-col 12}}}}
 package-class {1 {:ret #{:vector}}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.pprint.transit.json  ===
@@ -138,24 +138,24 @@ tuple-map {2 {:ret {:type :map, :val {}}}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.alpha.transit.json  ===
 alt-impl {3 {:ret :associative}}
 pvalid? {2 {:ret :boolean}, 3 {:ret :boolean}}
-explain-data* {5 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:row 221, :col 19, :end-row 221, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 222, :col 15, :end-row 222, :end-col 19}, :value {:row 223, :col 16, :end-row 223, :end-col 17}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
+explain-data* {5 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:row 221, :end-row 221, :col 19, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 222, :end-row 222, :col 15, :end-col 19}, :value {:row 223, :end-row 223, :col 16, :end-col 17}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
 fn-sym {1 {:ret #{:symbol :nil}}}
 inst-in-range? {3 {:ret #{:nil :boolean}}}
 accept? {1 {:ret :boolean}}
-accept {1 {:ret {:type :map, :val {:clojure.spec.alpha/op {:row 1382, :col 25, :end-row 1382, :end-col 33, :tag :keyword}, :ret {:row 1382, :col 39, :end-row 1382, :end-col 40}}}}}
+accept {1 {:ret {:type :map, :val {:clojure.spec.alpha/op {:row 1382, :end-row 1382, :col 25, :end-col 33, :tag :keyword}, :ret {:row 1382, :end-row 1382, :col 39, :end-col 40}}}}}
 recur-limit? {4 {:ret #{:nil :boolean}}}
 valid? {2 {:ret :boolean}, 3 {:ret :boolean}}
 int-in-range? {3 {:ret #{:nil :boolean}}}
 exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq}}
-explain-data {2 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:row 221, :col 19, :end-row 221, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 222, :col 15, :end-row 222, :end-col 19}, :value {:row 223, :col 16, :end-row 223, :end-col 17}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
+explain-data {2 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:row 221, :end-row 221, :col 19, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 222, :end-row 222, :col 15, :end-col 19}, :value {:row 223, :end-row 223, :col 16, :end-col 17}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
 inck {2 {:ret :associative}}
 invalid? {1 {:ret :boolean}}
-amp-impl {4 {:ret {:type :map, :val {:clojure.spec.alpha/op {:row 1423, :col 9, :end-row 1423, :end-col 14, :tag :keyword}, :p1 {:row 1423, :col 19, :end-row 1423, :end-col 21}, :amp {:row 1423, :col 27, :end-row 1423, :end-col 34}, :ps {:row 1423, :col 39, :end-row 1423, :end-col 44}, :forms {:row 1423, :col 52, :end-row 1423, :end-col 62}}}}}
+amp-impl {4 {:ret {:type :map, :val {:clojure.spec.alpha/op {:row 1423, :end-row 1423, :col 9, :end-col 14, :tag :keyword}, :p1 {:row 1423, :end-row 1423, :col 19, :end-col 21}, :amp {:row 1423, :end-row 1423, :col 27, :end-col 34}, :ps {:row 1423, :end-row 1423, :col 39, :end-col 44}, :forms {:row 1423, :end-row 1423, :col 52, :end-col 62}}}}}
 explain-str {2 {:ret :nilable/string}}
-rep-impl {2 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1406, :col 19, :end-row 1406, :end-col 24, :tag :keyword}, :p2 {:row 1406, :col 30, :end-row 1406, :end-col 32}, :splice {:row 1406, :col 42, :end-row 1406, :end-col 48}, :forms {:row 1406, :col 57, :end-row 1406, :end-col 61}, :id {:row 1406, :col 66, :end-row 1406, :end-col 93}}, :row 1408, :col 9, :end-row 1408, :end-col 51} :nil {:type :map, :val {:clojure.spec.alpha/op {:row 1406, :col 19, :end-row 1406, :end-col 24, :tag :keyword}, :p2 {:row 1406, :col 30, :end-row 1406, :end-col 32}, :splice {:row 1406, :col 42, :end-row 1406, :end-col 48}, :forms {:row 1406, :col 57, :end-row 1406, :end-col 61}, :id {:row 1406, :col 66, :end-row 1406, :end-col 93}}, :row 1409, :col 9, :end-row 1409, :end-col 35}}}}
+rep-impl {2 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1406, :end-row 1406, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1406, :end-row 1406, :col 30, :end-col 32}, :splice {:row 1406, :end-row 1406, :col 42, :end-col 48}, :forms {:row 1406, :end-row 1406, :col 57, :end-col 61}, :id {:row 1406, :end-row 1406, :col 66, :end-col 93}}, :row 1408, :col 9, :end-row 1408, :end-col 51} :nil {:type :map, :val {:clojure.spec.alpha/op {:row 1406, :end-row 1406, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1406, :end-row 1406, :col 30, :end-col 32}, :splice {:row 1406, :end-row 1406, :col 42, :end-col 48}, :forms {:row 1406, :end-row 1406, :col 57, :end-col 61}, :id {:row 1406, :end-row 1406, :col 66, :end-col 93}}, :row 1409, :col 9, :end-row 1409, :end-col 35}}}}
 filter-alt {4 {:ret #{:vector}}}
 call-valid? {3 {:ret #{:nil :boolean}}}
-rep* {5 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1406, :col 19, :end-row 1406, :end-col 24, :tag :keyword}, :p2 {:row 1406, :col 30, :end-row 1406, :end-col 32}, :splice {:row 1406, :col 42, :end-row 1406, :end-col 48}, :forms {:row 1406, :col 57, :end-row 1406, :end-col 61}, :id {:row 1406, :col 66, :end-row 1406, :end-col 93}}, :row 1408, :col 9, :end-row 1408, :end-col 51} :nil {:type :map, :val {:clojure.spec.alpha/op {:row 1406, :col 19, :end-row 1406, :end-col 24, :tag :keyword}, :p2 {:row 1406, :col 30, :end-row 1406, :end-col 32}, :splice {:row 1406, :col 42, :end-row 1406, :end-col 48}, :forms {:row 1406, :col 57, :end-row 1406, :end-col 61}, :id {:row 1406, :col 66, :end-row 1406, :end-col 93}}, :row 1409, :col 9, :end-row 1409, :end-col 35}}}}
+rep* {5 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1406, :end-row 1406, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1406, :end-row 1406, :col 30, :end-col 32}, :splice {:row 1406, :end-row 1406, :col 42, :end-col 48}, :forms {:row 1406, :end-row 1406, :col 57, :end-col 61}, :id {:row 1406, :end-row 1406, :col 66, :end-col 93}}, :row 1408, :col 9, :end-row 1408, :end-col 51} :nil {:type :map, :val {:clojure.spec.alpha/op {:row 1406, :end-row 1406, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1406, :end-row 1406, :col 30, :end-col 32}, :splice {:row 1406, :end-row 1406, :col 42, :end-col 48}, :forms {:row 1406, :end-row 1406, :col 57, :end-col 61}, :id {:row 1406, :end-row 1406, :col 66, :end-col 93}}, :row 1409, :col 9, :end-row 1409, :end-col 35}}}}
 maybe-impl {2 {:ret :associative}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.stacktrace.transit.json  ===
@@ -241,9 +241,9 @@ garg {1 {:ret :symbol, :args (:int)}}
 pdistinct {1 {:ret :vector}}
 pvec {1 {:ret :vector}}
 pa-to-vec {1 {:ret :vector}}
-psummary {1 {:ret {:type :map, :val {:min {:row 156, :col 9, :end-row 156, :end-col 17}, :max {:row 156, :col 23, :end-row 156, :end-col 31}, :size {:row 156, :col 38, :end-row 156, :end-col 47}, :min-index {:row 156, :col 59, :end-row 156, :end-col 74}, :max-index {:row 156, :col 86, :end-row 156, :end-col 101}}}}, 2 {:ret {:type :map, :val {:min {:row 156, :col 9, :end-row 156, :end-col 17}, :max {:row 156, :col 23, :end-row 156, :end-col 31}, :size {:row 156, :col 38, :end-row 156, :end-col 47}, :min-index {:row 156, :col 59, :end-row 156, :end-col 74}, :max-index {:row 156, :col 86, :end-row 156, :end-col 101}}}}}
+psummary {1 {:ret {:type :map, :val {:min {:row 156, :end-row 156, :col 9, :end-col 17}, :max {:row 156, :end-row 156, :col 23, :end-col 31}, :size {:row 156, :end-row 156, :col 38, :end-col 47}, :min-index {:row 156, :end-row 156, :col 59, :end-col 74}, :max-index {:row 156, :end-row 156, :col 86, :end-col 101}}}}, 2 {:ret {:type :map, :val {:min {:row 156, :end-row 156, :col 9, :end-col 17}, :max {:row 156, :end-row 156, :col 23, :end-col 31}, :size {:row 156, :end-row 156, :col 38, :end-col 47}, :min-index {:row 156, :end-row 156, :col 59, :end-col 74}, :max-index {:row 156, :end-row 156, :col 86, :end-col 101}}}}}
 pfilter-nils {1 {:ret :vector}}
-summary-map {1 {:ret {:type :map, :val {:min {:row 156, :col 9, :end-row 156, :end-col 17}, :max {:row 156, :col 23, :end-row 156, :end-col 31}, :size {:row 156, :col 38, :end-row 156, :end-col 47}, :min-index {:row 156, :col 59, :end-row 156, :end-col 74}, :max-index {:row 156, :col 86, :end-row 156, :end-col 101}}}}}
+summary-map {1 {:ret {:type :map, :val {:min {:row 156, :end-row 156, :col 9, :end-col 17}, :max {:row 156, :end-row 156, :col 23, :end-col 31}, :size {:row 156, :end-row 156, :col 38, :end-col 47}, :min-index {:row 156, :end-row 156, :col 59, :end-col 74}, :max-index {:row 156, :end-row 156, :col 86, :end-col 101}}}}}
 psort {1 {:ret :vector}, 2 {:ret :vector}}
 pfilter-dupes {1 {:ret :vector}}
 
@@ -277,9 +277,9 @@ cat {1 {:ret :fn}}
 monoid {2 {:ret :fn}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.reflect.transit.json  ===
-access-flag {1 {:ret {:type :map, :val {:name {:row 57, :col 10, :end-row 57, :end-col 14}, :flag {:row 57, :col 21, :end-row 57, :end-col 25}, :contexts {:row 57, :col 36, :end-row 57, :end-col 64}}}}}
+access-flag {1 {:ret {:type :map, :val {:name {:row 57, :end-row 57, :col 10, :end-col 14}, :flag {:row 57, :end-row 57, :col 21, :end-col 25}, :contexts {:row 57, :end-row 57, :col 36, :end-col 64}}}}}
 declared-constructors {1 {:ret :set}}
-parse-method-descriptor {1 {:ret {:type :map, :val {:parameter-types {:row 193, :col 21, :end-row 193, :end-col 67}, :return-type {:row 194, :col 17, :end-row 194, :end-col 50}}}, :args (:nilable/string)}}
+parse-method-descriptor {1 {:ret {:type :map, :val {:parameter-types {:row 193, :end-row 193, :col 21, :end-col 67}, :return-type {:row 194, :end-row 194, :col 17, :end-col 50}}}, :args (:nilable/string)}}
 field-descriptor->class-symbol {1 {:args (:nilable/string)}}
 declared-fields {1 {:ret :set}}
 declared-methods {1 {:ret :set}}
@@ -315,7 +315,7 @@ map {1 {:ret :fn}, 2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}, :varargs {:ret :
 juxt {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 < {1 {:ret :boolean}}
 NaN? {1 {:args (#{:double :int :float})}}
-make-hierarchy {0 {:ret {:type :map, :val {:parents {:row 5557, :col 16, :end-row 5557, :end-col 18, :tag {:type :map, :val {}}}, :descendants {:row 5557, :col 32, :end-row 5557, :end-col 34, :tag {:type :map, :val {}}}, :ancestors {:row 5557, :col 46, :end-row 5557, :end-col 48, :tag {:type :map, :val {}}}}}}}
+make-hierarchy {0 {:ret {:type :map, :val {:parents {:row 5557, :end-row 5557, :col 16, :end-col 18, :tag {:type :map, :val {}}}, :descendants {:row 5557, :end-row 5557, :col 32, :end-col 34, :tag {:type :map, :val {}}}, :ancestors {:row 5557, :end-row 5557, :col 46, :end-col 48, :tag {:type :map, :val {}}}}}}}
 keep {1 {:ret :fn}, 2 {:ret :seq}}
 unchecked-long {1 {:args (:nilable/number)}}
 some? {1 {:ret :boolean}}
@@ -352,7 +352,7 @@ double {1 {:args (:nilable/number)}}
 nfirst {1 {:ret :seq}}
 method-sig {1 {:ret :vector}}
 hash-ordered-coll {1 {:ret :int}}
-deref-as-map {1 {:ret {:type :map, :val {:status {:row 445, :col 6, :end-row 455, :end-col 14, :tag #{{:tag :keyword, :row 452, :col 7, :end-row 452, :end-col 15} {:tag :keyword, :row 455, :col 7, :end-row 455, :end-col 13} {:tag :keyword, :row 449, :col 7, :end-row 449, :end-col 14}}}, :val {:row 457, :col 11, :end-row 457, :end-col 14}}, :row 444, :col 5, :end-row 457, :end-col 15}}}
+deref-as-map {1 {:ret {:type :map, :val {:status {:row 445, :end-row 455, :col 6, :end-col 14, :tag #{{:tag :keyword, :row 452, :col 7, :end-row 452, :end-col 15} {:tag :keyword, :row 455, :col 7, :end-row 455, :end-col 13} {:tag :keyword, :row 449, :col 7, :end-row 449, :end-col 14}}}, :val {:row 457, :end-row 457, :col 11, :end-col 14}}, :row 444, :col 5, :end-row 457, :end-col 15}}}
 seque {1 {:ret :seq}, 2 {:ret :seq}}
 empty? {1 {:ret :boolean}}
 short {1 {:args (:nilable/number)}}
@@ -443,7 +443,7 @@ underive {2 {:ret :nil}}
 Throwable->map {1 {:ret :nilable/map}}
 some-fn {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 simple-ident? {1 {:ret #{:nil :boolean}}}
-parse-uuid {1 {:args (:nilable/string)}}
+parse-uuid {1 {:args (:string)}}
 generate-interface {1 {:ret :vector}}
 xml-seq {1 {:ret :seq}}
 byte {1 {:args (:nilable/number)}}
@@ -488,7 +488,7 @@ check-call {3 {:ret #{:throwable :boolean}}}
 no-fspec {2 {:ret :throwable}}
 make-check-result {3 {:ret :nilable/map}}
 enumerate-namespace {1 {:ret :set}}
-sym->check-map {1 {:ret {:type :map, :val {:s {:row 460, :col 9, :end-row 460, :end-col 10}, :v {:row 461, :col 9, :end-row 461, :end-col 10, :tag {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.core, :ns clojure.spec.test.alpha, :name resolve, :arity 1}}}, :spec {:row 462, :col 12, :end-row 462, :end-col 35, :tag #{{:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.test.alpha, :name get-spec, :arity 1}, :row 462, :col 20, :end-row 462, :end-col 34} :nil}}}, :row 460, :col 5, :end-row 462, :end-col 36}}}
+sym->check-map {1 {:ret {:type :map, :val {:s {:row 460, :end-row 460, :col 9, :end-col 10}, :v {:row 461, :end-row 461, :col 9, :end-col 10, :tag {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.core, :ns clojure.spec.test.alpha, :name resolve, :arity 1}}}, :spec {:row 462, :end-row 462, :col 12, :end-col 35, :tag #{{:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.test.alpha, :name get-spec, :arity 1}, :row 462, :col 20, :end-row 462, :end-col 34} :nil}}}, :row 460, :col 5, :end-row 462, :end-col 36}}}
 thunk-frame? {1 {:ret :boolean}}
 build-kwargs-body {2 {:ret :list}}
 
