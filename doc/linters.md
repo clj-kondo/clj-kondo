@@ -17,6 +17,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Cond-else](#cond-else)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
+    - [Heterogeneous-alias](#heterogeneous-alias)
     - [Datalog syntax](#datalog-syntax)
     - [Deprecated var](#deprecated-var)
     - [Deps.edn](#depsedn)
