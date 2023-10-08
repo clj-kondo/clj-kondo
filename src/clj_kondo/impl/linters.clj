@@ -784,6 +784,34 @@
         :end-row (:end-row m)
         :end-col (:end-col m)}))))
 
+(defn lint-enforce-consistent-alias!
+  [ctx]
+  (let [linter-config (-> ctx :config :linters :consistent-alias)]
+    (when (and (not (identical? :off (:level linter-config)))
+               (:enforce linter-config))
+      (let [aliases-grouped-by-namespace (->> ctx
+                                              namespace/list-namespaces
+                                              (map :aliases)
+                                              (mapcat seq)
+                                              (group-by second))]
+        (doseq [[_ aliases] aliases-grouped-by-namespace]
+          (let [usages (->> aliases
+                            (map first)
+                            set)]
+            (when (-> usages count (> 1))
+              (doseq [[alias namespace] aliases
+                      :let [filename (-> namespace meta :filename)
+                            m (meta alias)]]
+                (findings/reg-finding!
+                 ctx
+                 {:type :consistent-alias
+                  :filename filename
+                  :message (str "Inconsistent aliases " usages " found for " namespace)
+                  :row (:row m)
+                  :col (:col m)
+                  :end-row (:end-row m)
+                  :end-col (:end-col m)})))))))))
+
 ;;;; scratch
 
 (comment)
