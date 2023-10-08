@@ -279,6 +279,25 @@ will produce this warning:
 Inconsistent alias. Expected old-api instead of api.
 ```
 
+### Heterogeneous-alias
+
+*Keyword:* `:heterogeneous-alias`.
+
+*Description:* Sometimes, it's desirable to use the same alias across
+namespaces to enhance readability and reduce cognitive load.
+
+*Default level:* `:off`.
+
+*Example trigger:*
+
+``` clojure
+(ns foo (:require [clojure.string :as s]))
+(ns bar (:require [clojure.string :as str]))
+(ns baz (:require [clojure.string :as string]))
+```
+
+*Example message:* `Different aliases #{s str string} found for clojure.string`.
+
 ### Datalog syntax
 
 *Keyword:* `:datalog-syntax`.

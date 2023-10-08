@@ -784,11 +784,10 @@
         :end-row (:end-row m)
         :end-col (:end-col m)}))))
 
-(defn lint-enforce-consistent-alias!
+(defn lint-heterogeneous-alias!
   [ctx]
-  (let [linter-config (-> ctx :config :linters :consistent-alias)]
-    (when (and (not (identical? :off (:level linter-config)))
-               (:enforce linter-config))
+  (let [linter-config (-> ctx :config :linters :heterogeneous-alias)]
+    (when (not (identical? :off (:level linter-config)))
       (let [aliases-grouped-by-namespace (->> ctx
                                               namespace/list-namespaces
                                               (map :aliases)
@@ -804,9 +803,9 @@
                             m (meta alias)]]
                 (findings/reg-finding!
                  ctx
-                 {:type :consistent-alias
+                 {:type :heterogeneous-alias
                   :filename filename
-                  :message (str "Inconsistent aliases " usages " found for " namespace)
+                  :message (str "Different aliases " usages " found for " namespace)
                   :row (:row m)
                   :col (:col m)
                   :end-row (:end-row m)
