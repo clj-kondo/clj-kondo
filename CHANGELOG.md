@@ -29,6 +29,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#256](https://github.com/clj-kondo/clj-kondo/issues/256): warn on reader conditional usage in non-cljc files
 - [#2115](https://github.com/clj-kondo/clj-kondo/issues/2115): false positive `:redundant-fn-wrapper` in CLJS when passing keyword to JS
 - [#1082](https://github.com/clj-kondo/clj-kondo/issues/1082): protocol methods do not support varargs
+- [#2195](https://github.com/clj-kondo/clj-kondo/issues/2195): new linter `:uniform-aliasing`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#uniform-aliasing).
 
 ## 2023.05.26
 
