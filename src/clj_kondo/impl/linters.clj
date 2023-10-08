@@ -784,9 +784,9 @@
         :end-row (:end-row m)
         :end-col (:end-col m)}))))
 
-(defn lint-heterogeneous-alias!
+(defn lint-uniform-aliasing!
   [ctx]
-  (let [linter-config (-> ctx :config :linters :heterogeneous-alias)]
+  (let [linter-config (-> ctx :config :linters :uniform-aliasing)]
     (when (not (identical? :off (:level linter-config)))
       (let [aliases-grouped-by-namespace (->> ctx
                                               namespace/list-namespaces
@@ -803,7 +803,7 @@
                             m (meta alias)]]
                 (findings/reg-finding!
                  ctx
-                 {:type :heterogeneous-alias
+                 {:type :uniform-aliasing
                   :filename filename
                   :message (str "Different aliases " usages " found for " namespace)
                   :row (:row m)

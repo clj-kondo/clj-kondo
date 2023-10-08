@@ -17,7 +17,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Cond-else](#cond-else)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
-    - [Heterogeneous-alias](#heterogeneous-alias)
+    - [Uniform-aliasing](#uniform-aliasing)
     - [Datalog syntax](#datalog-syntax)
     - [Deprecated var](#deprecated-var)
     - [Deps.edn](#depsedn)
@@ -280,9 +280,9 @@ will produce this warning:
 Inconsistent alias. Expected old-api instead of api.
 ```
 
-### Heterogeneous-alias
+### Uniform-aliasing
 
-*Keyword:* `:heterogeneous-alias`.
+*Keyword:* `:uniform-aliasing`.
 
 *Description:* Sometimes, it's desirable to use the same alias across
 namespaces to enhance readability and reduce cognitive load.

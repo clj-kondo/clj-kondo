@@ -102,7 +102,7 @@
                                  ;; warn when alias for clojure.string is
                                  ;; different from str
                                  :aliases {#_clojure.string #_str}}
-              :heterogeneous-alias {:level :off}
+              :uniform-aliasing {:level :off}
               :unused-import {:level :warning}
               :single-operand-comparison {:level :warning}
               :single-logical-operand {:level :warning}

@@ -1,4 +1,4 @@
-(ns clj-kondo.heterogeneous-alias-test
+(ns clj-kondo.uniform-aliasing-test
   (:require [clj-kondo.test-utils :as tu :refer [lint!]]
             [clojure.test :as t :refer [deftest is testing]]
             [matcher-combinators.test]))
@@ -17,7 +17,7 @@
 
 (deftest homogeneous-test
   (is (empty? (lint! consistent
-                     {:linters {:heterogeneous-alias {:level :info}}}))))
+                     {:linters {:uniform-aliasing {:level :info}}}))))
 
 (deftest heterogeneous-test
   (is (match?
@@ -37,5 +37,5 @@
          :level :info,
          :message "Different aliases #{s str} found for clojure.string"}]
        (lint! inconsistent
-              {:linters {:heterogeneous-alias {:level :info}}}))))
+              {:linters {:uniform-aliasing {:level :info}}}))))
 

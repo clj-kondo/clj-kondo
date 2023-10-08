@@ -224,7 +224,7 @@
                   (l/lint-unused-imports! ctx)
                   (l/lint-unresolved-namespaces! ctx)
                   (l/lint-discouraged-namespaces! ctx)
-                  (l/lint-heterogeneous-alias! ctx))))
+                  (l/lint-uniform-aliasing! ctx))))
           _ (when custom-lint-fn
               (binding [utils/*ctx* ctx]
                 (custom-lint-fn (cond->
