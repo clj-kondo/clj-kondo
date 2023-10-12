@@ -3094,7 +3094,15 @@ foo/baz
   (is (empty? (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
                      {:linters {:missing-else-branch {:level :off}}})))
   (is (empty? (lint! "(if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
-                     {:linters {:if {:level :off}}}))))
+                     {:linters {:if {:level :off}}})))
+  (is (empty? (lint! "(ns foo {:clj-kondo/config '{:linters {:missing-else-branch {:level :off}}}})
+                      (if true 1) (if-not true 1) (if-let [x 1] x) (if-some [x 1] x)"
+                     {:linters {:missing-else-branch {:level :warning}}})))
+  (is (empty? (lint! "#_:clj-kondo/ignore (if true 1)"
+                     {:linters {:missing-else-branch {:level :warning}}})))
+  (is (empty? (lint! "(ns foo) (if true 1)"
+                     {:linters {:missing-else-branch {:level :warning}}
+                      :config-in-ns '{foo {:linters {:missing-else-branch {:level :off}}}}}))))
 
 (deftest single-key-in-test
   (doseq [lang ["clj" "cljs"]]

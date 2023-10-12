@@ -124,7 +124,10 @@
 
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
-        called-name (:name called-fn)]
+        called-name (:name called-fn)
+        config (:config call)
+        ctx (if config (assoc ctx :config config)
+                ctx)]
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
