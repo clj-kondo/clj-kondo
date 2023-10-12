@@ -349,6 +349,7 @@
                           (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
                             (when-not (identical? :off (:level cfg))
                               (findings/reg-finding! ctx {:filename filename
+                                                          :level (:level cfg)
                                                           :row row
                                                           :end-row end-row
                                                           :col col

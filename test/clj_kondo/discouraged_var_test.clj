@@ -85,3 +85,12 @@
             '{:ns-groups [{:pattern "(cljs|clojure).core" :name core}]
               :linters  {:discouraged-var {core/satisfies? {:message "Too slow"}
                                            clojure.core/satisfies? {:message "Way too slow"}}}}))))
+(deftest level-test
+  (assert-submaps2
+   [{:file "<stdin>",
+     :row 1,
+     :col 24,
+     :level :error,
+     :message "Discouraged var: foo/bar"}]
+   (lint! "(ns foo) (defn bar []) (bar)"
+          '{:linters {:discouraged-var {foo/bar {:level :error}}}})))
