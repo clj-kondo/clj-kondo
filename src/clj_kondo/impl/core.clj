@@ -27,11 +27,13 @@
 (defn format-output [config]
   (let [output-cfg (:output config)]
     (if-let [^String pattern (-> output-cfg :pattern)]
-      (fn [{:keys [:filename :row :col :level :message :type] :as _finding}]
+      (fn [{:keys [:filename :row :end-row :col :end-col :level :message :type] :as _finding}]
         (-> pattern
             (str/replace "{{filename}}" filename)
             (str/replace "{{row}}" (str row))
+            (str/replace "{{end-row}}" (str end-row))
             (str/replace "{{col}}" (str col))
+            (str/replace "{{end-col}}" (str end-col))
             (str/replace "{{level}}" (name level))
             (str/replace "{{LEVEL}}" (str/upper-case (name level)))
             (str/replace "{{message}}" message)
