@@ -281,6 +281,11 @@
                (assoc-in [base-lang lang ns-sym :qualify-ns alias-sym] aliased-ns-sym)
                (assoc-in [base-lang lang ns-sym :aliases alias-sym] aliased-ns-sym)))))
 
+(defn reg-used-alias!
+  [{:keys [namespaces lang base-lang]} ns-name name-sym]
+  (swap! namespaces update-in
+         [base-lang lang ns-name :used-aliases] conj name-sym))
+
 (defn reg-binding!
   [ctx ns-sym binding]
   (when-not (or (:skip-reg-binding? ctx)
@@ -620,8 +625,7 @@
                                         (var-info/core-sym? lang var-name))
                     alias? (contains? (:aliases ns) ns-sym)]
                 (when alias?
-                  (swap! (:namespaces ctx) update-in
-                         [(:base-lang ctx) lang ns-name :used-aliases] conj ns-sym))
+                  (reg-used-alias! ctx ns-name ns-sym))
                 (cond->
                  {:ns ns*
                   :name var-name
@@ -715,8 +719,7 @@
             (when cljs?
               (when-let [ns* (get (:qualify-ns ns) name-sym)]
                 (when (some-> (meta ns*) :raw-name string?)
-                  (swap! (:namespaces ctx) update-in
-                         [(:base-lang ctx) lang ns-name :used-aliases] conj name-sym)
+                  (reg-used-alias! ctx ns-name name-sym)
                   {:ns ns*
                    :name name-sym})))
             (let [clojure-excluded? (contains? (:clojure-excluded ns)

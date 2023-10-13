@@ -24,7 +24,8 @@
            :unsorted-imports {:level :warning}
            ;; for  nubank/matcher-combinators
            :unresolved-symbol {:exclude [(clojure.test/is [match?])]}
-           :def-fn {:level :warning}}
+           :def-fn {:level :warning}
+           :self-requiring-namespace {:level :warning}}
  :lint-as {me.raynes.conch/programs clojure.core/declare
            me.raynes.conch/let-programs clojure.core/let
            datalog.parser.type/deftrecord clojure.core/defrecord
