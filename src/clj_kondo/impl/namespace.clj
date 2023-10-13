@@ -6,11 +6,11 @@
    [clj-kondo.impl.analysis.java :as java]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils
     :refer [deep-merge export-ns-sym linter-disabled? node->line one-of]]
    [clj-kondo.impl.var-info :as var-info]
-   [clojure.string :as str]
-   [clj-kondo.impl.namespace :as namespace])
+   [clojure.string :as str])
   (:import
    [java.util StringTokenizer]))
 
