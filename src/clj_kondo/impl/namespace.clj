@@ -6,7 +6,6 @@
    [clj-kondo.impl.analysis.java :as java]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils
     :refer [deep-merge export-ns-sym linter-disabled? node->line one-of]]
    [clj-kondo.impl.var-info :as var-info]
@@ -626,7 +625,7 @@
                                         (var-info/core-sym? lang var-name))
                     alias? (contains? (:aliases ns) ns-sym)]
                 (when alias?
-                  (namespace/reg-used-alias! ctx ns-name ns-sym))
+                  (reg-used-alias! ctx ns-name ns-sym))
                 (cond->
                  {:ns ns*
                   :name var-name
@@ -720,7 +719,7 @@
             (when cljs?
               (when-let [ns* (get (:qualify-ns ns) name-sym)]
                 (when (some-> (meta ns*) :raw-name string?)
-                  (namespace/reg-used-alias! ctx ns-name name-sym)
+                  (reg-used-alias! ctx ns-name name-sym)
                   {:ns ns*
                    :name name-sym})))
             (let [clojure-excluded? (contains? (:clojure-excluded ns)
