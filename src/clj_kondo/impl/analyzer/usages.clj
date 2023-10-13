@@ -39,13 +39,15 @@
                  prefix
 
                  :else
-                 alias-or-ns)]
+                 alias-or-ns)
+        alias (when (and aliased? (not= :clj-kondo/unknown-namespace ns-sym)) alias-or-ns)]
+    (prn :alias alias)
     {:name name-sym
      :ns ns-sym
      :namespace-from-prefix (and prefix
                                  (not alias-or-ns)
                                  (not (:namespaced? expr)))
-     :alias (when (and aliased? (not= :clj-kondo/unknown-namespace ns-sym)) alias-or-ns)}))
+     :alias alias}))
 
 (defn analyze-keyword
   ([ctx expr] (analyze-keyword ctx expr {}))
@@ -101,6 +103,7 @@
         resolved (or resolved-ns ns-sym)]
     (when resolved-ns
       (when-let [resolved-ns (get (:qualify-ns the-ns) ns-sym)]
+        (namespace/reg-used-alias! ctx ns-name ns-sym)
         (namespace/reg-used-namespace! ctx
                                        ns-name
                                        resolved-ns)))
