@@ -41,7 +41,6 @@
                  :else
                  alias-or-ns)
         alias (when (and aliased? (not= :clj-kondo/unknown-namespace ns-sym)) alias-or-ns)]
-    (prn :alias alias)
     {:name name-sym
      :ns ns-sym
      :namespace-from-prefix (and prefix
