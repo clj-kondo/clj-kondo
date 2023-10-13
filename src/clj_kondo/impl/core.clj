@@ -336,15 +336,16 @@
                     (when (:copy-configs ctx)
                       ;; only copy when copy-configs is true
                       (copy-config-file ctx file cfg-dir))
-                    (cond
-                      (and can-read? source?)
-                      {:uri (->uri nil nil nm)
-                       :filename nm
-                       :source (slurp file)
-                       :group-id dir}
-                      (and (not can-read?) source?)
-                      (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
-                      :else nil))))))
+                    (when cfg-dir
+                      (cond
+                        (and can-read? source?)
+                        {:uri (->uri nil nil nm)
+                         :filename nm
+                         :source (slurp file)
+                         :group-id dir}
+                        (and (not can-read?) source?)
+                        (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
+                        :else nil)))))))
           files)))
 
 ;;;; threadpool
@@ -540,14 +541,16 @@
            distinct
            seq))))
 
-(defn print-copied-configs [imports]
+(defn print-copied-configs [imports cfg-dir]
   (binding [*out* *err*]
-    (if (seq imports)
-      (do
-        (println "Configs copied:")
-        (doseq [i imports]
-          (println (str "- " i))))
-      (println "No configs copied."))))
+    (cond (not cfg-dir)
+          (println "No configs copied because config dir (.clj-kondo) does not exist.")
+          (seq imports)
+          (do
+            (println "Configs copied:")
+            (doseq [i imports]
+              (println (str "- " i))))
+          :else (println "No configs copied."))))
 
 (defn process-files [ctx files default-lang filename]
   (let [ctx (assoc ctx :seen-files (atom #{}))
@@ -568,7 +571,7 @@
           (io/make-parents skip-file)
           (spit skip-file path))))
     (when (:copy-configs ctx)
-      (print-copied-configs (copied-config-paths ctx)))))
+      (print-copied-configs (copied-config-paths ctx) (:config-dir ctx)))))
 
 ;;;; index defs and calls by language and namespace
 
