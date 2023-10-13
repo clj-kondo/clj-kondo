@@ -2,6 +2,7 @@
   (:require [babashka.fs :as fs]
             [clj-kondo.impl.core :as core-impl]
             [clj-kondo.impl.utils :as utils]
+            [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]))
 
 (deftest copied-configs-resolution-test
@@ -37,13 +38,17 @@
                      (repeat (System/getProperty "line.separator"))))
          (let [s (new java.io.StringWriter)]
            (binding [*err* s]
-             (core-impl/print-copied-configs
-              ["cfg/a/b" "cfg/c/d"]))
+             (core-impl/print-copied-configs ["cfg/a/b" "cfg/c/d"] ".clj-kondo"))
            (str s)))))
 
 (deftest print-no-copied-configs-test
   (is (= (str "No configs copied." (System/getProperty "line.separator"))
          (let [s (new java.io.StringWriter)]
            (binding [*err* s]
-             (core-impl/print-copied-configs []))
-           (str s)))))
+             (core-impl/print-copied-configs [] ".clj-kondo"))
+           (str s))))
+  (is (str/includes? (let [s (new java.io.StringWriter)]
+                       (binding [*err* s]
+                         (core-impl/print-copied-configs ["cfg/a/b" "cfg/c/d"] nil))
+                       (str s))
+                     "config dir")))
