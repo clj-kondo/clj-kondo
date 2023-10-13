@@ -2,8 +2,8 @@
   (:require [babashka.fs :as fs]
             [clj-kondo.impl.core :as core-impl]
             [clj-kondo.impl.utils :as utils]
-            [clojure.test :refer [deftest is testing]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.test :refer [deftest is testing]]))
 
 (deftest copied-configs-resolution-test
   (testing "no findings"
