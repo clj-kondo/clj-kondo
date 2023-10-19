@@ -547,6 +547,7 @@
         [name-node & children] (next (:children expr))
         name-node-meta-nodes (:meta name-node)
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
+        _ (utils/handle-ignore ctx name-node)
         fn-name (some-> (:value name-node)
                         (with-meta (meta name-node)))
         call (name (symbol-call expr))

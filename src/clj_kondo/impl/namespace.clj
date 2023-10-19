@@ -155,7 +155,6 @@
                      (not (one-of ns-sym [cljs.core clojure.core]))))
        (findings/reg-finding! ctx (node->line
                                    filename (let [thing (if (meta var-sym) var-sym expr)]
-                                              (prn thing (meta thing))
                                               thing)
                                    :syntax
                                    (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym) )))

@@ -1420,12 +1420,13 @@ foo/foo ;; this does use the private var
   ;; TODO: linter is triggered twice, why?
   ;; TODO: clj-kondo/ignore doesn't work yet
   (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Symbols starting or ending with dot (.) are reserved by Clojure"}
-     {:file "<stdin>", :row 1, :col 16, :level :error, :message "Symbols starting or ending with dot (.) are reserved by Clojure"})
-   (prn (lint! "
+   [({:file "<stdin>", :row 2, :col 7, :level :error, :message "Symbols starting or ending with dot (.) are reserved by Clojure: .foo"}
+     {:file "<stdin>", :row 3, :col 7, :level :error, :message "Symbols starting or ending with dot (.) are reserved by Clojure: bar."})]
+   (lint! "
 (defn .foo [])
 (defn bar. [])
-(defn #_:clj-kondo/ignore .dude. [])" {:linters {:syntax {:level :error}}}))))
+(defn #_:clj-kondo/ignore .dude. [])
+#_:clj-kondo/ignore (defn .dude2 [])" {:linters {:syntax {:level :error}}})))
 
 (deftest call-as-use-test
   (is (empty?
