@@ -149,6 +149,15 @@
        (analysis/reg-var! ctx filename expr-row expr-col
                           ns-sym var-sym
                           metadata))
+     (when (and (or (str/starts-with? var-sym ".")
+                    (str/ends-with? var-sym "."))
+                (and (not= '.. var-sym)
+                     (not (one-of ns-sym [cljs.core clojure.core]))))
+       (findings/reg-finding! ctx (node->line
+                                   filename (let [thing (if (meta var-sym) var-sym expr)]
+                                              thing)
+                                   :syntax
+                                   (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym) )))
      (when-not (:skip-reg-var ctx)
        (swap! namespaces update-in path
               (fn [ns]
