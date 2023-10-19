@@ -1416,6 +1416,17 @@ foo/foo ;; this does use the private var
    '({:file "<stdin>", :row 1, :col 11, :level :error, :message "Unparsable libspec: [foo oh-no :as]"})
    (lint! "(require '[foo oh-no :as])" {:linters {:syntax {:level :error}}})))
 
+(deftest varname-syntax-test
+  ;; TODO: linter is triggered twice, why?
+  ;; TODO: clj-kondo/ignore doesn't work yet
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Symbols starting or ending with dot (.) are reserved by Clojure"}
+     {:file "<stdin>", :row 1, :col 16, :level :error, :message "Symbols starting or ending with dot (.) are reserved by Clojure"})
+   (prn (lint! "
+(defn .foo [])
+(defn bar. [])
+(defn #_:clj-kondo/ignore .dude. [])" {:linters {:syntax {:level :error}}}))))
+
 (deftest call-as-use-test
   (is (empty?
        (lint!
