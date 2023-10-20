@@ -2399,7 +2399,7 @@
                               "(comment (def x 1))"
                               (clj-kondo/run! {:lint ["-"]
                                                :config {:analysis {:var-definitions {:callstack true}}}})))]
-    (is 'comment (-> (:var-definitions analysis) first :callstack last :name))))
+    (is (= 'comment (-> (:var-definitions analysis) first :callstack last :name)))))
 
 (comment
   (context-test)
