@@ -2055,6 +2055,13 @@
                                         :type :equals-true
                                         :message "Prefer (true? x) over (= true x)"
                                         :filename (:filename ctx))))
+    (when (and (= 2 (count children))
+               (or (false? (:value lhs))
+                   (false? (:value rhs))))
+      (findings/reg-finding! ctx (assoc (meta expr)
+                                        :type :equals-false
+                                        :message "Prefer (false? x) over (= false x)"
+                                        :filename (:filename ctx))))
     (analyze-children ctx children false)))
 
 (defn- analyze-+- [ctx sym expr]
