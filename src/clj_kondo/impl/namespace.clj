@@ -149,7 +149,8 @@
        (analysis/reg-var! ctx filename expr-row expr-col
                           ns-sym var-sym
                           metadata))
-     (when (and (or (str/starts-with? var-sym ".")
+     (when (and var-sym
+                (or (str/starts-with? var-sym ".")
                     (str/ends-with? var-sym "."))
                 (and (not= '.. var-sym)
                      (not (one-of ns-sym [cljs.core clojure.core]))))
