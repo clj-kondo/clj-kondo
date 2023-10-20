@@ -18,34 +18,34 @@
       (let [to-ns (export-ns-sym to-ns)]
         (swap! analysis update :var-usages conj
                (assoc-some
-                 (merge
-                   {:filename filename
-                    :row row
-                    :col col
-                    :from from-ns
-                    :to to-ns
-                    :name var-name}
-                   (select-some metadata
-                                [:private :macro
-                                 :fixed-arities
-                                 :varargs-min-arity
-                                 :deprecated
-                                 :refer
-                                 :alias
-                                 :defmethod
-                                 :dispatch-val-str
-                                 :name-row
-                                 :name-col
-                                 :name-end-row
-                                 :name-end-col
-                                 :end-row
-                                 :end-col
-                                 :derived-location
-                                 :derived-name-location]))
-                 :arity arity
-                 :lang lang
-                 :from-var in-def
-                 :context (select-context (:analysis-context ctx) ctx)))))))
+                (merge
+                 {:filename filename
+                  :row row
+                  :col col
+                  :from from-ns
+                  :to to-ns
+                  :name var-name}
+                 (select-some metadata
+                              [:private :macro
+                               :fixed-arities
+                               :varargs-min-arity
+                               :deprecated
+                               :refer
+                               :alias
+                               :defmethod
+                               :dispatch-val-str
+                               :name-row
+                               :name-col
+                               :name-end-row
+                               :name-end-col
+                               :end-row
+                               :end-col
+                               :derived-location
+                               :derived-name-location]))
+                :arity arity
+                :lang lang
+                :from-var in-def
+                :context (select-context (:analysis-context ctx) ctx)))))))
 
 (defn reg-symbol! [ctx filename from-ns symbol lang metadata]
   (when (:analyze-symbols? ctx)
@@ -74,7 +74,8 @@
               :lang lang
               :context (select-context (:analysis-context ctx) ctx))))))
 
-(defn reg-var! [{:keys [:analysis-var-meta :analysis :base-lang :lang] :as _ctx}
+(defn reg-var! [{:keys [analysis-var-meta analysis base-lang lang
+                        analyze-callstack-in-defs?] :as ctx}
                 filename row col ns nom attrs]
   (when analysis
     (let [raw-attrs attrs
@@ -107,7 +108,12 @@
                              attrs)
                 analysis-var-meta (assoc :meta
                                          (cond-> (apply merge (:user-meta raw-attrs))
-                                           (not (true? analysis-var-meta)) (select-keys analysis-var-meta))))
+                                           (not (true? analysis-var-meta)) (select-keys analysis-var-meta)))
+                analyze-callstack-in-defs? (assoc :callstack
+                                                  (mapv (fn [[ns var]]
+                                                          {:ns ns
+                                                           :name var})
+                                                        (:callstack ctx))))
               :lang (when (= :cljc base-lang) lang))))))
 
 (defn reg-namespace! [{:keys [:analysis-ns-meta :analysis :base-lang :lang] :as _ctx}
@@ -116,9 +122,9 @@
     (swap! analysis update :namespace-definitions conj
            (assoc-some
             (cond-> (merge {:filename filename
-                            :row      row
-                            :col      col
-                            :name     ns-name}
+                            :row row
+                            :col col
+                            :name ns-name}
                            metadata)
               analysis-ns-meta (-> (assoc :meta
                                           (cond-> (apply merge (:user-meta metadata))
@@ -210,12 +216,12 @@
         (when k
           (swap! analysis update k conj
                  (cond->
-                     {:method-name (str method-name-node)
-                      :filename (:filename ctx)
-                      :name-row (:row method-meta)
-                      :name-col (:col method-meta)
-                      :name-end-row (:end-row method-meta)
-                      :name-end-col (:end-col method-meta)}
+                  {:method-name (str method-name-node)
+                   :filename (:filename ctx)
+                   :name-row (:row method-meta)
+                   :name-col (:col method-meta)
+                   :name-end-row (:end-row method-meta)
+                   :name-end-col (:end-col method-meta)}
                    (= :cljc (:base-lang ctx))
                    (assoc :lang (:lang ctx))
                    derived-location (assoc :derived-location true))))))))

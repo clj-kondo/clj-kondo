@@ -30,6 +30,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2186](https://github.com/clj-kondo/clj-kondo/issues/2186): Improve warning when `--copy-configs` is enabled but no config dir exists
 - [#2190](https://github.com/clj-kondo/clj-kondo/issues/2190): false positive with `:unused-alias` and namespaced map
 - [#2065](https://github.com/clj-kondo/clj-kondo/issues/2065): new linter `:equals-false`, counterpart of `:equals-true`
+- #2200: include optional `:callstack` in analysis
 
 ## 2023.09.07
 
