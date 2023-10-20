@@ -114,6 +114,7 @@ The analysis output consists of a map with:
     definition was done: `:clj` or `:cljs`
   - `:arglist-strs`: arg lists as written, or valid looking `:arglists` metadata override, ex. `["[x]" "[x y]"]`
   - `:protocol-ns`, `:protocol-name`: the protocol namespace and name for a protocol method
+  - `:callstack`: experimental, only provided with `{:var-definitions {:callstack true}}`
 
 - `:var-usages`, a list of maps with:
   - `:filename`
