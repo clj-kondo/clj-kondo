@@ -149,6 +149,7 @@
               :duplicate-field {:level :error}
               :aliased-namespace-var-usage {:level :warning}
               :uninitialized-var {:level :warning}
+              :equals-false {:level :off}
               :equals-true {:level :off}
               :plus-one {:level :off}
               :minus-one {:level :off}
