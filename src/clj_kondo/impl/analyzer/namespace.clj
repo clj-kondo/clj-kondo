@@ -343,7 +343,7 @@
                       (into {} (for [i imported]
                                  [i java-package])))
     :token (if (symbol? (:value libspec-expr))
-             (let [package+class (:value #p libspec-expr)
+             (let [package+class (:value libspec-expr)
                    splitted (-> package+class name (str/split #"\."))
                    java-package (symbol (str/join "." (butlast splitted)))
                    imported (with-meta (symbol (last splitted))
