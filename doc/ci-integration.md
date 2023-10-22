@@ -62,7 +62,7 @@ To run the `clj-kondo` hook via Docker add the following instead:
 
 ```yaml
 - repo: https://github.com/clj-kondo/clj-kondo
-    rev: v2022.04.25
+    rev: v2023.10.20
     hooks:
       - id: clj-kondo-docker
 ```
