@@ -203,8 +203,6 @@ Options:
 
 (comment
 
-  (main "--debug" "--lint" "/home/figurantpp/thing.txt")
-
   (into #{}
    (comp
     (map :filename)
