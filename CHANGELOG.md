@@ -19,7 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2013](https://github.com/clj-kondo/clj-kondo/issues/1804): Fixe NPE and similar errors when linting an import with an illegal token
+- [#2013](https://github.com/clj-kondo/clj-kondo/issues/1804): Fix NPE and similar errors when linting an import with an illegal token
 - [#1804](https://github.com/clj-kondo/clj-kondo/issues/1804): new linter `:self-requiring-namespace`
 - [#2179](https://github.com/clj-kondo/clj-kondo/issues/2179): consider alias-as-object usage in CLJS for :unused-alias linter
 - [#2183](https://github.com/clj-kondo/clj-kondo/issues/2183): respect `:level` in `:discouraged-var` config
