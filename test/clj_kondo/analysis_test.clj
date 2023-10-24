@@ -2394,6 +2394,13 @@
         :from user, :col 37, :name-col 37, :end-col 56, :row 2, :to clojure.string}]
      var-usgs)))
 
+(deftest callstack-test
+  (let [analysis (:analysis (with-in-str
+                              "(comment (def x 1))"
+                              (clj-kondo/run! {:lint ["-"]
+                                               :config {:analysis {:var-definitions {:callstack true}}}})))]
+    (is (= 'comment (-> (:var-definitions analysis) first :callstack last :name)))))
+
 (comment
   (context-test)
   )
