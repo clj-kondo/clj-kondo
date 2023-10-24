@@ -547,7 +547,9 @@
         [name-node & children] (next (:children expr))
         name-node-meta-nodes (:meta name-node)
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
-        fn-name (:value name-node)
+        _ (utils/handle-ignore ctx name-node)
+        fn-name (some-> (:value name-node)
+                        (with-meta (meta name-node)))
         call (name (symbol-call expr))
         var-leading-meta (meta name-node)
         _ (when (identical? :clj (:lang ctx))
@@ -1721,7 +1723,7 @@
                                                   :type-mismatch
                                                   :private-call
                                                   :missing-docstring])]
-    (namespace/reg-var! ctx ns-name name-sym expr (meta name-expr))
+    (when name-sym (namespace/reg-var! ctx ns-name name-sym expr (meta name-expr)))
     (run! #(analyze-usages2 ctx %) body)))
 
 (defn analyze-when [ctx expr]
@@ -2046,13 +2048,19 @@
 
 (defn- analyze-= [ctx expr]
   (let [[lhs rhs :as children] (rest (:children expr))]
-    (when (and (= 2 (count children))
-               (or (true? (:value lhs))
-                   (true? (:value rhs))))
-      (findings/reg-finding! ctx (assoc (meta expr)
-                                        :type :equals-true
-                                        :message "Prefer (true? x) over (= true x)"
-                                        :filename (:filename ctx))))
+    (when (= 2 (count children))
+      (when (or (true? (:value lhs))
+                (true? (:value rhs)))
+        (findings/reg-finding! ctx (assoc (meta expr)
+                                          :type :equals-true
+                                          :message "Prefer (true? x) over (= true x)"
+                                          :filename (:filename ctx))))
+      (when (or (false? (:value lhs))
+                (false? (:value rhs)))
+        (findings/reg-finding! ctx (assoc (meta expr)
+                                          :type :equals-false
+                                          :message "Prefer (false? x) over (= false x)"
+                                          :filename (:filename ctx)))))
     (analyze-children ctx children false)))
 
 (defn- analyze-+- [ctx sym expr]

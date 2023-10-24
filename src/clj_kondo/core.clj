@@ -137,6 +137,7 @@
           analyze-java-member-defs? (some-> analysis-cfg :java-member-definitions)
           analyze-meta? (or analysis-var-meta analysis-ns-meta)
           analyze-symbols? (some-> analysis-cfg :symbols)
+          analyze-callstack-in-defs? (some-> analysis-cfg :var-definitions :callstack)
           analysis (when analysis-cfg
                      (atom (cond-> {:namespace-definitions []
                                     :namespace-usages []
@@ -190,6 +191,7 @@
                :analyze-instance-invocations? analyze-instance-invocations?
                :analysis-context analysis-context
                :analyze-symbols? analyze-symbols?
+               :analyze-callstack-in-defs? analyze-callstack-in-defs?
                ;; set of files which should not be flushed into cache
                ;; most notably hook configs, as they can conflict with original sources
                ;; NOTE: we don't allow this to be changed in namespace local
