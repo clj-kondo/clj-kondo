@@ -291,46 +291,17 @@ use {
 
 ## IntelliJ IDEA
 
-Currently there are three ways to get clj-kondo integration in IntelliJ.
-All three methods work well and have equivalent features.
+Currently there are two ways to get clj-kondo integration in IntelliJ.
+The two methods work well and have equivalent features.
 Select your preferred plugin/version management preference between:
 
 * Clojure Extras IntelliJ Plugin
-* LSP (Language Server Protocol) plugin to run clj-kondo from a jar
 * Cursive or ClojureKit + File Watchers plugin to run an installed binary clj-kondo
 
 ### Clojure Extras Plugin
 
 Install the plugin from [IntelliJ IDEA Plugins Marketplace](https://plugins.jetbrains.com/plugin/18108-clojure-extras/).
 You can setup a custom binary from the settings screen or just use the built-in version.
-
-### LSP server
-
-The clj-kondo LSP server provides diagnostics via the LSP protocol. To get it
-working in IntelliJ follow these steps:
-
-1. Download the latest clj-kondo LSP server jar to your system. Go to the
-   [Github releases](https://github.com/clj-kondo/clj-kondo/releases) and look
-   for `clj-kondo-lsp-server-<version>-standalone.jar`. The jar is provided
-   since version `2019.11.23`.
-
-2. Install the LSP Support plugin by gtache, either from the marketplace of via
-   a zipfile downloaded from the a [Github
-   release](https://github.com/gtache/intellij-lsp/releases). Version 1.6.0 or
-   later is required.
-
-   <img src="../screenshots/intellij-lsp.png" width="50%" align="right">
-
-3. Configure the LSP Support plugin.
-   - Go to Preferences / Languages & Frameworks / Language Server Protocol / Server definitions. Select
-     `Raw command`.
-   - In the `Extension` field enter `clj;cljs;cljc;edn`.
-   -  In the command field enter `java -jar
-      <path>` where `<path>` matches the downloaded
-      jar file,
-      e.g. `/Users/clj-kondo/clj-kondo-lsp-server-2019.11.23-standalone.jar`.
-
-Now, when editing a Clojure file, you should get linting feedback.
 
 ### File Watchers + installed binary
 
