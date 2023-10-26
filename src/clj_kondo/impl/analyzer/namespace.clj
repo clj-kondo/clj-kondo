@@ -342,12 +342,21 @@
                               :syntax "Expected: package name followed by classes.")))
                       (into {} (for [i imported]
                                  [i java-package])))
-    :token (let [package+class (:value libspec-expr)
-                 splitted (-> package+class name (str/split #"\."))
-                 java-package (symbol (str/join "." (butlast splitted)))
-                 imported (with-meta (symbol (last splitted))
-                            (meta libspec-expr))]
-             {imported java-package})
+    :token (if (symbol? (:value libspec-expr))
+             (let [package+class (:value libspec-expr)
+                   splitted (-> package+class name (str/split #"\."))
+                   java-package (symbol (str/join "." (butlast splitted)))
+                   imported (with-meta (symbol (last splitted))
+                              (meta libspec-expr))]
+               {imported java-package})
+             (do
+               (findings/reg-finding!
+                ctx
+                (node->line
+                 (:filename ctx)
+                 libspec-expr
+                 :syntax "Import target is not a package"))
+               {}))
     nil))
 
 (defn analyze-require-clauses [ctx ns-name kw+libspecs]

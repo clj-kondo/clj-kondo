@@ -3420,6 +3420,12 @@ foo/")))
   (is (= "error" (:fail-level (#'clj-kondo.main/parse-opts ["--fail-level" "error"]))))
   (is (= "error" (:fail-level (#'clj-kondo.main/parse-opts ["--fail-level=error"])))))
 
+(deftest import-illegal-token
+  (let [expected (list {:file "<stdin>", :row 1, :col 9, :level :error, :message "Import target is not a package"})]
+    (assert-submaps2 expected (lint! "(import \"\")"))
+    (assert-submaps2 expected (lint! "(import 3.14)"))
+    (assert-submaps2 expected (lint! "(import -1)"))))
+
 ;;;; Scratch
 
 (comment
