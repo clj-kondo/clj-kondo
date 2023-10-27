@@ -15,6 +15,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Case symbol test constant](#case-symbol-test-constant)
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
+    - [Condition always true](#condition-always-true)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
     - [Datalog syntax](#datalog-syntax)
@@ -239,9 +240,10 @@ enabling this linter, you can prepend the `case` expression with
 *Keyword:* `:condition-always-true`.
 
 *Description:* warn on a condition that evaluates to an always truthy constant,
-like when passing a function instead of calling it
+like when passing a function instead of calling it. This linter intentionally
+doesn't check for literally `true` values of vars since this is often a dev/production setting.
 
-*Default level:* `:warning`.
+*Default level:* `:off` (will be `:warning` in a future release).
 
 *Example trigger:* `(if odd? :odd :even)`.
 
