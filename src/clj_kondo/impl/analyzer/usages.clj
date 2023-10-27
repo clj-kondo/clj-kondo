@@ -245,7 +245,8 @@
                                       :interop? interop?
                                       ;; save some memory
                                       :expr (when-not dependencies expr)
-                                      :resolved-core? resolved-core?}]
+                                      :resolved-core? resolved-core?
+                                      :condition (:condition expr)}]
                            (namespace/reg-var-usage! ctx ns-name
                                                      usage)
                            (utils/reg-call ctx usage (:id expr))

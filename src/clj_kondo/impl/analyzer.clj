@@ -1673,7 +1673,10 @@
        (node->line (:filename ctx) expr
                    linter
                    msg)))
-    (analyze-children ctx args false)))
+    (let [[condition & args] args]
+      (when condition
+        (analyze-expression** ctx (assoc condition :condition true)))
+      (analyze-children ctx args false))))
 
 (defn analyze-constructor
   "Analyzes (new Foo ...) constructor call."

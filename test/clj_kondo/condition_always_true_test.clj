@@ -1,0 +1,14 @@
+(ns clj-kondo.condition-always-true-test
+  (:require
+   [clj-kondo.test-utils :refer [lint! assert-submaps2]]
+   [clojure.test :as t :refer [deftest is testing]]))
+
+(deftest condition-always-true-test
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 19, :level :warning, :message "Condition always true"})
+   (lint! "(defn foo [x] (if inc x 2))"
+          '{:linters {:condition-always-true {:level :warning}}}))
+  (is (empty?
+       (lint! "(defn foo [x] (if x inc 2))
+               (defn bar [x] (if x 2 inc))"
+              '{:linters {:condition-always-true {:level :warning}}}))))

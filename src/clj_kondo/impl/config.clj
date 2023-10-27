@@ -155,7 +155,8 @@
               :minus-one {:level :off}
               :protocol-method-varargs {:level :error}
               :unused-alias {:level :off}
-              :self-requiring-namespace {:level :off}}
+              :self-requiring-namespace {:level :off}
+              :condition-always-true {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
