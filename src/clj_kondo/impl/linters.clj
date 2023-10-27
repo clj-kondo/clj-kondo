@@ -395,6 +395,10 @@
                   (and call?
                        (not (utils/linter-disabled? call :single-logical-operand))
                        (lint-single-logical-operand call))]]
+      (when (and (not call?)
+                 (identical? :fn (:type called-fn)))
+        (when (:condition call)
+          (findings/reg-finding! ctx (assoc call :message "Condition always true" :type :condition-always-true))))
       (when arity-error?
         (findings/reg-finding!
          ctx
