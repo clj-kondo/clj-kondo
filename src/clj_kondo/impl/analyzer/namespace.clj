@@ -550,6 +550,7 @@
                                (str "Namespace name does not match file name: " ns-name)))))))
 
         _ (when (and (not (identical? :off (-> ctx :config :linters :underline-in-namespace :level)))
+                     (symbol? ns-name)
                      (.contains ^String (name ns-name) "_"))
             (findings/reg-finding!
              ctx
