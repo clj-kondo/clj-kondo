@@ -934,6 +934,21 @@
 (defn- let? [x]
   (one-of x [[clojure.core let] [cljs.core let]]))
 
+(defn- invalid-fn-name? [?name-expr]
+  (let [valid? (some-fn utils/list-node? ; fn body (usually 1 of many)
+                        utils/vector-node? ; fn args
+                        utils/symbol-token?)] ; fn name
+    (not (valid? ?name-expr))))
+
+(defn- reg-invalid-fn-name! [ctx expr filename]
+  (findings/reg-finding!
+   ctx
+   (node->line
+    filename
+    expr
+    :invalid-fn-name
+    "First arg of fn should be a symbol, arg vector or body list")))
+
 (defn- def-fn? [{:keys [callstack]}]
   (let [[_ parent extra-parent] callstack]
     (or (def? parent)
@@ -985,6 +1000,10 @@
     (when (and (not (linter-disabled? ctx :def-fn))
                (def-fn? ctx))
       (reg-def-fn! ctx expr filename))
+    (when (and (not (linter-disabled? ctx :valid-fn-name))
+               ?name-expr
+               (invalid-fn-name? ?name-expr))
+      (reg-invalid-fn-name! ctx expr filename))
     (with-meta parsed-bodies
       (when arities
         (cond-> {:arity {:fixed-arities fixed-arities

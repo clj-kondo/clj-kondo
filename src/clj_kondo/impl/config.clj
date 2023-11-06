@@ -25,6 +25,7 @@
               :private-call {:level :error}
               :inline-def {:level :warning}
               :def-fn {:level :off}
+              :invalid-fn-name {:level :error}
               :redundant-do {:level :warning}
               :redundant-let {:level :warning}
               :cond-else {:level :warning}

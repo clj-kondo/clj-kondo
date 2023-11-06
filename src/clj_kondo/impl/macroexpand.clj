@@ -12,6 +12,56 @@
         x (if m* (assoc x :meta m*) x)]
     (with-meta x m)))
 
+(defn find-children
+  "Recursively filters children by pred"
+  [pred children]
+  (mapcat #(if (pred %)
+             [(pred %)]
+             (when-let [cchildren (:children %)]
+               (find-children pred cchildren)))
+          children))
+
+(defn fn-args [children]
+  (let [args (find-children
+              #(and (= :token (tag %))
+                    (:string-value %)
+                    (when-let [[_ n] (re-matches #"%((\d?\d?)|&)" (:string-value %))]
+                      (case n
+                        "" 1
+                        "&" 0
+                        (Integer/parseInt n))))
+              children)
+        args (sort args)
+        varargs? (when-let [fst (first args)]
+                   (zero? fst))
+        args (seq (if varargs? (rest args) args))
+        max-n (last args)
+        args (when args (map (fn [i]
+                               (symbol (str "%" i)))
+                             (range 1 (inc max-n))))]
+    {:varargs? varargs?
+     :args args}))
+
+(defn expand-fn [{:keys [:children] :as expr}]
+  (let [{:keys [:row :col] :as m} (meta expr)
+        {:keys [:args :varargs?]} (fn-args children)
+        fn-body (with-meta (list-node children)
+                  (assoc m
+                         :row row
+                         :col (inc col)))
+        arg-list (vector-node
+                  (map #(with-meta (token-node %)
+                          {:clj-kondo/mark-used true
+                           :clj-kondo/skip-reg-binding true})
+                       (if varargs?
+                         (concat args '[& %&])
+                         args)))
+        has-first-arg? (= '%1 (first args))]
+    (with-meta
+      (list-node [(token-node 'fn*) arg-list
+                  fn-body])
+      (assoc m :clj-kondo.impl/fn-has-first-arg has-first-arg?))))
+
 (defn expand-> [_ctx expr]
   (let [expr expr
         children (:children expr)
@@ -19,12 +69,20 @@
         ret (loop [x c, forms cforms]
               (if forms
                 (let [form (first forms)
-                      threaded (if (= :list (tag form))
-                                 (with-meta-of
-                                   (list-node (list* (first (:children form))
-                                                     x
-                                                     (next (:children form))))
-                                   form)
+                      threaded (case (tag form)
+                                 :list (with-meta-of
+                                         (list-node (list* (first (:children form))
+                                                           x
+                                                           (next (:children form))))
+                                         form)
+                                 ;; Short-form fns need expanding now, to thread the name in
+                                 :fn (with-meta-of
+                                       (let [{:keys [children] :as expanded} (expand-fn form)]
+                                         (assoc expanded :children
+                                                (list* (first children)
+                                                       x
+                                                       (next children))))
+                                       form)
                                  (with-meta-of (list-node (list form x))
                                    form))]
                   (recur threaded (next forms)))
@@ -129,56 +187,6 @@
       (if more
         (recur (cons node more) )
         node))))
-
-(defn find-children
-  "Recursively filters children by pred"
-  [pred children]
-  (mapcat #(if (pred %)
-             [(pred %)]
-             (when-let [cchildren (:children %)]
-               (find-children pred cchildren)))
-          children))
-
-(defn fn-args [children]
-  (let [args (find-children
-              #(and (= :token (tag %))
-                    (:string-value %)
-                    (when-let [[_ n] (re-matches #"%((\d?\d?)|&)" (:string-value %))]
-                      (case n
-                        "" 1
-                        "&" 0
-                        (Integer/parseInt n))))
-              children)
-        args (sort args)
-        varargs? (when-let [fst (first args)]
-                   (zero? fst))
-        args (seq (if varargs? (rest args) args))
-        max-n (last args)
-        args (when args (map (fn [i]
-                               (symbol (str "%" i)))
-                             (range 1 (inc max-n))))]
-    {:varargs? varargs?
-     :args args}))
-
-(defn expand-fn [{:keys [:children] :as expr}]
-  (let [{:keys [:row :col] :as m} (meta expr)
-        {:keys [:args :varargs?]} (fn-args children)
-        fn-body (with-meta (list-node children)
-                  (assoc m
-                         :row row
-                         :col (inc col)))
-        arg-list (vector-node
-                  (map #(with-meta (token-node %)
-                          {:clj-kondo/mark-used true
-                           :clj-kondo/skip-reg-binding true})
-                       (if varargs?
-                         (concat args '[& %&])
-                         args)))
-        has-first-arg? (= '%1 (first args))]
-    (with-meta
-      (list-node [(token-node 'fn*) arg-list
-                  fn-body])
-      (assoc m :clj-kondo.impl/fn-has-first-arg has-first-arg?))))
 
 (defn expand-do-template [_ctx node]
   (let [[_ argv expr & values] (:children node)

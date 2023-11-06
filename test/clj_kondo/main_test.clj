@@ -9,7 +9,7 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing]]
+   [clojure.test :as t :refer [deftest is are testing]]
    [missing.test.assertions]))
 
 (deftest self-lint-test
@@ -58,6 +58,29 @@
       (is (empty? (lint! "(def x (let [x 1] [(fn [] x)]))" "--lang" (name lang) "--config" (pr-str config))))
       (is (empty? (lint! "(def x (reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config))))
       (is (empty? (lint! "(require '[some.ns :refer [my-reify]]) (def x (my-reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config)))))))
+
+(deftest invalid-fn-name-test
+  (assert-submaps
+   '({:row 1, :col 1, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   (lint! "(fn \"fn-name\" [x] (inc x))"))
+  (assert-submaps
+   '({:row 1, :col 6, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   (lint! "(map (fn 'symbol ([x] (inc x))) coll)"))
+  (assert-submaps
+   '({:row 1, :col 7, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   (lint! "(-> 7 (fn [x] (inc x)))"))
+  (assert-submaps
+   '({:row 1, :col 7, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   (lint! "(-> 7 #(inc %))"))
+  (assert-submaps
+   '({:row 1, :col 1, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   (lint! "(fn* :fn-name [x] (inc x))"))
+
+  (are [lint-form] (empty? lint-form)
+    (lint! "(fn fn-name [x] (inc x))")
+    (lint! "(fn* fn-name [x] (inc x))")
+    ;; A future linter could warn here, as it's almost never intentional, especially if fn-name is bound
+    (lint! "(-> fn-name #(inc %))")))
 
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
