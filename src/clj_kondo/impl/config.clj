@@ -110,6 +110,7 @@
               :unused-import {:level :warning}
               :single-operand-comparison {:level :warning}
               :single-logical-operand {:level :warning}
+              :redundant-nesting {:level :warning}
               :single-key-in {:level :off}
               :missing-clause-in-try {:level :warning}
               :missing-body-in-when {:level :warning}
