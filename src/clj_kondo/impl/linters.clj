@@ -219,6 +219,20 @@
          :single-logical-operand
          (format "Single arg use of %s always returns the arg itself" call-name))))))
 
+(defn lint-redundant-nesting
+  "Lints calls of variadic functions/macros when nested."
+  [call]
+  (let [[[call-ns call-name] parent] (:callstack call)]
+    (when (and (utils/one-of call-ns [clojure.core cljs.core])
+               (utils/one-of call-name [* *' + +' and comp concat every-pred
+                                        lazy-cat max merge min or some-fn str])
+               (= [call-ns call-name] parent))
+      (node->line
+       (:filename call)
+       (:expr call)
+       :redundant-nesting
+       (format "Nested use of %s is redunant" call-name)))))
+
 #_(require 'clojure.pprint)
 
 (defn lint-var-usage
@@ -401,7 +415,11 @@
                   single-logical-operand-error
                   (and call?
                        (not (utils/linter-disabled? call :single-logical-operand))
-                       (lint-single-logical-operand call))]]
+                       (lint-single-logical-operand call))
+                  redundant-nesting-error
+                  (and call?
+                       (not (utils/linter-disabled? call :redundant-nesting))
+                       (lint-redundant-nesting call))]]
       (when (and (not call?)
                  (identical? :fn (:type called-fn)))
         (when (:condition call)
@@ -422,6 +440,9 @@
       (when single-logical-operand-error
         (findings/reg-finding! ctx
                                single-logical-operand-error))
+      (when redundant-nesting-error
+        (findings/reg-finding! ctx
+                               redundant-nesting-error))
       (when (and (:private called-fn)
                  (not= caller-ns-sym
                        fn-ns)
