@@ -875,7 +875,7 @@
                     ;; explicit do
                     (= 'do core-sym)
                     ;; implicit do
-                    (one-of core-sym [fn defn defn-
+                    (one-of core-sym [fn fn* defn defn-
                                       let when-let loop binding with-open
                                       doseq try when when-not when-first
                                       when-some future])))))]

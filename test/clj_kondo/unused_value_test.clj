@@ -67,7 +67,13 @@
   (testing "unused pure function call"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value"})
-     (lint! "(defn foo [] (update {} :dude 1) 1)" {:linters {:unused-value {:level :warning}}})))
+     (lint! "(defn foo [] (update {} :dude 1) 1)" {:linters {:unused-value {:level :warning}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 12, :level :warning, :message "Unused value"})
+     (lint! "(fn foo [] (update {} :dude 1) 1)" {:linters {:unused-value {:level :warning}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 9, :level :warning, :message "Unused value"})
+     (lint! "(->> 1 #(update {} :dude 1))" {:linters {:unused-value {:level :warning}}})))
   (testing "unused lazy seq"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value"})

@@ -499,7 +499,7 @@
                                   ;; doseq always return nil
                                   (utils/one-of core-sym [doseq])
                                   (< idx (dec (:len call))))
-                                 (utils/one-of core-sym [do fn defn defn-
+                                 (utils/one-of core-sym [do fn fn* defn defn-
                                                          let when-let loop binding with-open
                                                          doseq try when when-not when-first
                                                          when-some future]))
