@@ -964,9 +964,11 @@
     "Use defn instead of def + fn")))
 
 (defn analyze-fn [ctx expr]
-  (let [ctx (assoc ctx :seen-recur? (volatile! nil))
-        protocol-fn (:protocol-fn expr)
-        ctx (assoc ctx :protocol-fn protocol-fn)
+  (let [protocol-fn (:protocol-fn expr)
+        has-first-arg? (boolean (:clj-kondo.impl/fn-has-first-arg (meta expr)))
+        ctx (cond-> (assoc ctx :protocol-fn protocol-fn
+                               :seen-recur? (volatile! nil))
+              has-first-arg? (assoc-in [:bindings '%] {}))
         children (:children expr)
         ?name-expr (second children)
         ?fn-name (when ?name-expr
@@ -2845,12 +2847,8 @@
                                                   :level :error
                                                   :type :syntax
                                                   :message "#()s are not allowed in EDN")))
-              (let [expanded-node (macroexpand/expand-fn expr)
-                    m (meta expanded-node)
-                    has-first-arg? (:clj-kondo.impl/fn-has-first-arg m)]
-                (recur (cond-> (assoc ctx :arg-types nil :in-fn-literal true)
-                         has-first-arg? (update :bindings assoc '% {}))
-                       expanded-node)))
+              (recur (assoc ctx :arg-types nil :in-fn-literal true)
+                     (macroexpand/expand-fn expr)))
         :token
         (let [edn? (= :edn lang)]
           (if (or edn?
