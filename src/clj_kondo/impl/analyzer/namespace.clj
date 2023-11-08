@@ -549,15 +549,15 @@
                                :namespace-name-mismatch
                                (str "Namespace name does not match file name: " ns-name)))))))
 
-        _ (when (and (not (identical? :off (-> ctx :config :linters :underline-in-namespace :level)))
+        _ (when (and (not (identical? :off (-> ctx :config :linters :underscore-in-namespace :level)))
                      (symbol? ns-name)
-                     (.contains ^String (name ns-name) "_"))
+                     (str/includes? (name ns-name) "_"))
             (findings/reg-finding!
              ctx
              (node->line filename
                          ns-name-expr
-                         :underline-in-namespace
-                         (str "Avoid underline in namespace name: " (namespace-munge ns-name)))))
+                         :underscore-in-namespace
+                         (str "Avoid underscore in namespace name: " (namespace-munge ns-name)))))
 
         clauses children
         _ (run! #(utils/handle-ignore ctx %) children)

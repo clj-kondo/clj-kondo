@@ -3426,12 +3426,12 @@ foo/")))
     (assert-submaps2 expected (lint! "(import 3.14)"))
     (assert-submaps2 expected (lint! "(import -1)"))))
 
-(deftest underline-in-ns
+(deftest underscore-in-ns
 
   (let [expected #(list {:file "<stdin>"
                          :row 1 :col 5
                          :level :warning
-                         :message (str "Avoid underline in namespace name: " %)})]
+                         :message (str "Avoid underscore in namespace name: " %)})]
 
     (assert-submaps2 (expected "beep_boop") (lint! "(ns beep_boop)"))
     (assert-submaps2 (expected "beep_") (lint! "(ns beep_)"))
