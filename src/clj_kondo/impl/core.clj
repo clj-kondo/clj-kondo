@@ -18,10 +18,6 @@
 
 (def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))
 
-(def version
-  (str/trim
-   (slurp (io/resource "CLJ_KONDO_VERSION"))))
-
 (def cache-version "v1")
 
 (defn format-output [config]
