@@ -183,7 +183,8 @@
              ;; if below :linter-name is set to true, type (linter name) of reported the finding
              ;; is appended to the end of the default pattern as " [{{type}}]"
              :linter-name false
-             :canonical-paths false}}) ;; set to true to see absolute file paths and jar files
+             :canonical-paths false} ;; set to true to see absolute file paths and jar files
+    :min-clj-kondo-version "2019.10.26"}) 
 
 (defn expand-ignore
   ":ignore true / [:unresolved-symbol] can only be used in
