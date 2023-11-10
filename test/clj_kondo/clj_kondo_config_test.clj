@@ -4,7 +4,7 @@
    [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
    [clojure.string :as str]
    [clojure.test :refer [deftest testing is]])
-  (:import 
+  (:import
    java.time.format.DateTimeFormatter
    java.time.LocalDate))
 
@@ -35,35 +35,23 @@
      (lint! "x" '{:linters {:unresolved-symbol {:exclude [(foo.bar)]
                                                     :level :error}}}))))
 
-(defn ^:private version-with-altered-date
-  "Extracts the date part of the version, applies the date-changer
-   to it (expects LocalDate argument) and returns the result
+(defn ^:private version-shifted-by-days
+  "Extracts the date part of the version, adds to it
+   the given number of days and returns the result
    as a version string"
-  [date-changer]
-    (let [date-part (first (str/split
+  [days]
+  (let [date-part (first (str/split
                           version/version
                           #"\-"))
-        date (LocalDate/parse
-              date-part
-              (DateTimeFormatter/ofPattern
-               "yyyy.MM.dd"))
-        plus-one-day (date-changer date)]
+        ^LocalDate date (LocalDate/parse
+                         date-part
+                         (DateTimeFormatter/ofPattern
+                          "yyyy.MM.dd"))
+        shifted (.plusDays date days)]
     (.format
-     plus-one-day
+     shifted
      (DateTimeFormatter/ofPattern
       "yyyy.MM.dd"))))
-
-(defn ^:private one-day-in-future
-  "Returns a version one day in the future from the current version"
-  []
-  (version-with-altered-date
-   #(.plusDays % 1)))
-
-(defn ^:private one-day-in-past
-  "Returns a version one day in the past from the current version"
-  []
-  (version-with-altered-date
-   #(.plusDays % -1)))
 
 (deftest minimum-version-test
   (testing "No finding when version equal to minimum"
@@ -77,12 +65,12 @@
                       :min-clj-kondo-version version/version}
                     "--filename"
                     ".clj-kondo/config.edn")]
-      (is (empty? findings)))) 
+      (is (empty? findings))))
   (testing "No finding when version after minimum"
     (let [findings (lint!
                     (str
                      "{:min-clj-kondo-version \""
-                     (one-day-in-past)
+                     (version-shifted-by-days -1)
                      "\"}")
                     '{:linters {:unresolved-symbol {:exclude [(foo.bar)]
                                                     :level :error}}
@@ -94,7 +82,7 @@
     (let [findings (lint!
                     (str
                      "{:min-clj-kondo-version \""
-                     (one-day-in-future)
+                     (version-shifted-by-days 1)
                      "\"}")
                     '{:linters {:unresolved-symbol {:exclude [(foo.bar)]
                                                     :level :error}}
