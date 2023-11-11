@@ -1948,3 +1948,15 @@ namespaces. Defaults to only warning when doing interop.
 
 The value of `:warn-only-on-interop` can be set to `false` to always warn in
 Clojure namespaces.
+
+## Underscore in namespace
+
+*Keyword:* `:underscore-in-namespace`
+
+*Description:* warns about the usage of the `_` character in the declaration of namespaces (as opposed to `-`).
+
+*Default level:* `:warning`
+
+*Example trigger:* `(ns special_files)`
+
+*Example message:* `Avoid underscore in namespace name: special_files`
