@@ -3436,7 +3436,8 @@ foo/")))
     (assert-submaps2 (expected "beep_boop") (lint! "(ns beep_boop)"))
     (assert-submaps2 (expected "beep_") (lint! "(ns beep_)"))
     (assert-submaps2 (expected "_boop") (lint! "(ns _boop)"))
-    (assert-submaps2 (expected "never_give.you_up") (lint! "(ns never_give.you_up)"))))
+    (assert-submaps2 (expected "never_give.you-up") (lint! "(ns never_give.you-up)"))
+    (assert-submaps2 (expected "a.large-smelly_dog") (lint! "(ns a.large-smelly_dog)"))))
 
 ;;;; Scratch
 

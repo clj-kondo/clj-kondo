@@ -557,7 +557,7 @@
              (node->line filename
                          ns-name-expr
                          :underscore-in-namespace
-                         (str "Avoid underscore in namespace name: " (namespace-munge ns-name)))))
+                         (str "Avoid underscore in namespace name: " ns-name))))
 
         clauses children
         _ (run! #(utils/handle-ignore ctx %) children)
