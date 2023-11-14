@@ -658,6 +658,10 @@ This tells clj-kondo to copy clj-kondo configs from dependencies while linting.
 
 Typically, you will want to check copied configs into version control with your project.
 
+See this
+[article](https://blog.tvaisanen.com/take-your-linting-game-to-the-next-level?showSharer=true#heading-benefits-of-types-in-the-editor)
+by Toni Vaisanen on how to use library configurations and malli!
+
 ## Deprecations
 
 Some configuration keys have been renamed over time. The default configuration
