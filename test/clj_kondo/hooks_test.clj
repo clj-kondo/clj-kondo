@@ -415,6 +415,6 @@ my-ns/special-map \"
 
 (deftest issue-2215-hook-passthrough-test
   (assert-submaps2
-   []
-   (prn (lint! (io/file "corpus" "issue-2067" "src")
-               "--config-dir" (.getPath (io/file "corpus" "issue-2215" ".clj-kondo"))))))
+   '({:file "corpus/issue-2215/fail.clj", :row 6, :col 5, :level :warning, :message "Redundant let expression."})
+   (lint! (io/file "corpus" "issue-2215" "fail.clj")
+          "--config-dir" (.getPath (io/file "corpus" "issue-2215" ".clj-kondo")))))
