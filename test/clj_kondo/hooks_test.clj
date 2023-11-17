@@ -412,3 +412,9 @@ my-ns/special-map \"
      {:file "corpus/issue-2067/src/my_test2.clj", :row 14, :col 16, :level :warning, :message "[]"})
    (lint! (io/file "corpus" "issue-2067" "src")
           "--config-dir" (.getPath (io/file "corpus" "issue-2067" ".clj-kondo")))))
+
+(deftest issue-2215-hook-passthrough-test
+  (assert-submaps2
+   []
+   (prn (lint! (io/file "corpus" "issue-2067" "src")
+               "--config-dir" (.getPath (io/file "corpus" "issue-2215" ".clj-kondo"))))))
