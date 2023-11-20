@@ -5,7 +5,7 @@
    [cheshire.core :as cheshire]
    [clj-kondo.hooks-api :as hooks]
    [clj-kondo.impl.cache :as cache]
-   [clj-kondo.impl.config :refer [merge-config!]]
+   [clj-kondo.impl.config :refer [check-minimum-version merge-config!]]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters :as l]
@@ -225,7 +225,8 @@
                   (l/lint-unresolved-vars! ctx)
                   (l/lint-unused-imports! ctx)
                   (l/lint-unresolved-namespaces! ctx)
-                  (l/lint-discouraged-namespaces! ctx))))
+                  (l/lint-discouraged-namespaces! ctx)
+                  (check-minimum-version ctx))))
           _ (when custom-lint-fn
               (binding [utils/*ctx* ctx]
                 (custom-lint-fn (cond->

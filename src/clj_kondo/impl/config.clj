@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
+   [clj-kondo.impl.version :as version]
    [clojure.set :as set]
    [clojure.walk :as walk]))
 
@@ -184,7 +185,7 @@
              ;; is appended to the end of the default pattern as " [{{type}}]"
              :linter-name false
              :canonical-paths false} ;; set to true to see absolute file paths and jar files
-    :min-clj-kondo-version "2019.10.26"}) 
+    :min-clj-kondo-version "2019.10.26"})
 
 (defn expand-ignore
   ":ignore true / [:unresolved-symbol] can only be used in
@@ -520,6 +521,36 @@
   (defn deprecated-namespace-excluded? [config required]
     (let [cfg (delayed-cfg config)]
       (contains? cfg required))))
+
+(defn ^:private compare-versions
+  "Returns a finding message if the current version
+   is below the minimum version"
+  [{minimum :minimum
+    current :current}]
+  (let [earlier-version (fn
+                          [v1 v2]
+                          (first (sort [v1 v2])))]
+    (when
+     (not=
+      minimum
+      (earlier-version
+       current
+       minimum))
+      (str
+       "Version "
+       current
+       " below configured minimum "
+       minimum))))
+
+(defn check-minimum-version
+  "Prints a warning if the version is below the configured minimum"
+  [ctx]
+  (let [minimum-version (-> ctx :config :min-clj-kondo-version)
+        warning (when minimum-version
+                  (compare-versions {:minimum minimum-version
+                                     :current version/version}))]
+    (when warning
+      (println "[clj-kondo] WARNING:" warning))))
 
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]

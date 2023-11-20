@@ -55,52 +55,42 @@
 
 (deftest minimum-version-test
   (testing "No finding when version equal to minimum"
-    (let [findings (lint!
-                    (str
-                     "{:min-clj-kondo-version \""
-                     version/version
-                     "\"}")
-                    '{:linters {:unresolved-symbol {:exclude [(foo.bar)]
-                                                    :level :error}}
-                      :min-clj-kondo-version version/version}
-                    "--filename"
-                    ".clj-kondo/config.edn")]
-      (is (empty? findings))))
+    (let [output
+          (with-out-str
+            (lint!
+             ""
+             {:min-clj-kondo-version version/version}
+             "--filename"
+             ".clj-kondo/config.edn"))]
+      (is (empty? (str/replace output "\n" "")))))
   (testing "No finding when version after minimum"
-    (let [findings (lint!
-                    (str
-                     "{:min-clj-kondo-version \""
-                     (version-shifted-by-days -1)
-                     "\"}")
-                    '{:linters {:unresolved-symbol {:exclude [(foo.bar)]
-                                                    :level :error}}
-                      :min-clj-kondo-version (one-day-in-past)}
+    (let [output (with-out-str
+                   (lint!
+                    ""
+                    {:min-clj-kondo-version (version-shifted-by-days -1)}
                     "--filename"
-                    ".clj-kondo/config.edn")]
-      (is (empty? findings))))
+                    ".clj-kondo/config.edn"))]
+      (is (empty? (str/replace output "\n" "")))))
   (testing "Find when version before minimum"
-    (let [findings (lint!
-                    (str
-                     "{:min-clj-kondo-version \""
-                     (version-shifted-by-days 1)
-                     "\"}")
-                    '{:linters {:unresolved-symbol {:exclude [(foo.bar)]
-                                                    :level :error}}
-                      :min-clj-kondo-version (one-day-in-future)}
+    (let [output (with-out-str
+                   (lint!
+                    ""
+                    {:min-clj-kondo-version (version-shifted-by-days 1)}
                     "--filename"
-                    ".clj-kondo/config.edn")
-          message (:message (first findings))]
-      (assert-submaps2
-       '({:file ".clj-kondo/config.edn"
-          :row 1
-          :col 2
-          :level :warning})
-       findings)
+                    ".clj-kondo/config.edn"))]
       (is
        (str/includes?
-        message
+        output
         "Version"))
       (is
        (str/includes?
-        message
-        "below configured minimum")))))
+        output
+        version/version))
+      (is
+       (str/includes?
+        output
+        "below configured minimum"))
+      (is
+       (str/includes?
+        output
+        (version-shifted-by-days 1))))))
