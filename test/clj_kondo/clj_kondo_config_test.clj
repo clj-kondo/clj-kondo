@@ -5,6 +5,7 @@
    [clojure.string :as str]
    [clojure.test :refer [deftest testing is]])
   (:import
+   java.io.StringWriter
    java.time.format.DateTimeFormatter
    java.time.LocalDate))
 
@@ -53,31 +54,39 @@
      (DateTimeFormatter/ofPattern
       "yyyy.MM.dd"))))
 
+(defn- with-err-str
+  "Runs f, captures output to stderr & returns that as a string"
+  [f]
+  (let [sw (StringWriter.)]
+    (binding [*err* sw]
+      (f))
+    (str sw)))
+
 (deftest minimum-version-test
   (testing "No finding when version equal to minimum"
     (let [output
-          (with-out-str
-            (lint!
-             ""
-             {:min-clj-kondo-version version/version}
-             "--filename"
-             ".clj-kondo/config.edn"))]
+          (with-err-str
+            #(lint!
+              ""
+              {:min-clj-kondo-version version/version}
+              "--filename"
+              ".clj-kondo/config.edn"))]
       (is (empty? (str/replace output "\n" "")))))
   (testing "No finding when version after minimum"
-    (let [output (with-out-str
-                   (lint!
-                    ""
-                    {:min-clj-kondo-version (version-shifted-by-days -1)}
-                    "--filename"
-                    ".clj-kondo/config.edn"))]
+    (let [output (with-err-str
+                   #(lint!
+                     ""
+                     {:min-clj-kondo-version (version-shifted-by-days -1)}
+                     "--filename"
+                     ".clj-kondo/config.edn"))]
       (is (empty? (str/replace output "\n" "")))))
   (testing "Find when version before minimum"
-    (let [output (with-out-str
-                   (lint!
-                    ""
-                    {:min-clj-kondo-version (version-shifted-by-days 1)}
-                    "--filename"
-                    ".clj-kondo/config.edn"))]
+    (let [output (with-err-str
+                   #(lint!
+                     ""
+                     {:min-clj-kondo-version (version-shifted-by-days 1)}
+                     "--filename"
+                     ".clj-kondo/config.edn"))]
       (is
        (str/includes?
         output
