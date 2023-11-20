@@ -33,7 +33,7 @@
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Unresolved symbol: x"})
      (lint! "x" '{:linters {:unresolved-symbol {:exclude [(foo.bar)]
-                                                    :level :error}}}))))
+                                                :level :error}}}))))
 
 (defn ^:private version-shifted-by-days
   "Extracts the date part of the version, adds to it
