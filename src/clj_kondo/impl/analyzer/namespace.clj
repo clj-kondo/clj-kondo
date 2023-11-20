@@ -548,6 +548,17 @@
                                ns-name-expr
                                :namespace-name-mismatch
                                (str "Namespace name does not match file name: " ns-name)))))))
+
+        _ (when (and (not (identical? :off (-> ctx :config :linters :underscore-in-namespace :level)))
+                     (symbol? ns-name)
+                     (str/includes? (name ns-name) "_"))
+            (findings/reg-finding!
+             ctx
+             (node->line filename
+                         ns-name-expr
+                         :underscore-in-namespace
+                         (str "Avoid underscore in namespace name: " ns-name))))
+
         clauses children
         _ (run! #(utils/handle-ignore ctx %) children)
         kw+libspecs (for [?require-clause clauses

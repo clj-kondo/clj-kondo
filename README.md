@@ -276,10 +276,14 @@ pod](https://github.com/babashka/babashka.pods).
 ;;=> {:error 0, :warning 0, :info 0, :type :summary, :duration 779}
 ```
 
-## Podcast
+## Podcasts
 
 + [defnpodcast](https://soundcloud.com/defn-771544745)
 + [ClojureScript Podcast](https://clojurescriptpodcast.com/)
+
+## Articles
+
+- [Taking your linting to the next level](https://blog.tvaisanen.com/take-your-linting-game-to-the-next-level?showSharer=true#heading-benefits-of-types-in-the-editor) by Toni Vaisanen
 
 ## Thanks to:
 
