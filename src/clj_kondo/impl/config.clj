@@ -185,7 +185,9 @@
              ;; is appended to the end of the default pattern as " [{{type}}]"
              :linter-name false
              :canonical-paths false} ;; set to true to see absolute file paths and jar files
-    :min-clj-kondo-version "2019.10.26"})
+    ;; print a warning if used with a clj-kondo release older than this
+    ;; :min-clj-kondo-version "2019.10.26"
+    })
 
 (defn expand-ignore
   ":ignore true / [:unresolved-symbol] can only be used in
