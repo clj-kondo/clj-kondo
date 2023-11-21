@@ -61,7 +61,7 @@ Use `println` or `prn` for debugging and `time` to measure performance.
 Hooks must be configured in clj-kondo's `config.edn` under `:hooks`, e.g.:
 
 ``` Clojure
-{:hooks {:analyze-call {foo.weird-macro hooks.foo/weird-macro}}}
+{:hooks {:analyze-call {foo/weird-macro hooks.foo/weird-macro}}}
 ```
 
 ## analyze-call
