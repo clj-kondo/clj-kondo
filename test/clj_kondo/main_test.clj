@@ -61,19 +61,19 @@
 
 (deftest invalid-fn-name-test
   (assert-submaps
-   '({:row 1, :col 1, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   '({:row 1, :col 1, :level :error, :message "First arg of fn should be a symbol, params vector or arity clause"})
    (lint! "(fn \"fn-name\" [x] (inc x))"))
   (assert-submaps
-   '({:row 1, :col 6, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   '({:row 1, :col 6, :level :error, :message "First arg of fn should be a symbol, params vector or arity clause"})
    (lint! "(map (fn 'symbol ([x] (inc x))) coll)"))
   (assert-submaps
-   '({:row 1, :col 7, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   '({:row 1, :col 7, :level :error, :message "First arg of fn should be a symbol, params vector or arity clause"})
    (lint! "(-> 7 (fn [x] (inc x)))"))
   (assert-submaps
-   '({:row 1, :col 7, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   '({:row 1, :col 7, :level :error, :message "First arg of fn should be a symbol, params vector or arity clause"})
    (lint! "(-> 7 #(inc %))"))
   (assert-submaps
-   '({:row 1, :col 1, :level :error, :message "First arg of fn should be a symbol, arg vector or body list"})
+   '({:row 1, :col 1, :level :error, :message "First arg of fn should be a symbol, params vector or arity clause"})
    (lint! "(fn* :fn-name [x] (inc x))"))
 
   (are [lint-form] (empty? lint-form)

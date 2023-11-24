@@ -857,7 +857,7 @@ be an unquoted symbol.
 
 *Example trigger:* `(fn :fn-name [x] (inc x))`.
 
-*Example message:* `First arg of fn should be a symbol, arg vector or body list`.
+*Example message:* `First arg of fn should be a symbol, params vector or arity clause`.
 
 *Config:*
 

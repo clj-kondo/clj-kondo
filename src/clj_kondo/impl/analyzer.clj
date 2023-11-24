@@ -947,7 +947,7 @@
     filename
     expr
     :invalid-fn-name
-    "First arg of fn should be a symbol, arg vector or body list")))
+    "First arg of fn should be a symbol, params vector or arity clause")))
 
 (defn- def-fn? [{:keys [callstack]}]
   (let [[_ parent extra-parent] callstack]
