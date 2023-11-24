@@ -1,4 +1,4 @@
-(ns no_unused-namespace
+(ns no-unused-namespace
   (:require [clojure.string :as str]))
 
 (let [{score (if (str/starts-with? "foo" "f")
