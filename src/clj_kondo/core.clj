@@ -9,6 +9,7 @@
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters :as l]
+   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]))
@@ -26,7 +27,7 @@
     (case fmt
       :text
       (do
-        (when (:progress output-cfg) (binding [*out* *err*]
+        (when (:progress output-cfg) (binding [*out* @output/err]
                                        (println)))
         (let [format-fn (core-impl/format-output config)]
           (doseq [finding findings]
@@ -114,6 +115,7 @@
          err-out *err*}}]
   (binding [hooks/*debug* debug]
     (let [start-time (System/currentTimeMillis)
+          _ (swap! output/err (constantly err-out))
           cfg-dir
           (cond config-dir (io/file config-dir)
                 filename (core-impl/config-dir filename)
@@ -202,8 +204,7 @@
                ;; config, for e.g. the clj-kondo playground
                ;; TODO: :__dangerously-allow-string-hooks should not be able to come in via lib configs
                :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
-               :debug debug
-               :err-out err-out}
+               :debug debug}
           lang (or lang :clj)
           _ (check-minimum-version ctx)
           ;; primary file analysis and initial lint

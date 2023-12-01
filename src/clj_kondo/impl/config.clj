@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [unquote])
   (:require
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
    [clj-kondo.impl.version :as version]
    [clojure.set :as set]
@@ -553,7 +554,7 @@
                   (compare-versions {:minimum minimum-version
                                      :current version/version}))]
     (when warning
-      (binding [*out* (:err-out ctx)]
+      (binding [*out* @output/err]
        (println "[clj-kondo] WARNING:" warning)))))
 
 ;; (defn ns-group-1 [m full-ns-name]
