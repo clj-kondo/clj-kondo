@@ -2196,7 +2196,9 @@
                           (assoc ctx :context context)
                           ctx)]
                 (if-let [expanded (and transformed
-                                       (:node transformed))]
+                                       (let [node (:node transformed)]
+                                         (when-not (identical? expr node)
+                                           node)))]
                   (let [expanded (hooks/annotate expanded expr-meta)
                         [new-name-node new-arg-count]
                         (when (utils/list-node? expanded)

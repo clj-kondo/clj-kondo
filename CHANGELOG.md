@@ -23,6 +23,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1753](https://github.com/clj-kondo/clj-kondo/issues/1753): new linter `:underscore-in-namespace`
 - [#2207](https://github.com/clj-kondo/clj-kondo/issues/2207): New `:condition-always-true` linter, see [docs](doc/linters.md)
 - [#2013](https://github.com/clj-kondo/clj-kondo/issues/2013): Fix NPE and similar errors when linting an import with an illegal token
+- [#2215](https://github.com/clj-kondo/clj-kondo/issues/2215): passthrough hook should not affect linting
 
 ## 2023.10.20
 
