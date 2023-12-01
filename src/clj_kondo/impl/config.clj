@@ -553,7 +553,7 @@
                   (compare-versions {:minimum minimum-version
                                      :current version/version}))]
     (when warning
-      (binding [*out* *err*]
+      (binding [*out* (:err-out ctx)]
        (println "[clj-kondo] WARNING:" warning)))))
 
 ;; (defn ns-group-1 [m full-ns-name]

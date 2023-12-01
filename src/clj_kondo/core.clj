@@ -87,6 +87,8 @@
 
   - `:debug`: optional. Print debug info.
 
+  - `:err-out`: optional. Where errors outside of findings will be printed. Defaults to `*err*`.
+
   Returns a map with `:findings`, a seqable of finding maps, a
   `:summary` of the findings and the `:config` that was used to
   produce those findings. This map can be passed to `print!` to print
@@ -106,8 +108,10 @@
            custom-lint-fn
            file-analyzed-fn
            skip-lint
-           debug]
-    :or {cache true}}]
+           debug
+           err-out]
+    :or {cache true
+         err-out *err*}}]
   (binding [hooks/*debug* debug]
     (let [start-time (System/currentTimeMillis)
           cfg-dir
@@ -198,7 +202,8 @@
                ;; config, for e.g. the clj-kondo playground
                ;; TODO: :__dangerously-allow-string-hooks should not be able to come in via lib configs
                :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
-               :debug debug}
+               :debug debug
+               :err-out err-out}
           lang (or lang :clj)
           _ (check-minimum-version ctx)
           ;; primary file analysis and initial lint
