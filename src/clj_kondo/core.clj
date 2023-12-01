@@ -200,6 +200,7 @@
                :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
                :debug debug}
           lang (or lang :clj)
+          _ (check-minimum-version ctx)
           ;; primary file analysis and initial lint
           _ (core-impl/process-files (if parallel
                                        (assoc ctx :parallel parallel)
@@ -225,8 +226,7 @@
                   (l/lint-unresolved-vars! ctx)
                   (l/lint-unused-imports! ctx)
                   (l/lint-unresolved-namespaces! ctx)
-                  (l/lint-discouraged-namespaces! ctx)
-                  (check-minimum-version ctx))))
+                  (l/lint-discouraged-namespaces! ctx))))
           _ (when custom-lint-fn
               (binding [utils/*ctx* ctx]
                 (custom-lint-fn (cond->
