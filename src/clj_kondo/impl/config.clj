@@ -3,7 +3,6 @@
   (:refer-clojure :exclude [unquote])
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
    [clj-kondo.impl.version :as version]
    [clojure.set :as set]
@@ -287,7 +286,7 @@
                       (if (map? excluded)
                         (map-vals set excluded)
                         (let [warning "[clj-kondo] WARNING: configuration value in [:linters :referred-var :exclude] should be a map"]
-                          (binding [*out* @output/err]
+                          (binding [*out* *err*]
                             (println warning)
                             nil)))))
       delayed-cfg (memoize delayed-cfg)]
@@ -554,7 +553,7 @@
                   (compare-versions {:minimum minimum-version
                                      :current version/version}))]
     (when warning
-      (binding [*out* @output/err]
+      (binding [*out* *err*]
        (println "[clj-kondo] WARNING:" warning)))))
 
 ;; (defn ns-group-1 [m full-ns-name]

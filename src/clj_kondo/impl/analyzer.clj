@@ -31,7 +31,6 @@
    [clj-kondo.impl.macroexpand :as macroexpand]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
-   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
    [clj-kondo.impl.schema :as schema]
@@ -2172,7 +2171,7 @@
                                   (let [filename (:filename ctx)]
                                     (binding [utils/*ctx* ctx]
                                       (sci/binding [sci/out *out*
-                                                    sci/err @output/err]
+                                                    sci/err *err*]
                                         (try (hook-fn {:node expr
                                                        :cljc (identical? :cljc base-lang)
                                                        :lang lang
@@ -3214,7 +3213,7 @@
           (let [output-cfg (:output config)]
             (when (and (= :text (:format output-cfg))
                        (:progress output-cfg))
-              (binding [*out* @output/err]
+              (binding [*out* *err*]
                 (print ".") (flush))))
           (when file-analyzed-fn
             (file-analyzed-fn {:filename filename

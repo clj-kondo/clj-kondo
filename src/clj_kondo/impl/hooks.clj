@@ -4,7 +4,6 @@
    [clj-kondo.hooks-api :as api]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.utils :as utils :refer [*ctx*]]
    [clojure.java.io :as io]
    [clojure.pprint]
@@ -82,7 +81,7 @@
                           (if-let [f (find-file-on-classpath base-path)]
                             {:file (.getAbsolutePath f)
                              :source (slurp f)}
-                            (binding [*out* @output/err]
+                            (binding [*out* *err*]
                               (println "WARNING: file" base-path "not found while loading hook")
                               nil))))}))
 
@@ -173,7 +172,7 @@
                      ;; creates memory leaks for long lives processes (LSP /
                      ;; VSCode), see #1036
                      (sci/binding [sci/out *out*
-                                   sci/err @output/err]
+                                   sci/err *err*]
                        (let [code (if (string? x)
                                     (when (:allow-string-hooks ctx)
                                       x)
@@ -191,7 +190,7 @@
                                                                                      (str var-sym))]))
                                             (config/ns-groups config ns-sym filename)))]
                        (sci/binding [sci/out *out*
-                                     sci/err @output/err]
+                                     sci/err *err*]
                          (let [code (if (string? x)
                                       (when (:allow-string-hooks ctx)
                                         x)
@@ -208,7 +207,7 @@
                            (fn [{:keys [node]}]
                              {:node (macroexpand macro node (:bindings *ctx*))})))))))
                (catch Exception e
-                 (binding [*out* @output/err]
+                 (binding [*out* *err*]
                    (println "WARNING: error while trying to read hook for"
                             (str ns-sym "/" var-sym ":")
                             (.getMessage e))

@@ -7,7 +7,6 @@
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.utils :as utils :refer [one-of print-err! map-vals assoc-some
                                            ->uri]]
    [clojure.edn :as edn]
@@ -57,7 +56,7 @@
   (let [f (io/file (.getParent cfg-file) file-to-read)]
     (if (.exists f)
       (process-fn f)
-      (binding [*out* @output/err]
+      (binding [*out* *err*]
         (println "WARNING: included file" (.getCanonicalPath f) "does not exist.")))))
 
 (defn opts [^java.io.File cfg-file]
@@ -71,7 +70,7 @@
 (defn read-edn-file [^java.io.File f]
   (try (edn/read-string (opts f) (slurp f))
        (catch Exception e
-         (binding [*out* @output/err]
+         (binding [*out* *err*]
            (println "WARNING: error while reading"
                     (.getCanonicalPath f) (format "(%s)" (.getMessage e)))))))
 
@@ -153,7 +152,7 @@
         _ (when (and debug
                      auto-load-configs?
                      (seq discovered))
-            (binding [*out* @output/err]
+            (binding [*out* *err*]
               (run! #(println "[clj-kondo] Auto-loading config path:" %) discovered)))
         skip-home? (some-> local-config-paths meta :replace)
         ;; local config exists implicitly when configs are discovered, even when
@@ -353,7 +352,7 @@
       (try
         (doseq [{:keys [:filename :source :lang :uri]} group]
           (ana/analyze-input ctx filename uri source lang dev?))
-        (catch Exception e (binding [*out* @output/err]
+        (catch Exception e (binding [*out* *err*]
                              (prn e))))
       (recur))))
 
@@ -539,7 +538,7 @@
            seq))))
 
 (defn print-copied-configs [imports cfg-dir]
-  (binding [*out* @output/err]
+  (binding [*out* *err*]
     (cond (not cfg-dir)
           (println "No configs copied because config dir (.clj-kondo) does not exist.")
           (seq imports)

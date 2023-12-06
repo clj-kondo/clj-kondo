@@ -5,7 +5,6 @@
    [aaaa-this-has-to-be-first.because-patches]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :as core-impl]
-   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.version :as version]
    [clojure.string :as str
     :refer [starts-with?]]
@@ -193,7 +192,7 @@ Options:
                    (do
                      ;; can't use clojure.stacktrace here, due to
                      ;; https://dev.clojure.org/jira/browse/CLJ-2502
-                     (binding [*out* @output/err]
+                     (binding [*out* *err*]
                        (println "Unexpected error. Please report an issue."))
                      (.printStackTrace e)
                      ;; unexpected error

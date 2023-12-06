@@ -9,7 +9,6 @@
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters :as l]
-   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]))
@@ -27,7 +26,7 @@
     (case fmt
       :text
       (do
-        (when (:progress output-cfg) (binding [*out* @output/err]
+        (when (:progress output-cfg) (binding [*out* *err*]
                                        (println)))
         (let [format-fn (core-impl/format-output config)]
           (doseq [finding findings]
@@ -88,8 +87,6 @@
 
   - `:debug`: optional. Print debug info.
 
-  - `:err-out`: optional. Where errors outside of findings will be printed. Defaults to `*err*`.
-
   Returns a map with `:findings`, a seqable of finding maps, a
   `:summary` of the findings and the `:config` that was used to
   produce those findings. This map can be passed to `print!` to print
@@ -109,13 +106,10 @@
            custom-lint-fn
            file-analyzed-fn
            skip-lint
-           debug
-           err-out]
-    :or {cache true
-         err-out *err*}}]
+           debug]
+    :or {cache true}}]
   (binding [hooks/*debug* debug]
     (let [start-time (System/currentTimeMillis)
-          _ (swap! output/err (constantly err-out))
           cfg-dir
           (cond config-dir (io/file config-dir)
                 filename (core-impl/config-dir filename)

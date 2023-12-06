@@ -1,6 +1,5 @@
 (ns clj-kondo.clj-kondo-config-test
   (:require
-   [clj-kondo.core :as core]
    [clj-kondo.impl.version :as version]
    [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
    [clojure.string :as str]
@@ -55,37 +54,39 @@
      (DateTimeFormatter/ofPattern
       "yyyy.MM.dd"))))
 
-(defn- run-and-capture-err-out
-  "Runs the linter on file content with given configuration
-   assuming the file has given name, captures and returns
-   anything that would be printed to *err*"
-  [content config filename]
+(defn- with-err-str
+  "Runs f, captures output to stderr & returns that as a string"
+  [f]
   (let [sw (StringWriter.)]
-    (core/run! {:lint [content]
-                :config config
-                :filename filename
-                :err-out sw
-                :cache false})
+    (binding [*err* sw]
+      (f))
     (str sw)))
 
 (deftest minimum-version-test
   (testing "No finding when version equal to minimum"
-    (let [output (run-and-capture-err-out
-                  ""
-                  {:min-clj-kondo-version version/version}
-                  ".clj-kondo/config.edn")]
+    (let [output
+          (with-err-str
+            #(lint!
+              ""
+              {:min-clj-kondo-version version/version}
+              "--filename"
+              ".clj-kondo/config.edn"))]
       (is (empty? (str/replace output "\n" "")))))
   (testing "No finding when version after minimum"
-    (let [output (run-and-capture-err-out
-                  ""
-                  {:min-clj-kondo-version (version-shifted-by-days -1)}
-                  ".clj-kondo/config.edn")]
+    (let [output (with-err-str
+                   #(lint!
+                     ""
+                     {:min-clj-kondo-version (version-shifted-by-days -1)}
+                     "--filename"
+                     ".clj-kondo/config.edn"))]
       (is (empty? (str/replace output "\n" "")))))
   (testing "Find when version before minimum"
-    (let [output (run-and-capture-err-out
-                  ""
-                  {:min-clj-kondo-version (version-shifted-by-days 1)}
-                  ".clj-kondo/config.edn")]
+    (let [output (with-err-str
+                   #(lint!
+                     ""
+                     {:min-clj-kondo-version (version-shifted-by-days 1)}
+                     "--filename"
+                     ".clj-kondo/config.edn"))]
       (is
        (str/includes?
         output
