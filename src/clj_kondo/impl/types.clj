@@ -536,7 +536,7 @@
                                 (emit-non-match! ctx s a t))
                               (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
     (catch Exception e
-      (binding [*out* output/err]
+      (binding [*out* @output/err]
         (println "[clj-kondo]" "WARNING: error while checking types: " (-> e .getClass .getName) (str (.getMessage e)))))))
 
 ;;;; Scratch

@@ -72,7 +72,7 @@
           (let [writer (transit/writer os :json)]
             (try (transit/write writer ns-data)
                  (catch Exception e
-                   (binding [*out* output/err]
+                   (binding [*out* @output/err]
                      (println "[clj-kondo] WARNING: could not serialize cache data for namespace" ns-sym))
                    (throw e)))))))))
 

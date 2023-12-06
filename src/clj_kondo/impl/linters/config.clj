@@ -61,5 +61,5 @@
       :eastwood)
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
-      (binding [*out* output/err]
+      (binding [*out* @output/err]
         (println "[clj-kondo] ERROR: " (.getMessage e))))))

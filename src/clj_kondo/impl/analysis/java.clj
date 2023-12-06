@@ -129,7 +129,7 @@
          {}
          (.findAll compilation ClassOrInterfaceDeclaration)))
       (catch Throwable e
-        (binding [*out* output/err]
+        (binding [*out* @output/err]
           (println "Error parsing java file" filename "with error" e))))))
 
 (defn analyze-class-defs? [ctx]

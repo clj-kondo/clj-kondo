@@ -2172,7 +2172,7 @@
                                   (let [filename (:filename ctx)]
                                     (binding [utils/*ctx* ctx]
                                       (sci/binding [sci/out *out*
-                                                    sci/err output/err]
+                                                    sci/err @output/err]
                                         (try (hook-fn {:node expr
                                                        :cljc (identical? :cljc base-lang)
                                                        :lang lang
@@ -3214,7 +3214,7 @@
           (let [output-cfg (:output config)]
             (when (and (= :text (:format output-cfg))
                        (:progress output-cfg))
-              (binding [*out* output/err]
+              (binding [*out* @output/err]
                 (print ".") (flush))))
           (when file-analyzed-fn
             (file-analyzed-fn {:filename filename

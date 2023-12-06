@@ -193,7 +193,7 @@ Options:
                    (do
                      ;; can't use clojure.stacktrace here, due to
                      ;; https://dev.clojure.org/jira/browse/CLJ-2502
-                     (binding [*out* output/err]
+                     (binding [*out* @output/err]
                        (println "Unexpected error. Please report an issue."))
                      (.printStackTrace e)
                      ;; unexpected error

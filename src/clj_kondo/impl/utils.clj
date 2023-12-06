@@ -42,7 +42,7 @@
 ;;; end export
 
 (defn print-err! [& strs]
-  (binding [*out* output/err]
+  (binding [*out* @output/err]
     (apply println strs))
   nil)
 
@@ -331,7 +331,7 @@
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
 (defn stderr [& msgs]
-  (binding [*out* output/err]
+  (binding [*out* @output/err]
     (apply println msgs)))
 
 (defn resolve-call
@@ -380,7 +380,7 @@
                vconj (assoc m :ignore ignore))))))
 
 (defn err [& xs]
-  (binding [*out* output/err]
+  (binding [*out* @output/err]
     (apply prn xs)))
 
 ;;; os specific
