@@ -1,7 +1,7 @@
 (ns clj-kondo.clj-kondo-config-test
   (:require
    [clj-kondo.impl.version :as version]
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2 native?]]
    [clojure.string :as str]
    [clojure.test :refer [deftest testing is]])
   (:import
@@ -62,44 +62,45 @@
       (f))
     (str sw)))
 
-(deftest minimum-version-test
-  (testing "No finding when version equal to minimum"
-    (let [output
-          (with-err-str
-            #(lint!
-              ""
-              {:min-clj-kondo-version version/version}
-              "--filename"
-              ".clj-kondo/config.edn"))]
-      (is (empty? (str/replace output "\n" "")))))
-  (testing "No finding when version after minimum"
-    (let [output (with-err-str
-                   #(lint!
-                     ""
-                     {:min-clj-kondo-version (version-shifted-by-days -1)}
-                     "--filename"
-                     ".clj-kondo/config.edn"))]
-      (is (empty? (str/replace output "\n" "")))))
-  (testing "Find when version before minimum"
-    (let [output (with-err-str
-                   #(lint!
-                     ""
-                     {:min-clj-kondo-version (version-shifted-by-days 1)}
-                     "--filename"
-                     ".clj-kondo/config.edn"))]
-      (is
-       (str/includes?
-        output
-        "Version"))
-      (is
-       (str/includes?
-        output
-        version/version))
-      (is
-       (str/includes?
-        output
-        "below configured minimum"))
-      (is
-       (str/includes?
-        output
-        (version-shifted-by-days 1))))))
+(when-not native?
+  (deftest minimum-version-test
+    (testing "No finding when version equal to minimum"
+      (let [output
+            (with-err-str
+              #(lint!
+                ""
+                {:min-clj-kondo-version version/version}
+                "--filename"
+                ".clj-kondo/config.edn"))]
+        (is (empty? (str/replace output "\n" "")))))
+    (testing "No finding when version after minimum"
+      (let [output (with-err-str
+                     #(lint!
+                       ""
+                       {:min-clj-kondo-version (version-shifted-by-days -1)}
+                       "--filename"
+                       ".clj-kondo/config.edn"))]
+        (is (empty? (str/replace output "\n" "")))))
+    (testing "Find when version before minimum"
+      (let [output (with-err-str
+                     #(lint!
+                       ""
+                       {:min-clj-kondo-version (version-shifted-by-days 1)}
+                       "--filename"
+                       ".clj-kondo/config.edn"))]
+        (is
+         (str/includes?
+          output
+          "Version"))
+        (is
+         (str/includes?
+          output
+          version/version))
+        (is
+         (str/includes?
+          output
+          "below configured minimum"))
+        (is
+         (str/includes?
+          output
+          (version-shifted-by-days 1)))))))
