@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.analysis.java
   {:no-doc true}
   (:require
+   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.utils :refer [->uri]]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -128,7 +129,7 @@
          {}
          (.findAll compilation ClassOrInterfaceDeclaration)))
       (catch Throwable e
-        (binding [*out* *err*]
+        (binding [*out* output/err]
           (println "Error parsing java file" filename "with error" e))))))
 
 (defn analyze-class-defs? [ctx]

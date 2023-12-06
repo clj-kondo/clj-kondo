@@ -4,6 +4,7 @@
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.types.clojure.core :refer [clojure-core cljs-core]]
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
    [clj-kondo.impl.types.clojure.string :refer [clojure-string]]
@@ -535,7 +536,7 @@
                                 (emit-non-match! ctx s a t))
                               (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
     (catch Exception e
-      (binding [*out* *err*]
+      (binding [*out* output/err]
         (println "[clj-kondo]" "WARNING: error while checking types: " (-> e .getClass .getName) (str (.getMessage e)))))))
 
 ;;;; Scratch

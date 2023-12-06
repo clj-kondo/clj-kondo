@@ -4,6 +4,7 @@
   (:require [clj-kondo.impl.config :refer [default-config]]
             [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.linters.edn-utils :as edn-utils]
+            [clj-kondo.impl.output :as output]
             [clj-kondo.impl.utils :refer [sexpr node->line]]))
 
 (set! *warn-on-reflection* true)
@@ -60,5 +61,5 @@
       :eastwood)
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
-      (binding [*out* *err*]
+      (binding [*out* output/err]
         (println "[clj-kondo] ERROR: " (.getMessage e))))))

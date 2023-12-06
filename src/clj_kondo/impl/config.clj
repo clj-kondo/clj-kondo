@@ -287,7 +287,7 @@
                       (if (map? excluded)
                         (map-vals set excluded)
                         (let [warning "[clj-kondo] WARNING: configuration value in [:linters :referred-var :exclude] should be a map"]
-                          (binding [*out* *err*]
+                          (binding [*out* output/err]
                             (println warning)
                             nil)))))
       delayed-cfg (memoize delayed-cfg)]

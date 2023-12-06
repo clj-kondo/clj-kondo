@@ -4,6 +4,7 @@
   (:require
    [babashka.fs :as fs]
    [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.rewrite-clj.node.keyword :as k]
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
@@ -41,7 +42,7 @@
 ;;; end export
 
 (defn print-err! [& strs]
-  (binding [*out* *err*]
+  (binding [*out* output/err]
     (apply println strs))
   nil)
 
@@ -330,7 +331,7 @@
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
 (defn stderr [& msgs]
-  (binding [*out* *err*]
+  (binding [*out* output/err]
     (apply println msgs)))
 
 (defn resolve-call
@@ -379,7 +380,7 @@
                vconj (assoc m :ignore ignore))))))
 
 (defn err [& xs]
-  (binding [*out* *err*]
+  (binding [*out* output/err]
     (apply prn xs)))
 
 ;;; os specific

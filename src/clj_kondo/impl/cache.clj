@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.cache
   {:no-doc true}
   (:require
+   [clj-kondo.impl.output :as output]
    [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
@@ -71,7 +72,7 @@
           (let [writer (transit/writer os :json)]
             (try (transit/write writer ns-data)
                  (catch Exception e
-                   (binding [*out* *err*]
+                   (binding [*out* output/err]
                      (println "[clj-kondo] WARNING: could not serialize cache data for namespace" ns-sym))
                    (throw e)))))))))
 

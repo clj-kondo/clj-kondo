@@ -3,6 +3,7 @@
   {:no-doc true}
   (:require [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.linters.edn-utils :as edn-utils]
+            [clj-kondo.impl.output :as output]
             [clj-kondo.impl.utils :refer [sexpr node->line]]
             [clojure.string :as str]))
 
@@ -253,7 +254,7 @@
         (lint-tasks ctx tasks)))
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
-      (binding [*out* *err*]
+      (binding [*out* output/err]
         (println "ERROR: " (.getMessage e))))))
 
 (defn- lint-deps-edn-top-level-jvm-opts [ctx node]
@@ -288,5 +289,5 @@
         (lint-mvn-repos ctx mvn-repos)))
     ;; Due to ubiquitous use of sexpr, we're catching coercion errors here and let them slide.
     (catch Exception e
-      (binding [*out* *err*]
+      (binding [*out* output/err]
         (println "ERROR: " (.getMessage e))))))
