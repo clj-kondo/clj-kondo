@@ -5,7 +5,7 @@
    [cheshire.core :as cheshire]
    [clj-kondo.hooks-api :as hooks]
    [clj-kondo.impl.cache :as cache]
-   [clj-kondo.impl.config :refer [merge-config!]]
+   [clj-kondo.impl.config :refer [check-minimum-version merge-config!]]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters :as l]
@@ -200,6 +200,7 @@
                :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
                :debug debug}
           lang (or lang :clj)
+          _ (check-minimum-version ctx)
           ;; primary file analysis and initial lint
           _ (core-impl/process-files (if parallel
                                        (assoc ctx :parallel parallel)
