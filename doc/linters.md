@@ -1724,7 +1724,7 @@ You can report duplicate warnings using:
 
 #### :exclude-patterns
 
-Since v2023.04.??+ (to be released) you can use `:exclude-patterns` to suppress symbols by regex patterns (as strings, processed via `re-find`):
+Since v2023.04.14 you can use `:exclude-patterns` to suppress symbols by regex patterns (as strings, processed via `re-find`):
 
 ``` clojure
 (ns scratch)
