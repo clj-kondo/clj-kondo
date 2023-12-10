@@ -1,5 +1,5 @@
-export CLJ_KONDO_EXTRACT_CLJ_VERSION="1.11.1"
-export CLJ_KONDO_EXTRACT_CLJS_VERSION="1.11.54"
+export CLJ_KONDO_EXTRACT_CLJ_VERSION="1.12.0-alpha5"
+export CLJ_KONDO_EXTRACT_CLJS_VERSION="1.11.60"
 export CLJ_KONDO_EXTRACT_CORE_DEPS="
 {:deps {org.clojure/clojure {:mvn/version \"$CLJ_KONDO_EXTRACT_CLJ_VERSION\"}
         org.clojure/clojurescript {:mvn/version \"$CLJ_KONDO_EXTRACT_CLJS_VERSION\"}}}"

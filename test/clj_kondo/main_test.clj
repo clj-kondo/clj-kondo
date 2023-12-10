@@ -3439,6 +3439,15 @@ foo/")))
     (assert-submaps2 (expected "never_give.you-up") (lint! "(ns never_give.you-up)"))
     (assert-submaps2 (expected "a.large-smelly_dog") (lint! "(ns a.large-smelly_dog)"))))
 
+(deftest clojure-1-12-test
+  (is (empty? (lint! "(partitionv 2 [1 2 3])"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--cache" "false")))
+  (assert-submaps2 '({:file "<stdin>", :row 1, :col 1, :level :error, :message "clojure.core/partitionv is called with 0 args but expects 2, 3 or 4"})
+                   (lint! "(partitionv)"
+                          {:linters {:invalid-arity {:level :error}}}
+                          "--cache" "false")))
+
 ;;;; Scratch
 
 (comment

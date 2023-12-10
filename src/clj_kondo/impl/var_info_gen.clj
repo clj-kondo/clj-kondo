@@ -35,6 +35,7 @@
 *print-readably*
 *read-eval*
 *reader-resolver*
+*repl*
 *source-path*
 *suppress-read*
 *unchecked-math*
@@ -440,6 +441,8 @@ partial
 partition
 partition-all
 partition-by
+partitionv
+partitionv-all
 pcalls
 peek
 persistent!
@@ -584,6 +587,7 @@ special-symbol?
 spit
 split-at
 split-with
+splitv-at
 str
 string?
 struct
