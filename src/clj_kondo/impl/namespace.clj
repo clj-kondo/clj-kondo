@@ -697,6 +697,14 @@
          (if (and cljs? (namespace name-sym))
            (recur ctx call? ns-name name-sym expr)
            (or
+            (when (identical? :clj lang)
+              (when-let [[name-sym* package]
+                         (find (:imports ns) name-sym)]
+                (reg-used-import! ctx name-sym ns-name package name-sym* expr)
+                (when call? (findings/warn-reflection ctx expr))
+                {:ns package
+                 :interop? true
+                 :name name-sym*}))
             (when-let [[k v] (find (:referred-vars ns)
                                    name-sym)]
               (reg-used-referred-var! ctx ns-name k)
@@ -716,11 +724,10 @@
                                      package (symbol (str/join "." (butlast splitted)))
                                      name* (symbol (last splitted))]
                                  [name* package])))
-                           (if cljs?
+                           (when cljs?
                              ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
                              (let [fs (first-segment name-sym)]
-                               (find (:imports ns) fs))
-                             (find (:imports ns) name-sym)))]
+                               (find (:imports ns) fs))))]
               (reg-used-import! ctx name-sym ns-name package name-sym* expr)
               (when call? (findings/warn-reflection ctx expr))
               {:ns package
