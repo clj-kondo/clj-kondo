@@ -1732,7 +1732,7 @@
 
 (defn analyze-when [ctx expr]
   (let [children (next (:children expr))
-        condition (first children)
+        condition (assoc (first children) :condition true)
         body (next children)]
     (dorun (analyze-expression**
             ;; avoid redundant do check for condition
