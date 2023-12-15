@@ -1,13 +1,14 @@
 (ns clj-kondo.impl.analyzer.test
   {:no-doc true}
   (:require
-    [clj-kondo.impl.analyzer.common :as common]
-    [clj-kondo.impl.macroexpand :as macros]
-    [clj-kondo.impl.utils :as utils]))
+   [clj-kondo.impl.analyzer.common :as common]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.macroexpand :as macros]
+   [clj-kondo.impl.utils :as utils]))
 
 (defn analyze-deftest [ctx expr defined-by defined-by->lint-as]
   (common/analyze-defn
-   ctx
+   (assoc ctx :async-counter (atom 0))
    (-> expr
        (update
         :children
@@ -25,6 +26,13 @@
    defined-by->lint-as))
 
 (defn analyze-cljs-test-async [ctx expr]
+  (when-let [ctr (:async-counter ctx)]
+    (when (pos? @ctr)
+      (findings/reg-finding! ctx (assoc (meta expr)
+                                        :message "Only one async block per deftest is allowed"
+                                        :filename (:filename ctx)
+                                        :type :multiple-async-in-deftest)))
+    (swap! ctr inc))
   (let [[binding-expr & rest-children] (rest (:children expr))
         binding-name (:value binding-expr)
         ctx (utils/ctx-with-bindings ctx {binding-name (meta binding-expr)})

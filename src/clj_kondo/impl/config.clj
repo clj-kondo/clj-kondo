@@ -158,7 +158,8 @@
               :unused-alias {:level :off}
               :self-requiring-namespace {:level :off}
               :condition-always-true {:level :off}
-              :underscore-in-namespace {:level :warning}}
+              :underscore-in-namespace {:level :warning}
+              :multiple-async-in-deftest {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

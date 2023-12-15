@@ -29,6 +29,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2236](https://github.com/clj-kondo/clj-kondo/issues/2236): `:lint-length` warnings cannot be `:clj-kondo/ignore`d
 - [#2224](https://github.com/clj-kondo/clj-kondo/issues/2224): give `#'foo/foo` and `(var foo/foo)` the same treatment with respect to private calls
 - [#2239](https://github.com/clj-kondo/clj-kondo/issues/2239): fix printing of unresolved var when going through `:macroexpand` hook
+- [#2235](https://github.com/clj-kondo/clj-kondo/issues/2235): warn on multiple async blocks in cljs.test/deftest
 
 ## 2023.10.20
 

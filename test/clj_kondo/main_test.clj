@@ -3460,6 +3460,11 @@ foo/")))
                      {:linters {:unused-import {:level :error}}}
                      "--cache" (fs/file "corpus" "issue-2223" ".clj-kondo")))))
 
+(deftest multiple-async-in-deftest-test
+  (assert-submaps '({:file "<stdin>", :row 1, :col 76, :level :warning, :message "Only one async block per deftest is allowed"})
+                  (lint! "(ns foo (:require [cljs.test :as t])) (t/deftest foo (t/async done (done)) (t/async done (done)))"
+                         {:linters {:multiple-async-in-deftest {:level :warning}}})))
+
 ;;;; Scratch
 
 (comment
