@@ -355,6 +355,13 @@
 
 ;;;; function arity
 
+(defn lint-fn-name! [ctx name-node]
+  (when-not (simple-symbol? (:value name-node))
+    (findings/reg-finding! ctx (assoc (meta name-node)
+                                      :message (str "Function name must be simple symbol but got: " (str name-node))
+                                      :type :syntax
+                                      :filename (:filename ctx)))))
+
 (defn analyze-arity [ctx arg-vec]
   (loop [[arg & rest-args] (:children arg-vec)
          arity 0]
@@ -547,6 +554,7 @@
         [name-node & children] (next (:children expr))
         name-node-meta-nodes (:meta name-node)
         name-node (when name-node (meta/lift-meta-content2 ctx name-node))
+        _ (when name-node (lint-fn-name! ctx name-node))
         _ (utils/handle-ignore ctx name-node)
         fn-name (some-> (:value name-node)
                         (with-meta (meta name-node)))
@@ -957,6 +965,8 @@
         ?fn-name (when ?name-expr
                    (when-let [n (utils/symbol-from-token ?name-expr)]
                      n))
+        _ (when (and ?name-expr (identical? :token (utils/tag ?name-expr)))
+            (lint-fn-name! ctx ?name-expr))
         bodies (fn-bodies ctx (next children) expr)
         ;; we need the arity beforehand because this is valid in each body
         arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)

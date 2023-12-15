@@ -3465,6 +3465,13 @@ foo/")))
                   (lint! "(ns foo (:require [cljs.test :as t])) (t/deftest foo (t/async done (done)) (t/async done (done)))"
                          {:linters {:multiple-async-in-deftest {:level :warning}}})))
 
+(deftest invalid-fn-name-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 7, :level :error, :message "Function name must be simple symbol but got: :foo"}
+     {:file "<stdin>", :row 1, :col 20, :level :error, :message "Function name must be simple symbol but got: :foo"}
+     {:file "<stdin>", :row 1, :col 33, :level :error, :message "Function name must be simple symbol but got: \"foo\""})
+   (lint! "(defn :foo []) (fn :foo []) (fn \"foo\" [])")))
+
 ;;;; Scratch
 
 (comment
