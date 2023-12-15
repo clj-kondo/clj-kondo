@@ -404,6 +404,21 @@
                                        :syntax
                                        "Invalid function body."))))
 
+(defn- invalid-fn-name? [?name-expr]
+  (let [valid? (some-fn utils/list-node? ; fn body (usually 1 of many)
+                        utils/vector-node? ; fn args
+                        utils/symbol-token?)] ; fn name
+    (not (valid? ?name-expr))))
+
+(defn- reg-invalid-fn-name! [ctx expr filename]
+  (findings/reg-finding!
+   ctx
+   (node->line
+    filename
+    expr
+    :invalid-fn-name
+    "First arg of fn should be a symbol, params vector or arity clause")))
+
 (defn- meta-arglists-node->strs
   "Return arglist-strs for `node` representing arglists metadata value.
   Returns nil if node does not match expected quoted list of vectors shape, ex: '([x][x y] ...)."
@@ -641,6 +656,10 @@
         arities (extract-arity-info ctx parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])]
+    (when (and (not (linter-disabled? ctx :valid-fn-name))
+               name-node
+               (invalid-fn-name? name-node))
+      (reg-invalid-fn-name! ctx expr (:filename ctx)))
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -985,6 +1004,10 @@
     (when (and (not (linter-disabled? ctx :def-fn))
                (def-fn? ctx))
       (reg-def-fn! ctx expr filename))
+    (when (and (not (linter-disabled? ctx :valid-fn-name))
+               ?name-expr
+               (invalid-fn-name? ?name-expr))
+      (reg-invalid-fn-name! ctx expr filename))
     (with-meta parsed-bodies
       (when arities
         (cond-> {:arity {:fixed-arities fixed-arities

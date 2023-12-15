@@ -38,6 +38,10 @@
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :set (tag n))))
 
+(defn vector-node? [n]
+  (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
+       (identical? :vector (tag n))))
+
 ;;; end export
 
 (defn print-err! [& strs]

@@ -19,7 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- ...
+- [#2159](https://github.com/clj-kondo/clj-kondo/issues/2159): New linter, `:invalid-fn-name`
 
 ## 2023.12.15
 

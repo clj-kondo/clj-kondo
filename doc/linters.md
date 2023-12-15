@@ -47,6 +47,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Format](#format)
     - [Def + fn instead of defn](#def--fn-instead-of-defn)
     - [Inline def](#inline-def)
+    - [Invalid fn name](#invalid-fn-name)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
@@ -844,6 +845,21 @@ See [issue](https://github.com/clj-kondo/clj-kondo/issues/1920).
 *Example trigger:* `(defn foo [] (def x 1))`.
 
 *Example message:* `inline def`.
+
+### Invalid fn name
+
+**Keyword:** `:invalid-fn-name`.
+
+*Description:* warn when a function's name is not valid. If present, it should
+be an unquoted symbol.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(fn :fn-name [x] (inc x))`.
+
+*Example message:* `First arg of fn should be a symbol, params vector or arity clause`.
+
+*Config:*
 
 ### Invalid arity
 

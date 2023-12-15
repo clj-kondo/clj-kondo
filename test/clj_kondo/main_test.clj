@@ -60,6 +60,22 @@
       (is (empty? (lint! "(def x (reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config))))
       (is (empty? (lint! "(require '[some.ns :refer [my-reify]]) (def x (my-reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config)))))))
 
+(deftest invalid-fn-name-test
+  (assert-submaps
+   '({:row 1, :col 1, :level :error, :message "First arg of fn should be a symbol, params vector or arity clause"})
+   (lint! "(fn \"fn-name\" [x] (inc x))"))
+  (assert-submaps
+   '({:row 1, :col 1, :level :error, :message "First arg of fn should be a symbol, params vector or arity clause"})
+   (lint! "(defn :fn-name [x] (inc x))"))
+  (assert-submaps
+   '({:row 1, :col 6, :level :error, :message "First arg of fn should be a symbol, params vector or arity clause"})
+   (lint! "(map (fn 'symbol ([x] (inc x))) coll)"))
+  (assert-submaps
+   '({:row 1, :col 7, :level :error, :message "First arg of fn should be a symbol, params vector or arity clause"})
+   (lint! "(-> 7 (fn [x] (inc x)))"))
+  (is (empty? (lint! "(fn fn-name [x] (inc x))")))
+  (is (empty? (lint! "(defn fn-name [x] (inc x))"))))
+
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
         row-col-files (map #(select-keys % [:row :col :file])
