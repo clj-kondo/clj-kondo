@@ -18,10 +18,6 @@
 
 (def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))
 
-(def version
-  (str/trim
-   (slurp (io/resource "CLJ_KONDO_VERSION"))))
-
 (def cache-version "v1")
 
 (defn format-output [config]
@@ -587,7 +583,7 @@
                                 :macro :private :deprecated
                                 :fixed-arities :varargs-min-arity
                                 :name :ns :top-ns :imported-ns :imported-var
-                                :arities :type])))
+                                :arities :type :class])))
             vars))
 
 (defn namespaces->indexed [namespaces]

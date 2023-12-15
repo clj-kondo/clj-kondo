@@ -992,7 +992,7 @@ To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";
 
 *Default level:* `:off`.
 
-*Example trigger:* `(let [{:keys [:a]} {:a 1}] a)`.
+*Example trigger:* `(let [{:keys [a]} {:a 1}] a)`.
 
 *Example message:* `Keyword binding should be a symbol: :a`
 
@@ -1457,7 +1457,7 @@ You can add or override type annotations. See
 
 *Default level:* `:warning`.
 
-*Example trigger:* `(let [{:keys [:i] :or {i 2 j 3}} {}] i)`
+*Example trigger:* `(let [{:keys [i] :or {i 2 j 3}} {}] i)`
 
 *Example message:* `j is not bound in this destructuring form`.
 
@@ -1511,7 +1511,7 @@ To exclude warnings about key-destructured function arguments, use:
 This will disable warnings for the following example:
 
 ``` clojure
-(defn f [{:keys [:a :b :c]} d])
+(defn f [{:keys [a b c]} d])
 ```
 
 To disable warnings about `:as` bindings (which can be useful for
@@ -1740,7 +1740,7 @@ You can report duplicate warnings using:
 
 #### :exclude-patterns
 
-Since v2023.04.??+ (to be released) you can use `:exclude-patterns` to suppress symbols by regex patterns (as strings, processed via `re-find`):
+Since v2023.04.14 you can use `:exclude-patterns` to suppress symbols by regex patterns (as strings, processed via `re-find`):
 
 ``` clojure
 (ns scratch)

@@ -35,6 +35,7 @@
 *print-readably*
 *read-eval*
 *reader-resolver*
+*repl*
 *source-path*
 *suppress-read*
 *unchecked-math*
@@ -62,19 +63,14 @@
 ==
 >
 >=
-ArrayChunk
 ArrayManager
 EMPTY-NODE
-Eduction
 IVecImpl
 Inst
 NaN?
 PrintWriter-on
 StackTraceElement->vec
 Throwable->map
-Vec
-VecNode
-VecSeq
 abs
 accessor
 aclone
@@ -440,6 +436,8 @@ partial
 partition
 partition-all
 partition-by
+partitionv
+partitionv-all
 pcalls
 peek
 persistent!
@@ -584,6 +582,7 @@ special-symbol?
 spit
 split-at
 split-with
+splitv-at
 str
 string?
 struct

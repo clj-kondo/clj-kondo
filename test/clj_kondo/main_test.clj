@@ -1,5 +1,6 @@
 (ns clj-kondo.main-test
   (:require
+   [babashka.fs :as fs]
    [cheshire.core :as cheshire]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.main :refer [main]]
@@ -211,6 +212,8 @@
 (ns bar (:require [foo]))
 `foo/foo ;; this doesn't use the private var, it only uses the ns alias
 foo/foo ;; this does use the private var
+#'foo/foo ;; this is fine
+(var foo/foo) ;; this is also fine
 "))
   (assert-submaps2
    '({:file "corpus/my/project/foo.clj", :row 3, :col 8, :level :warning, :message "Unused private var my.project.foo/bar"})
@@ -1984,7 +1987,9 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(declare ethers magic)
                       (new (.. ethers -providers -Web3Provider) (.-rpcProvider magic))"
                      {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(def Vec 1)"
+                     {:linters {:redefined-var {:level :error}}}))))
 
 (deftest tagged-literal-test
   (is (empty?
@@ -3461,6 +3466,27 @@ foo/")))
     (assert-submaps2 (expected "_boop") (lint! "(ns _boop)"))
     (assert-submaps2 (expected "never_give.you-up") (lint! "(ns never_give.you-up)"))
     (assert-submaps2 (expected "a.large-smelly_dog") (lint! "(ns a.large-smelly_dog)"))))
+
+(deftest clojure-1-12-test
+  (is (empty? (lint! "(partitionv 2 [1 2 3])"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--cache" "false")))
+  (assert-submaps2 '({:file "<stdin>", :row 1, :col 1, :level :error, :message "clojure.core/partitionv is called with 0 args but expects 2, 3 or 4"})
+                   (lint! "(partitionv)"
+                          {:linters {:invalid-arity {:level :error}}}
+                          "--cache" "false")))
+
+(deftest refer-all-doesnt-import-class-test
+  (lint! (fs/file "corpus" "issue-2223" "a.clj")
+         "--cache" (fs/file "corpus" "issue-2223" ".clj-kondo"))
+  (is (empty? (lint! (fs/file "corpus" "issue-2223" "b.clj")
+                     {:linters {:unused-import {:level :error}}}
+                     "--cache" (fs/file "corpus" "issue-2223" ".clj-kondo")))))
+
+(deftest multiple-async-in-deftest-test
+  (assert-submaps '({:file "<stdin>", :row 1, :col 76, :level :warning, :message "Only the first async test of a deftest will run"})
+                  (lint! "(ns foo (:require [cljs.test :as t])) (t/deftest foo (t/async done (done)) (t/async done (done)))"
+                         {:linters {:multiple-async-in-deftest {:level :warning}}})))
 
 ;;;; Scratch
 

@@ -86,3 +86,8 @@ corpus/namespace_config/.clj-kondo/inline-configs
 corpus/.clj-kondo/inline-configs
 tmp
 .eastwood
+
+# Calva
+.calva
+corpus/issue-2223/.clj-kondo
+corpus/issue-2239/.clj-kondo/.cache

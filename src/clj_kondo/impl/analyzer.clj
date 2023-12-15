@@ -1574,7 +1574,7 @@
 
 (defn analyze-defrecord
   "Analyzes defrecord and deftype."
-  [{:keys [:ns] :as ctx} expr defined-by defined-by->lint-as]
+  [{:keys [ns lang] :as ctx} expr defined-by defined-by->lint-as]
   (let [ns-name (:name ns)
         children (:children expr)
         children (next children)
@@ -1592,7 +1592,8 @@
                                    {})
         arglists? (:analyze-arglists? ctx)
         ctx (ctx-with-bindings ctx bindings)]
-    (namespace/reg-var! ctx ns-name record-name expr metadata)
+    (namespace/reg-var! ctx ns-name record-name expr (cond-> metadata
+                                                       (identical? :clj lang) (assoc :class true)))
     (when-not (identical? :off (-> ctx :config :linters :duplicate-field :level))
       (doseq [[_ fields] (group-by identity (:children binding-vector))]
         (when (> (count fields) 1)
@@ -1752,7 +1753,7 @@
 
 (defn analyze-when [ctx expr]
   (let [children (next (:children expr))
-        condition (first children)
+        condition (assoc (first children) :condition true)
         body (next children)]
     (dorun (analyze-expression**
             ;; avoid redundant do check for condition
@@ -2103,6 +2104,9 @@
                                           :filename (:filename ctx)))))
     (analyze-children ctx children false)))
 
+(defn- analyze-var [ctx _expr children]
+  (analyze-children (assoc ctx :private-access? true) children))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -2169,9 +2173,9 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                         [[ns n]
-                          (config/lint-as config
-                                          [resolved-namespace resolved-name])]
+                            [[ns n]
+                             (config/lint-as config
+                                             [resolved-namespace resolved-name])]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -2217,7 +2221,9 @@
                           (assoc ctx :context context)
                           ctx)]
                 (if-let [expanded (and transformed
-                                       (:node transformed))]
+                                       (let [node (:node transformed)]
+                                         (when-not (identical? expr node)
+                                           node)))]
                   (let [expanded (hooks/annotate expanded expr-meta)
                         [new-name-node new-arg-count]
                         (when (utils/list-node? expanded)
@@ -2405,6 +2411,7 @@
                           (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
                           (exists?) (analyze-cljs-exists? ctx expr)
                           (with-precision) (analyze-with-precision ctx expr children)
+                          (var) (analyze-var ctx expr children)
                           ;; catch-all
                           (case [resolved-as-namespace resolved-as-name]
                             [clj-kondo.lint-as def-catch-all]
@@ -2451,7 +2458,7 @@
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
-                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
+                             [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
                              (assoc ctx
                                     :analyze-expression** analyze-expression**
@@ -3105,8 +3112,9 @@
                       filename ", "
                       (or (.getMessage ex) (str ex)))}])))
 
-(defn- lint-line-length [ctx config filename input]
-  (let [line-length-conf (-> config :linters :line-length)]
+(defn- lint-line-length [_ctx config filename input]
+  (let [findings (atom [])
+        line-length-conf (-> config :linters :line-length)]
     (when (not (identical? :off (:level line-length-conf)))
       (when-let [max-line-length (:max-line-length line-length-conf)]
         (let [exclude-urls (:exclude-urls line-length-conf)
@@ -3121,14 +3129,15 @@
                                      (not (str/includes? line "http")))
                                  (or (not exclude-pattern)
                                      (not (re-find exclude-pattern line))))
-                        (findings/reg-finding! ctx {:message (str "Line is longer than " max-line-length " characters.")
-                                                    :filename filename
-                                                    :type :line-length
-                                                    :row (inc row)
-                                                    :end-row (inc row)
-                                                    :col (inc max-line-length)
-                                                    :end-col (count line)}))))
-                  (map-indexed vector (line-seq rdr)))))))))
+                        (swap! findings conj {:message (str "Line is longer than " max-line-length " characters.")
+                                              :filename filename
+                                              :type :line-length
+                                              :row (inc row)
+                                              :end-row (inc row)
+                                              :col (inc max-line-length)
+                                              :end-col (count line)}))))
+                  (map-indexed vector (line-seq rdr)))))))
+    @findings))
 
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
@@ -3173,8 +3182,8 @@
                     (utils/ctx-with-linters-disabled
                      (assoc ctx :data-readers true)
                      [:unresolved-symbol :unresolved-namespace :private-call])
-                    ctx)]
-          (lint-line-length ctx config filename input)
+                    ctx)
+              line-length-findings (lint-line-length ctx config filename input)]
           (doseq [e @reader-exceptions]
             (if dev?
               (throw e)
@@ -3218,6 +3227,8 @@
                                   (io/make-parents)) (apply config/merge-config! configs))))
                       (when (fs/exists? inline-file)
                         (fs/delete-tree (fs/parent inline-file)))))))
+              (doseq [f line-length-findings]
+                (findings/reg-finding! ctx f))
               nil)))
         (catch Exception e
           (if dev?

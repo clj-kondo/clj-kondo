@@ -5,8 +5,13 @@
 
 (deftest condition-always-true-test
   (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 19, :level :warning, :message "Condition always true"})
-   (lint! "(defn foo [x] (if inc x 2))"
+   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Condition always true"}
+     {:file "<stdin>",
+      :row 1,
+      :col 35,
+      :level :warning,
+      :message "Condition always true"})
+   (lint! "(defn foo [x] [(if inc x 2) (when inc 2)])"
           '{:linters {:condition-always-true {:level :warning}}}))
   (is (empty?
        (lint! "(defn foo [x] (if x inc 2))
