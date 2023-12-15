@@ -1553,7 +1553,7 @@
 
 (defn analyze-defrecord
   "Analyzes defrecord and deftype."
-  [{:keys [:ns] :as ctx} expr defined-by defined-by->lint-as]
+  [{:keys [ns lang] :as ctx} expr defined-by defined-by->lint-as]
   (let [ns-name (:name ns)
         children (:children expr)
         children (next children)
@@ -1571,7 +1571,8 @@
                                    {})
         arglists? (:analyze-arglists? ctx)
         ctx (ctx-with-bindings ctx bindings)]
-    (namespace/reg-var! ctx ns-name record-name expr metadata)
+    (namespace/reg-var! ctx ns-name record-name expr (cond-> metadata
+                                                       (identical? :clj lang) (assoc :class true)))
     (when-not (identical? :off (-> ctx :config :linters :duplicate-field :level))
       (doseq [[_ fields] (group-by identity (:children binding-vector))]
         (when (> (count fields) 1)

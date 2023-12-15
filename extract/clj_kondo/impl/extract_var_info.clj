@@ -46,7 +46,8 @@
   (edn/read-string (slurp (io/resource "var-info.edn"))))
 
 (defn public? [[k v]]
-  (when (-> v :private not)
+  (when (not (or (:private v)
+                 (:class v)))
     k))
 
 (defn extract-clojure-core-vars

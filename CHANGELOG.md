@@ -25,6 +25,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2013](https://github.com/clj-kondo/clj-kondo/issues/2013): Fix NPE and similar errors when linting an import with an illegal token
 - [#2215](https://github.com/clj-kondo/clj-kondo/issues/2215): passthrough hook should not affect linting
 - [#2232](https://github.com/clj-kondo/clj-kondo/issues/2232): bump analysis for clojure 1.12 (partitionv, etc)
+- [#2223](https://github.com/clj-kondo/clj-kondo/issues/2223): do not consider classes created with `deftype` a var that is referred with `:refer :all`
 
 ## 2023.10.20
 
