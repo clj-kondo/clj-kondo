@@ -189,6 +189,8 @@
 (ns bar (:require [foo]))
 `foo/foo ;; this doesn't use the private var, it only uses the ns alias
 foo/foo ;; this does use the private var
+#'foo/foo ;; this is fine
+(var foo/foo) ;; this is also fine
 "))
   (assert-submaps2
    '({:file "corpus/my/project/foo.clj", :row 3, :col 8, :level :warning, :message "Unused private var my.project.foo/bar"})

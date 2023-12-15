@@ -2083,6 +2083,9 @@
                                           :filename (:filename ctx)))))
     (analyze-children ctx children false)))
 
+(defn- analyze-var [ctx _expr children]
+  (analyze-children (assoc ctx :private-access? true) children))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -2387,6 +2390,7 @@
                           (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
                           (exists?) (analyze-cljs-exists? ctx expr)
                           (with-precision) (analyze-with-precision ctx expr children)
+                          (var) (analyze-var ctx expr children)
                           ;; catch-all
                           (case [resolved-as-namespace resolved-as-name]
                             [clj-kondo.lint-as def-catch-all]
