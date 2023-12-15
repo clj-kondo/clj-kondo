@@ -1,0 +1,1 @@
+{:hooks {:macroexpand {a/my-macro hooks.a/my-macro}}}

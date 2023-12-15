@@ -765,8 +765,8 @@
                 hide-duplicates? (take 1))]
       (let [filename (:filename v)
             expr (:expr v)
-            n (if-let [children (:children expr)]
-                (str (first children))
+            n (if-let [fst-child (some-> expr :children first)]
+                (str fst-child)
                 (str expr))]
         (findings/reg-finding!
          ctx

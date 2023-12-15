@@ -108,3 +108,12 @@ bar/x (bar/y)
      (lint! "(require '[clojure.core.async :as a]) (a/<!!)" {:linters {:unresolved-symbol {:level :error}
                                                                        :unresolved-var {:level :error}}}
             "--cache" cache))))
+
+(deftest issue-2239-test
+  (assert-submaps
+   '({:file "corpus/issue-2239/a.clj", :row 6, :col 16, :level :error, :message "Unresolved symbol: x"}
+     {:file "corpus/issue-2239/b.clj", :row 6, :col 22, :level :error, :message "Unresolved var: a/x"})
+   (lint! [(fs/file "corpus" "issue-2239" "a.clj") (fs/file "corpus" "issue-2239" "b.clj")]
+              {:linters {:unresolved-symbol {:level :error}
+                         :unresolved-var {:level :error}}}
+              "--config-dir" (fs/file "corpus" "issue-2239" ".clj-kondo"))))
