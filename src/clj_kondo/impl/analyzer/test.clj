@@ -29,7 +29,7 @@
   (when-let [ctr (:async-counter ctx)]
     (when (pos? @ctr)
       (findings/reg-finding! ctx (assoc (meta expr)
-                                        :message "Only one async block per deftest is allowed"
+                                        :message "Only the first async test of a deftest will run"
                                         :filename (:filename ctx)
                                         :type :multiple-async-in-deftest)))
     (swap! ctr inc))
