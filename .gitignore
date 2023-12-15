@@ -89,3 +89,4 @@ tmp
 
 # Calva
 .calva
+corpus/issue-2223/.clj-kondo

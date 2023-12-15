@@ -1,0 +1,3 @@
+(ns a)
+
+(deftype Foo [])

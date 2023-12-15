@@ -1,5 +1,6 @@
 (ns clj-kondo.main-test
   (:require
+   [babashka.fs :as fs]
    [cheshire.core :as cheshire]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.main :refer [main]]
@@ -1961,7 +1962,9 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(declare ethers magic)
                       (new (.. ethers -providers -Web3Provider) (.-rpcProvider magic))"
                      {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(def Vec 1)"
+                     {:linters {:redefined-var {:level :error}}}))))
 
 (deftest tagged-literal-test
   (is (empty?
@@ -3447,6 +3450,13 @@ foo/")))
                    (lint! "(partitionv)"
                           {:linters {:invalid-arity {:level :error}}}
                           "--cache" "false")))
+
+(deftest refer-all-doesnt-import-class-test
+  (lint! (fs/file "corpus" "issue-2223" "a.clj")
+         "--cache" (fs/file "corpus" "issue-2223" ".clj-kondo"))
+  (is (empty? (lint! (fs/file "corpus" "issue-2223" "b.clj")
+                     {:linters {:unused-import {:level :error}}}
+                     "--cache" (fs/file "corpus" "issue-2223" ".clj-kondo")))))
 
 ;;;; Scratch
 
