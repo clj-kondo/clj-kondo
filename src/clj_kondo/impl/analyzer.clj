@@ -2149,9 +2149,9 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                         [[ns n]
-                          (config/lint-as config
-                                          [resolved-namespace resolved-name])]
+                            [[ns n]
+                             (config/lint-as config
+                                             [resolved-namespace resolved-name])]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -2433,7 +2433,7 @@
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
-                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
+                             [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
                              (assoc ctx
                                     :analyze-expression** analyze-expression**
@@ -3091,8 +3091,9 @@
                       filename ", "
                       (or (.getMessage ex) (str ex)))}])))
 
-(defn- lint-line-length [ctx config filename input]
-  (let [line-length-conf (-> config :linters :line-length)]
+(defn- lint-line-length [_ctx config filename input]
+  (let [findings (atom [])
+        line-length-conf (-> config :linters :line-length)]
     (when (not (identical? :off (:level line-length-conf)))
       (when-let [max-line-length (:max-line-length line-length-conf)]
         (let [exclude-urls (:exclude-urls line-length-conf)
@@ -3107,14 +3108,15 @@
                                      (not (str/includes? line "http")))
                                  (or (not exclude-pattern)
                                      (not (re-find exclude-pattern line))))
-                        (findings/reg-finding! ctx {:message (str "Line is longer than " max-line-length " characters.")
-                                                    :filename filename
-                                                    :type :line-length
-                                                    :row (inc row)
-                                                    :end-row (inc row)
-                                                    :col (inc max-line-length)
-                                                    :end-col (count line)}))))
-                  (map-indexed vector (line-seq rdr)))))))))
+                        (swap! findings conj {:message (str "Line is longer than " max-line-length " characters.")
+                                              :filename filename
+                                              :type :line-length
+                                              :row (inc row)
+                                              :end-row (inc row)
+                                              :col (inc max-line-length)
+                                              :end-col (count line)}))))
+                  (map-indexed vector (line-seq rdr)))))))
+    @findings))
 
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
@@ -3159,8 +3161,8 @@
                     (utils/ctx-with-linters-disabled
                      (assoc ctx :data-readers true)
                      [:unresolved-symbol :unresolved-namespace :private-call])
-                    ctx)]
-          (lint-line-length ctx config filename input)
+                    ctx)
+              line-length-findings (lint-line-length ctx config filename input)]
           (doseq [e @reader-exceptions]
             (if dev?
               (throw e)
@@ -3204,6 +3206,8 @@
                                   (io/make-parents)) (apply config/merge-config! configs))))
                       (when (fs/exists? inline-file)
                         (fs/delete-tree (fs/parent inline-file)))))))
+              (doseq [f line-length-findings]
+                (findings/reg-finding! ctx f))
               nil)))
         (catch Exception e
           (if dev?

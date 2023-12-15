@@ -101,3 +101,12 @@
                        :col 81,
                        :end-col 92,
                        :level :warning}] findings)))
+
+(deftest ignore-test
+  (assert-submaps '({:file "<stdin>", :row 2, :col 81, :level :warning, :message "Line is longer than 80 characters."})
+                  (lint! "
+(def example \"this line of code exceeds 80 characters but shouldn't cause warning\")
+#_:clj-kondo/ignore
+(def example \"this line of code exceeds 80 characters but shouldn't cause warning\")"
+              {:linters {:line-length {:level :warning
+                                       :max-line-length 80}}})))
