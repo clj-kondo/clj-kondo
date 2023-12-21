@@ -91,3 +91,4 @@ tmp
 .calva
 corpus/issue-2223/.clj-kondo
 corpus/issue-2239/.clj-kondo/.cache
+src/scratch.clj
