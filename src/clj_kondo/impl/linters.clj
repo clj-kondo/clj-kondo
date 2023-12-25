@@ -289,7 +289,7 @@
                                             (and (= row-call row-called-fn)
                                                  (> (:col call) (:col called-fn)))))))
                   _ (when-let [t (:type called-fn)]
-                      (when (utils/one-of t [:string])
+                      (when (and (not call? )(utils/one-of t [:string]))
                         (findings/reg-finding!
                          ctx
                          {:filename filename
