@@ -19,7 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- ...
+- [#1917](https://github.com/clj-kondo/clj-kondo/issues/1917): detect string bar being called as function
 
 ## 2023.12.15
 
