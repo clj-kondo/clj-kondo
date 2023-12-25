@@ -1617,7 +1617,7 @@ foo/foo ;; this does use the private var
                      :message "a number is not a function"})
                   (lint! "(1 1)"))
   (assert-submaps
-   [{:file "<stdin>", :row 1, :col 17, :level :error
+   [{:file "<stdin>", :row 1, :col 21, :level :error
      :message "Can't call a string as a function"}]
    (lint! "(def foo \"foo\") foo (foo 1) (defn bar [x] x) (bar foo)"
           {:linters {:type-mismatch {:level :error}}}))
