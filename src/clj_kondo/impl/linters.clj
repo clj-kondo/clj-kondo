@@ -288,6 +288,19 @@
                                         (or (> row-call row-called-fn)
                                             (and (= row-call row-called-fn)
                                                  (> (:col call) (:col called-fn)))))))
+                  _ (when-let [t (:type called-fn)]
+                      (when (utils/one-of t [:string])
+                        (findings/reg-finding!
+                         ctx
+                         {:filename filename
+                          :level :error
+                          :row row
+                          :end-row end-row
+                          :col col
+                          :end-col end-col
+                          :type :not-a-function
+                          :message (str "Can't call a " (name t)
+                                        " as a function")})))
                   _ (when (and (not unresolved-var)
                                (not valid-call?))
                       (namespace/reg-unresolved-symbol!

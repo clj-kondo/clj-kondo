@@ -1616,6 +1616,9 @@ foo/foo ;; this does use the private var
                      :level :error,
                      :message "a number is not a function"})
                   (lint! "(1 1)"))
+  (prn (lint! "(def foo \"foo\") (foo 1)"))
+  #_(assert-submaps []
+                  (lint! "(def foo \"foo\") (foo 1)"))
   (is (empty? (lint! "'(1 1)")))
   (is (empty? (lint! "(foo (1 1))" "--config"
                      "{:linters {:not-a-function {:skip-args [user/foo]}
