@@ -2452,7 +2452,8 @@
                             ([datahike.api q]
                              [datascript.core q]
                              [datomic.api q]
-                             [datomic.client.api q])
+                             [datomic.client.api q]
+                             [datalevin.core q])
                             (do (datalog/analyze-datalog ctx expr)
                                 (analyze-children ctx children false))
                             ([compojure.core GET]
