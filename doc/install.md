@@ -77,6 +77,27 @@ To update:
 
     scoop update clj-kondo
 
+## ASDF
+
+clj-kondo can be installed with [ASDF plugin](https://github.com/rynkowsg/asdf-clj-kondo).
+
+To add clj-kondo plugin:
+
+    asdf plugin add clj-kondo https://github.com/rynkowsg/asdf-clj-kondo.git
+
+To list available versions:
+
+    asdf list-all clj-kondo
+
+To install locally within a project:
+
+    asdf install clj-kondo <yyyy.mm.dd>
+    asdf local clj-kondo <yyyy.mm.dd>
+
+Alternatively, you can set a global version:
+
+    asdf global clj-kondo <yyyy.mm.dd>
+
 ## [Running on the JVM](jvm.md)
 
 ## [Running with Docker](docker.md)
