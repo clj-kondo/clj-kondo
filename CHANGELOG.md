@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#1917](https://github.com/clj-kondo/clj-kondo/issues/1917): detect string being called as function
+- [#2253](https://github.com/clj-kondo/clj-kondo/issues/2253): add support for `datomic-type-extensions` to datalog syntax checking
 
 ## 2023.12.15
 
