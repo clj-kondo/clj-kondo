@@ -3470,6 +3470,15 @@ foo/")))
                   (lint! "(ns foo (:require [cljs.test :as t])) (t/deftest foo (t/async done (done)) (t/async done (done)))"
                          {:linters {:multiple-async-in-deftest {:level :warning}}})))
 
+(deftest lint-stdin-exclude-files-test
+  (is (empty?
+       (:findings
+        (with-in-str (slurp (str (io/file "corpus" "exclude-files-stdin" "foo.clj")))
+          (clj-kondo/run!
+           {:lint ["-"]
+            :filename (str (io/file "corpus" "exclude-files-stdin" "foo.clj"))
+            :config-dir (str (io/file "corpus" "exclude-files-stdin" ".clj-kondo"))}))))))
+
 ;;;; Scratch
 
 (comment
