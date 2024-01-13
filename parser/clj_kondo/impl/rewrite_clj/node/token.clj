@@ -5,12 +5,26 @@
 
 ;; ## Node
 
+#_(sexpr [_]
+       (let [[mta data] (node/sexprs children)]
+         (assert (instance? clojure.lang.IMeta data)
+                 (str "cannot attach metadata to: " (pr-str data)))
+         (vary-meta data merge (if (map? mta) mta {mta true}))))
+
+(defn ->meta [x]
+  (cond (map? x) x
+        (symbol? x) {:tag x}
+        (keyword? x) {x true}
+        :else {x true}))
+
 (defrecord TokenNode [value string-value]
   node/Node
   (tag [_] :token)
   (printable-only? [_] false)
   (sexpr [this] (if (instance? clojure.lang.IObj value)
-                  (with-meta value (meta this))
+                  (with-meta value (reduce merge (meta this)
+                                           (map (comp ->meta node/sexpr)
+                                                (:meta this))))
                   value))
   (length [_] (count string-value))
   (string [_] string-value)

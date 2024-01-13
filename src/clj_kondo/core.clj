@@ -300,3 +300,13 @@
       :config
       :linters
       :invalid-arity))
+
+(comment
+  (do (def node (clj-kondo.impl.rewrite-clj.parser/parse-string "^Long foo"))
+      (:meta node) ;; => :token Long
+      (require '[clj-kondo.hooks-api :as api])
+      (def sexpr (api/sexpr node)) ;; foo
+      (meta sexpr))
+  (def node2 (api/coerce sexpr))
+  (:meta node2) ;;=> nil
+  )
