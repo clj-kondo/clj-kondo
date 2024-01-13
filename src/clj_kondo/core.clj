@@ -301,6 +301,7 @@
       :linters
       :invalid-arity))
 
+#_:clj-kondo/ignore
 (comment
   (do (def node (clj-kondo.impl.rewrite-clj.parser/parse-string "^Long foo"))
       (:meta node) ;; => :token Long
