@@ -5,12 +5,6 @@
 
 ;; ## Node
 
-#_(sexpr [_]
-       (let [[mta data] (node/sexprs children)]
-         (assert (instance? clojure.lang.IMeta data)
-                 (str "cannot attach metadata to: " (pr-str data)))
-         (vary-meta data merge (if (map? mta) mta {mta true}))))
-
 (defn ->meta [x]
   (cond (map? x) x
         (symbol? x) {:tag x}
