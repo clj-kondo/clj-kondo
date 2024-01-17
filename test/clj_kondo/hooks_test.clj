@@ -423,4 +423,5 @@ my-ns/special-map \"
   (assert-submaps2
    []
    (lint! (io/file "corpus" "issue-2246" "a.clj")
+          {:linters {:unused-import {:level :warning}}}
           "--config-dir" (.getPath (io/file "corpus" "issue-2246" ".clj-kondo")))))
