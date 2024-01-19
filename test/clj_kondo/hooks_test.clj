@@ -418,3 +418,10 @@ my-ns/special-map \"
    '({:file "corpus/issue-2215/fail.clj", :row 6, :col 5, :level :warning, :message "Redundant let expression."})
    (lint! (io/file "corpus" "issue-2215" "fail.clj")
           "--config-dir" (.getPath (io/file "corpus" "issue-2215" ".clj-kondo")))))
+
+(deftest issue-2246-preserve-symbol-test
+  (assert-submaps2
+   []
+   (lint! (io/file "corpus" "issue-2246" "a.clj")
+          {:linters {:unused-import {:level :warning}}}
+          "--config-dir" (.getPath (io/file "corpus" "issue-2246" ".clj-kondo")))))
