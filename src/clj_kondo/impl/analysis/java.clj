@@ -188,3 +188,9 @@
                         :name-end-row (:end-row name-meta)
                         :name-end-col (:end-col name-meta)})))))
    nil))
+
+
+(comment
+  (def x (source-is->java-member-definitions (io/input-stream "/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java") "/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java"))
+  x
+  )
