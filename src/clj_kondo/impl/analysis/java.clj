@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.analysis.java
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [->uri]]
+   [clj-kondo.impl.utils :refer [->uri update-vals]]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str])
@@ -193,4 +193,17 @@
 (comment
   (def x (source-is->java-member-definitions (io/input-stream "/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java") "/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java"))
   x
+  (keys x)
+  (def sys (get x "java.lang.System"))
+  (defn ana->cached [name ana]
+    (let [members (:members ana)
+          grouped (group-by :name members)]
+      (update-vals grouped (fn [dudes]
+                             (-> dudes first
+                                 (select-keys [:flags]))))))
+  (ana->cached "java.lang.System" sys)
+  
+
+
+
   )
