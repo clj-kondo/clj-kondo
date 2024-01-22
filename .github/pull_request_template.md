@@ -1,5 +1,7 @@
 Please answer the following questions and leave the below in as part of your PR.
 
+- [ ] I have read the [Clojure etiquette](https://clojure.org/community/etiquette) and will respect it when communicating on this platform.
+
 - [ ] I have read the [developer documentation](https://github.com/clj-kondo/clj-kondo/blob/master/doc/dev.md).
 
 - [ ] This PR corresponds to an [issue with a clear problem statement](https://github.com/clj-kondo/clj-kondo/blob/master/doc/dev.md#start-with-an-issue-before-writing-code).

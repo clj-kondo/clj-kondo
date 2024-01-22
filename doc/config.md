@@ -184,7 +184,13 @@ Additionally `:clj-kondo/config` key is supported where you can supply a
 configuration that will be applied within macro calls.
 
 The metadata configuration on macros is automatically exported to
-`.clj-kondo/inline-configs/macro_namespace.clj/config.edn` when linting the file.
+`.clj-kondo/inline-configs/macro_namespace.clj/config.edn` when linting the
+file.  Note that the file containing the macro needs to be linted first and only
+after that, the right configuration will be in place such that macro usages will
+be correctly linted. This will happen when you follow the [project setup
+instructions](https://github.com/clj-kondo/clj-kondo?tab=readme-ov-file#project-setup).
+Note that inline configurations can also be configured using `:config-in-call`
+in the `.clj-kondo/config.edn` file.
 
 ## Options
 

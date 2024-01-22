@@ -119,18 +119,18 @@
     (str/split-lines msg))))
 
 (def base-config
-  '{:linters {:unused-binding {:level :off}
-              :unresolved-symbol {:level :off}
-              :refer-all {:level :off}
-              :type-mismatch {:level :off}
-              :unsorted-required-namespaces {:level :off}
-              :shadowed-var {:level :off}
-              :loop-without-recur {:level :off}
-              :redundant-fn-wrapper {:level :off}
-              :namespace-name-mismatch {:level :off}
-              :line-length {:level :off}
-              :unused-value {:level :off}
-              :uninitialized-var {:level :off}}})
+  {:linters {:unused-binding {:level :off}
+             :unresolved-symbol {:level :off}
+             :refer-all {:level :off}
+             :type-mismatch {:level :off}
+             :unsorted-required-namespaces {:level :off}
+             :shadowed-var {:level :off}
+             :loop-without-recur {:level :off}
+             :redundant-fn-wrapper {:level :off}
+             :namespace-name-mismatch {:level :off}
+             :line-length {:level :off}
+             :unused-value {:level :off}
+             :uninitialized-var {:level :off}}})
 
 (defn lint-jvm!
   ([input]

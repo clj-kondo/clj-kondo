@@ -489,11 +489,12 @@
             (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
                   (sources-from-dir ctx file canonical?)))
           (= "-" path)
-          (schedule ctx {:filename (or filename-fallback "<stdin>")
-                         :source (slurp *in*)
-                         :lang (if filename-fallback
-                                 (lang-from-file filename-fallback default-language)
-                                 default-language)} dev?)
+          (when-not (excluded? ctx filename-fallback)
+            (schedule ctx {:filename (or filename-fallback "<stdin>")
+                           :source (slurp *in*)
+                           :lang (if filename-fallback
+                                   (lang-from-file filename-fallback default-language)
+                                   default-language)} dev?))
           (classpath? path)
           (run! #(process-file ctx % default-language canonical? filename-fallback)
                 (str/split path

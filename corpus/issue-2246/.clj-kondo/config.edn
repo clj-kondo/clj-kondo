@@ -1,0 +1,4 @@
+{:hooks
+ {:macroexpand {a/my-defrecord hooks.a/my-defrecord}}
+ #_{:analyze-call {a/my-defrecord hooks.a/my-defrecord}}
+ }

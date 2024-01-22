@@ -11,6 +11,8 @@ assignees: ''
 
 To upvote this issue, give it a thumbs up. See [this list](https://github.com/clj-kondo/clj-kondo/issues?q=is%3Aissue+is%3Aopen+sort%3Areactions-%2B1-desc) for the most upvoted issues.
 
+- [ ] I have read the [Clojure etiquette](https://clojure.org/community/etiquette) and will respect it when communicating on this platform.
+
 [ To keep development of this project going, consider sponsoring. If you are
 already a sponsor, thank you! You can remove this message. ]
 

@@ -36,4 +36,18 @@
       (testing "absence of argument doesn't make linter throw"
         (is (empty? (lint! "(ns user (:require [datahike.api :refer [q]]))
                           (q) (q nil)"
-                           {:linters {:datalog-syntax {:level :error}}}))))))
+                           {:linters {:datalog-syntax {:level :error}}})))))
+
+    (testing "supports multiple datalog libraries"
+      (doseq [lib ["datahike.api"
+                   "datascript.core"
+                   "datomic.api"
+                   "datomic.client.api"
+                   "datalevin.core"
+                   "datomic-type-extensions.api"]]
+        (assert-submaps
+         '({:file "<stdin>", :row 2, :col 19,
+            :level :error, :message "Query for unknown vars: [?a]"})
+         (lint! (str "(ns user (:require [" lib " :refer [q]]))
+               (q '[:find ?a :where [?b :foo _]] 42)")
+                {:linters {:datalog-syntax {:level :error}}})))))

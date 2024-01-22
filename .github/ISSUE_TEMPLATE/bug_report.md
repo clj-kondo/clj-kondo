@@ -10,6 +10,8 @@ assignees: ''
 [ To keep development of this project going, consider sponsoring. If you are
 already a sponsor, thank you! ]
 
+- [ ] I have read the [Clojure etiquette](https://clojure.org/community/etiquette) and will respect it when communicating on this platform.
+
 **version**
 
 [ Please specify which version of clj-kondo you're using. You can find this with `clj-kondo --version`.]

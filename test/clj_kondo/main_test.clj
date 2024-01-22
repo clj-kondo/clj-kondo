@@ -1616,6 +1616,11 @@ foo/foo ;; this does use the private var
                      :level :error,
                      :message "a number is not a function"})
                   (lint! "(1 1)"))
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 21, :level :error
+     :message "Can't call a string as a function"}]
+   (lint! "(def foo \"foo\") foo (foo 1) (defn bar [x] x) (bar foo)"
+          {:linters {:type-mismatch {:level :error}}}))
   (is (empty? (lint! "'(1 1)")))
   (is (empty? (lint! "(foo (1 1))" "--config"
                      "{:linters {:not-a-function {:skip-args [user/foo]}
@@ -3465,12 +3470,22 @@ foo/")))
                   (lint! "(ns foo (:require [cljs.test :as t])) (t/deftest foo (t/async done (done)) (t/async done (done)))"
                          {:linters {:multiple-async-in-deftest {:level :warning}}})))
 
+
 (deftest invalid-fn-name-test
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 7, :level :error, :message "Function name must be simple symbol but got: :foo"}
      {:file "<stdin>", :row 1, :col 20, :level :error, :message "Function name must be simple symbol but got: :foo"}
      {:file "<stdin>", :row 1, :col 33, :level :error, :message "Function name must be simple symbol but got: \"foo\""})
    (lint! "(defn :foo []) (fn :foo []) (fn \"foo\" [])")))
+
+(deftest lint-stdin-exclude-files-test
+  (is (empty?
+       (:findings
+        (with-in-str (slurp (str (io/file "corpus" "exclude-files-stdin" "foo.clj")))
+          (clj-kondo/run!
+           {:lint ["-"]
+            :filename (str (io/file "corpus" "exclude-files-stdin" "foo.clj"))
+            :config-dir (str (io/file "corpus" "exclude-files-stdin" ".clj-kondo"))}))))))
 
 ;;;; Scratch
 
