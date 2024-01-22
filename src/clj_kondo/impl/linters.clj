@@ -804,7 +804,7 @@
                 used-imports (:used-imports ns)]
           [import package] imports
           :when (not (contains? used-imports import))]
-    (prn :imports used-imports (map meta used-imports))
+    #_(prn :imports used-imports (map meta used-imports))
     (findings/reg-finding!
      ctx
      (-> (node->line filename import :unused-import (str "Unused import " import))
@@ -854,7 +854,4 @@
 ;;;; scratch
 
 (comment
-  mf
-
-
   )

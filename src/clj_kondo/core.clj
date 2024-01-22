@@ -209,7 +209,8 @@
                                        ctx) lint lang filename)
           ;;_ (prn (some-> analysis deref :java-class-usages))
           ;; _ (prn :used-nss @used-nss)
-          _ (swap! analysis assoc :java-class-usages @java-class-usages)
+          _ (when analyze-java-class-usages?
+              (swap! analysis assoc :java-class-usages @java-class-usages))
           idacs (when (or dependencies (not skip-lint) analysis)
                   (-> (core-impl/index-defs-and-calls ctx)
                       (overrides)
