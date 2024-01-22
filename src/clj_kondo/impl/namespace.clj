@@ -412,7 +412,7 @@
    name-sym ns-sym package class-name expr]
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj class-name)
-  (when (java/analyze-class-usages? ctx)
+  (when true #_(java/analyze-class-usages? ctx)
     (let [name-meta (meta name-sym)
           loc (or (meta expr)
                   (meta class-name))

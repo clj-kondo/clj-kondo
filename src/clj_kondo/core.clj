@@ -133,7 +133,7 @@
           analysis-ns-meta (some-> analysis-cfg :namespace-definitions :meta)
           analysis-context (some-> analysis-cfg :context)
           analyze-java-class-defs? (some-> analysis-cfg :java-class-definitions)
-          analyze-java-class-usages? (some-> analysis-cfg :java-class-usages)
+          analyze-java-class-usages? true #_(some-> analysis-cfg :java-class-usages)
           analyze-java-member-defs? (some-> analysis-cfg :java-member-definitions)
           analyze-meta? (or analysis-var-meta analysis-ns-meta)
           analyze-symbols? (some-> analysis-cfg :symbols)
@@ -226,7 +226,8 @@
                   (l/lint-unresolved-vars! ctx)
                   (l/lint-unused-imports! ctx)
                   (l/lint-unresolved-namespaces! ctx)
-                  (l/lint-discouraged-namespaces! ctx))))
+                  (l/lint-discouraged-namespaces! ctx)
+                  (l/lint-class-usage ctx idacs))))
           _ (when custom-lint-fn
               (binding [utils/*ctx* ctx]
                 (custom-lint-fn (cond->
