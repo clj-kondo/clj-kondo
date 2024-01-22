@@ -133,7 +133,7 @@
           analysis-ns-meta (some-> analysis-cfg :namespace-definitions :meta)
           analysis-context (some-> analysis-cfg :context)
           analyze-java-class-defs? (some-> analysis-cfg :java-class-definitions)
-          analyze-java-class-usages? true #_(some-> analysis-cfg :java-class-usages)
+          analyze-java-class-usages? (some-> analysis-cfg :java-class-usages)
           analyze-java-member-defs? (some-> analysis-cfg :java-member-definitions)
           analyze-meta? (or analysis-var-meta analysis-ns-meta)
           analyze-symbols? (some-> analysis-cfg :symbols)
@@ -152,6 +152,7 @@
                              analyze-java-member-defs? (assoc :java-member-definitions [])
                              analyze-instance-invocations? (assoc :instance-invocations [])
                              analyze-symbols? (assoc :symbols []))))
+          java-class-usages (atom [])
           used-nss (atom {:clj #{}
                           :cljs #{}
                           :cljc #{}})
@@ -192,6 +193,7 @@
                :analysis-context analysis-context
                :analyze-symbols? analyze-symbols?
                :analyze-callstack-in-defs? analyze-callstack-in-defs?
+               :java-class-usages java-class-usages
                ;; set of files which should not be flushed into cache
                ;; most notably hook configs, as they can conflict with original sources
                ;; NOTE: we don't allow this to be changed in namespace local
@@ -207,6 +209,7 @@
                                        ctx) lint lang filename)
           ;;_ (prn (some-> analysis deref :java-class-usages))
           ;; _ (prn :used-nss @used-nss)
+          _ (swap! analysis assoc :java-class-usages @java-class-usages)
           idacs (when (or dependencies (not skip-lint) analysis)
                   (-> (core-impl/index-defs-and-calls ctx)
                       (overrides)

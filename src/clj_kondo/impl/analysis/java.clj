@@ -160,8 +160,7 @@
                           member))))))))
 
 (defn analyze-class-usages? [ctx]
-  (and (:analyze-java-class-usages? ctx)
-       (identical? :clj (:lang ctx))))
+  (identical? :clj (:lang ctx)))
 
 (defn reg-class-usage!
   ([ctx class-name method-name loc+data]
@@ -174,19 +173,8 @@
            name-meta (or name-meta
                          (when constructor-expr
                            loc+data*))]
-       (prn (merge {:class class-name
-                    :uri (:uri ctx)
-                    :filename (:filename ctx)}
-                   loc+data
-                   (when method-name
-                     {:method-name method-name})
-                   (when name-meta
-                     {:name-row (:row name-meta)
-                      :name-col (:col name-meta)
-                      :name-end-row (:end-row name-meta)
-                      :name-end-col (:end-col name-meta)})))
-       (swap! (:analysis ctx)
-              update :java-class-usages conj
+       (swap! (:java-class-usages ctx)
+              conj #_#_#_update :java-class-usages conj
               (merge {:class class-name
                       :uri (:uri ctx)
                       :filename (:filename ctx)}
