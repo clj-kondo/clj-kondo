@@ -829,6 +829,8 @@
         :end-row (:end-row m)
         :end-col (:end-col m)}))))
 
+(defn lint-class-usage [ctx idacs])
+
 ;;;; scratch
 
 (comment)
