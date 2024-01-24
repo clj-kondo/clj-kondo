@@ -638,7 +638,8 @@
 (defn index-defs-and-calls [ctx]
   (let [indexed-defs (namespaces->indexed-defs ctx)]
     (-> (assoc indexed-defs :used-namespaces @(:used-namespaces ctx))
-        (assoc :java-member-definitions (java-members->indexed ctx)))))
+        (assoc :java-member-definitions (java-members->indexed ctx))
+        (assoc :java-class-usages @(:java-class-usages ctx)))))
 
 ;;;; summary
 

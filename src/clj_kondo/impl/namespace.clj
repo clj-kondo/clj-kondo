@@ -261,16 +261,17 @@
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
    ns-sym usage]
-  (let [path [base-lang lang ns-sym]
-        usage (assoc usage
-                     :config (:config ctx)
-                     :unresolved-symbol-disabled?
-                     ;; TODO: can we do this via the ctx only?
-                     (or (:unresolved-symbol-disabled? usage)
-                         (linter-disabled? ctx :unresolved-symbol)))]
-    (swap! namespaces update-in path
-           (fn [ns]
-             (update ns :used-vars (fnil conj []) usage)))))
+  (when-not (:interop? usage)
+    (let [path [base-lang lang ns-sym]
+          usage (assoc usage
+                       :config (:config ctx)
+                       :unresolved-symbol-disabled?
+                       ;; TODO: can we do this via the ctx only?
+                       (or (:unresolved-symbol-disabled? usage)
+                           (linter-disabled? ctx :unresolved-symbol)))]
+      (swap! namespaces update-in path
+             (fn [ns]
+               (update ns :used-vars (fnil conj []) usage))))))
 
 (defn reg-used-namespace!
   "Registers usage of required namespaced in ns."

@@ -166,13 +166,23 @@
                               (:cljs :cljc) [:clj :cljs :cljc]
                               :clj [:clj :cljc]))))
                 idacs
-                [:clj :cljs :cljc])]
-    (reduce (fn [idacs lang]
-              (update-in idacs [lang :defs]
-                         (fn [defs]
-                           (update-defs idacs config-dir cache-dir lang defs))))
-            idacs
-            [:clj :cljs :cljc])))
+                [:clj :cljs :cljc])
+        idacs (reduce (fn [idacs lang]
+                        (update-in idacs [lang :defs]
+                                   (fn [defs]
+                                     (update-defs idacs config-dir cache-dir lang defs))))
+                      idacs
+                      [:clj :cljs :cljc])
+        idacs (let [jcu (:java-class-usages idacs)
+                    classes-to-load (distinct (map :class jcu))
+                    ]
+                (reduce (fn [idacs class-to-load]
+                          (let [_clazz-data (from-cache-1 cache-dir "java" class-to-load)]
+                            ;; (prn :clazz-data clazz-data)
+                            idacs))
+                        idacs
+                        classes-to-load))]
+    idacs))
 
 (defn sync-cache [idacs config-dir cache-dir]
   (if cache-dir

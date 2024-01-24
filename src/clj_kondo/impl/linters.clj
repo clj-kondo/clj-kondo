@@ -831,7 +831,8 @@
         :end-col (:end-col m)}))))
 
 (defn lint-class-usage [ctx idacs]
-  (when-let [jm (:java-member-definitions idacs)]
+  ;; (prn @(:java-class-usages ctx))
+  (when-let [_jm (:java-member-definitions idacs)]
     (doseq [ns (namespace/list-namespaces ctx)
             :let [ns-config (:config ns)
                   ctx (if ns-config (assoc ctx :config ns-config)
