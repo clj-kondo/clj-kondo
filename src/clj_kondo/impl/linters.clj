@@ -833,6 +833,7 @@
 (defn lint-class-usage [ctx idacs]
   (when-let [jm (:java-member-definitions idacs)]
     (doseq [usage @(:java-class-usages ctx)
+
             :when (:call usage)]
       (let [method (:method-name usage)
             clazz (:class usage)]

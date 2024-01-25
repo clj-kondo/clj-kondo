@@ -164,8 +164,8 @@
 
 (defn reg-class-usage!
   ([ctx class-name method-name loc+data]
-   (reg-class-usage! ctx class-name method-name loc+data nil))
-  ([ctx class-name method-name loc+data name-meta]
+   (reg-class-usage! ctx class-name method-name loc+data nil nil))
+  ([ctx class-name method-name loc+data name-meta opts]
    (when true #_(analyze-class-usages? ctx)
      (let [constructor-expr (:constructor-expr ctx)
            loc+data* loc+data
@@ -177,7 +177,8 @@
               conj #_#_#_update :java-class-usages conj
               (merge {:class class-name
                       :uri (:uri ctx)
-                      :filename (:filename ctx)}
+                      :filename (:filename ctx)
+                      :call (:call opts)}
                      loc+data
                      (when method-name
                        {:method-name method-name})

@@ -667,7 +667,7 @@
             (if (identical? :clj lang)
               (if (and (not (one-of ns* ["clojure.core"]))
                        (class-name? ns*))
-                (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym))
+                (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym) {:call call?})
                     (when call? (findings/warn-reflection ctx expr))
                     {:interop? true})
                 {:name (symbol (name name-sym))
