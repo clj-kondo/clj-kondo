@@ -1,0 +1,1 @@
+["^ ","NF_maybeStopCounting",["^ ","~:flags",["~#set",["~:static","~:field","~:final"]]],"getTarget",["^ ","^1",["^2",["~:method","~:protected"]]],"asTypeUncached",["^ ","^1",["^2",["^7","~:public"]]],"countDown",["^ ","^1",["^2",["^7"]]],"maybeStopCounting",["^ ","^1",["^2",["^7","^3"]]],"apply",["^ ","^1",["^2",["^7","^:"]]]]
