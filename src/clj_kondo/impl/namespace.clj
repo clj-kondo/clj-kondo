@@ -410,7 +410,7 @@
 
 (defn reg-used-import!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
-   name-sym ns-sym package class-name expr]
+   name-sym ns-sym package class-name expr opts]
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj class-name)
   (when true #_(java/analyze-class-usages? ctx)
@@ -425,6 +425,7 @@
                              (str package "." class-name)
                              static-method-name
                              (assoc loc
+                                    :call (:call opts)
                                     :name-row (or (:row name-meta) (:row loc))
                                     :name-col (or (:col name-meta) (:col loc))
                                     :name-end-row (or (:end-row name-meta) (:end-row loc))
@@ -658,7 +659,7 @@
                                      [name*
                                       package]))))
                            (find (:imports ns) ns-sym))]
-              (reg-used-import! ctx name-sym ns-name package class-name expr)
+              (reg-used-import! ctx name-sym ns-name package class-name expr {:call call?})
               (when call? (findings/warn-reflection ctx expr))
               {:interop? true
                :ns (symbol (str package "." class-name))
@@ -722,7 +723,7 @@
                              (let [fs (first-segment name-sym)]
                                (find (:imports ns) fs))
                              (find (:imports ns) name-sym)))]
-              (reg-used-import! ctx name-sym ns-name package name-sym* expr)
+              (reg-used-import! ctx name-sym ns-name package name-sym* expr {:call call?})
               (when call? (findings/warn-reflection ctx expr))
               {:ns package
                :interop? true

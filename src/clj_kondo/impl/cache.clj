@@ -181,8 +181,8 @@
                     ]
                 ;; (prn :classes-to-load classes-to-load)
                 (reduce (fn [idacs class-to-load]
-                          (let [_clazz-data (from-cache-1 cache-dir "java" class-to-load)]
-                            ;; (prn :clazz-data clazz-data)
+                          (if-let [clazz-data (from-cache-1 cache-dir "java" class-to-load)]
+                            (assoc-in idacs [:java-member-definitions class-to-load] clazz-data)
                             idacs))
                         idacs
                         classes-to-load))]

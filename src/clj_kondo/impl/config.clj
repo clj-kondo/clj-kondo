@@ -159,7 +159,8 @@
               :self-requiring-namespace {:level :off}
               :condition-always-true {:level :off}
               :underscore-in-namespace {:level :warning}
-              :multiple-async-in-deftest {:level :warning}}
+              :multiple-async-in-deftest {:level :warning}
+              :java-static-field-call {:level :error}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

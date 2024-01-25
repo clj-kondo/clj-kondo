@@ -831,26 +831,18 @@
         :end-col (:end-col m)}))))
 
 (defn lint-class-usage [ctx idacs]
-  ;; (prn @(:java-class-usages ctx))
-  (when-let [_jm (:java-member-definitions idacs)]
-    (doseq [ns (namespace/list-namespaces ctx)
-            :let [ns-config (:config ns)
-                  ctx (if ns-config (assoc ctx :config ns-config)
-                          ctx)
-                  ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
-            :when (not (identical? :off (-> ns-config :linters :unused-import :level)))
-            :let [filename (:filename ns)
-                  imports (:imports ns)
-                  used-imports (:used-imports ns)]
-            [import package] imports
-            :when (not (contains? used-imports import))]
-      (findings/reg-finding!
-       ctx
-       (-> (node->line filename import :unused-import (str "Unused import " import))
-           (assoc :class (symbol (str package "." import))))))
-    
-    #_(let [class-usages @(:class-usages ctx)]
-      )))
+  (when-let [jm (:java-member-definitions idacs)]
+    (doseq [usage @(:java-class-usages ctx)
+            :when (:call usage)]
+      (let [method (:method-name usage)
+            clazz (:class usage)]
+        (when-let [info (get jm clazz)]
+          (when-let [meth-info (get info method)]
+            (when (and (contains? (:flags meth-info) :field)
+                       (:call usage))
+              (findings/reg-finding! ctx (assoc usage
+                                                :type :java-static-field-call
+                                                :message "Can't call static field as function")))))))))
 
 ;;;; scratch
 
