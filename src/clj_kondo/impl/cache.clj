@@ -173,9 +173,13 @@
                                      (update-defs idacs config-dir cache-dir lang defs))))
                       idacs
                       [:clj :cljs :cljc])
+        _ (doseq [[clazz mems] (:java-member-definitions idacs)]
+            (to-cache config-dir cache-dir "java" clazz mems)
+            )
         idacs (let [jcu (:java-class-usages idacs)
                     classes-to-load (distinct (map :class jcu))
                     ]
+                ;; (prn :classes-to-load classes-to-load)
                 (reduce (fn [idacs class-to-load]
                           (let [_clazz-data (from-cache-1 cache-dir "java" class-to-load)]
                             ;; (prn :clazz-data clazz-data)
@@ -183,6 +187,11 @@
                         idacs
                         classes-to-load))]
     idacs))
+
+(comment
+  
+
+  )
 
 (defn sync-cache [idacs config-dir cache-dir]
   (if cache-dir
