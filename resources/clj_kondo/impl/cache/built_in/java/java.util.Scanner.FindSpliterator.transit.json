@@ -1,1 +1,1 @@
-["^ ","pattern",["^ ","~:flags",["~#set",["~:field","~:final"]]],"expectedCount",["^ ","^1",["^2",["^3"]]],"FindSpliterator",["^ ","^1",["^2",["~:method"]]],"tryAdvance",["^ ","^1",["^2",["^7","~:public"]]]]
+["^ ","~:members",["^ ","pattern",["^ ","~:flags",["~#set",["~:field","~:final"]]],"expectedCount",["^ ","^2",["^3",["^4"]]],"FindSpliterator",["^ ","^2",["^3",["~:method"]]],"tryAdvance",["^ ","^2",["^3",["^8","~:public"]]]]]

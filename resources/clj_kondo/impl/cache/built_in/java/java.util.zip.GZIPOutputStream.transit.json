@@ -1,1 +1,1 @@
-["^ ","crc",["^ ","~:flags",["~#set",["~:field","~:protected"]]],"GZIPOutputStream",["^ ","^0",["^1",["~:method","~:public"]]],"write",["^ ","^0",["^1",["^5","^6","~:synchronized"]]],"finish",["^ ","^0",["^1",["^5","^6"]]]]
+["^ ","~:members",["^ ","crc",["^ ","~:flags",["~#set",["~:field","~:protected"]]],"GZIPOutputStream",["^ ","^1",["^2",["~:method","~:public"]]],"write",["^ ","^1",["^2",["^6","^7","~:synchronized"]]],"finish",["^ ","^1",["^2",["^6","^7"]]]]]

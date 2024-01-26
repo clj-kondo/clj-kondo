@@ -1,1 +1,1 @@
-["^ ","EncOutputStream",["^ ","~:flags",["~#set",["~:method"]]],"write",["^ ","^1",["^2",["^3","~:public"]]],"close",["^ ","^1",["^2",["^3","^5"]]]]
+["^ ","~:members",["^ ","EncOutputStream",["^ ","~:flags",["~#set",["~:method"]]],"write",["^ ","^2",["^3",["^4","~:public"]]],"close",["^ ","^2",["^3",["^4","^6"]]]]]

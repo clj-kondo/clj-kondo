@@ -623,14 +623,16 @@
   (when-let [member-defs (some-> ctx :analysis deref :java-member-definitions)]
     (let [by-class (group-by :class member-defs)
           by-class (utils/update-vals by-class
-                                      #(-> (group-by :name %)
-                                           (utils/update-vals (fn [v]
-                                                                (select-keys (first v) [:flags])))))]
+                                      (fn [clazz]
+                                        {:members
+                                         (-> (group-by :name clazz)
+                                             (utils/update-vals (fn [v]
+                                                                  (select-keys (first v) [:flags]))))}))]
       by-class)))
 
 #_:clj-kondo/ignore
 (comment
-  (require '[clj-kondo.core])
+  (require '[clj-kondo.core] :reload-all)
   (clj-kondo.core/run! {:lint ["/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java"]
                         :config {:analysis {:java-member-definitions true
                                             :java-class-definitions true}}}))

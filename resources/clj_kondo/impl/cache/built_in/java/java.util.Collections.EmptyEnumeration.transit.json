@@ -1,1 +1,1 @@
-["^ ","EMPTY_ENUMERATION",["^ ","~:flags",["~#set",["~:static","~:field","~:final"]]],"hasMoreElements",["^ ","^1",["^2",["~:method","~:public"]]],"nextElement",["^ ","^1",["^2",["^7","^8"]]],"asIterator",["^ ","^1",["^2",["^7","^8"]]]]
+["^ ","~:members",["^ ","EMPTY_ENUMERATION",["^ ","~:flags",["~#set",["~:static","~:field","~:final"]]],"hasMoreElements",["^ ","^2",["^3",["~:method","~:public"]]],"nextElement",["^ ","^2",["^3",["^8","^9"]]],"asIterator",["^ ","^2",["^3",["^8","^9"]]]]]

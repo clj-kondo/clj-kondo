@@ -1,1 +1,1 @@
-["^ ","thread",["^ ","~:flags",["~#set",["~:field","~:volatile"]]],"next",["^ ","^1",["^2",["^3","^4"]]],"WaitNode",["^ ","^1",["^2",["~:method"]]]]
+["^ ","~:members",["^ ","thread",["^ ","~:flags",["~#set",["~:field","~:volatile"]]],"next",["^ ","^2",["^3",["^4","^5"]]],"WaitNode",["^ ","^2",["^3",["~:method"]]]]]

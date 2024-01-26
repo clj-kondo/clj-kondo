@@ -1,1 +1,1 @@
-["^ ","setValidator",["^ ","~:flags",["~#set",["~:method"]]],"getValidator",["^ ","^1",["^2",["^3"]]],"getWatches",["^ ","^1",["^2",["^3"]]],"addWatch",["^ ","^1",["^2",["^3"]]],"removeWatch",["^ ","^1",["^2",["^3"]]]]
+["^ ","~:members",["^ ","setValidator",["^ ","~:flags",["~#set",["~:method"]]],"getValidator",["^ ","^2",["^3",["^4"]]],"getWatches",["^ ","^2",["^3",["^4"]]],"addWatch",["^ ","^2",["^3",["^4"]]],"removeWatch",["^ ","^2",["^3",["^4"]]]]]

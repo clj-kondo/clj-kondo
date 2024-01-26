@@ -1,1 +1,1 @@
-["^ ","list",["^ ","~:flags",["~#set",["~:field","~:final"]]],"StaticProxySelector",["^ ","^1",["^2",["~:method"]]],"connectFailed",["^ ","^1",["^2",["^6","~:public"]]],"select",["^ ","^1",["^2",["^6","^8","~:synchronized"]]]]
+["^ ","~:members",["^ ","list",["^ ","~:flags",["~#set",["~:field","~:final"]]],"StaticProxySelector",["^ ","^2",["^3",["~:method"]]],"connectFailed",["^ ","^2",["^3",["^7","~:public"]]],"select",["^ ","^2",["^3",["^7","^9","~:synchronized"]]]]]
