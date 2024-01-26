@@ -838,6 +838,7 @@
       (let [method (:method-name usage)
             clazz (:class usage)]
         (when-let [info (get jm clazz)]
+          (prn :info info)
           (when-let [meth-info (get (:members info) method)]
             (when (and (contains? (:flags meth-info) :field)
                        (:call usage))
