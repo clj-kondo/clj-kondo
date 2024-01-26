@@ -1,1 +1,0 @@
-["^ ","getLocalHostName",["^ ","~:flags",["~#set",["~:method"]]],"lookupAllHostAddr",["^ ","^1",["^2",["^3"]]],"getHostByAddr",["^ ","^1",["^2",["^3"]]],"anyLocalAddress",["^ ","^1",["^2",["^3"]]],"loopbackAddress",["^ ","^1",["^2",["^3"]]],"isReachable",["^ ","^1",["^2",["^3"]]]]

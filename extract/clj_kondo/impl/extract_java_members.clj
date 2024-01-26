@@ -1,6 +1,8 @@
 (ns clj-kondo.impl.extract-java-members
   (:require [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clj-kondo.core :as kondo]
+            [babashka.fs :as fs]))
 
 (def classes
   '["clojure.lang.IRef"
@@ -390,10 +392,19 @@
   (.exists (class->file "javax.net.ssl.X509TrustManager")))
 
 (defn classes->files []
-  (let [filez (map class->file classes)]
-    filez)
-  )
+  (let [filez (mapv class->file classes)
+        filez (mapv str filez)
+        tmp-dir (fs/file (fs/temp-dir) "java-cache")]
+    (kondo/run! {:lint filez
+                 :cache-dir tmp-dir
+                 :config {:analysis {:java-class-definitions true
+                                     :java-member-definitions true}}})
+    (fs/delete-tree "resources/clj_kondo/impl/cache/built_in/java")
+    (fs/create-dirs "resources/clj_kondo/impl/cache/built_in/java")
+    (doseq [f (fs/list-dir (fs/file tmp-dir "v1" "java"))]
+      (fs/copy f "resources/clj_kondo/impl/cache/built_in/java"))))
 
 (comment
-  (class->file* "clojure.lang.LispReader$Resolver")
+  (classes->files)
+  (fs/file (fs/temp-dir) "java-cache")
   )
