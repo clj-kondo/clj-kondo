@@ -174,7 +174,7 @@
                       idacs
                       [:clj :cljs :cljc])
         _ (doseq [[clazz mems] (:java-member-definitions idacs)]
-            (prn :to-cache cache-dir clazz)
+            ;; (prn :to-cache cache-dir clazz)
             (to-cache config-dir cache-dir "java" clazz mems)
             )
         idacs (let [jcu (:java-class-usages idacs)
