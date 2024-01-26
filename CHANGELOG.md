@@ -23,6 +23,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2253](https://github.com/clj-kondo/clj-kondo/issues/2253): add support for `datomic-type-extensions` to datalog syntax checking
 - [#2255](https://github.com/clj-kondo/clj-kondo/issues/2255): support `:exclude-files` in combination with linting from stdin + provided `--filename` argument
 - [#2246](https://github.com/clj-kondo/clj-kondo/issues/2246): preserve metadata on symbol when going through `:macroexpand` hook
+- [#1923](https://github.com/clj-kondo/clj-kondo/issues/1923): Lint invalid fn name
 
 ## 2023.12.15
 
