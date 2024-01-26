@@ -1,1 +1,0 @@
-["^ ","pattern",["^ ","~:flags",["~#set",["~:field","~:final"]]],"expectedCount",["^ ","^1",["^2",["^3"]]],"FindSpliterator",["^ ","^1",["^2",["~:method"]]],"tryAdvance",["^ ","^1",["^2",["^7","~:public"]]]]
