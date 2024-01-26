@@ -1,0 +1,1 @@
+["^ ","BASE_DATE",["^ ","~:flags",["~#set",["~:static","~:field","~:final"]]],"getValue",["^ ","^1",["^2",["~:method"]]],"setValue",["^ ","^1",["^2",["^7"]]],"withFixedWidth",["^ ","^1",["^2",["^7"]]],"withSubsequentWidth",["^ ","^1",["^2",["^7"]]],"isFixedWidth",["^ ","^1",["^2",["^7"]]],"toString",["^ ","^1",["^2",["^7","~:public"]]]]

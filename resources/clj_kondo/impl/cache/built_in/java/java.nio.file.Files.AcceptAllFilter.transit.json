@@ -1,0 +1,1 @@
+["^ ","FILTER",["^ ","~:flags",["~#set",["~:static","~:field","~:final"]]],"accept",["^ ","^1",["^2",["~:method","~:public"]]]]
