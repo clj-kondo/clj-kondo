@@ -123,7 +123,10 @@
                                  (.findAll class-or-interface ConstructorDeclaration)
                                  (.findAll class-or-interface MethodDeclaration))
                                 (keep #(node->member % modifier-keyword->flag)))]
-               (assoc classes class-name {:members (vec members)}))
+               (assoc classes class-name {:members (vec members)
+                                          :flags (set (map #(modifier-keyword->flag
+                                                             (.getKeyword ^Modifier %))
+                                                           (.getModifiers class-or-interface))) }))
              classes))
          {}
          (.findAll compilation ClassOrInterfaceDeclaration)))
@@ -150,7 +153,8 @@
                update :java-class-definitions conj
                {:class class-name
                 :uri uri
-                :filename filename})
+                :filename filename
+                :flags (:flags class-info)})
         (when (:analyze-java-member-defs? ctx)
           (doseq [member (:members class-info)]
             (swap! (:analysis ctx)

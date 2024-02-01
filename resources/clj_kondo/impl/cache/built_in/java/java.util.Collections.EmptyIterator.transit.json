@@ -1,1 +1,0 @@
-["^ ","~:members",["^ ","EMPTY_ITERATOR",["^ ","~:flags",["~#set",["~:static","~:field","~:final"]]],"hasNext",["^ ","^2",["^3",["~:method","~:public"]]],"next",["^ ","^2",["^3",["^8","^9"]]],"remove",["^ ","^2",["^3",["^8","^9"]]],"forEachRemaining",["^ ","^2",["^3",["^8","^9"]]]]]

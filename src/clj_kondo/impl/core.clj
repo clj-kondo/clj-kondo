@@ -620,15 +620,20 @@
      :cljc {:defs (mmerge cljc-clj cljc-cljs)}}))
 
 (defn java-members->indexed [ctx]
-  (when-let [member-defs (some-> ctx :analysis deref :java-member-definitions)]
-    (let [by-class (group-by :class member-defs)
-          by-class (utils/update-vals by-class
-                                      (fn [clazz]
-                                        {:members
-                                         (-> (group-by :name clazz)
-                                             (utils/update-vals (fn [v]
-                                                                  (select-keys (first v) [:flags]))))}))]
-      by-class)))
+  (when-let [ana (some-> ctx :analysis deref)]
+    (when-let [member-defs (:java-member-definitions ana)]
+      (let [class-infos (group-by :class (:java-class-definitions ana))
+            member-defs (remove #(let [clazz (first (get class-infos (:class %)))]
+                                   (:private (:flags clazz))) member-defs)
+            by-class (group-by :class member-defs)
+            by-class (utils/update-vals by-class
+                                        (fn [clazz]
+                                          {:members
+                                           (-> (group-by :name clazz)
+                                               (utils/update-vals (fn [v]
+                                                                    (let [entry (first v)]
+                                                                      (select-keys entry [:flags])))))}))]
+        by-class))))
 
 #_:clj-kondo/ignore
 (comment
