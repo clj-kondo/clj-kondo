@@ -842,9 +842,11 @@
           (when-let [meth-info (get (:members info) method)]
             (when (and (contains? (:flags meth-info) :field)
                        (:call usage))
-              (findings/reg-finding! ctx (assoc usage
-                                                :type :java-static-field-call
-                                                :message "Can't call static field as function")))))))))
+              (findings/reg-finding!
+               ctx
+               (assoc usage
+                      :type :java-static-field-call
+                      :message "Static fields should be referenced without parens unless they are intended as function calls")))))))))
 
 ;;;; scratch
 

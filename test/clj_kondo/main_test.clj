@@ -3489,9 +3489,9 @@ foo/")))
 
 (deftest lint-java-static-field-call
   (is (assert-submaps2
-       '({:file "corpus/static_field_call.clj", :row 4, :col 1, :level :error, :message "Can't call static field as function"}
-         {:file "corpus/static_field_call.clj", :row 7, :col 1, :level :error, :message "Can't call static field as function"}
-         {:file "corpus/static_field_call.clj", :row 8, :col 1, :level :error, :message "Can't call static field as function"})
+       '({:file "corpus/static_field_call.clj", :row 4, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj", :row 7, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj", :row 8, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"})
        (lint! (io/file "corpus" "static_field_call.clj")))))
 
 ;;;; Scratch

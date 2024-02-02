@@ -176,8 +176,7 @@
         _ (doseq [[clazz mems] (:java-member-definitions idacs)]
             (to-cache config-dir cache-dir "java" clazz mems))
         idacs (let [jcu (:java-class-usages idacs)
-                    classes-to-load (distinct (map :class jcu))
-                    ]
+                    classes-to-load (distinct (map :class jcu))]
                 (reduce (fn [idacs class-to-load]
                           (if-not (get-in idacs [:java-member-definitions class-to-load])
                             (if-let [clazz-data (from-cache-1 cache-dir "java" class-to-load)]
@@ -187,11 +186,6 @@
                         idacs
                         classes-to-load))]
     idacs))
-
-(comment
-  
-
-  )
 
 (defn sync-cache [idacs config-dir cache-dir]
   (if cache-dir
