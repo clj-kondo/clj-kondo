@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.analysis.java
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [->uri]]
+   [clj-kondo.impl.utils :refer [->uri update-vals]]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str])
@@ -123,7 +123,10 @@
                                  (.findAll class-or-interface ConstructorDeclaration)
                                  (.findAll class-or-interface MethodDeclaration))
                                 (keep #(node->member % modifier-keyword->flag)))]
-               (assoc classes class-name {:members (vec members)}))
+               (assoc classes class-name {:members (vec members)
+                                          :flags (set (map #(modifier-keyword->flag
+                                                             (.getKeyword ^Modifier %))
+                                                           (.getModifiers class-or-interface))) }))
              classes))
          {}
          (.findAll compilation ClassOrInterfaceDeclaration)))
@@ -150,7 +153,8 @@
                update :java-class-definitions conj
                {:class class-name
                 :uri uri
-                :filename filename})
+                :filename filename
+                :flags (:flags class-info)})
         (when (:analyze-java-member-defs? ctx)
           (doseq [member (:members class-info)]
             (swap! (:analysis ctx)
@@ -160,25 +164,25 @@
                           member))))))))
 
 (defn analyze-class-usages? [ctx]
-  (and (:analyze-java-class-usages? ctx)
-       (identical? :clj (:lang ctx))))
+  (identical? :clj (:lang ctx)))
 
 (defn reg-class-usage!
   ([ctx class-name method-name loc+data]
-   (reg-class-usage! ctx class-name method-name loc+data nil))
-  ([ctx class-name method-name loc+data name-meta]
-   (when (analyze-class-usages? ctx)
+   (reg-class-usage! ctx class-name method-name loc+data nil nil))
+  ([ctx class-name method-name loc+data name-meta opts]
+   (when true #_(analyze-class-usages? ctx)
      (let [constructor-expr (:constructor-expr ctx)
            loc+data* loc+data
            loc+data (merge loc+data (meta constructor-expr))
            name-meta (or name-meta
                          (when constructor-expr
                            loc+data*))]
-       (swap! (:analysis ctx)
-              update :java-class-usages conj
+       (swap! (:java-class-usages ctx)
+              conj #_#_#_update :java-class-usages conj
               (merge {:class class-name
                       :uri (:uri ctx)
-                      :filename (:filename ctx)}
+                      :filename (:filename ctx)
+                      :call (:call opts)}
                      loc+data
                      (when method-name
                        {:method-name method-name})
@@ -188,3 +192,21 @@
                         :name-end-row (:end-row name-meta)
                         :name-end-col (:end-col name-meta)})))))
    nil))
+
+#_:clj-kondo/ignore
+(comment
+  (def x (source-is->java-member-definitions (io/input-stream "/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java") "/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java"))
+  x
+  (keys x)
+  (def sys (get x "java.lang.System"))
+  (defn ana->cached [name ana]
+    (let [members (:members ana)
+          grouped (group-by :name members)]
+      (update-vals grouped (fn [dudes]
+                             (-> dudes first
+                                 (select-keys [:flags]))))))
+  (ana->cached "java.lang.System" sys)
+
+
+
+  )

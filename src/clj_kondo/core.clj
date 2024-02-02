@@ -152,6 +152,7 @@
                              analyze-java-member-defs? (assoc :java-member-definitions [])
                              analyze-instance-invocations? (assoc :instance-invocations [])
                              analyze-symbols? (assoc :symbols []))))
+          java-class-usages (atom [])
           used-nss (atom {:clj #{}
                           :cljs #{}
                           :cljc #{}})
@@ -192,6 +193,7 @@
                :analysis-context analysis-context
                :analyze-symbols? analyze-symbols?
                :analyze-callstack-in-defs? analyze-callstack-in-defs?
+               :java-class-usages java-class-usages
                ;; set of files which should not be flushed into cache
                ;; most notably hook configs, as they can conflict with original sources
                ;; NOTE: we don't allow this to be changed in namespace local
@@ -207,6 +209,8 @@
                                        ctx) lint lang filename)
           ;;_ (prn (some-> analysis deref :java-class-usages))
           ;; _ (prn :used-nss @used-nss)
+          _ (when analyze-java-class-usages?
+              (swap! analysis assoc :java-class-usages @java-class-usages))
           idacs (when (or dependencies (not skip-lint) analysis)
                   (-> (core-impl/index-defs-and-calls ctx)
                       (overrides)
@@ -226,7 +230,8 @@
                   (l/lint-unresolved-vars! ctx)
                   (l/lint-unused-imports! ctx)
                   (l/lint-unresolved-namespaces! ctx)
-                  (l/lint-discouraged-namespaces! ctx))))
+                  (l/lint-discouraged-namespaces! ctx)
+                  (l/lint-class-usage ctx idacs))))
           _ (when custom-lint-fn
               (binding [utils/*ctx* ctx]
                 (custom-lint-fn (cond->

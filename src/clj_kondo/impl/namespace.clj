@@ -261,16 +261,17 @@
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
    ns-sym usage]
-  (let [path [base-lang lang ns-sym]
-        usage (assoc usage
-                     :config (:config ctx)
-                     :unresolved-symbol-disabled?
-                     ;; TODO: can we do this via the ctx only?
-                     (or (:unresolved-symbol-disabled? usage)
-                         (linter-disabled? ctx :unresolved-symbol)))]
-    (swap! namespaces update-in path
-           (fn [ns]
-             (update ns :used-vars (fnil conj []) usage)))))
+  (when-not (:interop? usage)
+    (let [path [base-lang lang ns-sym]
+          usage (assoc usage
+                       :config (:config ctx)
+                       :unresolved-symbol-disabled?
+                       ;; TODO: can we do this via the ctx only?
+                       (or (:unresolved-symbol-disabled? usage)
+                           (linter-disabled? ctx :unresolved-symbol)))]
+      (swap! namespaces update-in path
+             (fn [ns]
+               (update ns :used-vars (fnil conj []) usage))))))
 
 (defn reg-used-namespace!
   "Registers usage of required namespaced in ns."
@@ -409,10 +410,10 @@
 
 (defn reg-used-import!
   [{:keys [:base-lang :lang :namespaces] :as ctx}
-   name-sym ns-sym package class-name expr]
+   name-sym ns-sym package class-name expr opts]
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj class-name)
-  (when (java/analyze-class-usages? ctx)
+  (when true #_(java/analyze-class-usages? ctx)
     (let [name-meta (meta name-sym)
           loc (or (meta expr)
                   (meta class-name))
@@ -424,6 +425,7 @@
                              (str package "." class-name)
                              static-method-name
                              (assoc loc
+                                    :call (:call opts)
                                     :name-row (or (:row name-meta) (:row loc))
                                     :name-col (or (:col name-meta) (:col loc))
                                     :name-end-row (or (:end-row name-meta) (:end-row loc))
@@ -657,7 +659,7 @@
                                      [name*
                                       package]))))
                            (find (:imports ns) ns-sym))]
-              (reg-used-import! ctx name-sym ns-name package class-name expr)
+              (reg-used-import! ctx name-sym ns-name package class-name expr {:call call?})
               (when call? (findings/warn-reflection ctx expr))
               {:interop? true
                :ns (symbol (str package "." class-name))
@@ -665,7 +667,7 @@
             (if (identical? :clj lang)
               (if (and (not (one-of ns* ["clojure.core"]))
                        (class-name? ns*))
-                (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym))
+                (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym) {:call call?})
                     (when call? (findings/warn-reflection ctx expr))
                     {:interop? true})
                 {:name (symbol (name name-sym))
@@ -721,7 +723,7 @@
                              (let [fs (first-segment name-sym)]
                                (find (:imports ns) fs))
                              (find (:imports ns) name-sym)))]
-              (reg-used-import! ctx name-sym ns-name package name-sym* expr)
+              (reg-used-import! ctx name-sym ns-name package name-sym* expr {:call call?})
               (when call? (findings/warn-reflection ctx expr))
               {:ns package
                :interop? true

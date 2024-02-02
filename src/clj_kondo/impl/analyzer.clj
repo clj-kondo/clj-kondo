@@ -2586,7 +2586,8 @@
                         (utils/reg-call ctx call id)
                         (when (:analyze-var-usages? ctx)
                           (namespace/reg-var-usage! ctx ns-name call))
-                        (when-not unresolved?
+                        (when (and (not unresolved?)
+                                   (not interop?))
                           (namespace/reg-used-namespace! ctx
                                                          ns-name
                                                          resolved-namespace))
@@ -3044,7 +3045,9 @@
               config (if extra-configs
                        (apply config/merge-config! config extra-configs)
                        config)]
-          (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed))
+          ;; TODO: was is java.lang.System here!
+          (when-not (:interop? first-parsed)
+            (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed)))
           (recur
            (assoc ctx :config config)
            ns

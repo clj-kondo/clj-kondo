@@ -53,13 +53,15 @@
 (defn extract-clojure-core-vars
   []
   (let [namespaces (atom {})
-        special '#{}]
+        special '#{}
+        findings (atom [])]
     (doall
      (core-impl/process-files
       {:config config/default-config
        :files (atom 0)
-       :findings (atom [])
+       :findings findings
        :ignores (atom {})
+       :java-class-usages (atom [])
        :namespaces namespaces
        :used-namespaces (atom {:clj #{}
                                :cljs #{}
@@ -84,6 +86,7 @@
        :files (atom 0)
        :findings (atom [])
        :ignores (atom {})
+       :java-class-usages (atom [])
        :namespaces namespaces
        :used-namespaces (atom {:clj #{}
                                :cljs #{}

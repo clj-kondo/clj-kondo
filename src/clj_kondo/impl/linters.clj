@@ -804,6 +804,7 @@
                 used-imports (:used-imports ns)]
           [import package] imports
           :when (not (contains? used-imports import))]
+    #_(prn :imports used-imports (map meta used-imports))
     (findings/reg-finding!
      ctx
      (-> (node->line filename import :unused-import (str "Unused import " import))
@@ -829,6 +830,25 @@
         :end-row (:end-row m)
         :end-col (:end-col m)}))))
 
+(defn lint-class-usage [ctx idacs]
+  (when-let [jm (:java-member-definitions idacs)]
+    (doseq [usage @(:java-class-usages ctx)
+
+            :when (:call usage)]
+      (let [method (:method-name usage)
+            clazz (:class usage)]
+        (when-let [info (get jm clazz)]
+          ;; (prn :info info)
+          (when-let [meth-info (get (:members info) method)]
+            (when (and (contains? (:flags meth-info) :field)
+                       (:call usage))
+              (findings/reg-finding!
+               ctx
+               (assoc usage
+                      :type :java-static-field-call
+                      :message "Static fields should be referenced without parens unless they are intended as function calls")))))))))
+
 ;;;; scratch
 
-(comment)
+(comment
+  )

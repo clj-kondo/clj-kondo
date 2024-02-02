@@ -619,9 +619,34 @@
      :cljs {:defs cljs}
      :cljc {:defs (mmerge cljc-clj cljc-cljs)}}))
 
+(defn java-members->indexed [ctx]
+  (when-let [ana (some-> ctx :analysis deref)]
+    (when-let [member-defs (:java-member-definitions ana)]
+      (let [class-infos (group-by :class (:java-class-definitions ana))
+            member-defs (remove #(let [clazz (first (get class-infos (:class %)))]
+                                   (:private (:flags clazz))) member-defs)
+            by-class (group-by :class member-defs)
+            by-class (utils/update-vals by-class
+                                        (fn [clazz]
+                                          {:members
+                                           (-> (group-by :name clazz)
+                                               (utils/update-vals (fn [v]
+                                                                    (let [entry (first v)]
+                                                                      (select-keys entry [:flags])))))}))]
+        by-class))))
+
+#_:clj-kondo/ignore
+(comment
+  (require '[clj-kondo.core] :reload-all)
+  (clj-kondo.core/run! {:lint ["/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java"]
+                        :config {:analysis {:java-member-definitions true
+                                            :java-class-definitions true}}}))
+
 (defn index-defs-and-calls [ctx]
   (let [indexed-defs (namespaces->indexed-defs ctx)]
-    (assoc indexed-defs :used-namespaces @(:used-namespaces ctx))))
+    (-> (assoc indexed-defs :used-namespaces @(:used-namespaces ctx))
+        (assoc :java-member-definitions (java-members->indexed ctx))
+        (assoc :java-class-usages @(:java-class-usages ctx)))))
 
 ;;;; summary
 
