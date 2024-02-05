@@ -283,6 +283,7 @@ pod](https://github.com/babashka/babashka.pods).
 
 ## Articles
 
+- [How to catch derived Vars with a clj-kondo hook](https://www.mikkokoski.com/blog/derived-vars/index.html) by Mikko Koski
 - [Taking your linting to the next level](https://blog.tvaisanen.com/take-your-linting-game-to-the-next-level?showSharer=true#heading-benefits-of-types-in-the-editor) by Toni Vaisanen
 
 ## Thanks to:
