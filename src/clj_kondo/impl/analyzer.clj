@@ -2193,7 +2193,7 @@
                                                        :config config
                                                        :ns ns-name
                                                        :context (:context ctx)})
-                                             (catch Exception e
+                                             (catch Throwable e
                                                (findings/reg-finding!
                                                 ctx
                                                 (merge
@@ -3228,7 +3228,7 @@
               (doseq [f line-length-findings]
                 (findings/reg-finding! ctx f))
               nil)))
-        (catch Throwable e
+        (catch Exception e
           (if dev?
             (throw e)
             (run! #(findings/reg-finding! ctx %) (->findings e filename))))
