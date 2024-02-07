@@ -3494,6 +3494,18 @@ foo/")))
          {:file "corpus/static_field_call.clj", :row 8, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"})
        (lint! (io/file "corpus" "static_field_call.clj")))))
 
+(deftest lint-without-kondo-dir
+  (let [user-dir (System/getProperty "user.dir")]
+    (fs/with-temp-dir [dir {}]
+      (System/setProperty "user.dir" (str dir))
+      (fs/copy-tree (fs/file "corpus" "issue-2254") dir)
+      (assert-submaps2
+       [{:row 3, :col 1, :level :error, :message "Unresolved symbol: z"}]
+       (:findings (clj-kondo/run! {:lint [(fs/file dir)]
+                                   :config
+                                   {:linters {:unresolved-symbol {:level :error}}}}))))
+    (System/setProperty "user.dir" user-dir)))
+
 ;;;; Scratch
 
 (comment
