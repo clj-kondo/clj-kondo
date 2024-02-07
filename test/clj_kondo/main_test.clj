@@ -3506,12 +3506,6 @@ foo/")))
                                    {:linters {:unresolved-symbol {:level :error}}}}))))
     (System/setProperty "user.dir" user-dir)))
 
-(deftest assert-in-macroexpand-hook-test
-  (assert-submaps2
-   '({:file "corpus/issue-2256/foo.clj", :row 6, :col 1, :level :error, :message "Assert failed: shite"})
-   (lint! (fs/file "corpus" "issue-2256" "foo.clj")
-              "--config-dir" (fs/file "corpus" "issue-2256" ".clj-kondo"))))
-
 ;;;; Scratch
 
 (comment

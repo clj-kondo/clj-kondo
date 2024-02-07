@@ -1,5 +1,6 @@
 (ns clj-kondo.hooks-test
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2 native?]]
    [clojure.java.io :as io]
@@ -425,3 +426,9 @@ my-ns/special-map \"
    (lint! (io/file "corpus" "issue-2246" "a.clj")
           {:linters {:unused-import {:level :warning}}}
           "--config-dir" (.getPath (io/file "corpus" "issue-2246" ".clj-kondo")))))
+
+(deftest assert-in-macroexpand-hook-test
+  (assert-submaps2
+   '({:file "corpus/issue-2256/foo.clj", :row 6, :col 1, :level :error, :message "Assert failed: shite"})
+   (lint! (fs/file "corpus" "issue-2256" "foo.clj")
+          "--config-dir" (fs/file "corpus" "issue-2256" ".clj-kondo"))))
