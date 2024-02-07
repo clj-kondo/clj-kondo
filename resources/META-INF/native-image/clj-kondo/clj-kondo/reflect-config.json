@@ -72,5 +72,10 @@
   {
     "name":"com.github.javaparser.ast.type.UnionType",
     "allDeclaredFields":true
+  },
+  {
+    "name":"java.lang.AssertionError",
+    "allPublicConstructors": true,
+    "allPublicMethods": true
   }
 ]
