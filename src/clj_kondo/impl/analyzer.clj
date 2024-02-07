@@ -3228,7 +3228,7 @@
               (doseq [f line-length-findings]
                 (findings/reg-finding! ctx f))
               nil)))
-        (catch Exception e
+        (catch Throwable e
           (if dev?
             (throw e)
             (run! #(findings/reg-finding! ctx %) (->findings e filename))))
