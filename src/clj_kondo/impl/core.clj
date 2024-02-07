@@ -332,16 +332,15 @@
                     (when (:copy-configs ctx)
                       ;; only copy when copy-configs is true
                       (copy-config-file ctx file cfg-dir))
-                    (when cfg-dir
-                      (cond
-                        (and can-read? source?)
-                        {:uri (->uri nil nil nm)
-                         :filename nm
-                         :source (slurp file)
-                         :group-id dir}
-                        (and (not can-read?) source?)
-                        (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
-                        :else nil)))))))
+                    (cond
+                      (and can-read? source?)
+                      {:uri (->uri nil nil nm)
+                       :filename nm
+                       :source (slurp file)
+                       :group-id dir}
+                      (and (not can-read?) source?)
+                      (print-err! (str nm ":0:0:") "warning: can't read, check file permissions")
+                      :else nil))))))
           files)))
 
 ;;;; threadpool
