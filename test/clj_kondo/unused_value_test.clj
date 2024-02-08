@@ -127,3 +127,16 @@
   (deftest this-one-is-fine
     (is (= some-var \"some-value\"))))"
                      {:linters {:unused-value {:level :warning}}}))))
+
+(deftest issue-2251-test
+  (prn (lint! "(ns repl.sample.rcf
+  (:require
+    [hyperfiddle.rcf :refer [tests]]))
+
+(tests
+  \"same piece taken from rcf readme\"
+  (let [xs (map identity xs)]
+    (last xs) := :c))"
+              '{:linters {:unused-value {:level :warning}}
+                :config-in-call {hyperfiddle.rcf/tests {:linters {:unresolved-symbol {:level :off}
+                                                                  :unused-value {:level :off}}}}})))
