@@ -129,9 +129,15 @@
                      {:linters {:unused-value {:level :warning}}}))))
 
 (deftest issue-2251-test
-  (prn (lint! "(ns repl.sample.rcf
+  (assert-submaps
+   '({:file "<stdin>", :row 6, :col 5, :level :warning, :message "Unused value"}
+     {:file "<stdin>", :row 6, :col 15, :level :warning, :message "Unused value: :="})
+   (lint! "(ns repl.sample.rcf
   (:require
     [hyperfiddle.rcf :refer [tests]]))
+
+(let [xs (map identity xs)]
+    (last xs) := :c)
 
 (tests
   \"same piece taken from rcf readme\"

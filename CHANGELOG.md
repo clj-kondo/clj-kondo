@@ -26,6 +26,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#1923](https://github.com/clj-kondo/clj-kondo/issues/1923): Lint invalid fn name
 - [#2254](https://github.com/clj-kondo/clj-kondo/issues/2254): lint files in absence of config dir
 - [#2256](https://github.com/clj-kondo/clj-kondo/issues/2256): enable `assert` in hooks
+- [#2251](https://github.com/clj-kondo/clj-kondo/issues/2251): support suppressing `:unused-value` using `:config-in-call`
 
 ## 2023.12.15
 
