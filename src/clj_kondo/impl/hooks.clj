@@ -72,7 +72,9 @@
                        'java.lang.System System
                        ;; enable with-in-str:
                        'java.io.StringReader java.io.StringReader
-                       'clojure.lang.LineNumberingPushbackReader clojure.lang.LineNumberingPushbackReader}
+                       'clojure.lang.LineNumberingPushbackReader clojure.lang.LineNumberingPushbackReader
+                       ;; enable assert
+                       'java.lang.AssertionError java.lang.AssertionError}
              :imports {'Exception 'java.io.Exception
                        'System java.lang.System}
              :load-fn (fn [{:keys [:namespace]}]

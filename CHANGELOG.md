@@ -25,6 +25,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2246](https://github.com/clj-kondo/clj-kondo/issues/2246): preserve metadata on symbol when going through `:macroexpand` hook
 - [#1923](https://github.com/clj-kondo/clj-kondo/issues/1923): Lint invalid fn name
 - [#2254](https://github.com/clj-kondo/clj-kondo/issues/2254): lint files in absence of config dir
+- [#2256](https://github.com/clj-kondo/clj-kondo/issues/2256): enable `assert` in hooks
 
 ## 2023.12.15
 

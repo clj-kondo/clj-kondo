@@ -2193,7 +2193,7 @@
                                                        :config config
                                                        :ns ns-name
                                                        :context (:context ctx)})
-                                             (catch Exception e
+                                             (catch Throwable e
                                                (findings/reg-finding!
                                                 ctx
                                                 (merge
