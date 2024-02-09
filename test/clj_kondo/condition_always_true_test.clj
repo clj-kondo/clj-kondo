@@ -16,4 +16,8 @@
   (is (empty?
        (lint! "(defn foo [x] (if x inc 2))
                (defn bar [x] (if x 2 inc))"
-              '{:linters {:condition-always-true {:level :warning}}}))))
+              '{:linters {:condition-always-true {:level :warning}}})))
+  (assert-submaps2
+   []
+   (lint! "(when #'inc 2)"
+          '{:linters {:condition-always-true {:level :warning}}})))

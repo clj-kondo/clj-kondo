@@ -2096,7 +2096,9 @@
                                           :filename (:filename ctx)))))
     (analyze-children ctx children false)))
 
-(defn- analyze-var [ctx _expr children]
+(defn- analyze-var [ctx expr children]
+  (when (:condition expr)
+    (findings/reg-finding! ctx (assoc (meta expr) :message "Condition always true" :type :condition-always-true)))
   (analyze-children (assoc ctx :private-access? true) children))
 
 (defn analyze-call
@@ -2795,8 +2797,7 @@
                  (types/add-arg-type-from-expr ctx (first (:children expr)))
                  (analyze-children ctx children))
         :syntax-quote (analyze-usages2 (assoc ctx :arg-types nil) expr)
-        :var (analyze-children (assoc ctx :private-access? true)
-                               (:children expr))
+        :var (analyze-var ctx expr (:children expr))
         :reader-macro (do
                         (when (and (not (identical? :cljc (:base-lang ctx)))
                                    (str/starts-with? (-> expr :children first str) "?"))
