@@ -29,6 +29,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2251](https://github.com/clj-kondo/clj-kondo/issues/2251): support suppressing `:unused-value` using `:config-in-call`
 - [#2266](https://github.com/clj-kondo/clj-kondo/issues/2266): suppress `:not-a-function` linter in reader tag
 - [#2259](https://github.com/clj-kondo/clj-kondo/issues/2259): `ns-map` unmaps var defined prior in namespace
+- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): Report var usage in `if`/`when` condition as always truthy
+
 
 ## 2023.12.15
 

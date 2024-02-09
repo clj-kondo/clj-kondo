@@ -66,7 +66,6 @@
     (when (and level (not (identical? :off level)) (not dependencies) (not skip-lint?))
       (when-not (ignored? ctx m tp)
         (let [m (assoc m :level level)]
-          (prn :m m)
           (swap! findings conj m)
           m)))))
 

@@ -2098,7 +2098,7 @@
 
 (defn- analyze-var [ctx expr children]
   (when (:condition expr)
-    (findings/reg-finding! ctx (assoc (meta expr) :message "Condition always true" :type :condition-always-true)))
+    (findings/reg-finding! ctx (assoc (meta expr) :filename (:filename ctx) :message "Condition always true" :type :condition-always-true)))
   (analyze-children (assoc ctx :private-access? true) children))
 
 (defn analyze-call
