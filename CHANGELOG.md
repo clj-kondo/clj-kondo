@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2254](https://github.com/clj-kondo/clj-kondo/issues/2254): lint files in absence of config dir
 - [#2256](https://github.com/clj-kondo/clj-kondo/issues/2256): enable `assert` in hooks
 - [#2251](https://github.com/clj-kondo/clj-kondo/issues/2251): support suppressing `:unused-value` using `:config-in-call`
+- [#2266](https://github.com/clj-kondo/clj-kondo/issues/2266): suppress `:not-a-function` linter in reader tag
 
 ## 2023.12.15
 
