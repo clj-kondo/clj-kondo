@@ -127,3 +127,22 @@
   (deftest this-one-is-fine
     (is (= some-var \"some-value\"))))"
                      {:linters {:unused-value {:level :warning}}}))))
+
+(deftest issue-2251-test
+  (assert-submaps
+   '({:file "<stdin>", :row 6, :col 5, :level :warning, :message "Unused value"}
+     {:file "<stdin>", :row 6, :col 15, :level :warning, :message "Unused value: :="})
+   (lint! "(ns repl.sample.rcf
+  (:require
+    [hyperfiddle.rcf :refer [tests]]))
+
+(let [xs (map identity xs)]
+    (last xs) := :c)
+
+(tests
+  \"same piece taken from rcf readme\"
+  (let [xs (map identity xs)]
+    (last xs) := :c))"
+              '{:linters {:unused-value {:level :warning}}
+                :config-in-call {hyperfiddle.rcf/tests {:linters {:unresolved-symbol {:level :off}
+                                                                  :unused-value {:level :off}}}}})))

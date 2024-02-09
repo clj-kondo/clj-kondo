@@ -519,7 +519,9 @@
                             (= '[clojure.test deftest] parent-call))]
                     (when unused?
                       (findings/reg-finding!
-                       ctx
+                       (cond-> ctx
+                         call-config
+                         (assoc :config call-config))
                        {:filename filename
                         :row row
                         :end-row end-row
