@@ -3311,7 +3311,9 @@ foo/")))
    (lint! "(ns foo) (ns-unmap *ns* 'inc) (inc 1)"
           {:linters {:unresolved-symbol {:level :error}}}))
   (is (empty? (lint! "(doseq [sym ['foo 'bar 'baz]] (ns-unmap *ns* sym))"
-                     {:linters {:unused-binding {:level :warning}}}))))
+                     {:linters {:unused-binding {:level :warning}}})))
+  (is (empty? (lint! (io/file "corpus" "issue_2259.clj")
+                     {:linters {:redefined-var {:level :warning}}}))))
 
 (deftest duplicate-files
   (is (empty? (lint! [(io/file "corpus" "simple_test")

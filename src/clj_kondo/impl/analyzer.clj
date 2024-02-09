@@ -1994,8 +1994,11 @@
               (let [nss (:namespaces ctx)
                     ;; ns (get-in @nss [base-lang lang ns-name])
                     ]
-                (swap! nss update-in [base-lang lang ns-name :clojure-excluded]
-                       (fnil conj #{}) sym)))))))
+                (swap! nss update-in [base-lang lang ns-name]
+                       (fn [ns]
+                         (-> ns
+                             (update :clojure-excluded (fnil conj #{}) sym)
+                             (update :vars dissoc sym))))))))))
     (analyze-children ctx children)))
 
 (defn analyze-gen-class [ctx _expr base-lang lang current-ns]
