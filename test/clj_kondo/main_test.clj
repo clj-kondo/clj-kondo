@@ -1624,7 +1624,9 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "'(1 1)")))
   (is (empty? (lint! "(foo (1 1))" "--config"
                      "{:linters {:not-a-function {:skip-args [user/foo]}
-                                 :unresolved-symbol {:level :off}}}"))))
+                                 :unresolved-symbol {:level :off}}}")))
+  (is (empty? (lint! "(defrecord Foo [field]) #user.Foo{:field (\"asd\")}"
+                     {:linters {:not-a-function {:level :error}}}))))
 
 (deftest cljs-self-require-test
   (is (empty? (lint! (io/file "corpus" "cljs_self_require.cljc")))))

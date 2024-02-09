@@ -2761,7 +2761,8 @@
               (if-let [config (get-in ctx [:config :config-in-tag tag])]
                 (update ctx :config utils/deep-merge default-cfg-in-tag config)
                 (utils/ctx-with-linters-disabled ctx [:unresolved-symbol
-                                                      :invalid-arity])))
+                                                      :invalid-arity
+                                                      :not-a-function])))
         children (rest children)]
     (lint-discouraged-tags! ctx tag-expr)
     (analyze-children ctx children)))
