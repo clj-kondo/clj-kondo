@@ -19,17 +19,18 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2274](https://github.com/clj-kondo/clj-kondo/issues/2274): Support clojure 1.12 new type hint notations
 - [#1917](https://github.com/clj-kondo/clj-kondo/issues/1917): detect string being called as function
+- [#1923](https://github.com/clj-kondo/clj-kondo/issues/1923): Lint invalid fn name
+- [#2256](https://github.com/clj-kondo/clj-kondo/issues/2256): enable `assert` in hooks
 - [#2253](https://github.com/clj-kondo/clj-kondo/issues/2253): add support for `datomic-type-extensions` to datalog syntax checking
 - [#2255](https://github.com/clj-kondo/clj-kondo/issues/2255): support `:exclude-files` in combination with linting from stdin + provided `--filename` argument
 - [#2246](https://github.com/clj-kondo/clj-kondo/issues/2246): preserve metadata on symbol when going through `:macroexpand` hook
-- [#1923](https://github.com/clj-kondo/clj-kondo/issues/1923): Lint invalid fn name
 - [#2254](https://github.com/clj-kondo/clj-kondo/issues/2254): lint files in absence of config dir
-- [#2256](https://github.com/clj-kondo/clj-kondo/issues/2256): enable `assert` in hooks
 - [#2251](https://github.com/clj-kondo/clj-kondo/issues/2251): support suppressing `:unused-value` using `:config-in-call`
 - [#2266](https://github.com/clj-kondo/clj-kondo/issues/2266): suppress `:not-a-function` linter in reader tag
 - [#2259](https://github.com/clj-kondo/clj-kondo/issues/2259): `ns-map` unmaps var defined prior in namespace
-- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): Report var usage in `if`/`when` condition as always truthy
+- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): Report var usage in `if`/`when` condition as always truthy, e.g. `(when #'some-var 1)`
 
 ## 2023.12.15
 
