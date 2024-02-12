@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## 2024.02.12
 
 - [#2274](https://github.com/clj-kondo/clj-kondo/issues/2274): Support clojure 1.12 new type hint notations
+- [#2260](https://github.com/clj-kondo/clj-kondo/issues/2260): calling static _field_ as function should warn, e.g. `(System/err)`
 - [#1917](https://github.com/clj-kondo/clj-kondo/issues/1917): detect string being called as function
 - [#1923](https://github.com/clj-kondo/clj-kondo/issues/1923): Lint invalid fn name
 - [#2256](https://github.com/clj-kondo/clj-kondo/issues/2256): enable `assert` in hooks
