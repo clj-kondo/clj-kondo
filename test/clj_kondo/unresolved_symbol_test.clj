@@ -343,9 +343,11 @@
   [x exp]
   (Math/scalb ^double x ^int exp))"
                      {:linters {:unresolved-symbol {:level :error}}})))
-  (is (empty? (lint! "(^[_] java.net.URI/new \"http://localhost\")
-                      (^[long*] java.net.URI/new \"http://localhost\")
-                      (^[String*] java.net.URI/new \"http://localhost\")"
+  (is (empty? (lint! "
+(^[_] java.net.URI/new \"http://localhost\")
+(^[long*] java.net.URI/new \"http://localhost\")
+(^[short*] java.net.URI/new \"http://localhost\")
+(^[String*] java.net.URI/new \"http://localhost\")"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest exclude-patterns-test
