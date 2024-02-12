@@ -159,7 +159,9 @@
                                   symbol-val)
                      expr-meta (meta expr)]
                  (if-let [b (when (and simple? (not syntax-quote?))
-                              (get (:bindings ctx) symbol-val))]
+                              (or (get (:bindings ctx) symbol-val)
+                                  (get (:bindings ctx)
+                                       (str/replace (str symbol-val) #"\**$" ""))))]
                    (namespace/reg-used-binding! ctx
                                                 (-> ns :name)
                                                 b

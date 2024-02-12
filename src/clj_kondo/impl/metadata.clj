@@ -25,7 +25,8 @@
             boolean boolean
             byte bytes
             char chars
-            objects]
+            objects
+            _]
           (repeat {})))
 
 (defn lift-meta-content2
@@ -42,6 +43,7 @@
            meta-ctx
            (-> ctx
                (update :callstack conj [nil :metadata])
+               (assoc :in-meta true)
                (utils/ctx-with-bindings
                 (cond->
                     type-hint-bindings
