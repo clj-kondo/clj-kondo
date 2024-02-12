@@ -17,7 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2024.02.12
 
 - [#2274](https://github.com/clj-kondo/clj-kondo/issues/2274): Support clojure 1.12 new type hint notations
 - [#1917](https://github.com/clj-kondo/clj-kondo/issues/1917): detect string being called as function
