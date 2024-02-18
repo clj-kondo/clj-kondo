@@ -146,3 +146,12 @@
               '{:linters {:unused-value {:level :warning}}
                 :config-in-call {hyperfiddle.rcf/tests {:linters {:unresolved-symbol {:level :off}
                                                                   :unused-value {:level :off}}}}})))
+
+(deftest thread-last-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 12, :level :warning, :message "Unused value"})
+   (lint! "(->> :foo #(name %))"
+          {:linters {:unused-value {:level :warning}
+                     :redundant-fn-wrapper {:level :off}}}))
+  (is (empty? (lint! "(->> :foo (#(name %)))" {:linters {:unused-value {:level :warning}
+                                                         :redundant-fn-wrapper {:level :off}}}))))

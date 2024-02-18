@@ -17,6 +17,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+- [#1923](https://github.com/clj-kondo/clj-kondo/issues/1923): Lint invalid fn name for threaded fn literals
+
 ## 2024.02.12
 
 - [#2274](https://github.com/clj-kondo/clj-kondo/issues/2274): Support clojure 1.12 new type hint notations
