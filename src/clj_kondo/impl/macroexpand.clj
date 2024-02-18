@@ -12,6 +12,8 @@
         x (if m* (assoc x :meta m*) x)]
     (with-meta x m)))
 
+(declare expand-fn)
+
 (defn expand-> [_ctx expr]
   (let [expr expr
         children (:children expr)
@@ -19,12 +21,18 @@
         ret (loop [x c, forms cforms]
               (if forms
                 (let [form (first forms)
-                      threaded (if (= :list (tag form))
-                                 (with-meta-of
-                                   (list-node (list* (first (:children form))
+                      threaded (case (tag form)
+                                 :list (with-meta-of
+                                         (list-node (list* (first (:children form))
+                                                           x
+                                                           (next (:children form))))
+                                         form)
+                                 ;; Short-form fns need expanding now, to thread the name in
+                                 :fn (let [{:keys [children] :as expanded} (expand-fn form)]
+                                       (assoc expanded :children
+                                              (list* (first children)
                                                      x
-                                                     (next (:children form))))
-                                   form)
+                                                     (next children))))
                                  (with-meta-of (list-node (list form x))
                                    form))]
                   (recur threaded (next forms)))
@@ -39,14 +47,15 @@
       (if forms
         (let [form (first forms)
               threaded
-              (if (= :list (tag form))
-                (with-meta-of
-                  (list-node
-                   (concat
-                    (cons (first (:children form))
-                          (next (:children form)))
-                    (list x)))
-                  form)
+              (case (tag form)
+                :list (with-meta-of
+                        (list-node
+                         (concat
+                          (cons (first (:children form))
+                                (next (:children form)))
+                          (list x)))
+                        form)
+                :fn (update (expand-fn form) :children concat (list x))
                 (with-meta-of (list-node (list form x))
                   form))]
           (recur threaded (next forms)))
