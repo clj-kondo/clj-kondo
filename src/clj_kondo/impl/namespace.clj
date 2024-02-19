@@ -758,10 +758,11 @@
                         (when call? (findings/warn-reflection ctx expr))
                         {:interop? true})
                     (let [name-str (str name-sym)]
-                      (if (and (:in-meta ctx) (str/ends-with? name-str "*"))
-                        (recur ctx call? ns-name (symbol (subs name-str (dec (count name-str)))) expr)
+                      (if (str/ends-with? name-str "*")
+                        (recur (assoc ctx ::original-name (or (::original-name ctx) name-sym))
+                               call? ns-name (symbol (subs name-str 0 (dec (count name-str)))) expr)
                         {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                         :name name-sym
+                         :name (or (::original-name ctx) name-sym)
                          :unresolved? true
                          :allow-forward-reference? (:in-comment ctx)
                          :clojure-excluded? clojure-excluded?})))))))))))))
