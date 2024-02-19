@@ -19,8 +19,7 @@
 
 (defn- print-help []
   (print-version)
-  (println (format "
-
+  (println "
 Options:
 
   --lint <file>: a file can either be a normal file, directory or classpath. In the
@@ -40,8 +39,7 @@ Options:
   using `--cache-dir`. If `--cache-dir` is not set, cache is resolved using the
   nearest `.clj-kondo` directory in the current and parent directories.
 
-  --config <config>: config may be a file or an EDN expression. See
-    https://cljdoc.org/d/clj-kondo/clj-kondo/%s/doc/configuration
+  --config <config>: extra config that is merged. May be a file or an EDN expression. See https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md.
 
   --config-dir <config-dir>: use this config directory instead of auto-detected
     .clj-kondo dir.
@@ -58,8 +56,7 @@ Options:
     warning, error.  The default level if unspecified is warning.
 
   --debug: print debug information.
-" version/version))
-  nil)
+"))
 
 ;;;; parse command line options
 
