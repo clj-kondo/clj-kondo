@@ -350,6 +350,17 @@
 (^[String*] java.net.URI/new \"http://localhost\")"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
+(deftest clojure1_12-test
+  (assert-submaps
+   [{:file "<stdin>",
+     :row 1,
+     :col 9,
+     :level :error,
+     :message "Unresolved symbol: Stringx*"}]
+   (lint!
+    "String* Stringx*"
+    {:linters {:unresolved-symbol {:level :error}}})))
+
 (deftest exclude-patterns-test
   (assert-submaps
    '({:file "<stdin>", :row 3, :col 38, :level :error, :message "Unresolved symbol: x"})
