@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.analysis.java
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [->uri update-vals]]
+   [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str])
@@ -140,8 +140,8 @@
 (defn reg-class-def! [ctx {:keys [^JarFile jar ^JarFile$JarFileEntry entry filename ^File file]}]
   (when (analyze-class-defs? ctx)
     (let [uri (if jar
-                (->uri (str (.getCanonicalPath file)) (.getName entry) nil)
-                (->uri nil nil filename))
+                (utils/->uri (str (.getCanonicalPath file)) (.getName entry) nil)
+                (utils/->uri nil nil filename))
           class-is (or (and jar entry (.getInputStream jar entry))
                        (io/input-stream filename))
           class-by-info (with-open [is ^InputStream class-is]
@@ -202,9 +202,9 @@
   (defn ana->cached [name ana]
     (let [members (:members ana)
           grouped (group-by :name members)]
-      (update-vals grouped (fn [dudes]
-                             (-> dudes first
-                                 (select-keys [:flags]))))))
+      (utils/update-vals grouped (fn [dudes]
+                                   (-> dudes first
+                                       (select-keys [:flags]))))))
   (ana->cached "java.lang.System" sys)
 
 
