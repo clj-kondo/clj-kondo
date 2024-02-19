@@ -3480,7 +3480,11 @@ foo/")))
    '({:file "<stdin>", :row 1, :col 7, :level :error, :message "Function name must be simple symbol but got: :foo"}
      {:file "<stdin>", :row 1, :col 20, :level :error, :message "Function name must be simple symbol but got: :foo"}
      {:file "<stdin>", :row 1, :col 33, :level :error, :message "Function name must be simple symbol but got: \"foo\""})
-   (lint! "(defn :foo []) (fn :foo []) (fn \"foo\" [])")))
+   (lint! "(defn :foo []) (fn :foo []) (fn \"foo\" [])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 5, :level :error, :message "Function name must be simple symbol but got: :foo"}
+     {:file "<stdin>", :row 1, :col 24, :level :error, :message "Function name must be simple symbol but got: \"foo\""})
+   (lint! "(-> :foo #(inc %)) (-> \"foo\" #(inc %))")))
 
 (deftest lint-stdin-exclude-files-test
   (is (empty?
