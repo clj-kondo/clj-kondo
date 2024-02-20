@@ -376,3 +376,9 @@
                                          [?foo x])]))
           {:linters {:unresolved-symbol {:exclude-patterns ["^\\?"]
                                          :level :error}}})))
+
+(deftest extend-type-cljs-test
+  (is (empty?
+       (lint! "(extend-type bigint IDeref (-deref [_]))"
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--lang" "cljs"))))
