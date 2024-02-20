@@ -2022,7 +2022,7 @@
               (update-in ctx [:config :linters :unresolved-symbol :exclude]
                          (fn [config]
                            (conj config
-                                 'number 'function 'default 'object 'string)))
+                                 'number 'function 'default 'object 'string 'bigint)))
               ctx)]
     (analyze-extend-type-children ctx children defined-by defined-by->lint-as)))
 
