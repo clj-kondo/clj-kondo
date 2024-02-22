@@ -38,11 +38,113 @@
     (io/copy xin xout)
     (.toByteArray xout)))
 
-(defn ^:private opcode->flags []
+#_(defn ^:private opcode->flags []
   {Opcodes/ACC_PUBLIC #{:public}
    Opcodes/ALOAD #{:public :field :static}
    Opcodes/SIPUSH #{:public :field :final}
    Opcodes/LCONST_0 #{:public :method :static}})
+
+(defn- opcode->flags
+  "Thanks @hiredman for https://downey.family/p/2024-02-22/modifiers.clj.html"
+  [x]
+  (clojure.core/cond->
+      #{}
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_PUBLIC)
+     Opcodes/ACC_PUBLIC)
+    (clojure.core/conj :public)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_PRIVATE)
+     Opcodes/ACC_PRIVATE)
+    (clojure.core/conj :private)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_PROTECTED)
+     Opcodes/ACC_PROTECTED)
+    (clojure.core/conj :protected)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_STATIC)
+     Opcodes/ACC_STATIC)
+    (clojure.core/conj :static)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_FINAL)
+     Opcodes/ACC_FINAL)
+    (clojure.core/conj :final)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_SUPER)
+     Opcodes/ACC_SUPER)
+    (clojure.core/conj :super)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_SYNCHRONIZED)
+     Opcodes/ACC_SYNCHRONIZED)
+    (clojure.core/conj :synchronized)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_OPEN)
+     Opcodes/ACC_OPEN)
+    (clojure.core/conj :open)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_TRANSITIVE)
+     Opcodes/ACC_TRANSITIVE)
+    (clojure.core/conj :transitive)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_VOLATILE)
+     Opcodes/ACC_VOLATILE)
+    (clojure.core/conj :volatile)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_BRIDGE)
+     Opcodes/ACC_BRIDGE)
+    (clojure.core/conj :bridge)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_STATIC_PHASE)
+     Opcodes/ACC_STATIC_PHASE)
+    (clojure.core/conj :static_phase)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_VARARGS)
+     Opcodes/ACC_VARARGS)
+    (clojure.core/conj :varargs)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_TRANSIENT)
+     Opcodes/ACC_TRANSIENT)
+    (clojure.core/conj :transient)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_NATIVE)
+     Opcodes/ACC_NATIVE)
+    (clojure.core/conj :native)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_INTERFACE)
+     Opcodes/ACC_INTERFACE)
+    (clojure.core/conj :interface)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_ABSTRACT)
+     Opcodes/ACC_ABSTRACT)
+    (clojure.core/conj :abstract)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_STRICT)
+     Opcodes/ACC_STRICT)
+    (clojure.core/conj :strict)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_SYNTHETIC)
+     Opcodes/ACC_SYNTHETIC)
+    (clojure.core/conj :synthetic)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_ANNOTATION)
+     Opcodes/ACC_ANNOTATION)
+    (clojure.core/conj :annotation)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_ENUM)
+     Opcodes/ACC_ENUM)
+    (clojure.core/conj :enum)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_MANDATED)
+     Opcodes/ACC_MANDATED)
+    (clojure.core/conj :mandated)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_MODULE)
+     Opcodes/ACC_MODULE)
+    (clojure.core/conj :module)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_DEPRECATED)
+     Opcodes/ACC_DEPRECATED)
+    (clojure.core/conj :deprecated)))
 
 (defn ^:private modifier-keyword->flag []
   (reduce #(assoc %1 %2 (keyword (str/lower-case (.asString ^Modifier$Keyword %2))))
@@ -54,8 +156,7 @@
   [^InputStream class-is]
   (let [class-reader (ClassReader. (input-stream->bytes class-is))
         class-name (str/replace (.getClassName class-reader) "/" ".")
-        result* (atom {class-name {:members []}})
-        opcode->flags (opcode->flags)]
+        result* (atom {class-name {:members []}})]
     (.accept
      class-reader
      (proxy [ClassVisitor] [Opcodes/ASM9]
