@@ -87,7 +87,7 @@
        {:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
         :name "bar3"
-        :flags #{:public :field :static}
+        :flags #{:public :field :static :final}
         :type "java.lang.Double"}
        {:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
