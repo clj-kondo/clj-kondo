@@ -1,0 +1,3 @@
+{:lint-as {borkdude.deflet/defp clojure.core/def}
+ :hooks {:analyze-call {borkdude.deflet/deflet borkdude.deflet/deflet
+                        borkdude.deflet/defletp borkdude.deflet/deflet}}}

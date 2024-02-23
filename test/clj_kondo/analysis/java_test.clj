@@ -1,6 +1,7 @@
 (ns clj-kondo.analysis.java-test
   (:require
    [babashka.process :as p]
+   [borkdude.deflet :as deflet]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
    [clj-kondo.test-utils :as tu :refer [assert-submap2 assert-submaps2]]
@@ -243,6 +244,22 @@
        :end-col 26,
        :row 16}]
      java-class-usages)))
+
+(deftest issue-2288-test
+  (deflet/deflet
+    (def deps '{:deps {com.google.cloud/google-cloud-vision {:mvn/version "3.32.0"}}
+                :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                            "clojars" {:url "https://repo.clojars.org/"}}})
+    (def jar (-> (deps/resolve-deps deps nil)
+                 (get-in ['com.google.cloud/google-cloud-vision :paths 0])))
+
+    (def ana (analyze [jar]))
+    (def create-meth (some #(when (and (= (:class %) "com.google.cloud.vision.v1.ImageAnnotatorClient")
+                                       (= "create" (:name %)))
+                         %) (:java-member-definitions ana)))
+    (assert-submaps2
+     #{:method :public :static :final}
+     (:flags create-meth))))
 
 (comment
 

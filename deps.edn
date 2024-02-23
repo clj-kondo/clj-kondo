@@ -33,7 +33,8 @@
              borkdude/missing.test.assertions {:mvn/version "0.0.2"}
              babashka/process {:mvn/version "0.5.21"}
              org.clojure/tools.deps.alpha {:mvn/version "0.12.1048"}
-             nubank/matcher-combinators {:mvn/version "3.5.1" :exclusions [midje/midje]}}
+             nubank/matcher-combinators {:mvn/version "3.5.1" :exclusions [midje/midje]}
+             io.github.borkdude/deflet {:mvn/version "0.1.0"}}
             :extra-paths ["test" "extract"]
             :main-opts ["-m" "cognitect.test-runner"]}
            :clojure-1.9.0 {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}
