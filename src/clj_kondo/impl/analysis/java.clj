@@ -285,7 +285,8 @@
               (merge {:class class-name
                       :uri (:uri ctx)
                       :filename (:filename ctx)
-                      :call (:call opts)}
+                      :call (:call opts)
+                      :ctx ctx}
                      loc+data
                      (when method-name
                        {:method-name method-name})

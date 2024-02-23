@@ -838,7 +838,8 @@
 
             :when (:call usage)]
       (let [method (:method-name usage)
-            clazz (:class usage)]
+            clazz (:class usage)
+            ctx (or (:ctx usage) ctx)]
         (when-let [info (get jm clazz)]
           ;; (prn :info info)
           (when-let [meth-info (get (:members info) method)]

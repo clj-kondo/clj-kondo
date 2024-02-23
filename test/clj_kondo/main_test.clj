@@ -3496,7 +3496,12 @@ foo/")))
        '({:file "corpus/static_field_call.clj", :row 4, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
          {:file "corpus/static_field_call.clj", :row 7, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
          {:file "corpus/static_field_call.clj", :row 8, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"})
-       (lint! (io/file "corpus" "static_field_call.clj")))))
+       (lint! (io/file "corpus" "static_field_call.clj"))))
+  (is (empty? (lint! "#_:clj-kondo/ignore (System/err)")))
+  (is (empty? (lint! "(ns foo) (System/err)"
+                     '{:config-in-ns {foo {:linters {:java-static-field-call {:level :off}}}}})))
+  (is (empty? (lint! "(ns foo) (defmacro foo [x] x) (foo (System/err))"
+                     '{:config-in-call {foo/foo {:linters {:java-static-field-call {:level :off}}}}}))))
 
 (deftest lint-without-kondo-dir
   (let [user-dir (System/getProperty "user.dir")]
