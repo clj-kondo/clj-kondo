@@ -41,7 +41,7 @@ unzip "/tmp/release/clj-kondo-${image_tag}-linux-aarch64.zip" && mv clj-kondo cl
 
 if [[ $snapshot == "false" ]]; then
     echo "$action image $image_name:latest $image_name:$latest_tag $ghcr_image_name:latest $ghcr_image_name:$latest_tag"
-    docker buildx build --platform linux/amd64,linux/arm64/v8 "$push" \
+    docker buildx build --platform linux/amd64,linux/arm64/v8 $push \
         -t "$image_name:$image_tag" \
         -t "$ghcr_image_name:$image_tag" \
         -f Dockerfile.ci .
@@ -51,7 +51,7 @@ if [[ $snapshot == "false" ]]; then
     unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-amd64.zip" && mv clj-kondo clj-kondo-amd64
     unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-aarch64.zip" && mv clj-kondo clj-kondo-arm64
     echo "$action image $image_name:alpine $image_name:$image_tag-alpine $ghcr_image_name:alpine $ghcr_image_name:$image_tag-alpine"
-    docker buildx build --platform linux/amd64,linux/arm64/v8 "$push" \
+    docker buildx build --platform linux/amd64,linux/arm64/v8 $push \
         -t "$image_name:alpine" \
         -t "$image_name:$image_tag-alpine" \
         -t "$ghcr_image_name:alpine" \
@@ -60,7 +60,7 @@ if [[ $snapshot == "false" ]]; then
 else
     # only update latest when it's not a SNAPSHOT version
     echo "$action image $image_name:$latest_tag $ghcr_image_name:$latest_tag"
-    docker buildx build --platform linux/amd64,linux/arm64/v8 "$push" \
+    docker buildx build --platform linux/amd64,linux/arm64/v8 $push \
         -t "$image_name:latest" \
         -t "$image_name:$image_tag" \
         -t "$ghcr_image_name:latest" \
