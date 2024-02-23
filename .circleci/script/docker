@@ -7,8 +7,6 @@ ghcr_image_name="ghcr.io/clj-kondo/clj-kondo"
 image_tag=$(cat resources/CLJ_KONDO_VERSION)
 latest_tag="latest"
 
-CLJ_KONDO_ARCH=${CLJ_KONDO_ARCH:-amd64}
-
 if [[ $image_tag =~ SNAPSHOT$ ]]; then
     echo "This is a snapshot version"
     snapshot="true"
