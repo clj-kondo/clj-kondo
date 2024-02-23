@@ -847,7 +847,7 @@
                        (:call usage))
               (findings/reg-finding!
                ctx
-               (assoc usage
+               (assoc (dissoc usage :ctx)
                       :type :java-static-field-call
                       :message "Static fields should be referenced without parens unless they are intended as function calls")))))))))
 
