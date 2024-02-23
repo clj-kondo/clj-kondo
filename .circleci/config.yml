@@ -384,10 +384,6 @@ jobs:
               rm -rf /home/circleci/.gitconfig
       - attach_workspace:
           at: /tmp
-      - run:
-          name: setup Qemu
-          command: |
-            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       - setup_remote_docker:
           version: 20.10.11
       - run:

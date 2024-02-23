@@ -18,6 +18,10 @@ else
 fi
 
 if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
+    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    docker context create buildcontext
+    docker buildx create buildcontext --use
+
     echo "Building Docker image $image_name:$image_tag"
     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
     echo "$GHCR_TOKEN" | docker login ghcr.io -u "$CONTAINER_REGISTRY_USER" --password-stdin
