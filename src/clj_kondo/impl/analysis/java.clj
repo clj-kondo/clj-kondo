@@ -45,7 +45,9 @@
    Opcodes/LCONST_0 #{:public :method :static}})
 
 (defn- opcode->flags
-  "Thanks @hiredman for https://downey.family/p/2024-02-22/modifiers.clj.html"
+  "Thanks @hiredman for https://downey.family/p/2024-02-22/modifiers.clj.html. Generated with:"
+  #_(clojure.pprint/pprint `(fn [~'x] (cond-> #{} ~@(->> (.getFields clojure.asm.Opcodes) (filter #(.startsWith (.getName %) "ACC_")) (map (fn [field] `[(= (bit-and ~'x ~(symbol "clojure.asm.Opcodes" (.getName field))) ~(symbol "clojure.asm.Opcodes" (.getName field))) (conj ~(keyword (-> (.getName field) (.replaceAll "^ACC_" "") (.toLowerCase))))])) (apply concat)))))
+
   [x]
   (clojure.core/cond->
       #{}
@@ -53,11 +55,11 @@
      (clojure.core/bit-and x Opcodes/ACC_PUBLIC)
      Opcodes/ACC_PUBLIC)
     (clojure.core/conj :public)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_PRIVATE)
      Opcodes/ACC_PRIVATE)
     (clojure.core/conj :private)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_PROTECTED)
      Opcodes/ACC_PROTECTED)
     (clojure.core/conj :protected)
@@ -69,79 +71,79 @@
      (clojure.core/bit-and x Opcodes/ACC_FINAL)
      Opcodes/ACC_FINAL)
     (clojure.core/conj :final)
-    (clojure.core/=
+    #_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_SUPER)
      Opcodes/ACC_SUPER)
-    (clojure.core/conj :super)
-    (clojure.core/=
+    #_(clojure.core/conj :super)
+    #_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_SYNCHRONIZED)
      Opcodes/ACC_SYNCHRONIZED)
-    (clojure.core/conj :synchronized)
-    (clojure.core/=
+    #_(clojure.core/conj :synchronized)
+    #_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_OPEN)
      Opcodes/ACC_OPEN)
-    (clojure.core/conj :open)
-    (clojure.core/=
+    #_(clojure.core/conj :open)
+    #_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_TRANSITIVE)
      Opcodes/ACC_TRANSITIVE)
-    (clojure.core/conj :transitive)
-    (clojure.core/=
+    #_(clojure.core/conj :transitive)
+    #_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_VOLATILE)
      Opcodes/ACC_VOLATILE)
-    (clojure.core/conj :volatile)
-    (clojure.core/=
+    #_(clojure.core/conj :volatile)
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_BRIDGE)
      Opcodes/ACC_BRIDGE)
     (clojure.core/conj :bridge)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_STATIC_PHASE)
      Opcodes/ACC_STATIC_PHASE)
     (clojure.core/conj :static_phase)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_VARARGS)
      Opcodes/ACC_VARARGS)
     (clojure.core/conj :varargs)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_TRANSIENT)
      Opcodes/ACC_TRANSIENT)
     (clojure.core/conj :transient)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_NATIVE)
      Opcodes/ACC_NATIVE)
     (clojure.core/conj :native)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_INTERFACE)
      Opcodes/ACC_INTERFACE)
     (clojure.core/conj :interface)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_ABSTRACT)
      Opcodes/ACC_ABSTRACT)
     (clojure.core/conj :abstract)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_STRICT)
      Opcodes/ACC_STRICT)
     (clojure.core/conj :strict)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_SYNTHETIC)
      Opcodes/ACC_SYNTHETIC)
     (clojure.core/conj :synthetic)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_ANNOTATION)
      Opcodes/ACC_ANNOTATION)
     (clojure.core/conj :annotation)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_ENUM)
      Opcodes/ACC_ENUM)
     (clojure.core/conj :enum)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_MANDATED)
      Opcodes/ACC_MANDATED)
     (clojure.core/conj :mandated)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_MODULE)
      Opcodes/ACC_MODULE)
     (clojure.core/conj :module)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_DEPRECATED)
      Opcodes/ACC_DEPRECATED)
     (clojure.core/conj :deprecated)))
