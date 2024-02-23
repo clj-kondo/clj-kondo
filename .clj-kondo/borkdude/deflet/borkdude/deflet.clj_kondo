@@ -1,0 +1,26 @@
+(ns borkdude.deflet
+  (:require [clj-kondo.hooks-api :as hooks-api]))
+
+(defn deflet* [children]
+  (let [f (first children)
+        r (next children)]
+    (if (and (hooks-api/list-node? f)
+             (#{'def 'defp} (hooks-api/sexpr (first (:children f)))))
+      (let [def-children (:children f)]
+        (with-meta (hooks-api/list-node
+                    [(hooks-api/coerce 'clojure.core/let)
+                     (hooks-api/vector-node [(second def-children)
+                                             (nth def-children 2)])
+                     (deflet* r)])
+          (meta f)))
+      (if-not r (or f (hooks-api/coerce nil))
+              (with-meta
+                (hooks-api/list-node (list (hooks-api/coerce 'do)
+                                           f
+                                           (deflet* r)))
+                (meta f))))))
+
+(defn deflet [{:keys [node]}]
+  (let [children (:children node)
+        new-node (deflet* children)]
+    {:node new-node}))
