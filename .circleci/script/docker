@@ -38,7 +38,7 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
             -t "$image_name:$image_tag" \
             -t "$ghcr_image_name" \
             -t "$ghcr_image_name:$image_tag" \
-            --push \
+            # --push \
             -f Dockerfile.ci .
         rm -f clj-kondo-linux-amd64 clj-kondo-linux-aarch64
 
@@ -50,14 +50,14 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
             -t "$image_name:$image_tag-alpine" \
             -t "$ghcr_image_name:alpine" \
             -t "$ghcr_image_name:$image_tag-alpine" \
-            --push \
+            # --push \
             -f Dockerfile.alpine .
     else
         # only update latest when it's not a SNAPSHOT version
         docker buildx build --platform linux/amd64,linux/arm64/v8 \
             -t "$image_name:$image_tag" \
             -t "$ghcr_image_name:$image_tag" \
-            --push \
+            # --push \
             -f Dockerfile.ci .
     fi
 else
