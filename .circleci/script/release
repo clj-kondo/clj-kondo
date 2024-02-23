@@ -14,6 +14,11 @@ if [[ "$CLJ_KONDO_PLATFORM" = "linux" ]]; then
     cp "$jar" /tmp/release
 fi
 
+if [[ "$CLJ_KONDO_PLATFORM" = "linux-aarch64" ]]; then
+    jar="target/clj-kondo-$VERSION-standalone.jar"
+    rm $jar
+fi
+
 cd /tmp/release
 
 ## release binary as zip archive
