@@ -21,37 +21,45 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     echo "Building Docker image $image_name:$image_tag"
     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
     echo "$GHCR_TOKEN" | docker login ghcr.io -u "$CONTAINER_REGISTRY_USER" --password-stdin
-    unzip "/tmp/release/clj-kondo-${image_tag}-linux-${CLJ_KONDO_ARCH}.zip"
-    docker build -t "$image_name" -t "$ghcr_image_name" -f Dockerfile.ci .
-    docker tag "$image_name:$latest_tag" "$image_name:$image_tag"
-    docker tag "$ghcr_image_name:$latest_tag" "$ghcr_image_name:$image_tag"
-    rm -f clj-kondo
-    if [[ $snapshot == "false" ]]; then
-        unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-${CLJ_KONDO_ARCH}.zip"
-        docker build -t "$image_name:alpine" -t "$ghcr_image_name:alpine" -f Dockerfile.alpine .
-        docker tag "$image_name:alpine" "$image_name:$image_tag-alpine"
-        docker tag "$ghcr_image_name:alpine" "$ghcr_image_name:$image_tag-alpine"
-    fi
-    # only update latest when it's not a SNAPSHOT version
-    if [ "false" = "$snapshot" ]; then
-        echo "Pushing images $image_name:$latest_tag $image_name:$latest_tag"
-        docker push "$image_name:$latest_tag"
-        docker push "$ghcr_image_name:$latest_tag"
-        echo "Pushing images $image_name:alpine"
-        docker push "$image_name:alpine"
-        docker push "$ghcr_image_name:alpine"
-    fi
+
+    unzip "/tmp/release/clj-kondo-${image_tag}-linux-amd64.zip" && mv clj-kondo clj-kondo-amd64
+    unzip "/tmp/release/clj-kondo-${image_tag}-linux-aarch64.zip" && mv clj-kondo clj-kondo-arm64
+
     # update the version tag, even if it's a SNAPSHOT version
     echo "Pushing image $image_name:$image_tag $ghcr_image_name:$image_tag"
     docker push "$image_name:$image_tag"
     docker push "$ghcr_image_name:$image_tag"
-    # only push alpine when non-snapshot
+
     if [[ $snapshot == "false" ]]; then
-        docker push "$image_name:$image_tag-alpine"
-        docker push "$ghcr_image_name:$image_tag-alpine"
+        docker buildx build --platform linux/amd64,linux/arm64/v8 \
+            -t "$image_name" \
+            -t "$image_name:$image_tag" \
+            -t "$ghcr_image_name" \
+            -t "$ghcr_image_name:$image_tag" \
+            --push \
+            -f Dockerfile.ci .
+        rm -f clj-kondo-linux-amd64 clj-kondo-linux-aarch64
+
+        # only push alpine when non-snapshot
+        unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-amd64.zip" && mv clj-kondo clj-kondo-amd64
+        unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-aarch64.zip" && mv clj-kondo clj-kondo-arm64
+        docker buildx build --platform linux/amd64,linux/arm64/v8 \
+            -t "$image_name:alpine" \
+            -t "$image_name:$image_tag-alpine" \
+            -t "$ghcr_image_name:alpine" \
+            -t "$ghcr_image_name:$image_tag-alpine" \
+            --push \
+            -f Dockerfile.alpine .
+    else
+        # only update latest when it's not a SNAPSHOT version
+        docker buildx build --platform linux/amd64,linux/arm64/v8 \
+            -t "$image_name:$image_tag" \
+            -t "$ghcr_image_name:$image_tag" \
+            --push \
+            -f Dockerfile.ci .
     fi
 else
     echo "Not publishing Docker image"
 fi
 
-exit 0;
+exit 0

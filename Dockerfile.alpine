@@ -1,6 +1,9 @@
 FROM alpine:3
 
-COPY clj-kondo /bin/clj-kondo
+# amd64 or arm64
+ARG TARGETARCH
+
+COPY clj-kondo-${TARGETARCH} /bin/clj-kondo
 
 RUN chmod +x /bin/clj-kondo
 

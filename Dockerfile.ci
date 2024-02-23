@@ -1,10 +1,12 @@
 FROM ubuntu:latest
 
+ARG TARGETARCH
+
 RUN apt-get update \
     && apt-get install -y curl \
     && mkdir -p /usr/local/bin
 
-COPY clj-kondo /usr/local/bin/clj-kondo
+COPY clj-kondo-${TARGETARCH} /usr/local/bin/clj-kondo
 
 RUN chmod +x /usr/local/bin/clj-kondo
 
