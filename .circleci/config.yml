@@ -413,4 +413,5 @@ workflows:
           requires:
             - jvm
             - linux
+            - linux-aarch64
             - linux-static

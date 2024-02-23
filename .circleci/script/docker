@@ -17,19 +17,21 @@ fi
 
 if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     push="--push"
+    action="Building and publishing"
     echo "Publishing Docker image"
 else
     push=""
+    action="Building"
     echo "Not publishing Docker image"
 fi
 
-# if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 docker context create buildcontext
 docker buildx create buildcontext --use
 
 echo "Building Docker image $image_name:$image_tag"
 if [ "$push" != "" ]; then
+    echo "Logging into Docker Hub and GitHub Container Registry"
     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
     echo "$GHCR_TOKEN" | docker login ghcr.io -u "$CONTAINER_REGISTRY_USER" --password-stdin
 fi
@@ -38,11 +40,9 @@ unzip "/tmp/release/clj-kondo-${image_tag}-linux-amd64.zip" && mv clj-kondo clj-
 unzip "/tmp/release/clj-kondo-${image_tag}-linux-aarch64.zip" && mv clj-kondo clj-kondo-arm64
 
 if [[ $snapshot == "false" ]]; then
-    echo "Building and publishing image $image_name:latest $image_name:$latest_tag $ghcr_image_name:latest $ghcr_image_name:$latest_tag"
+    echo "$action image $image_name:latest $image_name:$latest_tag $ghcr_image_name:latest $ghcr_image_name:$latest_tag"
     docker buildx build --platform linux/amd64,linux/arm64/v8 \
-        -t "$image_name:latest" \
         -t "$image_name:$image_tag" \
-        -t "$ghcr_image_name:latest" \
         -t "$ghcr_image_name:$image_tag" \
         "$push" \
         -f Dockerfile.ci .
@@ -51,7 +51,7 @@ if [[ $snapshot == "false" ]]; then
     # only push alpine when non-snapshot
     unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-amd64.zip" && mv clj-kondo clj-kondo-amd64
     unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-aarch64.zip" && mv clj-kondo clj-kondo-arm64
-    echo "Building and publishing image $image_name:alpine $image_name:$image_tag-alpine $ghcr_image_name:alpine $ghcr_image_name:$image_tag-alpine"
+    echo "$action image $image_name:alpine $image_name:$image_tag-alpine $ghcr_image_name:alpine $ghcr_image_name:$image_tag-alpine"
     docker buildx build --platform linux/amd64,linux/arm64/v8 \
         -t "$image_name:alpine" \
         -t "$image_name:$image_tag-alpine" \
@@ -61,9 +61,11 @@ if [[ $snapshot == "false" ]]; then
         -f Dockerfile.alpine .
 else
     # only update latest when it's not a SNAPSHOT version
-    echo "Building and publishing image $image_name:$latest_tag $ghcr_image_name:$latest_tag"
+    echo "$action image $image_name:$latest_tag $ghcr_image_name:$latest_tag"
     docker buildx build --platform linux/amd64,linux/arm64/v8 \
+        -t "$image_name:latest" \
         -t "$image_name:$image_tag" \
+        -t "$ghcr_image_name:latest" \
         -t "$ghcr_image_name:$image_tag" \
         "$push" \
         -f Dockerfile.ci .
