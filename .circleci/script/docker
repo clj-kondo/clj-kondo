@@ -27,16 +27,12 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
     unzip "/tmp/release/clj-kondo-${image_tag}-linux-amd64.zip" && mv clj-kondo clj-kondo-amd64
     unzip "/tmp/release/clj-kondo-${image_tag}-linux-aarch64.zip" && mv clj-kondo clj-kondo-arm64
 
-    # update the version tag, even if it's a SNAPSHOT version
-    echo "Pushing image $image_name:$image_tag $ghcr_image_name:$image_tag"
-    docker push "$image_name:$image_tag"
-    docker push "$ghcr_image_name:$image_tag"
-
     if [[ $snapshot == "false" ]]; then
+        echo "Building and publishing image $image_name:latest $image_name:$latest_tag $ghcr_image_name:latest $ghcr_image_name:$latest_tag"
         docker buildx build --platform linux/amd64,linux/arm64/v8 \
-            -t "$image_name" \
+            -t "$image_name:latest" \
             -t "$image_name:$image_tag" \
-            -t "$ghcr_image_name" \
+            -t "$ghcr_image_name:latest" \
             -t "$ghcr_image_name:$image_tag" \
             # --push \
             -f Dockerfile.ci .
@@ -45,6 +41,7 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
         # only push alpine when non-snapshot
         unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-amd64.zip" && mv clj-kondo clj-kondo-amd64
         unzip "/tmp/release/clj-kondo-${image_tag}-linux-static-aarch64.zip" && mv clj-kondo clj-kondo-arm64
+        echo "Building and publishing image $image_name:alpine $image_name:$image_tag-alpine $ghcr_image_name:alpine $ghcr_image_name:$image_tag-alpine"
         docker buildx build --platform linux/amd64,linux/arm64/v8 \
             -t "$image_name:alpine" \
             -t "$image_name:$image_tag-alpine" \
@@ -54,6 +51,7 @@ if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
             -f Dockerfile.alpine .
     else
         # only update latest when it's not a SNAPSHOT version
+        echo "Building and publishing image $image_name:$latest_tag $ghcr_image_name:$latest_tag"
         docker buildx build --platform linux/amd64,linux/arm64/v8 \
             -t "$image_name:$image_tag" \
             -t "$ghcr_image_name:$image_tag" \
