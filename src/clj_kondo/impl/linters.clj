@@ -838,7 +838,8 @@
 
             :when (:call usage)]
       (let [method (:method-name usage)
-            clazz (:class usage)]
+            clazz (:class usage)
+            ctx (or (:ctx usage) ctx)]
         (when-let [info (get jm clazz)]
           ;; (prn :info info)
           (when-let [meth-info (get (:members info) method)]
@@ -846,7 +847,7 @@
                        (:call usage))
               (findings/reg-finding!
                ctx
-               (assoc usage
+               (assoc (dissoc usage :ctx)
                       :type :java-static-field-call
                       :message "Static fields should be referenced without parens unless they are intended as function calls")))))))))
 

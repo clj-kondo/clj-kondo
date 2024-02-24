@@ -38,11 +38,115 @@
     (io/copy xin xout)
     (.toByteArray xout)))
 
-(defn ^:private opcode->flags []
+#_(defn ^:private opcode->flags []
   {Opcodes/ACC_PUBLIC #{:public}
    Opcodes/ALOAD #{:public :field :static}
    Opcodes/SIPUSH #{:public :field :final}
    Opcodes/LCONST_0 #{:public :method :static}})
+
+(defn- opcode->flags
+  "Thanks @hiredman for https://downey.family/p/2024-02-22/modifiers.clj.html. Generated with:"
+  #_(clojure.pprint/pprint `(fn [~'x] (cond-> #{} ~@(->> (.getFields clojure.asm.Opcodes) (filter #(.startsWith (.getName %) "ACC_")) (map (fn [field] `[(= (bit-and ~'x ~(symbol "clojure.asm.Opcodes" (.getName field))) ~(symbol "clojure.asm.Opcodes" (.getName field))) (conj ~(keyword (-> (.getName field) (.replaceAll "^ACC_" "") (.toLowerCase))))])) (apply concat)))))
+
+  [x]
+  (clojure.core/cond->
+      #{}
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_PUBLIC)
+     Opcodes/ACC_PUBLIC)
+    (clojure.core/conj :public)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_PRIVATE)
+     Opcodes/ACC_PRIVATE)
+    (clojure.core/conj :private)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_PROTECTED)
+     Opcodes/ACC_PROTECTED)
+    (clojure.core/conj :protected)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_STATIC)
+     Opcodes/ACC_STATIC)
+    (clojure.core/conj :static)
+    (clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_FINAL)
+     Opcodes/ACC_FINAL)
+    (clojure.core/conj :final)
+    #_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_SUPER)
+     Opcodes/ACC_SUPER)
+    #_(clojure.core/conj :super)
+    #_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_SYNCHRONIZED)
+     Opcodes/ACC_SYNCHRONIZED)
+    #_(clojure.core/conj :synchronized)
+    #_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_OPEN)
+     Opcodes/ACC_OPEN)
+    #_(clojure.core/conj :open)
+    #_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_TRANSITIVE)
+     Opcodes/ACC_TRANSITIVE)
+    #_(clojure.core/conj :transitive)
+    #_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_VOLATILE)
+     Opcodes/ACC_VOLATILE)
+    #_(clojure.core/conj :volatile)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_BRIDGE)
+     Opcodes/ACC_BRIDGE)
+    (clojure.core/conj :bridge)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_STATIC_PHASE)
+     Opcodes/ACC_STATIC_PHASE)
+    (clojure.core/conj :static_phase)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_VARARGS)
+     Opcodes/ACC_VARARGS)
+    (clojure.core/conj :varargs)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_TRANSIENT)
+     Opcodes/ACC_TRANSIENT)
+    (clojure.core/conj :transient)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_NATIVE)
+     Opcodes/ACC_NATIVE)
+    (clojure.core/conj :native)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_INTERFACE)
+     Opcodes/ACC_INTERFACE)
+    (clojure.core/conj :interface)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_ABSTRACT)
+     Opcodes/ACC_ABSTRACT)
+    (clojure.core/conj :abstract)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_STRICT)
+     Opcodes/ACC_STRICT)
+    (clojure.core/conj :strict)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_SYNTHETIC)
+     Opcodes/ACC_SYNTHETIC)
+    (clojure.core/conj :synthetic)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_ANNOTATION)
+     Opcodes/ACC_ANNOTATION)
+    (clojure.core/conj :annotation)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_ENUM)
+     Opcodes/ACC_ENUM)
+    (clojure.core/conj :enum)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_MANDATED)
+     Opcodes/ACC_MANDATED)
+    (clojure.core/conj :mandated)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_MODULE)
+     Opcodes/ACC_MODULE)
+    (clojure.core/conj :module)
+    #_#_(clojure.core/=
+     (clojure.core/bit-and x Opcodes/ACC_DEPRECATED)
+     Opcodes/ACC_DEPRECATED)
+    (clojure.core/conj :deprecated)))
 
 (defn ^:private modifier-keyword->flag []
   (reduce #(assoc %1 %2 (keyword (str/lower-case (.asString ^Modifier$Keyword %2))))
@@ -54,8 +158,7 @@
   [^InputStream class-is]
   (let [class-reader (ClassReader. (input-stream->bytes class-is))
         class-name (str/replace (.getClassName class-reader) "/" ".")
-        result* (atom {class-name {:members []}})
-        opcode->flags (opcode->flags)]
+        result* (atom {class-name {:members []}})]
     (.accept
      class-reader
      (proxy [ClassVisitor] [Opcodes/ASM9]
@@ -182,7 +285,8 @@
               (merge {:class class-name
                       :uri (:uri ctx)
                       :filename (:filename ctx)
-                      :call (:call opts)}
+                      :call (:call opts)
+                      :ctx ctx}
                      loc+data
                      (when method-name
                        {:method-name method-name})

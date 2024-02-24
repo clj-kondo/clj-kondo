@@ -28,6 +28,7 @@
                                    [org.clojure/tools.deps.alpha "0.12.1048"]
                                    [jonase/eastwood "1.4.0"]
                                    [babashka/process "0.5.21"]
+                                   [io.github.borkdude/deflet "0.1.0"]
                                    [borkdude/missing.test.assertions "0.0.2"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.0"]]
