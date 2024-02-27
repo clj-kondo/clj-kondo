@@ -375,7 +375,7 @@ jobs:
           key: v1-dependencies-{{ checksum "deps.edn" }}
   docker:
     docker:
-      - image: cimg/clojure@sha256:8298383d7753a2305663403871c31f238c3c5f0200e13f2394e32d4598a9fdf2
+      - image: cimg/base:current-20.04
     steps:
       - checkout
       - run:
@@ -385,10 +385,10 @@ jobs:
       - attach_workspace:
           at: /tmp
       - setup_remote_docker:
-          version: 20.10.11
+          version: docker24
       - run:
           name: Build Docker image
-          command: .circleci/script/docker
+          command: ls # command: .circleci/script/docker
 
 workflows:
   version: 2
