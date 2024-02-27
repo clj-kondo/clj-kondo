@@ -128,7 +128,7 @@ jobs:
   linux-aarch64:
     machine:
       enabled: true
-      image: ubuntu-2004:current
+      image: ubuntu-2204:current
     resource_class: arm.medium
     working_directory: ~/repo
     environment:
