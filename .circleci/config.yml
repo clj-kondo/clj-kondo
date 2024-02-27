@@ -399,7 +399,6 @@ workflows:
       - linux-aarch64
       - linux-static
       - mac
-      - docker
       - deploy:
           filters:
             branches:
@@ -407,11 +406,11 @@ workflows:
           requires:
             - jvm
             - linux
-      # - docker:
-      #     # filters:
-      #     #   branches:
-      #     #     only: master
-      #     requires:
-      #       - jvm
-      #       - linux
-      #       - linux-static
+      - docker:
+          filters:
+            branches:
+              only: master
+          requires:
+            - jvm
+            - linux
+            - linux-static
