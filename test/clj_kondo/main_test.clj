@@ -3501,7 +3501,9 @@ foo/")))
   (is (empty? (lint! "(ns foo) (System/err)"
                      '{:config-in-ns {foo {:linters {:java-static-field-call {:level :off}}}}})))
   (is (empty? (lint! "(ns foo) (defmacro foo [x] x) (foo (System/err))"
-                     '{:config-in-call {foo/foo {:linters {:java-static-field-call {:level :off}}}}}))))
+                     '{:config-in-call {foo/foo {:linters {:java-static-field-call {:level :off}}}}})))
+  (is (empty? (lint! "(Thread/interrupted)"
+                     '{:linters {:java-static-field-call {:level :error}}}))))
 
 (deftest lint-without-kondo-dir
   (let [user-dir (System/getProperty "user.dir")]
