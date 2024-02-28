@@ -629,9 +629,9 @@
                                         (fn [clazz]
                                           {:members
                                            (-> (group-by :name clazz)
-                                               (utils/update-vals (fn [v]
-                                                                    (let [entry (first v)]
-                                                                      (select-keys entry [:flags])))))}))]
+                                               (utils/update-vals
+                                                (fn [v]
+                                                  (set (map #(select-keys % [:flags]) v)))))}))]
         by-class))))
 
 #_:clj-kondo/ignore

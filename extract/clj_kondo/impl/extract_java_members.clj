@@ -1,8 +1,8 @@
 (ns clj-kondo.impl.extract-java-members
-  (:require [clojure.java.io :as io]
-            [clojure.string :as str]
+  (:require [babashka.fs :as fs]
             [clj-kondo.core :as kondo]
-            [babashka.fs :as fs]))
+            [clojure.java.io :as io]
+            [clojure.string :as str]))
 
 (def classes
   '["clojure.lang.IRef"
@@ -403,6 +403,9 @@
     (fs/create-dirs "resources/clj_kondo/impl/cache/built_in/java")
     (doseq [f (fs/list-dir (fs/file tmp-dir "v1" "java"))]
       (fs/copy f "resources/clj_kondo/impl/cache/built_in/java"))))
+
+(defn exec [_]
+  (classes->files))
 
 (comment
   (classes->files)

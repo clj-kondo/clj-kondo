@@ -1,1 +1,1 @@
-["^ ","~:members",["^ ","serialVersionUID",["^ ","~:flags",["~#set",["~:static","~:field","~:final"]]],"Exception",["^ ","^2",["^3",["~:method","~:public"]]]]]
+["^ ","~:members",["^ ","serialVersionUID",["~#set",[["^ ","~:flags",["^2",["~:static","~:field","~:final"]]]]],"Exception",["^2",[["^ ","^3",["^2",["~:method","~:protected"]]],["^ ","^3",["^2",["^8","~:public"]]]]]]]
