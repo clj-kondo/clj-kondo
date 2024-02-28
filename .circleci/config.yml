@@ -3,6 +3,16 @@
 # Check https://circleci.com/docs/2.0/language-clojure/ for more details
 #
 version: 2.1
+
+commands:
+  setup-docker-buildx:
+    steps:
+    - run:
+        name: Create multi-platform capabale buildx builder
+        command: |-
+          docker run --privileged --rm tonistiigi/binfmt --install all
+          docker buildx create --name ci-builder --use
+
 jobs:
   jvm:
     docker:
@@ -374,21 +384,29 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
   docker:
-    docker:
-      - image: cimg/base:current-20.04
+    machine:
+      image: ubuntu-2004:202111-01
     steps:
-      - checkout
-      - run:
-          name: Get rid of erroneous git config
-          command: |
-              rm -rf /home/circleci/.gitconfig
-      - attach_workspace:
-          at: /tmp
-      - setup_remote_docker:
-          version: docker24
-      - run:
-          name: Build Docker image
-          command: ls # command: .circleci/script/docker
+    - checkout
+    - run:
+        name: Pull Submodules
+        command: |-
+          git submodule init
+          git submodule update
+    - run:
+        name: Install bb
+        command: |-
+          curl -sLO https://raw.githubusercontent.com/babashka/babashka/master/install
+          chmod +x install
+          ./install --dir .
+    - setup-docker-buildx
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Build Docker image
+        environment:
+          PLATFORMS: linux/amd64,linux/arm64
+        command: ./bb .circleci/script/docker.clj
 
 workflows:
   version: 2
@@ -414,3 +432,4 @@ workflows:
             - jvm
             - linux
             - linux-static
+            - linux-aarch64

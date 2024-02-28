@@ -8,7 +8,7 @@ cp clj-kondo /tmp/release
 
 VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
-if [[ "$CLJ_KONDO_PLATFORM" = "linux" ]]; then
+if [[ "$CLJ_KONDO_PLATFORM" = "linux" && "$CLJ_KONDO_ARCH" = "amd64" ]]; then
     jar="target/clj-kondo-$VERSION-standalone.jar"
     bb release-artifact "$jar"
     cp "$jar" /tmp/release
