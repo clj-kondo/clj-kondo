@@ -398,7 +398,7 @@ jobs:
         command: |-
           curl -sLO https://raw.githubusercontent.com/babashka/babashka/master/install
           chmod +x install
-          ./install
+          ./install --dir .
     - setup-docker-buildx
     - attach_workspace:
         at: /tmp
@@ -409,7 +409,7 @@ jobs:
         name: Build Docker image
         environment:
           PLATFORMS: linux/amd64,linux/arm64
-        command: bb .circleci/script/docker.clj
+        command: ./bb .circleci/script/docker.clj
   # docker:
   #   docker:
   #     - image: cimg/base:current-20.04
@@ -451,3 +451,4 @@ workflows:
             - jvm
             - linux
             - linux-static
+            - linux-aarch64
