@@ -110,7 +110,7 @@
     (build-push-ghcr "alpine" "linux/amd64" "Dockerfile.alpine")))
 
 (when (= *file* (System/getProperty "babashka.file"))
-  (if true #_(and (nil? (read-env "CIRCLE_PULL_REQUEST"))
+  (if (and (nil? (read-env "CIRCLE_PULL_REQUEST"))
            (= "master" (read-env "CIRCLE_BRANCH")))
     (do
       (if snapshot?
