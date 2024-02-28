@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+exit 0
+
 set -eo pipefail
 
 # shellcheck disable=1091

@@ -385,7 +385,7 @@ jobs:
           key: v1-dependencies-{{ checksum "deps.edn" }}
   docker:
     machine:
-      image: cimg/base:current-20.04
+      image: ubuntu-2004:202111-01
     steps:
     - checkout
     - run:
