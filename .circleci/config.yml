@@ -374,21 +374,48 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
   docker:
-    docker:
-      - image: cimg/base:current-20.04
+    machine:
+      image: cimg/base:current-20.04
     steps:
-      - checkout
-      - run:
-          name: Get rid of erroneous git config
-          command: |
-              rm -rf /home/circleci/.gitconfig
-      - attach_workspace:
-          at: /tmp
-      - setup_remote_docker:
-          version: docker24
-      - run:
-          name: Build Docker image
-          command: ls # command: .circleci/script/docker
+    - checkout
+    - run:
+        name: Pull Submodules
+        command: |-
+          git submodule init
+          git submodule update
+    - run:
+        name: Install bb
+        command: |-
+          curl -sLO https://raw.githubusercontent.com/babashka/babashka/master/install
+          chmod +x install
+          ./install
+    - setup-docker-buildx
+    - attach_workspace:
+        at: /tmp
+    # - run:
+    #     name: Build uberjar
+    #     command: script/uberjar
+    - run:
+        name: Build Docker image
+        environment:
+          PLATFORMS: linux/amd64,linux/arm64
+        command: bb .circleci/script/docker.clj
+  # docker:
+  #   docker:
+  #     - image: cimg/base:current-20.04
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: Get rid of erroneous git config
+  #         command: |
+  #             rm -rf /home/circleci/.gitconfig
+  #     - attach_workspace:
+  #         at: /tmp
+  #     - setup_remote_docker:
+  #         version: docker24
+  #     - run:
+  #         name: Build Docker image
+  #         command: ls # command: .circleci/script/docker
 
 workflows:
   version: 2
@@ -407,9 +434,9 @@ workflows:
             - jvm
             - linux
       - docker:
-          filters:
-            branches:
-              only: master
+          # filters:
+          #   branches:
+          #     only: master
           requires:
             - jvm
             - linux
