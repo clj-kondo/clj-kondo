@@ -4,7 +4,10 @@ RUN apt-get update \
     && apt-get install -y curl \
     && mkdir -p /usr/local/bin
 
-COPY clj-kondo /usr/local/bin/clj-kondo
+ARG TARGETARCH
+ARG TARGETOS
+
+COPY ${TARGETOS}/${TARGETARCH}/clj-kondo /usr/local/bin/clj-kondo
 
 RUN chmod +x /usr/local/bin/clj-kondo
 
