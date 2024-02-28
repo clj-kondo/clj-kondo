@@ -84,13 +84,13 @@
   (doseq [platform (str/split platforms #",")]
     (let [tarball-platform (str/replace platform #"\/" "-")
           tarball-platform (if (= "linux-arm64" tarball-platform)
-                             "linux-aarch64-static"
+                             "linux-aarch64"
                              tarball-platform)
-          tarball-path     (format "/tmp/release/clj-kondo-%s-%s.tar.gz"
+          tarball-path     (format "/tmp/release/clj-kondo-%s-%s.zip"
                                    image-tag
                                    tarball-platform)]
       (fs/create-dirs platform)
-      (exec ["tar" "zxvf" tarball-path "-C" platform])
+      (exec ["unzip" tarball-path "-d" platform])
       ; this overwrites, but this is to work around having built the uberjar/metabom multiple times
       #_(fs/copy (format "/tmp/release/%s-metabom.jar" tarball-platform) "metabom.jar" {:replace-existing true})))
   (build-push image-tag platforms "Dockerfile.ci")
@@ -102,7 +102,7 @@
 (defn build-push-alpine-images
   "Build alpine image for linux-amd64 only (no upstream arm64 support yet)"
   []
-  (exec ["tar" "zxvf" (str "/tmp/release/clj-kondo-" image-tag "-linux-amd64-static.tar.gz")])
+  (exec ["unzip" (str "/tmp/release/clj-kondo-" image-tag "-linux-static-amd64.zip")])
   (build-push (str image-tag "-alpine") "linux/amd64" "Dockerfile.alpine")
   (build-push-ghcr (str image-tag "-alpine") "linux/amd64" "Dockerfile.alpine")
   (when-not snapshot?
