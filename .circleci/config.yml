@@ -3,6 +3,16 @@
 # Check https://circleci.com/docs/2.0/language-clojure/ for more details
 #
 version: 2.1
+
+commands:
+  setup-docker-buildx:
+    steps:
+    - run:
+        name: Create multi-platform capabale buildx builder
+        command: |-
+          docker run --privileged --rm tonistiigi/binfmt --install all
+          docker buildx create --name ci-builder --use
+
 jobs:
   jvm:
     docker:
