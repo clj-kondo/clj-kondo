@@ -696,19 +696,30 @@
           (let [t (tag constant)
                 list-const? (identical? :list t)
                 dupe-cands (if list-const? (:children constant) [constant])]
+            (when (symbol? (:value constant))
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) constant :case-symbol-test
+                           "Case test symbol is compile time constant and is never evaluated.")))
+            (let [t (:tag constant)]
+              (when (identical? :quote t)
+                (findings/reg-finding!
+                 ctx
+                 (node->line (:filename ctx) constant :case-quoted-test
+                             "Case test is compile time constant and should not be quoted."))))
             (loop [[dupe & more] dupe-cands
                    seen-local seen-constants]
-              (let [t (:tag constant)]
+              (let [t (:tag dupe)]
                 (when (identical? :quote t)
                   (findings/reg-finding!
                    ctx
                    (node->line (:filename ctx) dupe :case-quoted-test
-                               "Case test is compile time constant and should not be quoted.")))
-                (when (symbol? (:value constant))
-                  (findings/reg-finding!
-                   ctx
-                   (node->line (:filename ctx) dupe :case-symbol-test
-                               "Case test symbol is compile time constant and is never evaluated."))))
+                               "Case test is compile time constant and should not be quoted."))))
+              (when (symbol? (:value dupe))
+                (findings/reg-finding!
+                 ctx
+                 (node->line (:filename ctx) dupe :case-symbol-test
+                             "Case test symbol is compile time constant and is never evaluated.")))
               (let [s-dupe (str dupe)]
                 (when (seen-local s-dupe)
                   (findings/reg-finding!
@@ -2931,9 +2942,7 @@
                           (types/add-arg-type-from-call ctx maybe-call expr)
                           (types/add-arg-type-from-expr ctx expr))
                         ret))
-                  (if-let [full-fn-name (let [s (utils/symbol-from-token function)]
-                                          (when-not (one-of s ['. '..])
-                                            s))]
+                  (if-let [full-fn-name (utils/symbol-from-token function)]
                     (let [simple? (simple-symbol? full-fn-name)
                           full-fn-name (if simple?
                                          (namespace/normalize-sym-name ctx full-fn-name)
