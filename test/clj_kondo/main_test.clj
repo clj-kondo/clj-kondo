@@ -705,6 +705,10 @@ foo/foo ;; this does use the private var
     {:file "<stdin>", :row 1, :col 13, :level :warning, :message "Case test symbol is compile time constant and is never evaluated."}]
    (lint! "(case 1 x 1 y 2)" {:linters {:case-symbol-test {:level :warning}}}))
   (assert-submaps
+   '({:file "<stdin>", :row 1, :col 10, :level :warning, :message "Case test symbol is compile time constant and is never evaluated."}
+     {:file "<stdin>", :row 1, :col 12, :level :warning, :message "Case test symbol is compile time constant and is never evaluated."})
+   (lint! "(case 1 (x y) 2)" {:linters {:case-symbol-test {:level :warning}}}))
+  (assert-submaps
    []
    (lint! "#_{:clj-kondo/ignore [:case-symbol-test]}
            (case 1 x 1 y 2)" {:linters {:case-symbol-test {:level :warning}}})))
