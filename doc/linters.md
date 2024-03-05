@@ -79,6 +79,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Single key in](#single-key-in)
     - [Single logical operand](#single-logical-operand)
     - [Single operand comparison](#single-operand-comparison)
+    - [Shadowed fn param](#shadowed-fn-param)
     - [Shadowed var](#shadowed-var)
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
@@ -102,6 +103,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused referred var](#unused-referred-var)
     - [Use](#use)
     - [Warn on reflection](#warn-on-reflection)
+- [Underscore in namespace](#underscore-in-namespace)
 
 <!-- markdown-toc end -->
 
