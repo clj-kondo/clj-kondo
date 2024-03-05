@@ -171,7 +171,8 @@
                               :exclude-defmulti-args))
                      (identical? :off (:level unused-binding-cfg)))))
            ctx (cond-> ctx
-                 mark-used? (assoc :mark-bindings-used? mark-used?))]
+                 mark-used? (assoc :mark-bindings-used? mark-used?))
+           only-arity-analysis (:skip-reg-binding? ctx)]
        (case t
          :token
          (cond
@@ -180,6 +181,15 @@
            (let [sym (:value expr)]
              (when (= (:destructuring-type opts) :keys)
                (usages/analyze-keyword ctx expr opts))
+             (when-not only-arity-analysis
+               (when-let [fn-dupes (:fn-dupes ctx)]
+                 (when (and (contains? @fn-dupes sym)
+                            (not= '_ sym)
+                            (not= '& sym))
+                   (findings/reg-finding! ctx (assoc (meta expr) :type :shadowed-fn-param
+                                                     :filename (:filename ctx)
+                                                     :message (str "Shadowed fn param: " sym))))
+                 (swap! fn-dupes conj sym)))
              (when (not= '& sym)
                (let [ns (namespace sym)
                      valid? (or (not ns)
@@ -393,7 +403,8 @@
                                            body
                                            :syntax
                                            "Function arguments should be wrapped in vector."))
-        (let [arg-bindings (extract-bindings ctx arg-vec body {:fn-args? true})
+        (let [fn-dupes (atom #{}) ;; used to detect duplicate fn arg names
+              arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body {:fn-args? true})
               {return-tag :tag
                arg-tags :tags} (meta arg-bindings)
               arity (analyze-arity ctx arg-vec)

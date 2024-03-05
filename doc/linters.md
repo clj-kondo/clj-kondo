@@ -1368,6 +1368,18 @@ Example warning: `require with :refer`.
 
 *Example message:* `Single operand use of clojure.core/< is always true.`
 
+### Shadowed fn param
+
+*Keyword:* `:shadowed-fn-param`
+
+*Description:* warn on fn param that has same name as previously defined one (in the same fn expression)
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(fn [x x])`.
+
+*Example message:* `Shadowed fn param: x`
+
 ### Shadowed var
 
 *Keyword:* `:shadowed-var`.
