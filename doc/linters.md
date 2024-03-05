@@ -81,6 +81,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Single operand comparison](#single-operand-comparison)
     - [Shadowed fn param](#shadowed-fn-param)
     - [Shadowed var](#shadowed-var)
+    - [Static field call](#static-field-call)
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
@@ -1413,6 +1414,18 @@ to warn only for specific names.
 To avoid shadowing core vars you can also use `:refer-clojure` + `:exclude` in
 the `ns` form.
 
+### Static field call
+
+*Keyword:* `:java-static-field-call`.
+
+*Description:* warn when invoking a static field on a Java object.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(clojure.lang.PersistentQueue/EMPTY)`
+
+*Example message*: `Static fields should be referenced without parens unless they are intended as function calls`
+
 ### Syntax
 
 *Keyword:* `:syntax`.
@@ -1421,9 +1434,9 @@ the `ns` form.
 
 *Default level:* `:warning`.
 
-*Example trigger:* `[)`.
+*Example trigger:* `[)`
 
-Example messages:
+*Example messages*:
 
 ```
 Mismatched bracket: found an opening [ and a closing ) on line 1
