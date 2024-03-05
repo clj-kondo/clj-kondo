@@ -47,6 +47,7 @@
                                :exclude-destructured-keys-in-fn-args false
                                :exclude-destructured-as false
                                :exclude-defmulti-args false}
+              :shadowed-fn-param-name {:level :warning}
               :unsorted-required-namespaces {:level :off}
               :unsorted-imports {:level :off}
               :unused-namespace {:level :warning

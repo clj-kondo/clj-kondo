@@ -79,6 +79,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Single key in](#single-key-in)
     - [Single logical operand](#single-logical-operand)
     - [Single operand comparison](#single-operand-comparison)
+    - [Shadowed fn param](#shadowed-fn-param)
     - [Shadowed var](#shadowed-var)
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
@@ -102,6 +103,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused referred var](#unused-referred-var)
     - [Use](#use)
     - [Warn on reflection](#warn-on-reflection)
+- [Underscore in namespace](#underscore-in-namespace)
 
 <!-- markdown-toc end -->
 
@@ -1367,6 +1369,18 @@ Example warning: `require with :refer`.
 *Example trigger:* `(< 1)`.
 
 *Example message:* `Single operand use of clojure.core/< is always true.`
+
+### Shadowed fn param
+
+*Keyword:* `:shadowed-fn-param`
+
+*Description:* warn on fn param that has same name as previously defined one (in the same fn expression)
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(fn [x x])`.
+
+*Example message:* `Shadowed fn param: x`
 
 ### Shadowed var
 

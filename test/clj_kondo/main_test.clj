@@ -3521,6 +3521,15 @@ foo/")))
                                    {:linters {:unresolved-symbol {:level :error}}}}))))
     (System/setProperty "user.dir" user-dir)))
 
+(deftest shadowed-fn-param
+  (is (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 8, :level :warning, :message "Shadowed fn param: x"})
+       (lint! "(fn [x x] x)" {:linters {:shadowed-fn-param {:level :warning}}})))
+  (is (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Shadowed fn param: x"})
+       (lint! "(defn foo [x x] x)" {:linters {:shadowed-fn-param {:level :warning}}})))
+  (is (empty? (lint! "(fn [x #_:clj-kondo/ignore x] x)" {:linters {:shadowed-fn-param {:level :warning}}}))))
+
 ;;;; Scratch
 
 (comment
