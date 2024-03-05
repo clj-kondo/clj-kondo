@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+...
+
 ## 2024.03.05
 
 - [#1732](https://github.com/clj-kondo/clj-kondo/issues/1732): new linter: `:shadow-fn-param` which warns on using the same parameter name twice, as in `(fn [x x])`
