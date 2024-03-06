@@ -1664,7 +1664,7 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "unsupported binding form (x)"})
    (lint! "(let [(x) 1])"))
-  (is (empty? (lint! "(fn [[x y z] :as x])")))
+  (is (empty? (lint! "(fn [[x y z] :as x])" {:linters {:shadowed-fn-param {:level :off}}})))
   (is (empty? (lint! "(fn [[x y z & xs]])")))
   (is (empty? (lint! "(let [^String x \"foo\"])"))))
 
