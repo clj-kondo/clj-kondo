@@ -839,15 +839,20 @@
             :when (:call usage)]
       (let [method (:method-name usage)
             clazz (:class usage)
-            ctx (or (:ctx usage) ctx)]
+            config (:config usage)
+            filename (:filename usage)
+            lang (:lang usage)
+            ctx (cond-> ctx
+                  config (assoc :config config)
+                  filename (assoc :filename filename)
+                  lang (assoc :lang lang))]
         (when-let [info (get jm clazz)]
-          ;; (prn :info info)
           (when-let [meth-info (get (:members info) method)]
             (when (and (:call usage)
                        (every? #(contains? (:flags %) :field) meth-info))
               (findings/reg-finding!
                ctx
-               (assoc (dissoc usage :ctx)
+               (assoc (dissoc usage :config)
                       :type :java-static-field-call
                       :message "Static fields should be referenced without parens unless they are intended as function calls")))))))))
 

@@ -286,7 +286,8 @@
                       :uri (:uri ctx)
                       :filename (:filename ctx)
                       :call (:call opts)
-                      :ctx ctx}
+                      :config (:config ctx)
+                      :lang (:lang ctx)}
                      loc+data
                      (when method-name
                        {:method-name method-name})

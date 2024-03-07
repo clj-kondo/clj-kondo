@@ -210,7 +210,7 @@
           ;;_ (prn (some-> analysis deref :java-class-usages))
           ;; _ (prn :used-nss @used-nss)
           _ (when analyze-java-class-usages?
-              (swap! analysis assoc :java-class-usages (mapv #(dissoc % :ctx) @java-class-usages)))
+              (swap! analysis assoc :java-class-usages (mapv #(dissoc % :config) @java-class-usages)))
           idacs (when (or dependencies (not skip-lint) analysis)
                   (-> (core-impl/index-defs-and-calls ctx)
                       (overrides)
