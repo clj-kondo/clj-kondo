@@ -574,8 +574,7 @@
         analyzed-require-clauses
         (analyze-require-clauses ctx ns-name kw+libspecs)
         imports-raw (for [?import-clause clauses
-                          :let [import-kw (some-> ?import-clause :children first :k
-                                                  (= :import))]
+                          :let [import-kw (= :import (some-> ?import-clause :children first :k))]
                           :when import-kw
                           libspec-expr (rest (:children ?import-clause))]
                       libspec-expr)
@@ -603,7 +602,7 @@
                                               :name original-name}])
                                  (:renamed refer-clojure-clauses)))
                    :clojure-excluded (:excluded refer-clojure-clauses)}
-        gen-class? (some #(some-> % :children first :k (= :gen-class)) clauses)
+        gen-class? (some #(= :gen-class (some-> % :children first :k)) clauses)
         ns (cond->
             (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
                           :imports imports

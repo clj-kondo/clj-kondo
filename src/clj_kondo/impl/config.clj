@@ -161,7 +161,9 @@
               :condition-always-true {:level :off}
               :underscore-in-namespace {:level :warning}
               :multiple-async-in-deftest {:level :warning}
-              :java-static-field-call {:level :error}}
+              :java-static-field-call {:level :error}
+              :equals-expected-position {:level :off
+                                         :position :first}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

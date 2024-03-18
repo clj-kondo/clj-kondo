@@ -32,12 +32,12 @@
         jar (-> (deps/resolve-deps deps nil)
                 (get-in ['org.clojure/clojure :paths 0]))
         {:keys [java-class-definitions java-class-usages java-member-definitions]} (analyze [jar])
-        rt-def (some #(when (= (:class %) "clojure.lang.RT")
+        rt-def (some #(when (= "clojure.lang.RT" (:class %))
                         %) java-class-definitions)
-        rt-usage (some #(when (= (:class %) "clojure.lang.RT")
+        rt-usage (some #(when (= "clojure.lang.RT" (:class %))
                           %) java-class-usages)
-        keys-rt-member-def (some #(when (and (= (:class %) "clojure.lang.RT")
-                                             (= (:name %) "keys"))
+        keys-rt-member-def (some #(when (and (= "clojure.lang.RT" (:class %) )
+                                             (= "keys" (:name %)))
                                     %) java-member-definitions)]
 
     (assert-submap2
@@ -254,7 +254,7 @@
                  (get-in ['com.google.cloud/google-cloud-vision :paths 0])))
 
     (def ana (analyze [jar]))
-    (def create-meth (some #(when (and (= (:class %) "com.google.cloud.vision.v1.ImageAnnotatorClient")
+    (def create-meth (some #(when (and (= "com.google.cloud.vision.v1.ImageAnnotatorClient" (:class %) )
                                        (= "create" (:name %)))
                          %) (:java-member-definitions ana)))
     (assert-submaps2

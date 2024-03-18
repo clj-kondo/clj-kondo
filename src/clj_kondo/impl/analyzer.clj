@@ -179,7 +179,7 @@
            ;; symbol
            (utils/symbol-token? expr)
            (let [sym (:value expr)]
-             (when (= (:destructuring-type opts) :keys)
+             (when (= :keys (:destructuring-type opts))
                (usages/analyze-keyword ctx expr opts))
              (when-not only-arity-analysis
                (when-let [fn-dupes (:fn-dupes ctx)]
@@ -2094,6 +2094,21 @@
                                           :type :equals-true
                                           :message "Prefer (true? x) over (= true x)"
                                           :filename (:filename ctx))))
+      (let [cfg (-> ctx :config :linters :equals-expected-position)
+            level (:level cfg)
+            pos (-> cfg :position)]
+        (when-not (identical? :off level)
+          (when (or
+                 (and (identical? :first pos)
+                      (utils/constant? rhs)
+                      (not (utils/constant? lhs)))
+                 (and (identical? :last pos)
+                      (utils/constant? lhs)
+                      (not (utils/constant? rhs))))
+            (findings/reg-finding! ctx (assoc (meta expr)
+                                              :type :equals-expected-position
+                                              :message (str "Write expected value " (name pos))
+                                              :filename (:filename ctx))))))
       (when (or (false? (:value lhs))
                 (false? (:value rhs)))
         (findings/reg-finding! ctx (assoc (meta expr)
@@ -3229,9 +3244,9 @@
                   "deps.edn" (deps-edn/lint-deps-edn ctx (first (:children parsed)))
                   "bb.edn" (deps-edn/lint-bb-edn ctx (first (:children parsed)))
                   "config.edn" (when (and (fs/exists? filename)
-                                          (-> (fs/parent filename)
-                                              (fs/file-name)
-                                              (= ".clj-kondo")))
+                                          (= ".clj-kondo"
+                                             (-> (fs/parent filename)
+                                                 (fs/file-name))))
                                  (lint-config/lint-config ctx (first (:children parsed))))
                   nil))
               (when-let [cfg-dir (-> ctx :config :cfg-dir)]

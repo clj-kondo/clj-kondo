@@ -28,7 +28,7 @@
      :schemas schemas}))
 
 (defn- defmethod-dispatch-val? [fn-sym index]
-  (and (= fn-sym 'defmethod) (= index 2)))
+  (and (= 'defmethod fn-sym) (= 2 index)))
 
 (defn expand-schema
   [_ctx fn-sym expr]

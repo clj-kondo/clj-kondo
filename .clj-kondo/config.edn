@@ -25,7 +25,8 @@
            ;; for  nubank/matcher-combinators
            :unresolved-symbol {:exclude [(clojure.test/is [match?])]}
            :def-fn {:level :warning}
-           :self-requiring-namespace {:level :warning}}
+           :self-requiring-namespace {:level :warning}
+           :equals-expected-position {:level :warning}}
  :lint-as {me.raynes.conch/programs clojure.core/declare
            me.raynes.conch/let-programs clojure.core/let
            datalog.parser.type/deftrecord clojure.core/defrecord

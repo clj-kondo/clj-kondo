@@ -153,8 +153,8 @@
 
 (hook [] (inc 1) 1 \"\n\")"
                                  {:hooks {:__dangerously-allow-string-hooks__ true}}))]
-      (is (= (read-string s)
-             [:token :vector :list :token :multi-line])))))
+      (is (= [:token :vector :list :token :multi-line]
+             (read-string s))))))
 
 (deftest config-test
   (when-not native?
@@ -169,7 +169,7 @@
                                  {:hooks {:__dangerously-allow-string-hooks__ true}
                                   :linters ^:replace {:custom-linter-configuration {:a 1 :b 2}}}))
           s (str/replace s "\r\n" "\n")]
-      (is (= s "{:a 1, :b 2}\n")))
+      (is (= "{:a 1, :b 2}\n" s)))
     (let [s (with-out-str (lint! "
 (ns bar
   {:clj-kondo/config
@@ -183,7 +183,7 @@
                                  "--lang" "cljc"))
           ;; Windows...
           s (str/replace s "\r\n" "\n")]
-      (is (= s "{:a 1, :b 2}\n{:a 1, :b 2}\n")))))
+      (is (= "{:a 1, :b 2}\n{:a 1, :b 2}\n" s)))))
 
 (deftest custom-lint-warning-ignore-test
   (when-not native?

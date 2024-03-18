@@ -20,13 +20,9 @@
                            :lint-as {'b 'y}})))))
 
 (deftest merge-set-and-vecs-test
-  (-> (merge-config! '{:linters {:unresolved-namespace {:exclude #{foo bar}}}}
-                     '{:linters {:unresolved-namespace {:exclude [baz]}}})
-      :linters :unresolved-namespace :exclude
-      (= '#{foo bar baz})
-      is)
-  (-> (merge-config! '{:linters {:unresolved-namespace {:exclude [foo bar]}}}
-                     '{:linters {:unresolved-namespace {:exclude #{baz}}}})
-      :linters :unresolved-namespace :exclude
-      (= '[foo bar baz])
-      is))
+  (is (= '#{foo bar baz} (-> (merge-config! '{:linters {:unresolved-namespace {:exclude #{foo bar}}}}
+                                            '{:linters {:unresolved-namespace {:exclude [baz]}}})
+                             :linters :unresolved-namespace :exclude)))
+  (is (= '[foo bar baz](-> (merge-config! '{:linters {:unresolved-namespace {:exclude [foo bar]}}}
+                                          '{:linters {:unresolved-namespace {:exclude #{baz}}}})
+                           :linters :unresolved-namespace :exclude))))

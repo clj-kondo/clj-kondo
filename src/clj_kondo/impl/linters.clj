@@ -108,7 +108,7 @@
     (when-not (identical? :off level)
       (let [children (:children expr)
             args (rest children)]
-        (when (= (count args) 2)
+        (when (= 2 (count args))
           (findings/reg-finding! ctx
                                  (node->line (:filename ctx) expr :missing-else-branch
                                              (format "Missing else branch."))))))))
@@ -146,7 +146,7 @@
       (lint-missing-else-branch ctx (:expr call)))
     (when (contains? var-info/unused-values
                      (symbol (let [cns (str called-ns)]
-                               (if (= cns "cljs.core") "clojure.core" cns))
+                               (if (= "cljs.core" cns) "clojure.core" cns))
                              (str called-name)))
       (lint-missing-test-assertion ctx call))))
 
@@ -496,7 +496,7 @@
       (when call?
         (when-let [idx (:idx call)]
           (let [normalized-sym (symbol (let [cns (str (:ns called-fn))]
-                                         (if (= cns "cljs.core") "clojure.core" cns))
+                                         (if (= "cljs.core" cns) "clojure.core" cns))
                                        (str (:name called-fn)))]
             (when (contains? var-info/unused-values normalized-sym)
               (let [unused-value-conf (-> config :linters :unused-value)]

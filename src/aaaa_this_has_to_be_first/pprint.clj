@@ -31,7 +31,7 @@
   (let [options (merge {:stream true} (apply hash-map kw-args))]
     (with-bindings (new-table-ize pprint/write-option-table options)
       (with-bindings
-        (if (or (not (= pprint/*print-base* 10)) pprint/*print-radix*)
+        (if (or (not (= 10 pprint/*print-base*)) pprint/*print-radix*)
           {#'pr @#'pprint/pr-with-base} {})
         (let [optval (if (contains? options :stream)
                        (:stream options)
