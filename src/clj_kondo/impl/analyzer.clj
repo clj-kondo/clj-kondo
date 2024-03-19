@@ -2098,16 +2098,21 @@
             res (analyze-children ctx children false)]
         (let [cfg (-> ctx :config :linters :equals-expected-position)
               level (:level cfg)
-              pos (-> cfg :position)]
+              pos (-> cfg :position)
+              only-in-test-assertion (-> cfg :only-in-test-assertion)]
           (when-let [expr (when-not (identical? :off level)
                             (or
                              (and (identical? :first pos)
                                   (utils/constant? rhs)
                                   (not (utils/constant? lhs))
+                                  (or (not only-in-test-assertion)
+                                      (one-of (second (:callstack ctx)) [[cljs.test is] [clojure.test is]]))
                                   rhs)
                              (and (identical? :last pos)
                                   (utils/constant? lhs)
                                   (not (utils/constant? rhs))
+                                  (or (not only-in-test-assertion)
+                                      (one-of (second (:callstack ctx)) [[cljs.test is] [clojure.test is]]))
                                   lhs)))]
             (findings/reg-finding! ctx (assoc (meta expr)
                                               :type :equals-expected-position

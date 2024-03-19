@@ -3535,7 +3535,13 @@ foo/")))
    '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Write expected value first"})
    (lint! "(= (+ 1 2 3) 6)" {:linters {:equals-expected-position {:level :warning}}}))
   (is (empty? (lint! "(= 6 (+ 1 2 3))" {:linters {:equals-expected-position {:level :warning}}})))
-  (is (empty? (lint! "(= (+ 1 2 3) #_:clj-kondo/ignore 6)" {:linters {:equals-expected-position {:level :warning}}}))))
+  (is (empty? (lint! "(= 6 (+ 1 2 3))" {:linters {:equals-expected-position {:level :warning}}})))
+  (assert-submaps2
+   '({:file "<stdin>", :row 2, :col 40, :level :warning, :message "Write expected value first"})
+   (lint! "(require '[clojure.test :refer [is]])
+                      (is (= (+ 1 2 3) 6))
+                      (= (+ 1 2 3) 6)" {:linters {:equals-expected-position {:only-in-test-assertion true
+                                                                             :level :warning}}})))
 
 ;;;; Scratch
 
