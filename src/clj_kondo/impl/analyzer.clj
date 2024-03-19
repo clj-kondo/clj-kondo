@@ -2094,28 +2094,32 @@
                                           :type :equals-true
                                           :message "Prefer (true? x) over (= true x)"
                                           :filename (:filename ctx))))
-      (let [cfg (-> ctx :config :linters :equals-expected-position)
-            level (:level cfg)
-            pos (-> cfg :position)]
-        (when-not (identical? :off level)
-          (when (or
-                 (and (identical? :first pos)
-                      (utils/constant? rhs)
-                      (not (utils/constant? lhs)))
-                 (and (identical? :last pos)
-                      (utils/constant? lhs)
-                      (not (utils/constant? rhs))))
+      (let [;; need to analyze children, to pick up on ignores in arguments
+            res (analyze-children ctx children false)]
+        (let [cfg (-> ctx :config :linters :equals-expected-position)
+              level (:level cfg)
+              pos (-> cfg :position)]
+          (when-let [expr (when-not (identical? :off level)
+                            (or
+                             (and (identical? :first pos)
+                                  (utils/constant? rhs)
+                                  (not (utils/constant? lhs))
+                                  rhs)
+                             (and (identical? :last pos)
+                                  (utils/constant? lhs)
+                                  (not (utils/constant? rhs))
+                                  lhs)))]
             (findings/reg-finding! ctx (assoc (meta expr)
                                               :type :equals-expected-position
                                               :message (str "Write expected value " (name pos))
-                                              :filename (:filename ctx))))))
-      (when (or (false? (:value lhs))
-                (false? (:value rhs)))
-        (findings/reg-finding! ctx (assoc (meta expr)
-                                          :type :equals-false
-                                          :message "Prefer (false? x) over (= false x)"
-                                          :filename (:filename ctx)))))
-    (analyze-children ctx children false)))
+                                              :filename (:filename ctx))))
+          (when (or (false? (:value lhs))
+                    (false? (:value rhs)))
+            (findings/reg-finding! ctx (assoc (meta expr)
+                                              :type :equals-false
+                                              :message "Prefer (false? x) over (= false x)"
+                                              :filename (:filename ctx)))))
+        res))))
 
 (defn- analyze-+- [ctx sym expr]
   (let [plus? (= '+ sym)

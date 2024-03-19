@@ -3495,7 +3495,7 @@ foo/")))
             :filename (str (io/file "corpus" "exclude-files-stdin" "foo.clj"))
             :config-dir (str (io/file "corpus" "exclude-files-stdin" ".clj-kondo"))}))))))
 
-(deftest lint-java-static-field-call
+(deftest lint-java-static-field-call-test
   (is (assert-submaps2
        '({:file "corpus/static_field_call.clj", :row 4, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
          {:file "corpus/static_field_call.clj", :row 7, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
@@ -3509,7 +3509,7 @@ foo/")))
   (is (empty? (lint! "(Thread/interrupted)"
                      '{:linters {:java-static-field-call {:level :error}}}))))
 
-(deftest lint-without-kondo-dir
+(deftest lint-without-kondo-dir-test
   (let [user-dir (System/getProperty "user.dir")]
     (fs/with-temp-dir [dir {}]
       (System/setProperty "user.dir" (str dir))
@@ -3521,7 +3521,7 @@ foo/")))
                                    {:linters {:unresolved-symbol {:level :error}}}}))))
     (System/setProperty "user.dir" user-dir)))
 
-(deftest shadowed-fn-param
+(deftest shadowed-fn-param-test
   (is (assert-submaps2
        '({:file "<stdin>", :row 1, :col 8, :level :warning, :message "Shadowed fn param: x"})
        (lint! "(fn [x x] x)" {:linters {:shadowed-fn-param {:level :warning}}})))
@@ -3529,6 +3529,13 @@ foo/")))
        '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Shadowed fn param: x"})
        (lint! "(defn foo [x x] x)" {:linters {:shadowed-fn-param {:level :warning}}})))
   (is (empty? (lint! "(fn [x #_:clj-kondo/ignore x] x)" {:linters {:shadowed-fn-param {:level :warning}}}))))
+
+(deftest equals-expected-order-test
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Write expected value first"})
+   (lint! "(= (+ 1 2 3) 6)" {:linters {:equals-expected-position {:level :warning}}}))
+  (is (empty? (lint! "(= 6 (+ 1 2 3))" {:linters {:equals-expected-position {:level :warning}}})))
+  (is (empty? (lint! "(= (+ 1 2 3) #_:clj-kondo/ignore 6)" {:linters {:equals-expected-position {:level :warning}}}))))
 
 ;;;; Scratch
 
