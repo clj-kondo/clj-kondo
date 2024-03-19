@@ -2086,7 +2086,9 @@
                     children))
 
 (defn- analyze-= [ctx expr]
-  (let [[lhs rhs :as children] (rest (:children expr))]
+  (let [[lhs rhs :as children] (rest (:children expr))
+        ;; need to analyze children, to pick up on ignores in arguments
+        res (analyze-children ctx children false)]
     (when (= 2 (count children))
       (when (or (true? (:value lhs))
                 (true? (:value rhs)))
@@ -2094,37 +2096,35 @@
                                           :type :equals-true
                                           :message "Prefer (true? x) over (= true x)"
                                           :filename (:filename ctx))))
-      (let [;; need to analyze children, to pick up on ignores in arguments
-            res (analyze-children ctx children false)]
-        (let [cfg (-> ctx :config :linters :equals-expected-position)
-              level (:level cfg)
-              pos (-> cfg :position)
-              only-in-test-assertion (-> cfg :only-in-test-assertion)]
-          (when-let [expr (when-not (identical? :off level)
-                            (or
-                             (and (identical? :first pos)
-                                  (utils/constant? rhs)
-                                  (not (utils/constant? lhs))
-                                  (or (not only-in-test-assertion)
-                                      (one-of (second (:callstack ctx)) [[cljs.test is] [clojure.test is]]))
-                                  rhs)
-                             (and (identical? :last pos)
-                                  (utils/constant? lhs)
-                                  (not (utils/constant? rhs))
-                                  (or (not only-in-test-assertion)
-                                      (one-of (second (:callstack ctx)) [[cljs.test is] [clojure.test is]]))
-                                  lhs)))]
-            (findings/reg-finding! ctx (assoc (meta expr)
-                                              :type :equals-expected-position
-                                              :message (str "Write expected value " (name pos))
-                                              :filename (:filename ctx))))
-          (when (or (false? (:value lhs))
-                    (false? (:value rhs)))
-            (findings/reg-finding! ctx (assoc (meta expr)
-                                              :type :equals-false
-                                              :message "Prefer (false? x) over (= false x)"
-                                              :filename (:filename ctx)))))
-        res))))
+      (let [cfg (-> ctx :config :linters :equals-expected-position)
+            level (:level cfg)
+            pos (-> cfg :position)
+            only-in-test-assertion (-> cfg :only-in-test-assertion)]
+        (when-let [expr (when-not (identical? :off level)
+                          (or
+                           (and (identical? :first pos)
+                                (utils/constant? rhs)
+                                (not (utils/constant? lhs))
+                                (or (not only-in-test-assertion)
+                                    (one-of (second (:callstack ctx)) [[cljs.test is] [clojure.test is]]))
+                                rhs)
+                           (and (identical? :last pos)
+                                (utils/constant? lhs)
+                                (not (utils/constant? rhs))
+                                (or (not only-in-test-assertion)
+                                    (one-of (second (:callstack ctx)) [[cljs.test is] [clojure.test is]]))
+                                lhs)))]
+          (findings/reg-finding! ctx (assoc (meta expr)
+                                            :type :equals-expected-position
+                                            :message (str "Write expected value " (name pos))
+                                            :filename (:filename ctx))))
+        (when (or (false? (:value lhs))
+                  (false? (:value rhs)))
+          (findings/reg-finding! ctx (assoc (meta expr)
+                                            :type :equals-false
+                                            :message "Prefer (false? x) over (= false x)"
+                                            :filename (:filename ctx))))))
+    res))
 
 (defn- analyze-+- [ctx sym expr]
   (let [plus? (= '+ sym)
