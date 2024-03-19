@@ -708,53 +708,53 @@
 (deftest scope-usage-test
   (testing "when the var-usage is called as function"
     (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (foo 2)" {:config {:analysis true}})]
-      (is (some #(= % '{:fixed-arities #{1}
-                        :name-end-col 22
-                        :name-end-row 1
-                        :name-row 1
-                        :name-col 19
-                        :name foo
-                        :filename "<stdin>"
-                        :from user
-                        :arity 1
-                        :row 1
-                        :col 18
-                        :end-row 1
-                        :end-col 25
-                        :to user})
+      (is (some #(= '{:fixed-arities #{1}
+                      :name-end-col 22
+                      :name-end-row 1
+                      :name-row 1
+                      :name-col 19
+                      :name foo
+                      :filename "<stdin>"
+                      :from user
+                      :arity 1
+                      :row 1
+                      :col 18
+                      :end-row 1
+                      :end-col 25
+                      :to user} % )
                 var-usages))))
   (testing "when the var-usage is not called as function"
     (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) foo" {:config {:analysis true}})]
-      (is (some #(= % '{:fixed-arities #{1}
-                        :name-end-col 21
-                        :name-end-row 1
-                        :name-row 1
-                        :name-col 18
-                        :name foo
-                        :filename "<stdin>"
-                        :from user
-                        :row 1
-                        :col 18
-                        :end-row 1
-                        :end-col 21
-                        :to user})
+      (is (some #(= '{:fixed-arities #{1}
+                      :name-end-col 21
+                      :name-end-row 1
+                      :name-row 1
+                      :name-col 18
+                      :name foo
+                      :filename "<stdin>"
+                      :from user
+                      :row 1
+                      :col 18
+                      :end-row 1
+                      :end-col 21
+                      :to user} %)
                 var-usages))))
   #_(testing "when the var-usage call is unknown"
-    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:analysis true}})]
-      (is (some #(= % '{:name-end-row 1
-                        :name-end-col 22
-                        :name-row 1
-                        :name-col 19
-                        :name bar
-                        :filename "<stdin>"
-                        :from user
-                        :arity 1
-                        :row 1
-                        :col 18
-                        :end-row 1
-                        :end-col 25
-                        :to :clj-kondo/unknown-namespace})
-                var-usages)))))
+      (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:analysis true}})]
+        (is (some #(= % '{:name-end-row 1
+                          :name-end-col 22
+                          :name-row 1
+                          :name-col 19
+                          :name bar
+                          :filename "<stdin>"
+                          :from user
+                          :arity 1
+                          :row 1
+                          :col 18
+                          :end-row 1
+                          :end-col 25
+                          :to :clj-kondo/unknown-namespace})
+                  var-usages)))))
 
 (deftest analysis-test
   (let [{:keys [:var-definitions
@@ -1420,7 +1420,7 @@
                       (= 'foo (:from-var usage)))) var-usages))))
 
 (defn- ana-vars-meta [s cfg]
- (-> (with-in-str s
+  (-> (with-in-str s
         (clj-kondo/run! {:lint ["-"] :config
                          {:analysis
                           {:var-definitions

@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## 2024.03.19
+
+- [#2302](https://github.com/clj-kondo/clj-kondo/issues/2302): New linter: `:equals-expected-position` to enforce expected value to be in first (or last) position. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md).
+
 ## 2024.03.13
 
 - Fix memory usage regression introduced in 2024.03.05

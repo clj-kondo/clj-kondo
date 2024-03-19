@@ -52,7 +52,7 @@
                              (let [resolved-tag (-> arg-type :val (get kw-call) :tag)]
                                (cond
                                  (and rest-kw-calls
-                                      (= (:type resolved-tag) :map))
+                                      (= :map (:type resolved-tag)))
                                  (resolve-arg-type idacs
                                                    (assoc resolved-tag :kw-calls rest-kw-calls)
                                                    seen-calls)
@@ -85,7 +85,7 @@
                                            resolved-tag (-> resolved-arg-type :val (get kw-call) :tag)]
                                        (cond
                                          (and rest-kw-calls
-                                              (= (:type resolved-tag) :map))
+                                              (= :map (:type resolved-tag)))
                                          (resolve-arg-type idacs
                                                            (assoc resolved-tag :kw-calls rest-kw-calls)
                                                            seen-calls)

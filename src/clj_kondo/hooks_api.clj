@@ -115,7 +115,7 @@
   Unifies the format of cached information provided for each source
   language."
   [lang ns-sym]
-  (if (= lang :cljc)
+  (if (= :cljc lang)
     (->> (dissoc
           (cache/from-cache-1 (:cache-dir utils/*ctx*) :cljc ns-sym)
           :filename

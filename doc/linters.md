@@ -754,6 +754,31 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `Case test is compile time constant and should not be quoted.`
 
+### Equals expected position
+
+*Keyword:* `:equals-expected-position`
+
+*Description:* warn on usage of `=` with the expected value, a constant, that is not in the expected (first by default) position
+
+*Default level:* `:off`
+
+*Example trigger:* `(= (+ 1 2 3) 6)`
+
+*Example message:* `Write expected value first`
+
+*Config:*
+
+The default configuration for this linter is:
+
+``` clojure
+{:linters {:equals-expected-position {:level :off
+                                      :position :first
+                                      :only-in-test-assertion false}}}
+```
+
+Possible values for `:position` are `:first` and `:last`
+The `:only-in-test-assertion` boolean activates the linter only in a test assertion context, e.g. `(clojure.test/is (= (+ 1 2 3) 1))`
+
 ### Equals false
 
 *Keyword:* `:equals-false`
