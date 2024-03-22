@@ -445,7 +445,8 @@
           meta-arglists-node->strs))
 
 (defn analyze-pre-post-map [ctx expr]
-  (let [children (:children expr)]
+  (let [ctx (update ctx :callstack conj [nil :pre-post])
+        children (:children expr)]
     (key-linter/lint-map-keys ctx expr)
     (mapcat (fn [[key-expr value-expr]]
               (let [analyzed-key (analyze-expression** ctx key-expr)
@@ -474,7 +475,6 @@
                        (when (and first-child
                                   (identical? :map (tag first-child)))
                          first-child))
-        ctx (if pre-post-map (update ctx :callstack conj [nil :pre-post]) ctx)
         analyze-pre-post (when pre-post-map
                            (analyze-pre-post-map ctx first-child))
         children (if pre-post-map (next children) children)
@@ -497,7 +497,8 @@
                                                    "Misplaced docstring."))))
         ctx (-> ctx
                 (assoc :fn-args (:children arg-vec))
-                (assoc :body-children-count (count children)))
+                (assoc :body-children-count (count children))
+                (assoc :pre-post-map (some? pre-post-map)))
         children (if (:analyze-var-defs-shallowly? ctx)
                    []
                    children)
@@ -1298,6 +1299,7 @@
 (defn redundant-fn-wrapper [ctx callstack children interop?]
   (when-let [fn-args (:fn-args ctx)]
     (when (and
+           (not (:pre-post-map ctx))
            (not (identical? :off (-> ctx :config :linters :redundant-fn-wrapper :level)))
            (not (:extend-type ctx))
            (not interop?)
