@@ -96,7 +96,7 @@
                (node->line (:filename ctx)
                            node
                            :deps.edn
-                           (str "Non-determistic version."))))
+                           (str "Non-deterministic version."))))
             true)
           (when (:git/url form)
             (when (and sha (:git/sha form) (:sha form))
