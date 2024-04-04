@@ -10,6 +10,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
+   [clj-kondo.impl.sarif :as sarif]
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]))
 
@@ -49,7 +50,9 @@
                   (:summary output-cfg)
                   (assoc :summary summary)
                   analysis
-                  (assoc :analysis analysis))))))
+                  (assoc :analysis analysis))))
+      :sarif (println (-> (sarif/generate-sarif {:findings findings})
+                          (cheshire/generate-string)))))
   (flush)
   nil)
 
