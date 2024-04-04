@@ -19,7 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## 2024.04.04
 
-- #1035: Support SARIF output with `--config {:output {:format :sarif}}`
+- [#1035](https://github.com/clj-kondo/clj-kondo/issues/1035): Support SARIF output with `--config {:output {:format :sarif}}`
 
 ## 2024.03.19
 
