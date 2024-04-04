@@ -418,6 +418,10 @@ $ clj-kondo --lint corpus --config '{:output {:format :json}}' | jq '.findings[0
 
 Printing in EDN format is also supported.
 
+### Print results in SARIF format
+
+Use `--config '{:output {:format :sarif}}`
+
 ### Print results with a custom format
 
 ``` shell
