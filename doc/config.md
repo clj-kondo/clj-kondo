@@ -388,7 +388,7 @@ If you prefer not to lint the contents of `(comment ...)` forms, use this config
 By default configurations in `.clj-kondo/*/*/config.edn` are used. You can disable this with:
 
 ``` shellsession
-:auto-load-configs false`
+:auto-load-configs false
 ```
 
 ## Available linters
