@@ -1920,6 +1920,7 @@ clojure.core/float-array
 clojure.core/float?
 clojure.core/fn?
 clojure.core/fnext
+clojure.core/for
 clojure.core/format
 clojure.core/frequencies
 clojure.core/future?

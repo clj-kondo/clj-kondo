@@ -114,7 +114,8 @@
                        #_(:pure-fn-if-fn-args-pure info))
                  (conj acc sym)
                  acc))
-             #{} var-info))
+             '#{clojure.core/for}
+             var-info))
 
 (defn print-set-sorted [s]
   (format "#{%s}"

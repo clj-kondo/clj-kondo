@@ -17,9 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## 2024.04.04
+## Unreleased
 
 - [#1035](https://github.com/clj-kondo/clj-kondo/issues/1035): Support SARIF output with `--config {:output {:format :sarif}}`
+- [#2309](https://github.com/clj-kondo/clj-kondo/issues/2309): report unused for expression
 
 ## 2024.03.19
 

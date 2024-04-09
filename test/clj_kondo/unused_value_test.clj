@@ -152,4 +152,10 @@
    '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Unused value: \"hello\""}
      {:file "<stdin>", :row 1, :col 28, :level :warning, :message "Unused value"})
    (lint! "(defn foo [bar] {} \"hello\" (+ 2 2) bar)"
-             {:linters {:unused-value {:level :warning}}})))
+          {:linters {:unused-value {:level :warning}}})))
+
+(deftest issue-2309-test
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value"})
+   (lint! "(defn foo [] (for [x [1 2 3]] x) nil)"
+          {:linters {:unused-value {:level :warning}}})))
