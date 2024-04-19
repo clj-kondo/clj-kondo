@@ -2639,8 +2639,7 @@
                         (utils/reg-call ctx call id)
                         (when (:analyze-var-usages? ctx)
                           (namespace/reg-var-usage! ctx ns-name call))
-                        (when (and (not unresolved?)
-                                   (not interop?))
+                        (when (not unresolved?)
                           (namespace/reg-used-namespace! ctx
                                                          ns-name
                                                          resolved-namespace))

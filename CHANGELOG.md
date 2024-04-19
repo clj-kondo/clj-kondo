@@ -21,6 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#1035](https://github.com/clj-kondo/clj-kondo/issues/1035): Support SARIF output with `--config {:output {:format :sarif}}`
 - [#2309](https://github.com/clj-kondo/clj-kondo/issues/2309): report unused for expression
+- [#2135](https://github.com/clj-kondo/clj-kondo/issues/2135): fix regression with unused JavaScript namespace
 
 ## 2024.03.19
 
