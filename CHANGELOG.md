@@ -21,9 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#1035](https://github.com/clj-kondo/clj-kondo/issues/1035): Support SARIF output with `--config {:output {:format :sarif}}`
 - [#2309](https://github.com/clj-kondo/clj-kondo/issues/2309): report unused for expression
-
-## 2024.03.19
-
+- [#2135](https://github.com/clj-kondo/clj-kondo/issues/2135): fix regression with unused JavaScript namespace
 - [#2302](https://github.com/clj-kondo/clj-kondo/issues/2302): New linter: `:equals-expected-position` to enforce expected value to be in first (or last) position. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
 - [#2304](https://github.com/clj-kondo/clj-kondo/issues/2304): Report unused value in `defn` body
 
