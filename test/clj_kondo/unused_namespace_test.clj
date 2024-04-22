@@ -152,4 +152,4 @@
   (is (empty? (lint! "(ns foo (:require [foo.bar :as bar])) ('#{a b c} (bar/foo))"))))
 
 (deftest issue-2315-test
-  (is (empty? (lint! "(ns dude (:require [\"vscode\" :as vs])) (vs/foo.bar)"))))
+  (is (empty? (lint! "(ns dude (:require [\"vscode\" :as vs])) (vs/foo.bar)" "--lang" "cljs"))))

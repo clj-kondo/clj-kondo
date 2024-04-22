@@ -288,8 +288,9 @@
 
 (let [delayed-cfg (fn [config]
                     (let [excluded (get-in config [:linters :unused-referred-var :exclude])]
-                      (if (map? excluded)
-                        (map-vals set excluded)
+                      (if (or (nil? excluded)
+                              (map? excluded))
+                        (when excluded (map-vals set excluded))
                         (let [warning "[clj-kondo] WARNING: configuration value in [:linters :referred-var :exclude] should be a map"]
                           (binding [*out* *err*]
                             (println warning)
