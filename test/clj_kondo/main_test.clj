@@ -3244,7 +3244,10 @@ foo/")))
    (lint! "(defn baz [a & {:keys [c] :or {:c 10}}] (* a c))"))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Keys in :or should be simple symbols."})
-   (lint! "(defn baz [a & {:keys [c] :or {\"c\" 10}}] (* a c))")))
+   (lint! "(defn baz [a & {:keys [c] :or {\"c\" 10}}] (* a c))"))
+  (testing "TODO: restrict :flds to ClojureDart only"
+    (is (empty?
+         (lint! "(defn baz [a & {:flds [c]}] (* a c))")))))
 
 (deftest do-template-test
   (assert-submaps
