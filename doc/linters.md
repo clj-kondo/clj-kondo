@@ -1243,6 +1243,9 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 
 *Example message:* `redefined var #'user/x`.
 
+When redefining a var from another namespace that was referred, e.g. `inc`, the
+message is: `inc already refers to #'clojure.core/inc`
+
 ### Var same name except case
 
 *Keyword:* `:var-same-name-except-case`.
