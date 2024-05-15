@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.types.clojure.core
   {:no-doc true}
-  (:require [clj-kondo.impl.types.utils :as tu]
-            [clj-kondo.impl.findings :as findings]
+  (:require [clj-kondo.impl.findings :as findings]
+            [clj-kondo.impl.types.utils :as tu]
             [clj-kondo.impl.utils :as utils]))
 
 ;; sorted in order of appearance in
