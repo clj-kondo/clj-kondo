@@ -1,6 +1,8 @@
 (ns clj-kondo.impl.types.clojure.core
   {:no-doc true}
-  (:require [clj-kondo.impl.types.utils :as tu]))
+  (:require [clj-kondo.impl.types.utils :as tu]
+            [clj-kondo.impl.findings :as findings]
+            [clj-kondo.impl.utils :as utils]))
 
 ;; sorted in order of appearance in
 ;; https://github.com/clojure/clojure/blob/master/src/clj/clojure/core.clj
@@ -12,7 +14,7 @@
                                 :ret :seq}}})
 
 (def seqable->boolean {:arities {1 {:args [:seqable]
-                                :ret :boolean}}})
+                                    :ret :boolean}}})
 
 (def seqable->any {:arities {1 {:args [:seqable]
                                 :ret :any}}})
@@ -155,9 +157,18 @@
    ;; 538
    'any? any->boolean
    ;; 544
-   'str {:arities {:varargs {:args [{:op :rest
-                                     :spec :any}]
-                             :ret :string}}}
+   'str {:fn (fn [args]
+               (when (and (= 1 (count args))
+                          (identical? :string (:tag (first args))))
+                 (findings/reg-finding! utils/*ctx*
+                                        (assoc (first args)
+                                               :filename (:filename utils/*ctx*)
+                                               :type :redundant-call
+                                               :message "Argument to str is already a string")))
+               :string)
+         #_#_:arities {:varargs {:args [{:op :rest
+                                         :spec :any}]
+                                 :ret :string}}}
    ;; 562
    'symbol? any->boolean
    ;; 568
@@ -389,7 +400,7 @@
    ;; 1574 'val
    ;; 1581
    'rseq {:arities {1 {:args [#{:vector :sorted-map}]
-                      :req :seq}}}
+                       :req :seq}}}
    ;; 1589 'name
    ;; 1597
    'namespace {:arities {1 {:ret :string}}}
