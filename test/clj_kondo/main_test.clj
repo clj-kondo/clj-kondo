@@ -3545,6 +3545,13 @@ foo/")))
                       (is (= (+ 1 2 3) 6))
                       (= (+ 1 2 3) 6)" {:linters {:equals-expected-position {:only-in-test-assertion true
                                                                              :level :warning}}})))
+(deftest issue-2361-test
+  (is (empty? (lint! "
+(defprotocol PDFDocument)
+
+(extend-protocol PDFDocument
+  #_:clj-kondo/ignore
+  (Class/forName \"[B\"))"))))
 
 ;;;; Scratch
 
