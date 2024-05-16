@@ -160,9 +160,8 @@
              (identical? :string (first tags))
              (= 'str (:name called-fn))
              (utils/one-of (:ns called-fn) [clojure.core cljs.core])
-             (not (config/redundant-call-excluded? (:config call)
-                                                   (symbol (str (:ns called-fn))
-                                                           (str (:name called-fn))))))
+             (config/redundant-call-included? (:config call)
+                                              'clojure.core/str))
         (findings/reg-finding! ctx
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :redundant-call
@@ -487,6 +486,8 @@
       (when (and called-fn
                  (not (identical? :off (-> call-config :linters :redundant-call)))
                  (= 1 (:arity call))
+                 ;; handled based on argument type
+                 (not (utils/one-of fn-sym [clojure.core/str cljs.core/str]))
                  (config/redundant-call-included? call-config fn-sym))
         (findings/reg-finding!
          ctx

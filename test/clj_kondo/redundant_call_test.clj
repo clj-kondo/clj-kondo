@@ -1,6 +1,6 @@
 (ns clj-kondo.redundant-call-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
    [clojure.test :refer [deftest is testing]]))
 
 (def config
@@ -51,3 +51,13 @@
   (is (empty? (lint! "(-> 1 #?(:clj inc))"
                      config
                      "--lang" "cljc"))))
+
+(deftest redundant-call-str-test
+  (assert-submaps2
+   '({:file "<stdin>", :row 2, :col 1, :level :warning, :message "Single arg use of clojure.core/str always returns the arg itself"})
+   (lint! "
+(str (format \"dude\"))
+#_:clj-kondo/ignore (str (format \"dude\"))
+(str 1)
+(str \"foo\" \"bar\")
+" (assoc-in config [:linters :type-mismatch :level] :error))))
