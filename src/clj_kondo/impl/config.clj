@@ -471,6 +471,14 @@
     (contains? (delayed-cfg config) sym)))
 
 (let [delayed-cfg (fn [config]
+                    (let [cfg (get-in config [:linters :redundant-call])
+                          exclude (some-> (:exclude cfg) set)]
+                      (set exclude)))
+      delayed-cfg (memoize delayed-cfg)]
+  (defn redundant-call-excluded? [config sym]
+    (contains? (delayed-cfg config) sym)))
+
+(let [delayed-cfg (fn [config]
                     (let [syms (get-in config [:linters :aliased-namespace-symbol :exclude])]
                       (set syms)))
       delayed-cfg (memoize delayed-cfg)]

@@ -159,7 +159,10 @@
              (= 1 (count tags))
              (identical? :string (first tags))
              (= 'str (:name called-fn))
-             (utils/one-of (:ns called-fn) [clojure.core cljs.core]))
+             (utils/one-of (:ns called-fn) [clojure.core cljs.core])
+             (not (config/redundant-call-excluded? (:config call)
+                                                   (symbol (str (:ns called-fn))
+                                                           (str (:name called-fn))))))
         (findings/reg-finding! ctx
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :redundant-call
