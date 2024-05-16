@@ -47,7 +47,7 @@ there
             test-source-dir (io/file tmp-dir "test-source-dir")
             foo-clj (io/file test-source-dir "foo.clj")
             bar-cljc (io/file test-source-dir "bar.cljc")
-            baz-cljs (io/file test-source-dir (str "baz.cljs"))]
+            baz-cljs (io/file test-source-dir "baz.cljs")]
         (make-dirs test-cache-dir)
         (make-dirs test-source-dir)
         (io/copy

@@ -26,9 +26,9 @@
                      '{:linters {:missing-docstring {:level :warning}}
                        :lint-as {expectations.clojure.test/defexpect clojure.test/deftest}})))
   (doseq [lang ["clj" "cljs"]]
-    (is (empty? (lint! (str "(defprotocol Foo)
-                             (deftype Bar [] Foo)")
+    (is (empty? (lint! "(defprotocol Foo)
+                       (deftype Bar [] Foo)"
                        '{:linters {:missing-docstring {:level :warning}}}
                        "--lang" lang))))
-  (is (empty? (lint! (str "(defn f3 {:doc \"Docstring\"} [])")
+  (is (empty? (lint! "(defn f3 {:doc \"Docstring\"} [])"
                      '{:linters {:missing-docstring {:level :warning}}}))))
