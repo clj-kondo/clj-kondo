@@ -1,6 +1,6 @@
 (ns clj-kondo.redundant-call-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2]]
    [clojure.test :refer [deftest is testing]]))
 
 (def config
@@ -51,3 +51,20 @@
   (is (empty? (lint! "(-> 1 #?(:clj inc))"
                      config
                      "--lang" "cljc"))))
+
+(deftest redundant-call-str-test
+  (let [my-config (assoc-in config [:linters :type-mismatch :level] :error)]
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 1, :level :warning, :message "Single argument to str already is a string"})
+     (lint! "
+(str (format \"dude\"))
+#_:clj-kondo/ignore (str (format \"dude\"))
+(str 1)
+(str \"foo\" \"bar\")
+" my-config))
+    (is (empty? (lint! "(str \"foo\")"
+                       (assoc-in my-config [:linters :redundant-call :exclude] '[clojure.core/str]))))))
+
+(str "foo")
+(str (format "dude"))
+(str (str 1))

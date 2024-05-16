@@ -458,7 +458,8 @@
                              clojure.core/some->> cljs.core/some->>
                              clojure.core/partial cljs.core/partial
                              clojure.core/comp cljs.core/comp
-                             clojure.core/merge cljs.core/merge}
+                             clojure.core/merge cljs.core/merge
+                             clojure.core/str cljs.core/str}
       delayed-cfg (fn [config]
                     (let [cfg (get-in config [:linters :redundant-call])
                           include (some-> (:include cfg) set)

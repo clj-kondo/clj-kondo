@@ -153,8 +153,19 @@
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
-          tags (map #(tu/resolve-arg-type idacs %) arg-types)]
-      (types/lint-arg-types ctx called-fn arg-types tags call))))
+          tags (map #(tu/resolve-arg-type idacs %) arg-types) ]
+      (types/lint-arg-types ctx called-fn arg-types tags call)
+      (when (and
+             (= 1 (count tags))
+             (identical? :string (first tags))
+             (= 'str (:name called-fn))
+             (utils/one-of (:ns called-fn) [clojure.core cljs.core])
+             (config/redundant-call-included? (:config call)
+                                              'clojure.core/str))
+        (findings/reg-finding! ctx
+                               (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                                      :type :redundant-call
+                                      :message "Single argument to str already is a string"))))))
 
 (defn show-arities [fixed-arities varargs-min-arity]
   (let [fas (vec (sort fixed-arities))
@@ -475,6 +486,8 @@
       (when (and called-fn
                  (not (identical? :off (-> call-config :linters :redundant-call)))
                  (= 1 (:arity call))
+                 ;; handled based on argument type
+                 (not (utils/one-of fn-sym [clojure.core/str cljs.core/str]))
                  (config/redundant-call-included? call-config fn-sym))
         (findings/reg-finding!
          ctx

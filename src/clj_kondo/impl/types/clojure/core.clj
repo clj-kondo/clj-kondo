@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.types.clojure.core
   {:no-doc true}
-  (:require [clj-kondo.impl.types.utils :as tu]))
+  (:require [clj-kondo.impl.types.utils :as tu]
+            [clj-kondo.impl.utils :as utils]))
 
 ;; sorted in order of appearance in
 ;; https://github.com/clojure/clojure/blob/master/src/clj/clojure/core.clj
@@ -12,7 +13,7 @@
                                 :ret :seq}}})
 
 (def seqable->boolean {:arities {1 {:args [:seqable]
-                                :ret :boolean}}})
+                                    :ret :boolean}}})
 
 (def seqable->any {:arities {1 {:args [:seqable]
                                 :ret :any}}})
@@ -156,7 +157,7 @@
    'any? any->boolean
    ;; 544
    'str {:arities {:varargs {:args [{:op :rest
-                                     :spec :any}]
+                                         :spec :any}]
                              :ret :string}}}
    ;; 562
    'symbol? any->boolean
@@ -389,7 +390,7 @@
    ;; 1574 'val
    ;; 1581
    'rseq {:arities {1 {:args [#{:vector :sorted-map}]
-                      :req :seq}}}
+                       :req :seq}}}
    ;; 1589 'name
    ;; 1597
    'namespace {:arities {1 {:ret :string}}}
