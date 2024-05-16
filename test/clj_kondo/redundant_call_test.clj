@@ -61,10 +61,10 @@
 #_:clj-kondo/ignore (str (format \"dude\"))
 (str 1)
 (str \"foo\" \"bar\")
+(require '[clojure.test :refer [are]])
+(are [x y] (= x (str y))
+  \"foo\" \"bar\"
+  \"foo\" 1)
 " my-config))
     (is (empty? (lint! "(str \"foo\")"
                        (assoc-in my-config [:linters :redundant-call :exclude] '[clojure.core/str]))))))
-
-(str "foo")
-(str (format "dude"))
-(str (str 1))
