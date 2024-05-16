@@ -64,3 +64,7 @@
 " my-config))
     (is (empty? (lint! "(str \"foo\")"
                        (assoc-in my-config [:linters :redundant-call :exclude] '[clojure.core/str]))))))
+
+(str "foo")
+(str (format "dude"))
+(str (str 1))
