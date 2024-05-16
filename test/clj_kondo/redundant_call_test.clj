@@ -54,7 +54,7 @@
 
 (deftest redundant-call-str-test
   (assert-submaps2
-   '({:file "<stdin>", :row 2, :col 1, :level :warning, :message "Single arg use of clojure.core/str always returns the arg itself"})
+   '({:file "<stdin>", :row 2, :col 1, :level :warning, :message "Single argument to str already is a string"})
    (lint! "
 (str (format \"dude\"))
 #_:clj-kondo/ignore (str (format \"dude\"))
