@@ -165,12 +165,12 @@
 (deftest namespaced-map-test
   (let [deps-edn "{:deps #:clj-kondo{clj-kondo {:mvn/version \"2020.11.07\"}}}"]
     (is (empty?
-         (lint! (str deps-edn)
+         (lint! deps-edn
                 "--filename" "deps.edn")))))
 
 (deftest ignore-test
   (let [deps-edn "{:deps #_:clj-kondo/ignore {clj-kondo {:mvn/version \"2020.11.07\"}}}"]
-    (is (empty? (lint! (str deps-edn)
+    (is (empty? (lint! deps-edn
                        "--filename" "deps.edn")))))
 
 (deftest inferred-git-urls-test
@@ -251,5 +251,5 @@
        :level :warning,
        :message
        "Global :jvm-opts not supported (only in aliases)"}]
-     (lint! (str deps-edn)
+     (lint! deps-edn
             "--filename" "deps.edn"))))

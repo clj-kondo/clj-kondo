@@ -1603,7 +1603,7 @@
                                    :name-end-col 12
                                    :added :attr2
                                    :fixed-arities #{0 1 2}})
-               (ana-var-meta (str "(defn my-fn ([]) ([x]) ([x y]) {:added :attr2 :a2 true})")
+               (ana-var-meta "(defn my-fn ([]) ([x]) ([x y]) {:added :attr2 :a2 true})"
                              {:meta true}))))
       (testing "is not recognized for single arity syntax"
         (is (= (ana-defn-expected {:meta {:deprecated true :added :attr1 :l true :a1 true}

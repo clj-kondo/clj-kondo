@@ -161,7 +161,8 @@
              (= 'str (:name called-fn))
              (utils/one-of (:ns called-fn) [clojure.core cljs.core])
              (config/redundant-call-included? (:config call)
-                                              'clojure.core/str))
+                                              'clojure.core/str)
+             (not (:clj-kondo.impl/generated (:expr call))))
         (findings/reg-finding! ctx
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :redundant-call

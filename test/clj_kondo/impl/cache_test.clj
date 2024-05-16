@@ -84,7 +84,7 @@
             test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
             test-source-dir (io/file tmp-dir "test-source-dir")
             foo (io/file test-source-dir "foo.clj")
-            bar (io/file test-source-dir (str "bar.clj"))]
+            bar (io/file test-source-dir "bar.clj")]
         (remove-dir test-cache-dir)
         (make-dirs test-cache-dir)
         (remove-dir test-source-dir)
@@ -103,7 +103,7 @@
           test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
           test-source-dir (io/file tmp-dir "test-source-dir")
           foo (io/file test-source-dir "foo.clj")
-          bar (io/file test-source-dir (str "bar.clj"))]
+          bar (io/file test-source-dir "bar.clj")]
       (remove-dir test-cache-dir)
       (make-dirs test-cache-dir)
       (remove-dir test-source-dir)
@@ -166,7 +166,7 @@
         test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
         test-source-dir (io/file tmp-dir "test-source-dir")
         user (io/file test-source-dir "user.clj")
-        foo (io/file test-source-dir (str "foo.clj"))]
+        foo (io/file test-source-dir "foo.clj")]
     (remove-dir test-cache-dir)
     (make-dirs test-cache-dir)
     (remove-dir test-source-dir)

@@ -96,7 +96,7 @@
                (node->line (:filename ctx)
                            node
                            :deps.edn
-                           (str "Non-deterministic version."))))
+                           "Non-deterministic version.")))
             true)
           (when (:git/url form)
             (when (and sha (:git/sha form) (:sha form))
@@ -105,21 +105,21 @@
                (node->line (:filename ctx)
                            node
                            :deps.edn
-                           (str "Conflicting keys :git/sha and :sha."))))
+                           "Conflicting keys :git/sha and :sha.")))
             (when (and (:git/tag form) (:tag form))
               (findings/reg-finding!
                ctx
                (node->line (:filename ctx)
                            node
                            :deps.edn
-                           (str "Conflicting keys :git/tag and :tag."))))
+                           "Conflicting keys :git/tag and :tag.")))
             (when-not sha
               (findings/reg-finding!
                ctx
                (node->line (:filename ctx)
                            node
                            :deps.edn
-                           (str "Missing required key :git/sha."))))
+                           "Missing required key :git/sha.")))
             true)
           ;; no linting yet
           (:local/root form)
@@ -134,7 +134,7 @@
            (node->line (:filename ctx)
                        node
                        :deps.edn
-                       (str "Missing required key: :mvn/version, :git/url or :local/root.")))))))
+                       "Missing required key: :mvn/version, :git/url or :local/root."))))))
 
 (defn lint-deps [ctx kvs]
   (doseq [[lib coord] kvs]
@@ -150,7 +150,7 @@
                (node->line (:filename ctx)
                            node
                            :deps.edn
-                           (str "Prefer keyword for alias.")))
+                           "Prefer keyword for alias."))
               (when (contains? #{:deps :extra-deps :jvm-opts} form)
                 (findings/reg-finding!
                  ctx
@@ -171,7 +171,7 @@
                  (node->line (:filename ctx)
                              jvm-opts-node
                              :deps.edn
-                             (str "JVM opts should be seqable of strings.")))))))
+                             "JVM opts should be seqable of strings."))))))
         alias-nodes))
 
 (defn lint-mvn-repos [ctx mvn-repos]
@@ -185,7 +185,7 @@
                  (node->line (:filename ctx)
                              repo-map-node
                              :deps.edn
-                             (str "Expected: map with :url."))))))
+                             "Expected: map with :url.")))))
           repo-map-nodes)))
 
 (defn- find-task-cycle
