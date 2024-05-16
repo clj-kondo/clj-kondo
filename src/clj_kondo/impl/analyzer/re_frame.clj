@@ -95,14 +95,14 @@
     (if (seq arrow-subs)
       (let [[ctx reg-val] (with-context ctx name-expr fq-def)]
         (doseq [s arrow-subs]
-          (analyze-subscribe ctx {:children (cons :<- [s])} (str (namespace fq-def))))
+          (analyze-subscribe ctx {:children (cons :<- [s])} (namespace fq-def)))
         (common/analyze-children ctx (cons reg-val (take-last 1 body))))
       (analyze-reg ctx expr fq-def))))
 
 (defmulti analyze-dispatch-type (fn [_ctx _fq-def x] (:k (first x))))
 
 (defmethod analyze-dispatch-type :dispatch [ctx fq-def x]
-  (analyze-dispatch-event-id ctx {:children x} (str (namespace fq-def)))
+  (analyze-dispatch-event-id ctx {:children x} (namespace fq-def))
   x)
 
 (defmethod analyze-dispatch-type :dispatch-n [ctx fq-def x]
@@ -110,7 +110,7 @@
         second-x (second x)]
     (when (and second-x (identical? :vector (utils/tag second-x)))
       (doseq [dispatch-vector (:children (second x))]
-        (analyze-dispatch-event-id ctx {:children (cons disp-kw [dispatch-vector])} (str (namespace fq-def)))))
+        (analyze-dispatch-event-id ctx {:children (cons disp-kw [dispatch-vector])} (namespace fq-def))))
     x))
 
 (defmethod analyze-dispatch-type :dispatch-later [ctx fq-def x]
@@ -123,7 +123,7 @@
                      (some #(when (= :dispatch (:k (first %))) (last %)))
                      vector
                      (cons disp-kw))}
-     (str (namespace fq-def)))
+     (namespace fq-def))
     x))
 
 (defmethod analyze-dispatch-type :default [_ctx _fq-def x] x)

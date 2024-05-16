@@ -44,10 +44,11 @@
   (let [[_ argv expr & args] (:children expr)
         is-expr (utils/list-node [(utils/token-node (symbol (str resolved-namespace) "is")) expr])
         new-node (macros/expand-do-template ctx
-                                            (utils/list-node (list* nil
-                                                                    argv
-                                                                    is-expr
-                                                                    args)))]
+                                            (utils/mark-generate
+                                             (utils/list-node (list* nil
+                                                                     argv
+                                                                     is-expr
+                                                                     args))))]
     (common/analyze-expression** ctx new-node)))
 
 (defn testing-hook [{:keys [node]}]

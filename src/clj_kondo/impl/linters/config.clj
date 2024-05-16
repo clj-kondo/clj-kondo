@@ -45,7 +45,7 @@
          (node->line (:filename ctx)
                      key-node
                      :clj-kondo-config
-                     (str "Linter config should go under :linters")))))))
+                     "Linter config should go under :linters"))))))
 
 (defn lint-config [ctx expr]
   (try

@@ -442,7 +442,7 @@
                             :end-row (:end-row expr)
                             :end-col (:end-col expr)
                             :type :type-mismatch
-                            :message (str "Insufficient input.")})))
+                            :message "Insufficient input."})))
 
 (defn emit-missing-required-key! [ctx arg k]
   (findings/reg-finding! ctx
