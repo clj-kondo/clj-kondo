@@ -481,63 +481,62 @@
 (defn lint-arg-types
   [ctx {called-ns :ns called-name :name arities :arities :as _called-fn}
    args tags call]
-  (binding [utils/*ctx* ctx]
-    (try
-      (let [config (:config ctx)
-            called-ns (or called-ns (:resolved-ns call))
-            called-name (or called-name (:name call))
-            arity (:arity call)]
-        (when-let [args-spec
-                   (or
-                    (when-let [s (config/type-mismatch-config config called-ns called-name)]
-                      (when-let [a (:arities s)]
-                        (args-spec-from-arities a arity)))
-                    (when-let [s (get-in built-in-specs [called-ns called-name])]
-                      (when-let [a (:arities s)]
-                        (args-spec-from-arities a arity)))
-                    (args-spec-from-arities arities arity))]
-          (when (vector? args-spec)
-            (loop [check-ctx {}
-                   [s & rest-args-spec :as all-specs] args-spec
-                   [a & rest-args :as all-args] args
-                   [t & rest-tags :as all-tags] tags]
-              (let [op (:op s)]
-                (cond (and (empty? all-args)
-                           (empty? all-specs)) :done
-                      op
-                      (case op
-                        :rest
-                        (recur (assoc check-ctx
-                                      :rest (:spec s)
-                                      :last (:last s))
-                               nil
-                               all-args
-                               all-tags)
-                        :keys
-                        (do (lint-map! ctx s a t)
-                            (recur check-ctx rest-args-spec rest-args rest-tags)))
-                      (nil? s) (cond (seq all-specs)
-                                     ;; nil is :any
-                                     (recur check-ctx rest-args-spec rest-args rest-tags)
-                                     (:rest check-ctx)
-                                     (if (seq rest-args)
-                                       ;; not the last one
-                                       (recur check-ctx [(:rest check-ctx)] all-args all-tags)
-                                       ;; the last arg
-                                       (recur check-ctx [(some check-ctx [:last :rest])] all-args all-tags)))
-                      (vector? s) (recur check-ctx (concat s rest-args-spec) all-args all-tags)
-                      (set? s) (do (when-not (some #(match? t %) s)
-                                     (emit-non-match! ctx s a t))
-                                   (recur check-ctx rest-args-spec rest-args rest-tags))
-                      (keyword? s)
-                      (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
-                            :else
-                            (do (when-not (match? t s)
-                                  (emit-non-match! ctx s a t))
-                                (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
-      (catch Exception e
-        (binding [*out* *err*]
-          (println "[clj-kondo]" "WARNING: error while checking types: " (-> e .getClass .getName) (str (.getMessage e))))))))
+  (try
+    (let [config (:config ctx)
+          called-ns (or called-ns (:resolved-ns call))
+          called-name (or called-name (:name call))
+          arity (:arity call)]
+      (when-let [args-spec
+                 (or
+                  (when-let [s (config/type-mismatch-config config called-ns called-name)]
+                    (when-let [a (:arities s)]
+                      (args-spec-from-arities a arity)))
+                  (when-let [s (get-in built-in-specs [called-ns called-name])]
+                    (when-let [a (:arities s)]
+                      (args-spec-from-arities a arity)))
+                  (args-spec-from-arities arities arity))]
+        (when (vector? args-spec)
+          (loop [check-ctx {}
+                 [s & rest-args-spec :as all-specs] args-spec
+                 [a & rest-args :as all-args] args
+                 [t & rest-tags :as all-tags] tags]
+            (let [op (:op s)]
+              (cond (and (empty? all-args)
+                         (empty? all-specs)) :done
+                    op
+                    (case op
+                      :rest
+                      (recur (assoc check-ctx
+                                    :rest (:spec s)
+                                    :last (:last s))
+                             nil
+                             all-args
+                             all-tags)
+                      :keys
+                      (do (lint-map! ctx s a t)
+                          (recur check-ctx rest-args-spec rest-args rest-tags)))
+                    (nil? s) (cond (seq all-specs)
+                                   ;; nil is :any
+                                   (recur check-ctx rest-args-spec rest-args rest-tags)
+                                   (:rest check-ctx)
+                                   (if (seq rest-args)
+                                     ;; not the last one
+                                     (recur check-ctx [(:rest check-ctx)] all-args all-tags)
+                                     ;; the last arg
+                                     (recur check-ctx [(some check-ctx [:last :rest])] all-args all-tags)))
+                    (vector? s) (recur check-ctx (concat s rest-args-spec) all-args all-tags)
+                    (set? s) (do (when-not (some #(match? t %) s)
+                                   (emit-non-match! ctx s a t))
+                                 (recur check-ctx rest-args-spec rest-args rest-tags))
+                    (keyword? s)
+                    (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
+                          :else
+                          (do (when-not (match? t s)
+                                (emit-non-match! ctx s a t))
+                              (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
+    (catch Exception e
+      (binding [*out* *err*]
+        (println "[clj-kondo]" "WARNING: error while checking types: " (-> e .getClass .getName) (str (.getMessage e)))))))
 
 ;;;; Scratch
 

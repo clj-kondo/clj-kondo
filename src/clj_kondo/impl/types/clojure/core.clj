@@ -157,18 +157,9 @@
    ;; 538
    'any? any->boolean
    ;; 544
-   'str {:fn (fn [args]
-               (when (and (= 1 (count args))
-                          (identical? :string (:tag (first args))))
-                 (findings/reg-finding! utils/*ctx*
-                                        (assoc (first args)
-                                               :filename (:filename utils/*ctx*)
-                                               :type :redundant-call
-                                               :message "Argument to str is already a string")))
-               :string)
-         #_#_:arities {:varargs {:args [{:op :rest
+   'str {:arities {:varargs {:args [{:op :rest
                                          :spec :any}]
-                                 :ret :string}}}
+                             :ret :string}}}
    ;; 562
    'symbol? any->boolean
    ;; 568
