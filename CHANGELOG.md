@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2227](https://github.com/clj-kondo/clj-kondo/issues/2227): allow `:flds` to be used in keys destructuring for ClojureDart
 - [#2323](https://github.com/clj-kondo/clj-kondo/issues/2323): detect redundant `str` calls
 - [#2316](https://github.com/clj-kondo/clj-kondo/issues/2316): handle ignore hint on protocol method
+- [#2322](https://github.com/clj-kondo/clj-kondo/issues/2322): add location to warning about invalid unicode character
 
 ## 2024.03.13
 

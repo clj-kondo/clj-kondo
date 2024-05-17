@@ -55,7 +55,8 @@
         (if r/*reader-exceptions*
           (do (let [{:keys [:type :ex-kind]} (ex-data e)]
                 (if (and (= :reader-exception type)
-                           (= :reader-error ex-kind))
+                         (or (= :reader-error ex-kind)
+                             (= :illegal-argument ex-kind)))
                   (let [f {:row token-row
                            :col token-col
                            :message (.getMessage e)}]

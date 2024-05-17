@@ -3553,6 +3553,11 @@ foo/")))
   #_:clj-kondo/ignore
   (Class/forName \"[B\"))"))))
 
+(deftest issue-2322-test
+  (assert-submaps
+   '({:file "corpus/invalid_unicode.clj", :row 3, :col 1, :level :error, :message "Invalid unicode literal: \\u12345."})
+   (lint! (io/file "corpus/invalid_unicode.clj"))))
+
 ;;;; Scratch
 
 (comment
