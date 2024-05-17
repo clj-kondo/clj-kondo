@@ -1582,6 +1582,7 @@
                                              defined-by->lint-as)))
             ;; protocol-fn-name might contain metadata
             (meta/lift-meta-content2 ctx protocol-method-name)
+            (utils/handle-ignore ctx c)
             (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
                         (assoc c :protocol-fn (and (not= "extend-protocol" def-by)
                                                    (not= "extend-type" def-by))))
