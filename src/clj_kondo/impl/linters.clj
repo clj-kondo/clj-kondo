@@ -156,16 +156,15 @@
           tags (map #(tu/resolve-arg-type idacs %) arg-types) ]
       (types/lint-arg-types ctx called-fn arg-types tags call)
       (when (and
-             (= 1 (count tags))
-             (identical? :string (first tags))
              (= 'str (:name called-fn))
              (utils/one-of (:ns called-fn) [clojure.core cljs.core])
-             (config/redundant-call-included? (:config call)
-                                              'clojure.core/str)
+             (= 1 (count tags))
+             (identical? :string (first tags))
+             (not (identical? :off (-> call :config :linters :redundant-str-call :level)))
              (not (:clj-kondo.impl/generated (:expr call))))
         (findings/reg-finding! ctx
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
-                                      :type :redundant-call
+                                      :type :redundant-str-call
                                       :message "Single argument to str already is a string"))))))
 
 (defn show-arities [fixed-arities varargs-min-arity]

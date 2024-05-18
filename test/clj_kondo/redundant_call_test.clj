@@ -52,8 +52,9 @@
                      config
                      "--lang" "cljc"))))
 
-(deftest redundant-call-str-test
-  (let [my-config (assoc-in config [:linters :type-mismatch :level] :error)]
+(deftest redundant-str-call-test
+  (let [my-config {:linters {:redundant-str-call {:level :warning}
+                             :type-mismatch {:level :error}}}]
     (assert-submaps2
      '({:file "<stdin>", :row 2, :col 1, :level :warning, :message "Single argument to str already is a string"})
      (lint! "
@@ -67,4 +68,4 @@
   \"foo\" 1)
 " my-config))
     (is (empty? (lint! "(str \"foo\")"
-                       (assoc-in my-config [:linters :redundant-call :exclude] '[clojure.core/str]))))))
+                       (assoc-in my-config [:linters :redundant-str-call :level] :off))))))
