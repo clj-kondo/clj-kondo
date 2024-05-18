@@ -1313,6 +1313,19 @@ warn on additional vars.
 
 *Example message:* `Single arg use of -> always returns the arg itself`.
 
+### Redundant str call
+
+*Keyword*: `:redundant-str-call`
+
+*Description:* warn on redundant `str` calls. The warning arises when a single argument
+is passed to a `str` that is already a string, which makes the `str` unnecessary.
+
+*Default level:* `:off`.
+
+*Example triggers:* `(str "foo")`, `(str (str 1))`.
+
+*Example message:* `Single argument to str already is a string`.
+
 ### Redundant let
 
 *Keyword:* `:redundant-let`.

@@ -246,6 +246,8 @@ Some linters are not enabled by default. Right now these linters are:
 - `:warn-on-reflection`: warns about not setting `*warn-on-reflection*` to true in Clojure
 namespaces.
 - `:unused-value`: warns about unused values.
+- `:redundant-call`: warns about redundant calls, mostly macros and functions that return their first argument as a no-op
+- `:redundant-str-call`: warn about unnecessary `str` calls
 
 You can enable these linters by setting the `:level`:
 

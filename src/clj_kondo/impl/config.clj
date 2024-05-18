@@ -139,6 +139,7 @@
               :redundant-call {:level :off
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}
+              :redundant-str-call {:level :off}
               :warn-on-reflection {:level :off
                                    :warn-only-on-interop true}
               :aliased-namespace-symbol {:level :off
@@ -458,8 +459,7 @@
                              clojure.core/some->> cljs.core/some->>
                              clojure.core/partial cljs.core/partial
                              clojure.core/comp cljs.core/comp
-                             clojure.core/merge cljs.core/merge
-                             clojure.core/str cljs.core/str}
+                             clojure.core/merge cljs.core/merge}
       delayed-cfg (fn [config]
                     (let [cfg (get-in config [:linters :redundant-call])
                           include (some-> (:include cfg) set)
