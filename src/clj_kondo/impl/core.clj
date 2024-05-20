@@ -132,6 +132,15 @@
       cfg)
     cfg))
 
+(defn auto-configs [cfg-dir local-config-paths-set glob]
+  (into []
+        (comp (map fs/parent)
+              (map #(fs/relativize cfg-dir %))
+              (map str)
+              (filter #(not (contains? local-config-paths-set %))))
+        (fs/glob cfg-dir glob
+                 {:max-depth 3})))
+
 (defn resolve-config [^java.io.File cfg-dir configs debug]
   (let [local-config (when cfg-dir
                        (let [f (io/file cfg-dir "config.edn")]
@@ -142,13 +151,8 @@
         local-config-paths (:config-paths local-config)
         local-config-paths-set (set local-config-paths)
         discovered (when auto-load-configs?
-                     (into []
-                           (comp (map fs/parent)
-                                 (map #(fs/relativize cfg-dir %))
-                                 (map str)
-                                 (filter #(not (contains? local-config-paths-set %))))
-                           (fs/glob cfg-dir "**/**/config.edn"
-                                    {:max-depth 3})))
+                     (concat (auto-configs cfg-dir local-config-paths-set "**/**/config.edn")
+                             (auto-configs cfg-dir local-config-paths-set ".imports/**/**/config.edn")))
         _ (when (and debug
                      auto-load-configs?
                      (seq discovered))
@@ -283,7 +287,8 @@
           dirs (str/split base-file file-pat)
           root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
           copied-dir (apply io/file (take 2 root))
-          dest (apply io/file cfg-dir root)]
+          ;; TODO: .imports
+          dest (apply io/file cfg-dir ".imports" root)]
       (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (io/copy (io/file base-file) dest))
