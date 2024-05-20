@@ -70,7 +70,7 @@
                 ".m2" "repository" "org" "clojure" "clojure"
                 clj-version (format "clojure-%s.jar" clj-version))]
       :clj
-      nil))
+      nil nil))
     (reduce into special
             [(keep public? (get-in @namespaces '[:clj :clj clojure.core :vars]))])))
 
@@ -95,6 +95,7 @@
                 ".m2" "repository" "org" "clojure" "clojurescript"
                 cljs-version (format "clojurescript-%s.jar" cljs-version))]
       :clj
+      nil
       nil))
     (reduce into special
             [(keep public? (get-in @namespaces '[:cljs :cljs cljs.core :vars]))
