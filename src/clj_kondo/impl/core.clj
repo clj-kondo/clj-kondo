@@ -227,7 +227,7 @@
     (let [dirs (str/split entry-name #"/")
           root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
           copied-dir (apply io/file (take 2 root))
-          dest (apply io/file cfg-dir root)]
+          dest (apply io/file cfg-dir ".imports" root)]
       (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (spit dest source))
