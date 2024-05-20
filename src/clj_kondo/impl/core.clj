@@ -154,7 +154,7 @@
                        (seq (auto-configs cfg-dir local-config-paths-set "**/**/config.edn")))
         discovered (when auto-load-configs?
                      (concat root-imports
-                             (auto-configs cfg-dir local-config-paths-set ".imports/**/**/config.edn")))
+                             (auto-configs cfg-dir local-config-paths-set "imports/**/**/config.edn")))
         _ (when (and debug
                      auto-load-configs?
                      (seq discovered))
@@ -232,7 +232,7 @@
           copied-dir (apply io/file (take 2 root))
           dest (apply io/file cfg-dir (cond-> root
                                         (not already-has-root-imports?)
-                                        (->> (cons ".imports"))))]
+                                        (->> (cons "imports"))))]
       (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (spit dest source))
@@ -294,7 +294,7 @@
           copied-dir (apply io/file (take 2 root))
           dest (apply io/file cfg-dir (cond-> root
                                         (not already-has-root-imports?)
-                                        (->> (cons ".imports"))))]
+                                        (->> (cons "imports"))))]
       (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (io/copy (io/file base-file) dest))
