@@ -150,8 +150,10 @@
                                 (not (false? (:auto-load-configs local-config))))
         local-config-paths (:config-paths local-config)
         local-config-paths-set (set local-config-paths)
+        root-imports (when auto-load-configs?
+                       (seq (auto-configs cfg-dir local-config-paths-set "**/**/config.edn")))
         discovered (when auto-load-configs?
-                     (concat (auto-configs cfg-dir local-config-paths-set "**/**/config.edn")
+                     (concat root-imports
                              (auto-configs cfg-dir local-config-paths-set ".imports/**/**/config.edn")))
         _ (when (and debug
                      auto-load-configs?
@@ -177,7 +179,8 @@
                  (map read-config configs)))
         config (config/expand-ignore config)]
     (cond-> config
-      cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
+      cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)
+                     :root-imports (seq (mapv str root-imports))))))
 
 ;;;; process cache
 
@@ -222,19 +225,21 @@
 ;;;; jar processing
 
 (defn copy-config-entry
-  [ctx entry-name source cfg-dir]
+  [ctx entry-name source cfg-dir already-has-root-imports?]
   (try
     (let [dirs (str/split entry-name #"/")
           root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
           copied-dir (apply io/file (take 2 root))
-          dest (apply io/file cfg-dir ".imports" root)]
+          dest (apply io/file cfg-dir (cond-> root
+                                        (not already-has-root-imports?)
+                                        (->> (cons ".imports"))))]
       (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (spit dest source))
     (catch Exception e (prn (.getMessage e)))))
 
 (defn sources-from-jar
-  [ctx ^java.io.File jar-file canonical?]
+  [ctx ^java.io.File jar-file canonical? already-has-root-imports?]
   (with-open [jar (JarFile. jar-file)]
     (let [cfg-dir (:config-dir ctx)
           entries (enumeration-seq (.entries jar))
@@ -266,7 +271,7 @@
                            ;; never lint exported hook code
                            (when (:copy-configs ctx)
                              ;; only copy when copy-configs is true
-                             (copy-config-entry ctx entry-name source cfg-dir))
+                             (copy-config-entry ctx entry-name source cfg-dir already-has-root-imports?))
                            {:uri (->uri (str (.getCanonicalPath jar-file)) entry-name nil)
                             :filename (str (when canonical?
                                              (str (.getCanonicalPath jar-file) ":"))
@@ -281,14 +286,15 @@
   (re-pattern (str/re-quote-replacement (System/getProperty "file.separator"))))
 
 (defn copy-config-file
-  [ctx path cfg-dir]
+  [ctx path cfg-dir already-has-root-imports?]
   (try
     (let [base-file (str path)
           dirs (str/split base-file file-pat)
           root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
           copied-dir (apply io/file (take 2 root))
-          ;; TODO: .imports
-          dest (apply io/file cfg-dir ".imports" root)]
+          dest (apply io/file cfg-dir (cond-> root
+                                        (not already-has-root-imports?)
+                                        (->> (cons ".imports"))))]
       (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (io/copy (io/file base-file) dest))
@@ -309,7 +315,7 @@
     (re-find pat (fs/unixify filename))))
 
 (defn sources-from-dir
-  [ctx dir canonical?]
+  [ctx dir canonical? already-has-root-imports?]
   (let [seen (:seen-files ctx)
         cfg-dir (:config-dir ctx)
         files (file-seq dir)
@@ -336,7 +342,7 @@
                     ;; should be ok when editing single hook file, it won't be persisted to cache
                     (when (:copy-configs ctx)
                       ;; only copy when copy-configs is true
-                      (copy-config-file ctx file cfg-dir))
+                      (copy-config-file ctx file cfg-dir already-has-root-imports?))
                     (cond
                       (and can-read? source?)
                       {:uri (->uri nil nil nm)
@@ -445,7 +451,7 @@
     (when (or (:analysis ctx) (not (:skip-lint ctx)))
       (ana/analyze-input ctx filename uri source lang dev?))))
 
-(defn process-file [ctx path default-language canonical? filename-fallback]
+(defn process-file [ctx path default-language canonical? filename-fallback already-has-root-imports?]
   (let [seen-files (:seen-files ctx)]
     (try
       (let [path (str path) ;; always assume path to be a string in the body of
@@ -475,7 +481,7 @@
                     (utils/stderr "[clj-kondo]" jar-name "was already linted, skipping")
                     (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                                          dev?)
-                              (sources-from-jar ctx file canonical?))
+                              (sources-from-jar ctx file canonical? already-has-root-imports?))
                         (swap! (:mark-linted ctx) conj [skip-mark path]))))
                 ;; assume normal source file
                 (let [fn (if canonical?
@@ -491,7 +497,7 @@
                               dev?)))))
             ;; assume directory
             (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
-                  (sources-from-dir ctx file canonical?)))
+                  (sources-from-dir ctx file canonical? already-has-root-imports?)))
           (= "-" path)
           (when-not (excluded? ctx filename-fallback)
             (schedule ctx {:filename (or filename-fallback "<stdin>")
@@ -500,7 +506,7 @@
                                    (lang-from-file filename-fallback default-language)
                                    default-language)} dev?))
           (classpath? path)
-          (run! #(process-file ctx % default-language canonical? filename-fallback)
+          (run! #(process-file ctx % default-language canonical? filename-fallback already-has-root-imports?)
                 (str/split path
                            (re-pattern path-separator)))
           :else
@@ -553,7 +559,7 @@
               (println (str "- " i))))
           :else (println "No configs copied."))))
 
-(defn process-files [ctx files default-lang filename]
+(defn process-files [ctx files default-lang filename already-has-root-imports?]
   (let [ctx (assoc ctx :seen-files (atom #{}))
         cache-dir (:cache-dir ctx)
         ctx (assoc ctx :detected-configs (atom [])
@@ -561,7 +567,7 @@
                    :total-files (when (:file-analyzed-fn ctx)
                                   (files-count files ctx)))
         canonical? (-> ctx :config :output :canonical-paths)]
-    (run! #(process-file ctx % default-lang canonical? filename) files)
+    (run! #(process-file ctx % default-lang canonical? filename already-has-root-imports?) files)
     (when (and (:parallel ctx)
                (or (:analysis ctx)
                    (not (:skip-lint ctx))))
