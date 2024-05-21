@@ -133,13 +133,14 @@
     cfg))
 
 (defn auto-configs [cfg-dir local-config-paths-set glob]
-  (into []
-        (comp (map fs/parent)
-              (map #(fs/relativize cfg-dir %))
-              (map str)
-              (filter #(not (contains? local-config-paths-set %))))
-        (fs/glob cfg-dir glob
-                 {:max-depth 3})))
+  (when cfg-dir
+    (into []
+          (comp (map fs/parent)
+                (map #(fs/relativize cfg-dir %))
+                (map str)
+                (filter #(not (contains? local-config-paths-set %))))
+          (fs/glob cfg-dir glob
+                   {:max-depth 3}))))
 
 (comment
   (auto-configs ".clj-kondo" #{} "**/**/config.edn")
