@@ -132,6 +132,20 @@
       cfg)
     cfg))
 
+(defn auto-configs [cfg-dir local-config-paths-set glob]
+  (when cfg-dir
+    (into []
+          (comp (map fs/parent)
+                (map #(fs/relativize cfg-dir %))
+                (map str)
+                (filter #(not (contains? local-config-paths-set %))))
+          (fs/glob cfg-dir glob
+                   {:max-depth 3}))))
+
+(comment
+  (auto-configs ".clj-kondo" #{} "**/**/config.edn")
+  )
+
 (defn resolve-config [^java.io.File cfg-dir configs debug]
   (let [local-config (when cfg-dir
                        (let [f (io/file cfg-dir "config.edn")]
@@ -141,14 +155,11 @@
                                 (not (false? (:auto-load-configs local-config))))
         local-config-paths (:config-paths local-config)
         local-config-paths-set (set local-config-paths)
+        import-dir-exists (fs/exists? (fs/file cfg-dir "imports"))
+        root-imports (seq (auto-configs cfg-dir local-config-paths-set "**/**/config.edn"))
         discovered (when auto-load-configs?
-                     (into []
-                           (comp (map fs/parent)
-                                 (map #(fs/relativize cfg-dir %))
-                                 (map str)
-                                 (filter #(not (contains? local-config-paths-set %))))
-                           (fs/glob cfg-dir "**/**/config.edn"
-                                    {:max-depth 3})))
+                     (concat root-imports
+                             (auto-configs cfg-dir local-config-paths-set "imports/**/**/config.edn")))
         _ (when (and debug
                      auto-load-configs?
                      (seq discovered))
@@ -173,7 +184,9 @@
                  (map read-config configs)))
         config (config/expand-ignore config)]
     (cond-> config
-      cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)))))
+      cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)
+                     :use-import-dir (or import-dir-exists
+                                         (not root-imports))))))
 
 ;;;; process cache
 
@@ -218,19 +231,21 @@
 ;;;; jar processing
 
 (defn copy-config-entry
-  [ctx entry-name source cfg-dir]
+  [ctx entry-name source cfg-dir use-import-dir?]
   (try
     (let [dirs (str/split entry-name #"/")
           root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
           copied-dir (apply io/file (take 2 root))
-          dest (apply io/file cfg-dir root)]
+          dest (apply io/file cfg-dir (cond-> root
+                                        use-import-dir?
+                                        (->> (cons "imports"))))]
       (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (spit dest source))
     (catch Exception e (prn (.getMessage e)))))
 
 (defn sources-from-jar
-  [ctx ^java.io.File jar-file canonical?]
+  [ctx ^java.io.File jar-file canonical? use-import-dir?]
   (with-open [jar (JarFile. jar-file)]
     (let [cfg-dir (:config-dir ctx)
           entries (enumeration-seq (.entries jar))
@@ -262,7 +277,7 @@
                            ;; never lint exported hook code
                            (when (:copy-configs ctx)
                              ;; only copy when copy-configs is true
-                             (copy-config-entry ctx entry-name source cfg-dir))
+                             (copy-config-entry ctx entry-name source cfg-dir use-import-dir?))
                            {:uri (->uri (str (.getCanonicalPath jar-file)) entry-name nil)
                             :filename (str (when canonical?
                                              (str (.getCanonicalPath jar-file) ":"))
@@ -277,13 +292,15 @@
   (re-pattern (str/re-quote-replacement (System/getProperty "file.separator"))))
 
 (defn copy-config-file
-  [ctx path cfg-dir]
+  [ctx path cfg-dir use-import-dir?]
   (try
     (let [base-file (str path)
           dirs (str/split base-file file-pat)
           root (rest (drop-while #(not= "clj-kondo.exports" %) dirs))
           copied-dir (apply io/file (take 2 root))
-          dest (apply io/file cfg-dir root)]
+          dest (apply io/file cfg-dir (cond-> root
+                                        use-import-dir?
+                                        (->> (cons "imports"))))]
       (swap! (:detected-configs ctx) conj (str copied-dir))
       (io/make-parents dest)
       (io/copy (io/file base-file) dest))
@@ -304,7 +321,7 @@
     (re-find pat (fs/unixify filename))))
 
 (defn sources-from-dir
-  [ctx dir canonical?]
+  [ctx dir canonical? use-import-dir?]
   (let [seen (:seen-files ctx)
         cfg-dir (:config-dir ctx)
         files (file-seq dir)
@@ -331,7 +348,7 @@
                     ;; should be ok when editing single hook file, it won't be persisted to cache
                     (when (:copy-configs ctx)
                       ;; only copy when copy-configs is true
-                      (copy-config-file ctx file cfg-dir))
+                      (copy-config-file ctx file cfg-dir use-import-dir?))
                     (cond
                       (and can-read? source?)
                       {:uri (->uri nil nil nm)
@@ -440,7 +457,7 @@
     (when (or (:analysis ctx) (not (:skip-lint ctx)))
       (ana/analyze-input ctx filename uri source lang dev?))))
 
-(defn process-file [ctx path default-language canonical? filename-fallback]
+(defn process-file [ctx path default-language canonical? filename-fallback use-import-dir]
   (let [seen-files (:seen-files ctx)]
     (try
       (let [path (str path) ;; always assume path to be a string in the body of
@@ -470,7 +487,7 @@
                     (utils/stderr "[clj-kondo]" jar-name "was already linted, skipping")
                     (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                                          dev?)
-                              (sources-from-jar ctx file canonical?))
+                              (sources-from-jar ctx file canonical? use-import-dir))
                         (swap! (:mark-linted ctx) conj [skip-mark path]))))
                 ;; assume normal source file
                 (let [fn (if canonical?
@@ -486,7 +503,7 @@
                               dev?)))))
             ;; assume directory
             (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
-                  (sources-from-dir ctx file canonical?)))
+                  (sources-from-dir ctx file canonical? use-import-dir)))
           (= "-" path)
           (when-not (excluded? ctx filename-fallback)
             (schedule ctx {:filename (or filename-fallback "<stdin>")
@@ -495,7 +512,7 @@
                                    (lang-from-file filename-fallback default-language)
                                    default-language)} dev?))
           (classpath? path)
-          (run! #(process-file ctx % default-language canonical? filename-fallback)
+          (run! #(process-file ctx % default-language canonical? filename-fallback use-import-dir)
                 (str/split path
                            (re-pattern path-separator)))
           :else
@@ -523,16 +540,21 @@
                                         :row 0
                                         :message "Could not process file."})))))))
 
-(defn copied-config-paths [ctx]
+(defn copied-config-paths [ctx use-import-dir?]
   (when-let [cfg-dir (io/file (:config-dir ctx))]
     (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
                              (.relativize (.normalize (.toPath (.getAbsoluteFile (io/file "."))))
                                           (.normalize (.toPath cfg-dir)))
-                             cfg-dir))]
+                             cfg-dir))
+          rel-cfg-imports (cond-> (io/file rel-cfg-dir)
+                            use-import-dir?
+                            (io/file "imports"))]
       (->> ctx
            :detected-configs
            deref
-           (map #(->> % (io/file rel-cfg-dir) str utils/unixify-path))
+           (map #(->
+                  (io/file rel-cfg-imports %)
+                  str utils/unixify-path))
            sort
            distinct
            seq))))
@@ -548,7 +570,7 @@
               (println (str "- " i))))
           :else (println "No configs copied."))))
 
-(defn process-files [ctx files default-lang filename]
+(defn process-files [ctx files default-lang filename use-import-dir?]
   (let [ctx (assoc ctx :seen-files (atom #{}))
         cache-dir (:cache-dir ctx)
         ctx (assoc ctx :detected-configs (atom [])
@@ -556,7 +578,7 @@
                    :total-files (when (:file-analyzed-fn ctx)
                                   (files-count files ctx)))
         canonical? (-> ctx :config :output :canonical-paths)]
-    (run! #(process-file ctx % default-lang canonical? filename) files)
+    (run! #(process-file ctx % default-lang canonical? filename use-import-dir?) files)
     (when (and (:parallel ctx)
                (or (:analysis ctx)
                    (not (:skip-lint ctx))))
@@ -567,7 +589,7 @@
           (io/make-parents skip-file)
           (spit skip-file path))))
     (when (:copy-configs ctx)
-      (print-copied-configs (copied-config-paths ctx) (:config-dir ctx)))))
+      (print-copied-configs (copied-config-paths ctx use-import-dir?) (:config-dir ctx)))))
 
 ;;;; index defs and calls by language and namespace
 

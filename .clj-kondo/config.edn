@@ -42,5 +42,5 @@
  :ns-groups [{:pattern ".*-test"
               :name test-namespaces}]
  :config-in-ns {test-namespaces {:linters {:warn-on-reflection {:level :off}}}}
- :config-paths ["borkdude/deflet"]
+ :config-paths ["imports/borkdude/deflet"]
  }

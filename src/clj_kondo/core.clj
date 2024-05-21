@@ -120,6 +120,7 @@
                 (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
           ;; for backward compatibility non-sequential config should be wrapped into collection
           config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]) debug)
+          use-import-dir (:use-import-dir config)
           classpath (:classpath config)
           config (dissoc config :classpath)
           cache-dir (when cache (core-impl/resolve-cache-dir cfg-dir cache cache-dir))
@@ -209,7 +210,7 @@
           ;; primary file analysis and initial lint
           _ (core-impl/process-files (if parallel
                                        (assoc ctx :parallel parallel)
-                                       ctx) lint lang filename)
+                                       ctx) lint lang filename use-import-dir)
           ;;_ (prn (some-> analysis deref :java-class-usages))
           ;; _ (prn :used-nss @used-nss)
           _ (when analyze-java-class-usages?
