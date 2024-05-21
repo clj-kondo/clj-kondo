@@ -528,10 +528,12 @@ linting took 14ms, errors: 1, warnings: 1
 Sometimes it is desirable to configure a group of namespaces in one go. This can be done by creating namespace groups:
 
 ``` clojure
-{:ns-groups [{:pattern "foo\\..*" :name foo-group}]}
+{:ns-groups [{:pattern "foo\\..*" :name foo-group}
+             {:filename-pattern ".*bar_baz.*" :name bar-baz-group}]}
 ```
 
-Each group consists of a pattern (evaluated by `re-pattern` and matched with `re-find`) and a `:name` (symbol).
+Each group consists of a `:name` and either a `:pattern` which matches the namespace, or a `:filename-pattern` which matches the filename.
+The pattern is evaluated by `re-pattern` and matched with `re-find`.
 
 Namespace groups can be used in the following configurations:
 
