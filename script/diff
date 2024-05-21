@@ -11,7 +11,8 @@ read -r -d '' config <<'EOF' || true
     {:skip-args [clojure.pprint/defdirectives
                  cljs.pprint/defdirectives
                  clojure.data.json/codepoint-case]}
-  :def-fn {:level :warning}}}
+  :def-fn {:level :warning}
+  :redundant-str-call {:level :warning}}}
 EOF
 
 out="/tmp/clj-kondo-diff/branch.txt"
