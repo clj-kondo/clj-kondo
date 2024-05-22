@@ -606,6 +606,27 @@
                 (format "Namespace only aliased but wasn't loaded: %s"
                         ns-sym))))))))))
 
+(defn lint-discouraged-var! [ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym]
+  (let [discouraged-var-config
+        (get-in call-config [:linters :discouraged-var])]
+    (when-not (or (identical? :off (:level discouraged-var-config))
+                  (empty? (dissoc discouraged-var-config :level)))
+      (let [candidates (cons (symbol (str resolved-ns) (str fn-name))
+                             (map #(symbol (str %) (str fn-name))
+                                  (config/ns-groups call-config resolved-ns filename)))]
+        (doseq [fn-lookup-sym candidates]
+          (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
+            (when-not (identical? :off (:level cfg))
+              (findings/reg-finding! ctx {:filename filename
+                                          :level (:level cfg)
+                                          :row row
+                                          :end-row end-row
+                                          :col col
+                                          :end-col end-col
+                                          :type :discouraged-var
+                                          :message (or (:message cfg)
+                                                       (str "Discouraged var: " fn-sym))}))))))))
+
 (defn resolve-name
   [ctx call? ns-name name-sym expr]
   (let [lang (:lang ctx)
@@ -639,9 +660,9 @@
                 (when alias?
                   (reg-used-alias! ctx ns-name ns-sym))
                 (cond->
-                 {:ns ns*
-                  :name var-name
-                  :interop? (and cljs? (boolean interop))}
+                    {:ns ns*
+                     :name var-name
+                     :interop? (and cljs? (boolean interop))}
                   alias?
                   (assoc :alias ns-sym)
                   core?
@@ -675,11 +696,20 @@
                  :unresolved-ns ns-sym})
               (if cljs?
                 ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
-                (when-not (one-of ns* ["js" "goog"
+                (if-not (one-of ns* ["js" "goog"
                                        "Math" "String"])
                   {:name (symbol (name name-sym))
                    :unresolved? true
-                   :unresolved-ns ns-sym})
+                   :unresolved-ns ns-sym}
+                  (let [var-name (-> (str/split (name name-sym) #"\." 2) first symbol)
+                        {:keys [row end-row col end-col]} (meta expr)]
+                    ;; interop calls don't make it into linters/lint-var-usage,
+                    ;; this is why we call discouraged var here
+                    (lint-discouraged-var! ctx (:config ctx) ns-sym var-name
+                                           (:filename ctx)
+                                           row end-row col end-col
+                                           (symbol (str ns-sym) ns*))
+                    nil))
                 {:name (symbol (name name-sym))
                  :unresolved? true
                  :unresolved-ns ns-sym}))))
@@ -766,6 +796,16 @@
                          :unresolved? true
                          :allow-forward-reference? (:in-comment ctx)
                          :clojure-excluded? clojure-excluded?})))))))))))))
+
+#_
+(do
+  (def resolve-name* resolve-name)
+
+  (defn resolve-name [ctx call? ns-name name-sym expr]
+    (prn :resolve)
+    (let [x (resolve-name* ctx call? ns-name name-sym expr)]
+      (prn x)
+      x)))
 
 ;;;; Scratch
 

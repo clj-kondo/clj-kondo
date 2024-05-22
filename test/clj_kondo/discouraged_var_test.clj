@@ -94,3 +94,14 @@
      :message "Discouraged var: foo/bar"}]
    (lint! "(ns foo) (defn bar []) (bar)"
           '{:linters {:discouraged-var {foo/bar {:level :error}}}})))
+
+(deftest js-test
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Use web.http/js-fetch instead"}
+     {:file "<stdin>", :row 2, :col 1, :level :warning, :message "Use web.http/js-fetch instead"}
+     {:file "<stdin>", :row 3, :col 1, :level :warning, :message "Use web.http/js-fetch instead"})
+   (lint! "js/fetch
+(js/fetch)
+(js/fetch.foo)"
+          '{:linters {:discouraged-var {js/fetch {:message "Use web.http/js-fetch instead"}}}}
+          "--lang" "cljs")))

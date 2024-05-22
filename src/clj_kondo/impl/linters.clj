@@ -40,23 +40,23 @@
                  (set (rest fst-sexpr)))]
       (when init
         (when-let
-         [case-expr
-          (let [c (first
-                   (reduce
-                    (fn [acc sexpr]
-                      (if (=? sexpr)
-                        (let [new-acc
-                              (set/intersection acc
-                                                (set (rest sexpr)))]
-                          (if (= 1 (count new-acc))
-                            new-acc
-                            (reduced nil)))
-                        (if (= :else sexpr)
-                          acc
-                          (reduced nil))))
-                    init
-                    rest-sexprs))]
-            c)]
+            [case-expr
+             (let [c (first
+                      (reduce
+                       (fn [acc sexpr]
+                         (if (=? sexpr)
+                           (let [new-acc
+                                 (set/intersection acc
+                                                   (set (rest sexpr)))]
+                             (if (= 1 (count new-acc))
+                               new-acc
+                               (reduced nil)))
+                           (if (= :else sexpr)
+                             acc
+                             (reduced nil))))
+                       init
+                       rest-sexprs))]
+               c)]
           (findings/reg-finding!
            (node->line filename expr :warning :cond-as-case
                        (format "cond can be written as (case %s ...)"
@@ -132,10 +132,10 @@
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
-                             [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
+       [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (lint-missing-else-branch ctx (:expr call))
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
-                             [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
+       [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
@@ -365,25 +365,7 @@
                   fn-sym (symbol (str resolved-ns)
                                  (str fn-name))
                   _
-                  (let [discouraged-var-config
-                        (get-in (:config call) [:linters :discouraged-var])]
-                    (when-not (or (identical? :off (:level discouraged-var-config))
-                                  (empty? (dissoc discouraged-var-config :level)))
-                      (let [candidates (cons (symbol (str resolved-ns) (str fn-name))
-                                             (map #(symbol (str %) (str fn-name))
-                                                  (config/ns-groups call-config resolved-ns filename)))]
-                        (doseq [fn-lookup-sym candidates]
-                          (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
-                            (when-not (identical? :off (:level cfg))
-                              (findings/reg-finding! ctx {:filename filename
-                                                          :level (:level cfg)
-                                                          :row row
-                                                          :end-row end-row
-                                                          :col col
-                                                          :end-col end-col
-                                                          :type :discouraged-var
-                                                          :message (or (:message cfg)
-                                                                       (str "Discouraged var: " fn-sym))})))))))]
+                  (namespace/lint-discouraged-var! ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym)]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and ;; unresolved?
@@ -455,14 +437,14 @@
                                                  (str fn-sym))}))
       (when-let [deprecated (:deprecated called-fn)]
         (when-not
-         (or
+            (or
              ;; recursive call
-          recursive?
-          (utils/linter-disabled? call :deprecated-var)
-          (config/deprecated-var-excluded
-           (:config call)
-           fn-sym
-           caller-ns-sym in-def))
+             recursive?
+             (utils/linter-disabled? call :deprecated-var)
+             (config/deprecated-var-excluded
+              (:config call)
+              fn-sym
+              caller-ns-sym in-def))
           (findings/reg-finding! ctx
                                  {:filename filename
                                   :row row
@@ -591,9 +573,9 @@
               config (:config v)
               ctx (assoc ctx :config config)]
           (when-not
-           (or (contains? used-referred-vars k)
-               (config/unused-referred-var-excluded config var-ns k)
-               (contains? refer-all-nss var-ns))
+              (or (contains? used-referred-vars k)
+                  (config/unused-referred-var-excluded config var-ns k)
+                  (contains? refer-all-nss var-ns))
             (let [filename (:filename v)
                   referred-ns (export-ns-sym var-ns)]
               (findings/reg-finding!
