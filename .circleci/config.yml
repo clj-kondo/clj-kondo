@@ -385,7 +385,7 @@ jobs:
           key: v1-dependencies-{{ checksum "deps.edn" }}
   docker:
     machine:
-      image: current
+      image: ubuntu-2204:2024.04.4
     steps:
     - checkout
     - run:
