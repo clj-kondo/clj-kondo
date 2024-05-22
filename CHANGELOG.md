@@ -20,15 +20,15 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## 2024.05.22
 
 - [#2323](https://github.com/clj-kondo/clj-kondo/issues/2323): New linter `:redundant-str-call` which detects unnecessary `str` calls. Off by default.
-- [#1035](https://github.com/clj-kondo/clj-kondo/issues/1035): Support SARIF output with `--config {:output {:format :sarif}}`
-- [#2309](https://github.com/clj-kondo/clj-kondo/issues/2309): report unused for expression
-- [#2315](https://github.com/clj-kondo/clj-kondo/issues/2315): fix regression with unused JavaScript namespace
 - [#2302](https://github.com/clj-kondo/clj-kondo/issues/2302): New linter: `:equals-expected-position` to enforce expected value to be in first (or last) position. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
+- [#1035](https://github.com/clj-kondo/clj-kondo/issues/1035): Support SARIF output with `--config {:output {:format :sarif}}`
+- [#2309](https://github.com/clj-kondo/clj-kondo/issues/2309): Report unused `for` expression
+- [#2315](https://github.com/clj-kondo/clj-kondo/issues/2315): Fix regression with unused JavaScript namespace
 - [#2304](https://github.com/clj-kondo/clj-kondo/issues/2304): Report unused value in `defn` body
-- [#2227](https://github.com/clj-kondo/clj-kondo/issues/2227): allow `:flds` to be used in keys destructuring for ClojureDart
-- [#2316](https://github.com/clj-kondo/clj-kondo/issues/2316): handle ignore hint on protocol method
-- [#2322](https://github.com/clj-kondo/clj-kondo/issues/2322): add location to warning about invalid unicode character
-- [#2319](https://github.com/clj-kondo/clj-kondo/issues/2319): support `:discouraged-var` on global JS values, like `js/fetch`
+- [#2227](https://github.com/clj-kondo/clj-kondo/issues/2227): Allow `:flds` to be used in keys destructuring for ClojureDart
+- [#2316](https://github.com/clj-kondo/clj-kondo/issues/2316): Handle ignore hint on protocol method
+- [#2322](https://github.com/clj-kondo/clj-kondo/issues/2322): Add location to warning about invalid unicode character
+- [#2319](https://github.com/clj-kondo/clj-kondo/issues/2319): Support `:discouraged-var` on global JS values, like `js/fetch`
 
 ## 2024.03.13
 
