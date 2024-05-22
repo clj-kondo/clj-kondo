@@ -22,6 +22,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2323](https://github.com/clj-kondo/clj-kondo/issues/2323): New linter `:redundant-str-call` which detects unnecessary `str` calls. Off by default.
 - [#2302](https://github.com/clj-kondo/clj-kondo/issues/2302): New linter: `:equals-expected-position` to enforce expected value to be in first (or last) position. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
 - [#1035](https://github.com/clj-kondo/clj-kondo/issues/1035): Support SARIF output with `--config {:output {:format :sarif}}`
+- Fix [#2307](https://github.com/clj-kondo/clj-kondo/issues/2307): import configs to intermediate dir
 - [#2309](https://github.com/clj-kondo/clj-kondo/issues/2309): Report unused `for` expression
 - [#2315](https://github.com/clj-kondo/clj-kondo/issues/2315): Fix regression with unused JavaScript namespace
 - [#2304](https://github.com/clj-kondo/clj-kondo/issues/2304): Report unused value in `defn` body
