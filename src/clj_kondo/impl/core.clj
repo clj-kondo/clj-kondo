@@ -140,11 +140,9 @@
                 (map str)
                 (filter #(not (contains? local-config-paths-set %))))
           (fs/glob cfg-dir glob
-                   {:max-depth 3}))))
-
-(comment
-  (auto-configs ".clj-kondo" #{} "**/**/config.edn")
-  )
+                   {:max-depth (if (str/starts-with? glob "imports")
+                                 4
+                                 3)}))))
 
 (defn resolve-config [^java.io.File cfg-dir configs debug]
   (let [local-config (when cfg-dir
