@@ -1,13 +1,13 @@
 (ns clj-kondo.config-paths-test
   (:require
    [babashka.fs :as fs]
-   [clj-kondo.test-utils :refer [lint! assert-submaps native?]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps2 native?]]
    [clojure.java.io :as io]
    [clojure.test :refer [deftest testing is]])
   (:import [java.nio.file Files]))
 
 (deftest re-frame-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "corpus/hooks/re_frame.clj", :row 6, :col 12, :level :warning, :message #"keyword should be fully qualified!"})
    (lint! (io/file "corpus" "hooks" "re_frame.clj")
           {:linters {:unresolved-symbol {:level :error}
@@ -32,7 +32,7 @@
           (io/make-parents cfg-file)
           (spit cfg-file "{:lint-as {foo.foo/foo clojure.core/let}}")
           (testing "config from home dir is picked up"
-            (assert-submaps
+            (assert-submaps2
              '({:level :warning, :message "unused binding x"}
                {:level :warning, :message "unused binding y"})
              (lint! prog)))
@@ -47,7 +47,7 @@
     (when-not native?
       (testing "auto-load-configs enabled by default, even with no config.edn"
         (is (not (fs/exists? config-file)))
-        (assert-submaps
+        (assert-submaps2
          '({:file "corpus/acme/lib/example.clj", :row 7, :col 21, :level :error, :message "Unresolved symbol: a"})
          (lint! (io/file "corpus" "acme" "lib" "example.clj")
                 {:linters {:unresolved-symbol {:level :error}}}

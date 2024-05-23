@@ -1,0 +1,1 @@
+{:linters {:unresolved-symbol {:exclude [(acme.lib.example/awful-macro2 [x y z])]}}}

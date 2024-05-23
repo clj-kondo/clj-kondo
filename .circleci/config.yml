@@ -381,7 +381,7 @@ jobs:
       - run: .circleci/script/deploy
       - save_cache:
           paths:
-            - ~/.m2
+           - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
   docker:
     machine:
