@@ -52,16 +52,11 @@
           (symbol-node reader v s)
           (node/token-node v s)))
       (catch Exception e
-        (if r/*reader-exceptions*
-          (do (let [{:keys [:type :ex-kind]} (ex-data e)]
-                (if (and (= :reader-exception type)
-                         (or (= :reader-error ex-kind)
-                             (= :illegal-argument ex-kind)
-                             (= :eof ex-kind)))
-                  (let [f {:row token-row
-                           :col token-col
-                           :message (.getMessage e)}]
-                    (swap! r/*reader-exceptions* conj (ex-info "Syntax error" {:findings [f]})))
-                  (throw e)))
-              reader)
+        (if (and r/*reader-exceptions*
+                 (= :reader-exception (:type (ex-data e))))
+          (let [f {:row token-row
+                   :col token-col
+                   :message (.getMessage e)}]
+            (swap! r/*reader-exceptions* conj (ex-info "Syntax error" {:findings [f]}))
+            reader)
           (throw e))))))
