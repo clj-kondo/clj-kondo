@@ -3556,7 +3556,17 @@ foo/")))
 (deftest issue-2322-test
   (assert-submaps
    '({:file "corpus/invalid_unicode.clj", :row 3, :col 1, :level :error, :message "Invalid unicode literal: \\u12345."})
-   (lint! (io/file "corpus/invalid_unicode.clj"))))
+   (lint! (io/file "corpus/invalid_unicode.clj")))
+  (assert-submaps
+   '({:row 3, :col 1, :level :error, :message "A single colon is not a valid keyword."}
+     {:row 4, :col 1, :level :error, :message "A single colon is not a valid keyword."}
+     {:row 5, :col 1, :level :error, :message "Invalid keyword: foo:."}
+     {:row 6, :col 1, :level :error, :message "Invalid symbol: foo:."}
+     {:row 7, :col 1, :level :error, :message "Invalid symbol: foo/."}
+     {:row 8, :col 1, :level :error, :message "Invalid keyword: foo/."}
+     {:row 9, :col 1, :level :error, :message "EOF while reading."}
+     {:row 10, :col 1, :level :error, :message "Invalid token: ##NAN"})
+   (lint! (io/file "corpus/invalid_literals.clj"))))
 
 ;;;; Scratch
 
