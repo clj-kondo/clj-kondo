@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## 2024.05.24
 
 - Imports were copied to `.clj-kondo/imports` but weren't pick up correctly. Thanks [@frenchy64](https://github.com/frenchy64) for reporting the bug.
+- [#2333](https://github.com/clj-kondo/clj-kondo/issues/2333): Add location to invalid literal syntax errors
 
 ## 2024.05.22
 
