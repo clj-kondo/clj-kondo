@@ -2218,9 +2218,9 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                            [[ns n]
-                             (config/lint-as config
-                                             [resolved-namespace resolved-name])]
+                         [[ns n]
+                          (config/lint-as config
+                                          [resolved-namespace resolved-name])]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -2283,8 +2283,8 @@
                                         (= arg-count
                                            new-arg-count))
                         expanded (assoc expanded :visited [resolved-namespace resolved-name])]
-                ;;;; This registers the original call when the new node does not
-                ;;;; refer to the same call, so we still get arity linting
+                    ;;;; This registers the original call when the new node does not
+                    ;;;; refer to the same call, so we still get arity linting
                     (when (and (:analyze-var-usages? ctx)
                                (not same-call?))
                       (namespace/reg-var-usage!
@@ -2318,14 +2318,14 @@
                                     :idx (:idx ctx)
                                     :len (:len ctx)
                                     :derived-location (:derived-location expr-meta)}))
-                  ;;;; This registers the namespace as used, to prevent unused warnings
+                    ;;;; This registers the namespace as used, to prevent unused warnings
                     (namespace/reg-used-namespace! ctx
                                                    ns-name
                                                    resolved-namespace)
                     (let [node expanded]
                       (analyze-expression** (assoc-some ctx :defined-by (:defined-by transformed))
                                             node)))
-              ;;;; End macroexpansion
+                  ;;;; End macroexpansion
                   (let [fq-sym (when (and resolved-namespace
                                           resolved-name)
                                  (symbol (str resolved-namespace)
@@ -2333,7 +2333,8 @@
                         unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
                         resolved-namespace* (if unknown-ns?
                                               ns-name resolved-namespace)
-                        ctx (if fq-sym
+                        ctx (if (and fq-sym
+                                     (not (one-of fq-sym [clojure.core/doto])))
                               (update ctx :callstack
                                       (fn [cs]
                                         (let [generated? (:clj-kondo.impl/generated expr)]
@@ -2503,7 +2504,7 @@
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
-                             [cljs.core.async alt!] [cljs.core.async alt!!])
+                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
                              (assoc ctx
                                     :analyze-expression** analyze-expression**

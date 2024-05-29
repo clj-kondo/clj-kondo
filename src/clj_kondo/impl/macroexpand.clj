@@ -83,14 +83,15 @@
              (with-meta x (assoc (meta x) :clj-kondo.impl/generated true)))
         ret (list-node
              (list* (token-node 'clojure.core/let) (vector-node [gx x])
-                    (map (fn [f]
-                           (with-meta-of
-                             (let [t (tag f)]
-                               (if (= :list t)
-                                 (let [fc (:children f)]
-                                   (list-node (list* (first fc) gx (next fc))))
-                                 (list-node [f gx])))
-                             f)) forms)))]
+                    (conj (mapv (fn [f]
+                                 (with-meta-of
+                                   (let [t (tag f)]
+                                     (if (= :list t)
+                                       (let [fc (:children f)]
+                                         (list-node (list* (first fc) gx (next fc))))
+                                       (list-node [f gx])))
+                                   f)) forms)
+                          gx)))]
     ret))
 
 (defn expand-dot-constructor
