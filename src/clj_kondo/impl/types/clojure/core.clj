@@ -52,6 +52,7 @@
 
 (def clojure-core
   {'do {:fn last}
+   'doto {:fn first}
    'if {:fn (fn [[_ then else]]
               (tu/union-type then else))}
    'let {:fn last}
