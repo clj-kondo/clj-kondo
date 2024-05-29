@@ -51,10 +51,18 @@
                                  :ret :int}}})
 
 (def clojure-core
-  {'do {:fn last}
+  {'do {:fn (fn [& args]
+              (prn :args args)
+              (last args))}
    'if {:fn (fn [[_ then else]]
-              (tu/union-type then else))}
+              (let [then* (:tag then then)
+                    else* (:tag else else)]
+                (cond (identical? then* :recur) else
+                      (identical? else* :recur) then
+                      :else
+                      (tu/union-type then else))))}
    'let {:fn last}
+   'recur {:fn (constantly :recur)}
    ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
@@ -744,7 +752,9 @@
    ;; 4481 'let
    ;; 4513 'fn
    'fn {:arities {:varargs {:ret :fn}}}
-   ;; 4575 'loop
+   'loop (fn [& args]
+           (prn :loop-args args)
+           (last args))
    ;; 4600 'when-first
    ;; 4614 'lazy-cat
    ;; 4624 'for

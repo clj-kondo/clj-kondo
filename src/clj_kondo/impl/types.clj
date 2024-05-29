@@ -481,6 +481,8 @@
 (defn lint-arg-types
   [ctx {called-ns :ns called-name :name arities :arities :as _called-fn}
    args tags call]
+  (when (= 'inc called-name)
+    (prn :inc args))
   (try
     (let [config (:config ctx)
           called-ns (or called-ns (:resolved-ns call))
