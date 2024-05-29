@@ -1058,6 +1058,12 @@
        (lint! "(throw 1)" config)))
   (is (empty? (lint! "(throw #_:clj-kondo/ignore 1)" config))))
 
+(deftest do-test
+  (is (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: string."} {:file "<stdin>", :row 1, :col 20, :level :error, :message "Expected: number, received: keyword."})
+       (lint! "(inc (do (prn (inc :foo)) \"not a number\"))"
+              config))))
+
 ;;;; Scratch
 
 (comment

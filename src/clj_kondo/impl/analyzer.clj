@@ -916,7 +916,7 @@
       (findings/reg-finding!
        ctx
        (node->line filename expr :redundant-do "redundant do"))))
-  (analyze-children ctx (next (:children expr))))
+  (analyze-children ctx (next (:children expr)) false))
 
 (defn lint-two-forms-binding-vector! [ctx form-name expr]
   (let [num-children (count (:children expr))]

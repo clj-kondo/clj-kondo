@@ -51,7 +51,8 @@
                                  :ret :int}}})
 
 (def clojure-core
-  {'if {:fn (fn [[_ then else]]
+  {'do {:fn last}
+   'if {:fn (fn [[_ then else]]
               (tu/union-type then else))}
    'let {:fn last}
    ;; 16
