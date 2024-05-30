@@ -159,3 +159,11 @@
    '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Unused value"})
    (lint! "(defn foo [] (for [x [1 2 3]] x) nil)"
           {:linters {:unused-value {:level :warning}}})))
+
+(deftest issue-2335-test
+  (is (empty?
+       (lint! "(do (require '[clojure.tools.reader :as ctr]) (ctr/read) :ok)"
+              {:linters {:unused-value {:level :warning}}})))
+  (is (empty?
+       (lint! "(do (require '[clojure.tools.reader.edn :as ctr.edn]) (ctr.edn/read) :ok)"
+              {:linters {:unused-value {:level :warning}}}))))
