@@ -108,15 +108,17 @@
           [k (symbol (.getName ^Class v))])))
 
 (defn extract-unused-values [var-info]
-  (reduce-kv (fn [acc sym info]
-               (if (or (:warn-if-ret-val-unused info)
-                       (:pure-fn info)
-                       (:lazy info) ;; unrealized laziness = unused value
-                       #_(:pure-fn-if-fn-args-pure info))
-                 (conj acc sym)
-                 acc))
-             '#{clojure.core/for}
-             var-info))
+  (-> (reduce-kv (fn [acc sym info]
+                   (if (or (:warn-if-ret-val-unused info)
+                           (:pure-fn info)
+                           (:lazy info) ;; unrealized laziness = unused value
+                           #_(:pure-fn-if-fn-args-pure info))
+                     (conj acc sym)
+                     acc))
+                 '#{clojure.core/for}
+                 var-info)
+      (disj 'clojure.tools.reader.edn/read
+            'clojure.tools.reader/read)))
 
 (defn print-set-sorted [s]
   (format "#{%s}"

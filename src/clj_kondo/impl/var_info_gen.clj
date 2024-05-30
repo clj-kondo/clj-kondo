@@ -2387,11 +2387,9 @@ clojure.string/triml
 clojure.string/trimr
 clojure.string/upper-case
 clojure.tools.reader/map-func
-clojure.tools.reader/read
 clojure.tools.reader/read-string
 clojure.tools.reader/resolve-symbol
 clojure.tools.reader/syntax-quote
-clojure.tools.reader.edn/read
 clojure.tools.trace/clone-throwable
 clojure.tools.trace/deftrace
 clojure.tools.trace/dotrace
