@@ -54,11 +54,27 @@
                                  :ret :int}}})
 
 (def clojure-core
-  {'do {:fn last}
-   'doto {:fn first}
+  {;;; Special forms (https://clojure.org/reference/special_forms)
+   ;; 'def
    'if {:fn (fn [[_ then else]]
               (tu/union-type then else))}
+   'do {:fn last}
+   ;; 'let*
    'let {:fn last}
+   ;; 'quote
+   ;; 'var
+   ;; 'fn*
+   'fn {:arities {:varargs {:ret :fn}}}
+   ;; 'loop*
+   ;; 'recur
+   'throw {:arities {1 {:args [:throwable]}}}
+   ;; 'try
+   ;; 'catch
+   ;; 'finally
+   ;; 'monitor-enter
+   ;; 'monitor-exit
+
+   ;;; Public vars as of 1.10.0
    ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
@@ -697,7 +713,8 @@
                       3 {:args [:vector :nat-int :nat-int]
                          :ret :vector}}}
    ;; 3831 'with-open
-   ;; 3852 'doto
+   ;; 3852
+   'doto {:fn first}
    ;; 3871 'memfn
    ;; 3884 'time
    ;; 3898 'alength
@@ -750,7 +767,6 @@
    ;; 4389 'destructure
    ;; 4481 'let
    ;; 4513 'fn
-   'fn {:arities {:varargs {:ret :fn}}}
    ;; 4575 'loop
    ;; 4600 'when-first
    ;; 4614 'lazy-cat
@@ -1081,7 +1097,30 @@
    ;; 7868 'add-tap
    ;; 7879 'remove-tap
    ;; 7886 'tap>
-   'throw {:arities {1 {:args [:throwable]}}}
+
+   ;;; Added in 1.11.0
+   ;; 1137 'abs
+   ;; 4392 'seq-to-map-for-destructuring
+   ;; 6861 'random-uuid
+   ;; 7786 'iteration
+   ;; 8008 'update-vals
+   ;; 8024 'update-keys
+   ;; 8044 'parse-long
+   ;; 8055 'parse-double
+   ;; 8068 'parse-uuid
+   ;; 8079 'parse-boolean
+   ;; 8090 'NaN?
+   ;; 8099 'infinite?
+
+   ;;; Added in 1.12.0
+   ;; 6357 '*repl*
+   ;; 6853 'stream-reduce!
+   ;; 6862 'stream-seq!
+   ;; 6869 'stream-transduce!
+   ;; 6879 'stream-into!
+   ;; 7414 'splitv-at
+   ;; 7420 'partitionv
+   ;; 7443 'partitionv-all
    })
 
 (def cljs-core
