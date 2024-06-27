@@ -2876,10 +2876,24 @@
                      callstack (:callstack ctx)]
                  (when (and (symbol? (ffirst callstack))
                             idx len (< idx (dec len)))
-                   (findings/reg-finding! ctx (assoc (meta expr)
-                                                     :type :unused-value
-                                                     :message "Unused value"
-                                                     :filename (:filename ctx)))))
+                   (let [parent-call (first (:callstack ctx))
+                             core? (one-of (first parent-call) [clojure.core cljs.core])
+                             core-sym (when core?
+                                        (second parent-call))
+                             generated? (:clj-kondo.impl/generated expr)
+                             redundant?
+                             (and (not generated?)
+                                  core?
+                                  (not (:clj-kondo.impl/generated (meta parent-call)))
+                                  (one-of core-sym [do fn defn defn-
+                                                    let when-let loop binding with-open
+                                                    doseq try when when-not when-first
+                                                    when-some future]))]
+                         (when redundant?
+                           (findings/reg-finding! ctx (assoc (meta expr)
+                                                             :type :unused-value
+                                                             :message "Unused value"
+                                                             :filename (:filename ctx)))))))
                (key-linter/lint-map-keys ctx expr)
                (let [children (if (:data-readers ctx)
                                 (map (fn [child k]
