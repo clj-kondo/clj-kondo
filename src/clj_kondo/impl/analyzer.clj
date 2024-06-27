@@ -2872,8 +2872,10 @@
                          expr)
         :map (do
                (let [idx (:idx ctx)
-                     len (:len ctx)]
-                 (when (< idx (dec len))
+                     len (:len ctx)
+                     callstack (:callstack ctx)]
+                 (when (and (symbol? (ffirst callstack))
+                            idx len (< idx (dec len)))
                    (findings/reg-finding! ctx (assoc (meta expr)
                                                      :type :unused-value
                                                      :message "Unused value"
