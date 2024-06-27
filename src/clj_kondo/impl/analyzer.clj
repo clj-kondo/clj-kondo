@@ -475,7 +475,11 @@
         one-child? (= 1 (count children))
         pre-post-map (when-not one-child?
                        (when (and first-child
-                                  (identical? :map (tag first-child)))
+                                  (identical? :map (tag first-child))
+                                  (some #(let [k (:k %)]
+                                           (or (= :pre k)
+                                               (= :post k)))
+                                        (take-nth 2 (:children first-child))))
                          first-child))
         analyze-pre-post (when pre-post-map
                            (analyze-pre-post-map ctx first-child))
@@ -2866,24 +2870,32 @@
                                     analyze-expression**)
                              (update :callstack #(cons [nil t] %)))
                          expr)
-        :map (do (key-linter/lint-map-keys ctx expr)
-                 (let [children (if (:data-readers ctx)
-                                  (map (fn [child k]
-                                         (assoc child :clj-kondo.internal/map-position k))
-                                       children
-                                       (cycle [:key :val]))
-                                  children)
-                       children (map (fn [c s]
-                                       (assoc c :id s))
+        :map (do
+               (let [idx (:idx ctx)
+                     len (:len ctx)]
+                 (when (< idx (dec len))
+                   (findings/reg-finding! ctx (assoc (meta expr)
+                                                     :type :unused-value
+                                                     :message "Unused value"
+                                                     :filename (:filename ctx)))))
+               (key-linter/lint-map-keys ctx expr)
+               (let [children (if (:data-readers ctx)
+                                (map (fn [child k]
+                                       (assoc child :clj-kondo.internal/map-position k))
                                      children
-                                     (repeatedly gensym))
-                       analyzed (analyze-children
-                                 (update ctx
-                                         :callstack #(cons [nil t] %)) children)]
-                   (types/add-arg-type-from-expr ctx (assoc expr
-                                                            :children children
-                                                            :analyzed analyzed))
-                   analyzed))
+                                     (cycle [:key :val]))
+                                children)
+                     children (map (fn [c s]
+                                     (assoc c :id s))
+                                   children
+                                   (repeatedly gensym))
+                     analyzed (analyze-children
+                               (update ctx
+                                       :callstack #(cons [nil t] %)) children)]
+                 (types/add-arg-type-from-expr ctx (assoc expr
+                                                          :children children
+                                                          :analyzed analyzed))
+                 analyzed))
         :set (do (key-linter/lint-set ctx expr)
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
