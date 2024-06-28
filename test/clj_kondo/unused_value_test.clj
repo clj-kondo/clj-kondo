@@ -149,8 +149,9 @@
 
 (deftest issue-2304-test
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Unused value: \"hello\""}
-     {:file "<stdin>", :row 1, :col 28, :level :warning, :message "Unused value"})
+   [{:file "<stdin>", :row 1, :col 17, :level :warning, :message "Unused value"}
+    {:file "<stdin>", :row 1, :col 20, :level :warning, :message "Unused value: \"hello\""}
+    {:file "<stdin>", :row 1, :col 28, :level :warning, :message "Unused value"}]
    (lint! "(defn foo [bar] {} \"hello\" (+ 2 2) bar)"
           {:linters {:unused-value {:level :warning}}})))
 
