@@ -603,9 +603,12 @@
                            (let [lct (tag lc)]
                              (when (= :map lct) lc))))))
         children (if meta-node2 (butlast children) children)
+        ;; to not trigger unused-value linter we insert empty vector in callstack
+        meta-ctx (update ctx :callstack (fn [cs]
+                                          (cons [] cs)))
         ;; use dorun to force evaluation, we don't use the result!
-        _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
-        _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
+        _ (when meta-node (dorun (analyze-expression** meta-ctx meta-node)))
+        _ (when meta-node2 (dorun (analyze-expression** meta-ctx meta-node2)))
         meta-node-meta (when meta-node (sexpr meta-node))
         [doc-node docstring] (or (and meta-node-meta
                                       (:doc meta-node-meta)
