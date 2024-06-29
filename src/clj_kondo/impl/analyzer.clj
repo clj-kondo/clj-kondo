@@ -2830,51 +2830,8 @@
     (lint-discouraged-tags! ctx tag-expr)
     (analyze-children ctx children)))
 
-#_(requiring-resolve 'clojure.set/union)
-
-(defn analyze-expression**
-  [{:keys [bindings lang] :as ctx}
-   {:keys [children] :as expr}]
-  (when expr
-    (let [expr (if (or (not= :edn lang)
-                       (:quoted ctx))
-                 (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
-                 expr)
-          t (tag expr)
-          {:keys [row col]} (meta expr)
-          arg-count (count (rest children))]
-      (utils/handle-ignore ctx expr)
-      ;; map's type is added in :map handler below
-      ;; namespaced map's type is added when going through analyze-expression** via analyze-namespaced-map
-      ;; list and quote are handled specially because of return types
-      (when-not (one-of t [:namespaced-map :map :list :quote :token])
-        ;; TODO: add types for all token cases!
-        (types/add-arg-type-from-expr ctx expr))
-      (case t
-        :quote (let [ctx (assoc ctx :quoted true)]
-                 (types/add-arg-type-from-expr ctx (first (:children expr)))
-                 (analyze-children ctx children))
-        :syntax-quote (analyze-usages2 (assoc ctx :arg-types nil) expr)
-        :var (analyze-var ctx expr (:children expr))
-        :reader-macro (do
-                        (when (and (not (identical? :cljc (:base-lang ctx)))
-                                   (str/starts-with? (-> expr :children first str) "?"))
-                          (findings/reg-finding! ctx (assoc (meta expr)
-                                                            :filename (:filename ctx)
-                                                            :level :error
-                                                            :type :syntax
-                                                            :message "Reader conditionals are only allowed in .cljc files")))
-                        (analyze-reader-macro ctx expr))
-        (:unquote :unquote-splicing)
-        (analyze-children ctx children)
-        :namespaced-map (usages/analyze-namespaced-map
-                         (-> ctx
-                             (assoc :analyze-expression**
-                                    analyze-expression**)
-                             (update :callstack #(cons [nil t] %)))
-                         expr)
-        :map (do
-               (let [idx (:idx ctx)
+(defn- lint-unused-value [ctx expr]
+  (let [idx (:idx ctx)
                      len (:len ctx)
                      callstack (:callstack ctx)]
                  (when (and (symbol? (ffirst callstack))
@@ -2896,7 +2853,61 @@
                            (findings/reg-finding! ctx (assoc (meta expr)
                                                              :type :unused-value
                                                              :message "Unused value"
-                                                             :filename (:filename ctx)))))))
+                                                             :filename (:filename ctx))))))))
+
+#_(requiring-resolve 'clojure.set/union)
+
+(defn analyze-expression**
+  [{:keys [bindings lang] :as ctx}
+   {:keys [children] :as expr}]
+  (when expr
+    (let [expr (if (or (not= :edn lang)
+                       (:quoted ctx))
+                 (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
+                 expr)
+          t (tag expr)
+          {:keys [row col]} (meta expr)
+          arg-count (count (rest children))]
+      (utils/handle-ignore ctx expr)
+      ;; map's type is added in :map handler below
+      ;; namespaced map's type is added when going through analyze-expression** via analyze-namespaced-map
+      ;; list and quote are handled specially because of return types
+      (when-not (one-of t [:namespaced-map :map :list :quote :token])
+        ;; TODO: add types for all token cases!
+        (types/add-arg-type-from-expr ctx expr))
+      (case t
+        :quote (do
+                 (lint-unused-value ctx expr)
+                 (let [ctx (assoc ctx :quoted true)]
+                   (types/add-arg-type-from-expr ctx (first (:children expr)))
+                   (analyze-children ctx children)))
+        :syntax-quote (do
+                        (lint-unused-value ctx expr)
+                        (analyze-usages2 (assoc ctx :arg-types nil) expr))
+        :var (do
+               (lint-unused-value ctx expr)
+               (analyze-var ctx expr (:children expr)))
+        :reader-macro (do
+                        (when (and (not (identical? :cljc (:base-lang ctx)))
+                                   (str/starts-with? (-> expr :children first str) "?"))
+                          (findings/reg-finding! ctx (assoc (meta expr)
+                                                            :filename (:filename ctx)
+                                                            :level :error
+                                                            :type :syntax
+                                                            :message "Reader conditionals are only allowed in .cljc files")))
+                        (analyze-reader-macro ctx expr))
+        (:unquote :unquote-splicing)
+        (analyze-children ctx children)
+        :namespaced-map (do
+                          (lint-unused-value ctx expr)
+                          (usages/analyze-namespaced-map
+                             (-> ctx
+                                 (assoc :analyze-expression**
+                                        analyze-expression**)
+                                 (update :callstack #(cons [nil t] %)))
+                             expr))
+        :map (do
+               (lint-unused-value ctx expr)
                (key-linter/lint-map-keys ctx expr)
                (let [children (if (:data-readers ctx)
                                 (map (fn [child k]
@@ -2915,11 +2926,13 @@
                                                           :children children
                                                           :analyzed analyzed))
                  analyzed))
-        :set (do (key-linter/lint-set ctx expr)
+        :set (do (lint-unused-value ctx expr)
+                 (key-linter/lint-set ctx expr)
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
                                    children))
         :fn (do
+              (lint-unused-value ctx expr)
               (when (and (:in-fn-literal ctx)
                          (not (:clj-kondo.impl/generated expr)))
                 (findings/reg-finding! ctx (assoc (meta expr)
@@ -2940,36 +2953,38 @@
                          has-first-arg? (update :bindings assoc '% {}))
                        expanded-node)))
         :token
-        (let [edn? (= :edn lang)]
-          (if (or edn?
-                  (:quoted ctx))
-            (if (:k expr)
-              (do (usages/analyze-keyword ctx expr)
+        (do
+          (lint-unused-value ctx expr)
+          (let [edn? (= :edn lang)]
+            (if (or edn?
+                    (:quoted ctx))
+              (if (:k expr)
+                (do (usages/analyze-keyword ctx expr)
+                    (types/add-arg-type-from-expr ctx expr))
+                (when-let [sym (utils/symbol-from-token expr)]
+                  (when (and (:analyze-symbols? ctx)
+                             (qualified-symbol? sym))
+                    (let [resolved-extra (or (when-not edn?
+                                               (let [the-ns-name (-> ctx :ns :name)
+                                                     resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
+                                                 (when-not (or (:unresolved? resolved)
+                                                               (:interop? resolved))
+                                                   {:to (:ns resolved)
+                                                    :name (:name resolved)})))
+                                             {:name (symbol (name sym))})]
+                      (analysis/reg-symbol!
+                       ctx
+                       (:filename ctx) (-> ctx :ns :name)
+                       sym
+                       lang (merge (meta expr) resolved-extra))))))
+              (let [id (gensym)
+                    expr (assoc expr :id id)
+                    _ (analyze-usages2 ctx expr)
+                    usage (get @(:calls-by-id ctx) id)]
+                (if usage
+                  (types/add-arg-type-from-usage ctx usage expr)
                   (types/add-arg-type-from-expr ctx expr))
-              (when-let [sym (utils/symbol-from-token expr)]
-                (when (and (:analyze-symbols? ctx)
-                           (qualified-symbol? sym))
-                  (let [resolved-extra (or (when-not edn?
-                                             (let [the-ns-name (-> ctx :ns :name)
-                                                   resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
-                                               (when-not (or (:unresolved? resolved)
-                                                             (:interop? resolved))
-                                                 {:to (:ns resolved)
-                                                  :name (:name resolved)})))
-                                           {:name (symbol (name sym))})]
-                    (analysis/reg-symbol!
-                     ctx
-                     (:filename ctx) (-> ctx :ns :name)
-                     sym
-                     lang (merge (meta expr) resolved-extra))))))
-            (let [id (gensym)
-                  expr (assoc expr :id id)
-                  _ (analyze-usages2 ctx expr)
-                  usage (get @(:calls-by-id ctx) id)]
-              (if usage
-                (types/add-arg-type-from-usage ctx usage expr)
-                (types/add-arg-type-from-expr ctx expr))
-              nil)))
+                nil))))
         :list
         (if-let [function (some->>
                            (first children)
@@ -3064,8 +3079,8 @@
                   (let [ctx (update ctx :callstack conj [nil t])]
                     (analyze-children ctx children))))))
           (types/add-arg-type-from-expr ctx expr :list))
-        ;; catch-all
         :regex (do
+                 (lint-unused-value ctx expr)
                  (when (identical? :edn lang)
                    (findings/reg-finding! ctx (assoc (meta expr)
                                                      :filename (:filename ctx)
@@ -3075,6 +3090,13 @@
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
                                    children))
+        :vector
+        (do
+          (lint-unused-value ctx expr)
+          (analyze-children (update ctx
+                                    :callstack #(cons [nil t] %))
+                            children))
+        ;; catch-all
         (analyze-children (update ctx
                                   :callstack #(cons [nil t] %))
                           children)))))
