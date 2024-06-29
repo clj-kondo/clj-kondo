@@ -14,6 +14,7 @@
   (case level
     :error "error"
     :warning "warning"
+    :info "note"
     :off "none"))
 
 (defn- finding->sarif [finding]
