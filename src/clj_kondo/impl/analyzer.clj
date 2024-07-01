@@ -2954,7 +2954,7 @@
                        expanded-node)))
         :token
         (do
-          (lint-unused-value ctx expr)
+          #_(lint-unused-value ctx expr)
           (let [edn? (= :edn lang)]
             (if (or edn?
                     (:quoted ctx))
