@@ -475,7 +475,11 @@
         one-child? (= 1 (count children))
         pre-post-map (when-not one-child?
                        (when (and first-child
-                                  (identical? :map (tag first-child)))
+                                  (identical? :map (tag first-child))
+                                  (some #(let [k (:k %)]
+                                           (or (= :pre k)
+                                               (= :post k)))
+                                        (take-nth 2 (:children first-child))))
                          first-child))
         analyze-pre-post (when pre-post-map
                            (analyze-pre-post-map ctx first-child))
@@ -599,9 +603,12 @@
                            (let [lct (tag lc)]
                              (when (= :map lct) lc))))))
         children (if meta-node2 (butlast children) children)
+        ;; to not trigger unused-value linter we insert empty vector in callstack
+        meta-ctx (update ctx :callstack (fn [cs]
+                                          (cons [] cs)))
         ;; use dorun to force evaluation, we don't use the result!
-        _ (when meta-node (dorun (analyze-expression** ctx meta-node)))
-        _ (when meta-node2 (dorun (analyze-expression** ctx meta-node2)))
+        _ (when meta-node (dorun (analyze-expression** meta-ctx meta-node)))
+        _ (when meta-node2 (dorun (analyze-expression** meta-ctx meta-node2)))
         meta-node-meta (when meta-node (sexpr meta-node))
         [doc-node docstring] (or (and meta-node-meta
                                       (:doc meta-node-meta)
@@ -2823,6 +2830,31 @@
     (lint-discouraged-tags! ctx tag-expr)
     (analyze-children ctx children)))
 
+(defn- lint-unused-value [ctx expr]
+  (let [idx (:idx ctx)
+                     len (:len ctx)
+                     callstack (:callstack ctx)]
+                 (when (and (symbol? (ffirst callstack))
+                            idx len (< idx (dec len)))
+                   (let [parent-call (first (:callstack ctx))
+                             core? (one-of (first parent-call) [clojure.core cljs.core])
+                             core-sym (when core?
+                                        (second parent-call))
+                             generated? (:clj-kondo.impl/generated expr)
+                             redundant?
+                             (and (not generated?)
+                                  core?
+                                  (not (:clj-kondo.impl/generated (meta parent-call)))
+                                  (one-of core-sym [do fn defn defn-
+                                                    let when-let loop binding with-open
+                                                    doseq try when when-not when-first
+                                                    when-some future]))]
+                         (when redundant?
+                           (findings/reg-finding! ctx (assoc (meta expr)
+                                                             :type :unused-value
+                                                             :message "Unused value"
+                                                             :filename (:filename ctx))))))))
+
 #_(requiring-resolve 'clojure.set/union)
 
 (defn analyze-expression**
@@ -2844,11 +2876,17 @@
         ;; TODO: add types for all token cases!
         (types/add-arg-type-from-expr ctx expr))
       (case t
-        :quote (let [ctx (assoc ctx :quoted true)]
-                 (types/add-arg-type-from-expr ctx (first (:children expr)))
-                 (analyze-children ctx children))
-        :syntax-quote (analyze-usages2 (assoc ctx :arg-types nil) expr)
-        :var (analyze-var ctx expr (:children expr))
+        :quote (do
+                 (lint-unused-value ctx expr)
+                 (let [ctx (assoc ctx :quoted true)]
+                   (types/add-arg-type-from-expr ctx (first (:children expr)))
+                   (analyze-children ctx children)))
+        :syntax-quote (do
+                        (lint-unused-value ctx expr)
+                        (analyze-usages2 (assoc ctx :arg-types nil) expr))
+        :var (do
+               (lint-unused-value ctx expr)
+               (analyze-var ctx expr (:children expr)))
         :reader-macro (do
                         (when (and (not (identical? :cljc (:base-lang ctx)))
                                    (str/starts-with? (-> expr :children first str) "?"))
@@ -2860,35 +2898,41 @@
                         (analyze-reader-macro ctx expr))
         (:unquote :unquote-splicing)
         (analyze-children ctx children)
-        :namespaced-map (usages/analyze-namespaced-map
-                         (-> ctx
-                             (assoc :analyze-expression**
-                                    analyze-expression**)
-                             (update :callstack #(cons [nil t] %)))
-                         expr)
-        :map (do (key-linter/lint-map-keys ctx expr)
-                 (let [children (if (:data-readers ctx)
-                                  (map (fn [child k]
-                                         (assoc child :clj-kondo.internal/map-position k))
-                                       children
-                                       (cycle [:key :val]))
-                                  children)
-                       children (map (fn [c s]
-                                       (assoc c :id s))
+        :namespaced-map (do
+                          (lint-unused-value ctx expr)
+                          (usages/analyze-namespaced-map
+                             (-> ctx
+                                 (assoc :analyze-expression**
+                                        analyze-expression**)
+                                 (update :callstack #(cons [nil t] %)))
+                             expr))
+        :map (do
+               (lint-unused-value ctx expr)
+               (key-linter/lint-map-keys ctx expr)
+               (let [children (if (:data-readers ctx)
+                                (map (fn [child k]
+                                       (assoc child :clj-kondo.internal/map-position k))
                                      children
-                                     (repeatedly gensym))
-                       analyzed (analyze-children
-                                 (update ctx
-                                         :callstack #(cons [nil t] %)) children)]
-                   (types/add-arg-type-from-expr ctx (assoc expr
-                                                            :children children
-                                                            :analyzed analyzed))
-                   analyzed))
-        :set (do (key-linter/lint-set ctx expr)
+                                     (cycle [:key :val]))
+                                children)
+                     children (map (fn [c s]
+                                     (assoc c :id s))
+                                   children
+                                   (repeatedly gensym))
+                     analyzed (analyze-children
+                               (update ctx
+                                       :callstack #(cons [nil t] %)) children)]
+                 (types/add-arg-type-from-expr ctx (assoc expr
+                                                          :children children
+                                                          :analyzed analyzed))
+                 analyzed))
+        :set (do (lint-unused-value ctx expr)
+                 (key-linter/lint-set ctx expr)
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
                                    children))
         :fn (do
+              (lint-unused-value ctx expr)
               (when (and (:in-fn-literal ctx)
                          (not (:clj-kondo.impl/generated expr)))
                 (findings/reg-finding! ctx (assoc (meta expr)
@@ -3033,8 +3077,8 @@
                   (let [ctx (update ctx :callstack conj [nil t])]
                     (analyze-children ctx children))))))
           (types/add-arg-type-from-expr ctx expr :list))
-        ;; catch-all
         :regex (do
+                 (lint-unused-value ctx expr)
                  (when (identical? :edn lang)
                    (findings/reg-finding! ctx (assoc (meta expr)
                                                      :filename (:filename ctx)
@@ -3044,6 +3088,13 @@
                  (analyze-children (update ctx
                                            :callstack #(cons [nil t] %))
                                    children))
+        :vector
+        (do
+          (lint-unused-value ctx expr)
+          (analyze-children (update ctx
+                                    :callstack #(cons [nil t] %))
+                            children))
+        ;; catch-all
         (analyze-children (update ctx
                                   :callstack #(cons [nil t] %))
                           children)))))
