@@ -291,7 +291,7 @@ jobs:
           destination: release
   mac:
     macos:
-      xcode: "14.0.0"
+      xcode: "13.4.1"
     environment:
       GRAALVM_HOME: /Users/distiller/graalvm-ce-java11-22.3.0/Contents/Home
       CLJ_KONDO_PLATFORM: macos # used in release script
@@ -314,6 +314,10 @@ jobs:
       - restore_cache:
           keys:
             - mac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+      - run:
+          name: Install Rosetta
+          command: |
+            sudo /usr/sbin/softwareupdate --install-rosetta --agree-to-license
       - run:
           name: Install Clojure
           command: |
