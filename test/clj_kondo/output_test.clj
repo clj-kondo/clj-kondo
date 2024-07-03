@@ -107,3 +107,18 @@
                            (format "{:output {:format %s}}" :json))))
           parsed (cheshire/parse-string output true)]
       (is (map? parsed)))))
+
+(deftest sarif-test
+  (let [text (with-in-str "(inc)(dec)"
+               (with-out-str
+                 (main "--cache" "false" "--lint" "-" "--config" "{:output {:format :sarif}}")))
+        parsed (cheshire/parse-string text true)]
+    #_(clojure.pprint/pprint parsed)
+    (is (= "2.1.0" (:version parsed)))
+    (let [results (-> parsed :runs first :results set)]
+      #_(clojure.pprint/pprint results)
+      (is (contains? results {:level "error", :message {:text "clojure.core/dec is called with 0 args but expects 1"},
+                              :locations [{:physicalLocation
+                                           {:artifactLocation
+                                            {:uri "<stdin>", :index 0, :region {:startLine 1, :startColumn 6}}}}],
+                              :ruleId "invalid-arity", :ruleIndex 90})))))
