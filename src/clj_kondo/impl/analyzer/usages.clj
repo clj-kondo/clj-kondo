@@ -140,12 +140,13 @@
      (if (and (= 1 syntax-quote-level) unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
-         (do (when (:k expr)
-               (analyze-keyword ctx expr opts))
-             (doall (mapcat
-                     #(analyze-usages2 ctx %
-                                       (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
-                     (:children expr))))
+         (do
+           (when (:k expr)
+             (analyze-keyword ctx expr opts))
+           (doall (mapcat
+                   #(analyze-usages2 ctx %
+                                     (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
+                   (:children expr))))
          (let [syntax-quote?
                (or syntax-quote?
                    (= :syntax-quote t))]
