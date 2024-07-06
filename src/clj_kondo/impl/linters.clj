@@ -261,6 +261,18 @@
                   name-col (:col name-meta)
                   name-end-row (:end-row name-meta)
                   name-end-col (:end-col name-meta)
+                  macro? (:macro called-fn)
+                  _ (when (and (not call?) macro?)
+                      (findings/reg-finding!
+                       ctx
+                       {:filename filename
+                        :level :error
+                        :row row
+                        :end-row end-row
+                        :col col
+                        :end-col end-col
+                        :type :macro-as-value
+                        :message (str "Can't take value of a macro: " (str (:ns called-fn) "/" (:name called-fn)))}))
                   unresolved-var
                   (when (and (not called-fn)
                              (not (:interop? call))
