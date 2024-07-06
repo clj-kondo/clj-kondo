@@ -262,7 +262,10 @@
                   name-end-row (:end-row name-meta)
                   name-end-col (:end-col name-meta)
                   macro? (:macro called-fn)
-                  _ (when (and (not call?) macro?)
+                  _ (when (and
+                           (not (:syntax-quote call))
+                           (not call?)
+                           macro?)
                       (findings/reg-finding!
                        ctx
                        {:filename filename

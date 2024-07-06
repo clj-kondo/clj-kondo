@@ -232,6 +232,7 @@
                                       :lang (:lang ctx)
                                       :top-ns (:top-ns ctx)
                                       :filename (:filename ctx)
+                                      :syntax-quote syntax-quote?
                                       :unresolved-symbol-disabled?
                                       (or syntax-quote?
                                           ;; e.g. usage of clojure.core,
