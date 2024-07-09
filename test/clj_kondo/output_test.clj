@@ -1,5 +1,6 @@
 (ns clj-kondo.output-test
   (:require [cheshire.core :as cheshire]
+            [clj-kondo.impl.version :refer [version]]
             [clj-kondo.main :refer [main]]
             [clj-kondo.test-utils :as tu :refer
              [assert-submap assert-submap2]]
@@ -113,12 +114,28 @@
                (with-out-str
                  (main "--cache" "false" "--lint" "-" "--config" "{:output {:format :sarif}}")))
         parsed (cheshire/parse-string text true)]
+
+    ;; NOTE: This test is basically a regression test and does not
+    ;; validate that the SARIF output conforms to the SARIF
+    ;; specification.
+    ;;
+    ;; After making any changes to the SARIF output, ensure that the
+    ;; output is valid by using an external validator and then update
+    ;; this test.
+
     #_(clojure.pprint/pprint parsed)
     (is (= "2.1.0" (:version parsed)))
-    (let [results (-> parsed :runs first :results set)]
+    (let [tool (-> parsed :runs first :tool)
+          results (-> parsed :runs first :results set)]
       #_(clojure.pprint/pprint results)
+      (is (= "Clj-kondo" (-> tool :driver :name)))
+      (is (= version (-> tool :driver :version)))
+      (is (contains? (-> tool :driver) :rules))
       (is (contains? results {:level "error", :message {:text "clojure.core/dec is called with 0 args but expects 1"},
                               :locations [{:physicalLocation
-                                           {:artifactLocation
-                                            {:uri "<stdin>", :index 0, :region {:startLine 1, :startColumn 6}}}}],
-                              :ruleId "invalid-arity", :ruleIndex 90})))))
+                                           {:artifactLocation {:uri "<stdin>"}
+                                            :region {:startLine 1
+                                                     :startColumn 6
+                                                     :endLine 1
+                                                     :endColumn 11}}}],
+                              :ruleId "invalid-arity" })))))
