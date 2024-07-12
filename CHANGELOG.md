@@ -24,6 +24,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Fix [#2336](https://github.com/clj-kondo/clj-kondo/issues/2336): `do` and `doto` type checking ([@yuhan0](https://github.com/yuhan0))
 - Fix [#2322](https://github.com/clj-kondo/clj-kondo/issues/2322): report locations for more reader errors ([@yuhan0](https://github.com/yuhan0))
 - Fix [#2342](https://github.com/clj-kondo/clj-kondo/issues/2342): report unused maps, vectors, sets, regexes, functions as `:unused-value`
+- Fix [#2352](https://github.com/clj-kondo/clj-kondo/issues/2352): type mismatch error for `or` without arguments
 
 ## 2024.05.24
 
