@@ -233,7 +233,9 @@
                (reduce tu/union-type :nil args))}
    ;; 854 'or
    'or {:fn (fn [args]
-              (reduce tu/union-type #{} args))}
+              (if (empty? args)
+                :nil
+                (reduce tu/union-type #{} args)))}
    ;; 867
    'zero? number->boolean
    ;; 874
