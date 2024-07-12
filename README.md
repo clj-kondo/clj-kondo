@@ -188,6 +188,12 @@ already linted `.jar` files for performance.
 
 The `--parallel` option will use multiple threads to lint your sources, going through them faster.
 
+NOTE: in the version after `2024.05.24` copying configs and linting dependencies can be done in one go using:
+
+``` shellsession
+$ clj-kondo --lint "<classpath>" --dependencies --parallel --copy-configs
+```
+
 Build tool specific ways to get a classpath:
 - `lein classpath`
 - `boot with-cp -w -f -`
