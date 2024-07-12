@@ -157,13 +157,29 @@ $ clj-kondo --lint "$(lein classpath)"
 To detect lint errors across namespaces in your project, a cache is needed. To
 let clj-kondo know where to create one, make a `.clj-kondo` directory in the
 root of your project, meaning on the same level as your `project.clj`,
-`deps.edn` or `build.boot`. A cache will be created inside of it when you run
-`clj-kondo`.  Before linting inside your editor, it is recommended to lint the
-entire classpath to teach `clj-kondo` about all the libraries you are using,
-including Clojure and/or ClojureScript itself:
+`deps.edn` or `build.boot`:
+
+``` clojure
+$ mkdir -p .clj-kondo
+```
+
+A cache will be created inside of it when you run `clj-kondo`. Before linting
+inside your editor, it is recommended to lint the entire classpath to teach
+`clj-kondo` about all the libraries you are using, including Clojure and/or
+ClojureScript itself. Some libraries come with configurations. To import them, first run:
 
 ``` shellsession
-$ clj-kondo --lint "<classpath>" --dependencies --parallel --copy-configs
+$ clj-kondo --lint "<classpath>" --dependencies --copy-configs --skip-lint
+```
+
+The `--copy-configs` flag will search and copy configurations from dependencies into the
+`.clj-kondo` directory, while linting (see
+[config.md](doc/config.md#exporting-and-importing-configuration)).
+
+With the configurations in place, now we can analyze the dependencies properly:
+
+``` shellsession
+$ clj-kondo --lint "<classpath>" --dependencies --parallel
 ```
 
 The `--dependencies` flag indicates that clj-kondo is used to analyze sources to
@@ -171,10 +187,6 @@ populate the cache. When enabled, clj-kondo will suppress warnings and skips ove
 already linted `.jar` files for performance.
 
 The `--parallel` option will use multiple threads to lint your sources, going through them faster.
-
-The `--copy-configs` flag will search and copy configurations from dependencies into the
-`.clj-kondo` directory, while linting (see
-[config.md](doc/config.md#exporting-and-importing-configuration)).
 
 Build tool specific ways to get a classpath:
 - `lein classpath`
