@@ -265,6 +265,7 @@
                   _ (when (and
                            (not (:syntax-quote call))
                            (not call?)
+                           (not (:refer call))
                            macro?)
                       (findings/reg-finding!
                        ctx
