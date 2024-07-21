@@ -42,7 +42,15 @@
                        :row 1
                        :col 3}) (lint! short-line '{:linters {:line-length {:max-line-length 2
                                                                             :level :warning}}}
-                                       "--lang" "cljs")))
+                                       "--lang" "cljs"))
+
+    (assert-submaps '({:file "<stdin>"
+                       :level :warning
+                       :message "Line is longer than 2 characters."
+                       :row 1
+                       :col 3}) (lint! short-line '{:linters {:line-length {:max-line-length 2
+                                                                            :level :warning
+                                                                            :only "stdin"}}})))
 
   (testing "test linting long lines"
     (is (empty? (lint! multi-line '{:linters {:line-length {:max-line-length 8000
@@ -77,6 +85,12 @@
   (is (empty? (lint! " ;; :ll/ok"
                      '{:linters {:line-length {:exclude-pattern ";; :ll/ok"
                                                :level :warning
+                                               :max-line-length 1}}})))
+
+  (is (empty? (lint! long-line
+                     '{:linters {:line-length {:file "path"
+                                               :only "subpath"
+                                               :level :warning
                                                :max-line-length 1}}}))))
 
 (deftest end-col-end-row-test
@@ -108,5 +122,5 @@
 (def example \"this line of code exceeds 80 characters but shouldn't cause warning\")
 #_:clj-kondo/ignore
 (def example \"this line of code exceeds 80 characters but shouldn't cause warning\")"
-              {:linters {:line-length {:level :warning
-                                       :max-line-length 80}}})))
+                         {:linters {:line-length {:level :warning
+                                                  :max-line-length 80}}})))

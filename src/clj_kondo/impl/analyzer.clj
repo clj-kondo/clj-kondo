@@ -2832,28 +2832,28 @@
 
 (defn- lint-unused-value [ctx expr]
   (let [idx (:idx ctx)
-                     len (:len ctx)
-                     callstack (:callstack ctx)]
-                 (when (and (symbol? (ffirst callstack))
-                            idx len (< idx (dec len)))
-                   (let [parent-call (first (:callstack ctx))
-                             core? (one-of (first parent-call) [clojure.core cljs.core])
-                             core-sym (when core?
-                                        (second parent-call))
-                             generated? (:clj-kondo.impl/generated expr)
-                             redundant?
-                             (and (not generated?)
-                                  core?
-                                  (not (:clj-kondo.impl/generated (meta parent-call)))
-                                  (one-of core-sym [do fn defn defn-
-                                                    let when-let loop binding with-open
-                                                    doseq try when when-not when-first
-                                                    when-some future]))]
-                         (when redundant?
-                           (findings/reg-finding! ctx (assoc (meta expr)
-                                                             :type :unused-value
-                                                             :message "Unused value"
-                                                             :filename (:filename ctx))))))))
+        len (:len ctx)
+        callstack (:callstack ctx)]
+    (when (and (symbol? (ffirst callstack))
+               idx len (< idx (dec len)))
+      (let [parent-call (first (:callstack ctx))
+            core? (one-of (first parent-call) [clojure.core cljs.core])
+            core-sym (when core?
+                       (second parent-call))
+            generated? (:clj-kondo.impl/generated expr)
+            redundant?
+            (and (not generated?)
+                 core?
+                 (not (:clj-kondo.impl/generated (meta parent-call)))
+                 (one-of core-sym [do fn defn defn-
+                                   let when-let loop binding with-open
+                                   doseq try when when-not when-first
+                                   when-some future]))]
+        (when redundant?
+          (findings/reg-finding! ctx (assoc (meta expr)
+                                            :type :unused-value
+                                            :message "Unused value"
+                                            :filename (:filename ctx))))))))
 
 #_(requiring-resolve 'clojure.set/union)
 
@@ -2901,11 +2901,11 @@
         :namespaced-map (do
                           (lint-unused-value ctx expr)
                           (usages/analyze-namespaced-map
-                             (-> ctx
-                                 (assoc :analyze-expression**
-                                        analyze-expression**)
-                                 (update :callstack #(cons [nil t] %)))
-                             expr))
+                           (-> ctx
+                               (assoc :analyze-expression**
+                                      analyze-expression**)
+                               (update :callstack #(cons [nil t] %)))
+                           expr))
         :map (do
                (lint-unused-value ctx expr)
                (key-linter/lint-map-keys ctx expr)
@@ -3215,6 +3215,11 @@
                       filename ", "
                       (or (.getMessage ex) (str ex)))}])))
 
+(defn- apply-only? [only-path path]
+  (if only-path
+    (str/includes? path only-path)
+    true))
+
 (defn- lint-line-length [_ctx config filename input]
   (let [findings (atom [])
         line-length-conf (-> config :linters :line-length)]
@@ -3223,7 +3228,8 @@
         (let [exclude-urls (:exclude-urls line-length-conf)
               exclude-pattern (:exclude-pattern line-length-conf)
               exclude-pattern (when exclude-pattern
-                                (re-pattern exclude-pattern))]
+                                (re-pattern exclude-pattern))
+              only-path       (:only line-length-conf)]
           (with-open [rdr (io/reader (java.io.StringReader. input))]
             (run! (fn [[row line]]
                     (let [line-length (count line)]
@@ -3231,7 +3237,8 @@
                                  (or (not exclude-urls)
                                      (not (str/includes? line "http")))
                                  (or (not exclude-pattern)
-                                     (not (re-find exclude-pattern line))))
+                                     (not (re-find exclude-pattern line)))
+                                 (apply-only? only-path filename))
                         (swap! findings conj {:message (str "Line is longer than " max-line-length " characters.")
                                               :filename filename
                                               :type :line-length
