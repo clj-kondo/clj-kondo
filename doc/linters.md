@@ -999,6 +999,13 @@ To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";
                          :exclude-pattern ";; :ll/ok"}}}
 ```
 
+To apply the lint only in some paths, use: `:only "path/subpath"`:
+
+```clojure
+{:linters {:line-length {:max-line-length 120
+                         :only "path/subpath"}}}
+```
+
 ### Keyword in binding vector
 
 **Keyword:** `:keyword-binding`
