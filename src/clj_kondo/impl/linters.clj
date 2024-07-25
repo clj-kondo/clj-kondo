@@ -626,13 +626,15 @@
                   linter-configs (keep #(get-in config [:linters :discouraged-namespace %]) (concat ns-groups [ns-sym]))]
             :when (seq linter-configs)
             :let [linter-config (apply config/merge-config! linter-configs)
-                  {:keys [message]
+                  {:keys [message level]
                    :or {message (str "Discouraged namespace: " ns-sym)}} linter-config
                   ctx (assoc ctx :lang lang :base-lang (:base-lang ns))]]
       (findings/reg-finding!
        ctx
        (-> (node->line filename ns-sym :discouraged-namespace message)
-           (assoc :ns (export-ns-sym ns-sym)))))))
+           (assoc :ns (export-ns-sym ns-sym))
+           (cond-> level
+             (assoc :level level)))))))
 
 (defn lint-bindings!
   [ctx]
