@@ -26,7 +26,7 @@
 (binding [*print-level* false
           *print-meta* false])" {:linters {:unused-value {:level :warning}}})))
   (is (empty? (lint! "
-(when-not (:protocol-symbol var)
+(when-not (:protocol-symbol {})
   (cljs.analyzer/warning :invalid-protocol-symbol {}))"
                      {:linters {:unused-value {:level :warning}
                                 :unresolved-namespace {:level :off}}})))
