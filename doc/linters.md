@@ -41,6 +41,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
     - [Quoted case test constant](#quoted-case-test-constant)
+    - [Equals expected position](#equals-expected-position)
     - [Equals false](#equals-false)
     - [Equals true](#equals-true)
     - [File](#file)
@@ -73,9 +74,11 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant do](#redundant-do)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
     - [Redundant call](#redundant-call)
+    - [Redundant str call](#redundant-str-call)
     - [Redundant let](#redundant-let)
     - [Refer](#refer)
     - [Refer all](#refer-all)
+    - [Self-requiring namespace](#self-requiring-namespace)
     - [Single key in](#single-key-in)
     - [Single logical operand](#single-logical-operand)
     - [Single operand comparison](#single-operand-comparison)
@@ -1375,6 +1378,18 @@ Example warning: `require with :refer`.
 ```clojure
 {:linters {:refer-all {:exclude [clojure.set]}}}
 ```
+
+### Self-requiring namespace
+
+*Keyword:* `:self-requiring-namespace`
+
+*Description:* warn on a namespace that requires itself
+
+*Default level:* `:off`
+
+*Example trigger:* `(ns foo (:require [foo]))`
+
+*Example message:* `Namespace is requiring itself: foo`
 
 ### Single key in
 

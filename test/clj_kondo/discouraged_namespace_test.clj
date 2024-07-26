@@ -9,6 +9,10 @@
    (lint! "(require '[closed.source :as s]) (s/baz)"
           '{:linters {:discouraged-namespace {closed.source {}
                                               :level :error}}}))
+  (assert-submaps2
+   '({:file "<stdin>" :row 1 :col 12 :level :error :message "Discouraged namespace: closed.source"})
+   (lint! "(require '[closed.source :as s]) (s/baz)"
+          '{:linters {:discouraged-namespace {closed.source {:level :error}}}}))
 
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 12, :level :warning, :message "Don't use `closed.source`"})
