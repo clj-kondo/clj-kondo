@@ -2886,7 +2886,8 @@
                         (analyze-usages2 (assoc ctx :arg-types nil) expr))
         :var (do
                (lint-unused-value ctx expr)
-               (analyze-var ctx expr (:children expr)))
+               (analyze-var (update ctx :callstack (fn [cs]
+                                                     (cons '[clojure.core var] cs))) expr (:children expr)))
         :reader-macro (do
                         (when (and (not (identical? :cljc (:base-lang ctx)))
                                    (str/starts-with? (-> expr :children first str) "?"))

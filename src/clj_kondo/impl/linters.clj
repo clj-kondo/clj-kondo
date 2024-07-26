@@ -266,7 +266,8 @@
                            (not (:syntax-quote call))
                            (not call?)
                            (not (:refer call))
-                           macro?)
+                           macro?
+                           (not (utils/one-of (first (:callstack call)) [[cljs.core var] [clojure.core var]])))
                       (findings/reg-finding!
                        ctx
                        {:filename filename
