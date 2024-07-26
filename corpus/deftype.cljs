@@ -1,6 +1,6 @@
 (ns deftype)
 
-(deftype LazySeq2 [meta ^:mutable fx ^:mutable s ^:mutable __hash]
+(deftype LazySeq2 [meta ^:mutable fn ^:mutable s ^:mutable __hash]
   Object
   (toString [coll]
     (pr-str* coll))
