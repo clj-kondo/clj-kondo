@@ -32,7 +32,8 @@
              jonase/eastwood {:mvn/version "1.4.3"}
              borkdude/missing.test.assertions {:mvn/version "0.0.2"}
              babashka/process {:mvn/version "0.5.22"}
-             org.clojure/tools.deps.alpha {:mvn/version "0.15.1254"}
+             org.clojure/tools.deps.alpha {:mvn/version "0.12.1048"
+                                           :neil/pinned true}
              nubank/matcher-combinators {:mvn/version "3.9.1" :exclusions [midje/midje]}
              io.github.borkdude/deflet {:mvn/version "0.1.0"}}
             :extra-paths ["test" "extract"]
