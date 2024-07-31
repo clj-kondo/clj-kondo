@@ -43,11 +43,11 @@ jobs:
           restore-keys: v1-dependencies-
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@5.0
+        uses: DeLaGuardo/setup-clojure@12.5
         with:
-          cli: 1.10.3.855
-          lein: 2.9.8
-          bb: 0.8.2
+          cli: latest
+          lein: latest
+          bb: latest
 
       - name: Setup GraalVM
         if: "matrix.static == false"

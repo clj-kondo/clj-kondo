@@ -1,59 +1,62 @@
 {:paths ["src" "parser" "resources" "inlined"]
  :deps {com.cognitect/transit-clj {:mvn/version "1.0.333"}
-        io.replikativ/datalog-parser {:mvn/version "0.2.25"}
-        cheshire/cheshire {:mvn/version "5.11.0"}
-        nrepl/bencode {:mvn/version "1.1.0"}
-        org.babashka/sci {:mvn/version "0.8.41"}
-        babashka/fs {:mvn/version "0.2.16"}
-        org.ow2.asm/asm {:mvn/version "9.4"}
-        com.github.javaparser/javaparser-core {:mvn/version "3.25.3"}}
- :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.1"}}}
+        io.replikativ/datalog-parser {:mvn/version "0.2.29"}
+        cheshire/cheshire {:mvn/version "5.13.0"}
+        nrepl/bencode {:mvn/version "1.2.0"}
+        org.babashka/sci {:mvn/version "0.8.42"}
+        babashka/fs {:mvn/version "0.5.21"}
+        org.ow2.asm/asm {:mvn/version "9.7"}
+        com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}}
+ :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.3"}}}
            :clj-kondo/dev
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
-            {org.clojure/clojure {:mvn/version "1.9.0"}}
+            {org.clojure/clojure {:mvn/version "1.11.3"}}
             :jvm-opts ["-Dclojure.main.report=stderr"]}
            :extract
            {:extra-paths ["extract" "classes"]
             :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}
-                         jonase/eastwood {:mvn/version "1.4.0"}
-                         org.clojure/tools.deps.alpha {:mvn/version "0.12.1048"}}}
+                         jonase/eastwood {:mvn/version "1.4.3"}
+                         org.clojure/tools.deps.alpha {:mvn/version "0.15.1254"}}}
            :built-in-cache
            {:extra-deps
-            {org.clojure/data.json {:mvn/version "2.4.0"}}}
+            {org.clojure/data.json {:mvn/version "2.5.0"}}}
            :test
            {:extra-deps
-            {org.clojure/clojure {:mvn/version "1.9.0"}
-             org.clojure/clojurescript {:mvn/version "1.11.54"} ;; for extraction
+            {org.clojure/clojure {:mvn/version "1.11.3"}
+             org.clojure/clojurescript {:mvn/version "1.11.132"} ;; for extraction
              cognitect/test-runner
              {:git/url "https://github.com/cognitect-labs/test-runner"
-              :sha "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}
+              :git/sha "9d36f36ff541dac680a05010e4348c744333f191"}
              clj-commons/conch {:mvn/version "0.9.2"}
-             jonase/eastwood {:mvn/version "1.4.0"}
+             jonase/eastwood {:mvn/version "1.4.3"}
              borkdude/missing.test.assertions {:mvn/version "0.0.2"}
-             babashka/process {:mvn/version "0.5.21"}
-             org.clojure/tools.deps.alpha {:mvn/version "0.12.1048"}
-             nubank/matcher-combinators {:mvn/version "3.5.1" :exclusions [midje/midje]}
+             babashka/process {:mvn/version "0.5.22"}
+             org.clojure/tools.deps.alpha {:mvn/version "0.12.1048"
+                                           :neil/pinned true}
+             nubank/matcher-combinators {:mvn/version "3.9.1" :exclusions [midje/midje]}
              io.github.borkdude/deflet {:mvn/version "0.1.0"}}
             :extra-paths ["test" "extract"]
             :main-opts ["-m" "cognitect.test-runner"]}
-           :clojure-1.9.0 {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}
-           :clojure-1.10.2 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.2"}}}
+           :clojure-1.9.0 {:extra-deps {org.clojure/clojure {:mvn/version "1.9.0"
+                                                             :neil/pinned true}}}
+           :clojure-1.10.2 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.2"
+                                                              :neil/pinned true}}}
            :profiler
            {:extra-deps
-            {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.4.1"}}
+            {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.2.2"}}
             :extra-paths ["src-profile"]
             :jvm-opts ["-Djdk.attach.allowAttachSelf"]
             :main-opts ["-m" "clj-kondo.profile"]}
            :cljs ;; for performance and regression testing
            {:extra-deps
-            {org.clojure/clojurescript {:mvn/version "1.11.54"}}}
+            {org.clojure/clojurescript {:mvn/version "1.11.132"}}}
            :pod-test
            {:extra-paths ["pod-test"]
             :extra-deps
             {babashka/pods {#_#_:local/root "/Users/borkdude/Dropbox/dev/clojure/babashka/babashka.pods"
                             :git/url "https://github.com/babashka/babashka.pods"
-                            :sha "57cc95a2e2193a4bfb8505d44acaca900279369a"}}}
+                            :git/sha "47e55fe5e728578ff4dbf7d2a2caf00efea87b1e"}}}
            :eastwood
            {:main-opts ["-m" "eastwood.lint" {:source-paths ["src" "test"]
                                               :exclude-linters [:unused-ret-vals

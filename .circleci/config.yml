@@ -159,9 +159,7 @@ jobs:
       - run:
           name: Install Clojure
           command: |
-            wget https://download.clojure.org/install/linux-install-1.11.1.1165.sh
-            chmod +x linux-install-1.11.1.1165.sh
-            sudo ./linux-install-1.11.1.1165.sh
+            .circleci/script/install-clojure /usr/local
       - run:
           name: Install bb
           command: |
@@ -239,9 +237,7 @@ jobs:
       - run:
           name: Install Clojure
           command: |
-            wget https://download.clojure.org/install/linux-install-1.10.2.796.sh
-            chmod +x linux-install-1.10.2.796.sh
-            sudo ./linux-install-1.10.2.796.sh
+            .circleci/script/install-clojure /usr/local
       - run:
           name: Install bb
           command: |
