@@ -25,7 +25,7 @@
              :test {:dependencies [[nubank/matcher-combinators "3.9.1"]
                                    [org.clojure/clojurescript "1.11.132"]
                                    [clj-commons/conch "0.9.2"]
-                                   [org.clojure/tools.deps.alpha "0.15.1254"]
+                                   [org.clojure/tools.deps.alpha "0.12.1048"]
                                    [jonase/eastwood "1.4.3"]
                                    [babashka/process "0.5.22"]
                                    [io.github.borkdude/deflet "0.1.0"]
