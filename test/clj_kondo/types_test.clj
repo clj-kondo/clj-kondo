@@ -1083,6 +1083,21 @@
        (lint! "(inc (doto :foo prn))"
               config))))
 
+(deftest deref-test
+  (is (assert-submaps2
+       [{:file "<stdin>",
+         :row 1,
+         :col 2,
+         :level :error,
+         :message "Expected: ideref, received: function."}
+        {:file "<stdin>",
+         :row 1,
+         :col 20,
+         :level :error,
+         :message "Expected: ideref, received: nil."}]
+       (lint! "@inc (let [x nil] @x)"
+              config))))
+
 ;;;; Scratch
 
 (comment
