@@ -98,7 +98,8 @@
    :seq #{:list :stack}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
    :sequential #{:seq :list :vector :ifn :associative :stack}
-   :map #{:sorted-map}})
+   :map #{:sorted-map}
+   :ideref #{:atom}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
