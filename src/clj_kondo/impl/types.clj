@@ -29,6 +29,7 @@
     :sequential
     :associative
     :coll
+    :ideref
     :ifn
     :stack
     :map
@@ -78,7 +79,8 @@
    :list #{:seq :sequential :seqable :coll :stack}
    :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}
-   :sorted-map #{:map :seqable :associative :coll :ifn}})
+   :sorted-map #{:map :seqable :associative :coll :ifn}
+   :atom #{:ideref}})
 
 (def could-be-relations
   {:char-sequence #{:string}
@@ -96,7 +98,8 @@
    :seq #{:list :stack}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
    :sequential #{:seq :list :vector :ifn :associative :stack}
-   :map #{:sorted-map}})
+   :map #{:sorted-map}
+   :ideref #{:atom}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
@@ -132,6 +135,7 @@
    :char "character"
    :boolean "boolean"
    :atom "atom"
+   :ideref "deref"
    :fn "function"
    :ifn "function"
    :keyword "keyword"

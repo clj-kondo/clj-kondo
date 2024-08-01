@@ -32,12 +32,15 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.parser :as p]
+   [clj-kondo.impl.rewrite-clj.node.seq :as seq]
+   [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
-     one-of parse-string select-lang sexpr string-from-token symbol-call tag tag]]
+     one-of parse-string select-lang sexpr string-from-token symbol-call tag
+     tag]]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
@@ -2872,7 +2875,8 @@
       ;; map's type is added in :map handler below
       ;; namespaced map's type is added when going through analyze-expression** via analyze-namespaced-map
       ;; list and quote are handled specially because of return types
-      (when-not (one-of t [:namespaced-map :map :list :quote :token])
+      ;; deref is handled via expansion
+      (when-not (one-of t [:namespaced-map :map :list :quote :token :deref])
         ;; TODO: add types for all token cases!
         (types/add-arg-type-from-expr ctx expr))
       (case t
@@ -3094,6 +3098,14 @@
           (analyze-children (update ctx
                                     :callstack #(cons [nil t] %))
                             children))
+        :deref
+        (recur ctx (with-meta
+                     (seq/list-node [(token/token-node (case lang
+                                                         :clj 'clojure.core/deref
+                                                         :cljs 'cljs.core/deref
+                                                         'clojure.core/deref))
+                                     (first (:children expr))])
+                     (meta expr)))
         ;; catch-all
         (analyze-children (update ctx
                                   :callstack #(cons [nil t] %))
