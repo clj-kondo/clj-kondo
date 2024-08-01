@@ -2874,7 +2874,8 @@
       ;; map's type is added in :map handler below
       ;; namespaced map's type is added when going through analyze-expression** via analyze-namespaced-map
       ;; list and quote are handled specially because of return types
-      (when-not (one-of t [:namespaced-map :map :list :quote :token])
+      ;; deref is handled via expansion
+      (when-not (one-of t [:namespaced-map :map :list :quote :token :deref])
         ;; TODO: add types for all token cases!
         (types/add-arg-type-from-expr ctx expr))
       (case t
@@ -3097,11 +3098,13 @@
                                     :callstack #(cons [nil t] %))
                             children))
         :deref
-        (analyze-expression** ctx (seq/list-node [(token/token-node (case lang
-                                                                      :clj 'clojure.core/deref
-                                                                      :cljs 'cljs.core/deref
-                                                                      'clojure.core/deref))
-                                                  (first (:children expr))]))
+        (recur ctx (with-meta
+                     (seq/list-node [(token/token-node (case lang
+                                                         :clj 'clojure.core/deref
+                                                         :cljs 'cljs.core/deref
+                                                         'clojure.core/deref))
+                                     (first (:children expr))])
+                     (meta expr)))
         ;; catch-all
         (analyze-children (update ctx
                                   :callstack #(cons [nil t] %))
