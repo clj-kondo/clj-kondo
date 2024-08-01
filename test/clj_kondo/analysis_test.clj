@@ -696,7 +696,7 @@
      '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7 :end-row 1 :end-col 19}]
      var-definitions)
     (assert-submaps
-     '[{} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
+     '[{} {} {} {:name-row 1 :name-col 27 :name-end-row 1 :name-end-col 28}]
      var-usages))
   (let [{:keys [var-definitions]} (analyze "(require '[defn-spec]) (defn-spec/defn a foobar baz)" '{:config {:lint-as {defn-spec/defn clj-kondo.lint-as/def-catch-all}
                                                                                                              :analysis true}})]
