@@ -17,17 +17,17 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2024.08.01
 
-- Fix [#2359](https://github.com/clj-kondo/clj-kondo/issues/2359): `@x` should warn with type error about `x` not being an IDeref, e.g. with `@inc`
-- Fix [#2345](https://github.com/clj-kondo/clj-kondo/issues/2345): Fix SARIF output and some enhancements ([@nxvipin](https://github.com/nxvipin))
-- Fix [#2335](https://github.com/clj-kondo/clj-kondo/issues/2335): read causes side effect, thus not an unused value
-- Fix [#2336](https://github.com/clj-kondo/clj-kondo/issues/2336): `do` and `doto` type checking ([@yuhan0](https://github.com/yuhan0))
-- Fix [#2322](https://github.com/clj-kondo/clj-kondo/issues/2322): report locations for more reader errors ([@yuhan0](https://github.com/yuhan0))
-- Fix [#2342](https://github.com/clj-kondo/clj-kondo/issues/2342): report unused maps, vectors, sets, regexes, functions as `:unused-value`
-- Fix [#2352](https://github.com/clj-kondo/clj-kondo/issues/2352): type mismatch error for `or` without arguments
-- Fix [#2344](https://github.com/clj-kondo/clj-kondo/issues/2344): copying configs and linting dependencies can now be done in one go with `--dependencies --copy-configs`
-- Fix [#2357](https://github.com/clj-kondo/clj-kondo/issues/2357): `:discouraged-namespace` can have `:level` per namespace
+- [#2359](https://github.com/clj-kondo/clj-kondo/issues/2359): `@x` should warn with type error about `x` not being an IDeref, e.g. with `@inc`
+- [#2345](https://github.com/clj-kondo/clj-kondo/issues/2345): Fix SARIF output and some enhancements ([@nxvipin](https://github.com/nxvipin))
+- [#2335](https://github.com/clj-kondo/clj-kondo/issues/2335): read causes side effect, thus not an unused value
+- [#2336](https://github.com/clj-kondo/clj-kondo/issues/2336): `do` and `doto` type checking ([@yuhan0](https://github.com/yuhan0))
+- [#2322](https://github.com/clj-kondo/clj-kondo/issues/2322): report locations for more reader errors ([@yuhan0](https://github.com/yuhan0))
+- [#2342](https://github.com/clj-kondo/clj-kondo/issues/2342): report unused maps, vectors, sets, regexes, functions as `:unused-value`
+- [#2352](https://github.com/clj-kondo/clj-kondo/issues/2352): type mismatch error for `or` without arguments
+- [#2344](https://github.com/clj-kondo/clj-kondo/issues/2344): copying configs and linting dependencies can now be done in one go with `--dependencies --copy-configs`
+- [#2357](https://github.com/clj-kondo/clj-kondo/issues/2357): `:discouraged-namespace` can have `:level` per namespace
 
 ## 2024.05.24
 
