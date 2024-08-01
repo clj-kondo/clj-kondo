@@ -32,18 +32,19 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.parser :as p]
+   [clj-kondo.impl.rewrite-clj.node.seq :as seq]
+   [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
-     one-of parse-string select-lang sexpr string-from-token symbol-call tag tag]]
+     one-of parse-string select-lang sexpr string-from-token symbol-call tag
+     tag]]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [sci.core :as sci]
-   [clj-kondo.impl.rewrite-clj.node.seq :as seq]
-   [clj-kondo.impl.rewrite-clj.node.token :as token]))
+   [sci.core :as sci]))
 
 (set! *warn-on-reflection* true)
 
