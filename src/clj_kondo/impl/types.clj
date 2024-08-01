@@ -29,6 +29,7 @@
     :sequential
     :associative
     :coll
+    :ideref
     :ifn
     :stack
     :map
@@ -78,7 +79,8 @@
    :list #{:seq :sequential :seqable :coll :stack}
    :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}
-   :sorted-map #{:map :seqable :associative :coll :ifn}})
+   :sorted-map #{:map :seqable :associative :coll :ifn}
+   :atom #{:ideref}})
 
 (def could-be-relations
   {:char-sequence #{:string}

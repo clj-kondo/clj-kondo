@@ -41,7 +41,9 @@
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [sci.core :as sci]))
+   [sci.core :as sci]
+   [clj-kondo.impl.rewrite-clj.node.seq :as seq]
+   [clj-kondo.impl.rewrite-clj.node.token :as token]))
 
 (set! *warn-on-reflection* true)
 
@@ -3094,6 +3096,12 @@
           (analyze-children (update ctx
                                     :callstack #(cons [nil t] %))
                             children))
+        :deref
+        (analyze-expression** ctx (seq/list-node [(token/token-node (case lang
+                                                                      :clj 'clojure.core/deref
+                                                                      :cljs 'cljs.core/deref
+                                                                      'clojure.core/deref))
+                                                  (first (:children expr))]))
         ;; catch-all
         (analyze-children (update ctx
                                   :callstack #(cons [nil t] %))

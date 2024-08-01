@@ -464,6 +464,8 @@
    ;; 2254 'shutdown-agents
    ;; 2262 'ref
    ;; 2306 'deref
+   'deref {:arities {1 {:args [:ideref]
+                        :ret :any}}}
    ;; 2327
    'atom {:ret :atom}
    ;; 2345
