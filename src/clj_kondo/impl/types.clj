@@ -135,6 +135,7 @@
    :char "character"
    :boolean "boolean"
    :atom "atom"
+   :ideref "deref"
    :fn "function"
    :ifn "function"
    :keyword "keyword"

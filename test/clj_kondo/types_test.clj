@@ -1089,12 +1089,12 @@
          :row 1,
          :col 2,
          :level :error,
-         :message "Expected: ideref, received: function."}
+         :message "Expected: deref, received: function."}
         {:file "<stdin>",
          :row 1,
          :col 20,
          :level :error,
-         :message "Expected: ideref, received: nil."}]
+         :message "Expected: deref, received: nil."}]
        (lint! "@inc (let [x nil] @x)"
               config))))
 
