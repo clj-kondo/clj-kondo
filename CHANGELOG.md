@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#2362](https://github.com/clj-kondo/clj-kondo/issues/2362): turn min-version warning into lint warning
+
 ## 2024.08.01
 
 - [#2359](https://github.com/clj-kondo/clj-kondo/issues/2359): `@x` should warn with type error about `x` not being an IDeref, e.g. with `@inc`

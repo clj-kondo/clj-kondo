@@ -54,53 +54,28 @@
      (DateTimeFormatter/ofPattern
       "yyyy.MM.dd"))))
 
-(defn- with-err-str
-  "Runs f, captures output to stderr & returns that as a string"
-  [f]
-  (let [sw (StringWriter.)]
-    (binding [*err* sw]
-      (f))
-    (str sw)))
-
 (when-not native?
   (deftest minimum-version-test
     (testing "No finding when version equal to minimum"
-      (let [output
-            (with-err-str
-              #(lint!
-                ""
-                {:min-clj-kondo-version version/version}
-                "--filename"
-                ".clj-kondo/config.edn"))]
-        (is (empty? (str/replace output "\n" "")))))
+      (is (empty? (lint!
+                   ""
+                   {:min-clj-kondo-version version/version}
+                   "--filename"
+                   ".clj-kondo/config.edn"))))
     (testing "No finding when version after minimum"
-      (let [output (with-err-str
-                     #(lint!
-                       ""
-                       {:min-clj-kondo-version (version-shifted-by-days -1)}
-                       "--filename"
-                       ".clj-kondo/config.edn"))]
-        (is (empty? (str/replace output "\n" "")))))
+      (is (empty? (lint!
+                   ""
+                   {:min-clj-kondo-version (version-shifted-by-days -1)}
+                   "--filename"
+                   ".clj-kondo/config.edn"))))
     (testing "Find when version before minimum"
-      (let [output (with-err-str
-                     #(lint!
-                       ""
-                       {:min-clj-kondo-version (version-shifted-by-days 1)}
-                       "--filename"
-                       ".clj-kondo/config.edn"))]
-        (is
-         (str/includes?
-          output
-          "Version"))
-        (is
-         (str/includes?
-          output
-          version/version))
-        (is
-         (str/includes?
-          output
-          "below configured minimum"))
-        (is
-         (str/includes?
-          output
-          (version-shifted-by-days 1)))))))
+      (assert-submaps2
+       [{:file "<clj-kondo>", :row 1, :col 1, :level :warning, :message
+         (format "Version %s below configured minimum %s"
+                 version/version
+                 (version-shifted-by-days 1))}]
+       (lint!
+             ""
+             {:min-clj-kondo-version (version-shifted-by-days 1)}
+             "--filename"
+             ".clj-kondo/config.edn")))))
