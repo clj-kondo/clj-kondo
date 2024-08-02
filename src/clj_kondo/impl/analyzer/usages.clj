@@ -163,18 +163,26 @@
                               (or (get (:bindings ctx) symbol-val)
                                   (get (:bindings ctx)
                                        (str/replace (str symbol-val) #"\**$" ""))))]
-                   (namespace/reg-used-binding! ctx
-                                                (-> ns :name)
-                                                b
-                                                (when (:analyze-locals? ctx)
-                                                  (assoc-some expr-meta
-                                                              :name-row (:row expr-meta)
-                                                              :name-col (:col expr-meta)
-                                                              :name-end-row (:end-row expr-meta)
-                                                              :name-end-col (:end-col expr-meta)
-                                                              :name symbol-val
-                                                              :filename (:filename ctx)
-                                                              :str (:string-value expr))))
+                   (do
+                     (when-let [ul (:undefined-locals ctx)]
+                       (when (contains? ul symbol-val)
+                         (findings/reg-finding! ctx (utils/node->line (:filename ctx)
+                                                                      expr
+                                                                      :destructured-or-refers-binding-of-same-map
+                                                                      (str ":or default refers to binding that may not exist: "
+                                                                           symbol-val)))))
+                     (namespace/reg-used-binding! ctx
+                                                    (-> ns :name)
+                                                    b
+                                                    (when (:analyze-locals? ctx)
+                                                      (assoc-some expr-meta
+                                                                  :name-row (:row expr-meta)
+                                                                  :name-col (:col expr-meta)
+                                                                  :name-end-row (:end-row expr-meta)
+                                                                  :name-end-col (:end-col expr-meta)
+                                                                  :name symbol-val
+                                                                  :filename (:filename ctx)
+                                                                  :str (:string-value expr)))))
                    (let [{resolved-ns :ns
                           resolved-name :name
                           resolved-alias :alias
