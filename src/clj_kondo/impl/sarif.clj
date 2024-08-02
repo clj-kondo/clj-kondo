@@ -46,4 +46,4 @@
                              :version version/version
                              :informationUri "https://github.com/clj-kondo/clj-kondo"
                              :rules (mapv #(dissoc % :index) (vals rules))}}
-             :results (mapv #(finding->sarif %) findings)}]}))
+             :results (mapv finding->sarif findings)}]}))
