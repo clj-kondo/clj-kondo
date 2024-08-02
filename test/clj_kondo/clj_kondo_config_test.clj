@@ -5,7 +5,6 @@
    [clojure.string :as str]
    [clojure.test :refer [deftest testing is]])
   (:import
-   java.io.StringWriter
    java.time.format.DateTimeFormatter
    java.time.LocalDate))
 
