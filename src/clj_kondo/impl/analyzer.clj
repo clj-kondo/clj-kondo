@@ -133,6 +133,7 @@
                                         :filename (:filename ctx)
                                         :str (:string-value k))]
               (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) binding) expr-meta)))
+          ;; TODO: here, warn when local is used!
           (analyze-expression** ctx v))))))
 
 (defn lift-meta-content*

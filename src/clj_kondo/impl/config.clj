@@ -164,7 +164,8 @@
               :multiple-async-in-deftest {:level :warning}
               :java-static-field-call {:level :error}
               :equals-expected-position {:level :off
-                                         :position :first}}
+                                         :position :first}
+              :destructured-or-refers-binding-of-same-map {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
