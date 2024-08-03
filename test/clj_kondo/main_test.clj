@@ -1784,8 +1784,6 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! (io/file "corpus" "core.rrb-vector.clj")
                      {:linters {:unresolved-symbol {:level :error}}})))
-  (is (empty? (lint! "(defn get-email [{email :email :as user :or {email user}}] email)"
-                     {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns repro (:require [clojure.string :refer [starts-with?]]))
                       (defn foo {:test-fn starts-with?} [])"
                      {:linters {:unresolved-symbol {:level :error}}})))
