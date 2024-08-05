@@ -168,8 +168,8 @@
                        (when (contains? ul symbol-val)
                          (findings/reg-finding! ctx (utils/node->line (:filename ctx)
                                                                       expr
-                                                                      :destructured-or-refers-binding-of-same-map
-                                                                      (str ":or default refers to binding that may not exist: "
+                                                                      :destructured-or-binding-of-same-map
+                                                                      (str "Destructured :or refers to binding of same map: "
                                                                            symbol-val)))))
                      (namespace/reg-used-binding! ctx
                                                     (-> ns :name)

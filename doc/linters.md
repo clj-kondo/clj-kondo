@@ -864,6 +864,35 @@ The practice of using `defn` instead of `def` + `fn` has the following benefits:
 
 See [issue](https://github.com/clj-kondo/clj-kondo/issues/1920).
 
+### Destructured or binding of same map
+
+*Keyword:* `:destructured-or-binding-of-same-map`
+
+*Description:* an `:or` default value refers to a destructured binding of the
+same map. This may result in ambigious behavior since the order of bindings is
+undefined.
+
+*Default level:* `:warning`
+
+*Example triggers:*
+
+- `(fn [x {:keys [a b] :or {b a}}])`. Note that this works in Clojure, but
+  relies on incidental behavior of how destructuring is implemented. If you
+  reverse the order of `a` and `b` in `:keys` you will get an error from the
+  Clojure compiler: `(fn [x {:keys [b a] :or {b a}}])` It is better to not rely
+  on this behavior at all since adding bindings or changing the order of
+  bindings will break it.
+
+*Example messages:*
+
+- `Destructured :or refers to binding of same map: a`
+
+*Config:*
+
+``` clojure
+{:linters {:destructured-or-binding-of-same-map {:level :warning}}}
+```
+
 ### Inline def
 
 *Keyword:* `:inline-def`.
