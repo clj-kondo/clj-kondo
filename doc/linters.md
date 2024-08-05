@@ -870,7 +870,8 @@ See [issue](https://github.com/clj-kondo/clj-kondo/issues/1920).
 
 *Description:* an `:or` default value refers to a destructured binding of the
 same map. This may result in ambigious behavior since the order of bindings is
-undefined.
+undefined. See [this](https://github.com/clj-kondo/clj-kondo/issues/916) issue
+for more details and discussion.
 
 *Default level:* `:warning`
 
