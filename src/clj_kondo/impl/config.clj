@@ -165,6 +165,7 @@
               :java-static-field-call {:level :error}
               :equals-expected-position {:level :off
                                          :position :first}
+              :destructured-or-binding-of-same-map {:level :warning}
               :min-clj-kondo-version {:level :warning
                                       ;; the version itself is configured at the top level
                                       }}
