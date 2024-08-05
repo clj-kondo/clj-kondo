@@ -166,6 +166,9 @@
               :equals-expected-position {:level :off
                                          :position :first}
               :destructured-or-binding-of-same-map {:level :warning}}
+              :min-clj-kondo-version {:level :warning
+                                      ;; the version itself is configured at the top level
+                                      }}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
@@ -561,8 +564,11 @@
                   (compare-versions {:minimum minimum-version
                                      :current version/version}))]
     (when warning
-      (binding [*out* *err*]
-       (println "[clj-kondo] WARNING:" warning)))))
+      (findings/reg-finding! ctx {:message warning
+                                  :filename "<clj-kondo>"
+                                  :type :min-clj-kondo-version
+                                  :row 1
+                                  :col 1}))))
 
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]
