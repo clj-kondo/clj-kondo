@@ -345,9 +345,9 @@
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "
 (^[_] java.net.URI/new \"http://localhost\")
-(^[long*] java.net.URI/new \"http://localhost\")
-(^[short*] java.net.URI/new \"http://localhost\")
-(^[String*] java.net.URI/new \"http://localhost\")"
+(^[long/1] java.net.URI/new \"http://localhost\")
+(^[short/2] java.net.URI/new \"http://localhost\")
+(^[String/3] java.net.URI/new \"http://localhost\")"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest clojure-1-12-test
