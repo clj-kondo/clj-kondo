@@ -107,7 +107,7 @@
         (let [ns-idx (inc ns-idx)]
           (when-not (== ns-idx (count token))
             (let [sym (subs token ns-idx)]
-              (when (and (not (numeric? (nth sym 0)))
+              (when (and #_(not (numeric? (nth sym 0)))
                          (not (= "" sym))
                          (not (.endsWith ns ":"))
                          (or (= sym "/")

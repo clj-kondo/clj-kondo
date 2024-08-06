@@ -634,85 +634,89 @@
         cljs? (identical? :cljs lang)
         not-quoted? (not (:quoted ctx))]
     (if-let [ns* (namespace name-sym)]
-      (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
-                    ns*)
-            ns-sym (symbol ns*)]
-        (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                               (when (or (config/unresolved-namespace-excluded (:config ctx) ns-sym)
-                                         (and (:data-readers ctx)
-                                              (identical? :val (:clj-kondo.internal/map-position expr))))
-                                 ns-sym)
-                               ;; referring to the namespace we're in
-                               (when (= (:name ns) ns-sym)
-                                 ns-sym))]
-              (when not-quoted?
-                (lint-aliased-namespace ctx ns-sym name-sym expr)
-                (lint-as-aliased-usage ctx ns-sym name-sym expr))
-              (let [core? (or (= 'clojure.core ns*)
-                              (= 'cljs.core ns*))
-                    [var-name interop] (if cljs?
-                                         (str/split (name name-sym) #"\." 2)
-                                         [(name name-sym)])
-                    var-name (symbol var-name)
-                    resolved-core? (and core?
-                                        (var-info/core-sym? lang var-name))
-                    alias? (contains? (:aliases ns) ns-sym)]
-                (when alias?
-                  (reg-used-alias! ctx ns-name ns-sym))
-                (cond->
-                    {:ns ns*
-                     :name var-name
-                     :interop? (and cljs? (boolean interop))}
-                  alias?
-                  (assoc :alias ns-sym)
-                  core?
-                  (assoc :resolved-core? resolved-core?))))
-            (when-let [[class-name package]
-                       (or (when (identical? :clj lang)
-                             (or (when-let [[class fq] (find var-info/default-import->qname ns-sym)]
-                                   ;; TODO: fix in default-import->qname
-                                   [class (str/replace fq (str/re-quote-replacement (str "." class)) "")])
-                                 (when-let [fq (get var-info/default-fq-imports ns-sym)]
-                                   (let [fq (str fq)
-                                         splitted (split-on-dots fq)
-                                         package (symbol (str/join "." (butlast splitted)))
-                                         name* (symbol (last splitted))]
-                                     [name*
-                                      package]))))
-                           (find (:imports ns) ns-sym))]
-              (reg-used-import! ctx name-sym ns-name package class-name expr {:call call?})
-              (when call? (findings/warn-reflection ctx expr))
-              {:interop? true
-               :ns (symbol (str package "." class-name))
-               :name (symbol (name name-sym))})
-            (if (identical? :clj lang)
-              (if (and (not (one-of ns* ["clojure.core"]))
-                       (class-name? ns*))
-                (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym) {:call call?})
-                    (when call? (findings/warn-reflection ctx expr))
-                    {:interop? true})
-                {:name (symbol (name name-sym))
-                 :unresolved? true
-                 :unresolved-ns ns-sym})
-              (if cljs?
-                ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
-                (if-not (one-of ns* ["js" "goog"
-                                       "Math" "String"])
-                  {:name (symbol (name name-sym))
-                   :unresolved? true
-                   :unresolved-ns ns-sym}
-                  (let [var-name (-> (str/split (name name-sym) #"\." 2) first symbol)
-                        {:keys [row end-row col end-col]} (meta expr)]
-                    ;; interop calls don't make it into linters/lint-var-usage,
-                    ;; this is why we call discouraged var here
-                    (lint-discouraged-var! ctx (:config ctx) ns-sym var-name
-                                           (:filename ctx)
-                                           row end-row col end-col
-                                           (symbol (str ns-sym) ns*))
-                    nil))
-                {:name (symbol (name name-sym))
-                 :unresolved? true
-                 :unresolved-ns ns-sym}))))
+      (let [name-str (name name-sym)]
+        (if (re-matches #"\d+" name-str)
+          (recur (assoc ctx ::original-name (or (::original-name ctx) name-sym))
+                 call? ns-name (symbol ns*) expr)
+          (let [ns* (if cljs? (str/replace ns* #"\$macros$" "")
+                        ns*)
+                ns-sym (symbol ns*)]
+            (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
+                                   (when (or (config/unresolved-namespace-excluded (:config ctx) ns-sym)
+                                             (and (:data-readers ctx)
+                                                  (identical? :val (:clj-kondo.internal/map-position expr))))
+                                     ns-sym)
+                                   ;; referring to the namespace we're in
+                                   (when (= (:name ns) ns-sym)
+                                     ns-sym))]
+                  (when not-quoted?
+                    (lint-aliased-namespace ctx ns-sym name-sym expr)
+                    (lint-as-aliased-usage ctx ns-sym name-sym expr))
+                  (let [core? (or (= 'clojure.core ns*)
+                                  (= 'cljs.core ns*))
+                        [var-name interop] (if cljs?
+                                             (str/split (name name-sym) #"\." 2)
+                                             [(name name-sym)])
+                        var-name (symbol var-name)
+                        resolved-core? (and core?
+                                            (var-info/core-sym? lang var-name))
+                        alias? (contains? (:aliases ns) ns-sym)]
+                    (when alias?
+                      (reg-used-alias! ctx ns-name ns-sym))
+                    (cond->
+                        {:ns ns*
+                         :name var-name
+                         :interop? (and cljs? (boolean interop))}
+                      alias?
+                      (assoc :alias ns-sym)
+                      core?
+                      (assoc :resolved-core? resolved-core?))))
+                (when-let [[class-name package]
+                           (or (when (identical? :clj lang)
+                                 (or (when-let [[class fq] (find var-info/default-import->qname ns-sym)]
+                                       ;; TODO: fix in default-import->qname
+                                       [class (str/replace fq (str/re-quote-replacement (str "." class)) "")])
+                                     (when-let [fq (get var-info/default-fq-imports ns-sym)]
+                                       (let [fq (str fq)
+                                             splitted (split-on-dots fq)
+                                             package (symbol (str/join "." (butlast splitted)))
+                                             name* (symbol (last splitted))]
+                                         [name*
+                                          package]))))
+                               (find (:imports ns) ns-sym))]
+                  (reg-used-import! ctx name-sym ns-name package class-name expr {:call call?})
+                  (when call? (findings/warn-reflection ctx expr))
+                  {:interop? true
+                   :ns (symbol (str package "." class-name))
+                   :name (symbol (name name-sym))})
+                (if (identical? :clj lang)
+                  (if (and (not (one-of ns* ["clojure.core"]))
+                           (class-name? ns*))
+                    (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym) {:call call?})
+                        (when call? (findings/warn-reflection ctx expr))
+                        {:interop? true})
+                    {:name (symbol (name name-sym))
+                     :unresolved? true
+                     :unresolved-ns ns-sym})
+                  (if cljs?
+                    ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
+                    (if-not (one-of ns* ["js" "goog"
+                                         "Math" "String"])
+                      {:name (symbol (name name-sym))
+                       :unresolved? true
+                       :unresolved-ns ns-sym}
+                      (let [var-name (-> (str/split (name name-sym) #"\." 2) first symbol)
+                            {:keys [row end-row col end-col]} (meta expr)]
+                        ;; interop calls don't make it into linters/lint-var-usage,
+                        ;; this is why we call discouraged var here
+                        (lint-discouraged-var! ctx (:config ctx) ns-sym var-name
+                                               (:filename ctx)
+                                               row end-row col end-col
+                                               (symbol (str ns-sym) ns*))
+                        nil))
+                    {:name (symbol (name name-sym))
+                     :unresolved? true
+                     :unresolved-ns ns-sym}))))))
       (or
        (when (and call?
                   (special-symbol? name-sym))
@@ -787,15 +791,11 @@
                     (do (java/reg-class-usage! ctx (str name-sym) nil (meta expr))
                         (when call? (findings/warn-reflection ctx expr))
                         {:interop? true})
-                    (let [name-str (str name-sym)]
-                      (if (str/ends-with? name-str "*")
-                        (recur (assoc ctx ::original-name (or (::original-name ctx) name-sym))
-                               call? ns-name (symbol (subs name-str 0 (dec (count name-str)))) expr)
-                        {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                         :name (or (::original-name ctx) name-sym)
-                         :unresolved? true
-                         :allow-forward-reference? (:in-comment ctx)
-                         :clojure-excluded? clojure-excluded?})))))))))))))
+                    {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                     :name (or (::original-name ctx) name-sym)
+                     :unresolved? true
+                     :allow-forward-reference? (:in-comment ctx)
+                     :clojure-excluded? clojure-excluded?})))))))))))
 
 #_
 (do
