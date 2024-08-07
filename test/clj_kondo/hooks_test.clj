@@ -432,3 +432,10 @@ my-ns/special-map \"
    '({:file "corpus/issue-2256/foo.clj", :row 6, :col 1, :level :error, :message "Assert failed: shite"})
    (lint! (fs/file "corpus" "issue-2256" "foo.clj")
           "--config-dir" (fs/file "corpus" "issue-2256" ".clj-kondo"))))
+
+(deftest java-method-hook-test
+  (assert-submaps2
+   '({:file "corpus/analyze-method-call/src/test.clj", :row 3, :col 1, :level :error, :message "Use deterministic version"}
+     {:file "corpus/analyze-method-call/src/test.clj", :row 4, :col 1, :level :error, :message "Use deterministic version"})
+   (lint! (fs/file "corpus" "analyze-method-call" "src" "test.clj")
+          "--config-dir" (fs/file "corpus" "analyze-method-call" ".clj-kondo"))))
