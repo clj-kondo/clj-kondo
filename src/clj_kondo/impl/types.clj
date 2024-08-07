@@ -539,8 +539,10 @@
                                 (emit-non-match! ctx s a t))
                               (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
     (catch Exception e
-      (binding [*out* *err*]
-        (println "[clj-kondo]" "WARNING: error while checking types: " (-> e .getClass .getName) (str (.getMessage e)))))))
+      (if (= "true" (System/getenv "CLJ_KONDO_DEV"))
+        (throw e)
+        (binding [*out* *err*]
+          (println "[clj-kondo]" "WARNING: error while checking types: " (-> e .getClass .getName) (str (.getMessage e))))))))
 
 ;;;; Scratch
 
