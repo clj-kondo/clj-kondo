@@ -1,0 +1,4 @@
+{:hooks
+ {:analyze-call
+  {java.lang.System/currentTimeMillis checking/checking
+   java.util.UUID/randomUUID          checking/checking}}}

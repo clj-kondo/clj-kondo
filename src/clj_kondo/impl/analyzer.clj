@@ -2240,13 +2240,14 @@
                     hook-fn
                     (let [visited (:visited expr)]
                       (when-not (and visited (= visited [resolved-namespace resolved-name]))
-                        (or (hooks/hook-fn ctx config resolved-namespace resolved-name)
-                            (case [resolved-namespace resolved-name]
-                              ([clojure.test testing] [cljs.test testing])
-                              (when (:analysis-context ctx)
+                        (or
+                         (hooks/hook-fn ctx config resolved-namespace resolved-name)
+                         (case [resolved-namespace resolved-name]
+                           ([clojure.test testing] [cljs.test testing])
+                           (when (:analysis-context ctx)
                                 ;; only use testing hook when analysis is requested
-                                test/testing-hook)
-                              nil))))
+                             test/testing-hook)
+                           nil))))
                     transformed (when hook-fn
                               ;;;; Expand macro using user-provided function
                                   (let [filename (:filename ctx)]
@@ -2836,28 +2837,28 @@
 
 (defn- lint-unused-value [ctx expr]
   (let [idx (:idx ctx)
-                     len (:len ctx)
-                     callstack (:callstack ctx)]
-                 (when (and (symbol? (ffirst callstack))
-                            idx len (< idx (dec len)))
-                   (let [parent-call (first (:callstack ctx))
-                             core? (one-of (first parent-call) [clojure.core cljs.core])
-                             core-sym (when core?
-                                        (second parent-call))
-                             generated? (:clj-kondo.impl/generated expr)
-                             redundant?
-                             (and (not generated?)
-                                  core?
-                                  (not (:clj-kondo.impl/generated (meta parent-call)))
-                                  (one-of core-sym [do fn defn defn-
-                                                    let when-let loop binding with-open
-                                                    doseq try when when-not when-first
-                                                    when-some future]))]
-                         (when redundant?
-                           (findings/reg-finding! ctx (assoc (meta expr)
-                                                             :type :unused-value
-                                                             :message "Unused value"
-                                                             :filename (:filename ctx))))))))
+        len (:len ctx)
+        callstack (:callstack ctx)]
+    (when (and (symbol? (ffirst callstack))
+               idx len (< idx (dec len)))
+      (let [parent-call (first (:callstack ctx))
+            core? (one-of (first parent-call) [clojure.core cljs.core])
+            core-sym (when core?
+                       (second parent-call))
+            generated? (:clj-kondo.impl/generated expr)
+            redundant?
+            (and (not generated?)
+                 core?
+                 (not (:clj-kondo.impl/generated (meta parent-call)))
+                 (one-of core-sym [do fn defn defn-
+                                   let when-let loop binding with-open
+                                   doseq try when when-not when-first
+                                   when-some future]))]
+        (when redundant?
+          (findings/reg-finding! ctx (assoc (meta expr)
+                                            :type :unused-value
+                                            :message "Unused value"
+                                            :filename (:filename ctx))))))))
 
 #_(requiring-resolve 'clojure.set/union)
 
@@ -2906,11 +2907,11 @@
         :namespaced-map (do
                           (lint-unused-value ctx expr)
                           (usages/analyze-namespaced-map
-                             (-> ctx
-                                 (assoc :analyze-expression**
-                                        analyze-expression**)
-                                 (update :callstack #(cons [nil t] %)))
-                             expr))
+                           (-> ctx
+                               (assoc :analyze-expression**
+                                      analyze-expression**)
+                               (update :callstack #(cons [nil t] %)))
+                           expr))
         :map (do
                (lint-unused-value ctx expr)
                (key-linter/lint-map-keys ctx expr)

@@ -694,7 +694,9 @@
                            (class-name? ns*))
                     (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym) {:call call?})
                         (when call? (findings/warn-reflection ctx expr))
-                        {:interop? true})
+                        {:interop? true
+                         :ns ns-sym
+                         :name (symbol (name name-sym))})
                     {:name (symbol (name name-sym))
                      :unresolved? true
                      :unresolved-ns ns-sym})

@@ -23,6 +23,7 @@ For a list of breaking changes, check [here](#breaking-changes).
   `:or` defaults referring to bindings of same map, which is undefined and may result in broken
   behavior
 - [#2362](https://github.com/clj-kondo/clj-kondo/issues/2362): turn min-version warning into lint warning
+- [#1603](https://github.com/clj-kondo/clj-kondo/issues/1603): Support Java classes in `:analyze-call` hook
 
 ## 2024.08.01
 
