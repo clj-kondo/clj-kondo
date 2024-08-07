@@ -861,7 +861,7 @@
             [lang ignores] m
             ignore ignores]
       (when-not (:used ignore)
-        (findings/reg-finding! ctx (assoc ignore
+        (findings/reg-finding! ctx (assoc (:clj-kondo/ignore ignore)
                                           :type :redundant-ignore
                                           :message "Redundant ignore"
                                           :lang lang

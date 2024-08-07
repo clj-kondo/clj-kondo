@@ -369,15 +369,16 @@
   (let [cljc? (identical? :cljc (:base-lang ctx))
         lang (:lang ctx)
         m (meta expr)]
-    (when-let [ignore-node (:clj-kondo/ignore m)]
-      (let [node (if cljc?
-                   (select-lang ctx ignore-node (:lang ctx))
-                   ignore-node)
-            ignore (node/sexpr node)
-            _ (prn node)
-            ignore (if (boolean? ignore) ignore (set ignore))]
+    (when-let [ignore (:clj-kondo/ignore m)]
+      (let [node (:linters ignore)
+            node (if cljc?
+                   (select-lang ctx node (:lang ctx))
+                   node)
+            linters (node/sexpr node)
+            linters (if (identical? :all linters) linters (set linters))
+            ignore (assoc m :ignore linters)]
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
-               vconj (assoc m :ignore ignore))))))
+               vconj ignore)))))
 
 (defn err [& xs]
   (binding [*out* *err*]

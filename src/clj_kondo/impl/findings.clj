@@ -7,7 +7,7 @@
 ;; finding row 1, col 26, end-row 1, end-col 30
 
 (defn ignore-match? [ignore tp]
-  (or (true? ignore)
+  (or (identical? :all ignore)
       (contains? ignore tp)))
 
 (defn ignored?
@@ -67,8 +67,8 @@
             (identical? :cljc base-lang)
             (assoc :cljc true :lang lang))]
     (when (and level (not (identical? :off level)) (not dependencies) (not skip-lint?))
-      (when  (or (identical? :redundant-ignore (:type m))
-                 (not (ignored? ctx m tp)))
+      (when (or (identical? :redundant-ignore (:type m))
+                (not (ignored? ctx m tp)))
         (let [m (assoc m :level level)]
           (swap! findings conj m)
           m)))))
