@@ -870,4 +870,5 @@
 ;;;; scratch
 
 (comment
+  #_{:clj-kondo/ignore [:type-mismatchx]} [(inc :foo)]
   )

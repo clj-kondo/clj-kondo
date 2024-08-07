@@ -374,6 +374,7 @@
                    (select-lang ctx ignore-node (:lang ctx))
                    ignore-node)
             ignore (node/sexpr node)
+            _ (prn node)
             ignore (if (boolean? ignore) ignore (set ignore))]
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
                vconj (assoc m :ignore ignore))))))
