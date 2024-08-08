@@ -370,7 +370,8 @@
         lang (:lang ctx)
         m (meta expr)]
     (when-let [ignore (:clj-kondo/ignore m)]
-      (let [linters (if-let [node (:linters ignore)]
+      (let [node (:linters ignore)
+            linters (if node
                       (let [node (if cljc?
                                    (select-lang ctx node (:lang ctx))
                                    node)
@@ -380,8 +381,8 @@
             linters (if (or (true? linters)
                             (identical? :all linters))
                       :all (set linters))
-            ignore (-> (assoc m :ignore linters)
-                       (assoc-in [:clj-kondo/ignore :linters] nil))]
+            ignore (cond-> (assoc m :ignore linters)
+                     node (assoc-in [:clj-kondo/ignore :linters] nil))]
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
                vconj ignore)))))
 
