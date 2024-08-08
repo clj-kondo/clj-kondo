@@ -177,3 +177,8 @@ bar)"
   (is (empty?
        (lint! "(do (require '[clojure.tools.reader.edn :as ctr.edn]) (ctr.edn/read) :ok)"
               {:linters {:unused-value {:level :warning}}}))))
+
+(deftest issue-2369-test
+  (is (empty?
+       (lint! "(fn [] '({:a 1} {:b 2} {:c 3}))"
+              {:linters {:unused-value {:level :warning}}}))))
