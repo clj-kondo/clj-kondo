@@ -380,7 +380,8 @@
             linters (if (or (true? linters)
                             (identical? :all linters))
                       :all (set linters))
-            ignore (assoc m :ignore linters)]
+            ignore (-> (assoc m :ignore linters)
+                       (assoc-in [:clj-kondo/ignore :linters] nil))]
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
                vconj ignore)))))
 
