@@ -2994,7 +2994,8 @@
                            (first children)
                            (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
           (if (or (:quoted ctx) (= :edn lang))
-            (analyze-children ctx children)
+            (analyze-children (update ctx :callstack (fn [cs]
+                                                       (cons [:list nil] cs))) children)
             (let [t (tag function)]
               (case t
                 :map
