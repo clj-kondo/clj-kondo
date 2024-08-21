@@ -39,6 +39,7 @@
 
 (defn- reg-suspicious-return-schema!
   [ctx expr]
+  (prn "reg-finding!" expr)
   (findings/reg-finding!
     ctx
     (-> (utils/node->line (:filename ctx)
@@ -94,7 +95,7 @@
                      (inc index)
                      (let [[params & after-params] (:children fst-child)
                            valid-params-position? (= :vector (utils/tag params))
-                           _ (when (and (not valid-params-position?) ;; don't warn twice
+                           _ (when (and (not valid-params-position?) ;; (:- Foo []) will be treated as missing params
                                         (next after-params) ;; ([] :-) is fine
                                         (has-schema-node? (first after-params)))
                                (reg-suspicious-return-schema! ctx (first after-params)))
