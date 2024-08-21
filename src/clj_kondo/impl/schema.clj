@@ -118,4 +118,18 @@
 
 ;;;; Scratch
 
-(comment)
+(comment
+  (require '[schema.core :as s])
+  (s/defn foo [])
+  (s/defn bar [] :-)
+  (s/defn baz [] :- s/Int)
+  ;; not detected by clj-kondo but immediately fails expansion when evaluated
+  (s/defn :- s/Int foo [])
+  (s/defn foo ([] :- s/Int))
+  ;; not detected by clj-kondo but immediately fails expansion when evaluated
+  (s/defn bad-return5 ;;FIXME does this work?
+    "foo"
+    :- s/Int 
+    []
+    1)
+  )

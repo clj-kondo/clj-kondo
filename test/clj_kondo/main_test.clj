@@ -1211,7 +1211,7 @@ foo/foo ;; this does use the private var
       :message
       "Function arguments should be wrapped in vector."}
      {:file "corpus/schema/defs.clj",
-      :row 57,
+      :row 58,
       :col 3,
       :level :error,
       :message "Invalid function body."})
