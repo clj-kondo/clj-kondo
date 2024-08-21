@@ -71,7 +71,7 @@
                                             (into (conj children fst-child) rest-children))))
               (not fst-child)
               res
-              (= ':- (:k expr))
+              (has-schema-node? expr)
               (recur (next rest-children)
                      (inc index)
                      (update res :schemas conj (first rest-children))
