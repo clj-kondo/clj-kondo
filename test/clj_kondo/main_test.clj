@@ -1197,7 +1197,13 @@ foo/foo ;; this does use the private var
       :row 31,
       :col 14,
       :level :error,
-      :message "missing value for key :b"})
+      :message "missing value for key :b"}
+     {:file "corpus/schema/defs.clj",
+      :row 43,
+      :col 3,
+      :level :error,
+      :message
+      "Function arguments should be wrapped in vector."})
    (lint! (io/file "corpus" "schema")
           '{:linters {:unresolved-symbol {:level :error}}}))
   (is (empty? (lint! "(ns foo (:require [schema.core :refer [defschema]])) (defschema foo nil) foo"

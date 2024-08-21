@@ -29,3 +29,26 @@
 
 (schema.core/defn baz []
   (str {:a 1 :b}))
+
+(s/defn bad-return1 []
+  :- s/Int
+  1)
+
+(s/defn bad-return2
+  ([]
+   :- s/Int
+   1))
+
+(s/defn bad-return3
+  (:- s/Int []
+   1))
+
+(s/defn :- s/Int bad-return4
+  []
+  1)
+
+(s/defn bad-return5 ;;FIXME does this work?
+  "foo"
+  :- s/Int 
+  []
+  1)
