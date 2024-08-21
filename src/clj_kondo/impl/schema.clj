@@ -131,9 +131,8 @@
   (s/defn :- s/Int foo [])
   (s/defn foo ([] :- s/Int))
   ;; not detected by clj-kondo but immediately fails expansion when evaluated
-  (s/defn bad-return5 ;;FIXME does this work?
+  (s/defn bad-return5
     "foo"
     :- s/Int 
     []
-    1)
-  )
+    1))
