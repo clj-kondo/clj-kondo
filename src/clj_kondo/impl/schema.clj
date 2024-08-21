@@ -31,7 +31,7 @@
 (defn- has-schema-node? [n]
   (and (some? n)
        ;; perf: don't call sexpr if we don't need to
-       (= :keyword (utils/tag n))
+       (= :token (utils/tag n))
        (= :- (utils/sexpr n))))
 
 (defn- defmethod-dispatch-val? [fn-sym index]
@@ -39,7 +39,6 @@
 
 (defn- reg-suspicious-return-schema!
   [ctx expr]
-  (prn "reg-finding!" expr)
   (findings/reg-finding!
     ctx
     (-> (utils/node->line (:filename ctx)
@@ -78,7 +77,7 @@
                      (update res :schemas conj (first rest-children))
                      past-arg-schemas)
               (and (hooks/vector-node? expr) (not (defmethod-dispatch-val? fn-sym index)))
-              (let [_ (when (and (< (inc index) nchildren) ;; `(s/defn f [] :-)` is fine
+              (let [_ (when (and (< (+ 2 index) nchildren) ;; `(s/defn f [] :-)` is fine
                                  (has-schema-node? (nth children (inc index))))
                         (reg-suspicious-return-schema! ctx (nth children (inc index))))
                     {:keys [expr schemas]} (remove-schemas-from-children fst-child)]

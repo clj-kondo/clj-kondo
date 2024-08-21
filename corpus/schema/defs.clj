@@ -31,19 +31,19 @@
   (str {:a 1 :b}))
 
 (s/defn bad-return1 []
-  :- s/Int
+  :- s/Int ;; Return schema should go before vector.
   1)
 
 (s/defn bad-return2
   ([]
-   :- s/Int
+   :- s/Int ;;FIXME 
    1))
 
 (s/defn bad-return3
-  (:- s/Int []
+  (:- s/Int [] ;; Function arguments should be wrapped in vector.
    1))
 
-(s/defn :- s/Int bad-return4
+(s/defn :- s/Int bad-return4 ;;FIXME 
   []
   1)
 

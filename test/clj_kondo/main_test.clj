@@ -1199,6 +1199,12 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "missing value for key :b"}
      {:file "corpus/schema/defs.clj",
+      :row 34
+      :col 3
+      :level
+      :warning
+      :message "Return schema should go before vector."}
+     {:file "corpus/schema/defs.clj",
       :row 43,
       :col 3,
       :level :error,
