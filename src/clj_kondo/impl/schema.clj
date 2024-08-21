@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.hooks-api :as hooks]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils]))
 
 (defn remove-schemas-from-children [expr]
@@ -36,8 +37,18 @@
 (defn- defmethod-dispatch-val? [fn-sym index]
   (and (= 'defmethod fn-sym) (= 2 index)))
 
+(defn- reg-suspicious-return-schema!
+  [ctx expr]
+  (findings/reg-finding!
+    ctx
+    (-> (utils/node->line (:filename ctx)
+                          expr
+                          :suspicious-schema-return
+                          "Return schema should go before vector.")
+        (assoc :level :warning))))
+
 (defn expand-schema
-  [_ctx fn-sym expr]
+  [ctx fn-sym expr]
   (let [children (:children expr)
         nchildren (count children)
         {:keys [new-children
@@ -66,9 +77,9 @@
                      (update res :schemas conj (first rest-children))
                      past-arg-schemas)
               (and (hooks/vector-node? expr) (not (defmethod-dispatch-val? fn-sym index)))
-              (let [suspicious-return-schema?
-                    (and (< (inc index) nchildren) ;; `(s/defn f [] :-)` is fine
-                         (has-schema-node? (nth children (inc index))))
+              (let [_ (when (and (< (inc index) nchildren) ;; `(s/defn f [] :-)` is fine
+                                 (has-schema-node? (nth children (inc index))))
+                        (reg-suspicious-return-schema! ctx (nth children (inc index))))
                     {:keys [expr schemas]} (remove-schemas-from-children fst-child)]
                 (recur rest-children
                        (inc index)
@@ -76,20 +87,22 @@
                            (update :schemas into schemas)
                            (update :new-children conj expr))
                        true))
-              (hooks/list-node? expr)
+              (and (hooks/list-node? expr)
+                   ;; (s/defn foo ()) will fail when expanded form is checked
+                   (seq (:children fst-child)))
               (recur rest-children
                      (inc index)
                      (let [[params & after-params] (:children fst-child)
-                           valid-params-position? (= :vector (some-> params utils/tag))
-                           suspicious-return-schema? (and (not valid-params-position?)
-                                                          (next after-params) ;; ([] :-) is fine
-                                                          (has-schema-node? (first after-params)))
-                           {:keys [:expr :schemas]} (if true #_valid-params-position?
+                           valid-params-position? (= :vector (utils/tag params))
+                           _ (when (and (not valid-params-position?) ;; don't warn twice
+                                        (next after-params) ;; ([] :-) is fine
+                                        (has-schema-node? (first after-params)))
+                               (reg-suspicious-return-schema! ctx (first after-params)))
+                           {:keys [:expr :schemas]} (if valid-params-position?
                                                       (remove-schemas-from-children params)
-                                                      (do
-                                                        (prn "TODO warn")
-                                                        {:expr params
-                                                         :schemas []}))
+                                                      ;; (s/defn foo (:- Foo [])) expanded forms will warn missing params
+                                                      {:expr params
+                                                       :schemas []})
                            new-cchildren (cons expr after-params)
                            new-fst-child (assoc fst-child :children new-cchildren)]
                        (-> res
