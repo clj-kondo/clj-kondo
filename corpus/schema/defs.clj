@@ -36,21 +36,21 @@
 
 (s/defn bad-return2
   ([]
-   :- s/Int ;;FIXME 
+   :- s/Int ;; Return schema should go before arities.
    1))
 
 (s/defn bad-return3
   (:- s/Int [] ;; Function arguments should be wrapped in vector.
    1))
 
-(s/defn :- s/Int ;; not detected by clj-kondo but immediately fails expansion when evaluated
+(s/defn :- s/Int ;; TODO not detected by clj-kondo but immediately fails expansion when evaluated
   bad-return4
   [bad4]
   1)
 
 (s/defn bad-return5
   "foo"
-  :- s/Int ;; not detected by clj-kondo but immediately fails expansion when evaluated
+  :- s/Int ;; TODO not detected by clj-kondo but immediately fails expansion when evaluated
   []
   1)
 

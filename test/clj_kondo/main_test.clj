@@ -1205,6 +1205,11 @@ foo/foo ;; this does use the private var
       :warning
       :message "Return schema should go before vector."}
      {:file "corpus/schema/defs.clj",
+      :row 39,
+      :col 4,
+      :level :warning,
+      :message "Return schema should go before arities."}
+     {:file "corpus/schema/defs.clj",
       :row 43,
       :col 3,
       :level :error,

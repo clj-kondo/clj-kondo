@@ -38,13 +38,13 @@
   (and (= 'defmethod fn-sym) (= 2 index)))
 
 (defn- reg-suspicious-return-schema!
-  [ctx expr]
+  [ctx expr msg]
   (findings/reg-finding!
     ctx
     (-> (utils/node->line (:filename ctx)
                           expr
                           :suspicious-schema-return
-                          "Return schema should go before vector.")
+                          msg)
         (assoc :level :warning))))
 
 (defn expand-schema
@@ -79,7 +79,9 @@
               (and (hooks/vector-node? expr) (not (defmethod-dispatch-val? fn-sym index)))
               (let [_ (when (and (< (+ 2 index) nchildren) ;; `(s/defn f [] :-)` is fine
                                  (has-schema-node? (nth children (inc index))))
-                        (reg-suspicious-return-schema! ctx (nth children (inc index))))
+                        (reg-suspicious-return-schema!
+                          ctx (nth children (inc index))
+                          "Return schema should go before vector."))
                     {:keys [expr schemas]} (remove-schemas-from-children fst-child)]
                 (recur rest-children
                        (inc index)
@@ -94,10 +96,12 @@
                      (inc index)
                      (let [[params & after-params] (:children fst-child)
                            valid-params-position? (= :vector (utils/tag params))
-                           _ (when (and (not valid-params-position?) ;; (:- Foo []) will be treated as missing params
+                           _ (when (and valid-params-position? ;; (:- Foo []) will be treated as missing params
                                         (next after-params) ;; ([] :-) is fine
                                         (has-schema-node? (first after-params)))
-                               (reg-suspicious-return-schema! ctx (first after-params)))
+                               (reg-suspicious-return-schema!
+                                 ctx (first after-params)
+                                 "Return schema should go before arities."))
                            {:keys [:expr :schemas]} (if valid-params-position?
                                                       (remove-schemas-from-children params)
                                                       ;; (s/defn foo (:- Foo [])) expanded forms will warn missing params
