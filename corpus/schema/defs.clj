@@ -53,4 +53,7 @@
   []
   1)
 
+(s/defn bad-defn
+  ()) ;;Invalid function body.
+
 (s/defn good-return [] :-)
