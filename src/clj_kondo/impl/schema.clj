@@ -27,12 +27,19 @@
     {:expr (assoc expr :children new-children)
      :schemas schemas}))
 
+(defn- has-schema-node? [n]
+  (and (some? n)
+       ;; perf: don't call sexpr if we don't need to
+       (= :keyword (utils/tag n))
+       (= :- (utils/sexpr n))))
+
 (defn- defmethod-dispatch-val? [fn-sym index]
   (and (= 'defmethod fn-sym) (= 2 index)))
 
 (defn expand-schema
   [_ctx fn-sym expr]
   (let [children (:children expr)
+        nchildren (count children)
         {:keys [new-children
                 schemas]}
         (loop [[fst-child & rest-children] children
@@ -59,7 +66,10 @@
                      (update res :schemas conj (first rest-children))
                      past-arg-schemas)
               (and (hooks/vector-node? expr) (not (defmethod-dispatch-val? fn-sym index)))
-              (let [{:keys [expr schemas]} (remove-schemas-from-children fst-child)]
+              (let [suspicious-return-schema?
+                    (and (< (inc index) nchildren) ;; `(s/defn f [] :-)` is fine
+                         (has-schema-node? (nth children (inc index))))
+                    {:keys [expr schemas]} (remove-schemas-from-children fst-child)]
                 (recur rest-children
                        (inc index)
                        (-> res
@@ -69,9 +79,18 @@
               (hooks/list-node? expr)
               (recur rest-children
                      (inc index)
-                     (let [cchildren (:children fst-child)
-                           {:keys [:expr :schemas]} (remove-schemas-from-children (first cchildren))
-                           new-cchildren (cons expr (rest cchildren))
+                     (let [[params & after-params] (:children fst-child)
+                           valid-params-position? (= :vector (some-> params utils/tag))
+                           suspicious-return-schema? (and (not valid-params-position?)
+                                                          (next after-params) ;; ([] :-) is fine
+                                                          (has-schema-node? (first after-params)))
+                           {:keys [:expr :schemas]} (if true #_valid-params-position?
+                                                      (remove-schemas-from-children params)
+                                                      (do
+                                                        (prn "TODO warn")
+                                                        {:expr params
+                                                         :schemas []}))
+                           new-cchildren (cons expr after-params)
                            new-fst-child (assoc fst-child :children new-cchildren)]
                        (-> res
                            (update :schemas into schemas)

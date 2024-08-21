@@ -52,3 +52,5 @@
   :- s/Int 
   []
   1)
+
+(s/defn good-return [] :-)
